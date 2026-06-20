@@ -1076,6 +1076,7 @@ struct IntrinsicAccessDetails {
   Value* Ptr { nullptr };
   Value* Mask { nullptr };
   int64_t Alignment { 0 };
+  bool IsContiguous { false };
 
   IntrinsicAccessDetails() = default;
 
@@ -4073,6 +4074,26 @@ class Pizlonator {
         }
         assert(!hasPtrs(IAD.T));
         break;
+      case Intrinsic::masked_compressstore:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = cast<FixedVectorType>(II->getArgOperand(0)->getType());
+        IAD.Ptr = II->getArgOperand(1);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        IAD.IsContiguous = true;
+        assert(!hasPtrs(IAD.T));
+        break;
+      case Intrinsic::masked_expandload:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Read;
+        IAD.T = cast<FixedVectorType>(II->getType());
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(1);
+        IAD.Alignment = 1;
+        IAD.IsContiguous = true;
+        assert(!hasPtrs(IAD.T));
+        break;
       case Intrinsic::x86_avx_maskload_pd:
         assert(II->arg_size() == 2);
         IAD.AK = AccessKind::Read;
@@ -4137,7 +4158,189 @@ class Pizlonator {
         IAD.Mask = II->getArgOperand(1);
         IAD.Alignment = 1;
         break;
+      // AVX512 pmov downconvert masked stores.
+      // All have signature: void(ptr, source_vector, mask)
+      // IAD.T is the destination (narrowed) vector type.
+      // qb: i64->i8
+      case Intrinsic::x86_avx512_mask_pmov_qb_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovs_qb_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovus_qb_mem_128:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 2);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_qb_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovs_qb_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovus_qb_mem_256:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 4);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_qb_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovs_qb_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovus_qb_mem_512:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 8);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      // qw: i64->i16
+      case Intrinsic::x86_avx512_mask_pmov_qw_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovs_qw_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovus_qw_mem_128:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int16Ty, 2);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_qw_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovs_qw_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovus_qw_mem_256:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int16Ty, 4);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_qw_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovs_qw_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovus_qw_mem_512:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int16Ty, 8);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      // qd: i64->i32
+      case Intrinsic::x86_avx512_mask_pmov_qd_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovs_qd_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovus_qd_mem_128:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int32Ty, 2);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_qd_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovs_qd_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovus_qd_mem_256:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int32Ty, 4);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_qd_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovs_qd_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovus_qd_mem_512:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int32Ty, 8);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      // db: i32->i8
+      case Intrinsic::x86_avx512_mask_pmov_db_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovs_db_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovus_db_mem_128:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 4);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_db_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovs_db_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovus_db_mem_256:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 8);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_db_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovs_db_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovus_db_mem_512:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 16);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      // dw: i32->i16
+      case Intrinsic::x86_avx512_mask_pmov_dw_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovs_dw_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovus_dw_mem_128:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int16Ty, 4);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_dw_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovs_dw_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovus_dw_mem_256:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int16Ty, 8);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_dw_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovs_dw_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovus_dw_mem_512:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int16Ty, 16);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      // wb: i16->i8
+      case Intrinsic::x86_avx512_mask_pmov_wb_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovs_wb_mem_128:
+      case Intrinsic::x86_avx512_mask_pmovus_wb_mem_128:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 8);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
+      case Intrinsic::x86_avx512_mask_pmov_wb_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovs_wb_mem_256:
+      case Intrinsic::x86_avx512_mask_pmovus_wb_mem_256:
+        assert(II->arg_size() == 3);
+        IAD.AK = AccessKind::Write;
+        IAD.T = FixedVectorType::get(Int8Ty, 16);
+        IAD.Ptr = II->getArgOperand(0);
+        IAD.Mask = II->getArgOperand(2);
+        IAD.Alignment = 1;
+        break;
       case Intrinsic::x86_avx512_mask_pmov_wb_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovs_wb_mem_512:
+      case Intrinsic::x86_avx512_mask_pmovus_wb_mem_512:
+        assert(II->arg_size() == 3);
         IAD.AK = AccessKind::Write;
         IAD.T = FixedVectorType::get(Int8Ty, 32);
         IAD.Ptr = II->getArgOperand(0);
@@ -6682,7 +6885,12 @@ class Pizlonator {
         }
       }
       if (Result->getType() != MaskIntTy) {
-        Instruction* MaskInt = new BitCastInst(Result, MaskIntTy, "filc_mask_as_int", Before);
+        Instruction* MaskInt;
+        if (Result->getType()->isIntegerTy() &&
+            Result->getType()->getIntegerBitWidth() > MaskSize)
+          MaskInt = new TruncInst(Result, MaskIntTy, "filc_mask_trunc", Before);
+        else
+          MaskInt = new BitCastInst(Result, MaskIntTy, "filc_mask_as_int", Before);
         MaskInt->setDebugLoc(II->getDebugLoc());
         Result = MaskInt;
       }
@@ -6695,31 +6903,44 @@ class Pizlonator {
     MaskIsZero->setDebugLoc(II->getDebugLoc());
     SplitBlockAndInsertIfThen(
       MaskIsZero, BelowLowerTerm, false, nullptr, nullptr, nullptr, II->getParent());
-    Instruction* TrailingZeroes = CallInst::Create(
-      Intrinsic::getOrInsertDeclaration(&M, Intrinsic::cttz, MaskIntTy),
-      { MaskInt, ConstantInt::getTrue(Int1Ty) }, "filc_mask_trailing_zeroes", BelowLowerTerm);
-    TrailingZeroes->setDebugLoc(II->getDebugLoc());
-    Instruction* Offset = BinaryOperator::Create(
-      Instruction::Mul, makeIntPtr(TrailingZeroes, BelowLowerTerm),
-      ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T->getElementType())),
-      "filc_mask_offset", BelowLowerTerm);
-    Offset->setDebugLoc(II->getDebugLoc());
-    Instruction* NegativeOffset = BinaryOperator::Create(
-      Instruction::Sub, ConstantInt::get(IntPtrTy, 0), Offset, "filc_mask_neg_offset",
-      BelowLowerTerm);
-    NegativeOffset->setDebugLoc(II->getDebugLoc());
-    Instruction* LowerMinus = GetElementPtrInst::Create(
-      Int8Ty, flightPtrLower(Ptr, BelowLowerTerm), { NegativeOffset },
-      "filc_lower_minus_masked_offset", BelowLowerTerm);
-    LowerMinus->setDebugLoc(II->getDebugLoc());
-    Instruction* IsBelowLower = new ICmpInst(
-      BelowLowerTerm, ICmpInst::ICMP_ULT, flightPtrPtr(Ptr, BelowLowerTerm), LowerMinus,
-      "filc_ptr_below_lower_masked");
-    IsBelowLower->setDebugLoc(II->getDebugLoc());
-    Instruction* FailTerm = SplitBlockAndInsertIfThen(
-      expectFalse(IsBelowLower, BelowLowerTerm), BelowLowerTerm, true);
-    PHINode* MaskIntPhi = PHINode::Create(MaskIntTy, 2, "filc_mask_as_int_phi", FailTerm);
-    MaskIntPhi->addIncoming(MaskInt, IsBelowLower->getParent());
+    Instruction* FailTerm;
+    PHINode* MaskIntPhi;
+    if (IAD.IsContiguous) {
+      // For contiguous access (compressstore/expandload), if ptr < lower and mask != 0,
+      // the access starts at ptr which is below the lower bound, so it always fails.
+      BasicBlock* FailPred = BelowLowerTerm->getParent();
+      FailTerm = SplitBlockAndInsertIfThen(
+        ConstantInt::getTrue(Int1Ty), BelowLowerTerm, true);
+      MaskIntPhi = PHINode::Create(MaskIntTy, 2, "filc_mask_as_int_phi", FailTerm);
+      MaskIntPhi->addIncoming(MaskInt, FailPred);
+    } else {
+      // For fixed-position access, use cttz to find the first active element.
+      Instruction* TrailingZeroes = CallInst::Create(
+        Intrinsic::getOrInsertDeclaration(&M, Intrinsic::cttz, MaskIntTy),
+        { MaskInt, ConstantInt::getTrue(Int1Ty) }, "filc_mask_trailing_zeroes", BelowLowerTerm);
+      TrailingZeroes->setDebugLoc(II->getDebugLoc());
+      Instruction* Offset = BinaryOperator::Create(
+        Instruction::Mul, makeIntPtr(TrailingZeroes, BelowLowerTerm),
+        ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T->getElementType())),
+        "filc_mask_offset", BelowLowerTerm);
+      Offset->setDebugLoc(II->getDebugLoc());
+      Instruction* NegativeOffset = BinaryOperator::Create(
+        Instruction::Sub, ConstantInt::get(IntPtrTy, 0), Offset, "filc_mask_neg_offset",
+        BelowLowerTerm);
+      NegativeOffset->setDebugLoc(II->getDebugLoc());
+      Instruction* LowerMinus = GetElementPtrInst::Create(
+        Int8Ty, flightPtrLower(Ptr, BelowLowerTerm), { NegativeOffset },
+        "filc_lower_minus_masked_offset", BelowLowerTerm);
+      LowerMinus->setDebugLoc(II->getDebugLoc());
+      Instruction* IsBelowLower = new ICmpInst(
+        BelowLowerTerm, ICmpInst::ICMP_ULT, flightPtrPtr(Ptr, BelowLowerTerm), LowerMinus,
+        "filc_ptr_below_lower_masked");
+      IsBelowLower->setDebugLoc(II->getDebugLoc());
+      FailTerm = SplitBlockAndInsertIfThen(
+        expectFalse(IsBelowLower, BelowLowerTerm), BelowLowerTerm, true);
+      MaskIntPhi = PHINode::Create(MaskIntTy, 2, "filc_mask_as_int_phi", FailTerm);
+      MaskIntPhi->addIncoming(MaskInt, IsBelowLower->getParent());
+    }
         
     // First we identify the true Size of the access. Then we do:
     // Ptr <= Upper - Size
@@ -6733,27 +6954,58 @@ class Pizlonator {
     MaskIsZero->setDebugLoc(II->getDebugLoc());
     SplitBlockAndInsertIfThen(
       MaskIsZero, AboveUpperTerm, false, nullptr, nullptr, nullptr, II->getParent());
-    Instruction* LeadingZeroes = CallInst::Create(
-      Intrinsic::getOrInsertDeclaration(&M, Intrinsic::ctlz, MaskIntTy),
-      { MaskInt, ConstantInt::getTrue(Int1Ty) }, "filc_mask_trailing_zeroes", AboveUpperTerm);
-    LeadingZeroes->setDebugLoc(II->getDebugLoc());
-    Instruction* OffsetFromEnd = BinaryOperator::Create(
-      Instruction::Mul, makeIntPtr(LeadingZeroes, AboveUpperTerm),
-      ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T->getElementType())),
-      "filc_mask_offset_from_end", AboveUpperTerm);
-    OffsetFromEnd->setDebugLoc(II->getDebugLoc());
-    UpperMinus = GetElementPtrInst::Create(
-      Int8Ty, UpperMinus, { OffsetFromEnd }, "filc_upper_minus_masked_offset",
-      AboveUpperTerm);
-    UpperMinus->setDebugLoc(II->getDebugLoc());
-    Instruction* IsBelowUpper = new ICmpInst(
-      AboveUpperTerm, ICmpInst::ICMP_ULE, flightPtrPtr(Ptr, AboveUpperTerm), UpperMinus,
-      "filc_ptr_below_equal_upper_masked");
-    IsBelowUpper->setDebugLoc(II->getDebugLoc());
-    SplitBlockAndInsertIfElse(
-      expectTrue(IsBelowUpper, AboveUpperTerm), AboveUpperTerm, false, nullptr, nullptr, nullptr,
-      FailTerm->getParent());
-    MaskIntPhi->addIncoming(MaskInt, IsBelowUpper->getParent());
+    if (IAD.IsContiguous) {
+      // For contiguous access, the accessed range is [Ptr, Ptr + popcount(mask) * elemsize).
+      // Check: Ptr + popcount(mask) * elemsize <= Upper, i.e., Ptr <= Upper - access_size.
+      Instruction* Popcount = CallInst::Create(
+        Intrinsic::getOrInsertDeclaration(&M, Intrinsic::ctpop, MaskIntTy),
+        { MaskInt }, "filc_mask_popcount", AboveUpperTerm);
+      Popcount->setDebugLoc(II->getDebugLoc());
+      Instruction* AccessSize = BinaryOperator::Create(
+        Instruction::Mul, makeIntPtr(Popcount, AboveUpperTerm),
+        ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T->getElementType())),
+        "filc_contiguous_access_size", AboveUpperTerm);
+      AccessSize->setDebugLoc(II->getDebugLoc());
+      Instruction* NegativeAccessSize = BinaryOperator::Create(
+        Instruction::Sub, ConstantInt::get(IntPtrTy, 0), AccessSize,
+        "filc_contiguous_neg_access_size", AboveUpperTerm);
+      NegativeAccessSize->setDebugLoc(II->getDebugLoc());
+      Instruction* UpperMinusContiguous = GetElementPtrInst::Create(
+        Int8Ty, upperForLower(flightPtrLower(Ptr, AboveUpperTerm), AboveUpperTerm),
+        { NegativeAccessSize }, "filc_upper_minus_contiguous", AboveUpperTerm);
+      UpperMinusContiguous->setDebugLoc(II->getDebugLoc());
+      Instruction* IsBelowUpper = new ICmpInst(
+        AboveUpperTerm, ICmpInst::ICMP_ULE, flightPtrPtr(Ptr, AboveUpperTerm),
+        UpperMinusContiguous, "filc_ptr_below_equal_upper_contiguous");
+      IsBelowUpper->setDebugLoc(II->getDebugLoc());
+      SplitBlockAndInsertIfElse(
+        expectTrue(IsBelowUpper, AboveUpperTerm), AboveUpperTerm, false, nullptr, nullptr, nullptr,
+        FailTerm->getParent());
+      MaskIntPhi->addIncoming(MaskInt, IsBelowUpper->getParent());
+    } else {
+      // For fixed-position access, use ctlz to find the last active element.
+      Instruction* LeadingZeroes = CallInst::Create(
+        Intrinsic::getOrInsertDeclaration(&M, Intrinsic::ctlz, MaskIntTy),
+        { MaskInt, ConstantInt::getTrue(Int1Ty) }, "filc_mask_trailing_zeroes", AboveUpperTerm);
+      LeadingZeroes->setDebugLoc(II->getDebugLoc());
+      Instruction* OffsetFromEnd = BinaryOperator::Create(
+        Instruction::Mul, makeIntPtr(LeadingZeroes, AboveUpperTerm),
+        ConstantInt::get(IntPtrTy, DL.getTypeAllocSize(T->getElementType())),
+        "filc_mask_offset_from_end", AboveUpperTerm);
+      OffsetFromEnd->setDebugLoc(II->getDebugLoc());
+      UpperMinus = GetElementPtrInst::Create(
+        Int8Ty, UpperMinus, { OffsetFromEnd }, "filc_upper_minus_masked_offset",
+        AboveUpperTerm);
+      UpperMinus->setDebugLoc(II->getDebugLoc());
+      Instruction* IsBelowUpper = new ICmpInst(
+        AboveUpperTerm, ICmpInst::ICMP_ULE, flightPtrPtr(Ptr, AboveUpperTerm), UpperMinus,
+        "filc_ptr_below_equal_upper_masked");
+      IsBelowUpper->setDebugLoc(II->getDebugLoc());
+      SplitBlockAndInsertIfElse(
+        expectTrue(IsBelowUpper, AboveUpperTerm), AboveUpperTerm, false, nullptr, nullptr, nullptr,
+        FailTerm->getParent());
+      MaskIntPhi->addIncoming(MaskInt, IsBelowUpper->getParent());
+    }
 
     CallInst::Create(
       MaskedAccessCheckFail,
