@@ -67,11 +67,11 @@ void filc_setproctitle_initialize(int argc, char** argv)
      * programs. Beware.
      */
 
-    if (argc == 0 || argv[0] == NULL)
+    if (argc == 0 || argv == NULL || argv[0] == NULL)
         return;
 
     /* Fail if we can't allocate room for the new environment */
-    for (i = 0; envp[i] != NULL; i++)
+    for (i = 0; envp != NULL && envp[i] != NULL; i++)
         ;
     if ((environ = calloc(i + 1, sizeof(*environ))) == NULL) {
         environ = envp;	/* put it back */
@@ -83,29 +83,34 @@ void filc_setproctitle_initialize(int argc, char** argv)
      * our process memory area.
      */
     for (i = 0; i < argc; i++) {
+        if (argv[i] == NULL)
+            continue;
         if (lastargv == NULL || lastargv + 1 == argv[i])
             lastargv = argv[i] + strlen(argv[i]);
     }
-    for (i = 0; envp[i] != NULL; i++) {
-        if (lastargv + 1 == envp[i])
+    for (i = 0; envp != NULL && envp[i] != NULL; i++) {
+        if (lastargv && lastargv + 1 == envp[i])
             lastargv = envp[i] + strlen(envp[i]);
     }
 
     argv[1] = NULL;
     argv_start = argv[0];
-    argv_env_len = lastargv - argv[0] - 1;
+    argv_env_len = (lastargv > argv[0]) ? (size_t)(lastargv - argv[0] - 1) : 0;
 
     /*
      * Copy environment
      * XXX - will truncate env on strdup fail
      */
-    for (i = 0; envp[i] != NULL; i++)
+    for (i = 0; envp != NULL && envp[i] != NULL; i++)
         environ[i] = strdup(envp[i]);
     environ[i] = NULL;
 }
 
 void filc_setproctitle(const char* ptitle)
 {
+    PAS_ASSERT(ptitle);
+    if (!argv_start || !argv_env_len)
+        return;
     size_t len = 0;
     len = strlcpy(argv_start, ptitle, argv_env_len);
     for(; len < argv_env_len; len++)
