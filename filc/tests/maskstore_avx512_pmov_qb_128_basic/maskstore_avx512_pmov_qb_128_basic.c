@@ -19,6 +19,20 @@ __attribute__((target("avx512vl"))) int main()
     ZASSERT(buf[0] == (char)0x42);
     ZASSERT(buf[1] == (char)0x41);
     
+    /* Partial mask: only element 1 */
+    buf[0] = 0;
+    buf[1] = 0;
+    _mm_mask_cvtepi64_storeu_epi8(buf, 0x2, v);
+    ZASSERT(buf[0] == 0);
+    ZASSERT(buf[1] == (char)0x41);
+    
+    /* Zero mask: no access */
+    buf[0] = 0xCD;
+    buf[1] = 0xCD;
+    _mm_mask_cvtepi64_storeu_epi8(buf, 0x0, v);
+    ZASSERT(buf[0] == (char)0xCD);
+    ZASSERT(buf[1] == (char)0xCD);
+    
     zprintf("pmov_qb_128 basic test passed!\n");
     return 0;
 }
