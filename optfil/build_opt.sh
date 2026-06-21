@@ -371,6 +371,15 @@ cd ..
 rm -rf readline-8.2.13
 hash -r
 
+tar -xf $FILCSRC/projects/libedit-20240808-3.1/pizlonated-libedit.tar.gz
+cd pizlonated-libedit
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
+make -j `nproc`
+make -j `nproc` install
+cd ..
+rm -rf pizlonated-libedit
+hash -r
+
 tar -xf $FILCSRC/projects/pkgconf-2.3.0/pizlonated-pkgconf.tar.gz
 cd pizlonated-pkgconf
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
@@ -558,7 +567,9 @@ CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
             --with-superuser-path=/opt/fil/sbin:/opt/fil/bin:/usr/sbin:/usr/bin:/bin \
             --with-pid-dir=/run \
             --with-pam \
-            --with-kerberos5=/opt/fil
+            --with-kerberos5=/opt/fil \
+            --with-selinux \
+            --with-libedit
 make -j `nproc`
 make -j `nproc` install-nosysconf
 make -j `nproc` sysconfdir=/opt/fil/share/examples/ssh install-sysconf 
@@ -841,6 +852,15 @@ make -j `nproc`
 make -j `nproc` install
 cd ..
 rm -rf pizlonated-rsync
+hash -r
+
+tar -xf $FILCSRC/projects/patchelf-0.18.0/pizlonated-patchelf.tar.gz
+cd pizlonated-patchelf
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
+make -j `nproc`
+make -j `nproc` install
+cd ..
+rm -rf pizlonated-patchelf
 hash -r
 
 cd ..
