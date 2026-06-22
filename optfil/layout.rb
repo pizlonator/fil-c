@@ -9,13 +9,16 @@ listAsString = "acl  attr  bash  binutils  bzip2  coreutils  curl  diff  find  f
 
 list = listAsString.split.sort
 
+MAX_COLS = 75
+BASIC_SPACE = 1
+
 class Entry
     attr_reader :name
     attr_accessor :space
 
     def initialize(name)
         @name = name
-        @space = 1
+        @space = BASIC_SPACE
     end
 
     def normalize
@@ -33,14 +36,18 @@ class Entry
     def length
         name.size + space
     end
+
+    def ==(other)
+        name == other.name and space == other.space
+    end
 end
 
 $rows = [list.map { | x | Entry.new(x) }]
 
 def rowSize(row)
     size = 0
-    row.each { | x | size += x.length }
-    size
+    row[0..-2].each { | x | size += x.length }
+    size + row.last.name.size
 end
 
 def unshiftToNextRow(index)
@@ -58,7 +65,7 @@ def fixpointColWidth
         changed = false
         index = 0
         while index < $rows.length
-            if rowSize($rows[index]) >= 79
+            if rowSize($rows[index]) >= MAX_COLS
                 unshiftToNextRow(index)
                 result = changed = true
             end
@@ -122,17 +129,38 @@ def fixpointAlignment
     result
 end
 
-changed = true
-while changed
-    changed = false
-    changed |= fixpointColWidth
-    changed |= fixpointEqualRows
-    changed |= fixpointAlignment
+def dealign
+    $rows.each {
+        | row |
+        row.each {
+            | entry |
+            entry.space = BASIC_SPACE
+        }
+    }
+end
+
+loop {
+    oldRows = $rows.map {
+        | row |
+        row.map {
+            | entry |
+            entry.dup
+        }
+    }
+    fixpointColWidth
+    fixpointEqualRows
+    dealign
+    fixpointAlignment
     puts
     $rows.each {
         | row |
         puts row.join('')
     }
-end
+    break if oldRows == $rows
+}
 
-
+puts
+$rows.each {
+    | row |
+    puts("    echo \"" + row.join('') + "\"")
+}
