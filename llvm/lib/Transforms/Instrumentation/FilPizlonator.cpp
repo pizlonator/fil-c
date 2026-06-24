@@ -1475,6 +1475,7 @@ class Pizlonator {
   Module &M;
   const DataLayout DLBefore;
   const DataLayout DL;
+  Triple::ArchType Arch;
 
   unsigned PtrBits;
   Type* VoidTy;
@@ -8186,13 +8187,25 @@ class Pizlonator {
             FT->getNumParams() == 0 &&
             !FT->isVarArg() &&
             FT->getReturnType() == RawPtrTy) {
-          CallInst* RawStackAddr = CallInst::Create(
-            InlineAsm::get(
-              FunctionType::get(RawPtrTy, { }, false),
-              "mov %rsp, $0",
-              "=r,~{dirflag},~{fpsr},~{flags}",
-              /*hasSideEffects=*/true),
-            { }, "", CI);
+          StringRef SPName;
+          switch (Arch) {
+          case Triple::aarch64:
+            SPName = "sp";
+            break;
+          case Triple::x86_64:
+            SPName = "rsp";
+            break;
+          default:
+            report_fatal_error("Unknown arch");
+          }
+          Instruction *RawStackAddr = CallInst::Create(
+              Intrinsic::getOrInsertDeclaration(&M, Intrinsic::read_register,
+                                                IntPtrTy),
+              {MetadataAsValue::get(C,
+                                    MDNode::get(C, MDString::get(C, SPName)))},
+              "", CI);
+          RawStackAddr->setDebugLoc(CI->getDebugLoc());
+          RawStackAddr = new IntToPtrInst(RawStackAddr, RawPtrTy, "", CI);
           RawStackAddr->setDebugLoc(CI->getDebugLoc());
           CI->replaceAllUsesWith(badFlightPtr(RawStackAddr, CI));
           Erasify();
@@ -12182,7 +12195,8 @@ class Pizlonator {
     assert(MyThread);
     Value* GEP = threadStackLimitPtr(MyThread, InsertBefore);
     CallInst* CI = CallInst::Create(StackCheckAsm, { GEP }, "", InsertBefore);
-    CI->addParamAttr(0, Attribute::get(C, Attribute::ElementType, RawPtrTy));
+    if (Arch == Triple::x86_64)
+      CI->addParamAttr(0, Attribute::get(C, Attribute::ElementType, RawPtrTy));
   }
 
   Value* flightPtrForLocalFunction(Function* F, Instruction* InsertBefore) {
@@ -13617,6 +13631,7 @@ public:
     assert(DL.getPointerABIAlignment(TargetAS) == 8);
     assert(!DL.isNonIntegralAddressSpace(TargetAS));
 
+    Arch = Triple(M.getTargetTriple()).getArch();
     PtrBits = DL.getPointerSizeInBits(TargetAS);
     VoidTy = Type::getVoidTy(C);
     Int1Ty = Type::getInt1Ty(C);
@@ -13964,12 +13979,29 @@ public:
     ExpectI1 = Intrinsic::getOrInsertDeclaration(&M, Intrinsic::expect, Int1Ty);
     LifetimeStart = Intrinsic::getOrInsertDeclaration(&M, Intrinsic::lifetime_start, { RawPtrTy });
     LifetimeEnd = Intrinsic::getOrInsertDeclaration(&M, Intrinsic::lifetime_end, { RawPtrTy });
-    StackCheckAsm = InlineAsm::get(
-      FunctionType::get(VoidTy, { RawPtrTy }, false),
-      "cmp %rsp, $0\n\t"
-      "jae filc_stack_overflow_failure@PLT",
-      "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
-      /*hasSideEffects=*/true);
+    switch (Arch) {
+    case Triple::aarch64:
+      StackCheckAsm =
+          InlineAsm::get(FunctionType::get(RawPtrTy, {RawPtrTy}, false),
+                         "ldr $0, [$1]\n\t"
+                         "cmp sp, $0\n\t"
+                         "b.cs 1f\n\t"
+                         "b filc_stack_overflow_failure\n\t"
+                         "1:",
+                         "=r,r",
+                         /*hasSideEffects=*/true);
+      break;
+    case Triple::x86_64:
+      StackCheckAsm =
+          InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                         "cmp %rsp, $0\n\t"
+                         "jae filc_stack_overflow_failure@PLT",
+                         "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
+                         /*hasSideEffects=*/true);
+      break;
+    default:
+      report_fatal_error("Unknown arch");
+    }
     DoNothing = Intrinsic::getOrInsertDeclaration(&M, Intrinsic::donothing, { });
 
     cast<Function>(OptimizedAlignmentContradiction.getCallee())->addFnAttr(Attribute::NoReturn);
