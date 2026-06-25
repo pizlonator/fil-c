@@ -13159,6 +13159,8 @@ class Pizlonator {
       for (BasicBlock& BB : F) {
         std::vector<Instruction*> ToErase;
         for (Instruction& I : BB) {
+          if (I.DebugMarker)
+            I.DebugMarker->eraseFromParent();
           CallBase* CI = dyn_cast<CallBase>(&I);
           if (!CI)
             continue;
