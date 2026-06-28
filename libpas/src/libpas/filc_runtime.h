@@ -51,70 +51,16 @@
 #include <unistd.h>
 #include <sys/uio.h>
 
+#define FILC_HAS_FIBER_CONTEXT PAS_GLIBC
+
+#if FILC_HAS_FIBER_CONTEXT
+#include <ucontext.h>
+#endif /* FILC_HAS_FIBER_CONTEXT */
+
 PAS_BEGIN_EXTERN_C;
 
 /* Internal FilC runtime header, defining how the FilC runtime maintains its state. */
 
-struct filc_alignment_and_offset;
-struct filc_alignment_header;
-struct filc_atomic_box;
-struct filc_aux_base_and_ptr;
-struct filc_cc_cursor;
-struct filc_cc_sizer;
-struct filc_cc_unit;
-struct filc_closure;
-struct filc_constant_relocation;
-struct filc_constexpr_node;
-struct filc_exact_ptr_table;
-struct filc_exception_and_int;
-struct filc_exception_and_ptr;
-struct filc_exception_and_void;
-struct filc_finalizer_queue;
-struct filc_frame;
-struct filc_function;
-struct filc_function_object;
-struct filc_function_origin;
-struct filc_global_initialization_work_item;
-struct filc_inline_frame;
-struct filc_inverse_weak_map_entry;
-struct filc_inverse_weak_map_key;
-struct filc_inverse_weak_map_map_entry;
-struct filc_jmp_buf;
-struct filc_lower_or_box;
-struct filc_mark_stack;
-struct filc_marker;
-struct filc_native_frame;
-struct filc_object;
-struct filc_object_array;
-struct filc_object_array_impl;
-struct filc_optimized_access_check_origin;
-struct filc_optimized_alignment_contradiction_origin;
-struct filc_origin;
-struct filc_origin_node;
-struct filc_origin_with_eh;
-struct filc_panic_context;
-struct filc_ptr;
-struct filc_ptr_array;
-struct filc_ptr_hash_map_entry;
-struct filc_ptr_table;
-struct filc_ptr_table_array;
-struct filc_ptr_uintptr_hash_map_entry;
-struct filc_raw_ptr_array;
-struct filc_rest_ptr_pair;
-struct filc_signal_handler;
-struct filc_signal_queue_chunk;
-struct filc_signal_queue_chunk_header;
-struct filc_stack_aux;
-struct filc_stack_limit;
-struct filc_thread;
-struct filc_uintptr_ptr_hash_map_entry;
-struct filc_weak;
-struct filc_weak_map;
-struct pas_basic_heap_runtime_config;
-struct pas_local_allocator;
-struct pas_thread_local_cache_node;
-struct pizlonated_return_value;
-struct verse_heap_object_set;
 typedef struct filc_alignment_and_offset filc_alignment_and_offset;
 typedef struct filc_alignment_header filc_alignment_header;
 typedef struct filc_atomic_box filc_atomic_box;
@@ -129,6 +75,7 @@ typedef struct filc_exact_ptr_table filc_exact_ptr_table;
 typedef struct filc_exception_and_int filc_exception_and_int;
 typedef struct filc_exception_and_ptr filc_exception_and_ptr;
 typedef struct filc_exception_and_void filc_exception_and_void;
+typedef struct filc_fiber_context filc_fiber_context;
 typedef struct filc_finalizer_queue filc_finalizer_queue;
 typedef struct filc_frame filc_frame;
 typedef struct filc_function filc_function;
@@ -208,6 +155,7 @@ typedef uintptr_t filc_word;
 #define FILC_SPECIAL_TYPE_WEAK            ((filc_special_type)9)
 #define FILC_SPECIAL_TYPE_WEAK_MAP        ((filc_special_type)10)
 #define FILC_SPECIAL_TYPE_FINALIZER_QUEUE ((filc_special_type)11)
+#define FILC_SPECIAL_TYPE_FIBER_CONTEXT   ((filc_special_type)12)
 #define FILC_SPECIAL_TYPE_MASK            ((filc_special_type)15)
 
 #define FILC_LOG_ALIGN_MASK               ((filc_log_align)31)
@@ -218,8 +166,6 @@ typedef uintptr_t filc_word;
 #define FILC_OBJECT_AUX_PTR_MASK          PAS_ADDRESS_MASK
 #define FILC_OBJECT_AUX_FLAGS_SHIFT       PAS_ADDRESS_BITS
 
-/* FIXME: Need to support special aligned objects. So, we need 4 bits for the special type and 5 bits
-   for alignment. That leaves 7 flags. */
 #define FILC_OBJECT_FLAG_GLOBAL           ((filc_object_flags)1)  /* Pointer to a global, so cannot be
                                                                      freed. */
 #define FILC_OBJECT_FLAG_READONLY         ((filc_object_flags)2)  /* Object is readonly. Also, a
@@ -789,6 +735,8 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     /* End fields that the compiler has to know about. */
 
     void* stack_top;
+
+    filc_stack_limit original_stack_limit;
     
     filc_native_frame* top_native_frame;
 
@@ -817,6 +765,15 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
        an object that holds the actual value. Threads track all of those thread local objects in this
        array, so that they can mark them as roots. */
     filc_object_array thread_locals;
+
+#if FILC_HAS_FIBER_CONTEXT
+    /* Fibers we switch from have to be rescanned, and it's easiest to hook that into the thread's
+       scanning. */
+    filc_raw_ptr_array grey_fibers;
+
+    filc_fiber_context* current_fiber_context;
+    filc_fiber_context* switching_to_fiber_context;
+#endif /* FILC_HAS_FIBER_CONTEXT */
 
     pas_system_mutex lock; /* We grab all of these during fork(). */
     pas_system_condition cond;
@@ -1400,6 +1357,32 @@ struct filc_jmp_buf {
     void* lowers[];
 };
 
+#if FILC_HAS_FIBER_CONTEXT
+enum filc_fiber_context_state {
+    filc_fiber_context_uninitialized,
+    filc_fiber_context_after_getcontext,
+    filc_fiber_context_runnable,
+    filc_fiber_context_runnable_grey,
+    filc_fiber_context_running
+};
+
+typedef enum filc_fiber_context_state filc_fiber_context_state;
+
+struct filc_fiber_context {
+    pas_lock lock;
+    filc_fiber_context_state state;
+    ucontext_t context;
+    filc_frame* top_frame;
+    filc_native_frame* top_native_frame;
+    filc_raw_ptr_array allocation_roots;
+    unsigned special_signal_deferral_depth;
+    filc_stack_limit stack_limit;
+    void* stack;
+    filc_ptr closure_ptr;
+    filc_object* object_that_owns_stack;
+};
+#endif /* FILC_HAS_FIBER_CONTEXT */
+
 enum filc_size_mode {
     filc_small_size,
     filc_large_size
@@ -1814,6 +1797,12 @@ static inline void* filc_raw_ptr_array_pop(filc_raw_ptr_array* array)
     return array->array[--array->size];
 }
 
+static inline void filc_raw_ptr_array_reset(filc_raw_ptr_array* array)
+{
+    filc_raw_ptr_array_destruct(array);
+    filc_raw_ptr_array_construct(array);
+}
+
 static inline void filc_object_array_impl_construct(filc_object_array_impl* array)
 {
     array->num_objects = 0;
@@ -2062,10 +2051,8 @@ static PAS_ALWAYS_INLINE void filc_push_native_frame(
     my_thread->top_native_frame = frame;
 }
 
-static PAS_ALWAYS_INLINE void filc_pop_native_frame(filc_thread* my_thread, filc_native_frame* frame)
+static PAS_ALWAYS_INLINE void filc_native_frame_destruct(filc_native_frame* frame)
 {
-    PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
-
     if (frame->size) {
         unsigned index;
         uintptr_t* array = frame->array;
@@ -2084,6 +2071,13 @@ static PAS_ALWAYS_INLINE void filc_pop_native_frame(filc_thread* my_thread, filc
         PAS_TESTING_ASSERT(frame->capacity == FILC_NATIVE_FRAME_INLINE_CAPACITY);
         PAS_TESTING_ASSERT(frame->array == frame->inline_array);
     }
+}
+
+static PAS_ALWAYS_INLINE void filc_pop_native_frame(filc_thread* my_thread, filc_native_frame* frame)
+{
+    PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
+
+    filc_native_frame_destruct(frame);
     
     PAS_TESTING_ASSERT(!frame->locked);
     
@@ -2141,6 +2135,8 @@ PAS_API void filc_thread_assert_participates_in_handshakes(filc_thread* my_threa
 PAS_API void filc_thread_assert_participates_in_pollchecks(filc_thread* my_thread);
 
 PAS_API void filc_thread_sweep_mark_stack(filc_thread* my_thread);
+PAS_API void filc_thread_reset_grey_fibers(filc_thread* my_thread);
+PAS_API void filc_thread_assert_no_grey_fibers(filc_thread* my_thread);
 PAS_API void filc_thread_donate(filc_thread* my_thread);
 
 static inline bool filc_origin_node_is_inline_frame(const filc_origin_node* origin_node)
@@ -2615,6 +2611,7 @@ static inline void filc_object_validate_special_with_payload(filc_object* object
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_WEAK ||
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_WEAK_MAP ||
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_FINALIZER_QUEUE ||
+               filc_object_special_type(object) == FILC_SPECIAL_TYPE_FIBER_CONTEXT ||
                (filc_object_special_type(object) == FILC_SPECIAL_TYPE_FUNCTION
                 && !(filc_object_get_flags(object) & FILC_OBJECT_FLAG_READONLY)));
 }
@@ -3730,6 +3727,7 @@ static inline bool filc_special_type_is_valid(filc_special_type special_type)
     case FILC_SPECIAL_TYPE_WEAK:
     case FILC_SPECIAL_TYPE_WEAK_MAP:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
+    case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
         return true;
     default:
         return false;
@@ -4415,6 +4413,26 @@ static inline const char* filc_jmp_buf_kind_get_longjmp_string(filc_jmp_buf_kind
 /* This creates all of the filc_jmp_buf except for the system_buf, which must be populated by the
    caller. The `value` argument is ignored unless kind is sigsetjmp. */
 filc_jmp_buf* filc_jmp_buf_create(filc_thread* my_thread, filc_jmp_buf_kind kind, int value);
+
+static inline const char* filc_fiber_context_state_get_string(filc_fiber_context_state state)
+{
+    switch (state) {
+    case filc_fiber_context_uninitialized:
+        return "uninitialized";
+    case filc_fiber_context_after_getcontext:
+        return "after_getcontext";
+    case filc_fiber_context_runnable:
+        return "runnable";
+    case filc_fiber_context_runnable_grey:
+        return "runnable_grey";
+    case filc_fiber_context_running:
+        return "running";
+    }
+    PAS_ASSERT(!"Should not be reached");
+    return NULL;
+}
+
+void filc_fiber_context_destruct(filc_fiber_context* fiber_context);
 
 /* This is for cases where you want to grab a lock while entered and hold it across an exit.
    

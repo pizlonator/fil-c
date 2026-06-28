@@ -405,11 +405,12 @@ static void stop_allocators_to_allocate_black_pollcheck_callback(filc_thread* th
         thread->is_allocating_black = true;
 }
 
-static void stop_allocators_pollcheck_callback(filc_thread* thread, void* arg)
+static void stop_allocators_during_post_mark_pollcheck_callback(filc_thread* thread, void* arg)
 {
     PAS_ASSERT(!arg);
-    dump_handshake(thread, "stop_allocators");
+    dump_handshake(thread, "stop_allocators_during_post_mark");
     filc_thread_stop_allocators(thread);
+    filc_thread_assert_no_grey_fibers(thread);
 }
 
 static void turn_off_allocating_black_pollcheck_callback(filc_thread* thread, void* arg)
@@ -434,6 +435,7 @@ static void after_marking_pollcheck_callback(filc_thread* thread, void* arg)
     dump_handshake(thread, "after_marking");
     filc_thread_stop_allocators(thread);
     filc_thread_sweep_mark_stack(thread);
+    filc_thread_reset_grey_fibers(thread);
 }
 
 static PAS_ALWAYS_INLINE bool donate_impl(filc_mark_stack* mark_stack, pas_lock_lock_mode mode,
@@ -503,6 +505,10 @@ static void destruct_object_callback(void* allocation, void* arg)
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
         filc_finalizer_queue_destruct(
             (filc_finalizer_queue*)filc_object_special_payload_with_manual_tracking(object));
+        break;
+    case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
+        filc_fiber_context_destruct(
+            (filc_fiber_context*)filc_object_special_payload_with_manual_tracking(object));
         break;
     default:
         PAS_ASSERT(!"Encountered object in destructor space that should not have destructor.");
@@ -961,6 +967,8 @@ static void mark_and_start_censusing(void)
     if (fugc_verbose >= VERBOSE_CYCLES)
         mark_end_time = pas_get_time_in_milliseconds();
 
+    PAS_ASSERT(filc_current_marking_state == filc_not_marking);
+
     /* We need the after_marking_pollcheck_callback to execute after marking no matter what, so that's
        why we don't do the set size based optimization to avoid it. */
     PAS_ASSERT(census_size == SIZE_MAX);
@@ -1070,7 +1078,7 @@ static void census_and_start_reviving(void)
         finalizer_size = 0;
     else {
         verse_heap_object_set_start_iterate_before_handshake(fugc_finalizer_set);
-        filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
+        filc_soft_handshake(stop_allocators_during_post_mark_pollcheck_callback, NULL);
         finalizer_size = verse_heap_object_set_start_iterate_after_handshake(fugc_finalizer_set);
     }
     finalizer_index = 0;
@@ -1158,7 +1166,7 @@ static void remark_and_start_recensusing(void)
         finalizer_size = 0;
     else {
         verse_heap_object_set_start_iterate_before_handshake(fugc_finalizer_set);
-        filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
+        filc_soft_handshake(stop_allocators_during_post_mark_pollcheck_callback, NULL);
         finalizer_size = verse_heap_object_set_start_iterate_after_handshake(fugc_finalizer_set);
     }
     finalizer_index = 0;
@@ -1201,7 +1209,7 @@ static void recensus_and_start_destructing(void)
     PAS_ASSERT(destruct_size == SIZE_MAX);
     PAS_ASSERT(destruct_index == SIZE_MAX);
     verse_heap_object_set_start_iterate_before_handshake(fugc_destructor_set);
-    filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
+    filc_soft_handshake(stop_allocators_during_post_mark_pollcheck_callback, NULL);
     fugc_has_unfinished_census = false;
     destruct_size = verse_heap_object_set_start_iterate_after_handshake(fugc_destructor_set);
     destruct_index = 0;
@@ -1243,7 +1251,7 @@ static void destruct_and_start_scribbling(void)
         PAS_ASSERT(scribble_size == SIZE_MAX);
         PAS_ASSERT(scribble_index == SIZE_MAX);
         verse_heap_object_set_start_iterate_before_handshake(fugc_scribble_set);
-        filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
+        filc_soft_handshake(stop_allocators_during_post_mark_pollcheck_callback, NULL);
         scribble_size = verse_heap_object_set_start_iterate_after_handshake(fugc_scribble_set);
         scribble_index = 0;
     }
@@ -1302,7 +1310,7 @@ static void scribble_and_start_sweeping(void)
         filc_soft_handshake(turn_off_allocating_black_pollcheck_callback, NULL);
 
     verse_heap_start_sweep_before_handshake();
-    filc_soft_handshake(stop_allocators_pollcheck_callback, NULL);
+    filc_soft_handshake(stop_allocators_during_post_mark_pollcheck_callback, NULL);
     PAS_ASSERT(!filc_mark_stack_num_objects(&fugc_global_stack));
     filc_mark_stack_reset(&fugc_global_stack);
 

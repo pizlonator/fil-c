@@ -192,6 +192,13 @@ addSig "void", "zdump_stack"
 addSig "void", "zstack_scan", "filc_ptr", "filc_ptr"
 addSig "void", "zlongjmp", "filc_ptr", "int"
 addSig "void", "zmake_setjmp_save_sigmask", "bool"
+addSig "filc_ptr", "zfiber_context_new"
+addSig "void", "zfiber_context_set_sigset", "filc_ptr", "filc_ptr"
+addSig "void", "zfiber_context_get_sigset", "filc_ptr", "filc_ptr"
+addSig "void", "zfiber_context_getcontext", "filc_ptr"
+addSig "void", "zfiber_context_setcontext", "filc_ptr"
+addSig "void", "zfiber_context_makecontext", "filc_ptr", "size_t", "filc_ptr"
+addSig "void", "zfiber_context_swapcontext", "filc_ptr", "filc_ptr"
 addSig "void", "zcpuid", "unsigned", "filc_ptr", "filc_ptr", "filc_ptr", "filc_ptr"
 addSig "void", "zcpuid_count", "unsigned", "unsigned", "filc_ptr", "filc_ptr", "filc_ptr",
        "filc_ptr"
@@ -591,6 +598,7 @@ addOutSig "eh_stop_fn", "int", "int", "int", "unsigned long long", "filc_ptr", "
 addOutSig "void_ptr", "void", "filc_ptr"
 addOutSig "thread_main", "exception/filc_ptr", "filc_ptr"
 addOutSig "libc_start_main", "exception/void", "filc_ptr", "int", "filc_ptr", "filc_ptr", "filc_ptr"
+addOutSig "fiber_context_main", "exception/void"
 
 # FIXME: We totally could use fast entrypoints for native calls.
 

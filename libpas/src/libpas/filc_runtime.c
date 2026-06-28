@@ -210,6 +210,9 @@ filc_thread* filc_thread_create_with_manual_tracking(filc_thread* my_thread)
     filc_raw_ptr_array_construct(&thread->allocation_roots);
     filc_mark_stack_construct(&thread->mark_stack);
     filc_object_array_construct(&thread->thread_locals);
+#if FILC_HAS_FIBER_CONTEXT
+    filc_raw_ptr_array_construct(&thread->grey_fibers);
+#endif /* FILC_HAS_FIBER_CONTEXT */
 
     unsigned allocator_index = 0;
     unsigned last_size = UINT_MAX;
@@ -284,6 +287,9 @@ void filc_thread_undo_create(filc_thread* thread)
     PAS_ASSERT(!filc_mark_stack_num_objects(&thread->mark_stack));
     filc_raw_ptr_array_destruct(&thread->allocation_roots);
     filc_object_array_destruct(&thread->thread_locals);
+#if FILC_HAS_FIBER_CONTEXT
+    filc_raw_ptr_array_destruct(&thread->grey_fibers);
+#endif /* FILC_HAS_FIBER_CONTEXT */
     filc_thread_destroy_space_with_guard_page(thread);
 }
 
@@ -357,24 +363,45 @@ bool filc_verbose_stop_the_world = false;
 unsigned filc_dump_heap_on_signal = 0;
 unsigned filc_dump_stacks_on_signal = 0;
 
+static const size_t stack_slack = 32768;
+
+static filc_stack_limit create_null_stack_limit(void)
+{
+    filc_stack_limit result;
+    result.stack_limit = NULL;
+    result.stack_top = NULL;
+    return result;
+}
+
+static filc_stack_limit compute_stack_limit_for_stack_and_size(char* stack,
+                                                               size_t stack_size)
+{
+    static const size_t stack_slack = 32768;
+
+    PAS_ASSERT(stack);
+    PAS_ASSERT(stack_size > stack_slack);
+
+    filc_stack_limit result;
+    
+    result.stack_limit = stack + stack_slack;
+    result.stack_top = stack + stack_size;
+    
+    return result;
+}
+
 filc_stack_limit filc_try_compute_stack_limit(void)
 {
     static const bool verbose = false;
     
-    static const size_t stack_slack = 32768;
-
     pthread_attr_t attr;
 
-    filc_stack_limit result;
-    result.stack_limit = NULL;
-    
     if (pthread_getattr_np(pthread_self(), &attr))
-        return result;
+        return create_null_stack_limit();
     
     char* stack;
     size_t stack_size;
     if (pthread_attr_getstack(&attr, (void**)&stack, &stack_size))
-        return result;
+        return create_null_stack_limit();
 
     if (verbose)
         pas_log("stack = %p, stack_size = %zu\n", stack, stack_size);
@@ -385,12 +412,9 @@ filc_stack_limit filc_try_compute_stack_limit(void)
     PAS_ASSERT(stack);
     PAS_ASSERT((char*)&stack > stack);
     PAS_ASSERT((char*)&stack < stack + stack_size);
-    PAS_ASSERT(stack_size > stack_slack);
     PAS_ASSERT((char*)&stack > stack + stack_slack);
 
-    result.stack_limit = stack + stack_slack;
-    result.stack_top = stack + stack_size;
-    return result;
+    return compute_stack_limit_for_stack_and_size(stack, stack_size);
 }
 
 filc_stack_limit filc_compute_stack_limit(void)
@@ -400,11 +424,16 @@ filc_stack_limit filc_compute_stack_limit(void)
     return result;
 }
 
-static void set_stack_limit(filc_thread* thread)
+static void set_stack_limit(filc_thread* thread, filc_stack_limit stack_limit)
 {
-    filc_stack_limit stack_limit = filc_compute_stack_limit();
     thread->stack_limit = stack_limit.stack_limit;
     thread->stack_top = stack_limit.stack_top;
+    thread->original_stack_limit = stack_limit;
+}
+
+static void compute_and_set_stack_limit(filc_thread* thread)
+{
+    set_stack_limit(thread, filc_compute_stack_limit());
 }
 
 static int file_log_fd = -1;
@@ -587,8 +616,7 @@ void filc_initialize(filc_stack_limit stack_limit)
     PAS_ASSERT(!pthread_key_create(&filc_thread_key, NULL));
     PAS_ASSERT(!pthread_setspecific(filc_thread_key, thread));
     PAS_ASSERT(filc_stack_limit_did_succeed(stack_limit));
-    thread->stack_limit = stack_limit.stack_limit;
-    thread->stack_top = stack_limit.stack_top;
+    set_stack_limit(thread, stack_limit);
 
     /* This code assumes that it's running before the GC can run. */
     if (filc_dump_heap_on_signal)
@@ -1657,6 +1685,24 @@ void filc_thread_sweep_mark_stack(filc_thread* my_thread)
     filc_mark_stack_reset(&my_thread->mark_stack);
 }
 
+void filc_thread_reset_grey_fibers(filc_thread* my_thread)
+{
+#if FILC_HAS_FIBER_CONTEXT
+    filc_raw_ptr_array_reset(&my_thread->grey_fibers);
+#else /* FILC_HAS_FIBER_CONTEXT -> so !FILC_HAS_FIBER_CONTEXT */
+    PAS_UNUSED_PARAM(my_thread);
+#endif /* FILC_HAS_FIBER_CONTEXT -> so end of !FILC_HAS_FIBER_CONTEXT */
+}
+
+void filc_thread_assert_no_grey_fibers(filc_thread* my_thread)
+{
+#if FILC_HAS_FIBER_CONTEXT
+    PAS_ASSERT(!my_thread->grey_fibers.size);
+#else /* FILC_HAS_FIBER_CONTEXT -> so !FILC_HAS_FIBER_CONTEXT */
+    PAS_UNUSED_PARAM(my_thread);
+#endif /* FILC_HAS_FIBER_CONTEXT -> so end of !FILC_HAS_FIBER_CONTEXT */
+}
+
 void filc_thread_donate(filc_thread* my_thread)
 {
     filc_thread_assert_participates_in_pollchecks(my_thread);
@@ -2539,6 +2585,7 @@ filc_object* filc_allocate_special_early_with_heap(size_t size, size_t alignment
     case FILC_SPECIAL_TYPE_THREAD:
     case FILC_SPECIAL_TYPE_PTR_TABLE:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
+    case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
         PAS_ASSERT(heap == fugc_destructor_heap);
         break;
     case FILC_SPECIAL_TYPE_WEAK:
@@ -2603,6 +2650,7 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
     case FILC_SPECIAL_TYPE_THREAD:
     case FILC_SPECIAL_TYPE_PTR_TABLE:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
+    case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
         heap = fugc_destructor_heap;
         break;
     case FILC_SPECIAL_TYPE_WEAK:
@@ -7792,6 +7840,356 @@ void filc_native_zmake_setjmp_save_sigmask(filc_thread* my_thread, bool save_sig
     PAS_UNUSED_PARAM(my_thread);
     setjmp_saves_sigmask = save_sigmask;
 }
+
+#if FILC_HAS_FIBER_CONTEXT
+filc_ptr filc_native_zfiber_context_new(filc_thread* my_thread)
+{
+    filc_fiber_context* result = (filc_fiber_context*)
+        filc_object_special_payload_with_manual_tracking(
+            filc_allocate_special(my_thread,
+                                  sizeof(filc_fiber_context),
+                                  1,
+                                  FILC_SPECIAL_TYPE_FIBER_CONTEXT));
+
+    pas_lock_construct(&result->lock);
+    result->state = filc_fiber_context_uninitialized;
+    filc_raw_ptr_array_construct(&result->allocation_roots);
+
+    return filc_ptr_for_special_payload_with_manual_tracking(result);
+}
+
+void filc_fiber_context_destruct(filc_fiber_context* fiber_context)
+{
+    filc_native_frame* native_frame;
+    for (native_frame = fiber_context->top_native_frame;
+         native_frame;
+         native_frame = native_frame->parent)
+        filc_native_frame_destruct(native_frame);
+
+    filc_raw_ptr_array_destruct(&fiber_context->allocation_roots);
+
+    bmalloc_deallocate(fiber_context->stack);
+}
+
+void filc_native_zfiber_context_set_sigset(filc_thread* my_thread, filc_ptr fiber_context_ptr,
+                                           filc_ptr sigset_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    
+    filc_check_access_special(fiber_context_ptr, FILC_SPECIAL_TYPE_FIBER_CONTEXT);
+    filc_check_user_sigset(sigset_ptr, filc_read_access);
+
+    filc_fiber_context* fiber_context = (filc_fiber_context*)filc_ptr_ptr(fiber_context_ptr);
+    pas_lock_lock(&fiber_context->lock);
+    filc_from_user_sigset((sigset_t*)filc_ptr_ptr(sigset_ptr), &fiber_context->context.uc_sigmask);
+    pas_lock_unlock(&fiber_context->lock);
+}
+
+void filc_native_zfiber_context_get_sigset(filc_thread* my_thread, filc_ptr fiber_context_ptr,
+                                           filc_ptr sigset_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    
+    filc_check_access_special(fiber_context_ptr, FILC_SPECIAL_TYPE_FIBER_CONTEXT);
+    filc_check_user_sigset(sigset_ptr, filc_write_access);
+
+    filc_fiber_context* fiber_context = (filc_fiber_context*)filc_ptr_ptr(fiber_context_ptr);
+    pas_lock_lock(&fiber_context->lock);
+    filc_to_user_sigset(&fiber_context->context.uc_sigmask, (sigset_t*)filc_ptr_ptr(sigset_ptr));
+    pas_lock_unlock(&fiber_context->lock);
+}
+
+void filc_native_zfiber_context_getcontext(filc_thread* my_thread, filc_ptr fiber_context_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    
+    filc_check_access_special(fiber_context_ptr, FILC_SPECIAL_TYPE_FIBER_CONTEXT);
+
+    filc_fiber_context* fiber_context = (filc_fiber_context*)filc_ptr_ptr(fiber_context_ptr);
+    pas_lock_lock(&fiber_context->lock);
+    FILC_CHECK(
+        fiber_context->state == filc_fiber_context_uninitialized,
+        NULL,
+        "cannot call getcontext more than once on the same context "
+        "(fiber context ptr = %s, state = %s).",
+        filc_ptr_to_new_string(fiber_context_ptr),
+        filc_fiber_context_state_get_string(fiber_context->state));
+    PAS_ASSERT(!getcontext(&fiber_context->context));
+    fiber_context->state = filc_fiber_context_after_getcontext;
+    pas_lock_unlock(&fiber_context->lock);
+}
+
+void filc_native_zfiber_context_setcontext(filc_thread* my_thread, filc_ptr fiber_context_ptr)
+{
+    filc_check_access_special(fiber_context_ptr, FILC_SPECIAL_TYPE_FIBER_CONTEXT);
+
+    filc_fiber_context* fiber_context = (filc_fiber_context*)filc_ptr_ptr(fiber_context_ptr);
+    pas_lock_lock(&fiber_context->lock);
+    FILC_CHECK(
+        fiber_context->state == filc_fiber_context_runnable ||
+        fiber_context->state == filc_fiber_context_runnable_grey,
+        NULL,
+        "cannot call setcontext except for runnable contexts "
+        "(fiber context ptr = %s, state = %s).",
+        filc_ptr_to_new_string(fiber_context_ptr),
+        filc_fiber_context_state_get_string(fiber_context->state));
+    /* We current leave the current context in a running state, which prevents it from ever being
+       switched to. I think that's right. */
+    my_thread->current_fiber_context = NULL;
+    my_thread->switching_to_fiber_context = fiber_context;
+    setcontext(&fiber_context->context);
+    PAS_ASSERT(!"Should not be reached");
+}
+
+static filc_thread* finish_switch_to_fiber_context(void)
+{
+    filc_thread* my_thread = filc_get_my_thread();
+    PAS_ASSERT(filc_thread_is_entered(my_thread));
+
+    filc_fiber_context* fiber_context = my_thread->switching_to_fiber_context;
+    PAS_ASSERT(fiber_context);
+    my_thread->switching_to_fiber_context = NULL;
+    
+    PAS_ASSERT(fiber_context->state == filc_fiber_context_runnable ||
+               fiber_context->state == filc_fiber_context_runnable_grey);
+    fiber_context->state = filc_fiber_context_running;
+    my_thread->top_frame = fiber_context->top_frame;
+    fiber_context->top_frame = NULL;
+    my_thread->top_native_frame = fiber_context->top_native_frame;
+    fiber_context->top_native_frame = NULL;
+    filc_raw_ptr_array_destruct(&my_thread->allocation_roots);
+    my_thread->allocation_roots = fiber_context->allocation_roots;
+    filc_raw_ptr_array_construct(&fiber_context->allocation_roots);
+    my_thread->special_signal_deferral_depth = fiber_context->special_signal_deferral_depth;
+    fiber_context->special_signal_deferral_depth = 0;
+    my_thread->stack_limit = fiber_context->stack_limit.stack_limit;
+    my_thread->stack_top = fiber_context->stack_limit.stack_top;
+    pas_lock_unlock(&fiber_context->lock);
+    if (my_thread->current_fiber_context)
+        pas_lock_unlock(&my_thread->current_fiber_context->lock);
+    my_thread->current_fiber_context = fiber_context;
+
+    return my_thread;
+}
+
+static void start_fiber_context(void)
+{
+    filc_thread* my_thread = finish_switch_to_fiber_context();
+
+    PAS_ASSERT(!my_thread->top_frame);
+    PAS_ASSERT(!my_thread->top_native_frame);
+    PAS_ASSERT(my_thread->current_fiber_context);
+    filc_fiber_context* fiber_context = my_thread->current_fiber_context;
+
+    FILC_DEFINE_CATCHING_FRAME("start_fiber_context");
+    filc_push_frame(my_thread, frame);
+
+    filc_native_frame native_frame;
+    filc_push_native_frame(my_thread, &native_frame);
+
+    filc_ptr closure_ptr = filc_flight_ptr_load(my_thread, &fiber_context->closure_ptr);
+    filc_flight_ptr_store(my_thread, &fiber_context->closure_ptr, filc_ptr_forge_null());
+
+    filc_exception_and_void result = filc_call_user_fiber_context_main(my_thread, closure_ptr);
+    if (result.has_exception)
+        filc_user_panic(NULL, "unexpected exception thrown from fiber context main.");
+
+    filc_user_panic(NULL, "unexpected return from fiber context main.");
+}
+
+void filc_native_zfiber_context_makecontext(filc_thread* my_thread, filc_ptr fiber_context_ptr,
+                                            size_t stack_size, filc_ptr closure_ptr)
+{
+    filc_check_access_special(fiber_context_ptr, FILC_SPECIAL_TYPE_FIBER_CONTEXT);
+
+    filc_fiber_context* fiber_context = (filc_fiber_context*)filc_ptr_ptr(fiber_context_ptr);
+    pas_lock_lock(&fiber_context->lock);
+    FILC_CHECK(
+        fiber_context->state == filc_fiber_context_after_getcontext,
+        NULL,
+        "cannot call makecontext except right after getcontext on the same context "
+        "(fiber context ptr = %s, state = %s).",
+        filc_ptr_to_new_string(fiber_context_ptr),
+        filc_fiber_context_state_get_string(fiber_context->state));
+    stack_size += stack_slack;
+    fiber_context->stack = bmalloc_allocate(stack_size);
+    fiber_context->stack_limit = compute_stack_limit_for_stack_and_size(fiber_context->stack,
+                                                                        stack_size);
+    fiber_context->context.uc_stack.ss_sp = fiber_context->stack;
+    fiber_context->context.uc_stack.ss_size = stack_size;
+    makecontext(&fiber_context->context, start_fiber_context, 0);
+    filc_flight_ptr_store(my_thread, &fiber_context->closure_ptr, closure_ptr);
+    fiber_context->state = filc_fiber_context_runnable;
+    pas_lock_unlock(&fiber_context->lock);
+}
+
+void filc_native_zfiber_context_swapcontext(filc_thread* my_thread, filc_ptr from_fiber_context_ptr,
+                                            filc_ptr to_fiber_context_ptr)
+{
+    filc_check_access_special(from_fiber_context_ptr, FILC_SPECIAL_TYPE_FIBER_CONTEXT);
+    filc_check_access_special(to_fiber_context_ptr, FILC_SPECIAL_TYPE_FIBER_CONTEXT);
+
+    filc_fiber_context* from_fiber_context =
+        (filc_fiber_context*)filc_ptr_ptr(from_fiber_context_ptr);
+    filc_fiber_context* to_fiber_context =
+        (filc_fiber_context*)filc_ptr_ptr(to_fiber_context_ptr);
+
+    if (from_fiber_context < to_fiber_context) {
+        pas_lock_lock(&from_fiber_context->lock);
+        pas_lock_lock(&to_fiber_context->lock);
+    } else {
+        pas_lock_lock(&to_fiber_context->lock);
+        pas_lock_lock(&from_fiber_context->lock);
+    }
+
+    FILC_CHECK(
+        to_fiber_context->state == filc_fiber_context_runnable ||
+        to_fiber_context->state == filc_fiber_context_runnable_grey,
+        NULL,
+        "cannot call swapcontext to switch to a context unless it's runnable "
+        "(to fiber context ptr = %s, state = %s).",
+        filc_ptr_to_new_string(to_fiber_context_ptr),
+        filc_fiber_context_state_get_string(to_fiber_context->state));
+
+    PAS_ASSERT(!!to_fiber_context->stack != !!to_fiber_context->object_that_owns_stack);
+    if (to_fiber_context->object_that_owns_stack
+        && filc_object_special_type(to_fiber_context->object_that_owns_stack)
+        == FILC_SPECIAL_TYPE_THREAD) {
+        filc_thread* thread_that_owns_stack = (filc_thread*)
+            filc_object_special_payload_with_manual_tracking(
+                to_fiber_context->object_that_owns_stack);
+        FILC_CHECK(
+            !thread_that_owns_stack->is_stopping,
+            NULL,
+            "cannot call swapcontext to switch to a context whose stack belongs to a dead (or dying) "
+            "thread "
+            "(to fiber context ptr = %s, thread = %s).",
+            filc_ptr_to_new_string(to_fiber_context_ptr),
+            filc_object_to_new_string(to_fiber_context->object_that_owns_stack));
+    }
+    
+    FILC_CHECK(
+        from_fiber_context->state == filc_fiber_context_running ||
+        from_fiber_context->state == filc_fiber_context_uninitialized ||
+        from_fiber_context->state == filc_fiber_context_after_getcontext,
+        NULL,
+        "cannot call swapcontext to switch from a context unless it's running or makecontext hasn't "
+        "been called yet "
+        "(from fiber context ptr = %s, state = %s).",
+        filc_ptr_to_new_string(from_fiber_context_ptr),
+        filc_fiber_context_state_get_string(from_fiber_context->state));
+
+    if (from_fiber_context->state == filc_fiber_context_running) {
+        FILC_CHECK(
+            my_thread->current_fiber_context == from_fiber_context,
+            NULL,
+            "cannot call swapcontext to switch from a running context unless it's the context that "
+            "this thread is running "
+            "(from fiber context ptr = %s, current fiber context = %s).",
+            filc_ptr_to_new_string(from_fiber_context_ptr),
+            filc_object_to_new_string(
+                filc_object_for_special_payload(my_thread->current_fiber_context)));
+        PAS_ASSERT(my_thread->stack_limit == from_fiber_context->stack_limit.stack_limit);
+        PAS_ASSERT(my_thread->stack_top == from_fiber_context->stack_limit.stack_top);
+    } else {
+        filc_object* object_that_owns_stack;
+        if (my_thread->current_fiber_context) {
+            object_that_owns_stack =
+                filc_object_for_special_payload(my_thread->current_fiber_context);
+        } else
+            object_that_owns_stack = filc_object_for_special_payload(my_thread);
+        filc_store_barrier(my_thread, object_that_owns_stack);
+        from_fiber_context->object_that_owns_stack = object_that_owns_stack;
+        from_fiber_context->stack_limit.stack_limit = my_thread->stack_limit;
+        from_fiber_context->stack_limit.stack_top = my_thread->stack_top;
+        my_thread->current_fiber_context = from_fiber_context;
+    }
+
+    if (filc_current_marking_state
+        && from_fiber_context->state != filc_fiber_context_runnable_grey) {
+        filc_raw_ptr_array_add(&my_thread->grey_fibers, from_fiber_context);
+        from_fiber_context->state = filc_fiber_context_runnable_grey;
+    } else
+        from_fiber_context->state = filc_fiber_context_runnable;
+
+    from_fiber_context->top_frame = my_thread->top_frame;
+    my_thread->top_frame = NULL;
+    from_fiber_context->top_native_frame = my_thread->top_native_frame;
+    my_thread->top_native_frame = NULL;
+    filc_raw_ptr_array_destruct(&from_fiber_context->allocation_roots);
+    from_fiber_context->allocation_roots = my_thread->allocation_roots;
+    filc_raw_ptr_array_construct(&my_thread->allocation_roots);
+    from_fiber_context->special_signal_deferral_depth = my_thread->special_signal_deferral_depth;
+    my_thread->special_signal_deferral_depth = 0;
+
+    PAS_ASSERT(my_thread->current_fiber_context == from_fiber_context);
+    my_thread->switching_to_fiber_context = to_fiber_context;
+    PAS_ASSERT(!swapcontext(&from_fiber_context->context, &to_fiber_context->context));
+
+    filc_thread* hopefully_my_thread = finish_switch_to_fiber_context();
+
+    PAS_ASSERT(hopefully_my_thread == my_thread);
+    PAS_ASSERT(my_thread->current_fiber_context == from_fiber_context);
+    PAS_ASSERT(from_fiber_context->state == filc_fiber_context_running);
+}
+#else /* FILC_HAS_FIBER_CONTEXT -> so !FILC_HAS_FIBER_CONTEXT */
+filc_ptr filc_native_zfiber_context_new(filc_thread* my_thread)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_internal_panic(NULL, "zfiber_context_new not supported.");
+}
+
+void filc_native_zfiber_context_set_sigset(filc_thread* my_thread, filc_ptr fiber_context_ptr,
+                                           filc_ptr sigset_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(fiber_context_ptr);
+    PAS_UNUSED_PARAM(sigset_ptr);
+    filc_internal_panic(NULL, "zfiber_context_set_sigset not supported.");
+}
+
+void filc_native_zfiber_context_get_sigset(filc_thread* my_thread, filc_ptr fiber_context_ptr,
+                                           filc_ptr sigset_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(fiber_context_ptr);
+    PAS_UNUSED_PARAM(sigset_ptr);
+    filc_internal_panic(NULL, "zfiber_context_get_sigset not supported.");
+}
+
+void filc_native_zfiber_context_getcontext(filc_thread* my_thread, filc_ptr fiber_context_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(fiber_context_ptr);
+    filc_internal_panic(NULL, "zfiber_context_getcontext not supported.");
+}
+
+void filc_native_zfiber_context_setcontext(filc_thread* my_thread, filc_ptr fiber_context_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(fiber_context_ptr);
+    filc_internal_panic(NULL, "zfiber_context_setcontext not supported.");
+}
+
+void filc_native_zfiber_context_makecontext(filc_thread* my_thread, filc_ptr fiber_context_ptr,
+                                            size_t stack_size, filc_ptr closure_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(fiber_context_ptr);
+    PAS_UNUSED_PARAM(stack_size);
+    PAS_UNUSED_PARAM(closure_ptr);
+    filc_internal_panic(NULL, "zfiber_context_makecontext not supported.");
+}
+
+void filc_native_zfiber_context_swapcontext(filc_thread* my_thread, filc_ptr from_fiber_context_ptr,
+                                            filc_ptr to_fiber_context_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    PAS_UNUSED_PARAM(from_fiber_context_ptr);
+    PAS_UNUSED_PARAM(to_fiber_context_ptr);
+    filc_internal_panic(NULL, "zfiber_context_swapcontext not supported.");
+}
+#endif /* FILC_HAS_FIBER_CONTEXT -> so end of !FILC_HAS_FIBER_CONTEXT */
 
 filc_ptr filc_native_zclosure_new(filc_thread* my_thread, filc_ptr function_ptr, filc_ptr data_ptr)
 {
@@ -13015,7 +13413,7 @@ static void* start_thread(void* arg)
 
     thread = (filc_thread*)arg;
 
-    set_stack_limit(thread);
+    compute_and_set_stack_limit(thread);
 
     unsigned tid = gettid();
     if (verbose)
@@ -13200,7 +13598,7 @@ filc_ptr filc_native_zthread_stack_limit(filc_thread* my_thread, filc_ptr thread
     PAS_UNUSED_PARAM(my_thread);
     check_zthread(thread_ptr);
     filc_thread* thread = (filc_thread*)filc_ptr_ptr(thread_ptr);
-    return filc_ptr_forge_invalid(thread->stack_limit);
+    return filc_ptr_forge_invalid(thread->original_stack_limit.stack_limit);
 }
 
 filc_ptr filc_native_zthread_stack_top(filc_thread* my_thread, filc_ptr thread_ptr)
@@ -13208,7 +13606,7 @@ filc_ptr filc_native_zthread_stack_top(filc_thread* my_thread, filc_ptr thread_p
     PAS_UNUSED_PARAM(my_thread);
     check_zthread(thread_ptr);
     filc_thread* thread = (filc_thread*)filc_ptr_ptr(thread_ptr);
-    return filc_ptr_forge_invalid(thread->stack_top);
+    return filc_ptr_forge_invalid(thread->original_stack_limit.stack_top);
 }
 
 void filc_native_zincrement_signal_deferral_depth(filc_thread* my_thread)

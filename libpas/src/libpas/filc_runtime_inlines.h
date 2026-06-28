@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2025-2026 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,10 +11,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY EPIC GAMES, INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL EPIC GAMES, INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -420,6 +421,124 @@ static PAS_ALWAYS_INLINE void filc_closure_mark_outgoing_ptrs(filc_closure* clos
     marker.mark_or_free_flight(stack, &closure->data_ptr);
 }
 
+static PAS_ALWAYS_INLINE void filc_mark_outgoing_ptrs_in_frames(filc_frame* top_frame,
+                                                                const filc_marker marker,
+                                                                filc_mark_stack* stack)
+{
+    static const bool verbose = false;
+    
+    filc_frame* frame;
+    for (frame = top_frame; frame; frame = frame->parent) {
+        PAS_ASSERT(frame->origin);
+        const filc_function_origin* function_origin = filc_origin_get_function_origin(frame->origin);
+        PAS_ASSERT(function_origin);
+        if (verbose) {
+            pas_log("Marking roots in frame %p for ", frame);
+            filc_origin_dump_all_inline(frame->origin, "; ", pas_log_stream);
+            pas_log(" with num_lowers_ish = %u, has_setjmps = %s, num_stack_auxes = %u\n",
+                    function_origin->base.num_lowers_ish,
+                    function_origin->has_setjmps ? "yes" : "no",
+                    function_origin->num_stack_auxes);
+        }
+        PAS_ASSERT(function_origin->base.num_lowers_ish < UINT_MAX);
+        size_t index;
+        for (index = function_origin->base.num_lowers_ish; index--;) {
+            if (verbose)
+                pas_log("Marking lower[%zu] = %p\n", index, frame->lowers[index]);
+            if (filc_function_origin_lower_index_is_stack_aux(function_origin, index)) {
+                filc_stack_aux* stack_aux = (filc_stack_aux*)frame->lowers[index];
+                if (!stack_aux) {
+                    if (verbose)
+                        pas_log("Skipping null stack aux\n");
+                    continue;
+                }
+                if (verbose) {
+                    pas_log("Marking stack aux %p with num_lowers = %zu\n",
+                            stack_aux, stack_aux->num_lowers);
+                }
+                PAS_ASSERT(stack_aux->num_lowers < UINT_MAX);
+                size_t aux_index;
+                for (aux_index = stack_aux->num_lowers; aux_index--;) {
+                    if (verbose)
+                        pas_log("Marking thread root in stack aux %p\n", stack_aux->lowers[aux_index]);
+                    marker.mark(stack, filc_object_for_lower(stack_aux->lowers[aux_index]));
+                }
+                continue;
+            }
+            if (verbose)
+                pas_log("Marking thread root %p\n", frame->lowers[index]);
+            marker.mark(stack, filc_object_for_lower(frame->lowers[index]));
+        }
+    }
+}
+
+static PAS_ALWAYS_INLINE void filc_mark_outgoing_ptrs_in_native_frames(
+    filc_native_frame* top_native_frame,
+    const filc_marker marker,
+    filc_mark_stack* stack)
+{
+    filc_native_frame* native_frame;
+    for (native_frame = top_native_frame;
+         native_frame;
+         native_frame = native_frame->parent) {
+        size_t index;
+        for (index = native_frame->size; index--;) {
+            uintptr_t encoded_ptr = native_frame->array[index];
+            if ((encoded_ptr & FILC_NATIVE_FRAME_PTR_MASK) == FILC_NATIVE_FRAME_TRACKED_PTR) {
+                marker.mark(
+                    stack, (filc_object*)(encoded_ptr & ~FILC_NATIVE_FRAME_PTR_MASK));
+            } else {
+                PAS_TESTING_ASSERT(
+                    (encoded_ptr & FILC_NATIVE_FRAME_PTR_MASK) == FILC_NATIVE_FRAME_BMALLOC_PTR);
+            }
+        }
+    }
+}
+
+static PAS_ALWAYS_INLINE void filc_mark_outgoing_ptrs_in_allocation_roots(
+    filc_raw_ptr_array* allocation_roots,
+    const filc_marker marker)
+{
+    size_t index;
+    for (index = allocation_roots->size; index--;) {
+        void* allocation_root = allocation_roots->array[index];
+        /* Allocation roots have to have the mark bit set without being put on any mark stack, since
+           they have no outgoing references and they are not ready for scanning. */
+        marker.set_is_marked(allocation_root);
+    }
+}
+
+#if FILC_HAS_FIBER_CONTEXT
+static PAS_ALWAYS_INLINE void filc_fiber_context_mark_saved_state_holding_lock(
+    filc_fiber_context* fiber_context,
+    const filc_marker marker,
+    filc_mark_stack* stack)
+{
+    switch (fiber_context->state) {
+    case filc_fiber_context_runnable:
+    case filc_fiber_context_runnable_grey:
+        filc_mark_outgoing_ptrs_in_frames(fiber_context->top_frame, marker, stack);
+        filc_mark_outgoing_ptrs_in_native_frames(fiber_context->top_native_frame, marker, stack);
+        filc_mark_outgoing_ptrs_in_allocation_roots(&fiber_context->allocation_roots, marker);
+        fiber_context->state = filc_fiber_context_runnable;
+        break;
+    default:
+        break;
+    }
+}
+
+static PAS_ALWAYS_INLINE void filc_fiber_context_mark_outgoing_ptrs(filc_fiber_context* fiber_context,
+                                                                    const filc_marker marker,
+                                                                    filc_mark_stack* stack)
+{
+    marker.mark_or_free_flight(stack, &fiber_context->closure_ptr);
+    marker.mark(stack, fiber_context->object_that_owns_stack);
+    pas_lock_lock(&fiber_context->lock);
+    filc_fiber_context_mark_saved_state_holding_lock(fiber_context, marker, stack);
+    pas_lock_unlock(&fiber_context->lock);
+}
+#endif /* FILC_HAS_FIBER_CONTEXT */
+
 static PAS_ALWAYS_INLINE void filc_mark_global_roots(const filc_marker marker, filc_mark_stack* stack)
 {
     size_t index;
@@ -469,78 +588,26 @@ static PAS_ALWAYS_INLINE void filc_thread_mark_roots(filc_thread* my_thread,
     
     filc_thread_assert_participates_in_pollchecks(my_thread);
 
+    filc_mark_outgoing_ptrs_in_allocation_roots(&my_thread->allocation_roots, marker);
+    filc_mark_outgoing_ptrs_in_frames(my_thread->top_frame, marker, stack);
+    filc_mark_outgoing_ptrs_in_native_frames(my_thread->top_native_frame, marker, stack);
+
     size_t index;
-    for (index = my_thread->allocation_roots.size; index--;) {
-        void* allocation_root = my_thread->allocation_roots.array[index];
-        /* Allocation roots have to have the mark bit set without being put on any mark stack, since
-           they have no outgoing references and they are not ready for scanning. */
-        marker.set_is_marked(allocation_root);
-    }
-
-    filc_frame* frame;
-    for (frame = my_thread->top_frame; frame; frame = frame->parent) {
-        PAS_ASSERT(frame->origin);
-        const filc_function_origin* function_origin = filc_origin_get_function_origin(frame->origin);
-        PAS_ASSERT(function_origin);
-        if (verbose) {
-            pas_log("Marking roots in frame %p for ", frame);
-            filc_origin_dump_all_inline(frame->origin, "; ", pas_log_stream);
-            pas_log(" with num_lowers_ish = %u, has_setjmps = %s, num_stack_auxes = %u\n",
-                    function_origin->base.num_lowers_ish,
-                    function_origin->has_setjmps ? "yes" : "no",
-                    function_origin->num_stack_auxes);
-        }
-        PAS_ASSERT(function_origin->base.num_lowers_ish < UINT_MAX);
-        for (index = function_origin->base.num_lowers_ish; index--;) {
-            if (verbose)
-                pas_log("Marking lower[%zu] = %p\n", index, frame->lowers[index]);
-            if (filc_function_origin_lower_index_is_stack_aux(function_origin, index)) {
-                filc_stack_aux* stack_aux = (filc_stack_aux*)frame->lowers[index];
-                if (!stack_aux) {
-                    if (verbose)
-                        pas_log("Skipping null stack aux\n");
-                    continue;
-                }
-                if (verbose) {
-                    pas_log("Marking stack aux %p with num_lowers = %zu\n",
-                            stack_aux, stack_aux->num_lowers);
-                }
-                PAS_ASSERT(stack_aux->num_lowers < UINT_MAX);
-                size_t aux_index;
-                for (aux_index = stack_aux->num_lowers; aux_index--;) {
-                    if (verbose)
-                        pas_log("Marking thread root in stack aux %p\n", stack_aux->lowers[aux_index]);
-                    marker.mark(stack, filc_object_for_lower(stack_aux->lowers[aux_index]));
-                }
-                continue;
-            }
-            if (verbose)
-                pas_log("Marking thread root %p\n", frame->lowers[index]);
-            marker.mark(stack, filc_object_for_lower(frame->lowers[index]));
-        }
-    }
-
-    filc_native_frame* native_frame;
-    for (native_frame = my_thread->top_native_frame;
-         native_frame;
-         native_frame = native_frame->parent) {
-        for (index = native_frame->size; index--;) {
-            uintptr_t encoded_ptr = native_frame->array[index];
-            if ((encoded_ptr & FILC_NATIVE_FRAME_PTR_MASK) == FILC_NATIVE_FRAME_TRACKED_PTR) {
-                marker.mark(
-                    stack, (filc_object*)(encoded_ptr & ~FILC_NATIVE_FRAME_PTR_MASK));
-            } else {
-                PAS_TESTING_ASSERT(
-                    (encoded_ptr & FILC_NATIVE_FRAME_PTR_MASK) == FILC_NATIVE_FRAME_BMALLOC_PTR);
-            }
-        }
-    }
-
     for (index = FILC_NUM_UNWIND_REGISTERS; index--;)
         PAS_ASSERT(filc_ptr_is_totally_null(my_thread->unwind_registers[index]));
 
     for (index = filc_object_array_num_objects(&my_thread->thread_locals); index--;)
         marker.mark(stack, filc_object_array_at(&my_thread->thread_locals, index));
+
+#if FILC_HAS_FIBER_CONTEXT
+    for (index = my_thread->grey_fibers.size; index--;) {
+        filc_fiber_context* fiber_context = (filc_fiber_context*)my_thread->grey_fibers.array[index];
+        pas_lock_lock(&fiber_context->lock);
+        if (fiber_context->state == filc_fiber_context_runnable_grey)
+            filc_fiber_context_mark_saved_state_holding_lock(fiber_context, marker, stack);
+        pas_lock_unlock(&fiber_context->lock);
+    }
+#endif /* FILC_HAS_FIBER_CONTEXT */
 }
 
 static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object* object,
@@ -603,6 +670,11 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
         filc_finalizer_queue_mark_outgoing_ptrs(
             (filc_finalizer_queue*)filc_object_special_payload_with_manual_tracking(object),
+            marker, stack);
+        break;
+    case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
+        filc_fiber_context_mark_outgoing_ptrs(
+            (filc_fiber_context*)filc_object_special_payload_with_manual_tracking(object),
             marker, stack);
         break;
     default:
