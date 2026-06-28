@@ -1,7 +1,6 @@
 return:
   failure
 output-includes:
-  "main(swapcontext);func2(swapcontext);func1(swapcontext);filc safety error: cannot call swapcontext to switch to a context unless it's runnable"
-
+  "main(swapcontext);func2(swapcontext);func1(swapcontext);filc safety error: cannot switch to a context unless it's runnable"
 needsGLIBC:
   true

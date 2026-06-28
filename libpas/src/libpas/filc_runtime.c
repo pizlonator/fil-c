@@ -7856,6 +7856,8 @@ filc_ptr filc_native_zfiber_context_new(filc_thread* my_thread)
 
     pas_lock_construct(&result->lock);
     result->state = filc_fiber_context_uninitialized;
+    filc_store_barrier(my_thread, filc_object_for_special_payload(my_thread));
+    result->owning_thread = my_thread;
     filc_raw_ptr_array_construct(&result->allocation_roots);
 
     return filc_ptr_for_special_payload_with_manual_tracking(result);
@@ -7904,6 +7906,18 @@ void filc_native_zfiber_context_bind_sigset(filc_thread* my_thread, filc_ptr fib
     pas_lock_unlock(&fiber_context->lock);
 }
 
+static void check_context_ownership(filc_thread* my_thread, filc_fiber_context* fiber_context)
+{
+    FILC_CHECK(
+        fiber_context->owning_thread == my_thread,
+        NULL,
+        "cannot use a context that belongs to a different thread "
+        "(to fiber context = %s, owning thread = %s, this thread = %s).",
+        filc_object_to_new_string(filc_object_for_special_payload(fiber_context)),
+        filc_object_to_new_string(filc_object_for_special_payload(fiber_context->owning_thread)),
+        filc_object_to_new_string(filc_object_for_special_payload(my_thread)));
+}
+
 void filc_native_zfiber_context_getcontext(filc_thread* my_thread, filc_ptr fiber_context_ptr)
 {
     PAS_UNUSED_PARAM(my_thread);
@@ -7919,10 +7933,37 @@ void filc_native_zfiber_context_getcontext(filc_thread* my_thread, filc_ptr fibe
         "(fiber context ptr = %s, state = %s).",
         filc_ptr_to_new_string(fiber_context_ptr),
         filc_fiber_context_state_get_string(fiber_context->state));
+    check_context_ownership(my_thread, fiber_context);
     PAS_ASSERT(!getcontext(&fiber_context->context));
     fiber_context->state = filc_fiber_context_after_getcontext;
     fiber_context_send_sigset_to_user(fiber_context);
     pas_lock_unlock(&fiber_context->lock);
+}
+
+static void check_target_context(filc_thread* my_thread, filc_fiber_context* fiber_context)
+{
+    FILC_CHECK(
+        fiber_context->state == filc_fiber_context_runnable ||
+        fiber_context->state == filc_fiber_context_runnable_grey,
+        NULL,
+        "cannot switch to a context unless it's runnable "
+        "(to fiber context = %s, state = %s).",
+        filc_object_to_new_string(filc_object_for_special_payload(fiber_context)),
+        filc_fiber_context_state_get_string(fiber_context->state));
+
+    /* This guards against two issues.
+
+       First, we are threading my_thread through the ABI. Hence, switching to a context that thought
+       it was on one thread from another thread screws up the ABI. We'd have to change the ABI to be
+       fiber-centric for cross-thread context swaps to work at all.
+
+       Second, we cannot allow switching to a context whose stack belongs to another thread. The
+       problem with switching to a context whose stack belongs to another thread is that the
+       thread in question could exit and delete its stack at any time.
+       
+       Interestingly, pthread_exit will not work in glibc in this case. But zthread_exit will work
+       just fine.*/
+    check_context_ownership(my_thread, fiber_context);
 }
 
 void filc_native_zfiber_context_setcontext(filc_thread* my_thread, filc_ptr fiber_context_ptr)
@@ -7931,14 +7972,7 @@ void filc_native_zfiber_context_setcontext(filc_thread* my_thread, filc_ptr fibe
 
     filc_fiber_context* fiber_context = (filc_fiber_context*)filc_ptr_ptr(fiber_context_ptr);
     pas_lock_lock(&fiber_context->lock);
-    FILC_CHECK(
-        fiber_context->state == filc_fiber_context_runnable ||
-        fiber_context->state == filc_fiber_context_runnable_grey,
-        NULL,
-        "cannot call setcontext except for runnable contexts "
-        "(fiber context ptr = %s, state = %s).",
-        filc_ptr_to_new_string(fiber_context_ptr),
-        filc_fiber_context_state_get_string(fiber_context->state));
+    check_target_context(my_thread, fiber_context);
     /* We current leave the current context in a running state, which prevents it from ever being
        switched to. I think that's right. */
     my_thread->current_fiber_context = NULL;
@@ -8020,6 +8054,7 @@ void filc_native_zfiber_context_makecontext(filc_thread* my_thread, filc_ptr fib
         "(fiber context ptr = %s, state = %s).",
         filc_ptr_to_new_string(fiber_context_ptr),
         filc_fiber_context_state_get_string(fiber_context->state));
+    check_context_ownership(my_thread, fiber_context);
     size_t stack_size = passed_stack_size + stack_slack;
     FILC_CHECK(
         stack_size > stack_slack,
@@ -8073,31 +8108,7 @@ void filc_native_zfiber_context_swapcontext(filc_thread* my_thread, filc_ptr fro
         pas_lock_lock(&from_fiber_context->lock);
     }
 
-    FILC_CHECK(
-        to_fiber_context->state == filc_fiber_context_runnable ||
-        to_fiber_context->state == filc_fiber_context_runnable_grey,
-        NULL,
-        "cannot call swapcontext to switch to a context unless it's runnable "
-        "(to fiber context ptr = %s, state = %s).",
-        filc_ptr_to_new_string(to_fiber_context_ptr),
-        filc_fiber_context_state_get_string(to_fiber_context->state));
-
-    PAS_ASSERT(!!to_fiber_context->stack != !!to_fiber_context->object_that_owns_stack);
-    if (to_fiber_context->object_that_owns_stack
-        && filc_object_special_type(to_fiber_context->object_that_owns_stack)
-        == FILC_SPECIAL_TYPE_THREAD) {
-        filc_thread* thread_that_owns_stack = (filc_thread*)
-            filc_object_special_payload_with_manual_tracking(
-                to_fiber_context->object_that_owns_stack);
-        FILC_CHECK(
-            !thread_that_owns_stack->is_stopping,
-            NULL,
-            "cannot call swapcontext to switch to a context whose stack belongs to a dead (or dying) "
-            "thread "
-            "(to fiber context ptr = %s, thread = %s).",
-            filc_ptr_to_new_string(to_fiber_context_ptr),
-            filc_object_to_new_string(to_fiber_context->object_that_owns_stack));
-    }
+    check_target_context(my_thread, to_fiber_context);
     
     FILC_CHECK(
         from_fiber_context->state == filc_fiber_context_running ||
@@ -8109,6 +8120,7 @@ void filc_native_zfiber_context_swapcontext(filc_thread* my_thread, filc_ptr fro
         "(from fiber context ptr = %s, state = %s).",
         filc_ptr_to_new_string(from_fiber_context_ptr),
         filc_fiber_context_state_get_string(from_fiber_context->state));
+    check_context_ownership(my_thread, from_fiber_context);
 
     if (from_fiber_context->state == filc_fiber_context_running) {
         FILC_CHECK(
@@ -8123,16 +8135,16 @@ void filc_native_zfiber_context_swapcontext(filc_thread* my_thread, filc_ptr fro
         PAS_ASSERT(my_thread->stack_limit == from_fiber_context->stack_limit.stack_limit);
         PAS_ASSERT(my_thread->stack_top == from_fiber_context->stack_limit.stack_top);
     } else {
-        filc_object* object_that_owns_stack;
+        PAS_ASSERT(from_fiber_context->state == filc_fiber_context_uninitialized ||
+                   from_fiber_context->state == filc_fiber_context_after_getcontext);
         if (my_thread->current_fiber_context) {
-            object_that_owns_stack =
-                filc_object_for_special_payload(my_thread->current_fiber_context);
-        } else
-            object_that_owns_stack = filc_object_for_special_payload(my_thread);
-        filc_store_barrier(my_thread, object_that_owns_stack);
-        from_fiber_context->object_that_owns_stack = object_that_owns_stack;
+            filc_store_barrier(
+                my_thread, filc_object_for_special_payload(my_thread->current_fiber_context));
+            from_fiber_context->stack_owner = my_thread->current_fiber_context;
+        }
         from_fiber_context->stack_limit.stack_limit = my_thread->stack_limit;
         from_fiber_context->stack_limit.stack_top = my_thread->stack_top;
+        filc_store_barrier(my_thread, filc_object_for_special_payload(from_fiber_context));
         my_thread->current_fiber_context = from_fiber_context;
     }
 

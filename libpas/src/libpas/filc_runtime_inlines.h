@@ -533,7 +533,8 @@ static PAS_ALWAYS_INLINE void filc_fiber_context_mark_outgoing_ptrs(filc_fiber_c
 {
     marker.mark_or_free_flight(stack, &fiber_context->closure_ptr);
     marker.mark_or_free_flight(stack, &fiber_context->bound_sigset_ptr);
-    marker.mark(stack, fiber_context->object_that_owns_stack);
+    marker.mark(stack, filc_object_for_special_payload(fiber_context->owning_thread));
+    marker.mark(stack, filc_object_for_special_payload(fiber_context->stack_owner));
     pas_lock_lock(&fiber_context->lock);
     filc_fiber_context_mark_saved_state_holding_lock(fiber_context, marker, stack);
     pas_lock_unlock(&fiber_context->lock);
