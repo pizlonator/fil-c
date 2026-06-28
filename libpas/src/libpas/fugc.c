@@ -506,10 +506,12 @@ static void destruct_object_callback(void* allocation, void* arg)
         filc_finalizer_queue_destruct(
             (filc_finalizer_queue*)filc_object_special_payload_with_manual_tracking(object));
         break;
+#if FILC_HAS_FIBER_CONTEXT
     case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
         filc_fiber_context_destruct(
             (filc_fiber_context*)filc_object_special_payload_with_manual_tracking(object));
         break;
+#endif /* FILC_HAS_FIBER_CONTEXT */
     default:
         PAS_ASSERT(!"Encountered object in destructor space that should not have destructor.");
         break;

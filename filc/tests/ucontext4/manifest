@@ -2,3 +2,5 @@ return:
   success
 output-includes:
   "main(swapcontext);func2(swapcontext);func1(sigmask);func1(swapcontext);func2(raise);func2(exit);func1(exit);handler;main(exiting);"
+needsGLIBC:
+  true

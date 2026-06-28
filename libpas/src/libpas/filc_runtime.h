@@ -4415,6 +4415,7 @@ static inline const char* filc_jmp_buf_kind_get_longjmp_string(filc_jmp_buf_kind
    caller. The `value` argument is ignored unless kind is sigsetjmp. */
 filc_jmp_buf* filc_jmp_buf_create(filc_thread* my_thread, filc_jmp_buf_kind kind, int value);
 
+#if FILC_HAS_FIBER_CONTEXT
 static inline const char* filc_fiber_context_state_get_string(filc_fiber_context_state state)
 {
     switch (state) {
@@ -4434,6 +4435,7 @@ static inline const char* filc_fiber_context_state_get_string(filc_fiber_context
 }
 
 void filc_fiber_context_destruct(filc_fiber_context* fiber_context);
+#endif
 
 /* This is for cases where you want to grab a lock while entered and hold it across an exit.
    

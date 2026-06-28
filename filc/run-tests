@@ -78,7 +78,7 @@ raise unless $?.exitstatus == 0 or $?.exitstatus == 1
 $hasAVX512 = $?.exitstatus == 0
 
 # Check if we're using glibc
-$hasGLIBC = Pathname.new($pizfix) + "lib" + "libc.so.6666"
+$hasGLIBC = (Pathname.new($pizfix) + "lib" + "libc.so.6666").exist?
 
 raise unless system("#{$compilerPrefix}#{$pizfix}/../build/bin/clang -O3 -c -o filc/tests/utils.o filc/tests/utils.c -g")
 

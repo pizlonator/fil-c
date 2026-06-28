@@ -673,11 +673,13 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_special_ptrs(filc_object
             (filc_finalizer_queue*)filc_object_special_payload_with_manual_tracking(object),
             marker, stack);
         break;
+#if FILC_HAS_FIBER_CONTEXT
     case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
         filc_fiber_context_mark_outgoing_ptrs(
             (filc_fiber_context*)filc_object_special_payload_with_manual_tracking(object),
             marker, stack);
         break;
+#endif /* FILC_HAS_FIBER_CONTEXT */
     default:
         pas_log("Got a bad special ptr type: ");
         filc_special_type_dump(special_type, pas_log_stream);
