@@ -51,10 +51,10 @@ PAS_BEGIN_EXTERN_C;
     } \
     \
     PAS_NEVER_INLINE bool lower_case_page_config_name ## _specialized_local_allocator_refill( \
-        pas_local_allocator* allocator, \
+        pas_local_allocator** allocator_ptr, \
         pas_allocator_counts* counts) \
     { \
-        return pas_local_allocator_refill_with_known_config(allocator, counts, (page_config_value)); \
+        return pas_local_allocator_refill_with_known_config(allocator_ptr, counts, (page_config_value)); \
     } \
     \
     void lower_case_page_config_name ## _specialized_local_allocator_return_memory_to_page( \

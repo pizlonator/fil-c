@@ -1214,11 +1214,12 @@ pas_local_allocator_try_allocate_in_primordial_partial_view(
 
 static PAS_ALWAYS_INLINE bool
 pas_local_allocator_refill_with_known_config(
-    pas_local_allocator* allocator,
+    pas_local_allocator** allocator_ptr,
     pas_allocator_counts* counts,
     pas_segregated_page_config page_config)
 {
     static const bool verbose = false;
+    pas_local_allocator* allocator = *allocator_ptr;
     
     pas_segregated_view new_view;
     pas_segregated_view old_view;
@@ -1513,17 +1514,18 @@ pas_local_allocator_refill_with_known_config(
     
 prepare_exclusive:
     pas_local_allocator_prepare_to_allocate(
-        &allocator, pas_segregated_exclusive_view_kind, exclusive, new_page, size_directory,
+        allocator_ptr, pas_segregated_exclusive_view_kind, exclusive, new_page, size_directory,
         page_config);
     goto done;
 
 prepare_partial:
     pas_local_allocator_prepare_to_allocate(
-        &allocator, pas_segregated_partial_view_kind, partial, new_page, size_directory,
+        allocator_ptr, pas_segregated_partial_view_kind, partial, new_page, size_directory,
         page_config);
 
 done:
     pas_lock_switch(&held_lock, NULL);
+    allocator = *allocator_ptr;
     
     PAS_TESTING_ASSERT(allocator->page_ish);
     PAS_TESTING_ASSERT(allocator->payload_end || allocator->current_offset < allocator->end_offset);
@@ -1894,13 +1896,13 @@ pas_local_allocator_try_allocate_inline_cases(pas_local_allocator* allocator,
 
 static PAS_ALWAYS_INLINE pas_allocation_result
 pas_local_allocator_try_allocate_small_segregated_slow_impl(
-    pas_local_allocator* allocator,
+    pas_local_allocator** allocator_ptr,
     pas_heap_config config,
     pas_allocator_counts* counts)
 {
     PAS_ASSERT(!pas_debug_heap_is_enabled(config.kind));
     
-    pas_local_allocator_commit_if_necessary(allocator, config);
+    pas_local_allocator_commit_if_necessary(*allocator_ptr, config);
     
     for (;;) {
         pas_allocation_result result;
@@ -1908,19 +1910,19 @@ pas_local_allocator_try_allocate_small_segregated_slow_impl(
 
         PAS_ASSERT(config.small_segregated_config.base.is_enabled);
 
-        PAS_TESTING_ASSERT(allocator->config_kind == pas_local_allocator_config_kind_create_normal(
+        PAS_TESTING_ASSERT((*allocator_ptr)->config_kind == pas_local_allocator_config_kind_create_normal(
                                config.small_segregated_config.kind));
 
         /* It's a *bit* gross that we're inlining this here. But, some profiling implied that not
            inlining this made it twice as expensive. It's just one of those things: if code size is ever
            an issue, then we should ponder turning this back into an outline call. */
         refill_result = pas_local_allocator_refill_with_known_config(
-            allocator, counts, config.small_segregated_config);
+            allocator_ptr, counts, config.small_segregated_config);
 
         if (!refill_result)
             return pas_allocation_result_create_failure();
         
-        result = pas_local_allocator_try_allocate_inline_cases(allocator, config);
+        result = pas_local_allocator_try_allocate_inline_cases(*allocator_ptr, config);
         if (result.did_succeed)
             return result;
     }
@@ -1935,7 +1937,7 @@ pas_local_allocator_try_allocate_small_segregated_slow(
 {
     pas_allocation_result result;
 
-    result = pas_local_allocator_try_allocate_small_segregated_slow_impl(allocator, config, counts);
+    result = pas_local_allocator_try_allocate_small_segregated_slow_impl(&allocator, config, counts);
 
     pas_compiler_fence();
     allocator->scavenger_data.is_in_use = false;
@@ -2014,13 +2016,14 @@ pas_local_allocator_try_allocate_out_of_line_cases(
 }
 
 static PAS_ALWAYS_INLINE pas_allocation_result
-pas_local_allocator_try_allocate_slow_impl(pas_local_allocator* allocator,
+pas_local_allocator_try_allocate_slow_impl(pas_local_allocator** allocator_ptr,
                                            size_t size,
                                            size_t alignment,
                                            pas_heap_config config,
                                            pas_allocator_counts* counts)
 {
     static const bool verbose = false;
+    pas_local_allocator* allocator = *allocator_ptr;
 
     if (verbose) {
         pas_log("Called try_allocate_slow with kind = %s\n",
@@ -2055,7 +2058,8 @@ pas_local_allocator_try_allocate_slow_impl(pas_local_allocator* allocator,
 
         page_config = pas_segregated_page_config_kind_get_config(
             pas_local_allocator_config_kind_get_segregated_page_config_kind(allocator->config_kind));
-        page_config->specialized_local_allocator_refill(allocator, counts);
+        page_config->specialized_local_allocator_refill(allocator_ptr, counts);
+        allocator = *allocator_ptr;
 
         PAS_TESTING_ASSERT(!pas_local_allocator_has_bitfit(allocator));
 
@@ -2084,7 +2088,7 @@ pas_local_allocator_try_allocate_slow(pas_local_allocator* allocator,
     pas_allocation_result result;
 
     result = pas_local_allocator_try_allocate_slow_impl(
-        allocator, size, alignment, config, counts);
+        &allocator, size, alignment, config, counts);
 
     pas_compiler_fence();
     allocator->scavenger_data.is_in_use = false;
