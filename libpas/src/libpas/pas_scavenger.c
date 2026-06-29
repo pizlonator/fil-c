@@ -445,7 +445,7 @@ void pas_scavenger_lock_thread(void)
     PAS_ASSERT(!pas_scavenger_should_suspend_count);
     pas_scavenger_shutdown_enabled = false;
     ensure_thread_holding_lock();
-    PAS_ASSERT(pas_scavenger_current_state == pas_scavenger_state_polling);
+    PAS_ASSERT(pas_scavenger_current_state != pas_scavenger_state_no_thread);
     pas_system_mutex_unlock(&data->lock);
 }
 
