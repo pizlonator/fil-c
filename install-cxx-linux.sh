@@ -26,11 +26,13 @@
 set -e
 set -x
 
-cp build/lib/x86_64-unknown-linux-gnu/libc++.so pizfix/lib
-cp build/lib/x86_64-unknown-linux-gnu/libc++.so.1.0 pizfix/lib
-cp build/lib/x86_64-unknown-linux-gnu/libc++abi.so.1.0 pizfix/lib
-cp build/lib/x86_64-unknown-linux-gnu/libc++.a pizfix/lib
-cp build/lib/x86_64-unknown-linux-gnu/libc++abi.a pizfix/lib
+arch=$(uname -m)
+
+cp build/lib/$arch-unknown-linux-gnu/libc++.so pizfix/lib
+cp build/lib/$arch-unknown-linux-gnu/libc++.so.1.0 pizfix/lib
+cp build/lib/$arch-unknown-linux-gnu/libc++abi.so.1.0 pizfix/lib
+cp build/lib/$arch-unknown-linux-gnu/libc++.a pizfix/lib
+cp build/lib/$arch-unknown-linux-gnu/libc++abi.a pizfix/lib
 (cd pizfix/lib &&
      rm -f libc++.so.1 &&
      rm -f libc++abi.so.1 &&

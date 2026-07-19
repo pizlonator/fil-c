@@ -34,6 +34,8 @@ then
     . ./clang-build-overrides.sh
 fi
 
+arch=$(uname -m)
+
 export CMAKEOPTIONS="-G Ninja
     -DCMAKE_BUILD_TYPE=Release
     -DCOMPILER_RT_BUILD_BUILTINS=ON
@@ -43,7 +45,7 @@ export CMAKEOPTIONS="-G Ninja
     -DCOMPILER_RT_BUILD_XRAY=OFF
     -DCOMPILER_RT_BUILD_LIBFUZZER=OFF
     -DCOMPILER_RT_BUILD_PROFILE=OFF
-    -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=x86_64-linux-gnu
+    -DCOMPILER_RT_DEFAULT_TARGET_TRIPLE=$arch-linux-gnu
     .."
 
 cd compiler-rt
@@ -55,6 +57,6 @@ ninja $NINJAFLAGS
 
 cd ../..
 mkdir -p pizfix/lib
-cp compiler-rt/build/lib/linux/clang_rt.crtbegin-x86_64.o pizfix/lib/crtbegin.o
-cp compiler-rt/build/lib/linux/clang_rt.crtend-x86_64.o pizfix/lib/crtend.o
-cp compiler-rt/build/lib/linux/libclang_rt.builtins-x86_64.a pizfix/lib/libyolort.a
+cp compiler-rt/build/lib/linux/clang_rt.crtbegin-$arch.o pizfix/lib/crtbegin.o
+cp compiler-rt/build/lib/linux/clang_rt.crtend-$arch.o pizfix/lib/crtend.o
+cp compiler-rt/build/lib/linux/libclang_rt.builtins-$arch.a pizfix/lib/libyolort.a
