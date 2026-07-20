@@ -38,6 +38,7 @@ PAS_BEGIN_EXTERN_C;
 PAS_API extern size_t pas_page_malloc_num_allocated_bytes;
 PAS_API extern size_t pas_page_malloc_cached_alignment;
 PAS_API extern size_t pas_page_malloc_cached_alignment_shift;
+PAS_API extern size_t pas_page_malloc_cached_real_page_size;
 #if PAS_OS(DARWIN)
 PAS_API extern bool pas_page_malloc_decommit_zero_fill;
 #endif /* PAS_OS(DARWIN) */
@@ -58,6 +59,15 @@ static inline size_t pas_page_malloc_alignment_shift(void)
     if (!pas_page_malloc_cached_alignment_shift)
         pas_page_malloc_cached_alignment_shift = pas_page_malloc_alignment_shift_slow();
     return pas_page_malloc_cached_alignment_shift;
+}
+
+PAS_API PAS_NEVER_INLINE size_t pas_page_malloc_real_page_size_slow(void);
+
+static inline size_t pas_page_malloc_real_page_size(void)
+{
+    if (!pas_page_malloc_cached_real_page_size)
+        pas_page_malloc_cached_real_page_size = pas_page_malloc_real_page_size_slow();
+    return pas_page_malloc_cached_real_page_size;
 }
 
 /* This is an mmap on POSIX, a VirtualAlloc on Windows, or the equivalent of those things if we ever support other

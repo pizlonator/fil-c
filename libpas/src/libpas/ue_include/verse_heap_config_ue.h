@@ -32,6 +32,8 @@
 /* This has to be the max of what the system supports. */
 #if (defined(__arm64__) && defined(__APPLE__)) || defined(__SCE__)
 #define VERSE_HEAP_PAGE_SIZE_SHIFT 14u
+#elif defined(__aarch64__)
+#define VERSE_HEAP_PAGE_SIZE_SHIFT 16u
 #else
 #define VERSE_HEAP_PAGE_SIZE_SHIFT 12u
 #endif

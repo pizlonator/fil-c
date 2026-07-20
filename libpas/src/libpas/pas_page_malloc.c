@@ -50,6 +50,7 @@
 size_t pas_page_malloc_num_allocated_bytes;
 size_t pas_page_malloc_cached_alignment;
 size_t pas_page_malloc_cached_alignment_shift;
+size_t pas_page_malloc_cached_real_page_size;
 
 #if PAS_OS(DARWIN)
 bool pas_page_malloc_decommit_zero_fill = false;
@@ -62,23 +63,27 @@ bool pas_page_malloc_decommit_zero_fill = false;
 #define PAS_NORESERVE 0
 #endif
 
-PAS_NEVER_INLINE size_t pas_page_malloc_alignment_slow(void)
+PAS_NEVER_INLINE size_t pas_page_malloc_real_page_size_slow(void)
 {
-    size_t result;
 #ifdef _WIN32
     SYSTEM_INFO system_info;
     GetSystemInfo(&system_info);
-    result = system_info.dwPageSize;
+    return system_info.dwPageSize;
 #else /* _WIN32 -> so !_WIN32 */
     long long_result = sysconf(_SC_PAGESIZE);
     PAS_ASSERT(long_result >= 0);
-    result = (size_t)long_result;
+    return (size_t)long_result;
 #endif /* !_WIN32 */
-    PAS_ASSERT(result > 0);
-    PAS_ASSERT(result >= 4096);
-    PAS_ASSERT(pas_is_power_of_2(result));
-    PAS_ASSERT(result <= PAS_SYSTEM_PAGE_SIZE);
-    return result;
+}
+
+PAS_NEVER_INLINE size_t pas_page_malloc_alignment_slow(void)
+{
+    size_t page_size = pas_page_malloc_real_page_size();
+    PAS_ASSERT(page_size > 0);
+    PAS_ASSERT(page_size >= 4096);
+    PAS_ASSERT(pas_is_power_of_2(page_size));
+    PAS_ASSERT(page_size <= PAS_SYSTEM_PAGE_SIZE);
+    return PAS_SYSTEM_PAGE_SIZE;
 }
 
 PAS_NEVER_INLINE size_t pas_page_malloc_alignment_shift_slow(void)
@@ -100,9 +105,12 @@ pas_page_malloc_try_allocate_without_deallocating_padding(
     
     size_t aligned_size;
     size_t mapped_size;
+    size_t mapped_size_with_slack;
     void* mmap_result;
     char* mapped;
+    char* mapped_with_slack;
     char* mapped_end;
+    char* mapped_end_with_slack;
     char* aligned;
     char* aligned_end;
     pas_aligned_allocation_result result;
@@ -130,11 +138,19 @@ pas_page_malloc_try_allocate_without_deallocating_padding(
             return result;
     }
 
+    /* On systems with variable page size, we create the illusion that mmap only returns pages
+     * aligned to PAS_SYSTEM_PAGE_SIZE. We do this by ensuring that our mapping is large enough
+     * to contain a mapped_size-sized, PAS_SYSTEM_PAGE_SIZE-aligned mapping, and unmap the
+     * unused part later. */
+    if (pas_add_uintptr_overflow(mapped_size,
+            PAS_SYSTEM_PAGE_SIZE - pas_page_malloc_real_page_size(), &mapped_size_with_slack))
+        return result;
+
     if (verbose)
         pas_log("mapped_size = %zu\n", mapped_size);
 
 #ifdef _WIN32
-    mmap_result = VirtualAlloc(NULL, mapped_size, commit_mode == pas_committed ? MEM_RESERVE | MEM_COMMIT : MEM_RESERVE, PAGE_READWRITE);
+    mmap_result = VirtualAlloc(NULL, mapped_size_with_slack, commit_mode == pas_committed ? MEM_RESERVE | MEM_COMMIT : MEM_RESERVE, PAGE_READWRITE);
     if (mmap_result == NULL) {
         /* FIXME: Clear the last error? */
         if (verbose)
@@ -142,8 +158,8 @@ pas_page_malloc_try_allocate_without_deallocating_padding(
         return result;
     }
 #else /* _WIN32 -> so !_WIN32 */
-    mmap_result = mmap(NULL, mapped_size, PROT_READ | PROT_WRITE,
-                       MAP_PRIVATE | MAP_ANON | PAS_NORESERVE, -1, 0);
+    mmap_result = mmap(NULL, mapped_size_with_slack, PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANON | PAS_NORESERVE, -1, 0);
     if (mmap_result == MAP_FAILED) {
         errno = 0; /* Clear the error so that we don't leak errno in those
                       cases where we handle the allocation failure
@@ -153,12 +169,28 @@ pas_page_malloc_try_allocate_without_deallocating_padding(
     }
 
     if (commit_mode == pas_decommitted)
-        pas_page_malloc_decommit(mmap_result, mapped_size, pas_may_mmap);
+        pas_page_malloc_decommit(mmap_result, mapped_size_with_slack, pas_may_mmap);
 #endif /* !_WIN32 */
     
-    mapped = (char*)mmap_result;
+    mapped_with_slack = (char*)mmap_result;
+    mapped_end_with_slack = mapped_with_slack + mapped_size_with_slack;
+
+#ifdef _WIN32
+#error "Not implemented for windows"
+#else
+    mapped = (char*)pas_round_up_to_power_of_2((uintptr_t)mapped_with_slack, PAS_SYSTEM_PAGE_SIZE);
+    if (mapped != mapped_with_slack) {
+        if (munmap(mapped_with_slack, mapped - mapped_with_slack) != 0)
+            return result;
+    }
+
     mapped_end = mapped + mapped_size;
-    
+    if (mapped_end != mapped_end_with_slack) {
+        if (munmap(mapped_end, mapped_end_with_slack - mapped_end) != 0)
+            return result;
+    }
+#endif
+
     aligned = (char*)(
         pas_round_up_to_power_of_2((uintptr_t)mapped, page_allocation_alignment) +
         alignment.alignment_begin);
@@ -177,7 +209,8 @@ pas_page_malloc_try_allocate_without_deallocating_padding(
     }
     
     if (page_allocation_alignment <= pas_page_malloc_alignment()
-        && !alignment.alignment_begin)
+        && !alignment.alignment_begin
+        && mapped_size == mapped_size_with_slack)
         PAS_ASSERT(mapped == aligned);
     
     PAS_ASSERT(pas_alignment_is_ptr_aligned(alignment, (uintptr_t)aligned));
@@ -381,9 +414,9 @@ static void commit_impl(void* ptr, size_t size, bool do_mprotect, pas_mmap_capab
     end_as_int = base_as_int + size;
 
     PAS_ASSERT(
-        base_as_int == pas_round_down_to_power_of_2(base_as_int, pas_page_malloc_alignment()));
+        base_as_int == pas_round_down_to_power_of_2(base_as_int, pas_page_malloc_real_page_size()));
     PAS_ASSERT(
-        end_as_int == pas_round_up_to_power_of_2(end_as_int, pas_page_malloc_alignment()));
+        end_as_int == pas_round_up_to_power_of_2(end_as_int, pas_page_malloc_real_page_size()));
     PAS_ASSERT(end_as_int >= base_as_int);
 
     if (end_as_int == base_as_int)
@@ -448,9 +481,9 @@ static void decommit_impl(void* ptr, size_t size,
     PAS_ASSERT(end_as_int >= base_as_int);
 
     PAS_ASSERT(
-        base_as_int == pas_round_up_to_power_of_2(base_as_int, pas_page_malloc_alignment()));
+        base_as_int == pas_round_up_to_power_of_2(base_as_int, pas_page_malloc_real_page_size()));
     PAS_ASSERT(
-        end_as_int == pas_round_down_to_power_of_2(end_as_int, pas_page_malloc_alignment()));
+        end_as_int == pas_round_down_to_power_of_2(end_as_int, pas_page_malloc_real_page_size()));
 
     if (mmap_capability == pas_mmap_hard) {
         int result;

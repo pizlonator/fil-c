@@ -28,6 +28,7 @@
 #define PAS_EXPENDABLE_MEMORY_H
 
 #include "pas_heap_kind.h"
+#include "pas_internal_config.h"
 
 PAS_BEGIN_EXTERN_C;
 
@@ -56,7 +57,11 @@ struct pas_expendable_memory {
     pas_expendable_memory_state states[1];
 };
 
+#if PAS_SYSTEM_PAGE_SIZE_SHIFT > 14
+#define PAS_EXPENDABLE_MEMORY_PAGE_SIZE PAS_SYSTEM_PAGE_SIZE
+#else
 #define PAS_EXPENDABLE_MEMORY_PAGE_SIZE ((uintptr_t)16384)
+#endif
 
 PAS_API extern pas_expendable_memory_state_version pas_expendable_memory_version_counter;
 
