@@ -10251,13 +10251,18 @@ int filc_native_zsys_sendmmsg(filc_thread* my_thread, int sockfd, filc_ptr msgve
 {
     check_fd(sockfd);
     static const bool verbose = false;
-    
+
     if (verbose)
         pas_log("In sendmsg\n");
 
     filc_check_write(msgvec_ptr, filc_mul_size(sizeof(struct mmsghdr), vlen));
     struct mmsghdr* user_msgvec = (struct mmsghdr*)filc_ptr_ptr(msgvec_ptr);
-    struct mmsghdr* msgvec = (struct mmsghdr*)alloca(filc_mul_size(sizeof(struct mmsghdr), vlen));
+    if (vlen > UIO_MAXIOV) {
+        vlen = UIO_MAXIOV;
+    }
+    /* Not alloca: vlen is user-controlled */
+    struct mmsghdr* msgvec = (struct mmsghdr*)filc_bmalloc_allocate_tmp(
+        my_thread, filc_mul_size(sizeof(struct mmsghdr), vlen));
     unsigned index;
     for (index = vlen; index--;) {
         from_user_msghdr_for_send(
@@ -10277,8 +10282,12 @@ int filc_native_zsys_sendmmsg(filc_thread* my_thread, int sockfd, filc_ptr msgve
     if (result < 0)
         filc_set_errno(my_errno);
     else {
-        filc_check_write(msgvec_ptr, filc_mul_size(sizeof(struct mmsghdr), vlen));
-        for (index = vlen; index--;)
+        /* The kernel only sets msg_len for the datagrams it sent, so leave the rest alone like it
+           does. Copying all vlen entries back would publish our scratch buffer. */
+        unsigned num_sent = (unsigned)result;
+        PAS_ASSERT(num_sent <= vlen);
+        filc_check_write(msgvec_ptr, filc_mul_size(sizeof(struct mmsghdr), num_sent));
+        for (index = num_sent; index--;)
             user_msgvec[index].msg_len = msgvec[index].msg_len;
     }
     return result;
@@ -10295,7 +10304,10 @@ int filc_native_zsys_recvmmsg(filc_thread* my_thread, int sockfd, filc_ptr msgve
 
     filc_check_write(msgvec_ptr, filc_mul_size(sizeof(struct mmsghdr), vlen));
     struct mmsghdr* user_msgvec = (struct mmsghdr*)filc_ptr_ptr(msgvec_ptr);
-    struct mmsghdr* msgvec = (struct mmsghdr*)alloca(filc_mul_size(sizeof(struct mmsghdr), vlen));
+    if (vlen > UIO_MAXIOV)
+        vlen = UIO_MAXIOV;
+    struct mmsghdr* msgvec = (struct mmsghdr*)filc_bmalloc_allocate_tmp(
+        my_thread, filc_mul_size(sizeof(struct mmsghdr), vlen));
     unsigned index;
     for (index = vlen; index--;) {
         from_user_msghdr_for_recv(
@@ -10315,8 +10327,10 @@ int filc_native_zsys_recvmmsg(filc_thread* my_thread, int sockfd, filc_ptr msgve
             pas_log("recvmsg failed: %s\n", strerror(errno));
         filc_set_errno(my_errno);
     } else {
-        filc_check_write(msgvec_ptr, filc_mul_size(sizeof(struct mmsghdr), vlen));
-        for (index = vlen; index--;) {
+        unsigned num_received = (unsigned)result;
+        PAS_ASSERT(num_received <= vlen);
+        filc_check_write(msgvec_ptr, filc_mul_size(sizeof(struct mmsghdr), num_received));
+        for (index = num_received; index--;) {
             user_msgvec[index].msg_len = msgvec[index].msg_len;
             to_user_msghdr_for_recv(
                 &msgvec[index].msg_hdr, filc_ptr_with_ptr(msgvec_ptr, &user_msgvec[index].msg_hdr));
