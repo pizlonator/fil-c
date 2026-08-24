@@ -40,6 +40,22 @@ local function classifyType(tok: string): number?
 end
 sig.classifyType = classifyType
 
+-- Floating-point types in ;! signatures are rejected outright: on both supported
+-- targets FP arguments and returns travel in FP/SIMD registers (NEON d/s on arm64,
+-- xmm on x86_64) that consume no dense GPR argument word, and sarcasm does not model
+-- those registers, so it cannot marshal them (the generic buffer thunk would shuttle
+-- floats through GPRs -- proven wrong results). Reject here, at parse time, so the
+-- arity/word-count checks (which would count an FP arg as a GPR word) never see them.
+-- `tok` is the offending source token, named in the message.
+local function rejectFp(class: number?, tok: string)
+	if class == TYPE_FLOAT or class == TYPE_DOUBLE or class == TYPE_LONGDOUBLE then
+		tok = (string.gsub(tok, "^%s*(.-)%s*$", "%1"))
+		tok = (string.gsub(tok, "%s+", " "))
+		error("sarcasm: type '" .. tok .. "' in ;! signature is not yet supported"
+			.. " (floating-point arguments/returns are not marshalled)", 0)
+	end
+end
+
 -- enc(t1..tn) = sum_{i} 11^(i-1) * (1 + t_i); 0 if empty.
 local function encodeList(types: { number }): number
 	local acc = 0
@@ -81,12 +97,14 @@ function sig.parseSignature(ann: string)
 	end
 	local retTypes = {}
 	local rc = classifyType(retStr)
+	rejectFp(rc, retStr)
 	if rc ~= nil then
 		table.insert(retTypes, rc)
 	end
 	local argTypes = {}
 	for _, a in splitArgs(argStr) do
 		local c = classifyType(a)
+		rejectFp(c, a)
 		-- void as a lone arg means no args
 		if c ~= nil then
 			table.insert(argTypes, c)

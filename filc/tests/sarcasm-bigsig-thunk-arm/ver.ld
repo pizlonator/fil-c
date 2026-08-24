@@ -1,0 +1,9 @@
+{
+  local:
+    pizlonatedFI1598_ext2;
+    pizlonatedFI11839_ext2p;
+    pizlonatedFI12770_extpp;
+    pizlonatedFI141514_extppp;
+    pizlonatedFI194714_ext4;
+    pizlonatedFI23561750_ext6;
+};

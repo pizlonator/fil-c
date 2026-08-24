@@ -24,7 +24,13 @@ common interface, so both ISAs share the lift/pointer-flow/transform/regalloc/em
 
 Shared (architecture-independent):
 - `detect.luau`     — DONE + UNIT-TESTED. Auto-detects arm64 vs x86_64 (and att vs intel).
+  Comments (`//`, `/* */`, `#`) and string literals are blanked out before marker
+  matching, so an arch marker mentioned in a comment or an `.asciz` payload cannot
+  spoof the detection.
 - `sig.luau`        — DONE. Signature encoding (verified against clang: 1066/2529/12769).
+  Floating-point types (`float`/`double`/`long double`) in a signature are rejected at
+  parse time: FP arguments/returns travel in FP/SIMD registers sarcasm does not model,
+  so it cannot marshal them.
 - `frame.luau`      — DONE. Frame preprocessing skeleton; per-arch policy plugs in.
 - `lift.luau`       — DONE + UNIT-TESTED (tests/roundtrip-test.luau round-trips byte-for-byte).
 - `ptrflow.luau`    — DONE. Pointer-flow analysis over the lifted IR.
@@ -47,7 +53,9 @@ Per-architecture backends (`arm64_*` / `x86_64_*` pairs) — both DONE + VALIDAT
   each definition to a unique private symbol and rewrites the references at parse time,
   so numeric labels work in branches and loops like any named label. A reference with no
   definition in the requested direction is rejected (`unresolved numeric label
-  reference`).
+  reference`). Both parsers strip C/C++ comments (`//` to end of line, `/* ... */`
+  including multi-line; x86 GAS also `#`), string-literal aware, before line splitting;
+  the arm64 parser also accepts the gcc aliases `fp`/`lr` for x29/x30.
 - `*_isa.luau`     — instruction semantics: register defs/uses, control flow.
 - `*_frame.luau`   — frame policy: drop the input's frame setup/teardown, virtualize
   stack-pointer/frame-pointer-relative slots, reject stack-address escapes.
@@ -55,7 +63,15 @@ Per-architecture backends (`arm64_*` / `x86_64_*` pairs) — both DONE + VALIDAT
 - `*_render.luau`  — render IR back to assembly with colors; synthesize the Fil-C
   prologue/epilogue/frame layout. (x86_64 always emits AT&T output.)
 - `*_glue.luau`    — getter/FO/2ET/origins/access-origin/alias link & run, plus the weak
-  callsite resolver thunk for called externals.
+  callsite resolver thunk for called externals. Function origins carry can_throw=1 /
+  can_catch=1 (personality NULL), matching clang's no-personality frames, so C++
+  exceptions unwind THROUGH sarcasm frames to the caller's handler instead of
+  terminating in Fil-C's unwind walk. The arm64 thunk mirrors pizlonated clang's
+  register choices: the fast tail call loads the canonical entrypoint into the first
+  register past the dense argument words (`x(2+holdWords)`, never clobbering an
+  argument), and the signature compare uses clang's immediate encodings (`cmp #imm` up
+  to 12 bits, a single `movz` up to 16, a `sub`/`cmp` split when the high chunk fits,
+  `movz`/`movk` otherwise) — so signatures of any size resolve.
 
 NOTE (x86_64 vs arm64 CC packing): BOTH fast-CC packings are DENSE — a scalar arg
 consumes one register slot, a pointer arg two consecutive slots. x86_64 packs from rdx
@@ -88,12 +104,21 @@ ranges into virtual temps. Approach (no full SSA needed):
    ("spill slots as locals").
 
 ### frame.luau — prologue/epilogue recognition
-Matches the idiomatic prologue (ARM64: `stp x29,x30,[sp,#-N]!` or `sub sp,sp,#N` + `stp`
-saves + `mov x29,sp`; X86_64: `push %rbp`/`mov %rsp,%rbp`/`sub %rsp` + callee-saved
-pushes, `leave`, `endbr64`) and the symmetric epilogue. Records N, the callee-saved set,
-and the spill-slot region. Any remaining stack access outside the analyzed frame
-[0, frameSize) is rejected, as is taking the address of the stack frame at all (e.g.
-`add xD, sp, #k` / `leaq 8(%rsp), %rax` — safety cannot be proven).
+Matches the idiomatic prologue (ARM64: `stp x29,x30,[sp,#-N]!` or `sub sp,sp,#N` — the
+immediate may carry a `lsl #12` shift for large frames — + `stp` saves + `mov x29,sp`;
+X86_64: `push %rbp`/`mov %rsp,%rbp`/`sub %rsp` + callee-saved pushes, `leave`,
+`endbr64`) and the symmetric epilogue. Records N, the callee-saved set, and the
+spill-slot region. A stack slot is keyed by its byte offset and shared across access
+widths; sub-width accesses are virtualized with explicit extension/insertion (arm64:
+`strb` → `bfi` into the slot, `ldrb`/`ldrsb`/`ldrsw`/... → `uxtb`/`sxtb`/`sxtw`/... out
+of it, so a narrow store preserves the slot's upper bits exactly like memory). Any
+remaining stack access outside the analyzed frame [0, frameSize) is rejected, as is
+taking the address of the stack frame at all (e.g. `add xD, sp, #k` / `leaq 8(%rsp),
+%rax` — safety cannot be proven). Also rejected, on both architectures: frame accesses
+with base writeback other than the callee-saved `stp`/`ldp` prologue/epilogue pair
+forms, register-indexed frame accesses, dynamic (register-valued) sp moves without an
+`;! alloca` annotation, and FP/SIMD registers in frame-relative accesses (NEON stack
+spills cannot be made memory-safe yet).
 test-spasm/test2 have no frame; test3 has one; test3-spasm0 is spill-heavy. sarcasm
 SYNTHESIZES its own frame regardless (for the SOV check + filc_frame push + callee-saved
 for the new allocation), discarding the input's frame ops.
@@ -129,6 +154,21 @@ the per-arch codegen module (arm64_codegen / x86_64_codegen):
 - fabricate prologue: SOV check + filc_frame push (prev,origin,roots) + callee-saved.
 - roots: store each live-across-safepoint pointer's lower into a frame root slot;
   origin count field = number of root slots.
+- validateBody: BEFORE the frame pass (which strips annotations as it virtualizes stack
+  slots), the RAW body is validated — unannotated calls, indirect calls/branches
+  (`blr`/`br`/`call *%reg`/`jmp *%reg`), tail calls (branches to non-local labels),
+  unknown or misplaced `;!` annotations (unrecognized words, a signature on a non-call,
+  an annotation on a directive/blank line/mid-body label), data-emitting directives in
+  the body, and arch-specific forged addresses (adrp/adr to a symbol, literal-pool
+  loads) are all rejected here; `;! load ptr`/`;! store ptr` shape is checked against
+  the per-arch scalar 64-bit forms.
+- condition-flag liveness: the instrumented sequences write NZCV/RFLAGS (cmp/tst/test),
+  but the input program may leave flags live across the insertion point (gcc -O2 does
+  `cmp; ldr; csel`). A forward scan from each insertion point classifies the next
+  flag-relevant instruction; if the program's flags are live there, the sequence is
+  bracketed with a save/restore (arm64: `mrs`/`msr nzcv` through a virtual temp; x86_64:
+  `pushfq`/`popq` ... `pushq`/`popfq`). Calls clobber flags per the ABI, so no valid
+  code reads them across a call.
 
 ### emit.luau + sarcasm.luau (driver)
 - emit: renders the IR with colors via the per-arch render module; materializes spill
@@ -151,21 +191,81 @@ error (exit code 1). Current limitations, enforced on both architectures unless 
   argument WORDS (a pointer arg occupies two words: intval + lower). The x86_64 fast CC
   packs argument words densely into rdx,rcx,r8,r9 only — arguments beyond the fourth
   word are passed on the stack, which sarcasm does not yet marshal — while on arm64 the
-  fixed x2..x7 arg pairs already cap any 3-argument signature at 6 words.
+  dense x2..x7 packing (6 words) already fits any 3-argument signature.
 - `;! sig` call annotations (callsite signatures) are bounded only by the argument-WORD
   rule, NOT by the 3-argument entry cap: on x86_64 a callsite may use at most 4 register
   argument words, so a 4-scalar-argument call works end-to-end (the callsite resolver
   thunk also needs one callee-saved hold register per argument word, and its hold pool
-  is 4 registers — the same limit). On arm64 the fixed x2..x7 pairs cap a callsite at 3
-  arguments, same as entry signatures. An over-limit call is rejected.
+  is 4 registers — the same limit). On arm64 the dense x2..x7 packing caps a callsite
+  at 6 register argument words (any 3-argument signature fits within that). An
+  over-limit call is rejected.
 - Taking the address of the stack frame is rejected (cannot prove safety).
 - Stack accesses outside the input frame — below it, above it, or stores into the
-  caller's argument area — are rejected; on X86_64, indexed stack-relative access is
-  not supported either.
+  caller's argument area — are rejected; indexed (register-offset) stack-relative
+  access is not supported on either architecture, frame accesses with base writeback
+  are rejected outside the callee-saved stp/ldp prologue/epilogue pair forms, a dynamic
+  (register-valued) sp move is rejected without an `;! alloca` annotation, and FP/SIMD
+  registers in frame-relative accesses are rejected (NEON stack spills cannot be made
+  memory-safe yet).
 - alloca requires the annotation pair: an `;! alloca result (x)` with no preceding
   `;! alloca size (x)`, a duplicate size for the same name, or a direct stack-relative
   access into an alloca region are all rejected.
 - Memory operands on non-load/store instructions are rejected.
+- Floating-point types (`float`/`double`/`long double`) in `;!` signatures — entry or
+  callsite — are rejected: FP arguments/returns travel in FP/SIMD registers that
+  sarcasm does not marshal. (NEON/FP instructions in the body are otherwise parsed and
+  their GPR def/use semantics modeled, e.g. `fcvt`/`fmov`/`scvtf`.)
+- Calls must be annotated: a `bl`/`call` without a `;!` callsite signature is rejected.
+  Indirect calls and branches through a raw register (`blr`, `br`, `call *%r`,
+  `jmp *%r`) are rejected (the target is unprovable — indirect calls must go through
+  function-pointer values), and a branch to a non-local label is a tail call, which is
+  not yet supported. An explicit `ret xN` with N != 30 (an indirect return) is rejected
+  on arm64. On x86_64, the `loop`/`loope`/`loopne` family and `jrcxz`/`jecxz`/`jcxz`
+  are rejected: they are conditional branches with an implicit rcx use (and, for
+  loope/loopne, a ZF read) that the CFG/register/flag model does not track — use an
+  explicit dec/cmp + conditional branch.
+- Instructions whose register effects are IMPLICIT and therefore unmodelable are
+  rejected (the unknown-mnemonic fallback models zero register effects for these,
+  which would silently disconnect register webs): on x86_64, `lahf`/`sahf` (implicit
+  ah), `pushf`/`popf` (implicit rsp RMW — note the transform's own flag brackets emit
+  pushfq/popfq at the render stage, post-validation), `rdtsc`/`rdtscp`/`rdpmc`/
+  `cpuid`/`xgetbv` (implicit edx:eax/rbx/rcx defs), `xlat` (implicit al/rbx), the BCD
+  adjust ops (`aaa`/`aas`/`daa`/`das`/`aam`/`aad`, implicit ax RMW), and the atomic
+  RMWs `xadd`/`cmpxchg`/`cmpxchg8b`/`cmpxchg16b` (cmpxchg has an implicit rax RMW),
+  plus `xchg` (a both-operands RMW, and an implicit-lock atomic with a memory
+  operand) and `movbe` (an unmodeled memory access + swap). On arm64, the
+  pointer-authentication family (`pacia*`/`pacib*`/`pacd*`/`pacg*`/`auti*`/`autd*`/
+  `xpac*`, matched by prefix — including the `paciasp`/`autiasp` HINT-space aliases
+  clang emits under -mbranch-protection) is rejected: these implicitly read+write x30
+  with an authenticated value the model cannot represent.
+- x86_64 instruction prefixes and string ops are rejected: `rep`/`repe`/`repz`/
+  `repne`/`repnz`/`lock`/`xacquire`/`xrelease` parse as mnemonics of their own whose
+  real opcode lands in the ignored "operands", and every string-op form
+  (`movs*`/`stos*`/`lods*`/`scas*`/`cmps*`/`ins*`/`outs*`) implicitly
+  read-modify-writes rsi/rdi (and rcx under rep) — use explicit load/store loops.
+- Raw kernel entries are rejected (they bypass Fil-C's syscall argument validation):
+  `syscall`/`sysenter`/`int`/`into` on x86_64 and `svc`/`hvc`/`smc` on arm64, plus
+  the privileged `hlt` on both. `int3`/`ud2` (x86_64) and `brk`/`udf` (arm64) stay
+  allowed: they are pure traps with no kernel entry.
+- Globals and data cannot be given a capability automatically, so they are rejected:
+  `adrp`/`adr` to a symbol (including `:got:` forms), literal-pool loads (`ldr xN,
+  sym`), data-emitting directives inside a function body (literal pools, jump tables),
+  and top-level data sections / global data labels / `.equ`-`.set` / `.macro` /
+  `.comm`-family definitions. (Provably dead top-level bytes under an unreferenced,
+  non-global local label are dropped, which keeps detector-probe inputs working.) A
+  function body ends at its `.size` directive; when `.size` is omitted the body ends
+  at the next function's `.type OTHER, %function` declaration OR at a section-switch
+  directive (`.section`, `.text`, `.data`, ...), so content trailing a `.size`-less
+  function is handled by these top-level rules rather than as in-body data.
+- `;! load ptr` / `;! store ptr` are valid ONLY on a 64-bit scalar access (arm64:
+  `ldr`/`ldur`/`str`/`stur` with a 64-bit GPR data register; x86_64: a 64-bit `mov`
+  between a GPR and memory). Pairs, 32-bit or sub-word forms, atomics, literal loads,
+  NEON data registers, xzr destinations/values, wrong-direction annotations, and
+  frame-relative bases are all rejected at the annotation site.
+- A `;!` annotation must be a recognized form in a recognized place: unrecognized
+  annotations, a signature-shaped annotation on a non-call instruction, and annotations
+  on a directive, an otherwise-empty line, or a mid-body label are all rejected (only
+  the function-entry label carries the signature).
 - X86_64 output is always AT&T syntax, even when the input is Intel syntax.
 
 ## Verification
@@ -175,9 +275,12 @@ error (exit code 1). Current limitations, enforced on both architectures unless 
   checks/calls structurally, assemble + link with Fil-C `main`s (see tests/), run, and
   confirm correct results + that OOB/null-capability inputs trap. The X86_64 suite
   exercises every behavioral case in BOTH AT&T and Intel syntax and additionally covers
-  auto-detection and spill-slot packing. Both suites assert every compile-time
-  rejection listed above; the X86_64 rejections are also covered by
-  `filc/tests/sarcasm-reject-*` via `filc/run-tests`.
+  auto-detection and spill-slot packing. Both suites assert the fixture-level
+  compile-time rejections (tests/reject-*.s, nosig/badmem/badframe); the full
+  rejection set listed above — on BOTH architectures — is pinned by
+  `filc/tests/sarcasm-reject-*-arm` / `-att` / `-int` via `filc/run-tests`.
 - Unit tests (run under lute, no docker needed): `tests/roundtrip-test.luau` (lift +
   identity-coloring reproduces the input byte-for-byte), `tests/detect-test.luau`
   (arch/syntax auto-detection), `tests/cleanup-test.luau` (spill reload elimination).
+  All three are wired into `tests/verify.sh` (and detect/cleanup into
+  `tests/verify-x86.sh`).

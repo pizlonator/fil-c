@@ -1,0 +1,12 @@
+return:
+  success
+use-sarcasm:
+  true
+only-on-platform:
+  aarch64
+output-includes:
+  - "-5 -128 127"
+  - "-300 -32768 12345"
+  - "-70000 -2147483648 42"
+  - "4000000000 123456789"
+  - "222222222222 333333333333"

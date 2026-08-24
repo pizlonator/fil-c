@@ -1,0 +1,19 @@
+return:
+  success
+use-sarcasm:
+  true
+only-on-platform:
+  aarch64
+libraries:
+  libbigsig:
+    isBundle: false
+    files:
+      - ext.c
+    extraLinkerArgs:
+      "--version-script=filc/tests/sarcasm-bigsig-thunk-arm/ver.ld"
+extraLinkerArgs:
+  "-Lfilc/test-output/sarcasm-bigsig-thunk-arm -lbigsig"
+extraLDPath:
+  "filc/test-output/sarcasm-bigsig-thunk-arm"
+output-includes:
+  - "9 10 12 103 126 189"

@@ -60,6 +60,17 @@ function x86_64_frame.rewrite(st, ctx)
 		if ctx.regionOf(off) then emit(st); return end
 		-- lea of a stack address computes/escapes a pointer into the frame: reject.
 		if b == "lea" then ctx.rejectEscape(st.raw or m) end
+		-- A `;! load ptr` / `;! store ptr` on a stack slot is a user mistake: the slot
+		-- is virtualized as a pseudo-register below, so the annotation would survive on
+		-- a register-only mov with no memory operand (and no heap capability to move).
+		-- Reject it here, where frame-pointer usage is known (rsp-based annotations are
+		-- already rejected by validatePtrAccess; rbp is a frame register only when the
+		-- function establishes a frame pointer — rbp-as-GPR without one stays legal,
+		-- see the sarcasm-rbpgpr tests). arm64 rejects the same shape (sp/x29 bases).
+		if st.annotation == "load ptr" or st.annotation == "store ptr" then
+			error("sarcasm: ;! " .. st.annotation .. " on a stack-frame-relative access "
+				.. "(a virtualized frame slot carries no heap capability): " .. (st.raw or m))
+		end
 		-- only plain base+disp slots are virtualizable (no index register)
 		if mem.index then
 			error("sarcasm: indexed stack-relative access is not supported on x86: " .. (st.raw or m))

@@ -203,6 +203,66 @@ local function attMnemonic(m)
 	return m, nil
 end
 
+-- Remove comments from the whole text before line splitting: `//` to end of line,
+-- `/* ... */` (multi-line), and `#` to end of line (all comment forms in x86 GAS),
+-- none of which may appear inside a double-quoted string (`.asciz "a // b"` keeps its
+-- slashes). A comment is replaced by a single space (comments act as token separators
+-- in GAS); newlines inside block comments are kept so statement line numbers still
+-- match the source.
+local function stripComments(text)
+	local out = {}
+	local i, n = 1, #text
+	local state = "code" -- code | str | line | block
+	while i <= n do
+		local c = string.sub(text, i, i)
+		local d = string.sub(text, i + 1, i + 1)
+		if state == "code" then
+			if c == '"' then
+				state = "str"
+				table.insert(out, c)
+			elseif c == "/" and d == "/" then
+				state = "line"
+				table.insert(out, " ")
+				i += 1
+			elseif c == "/" and d == "*" then
+				state = "block"
+				table.insert(out, " ")
+				i += 1
+			elseif c == "#" then
+				state = "line"
+				table.insert(out, " ")
+			else
+				table.insert(out, c)
+			end
+		elseif state == "str" then
+			table.insert(out, c)
+			if c == "\\" then
+				local e = string.sub(text, i + 1, i + 1)
+				if e ~= "" then table.insert(out, e); i += 1 end
+			elseif c == '"' then
+				state = "code"
+			elseif c == "\n" then
+				state = "code" -- unterminated string; resync at the line boundary
+			end
+		elseif state == "line" then
+			if c == "\n" then
+				state = "code"
+				table.insert(out, c)
+			end
+		else -- block
+			if c == "*" and d == "/" then
+				state = "code"
+				i += 1
+			elseif c == "\n" then
+				table.insert(out, c)
+			end
+		end
+		i += 1
+	end
+	return table.concat(out)
+end
+x86parse.stripComments = stripComments
+
 -- comments: strip `#` to end of line (not inside strings); `;!` handled separately.
 local function stripComment(s)
 	local inStr = false
@@ -223,6 +283,8 @@ end
 function x86parse.parseString(text, syntax)
 	local out = {}
 	text = (string.gsub(text, "\r\n", "\n"))
+	-- strip //, /* */ and # comments (string-literal aware) before line splitting
+	text = stripComments(text)
 	local lineNo = 0
 	for raw in (text .. "\n"):gmatch("(.-)\n") do
 		lineNo += 1
@@ -244,7 +306,13 @@ function x86parse.parseString(text, syntax)
 			if t ~= "" then
 				local mnem, rest = string.match(t, "^([%.%w_][%w_.]*)%s*(.*)$")
 				rest = trim(rest or "")
-				if string.sub(mnem, 1, 1) == "." then
+				if not mnem then
+					-- A line that starts with neither a directive, mnemonic, nor label
+					-- character (e.g. a stray statement separator or comment introducer
+					-- we don't recognize): pass it through raw, like the arm64 parser
+					-- does, and let the assembler judge it -- never crash here.
+					table.insert(out, { kind = "directive", name = t, args = "", raw = t })
+				elseif string.sub(mnem, 1, 1) == "." then
 					table.insert(out, { kind = "directive", name = mnem, args = rest, raw = t })
 				else
 					local opsize

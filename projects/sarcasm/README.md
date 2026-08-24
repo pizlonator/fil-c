@@ -26,6 +26,14 @@ Input assembly must carry `;!` annotations:
   on the instruction that yields the pointer (dynamic), or `;! alloca result size=N` for a
   fixed-size buffer. These become GC allocations (`filc_allocate`), not real stack memory.
 
+Annotations are mandatory and checked: an unannotated call, an unknown or misplaced
+annotation (e.g. a signature on a non-call, or an annotation on a directive, blank line,
+or mid-body label), or a `;! load/store ptr` on anything but a 64-bit scalar access is a
+compile-time error, as is anything else sarcasm cannot prove safe — indirect calls or
+branches through raw registers, tail calls, globals/data sections/literal pools, and
+floating-point types in signatures (FP values are not marshalled). See **DESIGN.md**'s
+"Limitations" section for the full list.
+
 See `tests/test-spasm.s`, `tests/test2-spasm.s`, `tests/test3-spasm.s`, `tests/test3-spasm0.s`
 for ARM64 examples, and `tests/test-spasm-x86.s` / `tests/test-spasm-x86-intel.s` for x86_64.
 
@@ -60,7 +68,11 @@ Per-architecture backends (`arm64_*` / `x86_64_*` pairs behind a common interfac
 - **Frame accesses** (`sp`/`x29`-relative on ARM64, `rsp`/`rbp`-relative on X86_64,
   within the input frame) are virtualized as register-allocated locals — no capability
   needed. Accesses outside the frame, or writes into the caller's argument area, are
-  **rejected at compile time**. Taking the address of the stack frame is also rejected.
+  **rejected at compile time**. Taking the address of the stack frame is also rejected,
+  as are register-indexed frame accesses, base-writeback forms outside the callee-saved
+  prologue/epilogue pairs, dynamic sp moves without an alloca annotation, and FP/SIMD
+  registers in frame ops. Sub-width frame accesses ARE supported (virtualized with
+  explicit extension/insertion, e.g. `strb` → `bfi`, `ldrsb` → `sxtb` on arm64).
 - **Heap accesses** are bounds-checked against a capability: the base's `lower` if the
   base is a pointer, else the index's `lower` (base wins if both are pointers), else a
   **null capability** — which traps at runtime (`cannot ... with null object`).
@@ -75,8 +87,9 @@ they compile every yolo input with sarcasm, assemble with **GNU `as`**, link wit
 capability round-trip, register-indexed access, the callsite resolver, the presence of
 every inserted check (structural), and every compile-time rejection. The X86_64 suite
 exercises every behavioral case in BOTH AT&T and Intel syntax. `tests/run-all.sh` is the
-original four-file ARM64 subset. The X86_64 compile-time rejections are also covered by
-`filc/tests/sarcasm-reject-*` (run via `filc/run-tests`).
+original four-file ARM64 subset. The compile-time rejections are also covered, on BOTH
+architectures, by `filc/tests/sarcasm-reject-*-arm` / `-att` / `-int` (run via
+`filc/run-tests`).
 
 `tests/roundtrip-test.luau` checks that lift + identity-coloring reproduces the input
 byte-for-byte (validates the register-web machinery); `tests/detect-test.luau` covers

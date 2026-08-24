@@ -8,7 +8,8 @@ local x86 = {}
 -- Normalize a mnemonic to its base operation (strip AT&T size suffix; unify movz*/movs*).
 local BASE = {}
 for _, m in { "mov","add","sub","and","or","xor","sal","shl","sar","shr","cmp","test",
-	"lea","imul","inc","dec","neg","not","push","pop","adc","sbb","mul","idiv","div","ror","rol" } do
+	"lea","imul","inc","dec","neg","not","push","pop","adc","sbb","mul","idiv","div","ror","rol",
+	"rcr","rcl","bswap","xchg","xadd","cmpxchg","movbe" } do
 	BASE[m] = m
 	BASE[m .. "b"] = m; BASE[m .. "w"] = m; BASE[m .. "l"] = m; BASE[m .. "q"] = m
 end
@@ -34,9 +35,11 @@ function x86.baseMnemonic(m)
 end
 
 local ALU2 = { add=true, sub=true, ["and"]=true, ["or"]=true, xor=true, sal=true, shl=true,
-	sar=true, shr=true, imul=true, adc=true, sbb=true, ror=true, rol=true }
+	sar=true, shr=true, imul=true, adc=true, sbb=true, ror=true, rol=true, rcr=true, rcl=true }
 local FLAGS_ONLY = { cmp=true, test=true }
-local DST_ONLY = { inc=true, dec=true, neg=true, ["not"]=true }
+-- Unary read-modify-write ops on their single operand (inc/dec/neg/not; bswap r/m is the
+-- same shape: it reads and writes exactly one register — bswap only has register forms).
+local DST_ONLY = { inc=true, dec=true, neg=true, ["not"]=true, bswap=true }
 -- condition -> whether it's an unsigned/eq branch we generate; classify only needs control.
 local COND_JMP = { jcc = true }
 
@@ -47,9 +50,86 @@ local function memRegs(op, uses)
 	if op.index and isGpr(op.index) then table.insert(uses, op.index) end
 end
 
+-- loop/loope/loopne (and the loopz/loopnz aliases) and jrcxz/jecxz/jcxz are conditional
+-- branches whose implicit rcx decrement/test (and, for loope/loopne, ZF read) this model
+-- does not track: `loop` falls into the unknown-mnemonic fallback (control="none"), which
+-- silently drops the back-edge from the CFG, and the jrcx family matches the jcc pattern,
+-- which models a flags read instead of the rcx read. Compilers haven't emitted these in
+-- decades, so reject them outright rather than misclassify them.
+local UNSUPPORTED_LOOP = {
+	loop=true, loope=true, loopne=true, loopz=true, loopnz=true,
+	jrcxz=true, jecxz=true, jcxz=true,
+}
+
+-- Instructions with implicit register effects this model cannot represent: implicit
+-- defs/uses of rax/rdx/rcx/rbx (lahf/sahf on ah, rdtsc/rdtscp/rdpmc on edx:eax, cpuid
+-- on rax/rbx/rcx/rdx, xgetbv on edx:eax, xlat on al/rbx, the aaa/daa/... BCD adjust ops
+-- on ax) or an implicit rsp RMW (pushf/popf). The unknown-mnemonic fallback models ZERO
+-- register effects for these (they take no GPR operands), silently disconnecting the
+-- affected register webs — a verified miscompile under register pressure — so reject
+-- them like the loop family. xadd/cmpxchg (implicit rax RMW for cmpxchg) are
+-- additionally read-modify-write atomics, which sarcasm does not model. xchg is a
+-- BOTH-operands RMW (and an implicit-lock atomic with a memory operand); movbe is an
+-- unmodeled memory access plus a byte swap.
+local UNSUPPORTED_IMPLICIT = {
+	lahf=true, sahf=true,
+	pushf=true, pushfq=true, pushfw=true, popf=true, popfq=true, popfw=true,
+	rdtsc=true, rdtscp=true, rdpmc=true, cpuid=true, xgetbv=true,
+	xlat=true, xlatb=true,
+	aaa=true, aas=true, daa=true, das=true, aam=true, aad=true,
+	xadd=true, cmpxchg=true, cmpxchg8b=true, cmpxchg16b=true,
+	xchg=true, movbe=true,
+}
+
+-- Instruction PREFIXES (rep/repe/repz/repne/repnz/lock/xacquire/xrelease) parse as a
+-- mnemonic of their own (the real opcode follows as "operands", which the model then
+-- ignores): `rep movsb` would classify as a zero-effect unknown mnemonic and execute
+-- with garbage rsi/rdi/rcx, and `lock xaddq %rax,(%rdi)` would lose its memory RMW.
+-- String ops are equally unmodelable bare: even without a prefix, movs/stos/lods/
+-- scas/cmps/ins/outs implicitly read-modify-write rsi/rdi (and rcx under rep). Real
+-- compilers DO emit `rep movsb`/`rep stosb` (memcpy/memset at -Os or with ERMS), so
+-- reject both the prefixes and every standalone string-op form with a clear message.
+local UNSUPPORTED_PREFIX_STRING = {
+	rep=true, repe=true, repz=true, repne=true, repnz=true,
+	lock=true, xacquire=true, xrelease=true,
+	movs=true, movsb=true, movsw=true, movsl=true, movsq=true,
+	stos=true, stosb=true, stosw=true, stosl=true, stosq=true,
+	lods=true, lodsb=true, lodsw=true, lodsl=true, lodsq=true,
+	scas=true, scasb=true, scasw=true, scasl=true, scasq=true,
+	cmps=true, cmpsb=true, cmpsw=true, cmpsl=true, cmpsq=true,
+	ins=true, insb=true, insw=true, insl=true, insd=true,
+	outs=true, outsb=true, outsw=true, outsl=true, outsd=true,
+}
+
+-- syscall/sysenter enter the kernel with RAW arguments, bypassing Fil-C's syscall
+-- argument validation (a genuine memory-safety hole, like arm64 svc); int/into do the
+-- same through a software interrupt, and hlt is privileged. int3/ud2 stay allowed:
+-- they are pure traps (breakpoints/unreachable) with no kernel entry.
+local UNSUPPORTED_SYS = {
+	syscall=true, sysenter=true, int=true, into=true, hlt=true,
+}
+
 -- Classify. Returns { defs, uses, rmw, control, targets, fallsThrough }.
 function x86.classify(insn)
 	local m = x86.baseMnemonic(insn.mnemonic)
+	local low = string.lower(insn.mnemonic)
+	if UNSUPPORTED_LOOP[low] then
+		error("sarcasm: '" .. insn.mnemonic .. "' is not supported"
+			.. " (use an explicit dec/cmp + conditional branch)")
+	end
+	if UNSUPPORTED_IMPLICIT[low] or UNSUPPORTED_IMPLICIT[m] then
+		error("sarcasm: '" .. insn.mnemonic .. "' is not supported"
+			.. " (implicit register effects cannot be modeled)")
+	end
+	if UNSUPPORTED_PREFIX_STRING[low] then
+		error("sarcasm: '" .. insn.mnemonic .. "' is not supported"
+			.. " (rep/lock prefixes and string instructions have implicit register effects"
+			.. " that cannot be modeled; use explicit load/store loops)")
+	end
+	if UNSUPPORTED_SYS[low] then
+		error("sarcasm: '" .. insn.mnemonic .. "' is not supported"
+			.. " (a raw syscall or privileged instruction bypasses Fil-C's runtime validation)")
+	end
 	local ops = insn.operands or {}
 	local defs, uses, rmw = {}, {}, {}
 	local control, targets, fallsThrough = "none", nil, true
@@ -117,6 +197,46 @@ function x86.classify(insn)
 end
 
 x86.isGpr = isGpr
+
+-- RFLAGS condition-flag classification, used for flag liveness at instrumentation
+-- points (the transform brackets its cmp/test-emitting sequences with pushf/popf when
+-- a flag consumer can reach them). A "use" reads RFLAGS (jcc/setcc/cmov, adc/sbb
+-- carry-in); a "def" writes RFLAGS without reading it. adc/sbb read AND write and
+-- count as uses. `not` and lea/mov/push/pop do not affect flags.
+-- rcr/rcl read CF (carry-in) and are only PARTIAL writers (CF/OF written, the rest
+-- preserved — like ror/rol), so they are uses but NOT defs. (lahf/sahf/pushf/popf
+-- would need entries here, but they are REJECTED at classify — implicit register
+-- effects — before any flag-liveness scan can see them; the scan only ever walks
+-- program statements, never the transform's own emitted pushfq/popfq brackets.)
+function x86.flagUse(stmt)
+	local m = x86.baseMnemonic(stmt.mnemonic)
+	if m == "jcc" or m == "setcc" or m == "cmov" then return true end
+	if m == "adc" or m == "sbb" then return true end
+	if m == "rcr" or m == "rcl" then return true end
+	return false
+end
+
+-- FULL RFLAGS writers: after one of these, no flag-reader can observe a flag value
+-- that was set before it, so incoming flags are dead. PARTIAL writers are NOT defs:
+-- inc/dec write OF/SF/ZF/AF/PF but PRESERVE CF (so `cmp; inc; jb` still reads the
+-- cmp's carry), and ror/rol write CF/OF but preserve SF/ZF/AF/PF — classifying them
+-- as defs would let an inserted flag-clobbering check corrupt a live preserved flag.
+-- neg IS a full def (it writes CF: set iff the operand was non-zero, plus the rest).
+-- adc/sbb read AND write: they are defs AND uses (the use dominates for liveness).
+-- mul/imul/div/idiv leave some flags architecturally UNDEFINED (clobbered, never
+-- preserved), so a reader across them cannot be relying on the incoming value.
+-- (popf/popfq would be full defs, but they are rejected at classify like pushf above.)
+local FLAG_FULL_DEF = {
+	add=true, sub=true, ["and"]=true, ["or"]=true, xor=true,
+	sal=true, shl=true, sar=true, shr=true,
+	adc=true, sbb=true, imul=true, neg=true,
+	cmp=true, test=true,
+	mul=true, idiv=true, div=true,
+}
+
+function x86.flagDef(stmt)
+	return FLAG_FULL_DEF[x86.baseMnemonic(stmt.mnemonic)] == true
+end
 
 -- Register/calling-convention configuration (SysV AMD64 + Fil-C fast entrypoint) -------
 -- Reserved: rsp (stack), r11 (dedicated glue/epilogue scratch, like ARM x8).

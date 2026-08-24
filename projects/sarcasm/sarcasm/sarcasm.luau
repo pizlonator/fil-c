@@ -66,11 +66,24 @@ local function makeTarget(arch, syntax)
 	}
 end
 
+-- Directives that switch the current section. A `.size`-less function body also ends
+-- at one of these: the content after a section switch cannot belong to the function's
+-- text, so treating it as top-level content (dead data is dropped; live data is
+-- rejected with the top-level "globals cannot be made memory-safe" message rather
+-- than the misleading "data in a function body") matches the `.size`-terminated case.
+local SECTION_DIRECTIVES = {
+	[".section"] = true, [".text"] = true, [".data"] = true, [".rodata"] = true,
+	[".bss"] = true, [".previous"] = true,
+	[".pushsection"] = true, [".popsection"] = true,
+}
+
 -- Split parsed statements into functions. A function starts at a label carrying a
--- `;! signature` annotation and ends at its `.size NAME, .-NAME` directive. Every
--- symbol declared as a function (`.type NAME, %function` / `@function`) that is defined
--- here (has a label) MUST carry a signature annotation; otherwise we cannot make it
--- memory-safe, so it is a compile-time error rather than a silently dropped function.
+-- `;! signature` annotation and ends at its `.size NAME, .-NAME` directive (or, when
+-- that is omitted, at the next function's `.type OTHER, %function` declaration or at
+-- a section-switch directive). Every symbol declared as a function
+-- (`.type NAME, %function` / `@function`) that is defined here (has a label) MUST
+-- carry a signature annotation; otherwise we cannot make it memory-safe, so it is a
+-- compile-time error rather than a silently dropped function.
 -- Returns { functions = { {name, sigAnn, body={stmts}} }, consumed }.
 local function splitFunctions(stmts)
 	-- pass 1: collect declared function symbols
@@ -103,10 +116,27 @@ local function splitFunctions(stmts)
 				consumed[idx] = cur
 			end
 		elseif cur then
-			table.insert(cur.body, st)
-			consumed[idx] = cur
-			if st.kind == "directive" and st.name == ".size" then
+			-- Handwritten asm often omits `.size`: the next function's declaration
+			-- (`.type OTHER, %function`) also ends this body, so the next function's
+			-- prelude is not absorbed into this one.
+			if st.kind == "directive" and st.name == ".type" then
+				local nm, kind = string.match(st.args, "^%s*([%w_.$]+)%s*,%s*(.+)$")
+				if nm and nm ~= cur.name and kind and string.find(kind, "function", 1, true) then
+					cur = nil
+				end
+			end
+			-- A section switch also ends a `.size`-less body: what follows is top-level
+			-- content, not function text (see SECTION_DIRECTIVES). The directive itself
+			-- is left unconsumed so the top-level handler sees it.
+			if cur and st.kind == "directive" and SECTION_DIRECTIVES[st.name] then
 				cur = nil
+			end
+			if cur then
+				table.insert(cur.body, st)
+				consumed[idx] = cur
+				if st.kind == "directive" and st.name == ".size" then
+					cur = nil
+				end
 			end
 		end
 	end
@@ -327,7 +357,79 @@ end
 function sarcasm.compile(stmts, fileDirective, debug, target)
 	target = target or makeTarget("arm64", nil)
 	local glue = target.glue
-	local functions = splitFunctions(stmts)
+	local functions, consumed = splitFunctions(stmts)
+	-- Top-level (inter-function) content. sarcasm compiles functions only: content a
+	-- user can OBSERVE — data with a global or code-referenced label, symbol/macro
+	-- definitions, code outside functions — must be REJECTED, not silently dropped
+	-- (a global cannot be given a capability automatically). Provably dead content —
+	-- an unreferenced, non-global local label and the data bytes under it — is
+	-- dropped: nothing in this file or any other can name it, so dropping it cannot
+	-- miscompile (this keeps detector-probe inputs full of dead .rodata strings
+	-- working). Structural directives (.text/.section headers, .p2align, .cfi_*,
+	-- .type, .size, .ident, .addrsig*, .ltorg, .arch, ...) remain accepted+ignored.
+	local globals = {}
+	for _, st in stmts do
+		if st.kind == "directive" and (st.name == ".globl" or st.name == ".global") then
+			local nm = string.match(st.args or "", "^%s*([%w_.$]+)")
+			if nm then globals[nm] = true end
+		end
+	end
+	local referenced = {}
+	local function noteRef(op)
+		if not op then return end
+		if op.kind == "sym" then referenced[op.text] = true end
+		if op.kind == "mem" then
+			noteRef(op.base); noteRef(op.index)
+			if op.dispSym then referenced[op.dispSym] = true end
+		end
+	end
+	for i, st in stmts do
+		if consumed[i] then
+			for _, op in (st.operands or {}) do noteRef(op) end
+		end
+	end
+	local recentLabels = {}
+	for i, st in stmts do
+		if not consumed[i] then
+			if st.kind == "blank" then
+				if st.annotation then
+					error("sarcasm: ;! annotation '" .. st.annotation
+						.. "' on an otherwise-empty line (annotations go on the instruction's own line)")
+				end
+			elseif st.kind == "insn" then
+				error("sarcasm: instruction outside any function (only annotated functions"
+					.. " are compiled): " .. (st.raw or st.mnemonic))
+			elseif st.kind == "label" then
+				if globals[st.name] or referenced[st.name] then
+					error("sarcasm: label '" .. st.name .. "' outside any function is not supported"
+						.. " (globals cannot be made memory-safe automatically)")
+				end
+				table.insert(recentLabels, st.name)
+			elseif st.kind == "directive" then
+				if transform.DATA_DIRECTIVES[st.name] then
+					-- .equ/.set/.macro/.comm define symbols-as-values whose uses we
+					-- cannot track: always reject. Data emitters reject only when a
+					-- live (global or referenced) label names them.
+					local always = st.name == ".equ" or st.name == ".set" or st.name == ".macro"
+						or st.name == ".comm" or st.name == ".common" or st.name == ".lcomm"
+					local live = nil
+					for _, ln in recentLabels do
+						if globals[ln] or referenced[ln] then live = ln; break end
+					end
+					if always or live then
+						error("sarcasm: data sections and symbol/macro definitions are not supported"
+							.. " (globals cannot be made memory-safe automatically): directive '"
+							.. st.name .. "'" .. (live and (" (under label '" .. live .. "')") or ""))
+					end
+					recentLabels = {}
+				end
+				if st.annotation then
+					error("sarcasm: ;! annotation '" .. st.annotation .. "' on a directive ('"
+						.. st.name .. "') is not supported")
+				end
+			end
+		end
+	end
 	local out = {}
 	if fileDirective then table.insert(out, "\t.file\t\"" .. fileDirective .. "\"") end
 	table.insert(out, "\t.text")

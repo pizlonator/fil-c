@@ -44,6 +44,119 @@ local function storeValueOperand(stmt, mem)
 	return nil
 end
 
+-- Directives that EMIT data (or define symbols/macros as values). sarcasm compiles
+-- functions only: such content — whether inside a function body (literal pools, jump
+-- tables) or between functions (data sections) — cannot be given a capability
+-- automatically, so it is rejected rather than silently dropped. Shared with the
+-- driver-level top-level scan in sarcasm.luau.
+local DATA_DIRECTIVES = {}
+for _, d in {
+	".word", ".xword", ".quad", ".long", ".int", ".short", ".hword",
+	".2byte", ".4byte", ".8byte", ".byte", ".ascii", ".asciz", ".string",
+	".zero", ".space", ".fill", ".float", ".single", ".double", ".inst",
+	".dc", ".dc.b", ".dc.l", ".dc.s", ".dc.w", ".dc.x", ".dcb", ".dcb.b",
+	".dcb.l", ".dcb.s", ".dcb.w", ".dcb.x", ".ds", ".skip",
+	".equ", ".set", ".macro", ".comm", ".common", ".lcomm",
+} do DATA_DIRECTIVES[d] = true end
+transform.DATA_DIRECTIVES = DATA_DIRECTIVES
+
+-- Validate a function's RAW body before the frame pass runs (the frame pass rewrites
+-- stack accesses, stripping annotations from the statements it virtualizes, so
+-- annotation validation must see the original statements):
+--  * unannotated `bl`/`call` and any `blr`/`br`/indirect call or jump are rejected
+--    (raw calls are not marshalled and indirect targets are unprovable);
+--  * `b`/cond-branch to a non-local target is a tail call — not yet supported;
+--  * every `;!` annotation must be a recognized form (alloca family, load/store ptr
+--    with a valid instruction shape, or a callsite signature on a call);
+--  * a `;!` annotation on a mid-body label is rejected (only the function-entry label
+--    carries the signature — any other label annotation would be silently dropped);
+--  * data-emitting directives inside the body are rejected;
+--  * arch-specific forged-address instructions (adrp/adr/ldr-literal) are rejected.
+local function validateBody(body, cgm)
+	local localLabels = {}
+	for _, st in body do
+		if st.kind == "label" then localLabels[st.name] = true end
+	end
+	for _, st in body do
+		if st.kind == "blank" then
+			-- an annotation all alone on its line is a typo (the annotation belongs on
+			-- the instruction's own line) — silently dropping it could skip a barrier.
+			if st.annotation then
+				error("sarcasm: ;! annotation '" .. st.annotation
+					.. "' on an otherwise-empty line (annotations go on the instruction's own line)")
+			end
+		elseif st.kind == "label" then
+			-- The function-entry label (body[1]) carries the ;! signature. An annotation
+			-- on any other label would be silently ignored (annotations are consumed from
+			-- instructions only), so reject it like the blank-line case.
+			if st.annotation and st ~= body[1] then
+				error("sarcasm: ;! annotation '" .. st.annotation .. "' on a label ('" .. st.name
+					.. "') inside a function body is not supported (only the function-entry label"
+					.. " carries the ;! signature; instruction annotations go on the instruction's"
+					.. " own line)")
+			end
+		elseif st.kind == "directive" then
+			if DATA_DIRECTIVES[st.name] then
+				error("sarcasm: data in a function body is not supported (literal pools,"
+					.. " jump tables and constants cannot be made memory-safe automatically): directive '"
+					.. st.name .. "'")
+			end
+			if st.annotation then
+				error("sarcasm: ;! annotation '" .. st.annotation .. "' on a directive ('"
+					.. st.name .. "') is not supported")
+			end
+		elseif st.kind == "insn" then
+			local c = cgm.classify(st)
+			local ann = st.annotation
+			local raw = st.raw or st.mnemonic
+			if c.control == "call" then
+				if not ann then
+					local callee = st.operands and st.operands[1] and st.operands[1].text or "?"
+					error("sarcasm: call to '" .. callee .. "' has no ;! signature annotation"
+						.. " (annotate the callsite, e.g. `" .. string.lower(st.mnemonic) .. " "
+						.. callee .. " ;! int(ptr)`): " .. raw)
+				end
+			elseif c.control == "indcall" then
+				error("sarcasm: indirect call through a raw register cannot be made memory-safe"
+					.. " (indirect calls must go through function-pointer values): " .. raw)
+			elseif c.control == "indirect" then
+				error("sarcasm: indirect branch through a raw register cannot be made memory-safe"
+					.. " (computed goto / switch jump tables are not supported): " .. raw)
+			elseif (c.control == "branch" or c.control == "condbranch") and c.targets then
+				for _, t in c.targets do
+					if not localLabels[t] then
+						error("sarcasm: branch to '" .. t .. "' leaves the function"
+							.. " (a tail call); tail calls are not yet supported: " .. raw)
+					end
+				end
+			end
+			if ann then
+				if parseAlloca(ann) then
+					-- alloca family: validated/consumed by the transform below
+				elseif ann == "load ptr" then
+					cgm.validatePtrAccess(st, "load")
+				elseif ann == "store ptr" then
+					cgm.validatePtrAccess(st, "store")
+				elseif c.control == "call" then
+					-- callsite signature: parse now to reject malformed sigs early
+					-- (the transform re-parses via callSigOf when marshalling).
+					sig.parseSignature(ann)
+				elseif string.find(ann, "%(") then
+					error("sarcasm: signature annotation '" .. ann
+						.. "' on a non-call instruction is not supported: " .. raw)
+				elseif ann == "" then
+					error("sarcasm: empty ;! annotation: " .. raw)
+				else
+					error("sarcasm: unrecognized ;! annotation '" .. ann
+						.. "' (expected 'load ptr', 'store ptr', 'alloca ...', or a callsite"
+						.. " signature like 'int(ptr)'): " .. raw)
+				end
+			end
+			if cgm.checkForgedAddress then cgm.checkForgedAddress(st) end
+		end
+	end
+end
+
 function transform.transformFunction(name, sigDesc, body, backend)
 	local cgm = backend.cg          -- codegen module (static config + make)
 	local framePolicy = backend.frame  -- per-arch frame policy (analyzeFrame + rewrite)
@@ -71,6 +184,10 @@ function transform.transformFunction(name, sigDesc, body, backend)
 		end
 		return nil
 	end
+
+	-- Reject unannotated/indirect calls, tail calls, unknown/misplaced annotations,
+	-- in-body data, and forged addresses BEFORE any rewriting (see validateBody).
+	validateBody(body, cgm)
 
 	body = framePass.preprocess(body, allocaRegions, framePolicy)
 
@@ -196,6 +313,50 @@ function transform.transformFunction(name, sigDesc, body, backend)
 	emit({ kind = "prologue", name = name })
 
 	local cg = cgm.make({ emit = emit, allocTemp = allocTemp, pColored = pColored, pf = pf, temps = temps })
+
+	-- Condition-flag (NZCV/RFLAGS) liveness at instrumentation points. The instrumented
+	-- sequences (access checks, invisicap loads/stores, pollchecks, allocations) write
+	-- the condition flags (cmp/tst/test); gcc -O2 routinely leaves flags live across a
+	-- memory instruction (`cmp; ldr; csel`), so an inserted flag write would corrupt
+	-- the program's pending condition. Scan forward from the insertion point: if the
+	-- next flag-relevant instruction is a USE (csel/b.cond/cmov/jcc/...) the flags are
+	-- live and the sequence must be bracketed by a save/restore; if it is a DEF
+	-- (cmp/subs/add) the incoming flags are dead; calls clobber the flags per the ABI
+	-- (no valid code reads them across a call); at a basic-block end (label, branch,
+	-- return, or the end of the function) conservatively assume live-out — a flag
+	-- consumer in a successor block (e.g. the b.cond terminating THIS block) counts.
+	local nodeIndex = {}
+	for i, nd in lf.nodes do nodeIndex[nd] = i end
+	local flagLiveCache = {}
+	local function flagsLiveFrom(i)
+		if flagLiveCache[i] ~= nil then return flagLiveCache[i] end
+		local res = true   -- conservative default (end of function = live-out)
+		local j = i
+		while j <= #lf.nodes do
+			local nd = lf.nodes[j]
+			if nd.kind == "insn" then
+				local ctrl = nd.c and nd.c.control or "none"
+				if cgm.flagUse(nd.stmt) then res = true; break
+				elseif cgm.flagDef(nd.stmt) then res = false; break
+				elseif ctrl == "call" or ctrl == "indcall" then res = false; break
+				elseif ctrl ~= "none" then res = true; break
+				end
+			elseif nd.kind == "label" then
+				res = true; break
+			end
+			j += 1
+		end
+		flagLiveCache[i] = res
+		return res
+	end
+	-- Run f() emitting an instrumented sequence, bracketed by a flag save/restore iff
+	-- the program's flags are live at the sequence's insertion point.
+	local function withFlagSave(live, f)
+		if not live then f(); return end
+		local t = cg.saveFlags()
+		f()
+		cg.restoreFlags(t)
+	end
 
 	-- GC root slots
 	local rootTemps, loToSlot = {}, {}
@@ -330,6 +491,30 @@ function transform.transformFunction(name, sigDesc, body, backend)
 		cg.label(doneLbl)
 	end
 
+	-- Pre/post-index writeback for annotated pointer accesses. The invisicap sequence
+	-- replaces the load/store wholesale, so the base register's `base += index` side
+	-- effect must be re-applied explicitly (e.g. `ldr x0, [x0], #8 ;! load ptr` walking
+	-- an array). Only the intval temp advances; the lower (capability) is unchanged —
+	-- it is the same object. The effective address used for the access is already
+	-- correct (old base for post-index, base+index for pre-index via computeAddr), so
+	-- a single add/sub after the sequence covers both forms.
+	local function emitWriteback(node, mem)
+		if not mem or not mem.writeback then return end
+		local baseT = node.opTemp[mem.base]
+		if not baseT then
+			error("sarcasm: writeback base of an annotated pointer access has no usable value: "
+				.. (node.stmt and node.stmt.raw or "?"))
+		end
+		local amt = (mem.index and mem.index.kind == "imm")
+			and (mem.index.value or tonumber(mem.index.text)) or nil
+		if not amt then
+			error("sarcasm: annotated pointer access with a non-immediate writeback index"
+				.. " is not supported: " .. (node.stmt and node.stmt.raw or "?"))
+		end
+		if amt > 0 then cg.addImm(baseT, baseT, amt)
+		elseif amt < 0 then cg.subImm(baseT, baseT, -amt) end
+	end
+
 	-- pollcheck: myth flags at [myth+8], bits 0xe.
 	local pollCounter = 0
 	local function emitPollcheck()
@@ -440,7 +625,9 @@ function transform.transformFunction(name, sigDesc, body, backend)
 		if node.kind == "label" then
 			if node.name ~= name and not string.match(node.name, "^%.LF[BE]") then
 				emit(node)
-				if loopHeaderLabels[node.name] then emitPollcheck() end
+				if loopHeaderLabels[node.name] then
+					withFlagSave(flagsLiveFrom(nodeIndex[node] + 1), emitPollcheck)
+				end
 			end
 		elseif node.kind == "other" then
 			-- drop directives
@@ -448,7 +635,9 @@ function transform.transformFunction(name, sigDesc, body, backend)
 			local c = node.c
 			curLine = (node.stmt and node.stmt.line) or curLine
 			if allocaNodes[node] then
-				emitAlloca(node, allocaNodes[node])
+				withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+					emitAlloca(node, allocaNodes[node])
+				end)
 			elseif c.control == "return" then
 				if not sigDesc.isVoid then
 					local retTemp
@@ -470,19 +659,27 @@ function transform.transformFunction(name, sigDesc, body, backend)
 				elseif loadPtrDefs[node] then
 					local dstIv = node.defTemps[1]
 					local dstLo = pf.lowerTemp[dstIv]
-					emitPtrLoad(node, mem, dstIv, dstLo)
+					withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+						emitPtrLoad(node, mem, dstIv, dstLo)
+						emitWriteback(node, mem)
+					end)
 					emitRootStore(dstLo)
 				elseif storePtrNodes[node] then
 					local valOp = storeValueOperand(node.stmt, mem)
 					local valIv = valOp and node.opTemp[valOp] or nil
 					local valLo = valIv and pf.lowerTemp[valIv] or nil
-					emitPtrStore(node, mem, valIv, valLo)
+					withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+						emitPtrStore(node, mem, valIv, valLo)
+						emitWriteback(node, mem)
+					end)
 				elseif mem then
 					cg.checkMemInsn(node, mem)
 					local effTemp, capLo = cg.computeAddr(node, mem)
 					local size, align = cgm.accessSizeAlign(node.stmt)
 					local isWrite = cgm.isStoreInsn(node.stmt)
-					emitAccessCheck(effTemp, capLo, size, align, isWrite)
+					withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+						emitAccessCheck(effTemp, capLo, size, align, isWrite)
+					end)
 					emit(node)
 				else
 					emit(node)

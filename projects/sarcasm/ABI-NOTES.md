@@ -113,6 +113,10 @@ Arg = enc(argument types)
 signature = 1 + Ret + 133 * Arg
 ```
 Argument-buffer size = 8 * (number of argument words), rounded per 8/alignment.
+NOTE: although the encoding has FP type indices, sarcasm REJECTS float/double/long
+double in `;!` signatures (entry and callsite): FP arguments/returns travel in FP/SIMD
+registers, which consume no dense GPR argument word and which sarcasm does not model,
+so they cannot be marshalled (a GPR buffer thunk would corrupt them).
 
 ## Symbols emitted per exported function `NAME` with signature `SIG`
 - `pizlonated_NAME`  (global): function getter. Returns FO flight ptr:
@@ -123,12 +127,26 @@ Argument-buffer size = 8 * (number of argument words), rounded per 8/alignment.
 - `pizlonatedFO_NAME` (.data.rel.ro, 40 bytes): FO object
   `.xword FO+16 ; .xword (FO+16)+0x83000000000000 ; .xword FIP ; .xword 2ET ; .xword SIG`.
   (`0x83<<48 = 36873221949095936` = function/special upper flags.)
-- origin/string/function_origin objects (see templates in test-filc.s).
+- origin/string/function_origin objects (see templates in test-filc.s). The function
+  origin has can_throw=1 / can_catch=1 with a NULL personality getter (matching clang's
+  no-personality frames): Fil-C's unwind walk fatals on a !can_catch frame (or a
+  !can_throw frame without a personality), and these flags let a C++ exception
+  propagate THROUGH a sarcasm frame to the caller's handler (the exception itself
+  crosses calls via the w0 bit0 return flag, which the FIP forwards).
 
 ## Per called external function `NAME` with signature `SIG` (caller side)
 - Caller sets x0=myth, x2/x3.. = args, then `bl pizlonatedFI<SIG>_NAME`; checks w0 bit0.
 - Must emit a weak/hidden `pizlonatedFI<SIG>_NAME` callsite thunk that resolves the
   callee FO via `pizlonated_NAME`, validates special-object flags (0x80000000000000 kind),
-  intval match, and signature==SIG, then tail-calls fast entrypoint (`br x5`) or falls
+  intval match, and signature==SIG, then tail-calls fast entrypoint or falls
   back through generic buffers. Fail: `filc_check_function_call_fail`,
   size mismatch: `filc_cc_rets_check_failure` / `filc_cc_args_check_failure`.
+- Thunk details (mirroring pizlonated clang's own thunks):
+  - The fast tail call loads the canonical entrypoint `[FO]` into the first register
+    past the dense argument words — `x(2+holdWords)` (x4 for 2 words, x6 for 4, x8 for
+    6) — so the load can never clobber an argument, then `br` through it.
+  - The signature compare encodes SIG the way clang does (`cmp x8, #imm` only takes a
+    12-bit immediate): `cmp` directly for SIG <= 4095; a single `movz` into w9 for
+    SIG <= 65535; a `sub x8, x8, #hi, lsl #12` / `cmp x8, #lo` pair when the top 12-bit
+    chunk fits (e.g. 194714 = 47<<12 | 2202); `movz`/`movk` into w9 otherwise. So
+    signatures of any size resolve (there is no >4095 restriction).

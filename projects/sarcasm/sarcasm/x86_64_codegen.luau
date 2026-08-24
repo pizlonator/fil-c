@@ -76,6 +76,41 @@ function M.allocaRegionBase(stmt) return nil end
 -- access to bounds-check; nothing to reject as "mem on a non-load/store".
 function M.isMemInsn(mnem) return true end
 
+-- Condition-flag (RFLAGS) classification for flag liveness at instrumentation points.
+M.flagUse = isa.flagUse
+M.flagDef = isa.flagDef
+
+-- `;! load ptr` / `;! store ptr` are valid ONLY on a plain 64-bit mov between a GPR
+-- and memory (`mov (%rax), %rbx` / `mov %rbx, (%rax)`): the invisicap sequence moves
+-- exactly one (intval, lower) pair per access. 32-bit forms, non-mov memory
+-- instructions, and rsp-relative accesses (virtualized frame slots carry no heap
+-- capability) are rejected at the annotation site.
+function M.validatePtrAccess(stmt, what)
+	local raw = stmt.raw or stmt.mnemonic
+	local function bad(why)
+		error("sarcasm: ;! " .. what .. " ptr is only valid on a 64-bit mov between a GPR"
+			.. " and memory: " .. why .. ": " .. raw)
+	end
+	if isa.baseMnemonic(stmt.mnemonic) ~= "mov" then
+		bad("annotated instruction is not a mov")
+	end
+	local ops = stmt.operands
+	local mem = M.memOperand(stmt)
+	if not mem then bad("instruction has no memory operand") end
+	local val = (what == "load") and ops[1] or ops[2]
+	local memPos = (what == "load") and ops[2] or ops[1]
+	if memPos ~= mem then
+		bad((what == "load" and "source" or "destination") .. " is not the memory operand")
+	end
+	if not val or val.kind ~= "reg" or val.rc ~= "gpr" or (val.width or 64) ~= 64 then
+		bad("the " .. (what == "load" and "destination" or "stored value")
+			.. " is not a 64-bit GPR register")
+	end
+	if mem.base and mem.base.num == 4 then  -- rsp: a virtualized frame slot
+		bad("a stack-frame-relative access cannot be an annotated pointer " .. what)
+	end
+end
+
 -- `alloca size` size operand: `sub rsp, X` -> X is operands[2] (dest-first).
 function M.allocaSizeOperand(stmt) return stmt.operands[2] end
 -- a store writes memory when the (dest-first) first operand is the memory operand.
@@ -146,6 +181,22 @@ function M.make(ctx)
 		emit(build.insn("shr", { rt(dst), build.imm(16) }, { defs = {dst}, uses = {dst} }))
 	end
 
+	-- Save/restore RFLAGS around an instrumented sequence when the program's flags are
+	-- live across the insertion point (see transform.luau's flag liveness scan). Goes
+	-- through a GPR temp (rather than leaving the flags on the stack across the whole
+	-- sequence) so rsp is only transiently off by 8 inside the save/restore pairs
+	-- themselves — spill reloads/stores at fixed rsp offsets stay correct everywhere.
+	function cg.saveFlags()
+		local t = allocTemp({ role = "flags" })
+		emit(build.insn("pushfq", {}, {}))
+		emit(build.insn("popq", { rt(t) }, { defs = {t} }))
+		return t
+	end
+	function cg.restoreFlags(t)
+		emit(build.insn("pushq", { rt(t) }, { uses = {t} }))
+		emit(build.insn("popfq", {}, {}))
+	end
+
 	function cg.branchZero(reg, lbl)
 		emit(build.insn("test", { rt(reg), rt(reg) }, { uses = {reg} })); branch("je", lbl)
 	end
@@ -194,6 +245,13 @@ function M.make(ctx)
 
 	-- effective address + capability selection for a memory operand.
 	function cg.computeAddr(node, mem)
+		-- Defense-in-depth: a `;! load ptr`/`;! store ptr` annotation that survived onto
+		-- an instruction without a memory operand (e.g. a virtualized frame slot) must
+		-- be a clean rejection, never a nil-index crash. arm64 has the same guard.
+		if mem == nil then
+			error("sarcasm: instruction has no memory operand to make memory-safe: "
+				.. (node.stmt and node.stmt.raw or "?"))
+		end
 		local baseTemp = mem.base and node.opTemp[mem.base] or nil
 		local indexTemp = (mem.index and mem.index.kind == "reg") and node.opTemp[mem.index] or nil
 		local capLo

@@ -74,6 +74,19 @@ has spill.s  "(ldr|str)\tx[0-9]+, \[sp, #[0-9]+\]"     "register spilling engage
 has alloca-spasm.s "bl\tfilc_allocate"                 "alloca lowered to a filc_allocate GC allocation"
 has stackbuf-spasm.s "mov\tx1, #400"                   "fixed-size alloca uses its declared byte size"
 
+echo "== lift/render round-trip (unit) =="
+rout="$(lute tests/roundtrip-test.luau 2>&1)"; rrc=$?; echo "$rout"
+if [ "$rrc" -ne 0 ] || echo "$rout" | grep -q "MISMATCH"; then
+  echo "  FAIL: roundtrip-test.luau"; fail=$((fail+1))
+else
+  echo "  ok: lift + identity-coloring reproduces the input byte-for-byte"; pass=$((pass+1))
+fi
+
+echo "== arch/syntax auto-detection (unit) =="
+dout="$(lute tests/detect-test.luau 2>&1)"; echo "$dout"
+pass=$((pass + $(echo "$dout" | grep -c '^  ok:')))
+fail=$((fail + $(echo "$dout" | grep -c '^  FAIL:')))
+
 echo "== spill reload-elimination cleanup (unit) =="
 cout="$(lute tests/cleanup-test.luau 2>&1)"; echo "$cout"
 pass=$((pass + $(echo "$cout" | grep -c '^  ok:')))

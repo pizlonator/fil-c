@@ -134,12 +134,21 @@ function glue_x86.foAndOrigins(out, name, signature, numRoots, dbg)
 	table.insert(out, "\t.quad\t" .. (dbg and fileSym or "0"))
 	table.insert(out, "\t.long\t" .. tostring(numRoots))
 	table.insert(out, "\t.zero\t4")
+	-- personality_getter = NULL (no landing pads in sarcasm-generated code), but
+	-- can_throw/can_catch must be 1: Fil-C unwinding walks the filc_frame chain
+	-- (filc_native__Unwind_RaiseException phase 1) and fatals on any frame whose
+	-- function origin is !can_catch, or !can_throw without a personality — which
+	-- would make a C++ exception through a sarcasm frame terminate instead of
+	-- reaching the caller's handler. The exception itself propagates through the
+	-- fast-CC return flag, which the FIP's post-call exception check already
+	-- forwards (matching clang's no-personality frames). has_setjmps = 0,
+	-- num_stack_auxes = 0.
 	table.insert(out, "\t.quad\t0")
-	table.insert(out, "\t.byte\t0")
-	table.insert(out, "\t.byte\t0")
-	table.insert(out, "\t.byte\t0")
+	table.insert(out, "\t.byte\t1")   -- can_throw
+	table.insert(out, "\t.byte\t1")   -- can_catch
+	table.insert(out, "\t.byte\t0")   -- has_setjmps
 	table.insert(out, "\t.zero\t1")
-	table.insert(out, "\t.long\t0")
+	table.insert(out, "\t.long\t0")   -- num_stack_auxes
 	table.insert(out, "\t.size\t" .. fnOrigin .. ", 40")
 	table.insert(out, "")
 

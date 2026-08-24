@@ -43,6 +43,13 @@ local function classifyReg(tok: string)
 	if low == "wzr" then
 		return { kind = "reg", name = "wzr", rc = "zr", width = 32 }
 	end
+	-- gcc-style aliases: fp = x29 (frame pointer), lr = x30 (link register).
+	if low == "fp" then
+		return { kind = "reg", name = "x29", rc = "gpr", width = 64, num = 29 }
+	end
+	if low == "lr" then
+		return { kind = "reg", name = "x30", rc = "gpr", width = 64, num = 30 }
+	end
 	local prefix, num = string.match(low, "^([a-z]+)(%d+)$")
 	if prefix and num then
 		local n = tonumber(num)
@@ -243,6 +250,63 @@ local function stripLineComment(s: string): string
 	return s
 end
 
+-- Remove comments from the whole text before line splitting: `/* ... */` (inline and
+-- multi-line) and `//` to end of line, neither of which may appear inside a
+-- double-quoted string (`.asciz "a // b"` keeps its slashes). `#` is NOT a comment
+-- here -- on arm64 it introduces an immediate. A comment is replaced by a single space
+-- (comments act as token separators in GAS); newlines inside block comments are kept so
+-- statement line numbers still match the source.
+local function stripComments(text: string): string
+	local out = {}
+	local i, n = 1, #text
+	local state = "code" -- code | str | line | block
+	while i <= n do
+		local c = string.sub(text, i, i)
+		local d = string.sub(text, i + 1, i + 1)
+		if state == "code" then
+			if c == '"' then
+				state = "str"
+				table.insert(out, c)
+			elseif c == "/" and d == "/" then
+				state = "line"
+				table.insert(out, " ")
+				i += 1
+			elseif c == "/" and d == "*" then
+				state = "block"
+				table.insert(out, " ")
+				i += 1
+			else
+				table.insert(out, c)
+			end
+		elseif state == "str" then
+			table.insert(out, c)
+			if c == "\\" then
+				local e = string.sub(text, i + 1, i + 1)
+				if e ~= "" then table.insert(out, e); i += 1 end
+			elseif c == '"' then
+				state = "code"
+			elseif c == "\n" then
+				state = "code" -- unterminated string; resync at the line boundary
+			end
+		elseif state == "line" then
+			if c == "\n" then
+				state = "code"
+				table.insert(out, c)
+			end
+		else -- block
+			if c == "*" and d == "/" then
+				state = "code"
+				i += 1
+			elseif c == "\n" then
+				table.insert(out, c)
+			end
+		end
+		i += 1
+	end
+	return table.concat(out)
+end
+parse.stripComments = stripComments
+
 -- Split off a ;! annotation (returns code, annotation-or-nil).
 local function splitAnnotation(s: string): (string, string?)
 	local idx = string.find(s, ";!", 1, true)
@@ -331,6 +395,8 @@ function parse.parseString(text: string)
 	local out = {}
 	-- normalize CRLF
 	text = (string.gsub(text, "\r\n", "\n"))
+	-- strip C/C++ comments (string-literal aware) before line splitting
+	text = stripComments(text)
 	local lineNo = 0
 	for line in (text .. "\n"):gmatch("(.-)\n") do
 		lineNo += 1

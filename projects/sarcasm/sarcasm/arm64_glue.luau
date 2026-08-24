@@ -161,12 +161,21 @@ function glue.foAndOrigins(out, name: string, signature: number, numRoots: numbe
 	table.insert(out, "\t.xword\t" .. (dbg and fileSym or "0"))
 	table.insert(out, "\t.word\t" .. tostring(numRoots))
 	table.insert(out, "\t.zero\t4")
+	-- personality_getter = NULL (no landing pads in sarcasm-generated code), but
+	-- can_throw/can_catch must be 1: Fil-C unwinding walks the filc_frame chain
+	-- (filc_native__Unwind_RaiseException phase 1) and fatals on any frame whose
+	-- function origin is !can_catch, or !can_throw without a personality — which
+	-- would make a C++ exception through a sarcasm frame terminate instead of
+	-- reaching the caller's handler. The exception itself propagates through the
+	-- fast-CC return flag, which the FIP's post-call tbnz/exception epilogue
+	-- already forwards (matching clang's no-personality frames: can_throw=1,
+	-- can_catch=1, personality NULL). has_setjmps = 0, num_stack_auxes = 0.
 	table.insert(out, "\t.xword\t0")
-	table.insert(out, "\t.byte\t0")
-	table.insert(out, "\t.byte\t0")
-	table.insert(out, "\t.byte\t0")
+	table.insert(out, "\t.byte\t1")   -- can_throw
+	table.insert(out, "\t.byte\t1")   -- can_catch
+	table.insert(out, "\t.byte\t0")   -- has_setjmps
 	table.insert(out, "\t.zero\t1")
-	table.insert(out, "\t.word\t0")
+	table.insert(out, "\t.word\t0")   -- num_stack_auxes
 	table.insert(out, "\t.size\t" .. fnOrigin .. ", 40")
 	table.insert(out, "")
 
@@ -254,6 +263,10 @@ function glue.callsiteThunk(out, callee: string, sigDesc)
 		error("sarcasm: callsite thunk for '" .. callee .. "': >6 register argument words not yet supported"
 			.. " (this call's signature needs " .. tostring(holdWords) .. ")")
 	end
+	-- The fast tail call loads the canonical entrypoint into the first register past the
+	-- dense argument words (x2..x(1+holdWords)) -- exactly pizlonated clang's choice
+	-- (x4 for 2 words, x6 for 4, x8 for 6) -- so it can never clobber an argument.
+	local entryReg = 2 + holdWords
 	local myth = 19
 	local nextReg = 20
 	local args = {}  -- k -> { iv = reg, lo = reg|nil, isPtr = bool }
@@ -301,7 +314,24 @@ function glue.callsiteThunk(out, callee: string, sigDesc)
 	e("\tcmp\tx0, x8")
 	e("\tb.ne\t" .. L .. "_fail")
 	e("\tldr\tx8, [x1, #16]")                      -- signature
-	e("\tcmp\tx8, #" .. tostring(sig))
+	-- Signature compare. `cmp x8, #imm` only takes a 12-bit immediate, so mirror what
+	-- pizlonated clang emits for larger signatures: a single movz into w9 when the
+	-- signature fits in 16 bits (e.g. 12777), a sub/cmp pair splitting off the top
+	-- 12-bit chunk when the high part fits (e.g. 194714 = 47<<12 | 2202), and
+	-- movz/movk otherwise (e.g. 23561750). x8/x9 are dead scratch at this point.
+	if sig <= 4095 then
+		e("\tcmp\tx8, #" .. tostring(sig))
+	elseif sig <= 65535 then
+		e("\tmov\tw9, #" .. tostring(sig))
+		e("\tcmp\tx8, x9")
+	elseif math.floor(sig / 4096) <= 4095 then
+		e("\tsub\tx8, x8, #" .. tostring(math.floor(sig / 4096)) .. ", lsl #12")
+		e("\tcmp\tx8, #" .. tostring(sig % 4096))
+	else
+		e("\tmov\tw9, #" .. tostring(sig % 65536))
+		e("\tmovk\tw9, #" .. tostring(math.floor(sig / 65536)) .. ", lsl #16")
+		e("\tcmp\tx8, x9")
+	end
 	e("\tb.ne\t" .. L .. "_generic")
 	-- direct fast call
 	e("\tmov\tx0, x" .. myth)
@@ -310,10 +340,10 @@ function glue.callsiteThunk(out, callee: string, sigDesc)
 		if args[k].lo then e("\tmov\tx" .. loReg[k] .. ", x" .. args[k].lo) end
 	end
 	for i, r in saved do e("\tldr\tx" .. r .. ", [sp, #" .. (8 * i) .. "]") end
-	e("\tldr\tx5, [x1]")
+	e("\tldr\tx" .. entryReg .. ", [x1]")
 	e("\tldr\tx30, [sp, #0]")
 	e("\tadd\tsp, sp, #" .. total)
-	e("\tbr\tx5")
+	e("\tbr\tx" .. entryReg)
 	-- generic buffer call
 	e(L .. "_generic:")
 	for k = 1, sigDesc.argWords do

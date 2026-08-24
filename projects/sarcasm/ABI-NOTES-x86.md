@@ -3,8 +3,9 @@
 The ABI *concepts* are identical to ARM64 (see ABI-NOTES.md): invisicap (intval,lower),
 object header at [lower-16]=upper / [lower-8]=aux, myth offsets ([+0]=stack limit,
 [+8]=flags, [+16]=top frame, [+128]=CC payload buffer, [+384]=CC aux buffer), filc_frame
-{prev, origin, roots}, signature encoding, FO layout, 0x83<<48 function flags. Only the
-registers and instructions differ.
+{prev, origin, roots}, signature encoding, FO layout, 0x83<<48 function flags, function
+origins with can_throw=1/can_catch=1 (C++ exceptions propagate through sarcasm frames).
+Only the registers and instructions differ.
 
 ## Register calling convention (fast entrypoint / direct call)
 - `%rdi` = myth, `%rsi` = function object (FO payload ptr).
