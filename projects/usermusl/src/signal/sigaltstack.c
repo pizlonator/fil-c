@@ -14,5 +14,5 @@ int sigaltstack(const stack_t *restrict ss, stack_t *restrict old)
 			return -1;
 		}
 	}
-	return syscall(SYS_sigaltstack, ss, old);
+	return zsys_sigaltstack(ss, old);
 }

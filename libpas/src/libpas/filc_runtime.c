@@ -11930,11 +11930,40 @@ int filc_native_zsys_posix_fallocate(filc_thread* my_thread, int fd, long offset
 
 int filc_native_zsys_sigaltstack(filc_thread* my_thread, filc_ptr ss_ptr, filc_ptr old_ss_ptr)
 {
-    PAS_UNUSED_PARAM(my_thread);
-    PAS_UNUSED_PARAM(ss_ptr);
-    PAS_UNUSED_PARAM(old_ss_ptr);
-    filc_internal_panic(NULL, "sigaltstack not supported.");
-    return -1;
+    stack_t ss;
+    stack_t old;
+    stack_t* ss_p = NULL;
+    stack_t* old_p = NULL;
+    if (filc_ptr_ptr(ss_ptr)) {
+        filc_check_read(ss_ptr, sizeof(stack_t));
+        stack_t* user_ss = (stack_t*)filc_ptr_ptr(ss_ptr);
+        ss.ss_flags = user_ss->ss_flags;
+        ss.ss_size = user_ss->ss_size;
+        filc_ptr sp = filc_load_ptr_at(my_thread, ss_ptr, &user_ss->ss_sp);
+        ss.ss_sp = filc_ptr_ptr(sp);
+        /* The kernel copies the interrupted context onto the alternate stack when a
+           SA_ONSTACK signal is delivered, so it must be writable for ss_size bytes
+           unless the stack is being disabled. */
+        if (!(ss.ss_flags & SS_DISABLE) && ss.ss_sp)
+            filc_check_write(sp, ss.ss_size);
+        ss_p = &ss;
+    }
+    if (filc_ptr_ptr(old_ss_ptr)) {
+        filc_check_write(old_ss_ptr, sizeof(stack_t));
+        old_p = &old;
+    }
+    int result = FILC_SYSCALL(my_thread, sigaltstack(ss_p, old_p));
+    if (old_p && result == 0) {
+        stack_t* user_old = (stack_t*)filc_ptr_ptr(old_ss_ptr);
+        user_old->ss_flags = old.ss_flags;
+        user_old->ss_size = old.ss_size;
+        /* Only the raw address of the previously-registered stack is known here, not
+           its bounds, so hand back an invalid-capability pointer: it round-trips into
+           a later sigaltstack to restore the stack, but cannot be dereferenced. */
+        filc_store_ptr_at(my_thread, old_ss_ptr, &user_old->ss_sp,
+                          filc_ptr_forge_invalid(old.ss_sp));
+    }
+    return result;
 }
 
 unsigned filc_native_zsys_alarm(filc_thread* my_thread, unsigned seconds)
