@@ -602,6 +602,11 @@ static PAS_ALWAYS_INLINE void filc_thread_mark_roots(filc_thread* my_thread,
     for (index = filc_object_array_num_objects(&my_thread->thread_locals); index--;)
         marker.mark(stack, filc_object_array_at(&my_thread->thread_locals, index));
 
+    /* Keep the registered alternate signal stack alive while it is registered, so a
+       handler that runs on it cannot land on a collected buffer. */
+    if (filc_ptr_object(my_thread->alt_stack_ptr))
+        marker.mark(stack, filc_ptr_object(my_thread->alt_stack_ptr));
+
 #if FILC_HAS_FIBER_CONTEXT
     for (index = my_thread->grey_fibers.size; index--;) {
         filc_fiber_context* fiber_context = (filc_fiber_context*)my_thread->grey_fibers.array[index];
