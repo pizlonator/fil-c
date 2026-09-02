@@ -5,6 +5,9 @@
    assertions run -- and we additionally prove the pointers are real and that the callback's return
    value stops and propagates. */
 
+/* glibc guards dl_iterate_phdr and struct dl_phdr_info in <link.h> behind __USE_GNU; musl exposes
+   them unconditionally. Ask for the GNU set so this compiles under either libc. */
+#define _GNU_SOURCE
 #include <link.h>
 #include <elf.h>
 #include <stddef.h>
@@ -13,8 +16,11 @@
 #include <stdfil.h>
 
 /* No public header declares static_dl_iterate_phdr, so reference the exported symbol directly to
-   call it by name below. */
+   call it by name below. The static_ entry point is exported by the musl shim only; glibc provides
+   dl_iterate_phdr without it, so the static_ check below is compiled only under musl. */
+#if !defined(__GLIBC__)
 extern int static_dl_iterate_phdr(int(*)(struct dl_phdr_info *info, size_t size, void *data), void *data);
+#endif
 
 struct ctx {
     int count;
@@ -87,8 +93,8 @@ int main(void)
     /* Require more than one object, proving the runtime walks the full link_map rather than only
        reporting the executable.
 
-       A Fil-C program is whole-process musl: the exe always pulls in libc.so, libpizlo.so and
-       libyoloc.so, so a correct enumeration reports several objects. */
+       A Fil-C program always pulls in the C runtime (libc), libpizlo.so and libyoloc.so, so a
+       correct enumeration reports several objects. */
     ZASSERT(c.count >= 2);
     /* Every object's phdrs were readable and had a PT_LOAD. */
     ZASSERT(c.found_load);
@@ -105,7 +111,9 @@ int main(void)
        proving the static_ entry point works and not only its weak alias.
 
        Identical means the same object count, the same reachable capabilities, and the same
-       forwarded data. */
+       forwarded data. The musl shim exports static_dl_iterate_phdr; glibc does not, so this arm
+       runs under musl only. */
+#if !defined(__GLIBC__)
     struct ctx cs;
     cs.count = 0;
     cs.found_load = 0;
@@ -117,6 +125,7 @@ int main(void)
     ZASSERT(cs.count == c.count);
     ZASSERT(cs.found_load);
     ZASSERT(cs.found_named);
+#endif
 
     printf("dl_iterate_phdr saw %d objects.\n", c.count);
     return 0;

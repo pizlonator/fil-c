@@ -13,8 +13,11 @@
 #include <stdfil.h>
 
 /* No public header declares static_dl_find_object, so reference the exported symbol directly to
-   call it by name below. */
+   call it by name below. The static_ entry point is exported by the musl shim only; glibc provides
+   _dl_find_object without it, so the static_ check below is compiled only under musl. */
+#if !defined(__GLIBC__)
 extern int static_dl_find_object(void *address, struct dl_find_object *result);
+#endif
 
 struct other {
     /* Main program's mapping range, which pick_other_cb excludes when choosing another object. */
@@ -74,9 +77,14 @@ int main(void)
     /* The object's opaque handle (its load base) is reported. */
     ZASSERT(fo.dlfo_link_map != 0);
 
-    /* Fields the runtime writes explicitly: flags cleared, no sframe. */
+    /* Fields the runtime writes explicitly: flags cleared, and sframe cleared where the struct
+       carries it -- the musl shim always, glibc only since 2.41 (glibc <= 2.40 has no dlfo_sframe). */
     ZASSERT(fo.dlfo_flags == 0);
+#if !defined(__GLIBC__)
     ZASSERT(fo.dlfo_sframe == 0);
+#elif __GLIBC_PREREQ(2, 41)
+    ZASSERT(fo.dlfo_sframe == 0);
+#endif
 
     /* Checks cross-object resolution: an address inside a different object must resolve to a
        different mapping, not always report the main program.
@@ -101,12 +109,15 @@ int main(void)
     ZASSERT(lo2 != lo);
 
     /* Resolve &main through static_dl_find_object and require the identical mapping as
-       _dl_find_object, proving the static_ entry point works and not only its weak alias. */
+       _dl_find_object, proving the static_ entry point works and not only its weak alias. The musl
+       shim exports static_dl_find_object; glibc does not, so this arm runs under musl only. */
+#if !defined(__GLIBC__)
     struct dl_find_object fo_s;
     int rs = static_dl_find_object((void*)&main, &fo_s);
     ZASSERT(rs == 0);
     ZASSERT((uintptr_t)fo_s.dlfo_map_start == lo);
     ZASSERT((uintptr_t)fo_s.dlfo_map_end == hi);
+#endif
 
     /* An address that belongs to no loaded object (a heap/stack address is not inside any object's
        PT_LOAD range) must report "not found". */

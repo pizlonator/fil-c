@@ -38,6 +38,7 @@ routines = \
   libc_early_init \
   enbl-secure \
   dl-iteratephdr \
+  filc-dl-find_object \
   # routines
 
 include ../Rules
