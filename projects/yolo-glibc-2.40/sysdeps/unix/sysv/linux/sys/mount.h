@@ -264,9 +264,15 @@ enum fsconfig_command
 /* fsopen flags.  */
 #define FSOPEN_CLOEXEC          0x00000001
 
-/* open_tree flags.  */
-#define OPEN_TREE_CLONE    1         /* Clone the target tree and attach the clone */
-#define OPEN_TREE_CLOEXEC  O_CLOEXEC /* Close the file on execve() */
+/* open_tree flags.  Newer <linux/mount.h> (included above) already spells
+   OPEN_TREE_CLONE as (1 << 0); guard so its identical value survives -Werror
+   redefinition checking instead of clashing with glibc's bare 1.  */
+#ifndef OPEN_TREE_CLONE
+# define OPEN_TREE_CLONE   1         /* Clone the target tree and attach the clone */
+#endif
+#ifndef OPEN_TREE_CLOEXEC
+# define OPEN_TREE_CLOEXEC O_CLOEXEC /* Close the file on execve() */
+#endif
 
 
 __BEGIN_DECLS
