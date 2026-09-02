@@ -133,6 +133,8 @@ void* zsys_dlopen(const char* filename, int flags); /* FIXME: we should add dlcl
 void* zsys_dlsym(void* handle, const char* symbol);
 void* zsys_dlvsym(void* handle, const char* symbol, const char* version);
 int zsys_dladdr(const void* addr, void* info);
+int zsys_dl_iterate_phdr(void* callback, void* data);
+int zsys_dl_find_object(void* address, void* result);
 int zsys_poll(void* pollfds, unsigned long nfds, int timeout);
 int zsys_faccessat(int dirfd, const char* pathname, int mode, int flags);
 int zsys_sigwait(const void* sigmask, int* sig);
