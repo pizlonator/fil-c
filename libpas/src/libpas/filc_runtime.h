@@ -775,6 +775,21 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     filc_fiber_context* switching_to_fiber_context;
 #endif /* FILC_HAS_FIBER_CONTEXT */
 
+    /* Alternate signal stack registered via sigaltstack(2). Fil-C manages this
+       region itself rather than handing ss_sp to the kernel: an SA_ONSTACK handler
+       is run on it at the deferred safe point, with stack_limit swapped to it, the
+       same way a fiber context runs on its own stack. A null alt_stack_ptr or
+       SS_DISABLE in alt_stack_flags means no alternate stack is registered.
+       alt_stack_ptr is a GC root (marked in filc_thread_mark_roots) so the buffer
+       cannot be collected while it is registered; filc_ptr_ptr gives its base. */
+    filc_ptr alt_stack_ptr;
+    size_t alt_stack_size;
+    int alt_stack_flags;
+    bool on_alt_stack; /* True while a handler is running on the alternate stack, so
+                          a nested signal does not try to switch onto it again. */
+    void* pending_alt_run; /* Args for the alternate-stack trampoline (opaque here;
+                              a struct alt_stack_run* in filc_runtime.c). */
+
     pas_system_mutex lock; /* We grab all of these during fork(). */
     pas_system_condition cond;
     bool has_started; /* set to true when we actually commence starting the thread, after grabbing

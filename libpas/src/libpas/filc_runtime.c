@@ -213,6 +213,10 @@ filc_thread* filc_thread_create_with_manual_tracking(filc_thread* my_thread)
     filc_raw_ptr_array_construct(&thread->allocation_roots);
     filc_mark_stack_construct(&thread->mark_stack);
     filc_object_array_construct(&thread->thread_locals);
+    thread->alt_stack_ptr = filc_ptr_forge_null();
+    thread->alt_stack_size = 0;
+    thread->alt_stack_flags = 0;
+    thread->on_alt_stack = false;
 #if FILC_HAS_FIBER_CONTEXT
     filc_raw_ptr_array_construct(&thread->grey_fibers);
 #endif /* FILC_HAS_FIBER_CONTEXT */
@@ -1049,10 +1053,77 @@ void filc_enter(filc_thread* my_thread)
 
 static uintptr_t heap_dump_count = 0;
 
+/* Running a signal handler on the alternate stack reuses the fiber contexts'
+   makecontext/swapcontext machinery, so it is only available where those are
+   (glibc). Under a libc whose runtime libc lacks ucontext, SA_ONSTACK handlers
+   run on the normal Fil-C stack instead -- still memory-safe. */
+#if FILC_HAS_FIBER_CONTEXT
+
+struct alt_stack_run {
+    filc_ptr function_ptr;
+    int signo;
+    filc_ptr info_ptr;
+    ucontext_t return_ctx;
+};
+
+/* Entered on the alternate stack via swapcontext. makecontext cannot pass pointers
+   portably, so the arguments are read from the thread; the user handler is run and
+   control returns to return_ctx through uc_link. */
+static void alt_stack_trampoline(void)
+{
+    filc_thread* my_thread = filc_get_my_thread();
+    struct alt_stack_run* run = (struct alt_stack_run*)my_thread->pending_alt_run;
+    filc_call_user_void_int_ptr_ptr(
+        my_thread, run->function_ptr, run->signo, run->info_ptr, filc_ptr_forge_null());
+}
+
+/* Run a signal handler on this thread's registered alternate stack with stack_limit
+   swapped to it -- the makecontext/swapcontext model the fiber contexts use. The GC
+   stays correct because roots come off the frame chain, which the handler extends via
+   its own FILC_DEFINE_FRAME, not off the machine stack pointer. */
+static void filc_run_signal_handler_on_alt_stack(filc_thread* my_thread, filc_ptr function_ptr,
+                                                 int signo, filc_ptr info_ptr)
+{
+    char* alt_base = (char*)filc_ptr_ptr(my_thread->alt_stack_ptr);
+    size_t alt_size = my_thread->alt_stack_size;
+
+    struct alt_stack_run run;
+    run.function_ptr = function_ptr;
+    run.signo = signo;
+    run.info_ptr = info_ptr;
+
+    ucontext_t handler_ctx;
+    PAS_ASSERT(!getcontext(&handler_ctx));
+    handler_ctx.uc_stack.ss_sp = alt_base;
+    handler_ctx.uc_stack.ss_size = alt_size;
+    handler_ctx.uc_link = &run.return_ctx;
+    makecontext(&handler_ctx, alt_stack_trampoline, 0);
+
+    filc_stack_limit saved_limit;
+    saved_limit.stack_limit = my_thread->stack_limit;
+    saved_limit.stack_top = my_thread->stack_top;
+    filc_stack_limit alt_limit = compute_stack_limit_for_stack_and_size(alt_base, alt_size);
+
+    void* saved_pending = my_thread->pending_alt_run;
+    my_thread->pending_alt_run = &run;
+    my_thread->on_alt_stack = true;
+    my_thread->stack_limit = alt_limit.stack_limit;
+    my_thread->stack_top = alt_limit.stack_top;
+
+    PAS_ASSERT(!swapcontext(&run.return_ctx, &handler_ctx));
+
+    my_thread->stack_limit = saved_limit.stack_limit;
+    my_thread->stack_top = saved_limit.stack_top;
+    my_thread->on_alt_stack = false;
+    my_thread->pending_alt_run = saved_pending;
+}
+
+#endif /* FILC_HAS_FIBER_CONTEXT */
+
 static void call_signal_handler(filc_thread* my_thread, filc_signal_handler* handler, siginfo_t* info)
 {
     static const bool verbose = false;
-    
+
     PAS_ASSERT(handler);
     PAS_ASSERT(handler->user_signum == info->si_signo);
 
@@ -1099,6 +1170,17 @@ static void call_signal_handler(filc_thread* my_thread, filc_signal_handler* han
         filc_decrease_special_signal_deferral_depth(my_thread);
     }
 
+#if FILC_HAS_FIBER_CONTEXT
+    /* Whether this handler asked to run on the alternate signal stack. Read from the
+       handler now, while it is still live: once we hold the function pointer we must
+       not touch the handler again (a GC could collect it). */
+    bool run_on_alt_stack =
+        (handler->flags & SA_ONSTACK)
+        && filc_ptr_ptr(my_thread->alt_stack_ptr)
+        && !(my_thread->alt_stack_flags & SS_DISABLE)
+        && !my_thread->on_alt_stack;
+#endif /* FILC_HAS_FIBER_CONTEXT */
+
     /* Load the function from the handler first since as soon as we exit, the handler might get GC'd.
        Also, we're choosing not to rely on the fact that functions are global and we track them
        anyway. */
@@ -1112,8 +1194,14 @@ static void call_signal_handler(filc_thread* my_thread, filc_signal_handler* han
             filc_allocate_with_alignment(my_thread, sizeof(siginfo_t), alignof(siginfo_t)));
         memcpy(filc_ptr_ptr(info_ptr), info, sizeof(siginfo_t));
         
-        filc_call_user_void_int_ptr_ptr(
-            my_thread, function_ptr, info->si_signo, info_ptr, filc_ptr_forge_null());
+#if FILC_HAS_FIBER_CONTEXT
+        if (run_on_alt_stack)
+            filc_run_signal_handler_on_alt_stack(
+                my_thread, function_ptr, info->si_signo, info_ptr);
+        else
+#endif /* FILC_HAS_FIBER_CONTEXT */
+            filc_call_user_void_int_ptr_ptr(
+                my_thread, function_ptr, info->si_signo, info_ptr, filc_ptr_forge_null());
     }
 
     filc_pop_native_frame(my_thread, &native_frame);
@@ -11930,11 +12018,80 @@ int filc_native_zsys_posix_fallocate(filc_thread* my_thread, int fd, long offset
 
 int filc_native_zsys_sigaltstack(filc_thread* my_thread, filc_ptr ss_ptr, filc_ptr old_ss_ptr)
 {
-    PAS_UNUSED_PARAM(my_thread);
-    PAS_UNUSED_PARAM(ss_ptr);
-    PAS_UNUSED_PARAM(old_ss_ptr);
-    filc_internal_panic(NULL, "sigaltstack not supported.");
-    return -1;
+    /* Fil-C manages the alternate stack itself rather than handing ss_sp to the
+       kernel: an SA_ONSTACK handler is run on it at the deferred safe point (see
+       call_signal_handler). So this reads and updates thread state, not the kernel. */
+
+    /* Report the alternate stack currently registered on this thread. */
+    if (filc_ptr_ptr(old_ss_ptr)) {
+        filc_check_write(old_ss_ptr, sizeof(stack_t));
+        stack_t* user_old = (stack_t*)filc_ptr_ptr(old_ss_ptr);
+        if (filc_ptr_ptr(my_thread->alt_stack_ptr) && !(my_thread->alt_stack_flags & SS_DISABLE)) {
+            user_old->ss_size = my_thread->alt_stack_size;
+            user_old->ss_flags = my_thread->on_alt_stack ? SS_ONSTACK : 0;
+            /* Hand back the very capability the user registered, so it round-trips
+               into a later sigaltstack. */
+            filc_store_ptr_at(my_thread, old_ss_ptr, &user_old->ss_sp, my_thread->alt_stack_ptr);
+        } else {
+            user_old->ss_size = 0;
+            user_old->ss_flags = SS_DISABLE;
+            filc_store_ptr_at(my_thread, old_ss_ptr, &user_old->ss_sp, filc_ptr_forge_null());
+        }
+    }
+
+    /* A null ss means "only report the old stack"; anything else registers one. */
+    if (filc_ptr_ptr(ss_ptr)) {
+        filc_check_read(ss_ptr, sizeof(stack_t));
+        stack_t* user_ss = (stack_t*)filc_ptr_ptr(ss_ptr);
+        int flags = user_ss->ss_flags;
+        size_t size = user_ss->ss_size;
+        filc_ptr sp = filc_load_ptr_at(my_thread, ss_ptr, &user_ss->ss_sp);
+
+        /* The kernel returns EPERM if the alternate stack is changed while a signal
+           is being handled on it; Fil-C traps instead, since it manages the switch. */
+        FILC_CHECK(
+            !my_thread->on_alt_stack,
+            NULL,
+            "cannot change the alternate signal stack while a handler is running on it.");
+
+        if (flags & SS_DISABLE) {
+            my_thread->alt_stack_ptr = filc_ptr_forge_null();
+            my_thread->alt_stack_size = 0;
+            my_thread->alt_stack_flags = SS_DISABLE;
+        } else {
+            char* base = (char*)filc_ptr_ptr(sp);
+            /* Fil-C runs the handler on this stack with its own height checking, which
+               reserves a 32768-byte slack region at the base (compute_stack_limit_for_
+               stack_and_size), so the alternate stack must be larger than a bare kernel
+               one. 64 KiB leaves a comfortable usable region above the slack. */
+            FILC_CHECK(
+                size >= 65536,
+                NULL,
+                "alternate signal stack size %zu is too small for Fil-C (need >= 65536) "
+                "in sigaltstack.",
+                size);
+            /* The handler runs on it, so it must be writable for the whole extent. */
+            filc_check_write(sp, size);
+            /* The alternate stack must be a region distinct from this thread's
+               execution stack. A capability into the execution stack would let a
+               delivered signal run over live frames, and Fil-C's stack-height checks
+               are computed against the execution stack, not this buffer -- the same
+               reason a fiber context takes a freshly allocated stack of its own. */
+            char* exec_lo = (char*)my_thread->stack_limit;
+            char* exec_hi = (char*)my_thread->stack_top;
+            FILC_CHECK(
+                base + size <= exec_lo || base >= exec_hi,
+                NULL,
+                "alternate signal stack [%p, %p) overlaps the execution stack "
+                "[%p, %p) in sigaltstack.",
+                (void*)base, (void*)(base + size), (void*)exec_lo, (void*)exec_hi);
+            /* Register with a store barrier so the buffer stays a live GC root. */
+            filc_flight_ptr_store(my_thread, &my_thread->alt_stack_ptr, sp);
+            my_thread->alt_stack_size = size;
+            my_thread->alt_stack_flags = flags;
+        }
+    }
+    return 0;
 }
 
 unsigned filc_native_zsys_alarm(filc_thread* my_thread, unsigned seconds)

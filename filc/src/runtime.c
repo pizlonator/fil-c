@@ -650,6 +650,22 @@ long zsys_syscall(long n, ...)
         callee = zsys_openat2;
         break;
 
+    case SYS_inotify_init1:
+        callee = zsys_inotify_init1;
+        break;
+
+    case SYS_inotify_add_watch:
+        callee = zsys_inotify_add_watch;
+        break;
+
+    case SYS_inotify_rm_watch:
+        callee = zsys_inotify_rm_watch;
+        break;
+
+    case SYS_sigaltstack:
+        callee = zsys_sigaltstack;
+        break;
+
 	/* FIXME: Implement more syscalls! */
 
     default:
