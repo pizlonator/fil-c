@@ -16407,12 +16407,24 @@ public:
                          /*hasSideEffects=*/true);
       break;
     case Triple::x86_64:
-      StackCheckAsm =
-          InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
-                         "cmp %rsp, $0\n\t"
-                         "jae filc_stack_overflow_failure@PLT",
-                         "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
-                         /*hasSideEffects=*/true);
+      if (M.getCodeModel() == CodeModel::Large) {
+        StackCheckAsm =
+            InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                           "cmp %rsp, $0\n\t"
+                           "jb 1f\n\t"
+                           "movabs $$filc_stack_overflow_failure, %r11\n\t"
+                           "jmp *%r11\n\t"
+                           "1:",
+                           "*m,~{r11},~{memory},~{dirflag},~{fpsr},~{flags}",
+                           /*hasSideEffects=*/true);
+      } else {
+        StackCheckAsm =
+            InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                           "cmp %rsp, $0\n\t"
+                           "jae filc_stack_overflow_failure@PLT",
+                           "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
+                           /*hasSideEffects=*/true);
+      }
       break;
     default:
       report_fatal_error("Unknown arch");
