@@ -470,7 +470,10 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
       P = "/opt/fil";
     else
       P = "/";
-    llvm::sys::path::append(P, "lib", "ld-fil1-" + Triple.getArchName().str() + ".so");
+    StringRef ArchName = Triple.getArchName();
+    if (Arch == llvm::Triple::aarch64 || Arch == llvm::Triple::x86_64)
+      ArchName = llvm::Triple::getArchTypeName(Arch);
+    llvm::sys::path::append(P, "lib", "ld-fil1-" + ArchName.str() + ".so");
     return std::string(P);
   }
 

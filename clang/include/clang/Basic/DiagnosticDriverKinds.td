@@ -195,6 +195,8 @@ def err_drv_sarcasm_missing : Error<
   "sarcasm assembler not found at %0 (install it with build_sarcasm.sh or pass -yolo-assembler)">;
 def err_drv_sarcasm_unsupported_option : Error<
   "'%0' is not supported by the sarcasm assembler (pass -yolo-assembler to use the built-in YOLO assembler)">;
+def err_drv_filc_cross_pizfix_missing : Error<
+  "cross compiling for %0 needs that architecture's Fil-C pizfix: install it as %1 or pass --filc-resource-dir=">;
 def err_drv_invalid_Xarch_argument_with_args : Error<
   "invalid Xarch argument: '%0', options requiring arguments are unsupported">;
 def err_drv_Xopenmp_target_missing_triple : Error<

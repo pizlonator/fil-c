@@ -101,6 +101,52 @@ If you are using source, then you can also:
 
 - `cd optfil && sudo ./build.sh` - builds the `/opt/fil` distribution.
 
+## Cross Compiling
+
+The compiler in each binary distribution can target both X86_64 and ARM64 on
+Linux. Cross compilation works in either direction. To cross compile you need:
+
+- The same Fil-C release's binary distribution for the other architecture, for
+  its `pizfix` (runtime, libc, and libc++). Unpack it, run its `setup.sh` on the
+  host as usual, and link its `pizfix` next to this distribution's `pizfix` as
+  `pizfix-<arch>`:
+
+      ln -s /path/to/filc-0.685-linux-aarch64/pizfix pizfix-aarch64
+
+  For cross compilation, the compiler uses the target's `pizfix-<arch>`;
+  `--filc-resource-dir=` overrides it. `setup.sh` links `pizfix/os-include/asm`
+  to the host's kernel headers for that architecture
+  (`/usr/include/<arch>-linux-gnu/asm`, or `/usr/<arch>-linux-gnu/include/asm`
+  from `linux-libc-dev-arm64-cross` or `linux-libc-dev-amd64-cross` on
+  Debian/Ubuntu) and warns if there are none. For a cross header package, it
+  also uses that package's `linux` and `asm-generic` headers.
+  `--filc-os-include=` can point at a directory containing the target's
+  `asm`, `asm-generic`, and `linux` headers instead.
+
+- Binutils for the target, for example `binutils-aarch64-linux-gnu` on
+  Debian/Ubuntu, which clang finds automatically as `aarch64-linux-gnu-ld` and
+  `aarch64-linux-gnu-as`.
+
+Then, for example on X86_64:
+
+    build/bin/clang --target=aarch64-linux-gnu -o whatever whatever.c -O2 -g
+
+On ARM64, link the X86_64 runtime and compile with the ARM64 compiler:
+
+    ln -s /path/to/filc-0.685-linux-x86_64/pizfix pizfix-x86_64
+    build/bin/clang --target=x86_64-linux-gnu -o whatever whatever.c -O2 -g
+
+Use `build/bin/clang++` with the same target option for C++.
+
+The resulting executable records the target runtime's dynamic loader and
+library paths. To run it on the target machine, install the target distribution
+at those paths, or set `--filc-dynamic-linker=` and the linker runtime search
+path (`-Wl,-rpath,<dir>`) for the target machine's layout when linking.
+
+Assembly (`.s`) inputs are rewritten by the sarcasm assembler of the compiler's
+own `pizfix` (the one in the target's `pizfix` is a program built for the
+target) and then assembled with the target's `as`.
+
 ## Things That Work
 
 Lots of software packages work in Fil-C with zero or minimal changes, including

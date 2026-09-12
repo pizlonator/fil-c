@@ -53,6 +53,10 @@ mkdir -p $build_name/build/include/
 cp -R build/include/c++ $build_name/build/include/
 mkdir -p $build_name/build/include/$ARCH-unknown-linux-gnu/
 cp -R build/include/$ARCH-unknown-linux-gnu/c++ $build_name/build/include/$ARCH-unknown-linux-gnu/
+# The compiler can also target $CROSSARCH. The per-target libc++ include directory only
+# holds __config_site, which is architecture-independent, so install it under the other
+# triple too so that clang++ --target=$CROSSARCH-linux-gnu can find it.
+cp -R $build_name/build/include/$ARCH-unknown-linux-gnu $build_name/build/include/$CROSSARCH-unknown-linux-gnu
 mkdir -p $build_name/build/lib/clang/20/
 cp -R build/lib/clang/20/include $build_name/build/lib/clang/20/
 
@@ -93,18 +97,30 @@ echo "fi" >> setup.sh
 rm pizfix/lib/ld-fil1-$ARCH.so
 (cd pizfix/lib/ && ln -s libyoloc.so ld-fil1-$ARCH.so)
 
-echo "cd pizfix" >> setup.sh
-echo "mkdir os-include" >> setup.sh
-echo "cd os-include" >> setup.sh
-echo "ln -s /usr/include/linux ." >> setup.sh
-echo "if test -d /usr/include/x86_64-linux-gnu/asm" >> setup.sh
-echo "then" >> setup.sh
-echo "    ln -s /usr/include/x86_64-linux-gnu/asm ." >> setup.sh
-echo "else" >> setup.sh
-echo "    ln -s /usr/include/asm ." >> setup.sh
-echo "fi" >> setup.sh
-echo "ln -s /usr/include/asm-generic ." >> setup.sh
-echo "cd ../.." >> setup.sh
+echo "target_arch=$ARCH" >> setup.sh
+cat >> setup.sh <<'EOF'
+cd pizfix
+mkdir os-include
+cd os-include
+kernel_include=/usr/include
+if test -d /usr/include/$target_arch-linux-gnu/asm
+then
+    ln -s /usr/include/$target_arch-linux-gnu/asm .
+elif test -d /usr/$target_arch-linux-gnu/include/asm
+then
+    # Use the matching generic headers from the cross header package too.
+    kernel_include=/usr/$target_arch-linux-gnu/include
+    ln -s $kernel_include/asm .
+elif test "`uname -m`" = "$target_arch" && test -d /usr/include/asm
+then
+    ln -s /usr/include/asm .
+else
+    echo "warning: no $target_arch kernel headers found; install them (for example linux-libc-dev-<arch>-cross on Debian/Ubuntu) and link their asm directory into pizfix/os-include, or compile with --filc-os-include=<dir>" >&2
+fi
+ln -s $kernel_include/linux .
+ln -s $kernel_include/asm-generic .
+cd ../..
+EOF
 
 echo 'set +x' >> setup.sh
 echo 'echo' >> setup.sh

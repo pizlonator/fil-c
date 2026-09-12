@@ -1494,12 +1494,31 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
       Diag(diag::err_drv_unable_to_set_working_directory) << WD->getValue();
 
   // Check for Fil-C resource directory override
+  std::string MissingCrossPizfixArch;
   if (Arg *A = Args.getLastArg(options::OPT_filc_resource_dir)) {
     A->claim();
     PizfixRoot = A->getValue();
     HasPizfix = true;  // Trust the user-provided path
-  } else if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path)) {
-    // If any filc flag is set, we're in filc mode
+  } else if (HasPizfix) {
+    // The pizfix next to the compiler is built for the host. When cross
+    // compiling, use the target architecture's pizfix installed next to it as
+    // pizfix-<arch> rather than silently linking against the wrong one.
+    llvm::Triple Target = computeTargetTriple(*this, TargetTriple, Args);
+    if (Target.getArch() !=
+        llvm::Triple(llvm::sys::getProcessTriple()).getArch()) {
+      StringRef ArchName = llvm::Triple::getArchTypeName(Target.getArch());
+      SmallString<128> P(Dir);
+      llvm::sys::path::append(P, "..", "..",
+                              "pizfix-" + ArchName.str());
+      llvm::sys::path::remove_dots(P, /*remove_dot_dot=*/true);
+      PizfixRoot = std::string(P);
+      if (!llvm::sys::fs::is_directory(P))
+        MissingCrossPizfixArch = ArchName.str();
+    }
+  }
+  // A CRT override changes the library directory, not the target's headers or
+  // dynamic loader. It must not bypass the cross-architecture pizfix selection.
+  if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path)) {
     A->claim();
     HasPizfix = true;
   }
@@ -1785,6 +1804,14 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
 
   if (!HandleImmediateArgs(*C))
     return C;
+
+  // Queries such as --version and -dumpmachine do not need a target runtime.
+  if (!MissingCrossPizfixArch.empty()) {
+    Diag(diag::err_drv_filc_cross_pizfix_missing)
+        << MissingCrossPizfixArch << PizfixRoot;
+    C->setContainsError();
+    return C;
+  }
 
   // Construct the list of inputs.
   InputList Inputs;
@@ -6477,6 +6504,15 @@ void Driver::generatePrefixedToolNames(
     SmallVectorImpl<std::string> &Names) const {
   // FIXME: Needs a better variable than TargetTriple
   Names.emplace_back((TargetTriple + "-" + Tool).str());
+  // Also recognize architecture aliases such as arm64 and amd64 when looking
+  // for the aarch64-linux-gnu and x86_64-linux-gnu binutils.
+  llvm::Triple CanonicalTriple(TargetTriple);
+  if (CanonicalTriple.getArch() == llvm::Triple::aarch64 ||
+      CanonicalTriple.getArch() == llvm::Triple::x86_64) {
+    CanonicalTriple.setArch(CanonicalTriple.getArch());
+    if (CanonicalTriple.str() != TargetTriple)
+      Names.emplace_back((CanonicalTriple.str() + "-" + Tool).str());
+  }
   Names.emplace_back(Tool);
 }
 

@@ -1,0 +1,6 @@
+# REQUIRES: system-linux
+# RUN: %python %S/Inputs/filc-cross.py %clang
+# RUN: %python %S/Inputs/filc-package-setup.py %S/../../../package-build.sh
+
+# Driver-only checks: no compiler, assembler, or linker jobs are executed.
+# Run this on both x86_64 and aarch64 hosts to cover both cross directions.
