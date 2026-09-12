@@ -398,12 +398,12 @@ OPENSSL_instrument_bus2: #! size_t(ptr,size_t,size_t)
 	mov	$arg3,$max
 ___
 if ($ENV{SARCASM}) {
-	# The outgoing-args-area spill (8(%rsp)) is outside the frame; give
-	# the function a small real frame and spill there instead.
-	print "\tsub	\$24,%rsp\n";
-	print "\tmov	$cnt,0(%rsp)\n";
+  # The outgoing-args-area spill (8(%rsp)) is outside the frame; give
+  # the function a small real frame and spill there instead.
+  print "\tsub	\$24,%rsp\n";
+  print "\tmov	$cnt,0(%rsp)\n";
 } else {
-	print "\tmov	$cnt,$redzone(%rsp)\n";
+  print "\tmov	$cnt,$redzone(%rsp)\n";
 }
 print<<___;
 
@@ -443,12 +443,12 @@ print<<___;
 .Ldone2:
 ___
 if ($ENV{SARCASM}) {
-	print "\tmov	0(%rsp),%rax\n";
-	print "\tsub	$cnt,%rax\n";
-	print "\tadd	\$24,%rsp\n";
+  print "\tmov	0(%rsp),%rax\n";
+  print "\tsub	$cnt,%rax\n";
+  print "\tadd	\$24,%rsp\n";
 } else {
-	print "\tmov	$redzone(%rsp),%rax\n";
-	print "\tsub	$cnt,%rax\n";
+  print "\tmov	$redzone(%rsp),%rax\n";
+  print "\tsub	$cnt,%rax\n";
 }
 print<<___;
 	ret

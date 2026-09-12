@@ -468,10 +468,10 @@ $code.=<<___;
 ___
 $code.=<<___;
 
-	mov	$inp,200-100(%rsi)	# save inp #! store ptr
+	mov	$inp,200-100(%rsi)	#! store ptr # save inp
 	mov	$len,208-100(%rsi)	# save len
 	call	__KeccakF1600
-	mov	200-100(%rsi),$inp	# pull inp #! load ptr
+	mov	200-100(%rsi),$inp	#! load ptr # pull inp
 	mov	208-100(%rsi),$len	# pull len
 	mov	216-100(%rsi),$bsz	# pull bsz
 	jmp	.Loop_absorb
@@ -562,15 +562,7 @@ $code.=<<___;
 	mov	%r9, %rsi
 	mov	$out,%rdi
 	mov	$len,%rcx
-	test	%rcx,%rcx		# explicit byte copy (was rep movsb;
-	jz	.Ldone_squeeze		# string ops are not memory-safe)
-.Lcopy_squeeze:
-	mov	(%rsi),%al
-	mov	%al,(%rdi)
-	inc	%rsi
-	inc	%rdi
-	dec	%rcx
-	jnz	.Lcopy_squeeze
+	rep	movsb	# upstream '.byte 0xf3,0xa4' (rep movsb)
 
 .Ldone_squeeze:
 	pop	%r14

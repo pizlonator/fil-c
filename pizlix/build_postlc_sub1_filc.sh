@@ -17,7 +17,7 @@ test $EUID -eq `stat -c %u $FILCSRC`
 
 cd $FILCSRC
 
-rm -vf projects/pizlonated-*.tar.gz
+rm -vf projects/*/pizlonated-*.tar.gz
 ./package-source.sh projects/lfs-bootscripts-20240825 pizlonated-lfs-bootscripts
 ./package-source.sh projects/kbd-2.6.4 pizlonated-kbd
 ./package-source.sh projects/xz-5.8.3 pizlonated-xz
@@ -44,7 +44,7 @@ filc/projeny package projects/libffi.projeny projects/libffi/pizlonated-libffi.t
 ./package-source.sh projects/libpipeline-1.5.7 pizlonated-libpipeline
 ./package-source.sh projects/texinfo-7.1 pizlonated-texinfo
 ./package-source.sh projects/vim-9.1.0660 pizlonated-vim
-./package-source.sh projects/util-linux-2.40.2 pizlonated-util-linux
+filc/projeny package projects/util-linux.projeny projects/util-linux/pizlonated-util-linux.tar.gz
 ./package-source.sh projects/systemd-256.4 pizlonated-systemd
 ./package-source.sh projects/procps-ng-4.0.7 pizlonated-procps
 ./package-source.sh projects/make-4.4.1 pizlonated-make
@@ -56,4 +56,5 @@ filc/projeny package projects/libffi.projeny projects/libffi/pizlonated-libffi.t
 ./package-source.sh projects/meson-1.5.1 pizlonated-meson
 ./package-source.sh projects/zstd-1.5.7 pizlonated-zstd
 ./package-source.sh projects/coreutils-9.11 pizlonated-coreutils
+filc/projeny package projects/mg.projeny projects/mg/pizlonated-mg.tar.gz
 

@@ -1,5 +1,5 @@
 /* Header file for mounting/unmount Linux filesystems.
-   Copyright (C) 1996-2024 Free Software Foundation, Inc.
+   Copyright (C) 1996-2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,7 +21,6 @@
 #ifndef _SYS_MOUNT_H
 #define _SYS_MOUNT_H	1
 
-#include <fcntl.h>
 #include <features.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -121,7 +120,7 @@ enum
   MS_ACTIVE = 1 << 30,
 #define MS_ACTIVE	MS_ACTIVE
 #undef MS_NOUSER
-  MS_NOUSER = 1 << 31
+  MS_NOUSER = 1U << 31
 #define MS_NOUSER	MS_NOUSER
 };
 
@@ -190,6 +189,8 @@ enum
 
 /* fsmount flags.  */
 #define FSMOUNT_CLOEXEC         0x00000001
+#define FSMOUNT_NAMESPACE       0x00000002 /* Create the mount in a new mount
+					      namespace.  */
 
 /* mount attributes used on fsmount.  */
 #define MOUNT_ATTR_RDONLY       0x00000001 /* Mount read-only.  */
@@ -264,16 +265,19 @@ enum fsconfig_command
 /* fsopen flags.  */
 #define FSOPEN_CLOEXEC          0x00000001
 
-/* open_tree flags.  Newer <linux/mount.h> (included above) already spells
-   OPEN_TREE_CLONE as (1 << 0); guard so its identical value survives -Werror
-   redefinition checking instead of clashing with glibc's bare 1.  */
+/* open_tree flags.  */
 #ifndef OPEN_TREE_CLONE
-# define OPEN_TREE_CLONE   1         /* Clone the target tree and attach the clone */
+# define OPEN_TREE_CLONE    1 /* Clone the target tree and attach the clone */
+#endif
+#define OPEN_TREE_NAMESPACE (1 << 1) /* Clone the target tree into a new mount
+					namespace */
+#ifndef O_CLOEXEC
+# include <bits/cloexec.h>
+# define O_CLOEXEC __O_CLOEXEC
 #endif
 #ifndef OPEN_TREE_CLOEXEC
-# define OPEN_TREE_CLOEXEC O_CLOEXEC /* Close the file on execve() */
+# define OPEN_TREE_CLOEXEC  O_CLOEXEC /* Close the file on execve() */
 #endif
-
 
 __BEGIN_DECLS
 

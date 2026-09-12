@@ -57,8 +57,8 @@ test -d $FILCSRC/pizfix/lib
 test -d $FILCSRC/build/bin
 test -e $FILCSRC/pizfix/$FILCLIB/libpizlo.so
 test -e $FILCSRC/build/bin/clang-20
-test -e $FILCSRC/projects/yolo-glibc-2.40/pizlonated-yolo-glibc.tar.gz
-test -e $FILCSRC/projects/user-glibc-2.40/pizlonated-user-glibc.tar.gz
+test -e $FILCSRC/projects/yolo-glibc-2.44/pizlonated-yolo-glibc.tar.gz
+test -e $FILCSRC/projects/user-glibc-2.44/pizlonated-user-glibc.tar.gz
 
 cd /opt/fil
 find . -mindepth 1 -maxdepth 1 -exec rm -rf {} \;
@@ -68,7 +68,7 @@ cp -r $FILCSRC/optfil/kernel-include include
 mkdir -v build
 cd build
 
-tar -xf $FILCSRC/projects/yolo-glibc-2.40/pizlonated-yolo-glibc.tar.gz
+tar -xf $FILCSRC/projects/yolo-glibc-2.44/pizlonated-yolo-glibc.tar.gz
 cd pizlonated-yolo-glibc
 mkdir -v build
 cd build
@@ -160,7 +160,7 @@ test ../fil
 rm -rf build
 mkdir -v build
 cd build
-tar -xf $FILCSRC/projects/user-glibc-2.40/pizlonated-user-glibc.tar.gz
+tar -xf $FILCSRC/projects/user-glibc-2.44/pizlonated-user-glibc.tar.gz
 cd pizlonated-user-glibc
 mkdir -v build
 cd build
@@ -335,15 +335,15 @@ cd ..
 rm -rf pizlonated-attr
 hash -r
 
-tar -xf $FILCSRC/pizlix/acl-2.3.2.tar.xz
-cd acl-2.3.2
+tar -xf $FILCSRC/pizlix/acl-2.4.0.tar.xz
+cd acl-2.4.0
 sed -i s/-Wl,--version-script,/-Wc,--version-script=/g Makefile.in
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure \
-    --prefix=/opt/fil --disable-static --docdir=/opt/fil/share/doc/acl-2.3.2
+    --prefix=/opt/fil --disable-static --docdir=/opt/fil/share/doc/acl-2.4.0
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf acl-2.3.2
+rm -rf acl-2.4.0
 hash -r
 
 tar -xf $FILCSRC/pizlix/pcre2-10.48.tar.bz2
@@ -504,13 +504,13 @@ cd ..
 rm -rf pizlonated-libffi
 hash -r
 
-tar -xf $FILCSRC/pizlix/mg-3.7.tar.gz 
-cd mg-3.7
+tar -xf $FILCSRC/projects/mg/pizlonated-mg.tar.gz
+cd pizlonated-mg
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf mg-3.7
+rm -rf pizlonated-mg
 hash -r
 
 tar -xf $FILCSRC/projects/libuv-1.52.1/pizlonated-libuv.tar.gz
@@ -698,13 +698,13 @@ cd ..
 rm -rf pizlonated-grep
 hash -r
 
-tar --no-same-owner -xf $FILCSRC/pizlix/less-704.tar.gz
-cd less-704
+tar --no-same-owner -xf $FILCSRC/pizlix/less-709-beta.tar.gz
+cd less-709
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --sysconfdir=/etc
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf less-704
+rm -rf less-709
 hash -r
 
 tar -xf $FILCSRC/projects/diffutils-3.12/pizlonated-diffutils.tar.gz
@@ -777,11 +777,13 @@ rm -rf pizlonated-tar
 hash -r
 
 tar -xf $FILCSRC/projects/icu/pizlonated-icu.tar.gz
-cd pizlonated-icu/icu4c/source
+cd pizlonated-icu/source
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
-cd ../../../
+# pizlonated-icu unpacks to pizlonated-icu/source, so two ups gets us back to
+# /opt/fil/build (the old icu4c/source layout needed three).
+cd ../..
 rm -rf pizlonated-icu
 hash -r
 
@@ -812,13 +814,13 @@ cd ..
 rm -rf pizlonated-tmux
 hash -r
 
-tar -xf $FILCSRC/pizlix/libunistring-1.2.tar.xz
-cd libunistring-1.2
+tar -xf $FILCSRC/pizlix/libunistring-1.4.2.tar.xz
+cd libunistring-1.4.2
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --disable-static --sysconfdir=/etc
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf libunistring-1.2
+rm -rf libunistring-1.4.2
 hash -r
 
 tar -xf $FILCSRC/projects/libidn2/pizlonated-libidn2.tar.gz

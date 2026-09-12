@@ -1,0 +1,15 @@
+getaddrinfo: Potential use-after-free
+
+When an NSS plugin only implements the _gethostbyname2_r and
+_getcanonname_r callbacks, getaddrinfo could use memory that was freed
+during buffer resizing, potentially causing a crash or read or write to
+arbitrary memory.
+
+CVE-Id: CVE-2023-4806
+Public-Date: 2023-09-12
+Fix-Commit: 973fe93a5675c42798b2161c6f29c01b0e243994 (2.39)
+Fix-Commit: e09ee267c03e3150c2c9ba28625ab130705a485e (2.34-420)
+Fix-Commit: e3ccb230a961b4797510e6a1f5f21fd9021853e7 (2.35-270)
+Fix-Commit: a9728f798ec7f05454c95637ee6581afaa9b487d (2.36-115)
+Fix-Commit: 6529a7466c935f36e9006b854d6f4e1d4876f942 (2.37-39)
+Fix-Commit: 00ae4f10b504bc4564e9f22f00907093f1ab9338 (2.38-20)

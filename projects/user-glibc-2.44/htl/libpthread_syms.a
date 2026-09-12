@@ -1,0 +1,10 @@
+/* pthread initializer is weak in glibc.  It must be included if glibc
+   is to start threading. */
+EXTERN(__pthread_initialize_minimal)
+
+/* To create the sigthread and get its stack layout on fork */
+EXTERN(pthread_create)
+EXTERN(pthread_detach)
+EXTERN(pthread_getattr_np)
+EXTERN(pthread_attr_getstack)
+EXTERN(__pthread_enable_asynccancel)

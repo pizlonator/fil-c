@@ -1,0 +1,12 @@
+return:
+  crash
+only-on-platform:
+  x86_64
+output-includes:
+  - "cmll df0 roundtrip ok"
+  - "cmll zero-length copy under DF=1 ok (no trap)"
+  - "cmll residue-0 copy under DF=1 ok (no trap)"
+  - "cmll tail copy under DF=1 (SHOULD TRAP):"
+  - "Illegal instruction"
+needsAVX512:
+  true

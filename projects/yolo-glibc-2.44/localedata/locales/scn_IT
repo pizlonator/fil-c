@@ -1,0 +1,151 @@
+comment_char %
+escape_char /
+
+% This file is part of the GNU C Library and contains locale data.
+% The Free Software Foundation does not claim any copyright interest
+% in the locale data contained in this file.  The foregoing does not
+% affect the license of the GNU C Library as a whole.  It does not
+% exempt you from the conditions of the license if your use would
+% otherwise be governed by that license.
+
+% Sicilian Language Locale for Italy
+% Source: Cademia Siciliana
+% Address: Via Convento S.F. di Paola, 73
+%    91100 Trapani, Italy
+% Contact: David Paleino
+% Email: david@cademiasiciliana.org
+% Tel:
+% Fax:
+% Language: scn
+% Territory: IT
+% Revision: 1.0
+% Date: 2024-04-27
+% Users: general
+
+LC_IDENTIFICATION
+title      "Sicilian locale for Italy"
+source     "Cademia Siciliana"
+address    "Via Convento S.F. di Paola, 73, 91100 Trapani, Italy"
+contact    ""
+email      "tech@cademiasiciliana.org"
+tel        ""
+fax        ""
+language   "Sicilian"
+territory  "Italy"
+revision   "1.0"
+date       "2024-04-27"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_COLLATE
+copy "iso14651_t1"
+END LC_COLLATE
+
+LC_CTYPE
+copy "it_IT"
+
+translit_start
+"ḌḌ" "DDH"
+"ḍḍ" "ddh"
+"Ḍḍ" "Ddh"
+translit_end
+
+END LC_CTYPE
+
+LC_MESSAGES
+yesexpr "^[+1sSyY]"
+noexpr  "^[-0nN]"
+yesstr  "se"
+nostr   "no"
+END LC_MESSAGES
+
+LC_MONETARY
+copy "it_IT"
+END LC_MONETARY
+
+LC_NUMERIC
+copy "it_IT"
+END LC_NUMERIC
+
+LC_TIME
+abday   "dum";"lun";/
+	"mar";"mer";/
+	"jov";"ven";/
+	"sab"
+day     "dumìnica";/
+	"lunnidìa";/
+	"martidìa";/
+	"mercuridìa";/
+	"jovidìa";/
+	"venniridìa";/
+	"sàbbatu"
+abmon   "jin";"fri";/
+	"mar";"apr";/
+	"maj";"giu";/
+	"gnt";"agu";/
+	"sit";"utt";/
+	"nuv";"dic"
+mon     "jinnaru";/
+	"frivaru";/
+	"marzu";/
+	"aprili";/
+	"maju";/
+	"giugnu";/
+	"giugnettu";/
+	"agustu";/
+	"sittèmmiru";/
+	"uttùviru";/
+	"nuvèmmiru";/
+	"dicèmmiru"
+d_t_fmt "%a %-d %b %Y, %T"
+d_fmt   "%d//%m//%Y"
+t_fmt   "%T"
+am_pm   "";""
+t_fmt_ampm ""
+date_fmt   "%a %-d %b %Y, %T, %Z"
+week 7;19971130;4
+first_weekday 2
+END LC_TIME
+
+LC_PAPER
+copy "it_IT"
+END LC_PAPER
+
+LC_TELEPHONE
+copy "it_IT"
+END LC_TELEPHONE
+
+LC_MEASUREMENT
+copy "it_IT"
+END LC_MEASUREMENT
+
+LC_NAME
+copy "it_IT"
+END LC_NAME
+
+LC_ADDRESS
+postal_fmt    "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+country_name "Italia"
+country_ab2 "IT"
+country_ab3 "ITA"
+country_num 380
+country_isbn "978-88,979-12"
+country_car  "I"
+
+lang_name    "sicilianu"
+lang_ab      ""
+lang_term    "scn"
+lang_lib    "scn"
+END LC_ADDRESS

@@ -80,4 +80,19 @@ hb_ops:                         ;! void(ptr)
 	movq	%rbp, 168(%rdi)
 	ret
 	.size	hb_ops, .-hb_ops
+
+	# xor-zeroing followed by a HIGH-byte def and a full-width use: the movb
+	# merges into bits 8-15 and preserves the rest (zeroed above), so the xor
+	# must stay live across the high-byte write. (The source must be REX-free
+	# to pair with %ah: %cl here.)
+	.globl	hb_xor_ah
+	.type	hb_xor_ah, @function
+hb_xor_ah:                      ;! long(long)
+	endbr64
+	movq	%rdi, %rcx
+	movq	$0x1122334455667788, %rax
+	xorq	%rax, %rax
+	movb	%cl, %ah
+	ret
+	.size	hb_xor_ah, .-hb_xor_ah
 	.section	.note.GNU-stack,"",@progbits

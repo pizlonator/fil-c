@@ -56,7 +56,11 @@ typedef struct constraint {
   Proc		execute;
   Boolean	inputFlag;
   Strength      strength;
-  char		whichMethod;
+  /* This has to be signed because it stores NO_METHOD, which is -1.  On
+     architectures where plain char is unsigned (e.g. ARM), a char would
+     turn NO_METHOD into 255, which would both break SATISFIED and cause
+     out-of-bounds methodOuts accesses. */
+  signed char	whichMethod;
   char		methodCount;
   char		varCount;
   char		methodOuts[7];

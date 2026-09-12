@@ -1,5 +1,5 @@
 /* Store current floating-point environment.
-   Copyright (C) 2001-2024 Free Software Foundation, Inc.
+   Copyright (C) 2001-2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,5 +27,5 @@ __fegetenv (fenv_t *envp)
   return zmath_fegetenv (envp);
 }
 libm_hidden_def (__fegetenv)
-weak_alias (__fegetenv, fegetenv)
+static_weak_alias (__fegetenv, fegetenv)
 libm_hidden_weak (fegetenv)

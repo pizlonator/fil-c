@@ -19,6 +19,29 @@ Name: m4
       __FILC__ (1.4.21 renamed __GNU__ to __gnu_hurd__ in the condition).
     - src/macro.c: the argv pointer into the obstack is re-derived with
       zmkptr from obstack_base + offset.
+    - configure: backport gnulib's serial 3 handling of
+      posix_spawn_file_actions_addchdir (sourceware bug 34437) directly
+      into the pre-generated configure script: use ac_fn_check_decl
+      (AC_CHECK_DECLS semantics) instead of the AC_CHECK_FUNCS link test,
+      and replace the function via rpl_posix_spawn_file_actions_addchdir
+      when it is declared. Fil-C's clang predefines _POSIX_C_SOURCE
+      202405L, which turns on glibc 2.44's __USE_XOPEN2K24XSI, which makes
+      <spawn.h> declare posix_spawn_file_actions_addchdir as a __REDIRECT
+      alias of posix_spawn_file_actions_addchdir_np. The AC_CHECK_FUNCS
+      link test then fails (the conftest's "char f (void);" declaration
+      does not inherit the redirect, and libc does not export a non-_np
+      dynamic symbol), so gnulib compiled its own forwarder
+      "return posix_spawn_file_actions_addchdir_np (...)" - but the
+      definition inherited the __REDIRECT asm label, so the forwarder
+      called itself and filc trapped with a stack overflow (test-posix_spawn-chdir,
+      test-posix_spawn_file_actions_addchdir and test-execute.sh case 21
+      all died this way). Routing all callers through
+      rpl_posix_spawn_file_actions_addchdir (a name that has no redirect)
+      fixes it. The corresponding m4/posix_spawn_faction_addchdir.m4
+      change is deliberately NOT carried: patching an m4/*.m4 input would
+      leave it newer than the shipped aclocal.m4 and trigger an
+      autotools regen cascade on extract; the generated configure is the
+      only thing the build runs.
     - checks/006.command_li and checks/198.sysval are deleted (they
       misbehave under Fil-C; 1.4.21 no longer ships 198.sysval).
     - gnulib tests guarded with __FILC__: test-calloc-gnu, test-free,
@@ -465,3 +488,19 @@ diff --git a/m4/tests/test-spawn-pipe.sh b/m4/tests/test-spawn-pipe.sh
    ${CHECKER} ./test-spawn-pipe-main${EXEEXT} ./test-spawn-pipe-child${EXEEXT} $i \
      || { echo test-spawn-pipe.sh: iteration $i failed >&2; st=1; }
  done
+diff --git a/m4/configure b/m4/configure
+--- a/m4/configure
++++ b/m4/configure
+@@ -54905,7 +54905,10 @@
+   fi
+ 
+ 
+-  if test $ac_cv_func_posix_spawn_file_actions_addchdir = yes; then
++  ac_fn_check_decl "$LINENO" "posix_spawn_file_actions_addchdir" "ac_cv_have_decl_posix_spawn_file_actions_addchdir" "#include <spawn.h>
++" "$ac_c_undeclared_builtin_options$ac_c_future_darwin_options" "CFLAGS"
++
++  if test $ac_cv_have_decl_posix_spawn_file_actions_addchdir = yes; then
+             REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR=1
+   else
+     HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR=0
+

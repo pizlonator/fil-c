@@ -1,0 +1,128 @@
+comment_char %
+escape_char /
+
+% Copyright The GNU Toolchain Authors.
+% This file is part of the GNU C Library.
+%
+% The GNU C Library is free software; you can redistribute it and/or
+% modify it under the terms of the GNU Lesser General Public
+% License as published by the Free Software Foundation; either
+% version 2.1 of the License, or (at your option) any later version.
+%
+% The GNU C Library is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+% Lesser General Public License for more details.
+%
+% You should have received a copy of the GNU Lesser General Public
+% License along with the GNU C Library; if not, see
+% <https://www.gnu.org/licenses/>.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Hunsrickisch (hrx) locale for Brazil
+% Source: João V. Garcez
+% Language: Hunsrickisch (Riograndenser Hunsrickisch)
+% Territory: Brazil
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+LC_IDENTIFICATION
+title      "Hunsrik locale for Brazil"
+source     "João V. Garcez"
+address    ""
+contact    ""
+email      "joangarcez2100@protonmail.com"
+tel        ""
+fax        ""
+language   "Hunsrik"
+territory  "Brazil"
+revision   "0.1"
+date       "2026-03-20"
+
+category "i18n:2012";LC_IDENTIFICATION
+category "i18n:2012";LC_CTYPE
+category "i18n:2012";LC_COLLATE
+category "i18n:2012";LC_TIME
+category "i18n:2012";LC_NUMERIC
+category "i18n:2012";LC_MONETARY
+category "i18n:2012";LC_MESSAGES
+category "i18n:2012";LC_PAPER
+category "i18n:2012";LC_NAME
+category "i18n:2012";LC_ADDRESS
+category "i18n:2012";LC_TELEPHONE
+category "i18n:2012";LC_MEASUREMENT
+END LC_IDENTIFICATION
+
+LC_CTYPE
+copy "i18n"
+END LC_CTYPE
+
+% There is no Hunsrik-specific way of writing these 3 below.
+% Hunsrickisch speakers use Brazilian Portuguese standards.
+LC_COLLATE
+copy "pt_BR"
+END LC_COLLATE
+
+LC_MONETARY
+copy "pt_BR"
+END LC_MONETARY
+
+LC_NUMERIC
+copy "pt_BR"
+END LC_NUMERIC
+
+LC_MESSAGES
+yesexpr "^[+1iIjJyY]"
+noexpr  "^[-0nN]"
+yesstr  "ia"
+nostr   "nee"
+END LC_MESSAGES
+
+LC_TIME
+abday   "Su";"Mo";"Di";"Mi";"Do";"Fr";"Sa"
+day     "Sunntach";"Montach";"Dinstach";/
+	"Mittwoch";"Donnerstach";"Freitach";"Samstach"
+abmon   "Jan";"Feb";"Mer";"Apr";"Maa";"Jun";/
+	"Jul";"Aag";"Sep";"Okt";"Nov";"Dez"
+mon     "Januer";"Februer";"Merz";"April";"Maai";"Juni";/
+	"Juli";"Aagust";"September";"Oktover";"November";"Dezember"
+d_t_fmt "%a %d %b %Y %T %Z"
+d_fmt   "%d//%m//%Y"
+t_fmt   "%T"
+am_pm   "";""
+t_fmt_ampm ""
+date_fmt   "%a %-d. %b %H:%M:%S %Z %Y"
+week    7;19971130;1
+END LC_TIME
+
+LC_PAPER
+copy "i18n"
+END LC_PAPER
+
+LC_MEASUREMENT
+copy "i18n"
+END LC_MEASUREMENT
+
+LC_ADDRESS
+postal_fmt  "%f%N%a%N%d%N%b%N%s %h %e %r%N%z %T%N%c%N"
+country_name "Brasilje"
+country_ab2  "BR"
+country_ab3  "BRA"
+country_num  076
+country_car  "BR"
+lang_name    "Hunsrickisch"
+lang_ab      ""
+lang_term    "hrx"
+lang_lib     "hrx"
+END LC_ADDRESS
+
+LC_TELEPHONE
+copy "pt_BR"
+END LC_TELEPHONE
+
+LC_NAME
+name_fmt  "%d%t%g%t%m%t%f"
+name_miss "Fraa"
+name_mr   "Herr"
+name_mrs  "Fraa"
+name_ms   "Fraa"
+END LC_NAME

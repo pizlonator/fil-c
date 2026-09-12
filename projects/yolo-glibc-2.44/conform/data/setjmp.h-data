@@ -1,0 +1,24 @@
+type jmp_buf
+#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23
+type sigjmp_buf
+#endif
+
+function void longjmp (jmp_buf, int)
+#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23
+function void siglongjmp (sigjmp_buf, int)
+# if !defined POSIX && !defined POSIX2008 && !defined POSIX2024
+function void _longjmp (jmp_buf, int)
+# endif
+#endif
+
+macro-function int setjmp (jmp_buf)
+#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23
+macro-function int sigsetjmp (sigjmp_buf, int)
+# if !defined POSIX && !defined POSIX2008 && !defined POSIX2024
+macro-function int _setjmp (jmp_buf)
+# endif
+#endif
+
+#if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23
+allow *_t
+#endif

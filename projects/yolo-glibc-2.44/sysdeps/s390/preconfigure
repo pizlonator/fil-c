@@ -1,0 +1,14 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local preconfigure fragment for sysdeps/s390
+
+case "$machine" in
+s390x)
+  base_machine=s390
+  machine=s390
+  ;;
+s390)
+  as_fn_error $? "s390-32 is not supported anymore." "$LINENO" 5
+  exit 1
+;;
+esac
+

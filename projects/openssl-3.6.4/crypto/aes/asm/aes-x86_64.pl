@@ -627,12 +627,12 @@ AES_encrypt: #! void(ptr,ptr,ptr)
 
 ___
 if ($ENV{SARCASM}) {
-	# Under sarcasm the dynamic cache-line anti-aliasing frame shift
-	# (gas-only: it perturbs %rsp, which sarcasm must model statically)
-	# becomes a fixed 64-byte frame covering the four slots at 0-24(%rsp).
-	# Frame slots are virtualized, so a plain prologue sub suffices; no
-	# '.alloca' directive is needed (that is only for dynamic allocation).
-	$code.=<<___;
+  # Under sarcasm the dynamic cache-line anti-aliasing frame shift
+  # (gas-only: it perturbs %rsp, which sarcasm must model statically)
+  # becomes a fixed 64-byte frame covering the four slots at 0-24(%rsp).
+  # Frame slots are virtualized, so a plain prologue sub suffices; no
+  # '.alloca' directive is needed (that is only for dynamic allocation).
+  $code.=<<___;
 	# allocate frame "above" key schedule
 	sub	\$64,%rsp
 
@@ -641,7 +641,7 @@ if ($ENV{SARCASM}) {
 .Lenc_prologue:
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	# allocate frame "above" key schedule
 	lea	-63(%rdx),%rcx	# %rdx is key argument
 	and	\$-64,%rsp
@@ -683,7 +683,7 @@ ___
 # dominates the restore). pushfq/popfq stay omitted: see the
 # AES_cbc_encrypt prologue comment.
 {
-	$code.=<<___;
+  $code.=<<___;
 	lea	.LAES_Te+2048(%rip),$sbox	#! save capability (sboxcap_enc)
 	# NOTE: upstream derives the select below from the stack frame with
 	# 'lea 768(%rsp),%rbp', but sarcasm rejects taking the frame's
@@ -1297,8 +1297,8 @@ AES_decrypt: #! void(ptr,ptr,ptr)
 
 ___
 if ($ENV{SARCASM}) {
-	# Same fixed-frame restructure as AES_encrypt above.
-	$code.=<<___;
+  # Same fixed-frame restructure as AES_encrypt above.
+  $code.=<<___;
 	# allocate frame "above" key schedule
 	sub	\$64,%rsp
 
@@ -1307,7 +1307,7 @@ if ($ENV{SARCASM}) {
 .Ldec_prologue:
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	# allocate frame "above" key schedule
 	lea	-63(%rdx),%rcx	# %rdx is key argument
 	and	\$-64,%rsp
@@ -1343,16 +1343,15 @@ $code.=<<___;
 	mov	%rbp,8(%rsp)	# end of key schedule
 ___
 # Keep the Td4-copy L1-aliasing countermeasure (including the "magic" shr
-# correction). The '#!' capability annotations are gas comments, so they are
-# emitted unconditionally; under sarcasm the table capability is saved on the
-# base lea and restored on the final lea (straight-line, so the save dominates
-# the restore). The magic correction is spelled as lea rather than upstream's
-# add so the result keeps deriving from the table base (an add would rebase it
-# onto the integer scratch); identical result, flags dead across the
-# following call (which is why the lea spelling is safe for gas too).
+# correction, restored to upstream's 'add' spelling: %rbp is an integer here
+# — 'sub' of the two table pointers kills capabilities and 'shr' keeps it
+# that way — so natural pointer flow keeps $sbox's table capability across
+# the lea and the add in straight-line code, with no save/restore pair: a
+# lone 'save' with no 'restore' is dead (sarcasm only threads a save's frozen
+# snapshot into a restore), so none is emitted here.
 {
-	$code.=<<___;
-	lea	.LAES_Td+2048(%rip),$sbox	#! save capability (sboxcap_dec)
+  $code.=<<___;
+	lea	.LAES_Td+2048(%rip),$sbox
 	# NOTE: upstream derives the select below from the stack frame with
 	# 'lea 768(%rsp),%rbp'; under sarcasm the key schedule pointer is
 	# hashed instead (see the AES_encrypt Te4 select above). The masked
@@ -1362,11 +1361,7 @@ ___
 	and	\$0x300,%rbp
 	lea	($sbox,%rbp),$sbox
 	shr	\$3,%rbp	# recall "magic" constants!
-	# NOTE: 'add %rbp,$sbox' here in upstream; spelled as lea so the
-	# final table pointer keeps a single capability source (the base)
-	# under sarcasm's pointer flow. Identical result; flags are dead:
-	# the next instruction is a local call, which clobbers flags.
-	lea	($sbox,%rbp),$sbox	#! restore capability (sboxcap_dec)
+	add	%rbp,$sbox	# recall "magic" constants!
 
 	call	_x86_64_AES_decrypt_compact
 ___
@@ -1850,16 +1845,16 @@ ___
 # scalar accesses need only hardware-required alignment, so arbitrarily
 # aligned buffers just work).
 if ($ENV{SARCASM}) {
-	# pushfq/popfq omitted: sarcasm keeps a literal pushfq across the body,
-	# leaving %rsp 8 bytes lower than its frame model assumes and injecting
-	# misaligned runtime calls. The wrapper exists only to restore DF after
-	# the (already removed) string ops; the SysV ABI preserves no other
-	# flags across a call and this body executes 'cld' and never sets DF.
-	$code.=<<___;
+  # pushfq/popfq omitted: sarcasm keeps a literal pushfq across the body,
+  # leaving %rsp 8 bytes lower than its frame model assumes and injecting
+  # misaligned runtime calls. The wrapper exists only to restore DF after
+  # the (already removed) string ops; the SysV ABI preserves no other
+  # flags across a call and this body executes 'cld' and never sets DF.
+  $code.=<<___;
 	push	%rbx
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	pushfq
 # This could be .cfi_push 49, but libunwind fails on registers it does not
 # recognize. See https://bugzilla.redhat.com/show_bug.cgi?id=217087.
@@ -1881,13 +1876,13 @@ $code.=<<___;
 .cfi_push	%r15
 ___
 if ($ENV{SARCASM}) {
-	# Tiny fixed prologue frame holding $keyend (8(%rsp)) only: the shared
-	# compact callees read the key-schedule end through the
-	# return-address-compensated 'cmp 16(%rsp),$key', so it must stay at
-	# caller-8(%rsp). Everything else lives in the per-path '.alloca'
-	# buffers below. No rsp save is kept: the SARCASM .Lcbc_exit below
-	# reloads the pushed registers straight from their save slots.
-	$code.=<<___;
+  # Tiny fixed prologue frame holding $keyend (8(%rsp)) only: the shared
+  # compact callees read the key-schedule end through the
+  # return-address-compensated 'cmp 16(%rsp),$key', so it must stay at
+  # caller-8(%rsp). Everything else lives in the per-path '.alloca'
+  # buffers below. No rsp save is kept: the SARCASM .Lcbc_exit below
+  # reloads the pushed registers straight from their save slots.
+  $code.=<<___;
 	sub	\$16,%rsp
 ___
 }
@@ -1900,17 +1895,7 @@ $code.=<<___;
 	lea	.LAES_Te(%rip),$sbox
 	lea	.LAES_Td(%rip),%r10
 	cmp	\$0,%r9
-	# NOTE: this must stay a branch, not a cmov: sarcasm seeds a checked
-	# pointer from each rip-relative table lea, but a cmov merging two
-	# table pointers cannot carry a capability (one register cannot hold
-	# two provenances). Each side seeds its own table here; downstream
-	# address arithmetic ($sbox derivations) preserves whichever seed.
-	jne	.Lcbc_use_te
-	mov	%r10,$sbox
-	jmp	.Lcbc_sbox_done
-.Lcbc_use_te:
-	lea	.LAES_Te(%rip),$sbox
-.Lcbc_sbox_done:
+	cmoveq	%r10,$sbox
 
 .cfi_remember_state
 	mov	OPENSSL_ia32cap_P(%rip),%r10d
@@ -1923,17 +1908,17 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-	# Under sarcasm the dynamic anti-aliasing frame becomes a GC-allocated
-	# '.alloca' buffer (rsp untouched). 400 bytes cover the 336-byte slot
-	# area (incl. the aes_key copy at 80($FR) and $mark at 80+240($FR))
-	# plus slack.
-	$code.=<<___;
+  # Under sarcasm the dynamic anti-aliasing frame becomes a GC-allocated
+  # '.alloca' buffer (rsp untouched). 400 bytes cover the 336-byte slot
+  # area (incl. the aes_key copy at 80($FR) and $mark at 80+240($FR))
+  # plus slack.
+  $code.=<<___;
 	# allocate stack frame
 	.alloca	\$400,\$16,%fil_cbcframe
 .Lcbc_fast_body:
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	# allocate aligned stack frame...
 	lea	-88-248(%rsp),$key
 	and	\$-64,$key
@@ -1968,11 +1953,11 @@ ___
 ___
 }
 $code.=<<___;
-	mov	%rdi,$_inp	# save copy of inp #! store ptr
-	mov	%rsi,$_out	# save copy of out #! store ptr
+	mov	%rdi,$_inp	#! store ptr # save copy of inp
+	mov	%rsi,$_out	#! store ptr # save copy of out
 	mov	%rdx,$_len	# save copy of len
-	mov	%rcx,$_key	# save copy of key #! store ptr
-	mov	%r8,$_ivp	# save copy of ivp #! store ptr
+	mov	%rcx,$_key	#! store ptr # save copy of key
+	mov	%r8,$_ivp	#! store ptr # save copy of ivp
 	movl	\$0,$mark	# copy of aes_key->rounds = 0;
 	mov	%r8,%rbp	# rearrange input arguments
 	mov	%r9,%rbx
@@ -1987,7 +1972,7 @@ ___
 # copy address derives from the frame base ($FR: the dynamic frame under
 # gas, the '.alloca' buffer under sarcasm).
 {
-	$code.=<<___;
+  $code.=<<___;
 	# do we copy key schedule to stack?
 	mov	$key,%r10
 	sub	$sbox,%r10
@@ -2002,19 +1987,13 @@ ___
 		lea	$aes_key,%rdi
 		lea	$aes_key,$key
 		mov	\$240/8,%ecx
-.Lcbc_ecopy_loop:			# explicit copy loop (was rep movsq;
-		mov	(%rsi),%r10	# string ops are not memory-safe)
-		mov	%r10,(%rdi)
-		lea	8(%rsi),%rsi
-		lea	8(%rdi),%rdi
-		sub	\$1,%ecx
-		jnz	.Lcbc_ecopy_loop
+		rep	movsq	# upstream '.long 0x90A548F3' (rep movsq + nop pad)
 		mov	%eax,(%rdi)	# copy aes_key->rounds
 .Lcbc_skip_ecopy:
 ___
 }
-	$code.=<<___;
-	mov	$key,$keyp	# save key pointer #! store ptr
+  $code.=<<___;
+	mov	$key,$keyp	#! store ptr # save key pointer
 
 	mov	\$18,%ecx
 .align	4
@@ -2043,12 +2022,12 @@ ___
 		xor	4($inp),$s1
 		xor	8($inp),$s2
 		xor	12($inp),$s3
-		mov	$keyp,$key	# restore key #! load ptr
-		mov	$inp,$_inp	# if ($verticalspin) save inp #! store ptr
+		mov	$keyp,$key	#! load ptr # restore key
+		mov	$inp,$_inp	#! store ptr # if ($verticalspin) save inp
 
 		call	_x86_64_AES_encrypt
 
-		mov	$_inp,$inp	# if ($verticalspin) restore inp #! load ptr
+		mov	$_inp,$inp	#! load ptr # if ($verticalspin) restore inp
 		mov	$_len,%r10
 		mov	$s0,0($out)
 		mov	$s1,4($out)
@@ -2061,7 +2040,7 @@ ___
 		test	\$-16,%r10
 		mov	%r10,$_len
 	jnz	.Lcbc_fast_enc_loop
-	mov	$_ivp,%rbp	# restore ivp #! load ptr
+	mov	$_ivp,%rbp	#! load ptr # restore ivp
 	mov	$s0,0(%rbp)	# save ivec
 	mov	$s1,4(%rbp)
 	mov	$s2,8(%rbp)
@@ -2082,13 +2061,13 @@ ___
 		mov	4($inp),$s1
 		mov	8($inp),$s2
 		mov	12($inp),$s3
-		mov	$keyp,$key	# restore key #! load ptr
-		mov	$inp,$_inp	# if ($verticalspin) save inp #! store ptr
+		mov	$keyp,$key	#! load ptr # restore key
+		mov	$inp,$_inp	#! store ptr # if ($verticalspin) save inp
 
 		call	_x86_64_AES_decrypt
 
 		mov	$ivec,%rbp	# load ivp
-		mov	$_inp,$inp	# if ($verticalspin) restore inp #! load ptr
+		mov	$_inp,$inp	#! load ptr # if ($verticalspin) restore inp
 		mov	$_len,%r10	# load len
 		xor	0(%rbp),$s0	# xor iv
 		xor	4(%rbp),$s1
@@ -2108,7 +2087,7 @@ ___
 		lea	16($inp),$inp
 		lea	16($out),$out
 	jnz	.Lcbc_fast_dec_loop
-	mov	$_ivp,%r12		# load user ivp #! load ptr
+	mov	$_ivp,%r12		#! load ptr # load user ivp
 	mov	0(%rbp),%r10		# load iv
 	mov	8(%rbp),%r11
 	mov	%r10,0(%r12)		# copy back to user
@@ -2127,12 +2106,12 @@ ___
 		mov	4($inp),$s1
 		mov	8($inp),$s2
 		mov	12($inp),$s3
-		mov	$keyp,$key	# restore key #! load ptr
-		mov	$inp,$_inp	# if ($verticalspin) save inp #! store ptr
+		mov	$keyp,$key	#! load ptr # restore key
+		mov	$inp,$_inp	#! store ptr # if ($verticalspin) save inp
 
 		call	_x86_64_AES_decrypt
 
-		mov	$_inp,$inp	# if ($verticalspin) restore inp #! load ptr
+		mov	$_inp,$inp	#! load ptr # if ($verticalspin) restore inp
 		mov	$_len,%r10
 		xor	0+$ivec,$s0
 		xor	4+$ivec,$s1
@@ -2173,11 +2152,7 @@ ___
 	je	.Lcbc_exit
 		mov	\$240/8,%ecx
 		xor	%rax,%rax
-.Lcbc_te_cleanse:			# explicit zero loop (was rep stosq)
-		mov	%rax,(%rdi)
-		lea	8(%rdi),%rdi
-		sub	\$1,%ecx
-		jnz	.Lcbc_te_cleanse
+		rep	stosq	# upstream '.long 0x90AB48F3' (rep stosq + nop pad)
 
 	jmp	.Lcbc_exit
 
@@ -2187,15 +2162,15 @@ ___
 .cfi_restore_state
 ___
 if ($ENV{SARCASM}) {
-	# Same '.alloca' buffer as the fast path above (the carrier register
-	# is not %rbp — sarcasm reserves it for frames).
-	$code.=<<___;
+  # Same '.alloca' buffer as the fast path above (the carrier register
+  # is not %rbp — sarcasm reserves it for frames).
+  $code.=<<___;
 	# allocate stack frame
 	.alloca	\$400,\$16,%fil_cbcframe
 .Lcbc_slow_body:
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	# allocate aligned stack frame...
 	lea	-88(%rsp),%rbp
 	and	\$-64,%rbp
@@ -2219,7 +2194,7 @@ $code.=<<___;
 	#mov	%rsi,$_out	# save copy of out
 	#mov	%rdx,$_len	# save copy of len
 	#mov	%rcx,$_key	# save copy of key
-	mov	%r8,$_ivp	# save copy of ivp #! store ptr
+	mov	%r8,$_ivp	#! store ptr # save copy of ivp
 	mov	%r8,%rbp	# rearrange input arguments
 	mov	%r9,%rbx
 	mov	%rsi,$out
@@ -2228,7 +2203,7 @@ $code.=<<___;
 	mov	%rdx,%r10
 
 	mov	240($key),%eax
-	mov	$key,$keyp	# save key pointer #! store ptr
+	mov	$key,$keyp	#! store ptr # save key pointer
 	shl	\$4,%eax
 	lea	($key,%rax),%rax
 	mov	%rax,$keyend
@@ -2242,7 +2217,7 @@ ___
 # result rides sarcasm's dynamic lower in lockstep with that cmov.
 # The lea base preference keeps it derived from the table base.
 {
-	$code.=<<___;
+  $code.=<<___;
 	lea	2048($sbox),$sbox
 	# NOTE: upstream derives the select below from the stack frame with
 	# 'lea 768-8(%rsp),%rax'; under sarcasm the key schedule pointer is
@@ -2272,15 +2247,15 @@ $code.=<<___;
 		xor	4($inp),$s1
 		xor	8($inp),$s2
 		xor	12($inp),$s3
-		mov	$keyp,$key	# restore key #! load ptr
-		mov	$inp,$_inp	# save inp #! store ptr
-		mov	$out,$_out	# save out #! store ptr
+		mov	$keyp,$key	#! load ptr # restore key
+		mov	$inp,$_inp	#! store ptr # save inp
+		mov	$out,$_out	#! store ptr # save out
 		mov	%r10,$_len	# save len
 
 		call	_x86_64_AES_encrypt_compact
 
-		mov	$_inp,$inp	# restore inp #! load ptr
-		mov	$_out,$out	# restore out #! load ptr
+		mov	$_inp,$inp	#! load ptr # restore inp
+		mov	$_out,$out	#! load ptr # restore out
 		mov	$_len,%r10	# restore len
 		mov	$s0,0($out)
 		mov	$s1,4($out)
@@ -2294,7 +2269,7 @@ $code.=<<___;
 	jnz	.Lcbc_slow_enc_loop
 	test	\$15,%r10
 	jnz	.Lcbc_slow_enc_tail
-	mov	$_ivp,%rbp	# restore ivp #! load ptr
+	mov	$_ivp,%rbp	#! load ptr # restore ivp
 	mov	$s0,0(%rbp)	# save ivec
 	mov	$s1,4(%rbp)
 	mov	$s2,8(%rbp)
@@ -2309,21 +2284,11 @@ $code.=<<___;
 	mov	%r10,%rcx
 	mov	$inp,%rsi
 	mov	$out,%rdi
-.Lcbc_slow_enc_tail_copy:		# explicit loops (were rep movsb/stosb)
-	mov	(%rsi),%al
-	mov	%al,(%rdi)
-	lea	1(%rsi),%rsi
-	lea	1(%rdi),%rdi
-	sub	\$1,%ecx
-	jnz	.Lcbc_slow_enc_tail_copy
+	rep	movsb	# upstream '.long 0x9066A4F3' (rep movsb + nop pad)
 	mov	\$16,%rcx		# zero tail
 	sub	%r10,%rcx
 	xor	%rax,%rax
-.Lcbc_slow_enc_tail_zero:
-	mov	%al,(%rdi)
-	lea	1(%rdi),%rdi
-	sub	\$1,%ecx
-	jnz	.Lcbc_slow_enc_tail_zero
+	rep	stosb	# upstream '.long 0x9066AAF3' (rep stosb + nop pad)
 	mov	$out,$inp		# this is not a mistake!
 	mov	\$16,%r10		# len=16
 	mov	%r11,%rax
@@ -2332,20 +2297,8 @@ $code.=<<___;
 #--------------------------- SLOW DECRYPT ---------------------------#
 .align	16
 .LSLOW_DECRYPT:
-___
-	# The "magic" offset is nonzero now that the slow-path Te4-copy
-	# selection above runs under sarcasm too.
-	# NOTE: 'add %rax,$sbox' here in upstream; spelled as lea so the
-	# corrected table pointer keeps deriving from the table base under
-	# sarcasm's pointer flow (an add would rebase it onto the
-	# integer scratch, trapping later table reads). Identical
-	# result; flags are dead (nothing branches before the slow loop's
-	# own flag-setting arithmetic).
-	$code.=<<___;
 	shr	\$3,%rax
-	lea	($sbox,%rax),$sbox	# recall "magic" constants!
-___
-	$code.=<<___;
+	add	%rax,$sbox		# recall "magic" constants!
 
 	mov	0(%rbp),%r11		# copy iv to stack
 	mov	8(%rbp),%r12
@@ -2358,15 +2311,15 @@ ___
 		mov	4($inp),$s1
 		mov	8($inp),$s2
 		mov	12($inp),$s3
-		mov	$keyp,$key	# restore key #! load ptr
-		mov	$inp,$_inp	# save inp #! store ptr
-		mov	$out,$_out	# save out #! store ptr
+		mov	$keyp,$key	#! load ptr # restore key
+		mov	$inp,$_inp	#! store ptr # save inp
+		mov	$out,$_out	#! store ptr # save out
 		mov	%r10,$_len	# save len
 
 		call	_x86_64_AES_decrypt_compact
 
-		mov	$_inp,$inp	# restore inp #! load ptr
-		mov	$_out,$out	# restore out #! load ptr
+		mov	$_inp,$inp	#! load ptr # restore inp
+		mov	$_out,$out	#! load ptr # restore out
 		mov	$_len,%r10
 		xor	0+$ivec,$s0
 		xor	4+$ivec,$s1
@@ -2416,24 +2369,18 @@ ___
 	mov	$out,%rdi
 	lea	$ivec,%rsi
 	lea	16(%r10),%rcx
-.Lcbc_slow_dec_tail_copy:		# explicit loop (was rep movsb)
-	mov	(%rsi),%al
-	mov	%al,(%rdi)
-	lea	1(%rsi),%rsi
-	lea	1(%rdi),%rdi
-	sub	\$1,%ecx
-	jnz	.Lcbc_slow_dec_tail_copy
+	rep	movsb	# upstream '.long 0x9066A4F3' (rep movsb + nop pad)
 	jmp	.Lcbc_exit
 
 .align	16
 .Lcbc_exit:
 ___
 if ($ENV{SARCASM}) {
-	# rsp is untouched after the tiny prologue frame above (the bulk frame
-	# is a '.alloca' buffer), so reload the pushed registers straight from
-	# their save slots and drop the whole frame with one add. Offsets: the
-	# pushes sit at 16-56(%rsp) above the 16-byte $keyend frame.
-	$code.=<<___;
+  # rsp is untouched after the tiny prologue frame above (the bulk frame
+  # is a '.alloca' buffer), so reload the pushed registers straight from
+  # their save slots and drop the whole frame with one add. Offsets: the
+  # pushes sit at 16-56(%rsp) above the 16-byte $keyend frame.
+  $code.=<<___;
 	mov	16(%rsp),%r15
 .cfi_restore	%r15
 	mov	24(%rsp),%r14
@@ -2450,7 +2397,7 @@ if ($ENV{SARCASM}) {
 .cfi_adjust_cfa_offset	-64
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	mov	$_rsp,%rsi
 .cfi_def_cfa	%rsi,64
 	mov	(%rsi),%r15
@@ -2473,7 +2420,7 @@ $code.=<<___;
 .Lcbc_popfq:
 ___
 if (!$ENV{SARCASM}) {	# see the pushfq omission above
-	$code.=<<___;
+  $code.=<<___;
 	popfq
 # This could be .cfi_pop 49, but libunwind fails on registers it does not
 # recognize. See https://bugzilla.redhat.com/show_bug.cgi?id=217087.

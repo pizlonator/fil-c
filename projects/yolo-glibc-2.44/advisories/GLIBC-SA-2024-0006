@@ -1,0 +1,32 @@
+nscd: Null pointer crash after notfound response
+
+If the Name Service Cache Daemon's (nscd) cache fails to add a not-found
+netgroup response to the cache, the client request can result in a null
+pointer dereference.  This flaw was introduced in glibc 2.15 when the
+cache was added to nscd.
+
+This vulnerability is only present in the nscd binary.
+
+CVE-Id: CVE-2024-33600
+Public-Date: 2024-04-24
+Vulnerable-Commit: 684ae515993269277448150a1ca70db3b94aa5bd (2.15)
+Fix-Commit: b048a482f088e53144d26a61c390bed0210f49f2 (2.40)
+Fix-Commit: 7835b00dbce53c3c87bbbb1754a95fb5e58187aa (2.40)
+Fix-Commit: c99f886de54446cd4447db6b44be93dabbdc2f8b (2.39-37)
+Fix-Commit: 5a508e0b508c8ad53bd0d2fb48fd71b242626341 (2.39-36)
+Fix-Commit: 2ae9446c1b7a3064743b4a51c0bbae668ee43e4c (2.38-74)
+Fix-Commit: 541ea5172aa658c4bd5c6c6d6fd13903c3d5bb0a (2.38-73)
+Fix-Commit: a8070b31043c7585c36ba68a74298c4f7af075c3 (2.37-93)
+Fix-Commit: 5eea50c4402e39588de98aa1d4469a79774703d4 (2.37-92)
+Fix-Commit: f205b3af56740e3b014915b1bd3b162afe3407ef (2.36-167)
+Fix-Commit: c34f470a615b136170abd16142da5dd0c024f7d1 (2.36-166)
+Fix-Commit: bafadc589fbe21ae330e8c2af74db9da44a17660 (2.35-318)
+Fix-Commit: 4370bef52b0f3f3652c6aa13d7a9bb3ac079746d (2.35-317)
+Fix-Commit: 1f94122289a9bf7dba573f5d60327aaa2b85cf2e (2.34-462)
+Fix-Commit: 966d6ac9e40222b84bb21674cc4f83c8d72a5a26 (2.34-461)
+Fix-Commit: e3eef1b8fbdd3a7917af466ca9c4b7477251ca79 (2.33-266)
+Fix-Commit: f20a8d696b13c6261b52a6434899121f8b19d5a7 (2.33-265)
+Fix-Commit: be602180146de37582a3da3a0caa4b719645de9c (2.32-143)
+Fix-Commit: 394eae338199078b7961b051c191539870742d7b (2.32-142)
+Fix-Commit: 8d7949183760170c61e55def723c1d8050187874 (2.31-157)
+Fix-Commit: 304ce5fe466c4762b21b36c26926a4657b59b53e (2.31-156)

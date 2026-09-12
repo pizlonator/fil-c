@@ -139,7 +139,7 @@ $code.=<<___;
 .globl	rsaz_1024_sqr_avx2
 .type	rsaz_1024_sqr_avx2,\@function,5
 .align	64
-rsaz_1024_sqr_avx2:		# 702 cycles, 14% faster than rsaz_1024_mul_avx2 #! void(ptr,ptr,ptr,long,int)
+rsaz_1024_sqr_avx2:		#! void(ptr,ptr,ptr,long,int) # 702 cycles, 14% faster than rsaz_1024_mul_avx2
 .cfi_startproc
 	lea	(%rsp), %rax
 .cfi_def_cfa_register	%rax
@@ -177,20 +177,20 @@ $code.=<<___;
 	mov	%rdx, $np			# reassigned argument
 ___
 if ($ENV{SARCASM}) {
-	# Merged alloca + anchor: 896 used bytes + 1024 alignment slack.
-	# The conditional n-copy sub/and dance below is a page-crossing
-	# performance workaround that cannot be proven safe (mid-function
-	# andq on an anchored %rsp) and is pointless for a GC allocation.
-	# The andq $-1024,%rsp alignment itself is likewise perf-only: the
-	# frame is virtualized, so all slots stay addressable without it.
-	$code.=<<___;
+  # Merged allocation (used bytes + alignment slack): the conditional
+  # n-copy sub/and dance below is a page-crossing performance workaround
+  # that cannot be proven safe, so it is dropped and the frame is sized
+  # to cover both the slots and the alignment in one allocation. (The
+  # fixed frame promotes to a GC region, so stack+offset carriers cannot
+  # observe it; see the epilogue below.)
+  $code.=<<___;
 	sub	\$1920,%rsp
 	sub	\$-128, $rp			# size optimization
 	sub	\$-128, $ap
 	sub	\$-128, $np
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	\$$FrameSize, %rsp
 	mov	$np, $tmp
 	sub	\$-128, $rp			# size optimization
@@ -237,7 +237,7 @@ ___
 $code.=<<___;
 .Lsqr_1024_no_n_copy:
 ___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	and		\$-1024, %rsp
 ___
 $code.=<<___;
@@ -972,14 +972,13 @@ $code.=<<___;
 	mov	%rdx, $bp	# reassigned argument
 ___
 if ($ENV{SARCASM}) {
-	# Merged alloca + anchor: 64 used bytes + 64 alignment slack (see
-	# the sqr frame above for why the n-copy dance is dropped). The
-	# andq $-64,%rsp alignment is perf-only and dropped the same way.
-	$code.=<<___;
+  # Merged allocation (used bytes + alignment slack; see the sqr frame
+  # above). The andq $-64,%rsp alignment is subsumed the same way.
+  $code.=<<___;
 	sub	\$128,%rsp
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	\$64,%rsp
 ___
 }
@@ -1005,7 +1004,7 @@ $code.=<<___;
 	sub	\$-128,$rp
 ___
 if (!$ENV{SARCASM}) {
-	$code.=<<___;
+  $code.=<<___;
 
 	and	\$4095, $tmp	# see if $np crosses page
 	add	\$32*10, $tmp
@@ -1053,7 +1052,7 @@ ___
 $code.=<<___;
 .Lmul_1024_no_n_copy:
 ___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	and	\$-64,%rsp
 ___
 $code.=<<___;
@@ -1664,10 +1663,10 @@ $code.=<<___;
 ___
 }
 {
-# Sarcasm: the gather spill slots live straight off %rsp (32*K(%rsp)); the
-# gas path keeps the u-op-density region base -128(%rsp) in %rax.
-sub gslot { my $k = shift; return $ENV{SARCASM} ? (32*$k)."(%rsp)" : "32*$k+128(%rax)"; }
-sub gstore { return $ENV{SARCASM} ? "vmovdqu" : "vmovdqa"; }
+# The gather spill slots ride the u-op-density region base -128(%rsp) in %rax
+# (sarcasm models stack+offset alias registers and the and $-32 alignment).
+sub gslot { my $k = shift; return "32*$k+128(%rax)"; }
+sub gstore { return "vmovdqa"; }
 
 my ($out,$inp,$power) = $win64 ? ("%rcx","%rdx","%r8d") : ("%rdi","%rsi","%edx");
 
@@ -1726,23 +1725,14 @@ $code.=<<___ if ($win64);
 ___
 $code.=<<___;
 ___
-if ($ENV{SARCASM}) {
-	# andq-anchored region: 256 used bytes + 32 alignment slack (one
-	# merged allocation; the lea-and two-step cannot be proven safe).
-	# The andq $-32,%rsp alignment itself is perf-only and dropped.
-	$code.=<<___;
-	sub	\$288,%rsp
-___
-} else {
-	$code.=<<___;
+$code.=<<___;
 	lea	-0x100(%rsp),%rsp
 	and	\$-32, %rsp
 ___
-}
 $code.=<<___;
 	lea	.Linc(%rip), %r10
 ___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	lea	-128(%rsp),%rax			# control u-op density
 ___
 $code.=<<___;

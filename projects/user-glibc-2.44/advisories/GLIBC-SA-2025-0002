@@ -1,0 +1,23 @@
+elf: static setuid binary dlopen may incorrectly search LD_LIBRARY_PATH
+
+A statically linked setuid binary that calls dlopen (including internal
+dlopen calls after setlocale or calls to NSS functions such as getaddrinfo)
+may incorrectly search LD_LIBRARY_PATH to determine which library to load,
+leading to the execution of library code that is attacker controlled.
+
+The only viable vector for exploitation of this bug is local, if a static
+setuid program exists, and that program calls dlopen, then it may search
+LD_LIBRARY_PATH to locate the SONAME to load. No such program has been
+discovered at the time of publishing this advisory, but the presence of
+custom setuid programs, although strongly discouraged as a security
+practice, cannot be discounted.
+
+CVE-Id: CVE-2025-4802
+Public-Date: 2025-05-16
+Vulnerable-Commit: 10e93d968716ab82931d593bada121c17c0a4b93 (2.27)
+Fix-Commit: 5451fa962cd0a90a0e2ec1d8910a559ace02bba0 (2.39)
+Fix-Commit: 3be3728df2f1912c80abd3288bc6e3a25ad679e4 (2.38-132)
+Fix-Commit: 7403ede2d7752e59e0c47d5d33d73c2bf850e7be (2.37-154)
+Fix-Commit: 2ef7850279b2931caf6d6d6743ebaa91839e1cf7 (2.36-227)
+Fix-Commit: 621c65ccf12ddd415ceeb2234423bd1acd0fabb3 (2.35-387)
+Fix-Commit: 35018c0fd20eac9ceaf60060fed2745b3177359d (2.34-517)

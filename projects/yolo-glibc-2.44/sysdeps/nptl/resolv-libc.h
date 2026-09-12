@@ -1,0 +1,1 @@
+#define ANL_IN_LIBC GLIBC_2_34

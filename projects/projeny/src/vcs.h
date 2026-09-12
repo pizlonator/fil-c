@@ -141,9 +141,13 @@ std::vector<std::string> vcs_touched_paths(const std::string& patch,
 
 // Three-way merge one file: base (may be missing), ours (fresh setup file,
 // may be missing), theirs (user file, may be missing) -> write merged result
-// with conflict markers into dst_path. Returns true if clean.
+// with conflict markers into dst_path. dst_root is the tree dst_path lives
+// in (dst_path is join_path(dst_root, rel)); it names the member in
+// diagnostics and bounds symlink targets the merge may create. Returns true
+// if clean.
 // Binary (NUL-bearing) sides merge byte-wise: agreement or a one-sided change
 // wins cleanly, divergent binary changes keep the theirs bytes and report a
 // conflict (markers would corrupt binary content).
 bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_file,
-                        const std::string& theirs_file, const std::string& dst_path);
+                        const std::string& theirs_file, const std::string& dst_path,
+                        const std::string& dst_root);

@@ -2,8 +2,8 @@
 # 0xf3 is an AMD branch-prediction hint) instead of a spelled `ret`. Sarcasm
 # decodes the byte sequence back into a real `ret` at parse time, so the frame
 # pass's teardown analysis and the fall-off reachability check see an ordinary
-# return — identical to the spelled form (a spelled `rep ret` itself is
-# rejected, since `rep` is not a prefix sarcasm models).
+# return — identical to the spelled form (a spelled `rep ret` keeps the
+# prefix as the same hint and returns identically).
 	.text
 	.globl	repret
 	.type	repret, @function

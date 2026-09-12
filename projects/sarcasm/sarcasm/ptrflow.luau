@@ -48,6 +48,60 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 		end
 	end
 
+	-- Seeded webs (pointer arguments, pointer loads/returns, alloca results)
+	-- are NEVER killed to scalar: a seed defines a genuine pointer, and
+	-- later killing ops on the same RMW web merely reuse the register as
+	-- scratch. Keeping the seed's capability is the long-standing behavior
+	-- everything relies on (it also keeps entry unpacking's root stores and
+	-- the `use capability` validations well-formed, which assume seeded
+	-- webs always carry lowers). Kills apply only to mov/ALU-derived
+	-- scratch webs (the AES_decrypt `mov $key,%rbp` shape), which no seed
+	-- roots. Web identities are lift-fixed, so this set is stable for the
+	-- whole fixpoint.
+	local seedWeb = {}
+	for _, t in (seeds.argPtrTemps or {}) do seedWeb[t] = true end
+	for _, node in nodes do
+		if node.kind == "insn" then
+			if (seeds.loadPtrDefs and seeds.loadPtrDefs[node])
+				or (seeds.callPtrDefs and seeds.callPtrDefs[node])
+				or (seeds.allocaResultDefs and seeds.allocaResultDefs[node]) then
+				local d = node.defTemps and node.defTemps[1]
+				if d then seedWeb[d] = true end
+			end
+		end
+	end
+
+	-- Webs observed as an address (base/index of a real memory access) are
+	-- never killed either: a later killing op on the same RMW web merely
+	-- reuses the register as scratch, but the pre-kill range addresses
+	-- memory through it — sha1's `sub $in0,$out` feeds `disp($out,$in0)`
+	-- stores (guarded by an explicit `#! use capability $out`), and vpaes's
+	-- `subq %rdi,%rsi` feeds the `(%rsi,%rdi,1)` loop under the base's
+	-- capability — so a null capability there would trap legitimate
+	-- accesses. Kills apply only to pure-integer scratch that never
+	-- addresses memory (the AES_decrypt select: its scratch touches only
+	-- ALU ops and leas). `lea` is address COMPUTATION, not an access, so
+	-- lea-operand uses don't block a kill. Web identities are lift-fixed,
+	-- so this set is stable for the whole fixpoint.
+	local memAddrWeb = {}
+	for _, node in nodes do
+		if node.kind == "insn" then
+			local m = baseMnemonic(node.stmt and node.stmt.mnemonic or node.mnemonic or "")
+			if m ~= "lea" and node.stmt and node.stmt.operands and node.opTemp then
+				for _, op in node.stmt.operands do
+					if op.kind == "mem" then
+						if op.base and node.opTemp[op.base] then
+							memAddrWeb[node.opTemp[op.base]] = true
+						end
+						if op.index and node.opTemp[op.index] then
+							memAddrWeb[node.opTemp[op.index]] = true
+						end
+					end
+				end
+			end
+		end
+	end
+
 	-- Fixpoint propagation through copies and address arithmetic.
 	--
 	-- Convergence. isPtr only ever goes false->true, but a temp's lower CAN be reassigned
@@ -91,6 +145,31 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 	local dynamic = {}        -- web -> true once widened to a lockstep lower
 	local dynSrc = {}         -- node -> { [defWeb] = sourceWeb } for dynamic defs
 	local capShot = {}        -- save var -> { web, lo }: the frozen snapshot (phase 2)
+	-- Killed webs (sticky scalars). A shift/rotate result is NEVER a pointer:
+	-- shifting an address destroys its meaning, so the destination web is
+	-- forced scalar even when the shifted value was a pointer (an RMW
+	-- `shrq $3,%rbp` shares one web for the pointer input and the integer
+	-- output — merely skipping propagation would leave the key's capability
+	-- on the integer). Likewise `sub` of two pointers is an integer
+	-- difference, not a pointer. The kill is sticky: once a web is killed,
+	-- no later merge may re-mark it (markFrom skips killed webs), so the
+	-- fixpoint stays monotone and converges. Seeded webs and webs that
+	-- address memory are exempt (see `seedWeb`/`memAddrWeb` below): only
+	-- mov/ALU-derived pure-integer scratch is killed.
+	-- Over-killing is sound: a scalar web carries a null capability, so a
+	-- mistaken kill can only trap (bounds check on null), never access out
+	-- of bounds.
+	local killed = {}
+	-- Shift/rotate mnemonics (post-baseMnemonic, plus the rcl/rcr forms
+	-- baseMnemonic leaves suffixed) whose register destination is always a
+	-- scalar kill of its web.
+	local KILL_SHIFT = {
+		shl = true, shr = true, sal = true, sar = true,
+		rol = true, ror = true, rcl = true, rcr = true,
+		shld = true, shrd = true,
+		rclb = true, rclw = true, rcll = true, rclq = true,
+		rcrb = true, rcrw = true, rcrl = true, rcrq = true,
+	}
 	-- Pinned webs (save AND restore def webs): in phase 2, no instruction but
 	-- a save may change a pinned web's capability. Saves need their own
 	-- natural inflow, and restores are explicit user overrides, so every other
@@ -157,8 +236,22 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 	-- The address-arithmetic source selection shared by the propagation rule
 	-- below and the save snapshot below: which pointer source a
 	-- pointer-combined-with-integers result draws its lower from (including
-	-- the lea-with-pointer-base preference and the ptr-ptr-sub guard, which
-	-- keeps an integer difference capability-free). Returns (ptrSrc, intCount).
+	-- the lea-with-pointer-base preference). A `sub` whose value sources
+	-- are all pointers (intCount == 0) is an integer difference, not a
+	-- pointer: the propagation rule kills its destination web to a sticky
+	-- scalar instead of drawing any lower (and the save snapshot falls back
+	-- to the lower-less def web, which the transform rejects loudly).
+	-- Returns (ptrSrc, intCount).
+	--
+	-- Only genuine address arithmetic preserves capabilities: add, sub, lea,
+	-- and, or (arm64 orr). Shifts (shl/shr/sal/sar/lsl/lsr/asr and the
+	-- rotates) NEVER do: shifting a pointer destroys its meaning as an
+	-- address, so a shift result is killed to a sticky scalar — it must not
+	-- inherit a capability from any operand, notably not from a count
+	-- register (`shlq %cl,%rdx` must not make %rdx carry %rcx's
+	-- capability). The caller gates which mnemonics reach this
+	-- function (shifts never do — they kill unconditionally); this helper
+	-- itself just scans the uses.
 	--
 	-- The lea preference covers aes's cache-alias trick (`leaq 768(%rsp),%rbp;
 	-- subq %r14,%rbp; andq $0x300,%rbp; leaq (%r14,%rbp,1),%r14` — the final
@@ -205,8 +298,7 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 				if u ~= d and not (addrUse and addrUse[u]) then src = u break end
 			end
 		elseif m == "add" or m == "sub" or m == "orr" or m == "lea"
-			or m == "lsl" or m == "lsr" or m == "asr" or m == "and"
-			or m == "or" or m == "shl" or m == "shr" or m == "sar" then
+			or m == "and" or m == "or" then
 			local ptrSrc, intCount = capAluSrc(snode, m, us, addrUse)
 			if ptrSrc and not (m == "sub" and intCount == 0) then src = ptrSrc end
 		end
@@ -235,6 +327,25 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 		return true
 	end
 
+	-- Force a web scalar (see the `killed` set above): drops any capability
+	-- it carries and pins it scalar so later merges cannot re-mark it. A
+	-- no-op on dynamic (lockstep) webs, whose lowers are maintained
+	-- per-def by the widening machinery instead; on seeded webs (see
+	-- `seedWeb` above), which keep their capability unconditionally; and on
+	-- webs that address memory (see `memAddrWeb` above), whose pre-kill
+	-- range holds legitimate accesses. Returns true when the kill changed
+	-- the analysis state.
+	local function killWeb(d)
+		if not d or dynamic[d] or killed[d] or seedWeb[d] or memAddrWeb[d] then
+			return false
+		end
+		killed[d] = true
+		local changedNow = false
+		if isPtr[d] then isPtr[d] = nil; changedNow = true end
+		if lowerTemp[d] ~= nil then lowerTemp[d] = nil; changedNow = true end
+		return changedNow
+	end
+
 	local seenStates = {}
 	local changed = true
 	while changed do
@@ -248,6 +359,13 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 				local us = node.useTemps or {}
 				local function markFrom(d, srcPtr)
 					if not d or not isPtr[srcPtr] then return end
+					if killed[d] then
+						-- A killed (integer) web never regains a capability:
+						-- an upstream pointer merge into the same RMW web
+						-- (e.g. the `mov key,%rbp` before a killing `sub`)
+						-- must not resurrect the capability on the integer.
+						return
+					end
 					if dynamic[srcPtr] and not dynamic[d] then
 						-- snapshot contagion (see above)
 						dynamicize(d)
@@ -372,16 +490,65 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 								end
 							end
 						elseif m == "add" or m == "sub" or m == "orr" or m == "lea"
-							or m == "lsl" or m == "lsr" or m == "asr" or m == "and"
-							or m == "or" or m == "shl" or m == "shr" or m == "sar" then
+							or m == "and" or m == "or" then
 							-- address arithmetic / alignment: a pointer combined with integers
 							-- keeps the pointer's lower (bounds checks still guard any misuse).
 							-- (Source selection lives in capAluSrc above, shared with
 							-- the save snapshot.)
-							local ptrSrc, intCount = capAluSrc(node, m, us, addrUse)
-							if ptrSrc and not (m == "sub" and intCount == 0) then
-								markFrom(d, ptrSrc)
+							--
+							-- Explicit capability directive stashed on the node by the
+							-- transform (`#! use capability %reg` on any of these ops;
+							-- `#! new capability %reg` is a deprecated alias): the
+							-- result draws from the NAMED source, bypassing the scan
+							-- and (for sub) the ptr-ptr guard. The annotation is an
+							-- explicit, validated, bounds-checked user choice for the
+							-- AMBIGUOUS case where several inputs carry capabilities;
+							-- a wrong choice can only trap (its bounds check still
+							-- guards every access), never access out of bounds.
+							--
+							-- `sub` of two pointers is an integer difference, not a
+							-- pointer: when every value source carries a capability
+							-- (and at least two do — a single-source `sub` off a
+							-- memory operand subtracts a loaded scalar and stays a
+							-- pointer), the destination web is killed to a sticky
+							-- scalar instead of keeping any capability. The RMW web
+							-- is shared with the pointer input, so merely skipping
+							-- propagation would leave the input's capability on the
+							-- integer (the AES_decrypt `sub $sbox,%rbp` poison).
+							local ov = node.useCapTemp or node.newCapTemp
+							if ov then
+								markFrom(d, ov)
+							elseif m == "sub" then
+								local ptrSrc, intCount = capAluSrc(node, m, us, addrUse)
+								if ptrSrc and intCount == 0 then
+									local nptr = 0
+									for _, u in us do
+										if not (addrUse and addrUse[u]) and isPtr[u] then
+											nptr += 1
+										end
+									end
+									if nptr >= 2 then
+										if killWeb(d) then changed = true end
+									end
+								elseif ptrSrc then
+									markFrom(d, ptrSrc)
+								end
+							else
+								local ptrSrc, intCount = capAluSrc(node, m, us, addrUse)
+								if ptrSrc then
+									markFrom(d, ptrSrc)
+								end
 							end
+						elseif KILL_SHIFT[m] then
+							-- Shifts/rotates never propagate capabilities: the
+							-- result is an integer scratch even when the shifted
+							-- value was a pointer (and the count register's
+							-- capability never transfers to the destination).
+							-- The RMW destination shares its web with the input,
+							-- so the web must be actively killed — skipping it
+							-- would leave the input's capability on the integer
+							-- (the AES_decrypt `shr $3,%rbp` poison).
+							if killWeb(d) then changed = true end
 						end
 					end
 				end
@@ -418,6 +585,7 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 			for t, lo in lowerTemp do table.insert(parts, tostring(t) .. "=" .. tostring(lo)) end
 			for t, v in isPtr do if v then table.insert(parts, tostring(t) .. "=ptr") end end
 			for t, v in dynamic do if v then table.insert(parts, tostring(t) .. "=dyn") end end
+			for t in killed do table.insert(parts, tostring(t) .. "=killed") end
 			table.sort(parts)
 			local key = table.concat(parts, ";")
 			if seenStates[key] then

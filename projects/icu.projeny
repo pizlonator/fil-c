@@ -1,17 +1,21 @@
-Archive: icu-78.3.tar.gz
-Origname: icu-78.3
+Archive: icu4c-78.3-sources.tgz
+Origname: icu
 Name: icu
 
     icu 78.3 with the Fil-C port (capability-safe converter clone,
     compiler-fence aliasing barrier, no assembly data objects,
-    pointer-TOC data length fix). Upstream icu4c/LICENSE is a symlink
-    to ../LICENSE; projeny forbids ".." link targets, so the base
-    tarball carries it as a regular file with the same bytes.
-
-    Base-tarball provenance: apart from the LICENSE symlink-to-regular
-    substitution above, the base tarball is the unmodified upstream 78.3
-    release; every Fil-C change lives in the patch below, none in the
-    tarball.
+    pointer-TOC data length fix). The archive is the pristine official
+    ICU4C source distribution icu4c-78.3-sources.tgz (sha256
+    3a2e7a47604ba702f345878308e6fefeca612ee895cf4a5f222e7955fabfe0c0;
+    md5 matches the release's icu4c-78.3-sources.md5). It carries no
+    symlinks and no .git* entries, so unlike the previous codeload-based
+    repack it needs no LICENSE symlink workaround. It is the icu4c
+    release dist rather than the whole monorepo: the workdir now holds
+    source/ at the top level (build_icu.sh and the optfil/pizlix
+    pizlonated-icu consumers follow it there), and ICU's own prebuilt
+    source/data/in/icudt78l.dat stands in for the data .txt sources the
+    monorepo carries. Every Fil-C change lives in the patch below,
+    none in the tarball.
 
     GENCCODE_ASSEMBLY note: the configure/configure.ac hunks clear
     GENCCODE_ASSEMBLY unconditionally (not behind __PIZLONATOR_WAS_HERE__),
@@ -21,9 +25,9 @@ Name: icu
 
     Fil-C builtins audit: rg -nw "zmkptr|zcompiler_fence|zcap|stdfil" over
     the workdir shows only common/ucnv.cpp (zmkptr) uses Fil-C builtins.
-diff --git a/icu/icu4c/source/common/putil.cpp b/icu/icu4c/source/common/putil.cpp
---- a/icu/icu4c/source/common/putil.cpp
-+++ b/icu/icu4c/source/common/putil.cpp
+diff --git a/icu/source/common/putil.cpp b/icu/source/common/putil.cpp
+--- a/icu/source/common/putil.cpp
++++ b/icu/source/common/putil.cpp
 @@ -641,9 +641,27 @@
  U_CAPI int32_t U_EXPORT2
  uprv_timezone()
@@ -60,9 +64,9 @@ diff --git a/icu/icu4c/source/common/putil.cpp b/icu/icu4c/source/common/putil.c
  }
 
  /* Note that U_TZNAME does *not* have to be tzname, but if it is,
-diff --git a/icu/icu4c/source/common/ucnv.cpp b/icu/icu4c/source/common/ucnv.cpp
---- a/icu/icu4c/source/common/ucnv.cpp
-+++ b/icu/icu4c/source/common/ucnv.cpp
+diff --git a/icu/source/common/ucnv.cpp b/icu/source/common/ucnv.cpp
+--- a/icu/source/common/ucnv.cpp
++++ b/icu/source/common/ucnv.cpp
 @@ -43,6 +43,14 @@
  #include "ucnv_cnv.h"
  #include "ucnv_bld.h"
@@ -90,9 +94,9 @@ diff --git a/icu/icu4c/source/common/ucnv.cpp b/icu/icu4c/source/common/ucnv.cpp
              stackBufferSize -= static_cast<int32_t>(pointerAdjustment);
          } else {
              /* prevent using the stack buffer but keep the size > 0 so that we do not just preflight */
-diff --git a/icu/icu4c/source/common/ucnv_io.cpp b/icu/icu4c/source/common/ucnv_io.cpp
---- a/icu/icu4c/source/common/ucnv_io.cpp
-+++ b/icu/icu4c/source/common/ucnv_io.cpp
+diff --git a/icu/source/common/ucnv_io.cpp b/icu/source/common/ucnv_io.cpp
+--- a/icu/source/common/ucnv_io.cpp
++++ b/icu/source/common/ucnv_io.cpp
 @@ -249,14 +249,39 @@
 
      sectionSizes = static_cast<const uint32_t*>(udata_getMemory(data));
@@ -152,9 +156,9 @@ diff --git a/icu/icu4c/source/common/ucnv_io.cpp b/icu/icu4c/source/common/ucnv_
          // Truncated file!
          goto invalidFormat;
      }
-diff --git a/icu/icu4c/source/common/unicode/char16ptr.h b/icu/icu4c/source/common/unicode/char16ptr.h
---- a/icu/icu4c/source/common/unicode/char16ptr.h
-+++ b/icu/icu4c/source/common/unicode/char16ptr.h
+diff --git a/icu/source/common/unicode/char16ptr.h b/icu/source/common/unicode/char16ptr.h
+--- a/icu/source/common/unicode/char16ptr.h
++++ b/icu/source/common/unicode/char16ptr.h
 @@ -17,6 +17,10 @@
 
  #endif
@@ -166,16 +170,9 @@ diff --git a/icu/icu4c/source/common/unicode/char16ptr.h b/icu/icu4c/source/comm
  /**
   * \file
   * \brief C++ API: char16_t pointer wrappers with
-@@ -31,6 +35,17 @@
-  */
- #ifdef U_ALIASING_BARRIER
-     // Use the predefined value.
- #elif (defined(__clang__) || defined(__GNUC__)) && U_PLATFORM != U_PF_BROWSER_NATIVE_CLIENT
- #   define U_ALIASING_BARRIER(ptr) asm volatile("" : : "rm"(ptr) : "memory")
- #elif defined(U_IN_DOXYGEN)
-diff --git a/icu/icu4c/source/configure b/icu/icu4c/source/configure
---- a/icu/icu4c/source/configure
-+++ b/icu/icu4c/source/configure
+diff --git a/icu/source/configure b/icu/source/configure
+--- a/icu/source/configure
++++ b/icu/source/configure
 @@ -7037,6 +7037,7 @@
  #    GENCCODE_ASSEMBLY="-a aCC-ia64"
      ;;
@@ -184,9 +181,9 @@ diff --git a/icu/icu4c/source/configure b/icu/icu4c/source/configure
 
 
  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GENCCODE_ASSEMBLY" >&5
-diff --git a/icu/icu4c/source/configure.ac b/icu/icu4c/source/configure.ac
---- a/icu/icu4c/source/configure.ac
-+++ b/icu/icu4c/source/configure.ac
+diff --git a/icu/source/configure.ac b/icu/source/configure.ac
+--- a/icu/source/configure.ac
++++ b/icu/source/configure.ac
 @@ -642,6 +642,7 @@
  #    GENCCODE_ASSEMBLY="-a aCC-ia64"
      ;;
@@ -195,9 +192,9 @@ diff --git a/icu/icu4c/source/configure.ac b/icu/icu4c/source/configure.ac
  AC_SUBST(GENCCODE_ASSEMBLY)
 
  AC_MSG_RESULT($GENCCODE_ASSEMBLY)
-diff --git a/icu/icu4c/source/tools/toolutil/pkg_genc.h b/icu/icu4c/source/tools/toolutil/pkg_genc.h
---- a/icu/icu4c/source/tools/toolutil/pkg_genc.h
-+++ b/icu/icu4c/source/tools/toolutil/pkg_genc.h
+diff --git a/icu/source/tools/toolutil/pkg_genc.h b/icu/source/tools/toolutil/pkg_genc.h
+--- a/icu/source/tools/toolutil/pkg_genc.h
++++ b/icu/source/tools/toolutil/pkg_genc.h
 @@ -29,6 +29,10 @@
  #define BUILD_DATA_WITHOUT_ASSEMBLY
  #endif

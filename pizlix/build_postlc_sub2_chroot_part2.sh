@@ -72,13 +72,13 @@ cd ..
 rm -rf inetutils-2.5
 hash -r
 
-tar -xf less-704.tar.gz
-cd less-704
+tar -xf less-709-beta.tar.gz
+cd less-709
 ./configure --prefix=/usr --sysconfdir=/etc
 make
 make install
 cd ..
-rm -rf less-704
+rm -rf less-709
 hash -r
 
 ./build_postlc_chroot_project_perl.sh
@@ -409,13 +409,14 @@ cd ..
 rm -rf pizlonated-vim
 hash -r
 
-tar -xf mg-3.7.tar.gz 
-cd mg-3.7
+rm -rf pizlonated-mg
+tar -xf pizlonated-mg.tar.gz
+cd pizlonated-mg
 ./configure --prefix=/usr
 make
 make install
 cd ..
-rm -rf mg-3.7
+rm -rf pizlonated-mg
 hash -r
 
 tar -xf MarkupSafe-2.1.5.tar.gz

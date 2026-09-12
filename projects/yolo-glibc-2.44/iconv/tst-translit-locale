@@ -1,0 +1,10 @@
+# Test multi-character transliteration rule
+
+LC_CTYPE
+copy "POSIX"
+
+translit_start
+"ÄÄ" "AA"
+translit_end
+
+END LC_CTYPE

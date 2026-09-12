@@ -1,0 +1,16 @@
+tunables: local privilege escalation through buffer overflow
+
+If a tunable of the form NAME=NAME=VAL is passed in the environment of a
+setuid program and NAME is valid, it may result in a buffer overflow,
+which could be exploited to achieve escalated privileges.  This flaw was
+introduced in glibc 2.34.
+
+CVE-Id: CVE-2023-4911
+Public-Date: 2023-10-03
+Vulnerable-Commit: 2ed18c5b534d9e92fc006202a5af0df6b72e7aca (2.34)
+Fix-Commit: 1056e5b4c3f2d90ed2b4a55f96add28da2f4c8fa (2.39)
+Fix-Commit: dcc367f148bc92e7f3778a125f7a416b093964d9 (2.34-423)
+Fix-Commit: c84018a05aec80f5ee6f682db0da1130b0196aef (2.35-274)
+Fix-Commit: 22955ad85186ee05834e47e665056148ca07699c (2.36-118)
+Fix-Commit: b4e23c75aea756b4bddc4abcf27a1c6dca8b6bd3 (2.37-45)
+Fix-Commit: 750a45a783906a19591fb8ff6b7841470f1f5701 (2.38-27)

@@ -2,9 +2,8 @@ Archive: BLAKE3-1.8.7.tar.gz
 Origname: BLAKE3-1.8.7
 Name: blake3
 
-    BLAKE3 1.8.7 with no Fil-C changes. The C sources are unchanged
-    from 1.8.5, which was checked in unmodified, and 1.8.7 needs no
-    Fil-C changes either. The archive is upstream with its three
-    b3sum/LICENSE_* -> ../LICENSE_* symlinks repacked as regular-file
-    copies, since projeny refuses archive symlinks whose targets
-    contain "..".
+    BLAKE3 1.8.7 with no Fil-C changes; the archive is the pristine
+    upstream tag tarball, symlinks included (projeny's link check now
+    resolves targets). The C sources are unchanged from 1.8.5, which
+    was checked in unmodified, and 1.8.7 needs no Fil-C changes either,
+    so there is no patch below.

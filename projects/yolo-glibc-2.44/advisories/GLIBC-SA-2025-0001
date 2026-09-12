@@ -1,0 +1,40 @@
+assert: Buffer overflow when printing assertion failure message
+
+When the assert() function fails, it does not allocate enough space for the
+assertion failure message string and size information, which may lead to a
+buffer overflow if the message string size aligns to page size.
+
+This bug can be triggered when an assertion in a program fails.  The assertion
+failure message is allocated to allow developers to see this failure in core
+dumps and it typically includes, in addition to the invariant assertion
+string and function name, the name of the program.  If the name of the failing
+program is user controlled, for example on a local system, this could allow an
+attacker to control the assertion failure to trigger this buffer overflow.
+
+The only viable vector for exploitation of this bug is local, if a setuid
+program exists that has an existing bug that results in an assertion failure.
+No such program has been discovered at the time of publishing this advisory,
+but the presence of custom setuid programs, although strongly discouraged as a
+security practice, cannot be discounted.
+
+CVE-Id: CVE-2025-0395
+Public-Date: 2025-01-22
+Vulnerable-Commit: f8a3b5bf8fa1d0c43d2458e03cc109a04fdef194 (2.13-175)
+Fix-Commit: 68ee0f704cb81e9ad0a78c644a83e1e9cd2ee578 (2.41)
+Fix-Commit: cdb9ba84191ce72e86346fb8b1d906e7cd930ea2 (2.42)
+Fix-Commit: 69fda28279b497bd405fdd442a6d8e4d3d5f681b (2.41-7)
+Fix-Commit: 7d4b6bcae91f29d7b4daf15bab06b66cf1d2217c (2.40-66)
+Fix-Commit: d6c156c326999f144cb5b73d29982108d549ad8a (2.40-71)
+Fix-Commit: 808a84a8b81468b517a4d721fdc62069cb8c211f (2.39-146)
+Fix-Commit: f6d48470aef9264d2d56f4c4533eb76db7f9c2e4 (2.39-150)
+Fix-Commit: c32fd59314c343db88c3ea4a203870481d33c3d2 (2.38-122)
+Fix-Commit: f984e2d7e8299726891a1a497a3c36cd5542a0bf (2.38-124)
+Fix-Commit: a3d7865b098a3a67c44f7812208d9ce4718873ba (2.37-143)
+Fix-Commit: b989519fe1683c204ac24ec92830e3fe3bfaccad (2.37-146)
+Fix-Commit: 7971add7ee4171fdd8dfd17e7c04c4ed77a18845 (2.36-216)
+Fix-Commit: 0487893d5c5bc6710d83d7c3152d888a0339559e (2.36-219)
+Fix-Commit: 8b5d4be762419c4f6176261c6fea40ac559b88dc (2.35-370)
+Fix-Commit: 8b3d09dc0d350191985f9d291cc30ce96f034b49 (2.35-373)
+Fix-Commit: df4e1f4a5096b385c9bcc94424cf2eaa227b3761 (2.34-500)
+Fix-Commit: 31eb872cb21449832ab47ad5db83281d240e1d03 (2.34-503)
+Reported-By: Qualys Security Advisory

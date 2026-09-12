@@ -28,7 +28,7 @@ require 'pathname'
 require 'getoptlong'
 require 'shellwords'
 
-BASE_BENCHMARK_NAME = "PizBench9021"
+BASE_BENCHMARK_NAME = "PizBench9022"
 $benchmarkName = BASE_BENCHMARK_NAME
 
 $repeats = 10
@@ -41,6 +41,11 @@ system("filc/tests/has_avx512 > filc/tests/has_avx512.log 2>&1")
 raise unless $?.exited?
 raise unless $?.exitstatus == 0 or $?.exitstatus == 1
 $hasAVX512 = $?.exitstatus == 0
+
+# The fannkuch-redux, n-body, and spectralnorm benchmarks use x86_64 SIMD
+# intrinsics, so the filc/benchmarks Makefile only builds them on x86_64.
+# Mirror that here so that we only run benchmarks that were built.
+$hasX86SIMD = `uname -m`.chomp == "x86_64"
 
 GetoptLong.new(
     [ '--repeat', '-r', GetoptLong::REQUIRED_ARGUMENT ],
@@ -70,6 +75,9 @@ GetoptLong.new(
     end
 }
 
+if $hasX86SIMD
+    $benchmarkName += "-X86_64"
+end
 if $hasAVX512
     $benchmarkName += "-AVX512"
 end
@@ -392,30 +400,36 @@ $benchmarks << Benchmark.new(
     "20",
     [])
 
-$benchmarks << Benchmark.new(
-    "benchmarks/fannkuch-redux",
-    "12",
-    [])
+if $hasX86SIMD
+    $benchmarks << Benchmark.new(
+        "benchmarks/fannkuch-redux",
+        "12",
+        [])
+end
 
 $benchmarks << Benchmark.new(
     "benchmarks/fannkuch-redux-2",
     "11",
     [])
 
-$benchmarks << Benchmark.new(
-    "benchmarks/n-body",
-    "10000000",
-    [])
+if $hasX86SIMD
+    $benchmarks << Benchmark.new(
+        "benchmarks/n-body",
+        "10000000",
+        [])
+end
 
 $benchmarks << Benchmark.new(
     "benchmarks/n-body-2",
     "10000000",
     [])
 
-$benchmarks << Benchmark.new(
-    "benchmarks/spectralnorm",
-    "3000",
-    [])
+if $hasX86SIMD
+    $benchmarks << Benchmark.new(
+        "benchmarks/spectralnorm",
+        "3000",
+        [])
+end
 
 $benchmarks << Benchmark.new(
     "bin/zstd",

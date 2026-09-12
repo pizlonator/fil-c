@@ -32,6 +32,6 @@ cd projects/git-2.55.0
 extract_source
 PATH=$PWD/../../../pizfix/bin:$PATH CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix \
             --with-gitconfig=/etc/gitconfig \
-            --with-python=python3 --with-pcre2
+            --with-python=python3 --with-libpcre2
 make -j $NCPU
 make -j $NCPU install

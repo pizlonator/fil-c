@@ -12,7 +12,7 @@ cp -rv /yolo/kernel-include /usr/include
 
 tar -xf pizlonated-yolo-glibc.tar.gz
 cd pizlonated-yolo-glibc
-patch -Np1 -i ../glibc-2.40-fhs-1.patch
+patch -Np1 -i ../glibc-2.44-fhs-1.patch
 mkdir -v build
 cd build
 ../configure --prefix=/usr --disable-mathvec --disable-nscd libc_cv_slibdir=/usr/lib

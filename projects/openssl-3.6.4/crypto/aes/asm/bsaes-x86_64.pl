@@ -1225,10 +1225,10 @@ $code.=<<___;
 	mov	$arg3,$len
 ___
 if ($ENV{SARCASM}) {
-	# Size (and %ebx backup) hoisted above the short-path branch so the
-	# `.alloca` dominates the shared wipe below on both paths; the short
-	# path builds no key schedule but still reaches it.
-	$code.=<<___;
+  # Size (and %ebx backup) hoisted above the short-path branch so the
+  # `.alloca` dominates the shared wipe below on both paths; the short
+  # path builds no key schedule but still reaches it.
+  $code.=<<___;
 	mov	$arg4,$key
 	mov	%eax,%ebx		# backup rounds
 	shl	\$7,%rax		# 128 bytes per inner round key
@@ -1240,7 +1240,7 @@ if ($ENV{SARCASM}) {
 	mov	%fil_ks_ecb_enc,%rax	# pass key schedule
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	mov	$arg4,$key
 	cmp	\$8,$arg3
 	jb	.Lecb_enc_short
@@ -1378,10 +1378,10 @@ $code.=<<___;
 	pxor	%xmm0, %xmm0
 ___
 if ($ENV{SARCASM}) {
-	# SARCASM: wipe the GC buffer (gas compares against %rbp, the fixed
-	# frame base, which is meaningless for a GC pointer). %ebx holds the
-	# round count on both paths (hoisted prologue above).
-	$code.=<<___;
+  # SARCASM: wipe the GC buffer (gas compares against %rbp, the fixed
+  # frame base, which is meaningless for a GC pointer). %ebx holds the
+  # round count on both paths (hoisted prologue above).
+  $code.=<<___;
 	mov	%ebx, %r11d
 	shl	\$7, %r11		# 128 bytes per inner round key
 	sub	\$`128-32`, %r11	# size of bit-sliced key schedule
@@ -1396,12 +1396,12 @@ $code.=<<___;
 	lea	0x20(%rax), %rax
 ___
 if ($ENV{SARCASM}) {
-	$code.=<<___;
+  $code.=<<___;
 	cmp	%rax, %r11
 	ja	.Lecb_enc_bzero
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	cmp	%rax, %rbp
 	jb	.Lecb_enc_bzero
 ___
@@ -1440,13 +1440,13 @@ $code.=<<___;
 .cfi_restore	%rbp
 ___
 if ($ENV{SARCASM}) {
-	# %rsp never moved for the key schedule (GC `.alloca`), so drop the
-	# fixed frame with a plain add reaching the ret (6 pushes + 0x48
-	# frame, plus 0xa0 on win64); the movs above already reloaded the
-	# callee-saved registers from their save slots.
-	$code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # %rsp never moved for the key schedule (GC `.alloca`), so drop the
+  # fixed frame with a plain add reaching the ret (6 pushes + 0x48
+  # frame, plus 0xa0 on win64); the movs above already reloaded the
+  # callee-saved registers from their save slots.
+  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
 ___
 }
@@ -1502,10 +1502,10 @@ $code.=<<___;
 	mov	$arg3,$len
 ___
 if ($ENV{SARCASM}) {
-	# Size (and %ebx backup) hoisted above the short-path branch so the
-	# `.alloca` dominates the shared wipe below on both paths; the short
-	# path builds no key schedule but still reaches it.
-	$code.=<<___;
+  # Size (and %ebx backup) hoisted above the short-path branch so the
+  # `.alloca` dominates the shared wipe below on both paths; the short
+  # path builds no key schedule but still reaches it.
+  $code.=<<___;
 	mov	$arg4,$key
 	mov	%eax,%ebx		# backup rounds
 	shl	\$7,%rax		# 128 bytes per inner round key
@@ -1517,7 +1517,7 @@ if ($ENV{SARCASM}) {
 	mov	%fil_ks_ecb_dec,%rax	# pass key schedule
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	mov	$arg4,$key
 	cmp	\$8,$arg3
 	jb	.Lecb_dec_short
@@ -1656,10 +1656,10 @@ $code.=<<___;
 	pxor	%xmm0, %xmm0
 ___
 if ($ENV{SARCASM}) {
-	# SARCASM: wipe the GC buffer (gas compares against %rbp, the fixed
-	# frame base, which is meaningless for a GC pointer). %ebx holds the
-	# round count on both paths (hoisted prologue above).
-	$code.=<<___;
+  # SARCASM: wipe the GC buffer (gas compares against %rbp, the fixed
+  # frame base, which is meaningless for a GC pointer). %ebx holds the
+  # round count on both paths (hoisted prologue above).
+  $code.=<<___;
 	mov	%ebx, %r11d
 	shl	\$7, %r11		# 128 bytes per inner round key
 	sub	\$`128-32`, %r11	# size of bit-sliced key schedule
@@ -1674,12 +1674,12 @@ $code.=<<___;
 	lea	0x20(%rax), %rax
 ___
 if ($ENV{SARCASM}) {
-	$code.=<<___;
+  $code.=<<___;
 	cmp	%rax, %r11
 	ja	.Lecb_dec_bzero
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	cmp	%rax, %rbp
 	jb	.Lecb_dec_bzero
 ___
@@ -1718,13 +1718,13 @@ $code.=<<___;
 .cfi_restore	%rbp
 ___
 if ($ENV{SARCASM}) {
-	# %rsp never moved for the key schedule (GC `.alloca`), so drop the
-	# fixed frame with a plain add reaching the ret (6 pushes + 0x48
-	# frame, plus 0xa0 on win64); the movs above already reloaded the
-	# callee-saved registers from their save slots.
-	$code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # %rsp never moved for the key schedule (GC `.alloca`), so drop the
+  # fixed frame with a plain add reaching the ret (6 pushes + 0x48
+  # frame, plus 0xa0 on win64); the movs above already reloaded the
+  # callee-saved registers from their save slots.
+  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
 ___
 }
@@ -1802,15 +1802,15 @@ $code.=<<___;
 	sub	\$`128-32`, %rax	# size of bit-sliced key schedule
 ___
 if ($ENV{SARCASM}) {
-	# Dynamic key-schedule frame becomes a GC allocation; %rsp is
-	# untouched (fixed frame only). `%fil_ks_cbc` names the buffer for the
-	# $KS_* uses below; %rax keeps its ABI role for the calls.
-	$code.=<<___;
+  # Dynamic key-schedule frame becomes a GC allocation; %rsp is
+  # untouched (fixed frame only). `%fil_ks_cbc` names the buffer for the
+  # $KS_* uses below; %rax keeps its ABI role for the calls.
+  $code.=<<___;
 	.alloca	%rax,\$16,%fil_ks_cbc
 	mov	%fil_ks_cbc,%rax	# pass key schedule
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	%rax, %rsp
 	mov	%rsp, %rax	# pass key schedule
 ___
@@ -2004,7 +2004,7 @@ $code.=<<___;
 	lea	($inp), $arg1
 	lea	0x20(%rbp), $arg2	# buffer output
 	lea	($key), $arg3
-	call	asm_AES_decrypt		# doesn't touch %xmm #! void(ptr,ptr,ptr)
+	call	asm_AES_decrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[15]	# ^= IV
 	movdqu	@XMM[15], ($out)	# write output
 	movdqa	@XMM[0], @XMM[15]	# IV
@@ -2057,13 +2057,13 @@ $code.=<<___;
 .cfi_restore	%rbp
 ___
 if ($ENV{SARCASM}) {
-	# %rsp never moved for the key schedule (GC `.alloca`), so drop the
-	# fixed frame with a plain add reaching the ret (6 pushes + 0x48
-	# frame, plus 0xa0 on win64); the movs above already reloaded the
-	# callee-saved registers from their save slots.
-	$code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # %rsp never moved for the key schedule (GC `.alloca`), so drop the
+  # fixed frame with a plain add reaching the ret (6 pushes + 0x48
+  # frame, plus 0xa0 on win64); the movs above already reloaded the
+  # callee-saved registers from their save slots.
+  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
 ___
 }
@@ -2130,15 +2130,15 @@ $code.=<<___;
 	sub	\$`128-32`, %rax	# size of bit-sliced key schedule
 ___
 if ($ENV{SARCASM}) {
-	# Dynamic key-schedule frame becomes a GC allocation; %rsp is
-	# untouched (fixed frame only). `%fil_ks_ctr` names the buffer for the
-	# $KS_* uses below; %rax keeps its ABI role for the calls.
-	$code.=<<___;
+  # Dynamic key-schedule frame becomes a GC allocation; %rsp is
+  # untouched (fixed frame only). `%fil_ks_ctr` names the buffer for the
+  # $KS_* uses below; %rax keeps its ABI role for the calls.
+  $code.=<<___;
 	.alloca	%rax,\$16,%fil_ks_ctr
 	mov	%fil_ks_ctr,%rax	# pass key schedule
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	%rax, %rsp
 	mov	%rsp, %rax	# pass key schedule
 ___
@@ -2340,13 +2340,13 @@ $code.=<<___;
 .cfi_restore	%rbp
 ___
 if ($ENV{SARCASM}) {
-	# %rsp never moved for the key schedule (GC `.alloca`), so drop the
-	# fixed frame with a plain add reaching the ret (6 pushes + 0x48
-	# frame, plus 0xa0 on win64); the movs above already reloaded the
-	# callee-saved registers from their save slots.
-	$code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # %rsp never moved for the key schedule (GC `.alloca`), so drop the
+  # fixed frame with a plain add reaching the ret (6 pushes + 0x48
+  # frame, plus 0xa0 on win64); the movs above already reloaded the
+  # callee-saved registers from their save slots.
+  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
 ___
 }
@@ -2416,7 +2416,7 @@ $code.=<<___;
 	lea	($arg6), $arg1
 	lea	0x20(%rbp), $arg2
 	lea	($arg5), $arg3
-	call	asm_AES_encrypt		# generate initial tweak #! void(ptr,ptr,ptr)
+	call	asm_AES_encrypt		#! void(ptr,ptr,ptr) # generate initial tweak
 
 	mov	240($key), %eax		# rounds
 	mov	$len, %rbx		# backup $len
@@ -2426,15 +2426,15 @@ $code.=<<___;
 	sub	\$`128-32-128`, %rax	# size of bit-sliced key schedule and tweak[8]
 ___
 if ($ENV{SARCASM}) {
-	# Dynamic key-schedule frame becomes a GC allocation; %rsp is
-	# untouched (fixed frame only). `%fil_ks_xts_enc` names the buffer for the
-	# $KS_* uses below; %rax keeps its ABI role for the calls.
-	$code.=<<___;
+  # Dynamic key-schedule frame becomes a GC allocation; %rsp is
+  # untouched (fixed frame only). `%fil_ks_xts_enc` names the buffer for the
+  # $KS_* uses below; %rax keeps its ABI role for the calls.
+  $code.=<<___;
 	.alloca	%rax,\$16,%fil_ks_xts_enc
 	mov	%fil_ks_xts_enc,%rax	# pass key schedule
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	%rax, %rsp
 	mov	%rsp, %rax
 ___
@@ -2695,7 +2695,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg1
 	lea	0x20(%rbp), $arg2
 	lea	($key), $arg3
-	call	asm_AES_encrypt		# doesn't touch %xmm #! void(ptr,ptr,ptr)
+	call	asm_AES_encrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[0]	# ^= tweak[]
 	#pxor	@XMM[8], @XMM[0]
 	#lea	0x80(%rsp), %rax	# pass key schedule
@@ -2728,7 +2728,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg2
 	movdqa	@XMM[0], 0x20(%rbp)
 	lea	($key), $arg3
-	call	asm_AES_encrypt		# doesn't touch %xmm #! void(ptr,ptr,ptr)
+	call	asm_AES_encrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[7]
 	movdqu	@XMM[7], -16($out)
 
@@ -2779,13 +2779,13 @@ $code.=<<___;
 .cfi_restore	%rbp
 ___
 if ($ENV{SARCASM}) {
-	# %rsp never moved for the key schedule (GC `.alloca`), so drop the
-	# fixed frame with a plain add reaching the ret (6 pushes + 0x48
-	# frame, plus 0xa0 on win64); the movs above already reloaded the
-	# callee-saved registers from their save slots.
-	$code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # %rsp never moved for the key schedule (GC `.alloca`), so drop the
+  # fixed frame with a plain add reaching the ret (6 pushes + 0x48
+  # frame, plus 0xa0 on win64); the movs above already reloaded the
+  # callee-saved registers from their save slots.
+  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
 ___
 }
@@ -2845,7 +2845,7 @@ $code.=<<___;
 	lea	($arg6), $arg1
 	lea	0x20(%rbp), $arg2
 	lea	($arg5), $arg3
-	call	asm_AES_encrypt		# generate initial tweak #! void(ptr,ptr,ptr)
+	call	asm_AES_encrypt		#! void(ptr,ptr,ptr) # generate initial tweak
 
 	mov	240($key), %eax		# rounds
 	mov	$len, %rbx		# backup $len
@@ -2855,15 +2855,15 @@ $code.=<<___;
 	sub	\$`128-32-128`, %rax	# size of bit-sliced key schedule and tweak[8]
 ___
 if ($ENV{SARCASM}) {
-	# Dynamic key-schedule frame becomes a GC allocation; %rsp is
-	# untouched (fixed frame only). `%fil_ks_xts_dec` names the buffer for the
-	# $KS_* uses below; %rax keeps its ABI role for the calls.
-	$code.=<<___;
+  # Dynamic key-schedule frame becomes a GC allocation; %rsp is
+  # untouched (fixed frame only). `%fil_ks_xts_dec` names the buffer for the
+  # $KS_* uses below; %rax keeps its ABI role for the calls.
+  $code.=<<___;
 	.alloca	%rax,\$16,%fil_ks_xts_dec
 	mov	%fil_ks_xts_dec,%rax	# pass key schedule
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	%rax, %rsp
 	mov	%rsp, %rax
 ___
@@ -3131,7 +3131,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg1
 	lea	0x20(%rbp), $arg2
 	lea	($key), $arg3
-	call	asm_AES_decrypt		# doesn't touch %xmm #! void(ptr,ptr,ptr)
+	call	asm_AES_decrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[0]	# ^= tweak[]
 	#pxor	@XMM[8], @XMM[0]
 	#lea	0x80(%rsp), %rax	# pass key schedule
@@ -3162,7 +3162,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg2
 	movdqa	@XMM[0], 0x20(%rbp)
 	lea	($key), $arg3
-	call	asm_AES_decrypt		# doesn't touch %xmm #! void(ptr,ptr,ptr)
+	call	asm_AES_decrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[7]
 	mov	$out, %rdx
 	movdqu	@XMM[7], ($out)
@@ -3183,7 +3183,7 @@ $code.=<<___;
 	lea	0x20(%rbp), $arg2
 	movdqa	@XMM[0], 0x20(%rbp)
 	lea	($key), $arg3
-	call	asm_AES_decrypt		# doesn't touch %xmm #! void(ptr,ptr,ptr)
+	call	asm_AES_decrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
 	pxor	0x20(%rbp), @XMM[6]
 	movdqu	@XMM[6], ($out)
 
@@ -3234,13 +3234,13 @@ $code.=<<___;
 .cfi_restore	%rbp
 ___
 if ($ENV{SARCASM}) {
-	# %rsp never moved for the key schedule (GC `.alloca`), so drop the
-	# fixed frame with a plain add reaching the ret (6 pushes + 0x48
-	# frame, plus 0xa0 on win64); the movs above already reloaded the
-	# callee-saved registers from their save slots.
-	$code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # %rsp never moved for the key schedule (GC `.alloca`), so drop the
+  # fixed frame with a plain add reaching the ret (6 pushes + 0x48
+  # frame, plus 0xa0 on win64); the movs above already reloaded the
+  # callee-saved registers from their save slots.
+  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
 ___
 }

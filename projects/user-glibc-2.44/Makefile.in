@@ -1,0 +1,40 @@
+srcdir = @srcdir@
+
+TEST_CC = @TEST_CC@
+TEST_CXX = @TEST_CXX@
+test-cc-option-wimplicit-fallthrough = @libc_cv_test_cc_wimplicit_fallthrough@
+test-config-cflags-mprefer-vector-width = @libc_cv_test_cc_mprefer_vector_width@
+test-config-cflags-signaling-nans = @libc_cv_test_cc_signaling_nans@
+test-cc-option-wfree-labels = @libc_cv_test_cc_wfree_labels@
+test-cc-option-wmissing-parameter-name = @libc_cv_test_cc_wmissing_parameter_name@
+test-enable-cet = @test_enable_cet@
+test-have-static-pie = @libc_cv_test_static_pie@
+test-supported-fortify = @libc_cv_test_supported_fortify_source@
+
+# Uncomment the line below if you want to do parallel build.
+# PARALLELMFLAGS = -j 4
+
+.PHONY: all install bench
+
+all .DEFAULT:
+	$(MAKE) -r PARALLELMFLAGS="$(PARALLELMFLAGS)" -C $(srcdir) objdir=`pwd` $@
+
+check xcheck test:
+	$(MAKE) -r PARALLELMFLAGS="$(PARALLELMFLAGS)" -C $(srcdir) \
+		CC="$(TEST_CC)" CXX="$(TEST_CXX)" \
+		cc-option-wimplicit-fallthrough="$(test-cc-option-wimplicit-fallthrough)" \
+		config-cflags-mprefer-vector-width="$(test-config-cflags-mprefer-vector-width)" \
+		config-cflags-signaling-nans="$(test-config-cflags-signaling-nans)" \
+		cc-option-wfree-labels="$(test-cc-option-wfree-labels)" \
+		cc-option-wmissing-parameter-name="$(test-cc-option-wmissing-parameter-name)" \
+		enable-cet="$(test-enable-cet)" \
+		have-static-pie="$(test-have-static-pie)" \
+		supported-fortify="$(test-supported-fortify)" \
+		objdir=`pwd` $@
+
+install:
+	LC_ALL=C; export LC_ALL; \
+	$(MAKE) -r PARALLELMFLAGS="$(PARALLELMFLAGS)" -C $(srcdir) objdir=`pwd` $@
+
+bench bench-clean bench-build:
+	$(MAKE) -C $(srcdir)/benchtests $(PARALLELMFLAGS) objdir=`pwd` $@

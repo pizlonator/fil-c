@@ -1,0 +1,51 @@
+@node Inter-Process Communication, Job Control, Processes, Top
+@c %MENU% All about inter-process communication
+@chapter Inter-Process Communication
+@cindex ipc
+
+This chapter describes the @glibcadj{} inter-process communication primitives.
+
+@menu
+* Semaphores::	Support for creating and managing semaphores
+@end menu
+
+@node Semaphores
+@section Semaphores
+
+@Theglibc{} implements the semaphore APIs as defined in POSIX and
+System V.  Semaphores can be used by multiple processes to coordinate shared
+resources.  The following is a complete list of the semaphore functions provided
+by @theglibc{}.
+
+@c Need descriptions for all of these functions.
+
+@subsection System V Semaphores
+@deftypefun int semctl (int @var{semid}, int @var{semnum}, int @var{cmd})
+@safety{@prelim{}@mtsafe{}@assafe{}@acunsafe{@acucorrupt{/linux}}}
+@c syscall(ipc) ok
+@c
+@c AC-unsafe because we need to translate the new kernel
+@c semid_ds buf into the userspace layout.  Cancellation
+@c at that point results in an inconsistent userspace
+@c semid_ds.
+@end deftypefun
+
+@deftypefun int semget (key_t @var{key}, int @var{nsems}, int @var{semflg})
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+@c syscall(ipc) ok
+@end deftypefun
+
+@deftypefun int semop (int @var{semid}, struct sembuf *@var{sops}, size_t @var{nsops})
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+@c syscall(ipc) ok
+@end deftypefun
+
+@deftypefun int semtimedop (int @var{semid}, struct sembuf *@var{sops}, size_t @var{nsops}, const struct timespec *@var{timeout})
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+@c syscall(ipc) ok
+@end deftypefun
+
+@subsection POSIX Semaphores
+@Theglibc{} provides POSIX semaphores as well.  These functions' names begin
+with @code{sem_} and they are declared in @file{semaphore.h}.  @xref{POSIX
+Semaphores}.

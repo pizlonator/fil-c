@@ -1,0 +1,20 @@
+libc {
+  GLIBC_2.14 {
+    memcpy;
+  }
+  GLIBC_2.13 {
+    __fentry__;
+  }
+  GLIBC_ABI_DT_X86_64_PLT {
+    # This symbol is used only for empty version map and will be removed
+    # by scripts/versions.awk.
+    __placeholder_only_for_empty_version_map;
+  }
+}
+libm {
+  GLIBC_2.1 {
+    # A generic bug got this omitted from other configurations' version
+    # sets, but we always had it.
+    exp2l;
+  }
+}

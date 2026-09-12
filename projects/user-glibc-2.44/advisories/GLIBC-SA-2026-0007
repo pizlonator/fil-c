@@ -1,0 +1,15 @@
+iconv crash due to assertion failure with untrusted input
+
+The iconv() function in the GNU C Library versions 2.43 and earlier may
+crash due to an assertion failure when converting inputs from the
+IBM1390 or IBM1399 character sets, which may be used to remotely crash
+an application.
+
+This vulnerability can be trivially mitigated by removing the IBM1390
+and IBM1399 character sets from systems that do not need them.
+
+CVE-Id: CVE-2026-4046
+Public-Date: 2026-03-12
+Vulnerable-Commit: 0ecb606cb6cf65de1d9fc8a919bceb4be476c602 (2.3.3-1501)
+Fix-Commit: d6f08d1cf027f4eb2ba289a6cc66853722d4badc (2.44)
+Reported-by: Rocket Ma

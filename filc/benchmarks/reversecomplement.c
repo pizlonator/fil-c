@@ -83,7 +83,11 @@
 
 #include <stdint.h>
 #include <pthread.h>
+#if defined(__i386__) || defined(__x86_64__)
+/* Only x86 can provide the SSE intrinsics; on other architectures the
+ * non-SSE fallback loop below gets used instead. */
 #include <immintrin.h>
+#endif
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>

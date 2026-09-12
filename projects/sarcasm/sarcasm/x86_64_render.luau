@@ -450,11 +450,115 @@ function x86_64_render.renderInsn(node, colorNum, syntax, rc)
 	-- the operand at transform time):
 	--   * inArgWord — an INCOMING fast-CC stack-argument load (cg.loadInArg): the
 	--     word sits at [entry_rsp + 8 + 8*w] (above the return address), i.e. at
-	--     [rsp + 8*#calleeSaved + layout.total + 8 + 8*w] at the body frame base.
+	--     [rsp + 8*#calleeSaved + layout.total + 8 + 8*w] at the body frame base
+	--     in the STATIC (alignA <= 16) case. Under DYNAMIC alignment (alignA >
+	--     16) the body rsp is the post-`and` rsp (pre-and rsp minus 0..A-1 slack,
+	--     entry-dependent), so no static rsp-relative displacement can address
+	--     the incoming words: the load is emitted as a two-move sequence through
+	--     its own destination register
+	--       mov saveOff(%rsp), dst ; mov postPushDelta(dst), dst
+	--     where saveOff(%rsp) holds the prologue-saved post-push rsp (captured
+	--     into r11 before the `sub`, i.e. entry_rsp - 8*#calleeSaved) and
+	--     postPushDelta is the word's offset from THAT base: 8*#calleeSaved +
+	--     8 + 8*w (above the return address). x86_64-only (arm64 has no
+	--     dynamic frame alignment).
 	--   * spillShift — a spill reload/store regalloc inserted inside an outgoing
 	--     stack-arg window (cg.beginStackArgs/endStackArgs), where rsp was dropped
 	--     by N: re-base the slot by the window's shift so it addresses the same
 	--     frame slot (see sarcasm.luau's rewriteSpills).
+	-- Dynamic-align incoming-argument loads cannot use a static displacement.
+	local layoutA = (rc and rc.layout and rc.layout.alignA) or 16
+	if node.inArgWord and rc and rc.layout and layoutA > 16 then
+		local saveOff = rc.layout.saveOff
+		assert(saveOff ~= nil,
+			"sarcasm: internal error: dynamic frame without saveOff for inArgWord")
+		-- The prologue saves the POST-PUSH rsp (entry_rsp - 8*#calleeSaved,
+		-- captured before the `sub`), so the word's offset from the saved base
+		-- is 8*#calleeSaved + 8 + 8*w -- notably WITHOUT layout.total (the
+		-- static displacement's total accounts for the `sub`, which the saved
+		-- base predates).
+		local postPushDelta = 8 * #rc.calleeSaved + 8 + 8 * node.inArgWord
+		-- loadInArg builds its mem with dispVal 0, but honor any base dispVal.
+		-- NO-INDEX ASSUMPTION: loadInArg builds build.memx(build.rp(4)) with no
+		-- index operand, and nothing between cg.loadInArg and renderInsn adds
+		-- one — the second move addresses (base + postPushDelta) with no scale.
+		-- Reject (a clean `sarcasm:` compile failure, not an internal-error
+		-- assert) rather than silently ignoring an index (which would address
+		-- the wrong word): user assembly never builds inArgWord nodes directly,
+		-- so an index here means a compiler-side provenance change, and failing
+		-- closed with the input blamed keeps the failure actionable.
+		for _, o in ops do
+			if o.kind == "mem" and o.base and o.base.fixedNum == 4 then
+				if o.index ~= nil then
+					error("sarcasm: inArgWord memory operand has an index register"
+						.. " (entry stack-argument loads address base + word"
+						.. " with no scale)")
+				end
+				postPushDelta += (o.dispVal or 0)
+				break
+			end
+		end
+		-- inArgWord nodes are emitted only by the entry-CC unpack (transform.luau,
+		-- before any call's beginStackArgs window opens), and rewriteSpills
+		-- (sarcasm.luau) stamps spillShift only on spill reload/store nodes it
+		-- creates INSIDE such a window — never on a pre-existing entry mov —
+		-- and the FIP packer propagates spillShift only across spillReload/
+		-- spillStore rebuilds. So spillShift can never co-occur with inArgWord
+		-- by construction, and no user input can produce the combination (entry
+		-- unpack sites and window interiors are disjoint node provenances).
+		-- Coexistence (not co-occurrence) of the two features in one function
+		-- IS exercised: filc/tests/sarcasm-frame-and64-stackargs-spill-att runs
+		-- incoming stack-argument loads (inArgWord, dynamic-align two-move form)
+		-- alongside an outgoing stack-argument call whose marshalling spills
+		-- inside the window (spillShift re-basing) — proving the loud reject
+		-- below has no false positives on real spill traffic. Reject loudly
+		-- (a clean `sarcasm:` compile failure, not a crash) rather than
+		-- silently mis-rendering, so any future provenance change fails closed.
+		if node.spillShift ~= nil then
+			error("sarcasm: inArgWord inside outgoing stack-arg window"
+				.. " (entry stack-argument load colliding with a call's"
+				.. " stack-argument area)")
+		end
+		local dstOp = ops[1]
+		assert(dstOp and dstOp.kind == "reg",
+			"sarcasm: internal error: inArgWord node without reg destination")
+		local dstNum = physOf(node, dstOp, colorNum)
+		assert(dstNum ~= nil,
+			"sarcasm: internal error: inArgWord destination has no color")
+		-- Width-aware emission. The FIRST load moves the full 64-bit saved rsp
+		-- base (a truncated base would address garbage), so it is always a
+		-- 64-bit move into the full destination register; the SECOND load (the
+		-- actual argument word) matches the destination width. DSTW AUDIT
+		-- (2026-09): cg.loadInArg builds its destination with build.rt(dst) —
+		-- no width argument, so build.luau stamps width 64 — and all three
+		-- callers (transform.luau's entry-CC unpack x2, the yolo-base fill)
+		-- pass a bare temp id, never a narrowed operand. Stack words are 8
+		-- bytes each (marshalFastArgs packs at 8*j), so only the 64-bit form
+		-- is reachable — the former 32-bit branch was dead code and is
+		-- removed. A width-mismatched `movq ..., %eax` (or an `eax` with
+		-- QWORD PTR) must never be emitted, so any non-64 width still fails
+		-- loudly.
+		local dstW = dstOp.width or 64
+		if dstW ~= 64 then
+			error("sarcasm: inArgWord destination width "
+				.. tostring(dstW) .. " (entry stack-argument loads are 64-bit)")
+		end
+		local dstStr = renderOperand(node, dstOp, colorNum, syntax)
+		local dstBase = regName(dstNum, 64)
+		local dstFull = (syntax == "att" and "%" or "") .. dstBase
+		if syntax == "att" then
+			local l1 = "\tmovq\t" .. tostring(saveOff) .. "(%rsp), " .. dstFull
+			local l2 = "\tmovq\t" .. tostring(postPushDelta) .. "(%" .. dstBase .. "), " .. dstStr
+			return l1 .. "\n" .. l2
+		else
+			local s1 = saveOff == 0 and "[rsp]"
+				or "[rsp + " .. tostring(saveOff) .. "]"
+			local l1 = "\tmov\t" .. dstFull .. ", QWORD PTR " .. s1
+			local l2 = "\tmov\t" .. dstStr .. ", QWORD PTR [" .. dstBase
+				.. " + " .. tostring(postPushDelta) .. "]"
+			return l1 .. "\n" .. l2
+		end
+	end
 	local dispDelta = 0
 	if node.inArgWord and rc and rc.layout then
 		dispDelta = rc.layout.total + 8 * #rc.calleeSaved + 8 + 8 * node.inArgWord
@@ -501,6 +605,12 @@ function x86_64_render.renderInsn(node, colorNum, syntax, rc)
 			.. "\tjmp\t" .. tgt .. "\n"
 			.. s .. ":"
 	end
+
+	-- A validated `rep`/`repe`/`repz` prefix (parser tag; x86_64_isa.classify
+	-- allows it only on the modeled string ops plus `rep ret`/`rep nop`)
+	-- re-emits ahead of the mnemonic, normalized to `rep` (the flavors are
+	-- semantically identical where they are accepted).
+	local repPfx = ((node.stmt and node.stmt.repPrefix) or node.repPrefix) and "rep " or ""
 
 	-- A validated `lock` prefix (parser tag; x86_64_isa.classify allows it only
 	-- on exactly-modeled memory-destination RMWs) re-emits ahead of the mnemonic.
@@ -615,14 +725,26 @@ function x86_64_render.renderInsn(node, colorNum, syntax, rc)
 		end
 		table.insert(rendered, s)
 	end
-	if #rendered == 0 then return "\t" .. lockPfx .. outMnem end
+	if #rendered == 0 then
+		-- Zero-operand string ops render in the OUTPUT syntax (x86 output is
+		-- always AT&T): the Intel dword spellings `movsd`/`stosd` become the
+		-- AT&T `movsl`/`stosl` (a rendered `stosd` would die in `as` — it is
+		-- not an AT&T form at all — and `movsd` is canonically `movsl`
+		-- there). An `movsd` WITH operands is the FP scalar-double move and
+		-- never reaches this branch.
+		if syntax == "att" then
+			if low == "stosd" then outMnem = "stosl"
+			elseif low == "movsd" then outMnem = "movsl" end
+		end
+		return "\t" .. repPfx .. lockPfx .. outMnem
+	end
 	-- Operands are stored destination-first (Intel order). AT&T lists them source-first.
 	if syntax == "att" and #rendered >= 2 then
 		local rev = {}
 		for k = #rendered, 1, -1 do table.insert(rev, rendered[k]) end
 		rendered = rev
 	end
-	return "\t" .. lockPfx .. outMnem .. "\t" .. table.concat(rendered, ", ")
+	return "\t" .. repPfx .. lockPfx .. outMnem .. "\t" .. table.concat(rendered, ", ")
 end
 
 function x86_64_render.isSelfMove(node, colorNum)
@@ -652,23 +774,52 @@ end
 -- FP/vector argument reads), then regalloc spill slots. The FP/SIMD+yolo region
 -- starts on a 16-byte boundary (8 bytes of padding after the root slots when
 -- numRoots is odd) so the clusters' and the yolo area's mod-16 alignment residues
--- (movaps-class accesses) survive the shift. The alignment modulus stays 16 (body
--- rsp ≡ 0 mod 16); aligned >16-byte stack accesses are rejected by the frame rewrite.
-local function computeLayout(calleeSaved, numRoots, spillBytes, fpSaveBytes, fpBytes, yoloBytes)
+-- (movaps-class accesses) survive the shift. The body rsp is 16-aligned by
+-- default. When alignReq > 16 (a materialized cluster needs vmovdqa-class
+-- alignment, proved aligned by the taint scan), the prologue dynamically aligns
+-- the frame (sub total, and $-A) and saves the pre-alignment rsp at saveOff
+-- for the epilogue to restore; static sizing cannot align since the entry
+-- rsp's mod-A residue is dynamic (only mod-16 is fixed by the ABI).
+local function computeLayout(calleeSaved, numRoots, spillBytes, fpSaveBytes, fpBytes, yoloBytes, alignReq)
 	spillBytes = spillBytes or 0
 	fpSaveBytes = fpSaveBytes or 0
 	fpBytes = fpBytes or 0
 	yoloBytes = yoloBytes or 0
+	local A = alignReq or 16
+	if A < 16 then A = 16 end
 	local p = #calleeSaved
 	local rootBase = 16
-	local fpPad = ((fpSaveBytes + fpBytes + yoloBytes) > 0 and numRoots % 2 == 1) and 8 or 0
+	local fpPadBase = ((fpSaveBytes + fpBytes + yoloBytes) > 0 and numRoots % 2 == 1) and 8 or 0
+	-- Widen the pad so the root-area shift (8*numRoots + fpPad, mirrored by the
+	-- transform's frameSlot shift) is a multiple of the frame alignment: the
+	-- materialized clusters' alignment residues survive it. At the default
+	-- 16-byte alignment the historical pad already qualifies, so outputs are
+	-- unchanged there.
+	local fpPad = fpPadBase
+	if A > 16 then
+		while ((8 * numRoots + fpPad) % A) ~= 0 do fpPad += 8 end
+	end
 	local spillBase = 16 + 8 * numRoots + fpPad + fpSaveBytes + fpBytes + yoloBytes
 	local base = spillBase + spillBytes  -- prev+origin+roots(+pad+save+fp+yolo+spills)
-	-- Maintain 16-byte alignment at call sites: (8 retaddr + 8*p pushes + N) % 16 == 0.
-	local target = ((p % 2) == 0) and 8 or 0
-	local N = base
-	while (N % 16) ~= target do N += 1 end
-	return { total = N, rootBase = rootBase, spillBase = spillBase, pushed = calleeSaved }
+	local N, total, saveOff = base, base, nil
+	if A > 16 then
+		-- Dynamic alignment: the content (base bytes) sits at the aligned rsp,
+		-- the pre-alignment rsp is saved 8 bytes into the cluster area (base0
+		-- = 16 + saveBytes, shifted past the roots by 8*numRoots + fpPad --
+		-- the frameSlot shift, a multiple of A by the widened pad above), and
+		-- A slack bytes cover the rounding.
+		N = base
+		total = base + A
+		saveOff = 16 + fpSaveBytes + 8 * numRoots + fpPad
+	else
+		-- Maintain 16-byte alignment at call sites: (8 retaddr + 8*p pushes + N) % 16 == 0.
+		local target = ((p % 2) == 0) and 8 or 0
+		N = base
+		while (N % 16) ~= target do N += 1 end
+		total = N
+	end
+	return { total = total, alignA = A, saveOff = saveOff,
+		rootBase = rootBase, spillBase = spillBase, pushed = calleeSaved }
 end
 x86_64_render.computeLayout = computeLayout
 
@@ -728,7 +879,19 @@ function x86_64_render.prologue(rc)
 	local function ln(s) table.insert(out, s) end
 	local function I(v) return att and ("$" .. v) or tostring(v) end
 	for _, r in rc.calleeSaved do ln("\t" .. (att and "pushq" or "push") .. "\t" .. (att and ("%" .. r) or r)) end
-	ln("\t" .. (att and "subq" or "sub") .. "\t" .. (att and (I(layout.total) .. ", %rsp") or ("rsp, " .. layout.total)))
+	local alignA = layout.alignA or 16
+	if alignA > 16 then
+		-- Dynamically aligned frame (a materialized cluster needs vmovdqa-class
+		-- alignment): the entry rsp's mod-A residue is dynamic, so align at
+		-- runtime and save the pre-alignment rsp for the epilogue to restore.
+		-- layout.total covers the content plus A slack bytes for the rounding.
+		ln("\t" .. (att and "movq" or "mov") .. "\t" .. (att and ("%rsp, %" .. SC) or (SC .. ", rsp")))
+		ln("\t" .. (att and "subq" or "sub") .. "\t" .. (att and (I(layout.total) .. ", %rsp") or ("rsp, " .. layout.total)))
+		ln("\t" .. (att and "andq" or "and") .. "\t" .. (att and ("$-" .. alignA .. ", %rsp") or ("rsp, -" .. alignA)))
+		ln("\t" .. mq .. "\t" .. (att and ("%" .. SC .. ", " .. layout.saveOff .. "(%rsp)") or ("QWORD PTR [rsp + " .. layout.saveOff .. "], " .. SC)))
+	else
+		ln("\t" .. (att and "subq" or "sub") .. "\t" .. (att and (I(layout.total) .. ", %rsp") or ("rsp, " .. layout.total)))
+	end
 	-- stack-overflow check: fail when rsp <= limit (limit at [myth=rdi]).
 	if att then
 		ln("\tcmpq\t%rsp, (%rdi)")
@@ -766,7 +929,15 @@ function x86_64_render.epilogue(rc)
 	-- pop frame: myth->top_frame = frame.prev  (scratch = r11, preserves rax/rdx/rcx)
 	ln("\t" .. mq .. "\t" .. (att and ("(%rsp), %" .. SC) or (SC .. ", QWORD PTR [rsp]")))
 	ln("\t" .. mq .. "\t" .. (att and ("%" .. SC .. ", 16(%" .. mythName .. ")") or ("QWORD PTR [" .. mythName .. " + 16], " .. SC)))
-	ln("\t" .. (att and "addq" or "add") .. "\t" .. (att and (I(layout.total) .. ", %rsp") or ("rsp, " .. layout.total)))
+	local alignA2 = layout.alignA or 16
+	if alignA2 > 16 then
+		-- Dynamically aligned frame: restore the pre-alignment rsp saved by the
+		-- prologue (the rounding is lossy, so the static total cannot restore
+		-- it); the callee-saved pops below then match the prologue pushes.
+		ln("\t" .. mq .. "\t" .. (att and (layout.saveOff .. "(%rsp), %rsp") or ("rsp, QWORD PTR [rsp + " .. layout.saveOff .. "]")))
+	else
+		ln("\t" .. (att and "addq" or "add") .. "\t" .. (att and (I(layout.total) .. ", %rsp") or ("rsp, " .. layout.total)))
+	end
 	for i = #rc.calleeSaved, 1, -1 do ln("\t" .. (att and "popq" or "pop") .. "\t" .. (att and ("%" .. rc.calleeSaved[i]) or rc.calleeSaved[i])) end
 end
 

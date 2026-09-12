@@ -1,0 +1,98 @@
+! Platform-specific declarations of SIMD math functions for Fortran. -*- f90 -*-
+!   Copyright (C) 2019-2026 Free Software Foundation, Inc.
+!   This file is part of the GNU C Library.
+!
+!   The GNU C Library is free software; you can redistribute it and/or
+!   modify it under the terms of the GNU Lesser General Public
+!   License as published by the Free Software Foundation; either
+!   version 2.1 of the License, or (at your option) any later version.
+!
+!   The GNU C Library is distributed in the hope that it will be useful,
+!   but WITHOUT ANY WARRANTY; without even the implied warranty of
+!   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+!   Lesser General Public License for more details.
+!
+!   You should have received a copy of the GNU Lesser General Public
+!   License along with the GNU C Library; if not, see
+!   <https://www.gnu.org/licenses/>.
+
+!GCC$ builtin (acos) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (acosf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (acosh) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (acoshf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (acospi) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (acospif) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (asin) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (asinf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (asinh) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (asinhf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (asinpi) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (asinpif) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atan) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atan2) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atan2f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atan2pi) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atan2pif) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atanf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atanh) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atanhf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atanpi) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (atanpif) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (cbrt) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (cbrtf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (cos) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (cosf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (cosh) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (coshf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (cospi) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (cospif) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (erf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (erfc) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (erfcf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (erff) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp10) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp10f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp10m1) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp10m1f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp2) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp2f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp2m1) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (exp2m1f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (expf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (expm1) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (expm1f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (hypot) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (hypotf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log10) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log10f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log10p1) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log10p1f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log1p) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log1pf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log2) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log2f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log2p1) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (log2p1f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (logf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (logp1) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (logp1f) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (pow) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (powf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (powr) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (powrf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (rsqrt) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (rsqrtf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (sin) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (sinf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (sinh) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (sinhf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (sinpi) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (sinpif) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (tan) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (tanf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (tanh) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (tanhf) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (tanpi) attributes simd (notinbranch) if('fastmath')
+!GCC$ builtin (tanpif) attributes simd (notinbranch) if('fastmath')

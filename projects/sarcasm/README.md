@@ -116,6 +116,64 @@ architectures, `#!`/`//!` also accepted on x86_64/arm64 respectively), where
   and uses on instructions with no register destination — all clean
   compile-time errors.
 
+### Capability source selection (both)
+
+One standalone annotation picks which capability flows where when the
+default rules would pick the wrong one (`;!` on both architectures,
+`#!`/`//!` also accepted on x86_64/arm64 respectively). It names a
+register as an ordinary operand (`%r11` in AT&T, `r11` in Intel — the
+`%` is optional); `%fil_` pseudos may be named too. A wrong choice can
+only trap (its bounds check still guards every access), never access
+out of bounds. (`new capability` is a deprecated alias for `use
+capability` — existing perlasm using it still assembles — as are the
+historical typo spellings `new capabiltiy` / `use capabiltiy`.)
+
+| Annotation | Applies to |
+|---|---|
+| `use capability %reg` | address arithmetic (`add`/`sub`/`lea`/`and`/`or`) and any instruction with a memory operand |
+
+- On address arithmetic, the result draws its capability from the NAMED
+  input register instead of pointer flow's pick. It is needed when several
+  inputs carry capabilities (a plain `add` keeps a single capability
+  source automatically; shifts never propagate one):
+
+      movq %rsi, %rax
+      subq %rsi, %rax      # integer 0, but the web stays sticky
+      addq %rax, %rdi      #! use capability %rdi
+
+  With zero or one capability sources the annotation is unnecessary but
+  harmless (it must still name a capability-carrying use — naming a
+  scalar is a compile-time error).
+
+- On any other instruction with a memory operand (loads, stores, vector
+  moves like `vmovdqu`, ...), the memory access is guarded by the NAMED
+  register's capability, which must be the memory operand's base or
+  index. It covers the case where the assembler moved the logical base
+  out of base position (x86_64-xlate.pl flips `disp(%r13,%rdi)` to
+  `disp(%rdi,%r13)` when the base is `%rbp`/`%r13` — the address is
+  unchanged, but the base-first selection would then guard with the
+  wrong object — so `vmovdqu %xmm,(%a,%b) #! use capability %a` keeps
+  guarding with the written base), and stale-base shapes:
+
+      xorq %rdi, %rdi                         # scalar 0, stale web
+      movq (%rdi,%rsi), %rax #! use capability %rsi
+
+  The effective address is still computed from base+index+disp as
+  written — only the capability source changes. Using the annotation on
+  any other mnemonic, or naming a register the instruction does not use
+  (or, for a memory operand, a register that is neither base nor index),
+  is a compile-time error.
+
+  On a `lea` the annotation selects the computed value's pointer
+  source. An arithmetic instruction that also has a memory operand gets
+  both effects (for example `add (%rsi),%rdi #! use capability %rsi`:
+  the `(%rsi)` load is guarded by `%rsi`'s capability and the `%rdi`
+  result draws from it too). On such a dual-effect instruction the named
+  register must satisfy both rules at once: a general-register use of the
+  instruction that is also the memory operand's base or index — naming a
+  use that is neither (like `%rax` above) is a compile-time error, since
+  the access would otherwise be guarded with the wrong capability.
+
 ### Global variables (x86_64)
 
 Same-file data becomes real Fil-C globals automatically, and extern globals
@@ -231,8 +289,12 @@ the caller's frame slots all follow the ordinary web rules. Details:
   `leaq 0(%rsp),%rdi`, which resolves into the caller's alloca region.
 - `#! local` is accepted as an optional explicit marker on such calls
   (validated to resolve the same way; a mismatch is a compile error).
-- The flags are clobbered across a local call (the ret dispatch compares),
-  exactly like an ordinary call. A subroutine that falls off its end, a
+- A subroutine may set up its own frame with a constant `sub` (torn down
+  before its `ret`): the clone accesses the caller's frame and spills like
+  any other code, keyed at the perturbed depth with the same -8 bias.
+- The flags flow into the subroutine (a hardware `call` preserves them) and
+  are clobbered by its return (the ret dispatch compares). A subroutine that
+  falls off its end, a
   branch out of a subroutine that is not a mid-body tail join (below), and a
   `.globl` no-signature label are compile-time errors; on arm64 a discovered
   local subroutine is a clean "not yet supported" error.
@@ -326,17 +388,27 @@ it never touches `%rsp`/`sp`, so the input's own stack math keeps its meaning:
   and `subq $imm,%rsp`; the frame geometry comes from that prefix.
   `enter` is rejected.
 - %rsp writes are legal only (a) in the prologue (callee-saved pushes,
-  `movq %rsp,%rbp`, `subq`/`addq $imm,%rsp`, and a `movq %rsp,%reg` save
-  into a callee-saved register), (b) as the alloca allocation, (c) as %rsp
-  recovery (`movq %rbp,%rsp`, `leaq N(%rbp),%rsp` with the frame pointer
-  established, or `movq %reg,%rsp` from an unredefined prologue save), (d)
-  as a mid-function `addq $imm,%rsp` free that provably reaches a `ret`,
+  `movq %rsp,%rbp`, `subq`/`addq $imm,%rsp`, `and $-N,%rsp` for a power of
+  two N >= 16, and a `movq %rsp,%reg` save into a callee-saved register),
+  (b) as the alloca allocation, (c) as %rsp recovery (`movq %rbp,%rsp`,
+  `leaq N(%rbp),%rsp` with the frame pointer established, or
+  `movq %reg,%rsp` from an unredefined prologue save), (d) as a proven
+  mid-function constant adjustment (`addq`/`subq $imm,%rsp`,
+  `leaq K(%rsp),%rsp`, or `and $-N,%rsp` at a known depth with dead flags),
   and (e) as epilogue teardown — everything else is a compile error.
+- A register holding `%rsp` or `%rsp`+offset (`movq %rsp,%reg`,
+  `leaq K(%rsp),%reg`) is a stack+offset alias: accesses at offsets from it
+  are ordinary stack accesses at statically known offsets. Control flow that
+  leaves it ambiguous (stack+offset on one path, heap/alloca/argument on
+  another) is a static error at the access, as are returning or storing it.
 - Frame slots (x86_64 spellings; sp/x29 analogous on arm64) are
   virtualized into register-allocated locals with compile-time bounds —
   no capability needed; the 128-byte SysV red zone is legal. Accesses
   outside the frame, caller-argument-area writes, and taking the frame's
-  address are rejected.
+  address are rejected. Aligned vector accesses wider than 16 bytes
+  (vmovdqa32/64) need a covering `and $-N,%rsp` note plus an aligned offset
+  (the frame is then emitted aligned); otherwise they are compile errors
+  suggesting the unaligned form.
 - A body that can fall off its end without `ret`, and a branch to the
   function's own entry label, are rejected.
 
@@ -364,11 +436,14 @@ runs.
 - A defined set of unsafe instruction classes is rejected at compile time:
   state-corrupting and privileged forms (segment-selector and FS/GS-base
   writes, `swapgs`, TSX, `syscall`/port I/O/`hlt`, MSRs, descriptor-table
-  loads), anything whose memory semantics cannot be modeled (string/`rep`
-  instructions, `xchg` with memory, gather/scatter, AMX tiles, unknown
+  loads), anything whose memory semantics cannot be modeled (the unmodeled
+  string/`rep` instructions — lods/scas/cmps, repne/repnz, `rep` anywhere but
+  movs/stos/ret/nop — `xchg` with memory, gather/scatter, AMX tiles, unknown
   mnemonics with memory operands), symbolic and absolute addresses,
   indirect branches, memory-indirect calls, and `lock` outside the modeled
-  memory-destination RMWs.
+  memory-destination RMWs. `rep movs*` / `rep stos*` (and their bare
+  single-step forms) ARE modeled: bounds-checked block copies/fills over the
+  implicit registers (see DESIGN.md).
 - Unknown register-only forms pass through with conservative def/use
   modeling; FP/SIMD/NEON registers pass through as written (memory
   operands checked at the exact width); non-pointer atomics (x86_64

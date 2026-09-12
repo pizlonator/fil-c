@@ -32,6 +32,7 @@
 #include <cctype>
 #include <cerrno>
 #include <cstring>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -44,7 +45,19 @@ Ctx resolve_ctx(const std::string& projeny_arg)
     Ctx c;
     c.projeny_arg = projeny_arg;
     c.pdir = dirname_of(projeny_arg);
-    c.statusfile = projeny_arg + ".status";
+    // Canonical, dot-prefixed status file: ".<f>.projeny.status" next to the
+    // .projeny file. Older projenies wrote "<f>.projeny.status"; when only
+    // the legacy form exists, rename it into the canonical form (lazy
+    // migration at first use). This runs for EVERY command, so any command
+    // completes the upgrade; it is idempotent and a no-op when the
+    // canonical file exists or neither form does. The crash-recovery
+    // journal (journal_path_for below) keeps its name: it was never part of
+    // the undotted ".status" naming, so there is no legacy form to migrate
+    // and journal-based recovery is unaffected by the upgrade.
+    c.statusfile = dotname(projeny_arg) + ".status";
+    std::string legacy_statusfile = projeny_arg + ".status";
+    if (!path_exists(c.statusfile) && path_exists(legacy_statusfile))
+        move_path(legacy_statusfile, c.statusfile);
     return c;
 }
 
@@ -108,6 +121,286 @@ std::string scratch_parent_for(const std::string& pdir)
     // readability.)
     (void)pdir;
     return system_scratch_parent();
+}
+
+// Snapshot path for an archive: the dot-prefixed sibling of the archive
+// (foo-1.2.3.tar.gz -> .foo-1.2.3.tar.gz.snapshot). write_status maintains
+// the snapshot as a byte-exact copy of the archive, so a later setup can
+// reconstruct the tree recorded by the status file even after the archive
+// itself is deleted from git (e.g. an upstream rebase removes the old
+// tarball). Older projenies wrote the undotted "<Archive>.snapshot" form;
+// migrate_snapshot below renames that lazily at each point of use.
+std::string snapshot_path_for(const std::string& archive)
+{
+    return dotname(archive) + ".snapshot";
+}
+
+// Legacy (pre-dot-naming) snapshot path: the archive plus ".snapshot",
+// normalized the same way dotname normalizes the dotted form ("./a.tar.gz"
+// and "a.tar.gz" name the same file and must warn/compare alike; dotname
+// drops the "./" via its dirname=="." case).
+std::string legacy_snapshot_path_for(const std::string& archive)
+{
+    std::string bare = archive;
+    if (starts_with(bare, "./"))
+        bare = bare.substr(2);
+    return bare + ".snapshot";
+}
+
+// If the dotted snapshot is missing but the legacy undotted one exists,
+// rename it into the canonical dotted form. Called at every point of use
+// (ensure_snapshot, resolve_status_archive, status's live diff, stale-state
+// reconciliation), so any command finishes the upgrade. Idempotent no-op
+// when the dotted snapshot exists or neither form does.
+void migrate_snapshot(const std::string& archive)
+{
+    std::string snap = snapshot_path_for(archive);
+    if (path_exists(snap))
+        return;
+    std::string legacy = legacy_snapshot_path_for(archive);
+    if (!path_exists(legacy))
+        return;
+    move_path(legacy, snap);
+}
+
+// Byte-equality of two regular files: sizes first, then a chunked content
+// compare (tarballs can be tens of megabytes, so neither file is ever
+// loaded whole into memory). A missing file is equal to nothing.
+bool files_equal(const std::string& a, const std::string& b)
+{
+    struct stat sta, stb;
+    if (stat(a.c_str(), &sta) != 0 || stat(b.c_str(), &stb) != 0)
+        return false;
+    if (!S_ISREG(sta.st_mode) || !S_ISREG(stb.st_mode))
+        return false;
+    if (sta.st_size != stb.st_size)
+        return false;
+    std::ifstream fa(a.c_str(), std::ios::binary);
+    std::ifstream fb(b.c_str(), std::ios::binary);
+    if (!fa || !fb)
+        return false;
+    // Sizes match, so the two streams advance in lockstep and the loop
+    // ends when both hit EOF.
+    char bufa[65536], bufb[65536];
+    for (;;) {
+        fa.read(bufa, sizeof(bufa));
+        fb.read(bufb, sizeof(bufb));
+        std::streamsize na = fa.gcount();
+        std::streamsize nb = fb.gcount();
+        if (na != nb)
+            return false;
+        if (na == 0)
+            return true;
+        if (memcmp(bufa, bufb, (size_t)na) != 0)
+            return false;
+    }
+}
+
+// Make sure `archive` has a snapshot copy (see snapshot_path_for): a no-op
+// when the snapshot already matches the archive (the hot path: every
+// build's re-setup lands here), a rewrite when it does not, and a kept
+// snapshot when only the snapshot survives. A legacy undotted snapshot is
+// renamed into the dotted form first. Called from write_status — i.e.
+// exactly when setup/commit/rebase records what it used — so the
+// snapshot is never refreshed before the trees derived from the OLD
+// snapshot were built, and never left stale relative to the status file.
+void ensure_snapshot(const std::string& archive)
+{
+    migrate_snapshot(archive);
+    std::string snap = snapshot_path_for(archive);
+    if (!path_exists(archive)) {
+        // The archive is gone (git deleted it): the snapshot, if any, is
+        // now the only record of what the last setup used, so keep it.
+        if (path_exists(snap))
+            return;
+        die("archive '" + archive +
+            "' does not exist and neither does its snapshot '" + snap +
+            "'; it is needed to record which archive this setup used in the "
+            "status file. This usually means the archive was deleted from "
+            "git (for example by a rebase to a newer tarball) and this "
+            "checkout was last set up by a projeny that did not keep "
+            "snapshots. Restore the archive (for example 'git checkout "
+            "<commit> -- <archive>') and run 'projeny setup' again");
+    }
+    if (path_exists(snap) && files_equal(archive, snap))
+        return;
+    // write_file_bytes is temp file + fsync + rename, so the snapshot
+    // switches atomically and a crash never leaves a half-written copy.
+    // It is byte-exact for regular files, which tarballs are.
+    write_file_bytes(snap, read_file_bytes(archive));
+}
+
+// Resolve which file to read when reconstructing what the LAST setup used
+// (a tree referred to by the status file or by one side of a git-conflicted
+// .projeny): prefer the snapshot — it is the byte-exact copy of what that
+// setup actually unpacked, so an in-place rewritten tarball does not corrupt
+// the reconstruction either — and fall back to the archive itself for
+// checkouts set up before snapshots existed. That fallback also COPIES the
+// archive into the dotted snapshot right away, so the next run finds the
+// snapshot instead of repeating the fallback (checkouts set up by an older
+// projeny migrate themselves on first use). `what` is a human-readable
+// phrase for the error (e.g. "reconstruct the tree recorded by '<file>'").
+// Dies with recovery guidance when neither file exists. Archives named by
+// the CURRENT .projeny file must not go through here: those files must
+// exist, and unpack_single_top's plain error is the right one.
+std::string resolve_status_archive(const std::string& archive,
+                                   const std::string& what)
+{
+    migrate_snapshot(archive);
+    std::string snap = snapshot_path_for(archive);
+    if (path_exists(snap))
+        return snap;
+    if (path_exists(archive)) {
+        // No snapshot yet: snapshot the archive now (same copy
+        // write_status's ensure_snapshot would make) and use it.
+        write_file_bytes(snap, read_file_bytes(archive));
+        return snap;
+    }
+    die("archive '" + archive +
+        "' does not exist and neither does its snapshot '" + snap +
+        "'; it is needed to " + what +
+        ". This usually means the archive was deleted from git (for example "
+        "by a rebase to a newer tarball) and this checkout was last set up "
+        "by a projeny that did not keep snapshots. If the workdir has no "
+        "local changes, remove the status file and the workdir and run "
+        "'projeny setup' again; otherwise restore the archive (for example "
+        "'git checkout <commit> -- <archive>') and run 'projeny setup' "
+        "again");
+}
+
+// Best-effort extraction of the "Archive:" value from a status file's
+// bytes: the embedded .projeny copy (everything after the
+// "--- projeny content ---" delimiter, see kStatusDelim in
+// projeny_file.cc) begins with its header block, one of whose lines is
+// "Archive: <value>". Used only by the stale-state reconciliation to find
+// the archive whose snapshot belongs to the status being discarded.
+// Returns "" when the file is too garbled to tell — this must never die,
+// because an unparseable status file is renamed out of the way just the
+// same.
+std::string archive_from_status_bytes(const std::string& data)
+{
+    size_t pos = data.find(kStatusDelim);
+    if (pos == std::string::npos)
+        return "";
+    pos = data.find('\n', pos);
+    if (pos == std::string::npos)
+        return "";
+    ++pos; // first byte of the embedded .projeny copy
+    // Scan the first lines of the embedded copy for the "Archive:" header.
+    // Header lines are unindented "Key: value" lines; prose is indented and
+    // blank lines are empty. Keep going through headers and prose, but stop
+    // (returning "") at anything else — patch bodies, garbage.
+    for (int scanned = 0; scanned < 16 && pos < data.size(); ++scanned) {
+        size_t nl = data.find('\n', pos);
+        std::string line =
+            data.substr(pos, nl == std::string::npos ? std::string::npos
+                                                     : nl - pos);
+        if (starts_with(line, "Archive: "))
+            return trim(line.substr(9));
+        if (line.empty() || line[0] == ' ' || line[0] == '\t') {
+            // blank line or prose: keep scanning
+        } else {
+            // Header-shaped (a header other than Archive:)? keep going;
+            // anything else (patch body, garbage) stops the scan.
+            size_t colon = line.find(':');
+            bool header_shaped =
+                colon != std::string::npos && colon > 0 &&
+                line.find_first_of(" \t") > colon;
+            if (!header_shaped)
+                return "";
+        }
+        if (nl == std::string::npos)
+            break;
+        pos = nl + 1;
+    }
+    return "";
+}
+
+// Path of the crash-recovery setup journal (defined with the conflicted-
+// setup machinery below); needed here by disregard_stale_state's guard.
+std::string journal_path_for(const Ctx& ctx);
+
+// Stale-state reconciliation (checkout directory gone): without a workdir,
+// the status file and the archive snapshots describe a checkout that no
+// longer exists, so they are disregarded — renamed out of the way with a
+// warning naming both paths — instead of being left behind to confuse a
+// fresh setup. Each target is renamed to '<name>.stale', or '<name>.stale2',
+// '<name>.stale3', ... when that name is taken (any existing path counts as
+// taken, including directories).
+//
+// Every naming form is reconciled: after this runs, NO status/snapshot file
+// remains under ANY of its names. When the canonical dotted form and the
+// legacy undotted form both exist, each is staled under its own name
+// (dotted -> dotted.stale, undotted -> undotted.stale, with the same
+// .stale2/.stale3 numbering based on the undotted name); when only the
+// legacy form exists, it is first migrated into the dotted form (existing
+// migrate_snapshot for snapshots, direct rename for the status), so it ends
+// up under the dotted .stale name.
+//
+// This helper must never run while a setup journal exists, and it ENFORCES
+// that here so every caller is safe by construction (cmd_setup's own journal
+// early-return precedes it on the fresh path; status/commit/add/rm/mv/
+// resolve call this unconditionally and cannot tell a crash window from an
+// abandoned checkout). The journal marks an interrupted conflicted setup
+// whose recovery (setup_recover) still needs the status file — it drives
+// conflict-side disambiguation and the union bookkeeping — and the archive
+// snapshot, which is often the only copy of the local side's archive left
+// (the interrupted rebase already deleted the old tarball from git).
+// Stale-renaming either in that window makes the subsequent `projeny setup`
+// die with "archive ... does not exist and neither does its snapshot"
+// instead of recovering, and needs hand-restoration.
+void disregard_stale_state(const Ctx& ctx,
+                           const std::vector<std::string>& archives)
+{
+    if (path_exists(journal_path_for(ctx)))
+        return;
+
+    auto next_stale_name = [](const std::string& target) -> std::string {
+        for (int n = 1;; ++n) {
+            std::string cand = target + ".stale";
+            if (n > 1)
+                cand += std::to_string(n);
+            if (!path_exists(cand))
+                return cand;
+        }
+    };
+
+    // Stale one logical file under both of its names: `dotted` is the
+    // canonical name, `legacy` the pre-dot-naming name.
+    auto stale_pair = [&](const std::string& dotted,
+                          const std::string& legacy) {
+        if (!path_exists(dotted) && path_exists(legacy)) {
+            // Only the legacy form exists: migrate it into the dotted form
+            // first, so it is staled under the dotted .stale name.
+            move_path(legacy, dotted);
+        }
+        if (!path_exists(dotted))
+            return;
+        std::string dest = next_stale_name(dotted);
+        warn("workdir for '" + ctx.projeny_arg + "' is missing; renaming "
+             "stale '" +
+             dotted + "' to '" + dest + "'");
+        move_path(dotted, dest);
+        if (path_exists(legacy)) {
+            // Both forms existed: disregard the legacy copy too, under its
+            // own name (same numbering, based on the undotted name).
+            std::string ldest = next_stale_name(legacy);
+            warn("workdir for '" + ctx.projeny_arg + "' is missing; renaming "
+                 "stale '" +
+                 legacy + "' to '" + ldest + "'");
+            move_path(legacy, ldest);
+        }
+    };
+
+    stale_pair(ctx.statusfile, ctx.projeny_arg + ".status");
+    for (const auto& a : archives) {
+        if (a.empty())
+            continue;
+        std::string archive = join_path(ctx.pdir, a);
+        migrate_snapshot(archive);
+        stale_pair(snapshot_path_for(archive),
+                   legacy_snapshot_path_for(archive));
+    }
 }
 
 // Unpack `archive` expecting top dir `origname`, then apply `patch_wid`
@@ -198,7 +491,8 @@ void merge_user_diff_onto(const std::string& base_tree, const std::string& fresh
                 snapshot = join_path(one.path, "theirs");
                 copy_recursive(tf, snapshot);
             }
-            bool clean = merge_one_file(bf, of, had_theirs ? snapshot : tf, dst);
+            bool clean = merge_one_file(bf, of, had_theirs ? snapshot : tf, dst,
+                                        workdir);
             if (!clean)
                 conflicts->push_back(rel);
         }
@@ -280,17 +574,31 @@ void reconcile_binaries(const std::string& workdir,
 
 void write_status(const Ctx& ctx, const StatusData& sd)
 {
+    // Maintain the archive snapshot (see snapshot_path_for) so later setups
+    // can reconstruct the tree this status file records even after git
+    // deletes the archive. This is the single funnel for every status-file
+    // write in the codebase, and it runs only AFTER all tree work is done,
+    // so a setup's E-tree always sees the snapshot of the archive the
+    // PREVIOUS status recorded — a snapshot for the new .projeny is never
+    // written too early. The parse is safe: every caller of write_status
+    // just obtained sd.embedded from a .projeny that already parsed.
+    if (!trim(sd.embedded).empty()) {
+        ProjenyFile pf = ProjenyFile::parse_bytes(
+            sd.embedded, "embedded copy for '" + ctx.statusfile + "'");
+        ensure_snapshot(join_path(ctx.pdir, pf.archive));
+    }
     write_file_bytes(ctx.statusfile, sd.serialize());
 }
 
-// Fresh setup: unpack the current archive, apply the current patch, and move
-// the result into place. Unpacks before touching the workdir (a bad patch
-// dies leaving the checkout intact), and carries untracked binaries across
-// the replacement so build junk and package tarballs survive.
-void do_fresh_setup(const Ctx& ctx, const ProjenyFile& cur)
+// Build the fresh tree for `cur` inside `tmp`: unpack the current archive
+// and apply the current patch. Returns the tree path (inside tmp). Shared
+// by every fresh-setup flavor so they all see exactly the same set of
+// paths setup would write (tarball files, patch modifications, and
+// patch-added files alike). Unpacks before anything is touched (a bad
+// patch dies leaving the checkout intact).
+std::string build_fresh_tree(const Ctx& ctx, const ProjenyFile& cur,
+                             TempDir& tmp)
 {
-    std::string workdir = join_path(ctx.pdir, cur.name);
-    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-setup-");
     unpack_single_top(join_path(ctx.pdir, cur.archive), tmp.path, cur.origname);
     std::string fresh = join_path(tmp.path, cur.origname);
     if (!apply_patch_whole(fresh, cur.patch, cur.name,
@@ -305,12 +613,119 @@ void do_fresh_setup(const Ctx& ctx, const ProjenyFile& cur)
                 cur.archive + "'",
             detail);
     }
+    return fresh;
+}
+
+// Fresh setup: unpack the current archive, apply the current patch, and move
+// the result into place. Unpacks before touching the workdir (a bad patch
+// dies leaving the checkout intact), and carries untracked binaries across
+// the replacement so build junk and package tarballs survive.
+void do_fresh_setup(const Ctx& ctx, const ProjenyFile& cur)
+{
+    std::string workdir = join_path(ctx.pdir, cur.name);
+    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-setup-");
+    std::string fresh = build_fresh_tree(ctx, cur, tmp);
     if (path_exists(workdir))
         reconcile_binaries(workdir, fresh, true);
     if (path_exists(workdir) && !remove_recursive(workdir))
         die("cannot remove existing workdir '" + workdir + "'");
     move_path(fresh, workdir);
     tmp.release(); // fresh moved out; don't delete it
+}
+
+// Inventory a tree as rel path -> is-it-a-directory, recursing into
+// directories. lstat kinds throughout: a symlink is never a directory, so a
+// symlink to a directory counts as a non-dir (soundness for the
+// compatibility rule below — a link must never be descended into or
+// silently classify as a directory). Hidden entries count; empty
+// directories appear as their own entries.
+void collect_rel_entries(const std::string& root, const std::string& prefix,
+                         std::map<std::string, bool>* out)
+{
+    std::string dir = prefix.empty() ? root : join_path(root, prefix);
+    for (const std::string& name : list_dir_names(dir)) {
+        std::string rel = prefix.empty() ? name : prefix + "/" + name;
+        std::string full = join_path(root, rel);
+        struct stat st;
+        if (lstat(full.c_str(), &st) != 0)
+            die("cannot stat '" + full + "': " + strerror(errno));
+        bool isdir = S_ISDIR(st.st_mode) != 0;
+        (*out)[rel] = isdir;
+        if (isdir)
+            collect_rel_entries(root, rel, out);
+    }
+}
+
+// Move every entry of from_dir into to_dir. Directory-on-directory pairs
+// recurse (keeping what is already inside); everything else is moved with
+// move_path — the caller's compatibility check has proven those
+// destinations free. Entries of to_dir that from_dir never mentions stay
+// put.
+void merge_tree_into(const std::string& from_dir, const std::string& to_dir)
+{
+    for (const std::string& name : list_dir_names(from_dir)) {
+        std::string src = join_path(from_dir, name);
+        std::string dst = join_path(to_dir, name);
+        if (is_dir(src) && is_dir(dst)) {
+            merge_tree_into(src, dst);
+            continue;
+        }
+        move_path(src, dst);
+    }
+}
+
+// Set up into an existing directory that has no status file: the directory
+// was never set up by projeny (or its bookkeeping was deleted), so there is
+// no base to merge against. The directory can still be adopted in place
+// when it holds NOTHING that this setup would write: the fresh tree is
+// built first in a temp dir (no side effects on the workdir, so a refusal
+// leaves it completely untouched), its relative paths are compared against
+// the directory's, and the setup proceeds only when every shared path is a
+// directory on both sides — i.e. the trees merely nest into each other. A
+// file (or symlink) at a path the tarball or patch would write — or a
+// directory where a file is needed — is a conflict. Anything already in
+// the directory that setup never touches (notes, VCS metadata, build
+// scripts) is kept as-is and rides along like a user-added file.
+void do_fresh_setup_into_existing(const Ctx& ctx, const ProjenyFile& cur)
+{
+    std::string workdir = join_path(ctx.pdir, cur.name);
+    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-setup-");
+    std::string fresh = build_fresh_tree(ctx, cur, tmp);
+
+    // Compatibility check: conflict iff a relative path exists in both
+    // trees and the two entries are not both directories.
+    std::map<std::string, bool> incoming, existing;
+    collect_rel_entries(fresh, "", &incoming);
+    collect_rel_entries(workdir, "", &existing);
+    std::vector<std::string> conflicts;
+    for (const auto& e : incoming) {
+        auto it = existing.find(e.first);
+        if (it == existing.end())
+            continue; // new path: nothing there to overwrite
+        if (e.second && it->second)
+            continue; // directories on both sides: the trees just nest
+        conflicts.push_back(e.first);
+    }
+    if (!conflicts.empty()) {
+        const size_t kMaxListed = 10;
+        std::string detail = "setup would overwrite these existing paths:\n";
+        size_t shown = std::min(conflicts.size(), kMaxListed);
+        for (size_t i = 0; i < shown; ++i)
+            detail += "  " + conflicts[i] + "\n";
+        if (conflicts.size() > shown)
+            detail += "  ... and " +
+                      std::to_string(conflicts.size() - shown) + " more\n";
+        die("workdir '" + workdir + "' exists but status file '" +
+                ctx.statusfile + "' is missing, and setup would overwrite " +
+                std::to_string(conflicts.size()) +
+                " existing path(s) in it; refusing (remove those files or "
+                "the whole workdir, or restore the status file)",
+            detail);
+    }
+
+    // Compatible: merge the fresh tree's entries into the directory.
+    merge_tree_into(fresh, workdir);
+    tmp.release(); // entries moved out; don't delete the temp tree
 }
 
 // Conflicted setup: the .projeny file holds git conflict markers (from
@@ -828,8 +1243,13 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
     std::string Etree;
     bool harder = false;
     if (have_workdir && harder_base != nullptr) {
+        // harder_base is status- or journal-derived, so its archive may
+        // have been deleted from git since the last setup: use the
+        // snapshot when it exists.
         Etree = build_tree_from_patch(
-            tE, join_path(ctx.pdir, harder_base->archive),
+            tE, resolve_status_archive(join_path(ctx.pdir, harder_base->archive),
+                                       "reconstruct the base tree for '" +
+                                           ctx.projeny_arg + "'"),
             harder_base->origname, harder_base->name, harder_base->patch,
             "embedded patch in '" + ctx.statusfile + "'");
         U_unc = diff_trees(Etree, actual_workdir, harder_base->name);
@@ -852,13 +1272,19 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
         }
     }
 
-    // Fresh upstream (theirs) and local (ours) trees.
+    // Fresh upstream (theirs) and local (ours) trees. The local side comes
+    // from a git-conflicted .projeny (or the setup journal), so git may
+    // have just deleted its archive (upstream rebase to a new tarball):
+    // read the snapshot when it exists.
     std::string Ntree = build_tree_from_patch(
         tN, join_path(ctx.pdir, cur.archive), cur.origname, cur.name, cur.patch,
         "upstream side of '" + ctx.projeny_arg + "'");
     std::string Otree = build_tree_from_patch(
-        tO, join_path(ctx.pdir, local.archive), local.origname, local.name,
-        local.patch, "local side of '" + ctx.projeny_arg + "'");
+        tO, resolve_status_archive(join_path(ctx.pdir, local.archive),
+                                   "reconstruct the local side of '" +
+                                       ctx.projeny_arg + "'"),
+        local.origname, local.name, local.patch,
+        "local side of '" + ctx.projeny_arg + "'");
 
     // Merge base: the shared base archive when both sides name the same
     // tarball and top dir (the common git-conflict case). Otherwise there
@@ -867,8 +1293,11 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
     // silently picking a side. No data loss either way.
     std::string Btree = tB.path;
     if (local.archive == cur.archive && local.origname == cur.origname) {
-        unpack_single_top(join_path(ctx.pdir, local.archive), tB.path,
-                          local.origname);
+        unpack_single_top(resolve_status_archive(join_path(ctx.pdir, local.archive),
+                                                 "reconstruct the merge base "
+                                                 "for '" + ctx.projeny_arg +
+                                                 "'"),
+                          tB.path, local.origname);
         Btree = join_path(tB.path, local.origname);
     }
 
@@ -1023,6 +1452,27 @@ int cmd_setup(const std::string& projeny_arg)
     if (!path_exists(workdir)) {
         if (is_dir(workdir))
             die("internal error"); // unreachable
+        // The checkout directory is gone, so the status file and any
+        // archive snapshots are stale state from the removed checkout:
+        // disregard them (warn + rename to '<name>.stale', '.stale2', ...)
+        // before the fresh setup rebuilds everything. This is the plain
+        // fresh-setup path — journal recovery and conflict handling
+        // returned above — so the reconciliation is safe here. The old
+        // status is parsed best-effort only to also catch the snapshot of
+        // the archive IT recorded (which may differ from the current one);
+        // an unparseable status file is renamed just the same.
+        std::vector<std::string> stale_archives;
+        stale_archives.push_back(cur.archive);
+        {
+            std::string old_status_raw;
+            if (try_read_file_bytes(ctx.statusfile, &old_status_raw)) {
+                std::string old_archive =
+                    archive_from_status_bytes(old_status_raw);
+                if (!old_archive.empty() && old_archive != cur.archive)
+                    stale_archives.push_back(old_archive);
+            }
+        }
+        disregard_stale_state(ctx, stale_archives);
         do_fresh_setup(ctx, cur);
         StatusData sd;
         sd.status = "setup";
@@ -1035,24 +1485,42 @@ int cmd_setup(const std::string& projeny_arg)
     if (!is_dir(workdir))
         die("workdir '" + workdir + "' exists but is not a directory");
 
-    // Workdir exists: statusfile is required.
-    if (!path_exists(ctx.statusfile))
-        die("workdir '" + workdir +
-            "' exists but status file '" + ctx.statusfile +
-            "' is missing; refusing (remove the workdir or restore the status "
-            "file)");
+    // Workdir exists but no status file does (neither the dotted form nor
+    // the migrated legacy one). The directory was never set up by projeny,
+    // so there is no base to merge against — but it can still be adopted in
+    // place when it holds nothing that this setup would overwrite: it may
+    // be empty, or hold only files the tarball and patch never touch
+    // (notes, VCS metadata, ...), which are kept and ride along like
+    // user-added files. Otherwise refuse: without a status file there is no
+    // way to merge, so overwriting any existing path could destroy the only
+    // copy of it.
+    if (!path_exists(ctx.statusfile)) {
+        do_fresh_setup_into_existing(ctx, cur);
+        StatusData sd;
+        sd.status = "setup";
+        sd.embedded = cur.raw;
+        write_status(ctx, sd);
+        printf("projeny: set up '%s' from '%s' (into existing directory)\n",
+               workdir.c_str(), cur.archive.c_str());
+        return 0;
+    }
 
     StatusData old = StatusData::parse(ctx.statusfile);
     ProjenyFile oldpf =
         ProjenyFile::parse_bytes(old.embedded, "embedded copy in '" + ctx.statusfile + "'");
     std::string old_workdir = join_path(ctx.pdir, oldpf.name);
 
-    // Reconstruct the expected tree E from the statusfile's copy.
+    // Reconstruct the expected tree E from the statusfile's copy. The
+    // archive comes from the status file, so it may have been deleted from
+    // git since (upstream rebase): read the snapshot copy when it exists.
     TempDir tE(scratch_parent_for(ctx.pdir), "projeny-E-");
     TempDir tN(scratch_parent_for(ctx.pdir), "projeny-N-");
     std::string Etree = build_tree_from_patch(
-        tE, join_path(ctx.pdir, oldpf.archive), oldpf.origname, oldpf.name,
-        oldpf.patch, "embedded patch in '" + ctx.statusfile + "'");
+        tE, resolve_status_archive(join_path(ctx.pdir, oldpf.archive),
+                                   "reconstruct the tree recorded by '" +
+                                       ctx.statusfile + "'"),
+        oldpf.origname, oldpf.name, oldpf.patch,
+        "embedded patch in '" + ctx.statusfile + "'");
 
     // User diff U = workdir vs E. Note diff direction: diff_trees(base,
     // workdir) so applying U to a fresh tree reproduces the workdir.
@@ -1184,8 +1652,13 @@ int cmd_commit(const std::string& projeny_arg)
     }
     ProjenyFile cur = ProjenyFile::parse_bytes(cur_raw, "'" + ctx.projeny_arg + "'");
     std::string workdir = join_path(ctx.pdir, cur.name);
-    if (!is_dir(workdir))
+    if (!is_dir(workdir)) {
+        // The checkout directory is gone: the status and snapshot files are
+        // stale state. Disregard them (warn + rename), then keep the hard
+        // error — there is nothing to diff against.
+        disregard_stale_state(ctx, {cur.archive});
         die("workdir '" + workdir + "' is missing; run setup first");
+    }
 
     // Validate pending ops against the workdir, then fold them into the
     // status bookkeeping (the diff itself already reflects on-disk state).
@@ -1338,6 +1811,13 @@ int cmd_add(const std::string& projeny_arg, const std::string& path)
     ProjenyFile cur = ProjenyFile::parse(ctx.projeny_arg);
     StatusData st = StatusData::parse(ctx.statusfile);
     std::string workdir = join_path(ctx.pdir, cur.name);
+    if (!is_dir(workdir)) {
+        // The checkout directory is gone: the status and snapshot files are
+        // stale state. Disregard them (warn + rename), then hard-error —
+        // there is no workdir to add anything to.
+        disregard_stale_state(ctx, {cur.archive});
+        die("workdir '" + workdir + "' is missing; run setup first");
+    }
     std::string rel = normalize_workdir_rel(workdir, cur.name, path);
     if (!path_exists(join_path(workdir, rel)))
         die("path '" + path + "' does not exist in workdir '" + workdir + "'");
@@ -1366,6 +1846,13 @@ int cmd_rm(const std::string& projeny_arg, const std::string& path)
     ProjenyFile cur = ProjenyFile::parse(ctx.projeny_arg);
     StatusData st = StatusData::parse(ctx.statusfile);
     std::string workdir = join_path(ctx.pdir, cur.name);
+    if (!is_dir(workdir)) {
+        // The checkout directory is gone: the status and snapshot files are
+        // stale state. Disregard them (warn + rename), then hard-error —
+        // there is no workdir to remove anything from.
+        disregard_stale_state(ctx, {cur.archive});
+        die("workdir '" + workdir + "' is missing; run setup first");
+    }
     std::string rel = normalize_workdir_rel(workdir, cur.name, path);
     std::string full = join_path(workdir, rel);
     // rm deletes the file from the workdir immediately AND records the
@@ -1398,6 +1885,13 @@ int cmd_mv(const std::string& projeny_arg, const std::string& src,
     ProjenyFile cur = ProjenyFile::parse(ctx.projeny_arg);
     StatusData st = StatusData::parse(ctx.statusfile);
     std::string workdir = join_path(ctx.pdir, cur.name);
+    if (!is_dir(workdir)) {
+        // The checkout directory is gone: the status and snapshot files are
+        // stale state. Disregard them (warn + rename), then hard-error —
+        // there is no workdir to rename anything in.
+        disregard_stale_state(ctx, {cur.archive});
+        die("workdir '" + workdir + "' is missing; run setup first");
+    }
     std::string srel = normalize_workdir_rel(workdir, cur.name, src);
     std::string drel = normalize_workdir_rel(workdir, cur.name, dst);
     if (srel == drel)
@@ -1449,6 +1943,13 @@ int cmd_resolve(const std::string& projeny_arg, const std::string& path)
     ProjenyFile cur = ProjenyFile::parse(ctx.projeny_arg);
     StatusData st = StatusData::parse(ctx.statusfile);
     std::string workdir = join_path(ctx.pdir, cur.name);
+    if (!is_dir(workdir)) {
+        // The checkout directory is gone: the status and snapshot files are
+        // stale state. Disregard them (warn + rename), then hard-error — a
+        // conflict list about files that no longer exist is meaningless.
+        disregard_stale_state(ctx, {cur.archive});
+        die("workdir '" + workdir + "' is missing; run setup first");
+    }
     // Conflict entries are stored wid-relative (e.g. "src/a.c"), but users
     // naturally type the on-disk form ("<Name>/src/a.c", a CWD-relative
     // path, or an absolute path). Accept any of them: try (a) as-given
@@ -1656,7 +2157,7 @@ int cmd_rebase(const std::string& projeny_arg, const std::string& new_tarball)
                 bool clean = merge_one_file(join_path(old_tree, rel),
                                             join_path(tree, rel),
                                             join_path(workdir, rel),
-                                            join_path(tree, rel));
+                                            join_path(tree, rel), tree);
                 if (!clean)
                     conflicts.push_back(rel);
             }
@@ -1748,6 +2249,40 @@ int cmd_status(const std::string& projeny_arg)
         return 1;
     }
     StatusData st = StatusData::parse(ctx.statusfile);
+
+    // The embedded .projeny copy names the tree the status file records; the
+    // workdir lives at its Name, falling back to the current .projeny Name's
+    // dir when only that one exists (Name may have changed since the last
+    // setup/commit).
+    ProjenyFile emb = ProjenyFile::parse_bytes(
+        st.embedded, "embedded copy in '" + ctx.statusfile + "'");
+    std::string workdir = join_path(ctx.pdir, emb.name);
+    std::string cur_archive;
+    {
+        std::string cur_raw;
+        if (try_read_file_bytes(ctx.projeny_arg, &cur_raw) &&
+            !projeny_has_conflict_markers(cur_raw) &&
+            validate_projeny_bytes(cur_raw).empty()) {
+            ProjenyFile curpf =
+                ProjenyFile::parse_bytes(cur_raw, "'" + ctx.projeny_arg + "'");
+            cur_archive = curpf.archive;
+            std::string curdir = join_path(ctx.pdir, curpf.name);
+            if (!is_dir(workdir) && is_dir(curdir))
+                workdir = curdir;
+        }
+    }
+    if (!is_dir(workdir)) {
+        // The checkout directory is gone: the status file and the archive
+        // snapshots are stale state from the removed checkout. Disregard
+        // them (warn + rename to '<name>.stale', '.stale2', ...), report the
+        // recorded state below, and skip the live diff (nothing to diff).
+        std::vector<std::string> archives;
+        archives.push_back(emb.archive);
+        if (!cur_archive.empty() && cur_archive != emb.archive)
+            archives.push_back(cur_archive);
+        disregard_stale_state(ctx, archives);
+    }
+
     printf("Status: %s\n", st.status.c_str());
     for (auto& c : st.conflicts)
         printf("Conflict: %s\n", c.c_str());
@@ -1765,27 +2300,31 @@ int cmd_status(const std::string& projeny_arg)
     // added/rename-destination sets). Pending ops themselves stay on their
     // Added:/Removed:/Renamed: lines above and are not repeated here.
     do {
-        ProjenyFile emb = ProjenyFile::parse_bytes(
-            st.embedded, "embedded copy in '" + ctx.statusfile + "'");
-        // Workdir: prefer the embedded Name's dir, fall back to the current
-        // .projeny Name's dir when only that one exists (Name may have
-        // changed since the last setup/commit).
-        std::string workdir = join_path(ctx.pdir, emb.name);
-        std::string cur_raw;
-        if (try_read_file_bytes(ctx.projeny_arg, &cur_raw) &&
-            !projeny_has_conflict_markers(cur_raw) &&
-            validate_projeny_bytes(cur_raw).empty()) {
-            ProjenyFile curpf =
-                ProjenyFile::parse_bytes(cur_raw, "'" + ctx.projeny_arg + "'");
-            std::string curdir = join_path(ctx.pdir, curpf.name);
-            if (!is_dir(workdir) && is_dir(curdir))
-                workdir = curdir;
-        }
         if (!is_dir(workdir))
             break;
+        // Snapshot-aware and fully tolerant: prefer the snapshot (the
+        // byte-exact copy of what the last setup actually used, which
+        // survives git deleting the archive), fall back to the archive
+        // itself (checkouts set up before snapshots existed — and copy it
+        // into the snapshot, best effort, so the next run finds one), and
+        // skip the live-diff section entirely when neither exists.
         std::string archive_path = join_path(ctx.pdir, emb.archive);
-        if (!path_exists(archive_path))
+        migrate_snapshot(archive_path);
+        std::string snap = snapshot_path_for(archive_path);
+        if (path_exists(snap)) {
+            archive_path = snap;
+        } else if (path_exists(archive_path)) {
+            // Copy-on-fallback, best effort: status must never hard-fail
+            // just because the snapshot cannot be written.
+            std::string err;
+            if (try_copy_file_bytes(archive_path, snap, &err))
+                archive_path = snap;
+            else
+                warn("could not create snapshot '" + snap + "' from archive '" +
+                     archive_path + "': " + err + " (continuing)");
+        } else {
             break;
+        }
         TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-status-");
         std::string Etree = build_tree_from_patch(
             tmp, archive_path, emb.origname, emb.name, emb.patch,
@@ -2406,23 +2945,54 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
                "\n"
                "Unpack the release tarball named by the Archive: header and\n"
                "apply the patch, creating the workdir named by Name: (plus a\n"
-               "<f>.projeny.status bookkeeping file, never tracked by git).\n"
-               "The tarball must unpack to exactly one top-level directory\n"
-               "named by Origname: (hard error otherwise); it is renamed to\n"
-               "Name:.\n"
+               "dot-prefixed .<f>.projeny.status bookkeeping file, never\n"
+               "tracked by git). The tarball must unpack to exactly one\n"
+               "top-level directory named by Origname: (hard error\n"
+               "otherwise); it is renamed to Name:.\n"
                "\n"
-               "When the workdir already exists, the status file is required:\n"
-               "projeny reconstructs the expected tree from the status copy,\n"
-               "diffs it against the workdir to find your uncommitted\n"
-               "changes, and merges them onto a fresh setup of the CURRENT\n"
-               ".projeny file (which may name a different Archive:). Merge\n"
-               "failures leave conflict markers in the workdir and record\n"
-               "the files in the status file; fix them, then `resolve` each\n"
-               "file and `commit`. A setup that leaves conflicts still\n"
-               "finishes (workdir, .projeny file, and status are all\n"
-               "updated) but exits 1, so scripts running under `set -e`\n"
-               "(like `projeny package`) stop instead of building from a\n"
-               "conflicted tree.\n"
+               "When the workdir already exists, the status file is\n"
+               "required: projeny reconstructs the expected tree from the\n"
+               "status copy, diffs it against the workdir to find your\n"
+               "uncommitted changes, and merges them onto a fresh setup of\n"
+               "the CURRENT .projeny file (which may name a different\n"
+               "Archive:). Merge failures leave conflict markers in the\n"
+               "workdir and record the files in the status file; fix them,\n"
+               "then `resolve` each file and `commit`. A setup that leaves\n"
+               "conflicts still finishes (workdir, .projeny file, and\n"
+               "status are all updated) but exits 1, so scripts running\n"
+               "under `set -e` (like `projeny package`) stop instead of\n"
+               "building from a conflicted tree.\n"
+               "\n"
+               "When the workdir exists but the status file does not, the\n"
+               "directory was never set up by projeny. Setup then unpacks\n"
+               "into the existing directory, keeping the files it already\n"
+               "had, if it holds nothing the tarball or patch would\n"
+               "overwrite (it may be empty, or hold only files setup never\n"
+               "touches, which ride along like user-added files). If setup\n"
+               "would overwrite anything already there, it refuses and\n"
+               "lists the offending paths: without a status file there is\n"
+               "no base to merge against, so nothing existing may be\n"
+               "destroyed.\n"
+               "\n"
+               "setup also maintains .<Archive>.snapshot, a byte-exact copy\n"
+               "of the tarball it used, next to the archive; the status\n"
+               "copy's tree is later reconstructed from that snapshot, so\n"
+               "setup keeps working after git deleted the archive (e.g. an\n"
+               "upstream rebase to a newer tarball). A missing snapshot is\n"
+               "not an error when the tarball still exists: it is recreated\n"
+               "from the tarball on first use. Snapshots are plain untracked\n"
+               "files, safe to delete.\n"
+               "\n"
+               "Status and snapshot files keep their older undotted names\n"
+               "(<f>.projeny.status, <Archive>.snapshot) working too: on\n"
+               "first use they are renamed to the dotted forms. When the\n"
+               "workdir is missing, stale status/snapshot files are renamed\n"
+               "to <name>.stale (then .stale2, .stale3, ...) with a warning\n"
+               "instead of confusing a fresh setup; when the workdir exists\n"
+               "but the status file does not, setup unpacks into it if it\n"
+               "holds nothing setup would overwrite (keeping the files it\n"
+               "already had), and refuses with the offending paths listed\n"
+               "otherwise.\n"
                "\n"
                "Files that vanished from the workdir without an explicit\n"
                "`projeny rm` (or rename) are treated as accidental loss, not\n"

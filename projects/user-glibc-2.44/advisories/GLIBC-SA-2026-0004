@@ -1,0 +1,30 @@
+nscd client crash on x86_64 under high nscd load
+
+Calling NSS-backed functions that support caching via nscd may call the
+nscd client side code and in the GNU C Library version 2.36 under high
+load on x86_64 systems, the client may call memcmp on inputs that are
+concurrently modified by other processes or threads and crash.
+
+The nscd client in the GNU C Library uses the memcmp function with
+inputs that may be concurrently modified by another thread, potentially
+resulting in spurious cache misses, which in itself is not a security
+issue.  However in the GNU C Library version 2.36 an optimized
+implementation of memcmp was introduced for x86_64 which could crash
+when invoked with such undefined behaviour, turning this into a
+potential crash of the nscd client and the application that uses it.
+This implementation was backported to the 2.35 branch, making the nscd
+client in that branch vulnerable as well.  Subsequently, the fix for
+this issue was backported to all vulnerable branches in the GNU C
+Library repository.
+
+It is advised that distributions that may have cherry-picked the memcpy
+SSE2 optimization in their copy of the GNU C Library, also apply the fix
+to avoid the potential crash in the nscd client.
+
+CVE-Id: CVE-2026-3904
+Public-Date: 2026-03-11
+Vulnerable-Commit: 8804157ad9da39631703b92315460808eac86b0c (2.36)
+Vulnerable-Commit: 5a8df6485c584e2b0e957ec6b9070437a724911a (2.35-89)
+Fix-Commit: b712be52645282c706a5faa038242504feb06db5 (2.37)
+Fix-Commit: 93967a2a7bbdcedb73e0b246713580c7c84d001e (2.36-84)
+Fix-Commit: 6bcd5d8e3668d52388a6e0580611749f93e6871f (2.35-230)

@@ -311,6 +311,32 @@ RUN apt-get install -y \
 
 RUN pip install meson
 
+RUN apt-get install -y gcc-12 g++-12
+RUN ln -s /usr/bin/gcc-12 /usr/local/bin/gcc
+RUN ln -s /usr/bin/g++-12 /usr/local/bin/g++
+
+COPY pizlix/binutils-2.47.tar.xz /usr/local/src/
+RUN cd /usr/local/src && \
+    tar -xf binutils-2.47.tar.xz && \
+    cd binutils-2.47 && \
+    mkdir build && \
+    cd build && \
+    ../configure --prefix=/usr/local \
+        --disable-gold \
+        --enable-ld=default \
+        --enable-shared \
+        --disable-werror \
+        --enable-64-bit-bfd \
+        --enable-new-dtags \
+        --with-system-zlib \
+        --enable-default-hash-style=gnu \
+        --disable-gprofng && \
+    make -j `nproc` tooldir=/usr/local && \
+    make -j `nproc` tooldir=/usr/local install && \
+    cd /usr/local/src && \
+    rm -rf binutils-2.47 binutils-2.47.tar.xz && \
+    ldconfig -v
+
 DOCKERFILE_END
 
 # Add user creation for rootful mode

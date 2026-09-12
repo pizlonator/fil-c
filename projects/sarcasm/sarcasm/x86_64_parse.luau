@@ -785,9 +785,8 @@ local function parseInsnText(t, syntax)
 	-- token on the same line (`lock xaddq %rsi, (%rdi)`, also
 	-- `lock;`-separated). Re-split the remainder into the real mnemonic +
 	-- operands and tag the instruction; WHICH instructions may carry the prefix
-	-- is validated in x86_64_isa.classify. rep*/xacquire/xrelease stay
-	-- reject-listed "mnemonics" (fp.unsafeReject) — only `lock` gets prefix
-	-- parsing.
+	-- is validated in x86_64_isa.classify. xacquire/xrelease stay
+	-- reject-listed "mnemonics" (fp.unsafeReject).
 	local lockPrefix = false
 	if string.lower(mnem) == "lock" then
 		local r2 = (string.gsub(rest, "^%s*;%s*", ""))
@@ -797,6 +796,27 @@ local function parseInsnText(t, syntax)
 		end
 		mnem, rest = m2, trim(rest2 or "")
 		lockPrefix = true
+	end
+
+	-- `rep`/`repe`/`repne`/`repz`/`repnz` are instruction PREFIXES, not
+	-- mnemonics: gas emits them as a leading token on the same line
+	-- (`rep movsq`, also `rep;`-separated). Re-split the remainder into the
+	-- real mnemonic + operands and tag the instruction; WHICH instructions
+	-- may carry the prefix is validated in x86_64_isa.classify (rep movs* /
+	-- rep stos* lower to checked copies/fills, `rep ret` keeps its hint).
+	local repPrefix = nil
+	do
+		local low = string.lower(mnem)
+		if low == "rep" or low == "repe" or low == "repne"
+			or low == "repz" or low == "repnz" then
+			local r2 = (string.gsub(rest, "^%s*;%s*", ""))
+			local m2, rest2 = string.match(r2, "^([%.%w_][%w_.]*)%s*(.*)$")
+			if not m2 then
+				error("sarcasm: `" .. low .. "` prefix with no following instruction: " .. t)
+			end
+			mnem, rest = m2, trim(rest2 or "")
+			repPrefix = low
+		end
 	end
 	local opsize
 	if syntax == "att" then local _; _, opsize = attMnemonic(mnem) end
@@ -813,7 +833,8 @@ local function parseInsnText(t, syntax)
 		ops = rev
 	end
 	return { kind = "insn", mnemonic = string.lower(mnem), operands = ops,
-		opsize = opsize, raw = t, syntax = syntax, lockPrefix = lockPrefix or nil }
+		opsize = opsize, raw = t, syntax = syntax, lockPrefix = lockPrefix or nil,
+		repPrefix = repPrefix }
 end
 
 -- `.alloca size, alignment, result`: stack allocation without touching %rsp.

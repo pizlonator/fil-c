@@ -47,8 +47,8 @@ test -d $FILCSRC/pizfix/lib
 test -d $FILCSRC/build/bin
 test -e $FILCSRC/pizfix/$FILCLIB/libpizlo.so
 test -e $FILCSRC/build/bin/clang-20
-test -e $FILCSRC/projects/yolo-glibc-2.40/pizlonated-yolo-glibc.tar.gz
-test -e $FILCSRC/projects/user-glibc-2.40/pizlonated-user-glibc.tar.gz
+test -e $FILCSRC/projects/yolo-glibc-2.44/pizlonated-yolo-glibc.tar.gz
+test -e $FILCSRC/projects/user-glibc-2.44/pizlonated-user-glibc.tar.gz
 
 ./build_unmount.sh
 ./build_yoloify.sh
@@ -56,8 +56,8 @@ test -e $FILCSRC/projects/user-glibc-2.40/pizlonated-user-glibc.tar.gz
 ./build_copy_stuff.sh
 ./build_mount.sh
 
-cp -v $FILCSRC/projects/yolo-glibc-2.40/pizlonated-yolo-glibc.tar.gz $LFS/sources
-cp -v $FILCSRC/projects/user-glibc-2.40/pizlonated-user-glibc.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/yolo-glibc-2.44/pizlonated-yolo-glibc.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/user-glibc-2.44/pizlonated-user-glibc.tar.gz $LFS/sources
 
 ./build_chroot.sh /sources/build_lc_sub2_yolo_chroot.sh
 

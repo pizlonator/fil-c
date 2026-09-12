@@ -163,11 +163,24 @@ int coroutine_create_thread(struct coroutine_context *context)
         return result;
     }
 
+#ifdef __FILC__
+    /* Fil-C allocates every thread stack in its runtime (the garbage
+       collector must conservatively scan thread stacks, so it must be the
+       one that vends them) and refuses pthread_attr_setstack with
+       "Cannot set custom stack address because memory safety.".  So let
+       pthread_create use its own stack.  The fiber then runs on that
+       runtime-allocated stack, which the collector can scan; context->stack
+       is still used for the fiber pool accounting.  The fiber's machine
+       stack bounds recorded by fiber_initialize_coroutine are not used by
+       the Fil-C Ruby port (its own machine stack scanning is stubbed out;
+       the Fil-C collector scans the real stacks). */
+#else
     result = pthread_attr_setstack(&attr, context->stack, (size_t)context->size);
     if (result != 0) {
         pthread_attr_destroy(&attr);
         return result;
     }
+#endif
 
     result = pthread_cond_init(&context->schedule, NULL);
     if (result != 0) {

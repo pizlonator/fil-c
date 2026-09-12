@@ -1,0 +1,82 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/unix/sysv/linux/powerpc/.
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether $CC $CFLAGS -mlong-double-128 uses IBM extended format" >&5
+printf %s "checking whether $CC $CFLAGS -mlong-double-128 uses IBM extended format... " >&6; }
+if test ${libc_cv_mlong_double_128ibm+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) save_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -mlong-double-128"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <float.h>
+int
+main (void)
+{
+
+#if LDBL_MANT_DIG != 106
+# error "compiler doesn't implement IBM extended format of long double"
+#endif
+long double foobar (long double x) { return x; }
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  libc_cv_mlong_double_128ibm=yes
+else case e in #(
+  e) libc_cv_mlong_double_128ibm=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+CFLAGS="$save_CFLAGS" ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_mlong_double_128ibm" >&5
+printf "%s\n" "$libc_cv_mlong_double_128ibm" >&6; }
+
+if test "$libc_cv_mlong_double_128ibm" = no; then
+  CFLAGS="$CFLAGS -mabi=ibmlongdouble"
+fi
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for linker that supports --no-tls-get-addr-optimize" >&5
+printf %s "checking for linker that supports --no-tls-get-addr-optimize... " >&6; }
+libc_linker_feature=no
+cat > conftest.c <<EOF
+int _start (void) { return 42; }
+EOF
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,--no-tls-get-addr-optimize -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,--no-tls-get-addr-optimize -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: --no-tls-get-addr-optimize ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
+  fi
+fi
+rm -f conftest*
+if test $libc_linker_feature = yes; then
+  libc_cv_tls_get_addr_optimize=yes
+else
+  libc_cv_tls_get_addr_optimize=no
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_linker_feature" >&5
+printf "%s\n" "$libc_linker_feature" >&6; }
+config_vars="$config_vars
+have-tls-get-addr-optimize = $libc_cv_tls_get_addr_optimize"
+
+ldd_rewrite_script=sysdeps/unix/sysv/linux/powerpc/ldd-rewrite.sed
+

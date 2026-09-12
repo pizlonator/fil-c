@@ -1,0 +1,22 @@
+nscd: Stack-based buffer overflow in netgroup cache
+
+If the Name Service Cache Daemon's (nscd) fixed size cache is exhausted
+by client requests then a subsequent client request for netgroup data
+may result in a stack-based buffer overflow.  This flaw was introduced
+in glibc 2.15 when the cache was added to nscd.
+
+This vulnerability is only present in the nscd binary.
+
+CVE-Id: CVE-2024-33599
+Public-Date: 2024-04-23
+Vulnerable-Commit: 684ae515993269277448150a1ca70db3b94aa5bd (2.15)
+Fix-Commit: 69c58d5ef9f584ea198bd00f7964d364d0e6b921 (2.31-155)
+Fix-Commit: a77064893bfe8a701770e2f53a4d33805bc47a5a (2.32-141)
+Fix-Commit: 5c75001a96abcd50cbdb74df24c3f013188d076e (2.33-264)
+Fix-Commit: 52f73e5c4e29b14e79167272297977f360ae1e97 (2.34-460)
+Fix-Commit: 7a95873543ce225376faf13bb71c43dea6d24f86 (2.35-316)
+Fix-Commit: caa3151ca460bdd9330adeedd68c3112d97bffe4 (2.36-165)
+Fix-Commit: f75c298e747b2b8b41b1c2f551c011a52c41bfd1 (2.37-91)
+Fix-Commit: 5968aebb86164034b8f8421b4abab2f837a5bdaf (2.38-72)
+Fix-Commit: 1263d583d2e28afb8be53f8d6922f0842036f35d (2.39-35)
+Fix-Commit: 87801a8fd06db1d654eea3e4f7626ff476a9bdaa (2.40)

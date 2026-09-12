@@ -4231,6 +4231,19 @@ vm_call_refined(rb_execution_context_t *ec, rb_control_frame_t *cfp, struct rb_c
     const rb_callable_method_entry_t *ref_cme = search_refined_method(ec, cfp, calling);
 
     if (ref_cme) {
+#ifdef __FILC__
+        /* Fil-C: use the on-stack CC even when the call site has a CC, i.e.
+           never cache a cc_type_refinement CC in cd->cc.  Caching one there
+           would require rb_clear_all_refinement_method_cache to find and
+           invalidate all such CCs on every method definition, and the Fil-C
+           port has no heap walker to do that (rb_objspace_each_objects is
+           unimplemented).  Re-resolving the refinement on each call is
+           always correct and matches what upstream does for call sites
+           without a CC. */
+        struct rb_callcache *ref_cc =  &VM_CC_ON_STACK(Qundef, vm_call_general, {{ 0 }}, ref_cme);
+        calling->cc= ref_cc;
+        return vm_call_method(ec, cfp, calling);
+#else
         if (calling->cd->cc) {
             const struct rb_callcache *cc = calling->cc = vm_cc_new(vm_cc_cme(calling->cc)->defined_class, ref_cme, vm_call_general, cc_type_refinement);
             RB_OBJ_WRITE(cfp->iseq, &calling->cd->cc, cc);
@@ -4241,6 +4254,7 @@ vm_call_refined(rb_execution_context_t *ec, rb_control_frame_t *cfp, struct rb_c
             calling->cc= ref_cc;
             return vm_call_method(ec, cfp, calling);
         }
+#endif
     }
     else {
         return vm_call_method_nome(ec, cfp, calling);

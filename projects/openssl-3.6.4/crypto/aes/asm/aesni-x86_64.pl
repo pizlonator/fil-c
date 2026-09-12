@@ -1239,7 +1239,7 @@ $code.=<<___;
 	sub	\$$frame_size,%rsp
 ___
 if (!$ENV{SARCASM}) {
-	$code.=<<___;
+  $code.=<<___;
 	and	\$-16,%rsp	# Linux kernel stack can be incorrectly seeded
 ___
 }
@@ -1798,7 +1798,7 @@ aesni_xts_encrypt: #! void(ptr,ptr,size_t,ptr,ptr,ptr)
 	sub	\$$frame_size,%rsp
 ___
 if (!$ENV{SARCASM}) {
-	$code.=<<___;
+  $code.=<<___;
 	and	\$-16,%rsp	# Linux kernel stack can be incorrectly seeded
 ___
 }
@@ -2289,7 +2289,7 @@ aesni_xts_decrypt: #! void(ptr,ptr,size_t,ptr,ptr,ptr)
 	sub	\$$frame_size,%rsp
 ___
 if (!$ENV{SARCASM}) {
-	$code.=<<___;
+  $code.=<<___;
 	and	\$-16,%rsp	# Linux kernel stack can be incorrectly seeded
 ___
 }
@@ -3812,33 +3812,26 @@ $code.=<<___;
 	mov	$len,%rcx	# zaps $key
 ___
 if ($ENV{SARCASM}) {
-	# The tail block is encrypted inline here (not by swapping the two
-	# pointer arguments and re-entering the main loop): such a swap makes
-	# $inp's and $out's register webs share a definition, and ptrflow's
-	# dynamic lower for the merged web then feeds the main loop's
-	# input-block read a capability from a different origin. A balanced
-	# push/pop of %rbx is dropped by the frame model and provides the
-	# block pointer without touching $inp/$out.
-	$code.=<<___;
-.Lcbc_enc_tail_copy:			# explicit loops (were rep movsb/stosb;
-	mov	(%rdi),%al	# string ops are not memory-safe)
-	mov	%al,(%rsi)
-	lea	1(%rdi),%rdi
-	lea	1(%rsi),%rsi
-	sub	\$1,%ecx
-	jnz	.Lcbc_enc_tail_copy
+  # The tail block is encrypted inline here (not by swapping the two
+  # pointer arguments and re-entering the main loop): such a swap makes
+  # $inp's and $out's register webs share a definition, and ptrflow's
+  # dynamic lower for the merged web then feeds the main loop's
+  # input-block read a capability from a different origin. A balanced
+  # push/pop of %rbx is dropped by the frame model and provides the
+  # block pointer without touching $inp/$out. The copies use 'rep movsb' /
+  # 'rep stosb' directly (sarcasm lowers them to checked copies/fills); the
+  # xchg below is straight-line, so each side keeps its own capability.
+  $code.=<<___;
+	xchg	$inp,$out	# $inp is %rsi and $out is %rdi now
+	rep	movsb	# copy tail bytes
 	mov	\$16,%ecx	# zero tail
 	sub	$len,%rcx
 	xor	%eax,%eax
-.Lcbc_enc_tail_zero:
-	mov	%al,(%rsi)
-	lea	1(%rsi),%rsi
-	sub	\$1,%ecx
-	jnz	.Lcbc_enc_tail_zero
+	rep	stosb	# zero pad
 	push	%rbx
 	mov	$key_,$key	# restore $key
 	mov	$rnds_,$rounds	# restore $rounds
-	lea	-16(%rsi),%rbx	# the padded tail block
+	lea	-16(%rdi),%rbx	# the padded tail block
 	movups	(%rbx),%xmm3
 	movups	($key),$rndkey0
 	movups	16($key),$rndkey1
@@ -3862,23 +3855,13 @@ if ($ENV{SARCASM}) {
 	jmp	.Lcbc_ret
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	xchg	$inp,$out	# $inp is %rsi and $out is %rdi now
-.Lcbc_enc_tail_copy:			# explicit loops (were rep movsb/stosb;
-	mov	(%rsi),%al	# string ops are not memory-safe)
-	mov	%al,(%rdi)
-	lea	1(%rsi),%rsi
-	lea	1(%rdi),%rdi
-	sub	\$1,%ecx
-	jnz	.Lcbc_enc_tail_copy
+	.long	0x9066A4F3	# rep movsb
 	mov	\$16,%ecx	# zero tail
 	sub	$len,%rcx
 	xor	%eax,%eax
-.Lcbc_enc_tail_zero:
-	mov	%al,(%rdi)
-	lea	1(%rdi),%rdi
-	sub	\$1,%ecx
-	jnz	.Lcbc_enc_tail_zero
+	.long	0x9066AAF3	# rep stosb
 	lea	-16(%rdi),%rdi	# rewind $out by 1 block
 	mov	$rnds_,$rounds	# restore $rounds
 	mov	%rdi,%rsi	# $inp and $out are the same
@@ -3919,7 +3902,7 @@ $code.=<<___;
 	sub	\$$frame_size,%rsp
 ___
 if (!$ENV{SARCASM}) {
-	$code.=<<___;
+  $code.=<<___;
 	and	\$-16,%rsp	# Linux kernel stack can be incorrectly seeded
 ___
 }
@@ -4335,9 +4318,9 @@ $code.=<<___;
 .align	16
 ___
 if ($ENV{SARCASM}) {
-	# SARCASM: no frame take (rejected); stream the partial bytes straight
-	# out of the XMM register with movd/psrldq (no frame temp needed).
-	$code.=<<___;
+  # SARCASM: no frame take (rejected); stream the partial bytes straight
+  # out of the XMM register with movd/psrldq (no frame temp needed).
+  $code.=<<___;
 .Lcbc_dec_tail_partial:
 	mov	$out,%rdi
 	mov	\$16,%rcx
@@ -4352,7 +4335,7 @@ if ($ENV{SARCASM}) {
 	pxor	$inout0,$inout0
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 .Lcbc_dec_tail_partial:
 	movaps	$inout0,(%rsp)
 	pxor	$inout0,$inout0
@@ -4360,13 +4343,7 @@ ___
 	mov	$out,%rdi
 	sub	$len,%rcx
 	lea	(%rsp),%rsi
-.Lcbc_dec_tail_copy:			# explicit loop (was rep movsb;
-	mov	(%rsi),%al	# string ops are not memory-safe)
-	mov	%al,(%rdi)
-	lea	1(%rsi),%rsi
-	lea	1(%rdi),%rdi
-	sub	\$1,%ecx
-	jnz	.Lcbc_dec_tail_copy
+	.long	0x9066A4F3		# rep movsb
 	movdqa	$inout0,(%rsp)
 ___
 }
@@ -4432,10 +4409,10 @@ ${PREFIX}_set_decrypt_key: #! int(ptr,int,ptr)
 	call	aesni_set_encrypt_key #! int(ptr,int,ptr)	# (was the __aesni_set_encrypt_key alias)
 ___
 if ($ENV{SARCASM}) {
-	# A signatured call preserves only the %eax result: the %esi
-	# side-channel (rounds-1) does not survive. Reload the round count
-	# from the key schedule instead.
-	$code.=<<___;
+  # A signatured call preserves only the %eax result: the %esi
+  # side-channel (rounds-1) does not survive. Reload the round count
+  # from the key schedule instead.
+  $code.=<<___;
 	test	%eax,%eax
 	jnz	.Ldec_key_ret
 	mov	240($key),$bits		# rounds-1 is stored at 240($key)
@@ -4443,7 +4420,7 @@ if ($ENV{SARCASM}) {
 	lea	16($key,$bits),$inp	# points at the end of key schedule
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	shl	\$4,$bits		# rounds-1 after _aesni_set_encrypt_key
 	test	%eax,%eax
 	jnz	.Ldec_key_ret
@@ -4815,10 +4792,10 @@ __aesni_set_encrypt_key:
 .LSEH_end_set_encrypt_key:
 ___
 if ($ENV{SARCASM}) {
-	# End the function body here: the key-expansion subroutines below are
-	# file-local call/ret routines, and sarcasm's local-subroutine
-	# discovery works on unconsumed top-level statements.
-	$code.=<<___;
+  # End the function body here: the key-expansion subroutines below are
+  # file-local call/ret routines, and sarcasm's local-subroutine
+  # discovery works on unconsumed top-level statements.
+  $code.=<<___;
 .cfi_endproc
 .size	${PREFIX}_set_encrypt_key,.-${PREFIX}_set_encrypt_key
 .size	__aesni_set_encrypt_key,.-__aesni_set_encrypt_key
@@ -4896,7 +4873,7 @@ $code.=<<___;
 	ret
 ___
 if (!$ENV{SARCASM}) {
-	$code.=<<___;
+  $code.=<<___;
 .cfi_endproc
 .size	${PREFIX}_set_encrypt_key,.-${PREFIX}_set_encrypt_key
 .size	__aesni_set_encrypt_key,.-__aesni_set_encrypt_key

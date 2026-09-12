@@ -52,7 +52,7 @@ tar -xvf gcc-14.2.0.tar.xz
 ../configure \
     --target=$LFS_TGT \
     --prefix=$LFS/tools \
-    --with-glibc-version=2.40 \
+    --with-glibc-version=2.44 \
     --with-sysroot=$LFS \
     --with-newlib \
     --without-headers \
@@ -569,7 +569,7 @@ ln -sv pkgconf.1 /usr/share/man/man1/pkg-config.1
 
 ./configure --prefix=/usr \
     --disable-static \
-    --docdir=/usr/share/doc/acl-2.3.2
+    --docdir=/usr/share/doc/acl-2.4.0
 
 # libxcrypt
 

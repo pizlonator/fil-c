@@ -146,26 +146,22 @@ void collect_into(const std::string& root, const std::string& rel,
         c.content.assign(buf.data(), (size_t)r);
         if (c.content.find('\0') != std::string::npos)
             die(what + ": '" + rel + "' is a binary file; binary files are not supported");
-        // Fail fast on escaping targets (absolute or any ".." component),
-        // exactly like tar unpack and patch application: refusing here keeps
-        // commit from storing a patch that setup would later have to refuse.
-        if (!c.content.empty() && c.content[0] == '/')
-            die(what + ": '" + rel + "' links to absolute target '" + c.content +
-                "'; refusing (symlink escape)");
+        // Fail fast on targets that do not stay inside the tree (absolute,
+        // or resolving above the root), exactly like tar unpack and patch
+        // application: refusing here keeps commit from storing a patch that
+        // setup would later have to refuse. In-tree ".." spellings (e.g.
+        // "sub/link -> ../file") resolve back inside and are fine.
         {
-            size_t i = 0;
-            while (i <= c.content.size()) {
-                size_t j = c.content.find('/', i);
-                std::string comp = (j == std::string::npos)
-                                       ? c.content.substr(i)
-                                       : c.content.substr(i, j - i);
-                if (comp == "..")
-                    die(what + ": '" + rel + "' links to '" + c.content +
-                        "'; refusing (link target escapes the tree)");
-                if (j == std::string::npos)
-                    break;
-                i = j + 1;
-            }
+            std::string resolved;
+            LinkResolve lr =
+                resolve_link_target(dirname_of(rel), c.content, &resolved);
+            if (lr == LinkResolve::Absolute)
+                die(what + ": '" + rel + "' links to absolute target '" +
+                    c.content + "'; refusing (symlink escape)");
+            if (lr == LinkResolve::Escapes)
+                die(what + ": '" + rel + "' links to '" + c.content +
+                    "' (resolves to '" + resolved +
+                    "'); refusing (link target escapes the tree)");
         }
         out[rel] = c;
         return;
@@ -1520,28 +1516,40 @@ bool is_exec_mode(const std::string& m)
     return m == "100755";
 }
 
-void check_patch_link_target(const std::string& member, const std::string& target)
+// The tree-relative spelling of an on-disk member path. `full` is always
+// join_path(root, rel) with a validated rel at every call site, so a missing
+// prefix means a caller bookkeeping bug: die loudly rather than resolve
+// against a bogus base.
+std::string rel_under(const std::string& root, const std::string& full)
+{
+    if (full == root)
+        return "";
+    if (starts_with(full, root + "/"))
+        return full.substr(root.size() + 1);
+    die("internal error: '" + full + "' is not inside '" + root + "'");
+}
+
+void check_patch_link_target(const std::string& root, const std::string& member,
+                             const std::string& target)
 {
     // Same validation as tar unpack (tree.cc check_tar_link_target): reject
-    // absolute targets and any ".." component so a malicious patch cannot
-    // create symlinks escaping the workdir.
+    // absolute targets and targets that resolve outside the tree so a
+    // malicious patch cannot create symlinks escaping the workdir. In-tree
+    // ".." spellings (e.g. "sub/link -> ../file") resolve back inside the
+    // tree and are fine. `member` is an on-disk path under `root`; the link
+    // is named (and its target resolved) tree-relatively.
     if (target.empty())
         return;
+    std::string rel = rel_under(root, member);
     if (target[0] == '/')
-        die("patch creates symlink '" + member + "' with absolute target '" +
+        die("patch creates symlink '" + rel + "' with absolute target '" +
             target + "'; refusing (symlink escape)");
-    size_t i = 0;
-    while (i <= target.size()) {
-        size_t j = target.find('/', i);
-        std::string comp =
-            (j == std::string::npos) ? target.substr(i) : target.substr(i, j - i);
-        if (comp == "..")
-            die("patch creates symlink '" + member + "' with target '" + target +
-                "'; refusing (link target escapes the tree)");
-        if (j == std::string::npos)
-            break;
-        i = j + 1;
-    }
+    std::string resolved;
+    if (resolve_link_target(dirname_of(rel), target, &resolved) ==
+        LinkResolve::Escapes)
+        die("patch creates symlink '" + rel + "' with target '" + target +
+            "' (resolves to '" + resolved +
+            "'); refusing (link target escapes the tree)");
 }
 
 // Binary-safe content probe: lstat first so symlinks compare by target
@@ -1583,11 +1591,12 @@ RawContent read_raw_content(const std::string& full)
 // mode == "120000" (target = bytes, validated like every other link the
 // patch creates). Regular writes set an explicit 0755/0644 when mode names
 // one, else leave the fresh 0666&~umask bits for the caller to restore.
-void write_raw_target(const std::string& full, const std::string& bytes,
+void write_raw_target(const std::string& root, const std::string& full,
+                      const std::string& bytes,
                       const std::string& mode /* "" if keep */)
 {
     if (mode == "120000") {
-        check_patch_link_target(full, bytes);
+        check_patch_link_target(root, full, bytes);
         make_dirs(dirname_of(full));
         unlink(full.c_str());
         if (symlink(bytes.c_str(), full.c_str()) != 0)
@@ -1636,14 +1645,15 @@ bool path_is_binary_file(const std::string& full)
     return found;
 }
 
-void write_target(const std::string& full, const FileLines& fl,
+void write_target(const std::string& root, const std::string& full,
+                  const FileLines& fl,
                   const std::string& mode /* "" if keep */)
 {
     if (mode == "120000") {
         // Symlink: content is the single target line. Validate exactly like
         // tar unpack so patch symlinks cannot escape the tree.
         std::string target = fl.lines.empty() ? "" : fl.lines[0];
-        check_patch_link_target(full, target);
+        check_patch_link_target(root, full, target);
         make_dirs(dirname_of(full));
         unlink(full.c_str());
         if (symlink(target.c_str(), full.c_str()) != 0)
@@ -2028,7 +2038,7 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
             }
             if (!creatable_under(treedir, new_full))
                 return BlkStatus::Failed;
-            write_raw_target(new_full, blk.bin_new, blk.new_mode);
+            write_raw_target(treedir, new_full, blk.bin_new, blk.new_mode);
             return BlkStatus::Applied;
         }
         // Create. Already-applied when the file exists with expected content.
@@ -2080,7 +2090,7 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
         }
         if (!creatable_under(treedir, new_full))
             return BlkStatus::Failed;
-        write_target(new_full, exp, blk.new_mode);
+        write_target(treedir, new_full, exp, blk.new_mode);
         return BlkStatus::Applied;
     }
 
@@ -2251,12 +2261,12 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
                     return BlkStatus::Failed;
                 remove_recursive(src_full);
             } else {
-                write_raw_target(dst_full, blk.bin_new, eff_mode);
+                write_raw_target(treedir, dst_full, blk.bin_new, eff_mode);
                 if (src_full != dst_full)
                     remove_recursive(src_full);
             }
         } else {
-            write_raw_target(dst_full, blk.bin_new, eff_mode);
+            write_raw_target(treedir, dst_full, blk.bin_new, eff_mode);
         }
         if (have_src_full_mode) {
             struct stat dst_st;
@@ -2403,11 +2413,11 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
     }
     if (blk.is_rename) {
         // Write to the new path, remove the old.
-        write_target(dst_full, res, eff_mode);
+        write_target(treedir, dst_full, res, eff_mode);
         if (src_full != dst_full)
             remove_recursive(src_full);
     } else {
-        write_target(dst_full, res, eff_mode);
+        write_target(treedir, dst_full, res, eff_mode);
     }
     if (have_src_full_mode) {
         struct stat dst_st;
@@ -3074,7 +3084,8 @@ std::vector<Change> changes_from(const std::vector<std::string>& base,
 } // namespace
 
 bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_file,
-                        const std::string& theirs_file, const std::string& dst_path)
+                        const std::string& theirs_file, const std::string& dst_path,
+                        const std::string& dst_root)
 {
     // Symlink-ancestor safety (no check needed here, by construction):
     // every caller passes a dst inside a tool-created temp tree (setup and
@@ -3128,7 +3139,7 @@ bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_fi
                 if (r < 0)
                     die("cannot read link '" + src + "': " + strerror(errno));
                 std::string target(buf.data(), (size_t)r);
-                check_patch_link_target(dst_path, target);
+                check_patch_link_target(dst_root, dst_path, target);
                 if (symlink(target.c_str(), dst_path.c_str()) != 0)
                     die("cannot create symlink '" + dst_path +
                         "': " + strerror(errno));
@@ -3201,7 +3212,7 @@ bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_fi
         struct stat sst;
         if (lstat(src.c_str(), &sst) == 0 && S_ISLNK(sst.st_mode)) {
             std::string target = read_target(src);
-            check_patch_link_target(dst_path, target);
+            check_patch_link_target(dst_root, dst_path, target);
             unlink(dst_path.c_str());
             if (symlink(target.c_str(), dst_path.c_str()) != 0)
                 die("cannot create symlink '" + dst_path +

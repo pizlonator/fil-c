@@ -1,0 +1,24 @@
+Potential buffer overflow in ns_sprintrrf TSIG handling path
+
+The deprecated functions ns_printrrf, ns_printrr and fp_nquery in the
+GNU C Library version 2.2 and newer fail to enforce the caller-supplied
+buffer length, and can result in an out-of-bounds write when printing
+TSIG records.
+
+A defect in the TSIG case handling within ns_sprintrrf performs a
+formatted write using sprintf without checking the remaining buffer
+length, and may write up to 6 bytes past the end of the buffer.  If the
+library is compiled with assertions, and the out-of-bounds write doesn't
+terminate the process, then a subsequent check for "len <= *buflen" will
+trigger an assertion failure.
+
+These functions are for application debugging only and hence not in the
+path of code executed by the DNS resolver. Further, they have been
+deprecated since version 2.34 (2021-08-02) and should not be used by any
+new applications.  Applications should consider porting away from these
+interfaces since they may be removed in future versions.
+
+CVE-Id: CVE-2026-5435
+Public-Date: 2026-04-02
+Vulnerable-Commit: b43b13ac2544b11f35be301d1589b51a8473e32b (2.2)
+Reported-by: shinobu

@@ -313,6 +313,7 @@ rb_clear_method_cache(VALUE klass_or_module, ID mid)
 // gc.c
 void rb_cc_table_free(VALUE klass);
 
+#ifndef __FILC__
 static int
 invalidate_all_refinement_cc(void *vstart, void *vend, size_t stride, void *data)
 {
@@ -336,6 +337,7 @@ invalidate_all_refinement_cc(void *vstart, void *vend, size_t stride, void *data
     }
     return 0; // continue to iteration
 }
+#endif /* !__FILC__ */
 
 static st_index_t
 vm_ci_hash(VALUE v)
@@ -454,8 +456,16 @@ rb_vm_ci_free(const struct rb_callinfo *ci)
 void
 rb_clear_all_refinement_method_cache(void)
 {
+#ifdef __FILC__
+    /* Fil-C: vm_call_refined never caches cc_type_refinement CCs at call
+       sites (see vm_insnhelper.c), so there are no refinement CCs that need
+       invalidating here.  We also could not walk the heap to find them
+       because rb_objspace_each_objects is unimplemented in this port. */
+    rb_yjit_invalidate_all_method_lookup_assumptions();
+#else
     rb_objspace_each_objects(invalidate_all_refinement_cc, NULL);
     rb_yjit_invalidate_all_method_lookup_assumptions();
+#endif
 }
 
 void

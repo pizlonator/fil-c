@@ -32,26 +32,36 @@ CXXFLAGS ?= -std=c++17 -O2 -g -Wall -Wextra
 CPPFLAGS ?=
 LDFLAGS ?=
 
+# Set BUILD_DIR to build out-of-tree: all build products (object files, dep
+# files, and the projeny binary) land in $(BUILD_DIR) instead of next to the
+# sources. Each BUILD_DIR is independent, so multiple compilers (e.g. the
+# system compiler and Fil-C) can share this source tree without clobbering
+# each other's build products. The default builds in-tree, as before.
+BUILD_DIR ?= .
+
 SRC := src/main.cc src/util.cc src/projeny_file.cc src/tree.cc src/ops.cc src/vcs.cc
-OBJ := $(SRC:.cc=.o)
+OBJ := $(addprefix $(BUILD_DIR)/,$(SRC:.cc=.o))
 DEP := $(OBJ:.o=.d)
-BIN := projeny
+BIN := $(BUILD_DIR)/projeny
 
 all: $(BIN)
 
 $(BIN): $(OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(LDFLAGS)
 
 # Automatic header dependencies; parallel-safe (-j).
-%.o: %.cc
+$(BUILD_DIR)/%.o: %.cc
+	@mkdir -p $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
 -include $(DEP)
 
 test check: all
-	./tests/run_tests.sh ./$(BIN)
+	./tests/run_tests.sh $(BIN)
 
 clean:
 	rm -f $(BIN) $(OBJ) $(DEP)
+	-rmdir $(BUILD_DIR)/src $(BUILD_DIR) 2>/dev/null
 
 .PHONY: all test check clean

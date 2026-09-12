@@ -28,8 +28,10 @@
 set -e
 set -x
 
-cd projects/util-linux-2.40.2
-extract_source
+cd projects
+rm -rf util-linux/extracted-source
+../filc/projeny extract util-linux.projeny util-linux/extracted-source
+cd util-linux/extracted-source
 PATH=$PWD/../../../pizfix/bin:$PATH CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ ./configure --prefix=$PWD/../../../pizfix \
     --disable-chfn-chsh \
     --disable-login \
@@ -47,4 +49,6 @@ PATH=$PWD/../../../pizfix/bin:$PATH CC=$PWD/../../../build/bin/clang CXX=$PWD/..
     --disable-makeinstall-setuid
 make -j $NCPU
 make -j $NCPU install
+cd ..
+rm -rf extracted-source
 

@@ -172,9 +172,9 @@ $code.=<<___;
 
 	inc	$XX[0]#b
 ___
-	# NOTE: $out is no longer biased by $in0 (that subtraction subtracts
-	# pointers to different objects, which capability-strict runtimes
-	# forbid); $out advances in lockstep with $in0 instead.
+  # NOTE: $out is no longer biased by $in0 (that subtraction subtracts
+  # pointers to different objects, which capability-strict runtimes
+  # forbid); $out advances in lockstep with $in0 instead.
 $code.=<<___;
 	movl	($dat,$XX[0],4),$TX[0]#d
 ___

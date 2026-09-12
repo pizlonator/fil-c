@@ -4,6 +4,13 @@
 # noops, divergent merges (clean + conflicting, the latter exiting nonzero),
 # add/rm/mv + commit, rebase (clean + conflict), package/extract (tracked-only
 # payloads, compression autodetect, conflict refusal), and the hard-error paths.
+# Later sections cover the dot-prefixed bookkeeping names: legacy undotted
+# .projeny.status / .snapshot migration on first use, stale-state
+# reconciliation (.stale, .stale2, ...) when the workdir is gone (both
+# naming forms, plus the previous archive's snapshot after a rebase), the
+# setup-journal crash window (nothing is staled while recovery state is
+# needed), the workdir-without-status hard error, and snapshot
+# copy-on-fallback from the tarball (setup and status).
 #
 # Bash is required (process substitution in the status-copy comparisons
 # below); /bin/sh (dash) cannot run this suite.
@@ -210,13 +217,13 @@ else
     fail "fresh setup creates workdir with files" "ls: $(ls -R "$T1" 2>&1)"
 fi
 expect_file_contains "fresh setup workdir has v1 content" "$T1/fake/README" "hello v1"
-if [ -f "$T1/fake.projeny.status" ]; then
+if [ -f "$T1/.fake.projeny.status" ]; then
     ok "fresh setup writes status file"
 else
     fail "fresh setup writes status file"
 fi
-expect_file_contains "status reports setup state" "$T1/fake.projeny.status" "Status: setup"
-expect_file_contains "status embeds projeny verbatim" "$T1/fake.projeny.status" "Archive: fake-1.0.tar.gz"
+expect_file_contains "status reports setup state" "$T1/.fake.projeny.status" "Status: setup"
+expect_file_contains "status embeds projeny verbatim" "$T1/.fake.projeny.status" "Archive: fake-1.0.tar.gz"
 
 # ----------------------------------------------- 2. edit + commit roundtrip
 T2="$ROOT/t2"
@@ -231,7 +238,7 @@ open(p, "w").write(s)
 EOF
 run_in "$T2" expect_ok "commit edited file exits 0" "$PROJENY" commit fake.projeny
 expect_file_contains "commit stores diff in projeny" "$T2/fake.projeny" "alpha = 10"
-expect_file_contains "commit refreshes status copy" "$T2/fake.projeny.status" "alpha = 10"
+expect_file_contains "commit refreshes status copy" "$T2/.fake.projeny.status" "alpha = 10"
 run_in "$T2" expect_ok "setup-again noop exits 0" "$PROJENY" setup fake.projeny
 expect_file_contains "setup-again keeps committed edit" "$T2/fake/src/a.c" "alpha = 10"
 
@@ -260,7 +267,7 @@ EOF
 (cd "$T3" && "$PROJENY" commit fake.projeny >/dev/null 2>&1)
 cp "$T3/fake.projeny" "$ROOT/t3-upstream.projeny"
 # local clone: local base + uncommitted beta-region edit, then upstream merge.
-rm -rf "$T3/fake" "$T3/fake.projeny.status"
+rm -rf "$T3/fake" "$T3/.fake.projeny.status"
 cp "$ROOT/t3-local.projeny" "$T3/fake.projeny"
 (cd "$T3" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
 python3 - "$T3/fake/src/a.c" <<'EOF'
@@ -276,8 +283,8 @@ expect_file_contains "divergent merge keeps committed delta edit" "$T3/fake/src/
 expect_file_contains "divergent merge takes upstream gamma edit" "$T3/fake/src/a.c" "gamma = 200"
 expect_file_contains "divergent merge takes upstream v2 alpha" "$T3/fake/src/a.c" "alpha = 2"
 expect_file_not_contains "divergent merge has no conflict markers" "$T3/fake/src/a.c" "<<<<<<<"
-if grep -q "^Conflict:" "$T3/fake.projeny.status"; then
-    fail "divergent merge records no conflicts" "$(cat "$T3/fake.projeny.status")"
+if grep -q "^Conflict:" "$T3/.fake.projeny.status"; then
+    fail "divergent merge records no conflicts" "$(cat "$T3/.fake.projeny.status")"
 else
     ok "divergent merge records no conflicts"
 fi
@@ -295,7 +302,7 @@ open(p, "w").write(s)
 EOF
 (cd "$T4" && "$PROJENY" commit fake.projeny >/dev/null 2>&1)
 cp "$T4/fake.projeny" "$ROOT/t4-local.projeny"
-rm -rf "$T4/fake" "$T4/fake.projeny.status"
+rm -rf "$T4/fake" "$T4/.fake.projeny.status"
 cp "$ROOT/t4-local.projeny" "$T4/fake.projeny"
 (cd "$T4" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
 python3 - "$T4/fake/src/a.c" <<'EOF'
@@ -320,12 +327,12 @@ EOF
 cp "$U4/fake.projeny" "$T4/fake.projeny"
 run_in "$T4" expect_fail "conflicting setup merge exits nonzero (with markers)" "$PROJENY" setup fake.projeny
 expect_file_contains "conflicting merge leaves markers" "$T4/fake/src/a.c" "<<<<<<<"
-expect_file_contains "conflicting merge lists conflict in status" "$T4/fake.projeny.status" "Conflict: src/a.c"
+expect_file_contains "conflicting merge lists conflict in status" "$T4/.fake.projeny.status" "Conflict: src/a.c"
 run_in "$T4" expect_fail "commit fails while conflicted" "$PROJENY" commit fake.projeny
 printf 'int alpha = 1;\n\nint beta = 777;\n\nint gamma = 1;\n\nint delta = 1;\n' > "$T4/fake/src/a.c"
 run_in "$T4" expect_ok "resolve clears conflict" "$PROJENY" resolve fake.projeny fake/src/a.c
-if grep -q "^Conflict:" "$T4/fake.projeny.status"; then
-    fail "resolve removes conflict entry" "$(cat "$T4/fake.projeny.status")"
+if grep -q "^Conflict:" "$T4/.fake.projeny.status"; then
+    fail "resolve removes conflict entry" "$(cat "$T4/.fake.projeny.status")"
 else
     ok "resolve removes conflict entry"
 fi
@@ -339,7 +346,7 @@ write_projeny "$T5" fake 1.0 fake
 (cd "$T5" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
 printf 'brand new file\n' > "$T5/fake/src/added.c"
 run_in "$T5" expect_ok "add marks new file" "$PROJENY" add fake.projeny fake/src/added.c
-expect_file_contains "add records pending op in status" "$T5/fake.projeny.status" "Added: src/added.c"
+expect_file_contains "add records pending op in status" "$T5/.fake.projeny.status" "Added: src/added.c"
 run_in "$T5" expect_ok "commit folds add into patch" "$PROJENY" commit fake.projeny
 expect_file_contains "add commit stores new-file diff" "$T5/fake.projeny" "new file"
 expect_file_contains "add commit keeps new content" "$T5/fake.projeny" "brand new file"
@@ -357,7 +364,7 @@ if [ ! -e "$T6/fake/src/b.c" ]; then
 else
     fail "rm removes file from workdir"
 fi
-expect_file_contains "rm records pending op in status" "$T6/fake.projeny.status" "Removed: src/b.c"
+expect_file_contains "rm records pending op in status" "$T6/.fake.projeny.status" "Removed: src/b.c"
 run_in "$T6" expect_ok "commit folds rm into patch" "$PROJENY" commit fake.projeny
 expect_file_contains "rm commit stores deletion diff" "$T6/fake.projeny" "deleted file"
 run_in "$T6" expect_ok "setup-again after rm-commit" "$PROJENY" setup fake.projeny
@@ -373,7 +380,7 @@ make_tarballs "$T7" fake
 write_projeny "$T7" fake 1.0 fake
 (cd "$T7" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
 run_in "$T7" expect_ok "mv renames file" "$PROJENY" mv fake.projeny fake/src/b.c fake/src/renamed.c
-expect_file_contains "mv records pending op in status" "$T7/fake.projeny.status" "Renamed: src/b.c -> src/renamed.c"
+expect_file_contains "mv records pending op in status" "$T7/.fake.projeny.status" "Renamed: src/b.c -> src/renamed.c"
 run_in "$T7" expect_ok "commit folds mv into patch" "$PROJENY" commit fake.projeny
 expect_file_contains "mv commit stores rename" "$T7/fake.projeny" "rename from"
 run_in "$T7" expect_ok "setup-again after mv-commit" "$PROJENY" setup fake.projeny
@@ -415,7 +422,7 @@ EOF
 (cd "$T9" && "$PROJENY" commit fake.projeny >/dev/null 2>&1)
 run_in "$T9" expect_ok "conflicting rebase exits 0 (with markers)" "$PROJENY" rebase fake.projeny fake-2.0.tar.gz
 expect_file_contains "conflicting rebase leaves markers" "$T9/fake/src/a.c" "<<<<<<<"
-expect_file_contains "conflicting rebase records conflict" "$T9/fake.projeny.status" "Conflict: src/a.c"
+expect_file_contains "conflicting rebase records conflict" "$T9/.fake.projeny.status" "Conflict: src/a.c"
 expect_file_contains "conflicting rebase still updates Archive" "$T9/fake.projeny" "Archive: fake-2.0.tar.gz"
 
 # ----------------------------------------- 10. missing-status setup error
@@ -423,7 +430,7 @@ T10="$ROOT/t10"
 make_tarballs "$T10" fake
 write_projeny "$T10" fake 1.0 fake
 (cd "$T10" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
-rm "$T10/fake.projeny.status"
+rm "$T10/.fake.projeny.status"
 run_in "$T10" expect_fail "setup without status hard-errors" "$PROJENY" setup fake.projeny
 
 # ----------------------------------------- 11. bad tarball (multi top-level)
@@ -477,7 +484,7 @@ printf 'keep   \nline2\t\n  indented  \n' > "$T15/fake/src/spacey.c"
 run_in "$T15" expect_ok "add trailing-whitespace file" "$PROJENY" add fake.projeny fake/src/spacey.c
 run_in "$T15" expect_ok "commit trailing-whitespace file" "$PROJENY" commit fake.projeny
 cp "$T15/fake/src/spacey.c" "$ROOT/t15-expect-spacey.c"
-rm -rf "$T15/fake" "$T15/fake.projeny.status"
+rm -rf "$T15/fake" "$T15/.fake.projeny.status"
 run_in "$T15" expect_ok "fresh setup after whitespace commit" "$PROJENY" setup fake.projeny
 if cmp -s "$T15/fake/src/spacey.c" "$ROOT/t15-expect-spacey.c"; then
     ok "trailing-whitespace file identical after fresh setup"
@@ -488,7 +495,7 @@ fi
 printf 'extra   \n' >> "$T15/fake/src/spacey.c"
 cp "$T15/fake/src/spacey.c" "$ROOT/t15-expect-spacey.c"
 run_in "$T15" expect_ok "commit appended trailing-whitespace line" "$PROJENY" commit fake.projeny
-rm -rf "$T15/fake" "$T15/fake.projeny.status"
+rm -rf "$T15/fake" "$T15/.fake.projeny.status"
 run_in "$T15" expect_ok "fresh setup after append commit" "$PROJENY" setup fake.projeny
 if cmp -s "$T15/fake/src/spacey.c" "$ROOT/t15-expect-spacey.c"; then
     ok "appended trailing-whitespace line identical after fresh setup"
@@ -569,11 +576,11 @@ printf 'old\n' > "$T18/w-1.0/src/old -> file.c"
 printf 'Archive: w-1.0.tar.gz\nOrigname: w-1.0\nName: w\n\n    Tricky names.\n' > "$T18/w.projeny"
 (cd "$T18" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 run_in "$T18" expect_ok "mv arrow-name file" "$PROJENY" mv w.projeny "w/src/old -> file.c" "w/src/new -> file.c"
-expect_file_contains "status stores escaped rename" "$T18/w.projeny.status" 'Renamed: src/old -\> file.c -> src/new -\> file.c'
+expect_file_contains "status stores escaped rename" "$T18/.w.projeny.status" 'Renamed: src/old -\> file.c -> src/new -\> file.c'
 run_in "$T18" expect_ok "add alongside tricky rename" "$PROJENY" add w.projeny w/src/a.c
 run_in "$T18" expect_ok "commit tricky rename" "$PROJENY" commit w.projeny
 expect_file_contains "tricky commit stores rename" "$T18/w.projeny" "rename from"
-rm -rf "$T18/w" "$T18/w.projeny.status"
+rm -rf "$T18/w" "$T18/.w.projeny.status"
 run_in "$T18" expect_ok "fresh setup after tricky commit" "$PROJENY" setup w.projeny
 if [ -f "$T18/w/src/new -> file.c" ] && [ ! -e "$T18/w/src/old -> file.c" ]; then
     ok "tricky rename survives re-setup"
@@ -590,7 +597,7 @@ write_projeny "$T19" fake 1.0 fake
 printf 'int alpha = 1;\n\nint beta = 1;\n\nint gamma = 1;\n\nint delta = 1;\n' > "$T19/fake/src/a.c"
 (cd "$T19" && "$PROJENY" commit fake.projeny >/dev/null 2>&1)
 cp "$T19/fake.projeny" "$ROOT/t19-local.projeny"
-rm -rf "$T19/fake" "$T19/fake.projeny.status"
+rm -rf "$T19/fake" "$T19/.fake.projeny.status"
 cp "$ROOT/t19-local.projeny" "$T19/fake.projeny"
 (cd "$T19" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
 python3 - "$T19/fake/src/a.c" <<'EOF'
@@ -660,7 +667,7 @@ write_projeny "$T21" fake 1.0 fake
 printf 'pending new\n' > "$T21/fake/src/pending.c"
 run_in "$T21" expect_ok "stage pending add before rebase" "$PROJENY" add fake.projeny fake/src/pending.c
 run_in "$T21" expect_ok "clean rebase with pending add" "$PROJENY" rebase fake.projeny fake-2.0.tar.gz
-expect_file_contains "rebase preserves pending add" "$T21/fake.projeny.status" "Added: src/pending.c"
+expect_file_contains "rebase preserves pending add" "$T21/.fake.projeny.status" "Added: src/pending.c"
 expect_file_contains "rebase keeps pending file" "$T21/fake/src/pending.c" "pending new"
 
 # ----------------------------------------- 22. bare resolve path UX
@@ -677,7 +684,7 @@ open(p, "w").write(s)
 EOF
 (cd "$T22" && "$PROJENY" commit fake.projeny >/dev/null 2>&1)
 cp "$T22/fake.projeny" "$ROOT/t22-local.projeny"
-rm -rf "$T22/fake" "$T22/fake.projeny.status"
+rm -rf "$T22/fake" "$T22/.fake.projeny.status"
 cp "$ROOT/t22-local.projeny" "$T22/fake.projeny"
 (cd "$T22" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
 python3 - "$T22/fake/src/a.c" <<'EOF'
@@ -702,8 +709,8 @@ cp "$U22/fake.projeny" "$T22/fake.projeny"
 (cd "$T22" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
 printf 'int alpha = 1;\n\nint beta = 777;\n\nint gamma = 1;\n\nint delta = 1;\n' > "$T22/fake/src/a.c"
 run_in "$T22" expect_ok "resolve accepts bare wid-relative path" "$PROJENY" resolve fake.projeny src/a.c
-if grep -q "^Conflict:" "$T22/fake.projeny.status"; then
-    fail "bare resolve removes conflict entry" "$(cat "$T22/fake.projeny.status")"
+if grep -q "^Conflict:" "$T22/.fake.projeny.status"; then
+    fail "bare resolve removes conflict entry" "$(cat "$T22/.fake.projeny.status")"
 else
     ok "bare resolve removes conflict entry"
 fi
@@ -752,7 +759,7 @@ PYEOF
 elif command -v python3 >/dev/null 2>&1; then
     ok "space/arrow stored patch passes git apply --check (skipped: no git)"
 fi
-rm -rf "$T23/w" "$T23/w.projeny.status"
+rm -rf "$T23/w" "$T23/.w.projeny.status"
 run_in "$T23" expect_ok "fresh setup after space/arrow commit" "$PROJENY" setup w.projeny
 if cmp -s "$T23/w/new -> file.c" "$ROOT/t23-expect-arrow.c"; then
     ok "arrow-name file identical after fresh setup"
@@ -786,7 +793,7 @@ fi
 run_in "$T24" expect_ok "add empty file" "$PROJENY" add w.projeny w/newempty.c
 run_in "$T24" expect_ok "commit empty file" "$PROJENY" commit w.projeny
 expect_file_contains "empty commit stores new-file entry" "$T24/w.projeny" "new file mode"
-rm -rf "$T24/w" "$T24/w.projeny.status"
+rm -rf "$T24/w" "$T24/.w.projeny.status"
 run_in "$T24" expect_ok "setup after empty commit" "$PROJENY" setup w.projeny
 if [ -f "$T24/w/newempty.c" ] && [ ! -s "$T24/w/newempty.c" ]; then
     ok "empty added file survives re-setup"
@@ -795,7 +802,7 @@ else
 fi
 run_in "$T24" expect_ok "rm empty file" "$PROJENY" rm w.projeny w/empty.c
 run_in "$T24" expect_ok "commit empty rm" "$PROJENY" commit w.projeny
-rm -rf "$T24/w" "$T24/w.projeny.status"
+rm -rf "$T24/w" "$T24/.w.projeny.status"
 run_in "$T24" expect_ok "setup after empty rm" "$PROJENY" setup w.projeny
 if [ ! -e "$T24/w/empty.c" ]; then
     ok "deleted empty file stays deleted"
@@ -815,7 +822,7 @@ printf 'aaa\nBBB' > "$T25/w/nonl.c"
 run_in "$T25" expect_ok "no-newline commit" "$PROJENY" commit w.projeny
 expect_file_contains "no-newline commit stores marker" "$T25/w.projeny" "No newline at end of file"
 cp "$T25/w/nonl.c" "$ROOT/t25-expect-nonl.c"
-rm -rf "$T25/w" "$T25/w.projeny.status"
+rm -rf "$T25/w" "$T25/.w.projeny.status"
 run_in "$T25" expect_ok "setup after no-newline commit" "$PROJENY" setup w.projeny
 if cmp -s "$T25/w/nonl.c" "$ROOT/t25-expect-nonl.c"; then
     ok "no-newline file byte-identical after re-setup"
@@ -826,7 +833,7 @@ printf 'brand new no newline' > "$T25/w/added-no-nl.c"
 run_in "$T25" expect_ok "add no-newline file" "$PROJENY" add w.projeny w/added-no-nl.c
 run_in "$T25" expect_ok "commit no-newline add" "$PROJENY" commit w.projeny
 cp "$T25/w/added-no-nl.c" "$ROOT/t25-expect-added.c"
-rm -rf "$T25/w" "$T25/w.projeny.status"
+rm -rf "$T25/w" "$T25/.w.projeny.status"
 run_in "$T25" expect_ok "setup after no-newline add" "$PROJENY" setup w.projeny
 if cmp -s "$T25/w/added-no-nl.c" "$ROOT/t25-expect-added.c"; then
     ok "added no-newline file byte-identical after re-setup"
@@ -850,7 +857,7 @@ else
     fail "crlf commit preserves CR bytes in patch"
 fi
 cp "$T26/w/crlf.c" "$ROOT/t26-expect-crlf.c"
-rm -rf "$T26/w" "$T26/w.projeny.status"
+rm -rf "$T26/w" "$T26/.w.projeny.status"
 run_in "$T26" expect_ok "setup after crlf commit" "$PROJENY" setup w.projeny
 if cmp -s "$T26/w/crlf.c" "$ROOT/t26-expect-crlf.c"; then
     ok "crlf file byte-identical after re-setup"
@@ -881,7 +888,7 @@ else
     fail "large distant edits produce separate hunks" "found $n_hunks"
 fi
 cp "$T27/w/big.txt" "$ROOT/t27-expect-big.txt"
-rm -rf "$T27/w" "$T27/w.projeny.status"
+rm -rf "$T27/w" "$T27/.w.projeny.status"
 run_in "$T27" expect_ok "setup after large commit" "$PROJENY" setup w.projeny
 if cmp -s "$T27/w/big.txt" "$ROOT/t27-expect-big.txt"; then
     ok "large file byte-identical after re-setup"
@@ -912,7 +919,7 @@ else
     fail "close edits merge into one hunk" "found $n_hunks"
 fi
 cp "$T28/w/n.txt" "$ROOT/t28-expect-n.txt"
-rm -rf "$T28/w" "$T28/w.projeny.status"
+rm -rf "$T28/w" "$T28/.w.projeny.status"
 run_in "$T28" expect_ok "setup after close-edit commit" "$PROJENY" setup w.projeny
 if cmp -s "$T28/w/n.txt" "$ROOT/t28-expect-n.txt"; then
     ok "close-edit file identical after re-setup"
@@ -941,7 +948,7 @@ run_in "$T29" expect_ok "commit of added binary succeeds" "$PROJENY" commit fake
 expect_file_contains "added binary is stored as a binary block" "$T29/fake.projeny" "GIT binary patch"
 expect_file_contains "added binary names the file" "$T29/fake.projeny" "bin.dat"
 python3 -c "open('$ROOT/t29-expect.bin','wb').write(open('$T29/fake/src/bin.dat','rb').read())"
-rm -rf "$T29/fake" "$T29/fake.projeny.status"
+rm -rf "$T29/fake" "$T29/.fake.projeny.status"
 run_in "$T29" expect_ok "setup after binary commit" "$PROJENY" setup fake.projeny
 if cmp -s "$T29/fake/src/bin.dat" "$ROOT/t29-expect.bin"; then
     ok "binary add byte-identical after re-setup"
@@ -963,7 +970,7 @@ printf 'echo HI\n' > "$T30/w/run.sh"
 chmod 755 "$T30/w/run.sh"
 run_in "$T30" expect_ok "mode+content commit" "$PROJENY" commit w.projeny
 expect_file_contains "mode commit stores new mode" "$T30/w.projeny" "new mode 100755"
-rm -rf "$T30/w" "$T30/w.projeny.status"
+rm -rf "$T30/w" "$T30/.w.projeny.status"
 run_in "$T30" expect_ok "setup after mode commit" "$PROJENY" setup w.projeny
 if [ -x "$T30/w/run.sh" ]; then
     ok "executable bit survives re-setup"
@@ -976,7 +983,7 @@ chmod 755 "$T30/w/run.sh"
 printf 'echo YO\n' > "$T30/w/run.sh"
 chmod 755 "$T30/w/run.sh"
 run_in "$T30" expect_ok "second content commit" "$PROJENY" commit w.projeny
-rm -rf "$T30/w" "$T30/w.projeny.status"
+rm -rf "$T30/w" "$T30/.w.projeny.status"
 run_in "$T30" expect_ok "setup after second commit" "$PROJENY" setup w.projeny
 if [ -x "$T30/w/run.sh" ]; then
     ok "content-only change keeps +x after re-setup"
@@ -1075,7 +1082,7 @@ assert s2 != s
 open(p, "w").write(s2)
 PYEOF
 cp "$T32/fake/src/a.c" "$ROOT/t32-expect-a.c" 2>/dev/null || true
-rm -rf "$T32/fake" "$T32/fake.projeny.status"
+rm -rf "$T32/fake" "$T32/.fake.projeny.status"
 run_in "$T32" expect_ok "setup applies patch with shifted hunk offsets" "$PROJENY" setup fake.projeny
 expect_file_contains "shifted-offset setup yields right content" "$T32/fake/src/a.c" "gamma = 7777"
 
@@ -1097,7 +1104,7 @@ EOF
 run_in "$T33" expect_ok "commit rename+edit" "$PROJENY" commit w.projeny
 expect_file_contains "rename+edit stores rename" "$T33/w.projeny" "rename from"
 expect_file_contains "rename+edit stores content hunk" "$T33/w.projeny" "FIVE"
-rm -rf "$T33/w" "$T33/w.projeny.status"
+rm -rf "$T33/w" "$T33/.w.projeny.status"
 run_in "$T33" expect_ok "setup after rename+edit" "$PROJENY" setup w.projeny
 if [ -f "$T33/w/digits.txt" ] && [ ! -e "$T33/w/nums.txt" ]; then
     ok "rename+edit paths correct after re-setup"
@@ -1118,7 +1125,7 @@ printf 'identical bytes\n' > "$T34/w/newname.txt"
 run_in "$T34" expect_ok "add new for manual rename" "$PROJENY" add w.projeny w/newname.txt
 run_in "$T34" expect_ok "commit manual rename" "$PROJENY" commit w.projeny
 expect_file_contains "manual rename detected as rename" "$T34/w.projeny" "rename from"
-rm -rf "$T34/w" "$T34/w.projeny.status"
+rm -rf "$T34/w" "$T34/.w.projeny.status"
 run_in "$T34" expect_ok "setup after manual rename" "$PROJENY" setup w.projeny
 if [ -f "$T34/w/newname.txt" ] && [ ! -e "$T34/w/oldname.txt" ]; then
     ok "manual rename survives re-setup"
@@ -1165,21 +1172,70 @@ run_in "$T36" expect_ok "add symlink neighbor" "$PROJENY" add w.projeny w/other.
 ln -sf other.txt "$T36/w/link"
 run_in "$T36" expect_ok "commit retargeted symlink" "$PROJENY" commit w.projeny
 expect_file_contains "symlink retarget stored" "$T36/w.projeny" "other.txt"
-rm -rf "$T36/w" "$T36/w.projeny.status"
+rm -rf "$T36/w" "$T36/.w.projeny.status"
 run_in "$T36" expect_ok "setup after symlink commit" "$PROJENY" setup w.projeny
 if [ -L "$T36/w/link" ] && [ "$(readlink "$T36/w/link")" = "other.txt" ]; then
     ok "retargeted symlink survives re-setup"
 else
     fail "retargeted symlink survives re-setup" "ls: $(ls -l "$T36/w" 2>&1)"
 fi
-# Dot-dot link targets are rejected at unpack.
+# In-tree ".." link targets are kept: the check resolves the target against
+# the tree instead of string-matching "..", so "sub/../f.c" (which resolves
+# back inside e-1.0) unpacks fine.
 T36B="$ROOT/t36b"
-mkdir -p "$T36B/e-1.0"
+mkdir -p "$T36B/e-1.0/sub"
 printf 'x\n' > "$T36B/e-1.0/f.c"
 ln -s sub/../f.c "$T36B/e-1.0/esc"
 (cd "$T36B" && tar -czf e-1.0.tar.gz e-1.0)
 printf 'Archive: e-1.0.tar.gz\nOrigname: e-1.0\nName: e\n\n    Escape.\n' > "$T36B/e.projeny"
-run_in "$T36B" expect_fail "dotdot symlink target hard-errors" "$PROJENY" setup e.projeny
+run_in "$T36B" expect_ok "in-tree dotdot symlink target unpacks" "$PROJENY" setup e.projeny
+if [ -L "$T36B/e/esc" ] && [ "$(readlink "$T36B/e/esc")" = "sub/../f.c" ] && \
+   [ "$(cat "$T36B/e/esc")" = "x" ]; then
+    ok "in-tree dotdot link unpacked with target intact"
+else
+    fail "in-tree dotdot link unpacked with target intact" "$(ls -l "$T36B/e" 2>&1)"
+fi
+# A true escape (resolving above the tree root) is still rejected at unpack.
+T36D="$ROOT/t36d"
+mkdir -p "$T36D/f-1.0"
+printf 'x\n' > "$T36D/f-1.0/f.c"
+ln -s ../../escape "$T36D/f-1.0/esc"
+(cd "$T36D" && tar -czf f-1.0.tar.gz f-1.0)
+printf 'Archive: f-1.0.tar.gz\nOrigname: f-1.0\nName: f\n\n    Escape.\n' > "$T36D/f.projeny"
+run_in "$T36D" expect_fail "escaping dotdot symlink target hard-errors" "$PROJENY" setup f.projeny
+
+# An archive symlink whose ".." target resolves inside the tree survives the
+# whole setup -> commit -> package -> extract roundtrip with the link intact.
+T36C="$ROOT/t36c"
+mkdir -p "$T36C/s-1.0/sub"
+printf 'root\n' > "$T36C/s-1.0/rootfile"
+ln -s ../rootfile "$T36C/s-1.0/sub/link"
+(cd "$T36C" && tar -czf s-1.0.tar.gz s-1.0)
+printf 'Archive: s-1.0.tar.gz\nOrigname: s-1.0\nName: s\n\n    Dotdot roundtrip.\n' > "$T36C/s.projeny"
+run_in "$T36C" expect_ok "dotdot link archive setup" "$PROJENY" setup s.projeny
+if [ -L "$T36C/s/sub/link" ] && [ "$(readlink "$T36C/s/sub/link")" = "../rootfile" ]; then
+    ok "dotdot link unpacked with target intact"
+else
+    fail "dotdot link unpacked with target intact" "$(ls -l "$T36C/s/sub" 2>&1)"
+fi
+run_in "$T36C" expect_ok "commit collects dotdot link" "$PROJENY" commit s.projeny
+run_in "$T36C" expect_ok "package dotdot link tree" "$PROJENY" package s.projeny s-out.tar.gz
+mkdir -p "$T36C/unpack" && (cd "$T36C/unpack" && tar -xzf ../s-out.tar.gz)
+if [ -L "$T36C/unpack/s-out/sub/link" ] && \
+   [ "$(readlink "$T36C/unpack/s-out/sub/link")" = "../rootfile" ] && \
+   [ "$(cat "$T36C/unpack/s-out/sub/link")" = "root" ]; then
+    ok "dotdot link survives package roundtrip"
+else
+    fail "dotdot link survives package roundtrip" "$(ls -l "$T36C/unpack/s-out/sub" 2>&1)"
+fi
+run_in "$T36C" expect_ok "extract dotdot link tree" "$PROJENY" extract s.projeny extracted
+if [ -L "$T36C/extracted/sub/link" ] && \
+   [ "$(readlink "$T36C/extracted/sub/link")" = "../rootfile" ] && \
+   [ "$(cat "$T36C/extracted/sub/link")" = "root" ]; then
+    ok "dotdot link survives extract"
+else
+    fail "dotdot link survives extract" "$(ls -l "$T36C/extracted/sub" 2>&1)"
+fi
 
 # ----------------------------------------- 37. adjacent hunks stay exact
 T37="$ROOT/t37"
@@ -1204,7 +1260,7 @@ else
     fail "edits 10 lines apart give two hunks" "found $n_hunks"
 fi
 cp "$T37/w/n.txt" "$ROOT/t37-expect-n.txt"
-rm -rf "$T37/w" "$T37/w.projeny.status"
+rm -rf "$T37/w" "$T37/.w.projeny.status"
 run_in "$T37" expect_ok "setup after distant edits" "$PROJENY" setup w.projeny
 if cmp -s "$T37/w/n.txt" "$ROOT/t37-expect-n.txt"; then
     ok "distant-edit file identical after re-setup"
@@ -1224,7 +1280,7 @@ chmod 755 "$T38/w/tool.sh"
 run_in "$T38" expect_ok "add executable file" "$PROJENY" add w.projeny w/tool.sh
 run_in "$T38" expect_ok "commit executable file" "$PROJENY" commit w.projeny
 expect_file_contains "new exec stores mode" "$T38/w.projeny" "new file mode 100755"
-rm -rf "$T38/w" "$T38/w.projeny.status"
+rm -rf "$T38/w" "$T38/.w.projeny.status"
 run_in "$T38" expect_ok "setup after new-exec commit" "$PROJENY" setup w.projeny
 if [ -x "$T38/w/tool.sh" ]; then
     ok "new executable file keeps +x after re-setup"
@@ -1268,7 +1324,7 @@ cp "$T40/w/with	tab.c" "$ROOT/t40-expect-tab.c"
 run_in "$T40" expect_ok "add quoted-name file" "$PROJENY" add w.projeny 'w/say "hi".c'
 run_in "$T40" expect_ok "add tab-name file" "$PROJENY" add w.projeny 'w/with	tab.c'
 run_in "$T40" expect_ok "commit quoted names" "$PROJENY" commit w.projeny
-rm -rf "$T40/w" "$T40/w.projeny.status"
+rm -rf "$T40/w" "$T40/.w.projeny.status"
 run_in "$T40" expect_ok "setup after quoted commit" "$PROJENY" setup w.projeny
 if cmp -s "$T40/w/say \"hi\".c" "$ROOT/t40-expect-quote.c"; then
     ok "quoted-name file identical after re-setup"
@@ -1291,7 +1347,7 @@ printf 'Archive: w-1.0.tar.gz\nOrigname: w-1.0\nName: w\n\n    Long line.\n' > "
 python3 -c "open('$T41/w/long.txt','w').write('B'*100000 + '\n')"
 run_in "$T41" expect_ok "long-line commit" "$PROJENY" commit w.projeny
 cp "$T41/w/long.txt" "$ROOT/t41-expect-long.txt"
-rm -rf "$T41/w" "$T41/w.projeny.status"
+rm -rf "$T41/w" "$T41/.w.projeny.status"
 run_in "$T41" expect_ok "setup after long-line commit" "$PROJENY" setup w.projeny
 if cmp -s "$T41/w/long.txt" "$ROOT/t41-expect-long.txt"; then
     ok "long single-line file identical after re-setup"
@@ -1310,7 +1366,7 @@ printf '\tindented\nmid\tdle\ntrailing\t\n' > "$T42/w/tabs.c"
 run_in "$T42" expect_ok "add tab-content file" "$PROJENY" add w.projeny w/tabs.c
 run_in "$T42" expect_ok "commit tab-content file" "$PROJENY" commit w.projeny
 cp "$T42/w/tabs.c" "$ROOT/t42-expect-tabs.c"
-rm -rf "$T42/w" "$T42/w.projeny.status"
+rm -rf "$T42/w" "$T42/.w.projeny.status"
 run_in "$T42" expect_ok "setup after tab commit" "$PROJENY" setup w.projeny
 if cmp -s "$T42/w/tabs.c" "$ROOT/t42-expect-tabs.c"; then
     ok "tab-content file byte-identical after re-setup"
@@ -1656,7 +1712,8 @@ fi
 
 # ----------------------------------------- 46. patch symlink escape
 
-# Patch symlinks with absolute or .. targets must hard-error like tar.
+# Patch symlinks with absolute or tree-escaping targets must hard-error
+# like tar.
 
 T46="$ROOT/t46"
 
@@ -1804,12 +1861,12 @@ Name: w
 
     Base.
 EOF
-rm -rf "$T49/w" "$T49/w.projeny.status"
+rm -rf "$T49/w" "$T49/.w.projeny.status"
 (cd "$T49" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 ln -sf b.txt "$T49/w/lnk"
 cp "$ROOT/t49-upstream.projeny" "$T49/w.projeny"
 run_in "$T49" expect_fail "symlink-vs-symlink divergent merge exits nonzero (with conflict)" "$PROJENY" setup w.projeny
-expect_file_contains "symlink target mismatch conflicts" "$T49/w.projeny.status" "Conflict: lnk"
+expect_file_contains "symlink target mismatch conflicts" "$T49/.w.projeny.status" "Conflict: lnk"
 expect_file_contains "symlink conflict leaves markers" "$T49/w/lnk" "<<<<<<<"
 if [ -L "$T49/w/lnk" ]; then
     fail "symlink conflict is regular markers file, not link" "$(ls -l "$T49/w/lnk" 2>&1)"
@@ -1839,19 +1896,19 @@ Name: w
 
     Base.
 EOF
-rm -rf "$T50/w" "$T50/w.projeny.status"
+rm -rf "$T50/w" "$T50/.w.projeny.status"
 (cd "$T50" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 rm "$T50/w/f.c"
 ln -s other.txt "$T50/w/f.c"
 cp "$ROOT/t50-upstream.projeny" "$T50/w.projeny"
 run_in "$T50" expect_fail "symlink-vs-file divergent merge exits nonzero (with conflict)" "$PROJENY" setup w.projeny
-expect_file_contains "symlink-vs-file records conflict" "$T50/w.projeny.status" "Conflict: f.c"
+expect_file_contains "symlink-vs-file records conflict" "$T50/.w.projeny.status" "Conflict: f.c"
 expect_file_contains "symlink-vs-file leaves markers" "$T50/w/f.c" "<<<<<<<"
 
 # ----------------------------------------- 50. symlink merge: escape rejected
 
 # Any link placed via merge is validated like patch/tar links: absolute and
-# .. targets are rejected, never created.
+# tree-escaping targets are rejected, never created.
 
 T51="$ROOT/t51"
 mkdir -p "$T51/w-1.0"
@@ -1870,7 +1927,7 @@ Name: w
 
     Base.
 EOF
-rm -rf "$T51/w" "$T51/w.projeny.status"
+rm -rf "$T51/w" "$T51/.w.projeny.status"
 (cd "$T51" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 rm "$T51/w/f.c"
 ln -s /etc/passwd "$T51/w/f.c"
@@ -1920,7 +1977,7 @@ Name: w
 
     Base.
 EOF
-rm -rf "$T52/w" "$T52/w.projeny.status"
+rm -rf "$T52/w" "$T52/.w.projeny.status"
 (cd "$T52" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 rm "$T52/w/f.c"
 ln -s ../escape "$T52/w/f.c"
@@ -1995,7 +2052,7 @@ for _n in "$T54"/w/*.c; do
     fi
 done
 run_in "$T54" expect_ok "commit unicode names" "$PROJENY" commit w.projeny
-rm -rf "$T54/w" "$T54/w.projeny.status"
+rm -rf "$T54/w" "$T54/.w.projeny.status"
 run_in "$T54" expect_ok "setup after unicode commit" "$PROJENY" setup w.projeny
 (cd "$T54" && ls w | LC_ALL=C sort > "$ROOT/t54-got-ls.txt")
 if cmp -s "$ROOT/t54-expect-ls.txt" "$ROOT/t54-got-ls.txt"; then
@@ -2031,7 +2088,7 @@ printf 'nlcontent\n' > "$T55/$NLFILE"
 run_in "$T55" expect_ok "add newline-name file" "$PROJENY" add w.projeny "$NLFILE"
 run_in "$T55" expect_ok "commit newline-name file" "$PROJENY" commit w.projeny
 cp "$T55/$NLFILE" "$ROOT/t55-expect-nl.c"
-rm -rf "$T55/w" "$T55/w.projeny.status"
+rm -rf "$T55/w" "$T55/.w.projeny.status"
 run_in "$T55" expect_ok "setup after newline-name commit" "$PROJENY" setup w.projeny
 if cmp -s "$T55/$NLFILE" "$ROOT/t55-expect-nl.c"; then
     ok "newline-name file byte-identical after re-setup"
@@ -2051,7 +2108,7 @@ printf 'brand new\n' > "$T56/w/a/b/c/d/e/f/g/h/fresh.c"
 run_in "$T56" expect_ok "add deeply nested file" "$PROJENY" add w.projeny w/a/b/c/d/e/f/g/h/fresh.c
 run_in "$T56" expect_ok "commit deeply nested tree" "$PROJENY" commit w.projeny
 cp "$T56/w/a/b/c/d/e/f/g/h/deep.c" "$ROOT/t56-expect-deep.c"
-rm -rf "$T56/w" "$T56/w.projeny.status"
+rm -rf "$T56/w" "$T56/.w.projeny.status"
 run_in "$T56" expect_ok "setup after deep commit" "$PROJENY" setup w.projeny
 if cmp -s "$T56/w/a/b/c/d/e/f/g/h/deep.c" "$ROOT/t56-expect-deep.c"; then
     ok "deep file identical after re-setup"
@@ -2073,7 +2130,7 @@ run_in "$T57" expect_ok "rm f2 for many-file" "$PROJENY" rm m.projeny m/f2.c
 printf 'extra\n' > "$T57/m/extra.c"
 run_in "$T57" expect_ok "add among many files" "$PROJENY" add m.projeny m/extra.c
 run_in "$T57" expect_ok "commit 60-file change" "$PROJENY" commit m.projeny
-rm -rf "$T57/m" "$T57/m.projeny.status"
+rm -rf "$T57/m" "$T57/.m.projeny.status"
 run_in "$T57" expect_ok "setup after many-file commit" "$PROJENY" setup m.projeny
 expect_file_contains "many-file edit survives" "$T57/m/f60.c" "changed 60"
 expect_file_contains "many-file extra survives" "$T57/m/extra.c" "extra"
@@ -2113,7 +2170,7 @@ chmod 755 "$T59/w/f.c"
 run_in "$T59" expect_ok "mode-only commit" "$PROJENY" commit w.projeny
 expect_file_contains "mode-only stores old mode" "$T59/w.projeny" "old mode 100644"
 expect_file_contains "mode-only stores new mode" "$T59/w.projeny" "new mode 100755"
-rm -rf "$T59/w" "$T59/w.projeny.status"
+rm -rf "$T59/w" "$T59/.w.projeny.status"
 run_in "$T59" expect_ok "setup after mode-only commit" "$PROJENY" setup w.projeny
 if [ -x "$T59/w/f.c" ] && [ ! -x "$T59/w/p.c" ]; then
     ok "mode-only bits exact after re-setup"
@@ -2130,7 +2187,7 @@ fi
 printf 'fresh\n' > "$T59/w/fresh.c"
 run_in "$T59" expect_ok "add fresh regular file" "$PROJENY" add w.projeny w/fresh.c
 run_in "$T59" expect_ok "commit fresh regular file" "$PROJENY" commit w.projeny
-rm -rf "$T59/w" "$T59/w.projeny.status"
+rm -rf "$T59/w" "$T59/.w.projeny.status"
 run_in "$T59" expect_ok "setup after fresh commit" "$PROJENY" setup w.projeny
 if [ ! -x "$T59/w/fresh.c" ]; then
     ok "new regular file defaults to non-exec"
@@ -2140,7 +2197,8 @@ fi
 
 # ----------------------------------------- 58. symlinks: dangling, loop, subdir
 # Relative links that stay inside the tree roundtrip even when dangling or
-# self-referential; links with ".." are refused like tar escapes.
+# self-referential (including ".." targets that resolve back inside);
+# targets that resolve outside the tree are refused like tar escapes.
 T60="$ROOT/t60"
 mkdir -p "$T60/w-1.0/sub"
 printf 'base\n' > "$T60/w-1.0/base.c"
@@ -2156,7 +2214,7 @@ run_in "$T60" expect_ok "add self link" "$PROJENY" add w.projeny w/self
 run_in "$T60" expect_ok "add sublink" "$PROJENY" add w.projeny w/sublink
 run_in "$T60" expect_ok "commit dangling/loop/subdir links" "$PROJENY" commit w.projeny
 expect_file_contains "dangling link stored" "$T60/w.projeny" "nowhere"
-rm -rf "$T60/w" "$T60/w.projeny.status"
+rm -rf "$T60/w" "$T60/.w.projeny.status"
 run_in "$T60" expect_ok "setup after link commit" "$PROJENY" setup w.projeny
 if [ -L "$T60/w/dangling" ] && [ "$(readlink "$T60/w/dangling")" = "nowhere" ]; then
     ok "dangling link survives re-setup"
@@ -2188,7 +2246,7 @@ printf 'Archive: w-1.0.tar.gz\nOrigname: w-1.0\nName: w\n\n    Link mv.\n' > "$T
 run_in "$T61" expect_ok "link-mv setup" "$PROJENY" setup w.projeny
 run_in "$T61" expect_ok "mv symlink" "$PROJENY" mv w.projeny w/lnk w/lnk2
 run_in "$T61" expect_ok "commit symlink rename" "$PROJENY" commit w.projeny
-rm -rf "$T61/w" "$T61/w.projeny.status"
+rm -rf "$T61/w" "$T61/.w.projeny.status"
 run_in "$T61" expect_ok "setup after symlink rename" "$PROJENY" setup w.projeny
 if [ -L "$T61/w/lnk2" ] && [ "$(readlink "$T61/w/lnk2")" = "r.txt" ] && [ ! -e "$T61/w/lnk" ]; then
     ok "renamed symlink survives re-setup"
@@ -2208,7 +2266,7 @@ ln "$T62/w/orig.txt" "$T62/w/twin.txt"
 run_in "$T62" expect_ok "add hardlink orig" "$PROJENY" add w.projeny w/orig.txt
 run_in "$T62" expect_ok "add hardlink twin" "$PROJENY" add w.projeny w/twin.txt
 run_in "$T62" expect_ok "commit hardlinked pair" "$PROJENY" commit w.projeny
-rm -rf "$T62/w" "$T62/w.projeny.status"
+rm -rf "$T62/w" "$T62/.w.projeny.status"
 run_in "$T62" expect_ok "setup after hardlink commit" "$PROJENY" setup w.projeny
 if cmp -s "$T62/w/orig.txt" "$T62/w/twin.txt"; then
     ok "hardlinked contents match after re-setup"
@@ -2252,7 +2310,7 @@ run_in "$T64" expect_ok "mixed setup" "$PROJENY" setup w.projeny
 printf 'l1\r\nl2\r\nl3\nl4\r\nmixed tail\n' > "$T64/w/m.txt"
 run_in "$T64" expect_ok "mixed-endings commit" "$PROJENY" commit w.projeny
 cp "$T64/w/m.txt" "$ROOT/t64-expect-m.txt"
-rm -rf "$T64/w" "$T64/w.projeny.status"
+rm -rf "$T64/w" "$T64/.w.projeny.status"
 run_in "$T64" expect_ok "setup after mixed commit" "$PROJENY" setup w.projeny
 if cmp -s "$T64/w/m.txt" "$ROOT/t64-expect-m.txt"; then
     ok "mixed-endings file byte-identical after re-setup"
@@ -2277,7 +2335,7 @@ python3 -c "open('$T65/b/b.dat','wb').write(b'a\x00B\n')"
 run_in "$T65" expect_ok "commit touching binary base succeeds" "$PROJENY" commit b.projeny
 expect_file_contains "binary modify stored as binary block" "$T65/b.projeny" "GIT binary patch"
 python3 -c "open('$ROOT/t65-expect.bin','wb').write(open('$T65/b/b.dat','rb').read())"
-rm -rf "$T65/b" "$T65/b.projeny.status"
+rm -rf "$T65/b" "$T65/.b.projeny.status"
 run_in "$T65" expect_ok "setup after binary modify" "$PROJENY" setup b.projeny
 if cmp -s "$T65/b/b.dat" "$ROOT/t65-expect.bin"; then
     ok "binary modify byte-identical after re-setup"
@@ -2292,7 +2350,7 @@ else
 fi
 run_in "$T65" expect_ok "commit of binary delete succeeds" "$PROJENY" commit b.projeny
 expect_file_contains "binary delete names the file" "$T65/b.projeny" "b.dat"
-rm -rf "$T65/b" "$T65/b.projeny.status"
+rm -rf "$T65/b" "$T65/.b.projeny.status"
 run_in "$T65" expect_ok "setup after binary delete" "$PROJENY" setup b.projeny
 if [ ! -f "$T65/b/b.dat" ]; then
     ok "binary delete survives re-setup"
@@ -2311,7 +2369,7 @@ run_in "$T66" expect_ok "rm for recreate" "$PROJENY" rm w.projeny w/f.c
 printf 'v2 brand new\n' > "$T66/w/f.c"
 run_in "$T66" expect_ok "add recreated file" "$PROJENY" add w.projeny w/f.c
 run_in "$T66" expect_ok "commit delete+recreate" "$PROJENY" commit w.projeny
-rm -rf "$T66/w" "$T66/w.projeny.status"
+rm -rf "$T66/w" "$T66/.w.projeny.status"
 run_in "$T66" expect_ok "setup after delete+recreate" "$PROJENY" setup w.projeny
 expect_file_contains "recreated content survives" "$T66/w/f.c" "v2 brand new"
 
@@ -2324,9 +2382,9 @@ printf 'Archive: w-1.0.tar.gz\nOrigname: w-1.0\nName: w\n\n    Chain.\n' > "$T67
 run_in "$T67" expect_ok "chain setup" "$PROJENY" setup w.projeny
 run_in "$T67" expect_ok "mv chain step one" "$PROJENY" mv w.projeny w/n.txt w/m1.txt
 run_in "$T67" expect_ok "mv chain step two" "$PROJENY" mv w.projeny w/m1.txt w/m2.txt
-expect_file_contains "chained rename recorded once" "$T67/w.projeny.status" "Renamed: n.txt -> m2.txt"
+expect_file_contains "chained rename recorded once" "$T67/.w.projeny.status" "Renamed: n.txt -> m2.txt"
 run_in "$T67" expect_ok "commit chained rename" "$PROJENY" commit w.projeny
-rm -rf "$T67/w" "$T67/w.projeny.status"
+rm -rf "$T67/w" "$T67/.w.projeny.status"
 run_in "$T67" expect_ok "setup after chained rename" "$PROJENY" setup w.projeny
 if [ -f "$T67/w/m2.txt" ] && [ ! -e "$T67/w/n.txt" ] && [ ! -e "$T67/w/m1.txt" ]; then
     ok "chained rename paths exact after re-setup"
@@ -2335,8 +2393,8 @@ else
 fi
 run_in "$T67" expect_ok "mv cycle step one" "$PROJENY" mv w.projeny w/m2.txt w/tmp.txt
 run_in "$T67" expect_ok "mv cycle step two (back)" "$PROJENY" mv w.projeny w/tmp.txt w/m2.txt
-if grep -q "^Renamed:" "$T67/w.projeny.status"; then
-    fail "mv cycle collapses pending rename" "$(cat "$T67/w.projeny.status")"
+if grep -q "^Renamed:" "$T67/.w.projeny.status"; then
+    fail "mv cycle collapses pending rename" "$(cat "$T67/.w.projeny.status")"
 else
     ok "mv cycle collapses pending rename"
 fi
@@ -2355,13 +2413,13 @@ run_in "$T68" expect_ok "add file under new dir" "$PROJENY" add w.projeny w/newd
 run_in "$T68" expect_ok "add second file under new dir" "$PROJENY" add w.projeny w/newdir/two.c
 run_in "$T68" expect_ok "commit new dir content" "$PROJENY" commit w.projeny
 expect_file_contains "newdir file committed" "$T68/w.projeny" "two"
-rm -rf "$T68/w" "$T68/w.projeny.status"
+rm -rf "$T68/w" "$T68/.w.projeny.status"
 run_in "$T68" expect_ok "setup after dir add" "$PROJENY" setup w.projeny
 expect_file_contains "dir add file one survives" "$T68/w/newdir/one.c" "one"
 expect_file_contains "dir add file two survives" "$T68/w/newdir/two.c" "two"
 run_in "$T68" expect_ok "rm whole directory" "$PROJENY" rm w.projeny w/newdir
 run_in "$T68" expect_ok "commit dir removal" "$PROJENY" commit w.projeny
-rm -rf "$T68/w" "$T68/w.projeny.status"
+rm -rf "$T68/w" "$T68/.w.projeny.status"
 run_in "$T68" expect_ok "setup after dir removal" "$PROJENY" setup w.projeny
 if [ ! -e "$T68/w/newdir" ]; then
     ok "removed directory stays gone"
@@ -2409,11 +2467,11 @@ run_in "$T70" expect_fail "slashed Origname fails" "$PROJENY" setup bad3.projeny
 printf 'Archive: w-1.0.tar.gz\nOrigname: w-1.0\nName: ..\n\n    T.\n' > "$T70/bad4.projeny"
 run_in "$T70" expect_fail "dotdot Name fails" "$PROJENY" setup bad4.projeny
 run_in "$T70" expect_ok "good setup for status corruption" "$PROJENY" setup w.projeny
-printf 'Garbage line\n' > "$T70/w.projeny.status"
+printf 'Garbage line\n' > "$T70/.w.projeny.status"
 run_in "$T70" expect_fail "garbage status line fails" "$PROJENY" setup w.projeny
-printf 'Status: setup\nRenamed: broken-no-arrow\n' > "$T70/w.projeny.status"
+printf 'Status: setup\nRenamed: broken-no-arrow\n' > "$T70/.w.projeny.status"
 run_in "$T70" expect_fail "malformed Renamed line fails" "$PROJENY" setup w.projeny
-printf 'Conflict: f.c\n' > "$T70/w.projeny.status"
+printf 'Conflict: f.c\n' > "$T70/.w.projeny.status"
 run_in "$T70" expect_fail "status without Status line fails" "$PROJENY" setup w.projeny
 
 # ----------------------------------------- 69. tarball edge cases
@@ -2521,14 +2579,14 @@ printf 'v2\n' > "$T73/w-2.0/f.c"
 printf 'real\n' > "$T73/w-2.0/r.txt"
 (cd "$T73" && tar -czf w-2.0.tar.gz w-2.0 && rm -rf w-2.0)
 run_in "$T73" expect_ok "rebase with pending symlink" "$PROJENY" rebase w.projeny w-2.0.tar.gz
-expect_file_contains "pending symlink kept in status" "$T73/w.projeny.status" "Added: pendlink"
+expect_file_contains "pending symlink kept in status" "$T73/.w.projeny.status" "Added: pendlink"
 if [ -L "$T73/w/pendlink" ] && [ "$(readlink "$T73/w/pendlink")" = "r.txt" ]; then
     ok "pending symlink still a link after rebase"
 else
     fail "pending symlink still a link after rebase" "$(ls -l "$T73/w" 2>&1)"
 fi
 run_in "$T73" expect_ok "commit pending symlink after rebase" "$PROJENY" commit w.projeny
-rm -rf "$T73/w" "$T73/w.projeny.status"
+rm -rf "$T73/w" "$T73/.w.projeny.status"
 run_in "$T73" expect_ok "setup after symlink commit" "$PROJENY" setup w.projeny
 if [ -L "$T73/w/pendlink" ]; then
     ok "committed symlink survives re-setup"
@@ -2569,14 +2627,14 @@ Name: w
 
     T.
 EOF
-rm -rf "$T74B/w" "$T74B/w.projeny.status"
+rm -rf "$T74B/w" "$T74B/.w.projeny.status"
 (cd "$T74B" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 rm "$T74B/w/f.c"
 mkdir "$T74B/w/f.c"
 printf 'local inner\n' > "$T74B/w/f.c/inner.txt"
 cp "$ROOT/t74b-up.projeny" "$T74B/w.projeny"
 run_in "$T74B" expect_fail "divergent file-to-dir merge exits nonzero" "$PROJENY" setup w.projeny
-expect_file_contains "divergent swap records conflict" "$T74B/w.projeny.status" "Conflict: f.c"
+expect_file_contains "divergent swap records conflict" "$T74B/.w.projeny.status" "Conflict: f.c"
 expect_file_contains "divergent swap keeps local inner file" "$T74B/w/f.c/inner.txt" "local inner"
 if [ -d "$T74B/w/f.c" ]; then
     ok "divergent swap keeps local directory"
@@ -2596,7 +2654,7 @@ run_in "$T75" expect_ok "add huge no-newline file" "$PROJENY" add w.projeny w/hu
 run_in "$T75" expect_ok "commit huge no-newline file" "$PROJENY" commit w.projeny
 expect_file_contains "huge commit stores no-newline marker" "$T75/w.projeny" "No newline at end of file"
 cp "$T75/w/huge.txt" "$ROOT/t75-expect-huge.txt"
-rm -rf "$T75/w" "$T75/w.projeny.status"
+rm -rf "$T75/w" "$T75/.w.projeny.status"
 run_in "$T75" expect_ok "setup after huge commit" "$PROJENY" setup w.projeny
 if cmp -s "$T75/w/huge.txt" "$ROOT/t75-expect-huge.txt"; then
     ok "huge no-newline file byte-identical after re-setup"
@@ -2614,7 +2672,7 @@ printf 'Archive: w-1.0.tar.gz\nOrigname: w-1.0\nName: w\n\n    T.\n' > "$T76/w.p
 printf 'ONE\ntwo\nthree\n' > "$T76/w/f.c"
 (cd "$T76" && "$PROJENY" commit w.projeny >/dev/null 2>&1)
 cp "$T76/w.projeny" "$ROOT/t76-local.projeny"
-rm -rf "$T76/w" "$T76/w.projeny.status"
+rm -rf "$T76/w" "$T76/.w.projeny.status"
 cp "$ROOT/t76-local.projeny" "$T76/w.projeny"
 (cd "$T76" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 printf 'local edit\n' > "$T76/w/f.c"
@@ -2629,7 +2687,7 @@ cp "$U76/w.projeny" "$T76/w.projeny"
 (cd "$T76" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 printf 'resolved\n' > "$T76/w/f.c"
 run_in "$T76" expect_ok "resolve accepts wid-prefixed path" "$PROJENY" resolve w.projeny w/f.c
-if grep -q "^Conflict:" "$T76/w.projeny.status"; then
+if grep -q "^Conflict:" "$T76/.w.projeny.status"; then
     fail "wid-prefixed resolve clears conflict"
 else
     ok "wid-prefixed resolve clears conflict"
@@ -2653,7 +2711,7 @@ printf 'p2\n' > "$T77/w/eq=uals.c"
 run_in "$T77" expect_ok "add semicolon name" "$PROJENY" add w.projeny "w/semi;colon.c"
 run_in "$T77" expect_ok "add equals name" "$PROJENY" add w.projeny "w/eq=uals.c"
 run_in "$T77" expect_ok "commit odd names" "$PROJENY" commit w.projeny
-rm -rf "$T77/w" "$T77/w.projeny.status"
+rm -rf "$T77/w" "$T77/.w.projeny.status"
 run_in "$T77" expect_ok "setup after odd-name commit" "$PROJENY" setup w.projeny
 if [ -f "$T77/w/$LONG" ]; then
     ok "200-char filename survives re-setup"
@@ -2938,15 +2996,15 @@ if cmp -s "$T81/w.projeny" "$ROOT/t81-up.projeny"; then
 else
     fail ".projeny force-takes upstream" "$(cat "$T81/w.projeny")"
 fi
-if cmp -s <(sed -n '/^--- projeny content ---$/,$p' "$T81/w.projeny.status" | tail -n +2) "$ROOT/t81-up.projeny" 2>/dev/null || cmp -s "$T81/w.projeny" <(sed -n '/^--- projeny content ---$/,$p' "$T81/w.projeny.status" | tail -n +2); then
+if cmp -s <(sed -n '/^--- projeny content ---$/,$p' "$T81/.w.projeny.status" | tail -n +2) "$ROOT/t81-up.projeny" 2>/dev/null || cmp -s "$T81/w.projeny" <(sed -n '/^--- projeny content ---$/,$p' "$T81/.w.projeny.status" | tail -n +2); then
     ok "status embeds the upstream copy"
 else
-    fail "status embeds the upstream copy" "$(head -8 "$T81/w.projeny.status")"
+    fail "status embeds the upstream copy" "$(head -8 "$T81/.w.projeny.status")"
 fi
 expect_file_contains "conflicted checkout has workdir markers" "$T81/w/a.c" "<<<<<<<"
 expect_file_contains "conflicted checkout keeps local side" "$T81/w/a.c" "beta LOCAL"
 expect_file_contains "conflicted checkout keeps upstream side" "$T81/w/a.c" "beta UPSTREAM"
-expect_file_contains "conflicted checkout records conflict" "$T81/w.projeny.status" "Conflict: a.c"
+expect_file_contains "conflicted checkout records conflict" "$T81/.w.projeny.status" "Conflict: a.c"
 if echo "$out" | grep -q "a.c"; then
     ok "conflicted setup lists conflicted files"
 else
@@ -3007,7 +3065,7 @@ else
     fail "no-checkout case force-takes upstream"
 fi
 expect_file_contains "no-checkout case marks conflicts" "$T83/w/a.c" "<<<<<<<"
-expect_file_contains "no-checkout case records conflict" "$T83/w.projeny.status" "Conflict: a.c"
+expect_file_contains "no-checkout case records conflict" "$T83/.w.projeny.status" "Conflict: a.c"
 # header-only conflict (prose differs, patch identical) merges cleanly.
 # The checkout is set up from the local-prose side first so the status copy
 # breaks the direction tie (a voteless merge with no status must die).
@@ -3030,8 +3088,8 @@ else
     fail "prose-only conflict sets up"
 fi
 expect_file_contains "prose-only conflict takes upstream prose" "$T84/w.projeny" "Upstream prose."
-if grep -q "^Conflict:" "$T84/w.projeny.status"; then
-    fail "prose-only conflict records no conflicts" "$(cat "$T84/w.projeny.status")"
+if grep -q "^Conflict:" "$T84/.w.projeny.status"; then
+    fail "prose-only conflict records no conflicts" "$(cat "$T84/.w.projeny.status")"
 else
     ok "prose-only conflict records no conflicts"
 fi
@@ -3125,7 +3183,7 @@ PYEOF
     "$PROJENY" commit w.projeny >/dev/null 2>&1 && git commit -qm upstream w.projeny)
     cp "$G86/repo/w.projeny" "$ROOT/t86-up.projeny"
     # local branch off base: beta -> LOCAL, committed to git.
-    (cd "$G86/repo" && git checkout -q master && rm -rf w w.projeny.status && "$PROJENY" setup w.projeny >/dev/null 2>&1 && python3 - w/a.c <<'PYEOF'
+    (cd "$G86/repo" && git checkout -q master && rm -rf w .w.projeny.status && "$PROJENY" setup w.projeny >/dev/null 2>&1 && python3 - w/a.c <<'PYEOF'
 import sys
 p = sys.argv[1]
 s = open(p).read().replace("beta 1", "beta LOCAL")
@@ -3160,7 +3218,7 @@ PYEOF
     fi
     expect_file_contains "git setup keeps uncommitted edit" "$G86/repo/w/a.c" "delta UNCOMMITTED"
     expect_file_contains "git setup marks beta conflict" "$G86/repo/w/a.c" "<<<<<<<"
-    expect_file_contains "git setup records conflict" "$G86/repo/w.projeny.status" "Conflict: a.c"
+    expect_file_contains "git setup records conflict" "$G86/repo/.w.projeny.status" "Conflict: a.c"
     if echo "$out" | grep -q "a.c"; then
         ok "git setup lists conflicted files"
     else
@@ -3239,15 +3297,15 @@ if cmp -s "$T88/w.projeny" "$ROOT/t81-up.projeny"; then
 else
     fail "rebase-order markers still take upstream" "$(cat "$T88/w.projeny")"
 fi
-if cmp -s <(sed -n '/^--- projeny content ---$/,$p' "$T88/w.projeny.status" | tail -n +2) "$ROOT/t81-up.projeny" 2>/dev/null || cmp -s "$T88/w.projeny" <(sed -n '/^--- projeny content ---$/,$p' "$T88/w.projeny.status" | tail -n +2); then
+if cmp -s <(sed -n '/^--- projeny content ---$/,$p' "$T88/.w.projeny.status" | tail -n +2) "$ROOT/t81-up.projeny" 2>/dev/null || cmp -s "$T88/w.projeny" <(sed -n '/^--- projeny content ---$/,$p' "$T88/.w.projeny.status" | tail -n +2); then
     ok "rebase-order status embeds the upstream copy"
 else
-    fail "rebase-order status embeds the upstream copy" "$(head -8 "$T88/w.projeny.status")"
+    fail "rebase-order status embeds the upstream copy" "$(head -8 "$T88/.w.projeny.status")"
 fi
 expect_file_contains "rebase-order checkout has workdir markers" "$T88/w/a.c" "<<<<<<<"
 expect_file_contains "rebase-order checkout keeps local side" "$T88/w/a.c" "beta LOCAL"
 expect_file_contains "rebase-order checkout keeps upstream side" "$T88/w/a.c" "beta UPSTREAM"
-expect_file_contains "rebase-order checkout records conflict" "$T88/w.projeny.status" "Conflict: a.c"
+expect_file_contains "rebase-order checkout records conflict" "$T88/.w.projeny.status" "Conflict: a.c"
 if echo "$out" | grep -qi "rebase"; then
     ok "rebase-order setup says which side it took"
 else
@@ -3293,7 +3351,7 @@ else
     fail "stash labels take the checkout (upstream) side" "$(cat "$T89/w.projeny")"
 fi
 expect_file_contains "stash-label checkout has workdir markers" "$T89/w/a.c" "<<<<<<<"
-expect_file_contains "stash-label checkout records conflict" "$T89/w.projeny.status" "Conflict: a.c"
+expect_file_contains "stash-label checkout records conflict" "$T89/.w.projeny.status" "Conflict: a.c"
 
 # ----------------------------------------- 86. patch path traversal refused
 # Patch member paths must never escape the tree (like tar members): absolute
@@ -3380,7 +3438,7 @@ mkdir -p "$T91"
 cp "$T81/w-1.0.tar.gz" "$T91/"
 cp "$ROOT/t81-local.projeny" "$T91/w.projeny"
 (cd "$T91" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
-python3 - "$T91/w.projeny.status" <<'PYEOF'
+python3 - "$T91/.w.projeny.status" <<'PYEOF'
 import sys
 p = sys.argv[1]
 s = open(p).read().replace("Status: setup\n", "Status: setup\nConflict: stale/old.c\n")
@@ -3388,8 +3446,8 @@ open(p, "w").write(s)
 PYEOF
 make_conflicted "$ROOT/t81-local.projeny" "$ROOT/t81-up.projeny" "$T91/w.projeny"
 run_in "$T91" expect_fail "conflicted setup with stale conflicts exits nonzero" "$PROJENY" setup w.projeny
-expect_file_contains "new conflict recorded" "$T91/w.projeny.status" "Conflict: a.c"
-expect_file_contains "stale conflict kept (union)" "$T91/w.projeny.status" "Conflict: stale/old.c"
+expect_file_contains "new conflict recorded" "$T91/.w.projeny.status" "Conflict: a.c"
+expect_file_contains "stale conflict kept (union)" "$T91/.w.projeny.status" "Conflict: stale/old.c"
 # deletion on one side: empty first side.
 T92="$ROOT/t92"
 mkdir -p "$T92"
@@ -3522,7 +3580,7 @@ mkdir -p "$T97"
 cp "$T81/w-1.0.tar.gz" "$T97/"
 cp "$ROOT/t81-local.projeny" "$T97/w.projeny"
 (cd "$T97" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
-rm -f "$T97/w.projeny.status"
+rm -f "$T97/.w.projeny.status"
 python3 - "$ROOT/t81-local.projeny" "$ROOT/t81-up.projeny" "$T97/w.projeny" <<'PYEOF'
 import sys
 local = open(sys.argv[1]).read().split("\n")
@@ -3554,7 +3612,7 @@ fi
 expect_file_contains "no-status rebase checkout has workdir markers" "$T97/w/a.c" "<<<<<<<"
 expect_file_contains "no-status rebase checkout keeps local side" "$T97/w/a.c" "beta LOCAL"
 expect_file_contains "no-status rebase checkout keeps upstream side" "$T97/w/a.c" "beta UPSTREAM"
-expect_file_contains "no-status rebase checkout records conflict" "$T97/w.projeny.status" "Conflict: a.c"
+expect_file_contains "no-status rebase checkout records conflict" "$T97/.w.projeny.status" "Conflict: a.c"
 if echo "$out" | grep -qi "rebase"; then
     ok "no-status rebase setup says which side it took"
 else
@@ -3566,9 +3624,9 @@ T97S="$ROOT/t97s"
 mkdir -p "$T97S"
 cp "$T81/w-1.0.tar.gz" "$T97S/"
 cp "$T97/w.projeny" "$T97S/w.projeny"
-cp "$T97/w.projeny.status" "$T97S/w.projeny.status"
+cp "$T97/.w.projeny.status" "$T97S/.w.projeny.status"
 cp -r "$T97/w" "$T97S/w"
-python3 - "$T97S/w.projeny.status" <<'PYEOF'
+python3 - "$T97S/.w.projeny.status" <<'PYEOF'
 import sys
 p = sys.argv[1]
 s = open(p).read().replace("    G.\n", "    Stale lineage.\n")
@@ -3623,7 +3681,7 @@ T97X="$ROOT/t97x"
 mkdir -p "$T97X"
 cp "$T81/w-1.0.tar.gz" "$T97X/"
 for closer in "cafe (my feature)" "beef" "stash-cleanup" "origin/master"; do
-    rm -rf "$T97X/w" "$T97X/w.projeny" "$T97X/w.projeny.status"
+    rm -rf "$T97X/w" "$T97X/w.projeny" "$T97X/.w.projeny.status"
     cp "$ROOT/t81-local.projeny" "$T97X/w.projeny"
     (cd "$T97X" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
     python3 - "$ROOT/t81-local.projeny" "$ROOT/t81-up.projeny" "$T97X/w.projeny" "$closer" <<'PYEOF'
@@ -3653,7 +3711,7 @@ PYEOF
     else
         fail "closer '$closer' still takes upstream" "$(cat "$T97X/w.projeny")"
     fi
-    expect_file_contains "closer '$closer' records conflict" "$T97X/w.projeny.status" "Conflict: a.c"
+    expect_file_contains "closer '$closer' records conflict" "$T97X/.w.projeny.status" "Conflict: a.c"
 done
 # Truly ambiguous with no status and no deciding label: setup must die
 # instead of silently defaulting to the merge side, leaving everything
@@ -3664,7 +3722,7 @@ cp "$T81/w-1.0.tar.gz" "$T97Y/"
 cp "$ROOT/t81-local.projeny" "$T97Y/w.projeny"
 (cd "$T97Y" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 cp "$T97Y/w/a.c" "$ROOT/t97y-a-before.c"
-rm -f "$T97Y/w.projeny.status"
+rm -f "$T97Y/.w.projeny.status"
 make_conflicted "$ROOT/t81-local.projeny" "$ROOT/t81-up.projeny" "$T97Y/w.projeny"
 run_in "$T97Y" expect_fail "ambiguous no-status conflict fails setup" "$PROJENY" setup w.projeny
 out="$(cd "$T97Y" && "$PROJENY" setup w.projeny 2>&1 || true)"
@@ -3697,7 +3755,7 @@ open(p, "w").write(s)
 PYEOF
     "$PROJENY" commit w.projeny >/dev/null 2>&1 && git commit -qm upstream w.projeny)
     cp "$G98/repo/w.projeny" "$ROOT/t98-up.projeny"
-    (cd "$G98/repo" && git checkout -q master && rm -rf w w.projeny.status && "$PROJENY" setup w.projeny >/dev/null 2>&1 && python3 - w/a.c <<'PYEOF'
+    (cd "$G98/repo" && git checkout -q master && rm -rf w .w.projeny.status && "$PROJENY" setup w.projeny >/dev/null 2>&1 && python3 - w/a.c <<'PYEOF'
 import sys
 p = 'w/a.c'
 s = open(p).read().replace("beta 1", "beta LOCAL")
@@ -3724,7 +3782,7 @@ PYEOF
     expect_file_contains "real rebase marks beta conflict" "$G98/repo/w/a.c" "<<<<<<<"
     expect_file_contains "real rebase keeps local side" "$G98/repo/w/a.c" "beta LOCAL"
     expect_file_contains "real rebase keeps upstream side" "$G98/repo/w/a.c" "beta UPSTREAM"
-    expect_file_contains "real rebase records conflict" "$G98/repo/w.projeny.status" "Conflict: a.c"
+    expect_file_contains "real rebase records conflict" "$G98/repo/.w.projeny.status" "Conflict: a.c"
     (cd "$G98/repo" && printf 'alpha 1\nbeta MERGED\ngamma 1\ndelta 1\n' > w/a.c && "$PROJENY" resolve w.projeny w/a.c >/dev/null 2>&1 && "$PROJENY" commit w.projeny >/dev/null 2>&1 && git add w.projeny && git -c core.editor=true rebase --continue >/dev/null 2>&1)
     if [ $? -eq 0 ]; then
         ok "resolve+commit finishes the real rebase"
@@ -3767,7 +3825,7 @@ PYEOF
         fail "real pull --rebase takes upstream bytes" "$(cat "$R98/local/w.projeny")"
     fi
     expect_file_contains "real pull --rebase marks beta conflict" "$R98/local/w/a.c" "<<<<<<<"
-    expect_file_contains "real pull --rebase records conflict" "$R98/local/w.projeny.status" "Conflict: a.c"
+    expect_file_contains "real pull --rebase records conflict" "$R98/local/.w.projeny.status" "Conflict: a.c"
     (cd "$R98/local" && printf 'alpha 1\nbeta MERGED\ngamma 1\ndelta 1\n' > w/a.c && "$PROJENY" resolve w.projeny w/a.c >/dev/null 2>&1 && "$PROJENY" commit w.projeny >/dev/null 2>&1 && git add w.projeny && git -c core.editor=true rebase --continue >/dev/null 2>&1)
     if [ $? -eq 0 ]; then
         ok "resolve+commit finishes the real pull --rebase"
@@ -4035,7 +4093,7 @@ PYEOF
 # Simulate the crash: .projeny + .status already flipped to upstream, the
 # merged workdir never landed.
 cp "$ROOT/t81-up.projeny" "$T100/w.projeny"
-python3 - "$ROOT/t81-up.projeny" "$T100/w.projeny.status" <<'PYEOF'
+python3 - "$ROOT/t81-up.projeny" "$T100/.w.projeny.status" <<'PYEOF'
 import sys
 up = open(sys.argv[1]).read()
 open(sys.argv[2], "w").write("Status: setup\nConflict: a.c\n--- projeny content ---\n" + up)
@@ -4055,7 +4113,7 @@ fi
 expect_file_contains "recovered checkout has workdir markers" "$T100/w/a.c" "<<<<<<<"
 expect_file_contains "recovered checkout keeps local side" "$T100/w/a.c" "beta LOCAL"
 expect_file_contains "recovered checkout keeps upstream side" "$T100/w/a.c" "beta UPSTREAM"
-expect_file_contains "recovered checkout records conflict" "$T100/w.projeny.status" "Conflict: a.c"
+expect_file_contains "recovered checkout records conflict" "$T100/.w.projeny.status" "Conflict: a.c"
 if [ -e "$T100/w.projeny.setup-journal" ]; then
     fail "recovery removes the journal" "$(ls "$T100" 2>&1)"
 else
@@ -4134,7 +4192,7 @@ else
     fail "extended markers still take upstream" "$(cat "$T101/w.projeny")"
 fi
 expect_file_contains "extended-marker checkout has workdir markers" "$T101/w/a.c" "<<<<<<<"
-expect_file_contains "extended-marker checkout records conflict" "$T101/w.projeny.status" "Conflict: a.c"
+expect_file_contains "extended-marker checkout records conflict" "$T101/.w.projeny.status" "Conflict: a.c"
 # Nested markers cannot be split: refuse with guidance, never silently.
 T101N="$ROOT/t101n"
 mkdir -p "$T101N"
@@ -4295,7 +4353,7 @@ open(p, "w").write(s)
 EOF
 (cd "$TCONF" && "$PROJENY" commit fake.projeny >/dev/null 2>&1)
 cp "$TCONF/fake.projeny" "$ROOT/tconf-local.projeny"
-rm -rf "$TCONF/fake" "$TCONF/fake.projeny.status"
+rm -rf "$TCONF/fake" "$TCONF/.fake.projeny.status"
 cp "$ROOT/tconf-local.projeny" "$TCONF/fake.projeny"
 (cd "$TCONF" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
 python3 - "$TCONF/fake/src/a.c" <<'EOF'
@@ -4400,7 +4458,7 @@ run_in "$TNL" expect_ok "add one-blank file" "$PROJENY" add w.projeny w/one.txt
 printf 'a\n\n\n' > "$TNL/expect-blanks.txt"
 printf 'b\n\n' > "$TNL/expect-one.txt"
 printf 'seed\n\n' > "$TNL/expect-s.txt"
-rm -rf "$TNL/w" "$TNL/w.projeny.status"
+rm -rf "$TNL/w" "$TNL/.w.projeny.status"
 (cd "$TNL" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 if cmp -s "$TNL/w/blanks.txt" "$TNL/expect-blanks.txt"; then
     ok "new file keeps two trailing blank lines"
@@ -4475,7 +4533,7 @@ run_in "$TBIN" expect_ok "add of binary succeeds" "$PROJENY" add pkg.projeny pkg
 run_in "$TBIN" expect_ok "commit of added binary succeeds" "$PROJENY" commit pkg.projeny
 expect_file_contains "added binary stored" "$TBIN/pkg.projeny" "blob.bin"
 python3 -c "open('$ROOT/tbin-expect.bin','wb').write(open('$TBIN/pkg/blob.bin','rb').read())"
-rm -rf "$TBIN/pkg" "$TBIN/pkg.projeny.status"
+rm -rf "$TBIN/pkg" "$TBIN/.pkg.projeny.status"
 run_in "$TBIN" expect_ok "setup after binary add commit" "$PROJENY" setup pkg.projeny
 if cmp -s "$TBIN/pkg/blob.bin" "$ROOT/tbin-expect.bin"; then
     ok "added binary byte-identical after re-setup"
@@ -4507,7 +4565,7 @@ else
     fail "rm deletes the tracked binary"
 fi
 run_in "$TBIN2" expect_ok "commit of tracked binary delete succeeds" "$PROJENY" commit b.projeny
-rm -rf "$TBIN2/b" "$TBIN2/b.projeny.status"
+rm -rf "$TBIN2/b" "$TBIN2/.b.projeny.status"
 run_in "$TBIN2" expect_ok "setup after tracked binary delete" "$PROJENY" setup b.projeny
 if [ ! -f "$TBIN2/b/b.dat" ]; then
     ok "tracked binary delete survives re-setup"
@@ -4865,9 +4923,9 @@ if [ ! -f "$T106/fake/README" ]; then
 else
     fail "explicitly removed file stays deleted across setup"
 fi
-expect_file_contains "pending removal kept across setup" "$T106/fake.projeny.status" "Removed: README"
+expect_file_contains "pending removal kept across setup" "$T106/.fake.projeny.status" "Removed: README"
 run_in "$T106" expect_ok "commit records explicit removal" "$PROJENY" commit fake.projeny
-rm -rf "$T106/fake" "$T106/fake.projeny.status"
+rm -rf "$T106/fake" "$T106/.fake.projeny.status"
 run_in "$T106" expect_ok "setup after removal commit" "$PROJENY" setup fake.projeny
 if [ ! -f "$T106/fake/README" ]; then
     ok "committed removal survives re-setup"
@@ -4930,7 +4988,7 @@ python3 -c "open('$ROOT/t109-expect.bin','wb').write(open('$T109/w/b.dat','rb').
 run_in "$T109" expect_ok "mv a binary" "$PROJENY" mv w.projeny w/b.dat w/sub/moved.dat
 run_in "$T109" expect_ok "commit binary rename" "$PROJENY" commit w.projeny
 expect_file_contains "rename recorded in patch" "$T109/w.projeny" "rename from"
-rm -rf "$T109/w" "$T109/w.projeny.status"
+rm -rf "$T109/w" "$T109/.w.projeny.status"
 run_in "$T109" expect_ok "setup after binary rename" "$PROJENY" setup w.projeny
 if [ ! -f "$T109/w/b.dat" ] && cmp -s "$T109/w/sub/moved.dat" "$ROOT/t109-expect.bin"; then
     ok "binary rename byte-identical at new path"
@@ -4948,7 +5006,7 @@ printf 'Archive: w-1.0.tar.gz\nOrigname: w-1.0\nName: w\n\n    X.\n' > "$T110/w.
 (cd "$T110" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 chmod 755 "$T110/w/tool.bin"
 run_in "$T110" expect_ok "commit binary chmod" "$PROJENY" commit w.projeny
-rm -rf "$T110/w" "$T110/w.projeny.status"
+rm -rf "$T110/w" "$T110/.w.projeny.status"
 run_in "$T110" expect_ok "setup after binary chmod" "$PROJENY" setup w.projeny
 if [ -x "$T110/w/tool.bin" ]; then
     ok "binary +x survives re-setup"
@@ -4982,7 +5040,7 @@ Name: w
 
     Merge.
 EOF
-rm -rf "$T111/w" "$T111/w.projeny.status"
+rm -rf "$T111/w" "$T111/.w.projeny.status"
 (cd "$T111" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 python3 -c "open('$T111/w/b.dat','wb').write(b'b\x00LOCAL\n')"
 cp "$ROOT/t111-up.projeny" "$T111/w.projeny"
@@ -5016,12 +5074,12 @@ Name: w
 
     Conflict.
 EOF
-rm -rf "$T112/w" "$T112/w.projeny.status"
+rm -rf "$T112/w" "$T112/.w.projeny.status"
 (cd "$T112" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 python3 -c "open('$T112/w/b.dat','wb').write(b'b\x00LOCAL\n')"
 cp "$ROOT/t112-up.projeny" "$T112/w.projeny"
 run_in "$T112" expect_fail "divergent binary merge exits nonzero" "$PROJENY" setup w.projeny
-expect_file_contains "divergent binary records conflict" "$T112/w.projeny.status" "Conflict: b.dat"
+expect_file_contains "divergent binary records conflict" "$T112/.w.projeny.status" "Conflict: b.dat"
 python3 -c "import sys; sys.exit(0 if open('$T112/w/b.dat','rb').read()==b'b\x00LOCAL\n' else 1)"
 if [ $? -eq 0 ]; then
     ok "binary conflict keeps local bytes"
@@ -5031,7 +5089,7 @@ fi
 python3 -c "open('$T112/w/b.dat','wb').write(b'b\x00RESOLVED\n')"
 run_in "$T112" expect_ok "resolve binary conflict" "$PROJENY" resolve w.projeny w/b.dat
 run_in "$T112" expect_ok "commit resolved binary" "$PROJENY" commit w.projeny
-rm -rf "$T112/w" "$T112/w.projeny.status"
+rm -rf "$T112/w" "$T112/.w.projeny.status"
 run_in "$T112" expect_ok "setup after binary resolve" "$PROJENY" setup w.projeny
 python3 -c "import sys; sys.exit(0 if open('$T112/w/b.dat','rb').read()==b'b\x00RESOLVED\n' else 1)"
 if [ $? -eq 0 ]; then
@@ -5059,12 +5117,12 @@ Name: w
 
     Delmod.
 EOF
-rm -rf "$T113/w" "$T113/w.projeny.status"
+rm -rf "$T113/w" "$T113/.w.projeny.status"
 (cd "$T113" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 python3 -c "open('$T113/w/b.dat','wb').write(b'b\x00LOCAL\n')"
 cp "$ROOT/t113-up.projeny" "$T113/w.projeny"
 run_in "$T113" expect_fail "binary delete/modify exits nonzero" "$PROJENY" setup w.projeny
-expect_file_contains "binary delete/modify records conflict" "$T113/w.projeny.status" "Conflict: b.dat"
+expect_file_contains "binary delete/modify records conflict" "$T113/.w.projeny.status" "Conflict: b.dat"
 python3 -c "import sys; sys.exit(0 if open('$T113/w/b.dat','rb').read()==b'b\x00LOCAL\n' else 1)"
 if [ $? -eq 0 ]; then
     ok "binary delete/modify keeps local bytes"
@@ -5158,7 +5216,7 @@ fi
 # A file touched by the patch gets a newer timestamp, and extract keeps it newer.
 printf 'content v2\n' > "$T116/w/a.c"
 (cd "$T116" && "$PROJENY" commit w.projeny >/dev/null 2>&1)
-rm -rf "$T116/w" "$T116/w.projeny.status" "$T116/ext"
+rm -rf "$T116/w" "$T116/.w.projeny.status" "$T116/ext"
 (cd "$T116" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 if [ "$T116/w/a.c" -nt "$T116/w-1.0.tar.gz" ] || [ "$(stat -c %y "$T116/w/a.c" | cut -c1-10)" != "2020-01-01" ]; then
     ok "patched file gets a newer timestamp"
@@ -5191,7 +5249,7 @@ python3 -c "open('$T117/w/t.txt','wb').write(b't\x00ext to bin\n')"
 printf 'now plain\n' > "$T117/w/b.dat"
 run_in "$T117" expect_ok "commit text/binary transitions" "$PROJENY" commit w.projeny
 python3 -c "open('$ROOT/t117-t.bin','wb').write(open('$T117/w/t.txt','rb').read())"
-rm -rf "$T117/w" "$T117/w.projeny.status"
+rm -rf "$T117/w" "$T117/.w.projeny.status"
 run_in "$T117" expect_ok "setup after transitions" "$PROJENY" setup w.projeny
 if cmp -s "$T117/w/t.txt" "$ROOT/t117-t.bin"; then
     ok "text->binary byte-identical after re-setup"
@@ -5213,7 +5271,7 @@ printf 'keep me\n' > "$T118/w-1.0/keep.txt"
 printf 'Archive: w-1.0.tar.gz\nOrigname: w-1.0\nName: w\n\n    DirRm.\n' > "$T118/w.projeny"
 (cd "$T118" && "$PROJENY" setup w.projeny >/dev/null 2>&1)
 run_in "$T118" expect_ok "rm directory" "$PROJENY" rm w.projeny w/d
-expect_file_contains "dir rm records pending op" "$T118/w.projeny.status" "Removed: d"
+expect_file_contains "dir rm records pending op" "$T118/.w.projeny.status" "Removed: d"
 if [ ! -e "$T118/w/d/a.txt" ] && [ ! -e "$T118/w/d/b.dat" ]; then
     ok "dir rm removes files from workdir"
 else
@@ -5228,7 +5286,7 @@ fi
 run_in "$T118" expect_ok "commit dir-rm" "$PROJENY" commit w.projeny
 expect_file_contains "dir-rm commit stores text delete" "$T118/w.projeny" "d/a.txt"
 expect_file_contains "dir-rm commit stores binary delete" "$T118/w.projeny" "d/b.dat"
-rm -rf "$T118/w" "$T118/w.projeny.status"
+rm -rf "$T118/w" "$T118/.w.projeny.status"
 run_in "$T118" expect_ok "setup after dir-rm commit" "$PROJENY" setup w.projeny
 if [ ! -e "$T118/w/d/a.txt" ] && [ ! -e "$T118/w/d/b.dat" ] && [ -f "$T118/w/keep.txt" ]; then
     ok "committed dir-rm stays deleted after re-setup"
@@ -5250,13 +5308,13 @@ mkdir -p "$T119/w/newdir"
 printf 'new text\n' > "$T119/w/newdir/nt.txt"
 python3 -c "open('$T119/w/newdir/nb.dat','wb').write(b'n\x00ew bin\n' * 20)"
 run_in "$T119" expect_ok "add directory" "$PROJENY" add w.projeny w/newdir
-expect_file_contains "dir add records pending op" "$T119/w.projeny.status" "Added: newdir"
+expect_file_contains "dir add records pending op" "$T119/.w.projeny.status" "Added: newdir"
 run_in "$T119" expect_ok "commit dir-add" "$PROJENY" commit w.projeny
 expect_file_contains "dir-add text stored in patch" "$T119/w.projeny" "newdir/nt.txt"
 expect_file_contains "dir-add binary stored in patch" "$T119/w.projeny" "newdir/nb.dat"
 expect_file_contains "dir-add binary block stored" "$T119/w.projeny" "GIT binary patch"
 python3 -c "open('$ROOT/t119-expect.bin','wb').write(open('$T119/w/newdir/nb.dat','rb').read())"
-rm -rf "$T119/w" "$T119/w.projeny.status"
+rm -rf "$T119/w" "$T119/.w.projeny.status"
 run_in "$T119" expect_ok "setup after dir-add commit" "$PROJENY" setup w.projeny
 expect_file_contains "dir-add text survives re-setup" "$T119/w/newdir/nt.txt" "new text"
 if cmp -s "$T119/w/newdir/nb.dat" "$ROOT/t119-expect.bin"; then
@@ -5294,7 +5352,7 @@ fi
 run_in "$T120" expect_ok "rm disappeared file" "$PROJENY" rm w.projeny w/b.c
 run_in "$T120" expect_ok "commit after rm succeeds" "$PROJENY" commit w.projeny
 expect_file_contains "rm commit stores deletion" "$T120/w.projeny" "deleted file"
-rm -rf "$T120/w" "$T120/w.projeny.status"
+rm -rf "$T120/w" "$T120/.w.projeny.status"
 run_in "$T120" expect_ok "setup after disappeared-rm commit" "$PROJENY" setup w.projeny
 if [ ! -e "$T120/w/b.c" ]; then
     ok "removed file stays deleted"
@@ -5328,7 +5386,7 @@ run_in "$T121" expect_ok "commit of added file succeeds" "$PROJENY" commit w.pro
 expect_file_contains "added file is stored" "$T121/w.projeny" "loose.c"
 run_in "$T121" expect_ok "recommit keeps tracked add" "$PROJENY" commit w.projeny
 expect_file_contains "tracked add survives recommit" "$T121/w.projeny" "loose.c"
-rm -rf "$T121/w" "$T121/w.projeny.status"
+rm -rf "$T121/w" "$T121/.w.projeny.status"
 run_in "$T121" expect_ok "setup after add commit" "$PROJENY" setup w.projeny
 expect_file_contains "added file survives re-setup" "$T121/w/loose.c" "untracked bytes"
 
@@ -5347,7 +5405,7 @@ run_in "$T122" expect_ok "commit of mv succeeds" "$PROJENY" commit w.projeny
 expect_file_contains "mv commit stores rename" "$T122/w.projeny" "rename from"
 expect_file_contains "mv commit names source" "$T122/w.projeny" "n.txt"
 expect_file_contains "mv commit names dest" "$T122/w.projeny" "m.txt"
-rm -rf "$T122/w" "$T122/w.projeny.status"
+rm -rf "$T122/w" "$T122/.w.projeny.status"
 run_in "$T122" expect_ok "setup after mv commit" "$PROJENY" setup w.projeny
 if [ -f "$T122/w/m.txt" ] && [ ! -e "$T122/w/n.txt" ]; then
     ok "mv paths exact after re-setup"
@@ -5407,7 +5465,7 @@ run_in "$T124" expect_ok "commit dir-add" "$PROJENY" commit w.projeny
 expect_file_contains "dir-add text stored" "$T124/w.projeny" "newdir/nt.txt"
 expect_file_contains "dir-add binary stored" "$T124/w.projeny" "newdir/nb.dat"
 python3 -c "open('$ROOT/t124-expect.bin','wb').write(open('$T124/w/newdir/nb.dat','rb').read())"
-rm -rf "$T124/w" "$T124/w.projeny.status"
+rm -rf "$T124/w" "$T124/.w.projeny.status"
 run_in "$T124" expect_ok "setup after dir-add" "$PROJENY" setup w.projeny
 expect_file_contains "dir-add text survives" "$T124/w/newdir/nt.txt" "new text"
 if cmp -s "$T124/w/newdir/nb.dat" "$ROOT/t124-expect.bin"; then
@@ -5527,6 +5585,1066 @@ if [ -f "$_SUITE_DIR/../../pkgconf.projeny" ] && [ -f "$_SUITE_DIR/../../pkgconf
     expect_file_contains "pkgconf package carries patch" "$TPKGCONF/unpack/pkgconf-out/configure" "pizlonated_"
 else
     ok "pkgconf roundtrip skipped (no real project files)"
+fi
+
+# ------------------------------------- 127. setup maintains <Archive>.snapshot
+# setup records a byte-exact snapshot copy of the tarball it used, so a
+# later setup can still reconstruct the status-recorded tree after git
+# deletes the archive (e.g. an upstream rebase removes the old tarball).
+T127="$ROOT/t127"
+make_tarballs "$T127" fake
+write_projeny "$T127" fake 1.0 fake
+run_in "$T127" expect_ok "snapshot setup exits 0" "$PROJENY" setup fake.projeny
+if [ -f "$T127/.fake-1.0.tar.gz.snapshot" ]; then
+    ok "setup writes snapshot next to archive"
+else
+    fail "setup writes snapshot next to archive" "ls: $(ls "$T127" 2>&1)"
+fi
+if [ -f "$T127/.fake-1.0.tar.gz.snapshot" ] && \
+   cmp -s "$T127/.fake-1.0.tar.gz.snapshot" "$T127/fake-1.0.tar.gz"; then
+    ok "snapshot is byte-exact copy of archive"
+else
+    fail "snapshot is byte-exact copy of archive" "sizes: $(wc -c < "$T127/.fake-1.0.tar.gz.snapshot" 2>&1) vs $(wc -c < "$T127/fake-1.0.tar.gz" 2>&1)"
+fi
+run_in "$T127" expect_ok "snapshot setup-again exits 0" "$PROJENY" setup fake.projeny
+if [ -f "$T127/.fake-1.0.tar.gz.snapshot" ] && \
+   cmp -s "$T127/.fake-1.0.tar.gz.snapshot" "$T127/fake-1.0.tar.gz"; then
+    ok "setup-again keeps snapshot byte-exact"
+else
+    fail "setup-again keeps snapshot byte-exact"
+fi
+
+# ----------------------------- 128. setup after status archive deleted (clean)
+# The pulled upstream rebase rewrote the .projeny file to the new tarball and
+# git deleted the old one; setup must still work (snapshot-based E tree).
+T128="$ROOT/t128"
+make_tarballs "$T128" fake
+write_projeny "$T128" fake 1.0 fake
+(cd "$T128" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm "$T128/fake-1.0.tar.gz"
+write_projeny "$T128" fake 2.0 fake
+run_in "$T128" expect_ok "setup with deleted status archive exits 0" "$PROJENY" setup fake.projeny
+expect_file_contains "deleted-archive setup checks out v2" "$T128/fake/README" "hello v2"
+expect_file_contains "deleted-archive setup embeds new archive" "$T128/.fake.projeny.status" "Archive: fake-2.0.tar.gz"
+if [ -f "$T128/.fake-2.0.tar.gz.snapshot" ] && \
+   cmp -s "$T128/.fake-2.0.tar.gz.snapshot" "$T128/fake-2.0.tar.gz"; then
+    ok "deleted-archive setup snapshots the new archive"
+else
+    fail "deleted-archive setup snapshots the new archive"
+fi
+
+# ------------------------------ 129. setup merge after status archive deleted
+# THE bug: uncommitted local changes must still merge onto the new tarball
+# even after the status-recorded archive was deleted from git.
+T129="$ROOT/t129"
+make_tarballs "$T129" fake
+write_projeny "$T129" fake 1.0 fake
+(cd "$T129" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+python3 - "$T129/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 100;")
+open(p, "w").write(s)
+EOF
+rm "$T129/fake-1.0.tar.gz"
+write_projeny "$T129" fake 2.0 fake
+run_in "$T129" expect_ok "merge setup with deleted status archive exits 0" "$PROJENY" setup fake.projeny
+expect_file_contains "deleted-archive merge keeps local edit" "$T129/fake/src/a.c" "delta = 100"
+expect_file_contains "deleted-archive merge takes v2 content" "$T129/fake/src/a.c" "alpha = 2"
+expect_file_not_contains "deleted-archive merge has no markers" "$T129/fake/src/a.c" "<<<<<<<"
+expect_file_contains "deleted-archive merge embeds new archive" "$T129/.fake.projeny.status" "Archive: fake-2.0.tar.gz"
+
+# -------------------- 130. conflicting setup merge after archive deleted
+# Same scenario, but the local edit conflicts with the new tarball: setup
+# must still produce the usual markers + status conflict (not die on the
+# missing archive), and resolve/commit/setup recover normally.
+T130="$ROOT/t130"
+make_tarballs "$T130" fake
+write_projeny "$T130" fake 1.0 fake
+(cd "$T130" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+python3 - "$T130/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 999;")
+open(p, "w").write(s)
+EOF
+rm "$T130/fake-1.0.tar.gz"
+write_projeny "$T130" fake 2.0 fake
+run_in "$T130" expect_fail "conflicting setup with deleted archive exits nonzero" "$PROJENY" setup fake.projeny
+expect_file_contains "deleted-archive conflict leaves markers" "$T130/fake/src/a.c" "<<<<<<<"
+expect_file_contains "deleted-archive conflict lists conflict in status" "$T130/.fake.projeny.status" "Conflict: src/a.c"
+printf 'int alpha = 777;\n\nint beta = 1;\n\nint gamma = 1;\n\nint delta = 1;\n' > "$T130/fake/src/a.c"
+run_in "$T130" expect_ok "deleted-archive conflict resolves" "$PROJENY" resolve fake.projeny fake/src/a.c
+run_in "$T130" expect_ok "deleted-archive conflict commits" "$PROJENY" commit fake.projeny
+run_in "$T130" expect_ok "setup after deleted-archive conflict resolution exits 0" "$PROJENY" setup fake.projeny
+expect_file_contains "post-resolution workdir keeps resolved content" "$T130/fake/src/a.c" "alpha = 777"
+expect_file_contains "post-resolution workdir keeps v2 content" "$T130/fake/README" "hello v2"
+
+# ------------------- 131. hard error when archive AND snapshot are both gone
+# Legacy checkouts set up before snapshots existed have neither file; setup
+# must still fail, but with an actionable message that mentions snapshots.
+T131="$ROOT/t131"
+make_tarballs "$T131" fake
+write_projeny "$T131" fake 1.0 fake
+(cd "$T131" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm "$T131/fake-1.0.tar.gz" "$T131/.fake-1.0.tar.gz.snapshot"
+write_projeny "$T131" fake 2.0 fake
+out="$(cd "$T131" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "missing archive and snapshot fails setup"
+else
+    fail "missing archive and snapshot fails setup" "out: $out"
+fi
+case "$out" in
+*snapshot*)
+    ok "missing archive and snapshot error mentions snapshot"
+    ;;
+*)
+    fail "missing archive and snapshot error mentions snapshot" "out: $out"
+    ;;
+esac
+
+# --------------------------------- 132. snapshot refreshed on in-place change
+# A tarball rewritten in place (same name, new bytes) must refresh the
+# snapshot and be picked up by the next setup.
+T132="$ROOT/t132"
+make_tarballs "$T132" fake
+write_projeny "$T132" fake 1.0 fake
+(cd "$T132" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+T132NEW="$ROOT/t132-new"
+mkdir -p "$T132NEW/fake-1.0/src"
+cat > "$T132NEW/fake-1.0/src/a.c" <<'EOF'
+int alpha = 42;
+
+int beta = 1;
+
+int gamma = 1;
+
+int delta = 1;
+EOF
+printf 'hello v1\n' > "$T132NEW/fake-1.0/README"
+printf 'line one v1\n' > "$T132NEW/fake-1.0/src/b.c"
+(cd "$T132NEW" && tar -czf "$T132/fake-1.0.tar.gz" fake-1.0)
+run_in "$T132" expect_ok "in-place tarball change setup exits 0" "$PROJENY" setup fake.projeny
+if [ -f "$T132/.fake-1.0.tar.gz.snapshot" ] && \
+   cmp -s "$T132/.fake-1.0.tar.gz.snapshot" "$T132/fake-1.0.tar.gz"; then
+    ok "in-place tarball change refreshes snapshot"
+else
+    fail "in-place tarball change refreshes snapshot"
+fi
+expect_file_contains "in-place tarball change reaches workdir" "$T132/fake/src/a.c" "alpha = 42"
+
+# --------------------------- 133. status works after status archive deleted
+# status diffs the workdir against the status-recorded tree; it must prefer
+# the snapshot and still report local modifications after git deleted the
+# archive.
+T133="$ROOT/t133"
+make_tarballs "$T133" fake
+write_projeny "$T133" fake 1.0 fake
+(cd "$T133" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+python3 - "$T133/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 100;")
+open(p, "w").write(s)
+EOF
+rm "$T133/fake-1.0.tar.gz"
+out="$(cd "$T133" && "$PROJENY" status fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "status after deleted archive exits 0"
+else
+    fail "status after deleted archive exits 0" "rc=$rc out: $out"
+fi
+case "$out" in
+*Modified:\ src/a.c*)
+    ok "status after deleted archive lists modified file"
+    ;;
+*)
+    fail "status after deleted archive lists modified file" "out: $out"
+    ;;
+esac
+
+# --------------------------- 134. extract works after status archive deleted
+# End-to-end build-script flow: `projeny extract` runs setup internally, so
+# it must survive the deleted status archive and carry v2 plus local edits.
+T134="$ROOT/t134"
+make_tarballs "$T134" fake
+write_projeny "$T134" fake 1.0 fake
+(cd "$T134" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+python3 - "$T134/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 100;")
+open(p, "w").write(s)
+EOF
+rm "$T134/fake-1.0.tar.gz"
+write_projeny "$T134" fake 2.0 fake
+run_in "$T134" expect_ok "extract with deleted status archive exits 0" "$PROJENY" extract fake.projeny extracted
+expect_file_contains "deleted-archive extract carries v2 content" "$T134/extracted/src/a.c" "alpha = 2"
+expect_file_contains "deleted-archive extract carries local edit" "$T134/extracted/src/a.c" "delta = 100"
+
+# ------------------ 135. legacy undotted status file migrates on first use
+# Checkouts set up by older projenies hold "<f>.projeny.status"; the dotted
+# ".<f>.projeny.status" name is canonical now. The first command that runs
+# must rename the legacy file in place (content preserved, workdir state
+# intact) — not just setup, but any command.
+T135="$ROOT/t135"
+make_tarballs "$T135" fake
+write_projeny "$T135" fake 1.0 fake
+(cd "$T135" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+mv "$T135/.fake.projeny.status" "$T135/fake.projeny.status"
+python3 - "$T135/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 55;")
+open(p, "w").write(s)
+EOF
+run_in "$T135" expect_ok "legacy undotted status: setup exits 0" "$PROJENY" setup fake.projeny
+if [ -f "$T135/fake.projeny.status" ]; then
+    fail "legacy undotted status file is renamed away" "'$T135/fake.projeny.status' still exists"
+else
+    ok "legacy undotted status file is renamed away"
+fi
+if [ -f "$T135/.fake.projeny.status" ]; then
+    ok "legacy undotted status renamed to dotted form"
+else
+    fail "legacy undotted status renamed to dotted form"
+fi
+expect_file_contains "renamed status keeps embedded copy" "$T135/.fake.projeny.status" "Archive: fake-1.0.tar.gz"
+expect_file_contains "legacy status migration merges local edit" "$T135/fake/src/a.c" "alpha = 55"
+
+# ---------------------------------- 136. legacy undotted snapshot migrates
+# Same idea for the snapshot: with the archive deleted from git, the E tree
+# can only come from the status file's snapshot — so a successful merge
+# proves the legacy undotted snapshot was found, renamed to the dotted form,
+# and used.
+T136="$ROOT/t136"
+make_tarballs "$T136" fake
+write_projeny "$T136" fake 1.0 fake
+(cd "$T136" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+python3 - "$T136/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 100;")
+open(p, "w").write(s)
+EOF
+rm "$T136/fake-1.0.tar.gz"
+cp "$T136/.fake-1.0.tar.gz.snapshot" "$ROOT/t136-snap.before"
+mv "$T136/.fake-1.0.tar.gz.snapshot" "$T136/fake-1.0.tar.gz.snapshot"
+write_projeny "$T136" fake 2.0 fake
+run_in "$T136" expect_ok "legacy undotted snapshot: setup exits 0" "$PROJENY" setup fake.projeny
+if [ -f "$T136/fake-1.0.tar.gz.snapshot" ]; then
+    fail "legacy undotted snapshot is renamed away" "'$T136/fake-1.0.tar.gz.snapshot' still exists"
+else
+    ok "legacy undotted snapshot is renamed away"
+fi
+if [ -f "$T136/.fake-1.0.tar.gz.snapshot" ] && \
+   cmp -s "$T136/.fake-1.0.tar.gz.snapshot" "$ROOT/t136-snap.before"; then
+    ok "legacy undotted snapshot renamed to dotted form intact"
+else
+    fail "legacy undotted snapshot renamed to dotted form intact"
+fi
+expect_file_contains "legacy snapshot migration merges local edit" "$T136/fake/src/a.c" "delta = 100"
+expect_file_contains "legacy snapshot migration takes v2 content" "$T136/fake/src/a.c" "alpha = 2"
+
+# ------------------------- 137. both forms present: dotted wins, undotted
+# file is left untouched
+T137="$ROOT/t137"
+make_tarballs "$T137" fake
+write_projeny "$T137" fake 1.0 fake
+(cd "$T137" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+cp "$T137/.fake.projeny.status" "$T137/fake.projeny.status"
+cp "$T137/.fake-1.0.tar.gz.snapshot" "$T137/fake-1.0.tar.gz.snapshot"
+cp "$T137/fake.projeny.status" "$ROOT/t137-status-undotted.before"
+cp "$T137/fake-1.0.tar.gz.snapshot" "$ROOT/t137-snap-undotted.before"
+run_in "$T137" expect_ok "both forms present: setup exits 0" "$PROJENY" setup fake.projeny
+if cmp -s "$T137/fake.projeny.status" "$ROOT/t137-status-undotted.before"; then
+    ok "undotted status left untouched when dotted form exists"
+else
+    fail "undotted status left untouched when dotted form exists"
+fi
+if cmp -s "$T137/fake-1.0.tar.gz.snapshot" "$ROOT/t137-snap-undotted.before"; then
+    ok "undotted snapshot left untouched when dotted form exists"
+else
+    fail "undotted snapshot left untouched when dotted form exists"
+fi
+expect_file_contains "dotted status still used when both exist" "$T137/.fake.projeny.status" "Status: setup"
+
+# ----------------- 138. missing workdir: stale status/snapshot are renamed
+# When the checkout directory is gone, the status file and snapshots are
+# stale state: a warning names each destination and the files move to
+# '<name>.stale', then a fresh setup proceeds.
+T138="$ROOT/t138"
+make_tarballs "$T138" fake
+write_projeny "$T138" fake 1.0 fake
+(cd "$T138" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T138/fake"
+out="$(cd "$T138" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "setup with missing workdir and stale state exits 0"
+else
+    fail "setup with missing workdir and stale state exits 0" "rc=$rc out: $out"
+fi
+case "$out" in
+*.fake.projeny.status.stale*)
+    ok "warning names status .stale destination"
+    ;;
+*)
+    fail "warning names status .stale destination" "out: $out"
+    ;;
+esac
+case "$out" in
+*.fake-1.0.tar.gz.snapshot.stale*)
+    ok "warning names snapshot .stale destination"
+    ;;
+*)
+    fail "warning names snapshot .stale destination" "out: $out"
+    ;;
+esac
+if [ -f "$T138/.fake.projeny.status.stale" ]; then
+    ok "stale status file renamed to .stale"
+else
+    fail "stale status file renamed to .stale" "ls: $(ls -a "$T138" 2>&1)"
+fi
+if [ -f "$T138/.fake-1.0.tar.gz.snapshot.stale" ]; then
+    ok "stale snapshot renamed to .stale"
+else
+    fail "stale snapshot renamed to .stale" "ls: $(ls -a "$T138" 2>&1)"
+fi
+if [ ! -f "$T138/fake.projeny.status" ] && [ ! -f "$T138/fake-1.0.tar.gz.snapshot" ]; then
+    ok "no undotted leftovers after stale rename"
+else
+    fail "no undotted leftovers after stale rename"
+fi
+expect_file_contains "fresh setup after stale rename checks out v1" "$T138/fake/README" "hello v1"
+expect_file_contains "fresh status written after stale rename" "$T138/.fake.projeny.status" "Status: setup"
+
+# ------------------------------- 139. missing workdir: .stale name already
+# taken, so the next free name (.stale2, .stale3) is used
+T139="$ROOT/t139"
+make_tarballs "$T139" fake
+write_projeny "$T139" fake 1.0 fake
+(cd "$T139" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T139/fake"
+printf 'older run\n' > "$T139/.fake.projeny.status.stale"
+printf 'even older run\n' > "$T139/.fake.projeny.status.stale2"
+printf 'older snapshot\n' > "$T139/.fake-1.0.tar.gz.snapshot.stale"
+out="$(cd "$T139" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "setup with taken .stale names exits 0"
+else
+    fail "setup with taken .stale names exits 0" "rc=$rc out: $out"
+fi
+case "$out" in
+*.fake.projeny.status.stale3*)
+    ok "status uses .stale3 when .stale and .stale2 are taken"
+    ;;
+*)
+    fail "status uses .stale3 when .stale and .stale2 are taken" "out: $out"
+    ;;
+esac
+case "$out" in
+*.fake-1.0.tar.gz.snapshot.stale2*)
+    ok "snapshot uses .stale2 when .stale is taken"
+    ;;
+*)
+    fail "snapshot uses .stale2 when .stale is taken" "out: $out"
+    ;;
+esac
+if [ -f "$T139/.fake.projeny.status.stale3" ]; then
+    ok "stale status file lands on .stale3"
+else
+    fail "stale status file lands on .stale3" "ls: $(ls -a "$T139" 2>&1)"
+fi
+if [ -f "$T139/.fake-1.0.tar.gz.snapshot.stale2" ]; then
+    ok "stale snapshot lands on .stale2"
+else
+    fail "stale snapshot lands on .stale2" "ls: $(ls -a "$T139" 2>&1)"
+fi
+expect_file_contains "taken .stale name is not overwritten" "$T139/.fake.projeny.status.stale" "older run"
+expect_file_contains "taken .stale2 name is not overwritten" "$T139/.fake.projeny.status.stale2" "even older run"
+
+# -------------------- 140. missing workdir: undotted variants are also
+# disregarded (renamed to the stale names)
+T140="$ROOT/t140"
+make_tarballs "$T140" fake
+write_projeny "$T140" fake 1.0 fake
+(cd "$T140" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T140/fake"
+mv "$T140/.fake.projeny.status" "$T140/fake.projeny.status"
+mv "$T140/.fake-1.0.tar.gz.snapshot" "$T140/fake-1.0.tar.gz.snapshot"
+out="$(cd "$T140" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "setup with undotted stale state exits 0"
+else
+    fail "setup with undotted stale state exits 0" "rc=$rc out: $out"
+fi
+if [ ! -f "$T140/fake.projeny.status" ] && [ ! -f "$T140/fake-1.0.tar.gz.snapshot" ]; then
+    ok "undotted status and snapshot are gone after setup"
+else
+    fail "undotted status and snapshot are gone after setup"
+fi
+if [ -f "$T140/.fake.projeny.status.stale" ]; then
+    ok "undotted status renamed to dotted .stale"
+else
+    fail "undotted status renamed to dotted .stale" "ls: $(ls -a "$T140" 2>&1)"
+fi
+if [ -f "$T140/.fake-1.0.tar.gz.snapshot.stale" ]; then
+    ok "undotted snapshot renamed to dotted .stale"
+else
+    fail "undotted snapshot renamed to dotted .stale" "ls: $(ls -a "$T140" 2>&1)"
+fi
+expect_file_contains "fresh setup after undotted stale rename checks out v1" "$T140/fake/README" "hello v1"
+
+# ------------------- 141. workdir present but no status file: hard error
+T141="$ROOT/t141"
+make_tarballs "$T141" fake
+write_projeny "$T141" fake 1.0 fake
+(cd "$T141" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm "$T141/.fake.projeny.status"
+out="$(cd "$T141" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "workdir without status file hard-errors"
+else
+    fail "workdir without status file hard-errors" "out: $out"
+fi
+case "$out" in
+*.fake.projeny.status*)
+    ok "hard error names the dotted status file"
+    ;;
+*)
+    fail "hard error names the dotted status file" "out: $out"
+    ;;
+esac
+if [ ! -f "$T141/.fake.projeny.status" ]; then
+    ok "hard error does not fabricate a status file"
+else
+    fail "hard error does not fabricate a status file"
+fi
+
+# -------------------- 142. missing snapshot with tarball present is fine
+# (setup recreates the dotted snapshot from the tarball)
+T142="$ROOT/t142"
+make_tarballs "$T142" fake
+write_projeny "$T142" fake 1.0 fake
+(cd "$T142" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm "$T142/.fake-1.0.tar.gz.snapshot"
+run_in "$T142" expect_ok "setup with missing snapshot and present tarball exits 0" "$PROJENY" setup fake.projeny
+if [ -f "$T142/.fake-1.0.tar.gz.snapshot" ] && \
+   cmp -s "$T142/.fake-1.0.tar.gz.snapshot" "$T142/fake-1.0.tar.gz"; then
+    ok "setup recreates dotted snapshot from tarball"
+else
+    fail "setup recreates dotted snapshot from tarball"
+fi
+
+# ----------------- 143. status with missing workdir: stale state renamed
+# (a non-setup command performs the same reconciliation)
+T143="$ROOT/t143"
+make_tarballs "$T143" fake
+write_projeny "$T143" fake 1.0 fake
+(cd "$T143" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T143/fake"
+out="$(cd "$T143" && "$PROJENY" status fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "status with missing workdir exits 0"
+else
+    fail "status with missing workdir exits 0" "rc=$rc out: $out"
+fi
+case "$out" in
+*.fake.projeny.status.stale*)
+    ok "status warning names status .stale destination"
+    ;;
+*)
+    fail "status warning names status .stale destination" "out: $out"
+    ;;
+esac
+case "$out" in
+*.fake-1.0.tar.gz.snapshot.stale*)
+    ok "status warning names snapshot .stale destination"
+    ;;
+*)
+    fail "status warning names snapshot .stale destination" "out: $out"
+    ;;
+esac
+if [ -f "$T143/.fake.projeny.status.stale" ] && \
+   [ -f "$T143/.fake-1.0.tar.gz.snapshot.stale" ]; then
+    ok "status renames stale state to .stale"
+else
+    fail "status renames stale state to .stale" "ls: $(ls -a "$T143" 2>&1)"
+fi
+if [ ! -f "$T143/.fake.projeny.status" ]; then
+    ok "status leaves no dotted status file behind"
+else
+    fail "status leaves no dotted status file behind"
+fi
+case "$out" in
+*Status:\ setup*)
+    ok "status still reports the recorded state"
+    ;;
+*)
+    fail "status still reports the recorded state" "out: $out"
+    ;;
+esac
+
+# ------------------------- 144. status copy-on-fallback creates snapshot
+# status must also work (and self-heal) when only the tarball exists.
+T144="$ROOT/t144"
+make_tarballs "$T144" fake
+write_projeny "$T144" fake 1.0 fake
+(cd "$T144" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm "$T144/.fake-1.0.tar.gz.snapshot"
+out="$(cd "$T144" && "$PROJENY" status fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "status with missing snapshot and present tarball exits 0"
+else
+    fail "status with missing snapshot and present tarball exits 0" "rc=$rc out: $out"
+fi
+if [ -f "$T144/.fake-1.0.tar.gz.snapshot" ] && \
+   cmp -s "$T144/.fake-1.0.tar.gz.snapshot" "$T144/fake-1.0.tar.gz"; then
+    ok "status copy-on-fallback creates dotted snapshot"
+else
+    fail "status copy-on-fallback creates dotted snapshot"
+fi
+
+# -------------------- 145. commit with missing workdir: stale state is
+# renamed, then the command still hard-errors
+T145="$ROOT/t145"
+make_tarballs "$T145" fake
+write_projeny "$T145" fake 1.0 fake
+(cd "$T145" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T145/fake"
+out="$(cd "$T145" && "$PROJENY" commit fake.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "commit with missing workdir hard-errors"
+else
+    fail "commit with missing workdir hard-errors" "out: $out"
+fi
+case "$out" in
+*.fake.projeny.status.stale*)
+    ok "commit warning names status .stale destination"
+    ;;
+*)
+    fail "commit warning names status .stale destination" "out: $out"
+    ;;
+esac
+if [ -f "$T145/.fake.projeny.status.stale" ] && \
+   [ -f "$T145/.fake-1.0.tar.gz.snapshot.stale" ]; then
+    ok "commit renames stale state to .stale"
+else
+    fail "commit renames stale state to .stale" "ls: $(ls -a "$T145" 2>&1)"
+fi
+
+# --------------------- 146. add with missing workdir: stale state is
+# renamed, then the command still hard-errors
+T146="$ROOT/t146"
+make_tarballs "$T146" fake
+write_projeny "$T146" fake 1.0 fake
+(cd "$T146" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T146/fake"
+out="$(cd "$T146" && "$PROJENY" add fake.projeny fake/src/b.c 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "add with missing workdir hard-errors"
+else
+    fail "add with missing workdir hard-errors" "out: $out"
+fi
+case "$out" in
+*workdir*)
+    ok "add error mentions the missing workdir"
+    ;;
+*)
+    fail "add error mentions the missing workdir" "out: $out"
+    ;;
+esac
+if [ -f "$T146/.fake.projeny.status.stale" ]; then
+    ok "add renames stale status to .stale"
+else
+    fail "add renames stale status to .stale" "ls: $(ls -a "$T146" 2>&1)"
+fi
+
+# --------------- 147. rebase with missing workdir: runs setup first, which
+# renames the stale state (setup's reconciliation is inherited)
+T147="$ROOT/t147"
+make_tarballs "$T147" fake
+write_projeny "$T147" fake 1.0 fake
+(cd "$T147" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T147/fake"
+out="$(cd "$T147" && "$PROJENY" rebase fake.projeny fake-2.0.tar.gz 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "rebase with missing workdir exits 0"
+else
+    fail "rebase with missing workdir exits 0" "rc=$rc out: $out"
+fi
+case "$out" in
+*.fake.projeny.status.stale*)
+    ok "rebase warning names status .stale destination"
+    ;;
+*)
+    fail "rebase warning names status .stale destination" "out: $out"
+    ;;
+esac
+if [ -f "$T147/.fake.projeny.status.stale" ]; then
+    ok "rebase (via setup) renames stale status to .stale"
+else
+    fail "rebase (via setup) renames stale status to .stale" "ls: $(ls -a "$T147" 2>&1)"
+fi
+expect_file_contains "rebase after stale rename checks out v2" "$T147/fake/README" "hello v2"
+expect_file_contains "rebase after stale rename embeds new archive" "$T147/.fake.projeny.status" "Archive: fake-2.0.tar.gz"
+
+# ------- 148. journal crash window: no command stales recovery-critical state
+# An interrupted conflicted setup leaves its setup journal (crash window:
+# the journal was written; the status/.projeny/workdir updates did not all
+# land — here the workdir is additionally gone and the interrupted rebase
+# already deleted the old tarball). Recovery needs the status file (union
+# bookkeeping/conflict disambiguation) and the v1 snapshot (the only
+# remaining copy of the local side's archive), so NO command may stale them
+# while the journal exists: a read-only `status` must leave the crash state
+# untouched, and the rerun `setup` must recover using the snapshot.
+T148="$ROOT/t148"
+make_tarballs "$T148" fake
+write_projeny "$T148" fake 1.0 fake
+(cd "$T148" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+cp "$T148/fake.projeny" "$ROOT/t148-local.projeny"
+# upstream rebase moved the checkout to the v2 tarball.
+write_projeny "$T148" fake 2.0 fake
+cp "$T148/fake.projeny" "$ROOT/t148-up.projeny"
+# git-conflicted .projeny plus the journal recording both sides.
+make_conflicted "$ROOT/t148-local.projeny" "$ROOT/t148-up.projeny" "$T148/conf.raw"
+cp "$T148/conf.raw" "$T148/fake.projeny"
+python3 - "$T148/conf.raw" "$T148/fake.projeny.setup-journal" <<'PYEOF'
+import sys
+raw = open(sys.argv[1]).read()
+journal = "projeny setup journal v1\nupstream: theirs\n--- conflicted .projeny ---\n" + raw
+open(sys.argv[2], "w").write(journal)
+PYEOF
+rm -rf "$T148/fake" "$T148/fake-1.0.tar.gz"
+if [ -f "$T148/.fake.projeny.status" ] && [ -f "$T148/.fake-1.0.tar.gz.snapshot" ] && \
+   [ ! -e "$T148/fake-1.0.tar.gz" ] && [ -f "$T148/fake.projeny.setup-journal" ] && \
+   [ ! -e "$T148/fake" ]; then
+    ok "journal crash state prepared (no workdir, old tarball deleted)"
+else
+    fail "journal crash state prepared (no workdir, old tarball deleted)" \
+         "ls: $(ls -A "$T148" 2>&1)"
+fi
+# (a) a read-only command must leave the crash state exactly as it is.
+out="$(cd "$T148" && "$PROJENY" status fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "status with setup journal exits 0"
+else
+    fail "status with setup journal exits 0" "rc=$rc out: $out"
+fi
+if [ -f "$T148/.fake.projeny.status" ] && [ -f "$T148/.fake-1.0.tar.gz.snapshot" ]; then
+    ok "status leaves status file and snapshot in place while journal exists"
+else
+    fail "status leaves status file and snapshot in place while journal exists" \
+         "ls: $(ls -A "$T148" 2>&1)"
+fi
+if [ -n "$(ls -A "$T148" | grep -F .stale)" ]; then
+    fail "status stales nothing while a setup journal exists" "$(ls -A "$T148")"
+else
+    ok "status stales nothing while a setup journal exists"
+fi
+# (b) recovery proceeds using the snapshot (the tarball is gone) and
+# reconstructs the checkout from the journal's upstream side.
+out="$(cd "$T148" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "setup recovers from the journal using the snapshot"
+else
+    fail "setup recovers from the journal using the snapshot" "rc=$rc out: $out"
+fi
+if echo "$out" | grep -qi "recover"; then
+    ok "recovery says it recovered (status untouched beforehand)"
+else
+    fail "recovery says it recovered (status untouched beforehand)" "out: $out"
+fi
+if cmp -s "$T148/fake.projeny" "$ROOT/t148-up.projeny"; then
+    ok "journal recovery keeps upstream .projeny bytes"
+else
+    fail "journal recovery keeps upstream .projeny bytes" "$(cat "$T148/fake.projeny")"
+fi
+expect_file_contains "journal recovery checks out the upstream archive" "$T148/fake/README" "hello v2"
+expect_file_contains "journal recovery checks out v2 content" "$T148/fake/src/a.c" "alpha = 2"
+if [ -e "$T148/fake.projeny.setup-journal" ]; then
+    fail "journal recovery removes the journal" "$(ls -A "$T148" 2>&1)"
+else
+    ok "journal recovery removes the journal"
+fi
+expect_file_contains "journal recovery writes the upstream status" "$T148/.fake.projeny.status" "Archive: fake-2.0.tar.gz"
+
+# ------------- 149. missing workdir with BOTH forms: all four are staled
+# Requirement: with the workdir gone, no status/snapshot file may remain
+# under ANY of its names. When the dotted and legacy undotted forms both
+# exist, each is disregarded under its own name (dotted -> dotted.stale,
+# undotted -> undotted.stale), so nothing survives under either form.
+T149="$ROOT/t149"
+make_tarballs "$T149" fake
+write_projeny "$T149" fake 1.0 fake
+(cd "$T149" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T149/fake"
+cp "$T149/.fake.projeny.status" "$T149/fake.projeny.status"
+cp "$T149/.fake-1.0.tar.gz.snapshot" "$T149/fake-1.0.tar.gz.snapshot"
+out="$(cd "$T149" && "$PROJENY" status fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "status with both forms and missing workdir exits 0"
+else
+    fail "status with both forms and missing workdir exits 0" "rc=$rc out: $out"
+fi
+if [ ! -e "$T149/.fake.projeny.status" ] && [ ! -e "$T149/fake.projeny.status" ] && \
+   [ ! -e "$T149/.fake-1.0.tar.gz.snapshot" ] && [ ! -e "$T149/fake-1.0.tar.gz.snapshot" ]; then
+    ok "both-forms stale reconciliation removes all four original names"
+else
+    fail "both-forms stale reconciliation removes all four original names" \
+         "ls: $(ls -A "$T149" 2>&1)"
+fi
+if [ -f "$T149/.fake.projeny.status.stale" ] && [ -f "$T149/fake.projeny.status.stale" ] && \
+   [ -f "$T149/.fake-1.0.tar.gz.snapshot.stale" ] && [ -f "$T149/fake-1.0.tar.gz.snapshot.stale" ]; then
+    ok "both-forms stale reconciliation stales each form under its own name"
+else
+    fail "both-forms stale reconciliation stales each form under its own name" \
+         "ls: $(ls -A "$T149" 2>&1)"
+fi
+case "$out" in
+*".fake.projeny.status.stale"*)
+    ok "warning names the dotted status destination"
+    ;;
+*)
+    fail "warning names the dotted status destination" "out: $out"
+    ;;
+esac
+case "$out" in
+# The warning quotes each path, and '.fake...' contains 'fake...' as a
+# substring — anchor on the quoted undotted destination.
+*"'fake.projeny.status.stale'"*)
+    ok "warning names the undotted status destination"
+    ;;
+*)
+    fail "warning names the undotted status destination" "out: $out"
+    ;;
+esac
+case "$out" in
+*"'fake-1.0.tar.gz.snapshot.stale'"*)
+    ok "warning names the undotted snapshot destination"
+    ;;
+*)
+    fail "warning names the undotted snapshot destination" "out: $out"
+    ;;
+esac
+
+# --------- 150. rebase to a new tarball: the OLD archive's snapshot is
+# staled too (the status file's embedded Archive: differs from the current
+# .projeny's), exercising the stale reconciliation's different-archive
+# branch (the old archive is recovered from the status bytes).
+T150="$ROOT/t150"
+make_tarballs "$T150" fake
+write_projeny "$T150" fake 1.0 fake
+(cd "$T150" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+rm -rf "$T150/fake"
+# An upstream rebase rewrote the .projeny to the new tarball; a snapshot of
+# the new tarball already exists (byte-exact copy, as write_status keeps).
+write_projeny "$T150" fake 2.0 fake
+cp "$T150/fake-2.0.tar.gz" "$T150/.fake-2.0.tar.gz.snapshot"
+rm "$T150/fake-1.0.tar.gz"
+out="$(cd "$T150" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "setup with rebased archive and both snapshots exits 0"
+else
+    fail "setup with rebased archive and both snapshots exits 0" "rc=$rc out: $out"
+fi
+# `setup` stales the status file and then writes a FRESH one (unlike
+# `status`, which leaves it gone), so the status assertions here check the
+# .stale destination plus the rewritten file's embedded archive. The OLD
+# archive's snapshot, by contrast, is gone for good: nothing recreates it.
+if [ ! -e "$T150/.fake-1.0.tar.gz.snapshot" ]; then
+    ok "rebase-stale removes the OLD archive's snapshot"
+else
+    fail "rebase-stale removes the OLD archive's snapshot" \
+         "ls: $(ls -A "$T150" 2>&1)"
+fi
+if [ -f "$T150/.fake-1.0.tar.gz.snapshot.stale" ] && \
+   [ -f "$T150/.fake-2.0.tar.gz.snapshot.stale" ] && \
+   [ -f "$T150/.fake.projeny.status.stale" ]; then
+    ok "rebase-stale stales status and BOTH archives' snapshots"
+else
+    fail "rebase-stale stales status and BOTH archives' snapshots" \
+         "ls: $(ls -A "$T150" 2>&1)"
+fi
+if [ -f "$T150/.fake-2.0.tar.gz.snapshot" ] && \
+   cmp -s "$T150/.fake-2.0.tar.gz.snapshot" "$T150/fake-2.0.tar.gz"; then
+    ok "fresh setup recreates the new archive's snapshot"
+else
+    fail "fresh setup recreates the new archive's snapshot"
+fi
+expect_file_contains "fresh setup after rebase-stale checks out v2" "$T150/fake/README" "hello v2"
+expect_file_contains "fresh status after rebase-stale embeds the new archive" "$T150/.fake.projeny.status" "Archive: fake-2.0.tar.gz"
+
+# ------------------- 151. setup into an empty existing directory
+# The workdir exists (empty) but no status file does: instead of the old
+# unconditional hard error, setup adopts the directory in place, unpacks
+# the tree into it, and writes the status file.
+T151="$ROOT/t151"
+make_tarballs "$T151" fake
+write_projeny "$T151" fake 1.0 fake
+mkdir "$T151/fake"
+out="$(cd "$T151" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "setup into an empty existing directory exits 0"
+else
+    fail "setup into an empty existing directory exits 0" "rc=$rc out: $out"
+fi
+case "$out" in
+*"into existing directory"*)
+    ok "setup into an existing directory says so"
+    ;;
+*)
+    fail "setup into an existing directory says so" "out: $out"
+    ;;
+esac
+expect_file_contains "empty-dir setup checks out the tarball" "$T151/fake/README" "hello v1"
+expect_file_contains "empty-dir setup writes src/a.c" "$T151/fake/src/a.c" "int alpha = 1;"
+expect_file_contains "empty-dir setup writes src/b.c" "$T151/fake/src/b.c" "line one v1"
+if [ -f "$T151/.fake.projeny.status" ]; then
+    ok "empty-dir setup writes the status file"
+else
+    fail "empty-dir setup writes the status file"
+fi
+expect_file_contains "empty-dir setup status reports setup" "$T151/.fake.projeny.status" "Status: setup"
+expect_file_contains "empty-dir setup status embeds the archive" "$T151/.fake.projeny.status" "Archive: fake-1.0.tar.gz"
+
+# -------------- 152. setup into a compatible non-empty directory keeps files
+# A directory holding only files the tarball and patch never touch is
+# adopted in place: foreign files (nested, top-level, hidden) survive
+# byte-for-byte next to the fresh checkout.
+T152="$ROOT/t152"
+make_tarballs "$T152" fake
+write_projeny "$T152" fake 1.0 fake
+mkdir -p "$T152/fake/src" "$T152/fake/.hidden"
+printf 'my notes\n' > "$T152/fake/notes.txt"
+printf 'int extra = 1;\n' > "$T152/fake/src/extra.c"
+printf 'hidden state\n' > "$T152/fake/.hidden/keep"
+printf 'dot file\n' > "$T152/fake/.dotfile"
+printf 'my notes\n' > "$ROOT/t152-notes"
+printf 'int extra = 1;\n' > "$ROOT/t152-extra"
+printf 'hidden state\n' > "$ROOT/t152-keep"
+printf 'dot file\n' > "$ROOT/t152-dot"
+out="$(cd "$T152" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "setup into a compatible non-empty directory exits 0"
+else
+    fail "setup into a compatible non-empty directory exits 0" "rc=$rc out: $out"
+fi
+expect_file_eq "compatible setup keeps the nested foreign file" "$T152/fake/src/extra.c" "$ROOT/t152-extra"
+expect_file_eq "compatible setup keeps the top-level foreign file" "$T152/fake/notes.txt" "$ROOT/t152-notes"
+expect_file_eq "compatible setup keeps the hidden dir's file" "$T152/fake/.hidden/keep" "$ROOT/t152-keep"
+expect_file_eq "compatible setup keeps the hidden file" "$T152/fake/.dotfile" "$ROOT/t152-dot"
+expect_file_contains "compatible setup checks out the tarball" "$T152/fake/README" "hello v1"
+expect_file_contains "compatible setup checks out src/a.c" "$T152/fake/src/a.c" "int alpha = 1;"
+if [ -f "$T152/.fake.projeny.status" ]; then
+    ok "compatible setup writes the status file"
+else
+    fail "compatible setup writes the status file"
+fi
+
+# ------------------------- 153. refusal: the tarball would overwrite a file
+# A pre-existing file at a tarball path is a conflict: setup must refuse
+# naming the path, leave the file byte-for-byte intact, leak nothing else
+# into the directory, and write no status file.
+T153="$ROOT/t153"
+make_tarballs "$T153" fake
+write_projeny "$T153" fake 1.0 fake
+mkdir "$T153/fake"
+printf 'local readme\n' > "$T153/fake/README"
+printf 'local readme\n' > "$ROOT/t153-readme"
+out="$(cd "$T153" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "setup refuses when the tarball would overwrite a file"
+else
+    fail "setup refuses when the tarball would overwrite a file" "out: $out"
+fi
+expect_file_eq "refusal leaves the pre-existing file untouched" "$T153/fake/README" "$ROOT/t153-readme"
+case "$out" in
+*"  README"*) ok "refusal names the offending path" ;;
+*) fail "refusal names the offending path" "out: $out" ;;
+esac
+if [ ! -e "$T153/fake/src" ]; then
+    ok "refusal leaks no tarball content into the directory"
+else
+    fail "refusal leaks no tarball content into the directory" \
+         "ls: $(ls -A "$T153/fake" 2>&1)"
+fi
+if [ ! -f "$T153/.fake.projeny.status" ]; then
+    ok "refusal writes no status file"
+else
+    fail "refusal writes no status file"
+fi
+
+# --------------------- 154. refusal: the patch would overwrite a file
+# The same rule covers patch-added files (produced here by the real
+# add/commit pipeline): a pre-existing file at a patch-add path refuses.
+T154="$ROOT/t154"
+make_tarballs "$T154" fake
+write_projeny "$T154" fake 1.0 fake
+(cd "$T154" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+printf 'added by the patch\n' > "$T154/fake/added.txt"
+run_in "$T154" expect_ok "fixture: add the new file" "$PROJENY" add fake.projeny fake/added.txt
+run_in "$T154" expect_ok "fixture: commit folds the add into the patch" "$PROJENY" commit fake.projeny
+expect_file_contains "fixture: .projeny patch adds added.txt" "$T154/fake.projeny" "added.txt"
+# A fresh directory holding only a file at the patch-add path.
+rm -rf "$T154/fake" "$T154/.fake.projeny.status"
+mkdir "$T154/fake"
+printf 'local added\n' > "$T154/fake/added.txt"
+printf 'local added\n' > "$ROOT/t154-added"
+out="$(cd "$T154" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "setup refuses when the patch would overwrite a file"
+else
+    fail "setup refuses when the patch would overwrite a file" "out: $out"
+fi
+expect_file_eq "patch-add refusal leaves the pre-existing file untouched" "$T154/fake/added.txt" "$ROOT/t154-added"
+case "$out" in
+*"  added.txt"*) ok "patch-add refusal names the offending path" ;;
+*) fail "patch-add refusal names the offending path" "out: $out" ;;
+esac
+if [ ! -e "$T154/fake/README" ]; then
+    ok "patch-add refusal leaks no tarball content"
+else
+    fail "patch-add refusal leaks no tarball content"
+fi
+if [ ! -f "$T154/.fake.projeny.status" ]; then
+    ok "patch-add refusal writes no status file"
+else
+    fail "patch-add refusal writes no status file"
+fi
+
+# ---------------- 155. refusal: a file sits where a directory is needed
+T155="$ROOT/t155"
+make_tarballs "$T155" fake
+write_projeny "$T155" fake 1.0 fake
+mkdir "$T155/fake"
+printf 'not a directory\n' > "$T155/fake/src"
+printf 'not a directory\n' > "$ROOT/t155-src"
+out="$(cd "$T155" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "setup refuses when a file sits where a directory is needed"
+else
+    fail "setup refuses when a file sits where a directory is needed" "out: $out"
+fi
+expect_file_eq "file-for-directory refusal leaves the file untouched" "$T155/fake/src" "$ROOT/t155-src"
+case "$out" in
+*"  src"*) ok "file-for-directory refusal names the offending path" ;;
+*) fail "file-for-directory refusal names the offending path" "out: $out" ;;
+esac
+if [ ! -e "$T155/fake/README" ] && [ ! -f "$T155/.fake.projeny.status" ]; then
+    ok "file-for-directory refusal touches nothing else"
+else
+    fail "file-for-directory refusal touches nothing else" \
+         "ls: $(ls -A "$T155/fake" 2>&1)"
+fi
+
+# ---------------- 156. refusal: a directory sits where a file is needed
+T156="$ROOT/t156"
+make_tarballs "$T156" fake
+write_projeny "$T156" fake 1.0 fake
+mkdir -p "$T156/fake/README"
+printf 'inside\n' > "$T156/fake/README/inner"
+out="$(cd "$T156" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "setup refuses when a directory sits where a file is needed"
+else
+    fail "setup refuses when a directory sits where a file is needed" "out: $out"
+fi
+if [ -d "$T156/fake/README" ] && [ "$(cat "$T156/fake/README/inner")" = "inside" ]; then
+    ok "directory-for-file refusal leaves the directory untouched"
+else
+    fail "directory-for-file refusal leaves the directory untouched" \
+         "ls: $(ls -A "$T156/fake" 2>&1)"
+fi
+case "$out" in
+*"  README"*) ok "directory-for-file refusal names the offending path" ;;
+*) fail "directory-for-file refusal names the offending path" "out: $out" ;;
+esac
+if [ ! -e "$T156/fake/src" ] && [ ! -f "$T156/.fake.projeny.status" ]; then
+    ok "directory-for-file refusal touches nothing else"
+else
+    fail "directory-for-file refusal touches nothing else" \
+         "ls: $(ls -A "$T156/fake" 2>&1)"
+fi
+
+# ------------------------- 157. foreign files persist across later setups
+# After an into-existing-directory setup, the foreign files are ordinary
+# untracked files: the next setup (status present, tracked files untouched)
+# carries them along like user-added files.
+T157="$ROOT/t157"
+make_tarballs "$T157" fake
+write_projeny "$T157" fake 1.0 fake
+mkdir -p "$T157/fake/src" "$T157/fake/.hidden"
+printf 'my notes\n' > "$T157/fake/notes.txt"
+printf 'int extra = 1;\n' > "$T157/fake/src/extra.c"
+printf 'hidden state\n' > "$T157/fake/.hidden/keep"
+printf 'dot file\n' > "$T157/fake/.dotfile"
+(cd "$T157" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+run_in "$T157" expect_ok "setup again after an into-existing setup exits 0" "$PROJENY" setup fake.projeny
+expect_file_eq "re-setup keeps the top-level foreign file" "$T157/fake/notes.txt" "$ROOT/t152-notes"
+expect_file_eq "re-setup keeps the nested foreign file" "$T157/fake/src/extra.c" "$ROOT/t152-extra"
+expect_file_eq "re-setup keeps the hidden dir's file" "$T157/fake/.hidden/keep" "$ROOT/t152-keep"
+expect_file_eq "re-setup keeps the hidden file" "$T157/fake/.dotfile" "$ROOT/t152-dot"
+expect_file_contains "re-setup keeps the tarball content" "$T157/fake/README" "hello v1"
+expect_file_contains "re-setup keeps the src content" "$T157/fake/src/a.c" "int alpha = 1;"
+
+# ------------------- 158. refusal lists at most ten offending paths
+# A 12-file tarball meeting 12 pre-existing files: the diagnostic caps the
+# path list at ten with a "... and N more" tail, and still touches nothing.
+T158="$ROOT/t158"
+mkdir -p "$T158/fake-1.0"
+for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    printf 'file %s\n' "$i" > "$T158/fake-1.0/f$i.c"
+done
+(cd "$T158" && tar -czf fake-1.0.tar.gz fake-1.0 && rm -rf fake-1.0)
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: fake\n\n    Many files.\n' > "$T158/fake.projeny"
+mkdir "$T158/fake"
+for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    printf 'mine %s\n' "$i" > "$T158/fake/f$i.c"
+done
+out="$(cd "$T158" && "$PROJENY" setup fake.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "setup refuses when a dozen files collide"
+else
+    fail "setup refuses when a dozen files collide" "out: $out"
+fi
+case "$out" in
+*"... and 2 more"*) ok "refusal caps the path list at ten" ;;
+*) fail "refusal caps the path list at ten" "out: $out" ;;
+esac
+if [ "$(cat "$T158/fake/f1.c")" = "mine 1" ] && [ "$(cat "$T158/fake/f12.c")" = "mine 12" ]; then
+    ok "capped refusal leaves every file untouched"
+else
+    fail "capped refusal leaves every file untouched" \
+         "ls: $(ls -A "$T158/fake" 2>&1)"
+fi
+if [ ! -f "$T158/.fake.projeny.status" ]; then
+    ok "capped refusal writes no status file"
+else
+    fail "capped refusal writes no status file"
 fi
 
 # ------------------------------------------------------------- summary

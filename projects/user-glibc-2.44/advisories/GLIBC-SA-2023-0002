@@ -1,0 +1,15 @@
+getaddrinfo: Stack read overflow in no-aaaa mode
+
+If the system is configured in no-aaaa mode via /etc/resolv.conf,
+getaddrinfo is called for the AF_UNSPEC address family, and a DNS
+response is received over TCP that is larger than 2048 bytes,
+getaddrinfo may potentially disclose stack contents via the returned
+address data, or crash.
+
+CVE-Id: CVE-2023-4527
+Public-Date: 2023-09-12
+Vulnerable-Commit: f282cdbe7f436c75864e5640a409a10485e9abb2 (2.36)
+Fix-Commit: bd77dd7e73e3530203be1c52c8a29d08270cb25d (2.39)
+Fix-Commit: 4ea972b7edd7e36610e8cde18bf7a8149d7bac4f (2.36-113)
+Fix-Commit: b7529346025a130fee483d42178b5c118da971bb (2.37-38)
+Fix-Commit: b25508dd774b617f99419bdc3cf2ace4560cd2d6 (2.38-19)

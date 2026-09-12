@@ -1,0 +1,13 @@
+GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
+# Local preconfigure fragment for sysdeps/s390
+
+case "$machine" in
+s390x)
+  base_machine=s390
+  machine=s390
+  ;;
+s390)
+  AC_MSG_ERROR(s390-32 is not supported anymore.)
+  exit 1
+;;
+esac

@@ -3238,7 +3238,7 @@ sub gen_double () {
     my $x = shift;
     my ($src0,$sfx,$bias);
     my ($S,$M,$Zsqr,$in_x,$tmp0)=map(32*$_,(0..4));
-    my $FR = $ENV{SARCASM} ? "%fil_dbl" : "%rsp";
+  my $FR = $ENV{SARCASM} ? "%fil_dbl" : "%rsp";
 
     if ($x ne "x") {
 	$src0 = "%rax";
@@ -3291,16 +3291,16 @@ $code.=<<___;
 .cfi_push	%r15
 ___
 if ($ENV{SARCASM}) {
-	# Region + parked entry %rsp (the lea-recompute epilogue cannot be
-	# proven safe); the +8 tail slot of the frame hosts the save,
-	# and the following 8 bytes park $r_ptr (pointer parks in xmm
-	# registers cannot be tracked).
-	$code.=<<___;
+  # Region + parked entry %rsp (the lea-recompute epilogue cannot be
+  # proven safe); the +8 tail slot of the frame hosts the save,
+  # and the following 8 bytes park $r_ptr (pointer parks in xmm
+  # registers cannot be tracked).
+  $code.=<<___;
 	sub	\$32*5+24, %rsp
 	movq	%rax, 32*5(%rsp)	# park entry %rsp in the region
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	\$32*5+24, %rsp
 ___
 }
@@ -3308,11 +3308,11 @@ $code.=<<___;
 .cfi_adjust_cfa_offset	32*5+24
 ___
 if ($ENV{SARCASM}) {
-    # Heap scratch for the local-subroutine scalar slots (same
-    # layout as the gas frame block); frame-slot pointers cannot
-    # be materialized under sarcasm, so the subs address this
-    # GC buffer instead (gas keeps the frame block).
-    $code.=<<___;
+  # Heap scratch for the local-subroutine scalar slots (same
+  # layout as the gas frame block); frame-slot pointers cannot
+  # be materialized under sarcasm, so the subs address this
+  # GC buffer instead (gas keeps the frame block).
+  $code.=<<___;
 	.alloca	\$160,\$16,%fil_dbl
 ___
 }
@@ -3585,15 +3585,15 @@ $code.=<<___;
 .cfi_push	%r15
 ___
 if ($ENV{SARCASM}) {
-	# Region + parked entry %rsp; the +8 tail slot hosts the save,
-	# and the following 16 bytes park $r_ptr / the in1 pointer
-	# (pointer parks in xmm registers cannot be tracked).
-	$code.=<<___;
+  # Region + parked entry %rsp; the +8 tail slot hosts the save,
+  # and the following 16 bytes park $r_ptr / the in1 pointer
+  # (pointer parks in xmm registers cannot be tracked).
+  $code.=<<___;
 	sub	\$32*18+24, %rsp
 	movq	%rax, 32*18(%rsp)	# park entry %rsp in the region
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	\$32*18+24, %rsp
 ___
 }
@@ -3601,11 +3601,11 @@ $code.=<<___;
 .cfi_adjust_cfa_offset	32*18+24
 ___
 if ($ENV{SARCASM}) {
-    # Heap scratch for the local-subroutine scalar slots (same
-    # layout as the gas frame block); frame-slot pointers cannot
-    # be materialized under sarcasm, so the subs address this
-    # GC buffer instead (gas keeps the frame block).
-    $code.=<<___;
+  # Heap scratch for the local-subroutine scalar slots (same
+  # layout as the gas frame block); frame-slot pointers cannot
+  # be materialized under sarcasm, so the subs address this
+  # GC buffer instead (gas keeps the frame block).
+  $code.=<<___;
 	.alloca	\$576,\$16,%fil_add
 ___
 }
@@ -3735,13 +3735,13 @@ $code.=<<___;
 	movq	32*18+8(%rsp), $r_ptr	# restore $r_ptr
 ___
 if ($ENV{SARCASM}) {
-	# The B2 tail-join re-anchors %rsp mid-function (the +416 frame
-	# difference), which cannot be proven safe. A call + our own
-	# epilogue is exactly the tail-join's semantics (the shortcut is
-	# ecp_nistz256_point_double$x followed by ret). The epilogue is
-	# inlined here: jumping to the shared epilogue merges two paths
-	# with divergent parked-%rsp carrier state.
-	$code.=<<___;
+  # The B2 tail-join re-anchors %rsp mid-function (the +416 frame
+  # difference), which cannot be proven safe. A call + our own
+  # epilogue is exactly the tail-join's semantics (the shortcut is
+  # ecp_nistz256_point_double$x followed by ret). The epilogue is
+  # inlined here: jumping to the shared epilogue merges two paths
+  # with divergent parked-%rsp carrier state.
+  $code.=<<___;
 	call	ecp_nistz256_point_double$sfx #! void(ptr,ptr)
 	movq	32*18(%rsp), %rsi	# reload parked entry %rsp
 .cfi_def_cfa	%rsi,8
@@ -3762,7 +3762,7 @@ if ($ENV{SARCASM}) {
 	ret
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	add	\$`32*(18-5)`, %rsp		# difference in frame sizes
 .cfi_adjust_cfa_offset	`-32*(18-5)`
 	jmp	.Lpoint_double_shortcut$x
@@ -4036,15 +4036,15 @@ $code.=<<___;
 .cfi_push	%r15
 ___
 if ($ENV{SARCASM}) {
-	# Region + parked entry %rsp; the +8 tail slot hosts the save,
-	# and the following 8 bytes park $r_ptr (pointer parks in xmm
-	# registers cannot be tracked).
-	$code.=<<___;
+  # Region + parked entry %rsp; the +8 tail slot hosts the save,
+  # and the following 8 bytes park $r_ptr (pointer parks in xmm
+  # registers cannot be tracked).
+  $code.=<<___;
 	sub	\$32*15+24, %rsp
 	movq	%rax, 32*15(%rsp)	# park entry %rsp in the region
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	sub	\$32*15+24, %rsp
 ___
 }
@@ -4052,11 +4052,11 @@ $code.=<<___;
 .cfi_adjust_cfa_offset	32*15+24
 ___
 if ($ENV{SARCASM}) {
-    # Heap scratch for the local-subroutine scalar slots (same
-    # layout as the gas frame block); frame-slot pointers cannot
-    # be materialized under sarcasm, so the subs address this
-    # GC buffer instead (gas keeps the frame block).
-    $code.=<<___;
+  # Heap scratch for the local-subroutine scalar slots (same
+  # layout as the gas frame block); frame-slot pointers cannot
+  # be materialized under sarcasm, so the subs address this
+  # GC buffer instead (gas keeps the frame block).
+  $code.=<<___;
 	.alloca	\$480,\$16,%fil_aff
 ___
 }

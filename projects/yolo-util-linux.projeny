@@ -1,0 +1,24 @@
+Archive: util-linux-2.40.2.tar.xz
+Origname: util-linux-2.40.2
+Name: yolo-util-linux
+
+    util-linux 2.40.2 for yolo (non-Fil-C) builds, containing only the
+    lsfd bsearch fix.  Pristine glibc 2.44 defines a const-preserving
+    bsearch macro with 5 parameters (C23), and lsfd passed a compound
+    literal whose internal comma was not protected by parentheses.  The
+    Fil-C glibc forks defuse __glibc_const_generic, so the Fil-C build
+    does not hit this; yolo builds against pristine glibc 2.44 do.
+    Same upstream fix as in util-linux.projeny:
+    711bda1441561bfd2eb6d45fe0bc789535c1f1a8 (OpenEmbedded backport).
+diff --git a/yolo-util-linux/misc-utils/lsfd.c b/yolo-util-linux/misc-utils/lsfd.c
+--- a/yolo-util-linux/misc-utils/lsfd.c
++++ b/yolo-util-linux/misc-utils/lsfd.c
+@@ -1569,7 +1569,7 @@
+ 		struct file *file = list_entry(f, struct file, files);
+ 		if (is_opened_file(file) && !file->multiplexed) {
+ 			int fd = file->association;
+-			if (bsearch(&(struct pollfd){.fd = fd,}, local.iov_base,
++			if (bsearch((&(struct pollfd){.fd = fd,}), local.iov_base,
+ 				    nfds, sizeof(struct pollfd), pollfdcmp))
+ 				file->multiplexed = 1;
+ 		}

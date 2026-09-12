@@ -17,8 +17,8 @@ test -d $FILCSRC/libpas
 test -d $FILCSRC/llvm
 test -d $FILCSRC/clang
 test -d $FILCSRC/filc
-test -d $FILCSRC/projects/yolo-glibc-2.40
-test -d $FILCSRC/projects/user-glibc-2.40
+test -d $FILCSRC/projects/yolo-glibc-2.44
+test -d $FILCSRC/projects/user-glibc-2.44
 
 SRCDIR=$PWD
 
@@ -30,9 +30,9 @@ test -d $FILCSRC/pizfix/lib
 test -d $FILCSRC/build/bin
 test -e $FILCSRC/pizfix/lib/libpizlo.so
 test -e $FILCSRC/build/bin/clang-20
-test -e $FILCSRC/projects/user-glibc-2.40/pizlonated-user-glibc.tar.gz
+test -e $FILCSRC/projects/user-glibc-2.44/pizlonated-user-glibc.tar.gz
 
-cp -v $FILCSRC/projects/user-glibc-2.40/pizlonated-user-glibc.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/user-glibc-2.44/pizlonated-user-glibc.tar.gz $LFS/sources
 
 # FIXME: It would be cool if I built libpizlo.so in the chroot.
 #

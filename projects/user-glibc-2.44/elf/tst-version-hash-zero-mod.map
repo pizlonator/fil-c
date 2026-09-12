@@ -1,0 +1,13 @@
+Base {
+  local: *;
+};
+
+/* Define the version so that tst-version-hash-zero-refmod.so passes
+   the initial symbol version check.  */
+OTHER_VERSION {
+} Base;
+
+/* This version string hashes to zero.  */
+PPPPPPPPPPPP {
+  global: global_variable;
+} Base;

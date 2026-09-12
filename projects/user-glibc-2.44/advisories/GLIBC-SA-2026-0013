@@ -1,0 +1,20 @@
+Potential stack-based buffer clash during tilde expansion in wordexp
+
+Calling wordexp with a tilde (~) followed by an overly long username
+in the GNU C Library version 2.2.3 to 2.43 may lead to a stack buffer
+clash.
+
+When expanding paths that begin with a tilde (~) followed by a username, the
+internal parse_tilde function extracts the username to determine the user's
+home directory.  The implementation allocates memory for this username directly
+on the stack using the strndupa macro.  Because the size of this allocation
+was determined by the length of the user-supplied input without any bounds
+checks, passing an excessively long username e.g. thousands of characters,
+forces the thread to exhaust its stack space. Thus if an application passes
+untrusted, attacker-controlled input to the wordexp function, an attacker
+can trigger a stack clash.
+
+CVE-Id: CVE-2026-6791
+Public-Date: 2026-06-22
+Vulnerable-Commit: 344af000e1d6e9c7882b9bc48e71cb3f1b5fc03c (2.2.3-114)
+Reported-by: storm

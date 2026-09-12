@@ -676,7 +676,7 @@ sub Xupdate_ssse3_16_31()		# recall that $Xi starts with 4
 	&pxor	(@X[0],@Tx[0]);		# "X[0]"^="X[-3]"^"X[-8]"
 	 eval(shift(@insns));
 	 eval(shift(@insns));		# rol
-	  &movdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer to IALU
+    &movdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer to IALU
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 
@@ -764,7 +764,7 @@ sub Xupdate_ssse3_32_79()
 	&movdqa	(@Tx[0],@X[0]);
 	 eval(shift(@insns));
 	 eval(shift(@insns));
-	  &movdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer to IALU
+    &movdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer to IALU
 	 eval(shift(@insns));		# ror
 	 eval(shift(@insns));
 	 eval(shift(@insns));		# body_20_39
@@ -811,7 +811,7 @@ sub Xuplast_ssse3_80()
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 
-	  &movdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer IALU
+    &movdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer IALU
 
 	 foreach (@insns) { eval; }		# remaining instructions
 
@@ -851,7 +851,7 @@ sub Xloop_ssse3()
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 	 eval(shift(@insns));
-	&movdqa	(eval(16*$Xi)."($XFER)",@X[($Xi-4)&7]);	# X[]+K xfer to IALU
+  &movdqa	(eval(16*$Xi)."($XFER)",@X[($Xi-4)&7]);	# X[]+K xfer to IALU
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 	 eval(shift(@insns));
@@ -880,7 +880,7 @@ sub body_00_19 () {	# ((c^d)&b)^d
 	'&xor	(@T[0],$d)',
 	'&mov	(@T[1],$a)',	# $b for next round
 
-	'&add	($e,eval(4*($j&15))."($XFER)")',	# X[]+K xfer
+  '&add	($e,eval(4*($j&15))."($XFER)")',	# X[]+K xfer
 	'&xor	($b,$c)',	# $c^$d for next round
 
 	'&$_rol	($a,5)',
@@ -897,7 +897,7 @@ sub body_20_39 () {	# b^d^c
 	return &body_40_59() if ($rx==39); $rx++;
 	(
 	'($a,$b,$c,$d,$e)=@V;'.
-	'&add	($e,eval(4*($j&15))."($XFER)")',	# X[]+K xfer
+  '&add	($e,eval(4*($j&15))."($XFER)")',	# X[]+K xfer
 	'&xor	(@T[0],$d)	if($j==19);'.
 	'&xor	(@T[0],$c)	if($j> 19)',	# ($b^$d^$c)
 	'&mov	(@T[1],$a)',	# $b for next round
@@ -916,7 +916,7 @@ sub body_40_59 () {	# ((b^c)&(c^d))^c
 	$rx++;
 	(
 	'($a,$b,$c,$d,$e)=@V;'.
-	'&add	($e,eval(4*($j&15))."($XFER)")',	# X[]+K xfer
+  '&add	($e,eval(4*($j&15))."($XFER)")',	# X[]+K xfer
 	'&and	(@T[0],$c)	if ($j>=40)',	# (b^c)&(c^d)
 	'&xor	($c,$d)		if ($j>=40)',	# restore $c
 
@@ -1167,7 +1167,7 @@ sub Xupdate_avx_16_31()		# recall that $Xi starts with 4
 	&vpxor	(@X[0],@X[0],@Tx[0]);		# "X[0]"^="X[-3]"^"X[-8]"
 	 eval(shift(@insns));
 	 eval(shift(@insns));
-	  &vmovdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer to IALU
+    &vmovdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer to IALU
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 
@@ -1239,7 +1239,7 @@ sub Xupdate_avx_32_79()
 	 eval(shift(@insns));		# rol
 
 	&vpsrld	(@Tx[0],@X[0],30);
-	  &vmovdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer to IALU
+    &vmovdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer to IALU
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 	 eval(shift(@insns));		# ror
@@ -1283,7 +1283,7 @@ sub Xuplast_avx_80()
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 
-	  &vmovdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer IALU
+    &vmovdqa	(eval(16*(($Xi-1)&3))."($XFER)",@Tx[1]);	# X[]+K xfer IALU
 
 	 foreach (@insns) { eval; }		# remaining instructions
 
@@ -1318,7 +1318,7 @@ sub Xloop_avx()
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 	 eval(shift(@insns));
-	&vmovdqa(eval(16*$Xi)."($XFER)",@X[$Xi&7]);	# X[]+K xfer to IALU
+  &vmovdqa(eval(16*$Xi)."($XFER)",@X[$Xi&7]);	# X[]+K xfer to IALU
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 
@@ -1568,7 +1568,7 @@ for (;$Xi<8;$Xi++) {	# Xupdate_avx2_16_31
 	&vpxor	(@X[0],@X[0],@Tx[1]);
 	&vpxor	(@X[0],@X[0],@Tx[2]);		# "X[0]"^=("X[0]">>96)<<<2
 	&vpaddd	(@Tx[1],@X[0],$Kx);
-	&vmovdqu("32*$Xi($A2F)",@Tx[1]);	# X[]+K xfer to IALU
+  &vmovdqu("32*$Xi($A2F)",@Tx[1]);	# X[]+K xfer to IALU
 
 	push(@X,shift(@X));	# "rotate" X[]
 }
@@ -1708,7 +1708,7 @@ sub Xupdate_avx2_16_31()		# recall that $Xi starts with 4
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 	 eval(shift(@insns));
-	&vmovdqu(eval(32*($Xi))."($A2F)",@Tx[1]);	# X[]+K xfer to IALU
+  &vmovdqu(eval(32*($Xi))."($A2F)",@Tx[1]);	# X[]+K xfer to IALU
 
 	 foreach (@insns) { eval; }	# remaining instructions [if any]
 
@@ -1761,7 +1761,7 @@ sub Xupdate_avx2_32_79()
 	 eval(shift(@insns));
 	 eval(shift(@insns));
 
-	&vmovdqu("32*$Xi($A2F)",@Tx[1]);	# X[]+K xfer to IALU
+  &vmovdqu("32*$Xi($A2F)",@Tx[1]);	# X[]+K xfer to IALU
 
 	 foreach (@insns) { eval; }	# remaining instructions
 
@@ -1872,20 +1872,20 @@ ___
 	  &vpshufb	(@X[-3&7],@X[-3&7],@X[2]);
 	  &vpaddd	(@Tx[0],@X[-4&7],$Kx);		# add K_00_19
 	&Xloop_avx2	(\&bodyx_20_39);
-	  &vmovdqu	("0($A2F)",@Tx[0]);
+    &vmovdqu	("0($A2F)",@Tx[0]);
 	  &vpshufb	(@X[-2&7],@X[-2&7],@X[2]);
 	  &vpaddd	(@Tx[1],@X[-3&7],$Kx);
 	&Xloop_avx2	(\&bodyx_20_39);
-	  &vmovdqu	("32($A2F)",@Tx[1]);
+    &vmovdqu	("32($A2F)",@Tx[1]);
 	  &vpshufb	(@X[-1&7],@X[-1&7],@X[2]);
 	  &vpaddd	(@X[2],@X[-2&7],$Kx);
 
 	&Xloop_avx2	(\&bodyx_40_59);
 	&align32	();
-	  &vmovdqu	("64($A2F)",@X[2]);
+    &vmovdqu	("64($A2F)",@X[2]);
 	  &vpaddd	(@X[3],@X[-1&7],$Kx);
 	&Xloop_avx2	(\&bodyx_40_59);
-	  &vmovdqu	("96($A2F)",@X[3]);
+    &vmovdqu	("96($A2F)",@X[3]);
 	&Xloop_avx2	(\&bodyx_40_59);
 	&Xupdate_avx2_16_31(\&bodyx_40_59);
 

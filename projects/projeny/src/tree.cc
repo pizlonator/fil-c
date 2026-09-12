@@ -737,35 +737,39 @@ bool is_archive_metadata_entry(const std::string& name)
     return false;
 }
 
-// Check a tar listing entry for symlink/hardlink-escape violations: absolute
-// link targets, or ".." components that would escape the top directory.
-void check_tar_link_target(const std::string& member, const std::string& target)
+// Check a tar listing entry's symlink/hardlink target: it must be relative
+// and must lexically resolve to a path inside the tree. A symlink's target
+// is relative to the member's directory; a hardlink's target is the linked
+// member's name, which tar resolves against the extraction root (it strips
+// leading ".." before linking). In-tree ".." spellings (e.g.
+// "b3sum/LICENSE_A2 -> ../LICENSE_A2") resolve back inside the tree and are
+// fine; only absolute targets and true escapes are refused.
+void check_tar_link_target(const std::string& member, const std::string& target,
+                           bool hardlink)
 {
     if (target.empty())
         return;
     if (target[0] == '/')
         die("archive member '" + member + "' links to absolute target '" +
             target + "'; refusing (symlink/hardlink escape)");
-    // Any ".." path component in the target escapes the member's directory.
-    size_t i = 0;
-    while (i <= target.size()) {
-        size_t j = target.find('/', i);
-        std::string comp =
-            (j == std::string::npos) ? target.substr(i) : target.substr(i, j - i);
-        if (comp == "..")
-            die("archive member '" + member + "' links to '" + target +
-                "'; refusing (link target escapes the tree)");
-        if (j == std::string::npos)
-            break;
-        i = j + 1;
-    }
+    // Strip the "./" spellings tar emits so the member's directory is
+    // relative to the tree root.
+    std::string m = member;
+    while (starts_with(m, "./"))
+        m = m.substr(2);
+    std::string resolved;
+    if (resolve_link_target(hardlink ? std::string(".") : dirname_of(m),
+                            target, &resolved) == LinkResolve::Escapes)
+        die("archive member '" + member + "' links to '" + target +
+            "' (resolves to '" + resolved +
+            "'); refusing (link target escapes the tree)");
 }
 
-// `tar -tv` long-listing line -> (member name, link target or ""). Symlink
-// ("l") entries print as "name -> target", hardlink ("h") entries as
+// `tar -tv` long-listing line -> (member name, link target or "", hardlink).
+// Symlink ("l") entries print as "name -> target", hardlink ("h") entries as
 // "name link to target". Anything else has no link target to check.
 bool parse_tar_verbose_line(const std::string& line, std::string* member,
-                            std::string* target)
+                            std::string* target, bool* hardlink)
 {
     if (line.empty())
         return false;
@@ -773,12 +777,15 @@ bool parse_tar_verbose_line(const std::string& line, std::string* member,
     // / "drwxr-xr-x" / "hrw-r--r--".
     char kind = line[0];
     const char* sep = nullptr;
-    if (kind == 'l')
+    if (kind == 'l') {
         sep = " -> ";
-    else if (kind == 'h')
+        *hardlink = false;
+    } else if (kind == 'h') {
         sep = " link to ";
-    else
+        *hardlink = true;
+    } else {
         return false; // regular file/dir/etc: no link target to check
+    }
     size_t arrow = line.rfind(sep);
     if (arrow == std::string::npos)
         return false;
@@ -889,9 +896,10 @@ void check_archive_members_safe(const std::string& archive)
         if (member.empty())
             continue;
         std::string link_member, target;
-        if (parse_tar_verbose_line(line, &link_member, &target))
+        bool hardlink = false;
+        if (parse_tar_verbose_line(line, &link_member, &target, &hardlink))
             check_tar_link_target(link_member.empty() ? member : link_member,
-                                  target);
+                                  target, hardlink);
     }
 }
 
@@ -1042,8 +1050,10 @@ std::vector<std::string> patch_touched_paths(const std::string& patch,
     return vcs_touched_paths(patch, wid);
 }
 bool merge_one_file(const std::string& base_file, const std::string& ours_file,
-                    const std::string& theirs_file, const std::string& dst_path)
+                    const std::string& theirs_file, const std::string& dst_path,
+                    const std::string& dst_root)
 {
     // Internal three-way merge (no git merge-file invocation).
-    return vcs_merge_one_file(base_file, ours_file, theirs_file, dst_path);
+    return vcs_merge_one_file(base_file, ours_file, theirs_file, dst_path,
+                              dst_root);
 }

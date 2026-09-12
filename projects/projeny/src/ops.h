@@ -33,7 +33,9 @@
 struct Ctx {
     std::string projeny_arg;
     std::string pdir;       // directory containing the .projeny file
-    std::string statusfile; // "<projeny path>.status"
+    std::string statusfile; // dot-prefixed ".<projeny path>.status" (a
+                            // legacy undotted "<projeny path>.status" is
+                            // renamed into place on first use)
 };
 
 Ctx resolve_ctx(const std::string& projeny_arg);

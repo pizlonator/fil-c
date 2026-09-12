@@ -148,15 +148,7 @@ ___
 $code.=<<___ if (!$ENV{SARCASM});
 	jz	.Lsqr8x_enter
 ___
-# Sarcasm: bn_mul_mont never dispatches to bn_sqr8x_mont. The bn_sqr8x_mont
-# body calls bn_sqr8x_internal/bn_sqrx8x_internal cross-file (they live in
-# x86_64-mont5.s); those callee bodies address their caller's frame with
-# the +8 convention, so under sarcasm they are de-globl'd file-local
-# subroutines and the cross-file call cannot link. Squaring (ap==bp,
-# num%8==0) therefore falls through to the generic mul4x multiply path,
-# which handles a==b correctly — same result, just slightly slower. The
-# bn_sqr8x_mont body itself is not emitted under SARCASM (see below), so
-# the .Lsqr8x_enter label has no producer and no consumer.
+# Sarcasm: bn_sqr8x_mont body not emitted (see below); fall through to mul4x.
 $code.=<<___;
 	jmp	.Lmul4x_enter
 
@@ -177,13 +169,13 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-	# Sarcasm turns the whole dynamic frame into a GC allocation, so
-	# the page-walking probe is pointless and the stack-size computation
-	# collapses to a plain byte size. The region covers the tp[num+2]
-	# buffer (with its negative tp[j-1] offsets); the original %rsp
-	# parks in a tiny fixed frame slot, so tp[] rebases 1:1 onto the
-	# '.alloca' buffer via $FR.
-	$code.=<<___;
+  # Sarcasm turns the whole dynamic frame into a GC allocation, so
+  # the page-walking probe is pointless and the stack-size computation
+  # collapses to a plain byte size. The region covers the tp[num+2]
+  # buffer (with its negative tp[j-1] offsets); the original %rsp
+  # parks in a tiny fixed frame slot, so tp[] rebases 1:1 onto the
+  # '.alloca' buffer via $FR.
+  $code.=<<___;
 	sub	\$16,%rsp		# fixed save slot for original %rsp
 	lea	192(,$num,8),%r10	# region size: 8*(num+2) buffer + slack + 64 headroom
 	.alloca	%r10,\$16,$FRraw
@@ -192,7 +184,7 @@ if ($ENV{SARCASM}) {
 .Lmul_body:
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	neg	$num
 	mov	%rsp,%r11
 	lea	-16(%rsp,$num,8),%r10	# future alloca(8*(num+2))
@@ -461,10 +453,10 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-	# See the .Lmul_enter frame above for why the page walk and the
-	# TLB-aliasing stack math vanish under sarcasm. The original %rsp
-	# parks in a tiny fixed frame slot, so tp[] rebases 1:1 via $FR.
-	$code.=<<___;
+  # See the .Lmul_enter frame above for why the page walk and the
+  # TLB-aliasing stack math vanish under sarcasm. The original %rsp
+  # parks in a tiny fixed frame slot, so tp[] rebases 1:1 via $FR.
+  $code.=<<___;
 	sub	\$16,%rsp		# fixed save slot for original %rsp
 	lea	192(,$num,8),%r10	# region size: 8*(num+4) buffer + slack + 64 headroom
 	.alloca	%r10,\$16,$FRraw
@@ -473,7 +465,7 @@ if ($ENV{SARCASM}) {
 .Lmul4x_body:
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	neg	$num
 	mov	%rsp,%r11
 	lea	-32(%rsp,$num,8),%r10	# future alloca(8*(num+4))
@@ -924,7 +916,7 @@ $code.=<<___;
 
 .type	bn_sqr8x_mont,\@function,6
 .align	32
-bn_sqr8x_mont: #! int(ptr,ptr,ptr,ptr,ptr,int)
+bn_sqr8x_mont:
 .cfi_startproc
 	mov	%rsp,%rax
 .cfi_def_cfa_register	%rax
@@ -943,8 +935,6 @@ bn_sqr8x_mont: #! int(ptr,ptr,ptr,ptr,ptr,int)
 .cfi_push	%r15
 .Lsqr8x_prologue:
 
-___
-	$code.=<<___;
 	mov	${num}d,%r10d
 	shl	\$3,${num}d		# convert $num to bytes
 	shl	\$3+2,%r10		# 4*$num
@@ -1000,8 +990,6 @@ ___
 	mov	%rax, 40(%rsp)		# save original %rsp
 .cfi_cfa_expression	%rsp+40,deref,+8
 .Lsqr8x_body:
-___
-$code.=<<___;
 
 	movq	$nptr, %xmm2		# save pointer to modulus
 	pxor	%xmm0,%xmm0
@@ -1014,7 +1002,7 @@ $code.=<<___ if ($addx);
 	cmp	\$0x80100,%eax
 	jne	.Lsqr8x_nox
 
-	call	bn_sqrx8x_internal	# see x86_64-mont5 module #! void(ptr,ptr,ptr,ptr,ptr,int)
+	call	bn_sqrx8x_internal	# see x86_64-mont5 module
 					# %rax	top-most carry
 					# %rbp	nptr
 					# %rcx	-8*num
@@ -1030,7 +1018,7 @@ $code.=<<___ if ($addx);
 .Lsqr8x_nox:
 ___
 $code.=<<___;
-	call	bn_sqr8x_internal	# see x86_64-mont5 module #! void(ptr,ptr,ptr,ptr,ptr,int)
+	call	bn_sqr8x_internal	# see x86_64-mont5 module
 					# %rax	top-most carry
 					# %rbp	nptr
 					# %r8	-8*num
@@ -1148,13 +1136,13 @@ bn_mulx4x_mont: #! int(ptr,ptr,ptr,ptr,ptr,int)
 
 ___
 if ($ENV{SARCASM}) {
-	# Under sarcasm the dynamic frame is a GC allocation (see the
-	# .Lmul_enter frame): size = frame 72 + $num + 8 bytes + slack.
-	# The header slots (0-56, except the %rsp save) and tp[] rebase 1:1
-	# onto the buffer via $FR; the original %rsp parks in a tiny fixed
-	# frame slot (a prologue `%rsp` save may only spill to the frame,
-	# not to the region).
-	$code.=<<___;
+  # Under sarcasm the dynamic frame is a GC allocation (see the
+  # .Lmul_enter frame): size = frame 72 + $num + 8 bytes + slack.
+  # The header slots (0-56, except the %rsp save) and tp[] rebase 1:1
+  # onto the buffer via $FR; the original %rsp parks in a tiny fixed
+  # frame slot (a prologue `%rsp` save may only spill to the frame,
+  # not to the region).
+  $code.=<<___;
 	sub	\$16,%rsp		# fixed save slot for original %rsp
 	shl	\$3,${num}d		# convert $num to bytes
 	mov	($n0),$n0		# *n0
@@ -1166,7 +1154,7 @@ if ($ENV{SARCASM}) {
 	lea	($bp,$num),%r10
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	shl	\$3,${num}d		# convert $num to bytes
 	xor	%r10,%r10
 	sub	$num,%r10		# -$num

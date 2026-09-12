@@ -1,0 +1,9 @@
+#ifdef __SSE4_1__
+# define USE_TRUNC_BUILTIN 1
+# define USE_TRUNCF_BUILTIN 1
+#else
+# define USE_TRUNC_BUILTIN 0
+# define USE_TRUNCF_BUILTIN 0
+#endif
+#define USE_TRUNCL_BUILTIN 0
+#define USE_TRUNCF128_BUILTIN 0

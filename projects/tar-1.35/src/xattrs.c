@@ -139,13 +139,15 @@ static struct
 #ifdef HAVE_POSIX_ACLS
 
 /* acl-at wrappers, TODO: move to gnulib in future? */
-static acl_t acl_get_file_at (int, const char *, acl_type_t);
-static int acl_set_file_at (int, const char *, acl_type_t, acl_t);
+/* Prefixed with tar_ to avoid clashing with the acl_*_at functions that
+   newer versions of libacl (2.4.0 and later) declare in <sys/acl.h>.  */
+static acl_t tar_acl_get_file_at (int, const char *, acl_type_t);
+static int tar_acl_set_file_at (int, const char *, acl_type_t, acl_t);
 static int file_has_acl_at (int, char const *, struct stat const *);
-static int acl_delete_def_file_at (int, char const *);
+static int tar_acl_delete_def_file_at (int, char const *);
 
 /* acl_get_file_at */
-#define AT_FUNC_NAME acl_get_file_at
+#define AT_FUNC_NAME tar_acl_get_file_at
 #define AT_FUNC_RESULT acl_t
 #define AT_FUNC_FAIL (acl_t)NULL
 #define AT_FUNC_F1 acl_get_file
@@ -160,7 +162,7 @@ static int acl_delete_def_file_at (int, char const *);
 #undef AT_FUNC_POST_FILE_ARGS
 
 /* acl_set_file_at */
-#define AT_FUNC_NAME acl_set_file_at
+#define AT_FUNC_NAME tar_acl_set_file_at
 #define AT_FUNC_F1 acl_set_file
 #define AT_FUNC_POST_FILE_PARAM_DECLS   , acl_type_t type, acl_t acl
 #define AT_FUNC_POST_FILE_ARGS          , type, acl
@@ -171,7 +173,7 @@ static int acl_delete_def_file_at (int, char const *);
 #undef AT_FUNC_POST_FILE_ARGS
 
 /* acl_delete_def_file_at */
-#define AT_FUNC_NAME acl_delete_def_file_at
+#define AT_FUNC_NAME tar_acl_delete_def_file_at
 #define AT_FUNC_F1 acl_delete_def_file
 #define AT_FUNC_POST_FILE_PARAM_DECLS
 #define AT_FUNC_POST_FILE_ARGS
@@ -299,7 +301,7 @@ xattrs__acls_set (struct tar_stat_info const *st,
       /* No "default" IEEE 1003.1e ACL set for directory.  At this moment,
          FILE_NAME may already have inherited default acls from parent
          directory;  clean them up. */
-      if (acl_delete_def_file_at (chdir_fd, file_name))
+      if (tar_acl_delete_def_file_at (chdir_fd, file_name))
         WARNOPT (WARN_XATTR_WRITE,
                 (0, errno,
                  _("acl_delete_def_file_at: Cannot drop default POSIX ACLs "
@@ -316,7 +318,7 @@ xattrs__acls_set (struct tar_stat_info const *st,
       return;
     }
 
-  if (acl_set_file_at (chdir_fd, file_name, type, acl) == -1)
+  if (tar_acl_set_file_at (chdir_fd, file_name, type, acl) == -1)
     /* warn even if filesystem does not support acls */
     WARNOPT (WARN_XATTR_WRITE,
 	     (0, errno,
@@ -357,7 +359,7 @@ acls_get_text (int parentfd, const char *file_name, acl_type_t type,
   char *val = NULL;
   acl_t acl;
 
-  if (!(acl = acl_get_file_at (parentfd, file_name, type)))
+  if (!(acl = tar_acl_get_file_at (parentfd, file_name, type)))
     {
       if (errno != ENOTSUP)
         call_arg_warn ("acl_get_file_at", file_name);

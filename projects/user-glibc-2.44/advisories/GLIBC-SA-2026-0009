@@ -1,0 +1,23 @@
+scanf %mc off-by-one heap buffer overflow
+
+Calling the scanf family of functions with a %mc (malloc'd character
+match) in the GNU C Library version 2.7 to version 2.43 with a format
+width specifier with an explicit width greater than 1024 could result in
+a one byte heap buffer overflow.
+
+The bug is in the buffer growth formula in __vfscanf_internal, which
+under-allocates by one byte during realloc expansion, allowing a
+controlled single-byte overwrite past the end of the heap buffer.
+
+The impact is limited by the fact that to execute the overwrite you need
+both user controlled input data and a specific choice of maximum width
+that yields a smaller than needed allocation. The latter point has to
+take into account malloc's particular chunk size rounding process.  The
+"%[width]mc" format specifier does not appear to have notable use in
+major Linux-based OS distributions, due to which the real world impact
+may be limited to bespoke use cases.
+
+CVE-Id: CVE-2026-5450
+Public-Date: 2026-03-19
+Vulnerable-Commit: 874aa52349cc111d1f6ea5dff24bb14c306714e0 (2.7)
+Reported-by: Rocket Ma

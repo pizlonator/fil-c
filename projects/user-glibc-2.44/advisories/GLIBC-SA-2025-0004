@@ -1,0 +1,29 @@
+power10: strncmp fails to save and restore nonvolatile vector registers
+
+The Power 10 implementation of strncmp in
+sysdeps/powerpc/powerpc64/le/power10/strncmp.S failed to save/restore
+nonvolatile vector registers in the 32-byte aligned loop path.  This
+results in callers reading content from those registers in a different
+context, potentially altering program logic.
+
+There could be a program context where a user controlled string could
+leak through strncmp into program code, thus altering its logic.  There
+is also a potential for sensitive strings passed into strncmp leaking
+through the clobbered registers into parts of the calling program that
+should otherwise not have had access to those strings.
+
+The impact of this flaw is limited to applications running on Power 10
+hardware that use the nonvolatile vector registers, i.e. v20 to v31
+assuming that they have been treated in accordance with the OpenPower
+psABI.  It is possible to work around the issue for those specific
+applications by setting the glibc.cpu.hwcaps tunable to "-arch_3_1" like
+so:
+
+    export GLIBC_TUNABLES=glibc.cpu.hwcaps=-arch_3_1
+
+CVE-Id: CVE-2025-5745
+Public-Date: 2025-06-05
+Vulnerable-Commit: 23f0d81608d0ca6379894ef81670cf30af7fd081 (2.40)
+Fix-Commit: 63c60101ce7c5eac42be90f698ba02099b41b965 (2.42)
+Fix-Commit: 84bdbf8a6f2fdafd3661489dbb7f79835a52da82 (2.41-57)
+Fix-Commit: 42a5a940c974d02540c8da26d6374c744d148cb9 (2.40-136)

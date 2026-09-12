@@ -276,4 +276,62 @@ pr_fstsw:                       ;! long()
 	ret
 	.size	pr_fstsw, .-pr_fstsw
 
+	# Intel-syntax twins of the xor-zero + narrow-def + wider-use cases
+	# (see sarcasm-partialreg-att for the semantics notes).
+	.globl	pr_xor_movb_32use
+	.type	pr_xor_movb_32use, @function
+pr_xor_movb_32use:              ;! long(long)
+	endbr64
+	mov	rax, 0x1122334455667788
+	xor	rax, rax
+	mov	al, dil
+	mov	edx, eax
+	mov	rax, rdx
+	ret
+	.size	pr_xor_movb_32use, .-pr_xor_movb_32use
+
+	.globl	pr_xor_movw_32use
+	.type	pr_xor_movw_32use, @function
+pr_xor_movw_32use:              ;! long(long)
+	endbr64
+	mov	rax, 0x1122334455667788
+	xor	rax, rax
+	mov	ax, di
+	mov	edx, eax
+	mov	rax, rdx
+	ret
+	.size	pr_xor_movw_32use, .-pr_xor_movw_32use
+
+	.globl	pr_xor_movw_cx_hi16
+	.type	pr_xor_movw_cx_hi16, @function
+pr_xor_movw_cx_hi16:            ;! long(long)
+	endbr64
+	mov	rcx, 0x1122334455667788
+	xor	rcx, rcx
+	mov	cx, di
+	shr	rcx, 16
+	mov	rax, rcx
+	ret
+	.size	pr_xor_movw_cx_hi16, .-pr_xor_movw_cx_hi16
+
+	.globl	pr_loop_redef
+	.type	pr_loop_redef, @function
+pr_loop_redef:                  ;! long(long, ptr)
+	endbr64
+	xor	rax, rax
+	mov	al, dil
+	xor	r10, r10
+	mov	ecx, 8
+.Lredef:
+	mov	r8, QWORD PTR [rsi+rax*8]
+	xor	r10, r8
+	rol	rdi, 8
+	mov	al, dil
+	shl	al, 4
+	sub	rcx, 1
+	jne	.Lredef
+	mov	rax, r10
+	ret
+	.size	pr_loop_redef, .-pr_loop_redef
+
 	.section	.note.GNU-stack,"",@progbits

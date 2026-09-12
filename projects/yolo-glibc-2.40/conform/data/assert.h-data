@@ -1,9 +1,0 @@
-macro assert
-
-#ifdef ISO11
-macro static_assert
-#endif
-
-#if !defined ISO && !defined ISO99 && !defined ISO11
-allow *_t
-#endif

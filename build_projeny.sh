@@ -29,12 +29,16 @@ set -e
 set -x
 
 # Fil-C build of projeny: compile projects/projeny with Fil-C++ (build/bin),
-# run the projeny test suite (fails the build on test failure)
+# run the projeny test suite (fails the build on test failure). This builds
+# into its own build directory (BUILD_DIR=build-filc) so that it does not
+# dirty the yolo build left behind by build_projeny_yolo.sh, which uses a
+# different build directory.
+
 cd projects/projeny
 
-$MAKE clean
+$MAKE clean BUILD_DIR=build-filc
 
-$MAKE -j $NCPU CC="$PWD/../../build/bin/clang" CXX="$PWD/../../build/bin/clang++"
+$MAKE -j $NCPU BUILD_DIR=build-filc CC="$PWD/../../build/bin/clang" CXX="$PWD/../../build/bin/clang++"
 
-$MAKE test CC="$PWD/../../build/bin/clang" CXX="$PWD/../../build/bin/clang++"
+$MAKE test BUILD_DIR=build-filc CC="$PWD/../../build/bin/clang" CXX="$PWD/../../build/bin/clang++"
 

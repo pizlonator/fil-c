@@ -1,0 +1,36 @@
+getnetbyaddr and getnetbyaddr_r leak stack contents to DNS resovler
+
+Calling getnetbyaddr or getnetbyaddr_r with a configured nsswitch.conf
+that specifies the library's DNS backend for networks and queries for a
+zero-valued network in the GNU C Library version 2.0 to version 2.42
+can leak stack contents to the configured DNS resolver.
+
+A defect in the _nss_dns_getnetbyaddr_r function which implements
+getnetbyaddr and getnetbyaddr_r in the dns-based network database can
+pass stack contents unmodified to the configured DNS resolver as part of
+the network DNS query when the network queried is the default network
+i.e. net == 0x0.  This stack contents leaking in the query is considered
+a loss of confidentiality for the host making the query.  Typically it
+is rare to call these APIs with a net value of zero, and if an attacker
+can control the net value it can only leak adjacent stack, and so loss
+of confidentiality is spatially limited.  The leak might be used to
+accelerate an ASLR bypass by knowing pointer values, but also requires
+network adjacent access to snoop between the application and the
+DNS server; making the attack complexity higher.
+
+CVE-Id: CVE-2026-0915
+Public-Date: 2026-01-15
+Vulnerable-Commit: 5f0e6fc702296840d2daa39f83f6cb1e40073d58 (1.92-1)
+Fix-Commit: e56ff82d5034ec66c6a78f517af6faa427f65b0b (2.43)
+Fix-Commit: 453e6b8dbab935257eb0802b0c97bca6b67ba30e (2.42-50)
+Fix-Commit: 15c9839a0b853f552b4ed9047841b6223f3c104d (2.41-122)
+Fix-Commit: 329c775788b2c9ff3da774ccf59fba7b6b8ff08e (2.40-217)
+Fix-Commit: 831f63b94ceb92fb14c0d1a7ddad35a0d1404c71 (2.39-287)
+Fix-Commit: 49125ffc8e1674dc2a100dfdc5b78796f22e16f2 (2.38-213)
+Fix-Commit: ddcaed5dfb05b2c1a6ea842fd6b643501365450a (2.37-173)
+Fix-Commit: a6bf47887f24b2b394acb301a3189fda04bd4d4d (2.36-245)
+Fix-Commit: 66f0cb057c9b4fb1249a5fec6ef4a63511a37899 (2.35-400)
+Fix-Commit: 96863dee262225cfb79f9fe45e06fd188319c7b8 (2.34-526)
+Fix-Commit: d210011f1536c8322157cbb4fe4229b35c834c08 (2.33-276)
+Fix-Commit: 1bc1832cfc74c2a601220969f36e789a5e9f0ebe (2.32-152)
+Reported-by: Igor Morgenstern, Aisle Research

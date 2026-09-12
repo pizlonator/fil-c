@@ -129,6 +129,10 @@ std::vector<std::string> patch_touched_paths(const std::string& patch,
 
 // Three-way merge one file: base (may be missing), ours (fresh setup file,
 // may be missing), theirs (user file, may be missing) -> write merged result
-// with conflict markers into dst_path. Returns true if clean.
+// with conflict markers into dst_path. dst_root is the tree dst_path lives
+// in (dst_path is join_path(dst_root, rel)); it names the member in
+// diagnostics and bounds symlink targets the merge may create. Returns true
+// if clean.
 bool merge_one_file(const std::string& base_file, const std::string& ours_file,
-                    const std::string& theirs_file, const std::string& dst_path);
+                    const std::string& theirs_file, const std::string& dst_path,
+                    const std::string& dst_root);

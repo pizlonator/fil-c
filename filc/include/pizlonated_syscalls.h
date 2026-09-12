@@ -379,6 +379,7 @@ int zsys_statx(int dirfd, const char* pathname, int flags, unsigned mask, void* 
 long zsys_splice(int fd_in, long* off_in, int fd_out, long* off_out, __SIZE_TYPE__ len,
                  unsigned flags);
 long zsys_tee(int fd_in, int fd_out, __SIZE_TYPE__ len, unsigned flags);
+long zsys_vmsplice(int fd, const void* iov, __SIZE_TYPE__ cnt, unsigned flags);
 int zsys_mknod(const char* pathname, unsigned mode, unsigned long dev);
 int zsys_mknodat(int dirfd, const char* pathname, unsigned mode, unsigned long dev);
 int zsys_reboot(int howto);

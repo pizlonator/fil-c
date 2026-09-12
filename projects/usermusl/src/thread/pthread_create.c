@@ -317,13 +317,11 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 
 	__tl_lock();
 	if (!libc.threads_minus_1++) libc.need_locks = 1;
-	void* zthread = zthread_create((c11 ? start_c11 : start), args);
+	zthread_create2((c11 ? start_c11 : start), args, &new->zthread, &new->tid);
+        void* zthread = new->zthread;
+        unsigned new_tid = new->tid;
 
 	if (zthread) {
-		unsigned new_tid = zthread_get_id(zthread);
-		ZASSERT(!new->tid || new->tid == new_tid);
-                new->zthread = zthread;
-		new->tid = new_tid;
 		ret = 0;
 	} else {
 		ret = -errno;

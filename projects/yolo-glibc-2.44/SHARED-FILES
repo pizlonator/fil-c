@@ -1,0 +1,855 @@
+# Files shared with other projects.  Pass a file path to the
+# get_glibc_shared_code() function in the python library
+# scripts/glibc_shared_code.py to get a dict object with this information.  See
+# the library sources for more information.
+
+# The headers on most of these files indicate that glibc is the canonical
+# source for these files, although in many cases there seem to be useful
+# changes in the gnulib versions that could be merged back in. Not all gnulib
+# files contain such a header and it is not always consistent in its format, so
+# it would be useful to make sure that all gnulib files that are using glibc as
+# upstream have a greppable header.
+#
+# These files are quite hard to find without a header to grep for and each file
+# has to be compared manually so this list is likely incomplete or may contain
+# errors.
+gnulib:
+  COPYINGv2
+  COPYINGv3
+  COPYING.LESSERv2
+  doc/fdl-1.3.texi
+  argp/argp-ba.c
+  argp/argp-ba.c
+  argp/argp-eexst.c
+  argp/argp-fmtstream.c
+  argp/argp-fmtstream.h
+  argp/argp-fs-xinl.c
+  argp/argp-help.c
+  argp/argp-namefrob.h
+  argp/argp-parse.c
+  argp/argp-pv.c
+  argp/argp-pvh.c
+  argp/argp-xinl.c
+  argp/argp.h
+  dirent/alphasort.c
+  dirent/scandir.c
+  # Merged from gnulib 2025-10-29 (gnulib commit 1790ef25d8)
+  include/intprops.h
+  include/intprops-internal.h
+  # Merged from gnulib 2026-02-16
+  include/assure.h
+  include/flexmember.h
+  include/hash.h
+  include/next-prime.h
+  include/xalloc-oversized.h
+  # Merged from gnulib 2021-09-21
+  include/regex.h
+  # Merged from gnulib 2026-02-16
+  io/cycle-check.c
+  io/cycle-check.h
+  io/dev-ino.h
+  io/fts-cycle.c
+  io/fts-common.c
+  io/i-ring.c
+  io/same-inode.h
+  locale/programs/3level.h
+  # Merged from gnulib 2014-6-23
+  malloc/obstack.c
+  # Merged from gnulib 2014-6-23
+  malloc/obstack.h
+  # Merged from gnulib 2014-07-10
+  misc/error.c
+  misc/error.h
+  misc/getpass.c
+  misc/hash.c
+  misc/mkdtemp.c
+  misc/next-prime.c
+  # Merged from gnulib 2021-09-21
+  misc/sys/cdefs.h
+  posix/fnmatch_loop.c
+  # Intended to be the same. Gnulib copy contains glibc changes.
+  posix/getopt.c
+  # Intended to be the same. Gnulib copy contains glibc changes.
+  posix/getopt1.c
+  # Intended to be the same. Gnulib copy contains glibc changes.
+  posix/getopt_int.h
+  posix/glob.c
+  # Merged from gnulib 2021-09-21
+  posix/regcomp.c
+  # Merged from gnulib 2021-09-21
+  posix/regex.c
+  # Merged from gnulib 2021-09-21
+  posix/regex.h
+  # Merged from gnulib 2021-09-21
+  posix/regex_internal.c
+  # Merged from gnulib 2021-09-21
+  posix/regex_internal.h
+  # Merged from gnulib 2021-09-21
+  posix/regexec.c
+  posix/spawn.c
+  posix/spawn_faction_addclose.c
+  posix/spawn_faction_adddup2.c
+  posix/spawn_faction_addopen.c
+  posix/spawn_faction_destroy.c
+  posix/spawn_faction_init.c
+  posix/spawn_int.h
+  posix/spawnattr_destroy.c
+  posix/spawnattr_getdefault.c
+  posix/spawnattr_getflags.c
+  posix/spawnattr_getpgroup.c
+  posix/spawnattr_getschedparam.c
+  posix/spawnattr_getschedpolicy.c
+  posix/spawnattr_getsigmask.c
+  posix/spawnattr_init.c
+  posix/spawnattr_setdefault.c
+  posix/spawnattr_setflags.c
+  posix/spawnattr_setpgroup.c
+  posix/spawnattr_setschedparam.c
+  posix/spawnattr_setschedpolicy.c
+  posix/spawnattr_setsigmask.c
+  posix/spawnp.c
+  stdlib/atoll.c
+  stdlib/getsubopt.c
+  stdlib/setenv.c
+  stdlib/strtoll.c
+  stdlib/strtoul.c
+  stdlib/tst-stdc_rotate_left.c
+  stdlib/tst-stdc_rotate_right.c
+  # Merged from gnulib 2014-6-26, needs merge back
+  string/memchr.c
+  string/memcmp.c
+  string/memmem.c
+  string/mempcpy.c
+  string/memrchr.c
+  string/rawmemchr.c
+  string/stpcpy.c
+  string/stpncpy.c
+  string/str-two-way.h
+  string/strcasestr.c
+  string/strcspn.c
+  string/strdup.c
+  string/strndup.c
+  string/strpbrk.c
+  string/strsignal.c
+  string/strstr.c
+  string/strtok_r.c
+  string/strverscmp.c
+  # Merged from gnulib 2024-04-08 (gnulib commit 3238349628)
+  stdio-common/tmpdir.c
+  stdio-common/tmpdir.h
+  sysdeps/generic/pty-private.h
+  sysdeps/generic/siglist.h
+  sysdeps/posix/euidaccess.c
+  sysdeps/posix/gai_strerror.c
+  sysdeps/posix/getcwd.c
+  sysdeps/posix/pwrite.c
+  sysdeps/posix/spawni.c
+  # Merged from gnulib 2024-04-08 (gnulib commit 3238349628)
+  sysdeps/posix/tempname.c
+  # Merged from gnulib 2014-6-27
+  time/mktime.c
+  time/mktime-internal.h
+  time/strptime.c
+  time/timegm.c
+
+# Synced with GNU gettext 1.0 (2026-05-18), through gettext commit 2ebbdd0e2.
+#
+# This commit was omitted from the merge as it does not appear to be compatible
+# with how glibc expects things to work:
+#
+# commit 279b57fc367251666f00e8e2b599b83703451afb
+# Author: Bruno Haible <bruno@clisp.org>
+# Date:   Fri Jun 14 12:03:49 2002 +0000
+#
+#     Make absolute pathnames inside $LANGUAGE work.
+gettext:
+  intl/bindtextdom.c
+  intl/dcgettext.c
+  intl/dcigettext.c
+  intl/dcngettext.c
+  intl/dgettext.c
+  intl/dngettext.c
+  intl/eval-plural.h
+  intl/explodename.c
+  intl/finddomain.c
+  intl/gettext.c
+  intl/gettextP.h
+  intl/gmo.h
+  intl/hash-string.c
+  intl/hash-string.h
+  intl/l10nflist.c
+  intl/loadinfo.h
+  intl/loadmsgcat.c
+  intl/locale.alias
+  intl/localealias.c
+  intl/ngettext.c
+  intl/plural-exp.c
+  intl/plural-exp.h
+  intl/plural.y
+  intl/textdomain.c
+
+# The following files are bundled from upstream Linux 6.10 for FUSE testing
+# support.
+linux:
+  support/bundled/linux/COPYING
+  support/bundled/linux/LICENSES
+  support/bundled/linux/LICENSES/exceptions/Linux-syscall-note
+  support/bundled/linux/LICENSES/preferred/GPL-2.0
+  support/bundled/linux/include/uapi/linux/fuse.h
+
+# The following files are shared with the upstream Unicode project and must be
+# updated regularly to stay in sync with the upstream unicode releases.
+#
+# Merged from Unicode 17.0.0 release (2025 September 9)
+unicode:
+  localedata/unicode-gen/UnicodeData.txt
+  localedata/unicode-gen/unicode-license.txt
+  localedata/unicode-gen/DerivedCoreProperties.txt
+  localedata/unicode-gen/EastAsianWidth.txt
+  localedata/unicode-gen/HangulSyllableType.txt
+
+# The following files are shared with the upstream tzcode project and must be
+# updated regularly to stay in sync with the upstream releases.
+#
+# Currently synced to TZDB 2026b, distributed at:
+#	https://github.com/eggert/tz/releases/tag/2026b
+#	https://data.iana.org/time-zones/releases/tzdb-2026b.tar.lz
+tzcode:
+  timezone/private.h
+  timezone/tzfile.h
+  timezone/tzselect.ksh
+  timezone/version
+  timezone/zdump.c
+  timezone/zic.c
+
+# The following files are shared with the upstream tzdata project but is not
+# synchronized regularly. The data files themselves are used only for testing
+# purposes and their data is never used to generate any output. We synchronize
+# them only to stay on top of newer data that might help with testing.
+#
+# Currently synced to tzcode 2009i, announced and distributed here:
+#	https://mm.icann.org/pipermail/tz/2009-June/040697.html
+#	https://data.iana.org/time-zones/releases/tzdata2009i.tar.gz
+tzdata:
+  timezone/africa
+  timezone/antarctica
+  timezone/asia
+  timezone/australasia
+  timezone/europe
+  timezone/northamerica
+  timezone/southamerica
+  timezone/pacificnew
+  timezone/etcetera
+  timezone/factory
+  timezone/backward
+  timezone/systemv
+  timezone/solar87
+  timezone/solar88
+  timezone/solar89
+  timezone/iso3166.tab
+  timezone/zone.tab
+  timezone/leapseconds
+  # This is yearistype.sh in the parent project
+  timezone/yearistype
+
+# The following files are imported from the CORE-MATH project, with
+# adjustments made to follow glibc code style, to utilize internal error
+# handling functions, and to implement minor fixes for ABIs with
+# FLT_EVAL_METHOD equal to 2 (i386).  Additionally, extra optimizations
+# are applied to share the internal data table across different
+# implementations.
+#
+# The project is distribute here:
+#       https://gitlab.inria.fr/core-math/core-math/
+core-math:
+  # src/binary64/acosh/acosh.c, revision 887cab6f
+  sysdeps/ieee754/dbl-64/e_acosh.c
+  # src/binary64/atanh/atanh.c, revision 532e37dc
+  sysdeps/ieee754/dbl-64/e_atanh.c
+  # src/binary64/cosh/cosh.c, revision 5d0c89d5
+  sysdeps/ieee754/dbl-64/e_cosh.c
+  # src/binary64/tgamma/tgamma.c, revision 0f185e23
+  sysdeps/ieee754/dbl-64/e_gamma_r.c
+  # src/binary64/lgamma/lgamma.c, revision 0413bb7e
+  sysdeps/ieee754/dbl-64/e_lgamma_r.c
+  # src/binary64/sinh/sinh.c, revision 8127b7ac
+  sysdeps/ieee754/dbl-64/e_sinh.c
+  # src/binary64/asinh/asinh.c, revision cd653cf7
+  sysdeps/ieee754/dbl-64/s_asinh.c
+  # src/binary64/erf/erf.c, revision 384ed01d
+  sysdeps/ieee754/dbl-64/s_erf.c
+  # src/binary64/erfc/erfc.c, revision 55e9869e
+  sysdeps/ieee754/dbl-64/s_erfc.c
+  # src/binary64/tanh/tanh.c, revision cf237fa0
+  sysdeps/ieee754/dbl-64/s_tanh.c
+  # src/binary32/acos/acosf.c, revision 56dd347
+  sysdeps/ieee754/flt-32/e_acosf.c
+  # src/binary32/acosh/acoshf.c, revision d0b9ddd
+  sysdeps/ieee754/flt-32/e_acoshf.c
+  # file src/binary32/cosh/coshf.c, revision de59ecfb
+  sysdeps/ieee754/flt-32/e_coshf.c
+  # src/binary32/tgamma/tgammaf.c, revision 8ea8ea35
+  sysdeps/ieee754/flt-32/e_gammaf_r.c
+  # src/binary32/lgamma/lgammaf.c, revision 8ea8ea35
+  sysdeps/ieee754/flt-32/e_lgammaf_r.c
+  # src/binary32/log10/log10f.c, revision ebff4c43
+  sysdeps/ieee754/flt-32/e_log10f.c
+  # src/binary32/sinh/sinhf.c, revision bbfabd99
+  sysdeps/ieee754/flt-32/e_sinhf.c
+  # src/binary32/acospi/acospif.c, revision 1a6a9ab
+  sysdeps/ieee754/flt-32/s_acospif.c
+  # src/binary32/asinpi/asinpif.c, revision 6ee58266
+  sysdeps/ieee754/flt-32/s_asinpif.c
+  # src/binary32/atan2pi/atan2pif.c, revision dbebee1
+  sysdeps/ieee754/flt-32/s_atan2pif.c
+  # src/binary32/atanpi/atanpif.c, revision e02000e
+  sysdeps/ieee754/flt-32/s_atanpif.c
+  # src/binary32/cbrt/cbrtf.c, revision f7c7408d
+  sysdeps/ieee754/flt-32/s_cbrtf.c
+  # src/binary32/cospi/cospif.c, revision bbfabd99
+  sysdeps/ieee754/flt-32/s_cospif.c
+  # src/binary32/erfc/erfcf.c revision d0a2be20
+  sysdeps/ieee754/flt-32/s_erfcf.c
+  # src/binary32/erf/erff.c revision bc385c2
+  sysdeps/ieee754/flt-32/s_erff.c
+  # src/binary32/exp10m1/exp10m1f.c, revision c46b85b
+  sysdeps/ieee754/flt-32/s_exp10m1f.c
+  # src/binary32/exp2m1/exp2m1f.c, revision baf5f6b
+  sysdeps/ieee754/flt-32/s_exp2m1f.c
+  # src/binary32/expm1/expm1f.c, revision bc385c2
+  sysdeps/ieee754/flt-32/s_expm1f.c
+  # src/binary32/log10p1/log10p1f.c revision eb28456b
+  sysdeps/ieee754/flt-32/s_log10p1f.c
+  # src/binary32/log1p/log1pf.c revision 24ef43a1
+  sysdeps/ieee754/flt-32/s_log1pf.c
+  # src/binary32/log2p1/log2p1f.c revision 3fbe16be
+  sysdeps/ieee754/flt-32/s_log2p1f.c
+  # src/binary32/sinpi/sinpif.c, revision bbfabd99d
+  sysdeps/ieee754/flt-32/s_sinpif.c
+  # src/binary32/tan/tanf.c, revision 59d21d7
+  sysdeps/ieee754/flt-32/s_tanf.c
+  # src/binary32/tanh/tanhf.c, revision b1ecd83
+  sysdeps/ieee754/flt-32/s_tanhf.c
+  # src/binary32/tanpi/tanpif.c, revision 3bbf907
+  sysdeps/ieee754/flt-32/s_tanpif.c
+
+# The following files are imported from the Arm Optimized-Routines project,
+# with adjustments made to follow glibc code style and integrate with
+# glibc-specific infrastructure where needed.
+#
+# The project is distributed here:
+#       https://github.com/ARM-software/optimized-routines/
+arm-optimized-routines:
+  # Math routines
+  # math/math_config.h, revision 712aa21
+  sysdeps/ieee754/flt-32/math_config.h
+  # math/math_config.h, revision 712aa21
+  sysdeps/ieee754/dbl-64/math_config.h
+  # math/math_err.c, revision 189dfef
+  sysdeps/ieee754/dbl-64/math_err.c
+  # math/math_errf.c, revision 189dfef
+  sysdeps/ieee754/flt-32/math_errf.c
+  # math/cosf.c, revision aec783d
+  sysdeps/ieee754/flt-32/s_cosf.c
+  # math/exp2f.c, revision 712aa21
+  sysdeps/ieee754/flt-32/e_exp2f.c
+  # math/exp2f_data.c, revision 189dfef
+  sysdeps/ieee754/flt-32/e_exp2f_data.c
+  # math/expf.c, revision 712aa21
+  sysdeps/ieee754/flt-32/e_expf.c
+  # math/log2f.c, revision 712aa21
+  sysdeps/ieee754/flt-32/e_log2f.c
+  # math/log2f_data.c, revision 189dfef
+  sysdeps/ieee754/flt-32/e_log2f_data.c
+  # math/logf.c, revision 712aa21
+  sysdeps/ieee754/flt-32/e_logf.c
+  # math/logf_data.c, revision c0136f1
+  sysdeps/ieee754/flt-32/e_logf_data.c
+  # math/powf.c, revision 712aa21
+  sysdeps/ieee754/flt-32/e_powf.c
+  # math/powf_log2_data.c, revision 189dfef
+  sysdeps/ieee754/flt-32/e_powf_log2_data.c
+  # math/sincosf.c, revision af29d39
+  sysdeps/ieee754/flt-32/s_sincosf.c
+  # math/sincosf.h, revision aed553c
+  sysdeps/ieee754/flt-32/s_sincosf.h
+  # math/sincosf_data.c, revision 189dfef
+  sysdeps/ieee754/flt-32/s_sincosf_data.c
+  # math/sinf.c, revision aec783d
+  sysdeps/ieee754/flt-32/s_sinf.c
+  # math/exp.c, revision 712aa21
+  sysdeps/ieee754/dbl-64/e_exp.c
+  # math/exp10.c, revision 712aa21
+  sysdeps/ieee754/dbl-64/e_exp10.c
+  # math/exp2.c, revision 712aa21
+  sysdeps/ieee754/dbl-64/e_exp2.c
+  # math/exp_data.c, revision c013701
+  sysdeps/ieee754/dbl-64/e_exp_data.c
+  # math/log.c, revision 712aa21
+  sysdeps/ieee754/dbl-64/e_log.c
+  # math/log2.c, revision 712aa21
+  sysdeps/ieee754/dbl-64/e_log2.c
+  # math/log2_data.c, revision 189dfef
+  sysdeps/ieee754/dbl-64/e_log2_data.c
+  # math/log_data.c, revision 189dfef
+  sysdeps/ieee754/dbl-64/e_log_data.c
+  # math/pow.c, revision 712aa21
+  sysdeps/ieee754/dbl-64/e_pow.c
+  # math/pow_log_data.c, revision 189dfef
+  sysdeps/ieee754/dbl-64/e_pow_log_data.c
+  # Mathvec routines
+  # math/math_config.h, revision 712aa21
+  sysdeps/aarch64/fpu/vecmath_config.h
+  # math/aarch64/v_erf_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/erf_data.c
+  # math/aarch64/v_erfc_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/erfc_data.c
+  # math/aarch64/v_erfcf_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/erfcf_data.c
+  # math/aarch64/v_erff_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/erff_data.c
+  # math/aarch64/v_exp_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/v_exp_data.c
+  # math/aarch64/v_exp_tail_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/v_exp_tail_data.c
+  # math/aarch64/v_log10_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/v_log10_data.c
+  # math/aarch64/v_log2_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/v_log2_data.c
+  # math/aarch64/v_log_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/v_log_data.c
+  # math/aarch64/v_pow_exp_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/v_pow_exp_data.c
+  # math/aarch64/v_pow_log_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/v_pow_log_data.c
+  # math/aarch64/v_powf_data.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/v_powf_data.c
+  # math/aarch64/sve/acos.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/acos.c
+  # math/aarch64/sve/acosf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/acosf.c
+  # math/aarch64/sve/acosh.c, revision 8b665af
+  sysdeps/aarch64/fpu/sve/acosh.c
+  # math/aarch64/sve/acoshf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/acoshf.c
+  # math/aarch64/sve/acospi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/acospi.c
+  # math/aarch64/sve/acospif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/acospif.c
+  # math/aarch64/sve/asin.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/asin.c
+  # math/aarch64/sve/asinf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/asinf.c
+  # math/aarch64/sve/asinh.c, revision 9bf4cfc
+  sysdeps/aarch64/fpu/sve/asinh.c
+  # math/aarch64/sve/asinhf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/asinhf.c
+  # math/aarch64/sve/asinpi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/asinpi.c
+  # math/aarch64/sve/asinpif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/asinpif.c
+  # math/aarch64/sve/atan.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atan.c
+  # math/aarch64/sve/atan2.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atan2.c
+  # math/aarch64/sve/atan2f.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atan2f.c
+  # math/aarch64/sve/atan2pi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atan2pi.c
+  # math/aarch64/sve/atan2pif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atan2pif.c
+  # math/aarch64/sve/atanf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atanf.c
+  # math/aarch64/sve/atanh.c, revision 29c7342
+  sysdeps/aarch64/fpu/sve/atanh.c
+  # math/aarch64/sve/atanhf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atanhf.c
+  # math/aarch64/sve/atanpi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atanpi.c
+  # math/aarch64/sve/atanpif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/atanpif.c
+  # math/aarch64/sve/cbrt.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/cbrt.c
+  # math/aarch64/sve/cbrtf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/cbrtf.c
+  # math/aarch64/sve/cos.c, revision 99cbbad
+  sysdeps/aarch64/fpu/sve/cos.c
+  # math/aarch64/sve/cosf.c, revision 25aa012
+  sysdeps/aarch64/fpu/sve/cosf.c
+  # math/aarch64/sve/cosh.c, revision 242a017
+  sysdeps/aarch64/fpu/sve/cosh.c
+  # math/aarch64/sve/coshf.c, revision 2fff60c
+  sysdeps/aarch64/fpu/sve/coshf.c
+  # math/aarch64/sve/cospi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/cospi.c
+  # math/aarch64/sve/cospif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/cospif.c
+  # math/aarch64/sve/erf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/erf.c
+  # math/aarch64/sve/erfc.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/erfc.c
+  # math/aarch64/sve/erfcf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/erfcf.c
+  # math/aarch64/sve/erff.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/erff.c
+  # math/aarch64/sve/exp.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp.c
+  # math/aarch64/sve/exp10.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp10.c
+  # math/aarch64/sve/exp10f.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp10f.c
+  # math/aarch64/sve/exp10m1.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp10m1.c
+  # math/aarch64/sve/exp10m1f.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp10m1f.c
+  # math/aarch64/sve/exp2.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp2.c
+  # math/aarch64/sve/exp2f.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp2f.c
+  # math/aarch64/sve/exp2m1.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp2m1.c
+  # math/aarch64/sve/exp2m1f.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/exp2m1f.c
+  # math/aarch64/sve/expf.c, revision 47044a5
+  sysdeps/aarch64/fpu/sve/expf.c
+  # math/aarch64/sve/expm1.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/expm1.c
+  # math/aarch64/sve/expm1f.c, revision d664b69
+  sysdeps/aarch64/fpu/sve/expm1f.c
+  # math/aarch64/sve/hypot.c, revision 74d699d
+  sysdeps/aarch64/fpu/sve/hypot.c
+  # math/aarch64/sve/hypotf.c, revision 74d699d
+  sysdeps/aarch64/fpu/sve/hypotf.c
+  # math/aarch64/sve/log.c, revision 91b052e
+  sysdeps/aarch64/fpu/sve/log.c
+  # math/aarch64/sve/log10.c, revision 91b052e
+  sysdeps/aarch64/fpu/sve/log10.c
+  # math/aarch64/sve/log10f.c, revision 8ca4cc0
+  sysdeps/aarch64/fpu/sve/log10f.c
+  # math/aarch64/sve/log10p1.c, revision 166744d
+  sysdeps/aarch64/fpu/sve/log10p1.c
+  # math/aarch64/sve/log10p1f.c, revision 8124d30
+  sysdeps/aarch64/fpu/sve/log10p1f.c
+  # math/aarch64/sve/log1p.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/log1p.c
+  # math/aarch64/sve/log1pf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/log1pf.c
+  # math/aarch64/sve/log2.c, revision 91b052e
+  sysdeps/aarch64/fpu/sve/log2.c
+  # math/aarch64/sve/log2f.c, revision 8ca4cc0
+  sysdeps/aarch64/fpu/sve/log2f.c
+  # math/aarch64/sve/log2p1.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/log2p1.c
+  # math/aarch64/sve/log2p1f.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/log2p1f.c
+  # math/aarch64/sve/logf.c, revision 8ca4cc0
+  sysdeps/aarch64/fpu/sve/logf.c
+  # math/aarch64/sve/pow.c, revision 2c38e83
+  sysdeps/aarch64/fpu/sve/pow.c
+  # math/aarch64/sve/powf.c, revision 2c38e83
+  sysdeps/aarch64/fpu/sve/powf.c
+  # math/aarch64/sve/powr.c, revision 30da949
+  sysdeps/aarch64/fpu/sve/powr.c
+  # math/aarch64/sve/powrf.c, revision e2bca42
+  sysdeps/aarch64/fpu/sve/powrf.c
+  # math/aarch64/sve/rsqrt.c, revision 4fc7374
+  sysdeps/aarch64/fpu/sve/rsqrt.c
+  # math/aarch64/sve/rsqrtf.c, revision b1bc8ba
+  sysdeps/aarch64/fpu/sve/rsqrtf.c
+  # math/aarch64/sve/sin.c, revision 99cbbad
+  sysdeps/aarch64/fpu/sve/sin.c
+  # math/aarch64/sve/sinf.c, revision 25aa012
+  sysdeps/aarch64/fpu/sve/sinf.c
+  # math/aarch64/sve/sinh.c, revision 242a017
+  sysdeps/aarch64/fpu/sve/sinh.c
+  # math/aarch64/sve/sinhf.c, revision 2fff60c
+  sysdeps/aarch64/fpu/sve/sinhf.c
+  # math/aarch64/sve/sinpi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/sinpi.c
+  # math/aarch64/sve/sinpif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/sinpif.c
+  # math/aarch64/sve/tan.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/tan.c
+  # math/aarch64/sve/tanf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/tanf.c
+  # math/aarch64/sve/tanh.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/tanh.c
+  # math/aarch64/sve/tanhf.c, revision 2fff60c
+  sysdeps/aarch64/fpu/sve/tanhf.c
+  # math/aarch64/sve/tanpi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/tanpi.c
+  # math/aarch64/sve/tanpif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/sve/tanpif.c
+  # math/aarch64/sve/sv_exp_special_inline.h, revision d664b69
+  sysdeps/aarch64/fpu/sve/sv_exp_special_inline.h
+  # math/aarch64/sve/sv_expf_inline.h, revision ba35b32
+  sysdeps/aarch64/fpu/sve/sv_expf_inline.h
+  # math/aarch64/sve/sv_expf_special_inline.h, revision d664b69
+  sysdeps/aarch64/fpu/sve/sv_expf_special_inline.h
+  # math/aarch64/sve/sv_expm1f_inline.h, revision 78cd003
+  sysdeps/aarch64/fpu/sve/sv_expm1f_inline.h
+  # math/aarch64/sve/sv_log1p_inline.h, revision 7d08237
+  sysdeps/aarch64/fpu/sve/sv_log1p_inline.h
+  # math/aarch64/sve/sv_log1pf_inline.h, revision a386525
+  sysdeps/aarch64/fpu/sve/sv_log1pf_inline.h
+  # math/aarch64/sve/sv_pow_inline.h, revision 30da949
+  sysdeps/aarch64/fpu/sve/sv_pow_inline.h
+  # math/aarch64/sve/sv_powf_inline.h, revision 30da949
+  sysdeps/aarch64/fpu/sve/sv_powf_inline.h
+  # math/aarch64/sve/sv_poly_f32.h, revision 5d5e6e6
+  sysdeps/aarch64/fpu/sve/poly_sve_f32.h
+  # math/aarch64/sve/sv_poly_f64.h, revision 5d5e6e6
+  sysdeps/aarch64/fpu/sve/poly_sve_f64.h
+  # math/aarch64/sve/sv_poly_generic.h, revision 5d5e6e6
+  sysdeps/aarch64/fpu/sve/poly_sve_generic.h
+  # math/aarch64/sve/sv_math.h, revision 7361ef6
+  sysdeps/aarch64/fpu/sve/sv_math.h
+  # math/aarch64/sve/sv_trig_fallback.h, revision 99cbbad
+  sysdeps/aarch64/fpu/sve/sv_trig_fallback.h
+  # math/aarch64/sve/sv_trigf_fallback.h, revision 25aa012
+  sysdeps/aarch64/fpu/sve/sv_trigf_fallback.h
+  # math/aarch64/advsimd/acos.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/acos.c
+  # math/aarch64/advsimd/acosf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/acosf.c
+  # math/aarch64/advsimd/acosh.c, revision 188e75a
+  sysdeps/aarch64/fpu/advsimd/acosh.c
+  # math/aarch64/advsimd/acoshf.c, revision af3851e
+  sysdeps/aarch64/fpu/advsimd/acoshf.c
+  # math/aarch64/advsimd/acospi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/acospi.c
+  # math/aarch64/advsimd/acospif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/acospif.c
+  # math/aarch64/advsimd/asin.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/asin.c
+  # math/aarch64/advsimd/asinf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/asinf.c
+  # math/aarch64/advsimd/asinh.c, revision bac1b4f
+  sysdeps/aarch64/fpu/advsimd/asinh.c
+  # math/aarch64/advsimd/asinhf.c, revision af3851e
+  sysdeps/aarch64/fpu/advsimd/asinhf.c
+  # math/aarch64/advsimd/asinpi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/asinpi.c
+  # math/aarch64/advsimd/asinpif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/asinpif.c
+  # math/aarch64/advsimd/atan.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/atan.c
+  # math/aarch64/advsimd/atan2.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/atan2.c
+  # math/aarch64/advsimd/atan2f.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/atan2f.c
+  # math/aarch64/advsimd/atan2pi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/atan2pi.c
+  # math/aarch64/advsimd/atan2pif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/atan2pif.c
+  # math/aarch64/advsimd/atanf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/atanf.c
+  # math/aarch64/advsimd/atanh.c, revision 281cb3a
+  sysdeps/aarch64/fpu/advsimd/atanh.c
+  # math/aarch64/advsimd/atanhf.c, revision d852158
+  sysdeps/aarch64/fpu/advsimd/atanhf.c
+  # math/aarch64/advsimd/atanpi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/atanpi.c
+  # math/aarch64/advsimd/atanpif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/atanpif.c
+  # math/aarch64/advsimd/cbrt.c, revision 0a6ab6d
+  sysdeps/aarch64/fpu/advsimd/cbrt.c
+  # math/aarch64/advsimd/cbrtf.c, revision 6c74650
+  sysdeps/aarch64/fpu/advsimd/cbrtf.c
+  # math/aarch64/advsimd/cos.c, revision 677a12b
+  sysdeps/aarch64/fpu/advsimd/cos.c
+  # math/aarch64/advsimd/cosf.c, revision 15c35d9
+  sysdeps/aarch64/fpu/advsimd/cosf.c
+  # math/aarch64/advsimd/cosh.c, revision 447bbaa
+  sysdeps/aarch64/fpu/advsimd/cosh.c
+  # math/aarch64/advsimd/coshf.c, revision 45237ba
+  sysdeps/aarch64/fpu/advsimd/coshf.c
+  # math/aarch64/advsimd/cospi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/cospi.c
+  # math/aarch64/advsimd/cospif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/cospif.c
+  # math/aarch64/advsimd/erf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/erf.c
+  # math/aarch64/advsimd/erfc.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/erfc.c
+  # math/aarch64/advsimd/erfcf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/erfcf.c
+  # math/aarch64/advsimd/erff.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/erff.c
+  # math/aarch64/advsimd/exp.c, revision dce5dab
+  sysdeps/aarch64/fpu/advsimd/exp.c
+  # math/aarch64/advsimd/exp10.c, revision dce5dab
+  sysdeps/aarch64/fpu/advsimd/exp10.c
+  # math/aarch64/advsimd/exp10f.c, revision 69d38dd
+  sysdeps/aarch64/fpu/advsimd/exp10f.c
+  # math/aarch64/advsimd/exp10m1.c, revision dce5dab
+  sysdeps/aarch64/fpu/advsimd/exp10m1.c
+  # math/aarch64/advsimd/exp10m1f.c, revision a5092e8
+  sysdeps/aarch64/fpu/advsimd/exp10m1f.c
+  # math/aarch64/advsimd/exp2.c, revision dce5dab
+  sysdeps/aarch64/fpu/advsimd/exp2.c
+  # math/aarch64/advsimd/exp2f.c, revision 69d38dd
+  sysdeps/aarch64/fpu/advsimd/exp2f.c
+  # math/aarch64/advsimd/exp2m1.c, revision dce5dab
+  sysdeps/aarch64/fpu/advsimd/exp2m1.c
+  # math/aarch64/advsimd/exp2m1f.c, revision a5092e8
+  sysdeps/aarch64/fpu/advsimd/exp2m1f.c
+  # math/aarch64/advsimd/expf.c, revision 69d38dd
+  sysdeps/aarch64/fpu/advsimd/expf.c
+  # math/aarch64/advsimd/expm1.c, revision dce5dab
+  sysdeps/aarch64/fpu/advsimd/expm1.c
+  # math/aarch64/advsimd/expm1f.c, revision a5092e8
+  sysdeps/aarch64/fpu/advsimd/expm1f.c
+  # math/aarch64/advsimd/hypot.c, revision 09f8d05
+  sysdeps/aarch64/fpu/advsimd/hypot.c
+  # math/aarch64/advsimd/hypotf.c, revision 99dff4f
+  sysdeps/aarch64/fpu/advsimd/hypotf.c
+  # math/aarch64/advsimd/log.c, revision 0345857
+  sysdeps/aarch64/fpu/advsimd/log.c
+  # math/aarch64/advsimd/log10.c, revision 77aff35
+  sysdeps/aarch64/fpu/advsimd/log10.c
+  # math/aarch64/advsimd/log10f.c, revision ff1596f
+  sysdeps/aarch64/fpu/advsimd/log10f.c
+  # math/aarch64/advsimd/log10p1.c, revision 7fc8510
+  sysdeps/aarch64/fpu/advsimd/log10p1.c
+  # math/aarch64/advsimd/log10p1f.c, revision 58cd796
+  sysdeps/aarch64/fpu/advsimd/log10p1f.c
+  # math/aarch64/advsimd/log1p.c, revision 355a985
+  sysdeps/aarch64/fpu/advsimd/log1p.c
+  # math/aarch64/advsimd/log1pf.c, revision 5cf8408
+  sysdeps/aarch64/fpu/advsimd/log1pf.c
+  # math/aarch64/advsimd/log2.c, revision b8deb33
+  sysdeps/aarch64/fpu/advsimd/log2.c
+  # math/aarch64/advsimd/log2f.c, revision b98f80d
+  sysdeps/aarch64/fpu/advsimd/log2f.c
+  # math/aarch64/advsimd/log2p1.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/log2p1.c
+  # math/aarch64/advsimd/log2p1f.c, revision 58cd796
+  sysdeps/aarch64/fpu/advsimd/log2p1f.c
+  # math/aarch64/advsimd/logf.c, revision 1b15b12
+  sysdeps/aarch64/fpu/advsimd/logf.c
+  # math/aarch64/advsimd/finite_pow.h, revision 30da949
+  sysdeps/aarch64/fpu/advsimd/finite_pow.h
+  # math/pow_common.h, revision 30da949
+  sysdeps/aarch64/fpu/pow_common.h
+  # math/powf_common.h, revision 30da949
+  sysdeps/aarch64/fpu/powf_common.h
+  # math/aarch64/advsimd/pow.c, revision 30da949
+  sysdeps/aarch64/fpu/advsimd/pow.c
+  # math/aarch64/advsimd/powf.c, revision 30da949
+  sysdeps/aarch64/fpu/advsimd/powf.c
+  # math/aarch64/advsimd/powr.c, revision 30da949
+  sysdeps/aarch64/fpu/advsimd/powr.c
+  # math/aarch64/advsimd/powrf.c, revision e2bca42
+  sysdeps/aarch64/fpu/advsimd/powrf.c
+  # math/aarch64/advsimd/rsqrt.c, revision 0945eab
+  sysdeps/aarch64/fpu/advsimd/rsqrt.c
+  # math/aarch64/advsimd/rsqrtf.c, revision 88e9cc9
+  sysdeps/aarch64/fpu/advsimd/rsqrtf.c
+  # math/aarch64/advsimd/sin.c, revision 677a12b
+  sysdeps/aarch64/fpu/advsimd/sin.c
+  # math/aarch64/advsimd/sinf.c, revision 15c35d9
+  sysdeps/aarch64/fpu/advsimd/sinf.c
+  # math/aarch64/advsimd/sinh.c, revision 447bbaa
+  sysdeps/aarch64/fpu/advsimd/sinh.c
+  # math/aarch64/advsimd/sinhf.c, revision 45237ba
+  sysdeps/aarch64/fpu/advsimd/sinhf.c
+  # math/aarch64/advsimd/sinpi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/sinpi.c
+  # math/aarch64/advsimd/sinpif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/sinpif.c
+  # math/aarch64/advsimd/tan.c, revision a8bbb87
+  sysdeps/aarch64/fpu/advsimd/tan.c
+  # math/aarch64/advsimd/tanf.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/tanf.c
+  # math/aarch64/advsimd/tanh.c, revision 447bbaa
+  sysdeps/aarch64/fpu/advsimd/tanh.c
+  # math/aarch64/advsimd/tanhf.c, revision 45237ba
+  sysdeps/aarch64/fpu/advsimd/tanhf.c
+  # math/aarch64/advsimd/tanpi.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/tanpi.c
+  # math/aarch64/advsimd/tanpif.c, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/tanpif.c
+  # math/aarch64/advsimd/v_exp_special_case_inline.h, revision dce5dab
+  sysdeps/aarch64/fpu/advsimd/v_exp_special_case_inline.h
+  # math/aarch64/advsimd/v_expf_inline.h, revision 747e0e1
+  sysdeps/aarch64/fpu/advsimd/v_expf_inline.h
+  # math/aarch64/advsimd/v_expf_special_inline.h, revision a5092e8
+  sysdeps/aarch64/fpu/advsimd/v_expf_special_inline.h
+  # math/aarch64/advsimd/v_expm1_inline.h, revision 0a6ab6d
+  sysdeps/aarch64/fpu/advsimd/v_expm1_inline.h
+  # math/aarch64/advsimd/v_expm1f_inline.h, revision 0a6ab6d
+  sysdeps/aarch64/fpu/advsimd/v_expm1f_inline.h
+  # math/aarch64/advsimd/v_log1p_inline.h, revision 1aad38d
+  sysdeps/aarch64/fpu/advsimd/v_log1p_inline.h
+  # math/aarch64/advsimd/v_log1pf_inline.h, revision 0a6ab6d
+  sysdeps/aarch64/fpu/advsimd/v_log1pf_inline.h
+  # math/aarch64/advsimd/v_pow_inline.h, revision efde0c7
+  sysdeps/aarch64/fpu/advsimd/v_pow_inline.h
+  # math/aarch64/advsimd/v_powf_inline.h, revision 5b06a16
+  sysdeps/aarch64/fpu/advsimd/v_powf_inline.h
+  # math/aarch64/advsimd/v_powrf_inline.h, revision 30da949
+  sysdeps/aarch64/fpu/advsimd/v_powrf_inline.h
+  # math/aarch64/advsimd/v_poly_f32.h, revision 0a6ab6d
+  sysdeps/aarch64/fpu/advsimd/poly_advsimd_f32.h
+  # math/aarch64/advsimd/v_poly_f64.h, revision 0a6ab6d
+  sysdeps/aarch64/fpu/advsimd/poly_advsimd_f64.h
+  # math/poly_generic.h, revision 0a6ab6d
+  sysdeps/aarch64/fpu/advsimd/poly_generic.h
+  # math/aarch64/advsimd/v_math.h, revision 1829557
+  sysdeps/aarch64/fpu/advsimd/v_math.h
+  # math/aarch64/advsimd/v_trig_fallback.h, revision 677a12b
+  sysdeps/aarch64/fpu/advsimd/v_trig_fallback.h
+  # math/aarch64/advsimd/v_trigf_fallback.h, revision 15c35d9
+  sysdeps/aarch64/fpu/advsimd/v_trigf_fallback.h
+  # String routines
+  # string/aarch64/__mtag_tag_region.S, revision 41e5ae5
+  sysdeps/aarch64/__mtag_tag_region.S
+  # string/aarch64/__mtag_tag_zero_region.S, revision 41e5ae5
+  sysdeps/aarch64/__mtag_tag_zero_region.S
+  # string/aarch64/memchr-mte.S, revision 41e5ae5
+  sysdeps/aarch64/memchr.S
+  # string/aarch64/memcmp.S, revision 41e5ae5
+  sysdeps/aarch64/memcmp.S
+  # string/aarch64/memcpy-advsimd.S, revision 41e5ae5
+  sysdeps/aarch64/memcpy.S
+  # string/aarch64/memcpy-mops.S, revision 41e5ae5
+  sysdeps/aarch64/multiarch/memcpy_mops.S
+  # string/aarch64/memcpy-sve.S, revision 71e3640
+  sysdeps/aarch64/multiarch/memcpy_sve.S
+  # string/aarch64/memmove-mops.S, revision 41e5ae5
+  sysdeps/aarch64/multiarch/memmove_mops.S
+  # string/aarch64/memrchr.S, revision 41e5ae5
+  sysdeps/aarch64/memrchr.S
+  # string/aarch64/memset-mops.S, revision 41e5ae5
+  sysdeps/aarch64/multiarch/memset_mops.S
+  # string/aarch64/memset-sve.S, revision 0f71101
+  sysdeps/aarch64/multiarch/memset_sve_zva64.S
+  # string/aarch64/memset.S, revision 098df8c
+  sysdeps/aarch64/memset.S
+  # string/aarch64/stpcpy.S, revision 189dfef
+  sysdeps/aarch64/stpcpy.S
+  # string/aarch64/strchr-mte.S, revision 41e5ae5
+  sysdeps/aarch64/strchr.S
+  # string/aarch64/strchrnul-mte.S, revision 41e5ae5
+  sysdeps/aarch64/strchrnul.S
+  # string/aarch64/strcmp.S, revision 41e5ae5
+  sysdeps/aarch64/strcmp.S
+  # string/aarch64/strcpy.S, revision 41e5ae5
+  sysdeps/aarch64/strcpy.S
+  # string/aarch64/strlen-mte.S, revision 41e5ae5
+  sysdeps/aarch64/strlen.S
+  # string/aarch64/strncmp.S, revision 41e5ae5
+  sysdeps/aarch64/strncmp.S
+  # string/aarch64/strnlen.S, revision 41e5ae5
+  sysdeps/aarch64/strnlen.S
+  # string/aarch64/strrchr-mte.S, revision 41e5ae5
+  sysdeps/aarch64/strrchr.S
+  # string/arm/memchr.S, revision 1eb5d7c
+  sysdeps/arm/armv6t2/memchr.S
+  # string/arm/memcpy.S, revision 1eb5d7c
+  sysdeps/arm/armv7/multiarch/memcpy_impl.S
+  # string/arm/strcmp.S, revision 1eb5d7c
+  sysdeps/arm/armv7/strcmp.S
+  # string/arm/strlen-armv6t2.S, revision 1eb5d7c
+  sysdeps/arm/armv6t2/strlen.S

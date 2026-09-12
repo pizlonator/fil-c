@@ -1,0 +1,15 @@
+ld {
+  GLIBC_PRIVATE {
+    _dl_x86_get_cpu_features;
+  }
+}
+libc {
+  GLIBC_2.33 {
+    __x86_get_cpuid_feature_leaf;
+  }
+  GLIBC_ABI_GNU2_TLS {
+    # This symbol is used only for empty version map and will be removed
+    # by scripts/versions.awk.
+    __placeholder_only_for_empty_version_map;
+  }
+}

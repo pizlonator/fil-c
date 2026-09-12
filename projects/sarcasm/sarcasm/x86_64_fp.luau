@@ -1482,8 +1482,8 @@ end
 
 -- ---------------------------------------------------------------------------
 -- unsafe-instruction rejection (consulted for EVERY mnemonic, FP or not, at the
--- top of x86.classify before baseMnemonic mapping, so e.g. `movsq` is seen
--- before it maps to `mov`). Returns a reason string or nil.
+-- top of x86.classify before baseMnemonic mapping, so e.g. `lodsq` is seen
+-- before anything could normalize it). Returns a reason string or nil.
 
 local REASON_SYSCALL = "system-call instructions cannot be bounds-checked (their effect on memory safety is unknowable)"
 local REASON_PORTIO = "port-I/O instructions cannot be bounds-checked (they transfer data the checker cannot see)"
@@ -1505,6 +1505,9 @@ local REASON_SGX = "SGX enclave instructions (encls/enclu/enclv) have implicit e
 local REASON_NOTRACK = "the CET `notrack` prefix is not supported (it changes indirect-branch tracking for the instruction that follows, which the checker does not model; cannot prove memory safety)"
 local REASON_LOOPZF = "loop's ZF-consuming form branches on the flags left by the PRECEDING instruction, and sarcasm's injected memory-access checks clobber EFLAGS (the documented known issue), so the pending condition could be silently polluted (modeling it cannot be proven sound; use plain `loop`, which branches on the decremented counter instead)"
 local REASON_ADDRSIZE = "an address-size prefix changes the addressing mode of the instruction that follows, which sarcasm does not model (the size-suffixed spelling is supported where one exists, e.g. loopl for the 0x67-address-size `loop`)"
+
+local REASON_FLAGREAD = "flag-reading/writing instructions with unmodeled EFLAGS effects cannot be proven sound against sarcasm's injected flag-clobbering checks (the flag-liveness model has no entry for this mnemonic, so a default-dead assumption would silently omit a required save/restore)"
+local REASON_BCD = "BCD arithmetic instructions (daa/das/aaa/aas/aam/aad) read and write AF/CF with unmodeled EFLAGS effects that sarcasm's injected flag-clobbering checks could silently pollute (cannot prove memory safety)"
 
 -- Instructions with implicit GPR operands the def/use model cannot express (same
 -- class as pcmpestri/pcmpistri, which the fp table rejects): regalloc could rename
@@ -1592,26 +1595,46 @@ local UNSAFE = {
 	-- prefixed instruction itself is not modeled. The size-suffixed spellings
 	-- (loopl/loopq, jecxz/jrcxz) are the supported way to write those forms.
 	addr32 = REASON_ADDRSIZE, addr16 = REASON_ADDRSIZE,
+	-- Flag-stack transfers: pushf/pushfq/pushfd READ EFLAGS (a pending
+	-- condition from a preceding flag-setter would be silently polluted by an
+	-- injected check) and popf/popfq/popfd WRITE EFLAGS with values the model
+	-- does not track. Neither is in the flag-liveness tables, so both stay
+	-- rejected rather than silently passing with a dead default.
+	pushf = REASON_FLAGREAD, pushfq = REASON_FLAGREAD, pushfd = REASON_FLAGREAD,
+	pushfw = REASON_FLAGREAD,
+	popf = REASON_FLAGREAD, popfq = REASON_FLAGREAD, popfd = REASON_FLAGREAD,
+	popfw = REASON_FLAGREAD,
+	-- salc (set AL from carry) reads CF with no entry in the flag-use tables.
+	salc = REASON_FLAGREAD,
+	-- BCD arithmetic: AF/CF readers+writers with unmodeled flag effects.
+	daa = REASON_BCD, das = REASON_BCD, aaa = REASON_BCD, aas = REASON_BCD,
+	aam = REASON_BCD, aad = REASON_BCD,
+	-- arpl reads/writes the RPL bits with ZF effects the model does not track.
+	arpl = REASON_FLAGREAD,
 }
 
--- string ops: implicit rsi/rdi memory the checker cannot see. (The Intel dword
--- forms lodsd/stosd/scasd are unambiguous; movsd/cmpsd are FP instructions when
--- they have operands, so those reject only in their zero-operand string form.)
+-- string ops: implicit rsi/rdi memory the checker cannot see. Only the
+-- read/write-compare shapes stay rejected here (lods/scas/cmps in every
+-- size, plus the zero-operand movsd/cmpsd ambiguity — movsd/cmpsd are FP
+-- instructions when they have operands, so those reject only in their
+-- zero-operand string form). The movs/stos family (rep-prefixed or bare
+-- single-step) is modeled by x86_64_isa.classify's stringop branch and
+-- lowered with capability range checks by the transform.
 local STRINGOPS = {
-	movs = true, movsb = true, movsw = true, movsl = true, movsq = true,
-	stos = true, stosb = true, stosw = true, stosl = true, stosq = true, stosd = true,
 	lods = true, lodsb = true, lodsw = true, lodsl = true, lodsq = true, lodsd = true,
 	scas = true, scasb = true, scasw = true, scasl = true, scasq = true, scasd = true,
 	cmps = true, cmpsb = true, cmpsw = true, cmpsl = true, cmpsq = true,
 }
 local STRINGOPS_ZERO_OPERAND = { movsd = true, cmpsd = true }
 
--- prefixes that still reach here as mnemonics (the real instruction trails as
--- operands). `lock` is parsed as a prefix TAG by the parser (x86_64_parse) and
--- validated in x86_64_isa.classify — a "lock" mnemonic only survives here when
--- the input stacks prefixes (`lock lock xadd`), which stays rejected.
+-- prefixes that still reach here as mnemonics. `lock` is parsed as a prefix
+-- TAG by the parser (x86_64_parse) and validated in x86_64_isa.classify — a
+-- "lock" mnemonic only survives here when the input stacks prefixes
+-- (`lock lock xadd`), which stays rejected. `rep`/`repe`/`repne`/`repz`/
+-- `repnz` are likewise parsed as a repPrefix tag (x86_64_parse) and validated
+-- in x86_64_isa.classify — rep movs*/stos* lower to checked copies/fills,
+-- `rep ret` keeps its branch-prediction hint.
 local PREFIXES = {
-	rep = true, repe = true, repne = true, repz = true, repnz = true,
 	lock = true, xacquire = true, xrelease = true,
 }
 

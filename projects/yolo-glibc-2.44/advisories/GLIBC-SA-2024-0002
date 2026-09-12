@@ -1,0 +1,15 @@
+syslog: Heap buffer overflow in __vsyslog_internal
+
+__vsyslog_internal used the return value of snprintf/vsnprintf to
+calculate buffer sizes for memory allocation.  If these functions (for
+any reason) failed and returned -1, the resulting buffer would be too
+small to hold output.
+
+CVE-Id: CVE-2023-6779
+Public-Date: 2024-01-30
+Vulnerable-Commit: 52a5be0df411ef3ff45c10c7c308cb92993d15b1 (2.37)
+Fix-Commit: 7e5a0c286da33159d47d0122007aac016f3e02cd (2.39)
+Fix-Commit: d0338312aace5bbfef85e03055e1212dd0e49578 (2.38-43)
+Fix-Commit: 67062eccd9a65d7fda9976a56aeaaf6c25a80214 (2.37-58)
+Vulnerable-Commit: b0e7888d1fa2dbd2d9e1645ec8c796abf78880b9 (2.36-16)
+Fix-Commit: 2bc9d7c002bdac38b5c2a3f11b78e309d7765b83 (2.36-127)

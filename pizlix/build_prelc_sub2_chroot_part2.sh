@@ -76,8 +76,8 @@ make install
 cd ..
 rm -rf texinfo-7.1
 
-tar -xf util-linux-2.40.2.tar.xz
-cd util-linux-2.40.2
+tar -xf pizlonated-yolo-util-linux.tar.gz
+cd pizlonated-yolo-util-linux
 mkdir -pv /var/lib/hwclock
 ./configure --libdir=/yolo/lib \
     --prefix=/yolo \
@@ -97,7 +97,7 @@ mkdir -pv /var/lib/hwclock
 make
 make install
 cd ..
-rm -rf util-linux-2.40.2
+rm -rf pizlonated-yolo-util-linux
 
 rm -rf /yolo/share/{info,man,doc}/*
 find /yolo/{lib,libexec} -name \*.la -delete

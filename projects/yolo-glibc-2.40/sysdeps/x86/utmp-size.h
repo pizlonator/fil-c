@@ -1,2 +1,0 @@
-#define UTMP_SIZE 384
-#define LASTLOG_SIZE 292

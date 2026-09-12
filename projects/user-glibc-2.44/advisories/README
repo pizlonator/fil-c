@@ -1,0 +1,92 @@
+GNU C Library Security Advisory Format
+======================================
+
+Security advisories in this directory follow a simple git commit log
+format, with a heading and free-format description augmented with tags
+to allow parsing key information.  References to code changes are
+specific to the glibc repository and follow a specific format:
+
+  Tag-name: <commit-ref> (release-version)
+
+The <commit-ref> indicates a specific commit in the repository.  The
+release-version indicates the publicly consumable release in which this
+commit is known to exist.  The release-version is derived from the
+git-describe format, (i.e. stripped out from glibc-2.34.NNN-gxxxx) and
+is of the form 2.34-NNN.  If the -NNN suffix is absent, it means that
+the change is in that release tarball, otherwise the change is on the
+release/2.YY/master branch and not in any released tarball.
+
+The following tags are currently being used:
+
+CVE-Id:
+This is the CVE-Id assigned under the CVE Program
+(https://www.cve.org/).
+
+Public-Date:
+The date this issue became publicly known.
+
+Rejected-Date:
+The most recent date the assigned advisory was rejected. If the advisory
+is ever published again the Rejected-Date tag should be removed.
+
+Vulnerable-Commit:
+The commit that introduced this vulnerability.  There could be multiple
+entries, one for each release branch in the glibc repository; the
+release-version portion of this tag should tell you which branch this is
+on.
+
+Fix-Commit:
+The commit that fixed this vulnerability.  There could be multiple
+entries for each release branch in the glibc repository, indicating that
+all of those commits contributed to fixing that issue in each of those
+branches.
+
+Reported-By:
+The entity that reported this issue. There could be multiple entries, one for
+each reporter.
+
+Adding an Advisory
+------------------
+
+An advisory for a CVE needs to be added on the master branch in two steps:
+
+1. Add the text of the advisory without any Fix-Commit tags along with
+   the fix for the CVE.  Add the Vulnerable-Commit tag, if applicable.
+   The advisories directory does not exist in release branches, so keep
+   the advisory text commit distinct from the code changes, to ease
+   backports.  Ask for the GLIBC-SA advisory number from the security
+   team.
+
+2. Finish all backports on release branches and then back on the msater
+   branch, add all commit refs to the advisory using the Fix-Commit
+   tags.  Don't bother adding the release-version subscript since the
+   next step will overwrite it.
+
+3. Run the process-advisories.sh script in the scripts directory on the
+   advisory:
+
+     scripts/process-advisories.sh update GLIBC-SA-YYYY-NNNN
+
+   (replace YYYY-NNNN with the actual advisory number).
+
+4. Verify the updated advisory and push the result.
+
+Rejecting an Advisory
+---------------------
+
+Rejecting an advisory on the master branch can be done in one step:
+
+1. Mark the advisory as rejected. Add the text "REJECTED: " as a prefix
+   to any short-form description. Add a new paragraph that starts with
+   "REJECTED: " and explains the reason for the rejection including
+   justification for why it no longer has security impact.  Lastly add
+   a Rejected-Date tag to the advisory.
+
+Getting a NEWS snippet from advisories
+--------------------------------------
+
+Run:
+
+  scripts/process-advisories.sh news
+
+and copy the content into the NEWS file.

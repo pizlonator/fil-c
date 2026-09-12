@@ -14,7 +14,7 @@ fi
 
 tar -xf pizlonated-user-glibc.tar.gz
 cd pizlonated-user-glibc
-patch -Np1 -i ../glibc-2.40-fhs-1.patch
+patch -Np1 -i ../glibc-2.44-fhs-1.patch
 mkdir -v build
 cd build
 echo "rootsbindir=/usr/sbin" > configparms

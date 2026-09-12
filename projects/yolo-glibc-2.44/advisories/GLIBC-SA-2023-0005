@@ -1,0 +1,18 @@
+getaddrinfo: DoS due to memory leak
+
+The fix for CVE-2023-4806 introduced a memory leak when an application
+calls getaddrinfo for AF_INET6 with AI_CANONNAME, AI_ALL and AI_V4MAPPED
+flags set.
+
+CVE-Id: CVE-2023-5156
+Public-Date: 2023-09-25
+Vulnerable-Commit: e09ee267c03e3150c2c9ba28625ab130705a485e (2.34-420)
+Vulnerable-Commit: e3ccb230a961b4797510e6a1f5f21fd9021853e7 (2.35-270)
+Vulnerable-Commit: a9728f798ec7f05454c95637ee6581afaa9b487d (2.36-115)
+Vulnerable-Commit: 6529a7466c935f36e9006b854d6f4e1d4876f942 (2.37-39)
+Vulnerable-Commit: 00ae4f10b504bc4564e9f22f00907093f1ab9338 (2.38-20)
+Fix-Commit: 8006457ab7e1cd556b919f477348a96fe88f2e49 (2.34-421)
+Fix-Commit: 17092c0311f954e6f3c010f73ce3a78c24ac279a (2.35-272)
+Fix-Commit: 856bac55f98dc840e7c27cfa82262b933385de90 (2.36-116)
+Fix-Commit: 4473d1b87d04b25cdd0e0354814eeaa421328268 (2.37-42)
+Fix-Commit: 5ee59ca371b99984232d7584fe2b1a758b4421d3 (2.38-24)

@@ -1,0 +1,27 @@
+gethostbyaddr and gethostbyaddr_r return invalid DNS hostnames
+
+Calling gethostbyaddr or gethostbyaddr_r with a configured nsswitch.conf
+that specifies the library's DNS backend in the GNU C library version
+2.34 to version 2.43 could result in an invalid DNS hostname being
+returned to the caller in violation of the DNS specification.
+
+A defect in the getanswer_ptr function, which implements the iteration
+and extraction of the answer from a DNS response, can cause it to accept
+an invalid DNS hostname that can contain shell metacharacters. An
+application that uses the returned hostname in a shell, without guarding
+for shell expansion, may be subject to shell injection attacks.  At the
+time of publication, no known affected DNS server returns results with
+shell metacharacters in the results.  An attacker would either need to
+be network adjacent or have compromised the DNS server to use this
+defect for shell injection.  No known vulnerable application has been
+identified.
+
+CVE-Id: CVE-2026-4438
+Public-Date: 2026-03-20
+Vulnerable-Commit: 32e5db37684ffcbc6ae34fcc6cdcf28670506baa (2.34-323)
+Vulnerable-Commit: def97e7f71a07517810f7263213d607e08ad21f1 (2.35-188)
+Vulnerable-Commit: 77f523c473878ec0051582ef15161c6982879095 (2.36-30)
+Vulnerable-Commit: e32547d661a43da63368e488b6cfa9c53b4dcf92 (2.37)
+Fix-Commit: dd9945c0ba40d2dbc9eb7c99291ba6b69bd66718 (2.43-17)
+Fix-Commit: e10977481f4db4b2a3ce34fa4c3a1e26651ae312 (2.44)
+Reported-by: Antonio Maini (0rbitingZer0) - 0rbitingZer0@proton.me

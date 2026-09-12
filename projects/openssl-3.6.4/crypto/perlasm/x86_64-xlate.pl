@@ -137,7 +137,7 @@ elsif (`$ENV{CC} -V 2>/dev/null`
 # Number of arguments in a sarcasm signature string.
 sub sarcasm_sig_narg {
     my $sig = shift;
-    my ($args) = $sig =~ /\((.*)\)/;
+    my ($args) = $sig =~ /\(([^()]*)\)/;
     return 0 if (!defined($args) || $args eq "");
     return scalar(() = $args =~ /,/g) + 1;
 }
@@ -555,7 +555,7 @@ my %globals;
 		&& defined($current_function)
 		&& defined($current_function->{name})
 		&& $self->{value} eq $current_function->{name}
-		&& $ann =~ /^\s*[A-Za-z_]\w*\s*\(.*\)\s*$/
+		&& $ann =~ /^\s*[A-Za-z_]\w*\s*\([^()]*\)\s*(#.*)?$/
 		&& defined($current_function->{narg})
 		&& $current_function->{narg} != main::sarcasm_sig_narg($ann)) {
 		# Some generators cap the .type narg at 6 (the
@@ -1465,10 +1465,15 @@ while(defined(my $line=<>)) {
 
     # sarcasm: capture a `#!` annotation before the comment strip and
     # re-append it verbatim at the final print (gas output only; for
-    # nasm/masm the strip below removes it as before).
+    # nasm/masm the strip below removes it as before). A `#!` that
+    # follows a `#` comment starter is inside a comment, so it is not
+    # an annotation and is left for the comment strip below. Emitters
+    # must place the annotation first (`#! ann # comment`).
     my $ann;
-    if ($gas && $line =~ s/[ \t]*#!(.*)$//) {
-	$ann = $1;
+    if ($gas && $line =~ /^(.*?)#!(.*)$/ && $1 !~ /#/) {
+        $ann = $2;
+        $line = $1;
+        $line =~ s/[ \t]+$//;
     }
 
     $line =~ s|[#!].*$||;	# get rid of asm-style comments...
@@ -1491,20 +1496,20 @@ while(defined(my $line=<>)) {
 	# `#! <sig>` from the generating .pl files; local-subroutine
 	# calls stay unannotated for sarcasm's auto-discovery.
 	if ($gas && !defined($ann)) {
-	    if ($line =~ /OPENSSL_ia32cap_P([+]\d+)?\(%rip\)/) {
-		$ann = " global ptr";
-	    }
+	  if ($line =~ /OPENSSL_ia32cap_P([+]\d+)?\(%rip\)/) {
+	    $ann = " global ptr";
+	  }
 	}
 
 	my $asm = eval("\$".$opcode->mnemonic());
 
 	if ((ref($asm) eq 'CODE') && scalar(my @bytes=&$asm($line))) {
 	    if ($bytes[0] =~ /^[a-z]/) {
-		# the sub returned a literal instruction to emit
-		# verbatim (e.g. endbr64, rdrand)
-		print "\t",join("\t",@bytes),(defined($ann) ? " #!$ann" : ""),"\n";
+	        # the sub returned a literal instruction to emit
+	        # verbatim (e.g. endbr64, rdrand)
+	        print "\t",join("\t",@bytes),(defined($ann) ? " #!$ann" : ""),"\n";
 	    } else {
-		print $gas?".byte\t":"DB\t",join(',',@bytes),"\n";
+	        print $gas?".byte\t":"DB\t",join(',',@bytes),"\n";
 	    }
 	    next;
 	}

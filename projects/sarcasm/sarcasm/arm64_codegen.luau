@@ -313,6 +313,8 @@ function M.isMemInsn(mnem) return isa.isMemInsn(mnem) end
 M.flagUse = isa.flagUse
 M.flagDef = isa.flagDef
 M.flagWriteNoDef = isa.flagWriteNoDef
+M.flagUseMask = isa.flagUseMask
+M.flagDefMask = isa.flagDefMask
 
 -- `;! load ptr` / `;! store ptr` are valid ONLY on a scalar 64-bit load/store
 -- (ldr/ldur/str/stur with a 64-bit GPR data register): the invisicap sequence moves
@@ -891,7 +893,14 @@ function M.make(ctx)
 				.. (node.stmt and node.stmt.raw or "?"))
 		end
 		local capLo
-		if baseTemp and pf.isPtr[baseTemp] then capLo = pf.lowerTemp[baseTemp]
+		-- `//! use capability xN` (stashed on the node by the transform;
+		-- `//! new capability xN` is a deprecated alias): the access is
+		-- guarded by the NAMED register's capability, not the base-first
+		-- default (validated: the named web carries a capability).
+		local capSel = node.useCapTemp or node.newCapTemp
+		if capSel and pf.lowerTemp[capSel] then
+			capLo = pf.lowerTemp[capSel]
+		elseif baseTemp and pf.isPtr[baseTemp] then capLo = pf.lowerTemp[baseTemp]
 		elseif indexTemp and pf.isPtr[indexTemp] then capLo = pf.lowerTemp[indexTemp] end
 		local effTemp = baseTemp
 		if mem.writeback == "post" then

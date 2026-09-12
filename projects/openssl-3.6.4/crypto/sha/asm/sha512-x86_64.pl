@@ -369,9 +369,9 @@ $code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp		# align stack frame
 ___
 $code.=<<___;
-	mov	$ctx,$_ctx		# save ctx, 1st arg #! store ptr
-	mov	$inp,$_inp		# save inp, 2nd arh #! store ptr
-	mov	%rdx,$_end		# save end pointer, "3rd" arg #! store ptr
+	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
+	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
+	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
 ___
 $code.=<<___ if (!$ENV{SARCASM});
 	mov	%rax,$_rsp		# save copy of %rsp
@@ -866,7 +866,7 @@ sub body_00_15 () {
 	'&and	($a4,$e)',			# (f^g)&e
 
 	'&xor	($a0,$e)',
-	'&add	($h,$SZ*($i&15)."($SFR)")',	# h+=X[i]+K[i]
+  '&add	($h,$SZ*($i&15)."($SFR)")',	# h+=X[i]+K[i]
 	'&mov	($a2,$a)',
 
 	'&xor	($a4,$g)',			# Ch(e,f,g)=((f^g)&e)^g
@@ -937,9 +937,9 @@ $code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp		# align stack frame
 ___
 $code.=<<___;
-	mov	$ctx,$_ctx		# save ctx, 1st arg #! store ptr
-	mov	$inp,$_inp		# save inp, 2nd arh #! store ptr
-	mov	%rdx,$_end		# save end pointer, "3rd" arg #! store ptr
+	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
+	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
+	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
 ___
 $code.=<<___ if (!$ENV{SARCASM});
 	mov	%rax,$_rsp		# save copy of %rsp
@@ -1204,7 +1204,7 @@ my @insns = (&$body,&$body,&$body,&$body);	# 104 instructions
     }
 	&paddd		($t2,@X[0]);
 	  foreach (@insns) { eval; }		# remaining instructions
-	&movdqa		(16*$j."($SFR)",$t2);
+  &movdqa		(16*$j."($SFR)",$t2);
 }
 
     for ($i=0,$j=0; $j<4; $j++) {
@@ -1337,9 +1337,9 @@ $code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp		# align stack frame
 ___
 $code.=<<___;
-	mov	$ctx,$_ctx		# save ctx, 1st arg #! store ptr
-	mov	$inp,$_inp		# save inp, 2nd arh #! store ptr
-	mov	%rdx,$_end		# save end pointer, "3rd" arg #! store ptr
+	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
+	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
+	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
 ___
 $code.=<<___ if (!$ENV{SARCASM});
 	mov	%rax,$_rsp		# save copy of %rsp
@@ -1503,7 +1503,7 @@ my @insns = (&$body,&$body,&$body,&$body);	# 104 instructions
 	  eval(shift(@insns));
 	&vpaddd		($t2,@X[0],16*2*$j."($Tbl)");
 	  foreach (@insns) { eval; }		# remaining instructions
-	&vmovdqa	(16*$j."($SFR)",$t2);
+  &vmovdqa	(16*$j."($SFR)",$t2);
 }
 
     for ($i=0,$j=0; $j<4; $j++) {
@@ -1631,7 +1631,7 @@ my @insns = (&$body,&$body);			# 52 instructions
 	  eval(shift(@insns));
 	&vpaddq		($t2,@X[0],16*2*$j-0x80."($Tbl)");
 	  foreach (@insns) { eval; }		# remaining instructions
-	&vmovdqa	(16*$j."($SFR)",$t2);
+  &vmovdqa	(16*$j."($SFR)",$t2);
 }
 
     for ($i=0,$j=0; $j<8; $j++) {
@@ -1771,9 +1771,9 @@ $code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp		# align stack frame
 ___
 $code.=<<___;
-	mov	$ctx,$_ctx		# save ctx, 1st arg #! store ptr
-	mov	$inp,$_inp		# save inp, 2nd arh #! store ptr
-	mov	%rdx,$_end		# save end pointer, "3rd" arg #! store ptr
+	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
+	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
+	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
 ___
 $code.=<<___ if (!$ENV{SARCASM});
 	mov	%rax,$_rsp		# save copy of %rsp
@@ -1890,7 +1890,7 @@ my @insns = (&$body,&$body,&$body,&$body);	# 104 instructions
 	}
 	&vpaddd		($t2,@X[0],16*2*$j."($Tbl)");
 	  foreach (@insns) { eval; }		# remaining instructions
-	&vmovdqa	(16*$j."($SFR)",$t2);
+  &vmovdqa	(16*$j."($SFR)",$t2);
 }
 
     for ($i=0,$j=0; $j<4; $j++) {
@@ -1997,7 +1997,7 @@ my @insns = (&$body,&$body);			# 52 instructions
 	}
 	&vpaddq		($t2,@X[0],16*2*$j-0x80."($Tbl)");
 	  foreach (@insns) { eval; }		# remaining instructions
-	&vmovdqa	(16*$j."($SFR)",$t2);
+  &vmovdqa	(16*$j."($SFR)",$t2);
 }
 
     for ($i=0,$j=0; $j<8; $j++) {
@@ -2189,9 +2189,9 @@ ${func}_avx2: #! void(ptr,ptr,size_t)
 	and	\$-256*$SZ,%rsp		# align stack frame
 	lea	($inp,%rdx,$SZ),%rdx	# inp+num*16*$SZ
 	add	\$`2*$SZ*($rounds-8)`,%rsp
-	mov	$ctx,$_ctx		# save ctx, 1st arg #! store ptr
-	mov	$inp,$_inp		# save inp, 2nd arh #! store ptr
-	mov	%rdx,$_end		# save end pointer, "3rd" arg #! store ptr
+	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
+	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
+	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
 	mov	%rax,$_rsp		# save copy of %rsp
 .cfi_cfa_expression	$_rsp,deref,+8
 ___

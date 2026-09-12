@@ -1,0 +1,24 @@
+Potential buffer under-read in ungetwc
+
+Calling the ungetwc function on a FILE stream with wide characters
+encoded in a character set that has overlaps between its single byte and
+multi-byte character encodings, in the GNU C Library version 2.43 or
+earlier, may result in an attempt to read bytes before an allocated
+buffer, potentially resulting in unintentional disclosure of neighboring
+data in the heap, or a program crash.
+
+A bug in the wide character pushback implementation
+(_IO_wdefault_pbackfail in libio/wgenops.c) causes ungetwc() to operate
+on the regular character buffer (fp->_IO_read_ptr) instead of the actual
+wide-stream read pointer (fp->_wide_data->_IO_read_ptr). The program
+crash may happen in cases where fp->_IO_read_ptr is not initialized and
+hence points to NULL. The buffer under-read requires a special situation
+where the input character encoding is such that there are overlaps
+between single byte representations and multibyte representations in
+that encoding, resulting in spurious matches.  The spurious match case
+is not possible in the standard Unicode character sets.
+
+CVE-Id: CVE-2026-5928
+Public-Date: 2026-03-17
+Reported-by: Rocket Ma
+Vulnerable-Commit: d64b6ad07585b8a37e5fecc9a47fcee766d52ede (2.1.1-89)

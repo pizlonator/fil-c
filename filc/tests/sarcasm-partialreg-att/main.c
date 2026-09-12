@@ -17,6 +17,10 @@ long pr_movzbq(long);
 long pr_index(long, long*);
 long pr_index_shl(long, long*);
 long pr_movw_index(long, long*);
+long pr_xor_movb_32use(long);
+long pr_xor_movw_32use(long);
+long pr_xor_movw_cx_hi16(long);
+long pr_loop_redef(long, long*);
 long pr_branch(long, long);
 long pr_branch2(long, long);
 long pr_loop(long, long*);
@@ -82,6 +86,24 @@ int main()
 
 	/* loop with the full-register read in the body */
 	expect64(pr_loop(0x1C5, table), 3 * table[0xC5], "loop index");
+
+	/* xor-zeroing + narrow def + wider use (the ghash shape): the xor must
+	   stay live across the partial write, so the preserved bits read zero */
+	expect64(pr_xor_movb_32use(0x1CD), 0xCD, "xorq + movb + movl");
+	expect64(pr_xor_movb_32use(0xFFAA), 0xAA, "xorq + movb + movl (2)");
+	expect64(pr_xor_movw_32use(0x1ABCD), 0xABCD, "xorq + movw + movl");
+	expect64(pr_xor_movw_cx_hi16(0x1ABCD), 0, "xorq + movw %cx + shr 16");
+	expect64(pr_xor_movw_cx_hi16(0xFFABCD), 0, "xorq + movw %cx + shr 16 (2)");
+	{
+		unsigned long rot = 0x1C5, idx = rot & 0xff, acc = 0;
+		int k;
+		for (k = 0; k < 8; k++) {
+			acc ^= (unsigned long)table[idx];
+			rot = (rot << 8) | (rot >> 56);
+			idx = ((rot & 0xff) << 4) & 0xff;
+		}
+		expect64(pr_loop_redef(0x1C5, table), acc, "xorq + per-iter movb + index");
+	}
 
 	/* narrow frame-slot stores preserve the slot's other bytes */
 	expect64(pr_slot(0x1122334455667788, 0x1CD), 0x11223344556677CDUL, "movb to frame slot");

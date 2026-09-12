@@ -46,7 +46,7 @@ int main()
     unsigned histogram[REPEAT];
     __builtin_memset(histogram, 0, sizeof(histogram));
     foo* f;
-    for (f = head; f; f = f->next)
+    for (f = zunfenced_atomic_load_ptr((void**)&head); f; f = f->next)
         histogram[f->value]++;
 
     for (i = REPEAT; i--;)

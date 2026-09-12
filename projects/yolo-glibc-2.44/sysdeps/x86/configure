@@ -1,0 +1,488 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/x86.
+
+# Check if linker supports x86 ISA level.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for linker x86 ISA level support" >&5
+printf %s "checking for linker x86 ISA level support... " >&6; }
+if test ${libc_cv_include_x86_isa_level+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest1.S <<EOF
+#ifdef __LP64__
+# define P2ALIGN 3
+#else
+# define P2ALIGN 2
+#endif
+	.section ".note.gnu.property", "a"
+	.p2align P2ALIGN
+	.long 1f - 0f		/* name length.  */
+	.long 4f - 1f		/* data length.  */
+	/* NT_GNU_PROPERTY_TYPE_0 */
+	.long 5			/* note type.  */
+0:
+	.asciz "GNU"		/* vendor name.  */
+1:
+	.p2align P2ALIGN
+	/* GNU_PROPERTY_X86_ISA_1_NEEDED */
+	.long 0xc0008002	/* pr_type.  */
+	.long 3f - 2f		/* pr_datasz.  */
+2:
+	.long 0x1
+3:
+	.p2align P2ALIGN
+4:
+EOF
+cat > conftest2.S <<EOF
+#ifdef __LP64__
+# define P2ALIGN 3
+#else
+# define P2ALIGN 2
+#endif
+	.section ".note.gnu.property", "a"
+	.p2align P2ALIGN
+	.long 1f - 0f		/* name length.  */
+	.long 4f - 1f		/* data length.  */
+	/* NT_GNU_PROPERTY_TYPE_0 */
+	.long 5			/* note type.  */
+0:
+	.asciz "GNU"		/* vendor name.  */
+1:
+	.p2align P2ALIGN
+	/* GNU_PROPERTY_X86_ISA_1_NEEDED */
+	.long 0xc0008002	/* pr_type.  */
+	.long 3f - 2f		/* pr_datasz.  */
+2:
+	.long 0x2
+3:
+	.p2align P2ALIGN
+4:
+EOF
+libc_cv_include_x86_isa_level=no
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -nostartfiles -nostdlib -r -o conftest conftest1.S conftest2.S'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+  count=`LC_ALL=C $READELF -n conftest | grep NT_GNU_PROPERTY_TYPE_0 | wc -l`
+  if test "$count" -eq 1; then
+    libc_cv_include_x86_isa_level=yes
+  fi
+fi
+rm -f conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_include_x86_isa_level" >&5
+printf "%s\n" "$libc_cv_include_x86_isa_level" >&6; }
+if test $libc_cv_include_x86_isa_level = yes; then
+  printf "%s\n" "#define INCLUDE_X86_ISA_LEVEL 1" >>confdefs.h
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LAHF/SAHF instruction support" >&5
+printf %s "checking for LAHF/SAHF instruction support... " >&6; }
+if test ${libc_cv_have_x86_lahf_sahf+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)     libc_cv_have_x86_lahf_sahf=no
+    if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -fverbose-asm -S -o - -x c /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } | grep -qE '(-msahf\b|-march=x86-64-v)'; then
+      libc_cv_have_x86_lahf_sahf=yes
+    fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_have_x86_lahf_sahf" >&5
+printf "%s\n" "$libc_cv_have_x86_lahf_sahf" >&6; }
+  if test $libc_cv_have_x86_lahf_sahf = yes; then
+    printf "%s\n" "#define HAVE_X86_LAHF_SAHF 1" >>confdefs.h
+
+    ISAFLAG="-DHAVE_X86_LAHF_SAHF"
+  fi
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for MOVBE instruction support" >&5
+printf %s "checking for MOVBE instruction support... " >&6; }
+if test ${libc_cv_have_x86_movbe+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)     libc_cv_have_x86_movbe=no
+    if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -fverbose-asm -S -o - -x c /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; } | grep -qE '(-mmovbe\b|-march=x86-64-v([3-9]|[1-9][0-9]))'; then
+      libc_cv_have_x86_movbe=yes
+    fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_have_x86_movbe" >&5
+printf "%s\n" "$libc_cv_have_x86_movbe" >&6; }
+  if test $libc_cv_have_x86_movbe = yes; then
+    printf "%s\n" "#define HAVE_X86_MOVBE 1" >>confdefs.h
+
+    ISAFLAG="$ISAFLAG -DHAVE_X86_MOVBE"
+  fi
+
+  # Check for ISA level support.
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ISA level support" >&5
+printf %s "checking for ISA level support... " >&6; }
+if test ${libc_cv_have_x86_isa_level+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.c <<EOF
+#include <sysdeps/x86/isa-level.h>
+#if MINIMUM_X86_ISA_LEVEL >= 4
+libc_cv_have_x86_isa_level=4
+#elif MINIMUM_X86_ISA_LEVEL == 3
+libc_cv_have_x86_isa_level=3
+#elif MINIMUM_X86_ISA_LEVEL == 2
+libc_cv_have_x86_isa_level=2
+#elif defined __x86_64__
+libc_cv_have_x86_isa_level=baseline
+#elif MINIMUM_X86_ISA_LEVEL == 1
+libc_cv_have_x86_isa_level=1
+#else
+libc_cv_have_x86_isa_level=0
+#endif
+EOF
+		 eval `${CC-cc} $CFLAGS $CPPFLAGS $ISAFLAG -I$srcdir -E conftest.c | grep libc_cv_have_x86_isa_level`
+		 rm -rf conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_have_x86_isa_level" >&5
+printf "%s\n" "$libc_cv_have_x86_isa_level" >&6; }
+elif test $base_machine = x86_64; then
+  libc_cv_have_x86_isa_level=baseline
+else
+  libc_cv_have_x86_isa_level=0
+fi
+if test $libc_cv_have_x86_isa_level = baseline; then
+  printf "%s\n" "#define MINIMUM_X86_ISA_LEVEL 1" >>confdefs.h
+
+else
+  printf "%s\n" "#define MINIMUM_X86_ISA_LEVEL $libc_cv_have_x86_isa_level" >>confdefs.h
+
+fi
+config_vars="$config_vars
+have-x86-isa-level = $libc_cv_have_x86_isa_level"
+config_vars="$config_vars
+x86-isa-level-2-or-above = 2 3 4"
+config_vars="$config_vars
+x86-isa-level-3-or-above = 3 4"
+config_vars="$config_vars
+x86-isa-level-4-or-above = 4"
+config_vars="$config_vars
+enable-x86-isa-level = $libc_cv_include_x86_isa_level"
+
+
+
+saved_CC="$CC"
+CC="$TEST_CC"
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if -mfpmath=387 works in testing" >&5
+printf %s "checking if -mfpmath=387 works in testing... " >&6; }
+if test ${libc_cv_have_test_cc_cflags_mfpmath_387+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) if { ac_try='${CC-cc} -Werror -mfpmath=387 -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then :
+  libc_cv_have_test_cc_cflags_mfpmath_387=yes
+else case e in #(
+  e) libc_cv_have_test_cc_cflags_mfpmath_387=no
+ ;;
+esac
+fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_have_test_cc_cflags_mfpmath_387" >&5
+printf "%s\n" "$libc_cv_have_test_cc_cflags_mfpmath_387" >&6; }
+
+CC="$saved_CC"
+
+
+config_vars="$config_vars
+have-test-cc-cflags-mfpmath-387 = $libc_cv_have_test_cc_cflags_mfpmath_387"
+
+conftest_code="
+extern int foo;
+int *
+foo_p (void)
+{
+  return &foo;
+}
+"
+
+cat > conftest.c <<EOF
+$conftest_code
+EOF
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if no direct extern access is enabled by default" >&5
+printf %s "checking if no direct extern access is enabled by default... " >&6; }
+if test ${libc_cv_cc_no_direct_extern_access+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)   if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -S -O2 -fno-pic conftest.c -o conftest 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+  then
+
+libc_cv_cc_cflags_no_direct_extern_access=no
+if test "$base_machine" = x86_64; then
+  if grep -E -q "mov[lq][ 	]+foo@GOTPCREL\(%rip\)," conftest; then
+    libc_cv_cc_no_direct_extern_access=yes
+  fi
+elif test "$base_machine" = i386; then
+  if grep -E -q "movl[ 	]+foo@GOT," conftest; then
+    libc_cv_cc_no_direct_extern_access=yes
+  fi
+else
+  echo unsupported machine: $base_machine
+  rm -f conftest*
+  exit 1
+fi
+
+  else
+
+echo failed to check no direct external data access
+rm -f conftest*
+exit 1
+
+  fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_no_direct_extern_access" >&5
+printf "%s\n" "$libc_cv_cc_no_direct_extern_access" >&6; }
+rm -f conftest*
+
+
+
+saved_CC="$CC"
+CC="$TEST_CC"
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if -mno-direct-extern-access works in testing" >&5
+printf %s "checking if -mno-direct-extern-access works in testing... " >&6; }
+if test ${libc_cv_test_cc_cflags_mno_direct_extern_access+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) if { ac_try='${CC-cc} -Werror -mno-direct-extern-access -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then :
+  libc_cv_test_cc_cflags_mno_direct_extern_access=yes
+else case e in #(
+  e) libc_cv_test_cc_cflags_mno_direct_extern_access=no
+ ;;
+esac
+fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_test_cc_cflags_mno_direct_extern_access" >&5
+printf "%s\n" "$libc_cv_test_cc_cflags_mno_direct_extern_access" >&6; }
+
+CC="$saved_CC"
+
+
+
+
+
+saved_CC="$CC"
+CC="$TEST_CC"
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if -fno-direct-access-external-data works in testing" >&5
+printf %s "checking if -fno-direct-access-external-data works in testing... " >&6; }
+if test ${libc_cv_test_cc_cflags_fno_direct_access_external_data+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) if { ac_try='${CC-cc} -Werror -fno-direct-access-external-data -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then :
+  libc_cv_test_cc_cflags_fno_direct_access_external_data=yes
+else case e in #(
+  e) libc_cv_test_cc_cflags_fno_direct_access_external_data=no
+ ;;
+esac
+fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_test_cc_cflags_fno_direct_access_external_data" >&5
+printf "%s\n" "$libc_cv_test_cc_cflags_fno_direct_access_external_data" >&6; }
+
+CC="$saved_CC"
+
+
+
+if test $libc_cv_test_cc_cflags_mno_direct_extern_access = yes; then
+  libc_cv_test_cc_cflags_no_direct_extern_access="-mno-direct-extern-access"
+elif test $libc_cv_test_cc_cflags_fno_direct_access_external_data = yes; then
+  libc_cv_test_cc_cflags_no_direct_extern_access="-fno-direct-access-external-data"
+fi
+
+config_vars="$config_vars
+test-cc-cflags-no-direct-extern-access = $libc_cv_test_cc_cflags_no_direct_extern_access"
+
+conftest_code="
+extern float truncf (float __x) __attribute__ ((__nothrow__,__const__));
+
+float
+tf (float x)
+{
+  return truncf (x);
+}
+"
+
+cat > conftest.c <<EOF
+$conftest_code
+EOF
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if -Os inlines trunc" >&5
+printf %s "checking if -Os inlines trunc... " >&6; }
+if test ${libc_cv_cc_x86_inline_trunc+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)   if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -S -Os -msse4.1 conftest.c -o conftest 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+  then
+
+libc_cv_cc_x86_inline_trunc=no
+if grep -E -q "roundss" conftest; then
+  libc_cv_cc_x86_inline_trunc=yes
+fi
+
+  else
+
+echo "failed to check if -Os inlines trunc."
+rm -f conftest*
+exit 1
+
+  fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_x86_inline_trunc" >&5
+printf "%s\n" "$libc_cv_cc_x86_inline_trunc" >&6; }
+rm -f conftest*
+if test "$libc_cv_cc_x86_inline_trunc" = yes; then
+  printf "%s\n" "#define HAVE_X86_INLINE_TRUNC 1" >>confdefs.h
+
+else
+  printf "%s\n" "#define HAVE_X86_INLINE_TRUNC 0" >>confdefs.h
+
+fi
+
+
+conftest_code="
+int __gcc_CMPtype_GCC __attribute__ ((mode (__libgcc_cmp_return__)));
+"
+
+cat > conftest.c <<EOF
+$conftest_code
+EOF
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for __libgcc_cmp_return__ mode attribute support" >&5
+printf %s "checking for __libgcc_cmp_return__ mode attribute support... " >&6; }
+if test ${libc_cv_cc_x86_libgcc_cmp_return_attribute+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)   if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $CFLAGS -c conftest.c -o conftest 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+  then
+    libc_cv_cc_x86_libgcc_cmp_return_attribute=yes
+  else
+    libc_cv_cc_x86_libgcc_cmp_return_attribute=no
+  fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_x86_libgcc_cmp_return_attribute" >&5
+printf "%s\n" "$libc_cv_cc_x86_libgcc_cmp_return_attribute" >&6; }
+rm -f conftest*
+if test "$libc_cv_cc_x86_libgcc_cmp_return_attribute" = yes; then
+  printf "%s\n" "#define HAVE_X86_LIBGCC_CMP_RETURN_ATTR 1" >>confdefs.h
+
+else
+  printf "%s\n" "#define HAVE_X86_LIBGCC_CMP_RETURN_ATTR 0" >>confdefs.h
+
+fi
+
+conftest_code="
+double foo (double x, double y)
+{
+  return __builtin_fmod (x, y);
+}
+"
+
+cat > conftest.c <<EOF
+$conftest_code
+EOF
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if compiler inlines __builtin_fmod/__builtin_remainder" >&5
+printf %s "checking if compiler inlines __builtin_fmod/__builtin_remainder... " >&6; }
+if test ${libc_cv_cc_x86_inline_fmod+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)   if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $CFLAGS -fno-math-errno -S conftest.c -o conftest 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+  then
+
+libc_cv_cc_x86_inline_fmod=no
+if grep -E -q "fprem" conftest; then
+  libc_cv_cc_x86_inline_fmod=yes
+fi
+
+  else
+
+echo "failed to check if CC inlines fmod."
+rm -f conftest*
+exit 1
+
+  fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_x86_inline_fmod" >&5
+printf "%s\n" "$libc_cv_cc_x86_inline_fmod" >&6; }
+rm -f conftest*
+if test "$libc_cv_cc_x86_inline_fmod" = yes; then
+  printf "%s\n" "#define HAVE_X86_INLINE_FMOD 1" >>confdefs.h
+
+else
+  printf "%s\n" "#define HAVE_X86_INLINE_FMOD 0" >>confdefs.h
+
+fi
+
+if test "${libc_cv_cc_no_direct_extern_access}${libc_cv_test_cc_cflags_no_direct_extern_access}" = yes; then
+  libc_cv_protected_data=no
+fi
+
+printf "%s\n" "#define SUPPORT_STATIC_PIE 1" >>confdefs.h
+
+

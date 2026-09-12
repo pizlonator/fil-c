@@ -25,6 +25,8 @@ M.baseMnemonic = isa.baseMnemonic
 M.flagUse = isa.flagUse
 M.flagDef = isa.flagDef
 M.flagWriteNoDef = isa.flagWriteNoDef
+M.flagUseMask = isa.flagUseMask
+M.flagDefMask = isa.flagDefMask
 M.precolorName = function(num) return xparse.regName(num, 64) end
 M.ALLOCATABLE = isa.ALLOCATABLE
 
@@ -786,7 +788,16 @@ function M.make(ctx)
 		local baseTemp = mem.base and node.opTemp[mem.base] or nil
 		local indexTemp = (mem.index and mem.index.kind == "reg") and node.opTemp[mem.index] or nil
 		local capLo
-		if baseTemp and pf.isPtr[baseTemp] then capLo = pf.lowerTemp[baseTemp]
+		-- `#! use capability %reg` (stashed on the node by the transform;
+		-- `#! new capability %reg` is a deprecated alias): the access is
+		-- guarded by the NAMED register's capability, not the base-first
+		-- default (validated: the named web carries a capability).
+		-- The effective address is still computed from base+index+disp as
+		-- written — only the capability source changes.
+		local capSel = node.useCapTemp or node.newCapTemp
+		if capSel and pf.lowerTemp[capSel] then
+			capLo = pf.lowerTemp[capSel]
+		elseif baseTemp and pf.isPtr[baseTemp] then capLo = pf.lowerTemp[baseTemp]
 		elseif indexTemp and pf.isPtr[indexTemp] then capLo = pf.lowerTemp[indexTemp] end
 		local disp = mem.dispVal or 0
 		local effTemp = baseTemp

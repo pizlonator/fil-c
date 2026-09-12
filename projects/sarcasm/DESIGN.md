@@ -549,6 +549,12 @@ executes, and the frame rewrite rejects, with a clean `sarcasm: <file>: <msg>` e
 - `enter`/`enterq` — packed push-rbp/`mov %rsp,%rbp`/`sub $imm,%rsp` frame setup that
   sarcasm does not model; passed through it would shift rsp and clobber rbp inside the
   synthesized Fil-C frame (frame setup must use the canonical three-instruction form);
+- any other `and` on the stack pointer (only `and $-N, %rsp` for a power of two
+  N >= 16 is accepted, in the prologue or — with provably dead flags — mid-function:
+  a vector-alignment rounding, dropped with the alignment recorded for the
+  aligned-access model above). A direct rsp-relative slot access positioned BEFORE
+  a mid-function `and` keys pre-and numbering and is rejected (carrier/rbp values
+  are absolute and stay legal);
 - vector-INDEXED memory operands (gather/scatter: an xmm-class register as the
   memory base or index) — they touch multiple discrete addresses that cannot be
   bounds-checked. FP/SIMD registers as VALUES are in scope: instructions naming
@@ -649,6 +655,23 @@ slot carrier is rejected outright (it would observe the phantom value); and a
 address would escape as the return value). Epilogue restore loads THROUGH a
 carrier (`movq -48(%rsi), %r15` — the perlasm movq-restore riding the recovered
 pointer) are recognized like the epilogue movq-restore loads and dropped.
+A stack access THROUGH a carrier register (`mov %rsp, %reg` / `lea K(%rsp),
+%reg`, then `disp(%reg)` — the rsaz-avx2 gather shape) keys the normalized
+frame offset disp + D0 - parked-depth (- 8 inside a clone, the +8 rule) and
+virtualizes/materializes exactly like an rsp-relative access: the parked value
+is absolute (entry_rsp - depth on every path), so the slot is static. Control
+flow that leaves the register holding stack+offset on one path and a
+heap/alloca/argument pointer (or nothing) on another is a static error at the
+access (an explicit conflict mark — ordinary runtime-checked uses stay legal:
+a heap-form access carrying an explicit pointer capability (`;! load/store
+ptr` and the atomic variants) through a conflicted base passes through and is
+bounds-checked at runtime against that capability, fail-closed — a
+stack+offset value on some path has no valid lower, so that path traps rather
+than accessing out of bounds; every other memory form through a conflicted
+base, including plain unannotated heap loads/stores/RMWs (which would need a
+static stack-or-heap decision the frame pass cannot make) and lea
+address-taking, stays a static error);
+returning or storing the register is an error like any other carrier read.
 Exceptions: (a) a caller-saved save with the static frame-escape region based at
 rsp+0 is NOT a carrier — the region redirect keeps it alive as a REAL value;
 (b) when the entry signature has SysV stack arguments (see "fast-CC stack
@@ -734,9 +757,16 @@ vector-save area and the materialized clusters — sit past the root area, start
 on a 16-byte boundary (8 bytes of padding when the root count is odd) so the
 clusters' mod-16 alignment residues survive the shift past the roots. FP/SIMD
 stack accesses needing more than 16-byte alignment (vmovdqa32/vmovaps with
-ymm/zmm to the stack) are REJECTED with a message suggesting the unaligned form —
-the ABI guarantees only 16-byte stack alignment and sarcasm rejects dynamic rsp
-alignment.
+ymm/zmm to the stack) are accepted only with a proven alignment: the frame must
+carry an `and $-N, %rsp` note (prologue or mid-function, N a power of two >= 16,
+dropped like any other frame setup) with N >= the access width, and the input
+offset must itself be aligned to the note's base — otherwise a static error
+suggesting the unaligned form (vmovdqu/vmovups). The taint scan enforces this per
+access; the cluster residue math then places such clusters at offsets aligned
+exactly when the output frame is, and the layout dynamically aligns the output
+frame (sub total+A, and $-A, pre-alignment rsp saved for the epilogue — static
+sizing cannot align since the entry rsp's mod-A residue is dynamic, only mod-16
+being fixed by the ABI).
 
 The runtime calls sarcasm injects invisibly and that RETURN — the pollcheck slow
 path, filc_allocate for `.alloca` and the frame-escape region, the ptr-store
@@ -898,7 +928,21 @@ can only trap or pass for an in-bounds address, never access out of bounds.
 
 ### transform.luau — the GIMSO transform (templates in ABI-NOTES.md / ABI-NOTES-x86.md)
 The walk and every invisicap sequence live here ONCE; the actual instructions come from
-the per-arch codegen module (arm64_codegen / x86_64_codegen):
+the per-arch codegen module (arm64_codegen / x86_64_codegen).
+Every injected sequence that writes the condition flags (access checks,
+pollchecks, allocations, invisicap loads/stores) is bracketed by a
+save/restore of the program's flags (x86_64 pushfq/popq through a
+regalloc-owned temp, arm64 mrs/msr nzcv) exactly when a backward
+per-flag liveness fixpoint over the lifted CFG says a flag is live at the
+insertion point (liveIn = use | (liveOut & ~def) as bitmasks: EFLAGS bits on
+x86_64 via x86_64_isa's flagUseMask/flagDefMask, all-or-nothing NZCV on
+arm64). A real call defines all flags (the ABI clobbers them); a local call
+is transparent (hardware `call` preserves flags, so the edge runs into the
+clone entry) while a local ret defines them all (the dispatch compares); a
+`ret` needs nothing past it. Partial writes (inc/dec, shifts, bt, stc, ...)
+are in neither mask and propagate soundly, and jcc/setcc/cmov read only
+their condition's flags — so a bounds check before an `inc` feeding a `jz`
+brackets nothing, while one between a `cmp` and its branch still saves:
 - Represent each in-flight ptr temp as (intval temp, lower temp).
 - `;! load ptr`  -> access-check(8, align 8) + non-atomic invisicap load sequence
   (offset = iv-lower; aux=[lower-8]&mask; auxentry=[aux+off]; box bit handling).
@@ -980,6 +1024,25 @@ the per-arch codegen module (arm64_codegen / x86_64_codegen):
   (use `;! atomic ptr`); shifts/rotates/imul are rejected (not
   capability-preserving); all five ptr-family annotations are rejected on
   cmpxchg8b/cmpxchg16b (x86_64) and casb/cash/casp (arm64).
+- rep movs*/stos* and bare movs*/stos* (x86_64): a checked block copy / fill
+  over the implicit registers. Element widths b/w/l/d/q (the dword is
+  `movsl`/`stosl` in AT&T, `movsd`/`stosd` in Intel — each assembler rejects
+  the other's spelling, and the renderer normalizes Intel input to AT&T
+  output); bare `movs`/`stos` are rejected as width-ambiguous, as are
+  explicit operands, repne/repnz on movs/stos, and any annotation (none is
+  needed). classify models the implicit rsi/rdi/rcx(/rax) effects with RMW-
+  shared occurrences for the advanced pointers (so their capabilities flow
+  through with no ptrflow rule) and a fresh scalar-0 rcx-def web; the
+  transform emits a DF trap (ud2 — a set direction flag would copy/fill
+  backwards, which is not modeled), a read check over [%rsi, %rsi+%rcx*elem)
+  for movs and a write check over [%rdi, ...) for both (null, CanWrite for
+  writes, lower, upper, then the overflow-free N > upper-ptr length test —
+  all skipped when %rcx == 0, exactly like hardware, and one element for the
+  bare form), then pins the webs through the physical registers around the
+  verbatim instruction. Range failures panic through
+  filc_check_aligned_access_fail with the dynamic byte count (a fixed-size
+  optimized origin could not attribute them). `rep ret` / `rep nop` keep
+  their hint; every other rep-prefixed instruction is rejected.
 - ARM64 atomics. Non-pointer atomics are modeled directly as single
   checked memory accesses, needing no annotation (like x86_64's lock-prefixed
   RMWs on non-pointers): the LSE family (swp/ldadd/ldclr/ldeor/ldset/ldsmax/
@@ -1549,8 +1612,10 @@ error (exit code 1). Current limitations, enforced on both architectures unless 
     segment-QUALIFIED memory operands (`%fs:0x28`) keep the symbolic-address
     rejection.
   * UNMODELABLE IMPLICIT MEMORY OR CONTROL FLOW: string instructions
-    (movs/stos/lods/scas/cmps) and the rep/repe/repne/xacquire/xrelease
-    prefixes (implicit rsi/rdi memory the checker cannot see),
+    (lods/scas/cmps in every size — movs/stos ARE modeled, see below) and the
+    repne/repnz prefixes, rep*/repe/repz on anything but movs*/stos*, and the
+    xacquire/xrelease prefixes (implicit rsi/rdi memory the checker cannot
+    see),
     gather/scatter, maskmovdqu/maskmovq (implicit DS:rdi destination),
     umonitor (arms monitoring on a range whose extent cannot be
     bounds-checked), clzero/xlatb (implicit rax / rbx+al memory), lcall/ljmp
@@ -1859,7 +1924,12 @@ ret exemptions), and the transform (retaddr temps, emission, flag treatment).
   caller's buffer sits in the promoted frame-escape region. rbp-relative
   operands are never biased (the call does not move rbp);
   the entry-rsp-parking lea forms shift by the same 8 (a clone's
-  `leaq d+8(%rsp)` parks the entry rsp).
+  `leaq d+8(%rsp)` parks the entry rsp). A clone may set up its own frame
+  with a constant `sub` (the gf2m `_mul_1x1` tab frame): a mid-function
+  constant adjustment at a statically known depth keys perturbed slots
+  exactly (disp + D0 - d, biased by the same -8), drops like a top-level
+  frame, and spills into the caller's synthesized frame — the local-ret
+  state override below resumes the continuation at the callsite depth.
 - **Emission.** At each callsite: `leaq retaddrTemp, cont(%rip)` + `jmp
   entry` (the lea is elided for a single-continuation clone, whose dispatch
   is a plain `jmp`). One shared "retaddr" temp per (caller, clone) — an
@@ -1893,11 +1963,14 @@ ret exemptions), and the transform (retaddr temps, emission, flag treatment).
   depth fixpoint re-enqueues a clone's local rets whenever the clone entry's
   state changes, so the override always evaluates against the converged entry
   state.
-- **Flags.** The dispatch's `cmp` clobbers EFLAGS, so flags are documented
-  call-clobbered across a local call (matching every compiler's model of
-  `call`): `flagsLiveFrom` treats marked local calls/rets as clobbers.
-  (Hardware `call`/`ret` preserves flags; faithful preservation with
-  save-at-dispatch + restore-at-continuation is future work.)
+- **Flags.** Hardware `call` does not write the flags, so the program's flags
+  flow INTO the clone (a local call is transparent to flag liveness) and the
+  clone may read them before defining them (the rsaz/mont5 carry chains do);
+  a local RET clobbers them (the ret dispatch's compare chain), so consumers
+  past the return do not keep incoming flags alive. The shared
+  per-flag·liveness fixpoint models this: a local call's successors are the
+  clone entry and the fall-through, a local ret defines all flags with the
+  clone's continuations as successors.
 - **Pollchecks.** A clone's ret edge to an earlier continuation is a back
   edge, so the continuation gets a pollcheck — sound (that IS the loop back
   edge for a call inside a loop) at a minor cost on non-loop callsites.

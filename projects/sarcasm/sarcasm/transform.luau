@@ -91,6 +91,95 @@ local function parseCapAnnot(ann)
 	return { save = save, restore = restore }
 end
 
+-- `use capability %reg` annotation (architecture-independent; `;!` on both
+-- architectures, `#!`/`//!` also accepted on x86_64/arm64 respectively).
+--
+--   The single unified capability-source selector. It goes on either:
+--   (a) an address-arithmetic instruction (add/sub/lea/and/or) whose inputs
+--   carry MORE THAN ONE capability: the result draws its capability from
+--   the NAMED register instead of the pointer-flow scan's (arbitrary)
+--   pick. With zero or one capability sources the annotation is unnecessary
+--   but harmless (it must still name a capability-carrying use). Example:
+--   `add %rax,%r11` where both hold pointers — `#! use capability %r11`
+--   keeps %r11's capability; or
+--   (b) any instruction with a memory operand (loads, stores, vector moves
+--   like `vmovdqu`, ...): the memory access is guarded by the NAMED
+--   register's capability, which must be the memory operand's base or
+--   index. It covers the case where the assembler moved the logical base
+--   out of base position (x86_64-xlate.pl flips `disp(%r13,%rdi)` to
+--   `disp(%rdi,%r13)` for performance when the base is %rbp/%r13 — the
+--   address is unchanged, but the base-first capability selection would
+--   then pick the wrong object; `vmovdqu %ymm,(%a,%b) #! use capability %a`
+--   keeps the annotation on the written base), and stale-base shapes
+--   (`xor %rdi,%rdi` leaves a zero-valued scalar on a stale pointer web;
+--   naming the live index overrides it). The effective address is still
+--   computed from base+index+disp as written — only the capability source
+--   changes. On a lea (which is both arithmetic and memory-shaped) the
+--   annotation selects the computed value's pointer source.
+--
+--   An arithmetic instruction with a memory operand (e.g. `add (%rdi),%rax`)
+--   gets both effects: the result draws from the named source and the
+--   access is guarded by it.
+--
+-- The clause must stand ALONE as the whole annotation (like save/restore:
+-- combine with nothing). The register is spelled as an ordinary operand
+-- (`%r11` in AT&T, `r11` in Intel — the `%` is optional); `%fil_` pseudos
+-- may be named too. `new capability` (and the historical typo spellings
+-- `new capabiltiy` / `use capabiltiy`) are accepted as deprecated aliases
+-- for compatibility and behave identically.
+--
+-- Returns nil when `ann` carries no capability-selector clause, else
+-- { kind = "use", reg = <register text> }. Malformed capability-ish
+-- text is NOT an error here (parseCapAnnot reports it); a clause
+-- that fails shape validation in the caller is a clean error there.
+local function parseUseNewCapAnnot(ann)
+	if not ann then return nil end
+	if not string.find(ann, "capab", 1, true) then return nil end
+	-- The unified selector is spelled `use capability`; `new capability`
+	-- (and the historical typo spellings `new capabiltiy` / `use capabiltiy`)
+	-- are deprecated aliases. All spellings normalize to kind "use".
+	-- (Lua patterns have no alternation, so each spelling is matched
+	-- explicitly.)
+	local kind, rest = nil, nil
+	rest = string.match(ann, "^%s*use%s+capability%s+(.-)%s*$")
+	if rest then kind = "use" end
+	if not kind then
+		rest = string.match(ann, "^%s*new%s+capability%s+(.-)%s*$")
+		if rest then kind = "use" end
+	end
+	if not kind then
+		rest = string.match(ann, "^%s*new%s+capabiltiy%s+(.-)%s*$")
+		if rest then kind = "use" end
+	end
+	if not kind then
+		rest = string.match(ann, "^%s*use%s+capabiltiy%s+(.-)%s*$")
+		if rest then kind = "use" end
+	end
+	if not kind then return nil end
+	-- optional surrounding parens (`use capability(%r11)`).
+	local paren = string.match(rest, "^%(%s*(.-)%s*%)$")
+	if paren then rest = paren end
+	if rest == "" or string.find(rest, "%s") then return nil end
+	return { kind = kind, reg = rest }
+end
+
+-- Resolve the register named by a `use capability` clause to a GPR use
+-- occurrence of the classified instruction `c` (for temp resolution the
+-- caller re-resolves against its own classify result and reads opTemp).
+-- Physical names compare case-insensitively (the parsers lowercase them)
+-- while `%fil_` pseudo idents keep their case (exact match second).
+local function resolveCapRegUse(c, regText)
+	local t = string.gsub(regText, "^%%", "")
+	for _, o in (c.uses or {}) do
+		if o.kind == "reg" and o.rc == "gpr" and o.num ~= nil and o.name then
+			if string.lower(t) == o.name or t == o.name then
+				return o
+			end
+		end
+	end
+	return nil
+end
+
 -- The register operand of a store that is not the memory operand (the stored value).
 local function storeValueOperand(stmt, mem)
 	for _, op in stmt.operands do
@@ -272,8 +361,84 @@ local function validateBody(body, cgm, funcName)
 						.. "`alloca result size=N`) were removed; allocate with the `.alloca size, "
 						.. "alignment, result` directive instead (see README.md): " .. raw)
 				end
-				local cap = parseCapAnnot(ann)
-				if cap then
+				local useNew = parseUseNewCapAnnot(ann)
+				local cap = nil
+				if not useNew then cap = parseCapAnnot(ann) end
+				if useNew then
+					-- `use capability` (standalone only — enforced by the
+					-- full-match in parseUseNewCapAnnot; `new capability`
+					-- and the typo spellings are deprecated aliases):
+					-- shape-check now (the lifted-web check in the
+					-- annotation walk below re-resolves against the actual
+					-- use temps). On address arithmetic (add/sub/lea/and/or)
+					-- the named register must be a general-register use
+					-- (it selects the result's capability); otherwise the
+					-- instruction must have a memory operand and the named
+					-- register must be its base or index (it guards the
+					-- access). An arithmetic instruction with a memory
+					-- operand gets both effects.
+					do
+						local bm = cgm.baseMnemonic(string.lower(st.mnemonic))
+						local isArith = bm == "add" or bm == "sub" or bm == "lea"
+							or bm == "and" or bm == "or" or bm == "orr"
+						if isArith then
+							local occ = resolveCapRegUse(c, useNew.reg)
+							if not occ then
+								error("sarcasm: `use capability " .. useNew.reg .. "` names"
+
+									.. " a register that is not a general-register use of this"
+
+									.. " instruction: " .. raw)
+							end
+							-- An arithmetic instruction with a memory operand
+							-- gets BOTH effects (the ALU result draws from the
+							-- named source AND the access is guarded by it),
+							-- so the named register must ALSO be the memory
+							-- operand's base or index. Otherwise the access
+							-- would be guarded with the wrong capability
+							-- (e.g. `add (%rdi),%rax #! use capability %rax`
+							-- would guard the (%rdi) access with %rax's
+							-- capability).
+							local mem = cgm.memOperand(st)
+							if mem then
+								local isBase = mem.base and mem.base.rc == occ.rc
+									and mem.base.num == occ.num
+								local isIndex = mem.index and mem.index.rc == occ.rc
+									and mem.index.num == occ.num
+								if not (isBase or isIndex) then
+									error("sarcasm: `use capability " .. useNew.reg .. "` must"
+
+										.. " name the memory operand's base or index register"
+
+										.. " (this address-arithmetic instruction has a memory"
+
+										.. " operand, so the named register also guards the"
+
+										.. " access): " .. raw)
+								end
+							end
+						else
+							local mem = cgm.memOperand(st)
+							if not mem then
+								error("sarcasm: `use capability` requires an address-arithmetic"
+
+									.. " instruction (add/sub/lea/and/or) or an instruction"
+
+									.. " with a memory operand (got '" .. st.mnemonic .. "'): " .. raw)
+							end
+							local occ = resolveCapRegUse(c, useNew.reg)
+							local isBase = mem.base and occ and mem.base.rc == occ.rc
+								and mem.base.num == occ.num
+							local isIndex = mem.index and occ and mem.index.rc == occ.rc
+								and mem.index.num == occ.num
+							if not (occ and (isBase or isIndex)) then
+								error("sarcasm: `use capability " .. useNew.reg .. "` must"
+
+									.. " name the memory operand's base or index register: " .. raw)
+							end
+						end
+					end
+				elseif cap then
 					-- save/restore capability (standalone only — enforced by
 					-- parseCapAnnot): the instruction must define a general
 					-- register. (The lifted-web check in the annotation walk
@@ -665,7 +830,28 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	-- byte-identical output.
 	local frameRegion = nil
 	if backend.arch == "x86_64" and framePolicy.analyzeFrame then
-		local _, _, _, _, _, frameEscapes = framePolicy.analyzeFrame(body, sigDesc, allocaRegions)
+		local fs2, _, _, fpinfo2, yolo2, frameEscapes = framePolicy.analyzeFrame(body, sigDesc, allocaRegions)
+		-- The region-carrying run sees caller-saved stack-pointer saves the
+		-- region-less early run cannot record (its region corner needs the
+		-- regions), so its FP/SIMD cluster and yolo-argument layout info is a
+		-- superset of the early run's: it alone covers stack accesses through
+		-- stack+offset alias registers. Take it for the layout (the rewrite's
+		-- own run inside preprocess can only record LESS — the promoted frame
+		-- region turns some carriers back into region traffic — so the layout
+		-- always covers what the rewrite materializes).
+		if fpinfo2 ~= nil then fctx.fp = fpinfo2 end
+		if yolo2 ~= nil then fctx.yolo = yolo2 end
+		-- Take the region-carrying run's frameSize too: the early run's
+		-- region-sensitive outputs (depths, bands, and hence the B2-extended
+		-- frameSize) are best-effort geometry with no rewrite consumer — every
+		-- x86_* mark is cleared and recomputed by this run and again by the
+		-- preprocess run — so the D9 promotion size must not depend on them.
+		-- (The early run's remaining scalars — fpOffset/usesFp — are pure
+		-- prologue geometry, region-invariant by construction.) Recording more
+		-- saves can only resolve more depths (fewer "dyn", more banded
+		-- accesses counted), so fs2 >= the early size; adopting it never
+		-- under-covers the promotion.
+		if fs2 ~= nil and fctx then fctx.frameSize = fs2 end
 		if frameEscapes and fctx and fctx.frameSize > 0 then
 			-- LAST in the list: an explicit (annotated) region overlapping the
 			-- frame wins the membership test.
@@ -740,6 +926,13 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		return { argRegs = argRegs, resultReg = resultReg }
 	end
 
+	-- ORDERING: cgm.classify rejects unsafe instructions (x86_64: fp.unsafeReject
+	-- inside x86.classify — loope/loopz/loopne/loopnz, pushf/popf, salc, BCD, ...).
+	-- A rejection raises here, aborting compilation strictly BEFORE the DCE rounds
+	-- and before any flagsLiveFrom save-scan below ever runs, so no rejected
+	-- instruction can reach either flag consumer (the coarse flagUse/flagDef and
+	-- flagUseMask/flagDefMask entries for rejected mnemonics are unreachable
+	-- belt-and-braces — see x86_64_isa.luau's ORDERING PROOF).
 	local lf = lift.liftFunction(body, { classify = cgm.classify, returnRegs = returnRegs, callInfo = callInfo })
 	prof.mark("  [" .. name .. "] lift")
 
@@ -875,6 +1068,15 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	-- capSaveVars maps var -> save node, capSaveNodes maps save node -> var,
 	-- capRestoreNodes maps restore node -> var.
 	local capSaveVars, capSaveNodes, capRestoreNodes = {}, {}, {}
+	-- `use capability` directives (node -> register text as written; the
+	-- resolved use temp rides on the node itself as node.useCapTemp /
+	-- node.newCapTemp for pointer flow and the access lowering).
+	-- Both temps carry the same web: useCapTemp feeds pointer flow's ALU
+	-- result selection, newCapTemp feeds computeAddr's access guard, so one
+	-- annotation drives whichever effect(s) apply. (`new capability` and the
+	-- typo spellings are deprecated aliases normalized to `use` by
+	-- parseUseNewCapAnnot, so a single map covers every spelling.)
+	local useCapNodes = {}
 	-- Annotated register-indirect calls (`call *%reg ;! sig(...)` on x86_64,
 	-- `blr xN ;! sig(...)` on arm64).
 	local indcallNodes = {}
@@ -951,8 +1153,36 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				dotAllocaNodes[node] = true
 				allocaResultDefs[node] = true
 			end
-			local capClause = parseCapAnnot(ann)
-			if capClause then
+			local useNewClause = parseUseNewCapAnnot(ann)
+			local capClause = nil
+			if not useNewClause then capClause = parseCapAnnot(ann) end
+			if useNewClause then
+				-- `use capability` (standalone only — enforced by the
+				-- full-match; shape-validated by validateBody; `new capability`
+				-- and the typo spellings are deprecated aliases): resolve the
+				-- named register's use temp and stash it on the node for
+				-- pointer flow (ALU result selection on address arithmetic)
+				-- and the access lowering (computeAddr's guard on memory
+				-- operands). Both temps ride the same web so whichever
+				-- effect(s) apply draw from the named source. The transform
+				-- validates after pointer flow that the named web actually
+				-- carries a capability.
+				local occ = resolveCapRegUse(node.c, useNewClause.reg)
+				if not occ then
+					error("sarcasm: `use capability "
+						.. useNewClause.reg .. "` names a register that is not a"
+
+						.. " general-register use of this instruction: " .. raw)
+				end
+				local t = node.opTemp and node.opTemp[occ] or nil
+				if not t then
+					error("sarcasm: internal error: `use capability "
+						.. useNewClause.reg .. "` has no lifted web temp: " .. raw)
+				end
+				node.useCapTemp = t
+				node.newCapTemp = t
+				useCapNodes[node] = useNewClause.reg
+			elseif capClause then
 				-- Capability save/restore (standalone only — enforced by
 				-- parseCapAnnot): record for pointer flow. The instruction
 				-- defines a register (checked in validateBody, re-checked
@@ -1073,8 +1303,9 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		-- implicit-register instructions (div/mul/cmpxchg/... — the pin moves around
 		-- them are part of their lowering) are never dead; control flow (jmp/jcc/
 		-- ret/call/leave/loop-family — anything with c.control or branch targets)
-		-- transfers or observes state no def-set can express
-		if not c or c.unknown or c.pin or c.control ~= "none" then return false end
+		-- transfers or observes state no def-set can express; rep string ops
+		-- (movs/stos) copy/fill memory — effectful whatever their modeled defs say
+		if not c or c.unknown or c.pin or c.rep or c.control ~= "none" then return false end
 		if c.targets and #c.targets > 0 then return false end
 		local m = string.lower(st.mnemonic)
 		local b = cgm.baseMnemonic(m)
@@ -1349,6 +1580,32 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		allocTemp, { baseMnemonic = cgm.baseMnemonic, widenSwaps = backend.arch == "x86_64" })
 	prof.mark("  [" .. name .. "] ptrflow")
 
+	-- `use capability` validation. Pointer flow already honored each
+	-- directive (selecting the named source); what remains is checking the
+	-- contract: the named register must actually carry a capability at
+	-- convergence, otherwise the annotation is a lie (it would silently
+	-- produce a null-capability check or a capability-free web). Scanned in
+	-- statement order for deterministic diagnostics.
+	if next(useCapNodes) ~= nil then
+		for _, node in lf.nodes do
+			if node.kind == "insn" then
+				local uv = useCapNodes[node]
+				if uv then
+					local t = node.useCapTemp
+					if not (t and pf.isPtr[t] and pf.lowerTemp[t]) then
+						error("sarcasm: `use capability " .. uv .. "` names a register"
+
+							.. " that does not carry a capability (only a"
+
+							.. " pointer-carrying register can source one): "
+
+							.. (node.stmt.raw or node.stmt.mnemonic or "?"))
+					end
+				end
+			end
+		end
+	end
+
 	-- Capability save/restore validation. Pointer flow already threaded each
 	-- restore (sharing the saved lower with the restore's web, and pinning it
 	-- there against the natural merge); what remains is validating the
@@ -1496,51 +1753,137 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	end
 	local flagLiveCache = {}
 	local flagCapable = (cgm.flagUse and cgm.flagDef and cg.saveFlags and cg.restoreFlags) and true or false
-	local function flagsLiveFrom(i)
-		if not flagCapable then return false end
-		if flagLiveCache[i] ~= nil then return flagLiveCache[i] end
-		local res = true   -- conservative default (end of function = live-out)
-		local j = i
-		-- Follow a local CALL into the clone's entry: hardware `call` does not write
-		-- the flags, so the program's flags flow INTO the clone and the clone may
-		-- read them before defining them (rsaz_512_mul's mulx carry chain reads CF
-		-- across `call __rsaz_512_mulx`; mont5's sqr8x likewise). A local RET still
-		-- clobbers the flags (the ret dispatch's compare chain), so a flag consumer
-		-- reached only past the clone's return does NOT make the incoming flags
-		-- live. The visited set caps the walk at each entry label once, so a
-		-- recursive or mutually-recursive clone family terminates — conservatively
-		-- treating the re-entry as a live use.
-		local visited = {}
-		while j <= #lf.nodes do
-			local nd = lf.nodes[j]
+	-- Precise backward flag-liveness fixpoint over the node CFG (labels are
+	-- nodes; a branch targets the label node, whose successors carry the flow
+	-- on — the same graph the DCE pass above uses). liveIn[i] is true iff a
+	-- flag consumer is reachable from node i before any full flag write, so
+	-- an instrumented sequence inserted at node i needs its save/restore
+	-- bracket exactly then. Consequences, all automatic from the equations:
+	-- flags are dead at (real) calls — the ABI clobbers them, modeled as a
+	-- synthetic def — and before a `ret` (nothing reads past it); straight-
+	-- line defs kill, uses revive, labels/branches propagate to successors.
+	--   * a local CALL is not a real call: hardware `call` does not write the
+	--     flags, so the program's flags flow INTO the clone and the clone may
+	--     read them before defining them (rsaz_512_mul's mulx carry chain
+	--     reads CF across `call __rsaz_512_mulx`; mont5's sqr8x likewise).
+	--     Its successors are the fall-through continuation AND the clone
+	--     entry, and it defines nothing itself.
+	--   * a local RET clobbers the flags (the ret dispatch's compare chain),
+	--     modeled as a def, so a flag consumer reached only past the clone's
+	--     return does NOT make the incoming flags live. Its successors are
+	--     the clone's continuation labels (no fall-through: the dispatch
+	--     branches to the continuations).
+	-- Partial flag writes (inc/dec, shifts, bt, stc, ...) kill precisely the
+	-- flags they write (x86_64_isa's per-flag masks): an `inc` keeps CF alive
+	-- for a later `adc` but not ZF for a later `jz`, and jcc/setcc/cmov read
+	-- only their condition's flags. A save/restore bracket passes the flags
+	-- through unchanged, so bracketing elides exactly when no live flag
+	-- crosses the sequence.
+	local flagLiveIn = nil
+	local function buildFlagLiveness()
+		if flagLiveIn then return end
+		flagLiveIn = {}
+		local n = #lf.nodes
+		local use, def, succ = {}, {}, {}
+		for i = 1, n do
+			use[i], def[i], succ[i] = 0, 0, {}
+		end
+		-- Per-flag use/def masks (x86_64 classifies each EFLAGS bit; arm64's
+		-- all-or-nothing NZCV rides the same interface coarsely). Falls back
+		-- to the coarse predicates when a backend offers no masks.
+		-- An UNMODELED instruction (classify's unknown flag — a register-only
+		-- form that passed validation) defaults SAFE: its flag read is
+		-- assumed LIVE (all bits) so a required save/restore is never
+		-- omitted; its def stays 0 (propagate) so nothing is killed.
+		local function useMaskOf(st, c)
+			if c and c.unknown then return 4294967295 end
+			if cgm.flagUseMask then return cgm.flagUseMask(st) or 0 end
+			if cgm.flagUse and cgm.flagUse(st) then return 4294967295 end
+			return 0
+		end
+		local function defMaskOf(st)
+			if cgm.flagDefMask then return cgm.flagDefMask(st) or 0 end
+			if cgm.flagDef and cgm.flagDef(st) then return 4294967295 end
+			return 0
+		end
+		for i, nd in lf.nodes do
 			if nd.kind == "insn" then
 				local st = nd.stmt
-				local ctrl = nd.c and nd.c.control or "none"
 				if st.localRet then
 					-- the clone returns here; the ret dispatch clobbers the
 					-- flags, so the incoming flags are dead past this point.
-					res = false; break
+					def[i] = 4294967295
+					if st.localRet.conts then
+						for _, t in st.localRet.conts do
+							local ti = t and labelIndex[t]
+							if ti then table.insert(succ[i], ti) end
+						end
+					end
 				elseif st.localCall then
+					-- jump to the clone AND fall through to the continuation.
 					local ent = st.localCall.entry
 					local ei = ent and labelIndex[ent]
-					if ei and not visited[ent] then
-						visited[ent] = true
-						j = ei  -- resume at the clone entry (j += 1 skips the label)
-					elseif not ei then
-						res = true; break  -- unknown entry: conservative
-					else
-						res = true; break  -- re-entry (cycle): conservative
+					if ei then table.insert(succ[i], ei) end
+					if i < n then table.insert(succ[i], i + 1) end
+					use[i] = useMaskOf(st, nd.c)
+					def[i] = defMaskOf(st)
+				else
+					local ctrl = nd.c and nd.c.control or "none"
+					use[i] = useMaskOf(st, nd.c)
+					def[i] = defMaskOf(st)
+					if ctrl == "call" or ctrl == "indcall" then
+						-- a real call clobbers the flags per the ABI (no valid
+						-- code reads them across a call).
+						def[i] = 4294967295
 					end
-				elseif cgm.flagUse(nd.stmt) then res = true; break
-				elseif cgm.flagDef(nd.stmt) then res = false; break
-				elseif ctrl == "call" or ctrl == "indcall" then res = false; break
-				elseif ctrl ~= "none" then res = true; break
+					if nd.c and nd.c.targets then
+						for _, t in nd.c.targets do
+							local ti = labelIndex[t]
+							if ti then table.insert(succ[i], ti) end
+						end
+					end
+					if (not nd.c or nd.c.fallsThrough ~= false) and i < n then
+						table.insert(succ[i], i + 1)
+					end
 				end
-			elseif nd.kind == "label" then
-				res = true; break
+			else
+				if i < n then table.insert(succ[i], i + 1) end
 			end
-			j += 1
 		end
+		local liveIn = {}
+		for i = 1, n do liveIn[i] = 0 end
+		local changed = true
+		while changed do
+			changed = false
+			for i = n, 1, -1 do
+				-- liveIn[i] = use[i] | (liveOut[i] & ~def[i]): a flag read
+				-- here is live; a flag live in any successor survives unless
+				-- this node fully rewrites it. Partial writes (in neither
+				-- mask) propagate incoming liveness soundly.
+				local v = use[i]
+				if v == 0 then
+					for _, j in succ[i] do
+						v = bit32.bor(v, liveIn[j])
+					end
+					v = bit32.band(v, bit32.bnot(def[i]))
+				else
+					local w = 0
+					for _, j in succ[i] do
+						w = bit32.bor(w, liveIn[j])
+					end
+					v = bit32.bor(v, bit32.band(w, bit32.bnot(def[i])))
+				end
+				if v ~= liveIn[i] then liveIn[i] = v changed = true end
+			end
+		end
+		flagLiveIn = liveIn
+	end
+	local function flagsLiveFrom(i)
+		if not flagCapable then return false end
+		if flagLiveCache[i] ~= nil then return flagLiveCache[i] end
+		buildFlagLiveness()
+		-- Past the last node nothing can read the flags: dead.
+		local res = (i <= #lf.nodes) and flagLiveIn[i] ~= 0 or false
 		flagLiveCache[i] = res
 		return res
 	end
@@ -2935,6 +3278,218 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	end
 
 
+	-- `rep movs*` / `rep stos*` (and their bare single-step forms): a checked
+	-- block copy / fill over the implicit registers. The direction flag must be
+	-- clear (a set DF would copy/fill backwards, which this lowering does not
+	-- model — it traps); the source range ([%rsi, %rsi + %rcx*elem), movs
+	-- only) gets a read check and the destination range ([%rdi, ...)) a write
+	-- check, each against its pointer's capability (bounds plus CanWrite for
+	-- writes, exactly like the ordinary access check but over the dynamic
+	-- %rcx-derived length). With %rcx == 0 the instruction is a no-op and all
+	-- checks, including the DF check, are skipped — exactly like hardware.
+	-- The webs ride the physical registers only across the instruction itself
+	-- (explicit pin moves in and out — the fail-stub marshalling also needs
+	-- rdi/rsi, so the webs stay virtual and colorable); the pin-out also
+	-- defines the post-instruction webs (rsi/rdi advanced by the count, rcx
+	-- zeroed), so later reads see the hardware values.
+	local function emitRepString(node)
+		local rep = node.c.rep
+		local raw = node.stmt.raw or node.stmt.mnemonic
+		local function repTemp(occ, what)
+			local t = occ and node.opTemp and node.opTemp[occ] or nil
+			if not t then
+				error("sarcasm: internal error: rep string " .. what .. " has no web temp: " .. raw)
+			end
+			return t
+		end
+		local rcxT = repTemp(rep.rcxUse, "%rcx")
+		local rcxDefT = repTemp(rep.rcxDef, "%rcx result")
+		local rdiT = repTemp(rep.rdi, "%rdi")
+		local rsiT = rep.rsi and repTemp(rep.rsi, "%rsi") or nil
+		local raxT = rep.rax and repTemp(rep.rax, "%rax") or nil
+		-- Byte count N: %rcx * elem under `rep` (by doubling adds — elem is
+		-- 1/2/4/8), or exactly one element for the bare single-step form
+		-- (which ignores %rcx entirely, like the hardware).
+		local nT = nil
+		if rep.repPrefix then
+			if rep.elem > 1 then
+				nT = allocTemp({ role = "repstring" })
+				cg.move(nT, rcxT)
+				local doublings = ({ [2] = 1, [4] = 2, [8] = 3 })[rep.elem]
+				for _ = 1, doublings do cg.addReg(nT, nT, nT) end
+			else
+				nT = rcxT
+			end
+		else
+			nT = allocTemp({ role = "repstring" })
+			cg.moveImm(nT, rep.elem)
+		end
+		-- Fail stub for a range failure: filc_check_aligned_access_fail takes
+		-- the (dynamic) byte count as an argument, so the panic attributes
+		-- the true range (a fixed-size optimized origin could not — the
+		-- runtime would find the recorded single element in bounds and hit
+		-- its "Should not be reached" assert). One stub per checked range.
+		-- sizeOverride (nil = report nT, otherwise an immediate byte count)
+		-- exists for the count-overflow guard below: the wrapped nT would
+		-- under-report the range (and could even look in-bounds to the
+		-- runtime), so the overflow stub reports SIZE_MAX (-1) instead,
+		-- which exceeds every object's room and always panics cleanly.
+		local function repFailStub(ptrT, capLo, isWrite, sizeOverride)
+			failCounter += 1
+			local lbl = ".Lrepfail_" .. name .. "_" .. failCounter
+			local a1, a2, a3 = cc.rtArg(1), cc.rtArg(2), cc.rtArg(3)
+			local a4, a5, a6 = cc.rtArg(4), cc.rtArg(5), cc.rtArg(6)
+			table.insert(failStubs, build.label(lbl))
+			table.insert(failStubs, build.insn("mov", { build.rp(a1), build.rt(ptrT) },
+				{ defs = { pColored(a1) }, uses = { ptrT } }))
+			if capLo then
+				table.insert(failStubs, build.insn("mov", { build.rp(a2), build.rt(capLo) },
+					{ defs = { pColored(a2) }, uses = { capLo } }))
+			else
+				table.insert(failStubs, build.insn("mov", { build.rp(a2), build.imm(0) },
+					{ defs = { pColored(a2) } }))
+			end
+			if sizeOverride ~= nil then
+				table.insert(failStubs, build.insn("mov", { build.rp(a3), build.imm(sizeOverride) },
+					{ defs = { pColored(a3) } }))
+			else
+				table.insert(failStubs, build.insn("mov", { build.rp(a3), build.rt(nT) },
+					{ defs = { pColored(a3) }, uses = { nT } }))
+			end
+			table.insert(failStubs, build.insn("mov", { build.rp(a4), build.imm(1) },
+				{ defs = { pColored(a4) } }))
+			table.insert(failStubs, build.insn("mov", { build.rp(a5), build.imm(isWrite and 1 or 0) },
+				{ defs = { pColored(a5) } }))
+			table.insert(failStubs, build.insn("mov", { build.rp(a6), build.imm(0) },
+				{ defs = { pColored(a6) } }))
+			-- 7th word (ptr_name lower; the iv is null so the runtime ignores
+			-- the name) rides the stack at [rsp] AT the call, exactly like
+			-- cg.pushStackPtr.
+			local nameLoSlot = build.memx(build.rp(4), { dispVal = -16 })
+			nameLoSlot.size = 8
+			table.insert(failStubs, build.insn("mov", { nameLoSlot, build.imm(0) }, {}))
+			table.insert(failStubs, build.insn("sub", { build.rp(4), build.imm(16) }, {}))
+			table.insert(failStubs, build.insn("call",
+				{ build.sym("filc_check_aligned_access_fail", "plt") },
+				{ control = "call", noreturnCall = true, uses = { pColored(a1), pColored(a2),
+					pColored(a3), pColored(a4), pColored(a5), pColored(a6) } }))
+			return lbl
+		end
+		local dstFail = repFailStub(rdiT, pf.lowerTemp[rdiT], true)
+		local srcFail = nil
+		if rsiT then srcFail = repFailStub(rsiT, pf.lowerTemp[rsiT], false) end
+		-- Count-overflow guard: under `rep` with elem = 2^k > 1, N is
+		-- computed as %rcx << k by doubling adds, which wraps mod 2^64 for
+		-- %rcx >= 2^(64-k) (e.g. 2^61 qwords). The wrapped N would pass the
+		-- room checks below while the hardware copies %rcx elements OOB.
+		-- Reject %rcx > (2^64-1)/elem up front, i.e. %rcx with any of the
+		-- top k bits set, before the range checks. The stub reports SIZE_MAX
+		-- (-1 renders as `mov $-1`, all 64 bits set), which exceeds every
+		-- object's room so the runtime always panics with a clean range
+		-- error instead of seeing the wrapped small N. Attributed to the
+		-- first-checked range (source for movs, destination for stos); an
+		-- overflowing count exceeds every room, so either attribution is
+		-- sound. Bare forms (N = elem constant) and elem == 1 (N == %rcx,
+		-- exact) cannot overflow and need no guard.
+		local overflowFail = nil
+		if rep.repPrefix and rep.elem > 1 then
+			if rsiT then overflowFail = repFailStub(rsiT, pf.lowerTemp[rsiT], false, -1)
+			else overflowFail = repFailStub(rdiT, pf.lowerTemp[rdiT], true, -1) end
+		end
+		-- Direction-flag violations trap with an illegal instruction (there is
+		-- no access failure to attribute — the pointers may be perfectly
+		-- valid — so no runtime fail function applies; this is the same pure
+		-- trap the `.alloca` alignment failure uses).
+		failCounter += 1
+		local dfFail = ".Ldfail_" .. name .. "_" .. failCounter
+		table.insert(failStubs, build.label(dfFail))
+		table.insert(failStubs, build.insn("ud2", {},
+			{ control = "none", fallsThrough = false, noreturnCall = true }))
+		failCounter += 1
+		local doneLbl = ".Lrep_" .. name .. "_" .. failCounter
+		-- Under `rep`, %rcx == 0 means the instruction touches nothing — skip
+		-- the checks (but still run the pins and the no-op rep below, so the
+		-- post-webs match the hardware values on every path). The bare form
+		-- always moves one element, so it always checks.
+		if rep.repPrefix then cg.branchZero(rcxT, doneLbl) end
+		-- Direction flag: trap when set (bit 10 of the saved rflags).
+		do
+			local dfT = cg.saveFlags()
+			cg.testMaskBranch(dfT, 0x400, "ne", dfFail)
+		end
+		-- Count overflow: %rcx >= 2^(64-k) wraps N = %rcx*elem (elem = 2^k).
+		-- Exactly the top-k-bits-set condition, tested as a mask so no
+		-- 64-bit immediate compare (and no precision-hostile big constants
+		-- in Luau doubles) is needed. Skipped for %rcx == 0 above, which is
+		-- a no-op and must not trap.
+		if overflowFail then
+			local ovMask = ({ [2] = "0x8000000000000000",
+				[4] = "0xC000000000000000",
+				[8] = "0xE000000000000000" })[rep.elem]
+			cg.testMaskBranch(rcxT, ovMask, "ne", overflowFail)
+		end
+		local function checkRange(ptrT, capLo, isWrite, fail)
+			if capLo == nil then
+				-- a capability-free address: any nonzero-length range traps.
+				cg.jump(fail)
+				return
+			end
+			cg.branchZero(capLo, fail)
+			if isWrite then
+				-- CanWrite: reject read-only/special objects, like every heap write.
+				local auxword = allocTemp({ role = "repstring" })
+				cg.load(auxword, capLo, -8, 8)
+				cg.testMaskBranch(auxword, "0x6000000000000", "ne", fail)
+			end
+			cg.cmpBranch(ptrT, capLo, "ult", fail)
+			local upper = allocTemp({ role = "repstring" })
+			cg.load(upper, capLo, -16, 8)
+			cg.cmpBranch(ptrT, upper, "ugt", fail)
+			-- Overflow-free length check, mirroring the plain access check's
+			-- upper - size form: room = upper - ptr (no wrap — ptr <= upper
+			-- was just proven), then N > room fails.
+			local room = allocTemp({ role = "repstring" })
+			cg.subReg(room, upper, ptrT)
+			cg.cmpBranch(nT, room, "ugt", fail)
+		end
+		if rsiT then checkRange(rsiT, pf.lowerTemp[rsiT], false, srcFail) end
+		checkRange(rdiT, pf.lowerTemp[rdiT], true, dstFail)
+		cg.label(doneLbl)
+		-- Pin the webs into the implicit registers, run the instruction, and
+		-- pin the results back out into the post-instruction webs. Two webs
+		-- may already live in physical rcx: the count (a loop-counter or
+		-- jrcxz web — the only fixedReg webs) and/or the post count (a later
+		-- jrcxz precolors the rep's own rcx-def web). A precolored web needs
+		-- no pin move — it IS the physical register:
+		--   * count pinned: skip the rcx pin-in; the post count is modeled
+		--     directly (under `rep` the hardware zeroes %rcx; the bare form
+		--     leaves it alone, an identity copy).
+		--   * post count pinned: pin the count straight into it (a same-color
+		--     move the emitter drops when count and post coincide); the
+		--     hardware then leaves the post value in place — no pin-out.
+		-- (No counter save/restore is needed either way: a counter live
+		-- across the rep IS the count web — its post value is exactly what
+		-- the pins model — and otherwise no counter is live here.)
+		local countPinned = temps[rcxT] and temps[rcxT].precolor == "rcx"
+		local defPinned = temps[rcxDefT] and temps[rcxDefT].precolor == "rcx"
+		if rsiT then cg.move(pColored(6), rsiT) end
+		cg.move(pColored(7), rdiT)
+		if defPinned then cg.move(rcxDefT, rcxT)
+		elseif not countPinned then cg.move(pColored(1), rcxT) end
+		if raxT then cg.move(pColored(0), raxT) end
+		emit(node)
+		if rsiT then cg.move(rsiT, pColored(6)) end
+		cg.move(rdiT, pColored(7))
+		if not defPinned then
+			if countPinned then
+				if rep.repPrefix then cg.moveZero(rcxDefT)
+				else cg.move(rcxDefT, rcxT) end
+			else
+				cg.move(rcxDefT, pColored(1))
+			end
+		end
+	end
+
 	-- `.alloca size, alignment, result`: allocate `size` bytes with `alignment`
 	-- and define the result web with the payload pointer. Unlike the historical
 	-- `;! alloca` annotations, nothing touches %rsp: the allocation is a GC object
@@ -3154,6 +3709,12 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				emitIndirectCall(node)
 			elseif emitRegionRedirect(node) then
 				-- sp-relative address computation redirected into an alloca region
+			elseif c.rep then
+				-- rep movs*/stos* (or a bare single-step movs*/stos*):
+				-- bounds-checked block copy/fill over the implicit registers.
+				withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+					emitRepString(node)
+				end)
 			else
 				local mem = cgm.memOperand(node.stmt)
 				local fref = funcrefNodes[node]
@@ -3461,6 +4022,20 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		if fpRegion > 0 and #rootTemps % 2 == 1 then
 			shift += 8
 		end
+		-- Mirror computeLayout's widened pad: the shift must be a multiple of
+		-- the EFFECTIVE frame alignment (the cluster-based width the layout
+		-- uses: max cluster areq capped at 64, 16 when none needs more) so the
+		-- clusters' alignment residues survive it. The raw `and $-N` note max
+		-- (fctx.fp.alignReq, uncapped e.g. 1024) must NOT be used here: the
+		-- layout pads only to the effective width, so a raw-width shift would
+		-- land shifted slots/saveOff outside the laid-out FP region.
+		local alignMod = 16
+		for _, c in ((fctx and fctx.fp and fctx.fp.clusters) or {}) do
+			if c.areq and c.areq > alignMod then alignMod = math.min(c.areq, 64) end
+		end
+		if alignMod > 16 then
+			while (shift % alignMod) ~= 0 do shift += 8 end
+		end
 		if shift > 0 then
 			local seen = {}
 			local function shiftOps(ops)
@@ -3495,6 +4070,18 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		-- materialized incoming yolo stack-argument area size for the layout
 		-- (x86_64 only; 0 when no FP instruction reads an incoming stack argument).
 		yoloBytes = (fctx and fctx.yolo and fctx.yolo.bytes) or 0,
+		-- Effective frame alignment (x86_64 only): the widest alignment any
+		-- materialized cluster needs (16 when none needs more). The taint scan
+		-- proved each such cluster's input offsets aligned under an
+		-- `and $-N, %rsp` note; the layout dynamically aligns the synthesized
+		-- frame to this width so they stay aligned in the output.
+		frameAlignReq = (function()
+			local effA = 16
+			for _, c in ((fctx and fctx.fp and fctx.fp.clusters) or {}) do
+				if c.areq and c.areq > effA then effA = math.min(c.areq, 64) end
+			end
+			return effA
+		end)(),
 	}
 end
 

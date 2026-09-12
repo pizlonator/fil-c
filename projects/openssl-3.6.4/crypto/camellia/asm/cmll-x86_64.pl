@@ -161,8 +161,6 @@ Camellia_EncryptBlock_Rounds: #! void(int,ptr,ptr,ptr)
 	lea	.LCamellia_SBOX(%rip),$Tbl
 	lea	($key,%rdi),$keyend
 
-___
-$code.=<<___;
 	mov	0(%rsi),@S[0]		# load plaintext
 	mov	4(%rsi),@S[1]
 	mov	8(%rsi),@S[2]
@@ -171,13 +169,9 @@ $code.=<<___;
 	bswap	@S[1]
 	bswap	@S[2]
 	bswap	@S[3]
-___
-$code.=<<___;
 
 	call	_x86_64_Camellia_encrypt
 
-___
-$code.=<<___;
 	bswap	@S[0]
 	bswap	@S[1]
 	bswap	@S[2]
@@ -186,8 +180,6 @@ $code.=<<___;
 	mov	@S[1],4($out)
 	mov	@S[2],8($out)
 	mov	@S[3],12($out)
-___
-$code.=<<___;
 
 	mov	0(%rsp),%r15
 .cfi_restore	%r15
@@ -296,8 +288,6 @@ Camellia_DecryptBlock_Rounds: #! void(int,ptr,ptr,ptr)
 	lea	.LCamellia_SBOX(%rip),$Tbl
 	lea	($keyend,%rdi),$key
 
-___
-$code.=<<___;
 	mov	0(%rsi),@S[0]		# load plaintext
 	mov	4(%rsi),@S[1]
 	mov	8(%rsi),@S[2]
@@ -306,13 +296,9 @@ $code.=<<___;
 	bswap	@S[1]
 	bswap	@S[2]
 	bswap	@S[3]
-___
-$code.=<<___;
 
 	call	_x86_64_Camellia_decrypt
 
-___
-$code.=<<___;
 	bswap	@S[0]
 	bswap	@S[1]
 	bswap	@S[2]
@@ -321,8 +307,6 @@ $code.=<<___;
 	mov	@S[1],4($out)
 	mov	@S[2],8($out)
 	mov	@S[3],12($out)
-___
-$code.=<<___;
 
 	mov	0(%rsp),%r15
 .cfi_restore	%r15
@@ -476,14 +460,10 @@ Camellia_Ekeygen: #! int(int,ptr,ptr)
 	mov	%edi,${keyend}d		# put away arguments, keyBitLength
 	mov	%rdx,$out		# keyTable
 
-___
-$code.=<<___;
 	mov	0(%rsi),@S[0]		# load 0-127 bits
 	mov	4(%rsi),@S[1]
 	mov	8(%rsi),@S[2]
 	mov	12(%rsi),@S[3]
-___
-$code.=<<___;
 
 	bswap	@S[0]
 	bswap	@S[1]
@@ -495,21 +475,13 @@ $code.=<<___;
 	cmp	\$128,$keyend		# check keyBitLength
 	je	.L1st128
 
-___
-$code.=<<___;
 	mov	16(%rsi),@S[0]		# load 128-191 bits
 	mov	20(%rsi),@S[1]
-___
-$code.=<<___;
-___
-$code.=<<___;
 	cmp	\$192,$keyend
 	je	.L1st192
 	mov	24(%rsi),@S[2]		# load 192-255 bits
 	mov	28(%rsi),@S[3]
 	jmp	.L1st256
-___
-$code.=<<___;
 .L1st192:
 	mov	@S[0],@S[2]
 	mov	@S[1],@S[3]
@@ -702,12 +674,18 @@ for ($i=0;$i<256;$i++) { &data_word(&S0222($i),&S3033($i)); }
 #			size_t length, const CAMELLIA_KEY *key,
 #			unsigned char *ivp,const int enc);
 {
-$_key="0(%rsp)";
-$_end="8(%rsp)";	# inp+len&~15
-$_res="16(%rsp)";	# len&15
-$ivec="24(%rsp)";
-$_ivp="40(%rsp)";
-$_rsp="48(%rsp)";
+# Under sarcasm the slots below live in a GC-allocated '.alloca' buffer
+# ($CFRAME, "%fil_cmllcbc"): the dynamic anti-aliasing frame built in
+# .Lcbc_prologue below cannot be modeled, so under sarcasm %rsp stays
+# untouched and only the six pushed registers use a fixed frame. Under
+# gas $CFRAME is "%rsp", so the gas output is unchanged.
+my $CFRAME = $ENV{SARCASM} ? "%fil_cmllcbc" : "%rsp";
+$_key="0($CFRAME)";
+$_end="8($CFRAME)";	# inp+len&~15
+$_res="16($CFRAME)";	# len&15
+$ivec="24($CFRAME)";
+$_ivp="40($CFRAME)";
+$_rsp="48($CFRAME)";
 
 $code.=<<___;
 .text
@@ -719,37 +697,6 @@ Camellia_cbc_encrypt: #! void(ptr,ptr,size_t,ptr,ptr,int)
 	endbranch
 	cmp	\$0,%rdx
 	je	.Lcbc_abort
-___
-if ($ENV{SARCASM}) {
-	# Fil-C requires natural alignment for every memory access, while
-	# Camellia_cbc_encrypt's contract (like the C code) accepts
-	# arbitrarily aligned buffers. The CBC loops use word-sized
-	# loads/stores that cannot prove that, so forward to the
-	# always-compiled C CBC implementations (memcpy-based, hence
-	# alignment-safe) with the block functions passed as capabilities.
-	$code.=<<___;
-	test	%r9d,%r9d
-	jz	.Lcbc_fwd_dec
-	push	%rax
-	lea	Camellia_encrypt(%rip),%rax	#! funcref
-	mov	%rax,%r9
-	call	CRYPTO_cbc128_encrypt #! void(ptr,ptr,size_t,ptr,ptr,ptr)
-	pop	%rax
-	ret
-.Lcbc_fwd_dec:
-	push	%rax
-	lea	Camellia_decrypt(%rip),%rax	#! funcref
-	mov	%rax,%r9
-	call	CRYPTO_cbc128_decrypt #! void(ptr,ptr,size_t,ptr,ptr,ptr)
-	pop	%rax
-	ret
-.Lcbc_abort:
-	ret
-.cfi_endproc
-.size	Camellia_cbc_encrypt,.-Camellia_cbc_encrypt
-___
-} else {
-$code.=<<___;
 	push	%rbx
 .cfi_push	%rbx
 	push	%rbp
@@ -765,9 +712,17 @@ $code.=<<___;
 .Lcbc_prologue:
 
 ___
-# The CBC body below runs only under gas (SARCASM forwards to the C
-# CBC in Camellia_cbc_encrypt above); the dynamic anti-aliasing frame stays.
-	$code.=<<___;
+if ($ENV{SARCASM}) {
+  # GC-allocated CBC frame (see $CFRAME above): 64 bytes cover the
+  # 56-byte slot area. %rsp never moves, so no %rsp save is kept (a
+  # prologue %rsp save may only spill to the fixed frame, not to the
+  # region) and the epilogue below reloads the pushed registers
+  # straight from their fixed slots.
+  $code.=<<___;
+	.alloca	\$64,\$16,%fil_cmllcbc
+___
+} else {
+$code.=<<___;
 	mov	%rsp,%rbp
 .cfi_def_cfa_register	%rbp
 	sub	\$64,%rsp
@@ -782,9 +737,10 @@ ___
 	sub	%r10,%rsp
 	#add	\$8,%rsp		# 8 is reserved for callee's ra
 
-	mov	%rdi,$inp		# inp argument
 ___
+}
 $code.=<<___;
+	mov	%rdi,$inp		# inp argument
 	mov	%rsi,$out		# out argument
 	mov	%r8,%rbx		# ivp argument
 	mov	%rcx,$key		# key argument
@@ -792,7 +748,7 @@ $code.=<<___;
 
 	mov	%r8,$_ivp	#! store ptr
 ___
-$code.=<<___;
+$code.=<<___ if (!$ENV{SARCASM});
 	mov	%rbp,$_rsp
 .cfi_cfa_expression	$_rsp,deref,+56
 ___
@@ -800,6 +756,14 @@ $code.=<<___;
 
 .Lcbc_body:
 	lea	.LCamellia_SBOX(%rip),$Tbl
+___
+if ($ENV{SARCASM}) {
+  # SARCASM-only: drop the SBOX cache-warming prefetch below (perf-only:
+  # it leaves $Tbl unchanged via the trailing sub, writes no live flags,
+  # and its counter/web shape trips sarcasm's register allocator). The gas
+  # path keeps it.
+} else {
+$code.=<<___;
 
 	mov	\$32,%ecx
 .align	4
@@ -811,6 +775,9 @@ $code.=<<___;
 	lea	128($Tbl),$Tbl
 	loop	.Lcbc_prefetch_sbox
 	sub	\$4096,$Tbl
+___
+}
+$code.=<<___;
 	shl	\$6,$keyend
 	mov	%rdx,%rcx		# len argument
 	lea	($key,$keyend),$keyend
@@ -846,7 +813,7 @@ $code.=<<___;
 
 	call	_x86_64_Camellia_encrypt
 
-	mov	$_key,$key		# "rewind" the key	#! load ptr
+	mov	$_key,$key		#! load ptr # "rewind" the key
 	bswap	@S[0]
 	mov	$_end,%rdx
 	bswap	@S[1]
@@ -880,18 +847,41 @@ $code.=<<___;
 	mov	%rax,$_res
 
 .Lcbc_enc_pushf:
+___
+# SARCASM-only: pushfq/popfq are rejected by sarcasm (unmodeled EFLAGS
+# effects), and the `cld` is dropped as well. Sarcasm's checked rep
+# lowering traps with ud2 when DF=1 and the count is nonzero (the count
+# here is the length residue, always >= 1 at this point: len == 0 aborts
+# up front and both entries to this tail are guarded by a nonzero
+# residue), so a DF=1 entry into Camellia_cbc_encrypt traps instead of
+# copying backwards (native hardware without cld) or silently returning
+# with the caller's DF cleared (a cld without the flag save/restore would
+# normalize DF). Trapping is sound because the System V ABI requires DF=0
+# across calls and sarcasm never emits std — only an ABI-violating caller
+# can arrive with DF=1 — and no cld/std sits between entry and this rep,
+# so the rep observes the entry DF. The DF=0 path copies forward exactly
+# like the pristine pushfq/cld/rep/popfq sequence. The gas path keeps the
+# pristine save/clear/copy/restore below. See
+# filc/tests/sarcasm-cmll-df-att (DF=1 entry traps) and
+# filc/tests/sarcasm-rep-movs-att's rep_movsb (DF=0 copies; same cld-less
+# shape).
+if ($ENV{SARCASM}) {
+  $code.=<<___;
+	mov	$inp,%rsi
+	lea	8+$ivec,%rdi
+	rep	movsb	# upstream '.long 0x9066A4F3' (rep movsb + nop pad)
+___
+} else {
+$code.=<<___;
 	pushfq
 	cld
 	mov	$inp,%rsi
 	lea	8+$ivec,%rdi
-.Lcbc_enc_tail_copy:			# explicit loop (was rep movsb;
-	mov	(%rsi),%al		# string ops are not memory-safe)
-	mov	%al,(%rdi)
-	lea	1(%rsi),%rsi
-	lea	1(%rdi),%rdi
-	sub	\$1,%ecx
-	jnz	.Lcbc_enc_tail_copy
+	.long	0x9066A4F3		# rep movsb
 	popfq
+___
+}
+$code.=<<___;
 .Lcbc_enc_popf:
 
 	lea	$ivec,$inp
@@ -928,7 +918,7 @@ $code.=<<___;
 
 	call	_x86_64_Camellia_decrypt
 
-	mov	$_key,$key		# "rewind" the key	#! load ptr
+	mov	$_key,$key		#! load ptr # "rewind" the key
 	mov	$_end,%rdx
 	mov	$_res,%rcx
 
@@ -976,18 +966,29 @@ $code.=<<___;
 	mov	@S[3],12+$ivec
 
 .Lcbc_dec_pushf:
+___
+# SARCASM-only: same DF treatment as .Lcbc_enc_pushf above — no
+# pushfq/popfq, no cld, so a DF=1 entry traps in sarcasm's checked rep
+# (ud2) instead of silently mis-copying or normalizing DF. The count is
+# the length residue, always >= 1 here (the tail is entered only when
+# `cmp $0,%rcx` finds a nonzero residue).
+if ($ENV{SARCASM}) {
+  $code.=<<___;
+	lea	8+$ivec,%rsi
+	lea	($out),%rdi
+	rep	movsb	# upstream '.long 0x9066A4F3' (rep movsb + nop pad)
+___
+} else {
+$code.=<<___;
 	pushfq
 	cld
 	lea	8+$ivec,%rsi
 	lea	($out),%rdi
-.Lcbc_dec_tail_copy:			# explicit loop (was rep movsb);
-	mov	(%rsi),%r10b		# %rax holds the IV residue here
-	mov	%r10b,(%rdi)
-	lea	1(%rsi),%rsi
-	lea	1(%rdi),%rdi
-	sub	\$1,%ecx
-	jnz	.Lcbc_dec_tail_copy
+	.long	0x9066A4F3		# rep movsb
 	popfq
+___
+}
+$code.=<<___;
 .Lcbc_dec_popf:
 
 	mov	%rax,(%rdx)		# write out IV residue
@@ -996,6 +997,28 @@ $code.=<<___;
 
 .align	16
 .Lcbc_done:
+___
+if ($ENV{SARCASM}) {
+  # Fixed-frame teardown matching the push-only prologue above: the
+  # region needs no teardown (GC), and %rsp never moved.
+  $code.=<<___;
+	mov	0(%rsp),%r15
+.cfi_restore	%r15
+	mov	8(%rsp),%r14
+.cfi_restore	%r14
+	mov	16(%rsp),%r13
+.cfi_restore	%r13
+	mov	24(%rsp),%r12
+.cfi_restore	%r12
+	mov	32(%rsp),%rbp
+.cfi_restore	%rbp
+	mov	40(%rsp),%rbx
+.cfi_restore	%rbx
+	add	\$48,%rsp
+.cfi_adjust_cfa_offset	-48
+___
+} else {
+$code.=<<___;
 	mov	$_rsp,%rcx
 .cfi_def_cfa	%rcx,56
 	mov	0(%rcx),%r15
@@ -1012,6 +1035,9 @@ $code.=<<___;
 .cfi_restore	%rbx
 	lea	48(%rcx),%rsp
 .cfi_def_cfa	%rsp,8
+___
+}
+$code.=<<___;
 .Lcbc_abort:
 	ret
 .cfi_endproc
@@ -1019,7 +1045,6 @@ $code.=<<___;
 
 .asciz	"Camellia for x86_64 by <https://github.com/dot-asm>"
 ___
-}	# end of the SARCASM-forwarding else branch
 }
 
 # EXCEPTION_DISPOSITION handler (EXCEPTION_RECORD *rec,ULONG64 frame,

@@ -66,4 +66,16 @@ hb_ops:                         ;! void(ptr)
 	mov	QWORD PTR [rdi + 168], rbp
 	ret
 	.size	hb_ops, .-hb_ops
+
+	# Intel-syntax twin of hb_xor_ah (see sarcasm-highbyte-att).
+	.globl	hb_xor_ah
+	.type	hb_xor_ah, @function
+hb_xor_ah:                      ;! long(long)
+	endbr64
+	mov	rcx, rdi
+	mov	rax, 0x1122334455667788
+	xor	rax, rax
+	mov	ah, cl
+	ret
+	.size	hb_xor_ah, .-hb_xor_ah
 	.section	.note.GNU-stack,"",@progbits

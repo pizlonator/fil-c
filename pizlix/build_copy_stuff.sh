@@ -27,7 +27,7 @@ then
 fi
 
 cp -v \
-    acl-2.3.2.tar.xz \
+    acl-2.4.0.tar.xz \
     attr-2.6.0.tar.gz \
     autoconf-2.72.tar \
     automake-1.17.tar.xz \
@@ -57,8 +57,8 @@ cp -v \
     gcc-14.2.0.tar.xz \
     gdbm-1.24.tar.gz \
     gettext-0.22.5.tar.xz \
-    glibc-2.40-fhs-1.patch \
-    glibc-2.40.tar.xz \
+    glibc-2.44-fhs-1.patch \
+    glibc-2.44.tar.xz \
     gmp-6.3.0.tar.xz \
     gperf-3.1.tar.gz \
     grep-3.12.tar.xz \
@@ -71,7 +71,7 @@ cp -v \
     iproute2-6.10.0.tar.xz \
     jinja2-3.1.4.tar.gz \
     kmod-33.tar.xz \
-    less-704.tar.gz \
+    less-709-beta.tar.gz \
     libcap-2.70.tar.xz \
     libffi-3.8.0.tar.gz \
     libpipeline-1.5.7.tar.gz \
@@ -83,7 +83,6 @@ cp -v \
     man-db-2.12.1.tar.xz \
     man-pages-6.9.1.tar.xz \
     MarkupSafe-2.1.5.tar.gz \
-    mg-3.7.tar.gz \
     mpc-1.3.1.tar.gz \
     mpfr-4.2.1.tar.xz \
     ncurses-6.6.tar.gz \
@@ -111,7 +110,6 @@ cp -v \
     texinfo-7.1.tar.xz \
     tzdata2024a.tar.gz \
     udev-lfs-20230818.tar.xz \
-    util-linux-2.40.2.tar.xz \
     vim-9.1.0660.tar.gz \
     wheel-0.44.0.tar.gz \
     XML-Parser-2.47.tar.gz \

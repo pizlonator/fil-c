@@ -73,12 +73,6 @@ test ! -d projects/pizfix
 ./build_zsh.sh
 ./build_lua.sh
 
-if [ "$ARCH" = aarch64 ]; then
-    # Everything through lua has been ported to Fil-C on ARM64.  Exit early
-    # until more of the corpus is ported.
-    exit 0
-fi
-
 ./build_simdutf.sh
 ./build_quickjs.sh
 ./build_ffmpeg.sh

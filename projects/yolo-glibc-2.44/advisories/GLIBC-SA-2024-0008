@@ -1,0 +1,26 @@
+nscd: netgroup cache assumes NSS callback uses in-buffer strings
+
+The Name Service Cache Daemon's (nscd) netgroup cache can corrupt memory
+when the NSS callback does not store all strings in the provided buffer.
+The flaw was introduced in glibc 2.15 when the cache was added to nscd.
+
+This vulnerability is only present in the nscd binary.
+
+There is no guarantee from the NSS callback API that the returned
+strings are all within the buffer. However, the netgroup cache code
+assumes that the NSS callback uses in-buffer strings and if it doesn't
+the buffer resizing logic could lead to potential memory corruption.
+
+CVE-Id: CVE-2024-33602
+Public-Date: 2024-04-24
+Vulnerable-Commit: 684ae515993269277448150a1ca70db3b94aa5bd (2.15)
+Fix-Commit: c04a21e050d64a1193a6daab872bca2528bda44b (2.40)
+Fix-Commit: a9a8d3eebb145779a18d90e3966009a1daa63cd8 (2.39-38)
+Fix-Commit: 71af8ca864345d39b746d5cee84b94b430fad5db (2.38-75)
+Fix-Commit: 6e106dc214d6a033a4e945d1c6cf58061f1c5f1f (2.37-94)
+Fix-Commit: b6742463694b1dfdd5120b91ee21cf05d15ec2e2 (2.36-168)
+Fix-Commit: 7a5864cac60e06000394128a5a2817b03542f5a3 (2.35-319)
+Fix-Commit: 86f1d5f4129c373ac6fb6df5bcf38273838843cb (2.34-463)
+Fix-Commit: 4d27d4b9a188786fc6a56745506cec2acfc51f83 (2.33-267)
+Fix-Commit: 3ed195a8ec89da281e3c4bf887a13d281b72d8f4 (2.32-144)
+Fix-Commit: bbf5a58ccb55679217f94de706164d15372fbbc0 (2.31-158)

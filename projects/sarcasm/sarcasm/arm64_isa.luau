@@ -588,6 +588,12 @@ end
 -- unknown-mnemonic classification, which DCE never deletes.)
 function arm64.flagWriteNoDef(stmt) return false end
 
+-- Coarse per-flag masks for the shared liveness fixpoint: AArch64 writes NZCV
+-- all-or-nothing (no partial writes), so use reads everything and def kills
+-- everything. Bit values are arbitrary distinct bits.
+function arm64.flagUseMask(stmt) if arm64.flagUse(stmt) then return 15 end return 0 end
+function arm64.flagDefMask(stmt) if arm64.flagDef(stmt) then return 15 end return 0 end
+
 -- NEON width-liveness effects (arm64_codegen.expandFpSaves) -------------------
 -- Mirrors x86_64_fp.vecEffects: per vector register NUMBER (0-31), report a USE
 -- width in bytes (the instruction reads [0, w)) and a DEF "provided width" (the

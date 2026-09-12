@@ -462,7 +462,36 @@ ABIArgInfo AArch64ABIInfo::classifyArgumentType(QualType Ty, bool IsVariadicFn,
 
   // Aggregates <= 16 bytes are passed directly in registers or on the stack.
   if (Size <= 128) {
-    if (ActualAlign >= 8) {
+    // Fil-C: variadic arguments are snapshotted by the pizlonator using the IR
+    // argument types at the call site, and the callee reads them back using
+    // llvm.va_arg with the aggregate's memory representation (see
+    // EmitVAArgInstr, which uses ConvertTypeForMem(Ty) regardless of the ABI
+    // coercion). If we coerced the aggregate to [2 x ptr] or [2 x i64] here,
+    // the call site would lay out 16 bytes per aggregate in the snapshot while
+    // the callee's va_arg would only advance by the aggregate's own size (when
+    // rounded up to word size), so every va_arg after the first one would read
+    // garbage. This broke binutils' aarch64 assembler, which passes
+    // aarch64_field structs through varargs (insert_fields in
+    // opcodes/aarch64-opc.h). So for unnamed arguments, pass the aggregate in
+    // its natural representation, and disable flattening so that the aggregate
+    // stays a single IR argument that the va_arg site can mirror.
+    if (!IsNamedArg) {
+      ABIArgInfo AI = ABIArgInfo::getDirect();
+      AI.setCanBeFlattened(false);
+      return AI;
+    }
+    // Fil-C: it is only safe to represent this aggregate as an array of two
+    // pointers if the two pointer-sized words will be 8-byte aligned in
+    // memory. Use the adjusted alignment (getTypeAlignInChars), not the
+    // unadjusted alignment: the unadjusted alignment only accounts for the
+    // record's own fields and is 1 for classes whose alignment comes solely
+    // from base classes (like std::optional), which caused pointers inside
+    // such aggregates to be coerced to integers, losing their fil-c object
+    // metadata ("cannot read pointer with null object" panics). The adjusted
+    // alignment still catches genuinely under-aligned structs, which must not
+    // use the pointer coercion because fil-c pointer accesses require 8-byte
+    // alignment.
+    if (getContext().getTypeAlignInChars(Ty).getQuantity() >= 8) {
       return ABIArgInfo::getDirect(
         llvm::ArrayType::get(llvm::PointerType::get(getVMContext(), 0), 2));
     }
@@ -535,7 +564,9 @@ ABIArgInfo AArch64ABIInfo::classifyReturnType(QualType RetTy,
 
   // Aggregates <= 16 bytes are returned directly in registers or on the stack.
   if (Size <= 128) {
-    if (getContext().getTypeUnadjustedAlignInChars(RetTy).getQuantity() >= 8) {
+    // Fil-C: same as the argument case above; use the adjusted alignment so
+    // that base-class-derived alignments are recognized.
+    if (getContext().getTypeAlignInChars(RetTy).getQuantity() >= 8) {
       return ABIArgInfo::getDirect(
         llvm::ArrayType::get(llvm::PointerType::get(getVMContext(), 0), 2));
     }

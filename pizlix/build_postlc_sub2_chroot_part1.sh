@@ -307,16 +307,16 @@ cd ..
 rm -rf pizlonated-attr
 hash -r
 
-tar -xf acl-2.3.2.tar.xz
-cd acl-2.3.2
+tar -xf acl-2.4.0.tar.xz
+cd acl-2.4.0
 sed -i s/-Wl,--version-script,/-Wc,--version-script=/g Makefile.in
 ./configure --prefix=/usr \
     --disable-static \
-    --docdir=/usr/share/doc/acl-2.3.2
+    --docdir=/usr/share/doc/acl-2.4.0
 make
 make install
 cd ..
-rm -rf acl-2.3.2
+rm -rf acl-2.4.0
 hash -r
 
 tar -xf libcap-2.70.tar.xz

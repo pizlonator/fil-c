@@ -28,14 +28,14 @@
 set -e
 set -x
 
-cd projects/user-glibc-2.40
+cd projects/user-glibc-2.44
 rm -f configure
 autoconf
 cd ../..
 rm -rf pizlonated-user-glibc-build
 mkdir pizlonated-user-glibc-build
 cd pizlonated-user-glibc-build
-CC="$PWD/../build/bin/clang -nostdlibinc -yolo-assembler -Wno-ignored-attributes -Wno-pointer-sign -Wno-unused-command-line-argument -Wno-macro-redefined" CXX="$PWD/../build/bin/clang++ -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" ../projects/user-glibc-2.40/configure --prefix=$PWD/../pizfix --disable-mathvec
+CC="$PWD/../build/bin/clang -nostdlibinc -yolo-assembler -Wno-ignored-attributes -Wno-pointer-sign -Wno-unused-command-line-argument -Wno-macro-redefined" CXX="$PWD/../build/bin/clang++ -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" ../projects/user-glibc-2.44/configure --prefix=$PWD/../pizfix --disable-mathvec
 make -j $NCPU
 make -j $NCPU install
 

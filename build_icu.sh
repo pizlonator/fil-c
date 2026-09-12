@@ -50,7 +50,7 @@ trap cleanup EXIT INT TERM
 
 rm -rf "${WORKDIR:?}"
 "$PROJENY_BIN" extract "$PROJENY_FILE" "$WORKDIR"
-cd "$WORKDIR/icu4c/source"
+cd "$WORKDIR/source"
 THE_OS=Linux THE_COMP="the Clang C++" CC="$CC_BIN" CXX="$CXX_BIN" CFLAGS="-O3 -g" CXXFLAGS="-O3 -g" ./configure --enable-debug --prefix="$PREFIX"
 make -j $NCPU
 

@@ -31,12 +31,14 @@ set -x
 # Yolo build of projeny: compile projects/projeny with the default system
 # C/C++ compiler (NOT Fil-C) and install the executable to filc/projeny.
 # Runs early in build_base.sh so a working projeny exists before it's needed
-# for any part of the build.
+# for any part of the build. This builds into its own build directory
+# (BUILD_DIR=build-yolo) so that it cannot be dirtied by the Fil-C build of
+# projeny (build_projeny.sh), which uses a different build directory.
 
 cd projects/projeny
-$MAKE -j $NCPU
+$MAKE -j $NCPU BUILD_DIR=build-yolo
 cd ../..
-cp projects/projeny/projeny filc/projeny
+cp projects/projeny/build-yolo/projeny filc/projeny
 chmod +x filc/projeny
 
 # Validation.
@@ -44,12 +46,12 @@ if ! filc/projeny help
 then
     # Do a clean build, since this implies that projeny was built for a different ABI
     # (Possibly because we built in a container.)
-    
+
     cd projects/projeny
-    $MAKE clean
-    $MAKE -j $NCPU
+    $MAKE clean BUILD_DIR=build-yolo
+    $MAKE -j $NCPU BUILD_DIR=build-yolo
     cd ../..
-    cp projects/projeny/projeny filc/projeny
+    cp projects/projeny/build-yolo/projeny filc/projeny
     chmod +x filc/projeny
 
     # Final validation

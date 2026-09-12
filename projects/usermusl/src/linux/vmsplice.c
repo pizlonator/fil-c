@@ -4,5 +4,5 @@
 
 ssize_t vmsplice(int fd, const struct iovec *iov, size_t cnt, unsigned flags)
 {
-	return syscall(SYS_vmsplice, fd, iov, cnt, flags);
+	return zsys_vmsplice(fd, iov, cnt, flags);
 }

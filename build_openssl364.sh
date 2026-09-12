@@ -57,10 +57,7 @@ export SARCASM=1
 
 CC="$PWD/../../build/bin/clang -g -O2" ./Configure \
     zlib no-padlockeng --prefix=$PWD/../../pizfix --libdir=lib
-make -j $NCPU > /tmp/openssl364-build.log 2>&1 || {
-    tail -200 /tmp/openssl364-build.log
-    exit 1
-}
+make -j $NCPU
 
 # Only run the test suite in a glibc build: PIZFIX_LIB/libc.so.6666 is the glibc
 # user-lib marker installed by the glibc build (musl builds lack it), and the test
@@ -74,20 +71,5 @@ make -j $NCPU > /tmp/openssl364-build.log 2>&1 || {
 PIZFIX_LIB=../../pizfix/lib
 if test -e "$PIZFIX_LIB/libc.so.6666"
 then
-    HARNESS_JOBS=${HARNESS_JOBS:-$NCPU} make test > /tmp/openssl364-test.log 2>&1 || true
-    if grep -q "Result: PASS" /tmp/openssl364-test.log && grep -q "Files=" /tmp/openssl364-test.log
-    then
-        true
-    else
-        tail -100 /tmp/openssl364-test.log
-        HARNESS_JOBS=${HARNESS_JOBS:-$NCPU} make test > /tmp/openssl364-test-retry.log 2>&1 || true
-        if grep -q "Result: PASS" /tmp/openssl364-test-retry.log && grep -q "Files=" /tmp/openssl364-test-retry.log
-        then
-            true
-        else
-            tail -100 /tmp/openssl364-test-retry.log
-            echo "OpenSSL 3.6.4 test suite failed (no Result: PASS in either run)" >&2
-            exit 1
-        fi
-    fi
+    HARNESS_JOBS=${HARNESS_JOBS:-$NCPU} make test || HARNESS_JOBS=${HARNESS_JOBS:-$NCPU} make test
 fi

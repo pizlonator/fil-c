@@ -154,11 +154,6 @@ sub LB() { my $r=shift; $r =~ s/%[er]([a-d])x/%\1l/	or
 			$r =~ s/%[er](bp)/%\1l/		or
 			$r =~ s/%(r[0-9]+)[d]?/%\1b/;   $r; }
 
-sub RD() { my $r=shift; $r =~ s/%[er]([a-d])x/%e\1x/	or
-			$r =~ s/%[er]([sd]i)/%e\1i/	or
-			$r =~ s/%[er](bp)/%e\1p/		or
-			$r =~ s/%(r[0-9]+)[d]?/%\1d/;   $r; }
-
 sub AUTOLOAD()		# thunk [simplified] 32-bit style perlasm
 { my $opcode = $AUTOLOAD; $opcode =~ s/.*:://;
   my $arg = pop;
@@ -171,22 +166,7 @@ sub AUTOLOAD()		# thunk [simplified] 32-bit style perlasm
   my $inp = shift;
 
 	$N++;
-if ($ENV{SARCASM}) {
-    # sarcasm drops the xor-zeroing as redundant, but 8-bit movb writes
-    # preserve the upper bits; movzbl needs no prior zeroing.
-    $code.=<<___;
-	movzbl	`&LB("$Zlo")`,`&RD("$nlo")`
-	movzbl	`&LB("$Zlo")`,`&RD("$nhi")`
-	shl	\$4,`&LB("$nlo")`
-	mov	\$14,$cnt
-	mov	8($Htbl,$nlo),$Zlo
-	mov	($Htbl,$nlo),$Zhi
-	and	\$0xf0,`&LB("$nhi")`
-	mov	$Zlo,$rem
-	jmp	.Loop$N
-___
-} else {
-    $code.=<<___;
+$code.=<<___;
 	xor	$nlo,$nlo
 	xor	$nhi,$nhi
 	mov	`&LB("$Zlo")`,`&LB("$nlo")`
@@ -198,9 +178,6 @@ ___
 	and	\$0xf0,`&LB("$nhi")`
 	mov	$Zlo,$rem
 	jmp	.Loop$N
-___
-}
-$code.=<<___;
 
 .align	16
 .Loop$N:
@@ -274,9 +251,9 @@ gcm_gmult_4bit: #! void(ptr,ptr)
 	endbranch
 ___
 if ($ENV{SARCASM}) {
-    # save the original %rsp for the phantom-sp epilogue; the region
-    # grows by 8 bytes to host it (offsets are all %rsp-relative).
-    $code.=<<___;
+  # save the original %rsp for the phantom-sp epilogue; the region
+  # grows by 8 bytes to host it (offsets are all %rsp-relative).
+  $code.=<<___;
 	mov	%rsp,%rax
 .cfi_def_cfa_register	%rax
 ___
@@ -296,14 +273,14 @@ $code.=<<___;
 .cfi_push	%r15
 ___
 if ($ENV{SARCASM}) {
-    $code.=<<___;
+  $code.=<<___;
 	sub	\$288,%rsp
 .cfi_adjust_cfa_offset	288
 	mov	%rax,280(%rsp)	# save original stack pointer
 .Lgmult_prologue:
 ___
 } else {
-    $code.=<<___;
+  $code.=<<___;
 	sub	\$280,%rsp
 .cfi_adjust_cfa_offset	280
 .Lgmult_prologue:
@@ -321,10 +298,10 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-    # phantom-sp epilogue: reload the saved %rsp and restore the
-    # pushed registers through it (the lea 280+48(%rsp) form computes
-    # an out-of-region address).
-    $code.=<<___;
+  # phantom-sp epilogue: reload the saved %rsp and restore the
+  # pushed registers through it (the lea 280+48(%rsp) form computes
+  # an out-of-region address).
+  $code.=<<___;
 	mov	280(%rsp),%rsi	# restore saved stack pointer
 .cfi_def_cfa	%rsi,8
 	mov	-8(%rsi),%rbx
@@ -333,7 +310,7 @@ if ($ENV{SARCASM}) {
 .cfi_def_cfa_register	%rsp
 ___
 } else {
-    $code.=<<___;
+  $code.=<<___;
 	lea	280+48(%rsp),%rsi
 .cfi_def_cfa	%rsi,8
 	mov	-8(%rsi),%rbx
@@ -363,7 +340,7 @@ gcm_ghash_4bit: #! void(ptr,ptr,ptr,size_t)
 	endbranch
 ___
 if ($ENV{SARCASM}) {
-    $code.=<<___;
+  $code.=<<___;
 	mov	%rsp,%rax
 .cfi_def_cfa_register	%rax
 ___
@@ -383,7 +360,7 @@ $code.=<<___;
 .cfi_push	%r15
 ___
 if ($ENV{SARCASM}) {
-    $code.=<<___;
+  $code.=<<___;
 	sub	\$288,%rsp
 .cfi_adjust_cfa_offset	288
 	mov	%rax,280(%rsp)	# save original stack pointer
@@ -397,7 +374,7 @@ ___
 $code.=<<___;
 ___
 } else {
-    $code.=<<___;
+  $code.=<<___;
 	sub	\$280,%rsp
 .cfi_adjust_cfa_offset	280
 .Lghash_prologue:
@@ -415,27 +392,27 @@ ___
   my $Hshr4="%rbp";
 
 	&sub	($Htbl,-128);		# size optimization
-	# No parked frame pointer under SARCASM: taking the frame's address is
-	# rejected, so the SARCASM heap buffer %fil_gh4 is used instead
-	# (same layout; gas keeps the %rbp frame block below).
-	if (!$ENV{SARCASM}) {
+  # No parked frame pointer under SARCASM: taking the frame's address is
+  # rejected, so the SARCASM heap buffer %fil_gh4 is used instead
+  # (same layout; gas keeps the %rbp frame block below).
+  if (!$ENV{SARCASM}) {
 	&lea	($Hshr4,"16+128(%rsp)");
-	}
+  }
 	{ my @lo =($nlo,$nhi);
           my @hi =($Zlo,$Zhi);
 
 	  &xor	($dat,$dat);
 	  for ($i=0,$j=-2;$i<18;$i++,$j++) {
-	    if ($ENV{SARCASM}) { &mov	("$j(%fil_gh4)",&LB($dat))		if ($i>1); } else { &mov	("$j(%rsp)",&LB($dat))		if ($i>1); }
+      if ($ENV{SARCASM}) { &mov	("$j(%fil_gh4)",&LB($dat))		if ($i>1); } else { &mov	("$j(%rsp)",&LB($dat))		if ($i>1); }
 	    &or		($lo[0],$tmp)			if ($i>1);
 	    &mov	(&LB($dat),&LB($lo[1]))		if ($i>0 && $i<17);
 	    &shr	($lo[1],4)			if ($i>0 && $i<17);
 	    &mov	($tmp,$hi[1])			if ($i>0 && $i<17);
 	    &shr	($hi[1],4)			if ($i>0 && $i<17);
-	    if ($ENV{SARCASM}) { &mov	("144+8*$j(%fil_gh4)",$hi[0])	if ($i>1); } else { &mov	("8*$j($Hshr4)",$hi[0])		if ($i>1); }
+      if ($ENV{SARCASM}) { &mov	("144+8*$j(%fil_gh4)",$hi[0])	if ($i>1); } else { &mov	("8*$j($Hshr4)",$hi[0])		if ($i>1); }
 	    &mov	($hi[0],"16*$i+0-128($Htbl)")	if ($i<16);
 	    &shl	(&LB($dat),4)			if ($i>0 && $i<17);
-	    if ($ENV{SARCASM}) { &mov	("16+8*$j(%fil_gh4)",$lo[0])	if ($i>1); } else { &mov	("8*$j-128($Hshr4)",$lo[0])	if ($i>1); }
+      if ($ENV{SARCASM}) { &mov	("16+8*$j(%fil_gh4)",$lo[0])	if ($i>1); } else { &mov	("8*$j-128($Hshr4)",$lo[0])	if ($i>1); }
 	    &mov	($lo[0],"16*$i+8-128($Htbl)")	if ($i<16);
 	    &shl	($tmp,60)			if ($i>0 && $i<17);
 
@@ -459,14 +436,9 @@ $code.=".align	16\n.Louter_loop:\n";
 	&mov	("8($Xi)","%rdx");
 	&shr	("%rdx",32);
 
-	if ($ENV{SARCASM}) {
-	    &rol	($dat,8);
-	    &movz	(&RD($nlo),&LB($dat));
-	} else {
-	    &xor	($nlo,$nlo);
-	    &rol	($dat,8);
-	    &mov	(&LB($nlo),&LB($dat));
-	}
+	&xor	($nlo,$nlo);
+	&rol	($dat,8);
+	&mov	(&LB($nlo),&LB($dat));
 	&movz	($nhi[0],&LB($dat));
 	&shl	(&LB($nlo),4);
 	&shr	($nhi[0],4);
@@ -478,13 +450,13 @@ $code.=".align	16\n.Louter_loop:\n";
 	    &mov	($Zlo,"8($Htbl,$nlo)")			if ($i==0);
 	    &mov	($Zhi,"($Htbl,$nlo)")			if ($i==0);
 
-	    if ($ENV{SARCASM}) { &movz	(&RD($nlo),&LB($dat)); } else { &mov	(&LB($nlo),&LB($dat)); }
+	    &mov	(&LB($nlo),&LB($dat));
 	    &xor	($Zlo,$tmp)				if ($i>0);
 	    &movzw	($rem[1],"($rem_8bit,$rem[1],2)")	if ($i>0);
 
 	    &movz	($nhi[1],&LB($dat));
 	    &shl	(&LB($nlo),4);
-	    if ($ENV{SARCASM}) { &movzb	($rem[0],"(%fil_gh4,$nhi[0])"); } else { &movzb	($rem[0],"(%rsp,$nhi[0])"); }
+      if ($ENV{SARCASM}) { &movzb	($rem[0],"(%fil_gh4,$nhi[0])"); } else { &movzb	($rem[0],"(%rsp,$nhi[0])"); }
 
 	    &shr	($nhi[1],4)				if ($i<14);
 	    &and	($nhi[1],0xf0)				if ($i==14);
@@ -496,18 +468,14 @@ $code.=".align	16\n.Louter_loop:\n";
 	    &shr	($Zlo,8);
 
 	    &movz	($rem[0],&LB($rem[0]));
-	    if ($ENV{SARCASM}) {
-		# the final refill reads -4($Xi) and is dead on loop exit;
-		# it is out of bounds under capabilities, so skip it.
-		&mov	($dat,"$j($Xi)")			if (--$j%4==0 && $j>=0);
-	    } else {
-		&mov	($dat,"$j($Xi)")			if (--$j%4==0);
-	    }
+	    # The final refill reads -4($Xi) and is dead on loop exit;
+	    # it is out of bounds under capabilities, so skip it under SARCASM.
+	    &mov	($dat,"$j($Xi)")			if (--$j%4==0 && (!$ENV{SARCASM} || $j>=0));
 	    &shr	($Zhi,8);
 
-	    if ($ENV{SARCASM}) { &xor	($Zlo,"16(%fil_gh4,$nhi[0],8)"); } else { &xor	($Zlo,"-128($Hshr4,$nhi[0],8)"); }
+      if ($ENV{SARCASM}) { &xor	($Zlo,"16(%fil_gh4,$nhi[0],8)"); } else { &xor	($Zlo,"-128($Hshr4,$nhi[0],8)"); }
 	    &shl	($tmp,56);
-	    if ($ENV{SARCASM}) { &xor	($Zhi,"144(%fil_gh4,$nhi[0],8)"); } else { &xor	($Zhi,"($Hshr4,$nhi[0],8)"); }
+      if ($ENV{SARCASM}) { &xor	($Zhi,"144(%fil_gh4,$nhi[0],8)"); } else { &xor	($Zhi,"($Hshr4,$nhi[0],8)"); }
 
 	    unshift	(@nhi,pop(@nhi));		# "rotate" registers
 	    unshift	(@rem,pop(@rem));
@@ -548,8 +516,8 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-    # phantom-sp epilogue
-    $code.=<<___;
+  # phantom-sp epilogue
+  $code.=<<___;
 	mov	280(%rsp),%rsi	# restore saved stack pointer
 .cfi_def_cfa	%rsi,8
 	mov	-48(%rsi),%r15
@@ -568,7 +536,7 @@ if ($ENV{SARCASM}) {
 .cfi_def_cfa_register	%rsp
 ___
 } else {
-    $code.=<<___;
+  $code.=<<___;
 	lea	280+48(%rsp),%rsi
 .cfi_def_cfa	%rsi,8
 	mov	-48(%rsi),%r15

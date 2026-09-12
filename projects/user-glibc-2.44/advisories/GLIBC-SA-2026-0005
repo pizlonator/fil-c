@@ -1,0 +1,37 @@
+gethostbyaddr and gethostbyaddr_r may incorrectly handle DNS response
+
+Calling gethostbyaddr or gethostbyaddr_r with a configured nsswitch.conf
+that specifies the library's DNS backend in the GNU C Library version
+2.34 to version 2.43 could, with a crafted response from the configured
+DNS server, result in a violation of the DNS specification that causes
+the application to treat a non-answer section of the DNS response as a
+valid answer.
+
+A defect in the getanswer_ptr function, which implements the iteration
+and extraction of the answer from the DNS response, can cause it to
+incorrectly transition from the answer section to the next section while
+still treating it as an answer to the question.  This can happen when
+the answer contains only skipped records, and the subsequent section
+contains a semantically invalid T_PTR record.  This is considered a
+security issue because it is a violation of the DNS specification that
+leads to incorrect behaviour that could result in the wrong hostname
+being returned to the caller.  At the time of publication, no known
+affected DNS server returns results that would be incorrectly
+interpreted by the library.  An attacker would either need to be network
+adjacent or have compromised the DNS server to use this defect to hide
+returned reverse DNS results from intrusion detection systems. Even
+then, the inbound connection from the attacker, or the outbound
+connection from the application, would be visible to the intrusion
+detection system.  At best, the defect can be used to obfuscate and
+delay analysis of the evolving threat.
+
+CVE-Id: CVE-2026-4437
+Public-Date: 2026-03-20
+Vulnerable-Commit: 32e5db37684ffcbc6ae34fcc6cdcf28670506baa (2.34-323)
+Vulnerable-Commit: def97e7f71a07517810f7263213d607e08ad21f1 (2.35-188)
+Vulnerable-Commit: 77f523c473878ec0051582ef15161c6982879095 (2.36-30)
+Vulnerable-Commit: e32547d661a43da63368e488b6cfa9c53b4dcf92 (2.37)
+Fix-Commit: 5c6fca0c62ce5bd6e68e259f138097756cbafd4d (2.43-16)
+Fix-Commit: 9f5f18aab40ec6b61fa49a007615e6077e9a979b (2.44)
+Reported-by: Antonio Maini (0rbitingZer0) - 0rbitingZer0@proton.me
+Reported-by: Kevin Farrell

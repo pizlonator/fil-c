@@ -466,6 +466,21 @@ local function allocateWithSpilling(tr, target)
 	local numRoots = tr.numRoots or 0
 	local fpRegion = (tr.fpSaveBytes or 0) + (tr.fpBytes or 0) + (tr.yoloBytes or 0)
 	local fpPad = (fpRegion > 0 and numRoots % 2 == 1) and 8 or 0
+	-- Mirror x86_64_render.computeLayout's widened pad: a dynamically-aligned
+	-- frame (effective alignment A > 16, from `and $-N, %rsp` notes covering
+	-- vmovdqa-class materialized clusters) shifts the FP/SIMD region up so the
+	-- root-area shift is a multiple of A. Spill offsets are absolute (no later
+	-- shift rides them), so the allocation base must include the same widening;
+	-- otherwise the first spills land inside the cluster tail (openssl AES-GCM
+	-- encrypt: 64-byte cluster store at phys 2944 covers [2944,3008) while
+	-- spills started at 2992, clobbering the spilled aes_keys capability and
+	-- faulting its 16-byte round-key check). No-op on arm64 and on 16-byte
+	-- frames (A = 16 admits no widening), matching computeLayout exactly.
+	local A = tr.frameAlignReq or 16
+	if A < 16 then A = 16 end
+	if A > 16 then
+		while ((8 * numRoots + fpPad) % A) ~= 0 do fpPad += 8 end
+	end
 	local spillBase = 16 + 8 * numRoots + fpPad + fpRegion
 	local bigMode = #tr.fipNodes > BIG_RA_INSNS
 	prof.mark("fn " .. (tr.name or "?") .. " allocate (" .. #tr.fipNodes .. " fipNodes"

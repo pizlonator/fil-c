@@ -295,4 +295,72 @@ pr_fstsw:                       ;! long()
 	ret
 	.size	pr_fstsw, .-pr_fstsw
 
+	# xor-zeroing, an 8-bit def, then a 32-bit USE: bits 8-31 of the low 32
+	# are preserved by the movb, so they still read the zeroing — the xor
+	# must stay live across the movb. (The ghash shape: `xorq %rax,%rax` /
+	# `movb %sil,%al` feeding a wider read.) The leading constant makes a
+	# dropped xor deterministically observable.
+	.globl	pr_xor_movb_32use
+	.type	pr_xor_movb_32use, @function
+pr_xor_movb_32use:              ;! long(long)
+	endbr64
+	movq	$0x1122334455667788, %rax
+	xorq	%rax, %rax
+	movb	%dil, %al
+	movl	%eax, %edx
+	movq	%rdx, %rax
+	ret
+	.size	pr_xor_movb_32use, .-pr_xor_movb_32use
+
+	# xor-zeroing, a 16-bit def, then a 32-bit use: bits 16-31 are preserved
+	# by the movw and still read the zeroing.
+	.globl	pr_xor_movw_32use
+	.type	pr_xor_movw_32use, @function
+pr_xor_movw_32use:              ;! long(long)
+	endbr64
+	movq	$0x1122334455667788, %rax
+	xorq	%rax, %rax
+	movw	%di, %ax
+	movl	%eax, %edx
+	movq	%rdx, %rax
+	ret
+	.size	pr_xor_movw_32use, .-pr_xor_movw_32use
+
+	# a 16-bit def to %cx preserves the HIGH 16 of %ecx: after xor+movw the
+	# high half reads back zero.
+	.globl	pr_xor_movw_cx_hi16
+	.type	pr_xor_movw_cx_hi16, @function
+pr_xor_movw_cx_hi16:            ;! long(long)
+	endbr64
+	movq	$0x1122334455667788, %rcx
+	xorq	%rcx, %rcx
+	movw	%di, %cx
+	shrq	$16, %rcx
+	movq	%rcx, %rax
+	ret
+	.size	pr_xor_movw_cx_hi16, .-pr_xor_movw_cx_hi16
+
+	# ghash inner-loop shape: ONE xor-zeroing outside the loop, then the low
+	# byte is redefined (an RMW) and used as a full-register table index on
+	# every iteration — the upper bits stay zero across all iterations.
+	.globl	pr_loop_redef
+	.type	pr_loop_redef, @function
+pr_loop_redef:                  ;! long(long, ptr)
+	endbr64
+	xorq	%rax, %rax
+	movb	%dil, %al
+	xorq	%r10, %r10
+	movl	$8, %ecx
+.Lredef:
+	movq	(%rsi,%rax,8), %r8
+	xorq	%r8, %r10
+	rolq	$8, %rdi
+	movb	%dil, %al
+	shlb	$4, %al
+	subq	$1, %rcx
+	jne	.Lredef
+	movq	%r10, %rax
+	ret
+	.size	pr_loop_redef, .-pr_loop_redef
+
 	.section	.note.GNU-stack,"",@progbits

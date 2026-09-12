@@ -44,7 +44,7 @@ cd $FILCSRC
 
 rm -vf projects/*/pizlonated-*.tar.gz
 
-cd projects/yolo-glibc-2.40
+cd projects/yolo-glibc-2.44
 git archive --format=tar HEAD --prefix=pizlonated-yolo-glibc/ | tar -xf -
 git diff --relative HEAD . | (cd pizlonated-yolo-glibc && patch -p1)
 cd pizlonated-yolo-glibc
@@ -54,7 +54,7 @@ tar -czf pizlonated-yolo-glibc.tar.gz pizlonated-yolo-glibc
 rm -rf pizlonated-yolo-glibc
 cd ../..
 
-cd projects/user-glibc-2.40
+cd projects/user-glibc-2.44
 git archive --format=tar HEAD --prefix=pizlonated-user-glibc/ | tar -xf -
 git diff --relative HEAD . | (cd pizlonated-user-glibc && patch -p1)
 cd pizlonated-user-glibc
@@ -110,5 +110,6 @@ filc/projeny package projects/blake3.projeny projects/blake3/pizlonated-blake3.t
 ./package-source.sh projects/zip-3.0 pizlonated-zip
 ./package-source.sh projects/unzip-6.0 pizlonated-unzip
 filc/projeny package projects/dash.projeny projects/dash/pizlonated-dash.tar.gz
+filc/projeny package projects/mg.projeny projects/mg/pizlonated-mg.tar.gz
 ./package-source.sh projects/zsh-5.9.2 pizlonated-zsh
 

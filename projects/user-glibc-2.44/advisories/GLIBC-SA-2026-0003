@@ -1,0 +1,36 @@
+wordexp with WRDE_REUSE and WRDE_APPEND may return uninitialized memory
+
+Calling wordexp with WRDE_REUSE in conjunction with WRDE_APPEND in the
+GNU C Library version 2.0 to version 2.42 may cause the interface to
+return uninitialized memory in the we_wordv member, which on subsequent
+calls to wordfree may abort the process.
+
+The implementation of WRDE_REUSE in conjunction with WRDE_APPEND fails
+to clear the we_wordc member of the structure, and as such, when new
+words are added internally, a leading we_wordc count number of entries
+are skipped since they are assumed initialized.  These skipped entries
+are not initialized, but are the contents of a realloc-expanded array of
+pointers.  If the caller inspects the we_wordv array, it will
+dereference invalid pointers and crash. If the caller calls wordfree,
+the malloc implementation may detect the invalid pointers and abort the
+process.  Calls to wordexp using WRDE_REUSE and WRDE_APPEND have never
+worked correctly and thus the existence of applications that make use of
+this feature is unlikely.
+
+CVE-Id: CVE-2025-15281
+Public-Date: 2026-01-20
+Vulnerable-Commit: 8f2ece695d8822e9ecc63ecd157e90bf17a6fe65 (1.93-260)
+Fix-Commit: 80cc58ea2de214f85b0a1d902a3b668ad2ecb302 (2.43)
+Fix-Commit: cbf39c26b25801e9bc88499b4fd361ac172d4125 (2.42-51)
+Fix-Commit: fb4db64a04ad6c96cd1fbb7e02eb59323b1f2ac2 (2.41-123)
+Fix-Commit: 9fe8576664d43b87ca19401fb6a975e217e47623 (2.40-218)
+Fix-Commit: ce65d944e38a20cb70af2a48a4b8aa5d8fabe1cc (2.39-288)
+Fix-Commit: d5409a1be010699794264162c551ba60f05ee6c3 (2.38-214)
+Fix-Commit: ff2b172803f6bbd897755d2ce83ec4323a1a15b3 (2.37-174)
+Fix-Commit: e97cfe2293ed097eb3d0b4c18274d22855e65130 (2.36-246)
+Fix-Commit: bb59339d02faebac534a87eea50c83c948f35b77 (2.35-401)
+Fix-Commit: 2b656ff94d72f93c84d8da2e7c76456c1994f02e (2.34-527)
+Fix-Commit: 1d8ed2067a8a5d162a07670d0d063429679f17a0 (2.33-277)
+Fix-Commit: 3a56c4ee4ea49b8f2391a2d8d6220013c4160a79 (2.32-153)
+Fix-Commit: 28eb5caf895ced5d895cb02757e109004a2d33e5 (2.31-167)
+Reported-by: Vitaly Simonovich

@@ -273,13 +273,25 @@ bool try_read_file_bytes(const std::string& path, std::string* out)
     return true;
 }
 
-void write_file_bytes(const std::string& path, const std::string& data)
+namespace {
+
+// Try-variant of write_file_bytes: the same write-temp + fsync + rename
+// protocol (a crash never leaves a half-written file), but reports failure
+// via the return value (strerror reason in *err when non-null) instead of
+// dying. Used by write_file_bytes and the best-effort try_copy_file_bytes.
+bool write_file_bytes_try(const std::string& path, const std::string& data,
+                          std::string* err)
 {
+    auto fail = [&err](int e) {
+        if (err != nullptr)
+            *err = strerror(e);
+        return false;
+    };
     // Write-then-rename so a crash never leaves a half-written file behind.
     std::string tmp = path + ".tmp";
     int fd = open(tmp.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0)
-        die("cannot write file '" + path + "': " + strerror(errno));
+        return fail(errno);
     size_t off = 0;
     while (off < data.size()) {
         ssize_t w = write(fd, data.data() + off, data.size() - off);
@@ -289,7 +301,7 @@ void write_file_bytes(const std::string& path, const std::string& data)
             int e = errno;
             close(fd);
             unlink(tmp.c_str());
-            die("cannot write file '" + path + "': " + strerror(e));
+            return fail(e);
         }
         off += (size_t)w;
     }
@@ -300,15 +312,28 @@ void write_file_bytes(const std::string& path, const std::string& data)
         int e = errno;
         close(fd);
         unlink(tmp.c_str());
-        die("cannot write file '" + path + "': " + strerror(e));
+        return fail(e);
     }
     if (close(fd) != 0) {
         int e = errno;
         unlink(tmp.c_str());
-        die("cannot write file '" + path + "': " + strerror(e));
+        return fail(e);
     }
-    if (rename(tmp.c_str(), path.c_str()) != 0)
-        die("cannot write file '" + path + "': " + strerror(errno));
+    if (rename(tmp.c_str(), path.c_str()) != 0) {
+        int e = errno;
+        unlink(tmp.c_str());
+        return fail(e);
+    }
+    return true;
+}
+
+} // namespace
+
+void write_file_bytes(const std::string& path, const std::string& data)
+{
+    std::string err;
+    if (!write_file_bytes_try(path, data, &err))
+        die("cannot write file '" + path + "': " + err);
 }
 
 void fsync_dir(const std::string& path)
@@ -331,6 +356,18 @@ void fsync_dir(const std::string& path)
 void copy_file_bytes(const std::string& src, const std::string& dst)
 {
     write_file_bytes(dst, read_file_bytes(src));
+}
+
+bool try_copy_file_bytes(const std::string& src, const std::string& dst,
+                         std::string* err)
+{
+    std::string data;
+    if (!try_read_file_bytes(src, &data)) {
+        if (err != nullptr)
+            *err = strerror(errno);
+        return false;
+    }
+    return write_file_bytes_try(dst, data, err);
 }
 
 // FNV-1a 64-bit content hash (streamed, binary-safe). Used only to detect
@@ -423,6 +460,22 @@ std::string strip_trailing_slashes(const std::string& p)
     while (n > 1 && p[n - 1] == '/')
         --n;
     return p.substr(0, n);
+}
+
+std::string dotname(const std::string& p)
+{
+    // Same directory, basename prefixed with '.': "dir/f.projeny" ->
+    // "dir/.f.projeny"; a bare "f.projeny" has no directory component and
+    // becomes ".f.projeny". Degenerate paths (/, ., ..) come back unchanged
+    // — callers only pass real file names.
+    std::string s = strip_trailing_slashes(p);
+    std::string base = basename_of(s);
+    if (base.empty() || base == "." || base == "..")
+        return s;
+    std::string dir = dirname_of(s);
+    if (dir == "." || dir.empty())
+        return "." + base;
+    return join_path(dir, "." + base);
 }
 
 std::vector<std::string> split_lines(const std::string& s)
@@ -542,6 +595,78 @@ std::string normalize_lexical(const std::string& p)
     if (out.empty())
         out = absolute ? "/" : ".";
     return out;
+}
+
+LinkResolve resolve_link_target(const std::string& base_dir,
+                                const std::string& target,
+                                std::string* resolved)
+{
+    resolved->clear();
+    if (target.empty())
+        return LinkResolve::Inside;
+    if (target[0] == '/') {
+        *resolved = target;
+        return LinkResolve::Absolute;
+    }
+    // Normalize the member's directory first so the target is resolved
+    // against a clean tree-relative base. Bases are validated upstream (no
+    // "..", never absolute), but normalize them anyway so a malformed base
+    // can never make a target look shallower than it is.
+    std::vector<std::string> parts;
+    size_t i = 0;
+    while (i <= base_dir.size()) {
+        size_t j = base_dir.find('/', i);
+        std::string comp = (j == std::string::npos)
+                               ? base_dir.substr(i)
+                               : base_dir.substr(i, j - i);
+        if (j == std::string::npos)
+            i = base_dir.size() + 1;
+        else
+            i = j + 1;
+        if (comp.empty() || comp == ".")
+            continue;
+        if (comp == "..") {
+            if (!parts.empty())
+                parts.pop_back();
+            continue;
+        }
+        parts.push_back(comp);
+    }
+    // Now fold in the target: "." is skipped and ".." pops; popping past the
+    // tree root is the escape we refuse.
+    bool escapes = false;
+    i = 0;
+    while (i <= target.size()) {
+        size_t j = target.find('/', i);
+        std::string comp = (j == std::string::npos) ? target.substr(i)
+                                                    : target.substr(i, j - i);
+        if (j == std::string::npos)
+            i = target.size() + 1;
+        else
+            i = j + 1;
+        if (comp.empty() || comp == ".")
+            continue;
+        if (comp == "..") {
+            if (!parts.empty() && parts.back() != "..") {
+                parts.pop_back();
+            } else {
+                escapes = true;
+                parts.push_back("..");
+            }
+            continue;
+        }
+        parts.push_back(comp);
+    }
+    std::string out;
+    for (size_t k = 0; k < parts.size(); ++k) {
+        if (k > 0)
+            out += "/";
+        out += parts[k];
+    }
+    if (out.empty())
+        out = ".";
+    *resolved = out;
+    return escapes ? LinkResolve::Escapes : LinkResolve::Inside;
 }
 
 std::string system_scratch_parent()

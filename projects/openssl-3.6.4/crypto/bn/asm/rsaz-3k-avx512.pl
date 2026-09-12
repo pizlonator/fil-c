@@ -458,9 +458,9 @@ $code.=<<___;
     vzeroupper
 ___
 if ($ENV{SARCASM}) {
-    # The (%rsp)-via-%rax reload idiom takes a frame address; the plain
-    # (%rsp) form (as in rsaz-2k-avx512.pl) is equivalent here.
-    $code.=<<___;
+  # The (%rsp)-via-%rax reload idiom takes a frame address; the plain
+  # (%rsp) form (as in rsaz-2k-avx512.pl) is equivalent here.
+  $code.=<<___;
     mov  0(%rsp),%r15
 .cfi_restore    %r15
     mov  8(%rsp),%r14
@@ -476,7 +476,7 @@ if ($ENV{SARCASM}) {
     lea  48(%rsp),%rsp       # restore rsp
 ___
 } else {
-    $code.=<<___;
+  $code.=<<___;
     lea     (%rsp),%rax
 .cfi_def_cfa_register   %rax
 ___
@@ -646,9 +646,9 @@ $code.=<<___;
     vzeroupper
 ___
 if ($ENV{SARCASM}) {
-    # The (%rsp)-via-%rax reload idiom takes a frame address; the plain
-    # (%rsp) form (as in rsaz-2k-avx512.pl) is equivalent here.
-    $code.=<<___;
+  # The (%rsp)-via-%rax reload idiom takes a frame address; the plain
+  # (%rsp) form (as in rsaz-2k-avx512.pl) is equivalent here.
+  $code.=<<___;
     mov  0(%rsp),%r15
 .cfi_restore    %r15
     mov  8(%rsp),%r14
@@ -664,7 +664,7 @@ if ($ENV{SARCASM}) {
     lea  48(%rsp),%rsp       # restore rsp
 ___
 } else {
-    $code.=<<___;
+  $code.=<<___;
     lea     (%rsp),%rax
 .cfi_def_cfa_register   %rax
 ___

@@ -109,7 +109,7 @@ $code.=<<___;
 .globl	rsaz_512_sqr
 .type	rsaz_512_sqr,\@function,5
 .align	32
-rsaz_512_sqr:				# 25-29% faster than rsaz_512_mul #! void(ptr,ptr,ptr,long,int)
+rsaz_512_sqr:				#! void(ptr,ptr,ptr,long,int) # 25-29% faster than rsaz_512_mul
 .cfi_startproc
 ___
 $code.=<<___ if ($ENV{SARCASM});
@@ -131,11 +131,11 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-	# Grow the region to 168 so $mod/$out can be parked in region slots
-	# (xmm pointer parking loses capabilities under sarcasm).
-	$code.="\tsubq	\$128+40, %rsp\n";
+  # Grow the region to 168 so $mod/$out can be parked in region slots
+  # (xmm pointer parking loses capabilities under sarcasm).
+  $code.="\tsubq	\$128+40, %rsp\n";
 } else {
-	$code.="\tsubq	\$128+24, %rsp\n";
+  $code.="\tsubq	\$128+24, %rsp\n";
 }
 $code.=<<___ if ($ENV{SARCASM});
 	movq	%rax, 144(%rsp)		# park entry %rsp in the region
@@ -888,11 +888,11 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-	# Grow the region to 160 so $out/$mod can be parked in region slots
-	# (xmm pointer parking loses capabilities under sarcasm).
-	$code.="\tsubq	\$128+32, %rsp\n";
+  # Grow the region to 160 so $out/$mod can be parked in region slots
+  # (xmm pointer parking loses capabilities under sarcasm).
+  $code.="\tsubq	\$128+32, %rsp\n";
 } else {
-	$code.="\tsubq	\$128+24, %rsp\n";
+  $code.="\tsubq	\$128+24, %rsp\n";
 }
 $code.=<<___ if ($ENV{SARCASM});
 	movq	%rax, 144(%rsp)		# park entry %rsp in the region
@@ -1052,14 +1052,14 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-	# Region grows by 16 to host the saved stack pointer (slot 144 is
-	# $mod in this function).
-	$code.=<<___;
+  # Region grows by 16 to host the saved stack pointer (slot 144 is
+  # $mod in this function).
+  $code.=<<___;
 	subq	\$`128+24+16+($win64?0xb0:0)`, %rsp
 	movq	%rax, 152(%rsp)		# park entry %rsp in the region
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	subq	\$`128+24+($win64?0xb0:0)`, %rsp
 ___
 }
@@ -1309,9 +1309,9 @@ if ($ENV{SARCASM}) {
 .align	32
 .Loop_mul_gather:
 ___
-	my $b = $gather_body; $b =~ s/@@@/(%rdi)/;
-	$code .= $b;
-	$code.=<<___;
+  my $b = $gather_body; $b =~ s/@@@/(%rdi)/;
+  $code .= $b;
+  $code.=<<___;
 	leaq	8(%rdi), %rdi
 
 	decl	%ecx
@@ -1484,9 +1484,9 @@ if ($ENV{SARCASM}) {
 .align	32
 .Loop_mulx_gather:
 ___
-	my $b = $gatherx_body; $b =~ s/@@@/64(%rsp,%rcx,8)/;
-	$code .= $b;
-	$code.=<<___;
+  my $b = $gatherx_body; $b =~ s/@@@/64(%rsp,%rcx,8)/;
+  $code .= $b;
+  $code.=<<___;
 	inc	%rcx			# of=0
 	jnz	.Loop_mulx_gather
 ___
@@ -1619,11 +1619,11 @@ $code.=<<___;
 	mov	$pwr, $pwr
 ___
 if ($ENV{SARCASM}) {
-	# Grow the region to 184 so $out/$mod/$tbl can be parked in region slots
-	# (xmm pointer parking loses capabilities under sarcasm).
-	$code.="\tsubq	\$128+56, %rsp\n";
+  # Grow the region to 184 so $out/$mod/$tbl can be parked in region slots
+  # (xmm pointer parking loses capabilities under sarcasm).
+  $code.="\tsubq	\$128+56, %rsp\n";
 } else {
-	$code.="\tsubq	\$128+24, %rsp\n";
+  $code.="\tsubq	\$128+24, %rsp\n";
 }
 $code.=<<___ if ($ENV{SARCASM});
 	movq	%rax, 144(%rsp)		# park entry %rsp in the region
@@ -2150,12 +2150,12 @@ $code.=<<___;
 	mulq	%rbx
 ___
 if ($ENV{SARCASM}) {
-	# Row 0 lands at caller slot 0 (clone displacement 8 keys to caller 0).
-	$code.=<<___;
+  # Row 0 lands at caller slot 0 (clone displacement 8 keys to caller 0).
+  $code.=<<___;
 	movq	%rax, 8(%rsp)
 ___
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	movq	%rax, (%rdi)
 ___
 }
@@ -2295,9 +2295,9 @@ if ($ENV{SARCASM}) {
 .align	32
 .Loop_mul:
 ___
-	my $b = $mul_body; $b =~ s/@@@/(%rdi)/;
-	$code .= $b;
-	$code.=<<___;
+  my $b = $mul_body; $b =~ s/@@@/(%rdi)/;
+  $code .= $b;
+  $code.=<<___;
 	leaq	8(%rdi), %rdi
 
 	decl	%ecx
@@ -2427,23 +2427,23 @@ if ($ENV{SARCASM}) {
 	$code.=<<___;
 	xor	$zero, $zero		# cf=0,of=0
 ___
-	for my $k (0..5) {
-		(my $b = $mulx_body) =~ s/@@@/(16+8*$k)."(%rsp)"/e;
-		$b =~ s/###/(16+8*$k)."($bp)"/e;
-		$code .= $b;
-	}
+  for my $k (0..5) {
+    (my $b = $mulx_body) =~ s/@@@/(16+8*$k)."(%rsp)"/e;
+    $b =~ s/###/(16+8*$k)."($bp)"/e;
+    $code .= $b;
+  }
 } else {
-	$code.=<<___;
+  $code.=<<___;
 	xor	$zero, $zero		# cf=0,of=0
 	jmp	.Loop_mulx
 
 .align	32
 .Loop_mulx:
 ___
-	my $b = $mulx_body; $b =~ s/@@@/8+64-8(%rsp,%rcx,8)/;
-	$b =~ s/###/64($bp,%rcx,8)/;
-	$code .= $b;
-	$code.=<<___;
+  my $b = $mulx_body; $b =~ s/@@@/8+64-8(%rsp,%rcx,8)/;
+  $b =~ s/###/64($bp,%rcx,8)/;
+  $code .= $b;
+  $code.=<<___;
 	inc	%rcx			# of=0
 	jnz	.Loop_mulx
 ___

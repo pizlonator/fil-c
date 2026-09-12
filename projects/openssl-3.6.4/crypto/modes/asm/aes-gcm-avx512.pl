@@ -126,10 +126,6 @@ my $CLEAR_SCRATCH_REGISTERS = 0;
 # ; Zero HKeys storage from the stack if they are stored there
 my $CLEAR_HKEYS_STORAGE_ON_EXIT = 1;
 
-# SARCASM: the stack is only guaranteed 16-byte aligned (the 64-byte
-# re-alignment `and` in PROLOG is gas-only), so 64-byte frame accesses must
-# use the unaligned form. Semantically identical; gas output unchanged.
-my $VMOVDQA64 = $ENV{SARCASM} ? "vmovdqu64" : "vmovdqa64";
 # SARCASM hkeys window: under sarcasm the 768-byte HKEYS area (frame offsets
 # 0..768) moves to a 64-byte-aligned GC `.alloca` buffer ($HKBASE names it;
 # "%rsp" under gas so gas output is unchanged). Dynamic key selection
@@ -431,13 +427,8 @@ ___
   if ($DYNAMIC_STACK_ALLOC_SIZE) {
     $code .= <<___;
         sub               \$`$DYNAMIC_STACK_ALLOC_SIZE + $DYNAMIC_STACK_ALLOC_ALIGNMENT_SPACE`,%rsp
-___
-    if (!$ENV{SARCASM}) {
-      # sarcasm: plain sub frame above (slots virtualized; no re-alignment).
-      $code .= <<___;
         and               \$(-64),%rsp
 ___
-    }
     if ($ENV{SARCASM} && $need_hkeys_stack_storage) {
       # sarcasm: heap HKEYS window (64-aligned); dynamic key selection below
       # addresses it through $HKBASE instead of indexing the frame.
@@ -470,7 +461,7 @@ sub EPILOG {
         vpxor             %xmm0,%xmm0,%xmm0
 ___
     for (my $i = 0; $i < int($HKEYS_STORAGE / 64); $i++) {
-      $code .= "$VMOVDQA64         %zmm0,`$STACK_HKEYS_OFFSET + 64*$i`($HKBASE)\n";
+      $code .= "vmovdqa64         %zmm0,`$STACK_HKEYS_OFFSET + 64*$i`($HKBASE)\n";
     }
     $code .= ".Lskip_hkeys_cleanup_${label_suffix}:\n";
   }
@@ -943,7 +934,7 @@ sub GHASH_16 {
 
   # ;; ghash blocks 0-3
   if (scalar(@_) == 21) {
-    $code .= "$VMOVDQA64         @{[EffectiveAddress($INPTR,$INOFF,($INDIS+0*64))]},$ZTMP9\n";
+    $code .= "vmovdqa64         @{[EffectiveAddress($INPTR,$INOFF,($INDIS+0*64))]},$ZTMP9\n";
   } else {
     $ZTMP9 = $DAT0;
   }
@@ -961,7 +952,7 @@ ___
 
   # ;; ghash blocks 4-7
   if (scalar(@_) == 21) {
-    $code .= "$VMOVDQA64         @{[EffectiveAddress($INPTR,$INOFF,($INDIS+1*64))]},$ZTMP9\n";
+    $code .= "vmovdqa64         @{[EffectiveAddress($INPTR,$INOFF,($INDIS+1*64))]},$ZTMP9\n";
   } else {
     $ZTMP9 = $DAT1;
   }
@@ -992,7 +983,7 @@ ___
 
   # ;; ghash blocks 8-11
   if (scalar(@_) == 21) {
-    $code .= "$VMOVDQA64         @{[EffectiveAddress($INPTR,$INOFF,($INDIS+2*64))]},$ZTMP9\n";
+    $code .= "vmovdqa64         @{[EffectiveAddress($INPTR,$INOFF,($INDIS+2*64))]},$ZTMP9\n";
   } else {
     $ZTMP9 = $DAT2;
   }
@@ -1006,7 +997,7 @@ ___
 
   # ;; ghash blocks 12-15
   if (scalar(@_) == 21) {
-    $code .= "$VMOVDQA64         @{[EffectiveAddress($INPTR,$INOFF,($INDIS+3*64))]},$ZTMP9\n";
+    $code .= "vmovdqa64         @{[EffectiveAddress($INPTR,$INOFF,($INDIS+3*64))]},$ZTMP9\n";
   } else {
     $ZTMP9 = $DAT3;
   }
@@ -1036,7 +1027,7 @@ ___
     &VHPXORI4x128($GL, $ZTMP1);
 
     # ;; reduction
-    $code .= "$VMOVDQA64         POLY2(%rip),@{[XWORD($ZTMP2)]}\n";
+    $code .= "vmovdqa64         POLY2(%rip),@{[XWORD($ZTMP2)]}\n";
     &VCLMUL_REDUCE(&XWORD($HASH), &XWORD($ZTMP2), &XWORD($GH), &XWORD($GL), &XWORD($ZTMP0), &XWORD($ZTMP1));
   }
 }
@@ -1260,7 +1251,7 @@ ___
   &VHPXORI4x128($T0L, $T1M2);
 
   # ;; reduction
-  $code .= "$VMOVDQA64         POLY2(%rip),@{[XWORD($HK)]}\n";
+  $code .= "vmovdqa64         POLY2(%rip),@{[XWORD($HK)]}\n";
   &VCLMUL_REDUCE(
     @{[XWORD($GHASH)]},
     @{[XWORD($HK)]},
@@ -1356,7 +1347,7 @@ ___
   $code .= <<___;
         vmovdqu64         $T4,@{[HashKeyByIdx(2,$GCM128_CTX)]}
         vinserti64x2      \$1,$HK,$YT4,$YT5
-        $VMOVDQA64         $YT5,$YT6                             # ;; YT6 = HashKey | HashKey^2
+        vmovdqa64         $YT5,$YT6                             # ;; YT6 = HashKey | HashKey^2
 ___
 
   # ;; use 2x128-bit computation
@@ -1370,7 +1361,7 @@ ___
 
         # ;; switch to 4x128-bit computations now
         vshufi64x2        \$0x00,$ZT5,$ZT5,$ZT4                 # ;; broadcast HashKey^4 across all ZT4
-        $VMOVDQA64         $ZT5,$ZT6                             # ;; save HashKey^4 to HashKey^1 in ZT6
+        vmovdqa64         $ZT5,$ZT6                             # ;; save HashKey^4 to HashKey^1 in ZT6
 ___
 
   # ;; calculate HashKey^5<<1 mod poly, HashKey^6<<1 mod poly, ... HashKey^8<<1 mod poly
@@ -1470,7 +1461,7 @@ sub CALC_AAD_HASH {
         jz                .L_CALC_AAD_done_${label_suffix}
 
         xor               $HKEYS_READY,$HKEYS_READY
-        $VMOVDQA64         SHUF_MASK(%rip),$SHFMSK
+        vmovdqa64         SHUF_MASK(%rip),$SHFMSK
 
 .L_get_AAD_loop48x16_${label_suffix}:
         cmp               \$`(48*16)`,$T2
@@ -1780,7 +1771,7 @@ ___
   if ($ENC_DEC eq "DEC") {
     $code .= <<___;
         # ;;  keep copy of cipher text in $XTMP4
-        $VMOVDQA64         $XTMP0,$XTMP4
+        vmovdqa64         $XTMP0,$XTMP4
 ___
   }
   $code .= <<___;
@@ -1902,11 +1893,11 @@ sub INITIAL_BLOCKS_PARTIAL_CIPHER {
   my $SHUFMASK        = $_[23];    # [out] ZMM loaded with BE/LE shuffle mask
 
   if ($NUM_BLOCKS == 1) {
-    $code .= "$VMOVDQA64         SHUF_MASK(%rip),@{[XWORD($SHUFMASK)]}\n";
+    $code .= "vmovdqa64         SHUF_MASK(%rip),@{[XWORD($SHUFMASK)]}\n";
   } elsif ($NUM_BLOCKS == 2) {
-    $code .= "$VMOVDQA64         SHUF_MASK(%rip),@{[YWORD($SHUFMASK)]}\n";
+    $code .= "vmovdqa64         SHUF_MASK(%rip),@{[YWORD($SHUFMASK)]}\n";
   } else {
-    $code .= "$VMOVDQA64         SHUF_MASK(%rip),$SHUFMASK\n";
+    $code .= "vmovdqa64         SHUF_MASK(%rip),$SHUFMASK\n";
   }
 
   # ;; prepare AES counter blocks
@@ -2151,7 +2142,7 @@ ___
       &VHPXORI4x128($GL, $ZT1);
 
       # ;; 256-bit to 128-bit reduction
-      $code .= "$VMOVDQA64         POLY2(%rip),@{[XWORD($ZT0)]}\n";
+      $code .= "vmovdqa64         POLY2(%rip),@{[XWORD($ZT0)]}\n";
       &VCLMUL_REDUCE(&XWORD($HASH_IN_OUT), &XWORD($ZT0), &XWORD($GH), &XWORD($GL), &XWORD($ZT1), &XWORD($ZT2));
     }
     $code .= <<___;
@@ -2384,7 +2375,7 @@ ___
 ___
   if ($NUM_BLOCKS > 4) {
     $code .= <<___;
-        $VMOVDQA64         ddq_add_4444(%rip),$B12_15
+        vmovdqa64         ddq_add_4444(%rip),$B12_15
         vpaddd            $B12_15,$B00_03,$B04_07
 ___
   }
@@ -2408,7 +2399,7 @@ ___
   if ($is_start != 0) {
     $code .= "vpxorq            `$GHASHIN_BLK_OFFSET + (0*64)`(%rsp),$HASH_IN_OUT,$GHDAT1\n";
   } else {
-    $code .= "$VMOVDQA64         `$GHASHIN_BLK_OFFSET + (0*64)`(%rsp),$GHDAT1\n";
+    $code .= "vmovdqa64         `$GHASHIN_BLK_OFFSET + (0*64)`(%rsp),$GHDAT1\n";
   }
 
   $code .= "vmovdqu64         @{[EffectiveAddress($HKBASE,$HASHKEY_OFFSET,0*64)]},$GHKEY1\n";
@@ -2432,7 +2423,7 @@ ___
         # ;; pre-load constants
         vbroadcastf64x2    `(16 * 1)`($AES_KEYS),$AESKEY2
         vmovdqu64         @{[EffectiveAddress($HKBASE,$HASHKEY_OFFSET,1*64)]},$GHKEY2
-        $VMOVDQA64         `$GHASHIN_BLK_OFFSET + (1*64)`(%rsp),$GHDAT2
+        vmovdqa64         `$GHASHIN_BLK_OFFSET + (1*64)`(%rsp),$GHDAT2
 ___
 
   # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2454,7 +2445,7 @@ ___
         vpclmulqdq        \$0x01,$GHKEY1,$GHDAT1,$GH1M      # ; a1*b0
         vpclmulqdq        \$0x10,$GHKEY1,$GHDAT1,$GH1T      # ; a0*b1
         vmovdqu64         @{[EffectiveAddress($HKBASE,$HASHKEY_OFFSET,2*64)]},$GHKEY1
-        $VMOVDQA64         `$GHASHIN_BLK_OFFSET + (2*64)`(%rsp),$GHDAT1
+        vmovdqa64         `$GHASHIN_BLK_OFFSET + (2*64)`(%rsp),$GHDAT1
 ___
 
   # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2472,7 +2463,7 @@ ___
         vpclmulqdq        \$0x11,$GHKEY2,$GHDAT2,$GH2H      # ; a1*b1
         vpclmulqdq        \$0x00,$GHKEY2,$GHDAT2,$GH2L      # ; a0*b0
         vmovdqu64         @{[EffectiveAddress($HKBASE,$HASHKEY_OFFSET,3*64)]},$GHKEY2
-        $VMOVDQA64         `$GHASHIN_BLK_OFFSET + (3*64)`(%rsp),$GHDAT2
+        vmovdqa64         `$GHASHIN_BLK_OFFSET + (3*64)`(%rsp),$GHDAT2
 ___
 
   # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2591,7 +2582,7 @@ ___
         vpsrldq           \$8,$GH1M,$GH2M
         vpslldq           \$8,$GH1M,$GH1M
 
-        $VMOVDQA64         POLY2(%rip),@{[XWORD($RED_POLY)]}
+        vmovdqa64         POLY2(%rip),@{[XWORD($RED_POLY)]}
 ___
   }
 
@@ -3043,7 +3034,7 @@ sub GHASH_16_ENCRYPT_16_PARALLEL {
         jmp               .L_16_blocks_ok_${label_suffix}
 .L_16_blocks_overflow_${label_suffix}:
         vpshufb           $SHFMSK,$CTR_BE,$CTR_BE
-        $VMOVDQA64         ddq_add_4444(%rip),$B12_15
+        vmovdqa64         ddq_add_4444(%rip),$B12_15
         vpaddd            ddq_add_1234(%rip),$CTR_BE,$B00_03
         vpaddd            $B12_15,$B00_03,$B04_07
         vpaddd            $B12_15,$B04_07,$B08_11
@@ -3061,7 +3052,7 @@ ___
   if ($GHASH_IN ne "no_ghash_in") {
     $code .= "vpxorq            `$GHASHIN_BLK_OFFSET + (0*64)`(%rsp),$GHASH_IN,$GHDAT1\n";
   } else {
-    $code .= "$VMOVDQA64         `$GHASHIN_BLK_OFFSET + (0*64)`(%rsp),$GHDAT1\n";
+    $code .= "vmovdqa64         `$GHASHIN_BLK_OFFSET + (0*64)`(%rsp),$GHDAT1\n";
   }
 
   $code .= <<___;
@@ -3076,7 +3067,7 @@ ___
         # ;; pre-load constants
         vbroadcastf64x2    `(16 * 1)`($AES_KEYS),$AESKEY2
         vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (1*4)),$HKBASE)]},$GHKEY2
-        $VMOVDQA64         `$GHASHIN_BLK_OFFSET + (1*64)`(%rsp),$GHDAT2
+        vmovdqa64         `$GHASHIN_BLK_OFFSET + (1*64)`(%rsp),$GHDAT2
 
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         # ;; stitch AES rounds with GHASH
@@ -3097,7 +3088,7 @@ ___
         vpclmulqdq        \$0x01,$GHKEY1,$GHDAT1,$GH1M      # ; a1*b0
         vpclmulqdq        \$0x10,$GHKEY1,$GHDAT1,$GH1T      # ; a0*b1
         vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (2*4)),$HKBASE)]},$GHKEY1
-        $VMOVDQA64         `$GHASHIN_BLK_OFFSET + (2*64)`(%rsp),$GHDAT1
+        vmovdqa64         `$GHASHIN_BLK_OFFSET + (2*64)`(%rsp),$GHDAT1
 
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         # ;; AES round 1
@@ -3114,7 +3105,7 @@ ___
         vpclmulqdq        \$0x11,$GHKEY2,$GHDAT2,$GH2H      # ; a1*b1
         vpclmulqdq        \$0x00,$GHKEY2,$GHDAT2,$GH2L      # ; a0*b0
         vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (3*4)),$HKBASE)]},$GHKEY2
-        $VMOVDQA64         `$GHASHIN_BLK_OFFSET + (3*64)`(%rsp),$GHDAT2
+        vmovdqa64         `$GHASHIN_BLK_OFFSET + (3*64)`(%rsp),$GHDAT2
 
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         # ;; AES round 2
@@ -3211,7 +3202,7 @@ ___
         vpsrldq           \$8,$GH1M,$GH2M
         vpslldq           \$8,$GH1M,$GH1M
 
-        $VMOVDQA64         POLY2(%rip),@{[XWORD($RED_POLY)]}
+        vmovdqa64         POLY2(%rip),@{[XWORD($RED_POLY)]}
 ___
   }
 
@@ -3367,10 +3358,10 @@ ___
   # ;; =================================================
   # ;; store shuffled cipher text for ghashing
   $code .= <<___;
-        $VMOVDQA64         $B00_03,`$AESOUT_BLK_OFFSET + (0*64)`(%rsp)
-        $VMOVDQA64         $B04_07,`$AESOUT_BLK_OFFSET + (1*64)`(%rsp)
-        $VMOVDQA64         $B08_11,`$AESOUT_BLK_OFFSET + (2*64)`(%rsp)
-        $VMOVDQA64         $B12_15,`$AESOUT_BLK_OFFSET + (3*64)`(%rsp)
+        vmovdqa64         $B00_03,`$AESOUT_BLK_OFFSET + (0*64)`(%rsp)
+        vmovdqa64         $B04_07,`$AESOUT_BLK_OFFSET + (1*64)`(%rsp)
+        vmovdqa64         $B08_11,`$AESOUT_BLK_OFFSET + (2*64)`(%rsp)
+        vmovdqa64         $B12_15,`$AESOUT_BLK_OFFSET + (3*64)`(%rsp)
 ___
 }
 
@@ -3828,9 +3819,9 @@ ___
         cmp               \$`(16 * 16)`,$LENGTH
         jbe              .L_message_below_equal_16_blocks_${label_suffix}
 
-        $VMOVDQA64         SHUF_MASK(%rip),$SHUF_MASK
-        $VMOVDQA64         ddq_addbe_4444(%rip),$ADDBE_4x4
-        $VMOVDQA64         ddq_addbe_1234(%rip),$ADDBE_1234
+        vmovdqa64         SHUF_MASK(%rip),$SHUF_MASK
+        vmovdqa64         ddq_addbe_4444(%rip),$ADDBE_4x4
+        vmovdqa64         ddq_addbe_1234(%rip),$ADDBE_1234
 
         # ;; start the pipeline
         # ;; - 32 blocks aes-ctr
@@ -3931,7 +3922,7 @@ ___
 
   # ;; === xor cipher block 0 with GHASH (ZT4)
   $code .= <<___;
-        $VMOVDQA64         $ZTMP4,$AAD_HASHz
+        vmovdqa64         $ZTMP4,$AAD_HASHz
 
         add               \$`($big_loop_nblocks * 16)`,$DATA_OFFSET
         sub               \$`($big_loop_nblocks * 16)`,$LENGTH
@@ -4214,7 +4205,7 @@ sub INITIAL_BLOCKS_16 {
         jmp               .L_next_16_ok_${label_suffix}
 .L_next_16_overflow_${label_suffix}:
         vpshufb           $SHUF_MASK,$CTR,$CTR
-        $VMOVDQA64         ddq_add_4444(%rip),$B12_15
+        vmovdqa64         ddq_add_4444(%rip),$B12_15
         vpaddd            ddq_add_1234(%rip),$CTR,$B00_03
         vpaddd            $B12_15,$B00_03,$B04_07
         vpaddd            $B12_15,$B04_07,$B08_11
@@ -4293,10 +4284,10 @@ ___
 ___
   }
   $code .= <<___;
-        $VMOVDQA64         $B00_03,`$stack_offset + (0 * 64)`(%rsp)
-        $VMOVDQA64         $B04_07,`$stack_offset + (1 * 64)`(%rsp)
-        $VMOVDQA64         $B08_11,`$stack_offset + (2 * 64)`(%rsp)
-        $VMOVDQA64         $B12_15,`$stack_offset + (3 * 64)`(%rsp)
+        vmovdqa64         $B00_03,`$stack_offset + (0 * 64)`(%rsp)
+        vmovdqa64         $B04_07,`$stack_offset + (1 * 64)`(%rsp)
+        vmovdqa64         $B08_11,`$stack_offset + (2 * 64)`(%rsp)
+        vmovdqa64         $B12_15,`$stack_offset + (3 * 64)`(%rsp)
 ___
 }
 
@@ -4383,7 +4374,7 @@ ___
   $code .= <<___;
         vpshufb           SHUF_MASK(%rip),%xmm16,%xmm16
         # ;;;  PRECOMPUTATION of HashKey<<1 mod poly from the HashKey ;;;
-        $VMOVDQA64         %xmm16,%xmm2
+        vmovdqa64         %xmm16,%xmm2
         vpsllq            \$1,%xmm16,%xmm16
         vpsrlq            \$63,%xmm2,%xmm2
         vmovdqa           %xmm2,%xmm1

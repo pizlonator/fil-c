@@ -65,7 +65,7 @@ cd build
 ../configure \
     --target=$LFS_TGT \
     --prefix=$LFS/tools \
-    --with-glibc-version=2.40 \
+    --with-glibc-version=2.44 \
     --with-sysroot=$LFS \
     --with-newlib \
     --without-headers \
@@ -108,11 +108,11 @@ rm -rf pizlonated-linux
 #
 # The problem is: the GCC we build is not going to want to link to the yolo libraries!
 
-tar -xf glibc-2.40.tar.xz
-cd glibc-2.40
+tar -xf glibc-2.44.tar.xz
+cd glibc-2.44
 ln -sfv ../lib/ld-linux-x86-64.so.2 $LFS/lib64
 ln -sfv ../lib/ld-linux-x86-64.so.2 $LFS/lib64/ld-lsb-x86-64.so.3
-patch -Np1 -i ../glibc-2.40-fhs-1.patch
+patch -Np1 -i ../glibc-2.44-fhs-1.patch
 mkdir -v build
 cd build
 echo "rootsbindir=/yolo/sbin" > configparms
@@ -128,7 +128,7 @@ make
 make DESTDIR=$LFS install
 sed '/RTLDLIST=/s@/yolo@@g' -i $LFS/yolo/bin/ldd
 cd ../..
-rm -rf glibc-2.40
+rm -rf glibc-2.44
 
 tar -xf gcc-14.2.0.tar.xz
 cd gcc-14.2.0

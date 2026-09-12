@@ -1,0 +1,7 @@
+#include <sysdep.h>
+#include <tls.h>
+#include <kernel-features.h>
+
+MULTIPLE_THREADS_OFFSET offsetof (tcbhead_t, multiple_threads)
+SYSINFO_OFFSET          offsetof (tcbhead_t, sysinfo)
+SIGSTATE_OFFSET         offsetof (tcbhead_t, _hurd_sigstate)

@@ -55,6 +55,11 @@ std::string read_file_bytes(const std::string& path);
 bool try_read_file_bytes(const std::string& path, std::string* out);
 void write_file_bytes(const std::string& path, const std::string& data);
 void copy_file_bytes(const std::string& src, const std::string& dst);
+// Try-variant of copy_file_bytes for best-effort callers: same
+// temp-file+fsync+rename protocol as write_file_bytes, but returns false
+// instead of dying (*err, when non-null, receives a strerror-style reason).
+bool try_copy_file_bytes(const std::string& src, const std::string& dst,
+                         std::string* err = nullptr);
 // FNV-1a 64-bit content hash (hex) and byte size of a file. Used to detect
 // "same basename, different content" tarballs in rebase; dies on IO errors.
 std::string file_hash_hex(const std::string& path);
@@ -66,6 +71,11 @@ std::string join_path(const std::string& a, const std::string& b);
 std::string basename_of(const std::string& p);
 std::string dirname_of(const std::string& p); // "" and bare names -> "."
 std::string strip_trailing_slashes(const std::string& p);
+// Same directory, basename prefixed with '.': "dir/f.projeny" ->
+// "dir/.f.projeny"; a bare "f.projeny" becomes ".f.projeny". Used for the
+// canonical dot-prefixed status-file and snapshot names (hidden files that
+// never clutter directory listings or accidental checkins).
+std::string dotname(const std::string& p);
 
 // Split on '\n'. A trailing '\n' does not produce a final empty element.
 // Strips a trailing '\r' from each line (tolerates CRLF input).
@@ -82,6 +92,26 @@ std::string get_cwd();
 std::string absolutize(const std::string& p); // lexical, based on get_cwd()
 // Lexically normalize: collapse ".", duplicate slashes; ".." pops textually.
 std::string normalize_lexical(const std::string& p);
+
+// Outcome of lexically resolving a symlink/hardlink target against a tree
+// root.
+enum class LinkResolve {
+    Inside,   // resolves to a path inside the tree
+    Absolute, // the target itself is absolute
+    Escapes,  // normalization climbs above the tree root
+};
+
+// Lexically resolve a link target for a member whose directory (relative to
+// the tree root) is base_dir ("" or "." for the root itself). Absolute
+// targets report Absolute. Otherwise base_dir/target is normalized
+// component-wise: empty and "." components are dropped and ".." pops the
+// component stack; popping an empty stack means the target climbs above the
+// tree root and reports Escapes. *resolved always receives the target's path
+// relative to the tree root (with leading ".." components when it escapes),
+// for use in diagnostics.
+LinkResolve resolve_link_target(const std::string& base_dir,
+                                const std::string& target,
+                                std::string* resolved);
 
 // Create a unique temp dir parent/prefixXXXXXX (mkdtemp). Dies on failure.
 std::string make_tempdir(const std::string& parent, const std::string& prefix);

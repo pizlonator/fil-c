@@ -1,0 +1,13 @@
+syslog: Integer overflow in __vsyslog_internal
+
+__vsyslog_internal calculated a buffer size by adding two integers, but
+did not first check if the addition would overflow.
+
+CVE-Id: CVE-2023-6780
+Public-Date: 2024-01-30
+Vulnerable-Commit: 52a5be0df411ef3ff45c10c7c308cb92993d15b1 (2.37)
+Fix-Commit: ddf542da94caf97ff43cc2875c88749880b7259b (2.39)
+Fix-Commit: d37c2b20a4787463d192b32041c3406c2bd91de0 (2.38-44)
+Fix-Commit: 2b58cba076e912961ceaa5fa58588e4b10f791c0 (2.37-59)
+Vulnerable-Commit: b0e7888d1fa2dbd2d9e1645ec8c796abf78880b9 (2.36-16)
+Fix-Commit: b9b7d6a27aa0632f334352fa400771115b3c69b7 (2.36-128)

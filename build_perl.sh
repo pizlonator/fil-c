@@ -38,10 +38,10 @@ sh ./Configure -der \
     -Dinstallprefix="$PWD/../../../pizfix" \
     -Dbin="$PWD/../../../pizfix/bin" \
     -Dprivlib="$PWD/../../../pizfix/lib/perl5/5.40.0" \
-    -Darchlib="$PWD/../../../pizfix/lib/perl5/5.40.0/x86_64-linux" \
+    -Darchlib="$PWD/../../../pizfix/lib/perl5/5.40.0/$ARCH-linux" \
     -Dsiteprefix="$PWD/../../../pizfix" \
     -Dsitelib="$PWD/../../../pizfix/perl5/site_perl/5.40.0" \
-    -Dsitearch="$PWD/../../../pizfix/perl5/site_perl/5.40.0/x86_64-linux" \
+    -Dsitearch="$PWD/../../../pizfix/perl5/site_perl/5.40.0/$ARCH-linux" \
     -Dman1dir="$PWD/../../../pizfix/share/man/man1" \
     -Dman3dir="$PWD/../../../pizfix/share/man/man1" \
     -Dscriptdir="$PWD/../../../pizfix/bin" \

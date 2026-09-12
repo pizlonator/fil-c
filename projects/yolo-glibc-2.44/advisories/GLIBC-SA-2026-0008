@@ -1,0 +1,22 @@
+REJECTED: Static buffer overflow in deprecated nis_local_principal
+
+REJECTED: CVE-2026-5358 is rejected for two reasons. Firstly it has been
+discovered that no NIS+ client or server was ever released for any
+Linux-based OS distributions and as such this makes the API provisional
+and unused.  Secondly it has been discovered that the NIS+ cold start
+cache (/var/nis/NIS_COLD_START) cannot be bypassed and as such the API
+can only be called with a trusted server from the pre-populated cache.
+The use of a trusted server means no trust boundary is crossed and this
+is therefore considered a normal bug.
+
+NIS+ support in the GNU C Library was never officially supported even
+though an incomplete implementation of the APIs was made pulibc.  To the
+best knowledge of the glibc security team no open-source NIS+ server
+implementations were ever released for use with this API.  Applications
+should not use any of the NIS+ APIs and should move to modern identity
+and access management services.
+
+CVE-Id: CVE-2026-5358
+Public-Date: 2026-04-10
+Rejected-Date: 2026-04-33
+Reported-by: Rahul Hoysala

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 void hb_ops(unsigned char* p);
+long hb_xor_ah(long);
 
 static int fails = 0;
 
@@ -68,6 +69,10 @@ int main()
 	expect64(q[20], 0x4444444444444444UL, "r15 pressure");
 	expect64(q[21], 0x5555555555555555UL, "rbp pressure");
 	free(p);
+	/* xor-zeroing + high-byte def + full use: the movb merges into bits
+	   8-15, preserving the zeroed rest */
+	expect64(hb_xor_ah(0x1CD), 0xCD00, "xorq + movb ah");
+	expect64(hb_xor_ah(0xFF3A), 0x3A00, "xorq + movb ah (2)");
 	if (fails)
 		return 1;
 	printf("highbyte int ok\n");

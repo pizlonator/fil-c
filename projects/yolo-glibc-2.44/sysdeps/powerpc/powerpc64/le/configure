@@ -1,0 +1,141 @@
+# This file is generated from configure.ac by Autoconf.  DO NOT EDIT!
+ # Local configure fragment for sysdeps/powerpc/powerpc64le.
+
+OLD_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS $libc_cv_cc_submachine"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if the target machine is at least POWER8" >&5
+printf %s "checking if the target machine is at least POWER8... " >&6; }
+if test ${libc_cv_target_power8_ok+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef _ARCH_PWR8
+#error invalid target architecture
+#endif
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  libc_cv_target_power8_ok=yes
+else case e in #(
+  e) libc_cv_target_power8_ok=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_target_power8_ok" >&5
+printf "%s\n" "$libc_cv_target_power8_ok" >&6; }
+if test "$libc_cv_target_power8_ok" != "yes"
+then :
+  critic_missing="$critic_missing POWER8 or newer is required on powerpc64le."
+fi
+CFLAGS="$OLD_CFLAGS"
+
+OLD_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -mno-gnu-attribute"
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if the compiler supports -mno-gnu-attribute" >&5
+printf %s "checking if the compiler supports -mno-gnu-attribute... " >&6; }
+if test ${libc_cv_no_gnu_attr_ok+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  libc_cv_no_gnu_attr_ok=yes
+else case e in #(
+  e) libc_cv_no_gnu_attr_ok=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_no_gnu_attr_ok" >&5
+printf "%s\n" "$libc_cv_no_gnu_attr_ok" >&6; }
+if test "$libc_cv_no_gnu_attr_ok" != "yes"
+then :
+  critic_missing="$critic_missing A compiler with -mno-gnu-attribute is required on powerpc64le."
+fi
+CFLAGS="$OLD_CFLAGS"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if $CC compiles signbit with 128-bit floating point type" >&5
+printf %s "checking if $CC compiles signbit with 128-bit floating point type... " >&6; }
+if test ${libc_cv_compiler_powerpc64le_ice+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) save_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -mabi=ieeelongdouble -Wno-psabi"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int sbr (long double a) { return __builtin_signbit (a); }
+int sbm (long double *a) { return __builtin_signbit (*a); }
+int sbo (long double *a) { return __builtin_signbit (a[4]); }
+int sbi (long double *a, unsigned long n) { return __builtin_signbit (a[n]); }
+void sbs (int *p, long double a) { *p = __builtin_signbit (a); }
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  libc_cv_compiler_powerpc64le_ice=yes
+else case e in #(
+  e) libc_cv_compiler_powerpc64le_ice=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+CFLAGS="$save_CFLAGS" ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_compiler_powerpc64le_ice" >&5
+printf "%s\n" "$libc_cv_compiler_powerpc64le_ice" >&6; }
+if test "$libc_cv_compiler_powerpc64le_ice" != "yes"
+then :
+  critic_missing="$critic_missing __builtin_signbit is broken.  GCC 7.4 or newer is required to resolve (PR83862)."
+fi
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if $CC compiles with -mabi=ieeelongdouble and -mlong-double-128" >&5
+printf %s "checking if $CC compiles with -mabi=ieeelongdouble and -mlong-double-128... " >&6; }
+if test ${libc_cv_compiler_powerpc64le_ldbl128_mabi+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) save_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -mabi=ieeelongdouble -mlong-double-128"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+long double x;
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  libc_cv_compiler_powerpc64le_ldbl128_mabi=yes
+else case e in #(
+  e) libc_cv_compiler_powerpc64le_ldbl128_mabi=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+CFLAGS="$save_CFLAGS" ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_compiler_powerpc64le_ldbl128_mabi" >&5
+printf "%s\n" "$libc_cv_compiler_powerpc64le_ldbl128_mabi" >&6; }
+if test "$libc_cv_compiler_powerpc64le_ldbl128_mabi" = "no"
+then :
+  critic_missing="$critic_missing The compiler must support -mabi=ieeelongdouble and -mlong-double-128 simultaneously."
+fi
+
+test -n "$critic_missing" && as_fn_error $? "*** $critic_missing" "$LINENO" 5
+

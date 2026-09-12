@@ -185,34 +185,20 @@ static PAS_ALWAYS_INLINE void filc_exact_ptr_table_mark_outgoing_ptrs(filc_exact
     pas_lock_unlock(&ptr_table->lock);
 }
 
+PAS_API bool filc_weak_load_barrier_slow(filc_thread* my_thread, filc_object* object);
+
 /* Returns true if we should treat the loaded pointer as being valid. Returns false if the pointer
    should be treated as if it had been cleared. */
 static PAS_ALWAYS_INLINE bool filc_weak_load_barrier(filc_thread* my_thread, filc_ptr result)
 {
-    if (!filc_ptr_object(result))
+    filc_object* object = filc_ptr_object(result);
+    if (!object)
         return true;
-    if (filc_object_is_free(filc_ptr_object(result)))
+    if (filc_object_is_free(object))
         return false;
-    for (;;) {
-        switch (filc_current_marking_state) {
-        case filc_not_marking:
-            if (fugc_has_unfinished_census &&
-                !filc_non_free_object_is_live_for_weak(filc_ptr_object(result), FUGC_MARKER))
-                return false;
-            return true;
-        case filc_marking:
-            filc_barrier_slow(my_thread, filc_ptr_object(result));
-            return true;
-        case filc_terminating:
-            pas_compare_and_swap_uint32_weak((uint32_t*)&filc_current_marking_state,
-                                             (unsigned)filc_terminating,
-                                             (unsigned)filc_marking);
-            break;
-        default:
-            PAS_ASSERT(!"Should not be reached");
-            break;
-        }
-    }
+    if (filc_current_marking_state == filc_not_marking && !fugc_has_unfinished_census)
+        return true;
+    return filc_weak_load_barrier_slow(my_thread, object);
 }
 
 static PAS_ALWAYS_INLINE filc_ptr filc_weak_get_with_manual_tracking(filc_thread* my_thread,

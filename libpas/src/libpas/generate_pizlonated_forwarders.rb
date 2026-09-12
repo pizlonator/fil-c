@@ -508,6 +508,7 @@ addSig nil, "int", "zsys_recvmmsg", "int", "filc_ptr", "unsigned", "int", "filc_
 addSig nil, "int", "zsys_statx", "int", "filc_ptr", "int", "unsigned", "filc_ptr"
 addSig nil, "long", "zsys_splice", "int", "filc_ptr", "int", "filc_ptr", "size_t", "unsigned"
 addSig nil, "long", "zsys_tee", "int", "int", "size_t", "unsigned"
+addSig nil, "long", "zsys_vmsplice", "int", "filc_ptr", "size_t", "unsigned"
 addSig nil, "int", "zsys_mknod", "filc_ptr", "unsigned", "unsigned long"
 addSig nil, "int", "zsys_mknodat", "int", "filc_ptr", "unsigned", "unsigned long"
 addSig nil, "int", "zsys_reboot", "int"

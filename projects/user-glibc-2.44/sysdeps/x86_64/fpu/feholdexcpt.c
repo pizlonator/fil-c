@@ -1,5 +1,5 @@
 /* Store current floating-point environment and clear exceptions.
-   Copyright (C) 2001-2024 Free Software Foundation, Inc.
+   Copyright (C) 2001-2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,5 +27,5 @@ __feholdexcept (fenv_t *envp)
   return zmath_feholdexcept (envp);
 }
 libm_hidden_def (__feholdexcept)
-weak_alias (__feholdexcept, feholdexcept)
+static_weak_alias (__feholdexcept, feholdexcept)
 libm_hidden_weak (feholdexcept)
