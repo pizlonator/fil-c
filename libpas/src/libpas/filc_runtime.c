@@ -14343,6 +14343,40 @@ int filc_native_zmath_fetestexcept(filc_thread* my_thread, int excepts)
     return fetestexcept(excepts);
 }
 
+/* The x86 fenv env-manipulating functions (feholdexcept/fegetenv/fesetenv) are built on fnstenv/
+   fldenv/stmxcsr/ldmxcsr inline asm with pointer operands, which the Fil-C instrumenter cannot
+   emit -- calling them from user code panics ("cannot handle inline asm"). Run them out of line
+   here in the Yolo runtime (where that asm is fine) against the caller's checked buffer, the same
+   way zmath_feclearexcept/fetestexcept above forward to the underlying libc. */
+int filc_native_zmath_feholdexcept(filc_thread* my_thread, filc_ptr envp)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_check_write(envp, sizeof(fenv_t));
+    return feholdexcept((fenv_t*)filc_ptr_ptr(envp));
+}
+
+int filc_native_zmath_fegetenv(filc_thread* my_thread, filc_ptr envp)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_check_write(envp, sizeof(fenv_t));
+    return fegetenv((fenv_t*)filc_ptr_ptr(envp));
+}
+
+int filc_native_zmath_fesetenv(filc_thread* my_thread, filc_ptr envp)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    /* FE_DFL_ENV -- and glibc's FE_NOMASK_ENV extension -- are sentinel pointer values, not
+       readable memory, so only bounds-check a real environment buffer. */
+    const fenv_t* raw = (const fenv_t*)filc_ptr_ptr(envp);
+    if (raw != FE_DFL_ENV
+#ifdef FE_NOMASK_ENV
+        && raw != FE_NOMASK_ENV
+#endif
+        )
+        filc_check_read(envp, sizeof(fenv_t));
+    return fesetenv(raw);
+}
+
 PAS_END_EXTERN_C;
 
 #endif /* PAS_ENABLE_FILC */
