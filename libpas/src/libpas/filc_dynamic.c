@@ -264,6 +264,22 @@ int filc_native_zsys_dl_iterate_phdr(filc_thread* my_thread, filc_ptr callback_p
                           entry->dlpi_tls_data ? filc_ptr_forge_invalid(entry->dlpi_tls_data)
                                                : filc_ptr_forge_null());
 
+        /* The name and phdr bytes now live in the rooted Fil-C object; release the native
+           scratch copies before handing control to the callback. The callback can throw
+           (filc_call_user_* is can_throw), and a C++ unwind would skip the cleanup below, so
+           freeing consumed buffers here keeps the trampoline from retaining them across user
+           code. (The still-undelivered entries and the entries array itself are freed after the
+           loop; building their Fil-C objects lazily, one per iteration, is required for GC
+           rooting, so their raw buffers cannot be released before they are reached.) */
+        if (entry->name) {
+            bmalloc_deallocate(entry->name);
+            entry->name = NULL;
+        }
+        if (entry->phdr) {
+            bmalloc_deallocate(entry->phdr);
+            entry->phdr = NULL;
+        }
+
         result = filc_call_user_int_ptr_size_ptr(
             my_thread, callback_ptr, info_ptr, sizeof(struct dl_phdr_info), data_ptr);
         if (result)

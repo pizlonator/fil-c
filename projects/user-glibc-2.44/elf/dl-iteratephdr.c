@@ -26,7 +26,13 @@
    the loaded objects with the host dl_iterate_phdr and rebuilds each struct
    dl_phdr_info in capability-safe Fil-C objects before invoking the callback.
    This is the glibc twin of the usermusl routing, so dl_iterate_phdr works
-   under both libcs rather than only musl.  */
+   under both libcs rather than only musl.
+
+   The stock __dl_iterate_phdr reported only the objects in the caller's link-map
+   namespace (Lmid_t).  Fil-C has no namespace support -- there is no dlmopen, so
+   every object lives in the sole base namespace -- hence enumerating all loaded
+   objects (what the runtime does) is exactly the caller's namespace, and dropping
+   the RETURN_ADDRESS/namespace bookkeeping changes no observable behaviour.  */
 int
 __dl_iterate_phdr (int (*callback) (struct dl_phdr_info *info,
 				    size_t size, void *data), void *data)

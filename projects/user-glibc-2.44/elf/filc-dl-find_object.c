@@ -1,4 +1,4 @@
-/* Fil-C: route glibc's dl_find_object through the runtime.
+/* Fil-C: route glibc's _dl_find_object through the runtime.
    Copyright (C) 2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -17,6 +17,7 @@
    not, see <https://www.gnu.org/licenses/>.  */
 
 #include <link.h>
+#include <dlfcn.h>
 #include <pizlonated_syscalls.h>
 
 /* glibc's stock _dl_find_object walks the internal find_object tables and hands
@@ -25,12 +26,18 @@
    zsys_dl_find_object instead: the runtime resolves the object from the loaded
    program headers and fills a capability-safe struct dl_find_object.  This is
    the glibc twin of the usermusl routing, so dl_find_object works under both
-   libcs rather than only musl.  */
+   libcs rather than only musl.
+
+   _dl_find_object is an rtld symbol -- declared with rtld_hidden_proto in
+   <dlfcn.h> -- so it is defined directly and exported via rtld_hidden_def,
+   mirroring the stock dl-find_object.c aliasing.  The libc hidden_def/__-
+   prefixed idiom used for __dl_iterate_phdr does not apply here: _dl_find_object
+   is not a libc-hidden __-name with a public weak alias, and emitting a
+   .filc_alias onto the already-defined name collides ("New alias name
+   _dl_find_object is already taken by a definition"), aborting FilPizlonator.  */
 int
-__dl_find_object (void *pc, struct dl_find_object *result)
+_dl_find_object (void *pc, struct dl_find_object *result)
 {
   return zsys_dl_find_object (pc, result);
 }
-hidden_def (__dl_find_object)
-
-weak_alias (__dl_find_object, _dl_find_object)
+rtld_hidden_def (_dl_find_object)
