@@ -16407,12 +16407,40 @@ public:
                          /*hasSideEffects=*/true);
       break;
     case Triple::x86_64:
-      StackCheckAsm =
-          InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
-                         "cmp %rsp, $0\n\t"
-                         "jae filc_stack_overflow_failure@PLT",
-                         "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
-                         /*hasSideEffects=*/true);
+      if (M.getCodeModel() == CodeModel::Large) {
+        if (M.getPICLevel() == PICLevel::NotPIC) {
+          StackCheckAsm =
+              InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                             "cmp %rsp, $0\n\t"
+                             "jb 1f\n\t"
+                             "movabs $$filc_stack_overflow_failure, %r11\n\t"
+                             "jmp *%r11\n\t"
+                             "1:",
+                             "*m,~{r11},~{memory},~{dirflag},~{fpsr},~{flags}",
+                             /*hasSideEffects=*/true);
+        } else {
+          StackCheckAsm =
+              InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                             "cmp %rsp, $0\n\t"
+                             "jb 1f\n\t"
+                             "2:\n\t"
+                             "leaq 2b(%rip), %r10\n\t"
+                             "movabsq $$_GLOBAL_OFFSET_TABLE_-2b, %r11\n\t"
+                             "addq %r10, %r11\n\t"
+                             "movabsq $$filc_stack_overflow_failure@GOT, %r10\n\t"
+                             "jmp *(%r11,%r10)\n\t"
+                             "1:",
+                             "*m,~{r10},~{r11},~{memory},~{dirflag},~{fpsr},~{flags}",
+                             /*hasSideEffects=*/true);
+        }
+      } else {
+        StackCheckAsm =
+            InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                           "cmp %rsp, $0\n\t"
+                           "jae filc_stack_overflow_failure@PLT",
+                           "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
+                           /*hasSideEffects=*/true);
+      }
       break;
     default:
       report_fatal_error("Unknown arch");
@@ -17349,4 +17377,3 @@ PreservedAnalyses FilPizlonatorPass::run(Module &M, ModuleAnalysisManager&) {
   P.run();
   return PreservedAnalyses::none();
 }
-
