@@ -33,6 +33,20 @@ typedef struct {
 } Dl_info;
 int dladdr(const void *, Dl_info *);
 int dlinfo(void *, int, void *);
+
+/* glibc's dl_find_object(3) (>= 2.35). Layout matches glibc's x86_64 struct dl_find_object
+   (sizeof == 96); the Fil-C runtime fills it capability-safely. */
+struct link_map;
+struct dl_find_object {
+	unsigned long long dlfo_flags;
+	void *dlfo_map_start;
+	void *dlfo_map_end;
+	struct link_map *dlfo_link_map;
+	void *dlfo_eh_frame;
+	void *dlfo_sframe;
+	unsigned long long __dlfo_reserved[6];
+};
+int _dl_find_object(void *, struct dl_find_object *);
 #endif
 
 #if _REDIR_TIME64
