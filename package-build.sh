@@ -29,6 +29,12 @@
 set -e
 set -x
 
+if ! command -v patchelf >/dev/null 2>&1
+then
+    echo "error: patchelf is required to package Fil-C." >&2
+    exit 1
+fi
+
 build_name=filc-0.685-$OS-$ARCH
 
 rm -rf $build_name
@@ -72,14 +78,18 @@ echo 'set -x' >> setup.sh
 
 for binary in pizfix/lib/*.so pizfix/lib/*.so.* pizfix/lib64/*.so pizfix/lib64/*.so.* pizfix/bin/* pizfix/sbin/* pizfix/libexec/* pizfix/lib_test/*.so pizfix/lib_test_gcverify/*.so pizfix/lib_gcverify/*.so
 do
-    if test ! -L $binary && test $binary != pizfix/lib/libyoloc.so
+    if test -f "$binary" && test ! -L "$binary" && test "$binary" != pizfix/lib/libyoloc.so
     then
-        if patchelf --set-rpath pizfix/lib64:pizfix/lib $binary
+        # Probe separately: scripts and libraries without PT_INTERP are normal,
+        # but failure to relocate a recognized ELF file must abort packaging.
+        if patchelf --print-rpath "$binary" >/dev/null 2>&1
         then
+            patchelf --set-rpath pizfix/lib64:pizfix/lib "$binary"
             echo "patchelf --set-rpath \$PWD/pizfix/lib64:\$PWD/pizfix/lib $binary" >> setup.sh
         fi
-        if patchelf --set-interpreter pizfix/lib/ld-fil1-$ARCH.so $binary
+        if patchelf --print-interpreter "$binary" >/dev/null 2>&1
         then
+            patchelf --set-interpreter pizfix/lib/ld-fil1-$ARCH.so "$binary"
             echo "patchelf --set-interpreter \$PWD/pizfix/lib/ld-fil1-$ARCH.so $binary" >> setup.sh
         fi
     fi
@@ -129,4 +139,3 @@ chmod 755 setup.sh
 cd ..
 
 tar -cJvf $build_name.tar.xz $build_name
-
