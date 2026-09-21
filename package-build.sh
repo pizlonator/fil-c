@@ -76,6 +76,12 @@ echo '#!/bin/sh' > setup.sh
 echo 'set -e' >> setup.sh
 echo 'set -x' >> setup.sh
 
+# Share header validation with source builds. Embed it so setup.sh remains
+# self-contained, and fail before relocating any packaged binaries.
+echo "sh -s $ARCH <<'FILC_KERNEL_HEADERS_SETUP'" >> setup.sh
+cat ../build_os_include.sh >> setup.sh
+echo 'FILC_KERNEL_HEADERS_SETUP' >> setup.sh
+
 for binary in pizfix/lib/*.so pizfix/lib/*.so.* pizfix/lib64/*.so pizfix/lib64/*.so.* pizfix/bin/* pizfix/sbin/* pizfix/libexec/* pizfix/lib_test/*.so pizfix/lib_test_gcverify/*.so pizfix/lib_gcverify/*.so
 do
     if test -f "$binary" && test ! -L "$binary" && test "$binary" != pizfix/lib/libyoloc.so
@@ -102,19 +108,6 @@ echo "fi" >> setup.sh
 
 rm pizfix/lib/ld-fil1-$ARCH.so
 (cd pizfix/lib/ && ln -s libyoloc.so ld-fil1-$ARCH.so)
-
-echo "cd pizfix" >> setup.sh
-echo "mkdir os-include" >> setup.sh
-echo "cd os-include" >> setup.sh
-echo "ln -s /usr/include/linux ." >> setup.sh
-echo "if test -d /usr/include/x86_64-linux-gnu/asm" >> setup.sh
-echo "then" >> setup.sh
-echo "    ln -s /usr/include/x86_64-linux-gnu/asm ." >> setup.sh
-echo "else" >> setup.sh
-echo "    ln -s /usr/include/asm ." >> setup.sh
-echo "fi" >> setup.sh
-echo "ln -s /usr/include/asm-generic ." >> setup.sh
-echo "cd ../.." >> setup.sh
 
 echo 'set +x' >> setup.sh
 echo 'echo' >> setup.sh

@@ -29,12 +29,14 @@ set -x
 
 rm -rf pizfix
 
+# Check required headers before spending time building LLVM and its tools.
+./build_os_include.sh
+
 ./build_projeny_yolo.sh
 ./build_compiler_rt.sh
 ./build_yolounwind.sh
 ./configure_llvm.sh
 ./build_clang.sh
-./build_os_include.sh
 
 if test "x$ALTYOLO" != "x"
 then

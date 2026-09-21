@@ -61,6 +61,14 @@ on Linux because it allows me to do a more faithful job of implementing libc.
 There's nothing fundamentally stopping Fil-C from working on other
 architectures or OSes other than Linux.
 
+The classic binary distribution and source builds require Linux userspace
+kernel headers: `kernel-headers` on Fedora/RHEL/Rocky, `linux-libc-dev` on
+Debian/Ubuntu, `linux-api-headers` on Arch, or `linux-glibc-devel` on openSUSE.
+Install these before running setup. Missing or incompatible headers are a
+fatal setup error, even if a particular program does not include kernel
+headers. Setup stops before relocating binaries and can be rerun after the
+headers are installed.
+
 ## Getting Started
 
 If you downloaded Fil-C binaries, run:
