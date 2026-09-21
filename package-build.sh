@@ -59,6 +59,9 @@ mkdir -p $build_name/build/include/
 cp -R build/include/c++ $build_name/build/include/
 mkdir -p $build_name/build/include/$ARCH-unknown-linux-gnu/
 cp -R build/include/$ARCH-unknown-linux-gnu/c++ $build_name/build/include/$ARCH-unknown-linux-gnu/
+# __config_site is architecture-independent for matching libc/libc++ builds;
+# install it under both target triples.
+cp -R $build_name/build/include/$ARCH-unknown-linux-gnu $build_name/build/include/$CROSSARCH-unknown-linux-gnu
 mkdir -p $build_name/build/lib/clang/20/
 cp -R build/lib/clang/20/include $build_name/build/lib/clang/20/
 

@@ -200,6 +200,12 @@ else:
         self.assertEqual((self.package / "pizfix/bin/script").read_text(),
                          "#!/bin/sh\nexit 0\n")
 
+    def test_packaged_cxx_config_for_both_architectures(self):
+        self.generate("aarch64", "aarch64")
+        for arch in ("x86_64", "aarch64"):
+            config = self.package / f"build/include/{arch}-unknown-linux-gnu/c++/v1/__config_site"
+            self.assertEqual(config.read_text(), "fixture\n")
+
     def test_missing_headers_fail_before_relocation_and_can_be_retried(self):
         self.generate("x86_64", "x86_64")
         self.run_setup(success=False)
