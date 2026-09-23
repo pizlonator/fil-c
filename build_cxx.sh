@@ -107,6 +107,9 @@ cmake -S runtimes -B runtimes-build -G Ninja \
 (cd runtimes-build && ninja $NINJAFLAGS $NINJARUNTIMEFLAGS)
 
 ./install-cxx-$OS.sh
+# __config_site is architecture-independent for matching libc/libc++ builds.
+rm -rf build/include/$CROSSARCH-unknown-linux-gnu
+cp -R build/include/$ARCH-unknown-linux-gnu build/include/$CROSSARCH-unknown-linux-gnu
 ./fix_clang.sh
 
 

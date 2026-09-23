@@ -57,6 +57,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Process.h"
+#include "llvm/Support/Program.h"
 #include "llvm/Support/YAMLParser.h"
 #include "llvm/TargetParser/AArch64TargetParser.h"
 #include "llvm/TargetParser/ARMTargetParserCommon.h"
@@ -9015,8 +9016,30 @@ void SarcasmAs::ConstructJob(Compilation &C, const JobAction &JA,
   // Resolve the sarcasm executable. In pizfix mode it lives next to the other
   // Fil-C tools; in /opt/fil mode it lives in the same directory as the
   // compiler; when installed pizlix style it is found on PATH.
+  //
+  // When cross compiling, the pizfix we compile against belongs to the target
+  // and its sarcasm is run by the target's minilute, so use the sarcasm of the
+  // compiler's own pizfix instead and have it run the target's assembler.
+  bool IsCross = getToolChain().getTriple().getArch() !=
+                 llvm::Triple(llvm::sys::getProcessTriple()).getArch();
   SmallString<128> SarcasmPath;
-  if (D.HasPizfix) {
+  if (IsCross) {
+    SarcasmPath = D.Dir;
+    llvm::sys::path::append(SarcasmPath, "..", "..", "pizfix");
+    llvm::sys::path::append(SarcasmPath, "bin", "sarcasm");
+    if (!llvm::sys::fs::can_execute(SarcasmPath)) {
+      SarcasmPath = D.Dir;
+      llvm::sys::path::append(SarcasmPath, "sarcasm");
+    }
+    if (!llvm::sys::fs::can_execute(SarcasmPath)) {
+      // -B and the target toolchain's program directories can contain target
+      // binaries. Only search the host PATH for this executable.
+      auto HostSarcasm = llvm::sys::findProgramByName("sarcasm");
+      SarcasmPath = HostSarcasm ? *HostSarcasm : "sarcasm";
+    }
+    CmdArgs.push_back("--as");
+    CmdArgs.push_back(Args.MakeArgString(getToolChain().GetProgramPath("as")));
+  } else if (D.HasPizfix) {
     SarcasmPath = D.PizfixRoot;
     llvm::sys::path::append(SarcasmPath, "bin");
     llvm::sys::path::append(SarcasmPath, "sarcasm");

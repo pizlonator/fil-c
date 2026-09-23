@@ -1505,12 +1505,32 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
       Diag(diag::err_drv_unable_to_set_working_directory) << WD->getValue();
 
   // Check for Fil-C resource directory override
+  std::string MissingCrossPizfixArch;
   if (Arg *A = Args.getLastArg(options::OPT_filc_resource_dir)) {
     A->claim();
     PizfixRoot = A->getValue();
     HasPizfix = true;  // Trust the user-provided path
-  } else if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path)) {
-    // If any filc flag is set, we're in filc mode
+  } else {
+    // The pizfix next to the compiler is built for the host. When cross
+    // compiling, use the target architecture's pizfix installed next to it as
+    // pizfix-<arch> rather than silently linking against the wrong one.
+    llvm::Triple Target = computeTargetTriple(*this, TargetTriple, Args);
+    if (Target.getArch() !=
+        llvm::Triple(llvm::sys::getProcessTriple()).getArch()) {
+      StringRef ArchName = llvm::Triple::getArchTypeName(Target.getArch());
+      if (HasPizfix) {
+        SmallString<128> P(Dir);
+        llvm::sys::path::append(P, "..", "..",
+                                "pizfix-" + ArchName.str());
+        PizfixRoot = std::string(P);
+      }
+      if (!HasPizfix || !llvm::sys::fs::is_directory(PizfixRoot))
+        MissingCrossPizfixArch = ArchName.str();
+    }
+  }
+  // A CRT override changes the library directory, not the target's headers or
+  // dynamic loader. It must not bypass the cross-architecture pizfix selection.
+  if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path)) {
     A->claim();
     HasPizfix = true;
   }
@@ -1813,6 +1833,21 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
 
   if (!HandleImmediateArgs(*C))
     return C;
+
+  // Queries such as --version and -dumpmachine do not need a target runtime.
+  if (!MissingCrossPizfixArch.empty()) {
+    if (MissingCrossPizfixArch != "x86_64" &&
+        MissingCrossPizfixArch != "aarch64")
+      Diag(diag::err_drv_filc_unsupported_arch) << MissingCrossPizfixArch;
+    else if (PizfixRoot.empty())
+      Diag(diag::err_drv_filc_cross_resource_dir_missing)
+          << MissingCrossPizfixArch;
+    else
+      Diag(diag::err_drv_filc_cross_pizfix_missing)
+          << MissingCrossPizfixArch << PizfixRoot;
+    C->setContainsError();
+    return C;
+  }
 
   // Construct the list of inputs.
   InputList Inputs;
@@ -6505,6 +6540,21 @@ void Driver::generatePrefixedToolNames(
     SmallVectorImpl<std::string> &Names) const {
   // FIXME: Needs a better variable than TargetTriple
   Names.emplace_back((TargetTriple + "-" + Tool).str());
+  // Also recognize architecture aliases such as arm64 and amd64 when looking
+  // for the aarch64-linux-gnu and x86_64-linux-gnu binutils.
+  llvm::Triple CanonicalTriple(llvm::Triple::normalize(TargetTriple));
+  if (CanonicalTriple.getArch() == llvm::Triple::aarch64 ||
+      CanonicalTriple.getArch() == llvm::Triple::x86_64) {
+    CanonicalTriple.setArch(CanonicalTriple.getArch());
+    if (CanonicalTriple.str() != TargetTriple)
+      Names.emplace_back((CanonicalTriple.str() + "-" + Tool).str());
+    // Distribution/vendor triples also use the usual GNU cross binutils.
+    // Keep an exact vendor-prefixed tool ahead of this fallback.
+    std::string GNUTriple = CanonicalTriple.getArchName().str() + "-linux-gnu";
+    if (CanonicalTriple.isOSLinux() && GNUTriple != TargetTriple &&
+        GNUTriple != CanonicalTriple.str())
+      Names.emplace_back((GNUTriple + "-" + Tool).str());
+  }
   Names.emplace_back(Tool);
 }
 
@@ -6517,6 +6567,9 @@ static bool ScanDirForExecutable(SmallString<128> &Dir, StringRef Name) {
 }
 
 std::string Driver::GetProgramPath(StringRef Name, const ToolChain &TC) const {
+  bool IsCrossAssembler = Name == "as" && TC.getTriple().isOSLinux() &&
+      TC.getTriple().getArch() !=
+          llvm::Triple(llvm::sys::getProcessTriple()).getArch();
   SmallVector<std::string, 2> TargetSpecificExecutables;
   generatePrefixedToolNames(Name, TC, TargetSpecificExecutables);
 
@@ -6544,17 +6597,29 @@ std::string Driver::GetProgramPath(StringRef Name, const ToolChain &TC) const {
     // E.g. <triple>-gcc on the path will be found instead
     // of gcc in the program path
     for (const auto &Path : List) {
+      // A bare assembler beside the host compiler (or in /opt/fil) is not a
+      // target tool. Bare tools in detected cross GCC directories are valid;
+      // explicit -B/COMPILER_PATH choices were handled above.
+      if (IsCrossAssembler && TargetSpecificExecutable == Name &&
+          (Path == Dir || Path == "/opt/fil/bin"))
+        continue;
       SmallString<128> P(Path);
       if (ScanDirForExecutable(P, TargetSpecificExecutable))
         return std::string(P);
     }
 
+    // Host as can silently produce a wrong-architecture object for assembly
+    // containing only data/directives. Require a target-prefixed PATH tool.
+    if (IsCrossAssembler && TargetSpecificExecutable == Name)
+      continue;
     // Fall back to the path
     if (llvm::ErrorOr<std::string> P =
             llvm::sys::findProgramByName(TargetSpecificExecutable))
       return *P;
   }
 
+  if (IsCrossAssembler)
+    Diag(diag::err_drv_filc_cross_assembler_missing) << TC.getTriple().str();
   return std::string(Name);
 }
 

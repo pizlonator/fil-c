@@ -61,6 +61,14 @@ on Linux because it allows me to do a more faithful job of implementing libc.
 There's nothing fundamentally stopping Fil-C from working on other
 architectures or OSes other than Linux.
 
+The classic binary distribution and source builds require Linux userspace
+kernel headers: `kernel-headers` on Fedora/RHEL/Rocky, `linux-libc-dev` on
+Debian/Ubuntu, `linux-api-headers` on Arch, or `linux-glibc-devel` on openSUSE.
+Install these before running setup. Missing or incompatible headers are a
+fatal setup error, even if a particular program does not include kernel
+headers. Setup stops before relocating binaries and can be rerun after the
+headers are installed.
+
 ## Getting Started
 
 If you downloaded Fil-C binaries, run:
@@ -100,6 +108,85 @@ If you are using source, then you can also:
   Linux distribution.
 
 - `cd optfil && sudo ./build.sh` - builds the `/opt/fil` distribution.
+
+## Cross Compiling
+
+The compiler in the classic binary distribution can target both X86_64 and
+ARM64 on Linux. Cross compilation works in either direction. To cross compile
+you need:
+
+- The same Fil-C release's binary distribution for the other architecture, for
+  its `pizfix` (runtime, libc, and libc++). Unpack it, run its `setup.sh` on the
+  host as usual, and link its `pizfix` next to this distribution's `pizfix` as
+  `pizfix-<arch>`:
+
+      ln -s /path/to/filc-0.685-linux-aarch64/pizfix pizfix-aarch64
+
+  For source builds, both architectures must use the same Fil-C revision,
+  libc flavor, and libc++ configuration. The compiler supplies shared libc++
+  headers and `__config_site`, so a glibc source build cannot use a musl binary
+  release's target runtime. Build a matching target runtime instead.
+
+  For cross compilation, the compiler uses the target's `pizfix-<arch>`;
+  `--filc-resource-dir=` overrides it. Installations without a neighboring
+  `pizfix`, including `/opt/fil` and Pizlix, require this explicit target
+  resource directory for cross compilation. `setup.sh` links `pizfix/os-include/asm`
+  to the kernel headers for that architecture. Native setup supports
+  `/usr/include/asm` (Fedora/RHEL/Rocky/Arch/openSUSE) and
+  `/usr/include/<arch>-linux-gnu/asm` (Debian/Ubuntu). Cross setup uses
+  `/usr/<arch>-linux-gnu/include/asm` from `linux-libc-dev-arm64-cross` or
+  `linux-libc-dev-amd64-cross` on Debian/Ubuntu, together with that package's
+  `linux` and `asm-generic` headers. Setup checks the `asm` headers'
+  architecture, including explicit overrides, rather than trusting the
+  running kernel's architecture. This also works in emulated containers.
+
+  Setup fails if any required header directory is missing or its `types.h`
+  is not a readable, nonempty regular file. Source builds use the same checks
+  in `build_os_include.sh`. Install
+  the userspace kernel headers listed under Requirements for native setup.
+  For another header
+  location, run `FILC_KERNEL_HEADERS=/path/to/target/include ./setup.sh`;
+  that directory must contain the target's `asm`, `asm-generic`, and `linux`
+  directories. Setup can be rerun after installing headers or moving the
+  distribution. When compiling, `--filc-os-include=` overrides the configured
+  kernel header directory.
+
+- Binutils for the target, for example `binutils-aarch64-linux-gnu` on
+  Debian/Ubuntu, which clang finds automatically as `aarch64-linux-gnu-ld` and
+  `aarch64-linux-gnu-as`. The exact target prefix takes precedence; Linux
+  vendor and musl triples also try the canonical `<arch>-linux-gnu-` names.
+  For binutils with a vendor prefix, use the corresponding Linux `--target=`
+  triple, or pass `-B/path/to/target/bin` with a directory containing the
+  target's bare `as` and `ld`. Do not point `-B` at a host bin directory such
+  as `/usr/bin`: it selects the bare host tools even if prefixed target tools
+  are also installed there.
+
+  Cross assembly requires a target-prefixed assembler or one selected through
+  `-B`, `COMPILER_PATH`, or a detected cross GCC installation. A bare `as`
+  found only on `PATH` or beside the host compiler is rejected, since it can
+  silently produce a host-architecture object for directives-only assembly.
+  The `-print-prog-name=as` query also reports an error until a cross assembler
+  is configured.
+
+Then, for example on X86_64:
+
+    build/bin/clang --target=aarch64-linux-gnu -o whatever whatever.c -O2 -g
+
+On ARM64, link the X86_64 runtime and compile with the ARM64 compiler:
+
+    ln -s /path/to/filc-0.685-linux-x86_64/pizfix pizfix-x86_64
+    build/bin/clang --target=x86_64-linux-gnu -o whatever whatever.c -O2 -g
+
+Use `build/bin/clang++` with the same target option for C++.
+
+The resulting executable records the target runtime's dynamic loader and
+library paths. To run it on the target machine, install the target distribution
+at those paths, or set `--filc-dynamic-linker=` and the linker runtime search
+path (`-Wl,-rpath,<dir>`) for the target machine's layout when linking.
+
+Assembly (`.s`) inputs are rewritten by the sarcasm assembler of the compiler's
+own `pizfix` (the one in the target's `pizfix` is a program built for the
+target) and then assembled with the target's `as`.
 
 ## Things That Work
 

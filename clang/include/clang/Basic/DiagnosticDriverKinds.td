@@ -199,6 +199,14 @@ def err_drv_filc_cosmo_requires_pizfix : Error<
   "'--filc-cosmo' requires a Fil-C pizfix directory (point at one with '--filc-resource-dir=')">;
 def err_drv_filc_cosmo_not_linkable : Error<
   "'%0' is not supported in Fil-C cosmopolitan libc mode (cosmo programs are static, non-PIE executables with no dynamic linker)">;
+def err_drv_filc_cross_assembler_missing : Error<
+  "cannot find a target assembler for %0; install target binutils or pass -B/path/to/target/bin">;
+def err_drv_filc_unsupported_arch : Error<
+  "unsupported Fil-C target architecture %0 (supported architectures: x86_64, aarch64)">;
+def err_drv_filc_cross_resource_dir_missing : Error<
+  "cross compiling for %0 requires --filc-resource-dir= pointing to that architecture's Fil-C pizfix">;
+def err_drv_filc_cross_pizfix_missing : Error<
+  "cross compiling for %0 needs that architecture's Fil-C pizfix: install it as %1 or pass --filc-resource-dir=">;
 def err_drv_invalid_Xarch_argument_with_args : Error<
   "invalid Xarch argument: '%0', options requiring arguments are unsupported">;
 def err_drv_Xopenmp_target_missing_triple : Error<
