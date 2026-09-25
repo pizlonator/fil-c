@@ -1,19 +1,15 @@
 # The Whirlpool parameter-block shape (projects/openssl-3.6.4's
 # wp-x86_64.pl): a mid-function `and $-64, %rsp` alignment makes the frame
-# depth dynamic, so the `leaq 128(%rsp), %r10` carrier is a frame escape --
-# D9 materializes the whole frame as a GC region (REAL heap memory, allocated
-# with filc_allocate).  A pointer round-trip through that memory therefore
-# REQUIRES `#! store ptr` / `#! load ptr`: a plain store into region memory
-# writes only the 8 raw bytes, and the capability (the invisible-cap sidecar
-# entry) is lost, so the plain reload hands back a capability-less pointer and
-# the first dereference traps ("cannot read pointer with null object").
-# With the annotations the capability rides the region's sidecar across the
-# store/reload, and the reloaded pointer dereferences like the original.
-# Scalar slots (the round counter) ride plain in both spellings: raw 8-byte
-# round-trips through region memory are lossless for non-pointer values.
-# The carrier itself (`leaq 128(%rsp), %r10` and its `mov %r10, %rbx` copy,
-# re-derived mid-loop) keeps the region pointer's capability through the
-# register moves, exactly like the openssl code.
+# depth dynamic, so the `leaq 128(%rsp), %r10` carrier is a frame escape.
+# This used to be accepted by the D9 fixed-frame escape promotion, which
+# materialized the whole frame as a GC region (REAL heap memory, allocated
+# with filc_allocate); a pointer round-trip through that memory then REQUIRED
+# `#! store ptr` / `#! load ptr` (a plain store wrote only the 8 raw bytes
+# and lost the invisible-cap sidecar, so the plain reload trapped). That
+# promotion was removed: sarcasm now REJECTS taking the address of the stack
+# frame at compile time, so this file fails with "taking address of stack
+# frame is not supported (cannot prove safety)" on the escaping lea — with
+# or without the ptr annotations.
 	.text
 	.globl	region_roundtrip
 	.type	region_roundtrip, @function

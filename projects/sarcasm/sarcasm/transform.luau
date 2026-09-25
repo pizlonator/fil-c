@@ -823,8 +823,13 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		-- reservation for FP-signature functions (see arm64_frame.analyzeFrame and
 		-- x86_64_frame.analyzeFrame). 5th return (x86_64 only): the incoming yolo
 		-- stack-argument info (slot count, which slots FP instructions read, and the
-		-- materialized area's base offset when any do).
-		local fs, fpo, ufp, fpinfo, yolo = framePolicy.analyzeFrame(body, sigDesc)
+		-- materialized area's base offset when any do). The 3rd argument is the
+		-- (always empty) region list: passing it is REQUIRED because the x86_64
+		-- analysis gates its caller-saved rsp-save/lea-save carrier recording on
+		-- `regions ~= nil` — with no region sources left, the early run must record
+		-- the carriers itself (there is no region-carrying re-run to take them
+		-- from).
+		local fs, fpo, ufp, fpinfo, yolo = framePolicy.analyzeFrame(body, sigDesc, {})
 		prof.mark("  [" .. name .. "] analyzeFrame")
 		fctx = { frameSize = fs, fpOffset = fpo, usesFp = ufp, fp = fpinfo, yolo = yolo,
 			-- the frame base depth (x86_64: the +8 rule's clone displacement bias
@@ -867,6 +872,17 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		end
 		if bodyUsesFp then fctx.fp.saveBytes = backend.frame.VEC_SAVE_BYTES end
 	end
+	-- This forced reservation now reliably survives to codegen: saveBytes rides
+	-- out on the function object as fpSaveBytes and is consumed by
+	-- x86_64_render's computeLayout, and nothing writes fctx.fp afterward —
+	-- frame.preprocess re-runs the analysis internally but keeps its fpInfo to
+	-- itself. Historically the D9 fixed-frame escape promotion's second
+	-- analyzeFrame run REPLACED fctx.fp with that run's fpInfo table
+	-- (`fctx.fp = fpinfo2`), silently discarding this forcing for x86_64
+	-- functions whose entry signature is not FP — callsite-FP functions then
+	-- got a smaller frame (the sarcasm-call-data-fp tests' frames were 24 bytes
+	-- where this forcing asks for 280). The single analysis run no longer
+	-- clobbers fctx.fp, so the forced vector-save area is always reserved.
 
 	-- NOTE: the historical deferred dynamic-`alloca` idiom (a `;! alloca size (x)`
 	-- definition plus a `;! alloca result (x)` use, with the input stack math marked
@@ -928,10 +944,12 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 
 
 	-- GC-allocation "regions": sp-relative extents whose address math redirects into
-	-- a GC allocation. The only region source left is the fixed-frame escape
-	-- promotion below (D9): the historical `;! alloca result size=N` annotated
-	-- regions were removed with the `;! alloca` annotations (stack allocation is
-	-- spelled with the `.alloca` directive, which never touches %rsp).
+	-- a GC allocation. Regions no longer have ANY source: the historical
+	-- `;! alloca`-annotated regions and the fixed-frame escape promotion (D9) were
+	-- both removed — stack allocation is spelled with the `.alloca` directive
+	-- (which never touches %rsp), and taking the address of the stack frame is
+	-- rejected. The machinery stays because the frame preprocess and codegen
+	-- plumbing still accept the (always empty) region list.
 	local allocaRegions = {}
 	local function regionOf(spOff, dyn)
 		for _, r in allocaRegions do
@@ -940,51 +958,6 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		end
 		return nil
 	end
-
-	-- Fixed-frame escape promotion (D9, x86_64): the body takes the address of
-	-- its fixed frame (bsaes's `leaq 32(%rbp), %rsi` handed to a helper — a
-	-- "lea cluster" once the pointer is copied/offset and the traffic flows
-	-- through the derived registers). A plain frame slot's address cannot
-	-- escape, so promote the WHOLE fixed frame to a GC region [0, frameSize):
-	-- its slots stop virtualizing and every fixed-frame access redirects into
-	-- the region (checked accesses; the region's capability flows to helpers
-	-- with the lea). The detection must run with the annotated regions present
-	-- (a lea into one of THOSE is no escape), so the analysis runs again here
-	-- — it is pure and simply re-marks the body. No escape -> no region ->
-	-- byte-identical output.
-	local frameRegion = nil
-	if backend.arch == "x86_64" and framePolicy.analyzeFrame then
-		local fs2, _, _, fpinfo2, yolo2, frameEscapes = framePolicy.analyzeFrame(body, sigDesc, allocaRegions)
-		-- The region-carrying run sees caller-saved stack-pointer saves the
-		-- region-less early run cannot record (its region corner needs the
-		-- regions), so its FP/SIMD cluster and yolo-argument layout info is a
-		-- superset of the early run's: it alone covers stack accesses through
-		-- stack+offset alias registers. Take it for the layout (the rewrite's
-		-- own run inside preprocess can only record LESS — the promoted frame
-		-- region turns some carriers back into region traffic — so the layout
-		-- always covers what the rewrite materializes).
-		if fpinfo2 ~= nil then fctx.fp = fpinfo2 end
-		if yolo2 ~= nil then fctx.yolo = yolo2 end
-		-- Take the region-carrying run's frameSize too: the early run's
-		-- region-sensitive outputs (depths, bands, and hence the B2-extended
-		-- frameSize) are best-effort geometry with no rewrite consumer — every
-		-- x86_* mark is cleared and recomputed by this run and again by the
-		-- preprocess run — so the D9 promotion size must not depend on them.
-		-- (The early run's remaining scalars — fpOffset/usesFp — are pure
-		-- prologue geometry, region-invariant by construction.) Recording more
-		-- saves can only resolve more depths (fewer "dyn", more banded
-		-- accesses counted), so fs2 >= the early size; adopting it never
-		-- under-covers the promotion.
-		if fs2 ~= nil and fctx then fctx.frameSize = fs2 end
-		if frameEscapes and fctx and fctx.frameSize > 0 then
-			-- LAST in the list: an explicit (annotated) region overlapping the
-			-- frame wins the membership test.
-			frameRegion = { base = 0, size = fctx.frameSize, align = 16,
-				anchored = false, frameRegion = true }
-			table.insert(allocaRegions, frameRegion)
-		end
-	end
-
 
 	-- (validateBody already ran at the top of this function — before the frame
 	-- analysis and every rewrite — see the comment there.)
@@ -1637,12 +1610,14 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	end
 
 	-- Region-redirect leas and rsp copies (x86_64): a `leaq disp(%rsp), %rd` /
-	-- `movq %rsp, %rd` landing in a fixed alloca region becomes a region-pointer
-	-- web at emission (cg.regionRedirect). Seed them so ptrflow allocates their
-	-- lower temps and propagates them to COPIES of the region pointer (the wp
-	-- `leaq 128(%rsp), %r10; movq %r10, %rbx` — checked traffic flows through the
-	-- copy exactly as through the lea). The emission defines the seeded lower from
-	-- the region's own lower, so every copy shares one capability.
+	-- `movq %rsp, %rd` landing in a fixed alloca region would become a
+	-- region-pointer web at emission (cg.regionRedirect). Seed them so ptrflow
+	-- allocates their lower temps and propagates them to COPIES of the region
+	-- pointer (the wp `leaq 128(%rsp), %r10; movq %r10, %rbx` — checked traffic
+	-- flows through the copy exactly as through the lea). The emission defines the
+	-- seeded lower from the region's own lower, so every copy shares one
+	-- capability. INERT today: regions have no sources anymore, so
+	-- #allocaRegions is always 0 and this scan never runs.
 	if #allocaRegions > 0 and cgm.memOperand then
 		for _, node in lf.nodes do
 			if node.kind == "insn" then
@@ -1806,17 +1781,6 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		end
 	end
 
-
-	-- The promoted fixed-frame region (D9): stable pointer + lower temps (there
-	-- is no result web to borrow a lower from — the region is the whole frame,
-	-- allocated up top), ptrflow-marked so region leas seed their lowers from
-	-- it and copies of the lea results share one capability.
-	if frameRegion and not frameRegion.ptrTemp then
-		frameRegion.ptrTemp = allocTemp({ role = "regionptr" })
-		frameRegion.loTemp = allocTemp({ isLower = true, role = "regionlo" })
-		pf.isPtr[frameRegion.ptrTemp] = true
-		pf.lowerTemp[frameRegion.ptrTemp] = frameRegion.loTemp
-	end
 
 	-- loop headers (targets of back edges) get a pollcheck. A header whose back edge
 	-- comes from an implicit-counter instruction (loop/loopq/loopl/jrcxz/jecxz) must
@@ -4048,9 +4012,12 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		end
 	end
 
-	-- Redirect an sp-relative address computation that lands inside the
-	-- fixed-frame escape-promotion region to the allocation pointer.
-	-- Arch-specific; returns true if it replaced the node.
+	-- Redirect an sp-relative address computation that lands inside a GC-allocation
+	-- region to the allocation pointer. INERT today: the region list is always
+	-- empty (no region sources remain — the `;! alloca` annotations and the
+	-- fixed-frame escape promotion are both gone), so this never replaces a node.
+	-- Kept for the region plumbing's sake. Arch-specific; returns true if it
+	-- replaced the node.
 	local function emitRegionRedirect(node)
 		if #allocaRegions == 0 or not cg.regionRedirect then return false end
 		return cg.regionRedirect(node, regionOf)
@@ -4317,27 +4284,6 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				{ defs = { webT }, uses = { t1 } }))
 		end)
 		return true
-	end
-
-	-- The promoted fixed-frame region's allocation (D9): emitted ONCE, up top,
-	-- before any body statement — every fixed-frame access and lea redirects
-	-- into the region, so it must exist from the first instruction. Mirrors
-	-- (payload = allocation + 16, lower rooted).
-	if frameRegion then
-		withFlagSave(flagsLiveFrom(1), function()
-			local rcxSave = counterGuardArm()
-			cg.move(pColored(cc.rtArg(1)), vMyth)
-			cg.moveImm(pColored(cc.rtArg(2)), frameRegion.size)
-			cg.fpSave()
-			cg.call("filc_allocate", { pColored(cc.rtArg(1)), pColored(cc.rtArg(2)) },
-				cg.callerSavedClobbers())
-			cg.fpRestore()
-			counterGuardRestore(rcxSave)
-			local ret = pColored(cc.rtRet)  -- allocation base; payload = base + 16
-			cg.effAddr(frameRegion.loTemp, ret, 16)
-			cg.effAddr(frameRegion.ptrTemp, ret, 16)
-			emitRootStore(frameRegion.loTemp)
-		end)
 	end
 
 	-- Walk the lifted body.

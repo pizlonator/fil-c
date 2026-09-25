@@ -1178,6 +1178,27 @@ my $KS_ctr = $ENV{SARCASM} ? "%fil_ks_ctr" : "%rsp";
 my $KS_xts_enc = $ENV{SARCASM} ? "%fil_ks_xts_enc" : "%rsp";
 my $KS_xts_dec = $ENV{SARCASM} ? "%fil_ks_xts_dec" : "%rsp";
 
+# SARCASM escaping scratch slots: the IV/tweak/counter slots at fixed frame
+# offsets (0x20(%rbp) and friends) have their addresses handed to the
+# annotated extern calls asm_AES_encrypt/asm_AES_decrypt (sarcasm rejects
+# handing a stack address to an extern call), so under sarcasm each slot
+# becomes a GC `.alloca` buffer (%fil_tw_*, allocated next to the matching
+# key-schedule `.alloca` below) and $TW_* spells every reference to the
+# slot -- both the slot traffic and the address-taking leas. Under gas the
+# $TW_* expand to the original frame-offset spellings, keeping the gas
+# output byte-identical; %rsp is never touched. (0x2c is 12 bytes into the
+# ctr counter slot at 0x20; .Lctr_enc_short keeps the upstream quirk of
+# spelling the same counter word %rbp-relative on the load and
+# %rsp-relative on the store -- %rsp == %rbp there, and under sarcasm both
+# are the same 12(%fil_tw_ctr).)
+my $TW_CBC  = $ENV{SARCASM} ? "(%fil_tw_cbc)"	: "0x20(%rbp)";
+my $TW_CTR0 = $ENV{SARCASM} ? "(%fil_tw_ctr)"	: "0x20(%rbp)";
+my $TW_CTR1 = $ENV{SARCASM} ? "16(%fil_tw_ctr)"	: "0x30(%rbp)";
+my $TW_CTR2 = $ENV{SARCASM} ? "12(%fil_tw_ctr)"	: "0x2c(%rbp)";
+my $TW_CTR3 = $ENV{SARCASM} ? "12(%fil_tw_ctr)"	: "0x2c(%rsp)";
+my $TW_ENC  = $ENV{SARCASM} ? "(%fil_tw_enc)"	: "0x20(%rbp)";
+my $TW_DEC  = $ENV{SARCASM} ? "(%fil_tw_dec)"	: "0x20(%rbp)";
+
 if ($ecb) {
 $code.=<<___;
 .globl	bsaes_ecb_encrypt_blocks
@@ -1805,9 +1826,17 @@ if ($ENV{SARCASM}) {
   # Dynamic key-schedule frame becomes a GC allocation; %rsp is
   # untouched (fixed frame only). `%fil_ks_cbc` names the buffer for the
   # $KS_* uses below; %rax keeps its ABI role for the calls.
+  #
+  # The IV/scratch slot at 0x20(%rbp) ($TW_CBC) becomes a GC buffer too:
+  # .Lcbc_dec_one hands its address to asm_AES_decrypt (sarcasm rejects
+  # handing a stack address to an extern call), so it must live in GC
+  # memory. The `.alloca` sits above every $TW_CBC use -- the bulk-path
+  # slot traffic as well as .Lcbc_dec_one -- and leaves %rsp untouched.
   $code.=<<___;
 	.alloca	%rax,\$16,%fil_ks_cbc
 	mov	%fil_ks_cbc,%rax	# pass key schedule
+	.alloca	\$16,\$16,%fil_tw_cbc	# IV/scratch slot: its address
+					# escapes to asm_AES_decrypt
 ___
 } else {
   $code.=<<___;
@@ -1836,11 +1865,11 @@ $code.=<<___;
 	movdqu	0x60($inp), @XMM[6]
 	mov	%edx,%r10d		# pass rounds
 	movdqu	0x70($inp), @XMM[7]
-	movdqa	@XMM[15], 0x20(%rbp)	# put aside IV
+	movdqa	@XMM[15], $TW_CBC	# put aside IV
 
 	call	_bsaes_decrypt8
 
-	pxor	0x20(%rbp), @XMM[0]	# ^= IV
+	pxor	$TW_CBC, @XMM[0]	# ^= IV
 	movdqu	0x00($inp), @XMM[8]	# re-load input
 	movdqu	0x10($inp), @XMM[9]
 	pxor	@XMM[8], @XMM[1]
@@ -1890,9 +1919,9 @@ $code.=<<___;
 	movdqu	0x50($inp), @XMM[5]
 	je	.Lcbc_dec_six
 	movdqu	0x60($inp), @XMM[6]
-	movdqa	@XMM[15], 0x20(%rbp)	# put aside IV
+	movdqa	@XMM[15], $TW_CBC	# put aside IV
 	call	_bsaes_decrypt8
-	pxor	0x20(%rbp), @XMM[0]	# ^= IV
+	pxor	$TW_CBC, @XMM[0]	# ^= IV
 	movdqu	0x00($inp), @XMM[8]	# re-load input
 	movdqu	0x10($inp), @XMM[9]
 	pxor	@XMM[8], @XMM[1]
@@ -1916,9 +1945,9 @@ $code.=<<___;
 	jmp	.Lcbc_dec_done
 .align	16
 .Lcbc_dec_six:
-	movdqa	@XMM[15], 0x20(%rbp)	# put aside IV
+	movdqa	@XMM[15], $TW_CBC	# put aside IV
 	call	_bsaes_decrypt8
-	pxor	0x20(%rbp), @XMM[0]	# ^= IV
+	pxor	$TW_CBC, @XMM[0]	# ^= IV
 	movdqu	0x00($inp), @XMM[8]	# re-load input
 	movdqu	0x10($inp), @XMM[9]
 	pxor	@XMM[8], @XMM[1]
@@ -1939,9 +1968,9 @@ $code.=<<___;
 	jmp	.Lcbc_dec_done
 .align	16
 .Lcbc_dec_five:
-	movdqa	@XMM[15], 0x20(%rbp)	# put aside IV
+	movdqa	@XMM[15], $TW_CBC	# put aside IV
 	call	_bsaes_decrypt8
-	pxor	0x20(%rbp), @XMM[0]	# ^= IV
+	pxor	$TW_CBC, @XMM[0]	# ^= IV
 	movdqu	0x00($inp), @XMM[8]	# re-load input
 	movdqu	0x10($inp), @XMM[9]
 	pxor	@XMM[8], @XMM[1]
@@ -1959,9 +1988,9 @@ $code.=<<___;
 	jmp	.Lcbc_dec_done
 .align	16
 .Lcbc_dec_four:
-	movdqa	@XMM[15], 0x20(%rbp)	# put aside IV
+	movdqa	@XMM[15], $TW_CBC	# put aside IV
 	call	_bsaes_decrypt8
-	pxor	0x20(%rbp), @XMM[0]	# ^= IV
+	pxor	$TW_CBC, @XMM[0]	# ^= IV
 	movdqu	0x00($inp), @XMM[8]	# re-load input
 	movdqu	0x10($inp), @XMM[9]
 	pxor	@XMM[8], @XMM[1]
@@ -1976,9 +2005,9 @@ $code.=<<___;
 	jmp	.Lcbc_dec_done
 .align	16
 .Lcbc_dec_three:
-	movdqa	@XMM[15], 0x20(%rbp)	# put aside IV
+	movdqa	@XMM[15], $TW_CBC	# put aside IV
 	call	_bsaes_decrypt8
-	pxor	0x20(%rbp), @XMM[0]	# ^= IV
+	pxor	$TW_CBC, @XMM[0]	# ^= IV
 	movdqu	0x00($inp), @XMM[8]	# re-load input
 	movdqu	0x10($inp), @XMM[9]
 	pxor	@XMM[8], @XMM[1]
@@ -1990,9 +2019,9 @@ $code.=<<___;
 	jmp	.Lcbc_dec_done
 .align	16
 .Lcbc_dec_two:
-	movdqa	@XMM[15], 0x20(%rbp)	# put aside IV
+	movdqa	@XMM[15], $TW_CBC	# put aside IV
 	call	_bsaes_decrypt8
-	pxor	0x20(%rbp), @XMM[0]	# ^= IV
+	pxor	$TW_CBC, @XMM[0]	# ^= IV
 	movdqu	0x00($inp), @XMM[8]	# re-load input
 	movdqu	0x10($inp), @XMM[15]	# IV
 	pxor	@XMM[8], @XMM[1]
@@ -2002,10 +2031,10 @@ $code.=<<___;
 .align	16
 .Lcbc_dec_one:
 	lea	($inp), $arg1
-	lea	0x20(%rbp), $arg2	# buffer output
+	lea	$TW_CBC, $arg2	# buffer output
 	lea	($key), $arg3
 	call	asm_AES_decrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
-	pxor	0x20(%rbp), @XMM[15]	# ^= IV
+	pxor	$TW_CBC, @XMM[15]	# ^= IV
 	movdqu	@XMM[15], ($out)	# write output
 	movdqa	@XMM[0], @XMM[15]	# IV
 
@@ -2121,7 +2150,20 @@ $code.=<<___;
 	mov	$arg2, $out
 	mov	$arg3, $len
 	mov	$arg4, $key
-	movdqa	%xmm0, 0x20(%rbp)	# copy counter
+___
+if ($ENV{SARCASM}) {
+  # The counter slot ($TW_CTR0, 0x20(%rbp) under gas) and the single-block
+  # ECB scratch ($TW_CTR1, 0x30(%rbp)) live in one 32-byte GC `.alloca`
+  # buffer: .Lctr_enc_short hands both addresses to asm_AES_encrypt, and
+  # sarcasm rejects handing a stack address to an extern call. The
+  # `.alloca` sits above the short-path branch so it executes on both
+  # paths and dominates every use; %rsp is untouched (fixed frame only).
+  $code.=<<___;
+	.alloca	\$32,\$16,%fil_tw_ctr
+___
+}
+$code.=<<___;
+	movdqa	%xmm0, $TW_CTR0	# copy counter
 	cmp	\$8, $arg3
 	jb	.Lctr_enc_short
 
@@ -2152,7 +2194,7 @@ $code.=<<___;
 
 	movdqa	($KS_ctr), @XMM[9]		# load round0 key
 	lea	.LADD1(%rip), %r11
-	movdqa	0x20(%rbp), @XMM[0]	# counter copy
+	movdqa	$TW_CTR0, @XMM[0]	# counter copy
 	movdqa	-0x20(%r11), @XMM[8]	# .LSWPUP
 	pshufb	@XMM[8], @XMM[9]	# byte swap upper part
 	pshufb	@XMM[8], @XMM[0]
@@ -2160,7 +2202,7 @@ $code.=<<___;
 	jmp	.Lctr_enc_loop
 .align	16
 .Lctr_enc_loop:
-	movdqa	@XMM[0], 0x20(%rbp)	# save counter
+	movdqa	@XMM[0], $TW_CTR0	# save counter
 	movdqa	@XMM[0], @XMM[1]	# prepare 8 counter values
 	movdqa	@XMM[0], @XMM[2]
 	paddd	0x00(%r11), @XMM[1]	# .LADD1
@@ -2215,7 +2257,7 @@ $code.=<<___;
 	movdqu	0x70($inp), @XMM[15]
 	lea	0x80($inp),$inp
 	pxor	@XMM[0], @XMM[8]
-	movdqa	0x20(%rbp), @XMM[0]	# load counter
+	movdqa	$TW_CTR0, @XMM[0]	# load counter
 	pxor	@XMM[9], @XMM[1]
 	movdqu	@XMM[8], 0x00($out)	# write output
 	pxor	@XMM[10], @XMM[4]
@@ -2274,20 +2316,20 @@ $code.=<<___;
 
 .align	16
 .Lctr_enc_short:
-	lea	0x20(%rbp), $arg1
-	lea	0x30(%rbp), $arg2
+	lea	$TW_CTR0, $arg1
+	lea	$TW_CTR1, $arg2
 	lea	($key), $arg3
 	call	asm_AES_encrypt #! void(ptr,ptr,ptr)
 	movdqu	($inp), @XMM[1]
 	lea	16($inp), $inp
-	mov	0x2c(%rbp), %eax	# load 32-bit counter
+	mov	$TW_CTR2, %eax	# load 32-bit counter
 	bswap	%eax
-	pxor	0x30(%rbp), @XMM[1]
+	pxor	$TW_CTR1, @XMM[1]
 	inc	%eax			# increment
 	movdqu	@XMM[1], ($out)
 	bswap	%eax
 	lea	16($out), $out
-	mov	%eax, 0x2c(%rsp)	# save 32-bit counter
+	mov	%eax, $TW_CTR3	# save 32-bit counter
 	dec	$len
 	jnz	.Lctr_enc_short
 	jmp	.Lctr_enc_wiped		# no key schedule was built on the short path
@@ -2412,9 +2454,23 @@ $code.=<<___;
 	mov	$arg2, $out
 	mov	$arg3, $len
 	mov	$arg4, $key
+___
+if ($ENV{SARCASM}) {
+  # The tweak slot ($TW_ENC, 0x20(%rbp) under gas) becomes a 16-byte GC
+  # `.alloca` buffer: the initial-tweak generation right below and the
+  # tail paths (.Lxts_enc_1/.Lxts_enc_steal) hand its address to
+  # asm_AES_encrypt, and sarcasm rejects handing a stack address to an
+  # extern call. The `.alloca` sits above every $TW_ENC use -- including
+  # the initial-tweak lea, which precedes the key-schedule `.alloca`
+  # below -- and leaves %rsp untouched (fixed frame only).
+  $code.=<<___;
+	.alloca	\$16,\$16,%fil_tw_enc
+___
+}
+$code.=<<___;
 
 	lea	($arg6), $arg1
-	lea	0x20(%rbp), $arg2
+	lea	$TW_ENC, $arg2
 	lea	($arg5), $arg3
 	call	asm_AES_encrypt		#! void(ptr,ptr,ptr) # generate initial tweak
 
@@ -2448,7 +2504,7 @@ $code.=<<___;
 	movdqa	%xmm7, (%rax)		# save last round key
 
 	and	\$-16, $len
-	movdqa	0x20(%rbp), @XMM[7]	# initial tweak
+	movdqa	$TW_ENC, @XMM[7]	# initial tweak
 
 	pxor	$twtmp, $twtmp
 	movdqa	.Lxts_magic(%rip), $twmask
@@ -2691,12 +2747,12 @@ $code.=<<___;
 .Lxts_enc_1:
 	pxor	@XMM[0], @XMM[8]
 	lea	0x10($inp), $inp
-	movdqa	@XMM[8], 0x20(%rbp)
-	lea	0x20(%rbp), $arg1
-	lea	0x20(%rbp), $arg2
+	movdqa	@XMM[8], $TW_ENC
+	lea	$TW_ENC, $arg1
+	lea	$TW_ENC, $arg2
 	lea	($key), $arg3
 	call	asm_AES_encrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
-	pxor	0x20(%rbp), @XMM[0]	# ^= tweak[]
+	pxor	$TW_ENC, @XMM[0]	# ^= tweak[]
 	#pxor	@XMM[8], @XMM[0]
 	#lea	0x80(%rsp), %rax	# pass key schedule
 	#mov	%edx, %r10d		# pass rounds
@@ -2723,13 +2779,13 @@ $code.=<<___;
 	jnz	.Lxts_enc_steal
 
 	movdqu	-16($out), @XMM[0]
-	lea	0x20(%rbp), $arg1
+	lea	$TW_ENC, $arg1
 	pxor	@XMM[7], @XMM[0]
-	lea	0x20(%rbp), $arg2
-	movdqa	@XMM[0], 0x20(%rbp)
+	lea	$TW_ENC, $arg2
+	movdqa	@XMM[0], $TW_ENC
 	lea	($key), $arg3
 	call	asm_AES_encrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
-	pxor	0x20(%rbp), @XMM[7]
+	pxor	$TW_ENC, @XMM[7]
 	movdqu	@XMM[7], -16($out)
 
 .Lxts_enc_ret:
@@ -2841,9 +2897,24 @@ $code.=<<___;
 	mov	$arg2, $out
 	mov	$arg3, $len
 	mov	$arg4, $key
+___
+if ($ENV{SARCASM}) {
+  # The tweak slot ($TW_DEC, 0x20(%rbp) under gas) becomes a 16-byte GC
+  # `.alloca` buffer: the initial-tweak generation right below and the
+  # tail paths (.Lxts_dec_1/.Lxts_dec_done/.Lxts_dec_steal) hand its
+  # address to asm_AES_decrypt, and sarcasm rejects handing a stack
+  # address to an extern call. The `.alloca` sits above every $TW_DEC
+  # use -- including the initial-tweak lea, which precedes the
+  # key-schedule `.alloca` below -- and leaves %rsp untouched (fixed
+  # frame only).
+  $code.=<<___;
+	.alloca	\$16,\$16,%fil_tw_dec
+___
+}
+$code.=<<___;
 
 	lea	($arg6), $arg1
-	lea	0x20(%rbp), $arg2
+	lea	$TW_DEC, $arg2
 	lea	($arg5), $arg3
 	call	asm_AES_encrypt		#! void(ptr,ptr,ptr) # generate initial tweak
 
@@ -2884,7 +2955,7 @@ $code.=<<___;
 	shl	\$4, %rax
 	sub	%rax, $len
 
-	movdqa	0x20(%rbp), @XMM[7]	# initial tweak
+	movdqa	$TW_DEC, @XMM[7]	# initial tweak
 
 	pxor	$twtmp, $twtmp
 	movdqa	.Lxts_magic(%rip), $twmask
@@ -3127,12 +3198,12 @@ $code.=<<___;
 .Lxts_dec_1:
 	pxor	@XMM[0], @XMM[8]
 	lea	0x10($inp), $inp
-	movdqa	@XMM[8], 0x20(%rbp)
-	lea	0x20(%rbp), $arg1
-	lea	0x20(%rbp), $arg2
+	movdqa	@XMM[8], $TW_DEC
+	lea	$TW_DEC, $arg1
+	lea	$TW_DEC, $arg2
 	lea	($key), $arg3
 	call	asm_AES_decrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
-	pxor	0x20(%rbp), @XMM[0]	# ^= tweak[]
+	pxor	$TW_DEC, @XMM[0]	# ^= tweak[]
 	#pxor	@XMM[8], @XMM[0]
 	#lea	0x80(%rsp), %rax	# pass key schedule
 	#mov	%edx, %r10d		# pass rounds
@@ -3157,13 +3228,13 @@ $code.=<<___;
 	movdqu	($inp), @XMM[0]
 	pxor	$twres, @XMM[7]
 
-	lea	0x20(%rbp), $arg1
+	lea	$TW_DEC, $arg1
 	pxor	@XMM[7], @XMM[0]
-	lea	0x20(%rbp), $arg2
-	movdqa	@XMM[0], 0x20(%rbp)
+	lea	$TW_DEC, $arg2
+	movdqa	@XMM[0], $TW_DEC
 	lea	($key), $arg3
 	call	asm_AES_decrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
-	pxor	0x20(%rbp), @XMM[7]
+	pxor	$TW_DEC, @XMM[7]
 	mov	$out, %rdx
 	movdqu	@XMM[7], ($out)
 
@@ -3178,13 +3249,13 @@ $code.=<<___;
 	jnz	.Lxts_dec_steal
 
 	movdqu	($out), @XMM[0]
-	lea	0x20(%rbp), $arg1
+	lea	$TW_DEC, $arg1
 	pxor	@XMM[6], @XMM[0]
-	lea	0x20(%rbp), $arg2
-	movdqa	@XMM[0], 0x20(%rbp)
+	lea	$TW_DEC, $arg2
+	movdqa	@XMM[0], $TW_DEC
 	lea	($key), $arg3
 	call	asm_AES_decrypt		#! void(ptr,ptr,ptr) # doesn't touch %xmm
-	pxor	0x20(%rbp), @XMM[6]
+	pxor	$TW_DEC, @XMM[6]
 	movdqu	@XMM[6], ($out)
 
 .Lxts_dec_ret:

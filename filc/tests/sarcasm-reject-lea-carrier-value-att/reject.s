@@ -4,8 +4,9 @@
 # the rewrite, so the register's stack value does not exist in the output.
 # The relaxation only legalizes the memory-base spelling; the value read
 # stays a hard error exactly as before. (The lea sits behind a dispatch
-# merge label so it parks a carrier at a perturbed depth; at the prologue
-# depth the D9 region promotion would own the shape instead. Note the
+# merge label so it parks a carrier at a perturbed depth; a value use is
+# rejected either way — the D9 region promotion that used to own the
+# prologue-depth shape was removed. Note the
 # carrier FLOWS — `movq %carrier, off(%rsp)` save-stores, slot loads, and
 # reg-reg copies — remain legal dropped phantom traffic; this pins an
 # OBSERVING use: the carrier's value handed to a heap store.)

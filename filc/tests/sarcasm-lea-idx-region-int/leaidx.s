@@ -1,6 +1,10 @@
 	.intel_syntax noprefix
 	.text
-	# Intel-syntax twin of sarcasm-lea-idx-region-att.
+	# Intel-syntax twin of sarcasm-lea-idx-region-att: an indexed lea off %rsp
+	# into the plain fixed frame, which sarcasm now REJECTS at compile time
+	# (the D9 fixed-frame escape promotion that used to accept it was
+	# removed) — "taking address of stack frame is not supported (cannot
+	# prove safety)".
 	.globl	leaidx_single
 	.type	leaidx_single, @function
 leaidx_single:                  ;! long(long)
@@ -8,7 +12,7 @@ leaidx_single:                  ;! long(long)
 	push	r12
 	sub	rsp, 64
 	mov	r12, rdi
-	lea	rdi, [rsp+16]
+	lea	rdi, [rsp+16]        # frame+16 escapes: rejected at compile time
 	call	fill32 ;! void(ptr)
 	lea	rax, [rsp+r12*8+16]
 	mov	rax, QWORD PTR [rax]
@@ -24,7 +28,7 @@ leaidx_two:                     ;! long(long)
 	push	r12
 	sub	rsp, 64
 	mov	r12, rdi
-	lea	rbx, [rsp+16]
+	lea	rbx, [rsp+16]        # the second escaping lea (never reached)
 	mov	rdi, rbx
 	call	fill32 ;! void(ptr)
 	lea	rax, [rbx+r12*8]

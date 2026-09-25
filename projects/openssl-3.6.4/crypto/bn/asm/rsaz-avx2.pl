@@ -180,10 +180,17 @@ if ($ENV{SARCASM}) {
   # Merged allocation (used bytes + alignment slack): the conditional
   # n-copy sub/and dance in the gas branch is a page-crossing performance
   # workaround that cannot be proven safe, so the sarcasm frame is sized
-  # to cover both the slots and the alignment in one allocation. (The
-  # fixed frame promotes to a GC region, so stack+offset carriers cannot
-  # observe it; see the epilogue below.)
+  # to cover both the slots and the alignment in one allocation.
+  #
+  # The 1024-byte alignment `and` is part of the prologue here (before the
+  # allocation): sarcasm mirrors a prologue `and` in its synthesized frame,
+  # so the post-`and` frame stays at a statically provable depth and the
+  # $tp0/$aap/$tp1 cursors below can be buffer value leas. The gas flavor
+  # keeps the mid-function `and` (after .Lsqr_1024_no_n_copy), which leaves
+  # %rsp at a dynamic depth that sarcasm cannot legally take the address
+  # from.
   $code.=<<___;
+	and	\$-1024,%rsp
 	sub	\$1920,%rsp
 	sub	\$-128, $rp			# size optimization
 	sub	\$-128, $ap
@@ -236,7 +243,11 @@ ___
 }
 $code.=<<___;
 .Lsqr_1024_no_n_copy:
+___
+$code.=<<___ if (!$ENV{SARCASM});
 	and		\$-1024, %rsp
+___
+$code.=<<___;
 
 	vmovdqu		32*1-128($ap), $ACC1
 	vmovdqu		32*2-128($ap), $ACC2
@@ -262,42 +273,42 @@ $code.=<<___;
 	vpaddq		$ACC1, $ACC1, $ACC1
 	 vpbroadcastq	32*0-128($ap), $B1
 	vpaddq		$ACC2, $ACC2, $ACC2
-	vmovdqa		$ACC1, 32*0-128($aap)
+	vmovdqa		$ACC1, 32*0-128($aap)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$ACC3, $ACC3, $ACC3
-	vmovdqa		$ACC2, 32*1-128($aap)
+	vmovdqa		$ACC2, 32*1-128($aap)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$ACC4, $ACC4, $ACC4
-	vmovdqa		$ACC3, 32*2-128($aap)
+	vmovdqa		$ACC3, 32*2-128($aap)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$ACC5, $ACC5, $ACC5
-	vmovdqa		$ACC4, 32*3-128($aap)
+	vmovdqa		$ACC4, 32*3-128($aap)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$ACC6, $ACC6, $ACC6
-	vmovdqa		$ACC5, 32*4-128($aap)
+	vmovdqa		$ACC5, 32*4-128($aap)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$ACC7, $ACC7, $ACC7
-	vmovdqa		$ACC6, 32*5-128($aap)
+	vmovdqa		$ACC6, 32*5-128($aap)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$ACC8, $ACC8, $ACC8
-	vmovdqa		$ACC7, 32*6-128($aap)
+	vmovdqa		$ACC7, 32*6-128($aap)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpxor		$ACC9, $ACC9, $ACC9
-	vmovdqa		$ACC8, 32*7-128($aap)
+	vmovdqa		$ACC8, 32*7-128($aap)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	vpmuludq	32*0-128($ap), $B1, $ACC0
 	 vpbroadcastq	32*1-128($ap), $B2
-	 vmovdqu	$ACC9, 32*9-192($tp0)	# zero upper half
+	 vmovdqu	$ACC9, 32*9-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)	# zero upper half
 	vpmuludq	$B1, $ACC1, $ACC1
-	 vmovdqu	$ACC9, 32*10-448($tp1)
+	 vmovdqu	$ACC9, 32*10-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpmuludq	$B1, $ACC2, $ACC2
-	 vmovdqu	$ACC9, 32*11-448($tp1)
+	 vmovdqu	$ACC9, 32*11-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpmuludq	$B1, $ACC3, $ACC3
-	 vmovdqu	$ACC9, 32*12-448($tp1)
+	 vmovdqu	$ACC9, 32*12-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpmuludq	$B1, $ACC4, $ACC4
-	 vmovdqu	$ACC9, 32*13-448($tp1)
+	 vmovdqu	$ACC9, 32*13-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpmuludq	$B1, $ACC5, $ACC5
-	 vmovdqu	$ACC9, 32*14-448($tp1)
+	 vmovdqu	$ACC9, 32*14-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpmuludq	$B1, $ACC6, $ACC6
-	 vmovdqu	$ACC9, 32*15-448($tp1)
+	 vmovdqu	$ACC9, 32*15-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpmuludq	$B1, $ACC7, $ACC7
-	 vmovdqu	$ACC9, 32*16-448($tp1)
+	 vmovdqu	$ACC9, 32*16-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpmuludq	$B1, $ACC8, $ACC8
 	 vpbroadcastq	32*2-128($ap), $B1
-	 vmovdqu	$ACC9, 32*17-448($tp1)
+	 vmovdqu	$ACC9, 32*17-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	mov	$ap, $tpa
 	mov 	\$4, $i
@@ -310,137 +321,137 @@ $code.=<<___;
 .LOOP_SQR_1024:
 	 vpbroadcastq	32*1-128($tpa), $B2
 	vpmuludq	32*0-128($ap), $B1, $ACC0
-	vpaddq		32*0-192($tp0), $ACC0, $ACC0
-	vpmuludq	32*0-128($aap), $B1, $ACC1
-	vpaddq		32*1-192($tp0), $ACC1, $ACC1
-	vpmuludq	32*1-128($aap), $B1, $ACC2
-	vpaddq		32*2-192($tp0), $ACC2, $ACC2
-	vpmuludq	32*2-128($aap), $B1, $ACC3
-	vpaddq		32*3-192($tp0), $ACC3, $ACC3
-	vpmuludq	32*3-128($aap), $B1, $ACC4
-	vpaddq		32*4-192($tp0), $ACC4, $ACC4
-	vpmuludq	32*4-128($aap), $B1, $ACC5
-	vpaddq		32*5-192($tp0), $ACC5, $ACC5
-	vpmuludq	32*5-128($aap), $B1, $ACC6
-	vpaddq		32*6-192($tp0), $ACC6, $ACC6
-	vpmuludq	32*6-128($aap), $B1, $ACC7
-	vpaddq		32*7-192($tp0), $ACC7, $ACC7
-	vpmuludq	32*7-128($aap), $B1, $ACC8
+	vpaddq		32*0-192($tp0), $ACC0, $ACC0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpmuludq	32*0-128($aap), $B1, $ACC1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*1-192($tp0), $ACC1, $ACC1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpmuludq	32*1-128($aap), $B1, $ACC2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*2-192($tp0), $ACC2, $ACC2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpmuludq	32*2-128($aap), $B1, $ACC3#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*3-192($tp0), $ACC3, $ACC3#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpmuludq	32*3-128($aap), $B1, $ACC4#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*4-192($tp0), $ACC4, $ACC4#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpmuludq	32*4-128($aap), $B1, $ACC5#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*5-192($tp0), $ACC5, $ACC5#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpmuludq	32*5-128($aap), $B1, $ACC6#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*6-192($tp0), $ACC6, $ACC6#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpmuludq	32*6-128($aap), $B1, $ACC7#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*7-192($tp0), $ACC7, $ACC7#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpmuludq	32*7-128($aap), $B1, $ACC8#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	 vpbroadcastq	32*2-128($tpa), $B1
-	vpaddq		32*8-192($tp0), $ACC8, $ACC8
+	vpaddq		32*8-192($tp0), $ACC8, $ACC8#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 .Lsqr_entry_1024:
-	vmovdqu		$ACC0, 32*0-192($tp0)
-	vmovdqu		$ACC1, 32*1-192($tp0)
+	vmovdqu		$ACC0, 32*0-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC1, 32*1-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	vpmuludq	32*1-128($ap), $B2, $TEMP0
 	vpaddq		$TEMP0, $ACC2, $ACC2
-	vpmuludq	32*1-128($aap), $B2, $TEMP1
+	vpmuludq	32*1-128($aap), $B2, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP1, $ACC3, $ACC3
-	vpmuludq	32*2-128($aap), $B2, $TEMP2
+	vpmuludq	32*2-128($aap), $B2, $TEMP2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP2, $ACC4, $ACC4
-	vpmuludq	32*3-128($aap), $B2, $TEMP0
+	vpmuludq	32*3-128($aap), $B2, $TEMP0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP0, $ACC5, $ACC5
-	vpmuludq	32*4-128($aap), $B2, $TEMP1
+	vpmuludq	32*4-128($aap), $B2, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP1, $ACC6, $ACC6
-	vpmuludq	32*5-128($aap), $B2, $TEMP2
+	vpmuludq	32*5-128($aap), $B2, $TEMP2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP2, $ACC7, $ACC7
-	vpmuludq	32*6-128($aap), $B2, $TEMP0
+	vpmuludq	32*6-128($aap), $B2, $TEMP0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP0, $ACC8, $ACC8
-	vpmuludq	32*7-128($aap), $B2, $ACC0
+	vpmuludq	32*7-128($aap), $B2, $ACC0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	 vpbroadcastq	32*3-128($tpa), $B2
-	vpaddq		32*9-192($tp0), $ACC0, $ACC0
+	vpaddq		32*9-192($tp0), $ACC0, $ACC0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
-	vmovdqu		$ACC2, 32*2-192($tp0)
-	vmovdqu		$ACC3, 32*3-192($tp0)
+	vmovdqu		$ACC2, 32*2-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC3, 32*3-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	vpmuludq	32*2-128($ap), $B1, $TEMP2
 	vpaddq		$TEMP2, $ACC4, $ACC4
-	vpmuludq	32*2-128($aap), $B1, $TEMP0
+	vpmuludq	32*2-128($aap), $B1, $TEMP0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP0, $ACC5, $ACC5
-	vpmuludq	32*3-128($aap), $B1, $TEMP1
+	vpmuludq	32*3-128($aap), $B1, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP1, $ACC6, $ACC6
-	vpmuludq	32*4-128($aap), $B1, $TEMP2
+	vpmuludq	32*4-128($aap), $B1, $TEMP2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP2, $ACC7, $ACC7
-	vpmuludq	32*5-128($aap), $B1, $TEMP0
+	vpmuludq	32*5-128($aap), $B1, $TEMP0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP0, $ACC8, $ACC8
-	vpmuludq	32*6-128($aap), $B1, $TEMP1
+	vpmuludq	32*6-128($aap), $B1, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP1, $ACC0, $ACC0
-	vpmuludq	32*7-128($aap), $B1, $ACC1
+	vpmuludq	32*7-128($aap), $B1, $ACC1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	 vpbroadcastq	32*4-128($tpa), $B1
-	vpaddq		32*10-448($tp1), $ACC1, $ACC1
+	vpaddq		32*10-448($tp1), $ACC1, $ACC1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
-	vmovdqu		$ACC4, 32*4-192($tp0)
-	vmovdqu		$ACC5, 32*5-192($tp0)
+	vmovdqu		$ACC4, 32*4-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC5, 32*5-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	vpmuludq	32*3-128($ap), $B2, $TEMP0
 	vpaddq		$TEMP0, $ACC6, $ACC6
-	vpmuludq	32*3-128($aap), $B2, $TEMP1
+	vpmuludq	32*3-128($aap), $B2, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP1, $ACC7, $ACC7
-	vpmuludq	32*4-128($aap), $B2, $TEMP2
+	vpmuludq	32*4-128($aap), $B2, $TEMP2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP2, $ACC8, $ACC8
-	vpmuludq	32*5-128($aap), $B2, $TEMP0
+	vpmuludq	32*5-128($aap), $B2, $TEMP0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP0, $ACC0, $ACC0
-	vpmuludq	32*6-128($aap), $B2, $TEMP1
+	vpmuludq	32*6-128($aap), $B2, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP1, $ACC1, $ACC1
-	vpmuludq	32*7-128($aap), $B2, $ACC2
+	vpmuludq	32*7-128($aap), $B2, $ACC2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	 vpbroadcastq	32*5-128($tpa), $B2
-	vpaddq		32*11-448($tp1), $ACC2, $ACC2
+	vpaddq		32*11-448($tp1), $ACC2, $ACC2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
-	vmovdqu		$ACC6, 32*6-192($tp0)
-	vmovdqu		$ACC7, 32*7-192($tp0)
+	vmovdqu		$ACC6, 32*6-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC7, 32*7-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	vpmuludq	32*4-128($ap), $B1, $TEMP0
 	vpaddq		$TEMP0, $ACC8, $ACC8
-	vpmuludq	32*4-128($aap), $B1, $TEMP1
+	vpmuludq	32*4-128($aap), $B1, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP1, $ACC0, $ACC0
-	vpmuludq	32*5-128($aap), $B1, $TEMP2
+	vpmuludq	32*5-128($aap), $B1, $TEMP2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP2, $ACC1, $ACC1
-	vpmuludq	32*6-128($aap), $B1, $TEMP0
+	vpmuludq	32*6-128($aap), $B1, $TEMP0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP0, $ACC2, $ACC2
-	vpmuludq	32*7-128($aap), $B1, $ACC3
+	vpmuludq	32*7-128($aap), $B1, $ACC3#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	 vpbroadcastq	32*6-128($tpa), $B1
-	vpaddq		32*12-448($tp1), $ACC3, $ACC3
+	vpaddq		32*12-448($tp1), $ACC3, $ACC3#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
-	vmovdqu		$ACC8, 32*8-192($tp0)
-	vmovdqu		$ACC0, 32*9-192($tp0)
+	vmovdqu		$ACC8, 32*8-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC0, 32*9-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	lea		8($tp0), $tp0
 
 	vpmuludq	32*5-128($ap), $B2, $TEMP2
 	vpaddq		$TEMP2, $ACC1, $ACC1
-	vpmuludq	32*5-128($aap), $B2, $TEMP0
+	vpmuludq	32*5-128($aap), $B2, $TEMP0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP0, $ACC2, $ACC2
-	vpmuludq	32*6-128($aap), $B2, $TEMP1
+	vpmuludq	32*6-128($aap), $B2, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	vpaddq		$TEMP1, $ACC3, $ACC3
-	vpmuludq	32*7-128($aap), $B2, $ACC4
+	vpmuludq	32*7-128($aap), $B2, $ACC4#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	 vpbroadcastq	32*7-128($tpa), $B2
-	vpaddq		32*13-448($tp1), $ACC4, $ACC4
+	vpaddq		32*13-448($tp1), $ACC4, $ACC4#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
-	vmovdqu		$ACC1, 32*10-448($tp1)
-	vmovdqu		$ACC2, 32*11-448($tp1)
+	vmovdqu		$ACC1, 32*10-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC2, 32*11-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	vpmuludq	32*6-128($ap), $B1, $TEMP0
 	vpaddq		$TEMP0, $ACC3, $ACC3
-	vpmuludq	32*6-128($aap), $B1, $TEMP1
+	vpmuludq	32*6-128($aap), $B1, $TEMP1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	 vpbroadcastq	32*8-128($tpa), $ACC0		# borrow $ACC0 for $B1
 	vpaddq		$TEMP1, $ACC4, $ACC4
-	vpmuludq	32*7-128($aap), $B1, $ACC5
+	vpmuludq	32*7-128($aap), $B1, $ACC5#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	 vpbroadcastq	32*0+8-128($tpa), $B1		# for next iteration
-	vpaddq		32*14-448($tp1), $ACC5, $ACC5
+	vpaddq		32*14-448($tp1), $ACC5, $ACC5#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
-	vmovdqu		$ACC3, 32*12-448($tp1)
-	vmovdqu		$ACC4, 32*13-448($tp1)
+	vmovdqu		$ACC3, 32*12-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC4, 32*13-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	lea		8($tpa), $tpa
 
 	vpmuludq	32*7-128($ap), $B2, $TEMP0
 	vpaddq		$TEMP0, $ACC5, $ACC5
-	vpmuludq	32*7-128($aap), $B2, $ACC6
-	vpaddq		32*15-448($tp1), $ACC6, $ACC6
+	vpmuludq	32*7-128($aap), $B2, $ACC6#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*15-448($tp1), $ACC6, $ACC6#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	vpmuludq	32*8-128($ap), $ACC0, $ACC7
-	vmovdqu		$ACC5, 32*14-448($tp1)
-	vpaddq		32*16-448($tp1), $ACC7, $ACC7
-	vmovdqu		$ACC6, 32*15-448($tp1)
-	vmovdqu		$ACC7, 32*16-448($tp1)
+	vmovdqu		$ACC5, 32*14-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*16-448($tp1), $ACC7, $ACC7#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC6, 32*15-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC7, 32*16-448($tp1)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 	lea		8($tp1), $tp1
 
 	dec	$i
@@ -473,20 +484,20 @@ $code.=<<___;
 	vpblendd	\$3, $TEMP2, $ZERO, $TEMP2
 	vpaddq		$TEMP1, $ACC1, $ACC1
 	vpaddq		$TEMP2, $ACC2, $ACC2
-	vmovdqu		$ACC1, 32*9-192($tp0)
-	vmovdqu		$ACC2, 32*10-192($tp0)
+	vmovdqu		$ACC1, 32*9-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu		$ACC2, 32*10-192($tp0)#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	mov	(%rsp), %rax
 	mov	8(%rsp), $r1
 	mov	16(%rsp), $r2
 	mov	24(%rsp), $r3
 	vmovdqu	32*1(%rsp), $ACC1
-	vmovdqu	32*2-192($tp0), $ACC2
-	vmovdqu	32*3-192($tp0), $ACC3
-	vmovdqu	32*4-192($tp0), $ACC4
-	vmovdqu	32*5-192($tp0), $ACC5
-	vmovdqu	32*6-192($tp0), $ACC6
-	vmovdqu	32*7-192($tp0), $ACC7
+	vmovdqu	32*2-192($tp0), $ACC2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu	32*3-192($tp0), $ACC3#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu	32*4-192($tp0), $ACC4#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu	32*5-192($tp0), $ACC5#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu	32*6-192($tp0), $ACC6#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vmovdqu	32*7-192($tp0), $ACC7#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	mov	%rax, $r0
 	imull	$n0, %eax
@@ -698,15 +709,15 @@ $code.=<<___;
 	vpaddq	$ACC9, $Y2, $ACC0
 	vpxor	$ZERO, $ZERO, $ZERO
 
-	vpaddq		32*9-192($tp0), $ACC0, $ACC0
-	vpaddq		32*10-448($tp1), $ACC1, $ACC1
-	vpaddq		32*11-448($tp1), $ACC2, $ACC2
-	vpaddq		32*12-448($tp1), $ACC3, $ACC3
-	vpaddq		32*13-448($tp1), $ACC4, $ACC4
-	vpaddq		32*14-448($tp1), $ACC5, $ACC5
-	vpaddq		32*15-448($tp1), $ACC6, $ACC6
-	vpaddq		32*16-448($tp1), $ACC7, $ACC7
-	vpaddq		32*17-448($tp1), $ACC8, $ACC8
+	vpaddq		32*9-192($tp0), $ACC0, $ACC0#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*10-448($tp1), $ACC1, $ACC1#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*11-448($tp1), $ACC2, $ACC2#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*12-448($tp1), $ACC3, $ACC3#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*13-448($tp1), $ACC4, $ACC4#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*14-448($tp1), $ACC5, $ACC5#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*15-448($tp1), $ACC6, $ACC6#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*16-448($tp1), $ACC7, $ACC7#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
+	vpaddq		32*17-448($tp1), $ACC8, $ACC8#! stack buffer (sqrs, %rsp + 0, %rsp + 1024)
 
 	vpsrlq		\$29, $ACC0, $TEMP1
 	vpand		$AND_MASK, $ACC0, $ACC0

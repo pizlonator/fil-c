@@ -74,6 +74,14 @@ my @D = map("%r$_",(8..12));
 my @T = map("%r$_",(13..14));
 my $iotas = "%r15";
 
+# Sarcasm: the 200-byte round-temp frame area (232 for SHA3_absorb, which
+# also parks its live %inp/%len/%bsz values above it) is a GC `.alloca`
+# buffer addressed through %fil_st. __KeccakF1600 is a localcall whose body
+# swaps %rsi/%rdi every round, so the temp pointer must be a real capability
+# (a `#! stack buffer` address could not cross that xchg) and the frame
+# never moves. GAS keeps the plain `sub/add %rsp` frame.
+my $ST = $ENV{SARCASM} ? "%fil_st" : "%rsp";
+
 my @rhotates = ([  0,  1, 62, 28, 27 ],
                 [ 36, 44,  6, 55, 20 ],
                 [  3, 10, 43, 25, 39 ],
@@ -366,8 +374,15 @@ KeccakF1600: #! void(ptr)
 .cfi_push	%r15
 
 	lea	100(%rdi),%rdi		# size optimization
+___
+$code.=<<___ if (!$ENV{SARCASM});
 	sub	\$200,%rsp
 .cfi_adjust_cfa_offset	200
+___
+$code.=<<___ if ($ENV{SARCASM});
+	.alloca	\$200,\$8,%fil_st
+___
+$code.=<<___;
 
 	notq	$A[0][1](%rdi)
 	notq	$A[0][2](%rdi)
@@ -377,7 +392,7 @@ KeccakF1600: #! void(ptr)
 	notq	$A[4][0](%rdi)
 
 	lea	iotas(%rip),$iotas
-	lea	100(%rsp),%rsi		# size optimization
+	lea	100($ST),%rsi		# size optimization
 
 	call	__KeccakF1600
 
@@ -388,9 +403,13 @@ KeccakF1600: #! void(ptr)
 	notq	$A[3][2](%rdi)
 	notq	$A[4][0](%rdi)
 	lea	-100(%rdi),%rdi		# preserve A[][]
+___
+$code.=<<___ if (!$ENV{SARCASM});
 
 	add	\$200,%rsp
 .cfi_adjust_cfa_offset	-200
+___
+$code.=<<___;
 
 	pop	%r15
 .cfi_pop	%r15
@@ -431,11 +450,21 @@ SHA3_absorb: #! size_t(ptr,ptr,size_t,size_t)
 .cfi_push	%r15
 
 	lea	100(%rdi),%rdi		# size optimization
+___
+$code.=<<___ if (!$ENV{SARCASM});
 	sub	\$232,%rsp
 .cfi_adjust_cfa_offset	232
+___
+$code.=<<___ if ($ENV{SARCASM});
+	# 232 bytes: the 100..200 tail is the temp half's upper part, and
+	# 200..232 park the live $inp/$len/$bsz values (still addressed through
+	# %rsi, i.e. through the capability).
+	.alloca	\$232,\$8,%fil_st
+___
+$code.=<<___;
 
 	mov	%rsi,$inp
-	lea	100(%rsp),%rsi		# size optimization
+	lea	100($ST),%rsi		# size optimization
 
 	notq	$A[0][1](%rdi)
 	notq	$A[0][2](%rdi)
@@ -483,8 +512,12 @@ SHA3_absorb: #! size_t(ptr,ptr,size_t,size_t)
 	notq	$A[3][2](%rdi)
 	notq	$A[4][0](%rdi)
 
+___
+$code.=<<___ if (!$ENV{SARCASM});
 	add	\$232,%rsp
 .cfi_adjust_cfa_offset	-232
+___
+$code.=<<___;
 
 	pop	%r15
 .cfi_pop	%r15

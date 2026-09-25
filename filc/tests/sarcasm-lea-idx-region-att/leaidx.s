@@ -1,8 +1,11 @@
 	.text
-	# Single-step indexed lea off %rsp into the promoted frame region behaves
-	# identically to the two-step idiom (non-indexed region lea seeding the
-	# pointer, then a register-index lea): same address, same capability.
-	# The helper stores make the test deterministic; index 2 reads back 102.
+	# Single-step indexed lea off %rsp into the plain fixed frame. This used
+	# to behave identically to the two-step idiom (the D9 fixed-frame escape
+	# promotion turned the frame into a GC region and the redirect resolved
+	# both spellings into it); that promotion was removed, so sarcasm now
+	# REJECTS taking the address of the stack frame at compile time and this
+	# file fails with "taking address of stack frame is not supported
+	# (cannot prove safety)" on the first escaping lea.
 	.globl	leaidx_single
 	.type	leaidx_single, @function
 leaidx_single:                  ;! long(long)
@@ -10,7 +13,7 @@ leaidx_single:                  ;! long(long)
 	pushq	%r12
 	subq	$64, %rsp
 	movq	%rdi, %r12           # index survives the call in %r12
-	leaq	16(%rsp), %rdi      # frame+16 escapes: promotes the frame
+	leaq	16(%rsp), %rdi      # frame+16 escapes: rejected at compile time
 	call	fill32 ;! void(ptr)
 	leaq	16(%rsp,%r12,8), %rax
 	movq	(%rax), %rax

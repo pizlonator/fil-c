@@ -1,14 +1,18 @@
 	.text
 	# Fail-closed indexed lea: a single-step indexed lea whose dynamic index
-	# lands outside the region traps at the access, exactly like the two-step
-	# idiom. Index 100 into a 4-element frame runs off the region.
+	# lands outside the region used to trap at the access (the D9 fixed-frame
+	# escape promotion made the frame a GC region and the runtime bounds check
+	# caught the out-of-region index). That promotion was removed: sarcasm now
+	# REJECTS taking the address of the stack frame at compile time, so this
+	# file fails with "taking address of stack frame is not supported
+	# (cannot prove safety)" on the escaping lea — before any code runs.
 	.globl	leaidx_oob
 	.type	leaidx_oob, @function
 leaidx_oob:                     ;! long(long)
 	pushq	%rbx
 	subq	$64, %rsp
 	movq	%rdi, %rbx           # index survives the call in %rbx
-	leaq	16(%rsp), %rdi      # frame+16 escapes: promotes the frame
+	leaq	16(%rsp), %rdi      # frame+16 escapes: rejected at compile time
 	call	fill32 ;! void(ptr)
 	leaq	16(%rsp,%rbx,8), %rax
 	movq	(%rax), %rax

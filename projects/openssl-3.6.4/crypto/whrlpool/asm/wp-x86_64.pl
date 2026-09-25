@@ -61,6 +61,15 @@ sub LL(){ $code.=".byte	".join(',',@_).",".join(',',@_)."\n"; }
 $func="whirlpool_block";
 $table=".Ltable";
 
+# The Whirlpool parameter block (ctx at +0, inp at +8, num at +16, saved
+# stack pointer at +24): under sarcasm it is a 32-byte GC `.alloca` buffer
+# (%fil_wpargs, allocated in the prologue below), because the leas below
+# take its address -- sarcasm rejects taking the address of the stack
+# frame -- and it must hold pointer capabilities, which raw stack memory
+# cannot. Under gas it stays the original 128(%rsp) frame slot, so the gas
+# output is unchanged.
+my $WPARGS = $ENV{SARCASM} ? "(%fil_wpargs)" : "128(%rsp)";
+
 $code=<<___;
 .text
 
@@ -85,19 +94,36 @@ $func: #! void(ptr,ptr,size_t)
 .cfi_push	%r15
 
 	sub	\$128+40,%rsp
+___
+if ($ENV{SARCASM}) {
+  # The parameter block ($WPARGS, 128(%rsp) under gas) becomes a 32-byte
+  # GC `.alloca` buffer: sarcasm rejects taking the address of the stack
+  # frame, and the block must hold pointer capabilities (ctx and inp
+  # round-trip through it via the `#! store/load ptr` accesses below),
+  # which raw stack memory cannot. The `.alloca` sits after the fixed
+  # frame subtraction and before the `and $-64` alignment (which makes
+  # the %rsp depth dynamic) and leaves %rsp untouched.
+  $code.=<<___;
+	.alloca	\$32,\$16,%fil_wpargs
+___
+}
+$code.=<<___;
 	and	\$-64,%rsp
 ___
-# The parameter block below lives at a frame-escaped address: the leas take
-# the frame's address (they are mid-function, past the `and` alignment), so
-# sarcasm materializes the frame as a GC region.  Pointer round-trips through
-# it therefore carry `#! store ptr` / `#! load ptr` annotations -- a plain
-# store into region memory writes only the 8 raw bytes and the capability
-# would be lost on the reload (the .Lroundsdone reloads and the bottom-of-
-# loop update store below are annotated the same way).  Scalar slots (num,
-# the round counter) stay unannotated.  Gas ignores the annotations.
+# The parameter block below is addressed via $WPARGS: under gas that is
+# the original 128(%rsp) frame slot, whose address the leas below take;
+# under sarcasm it is the 32-byte GC `.alloca` buffer allocated above
+# (%fil_wpargs), since sarcasm rejects taking the address of the stack
+# frame and the block must hold pointer capabilities, which raw stack
+# memory cannot.  Pointer round-trips through it carry `#! store ptr` /
+# `#! load ptr` annotations -- a plain store would write only the 8 raw
+# bytes and the capability would be lost on the reload (the .Lroundsdone
+# reloads and the bottom-of-loop update store below are annotated the
+# same way).  Scalar slots (num, the round counter) stay unannotated.
+# Gas ignores the annotations.
 $code.=<<___;
 
-	lea	128(%rsp),%r10
+	lea	$WPARGS,%r10
 	mov	%rdi,0(%r10)		#! store ptr # save parameter block
 	mov	%rsi,8(%r10)		#! store ptr # save inp
 	mov	%rdx,16(%r10)
@@ -210,7 +236,7 @@ ___
     push(@mm,shift(@mm));
 }
 $code.=<<___;
-	lea	128(%rsp),%rbx
+	lea	$WPARGS,%rbx
 	mov	24(%rbx),%rsi		# pull round counter
 	add	\$1,%rsi
 	cmp	\$10,%rsi
@@ -239,15 +265,13 @@ $code.=<<___;
 	jmp	.Louterloop
 .Lalldone:
 ___
-# The saved stack pointer is parked straight into its frame slot under
-# sarcasm (a stack value cannot be stored through the parked param-block
-# carrier). The parked-pointer round trip is not provable there either --
-# the param-block carriers take the frame's address, so the frame
-# materializes as a GC region and the parked value reads back as the
-# region pointer -- so the sarcasm epilogue drops the restore loads (the
-# callee-saved registers ride the dropped push/pop machinery) and undoes
-# the 6-push + 168-byte frame depth directly. Gas keeps the parked-pointer
-# spelling.
+# The saved stack pointer is parked straight into its fixed-frame slot
+# under sarcasm (a stack value cannot be stored through the param-block
+# carrier, which under sarcasm points at the GC `.alloca` buffer -- raw
+# stack values have to stay in raw stack memory). The sarcasm epilogue
+# therefore drops the restore loads (the callee-saved registers ride the
+# dropped push/pop machinery) and undoes the 6-push + 168-byte frame
+# depth directly. Gas keeps the parked-pointer spelling.
 if ($ENV{SARCASM}) {
 $code.=<<___;
 	lea	`6*8+128+40`(%rsp),%rsp

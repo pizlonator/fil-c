@@ -402,17 +402,22 @@ e.g. `long(long,long,ptr)` puts arg1 in x3 and arg2's intval/lower in x4/x5.
 NOTE (historical alloca regions): the `;! alloca`-driven GC-allocation regions
 (fixed-size `alloca result size=N` regions and dynamic `alloca size/result` regions,
 with the `regionRedirect` address-math redirection and the arm64/x86_64
-alloca-base normalization) were removed with the annotations. The only region
-source left is the fixed-frame escape promotion (D9), which rides the same
-`regionOf`/`regionRedirect` machinery. Stack allocation is spelled with the
+alloca-base normalization) were removed with the annotations, and the fixed-frame
+escape promotion (D9) — the last region source — was removed with them: taking
+the address of the stack frame is REJECTED (see the limits section), so the
+region list is always empty and the `regionOf`/`regionRedirect` plumbing is
+inert. Stack allocation is spelled with the
 `.alloca` directive, which never touches sp and needs no regions.
-An indexed region lea (`lea D(%rsp,%idx,s),%r` with the static displacement
-in the region) redirects exactly like its non-indexed form: the value rides
-the region pointer with the index preserved, and the result shares the
-region's capability — the single-step spelling of the sanctioned two-step
-idiom (`lea D(%rsp),%t` seeding the pointer, then `lea (%t,%idx,s),%r`),
-with identical behavior. The dynamic index is covered by the runtime bounds
-checks at every use (fail-closed: an out-of-region index traps there).
+When the region machinery still had sources, an indexed region lea
+(`lea D(%rsp,%idx,s),%r` with the static displacement in the region)
+redirected exactly like its non-indexed form: the value rode the region
+pointer with the index preserved, and the result shared the region's
+capability — the single-step spelling of the sanctioned two-step idiom
+(`lea D(%rsp),%t` seeding the pointer, then `lea (%t,%idx,s),%r`), with
+identical behavior; the dynamic index was covered by the runtime bounds
+checks at every use (fail-closed: an out-of-region index trapped there).
+With regions gone, an indexed stack lea is just a frame-address-taking lea —
+the rewrite rejects it as an escape (no carrier form accepts an index).
 
 ## Core stages
 
@@ -707,9 +712,12 @@ A recovery — `movq %reg, %rsp` OR `leaq K(%reg), %rsp` (the perlasm
 `leaq (%rsi), %rsp`) — may read any carrier that provably holds the save value
 and revives the parked depth (minus K). Register class is unrestricted: the
 carrier discipline makes every use either dropped or rejected, so a caller-saved
-register (or a caller-saved save riding through a region slot — the
-sha256/sha512/wp idiom) is exactly as sound as a callee-saved one — no call
-clobber can ever be observed. Any OTHER read of a register carrier, or a
+register is exactly as sound as a callee-saved one — no call clobber can ever
+be observed. (Historically this argument also covered a caller-saved save
+riding through a region slot — the sha256/sha512/wp idiom; with the region
+sources gone, every caller-saved save is an ordinary phantom carrier and those
+idioms spell their scratch with `#! stack buffer` annotations or `.alloca`
+instead.) Any OTHER read of a register carrier, or a
 redefinition of one, poisons it (the rejection names the register); a store
 overlapping a slot carrier poisons the slot; a non-carrier-form LOAD from a live
 slot carrier is rejected outright (it would observe the phantom value); and a
@@ -734,14 +742,15 @@ base, including plain unannotated heap loads/stores/RMWs (which would need a
 static stack-or-heap decision the frame pass cannot make) and lea
 address-taking, stays a static error);
 returning or storing the register is an error like any other carrier read.
-Exceptions: (a) a caller-saved save with the static frame-escape region based at
-rsp+0 is NOT a carrier — the region redirect keeps it alive as a REAL value;
-(b) when the entry signature has SysV stack arguments (see "fast-CC stack
-argument words" above), the save — and its `leaq 0(%rsp), %reg` form — may go
+Exceptions: (a) with incoming yolo stack arguments the save — and its
+`leaq 0(%rsp), %reg` form — may go
 into ANY register as an entry-rsp ALIAS for reading the incoming stack
 arguments; every read of the register while the alias is live is either
 redirected to the argument's slot or rejected, and the self-xor/self-sub
-zeroing idiom counts as a redefinition, not a read.
+zeroing idiom counts as a redefinition, not a read. (The historical (b) — a
+caller-saved save with the static frame-escape region based at rsp+0, which
+the region redirect kept alive as a REAL value — is gone with the region
+sources; every caller-saved save is an ordinary phantom carrier now.)
 
 A related epilogue shape is the perlasm movq-RESTORE: `movq (%rsp), %r15; movq
 8(%rsp), %r14; ...; addq $K, %rsp; ret` restores the saved registers with loads
@@ -847,7 +856,7 @@ reachability walk stays authoritative for parks it reaches, and the prologue rul
 covers exactly the parks after the note that no mid-and reaches.
 
 The runtime calls sarcasm injects invisibly and that RETURN — the pollcheck slow
-path, filc_allocate for `.alloca` and the frame-escape region, the ptr-store
+path, filc_allocate for `.alloca`, the ptr-store
 aux-ensure/barrier slow paths, the atomic pointer load/store/compare-exchange calls —
 would clobber the program's live xmm state (SysV makes every FP/SIMD register
 caller-saved, and the Fil-C runtime is compiled SSE2-only), so the transform
@@ -1653,11 +1662,15 @@ error (exit code 1). Current limitations, enforced on both architectures unless 
   8(%rsp), %rax`), by copying it (`movq %rsp, %rax`), or by storing it into a
   frame slot (`movq %rsp, (%rsp)` — the slot virtualization rewrites only the
   memory operand, so the live sp/fp value would leak into a virtual temp). The
-  exceptions: address arithmetic landing INSIDE the promoted frame-escape region
-  (redirected to a real pointer into the GC region) and the phantom saved-rsp carrier flow
+  exception is the phantom saved-rsp carrier flow
   (every use of the parked value is dropped or rejected, so nothing observable
-  escapes — see the frame section). The
-  full mid-function stack-pointer-movement policy is in the frame section.
+  escapes — see the frame section); the sanctioned
+  frame-address-taking forms (the lea carriers, the entry-rsp aliases, and the
+  by-address `#! stack buffer` value leas) all resolve into real lowered
+  memory or stay unobservable. (The historical
+  "promoted frame-escape region" exception — the D9 promotion of the whole
+  fixed frame to a GC region — was removed; there is no region source left.)
+  The full mid-function stack-pointer-movement policy is in the frame section.
 - Stack accesses outside the input frame — below it (on X86_64, below the
   128-byte SysV red zone under rsp, via rsp- or normalized rbp-relative
   offsets alike), above it, or stores into the caller's argument area — are
@@ -1666,7 +1679,7 @@ error (exit code 1). Current limitations, enforced on both architectures unless 
   is unknown at compile time, so it cannot be bounds-checked or virtualized.
 - `.alloca` requires exactly 3 operands (size, alignment, result) of the
   documented shapes; anything else (symbols, FP/vector registers, heap memory,
-  bad immediates) is rejected. A `.alloca` in a promoted-region frame or at an
+  bad immediates) is rejected. A `.alloca` at an
   unknown depth with spill-slot operands is rejected rather than silently
   mis-virtualizing the slot.
 - Dropping the alloca's %rsp-mutating instruction also discards its flag effects: a
@@ -2026,12 +2039,13 @@ ret exemptions), and the transform (retaddr temps, emission, flag treatment).
   `disp + D0 - d - 8` (hardware: the return-address word sits between the
   clone's rsp and the caller's frame — at the callsite depth, every
   regs-only sub, this is exactly `disp - 8`). The same bias applies in the
-  frame rewrite's static-region lookup and slot keying, in the transform's
-  region-lea seed scan, and in the codegen's region redirect (all riding
+  frame rewrite's slot keying and — inertly, the region machinery having no
+  sources left — in the transform's region-lea seed scan and the codegen's
+  region redirect (all riding
   `fctx.callerDepth` = D0), so the sub's `8(%rsp)` keys to the caller's slot
-  0 and `leaq 8(%rsp),%rdi` (rsaz's frame-address idiom) keys to region
-  offset 0, which the redirect resolves to the region pointer when the
-  caller's buffer sits in the promoted frame-escape region. rbp-relative
+  0 and `leaq 8(%rsp),%rdi` (rsaz's frame-address idiom) keys to frame
+  offset 0 — legal only through the carrier machinery (it is one when every
+  use is a memory-only use); a value escape is rejected. rbp-relative
   operands are never biased (the call does not move rbp);
   the entry-rsp-parking lea forms shift by the same 8 (a clone's
   `leaq d+8(%rsp)` parks the entry rsp). A clone may set up its own frame
@@ -2189,10 +2203,11 @@ an unannotated one keeps the plain tail-call rejection.
   the alias link — its function object IS the function's.
 - **Clone-source freshness.** B2 regions are extracted from PRISTINE copies
   of the owner bodies taken at context-build time: the transform rewrites
-  some memory operands in place (the frame-escape-region redirect substitutes the
-  region-pointer temp for the stack base register), so a body whose owner
-  was already compiled is no longer a valid clone source for a later
-  jumper.
+  some memory operands in place (the historical frame-escape-region redirect
+  substituted the region-pointer temp for the stack base register; with no
+  region sources left nothing is substituted today, but the freshness rule
+  stands), so a body whose owner was already compiled is no longer a valid
+  clone source for a later jumper.
 
 ## Floating-point signatures (arm64 and x86_64)
 - Capability marker: BOTH codegen modules set `cgm.fpSignatures = true`, and
@@ -2276,8 +2291,8 @@ when the access is indexed. Design:
   (`K = D0 - carrierDepth`). All long forms of one name must resolve to the
   same normalized range (the driver records `id -> {lo, hi, fn}` and errors
   on disagreement; the per-function resolution re-compares, so a pre-pass /
-  rewrite disagreement — possible only through an alloca region the pre-pass
-  cannot see — is a compile error, never a miscompile). Short forms are
+  rewrite disagreement (the shapes that could cause one were removed with the
+  alloca regions) is a compile error, never a miscompile). Short forms are
   resolved per function from the canonical range; a name with no long form
   anywhere is a compile error at the short form.
   B2 SHARED-TAIL CLONES are the one exception to the canonical rule. A clone
@@ -2427,7 +2442,7 @@ when the access is indexed. Design:
   coordinates the declaration and the lea key alike), and the buffer scan's
   phase re-check re-derives the offset EXACTLY in the clone's banded
   coordinates (`off + D0 - d + band`), where a probe/scan disagreement
-  fails closed (the lea stays ordinary and the escape detector's business).
+  fails closed (the lea stays ordinary, and escape rejection is its path).
   A clone lea whose uses are all memory-only still keeps the carrier path
   (the B2 carrier pass re-marks it; the enc8x shape), so only value-use
   shapes fall out — the fall-out reason is recorded on the statement
@@ -2435,8 +2450,9 @@ when the access is indexed. Design:
   memory-only-use shapes the carrier discipline legalizes keep today's
   static carrier path (`leaSaveUsesMemoryOnly` re-proves them; an annotated
   rep's alias side is excluded from the exemption via `bufRepRegs` — the rep
-  machinery needs the carrier). The escape detector skips value leas: they
-  name buffer bytes, and the D9 promotion must not fire for them. Because
+  machinery needs the carrier). Value leas name buffer bytes, not frame
+  slots, so they are excluded from escape rejection (the buffer's own
+  lowered region is the lea's real home). Because
   the buffer ranges are only known after the fixpoint, the transfer consults
   a PRE-FIXPOINT probe set (`bufProbeRanges`): the canonical ranges of every
   id long-form-declared in this body (exact for this function's own
@@ -2444,8 +2460,8 @@ when the access is indexed. Design:
   subroutine's coordinates, which a clone's leas only reach through a
   per-caller shift the probe cannot know — such leas keep today's path, a
   false negative, never unsound; a false positive merely stops parking a
-  carrier and still routes through the escape detector, which uses the exact
-  post-fixpoint ranges). The driver's resolution-only pre-pass has an
+  carrier, and the exact post-fixpoint buffer scan or the rewrite's escape
+  rejection owns the lea then). The driver's resolution-only pre-pass has an
   incomplete canonical table, so there the transfer instead SUPPRESSES the
   carrier value-use rejection for lea-form carriers
   (`bufProbeSuppress`) — the pre-pass's marks are re-derived by every later

@@ -1,13 +1,15 @@
 # The same Whirlpool parameter-block shape as sarcasm-region-ptrslot-att,
 # but WITHOUT the `#! store ptr` / `#! load ptr` annotations.  The frame
 # escape (the mid-function `and $-64, %rsp` plus the `leaq 128(%rsp)`
-# carrier) promotes the frame to a GC region -- real heap memory -- so the
-# plain store of the argument pointer writes only the 8 raw bytes.  The
-# plain reload hands back a capability-less pointer, and the first
-# dereference traps.  This is the deterministic failure the unannotated
-# wp-x86_64.pl restore hit at wp-x86_64.s:559 ("cannot read pointer with
-# null object" out of whirlpool_block, called from WHIRLPOOL_Final); the
-# sibling test with the annotations passes.
+# carrier) used to be accepted by the D9 fixed-frame escape promotion, which
+# made the frame real heap memory: the plain store of the argument pointer
+# then wrote only the 8 raw bytes, the plain reload handed back a
+# capability-less pointer, and the first dereference trapped ("cannot read
+# pointer with null object" out of whirlpool_block, called from
+# WHIRLPOOL_Final — the wp-x86_64.s:559 failure). That promotion was removed:
+# sarcasm now REJECTS taking the address of the stack frame at compile time,
+# so this file fails with "taking address of stack frame is not supported
+# (cannot prove safety)" — before any code runs, annotations or not.
 	.text
 	.globl	region_roundtrip_plain
 	.type	region_roundtrip_plain, @function

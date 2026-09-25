@@ -286,7 +286,8 @@ the caller's frame slots all follow the ordinary web rules. Details:
   written against the return-address-compensated `N+8(%rsp)` convention (the
   rsaz/mont5/aesni-gcm subs) sees its rsp-relative displacements biased by -8:
   its `8(%rsp)` keys to the caller's slot 0, and `leaq 8(%rsp),%rdi` becomes
-  `leaq 0(%rsp),%rdi`, which resolves into the caller's alloca region.
+  `leaq 0(%rsp),%rdi`, which is legal only as a frame-interior carrier (a
+  value use of the frame address is a compile-time error).
 - `#! local` is accepted as an optional explicit marker on such calls
   (validated to resolve the same way; a mismatch is a compile error).
 - A subroutine may set up its own frame with a constant `sub` (torn down

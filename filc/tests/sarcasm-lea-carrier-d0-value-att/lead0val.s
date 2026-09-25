@@ -2,23 +2,23 @@
 	# Feature (D0 interior lea-save carriers), the CONSERVATIVE side: a
 	# prologue-depth interior lea whose destination register has a VALUE use
 	# (here the register is copied into the call's argument) is NOT a carrier —
-	# the scan falls back and the historical D9 escape promotion runs, turning
-	# the whole fixed frame into a GC region. The lea then materializes a real
-	# region pointer (a valid capability), so the value use hands the callee a
-	# pointer into the promoted region, the helper's stores are runtime-checked
-	# region traffic, and the same-offset reads observe them. This pins today's
-	# promoted semantics end to end: the pointer is real, the traffic is
-	# checked, and the values round-trip.
+	# the scan falls out and the lea stays ordinary. This used to be accepted
+	# by the D9 fixed-frame escape promotion, which promoted the whole fixed
+	# frame to a GC region (filc_allocate) so the value use handed the callee a
+	# real region pointer. That promotion was removed: sarcasm now REJECTS
+	# taking the address of the stack frame at compile time, so this file
+	# fails to compile with "taking address of stack frame is not supported
+	# (cannot prove safety)" on the escaping lea.
 	.globl	lead0val
 	.type	lead0val, @function
 lead0val:                       ;! long(long)
 	pushq	%rbx
 	subq	$96, %rsp
-	leaq	32(%rsp), %rbx     # D0 interior lea with a VALUE use below
+	leaq	32(%rsp), %rbx     # D0 interior lea with a VALUE use below: rejected
 	movq	%rbx, %rdi         # value read: the register escapes into the call
 	call	fill48 ;! void(ptr)
-	movq	32(%rsp), %rax     # promoted-region traffic: helper's qword 0
-	addq	40(%rsp), %rax     # promoted-region traffic: helper's qword 1
+	movq	32(%rsp), %rax     # frame-slot read (the compile fails first)
+	addq	40(%rsp), %rax     # frame-slot read
 	addq	$96, %rsp
 	popq	%rbx
 	ret

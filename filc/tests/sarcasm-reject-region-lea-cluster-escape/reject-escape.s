@@ -1,7 +1,8 @@
 # UNSOUND: an INDEXED lea into the plain fixed frame escapes to a helper
-# through a copy chain. The frame-escape promotion (D9) only covers plain
-# base+disp leas — the region redirect cannot rewrite an indexed address
-# computation — so the indexed escape keeps the clean escape rejection.
+# through a copy chain. (The fixed-frame escape promotion (D9) that used to
+# cover plain base+disp leas was removed — every stack-address lea that the
+# carrier machinery cannot legalize is rejected — so the indexed escape
+# keeps the clean escape rejection.)
 	.text
 	.globl	badcluster
 	.type	badcluster, @function

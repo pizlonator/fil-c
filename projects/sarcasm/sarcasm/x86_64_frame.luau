@@ -285,15 +285,16 @@ local frameAndIdx = nil  -- the prologue `and $-N, %rsp` statement's index, if a
 local slotGranules = {}
 
 -- Whether the latest analyzeFrame run executed the cloneRet balance proof
--- (true exactly when it ran with regions ~= nil). The rewrite's cloneRet
--- exemption (the depth-0-at-ret gate) asserts this: the exemption may only be
--- consumed on marks from a run whose proof backed them. The transform's early
--- geometry run (regions == nil) skips the proof, so consuming ITS marks would
--- be fail-open — the assert makes that a loud internal error instead of a
--- silent hole. Same single-threaded discipline as D0/frameAlignReq below:
--- frame.preprocess runs analyzeFrame immediately before the rewrite loop for
--- the same body, and its `regions` argument is always a table there (possibly
--- empty), so the flag is true whenever the rewrite can see a cloneRet.
+-- (the run's cloneRet check is gated on `regions ~= nil`). The rewrite's
+-- cloneRet exemption (the depth-0-at-ret gate) asserts this: the exemption may
+-- only be consumed on marks from a run whose proof backed them. Every caller
+-- today passes the same (always-empty) regions list, so the proof runs on every
+-- analyzeFrame run, the flag is always true, and the assert is a vestigial
+-- machine check — kept so a future caller passing a nil regions list fails
+-- loudly instead of silently. Same single-threaded discipline as
+-- D0/frameAlignReq below: frame.preprocess runs analyzeFrame immediately
+-- before the rewrite loop for the same body, so the flag is true whenever the
+-- rewrite can see a cloneRet.
 local cloneRetProofRan = false
 
 -- Incoming yolo stack-argument state for the CURRENT function (set by analyzeFrame,
@@ -685,8 +686,10 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 	frameAndIdx = nil
 	slotGranules = {}
 	-- Record whether this run executes the cloneRet balance proof below
-	-- (regions ~= nil). The rewrite asserts the flag before consuming any
-	-- cloneRet exemption — the machine check behind the early-run skip.
+	-- (gated on `regions ~= nil`; every caller passes the always-empty regions
+	-- list, so this is true on every run). The rewrite asserts the flag before
+	-- consuming any cloneRet exemption — a vestigial machine check that stays
+	-- loud if a future caller ever passes nil.
 	cloneRetProofRan = (regions ~= nil)
 
 	-- Feature A (by-address `#! stack buffer` accesses), pre-fixpoint probe: the
@@ -702,9 +705,9 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 	-- only reach through a per-caller shift this early pass cannot know — such a
 	-- lea keeps today's path (a false negative, never unsound). A FALSE POSITIVE
 	-- (a lea whose offset coincides with a canonical range it does not belong to)
-	-- is equally safe: the lea only stops parking a carrier, and the escape
-	-- detector — which uses the exact post-fixpoint ranges — still routes it
-	-- through today's D9 promotion.
+	-- is equally safe: the lea only stops parking a carrier, and the buffer scan
+	-- — which uses the exact post-fixpoint ranges — or the rewrite's escape
+	-- rejection owns it then.
 	local bufProbeRanges = nil
 	local bufProbeSuppress = false
 	-- Per-B2-clone raw declaration ranges (see the collection above): clone idx
@@ -781,10 +784,13 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 
 	-- Fixed-alloca region lookup mirroring frame.preprocess's: `dyn` selects the
 	-- alignment-anchored regions ("dyn"-depth rsp coordinates), static the
-	-- lea/mov-anchored ones. `regions` is nil on the transform's early geometry run:
-	-- the region-sensitive decisions below (the caller-saved-save region corner and
-	-- the in-region lea exclusion) then conservatively fall back to the behaviors
-	-- that keep the early run error-free (the rewrite's run sees the regions).
+	-- lea/mov-anchored ones. Every analyzeFrame run receives the same (always
+	-- empty) regions list — there are no region sources left — so this lookup
+	-- always misses and the `regions ~= nil` gates below always hold; those
+	-- gates are vestigial, kept for the region plumbing's shape. (The
+	-- historical region-sensitive behaviors they fed — the caller-saved-save
+	-- region corner and the in-region lea exclusion — are gone with the region
+	-- sources.)
 	local function regionOf(off, dyn)
 		for _, r in (regions or {}) do
 			if (r.anchored and true or false) == (dyn and true or false)
@@ -1467,12 +1473,12 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 	-- callee-saved one. EXCEPTIONS: (a) with incoming yolo STACK ARGUMENTS
 	-- (yoloCount > 0) a save additionally serves as an entry-rsp ALIAS whose
 	-- entry-time argument reads the rewrite redirects to the arguments' slots
-	-- (those reads remove the register use entirely); (b) a caller-saved save with
-	-- the static frame-escape region based at rsp+0 is NOT a carrier — the region
-	-- redirect keeps it alive as a REAL value (the region corner). Only CALLEE-SAVED
-	-- prologue saves (and the yolo aliases) are recorded on the region-less early
-	-- analysis run: the corner and the in-region lea exclusion need the regions, and
-	-- every shape they legalize is then revalidated (and never errors early).
+	-- (those reads remove the register use entirely); (b) the historical region
+	-- corner — a caller-saved save with a static frame-escape region based at
+	-- rsp+0, which the region redirect kept alive as a REAL value — is GONE with
+	-- the region sources, so every recorded save is a phantom carrier. Every run
+	-- carries the (always empty) regions list, so all saves (callee- AND
+	-- caller-saved, prologue and post-prologue) are recorded on every run.
 	-- The FP/SIMD knowledge module, aliased for scopes where the `fp` frame-pointer
 	-- state parameter shadows the file-scope `fp` module.
 	local fpKnowledge = fp
@@ -1719,14 +1725,13 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 		-- sound as prologue ones — the value derives from the CURRENT rsp at a static
 		-- depth, and the carrier discipline drops or rejects every use of it — which
 		-- is exactly what the perlasm shortcut-dispatch preamble needs (the save sits
-		-- behind the dispatch's merge label, after the prologue scan stopped). The
-		-- frame-escape-region corner is the one exclusion: a caller-saved save with a
-		-- static region based at rsp+0 KEEPS executing with its destination
-		-- redirected to the allocation pointer, so it is no save at all and its
-		-- register may be read.
-		-- comment — callee-saved always; any register with yolo stack arguments;
-		-- caller-saved otherwise only on the region-carrying run and outside the
-		-- rsp+0 region corner.)
+		-- behind the dispatch's merge label, after the prologue scan stopped). (The
+		-- historical exclusion for a caller-saved save with a static frame-escape
+		-- region based at rsp+0 is gone with the region sources.)
+		-- Gate condition — callee-saved always; any register with yolo stack
+		-- arguments; B2-clone statements always; caller-saved otherwise (the
+		-- regions argument is always non-nil today — an empty list — so the
+		-- recording gate holds on every run).
 		local isSave = isSpSaveForm(st) and d ~= nil and not isDynDepth(d)
 			and (x86.CALLEE_SAVED[ops[1].name] ~= nil or yoloCount > 0
 				or st.b2clone ~= nil
@@ -1742,12 +1747,11 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 		-- legal flows are the carrier discipline's (a later recovery revives the
 		-- parked depth; an access through it inside an anchored region scope
 		-- redirects to the region — regionCarrierAccess). A lea with 0 < K < d
-		-- computes a frame-INTERIOR address: that is frame-address-taking into the
-		-- buffer (the region redirect's domain when K lands in a region, the escape
-		-- rejection otherwise), not a saved stack pointer. Excluded when K lands in
-		-- a static alloca region: that lea is the region redirect's REAL pointer
-		-- arithmetic, not a carrier. (Recorded only on the region-carrying run,
-		-- like caller-saved saves.)
+		-- computes a frame-INTERIOR address: that is frame-address-taking (the
+		-- rewrite rejects it unless a carrier/value-lea form legalizes it), not a
+		-- saved stack pointer. (The historical exclusion when K landed in a static
+		-- alloca region — the region redirect's REAL pointer arithmetic — is gone
+		-- with the region sources.)
 		local isLeaSave = isYoloLeaSave(st, d)
 		local leaSaveForm = nil
 		local leaSaveParked = nil
@@ -1785,10 +1789,10 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 				-- `leaq 0x90(%rsp),%rax` post-`and` frame anchor. Restricting the new
 				-- form to NUMBER depths keeps the {anchored}/{dynreg} scopes (table d)
 				-- on their own restore-base lea paths, and keeping it off localcall
-				-- clone statements keeps their region-pointer leas exactly as they
+				-- clone statements keeps their carrier spellings exactly as they
 				-- were. B2 shared-tail clone statements ARE included: their carrier
-				-- recognition is gated to the shapes the escape detector would have
-				-- REJECTED (see the pre-detector pass below) so today's promoted
+				-- recognition is gated to the shapes the rewrite would otherwise
+				-- REJECT as escapes (see the memory-only-use pass below), so the
 				-- value-escaping clone leas keep today's path byte for byte.
 				local leaAny = type(d) == "number" and (d ~= D0 or ops[1].name == "rbp")
 					and not st.localClone
@@ -1801,16 +1805,17 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 				-- legalizes (chacha's 4xop/8x bodies: `leaq 0x100(%rsp),%rcx`
 				-- inside the prologue prefix, whose register the body only ever
 				-- reads as an addressing base). Parking the carrier keeps the lea
-				-- out of the D9 escape detector, which would otherwise promote
-				-- the whole fixed frame to a GC region and collide with any
-				-- declared stack buffer. The scan is CONSERVATIVE: any value use
+				-- out of the rewrite's escape rejection (a frame-interior lea
+				-- without a legalized shape fails the compile). The scan is
+				-- CONSERVATIVE: any value use
 				-- (an ALU operand, a push, an address-taking lea through the
 				-- register, an indexed or symbolic memory form, a control-flow
 				-- read, a second use in one statement, or anything classify
 				-- cannot model exactly), any carrier use whose alias window or
 				-- region membership the alias check would reject, and any
 				-- control-flow ambiguity about whether the register still holds
-				-- the carrier all keep today's promotion path byte for byte.
+				-- the carrier all leave the lea unmarked — the rewrite then
+				-- rejects it as an escape, byte for byte today's behavior.
 				-- B2-clone statements stay on their own banding pass, and the
 				-- %rbp destination stays on the leaAny path (it is one when the
 				-- frame pointer is not established).
@@ -2229,8 +2234,8 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 				-- access keys a static frame slot exactly like an rsp-relative
 				-- access (the rewrite virtualizes/materializes it). The use is
 				-- legal only for a single memory-base use resolving inside the
-				-- frame and outside any promoted region; anything else observes
-				-- the phantom value. Control-flow reads are NOT data accesses:
+				-- frame (there are no promoted regions anymore); anything else
+				-- observes the phantom value. Control-flow reads are NOT data accesses:
 				-- `call *D(%carrier)` / `jmp *D(%carrier)` reads the carrier as
 				-- a CODE address, so even when D lands inside the frame the
 				-- alias computation must not legalize it (that would jump to
@@ -2635,8 +2640,8 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 	-- self-sub zeroing idiom exempt (the written value does not depend on the
 	-- old one) and an incoming yolo stack-argument read redirected. The access
 	-- must also resolve inside the alias window (normalized offset
-	-- disp + D0 - parkedDepth in [-128, frameSize), outside every promoted
-	-- region) — the same proof the fixpoint's aliasOk re-runs at the use, with
+	-- disp + D0 - parkedDepth in [-128, frameSize)) — the same proof the
+	-- fixpoint's aliasOk re-runs at the use, with
 	-- the lea's own depth as the window's depth (every later use point's window
 	-- is at least as wide, so this is the tightest bound). A definition of the
 	-- register (any width — the same modeled-def rule the smap's def-marking
@@ -2648,7 +2653,7 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 	-- argument registers (classify models neither that nor the caller-saved
 	-- clobber, so the scan owns both). Anything the scan cannot prove (a
 	-- statement classify rejects, a shape it does not know) returns false,
-	-- which keeps today's D9 escape promotion path byte for byte.
+	-- which keeps today's escape-rejection path byte for byte.
 		leaSaveUsesMemoryOnly = function(st, idx, parkedDepth)
 		local cached = leaMemOnlyCache[st]
 		if cached ~= nil then return cached end
@@ -2827,9 +2832,9 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 								or bb == "call" or bb == "jmp" then
 								res = false failWhy = "at: " .. (st2 and (st2.raw or st2.mnemonic) or "?") break
 							end
-							-- The aliasOk window/region proof (see the fixpoint's
+							-- The aliasOk window proof (see the fixpoint's
 							-- use-check): the access must resolve inside the
-							-- frame window and outside every promoted region.
+							-- frame window.
 							if not yoloArgSlotOf(st2, regName, parkedDepth) then
 								local ao = (mem2.dispVal or 0) + D0 - parkedDepth
 								local afpe = fpKnowledge.lookup(bm)
@@ -4017,33 +4022,35 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 			end
 		end
 		for i, st in body do
-			-- The cloneRet check runs only on region-carrying runs: the rewrite's
-			-- ret-perturbation exemption (frame.preprocess) consumes the
-			-- REGION-CARRYING run's marks (preprocess calls analyzeFrame with the
-			-- alloca/frame regions and rewrites from those marks), so that run's
-			-- proof backs the exemption — the region-less early geometry run
-			-- (transform.luau's frame-size pre-pass, regions == nil) has no
-			-- rewrite consumer and its marks are discarded. Moreover the early
-			-- run cannot record caller-saved rsp saves (its region corner needs
-			-- the regions), so a B2 clone carrying its owner's carrier-recovery
-			-- epilogue (mont's %rax chain, chacha's %r9 chain: the save lives in
-			-- the jumper header ahead of the jump edge) has no carrier there and
-			-- its recovery is unproven — checking it early rejects shapes the
-			-- later run legalizes. Skipping the early check is therefore not
-			-- fail-open, by three facts. (1) Discarded marks: analyzeFrame
-			-- clears every x86_* mark at entry, so no per-statement output of
-			-- the early run (depths, teardown spans, bands) survives into a
-			-- later run — runs 2 (region-carrying) and 3 (preprocess) recompute
-			-- them from scratch. (2) Recomputed geometry: the transform adopts
-			-- run 2's frameSize for the D9 promotion size (and run 3 recomputes
-			-- its own for the rewrite), so the only early-run scalar any
-			-- consumer keeps — the prologue-derived frameSize/fpOffset/usesFp —
-			-- is region-invariant by construction (the prologue scan never
-			-- consults regions). (3) Double coverage: every real imbalance is
-			-- still caught twice (the alloca-regions run and the preprocess
-			-- run), and both run before any rewrite consumes a cloneRet mark.
-			-- localRet keeps its historical unconditional check (its teardowns
-			-- are carrier-free constant adjustments, provable on every run).
+			-- The cloneRet check is gated on `regions ~= nil`, a vestigial gate:
+			-- every analyzeFrame caller (transform.luau's frame-size pre-pass,
+			-- the driver's resolution pre-pass, and frame.preprocess's rewrite
+			-- run) passes a non-nil regions list — the same always-empty list,
+			-- there being no region sources left — so the gate holds on every
+			-- run and the check is never skipped. The transform's early run and
+			-- the preprocess run even see identical inputs (same body, same
+			-- signature, same empty list), so they decide identically. The
+			-- rewrite's ret-perturbation exemption (frame.preprocess) consumes
+			-- the marks of the run preprocess itself drives, whose proof
+			-- therefore backs the exemption; the early run has no rewrite
+			-- consumer and its marks are discarded, but running the check there
+			-- is pure redundancy, never a rejection hazard: the early run
+			-- records the same caller-saved rsp saves (the historical region
+			-- corner that withheld them needed the regions), so a B2 clone
+			-- carrying its owner's carrier-recovery epilogue (mont's %rax chain,
+			-- chacha's %r9 chain: the save lives in the jumper header ahead of
+			-- the jump edge) is provable on every run. Runs stay independent:
+			-- analyzeFrame clears every x86_* mark at entry, so no
+			-- per-statement output (depths, teardown spans, bands) survives into
+			-- a later run — each run re-derives them from scratch — and the
+			-- only early-run scalar any consumer keeps (the prologue-derived
+			-- frameSize/fpOffset/usesFp) is region-invariant by construction
+			-- (the prologue scan never consults regions). Double coverage:
+			-- every real imbalance is caught by both the transform's early run
+			-- and the preprocess run, and both run before any rewrite consumes
+			-- a cloneRet mark. localRet keeps its historical unconditional
+			-- check (its teardowns are carrier-free constant adjustments,
+			-- provable on every run).
 			if st.kind == "insn" and (st.localRet or (st.cloneRet and regions ~= nil)) then
 				local isClone = st.cloneRet ~= nil
 				local mark = st.localRet or st.cloneRet
@@ -4387,10 +4394,11 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 	-- region, union size) — "multiple stack buffers may overlap, in which case
 	-- you get a single larger stack buffer that encompasses both".
 	--
-	-- The scan runs only on the REGION-CARRYING runs: the early geometry run
-	-- (regions == nil) records no caller-saved carriers / lea-saves in the smap,
-	-- so alias-base declarations could not resolve there (and need not — the
-	-- region-carrying runs inside the transform always follow).
+	-- The scan is gated on `regions ~= nil and not sbResolving`. The regions
+	-- half is vestigial: every analyzeFrame run carries the same (always empty)
+	-- regions list and records the same caller-saved carriers / lea-saves in the
+	-- smap, so alias-base declarations resolve on every run. The live gate is
+	-- the sbResolving half (see below).
 	local sbRanges = {}    -- { {lo, hi, areq, aligns, id} } declarations in this function
 	local sbGroups = nil   -- merged groups (phase (d1)); bases assigned in (d2)
 	local sbOutgoing = 0   -- largest outgoing stack-argument area (bytes)
@@ -4737,9 +4745,9 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 		-- ADDRESS. The rewrite emits it as `leaq disp'(%rsp), %reg` into the
 		-- lowered buffer region (tagged stackBuf, finalized by the transform's
 		-- buffer-base shift); annotated accesses through the web become
-		-- runtime-checked by-address accesses. The escape detector skips these
-		-- leas (they name buffer bytes, not frame slots — the D9 promotion must
-		-- not fire, and the buffer's own region is the lea's real home).
+		-- runtime-checked by-address accesses. These leas are excluded from
+		-- escape rejection (they name buffer bytes, not frame slots — the
+		-- buffer's own lowered region is the lea's real home).
 		-- B2 shared-tail clone statements are included (Feature A in clones,
 		-- the aesni-mb dec8x shape): their lea offsets key into the clone's
 		-- band exactly like every other clone access (+ the statement's band),
@@ -6376,9 +6384,9 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 	-- accesses resolve statically to those banded homes (the carrier spelling
 	-- and the rsp-relative spelling of one byte land on one home: the K offset
 	-- cancels between the parked depth and the displacement). Marking the lea
-	-- x86_leaSave also removes it from the escape detector below, which would
-	-- otherwise count it a D9 escape (promoting the whole frame to a region and
-	-- colliding with any declared stack buffer). A carrier use that is NOT a
+	-- x86_leaSave also excludes it from escape rejection (a non-carrier lea of
+	-- a stack address is rejected — there is no promotion anymore), which the
+	-- carrier's legality proof makes sound. A carrier use that is NOT a
 	-- legal single-memory-base access still fails closed at the use, exactly
 	-- like every other carrier.
 	for i, st in body do
@@ -6399,67 +6407,6 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 				local pk = st.localClone and (k - 8) or k
 				if pk ~= dd and pk > 0 then
 					st.x86_leaSave = true
-				end
-			end
-		end
-	end
-
-	-- Fixed-frame escape detection (D9): does any lea compute an address INSIDE
-	-- the fixed frame that the rewrite could only reject as an escape? (A lea
-	-- into a region, a recognized carrier form — the entry-rsp lea-saves and
-	-- the D7 restore-base leas — a yolo entry-rsp alias, a perturbed-depth lea,
-	-- or dead code is not an escape.) Runs identically on the
-	-- early (region-less) run and the region-carrying run; when the transform
-	-- promotes the fixed frame to a region, the region-carrying run's
-	-- membership test covers every promoted lea, so the flag clears there.
-	-- The conditions mirror the rewrite's path to rejectEscape exactly.
-	local frameEscapes = false
-	for i, st in body do
-		-- (prologue leas are NOT excluded: the prologue-transparent lea rule
-		-- swallows stack-based address materializations into the prefix, and the
-		-- rewrite rejects a prologue lea into the frame as an escape exactly
-		-- like a body lea — the frame-setup leas write %rsp and never match the
-		-- destination shape below.)
-		if st.kind == "insn" and depthIn[i] ~= nil
-			and not (st.allocaPlace or st.allocaOwned)
-			and not st.x86_leaSave and not isYoloLeaSave(st, depthIn[i])
-			-- A buffer-interior VALUE lea (Feature A by-address) names buffer
-			-- bytes, not frame slots: the buffer's own lowered region is its
-			-- real home, and the D9 promotion must not fire for it.
-			and not st.x86StackBufLeaValue
-			and x86.baseMnemonic(string.lower(st.mnemonic)) == "lea" then
-			local ops = st.operands
-			local mem = ops[2]
-			if ops[1] and ops[1].kind == "reg" and ops[1].rc == "gpr"
-				and ops[1].name ~= "rbp"
-				and mem and mem.kind == "mem" and mem.base and mem.base.kind == "reg"
-				and not mem.index and not mem.dispSym and not mem.seg then
-				local d = depthIn[i]
-				local off = nil
-				if mem.base.rc == "sp" then
-					if d ~= "dyn" and type(d) ~= "table" then
-						if st.localClone then
-							-- the +8 rule (the rewrite's region coordinates)
-							off = (mem.dispVal or 0) + D0 - d - 8
-						elseif st.b2clone and type(d) == "number" then
-							-- a B2-clone lea into its inner frame: banded coordinates
-							-- (an escape promotes the frame).
-							off = (mem.dispVal or 0) + D0 - d + b2band(st)
-						elseif d == D0 then
-							off = (mem.dispVal or 0)
-						end
-						-- a perturbed non-clone depth: rejected before AND after
-						-- promotion (its raw displacement keys no region) — not
-						-- promotable, so not counted an escape.
-					end
-					-- a table/"dyn" depth: the region scopes (anchored/dynreg
-					-- leas) or the perturbed rejection — never the escape path.
-				elseif usesRbp and mem.base.name == "rbp" and fpIn[i] == "est" then
-					off = rbpNorm + (mem.dispVal or 0)
-				end
-				if off and off >= 0 and off < frameSize and not regionOf(off, false) then
-					frameEscapes = true
-					break
 				end
 			end
 		end
@@ -6525,14 +6472,13 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 	-- depth case (a frame-interior or above-entry anchor at a perturbed
 	-- provable depth — or any such lea into %rbp when %rbp is not the frame
 	-- pointer) must anchor INSIDE the frame's real extent — the same window
-	-- the escape detector uses for the prologue-depth leas it counts
-	-- (`off >= 0 and off < frameSize`), extended below the frame base by the
+	-- the rewrite's escape rejection uses for the prologue-depth leas it
+	-- rejects (`off >= 0 and off < frameSize`), extended below the frame base by the
 	-- access window's red-zone rule (`min(-128, D0 - d - 128)`, the same
 	-- lower bound the carrier's accesses are bounds-checked against at the
 	-- lea's own depth). A lea anchoring OUTSIDE that window behaves exactly
 	-- as before the relaxation: it is not a carrier, and the rewrite rejects
-	-- it as a frame-address escape (there is no promoted region for a
-	-- perturbed-depth lea to ride). Runs here so `frameSize` is the FINAL
+	-- it as a frame-address escape. Runs here so `frameSize` is the FINAL
 	-- extent (the B2 band extension above can grow it): a deep anchor inside
 	-- the banded extent is a carrier, matching the banded accesses'
 	-- bounds-checking. The historical forms (K == d: the entry-rsp park;
@@ -6658,11 +6604,11 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 
 	-- 5th return: the incoming yolo stack-argument info for the transform (slot
 	-- count, which slots FP instructions read, the materialized area's base offset
-	-- and byte size — base is nil when no FP instruction reads one). 6th return
-	-- (x86_64): the fixed-frame escape flag above (D9 promotion).
+	-- and byte size — base is nil when no FP instruction reads one). (The
+	-- historical 6th return — the fixed-frame escape flag that fed the removed
+	-- D9 promotion — is gone.)
 	return frameSize, 0, usesRbp, fpInfo,
-		{ count = yoloCount, fpRead = fpYolo, base = yoloBase, bytes = yoloBytes },
-		frameEscapes
+		{ count = yoloCount, fpRead = fpYolo, base = yoloBase, bytes = yoloBytes }
 end
 
 function x86_64_frame.rewrite(st, ctx)
@@ -6801,9 +6747,9 @@ function x86_64_frame.rewrite(st, ctx)
 	-- `.alloca size, align, result`: convert frame-relative (spill-slot) memory
 	-- operands to slot pseudo-registers in place, keeping the mnemonic. Only plain
 	-- 8-byte slot references convert: symbolic/indexed displacements, non-frame
-	-- bases, unknown depths, FP-materialized ranges, promoted-region membership,
-	-- yolo-argument-band overlap, and (for the result) push-save overlap are clean
-	-- rejections. A size/align read exactly aliasing a live (non-redefined) push
+	-- bases, unknown depths, FP-materialized ranges, yolo-argument-band overlap,
+	-- and (for the result) push-save overlap are clean rejections. A size/align
+	-- read exactly aliasing a live (non-redefined) push
 	-- save names the pushed register itself (its web holds the slot's value).
 	if m == "alloca" then
 		local ad = st.x86_depth
@@ -6844,8 +6790,11 @@ function x86_64_frame.rewrite(st, ctx)
 						.. " slot band (cannot prove safety): " .. (st.raw or m))
 				end
 				if ctx.regionOf(aoff, false) then
-					error("sarcasm: `.alloca` spill-slot operand lands in a promoted GC region"
-						.. " (slots there do not virtualize): " .. (st.raw or m))
+					-- Unreachable today: regions have no sources, so the lookup
+					-- always misses (kept for the region plumbing's sake).
+					error("sarcasm: `.alloca` spill-slot operand lands in a GC-allocation region"
+						.. " (slots there do not virtualize; historical path — the"
+						.. " region plumbing is inert): " .. (st.raw or m))
 				end
 				-- Push-save overlap: the slot holds a pushed register, not an ordinary spill.
 				local asv = st.x86_saves
@@ -7108,16 +7057,18 @@ function x86_64_frame.rewrite(st, ctx)
 		-- virtual, so the synthesized epilogue — which owns the real %rsp — tears
 		-- the frame down correctly regardless. A shared-tail clone's ret
 		-- (st.cloneRet — tailcall.luau) is exempt the same way: the clone-balance
-		-- check above (which runs on every region-carrying analysis run -- the run whose marks this rewrite consumes) proved it sits at exactly
-		-- its clone entry's depth (the jump-site depth, with the clone's inner
-		-- frame torn down) — or at the entry rsp inside a verified epilogue
-		-- teardown span, which restores the pushed saves itself — and the
-		-- body's stack is virtual, so the ordinary return path tears the frame
-		-- down correctly regardless.
+		-- check above (which runs on every analyzeFrame run — every run passes
+		-- the same always-empty regions list, including the run whose marks this
+		-- rewrite consumes) proved it sits at exactly its clone entry's depth
+		-- (the jump-site depth, with the clone's inner frame torn down) — or at
+		-- the entry rsp inside a verified epilogue teardown span, which restores
+		-- the pushed saves itself — and the body's stack is virtual, so the
+		-- ordinary return path tears the frame down correctly regardless.
 		-- MACHINE CHECK: the cloneRet exemption below asserts the balance proof ran
 		-- on the marks this rewrite consumes (cloneRetProofRan — set by analyzeFrame;
-		-- the region-less early run clears it and only a region-carrying run sets it,
-		-- so an exemption reached off early-run marks fails loudly instead of silently).
+		-- its `regions ~= nil` gate is vestigial: every run passes the always-empty
+		-- list, so the flag is set on every run — the assert stays loud only if a
+		-- future caller ever passes nil).
 		if st.cloneRet then
 			assert(cloneRetProofRan,
 				"sarcasm: internal error: shared-tail clone return consumed without"
@@ -7377,16 +7328,19 @@ function x86_64_frame.rewrite(st, ctx)
 			end
 			-- A stack access through a stack+offset alias carrier: resolve to
 			-- its normalized frame offset (the transfer proved the single
-				-- memory-base use lands inside the frame and outside any
-				-- promoted region) and fall through to the ordinary slot path.
+				-- memory-base use lands inside the frame) and fall through to
+				-- the ordinary slot path.
 			if aliasOff == nil then
 				error("sarcasm: memory access through the saved stack pointer that is not"
 					.. " an incoming stack-argument read or a saved-register restore cannot"
 					.. " be proven safe: " .. (st.raw or m))
 			end
 			if ctx.regionOf(aliasOff, false) then
-				error("sarcasm: stack access through stack+offset lands in a promoted GC region"
-					.. " (slots there do not virtualize; use the region pointer): " .. (st.raw or m))
+				-- Unreachable today: regions have no sources, so the lookup
+				-- always misses (kept for the region plumbing's sake).
+				error("sarcasm: stack access through stack+offset lands in a GC-allocation region"
+					.. " (slots there do not virtualize; historical path — the"
+					.. " region plumbing is inert): " .. (st.raw or m))
 			end
 		end
 	end
@@ -7497,24 +7451,28 @@ function x86_64_frame.rewrite(st, ctx)
 		-- Memory-neutral hints (prefetch*) need no bounds check and no slot: the real
 		-- stack address is always safe to hint at (a prefetch can never fault).
 		if fpEntry and fpEntry.noCheck then emit(st); return end
-		-- Region membership is a static fact even at a perturbed/"dyn" depth, so the
-		-- region lookup runs FIRST: an access landing in a fixed alloca region passes
-		-- through for the transform's region redirect (a region-pointer-relative
-		-- checked access), whatever the depth. The lookup rides the access's own
-		-- coordinate space: inside an {anchored} region scope (the depth is the
-		-- region's table — raw displacements are that region's coordinates); plain
-		-- "dyn" has NO valid coordinates (a later rsp write moved the base); and
-		-- everything else matches the static regions in normalized frame coordinates
-		-- (rbp-relative offsets are static at any depth). A CLONE statement's
-		-- rsp-relative displacement at a static depth keys with the +8 rule (the
-		-- return-address compensation: hardware has the pushed return address
-		-- between the clone's rsp and the caller's frame — localcall.luau).
+		-- Region lookup (a static fact even at a perturbed/"dyn" depth): an access
+		-- landing in a fixed alloca region would pass through for the transform's
+		-- region redirect (a region-pointer-relative checked access), whatever the
+		-- depth. The lookup rides the access's own coordinate space: inside an
+		-- {anchored} region scope (the depth is the region's table — raw
+		-- displacements are that region's coordinates); plain "dyn" has NO valid
+		-- coordinates (a later rsp write moved the base); and everything else
+		-- matches the static regions in normalized frame coordinates (rbp-relative
+		-- offsets are static at any depth). A CLONE statement's rsp-relative
+		-- displacement at a static depth keys with the +8 rule (the return-address
+		-- compensation: hardware has the pushed return address between the clone's
+		-- rsp and the caller's frame — localcall.luau). UNREACHABLE today: regions
+		-- have no sources anymore (no `;! alloca` annotations, no D9 fixed-frame
+		-- escape promotion), so the static lookups always miss — every stack access
+		-- proceeds to the slot virtualization / rejection paths below.
 		local region = nil
 		local rOff = aliasOff or (mem.dispVal or 0)
 		if aliasOff ~= nil then
-			-- (region membership was already decided in the carrier gate above:
-			-- an alias access landing in a promoted region is rejected there,
-			-- so the lookup below always misses. Anchored/dynreg scopes never
+			-- (region membership was decided in the carrier gate above:
+			-- historically an alias access landing in a promoted region was
+			-- rejected there; today the lookup always misses because regions
+			-- have no sources. Anchored/dynreg scopes never
 			-- apply: the anchor shapes ride regionCarrierAccess instead.)
 			region = ctx.regionOf(rOff, false)
 			assert(region == nil)
@@ -8203,29 +8161,30 @@ function x86_64_frame.rewrite(st, ctx)
 	end
 
 	-- (a lea of a stack address is handled — and rejected — inside the slot block above:
-	-- in-region leas pass through for the transform's region redirect, symbolic-displacement
-	-- stack operands were rejected above, and every other stack-based lea hits rejectEscape.)
+	-- symbolic-displacement stack operands were rejected above, and every other
+	-- stack-based lea hits rejectEscape. The historical in-region lea passthrough
+	-- (for the transform's region redirect) is unreachable: regions have no sources
+	-- anymore, so the region lookups always miss.)
 
 	-- A recorded `movq %rsp, %reg` saved-rsp carrier: DROP it — sarcasm synthesizes
 	-- its own frame, so the parked value has no meaning in the output (it is
 	-- phantom): the carrier flows and the recovery are dropped with it, and the
 	-- analysis rejects every non-carrier read of the value while the save is
 	-- outstanding. Register class and position are unrestricted (every use of a
-	-- carrier is dropped or rejected, so no call clobber can be observed) — EXCEPT
-	-- the frame-escape-region corner below, which keeps a caller-saved save alive as
-	-- a REAL redirected value and so records no carrier.
+	-- carrier is dropped or rejected, so no call clobber can be observed). (The
+	-- historical exception for a caller-saved save with a frame-escape region
+	-- based at rsp+0 — which kept the save alive as a REAL redirected value —
+	-- is gone with the region sources.)
 	if st.x86_spSave then return end
-	-- Caller-saved save with a static frame-escape region based at rsp+0 (unrecorded
-	-- by the analysis): fall through to the region passthrough below, which KEEPS
-	-- the read with its destination redirected to the allocation pointer — a real
-	-- value, so the register may still be read (this corner predates the rsp-save
-	-- machinery).
 
-	-- `movq %rsp, %reg`: when a frame-escape region is based at rsp+0 (static region, or
-	-- — at a post-prologue "dyn" depth — an anchored one) the transform redirects this
-	-- to the allocation pointer (mirrors arm64's `mov xD, sp` handling); pass through.
-	-- The static region base is only known relative to the post-prologue frame base:
-	-- reject when rsp is perturbed/unknown here (the anchored case IS the dyn one).
+	-- `movq %rsp, %reg` region passthrough: when a region is based at rsp+0
+	-- (static region, or — at a post-prologue "dyn" depth — an anchored one) the
+	-- transform redirects this to the allocation pointer (mirrors arm64's
+	-- `mov xD, sp` handling). UNREACHABLE today: no region sources remain, so
+	-- regionOf always misses and the fall-through escape scan below rejects every
+	-- `movq %rsp, %reg`. The static region base is only known relative to the
+	-- post-prologue frame base: reject when rsp is perturbed/unknown here (the
+	-- anchored case IS the dyn one).
 	if b == "mov" and ops[2] and ops[2].rc == "sp" and ops[1] and ops[1].kind == "reg"
 		and ops[1].rc == "gpr" then
 		local movDyn = not st.x86_prologue and type(d) == "table"

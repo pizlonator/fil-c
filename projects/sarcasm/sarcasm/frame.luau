@@ -51,15 +51,19 @@ local function immVal(op)
 end
 
 -- Rewrite `body` using the arch `policy`. `regions` are GC-allocation regions (their
--- stack math is redirected to the allocation by the transform, so it passes through here).
+-- stack math would be redirected to the allocation by the transform, so it passes
+-- through here). The list is ALWAYS EMPTY today — no region sources remain (the
+-- historical `;! alloca` annotated regions and the D9 fixed-frame escape promotion
+-- were both removed) — and is kept for the region plumbing's sake.
 -- `sigDesc` (optional) is the function's entry signature: arm64's frame analysis uses it
 -- to force the vector-save reservation for FP-signature functions (float/double args or
 -- an FP return ride in the v registers even when the body never names a NEON register).
 function frame.preprocess(body, regions, policy, sigDesc)
 	-- fpInfo (x86_64 only): FP/SIMD stack-slot materialization clusters (or nil).
 	-- The regions are forwarded to the analysis (x86_64 keys its prologue rsp-save
-	-- handling off them — a fixed region based at rsp+0 keeps a caller-saved save
-	-- alive as a REAL redirected value instead of a phantom carrier).
+	-- handling off `regions ~= nil` — non-nil records every caller-saved save as a
+	-- phantom carrier; with no region sources left every caller-saved save IS a
+	-- phantom carrier, and the list is always non-nil-but-empty).
 	local frameSize, fpOffset, usesFp, fpInfo = policy.analyzeFrame(body, sigDesc, regions)
 	local out = {}
 	local function emit(n) out[#out + 1] = n end

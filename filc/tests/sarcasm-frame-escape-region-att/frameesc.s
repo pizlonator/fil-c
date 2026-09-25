@@ -1,8 +1,11 @@
-# The bsaes shape (D9): a lea into the PLAIN fixed frame escapes to a helper
-# through a copy/offset cluster. The fixed frame is promoted to a GC region
-# [0, frameSize): the lea keeps its capability through the copies, the helper
-# writes through the derived pointers, and the direct frame-slot reads ride
-# the same region.
+# The bsaes shape (formerly the D9 test): a lea into the PLAIN fixed frame
+# escapes to a helper through a copy/offset cluster. This used to be accepted
+# by the D9 fixed-frame escape promotion, which promoted the whole frame to a
+# GC region (filc_allocate) and handed real GC capabilities to the derived
+# pointers. That promotion was removed: sarcasm now REJECTS taking the
+# address of the stack frame at compile time, so this file fails to compile
+# with "taking address of stack frame is not supported (cannot prove
+# safety)" on the very first escaping lea.
 	.text
 	.globl	frameesc
 	.type	frameesc, @function
@@ -21,7 +24,7 @@ frameesc:                       #! long(long)
 	movq	$8, %rcx
 	movq	%rcx, %xmm1
 	punpcklqdq	%xmm1, %xmm0    # xmm0 = {7, 8}
-	movdqa	%xmm0, 48(%rsp)     # FP access into the promoted frame (bsaes shape)
+	movdqa	%xmm0, 48(%rsp)     # FP access into the fixed frame (bsaes shape)
 	movq	16(%rsp), %rax      # direct frame-slot reads: 100+101+102+103
 	addq	24(%rsp), %rax
 	addq	32(%rsp), %rax
