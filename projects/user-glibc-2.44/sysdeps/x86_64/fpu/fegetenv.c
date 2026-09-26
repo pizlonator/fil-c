@@ -17,20 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
-#include <math-inline-asm.h>
+#include <pizlonated_math.h>
 
+/* fnstenv/fldenv/stmxcsr are inline asm with pointer operands, which Fil-C cannot instrument;
+   run the operation out of line in the Yolo runtime instead (see zmath_fegetenv).  */
 int
 __fegetenv (fenv_t *envp)
 {
-  asm volatile ("fnstenv %0\n"
-		/* fnstenv changes the exception mask, so load back the
-		   stored environment.  */
-		"fldenv %0"
-		: "=m" (*envp));
-  stmxcsr_inline_asm (&envp->__mxcsr);
-
-  /* Success.  */
-  return 0;
+  return zmath_fegetenv (envp);
 }
 libm_hidden_def (__fegetenv)
 static_weak_alias (__fegetenv, fegetenv)

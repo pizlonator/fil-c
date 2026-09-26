@@ -37,6 +37,8 @@ routines = \
   dl-tls_init_tp \
   libc_early_init \
   enbl-secure \
+  dl-iteratephdr \
+  filc-dl-find_object \
   # routines
 
 include ../Rules

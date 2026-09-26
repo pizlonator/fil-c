@@ -17,24 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
-#include <math-inline-asm.h>
+#include <pizlonated_math.h>
 
+/* fnstenv/stmxcsr/ldmxcsr are inline asm with pointer operands, which Fil-C cannot instrument;
+   run the operation out of line in the Yolo runtime instead (see zmath_feholdexcept).  */
 int
 __feholdexcept (fenv_t *envp)
 {
-  unsigned int mxcsr;
-
-  /* Store the environment.  Recall that fnstenv has a side effect of
-     masking all exceptions.  Then clear all exceptions.  */
-  asm volatile ("fnstenv %0" : "=m" (*envp));
-  stmxcsr_inline_asm (&envp->__mxcsr);
-  asm volatile ("fnclex" : "=m" (*envp));
-
-  /* Set the SSE MXCSR register.  */
-  mxcsr = (envp->__mxcsr | 0x1f80) & ~0x3f;
-  ldmxcsr_inline_asm (&mxcsr);
-
-  return 0;
+  return zmath_feholdexcept (envp);
 }
 libm_hidden_def (__feholdexcept)
 static_weak_alias (__feholdexcept, feholdexcept)

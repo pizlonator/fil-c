@@ -74,6 +74,9 @@ void zmath_setfpsr(unsigned fpsr);
 void zmath_feclearexcept(int excepts);
 int zmath_feenableexcept(int excepts);
 int zmath_fetestexcept(int excepts);
+int zmath_feholdexcept(void* envp);
+int zmath_fegetenv(void* envp);
+int zmath_fesetenv(const void* envp);
 
 #ifdef __cplusplus
 }
