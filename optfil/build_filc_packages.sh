@@ -98,7 +98,7 @@ filc/projeny package \
 ./package-source.sh projects/libsepol-3.11 pizlonated-sepol
 ./package-source.sh projects/libselinux-3.11 pizlonated-selinux
 ./package-source.sh projects/sudo-1.9.17p2 pizlonated-sudo
-./package-source.sh projects/libuv-1.52.1 pizlonated-libuv
+filc/projeny package projects/libuv.projeny projects/libuv/pizlonated-libuv.tar.gz
 ./package-source.sh projects/sed-4.10 pizlonated-sed
 ./package-source.sh projects/bison-3.8.2 pizlonated-bison
 ./package-source.sh projects/grep-3.12 pizlonated-grep
