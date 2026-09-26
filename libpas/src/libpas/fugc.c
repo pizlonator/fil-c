@@ -1641,6 +1641,69 @@ void fugc_resume(void)
     pas_system_mutex_unlock(&collector_thread_state_lock);
 }
 
+/* Fork(2) support for the GC request natives.  The only caller is filc_native_zsys_fork_impl() in
+   filc_runtime.c, which calls fugc_lock_locks_before_fork() after fugc_suspend() but before
+   fork(2), and calls fugc_unlock_locks_after_fork() after fork(2) in both the parent and the
+   child.
+   fugc_lock_locks_before_fork() acquires collector_thread_state_lock, so that the forking thread is
+   the only possible holder of that lock at the instant of the clone.  This closes the fork race in
+   which an application thread is inside one of the GC request natives
+   (filc_native_zgc_try_request, filc_native_zgc_request_fresh, or filc_native_zgc_wait) at the
+   instant of the clone.  Those natives run while the thread is exited, so they are invisible to
+   filc_stop_the_world(), which only waits for entered threads.  A clone that catches one of those
+   threads holding collector_thread_state_lock leaves the child with a mutex that is locked by a
+   thread that does not exist in the child, and the child then wedges: fugc_resume() needs the lock
+   to start the new collector, and any zgc_* call that the child makes needs it, too.  Since the
+   forking thread is the only thread that survives into the child, holding the lock across fork(2)
+   means that the child always inherits the lock in the held-by-us state, and we release it below
+   before anything in the child needs it.
+   fugc_unlock_locks_after_fork() releases the lock in both the parent and the child.  In the child
+   this has to happen before the dead thread fixups call fugc_donate(), because donate_impl() takes
+   collector_thread_state_lock to notify the collector whenever it donates into an empty global
+   mark stack; if we still held the lock there, that notification would deadlock against ourselves,
+   since the mutex is not recursive.  It also has to happen before fugc_resume(), since the
+   collector it creates needs to be able to take the lock.
+   Only collector_thread_state_lock needs this treatment.  The takers of global_stack_lock are:
+   - The GC threads: the collector thread and the parallel worker threads.  fugc_suspend() waits
+     for all of them to exit, so they are dead by the time we fork.
+   - Mutator threads, but only while entered.  donate_impl() is reached by mutators from the store
+     barrier donation path (barrier_slowest_path_impl -> fugc_try_donate), from pollcheck callbacks
+     (filc_thread_donate), and from the thread exit teardown; the first of those asserts that the
+     thread is entered, and the other two run entered.  filc_stop_the_world() waits for every
+     thread to be exited, so after it returns there are no entered threads left.
+   So no thread can hold global_stack_lock at the instant of the clone, and holding it across
+   fork(2) would only add risk: the child's fugc_donate() fixups take global_stack_lock, so
+   holding it across fork(2) would risk a self-deadlock there.
+   The takers of collector_thread_state_lock are:
+   - The GC threads.  Dead after fugc_suspend(), like above.
+   - Exited application threads inside the zgc_* natives: request_impl() (so also fugc_request()
+     and fugc_request_fresh()), fugc_wait(), fugc_lock_threads(), and fugc_handshake().
+   - Entered application threads that notify the collector: after donating to the global mark stack
+     (donate_impl()), and when allocation crosses the live bytes threshold
+     (verse_heap_live_bytes_trigger_callback -> trigger_callback()).  Those are excluded by
+     filc_stop_the_world(), like above.
+   So, at the time filc_native_zsys_fork_impl() calls fugc_lock_locks_before_fork(), the only
+   threads that can contend for collector_thread_state_lock are exited application threads inside
+   zgc_* natives.  Those threads wait for the lock and take nothing else while holding it, so they
+   need nothing that the forking thread is holding (the handshake lock, the thread list lock, the
+   thread locks, or anything else).  The forking thread takes the handshake lock and the thread
+   list lock before it takes collector_thread_state_lock, which matches the order that everyone
+   else uses: soft handshakes hold the handshake lock and then reach collector_thread_state_lock
+   through mark donation, and nobody holds collector_thread_state_lock and then takes the handshake
+   lock.  A thread parked in fugc_wait() does not block the acquisition, since a condition wait
+   releases the mutex.  This is unlike the global initialization lock, whose interactions with the
+   musl fork(2) wrapper's atfork handlers require the more complicated baseline hold dance in
+   filc_native_zsys_fork_impl(). */
+void fugc_lock_locks_before_fork(void)
+{
+    pas_system_mutex_lock(&collector_thread_state_lock);
+}
+
+void fugc_unlock_locks_after_fork(void)
+{
+    pas_system_mutex_unlock(&collector_thread_state_lock);
+}
+
 void fugc_lock_threads(void)
 {
     pas_system_mutex_lock(&collector_thread_state_lock);
