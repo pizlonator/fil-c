@@ -582,7 +582,7 @@ cd ..
 rm -rf pizlonated-coreutils
 hash -r
 
-tar -xf $FILCSRC/projects/Linux-PAM-1.7.2/pizlonated-pam.tar.gz
+tar -xf $FILCSRC/projects/Linux-PAM/pizlonated-pam.tar.gz
 cd pizlonated-pam
 mkdir -v build
 cd build

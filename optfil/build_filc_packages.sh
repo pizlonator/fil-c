@@ -84,13 +84,13 @@ filc/projeny package \
     projects/brotli.projeny projects/brotli/pizlonated-brotli.tar.gz \
     projects/blake3.projeny projects/blake3/pizlonated-blake3.tar.gz \
     projects/dash.projeny projects/dash/pizlonated-dash.tar.gz \
-    projects/mg.projeny projects/mg/pizlonated-mg.tar.gz
+    projects/mg.projeny projects/mg/pizlonated-mg.tar.gz \
+    projects/Linux-PAM.projeny projects/Linux-PAM/pizlonated-pam.tar.gz
 
 ./package-source.sh projects/libxcrypt-4.5.2 pizlonated-libxcrypt
 ./package-source.sh projects/bash-5.3 pizlonated-bash
 ./package-source.sh projects/openssh-10.5p1 pizlonated-openssh
 ./package-source.sh projects/binutils-2.47 pizlonated-binutils
-./package-source.sh projects/Linux-PAM-1.7.2 pizlonated-pam
 ./package-source.sh projects/audit-userspace-4.2.1 pizlonated-audit
 ./package-source.sh projects/keyutils-1.6.3 pizlonated-keyutils
 ./package-source.sh projects/dummy-pam-ecryptfs pizlonated-dummy-pam-ecryptfs
