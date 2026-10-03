@@ -75,14 +75,14 @@ init_cpu_features (struct cpu_features *cpu_features)
     midr = get_midr_from_mcpu (mcpu);
 
   /* If there was no useful tunable override, query the MIDR if the kernel
-     allows it.  */
+     allows it.  Fil-C: do not read midr_el1 here.  Reading system registers
+     other than the small Fil-C-safe allowlist panics at runtime, and the
+     MIDR is only used to select the Kunpeng/A64FX/Oryon variants of the
+     string routines; with midr == 0 those all fail their part-number
+     checks and the generic variants are selected, which is what the
+     pizlonated libc wants anyway.  */
   if (midr == UINT64_MAX)
-    {
-      if (GLRO (dl_hwcap) & HWCAP_CPUID)
-	asm volatile ("mrs %0, midr_el1" : "=r"(midr));
-      else
-	midr = 0;
-    }
+    midr = 0;
 
   cpu_features->midr_el1 = midr;
 

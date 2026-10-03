@@ -63,7 +63,9 @@ test -e $FILCSRC/projects/user-glibc-2.44/pizlonated-user-glibc.tar.gz
 cd /opt/fil
 find . -mindepth 1 -maxdepth 1 -exec rm -rf {} \;
 
-cp -r $FILCSRC/optfil/kernel-include include
+KERNELINCLUDE=kernel-include-`uname -m`
+
+cp -r $FILCSRC/optfil/$KERNELINCLUDE include
 
 mkdir -v build
 cd build
@@ -88,7 +90,23 @@ mv -v bin etc include lib libexec sbin share var yolo
 mkdir -v lib
 
 ARCH=`uname -m`
-OLDLDNAME=ld-linux-${ARCH//_/-}.so.2
+case $ARCH in
+    x86_64)
+        OUTPUT_FORMAT=elf64-x86-64
+        # BLAKE3's cmake accepts amd64-asm, x86-intrinsics, neon-intrinsics,
+        # or none.  On x86_64 we use the intrinsics path.
+        BLAKE3_SIMD=x86-intrinsics
+        ;;
+    aarch64)
+        OUTPUT_FORMAT=elf64-littleaarch64
+        # On aarch64 we use the NEON intrinsics path.
+        BLAKE3_SIMD=neon-intrinsics
+        ;;
+    *)
+        echo "Unsupported arch: $ARCH"
+        exit 1
+        ;;
+esac
 OLDLIBCIMPLNAME=libc.so.6
 OLDLIBCNONSHAREDNAME=libc_nonshared.a
 OLDLIBMIMPLNAME=libm.so.6
@@ -100,22 +118,18 @@ LIBCIMPLNAME=${LIBCNAMEBASE}impl.so
 LIBCNONSHAREDNAME=${LIBCNAMEBASE}_nonshared.a
 LIBMIMPLNAME=${LIBNAMEBASE}mimpl.so
 LIBMNAME=${LIBNAMEBASE}m.so
-cp -v yolo/lib/$OLDLDNAME lib/$LDNAME
+cp -v yolo/lib/$LDNAME lib/$LDNAME
 cp -v yolo/lib/$OLDLIBCIMPLNAME lib/$LIBCIMPLNAME
 cp -v yolo/lib/$OLDLIBCNONSHAREDNAME lib/$LIBCNONSHAREDNAME
 cp -v yolo/lib/$OLDLIBMIMPLNAME lib/$LIBMIMPLNAME
 cp -v yolo/lib/*.o lib/
-patchelf --replace-needed $OLDLDNAME $LDNAME lib/$LIBCIMPLNAME
 patchelf --set-soname $LIBCIMPLNAME lib/$LIBCIMPLNAME
-patchelf --set-soname $LDNAME lib/$LDNAME
-patchelf --replace-needed $OLDLDNAME $LDNAME lib/$LIBMIMPLNAME
 patchelf --replace-needed $OLDLIBCIMPLNAME $LIBCIMPLNAME lib/$LIBMIMPLNAME
 patchelf --set-soname $LIBMIMPLNAME lib/$LIBMIMPLNAME
-echo "OUTPUT_FORMAT(elf64-x86-64)" > lib/$LIBCNAME
+echo "OUTPUT_FORMAT($OUTPUT_FORMAT)" > lib/$LIBCNAME
 echo "GROUP ( /opt/fil/lib/$LIBCIMPLNAME /opt/fil/lib/$LIBCNONSHAREDNAME  AS_NEEDED ( /opt/fil/lib/$LDNAME ) )" >> lib/$LIBCNAME
-echo "OUTPUT_FORMAT(elf64-x86-64)" > lib/$LIBMNAME
+echo "OUTPUT_FORMAT($OUTPUT_FORMAT)" > lib/$LIBMNAME
 echo "GROUP ( /opt/fil/lib/$LIBMIMPLNAME )" >> lib/$LIBMNAME
-unset OLDLDNAME
 unset OLDLIBCIMPLNAME
 unset OLDLIBCNONSHAREDNAME
 unset OLDLIBMIMPLNAME
@@ -137,7 +151,7 @@ cp -v $FILCSRC/pizfix/lib/crtbegin.o lib/
 cp -v $FILCSRC/pizfix/lib/crtend.o lib/
 cp -v $FILCSRC/pizfix/lib/libyolort.a lib/
 cp -v $FILCSRC/pizfix/lib/libyolounwind.a lib/
-cp -r $FILCSRC/optfil/kernel-include include
+cp -r $FILCSRC/optfil/$KERNELINCLUDE include
 cp -v $FILCSRC/pizfix/stdfil-include/*.h include/
 
 mkdir -v bin
@@ -252,11 +266,11 @@ cd ..
 rm -rf bzip2-1.0.8
 hash -r
 
-tar -xf $FILCSRC/projects/xz-5.8.3/pizlonated-xz.tar.gz
+tar -xf $FILCSRC/projects/xz/pizlonated-xz.tar.gz
 cd pizlonated-xz
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
     --disable-static \
-    --docdir=/opt/fil/share/doc/xz-5.8.3
+    --docdir=/opt/fil/share/doc/xz-5.8.4
 make -j `nproc`
 make -j `nproc` install
 cd ..
@@ -280,7 +294,7 @@ cd ..
 rm -rf pizlonated-zstd
 hash -r
 
-tar -xf $FILCSRC/projects/xxHash-0.8.3/pizlonated-xxHash.tar.gz
+tar -xf $FILCSRC/projects/xxHash/pizlonated-xxHash.tar.gz
 cd pizlonated-xxHash
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ make -j `nproc` prefix=/opt/fil
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ make -j `nproc` prefix=/opt/fil install
@@ -291,7 +305,7 @@ hash -r
 
 tar -xf $FILCSRC/projects/blake3/pizlonated-blake3.tar.gz
 cd pizlonated-blake3
-CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ cmake -S c -B c/build -DCMAKE_INSTALL_PREFIX=/opt/fil -DBLAKE3_SIMD_TYPE=x86-intrinsics -DCMAKE_BUILD_TYPE=RelWithDebInfo
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ cmake -S c -B c/build -DCMAKE_INSTALL_PREFIX=/opt/fil -DBLAKE3_SIMD_TYPE=$BLAKE3_SIMD -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build c/build --target install -j `nproc`
 cd ..
 rm -rf pizlonated-blake3
@@ -346,8 +360,8 @@ cd ..
 rm -rf acl-2.4.0
 hash -r
 
-tar -xf $FILCSRC/pizlix/pcre2-10.48.tar.bz2
-cd pcre2-10.48
+tar -xf $FILCSRC/projects/pcre2/pizlonated-pcre2.tar.gz
+cd pizlonated-pcre2
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
             --enable-unicode                    \
             --disable-jit                       \
@@ -359,7 +373,7 @@ CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf pcre2-10.48
+rm -rf pizlonated-pcre2
 hash -r
 
 tar -xf $FILCSRC/pizlix/ncurses-6.6.tar.gz
@@ -420,7 +434,7 @@ tar -xf $FILCSRC/projects/pkgconf/pizlonated-pkgconf.tar.gz
 cd pizlonated-pkgconf
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
     --disable-static \
-    --docdir=/opt/fil/share/doc/pkgconf-3.0.6
+    --docdir=/opt/fil/share/doc/pkgconf-3.0.7
 make -j `nproc`
 make -j `nproc` install
 ln -sv pkgconf /opt/fil/bin/pkg-config
@@ -513,7 +527,7 @@ cd ..
 rm -rf pizlonated-mg
 hash -r
 
-tar -xf $FILCSRC/projects/libuv-1.52.1/pizlonated-libuv.tar.gz
+tar -xf $FILCSRC/projects/libuv/pizlonated-libuv.tar.gz
 cd pizlonated-libuv
 CC=/opt/fil/bin/filcc ./configure --prefix=/opt/fil
 make -j `nproc`
@@ -555,7 +569,7 @@ cd ..
 rm -rf pizlonated-selinux
 hash -r
 
-tar -xf $FILCSRC/projects/coreutils-9.11/pizlonated-coreutils.tar.gz
+tar -xf $FILCSRC/projects/coreutils/pizlonated-coreutils.tar.gz
 cd pizlonated-coreutils
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ FORCE_UNSAFE_CONFIGURE=1 ./configure --prefix=/opt/fil
 make -j `nproc`
@@ -568,7 +582,7 @@ cd ..
 rm -rf pizlonated-coreutils
 hash -r
 
-tar -xf $FILCSRC/projects/Linux-PAM-1.7.2/pizlonated-pam.tar.gz
+tar -xf $FILCSRC/projects/Linux-PAM/pizlonated-pam.tar.gz
 cd pizlonated-pam
 mkdir -v build
 cd build
@@ -698,13 +712,13 @@ cd ..
 rm -rf pizlonated-grep
 hash -r
 
-tar --no-same-owner -xf $FILCSRC/pizlix/less-709-beta.tar.gz
-cd less-709
+tar --no-same-owner -xf $FILCSRC/pizlix/less-710.tar.gz
+cd less-710
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --sysconfdir=/etc
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf less-709
+rm -rf less-710
 hash -r
 
 tar -xf $FILCSRC/projects/diffutils-3.12/pizlonated-diffutils.tar.gz
@@ -734,13 +748,13 @@ cd ..
 rm -rf findutils-4.11.0
 hash -r
 
-tar -xf $FILCSRC/pizlix/gzip-1.14.tar.xz
-cd gzip-1.14
+tar -xf $FILCSRC/projects/gzip/pizlonated-gzip.tar.gz
+cd pizlonated-gzip
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf gzip-1.14
+rm -rf pizlonated-gzip
 hash -r
 
 tar -xf $FILCSRC/projects/make-4.4.1/pizlonated-make.tar.gz
@@ -899,7 +913,7 @@ cd ..
 rm -rf pizlonated-git
 hash -r
 
-tar -xf $FILCSRC/projects/rsync-3.5.0/pizlonated-rsync.tar.gz
+tar -xf $FILCSRC/projects/rsync/pizlonated-rsync.tar.gz
 cd pizlonated-rsync
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --with-rsh=/opt/fil/bin/ssh
 make -j `nproc`

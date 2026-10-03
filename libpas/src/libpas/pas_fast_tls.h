@@ -73,7 +73,7 @@ PAS_API void pas_fast_tls_set(void* value);
 extern PAS_API bool pas_fast_tls_is_initialized;
 extern PAS_API pthread_key_t pas_fast_tls_key;
 
-#if PAS_OS(DARWIN)
+#if PAS_OS(DARWIN) || PAS_COSMO /* Cosmo shares the Darwin path: the __thread fast path below lowers to direct %fs TLS codegen, which only works where cosmo owns the %fs base; on Windows the %fs base is 0 and any %fs access faults.  Cosmo's pthread_getspecific()/pthread_setspecific() reach the TIB through its per-OS TLS dispatch helpers (libc/sysv/tlsasm.S), so the pthread key is portable across all of cosmo's target operating systems.  See also pas_fast_tls.c. */
 
 /* __thread keyword implementation does not work since __thread value will be reset to the initial value after it is cleared.
    This broke our pthread exiting detection. We use repeated pthread_setspecific to successfully shutting down. */
@@ -90,8 +90,7 @@ static inline void pas_fast_tls_set(void* value)
     pthread_setspecific(pas_fast_tls_key, value);
 }
 
-#else
-
+#else /* PAS_OS(DARWIN) || PAS_COSMO -> so !PAS_OS(DARWIN) && !PAS_COSMO */
 PAS_API extern __thread void* pas_fast_tls_variable;
 
 static inline void* pas_fast_tls_get(void)
@@ -109,7 +108,7 @@ static inline void pas_fast_tls_set(void* value)
     }
 }
 
-#endif
+#endif /* PAS_OS(DARWIN) || PAS_COSMO -> so end of !PAS_OS(DARWIN) && !PAS_COSMO */
 
 #endif /* PAS_HAVE_PTHREAD_MACHDEP_H -> so end of !PAS_HAVE_PTHREAD_MACHDEP_H */
 

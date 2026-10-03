@@ -391,6 +391,12 @@ static Value *MakeBinaryAtomicValue(
 
   llvm::Value *Val = CGF.EmitScalarExpr(E->getArg(1));
   llvm::Type *ValueType = Val->getType();
+
+  // Exchange pointers as pointers: under Fil-C, a round trip through an
+  // integer atomic drops the pointer's capability.
+  if (Kind == AtomicRMWInst::Xchg && ValueType->isPointerTy())
+    return CGF.Builder.CreateAtomicRMW(Kind, DestAddr, Val, Ordering);
+
   Val = EmitToInt(CGF, Val, T, IntType);
 
   llvm::Value *Result =
@@ -481,8 +487,13 @@ static Value *MakeAtomicCmpXchgValue(CodeGenFunction &CGF, const CallExpr *E,
 
   Value *Cmp = CGF.EmitScalarExpr(E->getArg(1));
   llvm::Type *ValueType = Cmp->getType();
-  Cmp = EmitToInt(CGF, Cmp, T, IntType);
-  Value *New = EmitToInt(CGF, CGF.EmitScalarExpr(E->getArg(2)), T, IntType);
+  Value *New = CGF.EmitScalarExpr(E->getArg(2));
+  // Compare and swap pointers as pointers, keeping their Fil-C capabilities.
+  bool Pointers = ValueType->isPointerTy() && New->getType()->isPointerTy();
+  if (!Pointers) {
+    Cmp = EmitToInt(CGF, Cmp, T, IntType);
+    New = EmitToInt(CGF, New, T, IntType);
+  }
 
   Value *Pair = CGF.Builder.CreateAtomicCmpXchg(
       DestAddr, Cmp, New, llvm::AtomicOrdering::SequentiallyConsistent,
@@ -491,6 +502,8 @@ static Value *MakeAtomicCmpXchgValue(CodeGenFunction &CGF, const CallExpr *E,
     // Extract boolean success flag and zext it to int.
     return CGF.Builder.CreateZExt(CGF.Builder.CreateExtractValue(Pair, 1),
                                   CGF.ConvertType(E->getType()));
+  else if (Pointers)
+    return CGF.Builder.CreateExtractValue(Pair, 0);
   else
     // Extract old value and emit it using the same type as compare value.
     return EmitFromInt(CGF, CGF.Builder.CreateExtractValue(Pair, 0), T,

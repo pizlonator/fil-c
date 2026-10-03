@@ -2,3 +2,6 @@ return:
   success
 extraLinkerArgs:
   "-static"
+
+# COSMO: cosmo's ape.lds lays globals out below the 4GB line, so the Fil-C invariants these tests assert about global addresses (and the filc stack origin) do not hold; the musl flavor's -static-pie layout places them above 4GB.
+unsupportedOnCOSMO: true

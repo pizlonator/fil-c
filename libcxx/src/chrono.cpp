@@ -37,8 +37,10 @@
 
 // OpenBSD and GPU do not have a fully conformant suite of POSIX timers, but
 // it does have clock_gettime and CLOCK_MONOTONIC which is all we need.
+// Cosmo doesn't advertise _POSIX_TIMERS in its headers, but it does provide
+// clock_gettime and the CLOCK_* constants.
 #if defined(__APPLE__) || defined(__gnu_hurd__) || defined(__OpenBSD__) || defined(__AMDGPU__) ||                      \
-    defined(__NVPTX__) || (defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0)
+    defined(__NVPTX__) || _LIBCPP_HAS_COSMO_LIBC || (defined(_POSIX_TIMERS) && _POSIX_TIMERS > 0)
 #  define _LIBCPP_HAS_CLOCK_GETTIME
 #endif
 

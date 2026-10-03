@@ -58,7 +58,12 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/TargetParser/SubtargetFeature.h"
 #include "llvm/TargetParser/Triple.h"
+#include "llvm/Transforms/Coroutines/CoroCleanup.h"
+#include "llvm/Transforms/Coroutines/CoroConditionalWrapper.h"
+#include "llvm/Transforms/Coroutines/CoroEarly.h"
+#include "llvm/Transforms/Coroutines/CoroSplit.h"
 #include "llvm/Transforms/HipStdPar/HipStdPar.h"
+#include "llvm/Transforms/IPO/GlobalDCE.h"
 #include "llvm/Transforms/IPO/EmbedBitcodePass.h"
 #include "llvm/Transforms/IPO/LowerTypeTests.h"
 #include "llvm/Transforms/IPO/ThinLTOBitcodeWriter.h"
@@ -1110,6 +1115,21 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
               MPM.addPass(std::move(MIWP));
             }
           }
+          // Lower C++20 coroutines before pizlonating. CoroSplit turns each
+          // coroutine into ordinary ramp/resume/destroy functions whose frame
+          // is a normal heap allocation, so FilPizlonator never sees the
+          // llvm.coro.* intrinsics. The coroutine passes in the regular
+          // pipeline later become no-ops.
+          ModulePassManager CoroPM;
+          CoroPM.addPass(CoroEarlyPass());
+          CGSCCPassManager CoroCGPM;
+          CoroCGPM.addPass(CoroSplitPass(Level != OptimizationLevel::O0));
+          CoroPM.addPass(
+            createModuleToPostOrderCGSCCPassAdaptor(std::move(CoroCGPM)));
+          CoroPM.addPass(CoroCleanupPass());
+          CoroPM.addPass(GlobalDCEPass());
+          MPM.addPass(CoroConditionalWrapper(std::move(CoroPM)));
+
           MPM.addPass(FilPizlonatorPass());
         });
 

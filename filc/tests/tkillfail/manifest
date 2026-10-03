@@ -1,2 +1,5 @@
 return:
   success
+
+# COSMO: cosmo's pthread_kill() actually delivers RT signals (the musl flavor's tkill path returns ENOSYS), so the test's failure expectation does not hold; cosmo is arguably more correct here.
+unsupportedOnCOSMO: true

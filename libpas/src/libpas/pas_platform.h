@@ -27,6 +27,23 @@
 #ifndef PAS_PLATFORM_H
 #define PAS_PLATFORM_H
 
+/* PAS_COSMO: building against cosmopolitan libc (the "yolocosmo" flavor). The
+   libpas Makefile defines it in cosmo mode; it's also set automatically when
+   cosmo's normalize.inc has been force-included (it defines
+   __COSMOPOLITAN__). When PAS_COSMO, PAS_GLIBC is forced off (cosmo doesn't
+   provide the GNU-only APIs that PAS_GLIBC gates, so the glibc-only wrappers
+   take the same panic paths as in the musl flavor) and PAS_OS_LINUX is forced
+   on (cosmo's normalize.inc undefines __linux__, but the cosmo flavor only
+   targets Linux). It's never defined in the musl/glibc flavors, so those
+   compile to identical code as before. */
+#ifndef PAS_COSMO
+#ifdef __COSMOPOLITAN__
+#define PAS_COSMO 1
+#else
+#define PAS_COSMO 0
+#endif
+#endif
+
 #ifdef __APPLE__
 #include <Availability.h>
 #include <AvailabilityMacros.h>
@@ -43,6 +60,11 @@
 #else
 #define PAS_GLIBC 0
 #endif
+
+#if PAS_COSMO
+#undef PAS_GLIBC
+#define PAS_GLIBC 0
+#endif /* PAS_COSMO */
 
 /* PAS_COMPILER() - the target compiler */
 #define PAS_COMPILER(FEATURE) (defined PAS_COMPILER_##FEATURE  && PAS_COMPILER_##FEATURE)
@@ -149,6 +171,12 @@
 #ifdef __linux__
 #define PAS_OS_LINUX 1
 #endif
+
+#if PAS_COSMO
+/* Cosmo's normalize.inc (force-included when building against cosmo headers)
+   undefines __linux__, but the cosmo flavor only targets Linux. */
+#define PAS_OS_LINUX 1
+#endif /* PAS_COSMO */
 
 #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__FreeBSD_kernel__)
 #define PAS_OS_FREEBSD 1

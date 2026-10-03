@@ -130,9 +130,7 @@ elsif (`$ENV{CC} -V 2>/dev/null`
 # in crypto/aes/asm/aes-x86_64.pl), and direct call sites to other asm
 # functions carry their `#! <sig>` the same way (sig last on the line).
 # Local subroutines carry no signature: sarcasm auto-discovers them, so
-# their call sites must stay unannotated. (An earlier revision kept a
-# %SARCASM_SIGS table here and injected these annotations; all entries
-# have since migrated into the generators and the table was deleted.)
+# their call sites must stay unannotated.
 
 # Number of arguments in a sarcasm signature string.
 sub sarcasm_sig_narg {
@@ -1490,16 +1488,6 @@ while(defined(my $line=<>)) {
 	printf "%s",$vex_prefix->out();
 	}
 	if (my $opcode=opcode->re(\$line)) {
-	# sarcasm: annotate rip-relative references to the
-	# OPENSSL_ia32cap_P extern global (the only extern data symbol in
-	# the corpus). Direct asm-to-asm calls carry their explicit
-	# `#! <sig>` from the generating .pl files; local-subroutine
-	# calls stay unannotated for sarcasm's auto-discovery.
-	if ($gas && !defined($ann)) {
-	  if ($line =~ /OPENSSL_ia32cap_P([+]\d+)?\(%rip\)/) {
-	    $ann = " global ptr";
-	  }
-	}
 
 	my $asm = eval("\$".$opcode->mnemonic());
 

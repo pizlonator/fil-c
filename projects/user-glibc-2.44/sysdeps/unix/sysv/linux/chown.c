@@ -19,15 +19,25 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Change the owner and group of FILE.  */
 int
 __chown (const char *file, uid_t owner, gid_t group)
 {
 #ifdef __NR_chown
-  return INLINE_SYSCALL_CALL (chown, file, owner, groups);
+  return INLINE_SYSCALL_CALL (chown, file, owner, group);
 #else
-  return INLINE_SYSCALL_CALL (fchownat, AT_FDCWD, file, owner, group, 0);
+  /* Fil-C: aarch64 has no chown kernel syscall, so this fallback would use
+     a raw svc inline asm, which Fil-C cannot make memory safe.  Route it
+     through the zsys runtime instead.  x86_64 defines __NR_chown and uses
+     the INLINE_SYSCALL_CALL above (in practice x86_64 does not even compile
+     this file: the shared sysdeps/unix/sysv/linux/syscalls.list chown entry
+     - there is no chown entry in the x86_64 syscalls.list - generates a
+     zsys_chown stub via the ported sysdeps/unix/make-syscalls.sh zsys
+     redirect, and that generated rule overrides the implicit rule for this
+     file).  */
+  return zsys_fchownat (AT_FDCWD, file, owner, group, 0);
 #endif
 }
 libc_hidden_def (__chown)

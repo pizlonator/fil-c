@@ -1,0 +1,238 @@
+/*-*- mode:c;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
+│ vi: set et ft=c ts=2 sts=2 sw=2 fenc=utf-8                               :vi │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright 2020 Justine Alexandra Roberts Tunney                              │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚─────────────────────────────────────────────────────────────────────────────*/
+#include "libc/str/str.h"
+#include "libc/assert.h"
+#include "libc/calls/calls.h"
+#include "libc/ctype.h"
+#include "libc/dce.h"
+#include "libc/intrin/safemacros.h"
+#include "libc/mem/alg.h"
+#include "libc/mem/gc.h"
+#include "libc/mem/mem.h"
+#include "libc/nexgen32e/x86feature.h"
+#include "libc/runtime/runtime.h"
+#include "libc/runtime/sysconf.h"
+#include "libc/stdio/rand.h"
+#include "libc/stdio/stdio.h"
+#include "libc/str/tab.h"
+#include "libc/sysv/consts/map.h"
+#include "libc/sysv/consts/prot.h"
+#include "libc/testlib/ezbench.h"
+#include "libc/testlib/hyperion.h"
+#include "libc/testlib/testlib.h"
+
+#define MAKESTRING(NAME, VALUE) \
+  char *NAME = strcpy(malloc(sizeof(VALUE) + 16), VALUE)
+
+char *strcasestr_naive(const char *haystack, const char *needle) {
+  size_t i;
+  if (haystack == needle || !*needle)
+    return (void *)haystack;
+  for (;;) {
+    for (i = 0;; ++i) {
+      if (!needle[i])
+        return (/*unconst*/ char *)haystack;
+      if (!haystack[i])
+        break;
+      if (tolower(needle[i]) != tolower(haystack[i]))
+        break;
+    }
+    if (!*haystack++)
+      break;
+  }
+  return 0;
+}
+
+TEST(strcasestr, tester) {
+  const char *haystack = "Windows";
+  ASSERT_STREQ(haystack, strcasestr(haystack, "win"));
+}
+
+void print_char_array(const char *s, const char *name) {
+  printf("char %s[] = {\n", name);
+  int len = 0;
+  while (s[len])
+    len++;
+  len++;  // include null terminator
+  for (int i = 0; i < len; i++) {
+    unsigned char c = s[i];
+    if (i % 8 == 0)
+      printf("    ");
+    if (c == 0) {
+      printf("0");
+    } else if (isprint(c) && c != '\'' && c != '\\') {
+      printf("'%c'", c);
+    } else if (c == '\'' || c == '\\') {
+      printf("'\\%c'", c);
+    } else {
+      printf("%d", c);
+    }
+    if (i < len - 1)
+      printf(",");
+    if (i % 8 == 7 || i == len - 1) {
+      int start = i - (i % 8);
+      printf(" // 0x%x\n", start);
+    }
+  }
+  printf("};\n");
+}
+
+TEST(strcasestr, safety) {
+  int pagesz = sysconf(_SC_PAGESIZE);
+  char *map = (char *)mmap(0, pagesz * 2, PROT_READ | PROT_WRITE,
+                           MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+  npassert(map != MAP_FAILED);
+  npassert(!mprotect(map + pagesz, pagesz, PROT_NONE));
+  for (int haylen = 1; haylen < 128; ++haylen) {
+    char *hay = map + pagesz - (haylen + 1);
+    for (int i = 0; i < haylen; ++i)
+      hay[i] = max(rand() & 255, 1);
+    hay[haylen] = 0;
+    for (int neelen = 1; neelen < haylen; ++neelen) {
+      char *nee = hay + (haylen + 1) - (neelen + 1);
+      if (strcasestr_naive(hay, nee) != strcasestr(hay, nee)) {
+        print_char_array(hay, "hay");
+        print_char_array(nee, "nee");
+        printf("wut hay  = %`'s\n", hay);
+        printf("wut nee  = %`'s\n", nee);
+        printf("wut res1 = %`'s\n", strcasestr_naive(hay, nee));
+        printf("wut res2 = %`'s\n", strcasestr(hay, nee));
+      }
+      ASSERT_EQ(strcasestr_naive(hay, nee), strcasestr(hay, nee));
+    }
+  }
+  munmap(map, pagesz * 2);
+}
+
+TEST(strcasestr, test_emptyString_isFoundAtBeginning) {
+  MAKESTRING(haystack, "abc123def");
+  ASSERT_STREQ(&haystack[0], strcasestr(haystack, gc(strdup(""))));
+  free(haystack);
+}
+
+TEST(strcasestr, test_notFound) {
+  MAKESTRING(haystack, "abc123def");
+  ASSERT_EQ(NULL, strcasestr(haystack, gc(strdup("xyz"))));
+  ASSERT_EQ(NULL, strcasestr(haystack, gc(strdup("XYZ"))));
+  free(haystack);
+}
+
+TEST(strcasestr, test_notFound1) {
+  MAKESTRING(haystack, "abc123def");
+  ASSERT_EQ(NULL, strcasestr(haystack, gc(strdup("x"))));
+  ASSERT_EQ(NULL, strcasestr(haystack, gc(strdup("X"))));
+  free(haystack);
+}
+
+TEST(strcasestr, test_middleOfString) {
+  MAKESTRING(haystack, "abc123def");
+  ASSERT_STREQ(&haystack[3], strcasestr(haystack, gc(strdup("123"))));
+  free(haystack);
+}
+
+TEST(strcasestr, test_endOfString) {
+  MAKESTRING(haystack, "abc123def");
+  ASSERT_STREQ(&haystack[8], strcasestr(haystack, gc(strdup("f"))));
+  ASSERT_STREQ(&haystack[8], strcasestr(haystack, gc(strdup("F"))));
+  free(haystack);
+}
+
+TEST(strcasestr, test_secondXmmWord) {
+  MAKESTRING(haystack, "eeeeeeeeeeeeeeeebbbbbbbbbbb123");
+  ASSERT_STREQ(&haystack[27], strcasestr(haystack, gc(strdup("123"))));
+  free(haystack);
+}
+
+TEST(strcasestr, test_overlapsXmmWords) {
+  MAKESTRING(haystack, "eeeeeeeeeeeeeeeebbbbbbbbbbbbbbb");
+  ASSERT_STREQ(&haystack[15], strcasestr(haystack, gc(strdup("eb"))));
+  ASSERT_STREQ(&haystack[15], strcasestr(haystack, gc(strdup("Eb"))));
+  ASSERT_STREQ(&haystack[15], strcasestr(haystack, gc(strdup("eB"))));
+  free(haystack);
+}
+
+TEST(strcasestr, test) {
+  ASSERT_EQ(NULL, strcasestr("x86_64-linux-musl-gcc", "clang"));
+  ASSERT_STREQ("gcc", strcasestr("x86_64-linux-musl-gcc", "gcc"));
+  ASSERT_EQ(NULL, strcasestr("-Wl,--gc-sections", "stack-protector"));
+  ASSERT_EQ(NULL, strcasestr("-Wl,--gc-sections", "sanitize"));
+  ASSERT_STREQ("x", strcasestr("x", "x"));
+}
+
+/*
+ *     strstr naive        l:   103,057c    33,287ns   m:    47,035c    15,192ns
+ *     strstr              l:     3,186c     1,029ns   m:     3,218c     1,039ns
+ *     strstr torture 1    l:        27c         9ns   m:        61c        20ns
+ *     strstr torture 2    l:     2,322c       750ns   m:     2,362c       763ns
+ *     strstr torture 4    l:     2,407c       777ns   m:     2,448c       791ns
+ *     strstr torture 8    l:     2,803c       905ns   m:     2,862c       924ns
+ *     strstr torture 16   l:     4,559c     1,473ns   m:     3,614c     1,167ns
+ *     strstr torture 32   l:     5,324c     1,720ns   m:     5,577c     1,801ns
+ *
+ *     strcasestr naive    l:   181,732c    60,577ns   m:   185,100c    61,700ns
+ *     strcasestr          l:     9,870c     3,290ns   m:     9,871c     3,290ns
+ *     strcasestr tort 1   l:        93c        31ns   m:       138c        46ns
+ *     strcasestr tort 2   l:        21c         7ns   m:        81c        27ns
+ *     strcasestr tort 4   l:       606c       202ns   m:       676c       225ns
+ *     strcasestr tort 8   l:       602c       201ns   m:       658c       219ns
+ *     strcasestr tort 16  l:       614c       205ns   m:       671c       224ns
+ *     strcasestr tort 32  l:       674c       225ns   m:       715c       238ns
+ */
+BENCH(strcasestr, bench) {
+  EZBENCH2("strcasestr naive", donothing,
+           __expropriate(strcasestr_naive(kHyperion, "THE END")));
+  EZBENCH2("strcasestr", donothing,
+           __expropriate(strcasestr(kHyperion, "THE END")));
+  EZBENCH2("strcasestr tort 1", donothing,
+           __expropriate(strcasestr(
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+               "B")));
+  EZBENCH2("strcasestr tort 2", donothing,
+           __expropriate(strcasestr(
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+               "ab")));
+  EZBENCH2("strcasestr tort 4", donothing,
+           __expropriate(strcasestr(
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+               "aaab")));
+  EZBENCH2("strcasestr tort 8", donothing,
+           __expropriate(strcasestr(
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+               "aaaaaaab")));
+  EZBENCH2("strcasestr tort 16", donothing,
+           __expropriate(strcasestr(
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+               "aaaaaaaaaaaaaaab")));
+  EZBENCH2("strcasestr tort 32", donothing,
+           __expropriate(strcasestr(
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
+               "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab")));
+}

@@ -133,13 +133,13 @@ ___
 if ($ENV{SARCASM}) {
   # Grow the region to 168 so $mod/$out can be parked in region slots
   # (xmm pointer parking loses capabilities under sarcasm).
-  $code.="\tsubq	\$128+40, %rsp\n";
+  $code.=<<___;
+	subq	\$128+40, %rsp
+	movq	%rax, 144(%rsp)		# park entry %rsp in the region
+___
 } else {
   $code.="\tsubq	\$128+24, %rsp\n";
 }
-$code.=<<___ if ($ENV{SARCASM});
-	movq	%rax, 144(%rsp)		# park entry %rsp in the region
-___
 $code.=<<___;
 .cfi_adjust_cfa_offset	128+24
 .Lsqr_body:
@@ -153,7 +153,7 @@ $code.=<<___;
 ___
 $code.=<<___ if ($addx);
 	movl	\$0x80100,%r11d
-	andl	OPENSSL_ia32cap_P+8(%rip),%r11d
+	andl	OPENSSL_ia32cap_P+8(%rip),%r11d #! global ptr
 	cmpl	\$0x80100,%r11d		# check for MULX and ADO/CX
 	je	.Loop_sqrx
 ___
@@ -521,6 +521,7 @@ $code.=<<___;
 	adcq	112(%rsp), %r14
 	adcq	120(%rsp), %r15
 	sbbq	%rcx, %rcx
+
 	call	__rsaz_512_subtract
 
 	movq	%r8, %rdx
@@ -890,13 +891,13 @@ ___
 if ($ENV{SARCASM}) {
   # Grow the region to 160 so $out/$mod can be parked in region slots
   # (xmm pointer parking loses capabilities under sarcasm).
-  $code.="\tsubq	\$128+32, %rsp\n";
+  $code.=<<___;
+	subq	\$128+32, %rsp
+	movq	%rax, 144(%rsp)		# park entry %rsp in the region
+___
 } else {
   $code.="\tsubq	\$128+24, %rsp\n";
 }
-$code.=<<___ if ($ENV{SARCASM});
-	movq	%rax, 144(%rsp)		# park entry %rsp in the region
-___
 $code.=<<___;
 .cfi_adjust_cfa_offset	128+24
 .Lmul_body:
@@ -916,7 +917,7 @@ ___
 }
 $code.=<<___ if ($addx);
 	movl	\$0x80100,%r11d
-	andl	OPENSSL_ia32cap_P+8(%rip),%r11d
+	andl	OPENSSL_ia32cap_P+8(%rip),%r11d #! global ptr
 	cmpl	\$0x80100,%r11d		# check for MULX and ADO/CX
 	je	.Lmulx
 ___
@@ -928,9 +929,12 @@ $code.=<<___;
 ___
 if ($ENV{SARCASM}) { $code.="\tmovq	136(%rsp), $out\n\tmovq	152(%rsp), %rbp\n"; }
 else { $code.="\tmovq	%xmm0, $out\n\tmovq	%xmm1, %rbp\n"; }
+# The clones store their 16 result rows into the caller's scratch region at
+# 0..127(%rsp); the long form declares that region the `rows` stack buffer
+# (the clone stores name it short-form and are bounds-checked against it).
 $code.=<<___;
 
-	movq	(%rsp), %r8
+	movq	(%rsp), %r8	#! stack buffer (rows, %rsp, %rsp + 128)
 	movq	8(%rsp), %r9
 	movq	16(%rsp), %r10
 	movq	24(%rsp), %r11
@@ -1052,10 +1056,9 @@ $code.=<<___;
 
 ___
 if ($ENV{SARCASM}) {
-  # Region grows by 16 to host the saved stack pointer (slot 144 is
-  # $mod in this function).
+  # The region grows by 16 so the entry %rsp can be parked at slot 152.
   $code.=<<___;
-	subq	\$`128+24+16+($win64?0xb0:0)`, %rsp
+	subq	\$168, %rsp
 	movq	%rax, 152(%rsp)		# park entry %rsp in the region
 ___
 } else {
@@ -1137,7 +1140,7 @@ $code.=<<___;
 ___
 $code.=<<___ if ($addx);
 	movl	\$0x80100,%r11d
-	andl	OPENSSL_ia32cap_P+8(%rip),%r11d
+	andl	OPENSSL_ia32cap_P+8(%rip),%r11d #! global ptr
 	cmpl	\$0x80100,%r11d		# check for MULX and ADO/CX
 	je	.Lmulx_gather
 ___
@@ -1151,7 +1154,12 @@ $code.=<<___;
 	movq	($ap), %rax
 	 movq	8($ap), %rcx
 	mulq	%rbx			# 0 iteration
-	movq	%rax, (%rsp)
+___
+# The 16 result rows land in the scratch region at 0..127(%rsp): the long
+# form declares them the `rows` stack buffer, and the walking-%rdi stores
+# below name it short-form (bounds-checked at run time).
+$code.=<<___;
+	movq	%rax, (%rsp)		#! stack buffer (rows, %rsp, %rsp + 128)
 	movq	%rcx, %rax
 	movq	%rdx, %r8
 
@@ -1197,11 +1205,12 @@ $code.=<<___;
 	movq	%rdx, %r15
 	adcq	\$0, %r15
 
-___
-# Sarcasm: unrolled GATHER (7 fixed-multiplier rows). The
-# bump-pointer/indexed frame store becomes a constant frame
-# displacement per row; the gas path keeps the original loop.
-my $gather_body = <<___GATHER_BODY___;
+	leaq	8(%rsp), %rdi
+	movl	\$7, %ecx
+	jmp	.Loop_mul_gather
+
+.align	32
+.Loop_mul_gather:
 	movdqa	16*0(%rbp),%xmm8
 	movdqa	16*1(%rbp),%xmm9
 	movdqa	16*2(%rbp),%xmm10
@@ -1234,7 +1243,7 @@ my $gather_body = <<___GATHER_BODY___;
 	mulq	%rbx
 	addq	%rax, %r8
 	movq	8($ap), %rax
-	movq	%r8, @@@
+	movq	%r8, (%rdi)		#! stack buffer (rows)
 	movq	%rdx, %r8
 	adcq	\$0, %r8
 
@@ -1294,58 +1303,19 @@ my $gather_body = <<___GATHER_BODY___;
 	movq	%rdx, %r15
 	adcq	\$0, %r15
 
-___GATHER_BODY___
-if ($ENV{SARCASM}) {
-	for my $k (0..6) {
-		(my $b = $gather_body) =~ s/@@@/(8+8*$k)."(%rsp)"/e;
-		$code .= $b;
-	}
-} else {
-	$code.=<<___;
-	leaq	8(%rsp), %rdi
-	movl	\$7, %ecx
-	jmp	.Loop_mul_gather
-
-.align	32
-.Loop_mul_gather:
-___
-  my $b = $gather_body; $b =~ s/@@@/(%rdi)/;
-  $code .= $b;
-  $code.=<<___;
 	leaq	8(%rdi), %rdi
 
 	decl	%ecx
 	jnz	.Loop_mul_gather
-___
-}
-# Sarcasm: GATHER tail. The rows above stored caller slots 8-56; the tail
-# completes 64-120 (inline in the caller, so no clone bias). The gas
-# bump-pointer %rdi is never materialized under sarcasm.
-if ($ENV{SARCASM}) {
-$code.=<<___;
-	movq	%r8, 64(%rsp)
-	movq	%r9, 72(%rsp)
-	movq	%r10, 80(%rsp)
-	movq	%r11, 88(%rsp)
-	movq	%r12, 96(%rsp)
-	movq	%r13, 104(%rsp)
-	movq	%r14, 112(%rsp)
-	movq	%r15, 120(%rsp)
-___
-} else {
-$code.=<<___;
 
-	movq	%r8, (%rdi)
-	movq	%r9, 8(%rdi)
-	movq	%r10, 16(%rdi)
-	movq	%r11, 24(%rdi)
-	movq	%r12, 32(%rdi)
-	movq	%r13, 40(%rdi)
-	movq	%r14, 48(%rdi)
-	movq	%r15, 56(%rdi)
-___
-}
-$code.=<<___;
+	movq	%r8, (%rdi)		#! stack buffer (rows)
+	movq	%r9, 8(%rdi)		#! stack buffer (rows)
+	movq	%r10, 16(%rdi)		#! stack buffer (rows)
+	movq	%r11, 24(%rdi)		#! stack buffer (rows)
+	movq	%r12, 32(%rdi)		#! stack buffer (rows)
+	movq	%r13, 40(%rdi)		#! stack buffer (rows)
+	movq	%r14, 48(%rdi)		#! stack buffer (rows)
+	movq	%r15, 56(%rdi)		#! stack buffer (rows)
 
 	movq	128+8(%rsp), $out
 	movq	128+16(%rsp), %rbp
@@ -1400,11 +1370,11 @@ $code.=<<___ if ($addx);
 	mov	%r8, %rbx
 	adcx	%rdi, %r15		# %rdi is 0
 
-___
-# Sarcasm: unrolled GATHERX (7 fixed-multiplier rows). The
-# bump-pointer/indexed frame store becomes a constant frame
-# displacement per row; the gas path keeps the original loop.
-my $gatherx_body = <<___GATHERX_BODY___;
+	mov	\$-7, %rcx
+	jmp	.Loop_mulx_gather
+
+.align	32
+.Loop_mulx_gather:
 	movdqa	16*0(%rbp),%xmm8
 	movdqa	16*1(%rbp),%xmm9
 	movdqa	16*2(%rbp),%xmm10
@@ -1464,34 +1434,14 @@ my $gatherx_body = <<___GATHERX_BODY___;
 	adox	%r15, %r14
 
 	mulx	56($ap), %rax, %r15
-	 mov	%rbx, @@@
+	 mov	%rbx, 64(%rsp,%rcx,8)	#! stack buffer (rows)
 	adcx	%rax, %r14
 	adox	%rdi, %r15
 	mov	%r8, %rbx
 	adcx	%rdi, %r15		# cf=0
 
-___GATHERX_BODY___
-if ($ENV{SARCASM}) {
-	for my $k (0..6) {
-		(my $b = $gatherx_body) =~ s/@@@/(8+8*$k)."(%rsp)"/e;
-		$code .= $b;
-	}
-} else {
-	$code.=<<___;
-	mov	\$-7, %rcx
-	jmp	.Loop_mulx_gather
-
-.align	32
-.Loop_mulx_gather:
-___
-  my $b = $gatherx_body; $b =~ s/@@@/64(%rsp,%rcx,8)/;
-  $code .= $b;
-  $code.=<<___;
 	inc	%rcx			# of=0
 	jnz	.Loop_mulx_gather
-___
-}
-$code.=<<___;
 
 	mov	%r8, 64(%rsp)
 	mov	%r9, 64+8(%rsp)
@@ -1621,13 +1571,13 @@ ___
 if ($ENV{SARCASM}) {
   # Grow the region to 184 so $out/$mod/$tbl can be parked in region slots
   # (xmm pointer parking loses capabilities under sarcasm).
-  $code.="\tsubq	\$128+56, %rsp\n";
+  $code.=<<___;
+	subq	\$128+56, %rsp
+	movq	%rax, 144(%rsp)		# park entry %rsp in the region
+___
 } else {
   $code.="\tsubq	\$128+24, %rsp\n";
 }
-$code.=<<___ if ($ENV{SARCASM});
-	movq	%rax, 144(%rsp)		# park entry %rsp in the region
-___
 $code.=<<___;
 .cfi_adjust_cfa_offset	128+24
 .Lmul_scatter4_body:
@@ -1654,7 +1604,7 @@ $code.=<<___;
 ___
 $code.=<<___ if ($addx);
 	movl	\$0x80100,%r11d
-	andl	OPENSSL_ia32cap_P+8(%rip),%r11d
+	andl	OPENSSL_ia32cap_P+8(%rip),%r11d #! global ptr
 	cmpl	\$0x80100,%r11d		# check for MULX and ADO/CX
 	je	.Lmulx_scatter
 ___
@@ -1665,9 +1615,11 @@ $code.=<<___;
 ___
 if ($ENV{SARCASM}) { $code.="\tmovq	152(%rsp), $out\n\tmovq	160(%rsp), %rbp\n"; }
 else { $code.="\tmovq	%xmm0, $out\n\tmovq	%xmm1, %rbp\n"; }
+# Same `rows` stack buffer as in rsaz_512_mul above: the clones store their
+# 16 result rows into this caller's scratch region at 0..127(%rsp).
 $code.=<<___;
 
-	movq	(%rsp), %r8
+	movq	(%rsp), %r8	#! stack buffer (rows, %rsp, %rsp + 128)
 	movq	8(%rsp), %r9
 	movq	16(%rsp), %r10
 	movq	24(%rsp), %r11
@@ -1810,7 +1762,7 @@ $code.=<<___;
 .Lmul_by_one_body:
 ___
 $code.=<<___ if ($addx);
-	movl	OPENSSL_ia32cap_P+8(%rip),%eax
+	movl	OPENSSL_ia32cap_P+8(%rip),%eax #! global ptr
 ___
 $code.=<<___;
 	movq	$mod, %rbp	# reassign argument
@@ -2140,26 +2092,16 @@ $code.=<<___;
 .align	32
 __rsaz_512_mul:
 .cfi_startproc
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	leaq	8(%rsp), %rdi
-___
-$code.=<<___;
 
 	movq	($ap), %rax
 	mulq	%rbx
 ___
-if ($ENV{SARCASM}) {
-  # Row 0 lands at caller slot 0 (clone displacement 8 keys to caller 0).
-  $code.=<<___;
-	movq	%rax, 8(%rsp)
-___
-} else {
-  $code.=<<___;
-	movq	%rax, (%rdi)
-___
-}
+# The clone stores its result rows into the CALLER's scratch region (clone
+# displacement 8 keys to caller slot 0): every store through %rdi names the
+# caller-declared `rows` stack buffer and is bounds-checked at run time.
 $code.=<<___;
+	movq	%rax, (%rdi)		#! stack buffer (rows)
 	movq	8($ap), %rax
 	movq	%rdx, %r8
 
@@ -2206,21 +2148,18 @@ $code.=<<___;
 	adcq	\$0, %r15
 
 	leaq	8($bp), $bp
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	leaq	8(%rdi), %rdi
-___
-$code.=<<___;
 
-___
-# Sarcasm: unrolled .Loop_mul (7 rows of __rsaz_512_mul). Row 0 went
-# to displacement 8 above; rows 1-7 land at 16-64. Gas keeps the loop.
-my $mul_body = <<___MUL_BODY___;
+	movl	\$7, %ecx
+	jmp	.Loop_mul
+
+.align	32
+.Loop_mul:
 	movq	($bp), %rbx
 	mulq	%rbx
 	addq	%rax, %r8
 	movq	8($ap), %rax
-	movq	%r8, @@@
+	movq	%r8, (%rdi)		#! stack buffer (rows)
 	movq	%rdx, %r8
 	adcq	\$0, %r8
 
@@ -2281,58 +2220,19 @@ my $mul_body = <<___MUL_BODY___;
 	movq	%rdx, %r15
 	adcq	\$0, %r15
 
-___MUL_BODY___
-if ($ENV{SARCASM}) {
-	for my $k (0..6) {
-		(my $b = $mul_body) =~ s/@@@/(16+8*$k)."(%rsp)"/e;
-		$code .= $b;
-	}
-} else {
-	$code.=<<___;
-	movl	\$7, %ecx
-	jmp	.Loop_mul
-
-.align	32
-.Loop_mul:
-___
-  my $b = $mul_body; $b =~ s/@@@/(%rdi)/;
-  $code .= $b;
-  $code.=<<___;
 	leaq	8(%rdi), %rdi
 
 	decl	%ecx
 	jnz	.Loop_mul
-___
-}
-# Sarcasm: __rsaz_512_mul tail. Rows above stored clone slots 8-64
-# (caller slots 0-56); the tail completes caller slots 64-120, i.e. clone
-# displacements 72-128. The gas bump-pointer %rdi is never materialized
-# under sarcasm.
-if ($ENV{SARCASM}) {
-$code.=<<___;
-	movq	%r8, 72(%rsp)
-	movq	%r9, 80(%rsp)
-	movq	%r10, 88(%rsp)
-	movq	%r11, 96(%rsp)
-	movq	%r12, 104(%rsp)
-	movq	%r13, 112(%rsp)
-	movq	%r14, 120(%rsp)
-	movq	%r15, 128(%rsp)
-___
-} else {
-$code.=<<___;
 
-	movq	%r8, (%rdi)
-	movq	%r9, 8(%rdi)
-	movq	%r10, 16(%rdi)
-	movq	%r11, 24(%rdi)
-	movq	%r12, 32(%rdi)
-	movq	%r13, 40(%rdi)
-	movq	%r14, 48(%rdi)
-	movq	%r15, 56(%rdi)
-___
-}
-$code.=<<___;
+	movq	%r8, (%rdi)		#! stack buffer (rows)
+	movq	%r9, 8(%rdi)		#! stack buffer (rows)
+	movq	%r10, 16(%rdi)		#! stack buffer (rows)
+	movq	%r11, 24(%rdi)		#! stack buffer (rows)
+	movq	%r12, 32(%rdi)		#! stack buffer (rows)
+	movq	%r13, 40(%rdi)		#! stack buffer (rows)
+	movq	%r14, 48(%rdi)		#! stack buffer (rows)
+	movq	%r15, 56(%rdi)		#! stack buffer (rows)
 
 	ret
 .cfi_endproc
@@ -2378,11 +2278,11 @@ __rsaz_512_mulx:
 	adc	%rax, %r14
 	adc	\$0, %r15
 
-___
-# Sarcasm: unrolled MULX (6 fixed-multiplier rows). The
-# bump-pointer/indexed frame store becomes a constant frame
-# displacement per row; the gas path keeps the original loop.
-my $mulx_body = <<___MULX_BODY___;
+	xor	$zero, $zero		# cf=0,of=0
+	jmp	.Loop_mulx
+
+.align	32
+.Loop_mulx:
 	movq	%r8, %rbx
 	mulx	($ap), %rax, %r8
 	adcx	%rax, %rbx
@@ -2413,42 +2313,19 @@ my $mulx_body = <<___MULX_BODY___;
 	adox	%r15, %r14
 
 	mulx	56($ap), %rax, %r15
-	 movq	###, %rdx
-	 movq	%rbx, @@@
+	 movq	64($bp,%rcx,8), %rdx
+___
+# The indexed row store keys into the caller's `rows` stack buffer (clone
+# displacement minus 8 names the caller slot) and is bounds-checked at run
+# time; the static row stores around it need no annotation.
+$code.=<<___;
+	 movq	%rbx, 8+64-8(%rsp,%rcx,8)	#! stack buffer (rows)
 	adcx	%rax, %r14
 	adox	$zero, %r15
 	adcx	$zero, %r15		# cf=0
 
-___MULX_BODY___
-if ($ENV{SARCASM}) {
-	# Unrolled .Loop_mulx rows need the same cf=0,of=0 entry state.
-	# Each row also constant-folds the loop-variant b-word load
-	# (gas steps %rcx from -6; row k reads 16+8*k($bp)).
-	$code.=<<___;
-	xor	$zero, $zero		# cf=0,of=0
-___
-  for my $k (0..5) {
-    (my $b = $mulx_body) =~ s/@@@/(16+8*$k)."(%rsp)"/e;
-    $b =~ s/###/(16+8*$k)."($bp)"/e;
-    $code .= $b;
-  }
-} else {
-  $code.=<<___;
-	xor	$zero, $zero		# cf=0,of=0
-	jmp	.Loop_mulx
-
-.align	32
-.Loop_mulx:
-___
-  my $b = $mulx_body; $b =~ s/@@@/8+64-8(%rsp,%rcx,8)/;
-  $b =~ s/###/64($bp,%rcx,8)/;
-  $code .= $b;
-  $code.=<<___;
 	inc	%rcx			# of=0
 	jnz	.Loop_mulx
-___
-}
-$code.=<<___;
 
 	movq	%r8, %rbx
 	mulx	($ap), %rax, %r8

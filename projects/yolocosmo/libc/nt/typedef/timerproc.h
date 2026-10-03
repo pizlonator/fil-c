@@ -1,0 +1,6 @@
+#ifndef COSMOPOLITAN_LIBC_NT_TYPEDEF_TIMERPROC_H_
+#define COSMOPOLITAN_LIBC_NT_TYPEDEF_TIMERPROC_H_
+
+typedef void (*NtTimerProc)(int64_t, uint32_t, uintptr_t, uint32_t);
+
+#endif /* COSMOPOLITAN_LIBC_NT_TYPEDEF_TIMERPROC_H_ */

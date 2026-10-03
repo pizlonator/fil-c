@@ -1,0 +1,82 @@
+/*-*- mode:c;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
+│ vi: set et ft=c ts=2 sts=2 sw=2 fenc=utf-8                               :vi │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright 2020 Justine Alexandra Roberts Tunney                              │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚─────────────────────────────────────────────────────────────────────────────*/
+#include "libc/calls/calls.h"
+#include "libc/calls/syscall-nt.internal.h"
+#include "libc/calls/syscall-sysv.internal.h"
+#include "libc/calls/syscall_support-sysv.internal.h"
+#include "libc/dce.h"
+#include "libc/intrin/describeflags.h"
+#include "libc/intrin/kprintf.h"
+#include "libc/intrin/strace.h"
+#include "libc/intrin/weaken.h"
+#include "libc/runtime/zipos.internal.h"
+#include "libc/sysv/consts/at.h"
+#include "libc/sysv/errfuns.h"
+
+/**
+ * Renames files relative to directories.
+ *
+ * This is generally an atomic operation with the file system, since all
+ * it's doing is changing a name associated with an inode. However, that
+ * means rename() doesn't permit your `oldpathname` and `newpathname` to
+ * be on separate file systems, in which case this returns EXDEV. That's
+ * also the case on Windows.
+ *
+ * @param olddirfd is normally AT_FDCWD but if it's an open directory
+ *     and oldpath is relative, then oldpath become relative to dirfd
+ * @param newdirfd is normally AT_FDCWD but if it's an open directory
+ *     and newpath is relative, then newpath become relative to dirfd
+ * @return 0 on success, or -1 w/ errno
+ * @raise ENOENT if `oldpath` doesn't exist
+ * @raise ENOENT if `oldpath` or `newpath` is an empty string
+ * @raise EBADF if path is relative but its dirfd wasn't valid
+ * @raise EXDEV if paths are not on the same mounted filesystem
+ * @raise ENOTDIR if `oldpath` is dir but `newpath` exists and is not
+ * @raise ENOTDIR if parent component in either path isn't a directory
+ * @raise ENOTDIR if a path is relative and its dirfd wasn't a directory
+ * @raise EILSEQ on Windows if a path has bad utf-8 of control characters
+ * @raise EILSEQ if last component of `newpath` had newline or bad utf-8
+ * @raise EISDIR if `newpath` is existing directory but `oldpath` is not
+ * @raise ENOMEM if insufficient memory was available to implementation
+ * @raise ENAMETOOLONG if component of a path is longer than `NAME_MAX`
+ * @raise ENAMETOOLONG if a resolved path is longer than `PATH_MAX`
+ * @raise ELOOP if symlink loop was detected resolving either path
+ * @raise ENOTEMPTY if `newpath` names a non-empty directory
+ * @raise EROFS if either path is under /zip/...
+ */
+int renameat(int olddirfd, const char *oldpath, int newdirfd,
+             const char *newpath) {
+  int rc;
+  if (kisdangerous(oldpath) || kisdangerous(newpath)) {
+    rc = efault();
+  } else if (__is_evil_path(newpath)) {
+    rc = eilseq();
+  } else if (_weaken(__zipos_notat) &&
+             ((rc = __zipos_notat(olddirfd, oldpath)) == -1 ||
+              (rc = __zipos_notat(newdirfd, newpath)) == -1)) {
+    rc = erofs();
+  } else if (!IsWindows()) {
+    rc = sys_renameat(olddirfd, oldpath, newdirfd, newpath);
+  } else {
+    rc = sys_renameat_nt(olddirfd, oldpath, newdirfd, newpath);
+  }
+  STRACE("renameat(%s, %#s, %s, %#s) → %d% m", DescribeDirfd(olddirfd), oldpath,
+         DescribeDirfd(newdirfd), newpath, rc);
+  return rc;
+}

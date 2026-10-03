@@ -1237,14 +1237,7 @@ $code.=<<___;
 	push	%rbp
 .cfi_push	%rbp
 	sub	\$$frame_size,%rsp
-___
-if (!$ENV{SARCASM}) {
-  $code.=<<___;
 	and	\$-16,%rsp	# Linux kernel stack can be incorrectly seeded
-___
-}
-$code.=<<___;
-	# sarcasm: plain sub frame above (slots virtualized; no re-alignment).
 ___
 $code.=<<___ if ($win64);
 	movaps	%xmm6,-0xa8($key_)		# offload everything
@@ -1311,7 +1304,7 @@ $code.=<<___;
 	lea	7($ctr),%r9
 	 mov	%r10d,0x60+12(%rsp)
 	bswap	%r9d
-	 mov	OPENSSL_ia32cap_P+4(%rip),%r10d
+	 mov	OPENSSL_ia32cap_P+4(%rip),%r10d #! global ptr
 	xor	$key0,%r9d
 	 and	\$`1<<26|1<<22`,%r10d		# isolate XSAVE+MOVBE
 	mov	%r9d,0x70+12(%rsp)
@@ -1796,14 +1789,7 @@ aesni_xts_encrypt: #! void(ptr,ptr,size_t,ptr,ptr,ptr)
 	push	%rbp
 .cfi_push	%rbp
 	sub	\$$frame_size,%rsp
-___
-if (!$ENV{SARCASM}) {
-  $code.=<<___;
 	and	\$-16,%rsp	# Linux kernel stack can be incorrectly seeded
-___
-}
-$code.=<<___;
-	# sarcasm: plain sub frame above (slots virtualized; no re-alignment).
 ___
 $code.=<<___ if ($win64);
 	movaps	%xmm6,-0xa8(%r11)		# offload everything
@@ -2287,14 +2273,7 @@ aesni_xts_decrypt: #! void(ptr,ptr,size_t,ptr,ptr,ptr)
 	push	%rbp
 .cfi_push	%rbp
 	sub	\$$frame_size,%rsp
-___
-if (!$ENV{SARCASM}) {
-  $code.=<<___;
 	and	\$-16,%rsp	# Linux kernel stack can be incorrectly seeded
-___
-}
-$code.=<<___;
-	# sarcasm: plain sub frame above (slots virtualized; no re-alignment).
 ___
 $code.=<<___ if ($win64);
 	movaps	%xmm6,-0xa8(%r11)		# offload everything
@@ -3810,52 +3789,6 @@ $code.=<<___;
 
 .Lcbc_enc_tail:
 	mov	$len,%rcx	# zaps $key
-___
-if ($ENV{SARCASM}) {
-  # The tail block is encrypted inline here (not by swapping the two
-  # pointer arguments and re-entering the main loop): such a swap makes
-  # $inp's and $out's register webs share a definition, and ptrflow's
-  # dynamic lower for the merged web then feeds the main loop's
-  # input-block read a capability from a different origin. A balanced
-  # push/pop of %rbx is dropped by the frame model and provides the
-  # block pointer without touching $inp/$out. The copies use 'rep movsb' /
-  # 'rep stosb' directly (sarcasm lowers them to checked copies/fills); the
-  # xchg below is straight-line, so each side keeps its own capability.
-  $code.=<<___;
-	xchg	$inp,$out	# $inp is %rsi and $out is %rdi now
-	rep	movsb	# copy tail bytes
-	mov	\$16,%ecx	# zero tail
-	sub	$len,%rcx
-	xor	%eax,%eax
-	rep	stosb	# zero pad
-	push	%rbx
-	mov	$key_,$key	# restore $key
-	mov	$rnds_,$rounds	# restore $rounds
-	lea	-16(%rdi),%rbx	# the padded tail block
-	movups	(%rbx),%xmm3
-	movups	($key),$rndkey0
-	movups	16($key),$rndkey1
-	xorps	$rndkey0,%xmm3
-	lea	32($key),$key
-	xorps	%xmm3,$inout0
-.Lcbc_enc_tail_round:
-	aesenc	$rndkey1,$inout0
-	decl	%eax
-	movups	($key),$rndkey1
-	lea	16($key),$key
-	jnz	.Lcbc_enc_tail_round
-	aesenclast	$rndkey1,$inout0
-	movups	$inout0,(%rbx)	# store the tail ciphertext
-	pop	%rbx
-	pxor	$rndkey0,$rndkey0
-	pxor	$rndkey1,$rndkey1
-	movups	$inout0,($ivp)	# store new IV
-	pxor	$inout0,$inout0
-	pxor	%xmm3,%xmm3
-	jmp	.Lcbc_ret
-___
-} else {
-  $code.=<<___;
 	xchg	$inp,$out	# $inp is %rsi and $out is %rdi now
 	.long	0x9066A4F3	# rep movsb
 	mov	\$16,%ecx	# zero tail
@@ -3868,9 +3801,6 @@ ___
 	mov	$key_,$key	# restore $key
 	xor	$len,$len	# len=16
 	jmp	.Lcbc_enc_loop	# one more spin
-___
-}
-$code.=<<___;
 #--------------------------- CBC DECRYPT ------------------------------#
 .align	16
 .Lcbc_decrypt:
@@ -3900,14 +3830,7 @@ $code.=<<___;
 	push	%rbp
 .cfi_push	%rbp
 	sub	\$$frame_size,%rsp
-___
-if (!$ENV{SARCASM}) {
-  $code.=<<___;
 	and	\$-16,%rsp	# Linux kernel stack can be incorrectly seeded
-___
-}
-$code.=<<___;
-	# sarcasm: plain sub frame above (slots virtualized; no re-alignment).
 ___
 $code.=<<___ if ($win64);
 	movaps	%xmm6,0x10(%rsp)
@@ -3923,13 +3846,7 @@ $code.=<<___ if ($win64);
 .Lcbc_decrypt_body:
 ___
 
-my $key_="%rbp";
-# Under sarcasm $inp_ must not alias the key backup: two pointer origins
-# in one register web (the key schedule and the input buffer) would make
-# ptrflow merge their capabilities, and the main loop's input-block read
-# would be checked against the key's object. %r9 is dead in this path
-# (it only carried the ia32cap dispatch value).
-my $inp_=$ENV{SARCASM}?"%r9":"%rbp";
+my $inp_=$key_="%rbp";			# reassign $key_
 
 $code.=<<___;
 	mov	$key,$key_		# [re-]backup $key [after reassignment]
@@ -3950,7 +3867,7 @@ $code.=<<___;
 	movdqa	$inout3,$in3
 	movdqu	0x50($inp),$inout5
 	movdqa	$inout4,$in4
-	mov	OPENSSL_ia32cap_P+4(%rip),%r9d
+	mov	OPENSSL_ia32cap_P+4(%rip),%r9d #! global ptr
 	cmp	\$0x70,$len
 	jbe	.Lcbc_dec_six_or_seven
 
@@ -4316,26 +4233,6 @@ $code.=<<___;
 	pxor	$inout0,$inout0
 	jmp	.Lcbc_dec_ret
 .align	16
-___
-if ($ENV{SARCASM}) {
-  # SARCASM: no frame take (rejected); stream the partial bytes straight
-  # out of the XMM register with movd/psrldq (no frame temp needed).
-  $code.=<<___;
-.Lcbc_dec_tail_partial:
-	mov	$out,%rdi
-	mov	\$16,%rcx
-	sub	$len,%rcx
-.Lcbc_dec_tail_copy:
-	movd	$inout0,%eax
-	mov	%al,(%rdi)
-	lea	1(%rdi),%rdi
-	psrldq	\$1,$inout0
-	sub	\$1,%ecx
-	jnz	.Lcbc_dec_tail_copy
-	pxor	$inout0,$inout0
-___
-} else {
-  $code.=<<___;
 .Lcbc_dec_tail_partial:
 	movaps	$inout0,(%rsp)
 	pxor	$inout0,$inout0
@@ -4343,11 +4240,8 @@ ___
 	mov	$out,%rdi
 	sub	$len,%rcx
 	lea	(%rsp),%rsi
-	.long	0x9066A4F3		# rep movsb
+	.long	0x9066A4F3		#! stack buffer (cbcdec, %rsp, %rsp + 16) # rep movsb
 	movdqa	$inout0,(%rsp)
-___
-}
-$code.=<<___;
 
 .Lcbc_dec_ret:
 	xorps	$rndkey0,$rndkey0	# %xmm0
@@ -4406,28 +4300,11 @@ ${PREFIX}_set_decrypt_key: #! int(ptr,int,ptr)
 .cfi_startproc
 	.byte	0x48,0x83,0xEC,0x08	# sub rsp,8
 .cfi_adjust_cfa_offset	8
-	call	aesni_set_encrypt_key #! int(ptr,int,ptr)	# (was the __aesni_set_encrypt_key alias)
-___
-if ($ENV{SARCASM}) {
-  # A signatured call preserves only the %eax result: the %esi
-  # side-channel (rounds-1) does not survive. Reload the round count
-  # from the key schedule instead.
-  $code.=<<___;
-	test	%eax,%eax
-	jnz	.Ldec_key_ret
-	mov	240($key),$bits		# rounds-1 is stored at 240($key)
-	shl	\$4,$bits
-	lea	16($key,$bits),$inp	# points at the end of key schedule
-___
-} else {
-  $code.=<<___;
+	call	__aesni_set_encrypt_key
 	shl	\$4,$bits		# rounds-1 after _aesni_set_encrypt_key
 	test	%eax,%eax
 	jnz	.Ldec_key_ret
 	lea	16($key,$bits),$inp	# points at the end of key schedule
-___
-}
-$code.=<<___;
 
 	$movkey	($key),%xmm0		# just swap
 	$movkey	($inp),%xmm1
@@ -4504,7 +4381,7 @@ __aesni_set_encrypt_key:
 	mov	\$`1<<28|1<<11`,%r10d	# AVX and XOP bits
 	movups	($inp),%xmm0		# pull first 128 bits of *userKey
 	xorps	%xmm4,%xmm4		# low dword of xmm4 is assumed 0
-	and	OPENSSL_ia32cap_P+4(%rip),%r10d
+	and	OPENSSL_ia32cap_P+4(%rip),%r10d #! global ptr
 	lea	16($key),%rax		# %rax is used as modifiable copy of $key
 	cmp	\$256,$bits
 	je	.L14rounds
@@ -4790,18 +4667,6 @@ __aesni_set_encrypt_key:
 .cfi_adjust_cfa_offset	-8
 	ret
 .LSEH_end_set_encrypt_key:
-___
-if ($ENV{SARCASM}) {
-  # End the function body here: the key-expansion subroutines below are
-  # file-local call/ret routines, and sarcasm's local-subroutine
-  # discovery works on unconsumed top-level statements.
-  $code.=<<___;
-.cfi_endproc
-.size	${PREFIX}_set_encrypt_key,.-${PREFIX}_set_encrypt_key
-.size	__aesni_set_encrypt_key,.-__aesni_set_encrypt_key
-___
-}
-$code.=<<___;
 
 .align	16
 .Lkey_expansion_128:
@@ -4871,15 +4736,9 @@ $code.=<<___;
 	shufps	\$0b10101010,%xmm1,%xmm1	# critical path
 	xorps	%xmm1,%xmm2
 	ret
-___
-if (!$ENV{SARCASM}) {
-  $code.=<<___;
 .cfi_endproc
 .size	${PREFIX}_set_encrypt_key,.-${PREFIX}_set_encrypt_key
 .size	__aesni_set_encrypt_key,.-__aesni_set_encrypt_key
-___
-}
-$code.=<<___;
 ___
 }
 
@@ -5300,8 +5159,7 @@ sub aesni {
 }
 
 sub movbe {
-	# any modern gas (>=2.22) assembles movbe, and sarcasm models it
-	"movbe	%eax,".shift."(%rsp)";
+	".byte	0x0f,0x38,0xf1,0x44,0x24,".shift;
 }
 
 $code =~ s/\`([^\`]*)\`/eval($1)/gem;

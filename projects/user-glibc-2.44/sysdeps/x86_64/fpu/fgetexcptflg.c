@@ -26,7 +26,7 @@ fegetexceptflag (fexcept_t *flagp, int excepts)
   unsigned int mxscr;
 
   /* Get the current exceptions for the x87 FPU and SSE unit.  */
-  __asm__ ("fnstsw %0" : "=m" (temp));
+  __asm__ ("fnstsw %0" : "=a" (temp));
   stmxcsr_inline_asm (&mxscr);
 
   *flagp = (temp | mxscr) & FE_ALL_EXCEPT & excepts;

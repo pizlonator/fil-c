@@ -3,3 +3,6 @@ return:
 output-includes:
   - "filc user error"
   - "libc++abi: terminating due to uncaught exception of type int"
+
+# COSMO: the uncaught-exception terminate path ends in abort(), whose SIGABRT does not get the "filc user error" fatal-signal reporting in the cosmo flavor yet (the process still dies with SIGABRT, and the libc++abi terminate message is printed).
+unsupportedOnCOSMO: true

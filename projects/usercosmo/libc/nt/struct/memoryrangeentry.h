@@ -1,0 +1,9 @@
+#ifndef COSMOPOLITAN_LIBC_NT_STRUCT_MEMORYRANGEENTRY_H_
+#define COSMOPOLITAN_LIBC_NT_STRUCT_MEMORYRANGEENTRY_H_
+
+struct NtMemoryRangeEntry {
+  void *VirtualAddress;
+  size_t NumberOfBytes;
+};
+
+#endif /* COSMOPOLITAN_LIBC_NT_STRUCT_MEMORYRANGEENTRY_H_ */

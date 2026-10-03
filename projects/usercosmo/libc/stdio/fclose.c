@@ -1,0 +1,49 @@
+/*-*- mode:c;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
+│ vi: set et ft=c ts=8 sts=2 sw=2 fenc=utf-8                               :vi │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright 2020 Justine Alexandra Roberts Tunney                              │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚─────────────────────────────────────────────────────────────────────────────*/
+#include "libc/calls/calls.h"
+#include "libc/errno.h"
+#include "libc/mem/mem.h"
+#include "libc/runtime/runtime.h"
+#include "libc/stdio/internal.h"
+
+/**
+ * Closes standard i/o stream and its underlying thing.
+ * @return 0 on success, or EOF w/ errno
+ */
+int fclose(FILE *f) {
+  int rc = 0;
+  if (f) {
+    if (__isthreaded >= 2)
+      flockfile(f);
+    rc |= fflush_unlocked(f);
+    if (f->memstream_bufp) {
+      realloc_in_place(f->buf, f->beg + 1);
+      f->buf[f->beg] = 0;
+    }
+    int fd = f->fd;
+    f->fd = -1;
+    f->state = EOF;
+    if (fd != -1)
+      rc |= close(fd);
+    if (__isthreaded >= 2)
+      funlockfile(f);
+    __stdio_unref(f);
+  }
+  return rc;
+}

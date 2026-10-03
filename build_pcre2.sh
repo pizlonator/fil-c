@@ -28,8 +28,14 @@
 set -e
 set -x
 
-cd projects/pcre2-10.48
-extract_source
+cd projects
+# Extract the projeny source OUTSIDE the projeny workdir (projects/pcre2):
+# pcre2's configure creates an absolute src/pcre2_chartables.c symlink in the
+# build tree, and a polluted workdir would break filc/projeny package.
+rm -rf pcre2-build/extracted-source
+mkdir -p pcre2-build
+../filc/projeny extract pcre2.projeny pcre2-build/extracted-source
+cd pcre2-build/extracted-source
 CC="$PWD/../../../build/bin/clang -g -O" ./configure --prefix=$PWD/../../../pizfix \
     --enable-pcre2-16 --enable-pcre2-32 --enable-pcre2grep-libz
 make -j $NCPU

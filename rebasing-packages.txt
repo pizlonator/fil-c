@@ -1,0 +1,119 @@
+The Fil-C repository includes projects that required Fil-C changes as well as projects that didn't. The ones that required changes are in projects/, while the ones that didn't are in pizlix/ as tarballs. Note that in *some* cases we have projects in projects/ that didn't require changes, but that's an exception.
+
+Your job: find a project in projects/ or pizlix/ that has a newer version that includes interesting security fixes, and rebase it according to the documentation laid out in this doc. Prioritize projects that are used by optfil; only choose a different project if all of the optfil ones are up-to-date. NEVER rebase to a beta version or git snapshot. There are three cases you'll encounter:
+
+A. A project in projects/ that needs rebasing.
+B. A project in pizlix/ that just needs to be updated to a new version.
+
+In both cases, you'll put the new version of the project in projects/ since we're deprecating putting tarballs in pizlix/.
+
+The way that Fil-C's projects/ directory works is as follows:
+
+- This directory and its subdirectories is part of the monolithic Fil-C git repo. There aren't multiple git repos. It's just one repo.
+
+*** There's a deprecated mode based on checking in the full source of the project, and a new mode based on projeny (binary is built by build_base.sh and always available at filc/projeny, source code is at projects/projeny). And, there are TWO WAYS to use projeny - the old way, with archives in git, and the new way, with a URL. ***
+
+The new mode (projeny):
+
+- There's a projects/foo.projeny file, which contains our patch to foo-1.2.3, and a URL from which to load the archive along with the archive's hash (see projects/projeny/README.md for more info).
+    -> The old projeny style would have an Archive line instead of a URL line, and we'd check the archive into git as projects/foo-1.2.3.tar.gz, for example.
+    -> DO NOT use the Archive style for new projeny files. CONVERT TO USING the the URL style whenever rebasing. I.e. never check in a new tarball to git. Always point projeny at the archive's URL.
+    -> Projeny supports having multiple URL lines. Try to see if there are multiple URLs where the same package (same version, same software) can be downloaded from. If so, add multiple URL lines to the projeny file for redundancy.
+    -> For an example of a projects that already uses URL, see projects/dash.projeny.
+- Building the project involves doing a `projeny setup projects/foo.projeny`, which creates a directory called projects/foo, which contains the contents of the tarball plus the changes from the patch.
+
+The deprecated mode:
+
+- Each project is checked in with the name that you'd get if you untarred its source distro tarball. Hence names like projects/libuv-1.51.0/.
+
+- Each project is checked in with an initial commit first. Hence, if you do a `git log .` in one of those projects subdirectories, you'll see an initial commit with the description like "Initial commit libuv 1.51.0". That commit is:
+    -> The source distribution tarball. If you went to libuv's website and downloaded the libuv 1.51.0 source distro, you'd get exactly what wad in that "Initial commit".
+    -> Cleaned of any .git nonsense. I remove .gitignore files as well as any other .git* files that alter git's behavior for the given directory.
+    -> Ready for building. In the case of autoconf-based source distributions, this means that the `autoconf` or `autoreconf` step is NOT NECESSARY as there is already a `configure` script ready to go.
+    -> IMPORTANT: In the new projeny mode described above, there's no need to remove .git files. I'm just telling you about the deprecated mode here, so you understand how those projects are laid out, if you find one like that.
+
+- Patches necessary to make the project work in Fil-C are applied on top of the initial commit as distinct git commits.
+    -> This means that you can work out what is the Fil-C patch to a project by first using `git log .` in the project's directory to find the initial commit and then using `git diff <initial commit hash> .` to find the total Fil-C patch.
+    -> For example, `cd projects/libuv-1.51.0` and then `git diff bbf031ac2f756bbaf8e8bcf881cb9b6fb9c67724 .` gives the full patch to libuv. Note that bbf031ac2f756bbaf8e8bcf881cb9b6fb9c67724 is the hash of "Initial commit libuv 1.51.0".
+
+**We want to move all projects to the projeny mode - so if rebasing a project that's in the deprecated mode, first convert the old version to use projeny. Additionally, we want all projeny projects to use the URL form where the tarball is not checked into git. **
+
+Converting a legacy project to a projeny project means:
+- Getting the patch of that project from its initial commit.
+- Downloading the tarball used for the initial commit.
+- Checking in the tarball in projects/foo-1.2.3.tar.gz
+- Using projeny setup to set up the initial commit and initial projeny file.
+- Applying the patch to the projeny checkout.
+- Using projeny commit to commit the patches to the projects/foo.projeny file.
+- Landing the foo.projeny file into git.
+- Converting build_foo.sh (if it exists; it may have a different name - basically whatever script build_all_slow.sh or build_glibc_extras.sh uses to build the project) to use projeny. See build_ffi.sh for an example of what a projeny-based build script looks like. Note that some projects are not build from build_all_slow.sh or build_glibc_extras.sh; in this case, skip this step. You can verify that this works by doing a ./build_all.sh and build_all_glibc.sh.
+- Converting the optfil build to use projeny for that project, if optfil uses the project. Look at how optfil builds libffi with projeny. You can verify that this works by doing a `cd optfil && ./build.sh`.
+- Converting the pizlix build to use projeny for that project, if pizlix uses the project. Look at how pizlix builds libffi with projeny. You cannot verify that this works in your container, so just do your best.
+
+It's also acceptable to use these techniques:
+- Turn the patch from the initial commit into a projeny file. The projeny file has a header and then a git-compatible patch. Then, do the build system conversions (build_foo.sh, optfil and pizlix).
+- Do a projeny setup on the initial commit tarball, then rename the directory for the project in git to the projeny checkout directory, and do a projeny commit.
+
+ONCE THE PROJECT IS IN PROJENY MODE, this means that rebasing the project in projects/ to a newer version involves:
+
+0. Ensure it's using the projeny mode, not the deprecated mode (see above).
+1. Downloading the source distribution.
+2. Run `projeny setup` and then `projeny rebase` with the new tarball.
+3. Fix merge conflicts and resolve them using `projeny resolve`. Use `projeny commit` to commit the changes back to the .projeny file. You can `projeny commit` multiple times. Avoid editing the .projeny file directly, except maybe to change the comment at the top of it. DO NOT edit the .projeny file and also edit files in the checkout produced by `projeny setup` - if you do that, things will get confusing for you.
+4. Make sure that ./build_all.sh and ./build_all_glibc.sh still work (note that those run for 1+ hours and it's worth it to just wait until they finish). The new project may need new configure options (UNLIKELY); if it does, change the build script that's called from build_all_slow.sh or build_glibc_extras.sh.
+    NOTE: It's an antipattern to invoke build_all_slow.sh and build_glibc_extras.sh directly. Invoke ./build_all.sh or ./build_all_glibc.sh and wait the 1-2 hours. Or, if you're just grinding on getting the project to work, invkoe ./build_xyz.sh or even the project's build system directly (where xyz is the name of the project you're updating).
+5. Run ./build.sh in optfil/. Note that this takes about an hour. But it's worth it! Also - please don't do the build.sh in optfil until you've made sure that the build_all.sh/build_all_glibc.sh pizfix builds of the project work with the new version (UNLESS the project you picked is not build by the pizfix builds).
+6. Check that the pizlix build does the right thing (if there were no changes to how the configure script or meson or whatever are invoked, then you might not have to do anything).
+
+LOTS of projects are in projeny mode at this point, so you're likely to encounter the workflow where you're rebasing something that already uses projeny. But MOST projects still use the legacy mode.
+
+Watch out for a build-system trap when the patch updates a file that the build uses as a regeneration prerequisite. Example: coreutils' patch touches tests/local.mk, which is an automake input for Makefile.in. projeny applies the patch with fresh mtimes, so tests/local.mk ends up newer than the shipped Makefile.in, and make then insists on regenerating Makefile.in with automake. We don't have automake, the build's `missing` wrapper exits 127, and the build dies. The same trap applies to configure.ac inputs, man pages, and anything else the build wants to regenerate with tools that may be absent.
+
+The surgical fix is to freeze the file's mtime to whatever the tarball wants:
+
+- Run `projeny freeze-mtime projects/foo.projeny <file>` for each offending file. This stamps the checkout file with the archive member's mtime and records a `frozen-mtime <ts>` extended header in that file's diff block in the .projeny file. `projeny setup`, `projeny rebase`, and `projeny package` re-stamp the file after applying the patch (after a rebase, the value comes from the NEW archive), `projeny commit` preserves the header as-is (it never touches the workdir), and the packaged tarball carries the frozen mtime too.
+- Inspect the pins with `projeny list-frozen-mtimes projects/foo.projeny` and `projeny get-attributes projects/foo.projeny [<paths>]`; drop one with `projeny unfreeze-mtime projects/foo.projeny <file>`.
+
+Because of this, build scripts must NOT use `find . -exec touch -r ./configure {} +` hacks to fake consistent timestamps anymore; frozen mtimes in the patch do that job. See build_coreutils.sh, optfil/build_opt.sh, and pizlix/build_postlc_sub2_chroot_part2.sh for the coreutils example.
+
+Note that some projects are *extremely special*, like projects/usermusl, projects/yolomusl, projects/yolo-glibc-2.44, and projects/user-glibc-2.44. Don't worry about those! We don't need to rebase them right now! (Also, they should be up to date.)
+
+AVOID EDITING THE CONTENTS OF SOURCE DISTRIBUTION TARBALLS. Do not unpack them, edit them, and repack them. If you have a patch to make to a source distro tarball, make it by doing a `projeny setup`, editing the projeny checkout, and then `projeny commit`.
+
+AVOID SOURCE DISTRIBUTION TARBALLS THAT ARE RAW REPOSITORY SNAPSHOTS - ESPECIALLY for projects that use autoconf. If a project is autoconf based, make sure that it comes with a configure script, rather than being a repository snapshot, which doesn't!
+
+Note that OpenSSL is especially special: there are two versions:
+- projects/openssl-3.6.4, which is a work-in-progress port of OpenSSL to sarcasm (see projects/sarcasm).
+- projects/openssl.projeny and its checkout, projects/openssl. This is also OpenSSL 3.6.4, but it's using zunsafe crypto (see https://fil-c.org/constant_time_crypto).
+
+IF you decide to rebase OpenSSL, then it's only meaningful to rebase the zunsafe version (projects/openssl aka projects/openssl.projeny).
+
+What success looks like:
+    - There's a commit of the projects/projectname.projeny file. There is not commit of any tarball, because the projeny file points at a URL where the tarball can be fetched.
+    - The projeny file contains the full patch needed by Fil-C, rebased to that version.
+    - The projeny file points at the new version URL.
+- You've tested build_all.sh, build_all_glibc.sh, and the optfil build. In case B, that might mean commits that repoint the build scripts at the new versions.
+
+Another somewhat special project is mg. We're using a normally-versioned mg (like mg 4.1) but there are also date-versioned mg releases (like 20260719). DO NOT switch to the date-versioned ones. The thing that's wrong with those is that they don't include pre-build configure scripts. Generally, we want to avoid using "releases" of autoconf-based projects that do not have configure scripts included. If you find a distro that does not have configure scripts included, then try to see if you can find some *alternate* distro of the same package that *does* include configure scripts. Only use the version that requires us to build configure scripts ourselves if there's no other alternative available (and in my experience that almost never happens).
+
+Anther interesting case is util-linux, which has both a util-linux.projeny and a yolo-util-linux.projeny. They should point at the same archive (or archive URL, when we update them). When rebasing util-linux, make sure both projeny files are updated in tandem, and make sure they point at the same URLs.
+
+When changing the pizlix build, take a look at existing users of filc/projeny in pizlix/build*.sh. For example, in the prelc phase, we download packages using build_prelc_sub0_filc.sh. In the later phases, we have scripts like build_postlc_sub1_filc.sh. The convention is that projeny packages are created at filenames that the pizlix build can then copy using this:
+
+cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
+
+Remember that you have the agent_browser tool. You can use that to research what new versions of the projects there are. Then, you can use curl to download the new tarball from within your container. Note that agent_browser does *not* work in your container, but outside of it, so at some point you'll use the output of agent_browser to work out what URL to pass to curl within the container. Agent_browser is better for reading web pages; curl is better for downloads.
+
+Remember that if you're rebasing packages used by optfil, you have to consider BOTH packages pulled in from projects/ AND packages pulled in from pizlix/. There are lots of packages used by optfil that do not require any changes, so we just use a tarball in pizlix/. Those need rebasing too! Rebasing pizlix/ projects means turning them into projeny projects in the projects/ directory (with a URL, rather than checking the tarball into git).
+
+FINAL CHECKLIST: YOU ARE *NOT DONE* UNTIL YOU HAVE DONE THIS:
+- Does ./build_all.sh pass? This takes 1-2 hours. Run it anyway, wait until it's done.
+- Does ./build_all_glibc.sh pass? This takes 1-2 hours. Run it anyway.
+- Does ./build.sh in optfil/ pass? This takes 1-2 hours. Run it anyway.
+
+DO NOT SKIP RUNNING ALL OF ./build_all.sh, ./build_all_glibc.sh, and `cd optfil && ./build.sh`.
+
+Make sure to read T800.txt and projects/projeny/README.md as well.
+
+Good luck!
+

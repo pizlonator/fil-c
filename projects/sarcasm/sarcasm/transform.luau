@@ -19,6 +19,7 @@ local ptrflow = require("./ptrflow")
 local sig = require("./sig")
 local build = require("./build")
 local framePass = require("./frame")
+local err = require("./err")
 
 local prof = require("./prof")
 
@@ -40,7 +41,7 @@ local transform = {}
 -- copy the value through a mov first if the instruction already carries an
 -- annotation. Returns nil when `ann` carries no capability clause, else
 -- { save = <name|nil>, restore = <name|nil> }.
-local function parseCapAnnot(ann)
+local function parseCapAnnot(ann, st)
 	if not ann then return nil end
 	if not string.find(ann, "capability", 1, true) then return nil end
 	local clauses = {}
@@ -54,25 +55,25 @@ local function parseCapAnnot(ann)
 		end
 	end
 	if #clauses == 0 then
-		error("sarcasm: malformed capability annotation '" .. ann
+		err.at(st, "malformed capability annotation '" .. ann
 			.. "' (expected `save capability (name)` or `restore capability (name)`"
 			.. " as the whole annotation)")
 	end
 	local save, restore = nil, nil
 	for _, cl in clauses do
 		if not string.match(cl.name, "^[A-Za-z_][A-Za-z0-9_]*$") then
-			error("sarcasm: invalid variable name '" .. cl.name .. "' in `" .. cl.kind
+			err.at(st, "invalid variable name '" .. cl.name .. "' in `" .. cl.kind
 				.. " capability` annotation (a name starts with a letter or underscore"
 				.. " and contains only letters, digits and underscores): " .. ann)
 		end
 		if cl.kind == "save" then
 			if save then
-				error("sarcasm: multiple `save capability` clauses in one annotation: " .. ann)
+				err.at(st, "multiple `save capability` clauses in one annotation: " .. ann)
 			end
 			save = cl.name
 		else
 			if restore then
-				error("sarcasm: multiple `restore capability` clauses in one annotation: " .. ann)
+				err.at(st, "multiple `restore capability` clauses in one annotation: " .. ann)
 			end
 			restore = cl.name
 		end
@@ -84,7 +85,7 @@ local function parseCapAnnot(ann)
 		base = string.sub(base, 1, cl.s - 1) .. string.sub(base, cl.e + 1)
 	end
 	if string.match(base, "%S") then
-		error("sarcasm: `save/restore capability` cannot be combined with another annotation"
+		err.at(st, "`save/restore capability` cannot be combined with another annotation"
 			.. " ('" .. ann .. "'); put it on its own instruction (copy the value through"
 			.. " a mov first if the instruction already carries an annotation)")
 	end
@@ -161,6 +162,91 @@ local function parseUseNewCapAnnot(ann)
 	if paren then rest = paren end
 	if rest == "" or string.find(rest, "%s") then return nil end
 	return { kind = kind, reg = rest }
+end
+
+-- `#! stack buffer (...)` — the annotated STACK BUFFER feature (x86_64). Two forms:
+--   `#! stack buffer (name)`                              (short form)
+--   `#! stack buffer (name, %reg + LO, %reg + HI)`        (long form)
+-- The long form declares that the bytes [reg+LO, reg+HI) of the function's stack
+-- frame are a raw byte buffer: indexed stack accesses annotated with the buffer
+-- (and plain static stack accesses that fall inside the range) are lowered into a
+-- dedicated region of sarcasm's synthesized output frame, with runtime bounds
+-- checks for the indexed forms, and never hold capabilities. The short form
+-- references a buffer whose range a long form (anywhere in the file) declared.
+-- Returns nil when `ann` is not a stack buffer annotation; a malformed one is a
+-- compile error (the caller surfaces it with the statement's raw text).
+--   { id = <name>, short = true }
+--   { id = <name>, short = false, base = <reg name without %>, lo = <bytes>, hi = <bytes> }
+function transform.parseStackBufAnno(ann, st)
+	if not ann then return nil end
+	local rest = string.match(ann, "^%s*stack%s+buffer%s*(.*)$")
+	if not rest then return nil end
+	local body = string.match(rest, "^%((.*)%)%s*$")
+	if not body then
+		err.at(st, "malformed `stack buffer` annotation (expected "
+			.. "`stack buffer (name)` or `stack buffer (name, %reg + lo, %reg + hi)`)")
+	end
+	-- Split the top-level commas (the grammar has no nested parentheses, so a
+	-- plain split is exact; trailing/leading whitespace is trimmed per part).
+	local parts = {}
+	for part in string.gmatch(body, "[^,]+") do
+		table.insert(parts, (string.gsub(part, "^%s+", ""):gsub("%s+$", "")))
+	end
+	local id = parts[1]
+	if id == nil or not string.match(id, "^[A-Za-z_][A-Za-z0-9_]*$") then
+		err.at(st, "malformed `stack buffer` annotation (the buffer name must match"
+			.. " [A-Za-z_][A-Za-z0-9_]*): '" .. tostring(id or "") .. "'")
+	end
+	if #parts == 1 then
+		return { id = id, short = true }
+	end
+	if #parts ~= 3 then
+		err.at(st, "malformed `stack buffer` annotation (expected 1 field for the"
+			.. " short form or 3 fields `name, base, base` for the long form; got "
+			.. tostring(#parts) .. ")")
+	end
+	-- One base expression parser: `%reg`, `%reg + N`, or `%reg - N` (N decimal or
+	-- 0x hex; a leading sign inside the literal composes with the operator).
+	local REGPAT = "^(%%[A-Za-z_][A-Za-z0-9_]*)"
+	local function parseBound(text, which)
+		local reg = string.match(text, REGPAT .. "%s*$")
+		if reg then
+			local name = string.match(reg, "^%%([A-Za-z_][A-Za-z0-9_]*)$")
+			if not name then
+				err.at(st, "malformed `stack buffer` annotation ('" .. reg
+					.. "' is not a register name)")
+			end
+			return string.lower(name), 0
+		end
+		local reg2, op, numText = string.match(text, REGPAT .. "%s*([+%-])%s*(%S+)$")
+		if not (reg2 and numText) then
+			err.at(st, "malformed `stack buffer` annotation (the " .. which
+				.. " bound must be `%reg`, `%reg + N` or `%reg - N`): '" .. text .. "'")
+		end
+		local value = tonumber(numText)
+		if value == nil then
+			err.at(st, "malformed `stack buffer` annotation (the " .. which
+				.. " offset '" .. numText .. "' is not an integer literal)")
+		end
+		if op == "-" then value = -value end
+		local name = string.match(reg2, "^%%([A-Za-z_][A-Za-z0-9_]*)$")
+		if not name then
+			err.at(st, "malformed `stack buffer` annotation ('" .. reg2
+				.. "' is not a register name)")
+		end
+		return string.lower(name), value
+	end
+	local baseLo, lo = parseBound(parts[2], "lower")
+	local baseHi, hi = parseBound(parts[3], "upper")
+	if baseLo ~= baseHi then
+		err.at(st, "malformed `stack buffer` annotation (both bounds must use the"
+			.. " same base register: '%" .. baseLo .. "' vs '%" .. baseHi .. "')")
+	end
+	if hi < lo then
+		err.at(st, "malformed `stack buffer` annotation (the upper bound "
+			.. tostring(hi) .. " is below the lower bound " .. tostring(lo) .. ")")
+	end
+	return { id = id, short = false, base = baseLo, lo = lo, hi = hi }
 end
 
 -- Resolve the register named by a `use capability` clause to a GPR use
@@ -261,7 +347,7 @@ local function validateBody(body, cgm, funcName)
 			-- an annotation all alone on its line is a typo (the annotation belongs on
 			-- the instruction's own line) — silently dropping it could skip a barrier.
 			if st.annotation then
-				error("sarcasm: annotation '" .. st.annotation
+				err.at(st, "annotation '" .. st.annotation
 					.. "' on an otherwise-empty line (annotations go on the instruction's own line)")
 			end
 		elseif st.kind == "label" then
@@ -269,19 +355,19 @@ local function validateBody(body, cgm, funcName)
 			-- on any other label would be silently ignored (annotations are consumed from
 			-- instructions only), so reject it like the blank-line case.
 			if st.annotation and st ~= body[1] then
-				error("sarcasm: annotation '" .. st.annotation .. "' on a label ('" .. st.name
+				err.at(st, "annotation '" .. st.annotation .. "' on a label ('" .. st.name
 					.. "') inside a function body is not supported (only the function-entry label"
 					.. " carries the signature annotation; instruction annotations go on the instruction's"
 					.. " own line)")
 			end
 		elseif st.kind == "directive" then
 			if DATA_DIRECTIVES[st.name] then
-				error("sarcasm: data in a function body is not supported (literal pools,"
+				err.at(st, "data in a function body is not supported (literal pools,"
 					.. " jump tables and constants cannot be made memory-safe automatically): directive '"
 					.. st.name .. "'")
 			end
 			if st.annotation then
-				error("sarcasm: annotation '" .. st.annotation .. "' on a directive ('"
+				err.at(st, "annotation '" .. st.annotation .. "' on a directive ('"
 					.. st.name .. "') is not supported")
 			end
 		elseif st.kind == "insn" then
@@ -301,13 +387,13 @@ local function validateBody(body, cgm, funcName)
 				end
 			end
 			if hasPseudo and hasVec then
-				error("sarcasm: pseudoregister `" .. (pseudoName or "?")
+				err.at(st, "pseudoregister `" .. (pseudoName or "?")
 					.. "` may only be used as a 64-bit GPR (not with FP/vector registers): " .. raw)
 			end
 			if c.control == "call" then
 				if not ann then
 					local callee = st.operands and st.operands[1] and st.operands[1].text or "?"
-					error("sarcasm: call to '" .. callee .. "' has no signature annotation"
+					err.at(st, "call to '" .. callee .. "' has no signature annotation"
 						.. " (annotate the callsite, e.g. `" .. string.lower(st.mnemonic) .. " "
 						.. callee .. " ;! int(ptr)`): " .. raw)
 				end
@@ -318,7 +404,7 @@ local function validateBody(body, cgm, funcName)
 				-- register-indirect call with a signature annotation is supported,
 				-- and every other indirect call shape is rejected by the walk.
 			elseif c.control == "indirect" then
-				error("sarcasm: indirect branch through a raw register cannot be made memory-safe"
+				err.at(st, "indirect branch through a raw register cannot be made memory-safe"
 					.. " (computed goto / switch jump tables are not supported): " .. raw)
 			elseif (c.control == "branch" or c.control == "condbranch") and c.targets
 				and not (ann and string.find(ann, "%(")) then
@@ -332,7 +418,7 @@ local function validateBody(body, cgm, funcName)
 				-- SIGNATURE annotation (a tail call) is deferred to the annotation
 				-- walk below: it validates the shape and reports unresolved targets.
 				if #c.targets == 0 then
-					error("sarcasm: branch with a non-label target cannot be made memory-safe"
+					err.at(st, "branch with a non-label target cannot be made memory-safe"
 						.. " (computed goto / raw absolute branches are not supported): " .. raw)
 				end
 				for _, t in c.targets do
@@ -342,11 +428,11 @@ local function validateBody(body, cgm, funcName)
 						-- link time. Worse, if it did link, re-entering the prologue would
 						-- re-run the SOV check against a perturbed rsp and grow the frame
 						-- unboundedly. Reject at compile time instead.
-						error("sarcasm: branch to '" .. t .. "' re-enters this function's entry;"
+						err.at(st, "branch to '" .. t .. "' re-enters this function's entry;"
 							.. " re-executing the prologue cannot be proven safe: " .. raw)
 					end
 					if not localLabels[t] then
-						error("sarcasm: branch to '" .. t .. "' leaves the function"
+						err.at(st, "branch to '" .. t .. "' leaves the function"
 							.. " (a tail call); tail calls are not yet supported: " .. raw)
 					end
 				end
@@ -357,13 +443,40 @@ local function validateBody(body, cgm, funcName)
 				-- `.alloca` directive (rather than falling through to a confusing
 				-- "signature annotation" or "unrecognized annotation" diagnostic).
 				if string.match(ann, "^%s*alloca%s") then
-					error("sarcasm: the `alloca` annotations (`alloca size (x)`, `alloca result (x)`, "
+					err.at(st, "the `alloca` annotations (`alloca size (x)`, `alloca result (x)`, "
 						.. "`alloca result size=N`) were removed; allocate with the `.alloca size, "
 						.. "alignment, result` directive instead (see README.md): " .. raw)
 				end
+				-- `#! stack buffer (...)`: parse the grammar now (a malformed one is a
+				-- clean compile error here) and record it on the statement. The
+				-- annotation is then STRIPPED from st.annotation: it is not a pointer
+				-- flow annotation, so neither the lift's string-op classification nor
+				-- the transform's annotation walk below may see it. Placement rules
+				-- that need frame analysis (which stack alias the base names, whether
+				-- the range fits the frame) are enforced by the frame pass.
+				local sb = transform.parseStackBufAnno(ann, st)
+				if sb then
+					if not cgm.stackBuffers then
+						err.at(st, "`stack buffer` annotations are not supported on this"
+							.. " target: " .. raw)
+					end
+					local isRepString = c.rep ~= nil
+					local mem = cgm.memOperand(st)
+					if not isRepString and not (mem and mem.base and mem.base.kind == "reg") then
+						err.at(st, "`stack buffer` annotation is only meaningful on an"
+							.. " instruction with a stack-relative memory operand (base"
+							.. " %rsp/%rbp or a stack-alias register) or on a rep movs*/stos*"
+							.. " instruction: " .. raw)
+					end
+					st.stackBufAnno = sb
+					st.annotation = nil
+					-- The rest of the annotation walk must not see this annotation
+					-- (it is not a pointer-flow or signature annotation).
+					ann = nil
+				end
 				local useNew = parseUseNewCapAnnot(ann)
 				local cap = nil
-				if not useNew then cap = parseCapAnnot(ann) end
+				if not useNew then cap = parseCapAnnot(ann, st) end
 				if useNew then
 					-- `use capability` (standalone only — enforced by the
 					-- full-match in parseUseNewCapAnnot; `new capability`
@@ -384,7 +497,7 @@ local function validateBody(body, cgm, funcName)
 						if isArith then
 							local occ = resolveCapRegUse(c, useNew.reg)
 							if not occ then
-								error("sarcasm: `use capability " .. useNew.reg .. "` names"
+								err.at(st, "`use capability " .. useNew.reg .. "` names"
 
 									.. " a register that is not a general-register use of this"
 
@@ -406,7 +519,7 @@ local function validateBody(body, cgm, funcName)
 								local isIndex = mem.index and mem.index.rc == occ.rc
 									and mem.index.num == occ.num
 								if not (isBase or isIndex) then
-									error("sarcasm: `use capability " .. useNew.reg .. "` must"
+									err.at(st, "`use capability " .. useNew.reg .. "` must"
 
 										.. " name the memory operand's base or index register"
 
@@ -420,7 +533,7 @@ local function validateBody(body, cgm, funcName)
 						else
 							local mem = cgm.memOperand(st)
 							if not mem then
-								error("sarcasm: `use capability` requires an address-arithmetic"
+								err.at(st, "`use capability` requires an address-arithmetic"
 
 									.. " instruction (add/sub/lea/and/or) or an instruction"
 
@@ -432,7 +545,7 @@ local function validateBody(body, cgm, funcName)
 							local isIndex = mem.index and occ and mem.index.rc == occ.rc
 								and mem.index.num == occ.num
 							if not (occ and (isBase or isIndex)) then
-								error("sarcasm: `use capability " .. useNew.reg .. "` must"
+								err.at(st, "`use capability " .. useNew.reg .. "` must"
 
 									.. " name the memory operand's base or index register: " .. raw)
 							end
@@ -448,7 +561,7 @@ local function validateBody(body, cgm, funcName)
 						if d.kind == "reg" and d.rc == "gpr" then hasDef = true break end
 					end
 					if not hasDef then
-						error("sarcasm: `save/restore capability` requires an instruction"
+						err.at(st, "`save/restore capability` requires an instruction"
 							.. " that produces a value into a register (this instruction"
 							.. " defines no general register): " .. raw)
 					end
@@ -470,7 +583,7 @@ local function validateBody(body, cgm, funcName)
 					-- resolves to a local subroutine (a mismatch errored there);
 					-- the mark must be present here.
 					if not st.localCall then
-						error("sarcasm: `local` annotation on an instruction that is not"
+						err.at(st, "`local` annotation on an instruction that is not"
 							.. " a call to a local subroutine: " .. raw)
 					end
 				elseif ann == "global ptr" and cgm.globalSupport then
@@ -482,7 +595,7 @@ local function validateBody(body, cgm, funcName)
 					local mem = cgm.memOperand(st)
 					if not (mem and mem.base and mem.base.rc == "rip" and mem.dispSym
 						and not mem.dispReloc and not mem.index) then
-						error("sarcasm: `global ptr` requires a rip-relative global reference"
+						err.at(st, "`global ptr` requires a rip-relative global reference"
 							.. " (a lea or memory operand of the form sym(%rip)): " .. raw)
 					end
 				elseif ann == "funcref" then
@@ -496,14 +609,14 @@ local function validateBody(body, cgm, funcName)
 					-- happens in the transform's annotation classification, which
 					-- has the driver's function/data maps.
 					if not cgm.globalSupport then
-						error("sarcasm: `funcref` is not yet supported on this target: " .. raw)
+						err.at(st, "`funcref` is not yet supported on this target: " .. raw)
 					end
 					local bm = cgm.baseMnemonic(string.lower(st.mnemonic))
 					local mem = cgm.memOperand(st)
 					if bm ~= "lea" or not (mem and mem.base and mem.base.rc == "rip"
 						and mem.dispSym and not mem.dispReloc and not mem.index
 						and (mem.dispVal or 0) == 0) then
-						error("sarcasm: `funcref` requires a rip-relative lea to a bare"
+						err.at(st, "`funcref` requires a rip-relative lea to a bare"
 							.. " function symbol (leaq sym(%rip), %reg): " .. raw)
 					end
 				elseif (c.control == "branch" or c.control == "condbranch")
@@ -516,15 +629,15 @@ local function validateBody(body, cgm, funcName)
 					-- malformed, unsupported on this target, or unresolved.
 					local op = st.operands and st.operands[1]
 					if not (op and op.kind == "sym") then
-						error("sarcasm: signature annotation '" .. ann .. "' on a jump requires"
+						err.at(st, "signature annotation '" .. ann .. "' on a jump requires"
 							.. " a direct jump to a bare symbol (a tail call): " .. raw)
 					end
-					sig.parseSignature(ann)
+					sig.parseSignature(ann, st)
 					if not cgm.crossFunctionJumps then
-						error("sarcasm: cross-function jumps are not yet supported on this"
+						err.at(st, "cross-function jumps are not yet supported on this"
 							.. " target (annotated jump to '" .. op.text .. "'): " .. raw)
 					end
-					error("sarcasm: jump to '" .. op.text .. "' with signature annotation '"
+					err.at(st, "jump to '" .. op.text .. "' with signature annotation '"
 						.. ann .. "' does not resolve to a function with a matching signature"
 						.. " (the target must be a signature-annotated function or alias entry"
 						.. " in this file, or an extern symbol): " .. raw)
@@ -532,14 +645,14 @@ local function validateBody(body, cgm, funcName)
 					-- callsite signature (direct or register-indirect call): parse now
 					-- to reject malformed sigs early (the transform re-parses via
 					-- callSigOf when marshalling).
-					sig.parseSignature(ann)
-				elseif string.find(ann, "%(") then
-					error("sarcasm: signature annotation '" .. ann
+					sig.parseSignature(ann, st)
+				elseif ann and string.find(ann, "%(") then
+					err.at(st, "signature annotation '" .. ann
 						.. "' on a non-call instruction is not supported: " .. raw)
 				elseif ann == "" then
-					error("sarcasm: empty annotation: " .. raw)
-				else
-					error("sarcasm: unrecognized annotation '" .. ann
+					err.at(st, "empty annotation: " .. raw)
+				elseif ann then
+					err.at(st, "unrecognized annotation '" .. ann
 						.. "' (expected 'load ptr', 'store ptr', or a callsite"
 						.. " signature like 'int(ptr)'): " .. raw)
 				end
@@ -557,6 +670,10 @@ local function validateBody(body, cgm, funcName)
 	--   * conditional branch (control == "condbranch", incl. cbz/tbz/b.cond) ->
 	--     its label target + fall-through;
 	--   * `ret` (control == "return") -> nothing;
+	--   * trapping instructions (classify reports fallsThrough == false with
+	--     control == "none": ud2/int3/int/hlt — a trap never falls through and
+	--     never returns, so a path through one has no successors, like ret) ->
+	--     nothing;
 	--   * every other statement — instructions (including calls and indirect forms,
 	--     which return to the fall-through), labels, blanks and directives ->
 	--     fall-through.
@@ -590,6 +707,14 @@ local function validateBody(body, cgm, funcName)
 						end
 					elseif c.control == "return" then
 						fallsThrough = false
+					elseif c.fallsThrough == false then
+						-- classify reports fallsThrough=false for the trapping
+						-- instructions (ud2/int3/int/hlt — see x86_64_isa.classify,
+						-- which mirrors x86_64_frame's successors()): a control-flow
+						-- path through a trap has NO successors, exactly like ret.
+						-- A body may therefore end in a `ud2` (or `.byte 0x0f,0x0b`,
+						-- which decodes to ud2) with no trailing `ret`.
+						fallsThrough = false
 					end
 				end
 				if fallsThrough then
@@ -601,7 +726,7 @@ local function validateBody(body, cgm, funcName)
 					-- rejection as falling off the whole body.
 					local nxt = body[i + 1]
 					if nxt and (nxt.localCloneEntry or nxt.crossJumpEntry) then
-						error("sarcasm: function '" .. funcName .. "' can fall off the end"
+						err.at(st, "function '" .. funcName .. "' can fall off the end"
 							.. " of its body; every control-flow path must end with a ret"
 							.. " instruction: " .. (st.raw or st.mnemonic or "?"))
 					end
@@ -615,7 +740,7 @@ local function validateBody(body, cgm, funcName)
 		local lastRaw = (last and (last.raw
 			or (last.kind == "label" and (last.name .. ":") or nil)
 			or last.text or last.mnemonic)) or "?"
-		error("sarcasm: function '" .. funcName .. "' can fall off the end of its body;"
+		err.at(last, "function '" .. funcName .. "' can fall off the end of its body;"
 			.. " every control-flow path must end with a ret instruction: " .. lastRaw)
 	end
 end
@@ -734,7 +859,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		end
 		for _, st in body do
 			if st.kind == "insn" and st.annotation and string.find(st.annotation, "%(") then
-				local ok, cs = pcall(sig.parseSignature, st.annotation)
+				local ok, cs = pcall(sig.parseSignature, st.annotation, st)
 				if ok and cs and sigUsesFp(cs) then
 					bodyUsesFp = true
 					break
@@ -821,13 +946,15 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	-- its fixed frame (bsaes's `leaq 32(%rbp), %rsi` handed to a helper — a
 	-- "lea cluster" once the pointer is copied/offset and the traffic flows
 	-- through the derived registers). A plain frame slot's address cannot
-	-- escape, so promote the WHOLE fixed frame to a GC region [0, frameSize):
-	-- its slots stop virtualizing and every fixed-frame access redirects into
-	-- the region (checked accesses; the region's capability flows to helpers
-	-- with the lea). The detection must run with the annotated regions present
-	-- (a lea into one of THOSE is no escape), so the analysis runs again here
-	-- — it is pure and simply re-marks the body. No escape -> no region ->
-	-- byte-identical output.
+	-- escape, so promote the fixed frame to a GC region — its slots stop
+	-- virtualizing and every fixed-frame access redirects into the region
+	-- (checked accesses; the region's capability flows to helpers with the
+	-- lea). The region's base sits ABOVE the body's OUTGOING stack-argument
+	-- area (see below — that band is calling notation, not GC state, and must
+	-- stay slot traffic). The detection must run with the annotated regions
+	-- present (a lea into one of THOSE is no escape), so the analysis runs
+	-- again here — it is pure and simply re-marks the body. No escape -> no
+	-- region -> byte-identical output.
 	local frameRegion = nil
 	if backend.arch == "x86_64" and framePolicy.analyzeFrame then
 		local fs2, _, _, fpinfo2, yolo2, frameEscapes = framePolicy.analyzeFrame(body, sigDesc, allocaRegions)
@@ -853,11 +980,78 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		-- under-covers the promotion.
 		if fs2 ~= nil and fctx then fctx.frameSize = fs2 end
 		if frameEscapes and fctx and fctx.frameSize > 0 then
-			-- LAST in the list: an explicit (annotated) region overlapping the
-			-- frame wins the membership test.
-			frameRegion = { base = 0, size = fctx.frameSize, align = 16,
-				anchored = false, frameRegion = true }
-			table.insert(allocaRegions, frameRegion)
+			-- The body's OUTGOING stack-argument area is pure calling NOTATION.
+			-- The asm stores each call's 7th+ integer-class arguments at
+			-- 8*o(%rsp) (o = 0-based outgoing word) right before the call, and
+			-- the callsite marshalling (marshalFastArgs) intercepts those
+			-- stores, re-marshalling the values into a synthesized outgoing
+			-- window dropped over %rsp at the call itself. That interception
+			-- works through the SLOT webs: the store's slot (the frame slot
+			-- model's disp + D0 - d) must be defined so the call's use can
+			-- read value AND pointer lower from it. If the promoted region
+			-- swallowed the band, the stores would pass through verbatim as
+			-- region traffic — no slot web — and every stack-passed argument
+			-- would marshal from a never-defined entry temp (a null lower; the
+			-- callee panics). So the region's base sits ABOVE the outgoing
+			-- band and the band stays slot traffic (the membership sites — the
+			-- frame rewrite's slot-block lookup, x86_64_codegen.luau's
+			-- normStackOff, and the region-lea seeding below — all key the
+			-- band's accesses outside the region, in lockstep).
+			--
+			-- Band size: for each qualifying callsite, the outgoing band spans
+			-- [D0 - d, D0 - d + 8*intArgs') in frame coordinates (the SysV
+			-- spelling: one 8-byte slot per integer-class argument beyond the
+			-- six yolo registers — the same accounting as the frame pass's
+			-- outgoing-area scan for stack buffers), where d is the call's
+			-- static rsp depth and intArgs' the integer-class argument count.
+			-- A call AT D0 spans [0, 8*intArgs'); a DEEPER call (d > D0, a
+			-- mid-body push in front) spans from a NEGATIVE base — its
+			-- positive part still needs the carve, so the top
+			-- 8*intArgs' + (D0 - d) is what counts (clamped at 0: a deep call
+			-- with a small band reaches only red-zone offsets, outside the
+			-- region). Qualifying callsites: a real `call` (this excludes
+			-- `jmp`-mnemonic tail calls, which source stack arguments from the
+			-- incoming band and have no outgoing traffic) carrying a parseable
+			-- signature, NOT a tail-call conversion (same incoming-band
+			-- accounting), NOT a localcall/B2 clone (their stores key into the
+			-- clone-compensated/banded coordinates, not the plain frame band),
+			-- at a provable NUMBER depth (the D9 run above marked the depths;
+			-- dead code has none). The largest top, rounded up to 16 (the
+			-- region's alignment — the band's top must stay 16-aligned so
+			-- aligned FP accesses in the region keep their alignment), is the
+			-- carve. This is >= the true area of every callsite: each
+			-- callsite's own top is covered by the max.
+			local outgoingBytes = 0
+			for _, st in body do
+				if st.kind == "insn" and not st.tailCall and not st.localClone
+					and not st.b2clone and st.annotation
+					and type(st.x86_depth) == "number"
+					and fctx.callerDepth ~= nil
+					and cgm.baseMnemonic(string.lower(st.mnemonic)) == "call" then
+					local okcs, cs = pcall(sig.parseSignature, st.annotation, st)
+					if okcs and cs then
+						local intArgs = 0
+						for k = 1, cs.argWords do
+							if not isFp(cs.argTypes[k]) then intArgs += 1 end
+						end
+						local top = 8 * (intArgs - cc.yoloRegCount)
+							+ (fctx.callerDepth - st.x86_depth)
+						if top > outgoingBytes then outgoingBytes = top end
+					end
+				end
+			end
+			outgoingBytes = math.ceil(outgoingBytes / 16) * 16
+			-- Only promote when something is LEFT above the outgoing band: a
+			-- frame that is entirely outgoing-argument notation has no GC state
+			-- to promote (its escaping leas then reject below, which is the
+			-- correct outcome for such a frame).
+			if fctx.frameSize - outgoingBytes > 0 then
+				-- LAST in the list: an explicit (annotated) region overlapping the
+				-- frame wins the membership test.
+				frameRegion = { base = outgoingBytes, size = fctx.frameSize - outgoingBytes,
+					align = 16, anchored = false, frameRegion = true }
+				table.insert(allocaRegions, frameRegion)
+			end
 		end
 	end
 
@@ -866,8 +1060,22 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	-- analysis and every rewrite — see the comment there.)
 
 	prof.mark("  [" .. name .. "] pre-preprocess")
+	-- The PRE-preprocess body: the frame pass's stack-buffer analysis ran on
+	-- THESE statements, so the layout's group `decls[i].declIdx` entries index
+	-- this table (`preprocess` reassigns `body` below to the rewritten one).
+	-- Rejections that name a group's declaring statement look it up here (the
+	-- x86_64 frame pass's own gDeclSt idiom).
+	local origBody = body
 	body = framePass.preprocess(body, allocaRegions, framePolicy, sigDesc)
 	prof.mark("  [" .. name .. "] framePass.preprocess")
+	-- `#! stack buffer (...)`: the frame pass's buffer scan produced the lowered
+	-- buffer region layout for this function (merged groups with region-relative
+	-- placeholder bases). Its total size rides out on tr for the frame layout
+	-- (the region sits right below the spill slots), and the region's final base
+	-- is computed after the walk (once numRoots is known) to shift every
+	-- stackBuf-tagged operand into place.
+	local stackBufLayout = (framePolicy.stackBufLayout and framePolicy.stackBufLayout()) or nil
+	local bufBytes = (stackBufLayout and stackBufLayout.bytes) or 0
 
 	-- per-call signature info
 	local callSigCache = {}
@@ -875,7 +1083,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local ann = stmt.annotation
 		if not ann then return nil end
 		if callSigCache[stmt] == nil then
-			local cs = sig.parseSignature(ann)
+			local cs = sig.parseSignature(ann, stmt)
 			-- Per-arch callsite arity validation (the argument marshal has a finite
 			-- number of CC registers). Raises a clean sarcasm: error when over limit.
 			if cgm.checkCallsiteSig then
@@ -883,7 +1091,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				-- has a register name instead of a symbol text.
 				local op1 = stmt.operands and stmt.operands[1]
 				local callee = (op1 and (op1.text or op1.name)) or "?"
-				cgm.checkCallsiteSig(cs, callee)
+				cgm.checkCallsiteSig(cs, callee, stmt)
 			end
 			callSigCache[stmt] = cs
 		end
@@ -907,7 +1115,112 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local n = 0
 		for i = 1, k - 1 do if not isFp(cs.argTypes[i]) then n += 1 end end
 		if stmt and stmt.tailCall then return framePass.yoloSlotNum(n - cc.yoloRegCount) end
-		return framePass.SLOT_BASE + 8 * (n - cc.yoloRegCount)
+		-- The outgoing stack-argument slot key. The body's own store of outgoing
+		-- word o (0-based, at disp 8*o relative to the call's rsp) keys the frame
+		-- slot model's coordinate disp + D0 - d (x86_64_frame.luau's slotKeyOf):
+		-- AT the frame base depth D0 that is the plain 8*o, but a call executing
+		-- at another STATIC depth must key the same +D0-d normalization or
+		-- reaching definitions never connects the body's store to the call's use
+		-- (the marshal would then bind the slot's never-defined entry temp and
+		-- store a null capability lower — the callee panics on the pointer
+		-- argument). Clone statements apply their own slot-model compensations
+		-- (the localClone +8 rule's -8; the B2 clone's band — the same terms
+		-- slotKeyOf applies to their stores), so a cloned callsite keys exactly
+		-- what its cloned stores key. Same guard family as the region membership
+		-- sites (the frame rewrite's slot-block region lookup,
+		-- x86_64_codegen.luau's normStackOff, the region-lea seeding above);
+		-- prologue statements stay keyed at the plain band (mirrored there).
+		-- fctx is in scope: it is created before this definition and fully
+		-- populated long before the marshal runs.
+		local key = framePass.SLOT_BASE + 8 * (n - cc.yoloRegCount)
+		if stmt and not stmt.x86_prologue then
+			local d = stmt.x86_depth
+			if d ~= nil and type(d) ~= "table" and d ~= "dyn"
+				and fctx and fctx.callerDepth then
+				key = key + (fctx.callerDepth - d)
+				if stmt.localClone then
+					key = key - 8
+				elseif stmt.b2clone then
+					key = key + (stmt.x86_b2band or 0)
+				end
+			end
+		end
+		-- OUTGOING WORD SHARING ITS SLOT WITH AN OUTSTANDING PUSH SAVE. When this
+		-- call's stack-argument word lands on the save slot of an outstanding,
+		-- non-spill push (a callee-saved push under the dropped-save model: the
+		-- frame rewrite drops BOTH the push and its matching pop), the value the
+		-- callee must observe is NOT the slot web at `key`: the rewrite's
+		-- save-slot alias model rewrites every full-width access to that
+		-- coordinate into the PUSHED REGISTER's web (the dropped pop must restore
+		-- what the slot holds, so the model defines the register's web with each
+		-- stored value — and with the pushed value while nothing overwrote the
+		-- slot). The slot web therefore has no definition at all, and the marshal
+		-- would bind its never-defined entry temp: a null capability lower for a
+		-- stack-passed pointer (the callee panics "cannot write pointer with null
+		-- object") and garbage for an integer one. Hardware semantics agree with
+		-- the alias model: the callee reads the slot's current content — the
+		-- pushed value, or the stored value of whatever wrote the slot last (that
+		-- store CLOBBERS the pushed value) — which is exactly the pushed
+		-- register's web at the call. (That agreement covers the CALL's own word
+		-- read; the web redefinition itself is hardware-exact only under the
+		-- poisoned-window rule the frame pass enforces — between an aliased
+		-- different-source store and its matching pop the pushed register must
+		-- not be touched, since the model serves the stored value for register
+		-- reads there while hardware keeps the pushed one. See
+		-- x86_64_frame.luau's save-slot divergence rejection.) This covers BOTH
+		-- spellings of the shared
+		-- word: storing the pushed register itself, and storing a DIFFERENT
+		-- source (`pushq %r12` parking the seed, then `movq %rbx, (%rsp)` storing
+		-- the region pointer as outgoing word 0) — the alias model defines the
+		-- register's web from the store's own source web either way. So key the
+		-- call's use at the pushed
+		-- register: the marshal reads the stored value, capability lower included
+		-- (the register web's lower rides the normal marshalFastArgs pointer
+		-- paths). That chain is only sound while the aliased store actually
+		-- REACHES the alias model — which the frame pass's prologue-prefix scan
+		-- guarantees by ENDING the prefix at a plain sp-based interior
+		-- `leaq K(%rsp), %reg` (0 < K < depth): without that exception the
+		-- escaping-frame-address lea of the push-alias/escape-cluster shapes got
+		-- swallowed into the prefix together with the push, the lea dropped as a
+		-- phantom rsp-save carrier (no D9 promotion), and the outgoing store
+		-- dropped as a phantom carrier save-store before the alias model could
+		-- rewrite it — this keying then bound the pushed web's PRE-push
+		-- definition (the seed, null lower; see the pinned
+		-- sarcasm-frame-escape-push-alias-* tests). The word's normalized frame
+		-- offset is key - SLOT_BASE (the same
+		-- keying its stores use, clone compensations included) and a save entry
+		-- pushed at depth e.depth sits at D0 - e.depth, so the word aliases the
+		-- save exactly when D0 - e.depth == key - SLOT_BASE. Spill pushes
+		-- (caller-saved registers, pushfq words) are skipped: their slots ARE
+		-- ordinary slot webs (the spill push emits a slot store the call's use
+		-- reaches). A REDEFINED save is rejected: its register web holds the
+		-- redefinition while the slot still holds the pre-push value — a value
+		-- the web model cannot name at the call — so the callsite fails loudly
+		-- instead of silently marshalling the wrong value (the rewrite's alias
+		-- model likewise cannot express such accesses). Clone callsites are left
+		-- on the slot key: their stores key into clone-compensated coordinates
+		-- whose aliasing this check does not model.
+		local sv = stmt and stmt.x86_saves
+		if stmt and not stmt.tailCall and not stmt.localClone and not stmt.b2clone
+			and type(sv) == "table" and fctx and fctx.callerDepth ~= nil then
+			local wo = key - framePass.SLOT_BASE
+			for _, e in sv do
+				if e.spill then continue end
+				if fctx.usesFp and e.name == "rbp" then continue end
+				if e.num ~= nil and fctx.callerDepth - e.depth == wo then
+					if e.redefined then
+						err.at(stmt, "outgoing stack-argument word " .. tostring(wo)
+							.. " shares its slot with the outstanding save of %" .. e.name
+							.. ", and %" .. e.name .. " was redefined after the push (the"
+							.. " slot still holds the pushed value, which cannot be"
+							.. " marshalled; re-spell the arguments, e.g. subq below the"
+							.. " push): " .. (stmt.raw or "call"))
+					end
+					return e.num
+				end
+			end
+		end
+		return key
 	end
 
 	local function callInfo(stmt)
@@ -1113,13 +1426,13 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 						if fnNames and fnNames[sym] then
 							funcrefNodes[node] = { fo = fnNames[sym] }
 						elseif desc then
-							error("sarcasm: `funcref` target '" .. sym .. "' is a data"
+							err.at(node.stmt, "`funcref` target '" .. sym .. "' is a data"
 								.. " object, not a function: " .. raw)
 						elseif bodyLocalLabels[sym] then
-							error("sarcasm: `funcref` target '" .. sym .. "' is a local"
+							err.at(node.stmt, "`funcref` target '" .. sym .. "' is a local"
 								.. " code label, not a function: " .. raw)
 						elseif subNames and subNames[sym] then
-							error("sarcasm: `funcref` target '" .. sym .. "' is a local"
+							err.at(node.stmt, "`funcref` target '" .. sym .. "' is a local"
 								.. " subroutine (it has no function object to point at): "
 								.. raw)
 						else
@@ -1133,12 +1446,12 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 						end
 					elseif ann == "global ptr" then
 						if bodyLocalLabels[sym] then
-							error("sarcasm: `global ptr` target '" .. sym
+							err.at(node.stmt, "`global ptr` target '" .. sym
 								.. "' is a local code label, not a global: " .. raw)
 						end
 						globalGetterNodes[node] = sym
 					elseif bm == "lea" and not bodyLocalLabels[sym] then
-						error("sarcasm: rip-relative address of '" .. sym .. "' cannot be"
+						err.at(node.stmt, "rip-relative address of '" .. sym .. "' cannot be"
 							.. " materialized safely (if '" .. sym .. "' is a Fil-C global"
 							.. " defined in another module, annotate the instruction with"
 							.. " `#! global ptr`): " .. raw)
@@ -1155,7 +1468,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 			end
 			local useNewClause = parseUseNewCapAnnot(ann)
 			local capClause = nil
-			if not useNewClause then capClause = parseCapAnnot(ann) end
+			if not useNewClause then capClause = parseCapAnnot(ann, node.stmt) end
 			if useNewClause then
 				-- `use capability` (standalone only — enforced by the
 				-- full-match; shape-validated by validateBody; `new capability`
@@ -1169,14 +1482,14 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				-- carries a capability.
 				local occ = resolveCapRegUse(node.c, useNewClause.reg)
 				if not occ then
-					error("sarcasm: `use capability "
+					err.at(node.stmt, "`use capability "
 						.. useNewClause.reg .. "` names a register that is not a"
 
 						.. " general-register use of this instruction: " .. raw)
 				end
 				local t = node.opTemp and node.opTemp[occ] or nil
 				if not t then
-					error("sarcasm: internal error: `use capability "
+					err.at(node.stmt, "internal error: `use capability "
 						.. useNewClause.reg .. "` has no lifted web temp: " .. raw)
 				end
 				node.useCapTemp = t
@@ -1189,14 +1502,17 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				-- here against the lifted webs).
 				local d = node.defTemps and node.defTemps[1]
 				if not d then
-					error("sarcasm: `save/restore capability` requires an instruction"
+					err.at(node.stmt, "`save/restore capability` requires an instruction"
 						.. " that produces a value into a register (this instruction"
 						.. " defines no register): " .. raw)
 				end
 				if capClause.save then
-					if capSaveVars[capClause.save] then
-						error("sarcasm: duplicate `save capability (" .. capClause.save .. ")`"
-							.. " (a name may only be saved once per function): " .. raw)
+					local firstNode = capSaveVars[capClause.save]
+					if firstNode then
+						local firstLoc = err.locStr(firstNode.stmt)
+						err.at(node.stmt, "duplicate `save capability (" .. capClause.save .. ")`"
+							.. " (a name may only be saved once per function)"
+							.. (firstLoc and (" (first saved at " .. firstLoc .. ")") or "") .. ": " .. raw)
 					end
 					capSaveVars[capClause.save] = node
 					capSaveNodes[node] = capClause.save
@@ -1210,17 +1526,17 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				-- forms, so they can never sneak through).
 				local bm = cgm.baseMnemonic(string.lower(node.stmt.mnemonic))
 				if bm == "cmpxchg8b" or bm == "cmpxchg16b" then
-					error("sarcasm: " .. bm .. " cannot operate on pointers: " .. raw)
+					err.at(node.stmt, bm .. " cannot operate on pointers: " .. raw)
 				end
 				if ann == "load ptr" or ann == "store ptr" then
 					local kind = cgm.ptrAccessKind and cgm.ptrAccessKind(node.stmt) or "other"
 					if kind == "rmw" then
-						error("sarcasm: `" .. ann .. "` on a read-modify-write instruction;"
+						err.at(node.stmt, "`" .. ann .. "` on a read-modify-write instruction;"
 							.. " pointer RMWs need `load store ptr` (or `atomic load store ptr`): " .. raw)
 					end
 					local want = (ann == "load ptr") and "load" or "store"
 					if kind ~= want then
-						error("sarcasm: `" .. ann .. "` requires a plain 8-byte GPR " .. want
+						err.at(node.stmt, "`" .. ann .. "` requires a plain 8-byte GPR " .. want
 							.. " instruction: " .. raw)
 					end
 					if ann == "load ptr" then loadPtrDefs[node] = true else storePtrNodes[node] = true end
@@ -1228,7 +1544,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					-- atomic/pointer-RMW annotations: the per-arch shape validator
 					-- returns the sequence kind (raising the shape errors).
 					if not cgm.ptrAtomicShape then
-						error("sarcasm: `" .. ann .. "` is not supported on this target: " .. raw)
+						err.at(node.stmt, "`" .. ann .. "` is not supported on this target: " .. raw)
 					end
 					local shape = cgm.ptrAtomicShape(ann, node.stmt)
 					if shape == "atomicload" then atomicLoadPtrDefs[node] = true
@@ -1236,7 +1552,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					elseif shape == "cas" then atomicCasPtrDefs[node] = true
 					elseif shape == "rmw" then loadStorePtrNodes[node] = true
 					elseif shape == "atomicrmw" then atomicRmwPtrNodes[node] = true
-					else error("sarcasm: internal error: bad ptr-atomic shape " .. tostring(shape)) end
+					else err.at(node.stmt, "internal error: bad ptr-atomic shape " .. tostring(shape)) end
 				end
 			elseif ann == "global ptr" and cgm.globalSupport then
 				-- shape-validated by validateBody; recorded above (globalGetterNodes)
@@ -1258,12 +1574,12 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				-- callee-is-a-function checks (and historically didn't even model
 				-- the caller-saved clobbers or the result redefinition).
 				if cgm.memOperand(node.stmt) then
-					error("sarcasm: indirect call through a memory operand cannot be made"
+					err.at(node.stmt, "indirect call through a memory operand cannot be made"
 						.. " memory-safe (load the function pointer into a register first,"
 						.. " e.g. with `load ptr`, then call the register): " .. raw)
 				end
 				if not ann then
-					error("sarcasm: indirect call has no signature annotation (annotate"
+					err.at(node.stmt, "indirect call has no signature annotation (annotate"
 						.. " the callsite with the callee's signature, e.g. `int(ptr)`): "
 						.. raw)
 				end
@@ -1272,10 +1588,10 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				if cs and cs.retIsPtr then callPtrDefs[node] = true end
 			elseif ann then
 				if string.find(ann, "%(") then
-					error("sarcasm: signature annotation `" .. ann .. "` on a non-call"
+					err.at(node.stmt, "signature annotation `" .. ann .. "` on a non-call"
 						.. " instruction: " .. raw)
 				end
-				error("sarcasm: unrecognized annotation: " .. ann .. " (on: " .. raw .. ")")
+				err.at(node.stmt, "unrecognized annotation: " .. ann .. " (on: " .. raw .. ")")
 			end
 		end
 	end
@@ -1310,9 +1626,17 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local m = string.lower(st.mnemonic)
 		local b = cgm.baseMnemonic(m)
 		-- faulting, serializing, stack-moving, or otherwise effectful instructions are
-		-- never dead code, whatever their modeled defs say
+		-- never dead code, whatever their modeled defs say. The RFLAGS stack transfers
+		-- (pushf/pushfq, popf/popfq) are in this class even though the modeled word is
+		-- virtual: their whole point is the OBSERVABLE restore of the caller's flags
+		-- (DF in particular — a pristine pushfq/cld/rep/popfq tail must hand the
+		-- entry DF back to code that reads it after the popfq, and a caller's DF=1
+		-- must survive the wrap), so DCE never drops them. (Their flag masks are in
+		-- the liveness tables — flagUseMask(FLAG_ALL) / flagDefMask(FLAG_ALL) — so
+		-- flag writes feeding the materialization stay live either way.)
 		if b == "div" or b == "idiv" or b == "cpuid" or b == "rdtsc" or b == "rdtscp"
 			or b == "push" or b == "pop" or b == "leave" or b == "enter"
+			or (cgm.isFlagStackXfer and cgm.isFlagStackXfer(m))
 			or string.match(m, "^loop") then
 			return false
 		end
@@ -1551,6 +1875,22 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 								and fctx and fctx.callerDepth then
 								off = off + fctx.callerDepth - d0 - 8
 							end
+						elseif not st.b2clone and not st.x86_prologue then
+							-- a plain sp-based lea at a static depth keys
+							-- NORMALIZED (off = disp + D0 - d — the slot model's
+							-- own coordinate; the raw displacement is the region
+							-- coordinate only AT the frame base depth D0).
+							-- Mirrors the frame rewrite's slot-block region
+							-- lookup (x86_64_frame.luau) and the region redirect's
+							-- normStackOff (x86_64_codegen.luau) — the three
+							-- membership decisions must agree exactly. Prologue
+							-- statements and B2 clones stay keyed raw (the
+							-- pre-existing behavior at the other two sites too).
+							local d0 = st.x86_depth
+							if d0 ~= nil and type(d0) ~= "table" and d0 ~= "dyn"
+								and fctx and fctx.callerDepth then
+								off = off + fctx.callerDepth - d0
+							end
 						end
 					end
 					if off then
@@ -1593,7 +1933,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				if uv then
 					local t = node.useCapTemp
 					if not (t and pf.isPtr[t] and pf.lowerTemp[t]) then
-						error("sarcasm: `use capability " .. uv .. "` names a register"
+						err.at(node.stmt, "`use capability " .. uv .. "` names a register"
 
 							.. " that does not carry a capability (only a"
 
@@ -1621,13 +1961,13 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					local shot = pf.capShot and pf.capShot[sv] or nil
 					local slo = shot and shot.lo or nil
 					if not (shot and shot.web and slo and pf.isPtr[shot.web]) then
-						error("sarcasm: `save capability (" .. sv .. ")` is on an"
+						err.at(node.stmt, "`save capability (" .. sv .. ")` is on an"
 							.. " instruction that does not produce a pointer value (only"
 							.. " a pointer-carrying register can be saved): "
 							.. (node.stmt.raw or node.stmt.mnemonic or "?"))
 					end
 					if pf.dynamic and pf.dynamic[shot.web] then
-						error("sarcasm: `save capability (" .. sv .. ")` cannot save a"
+						err.at(node.stmt, "`save capability (" .. sv .. ")` cannot save a"
 							.. " dynamically-tracked capability (the saved register's"
 							.. " capability varies per execution — it merges pointers"
 							.. " from different origins): "
@@ -1642,12 +1982,12 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				if rv then
 					local snode = capSaveVars[rv]
 					if not snode then
-						error("sarcasm: `restore capability (" .. rv .. ")` has no matching"
+						err.at(node.stmt, "`restore capability (" .. rv .. ")` has no matching"
 							.. " `save capability (" .. rv .. ")` in this function: "
 							.. (node.stmt.raw or node.stmt.mnemonic or "?"))
 					end
 					if not stmtDominates(snode.stmt, node.stmt) then
-						error("sarcasm: `restore capability (" .. rv .. ")` is not dominated"
+						err.at(node.stmt, "`restore capability (" .. rv .. ")` is not dominated"
 							.. " by its `save capability (" .. rv .. ")` (every path from"
 							.. " function entry to the restore must execute the save); restore:"
 							.. " " .. (node.stmt.raw or "?") .. "; save: "
@@ -1655,7 +1995,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					end
 					local web = node.defTemps and node.defTemps[1]
 					if web and pf.dynamic and pf.dynamic[web] then
-						error("sarcasm: `restore capability (" .. rv .. ")` targets a"
+						err.at(node.stmt, "`restore capability (" .. rv .. ")` targets a"
 							.. " dynamically-tracked capability (the restored register"
 							.. " merges pointers from different origins, so no single"
 							.. " saved capability fits it): "
@@ -2320,13 +2660,13 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		if not mem or not mem.writeback then return end
 		local baseT = node.opTemp[mem.base]
 		if not baseT then
-			error("sarcasm: writeback base of an annotated pointer access has no usable value: "
+			err.at(node.stmt, "writeback base of an annotated pointer access has no usable value: "
 				.. (node.stmt and node.stmt.raw or "?"))
 		end
 		local amt = (mem.index and mem.index.kind == "imm")
 			and (mem.index.value or tonumber(mem.index.text)) or nil
 		if not amt then
-			error("sarcasm: annotated pointer access with a non-immediate writeback index"
+			err.at(node.stmt, "annotated pointer access with a non-immediate writeback index"
 				.. " is not supported: " .. (node.stmt and node.stmt.raw or "?"))
 		end
 		if amt > 0 then cg.addImm(baseT, baseT, amt)
@@ -2505,7 +2845,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	local function emitAtomicPtrLoad(node, mem, preEff, preLo)
 		local dstIv = node.defTemps[1]
 		if not dstIv then
-			error("sarcasm: `atomic load ptr` requires a modeled (GPR) destination"
+			err.at(node.stmt, "`atomic load ptr` requires a modeled (GPR) destination"
 				.. " register: " .. (node.stmt.raw or "?"))
 		end
 		local dstLo = pf.lowerTemp[dstIv]
@@ -2522,7 +2862,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local valOp = storeValueOperand(node.stmt, mem)
 		local valIv = valOp and node.opTemp[valOp] or nil
 		if not valIv then
-			error("sarcasm: `atomic store ptr` requires a modeled (GPR) value"
+			err.at(node.stmt, "`atomic store ptr` requires a modeled (GPR) value"
 				.. " register: " .. (node.stmt.raw or "?"))
 		end
 		local valLo = pf.lowerTemp[valIv]
@@ -2545,7 +2885,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local accUseT = (pin and pin.uses and pin.uses[1]) and node.opTemp[pin.uses[1]] or nil
 		local accDefT = (pin and pin.defs and pin.defs[1]) and node.opTemp[pin.defs[1]] or nil
 		if not (accUseT and accDefT) then
-			error("sarcasm: internal error: cmpxchg implicit accumulator has no temp: "
+			err.at(node.stmt, "internal error: cmpxchg implicit accumulator has no temp: "
 				.. (node.stmt.raw or "?"))
 		end
 		local accDefLo = pf.lowerTemp[accDefT]
@@ -2553,7 +2893,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local srcOp = node.stmt.operands[2]
 		local newIv = srcOp and node.opTemp[srcOp] or nil
 		if not newIv then
-			error("sarcasm: `atomic ptr` requires a modeled (GPR) new-value register: "
+			err.at(node.stmt, "`atomic ptr` requires a modeled (GPR) new-value register: "
 				.. (node.stmt.raw or "?"))
 		end
 		local newLo = pf.lowerTemp[newIv]
@@ -2592,7 +2932,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		if so and so.kind == "reg" then
 			local t = node.opTemp[so]
 			if not t then
-				error("sarcasm: `" .. node.stmt.annotation .. "` source register has no"
+				err.at(node.stmt, "`" .. node.stmt.annotation .. "` source register has no"
 					.. " temp: " .. (node.stmt.raw or "?"))
 			end
 			return t, nil, false
@@ -2684,7 +3024,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local dstOp = (plan.kind == "st") and nil or ops[2]
 		local srcT = srcOp and node.opTemp[srcOp] or nil
 		if not srcT then
-			error("sarcasm: `atomic load store ptr` source register has no temp: "
+			err.at(node.stmt, "`atomic load store ptr` source register has no temp: "
 				.. (node.stmt.raw or "?"))
 		end
 		local dstT = dstOp and node.opTemp[dstOp] or nil
@@ -2897,7 +3237,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		-- defensively if one got here without them.
 		local hasFp = csHasFp(cs)
 		if hasFp and not cg.storeFpArg then
-			error("sarcasm: internal error: floating-point signature marshalling is"
+			err.at(node.stmt, "internal error: floating-point signature marshalling is"
 				.. " not implemented for this target (call to '" .. callee .. "')")
 		end
 		local argTemps = {}
@@ -3001,7 +3341,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		-- defensively if one got here without them.
 		local hasFp = csHasFp(cs)
 		if hasFp and not cg.storeFpArg then
-			error("sarcasm: internal error: floating-point signature marshalling is"
+			err.at(node.stmt, "internal error: floating-point signature marshalling is"
 				.. " not implemented for this target (indirect call): " .. raw)
 		end
 		local targetOp = node.stmt.operands and node.stmt.operands[1]
@@ -3011,7 +3351,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 			-- The target register's web is not a known pointer value, so its
 			-- lower (capability) is unknowable and the callee-is-a-function
 			-- checks cannot be emitted.
-			error("sarcasm: indirect call target must be a function pointer value"
+			err.at(node.stmt, "indirect call target must be a function pointer value"
 				.. " (a pointer argument, or the result of `load ptr` /"
 				.. " a ptr-returning call): " .. raw)
 		end
@@ -3073,7 +3413,9 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		cg.move(pColored(cc.myth), vMyth)
 		cg.move(pColored(cc.fo), fpLo)
 		local fastUses = { pColored(cc.myth), pColored(cc.fo), fnT }
-		local fpVecUses, winN = marshalFastArgs(cs, argTemps, fastUses)
+		-- (node.stmt rides along so the outgoing-slot keys are depth-aware —
+		-- see callArgSource; the generic path below must key identically.)
+		local fpVecUses, winN = marshalFastArgs(cs, argTemps, fastUses, node.stmt)
 		local fastNode = cg.emitIndirectCallInsn(fnT, fastUses, cg.callerSavedClobbers())
 		if fpVecUses then fastNode.fpVecUses = fpVecUses end
 		-- restore rsp over the outgoing stack-arg area before rejoining (the generic
@@ -3100,7 +3442,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				if not zeroT then zeroT = allocTemp({ role = "scratch" }); cg.moveZero(zeroT) end
 				cg.store(zeroT, vMyth, loOff)
 			else
-				local aTemp = argTemps[callArgSource(cs, k)]
+				local aTemp = argTemps[callArgSource(cs, k, node.stmt)]
 				cg.store(aTemp, vMyth, bufOff)
 				local loT = (ty == 7) and pf.lowerTemp[aTemp] or nil
 				if loT then
@@ -3257,7 +3599,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local desc = dataGlobals[sym]
 		if desc and (desc.readonly or not forStore) then return nil, nil end
 		if not desc and bodyLocalLabels[sym] then
-			error("sarcasm: `" .. (node.stmt.annotation or "") .. "` pointer access to the"
+			err.at(node.stmt, "`" .. (node.stmt.annotation or "") .. "` pointer access to the"
 				.. " local code label '" .. sym .. "' is not a global access: "
 				.. (node.stmt.raw or "?"))
 		end
@@ -3292,13 +3634,200 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	-- rdi/rsi, so the webs stay virtual and colorable); the pin-out also
 	-- defines the post-instruction webs (rsi/rdi advanced by the count, rcx
 	-- zeroed), so later reads see the hardware values.
+	-- Annotated STACK BUFFER indexed access (`#! stack buffer (id, ...)` on an
+	-- indexed stack-relative memory operand, lowered by the frame rewrite into
+	-- disp'(%rsp,%idx,s) inside the buffer region): emit the runtime BOUNDS
+	-- CHECK on the index register before the verbatim instruction.
+	--
+	-- The effective buffer-relative offset is dispEff + idx*scale (dispEff is the
+	-- statically known part, normalized). The check is ONE unsigned compare:
+	--   idx_min = ceil((lo - dispEff)/scale)
+	--   idx_max = floor((hi - size - dispEff)/scale)
+	--   fail  iff  (idx - idx_min) >=u (idx_max - idx_min + 1)
+	-- which is overflow-safe in both directions: an index below the range wraps
+	-- the subtraction to a huge unsigned value (fails), an index above it exceeds
+	-- the count (fails), and the wrap-around case an index of ~2^64 legitimately
+	-- representing a small negative displacement is handled by the same modular
+	-- arithmetic the hardware's SIB addressing uses — the buffer's index set is
+	-- contiguous MOD 2^64, exactly what the single unsigned compare expresses.
+	-- The failure marshals filc_optimized_stack_access_fail(offset-in-buffer,
+	-- buffer-size, origin): the runtime prints the usual
+	-- "filc safety error: cannot read/write pointer with ptr >= upper."
+	-- attribution over a stack_optimized(offset=...,size=...) pointer, where the
+	-- offset is recomputed in the stub from the (wrapped) difference.
+	local stackBufFailCounter = 0
+	local function emitStackBufBoundsCheck(node, mem, bi)
+		local raw = node.stmt.raw or node.stmt.mnemonic
+		local idxOp = mem and mem.index or nil
+		if not idxOp then
+			err.at(node.stmt, "internal error: stack-buffer bounds check without an index"
+				.. " operand: " .. raw)
+		end
+		local idxT = node.opTemp[idxOp]
+		if not idxT then
+			err.at(node.stmt, "internal error: indexed buffer access index has no web"
+				.. " temp: " .. raw)
+		end
+		-- A 32-bit index register contributes its LOW 32 bits (zero-extended) to
+		-- the address. Materialize exactly that into a fresh temp without writing
+		-- the index web itself (a self-movl would corrupt other readers of the
+		-- web): `movl %idxreg, %temp32` reads the low 32 bits and zero-extends.
+		local valT = idxT
+		if (idxOp.width or 64) == 32 then
+			valT = allocTemp({ role = "stackbufidx" })
+			emit(build.insn("mov", { build.rt(valT, 32), build.rt(idxT, 32) },
+				{ defs = { valT }, uses = { idxT } }))
+		end
+		local s = bi.scale
+		local idxMin = math.ceil((bi.lo - bi.dispEff) / s)
+		local idxMax = math.floor((bi.hi - bi.size - bi.dispEff) / s)
+		local count = idxMax - idxMin + 1
+		if count <= 0 then
+			err.at(node.stmt, "internal error: empty index range for a buffer access: "
+				.. raw)
+		end
+		stackBufFailCounter += 1
+		local lbl = ".Lsbfail_" .. name .. "_" .. stackBufFailCounter
+		local aco = ".Lfilc_saco_" .. name .. "_" .. stackBufFailCounter
+		table.insert(accessOrigins, { sym = aco, size = bi.size,
+			align = math.min(bi.align or 1, 8), write = bi.write and true or false,
+			line = curLine })
+		local diffT = allocTemp({ role = "stackbufdiff" })
+		cg.move(diffT, valT)
+		if idxMin ~= 0 then cg.subImm(diffT, diffT, idxMin) end
+		cg.cmpImmBranchWidened(diffT, count, "uge", lbl)
+		-- The fail stub: recompute the (possibly wrapped) buffer-relative offset
+		-- of the access start — off = diff*scale + C, C = idxMin*scale + dispEff
+		-- - lo — and hand it to the runtime's stack-access failure with the
+		-- buffer's static size, so the panic attributes the real range.
+		local C = idxMin * s + bi.dispEff - bi.lo
+		local bufSize = bi.hi - bi.lo
+		table.insert(failStubs, build.label(lbl))
+		local offT = allocTemp({ role = "stackbufoff" })
+		table.insert(failStubs, build.insn("mov", { build.rt(offT), build.rt(diffT) },
+			{ defs = { offT }, uses = { diffT } }))
+		if s > 1 then
+			for _ = 1, ({ [2] = 1, [4] = 2, [8] = 3 })[s] do
+				table.insert(failStubs, build.insn("add", { build.rt(offT), build.rt(offT) },
+					{ defs = { offT }, uses = { offT } }))
+			end
+		end
+		if C ~= 0 then
+			table.insert(failStubs, build.insn("lea",
+				{ build.rt(offT), build.memx(build.rt(offT), { dispVal = C }) },
+				{ defs = { offT }, uses = { offT } }))
+		end
+		local a1, a2, a3 = cc.rtArg(1), cc.rtArg(2), cc.rtArg(3)
+		table.insert(failStubs, build.insn("mov", { build.rp(a1), build.rt(offT) },
+			{ defs = { pColored(a1) }, uses = { offT } }))
+		table.insert(failStubs, build.insn("mov", { build.rp(a2), build.imm(bufSize) },
+			{ defs = { pColored(a2) } }))
+		table.insert(failStubs, build.insn("lea",
+			{ build.rp(a3), build.memx({ kind = "reg", rc = "rip" }, { dispSym = aco }) },
+			{ defs = { pColored(a3) } }))
+		table.insert(failStubs, build.insn("call",
+			{ build.sym("filc_optimized_stack_access_check_fail", "plt") },
+			{ control = "call", noreturnCall = true,
+				uses = { pColored(a1), pColored(a2), pColored(a3) } }))
+	end
+
+	-- By-ADDRESS annotated stack-buffer access (`#! stack buffer (id)` on an
+	-- access whose base register is an ordinary web holding a buffer byte
+	-- address — materialized by a buffer-interior `leaq K(%rsp), %reg`, then
+	-- computed on, stored, reloaded, or cmov'd): emit the runtime BOUNDS CHECK
+	-- of the base against the buffer's lowered range before the VERBATIM
+	-- instruction. No capability check: the base's capability, if it happens to
+	-- carry one, is ignored — the address is an ordinary integer, exactly the
+	-- value Fil-C hands out for "where is my stack" questions.
+	--
+	-- The check is ONE unsigned compare, overflow-safe in both directions:
+	--   t1 = the lowered buffer group's base address (leaq g.base(%rsp) tagged
+	--        stackBuf, so the buffer-base shift below finalizes it into the real
+	--        output-frame address);
+	--   t2 = base - t1 + dispEff   (mod 2^64: a base below the group wraps to a
+	--        huge unsigned value and fails; one above exceeds the count);
+	--   fail iff t2 >=u (span - w + 1),  span = g.hi - g.lo.
+	-- This accepts exactly the bases whose dispEff-offset access
+	-- [base + dispEff, base + dispEff + w) lies inside the group [t1, t1+span)
+	-- — the same modular arithmetic the indexed check uses, so a negative
+	-- dispEff (a negative constant displacement) folds in with wrapping
+	-- semantics and accepts exactly [buflo - dispEff, bufhi - w - dispEff).
+	-- The failure marshals filc_optimized_stack_access_check_fail(offset, size,
+	-- origin) with the (possibly wrapped) group-relative offset of the access
+	-- start and the group's span — the same attribution shape as the indexed
+	-- stub. The ORIGINAL instruction is emitted verbatim afterwards (original
+	-- base register, original displacement) with no capability machinery: the
+	-- base web must stay live across the check (the instruction uses it).
+	local function emitStackBufAddrCheck(node, mem, ba)
+		local raw = node.stmt.raw or node.stmt.mnemonic
+		local baseT = node.opTemp and node.opTemp[mem.base] or nil
+		if not baseT then
+			err.at(node.stmt, "internal error: by-address buffer access base has no web"
+				.. " temp: " .. raw)
+		end
+		local g = ba.group
+		local span = g.hi - g.lo
+		-- fail iff (base + dispEff) - t1 >=u count, so the accepted
+		-- base+dispEff range is [t1, t1 + count - 1] — the access
+		-- [base+dispEff, base+dispEff+w) must lie inside [t1, t1+span), i.e.
+		-- base+dispEff <= t1 + span - w: count = span - w + 1 (the indexed
+		-- check's inclusive idxMax convention — an access ENDING exactly at the
+		-- group's top byte is inside and must not trap).
+		local count = span - ba.w + 1
+		if count < 0 then
+			err.at(node.stmt, "internal error: by-address buffer access wider than its"
+				.. " lowered group: " .. raw)
+		end
+		stackBufFailCounter += 1
+		local lbl = ".Lsbfail_" .. name .. "_" .. stackBufFailCounter
+		local aco = ".Lfilc_saco_" .. name .. "_" .. stackBufFailCounter
+		table.insert(accessOrigins, { sym = aco, size = ba.w,
+			align = math.min(ba.areq or 1, 8), write = ba.write and true or false,
+			line = curLine })
+		-- t1 = the group's base address in the output frame. The placeholder
+		-- displacement g.base rides the same stackBuf tagging (and the same
+		-- final shift) as every redirected buffer operand, so the check and the
+		-- buffer's real bytes always agree.
+		local t1 = allocTemp({ role = "stackbufbase" })
+		emit(build.insn("lea", { build.rt(t1),
+			{ kind = "mem",
+				base = { kind = "reg", rc = "sp", num = 4, width = 64, name = "rsp" },
+				scale = 1, dispVal = g.base, stackBuf = true } },
+			{ defs = { t1 } }))
+		local t2 = allocTemp({ role = "stackbufdiff" })
+		cg.move(t2, baseT)
+		emit(build.insn("sub", { build.rt(t2), build.rt(t1) },
+			{ defs = { t2 }, uses = { t2, t1 } }))
+		if (ba.dispEff or 0) ~= 0 then cg.addImm(t2, t2, ba.dispEff) end
+		cg.cmpImmBranchWidened(t2, count, "uge", lbl)
+		-- The fail stub: t2 already holds the (possibly wrapped) group-relative
+		-- offset of the access start; hand it to the runtime with the group's
+		-- span so the panic attributes the real range.
+		table.insert(failStubs, build.label(lbl))
+		local offT = allocTemp({ role = "stackbufoff" })
+		table.insert(failStubs, build.insn("mov", { build.rt(offT), build.rt(t2) },
+			{ defs = { offT }, uses = { t2 } }))
+		local fa1, fa2, fa3 = cc.rtArg(1), cc.rtArg(2), cc.rtArg(3)
+		table.insert(failStubs, build.insn("mov", { build.rp(fa1), build.rt(offT) },
+			{ defs = { pColored(fa1) }, uses = { offT } }))
+		table.insert(failStubs, build.insn("mov", { build.rp(fa2), build.imm(span) },
+			{ defs = { pColored(fa2) } }))
+		table.insert(failStubs, build.insn("lea",
+			{ build.rp(fa3), build.memx({ kind = "reg", rc = "rip" }, { dispSym = aco }) },
+			{ defs = { pColored(fa3) } }))
+		table.insert(failStubs, build.insn("call",
+			{ build.sym("filc_optimized_stack_access_check_fail", "plt") },
+			{ control = "call", noreturnCall = true,
+				uses = { pColored(fa1), pColored(fa2), pColored(fa3) } }))
+	end
+
 	local function emitRepString(node)
 		local rep = node.c.rep
 		local raw = node.stmt.raw or node.stmt.mnemonic
 		local function repTemp(occ, what)
 			local t = occ and node.opTemp and node.opTemp[occ] or nil
 			if not t then
-				error("sarcasm: internal error: rep string " .. what .. " has no web temp: " .. raw)
+				err.at(node.stmt, "internal error: rep string " .. what .. " has no web temp: " .. raw)
 			end
 			return t
 		end
@@ -3307,6 +3836,25 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local rdiT = repTemp(rep.rdi, "%rdi")
 		local rsiT = rep.rsi and repTemp(rep.rsi, "%rsi") or nil
 		local raxT = rep.rax and repTemp(rep.rax, "%rax") or nil
+		-- A STACK-ALIAS side (the frame pass marked the statement when the
+		-- annotated rep's implicit %rsi/%rdi use names a live saved-rsp carrier):
+		-- the side does not hold a pointer — it holds a stack address inside the
+		-- annotated buffer. The checks and pin moves below treat it separately:
+		-- a dynamic count check against the buffer's range replaces the
+		-- capability checks, and the pin materializes the LOWERED buffer address
+		-- (the phantom carrier value does not exist in the output).
+		local repStack = node.stmt.x86StackBufRep
+		local rsiAlias = (rsiT and repStack and repStack["rsi"]) or nil
+		local rdiAlias = (rdiT and repStack and repStack["rdi"]) or nil
+		local repStackBase = nil
+		if repStack then
+			repStackBase = framePolicy.stackBufGroupBaseFor(repStack.lo, repStack.hi)
+		end
+		-- Materialized buffer address (placeholder disp inside the buffer region;
+		-- the transform's buffer-base shift finalizes it) of an alias side.
+		local function aliasDisp(alias)
+			return repStackBase + (alias.K - repStack.lo)
+		end
 		-- Byte count N: %rcx * elem under `rep` (by doubling adds — elem is
 		-- 1/2/4/8), or exactly one element for the bare single-step form
 		-- (which ignores %rcx entirely, like the hardware).
@@ -3375,9 +3923,53 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					pColored(a3), pColored(a4), pColored(a5), pColored(a6) } }))
 			return lbl
 		end
-		local dstFail = repFailStub(rdiT, pf.lowerTemp[rdiT], true)
+		-- Fail stub for a STACK-ALIAS side's count failure: the side holds no
+		-- capability (its value is a phantom stack address), so the panic is
+		-- marshalled through filc_check_aligned_access_fail with a NULL lower --
+		-- the runtime's "cannot read/write pointer with null object" safety error,
+		-- attributed to the materialized buffer address of the side and the true
+		-- (dynamic) byte count.
+		local function repStackFailStub(alias, isWrite)
+			failCounter += 1
+			local lbl = ".Lrepsbfail_" .. name .. "_" .. failCounter
+			local a1, a2, a3 = cc.rtArg(1), cc.rtArg(2), cc.rtArg(3)
+			local a4, a5, a6 = cc.rtArg(4), cc.rtArg(5), cc.rtArg(6)
+			table.insert(failStubs, build.label(lbl))
+			-- ptr = the materialized buffer address of the side (a placeholder
+			-- disp inside the buffer region; the buffer-base shift finalizes it).
+			local addrMem = build.memx(build.rp(4),
+				{ dispVal = aliasDisp(alias) ~= 0 and aliasDisp(alias) or nil })
+			addrMem.stackBuf = true
+			table.insert(failStubs, build.insn("lea", { build.rp(a1), addrMem },
+				{ defs = { pColored(a1) } }))
+			table.insert(failStubs, build.insn("mov", { build.rp(a2), build.imm(0) },
+				{ defs = { pColored(a2) } }))
+			table.insert(failStubs, build.insn("mov", { build.rp(a3), build.rt(nT) },
+				{ defs = { pColored(a3) }, uses = { nT } }))
+			table.insert(failStubs, build.insn("mov", { build.rp(a4), build.imm(1) },
+				{ defs = { pColored(a4) } }))
+			table.insert(failStubs, build.insn("mov", { build.rp(a5),
+				build.imm(isWrite and 1 or 0) }, { defs = { pColored(a5) } }))
+			table.insert(failStubs, build.insn("mov", { build.rp(a6), build.imm(0) },
+				{ defs = { pColored(a6) } }))
+			local nameLoSlot = build.memx(build.rp(4), { dispVal = -16 })
+			nameLoSlot.size = 8
+			table.insert(failStubs, build.insn("mov", { nameLoSlot, build.imm(0) }, {}))
+			table.insert(failStubs, build.insn("sub", { build.rp(4), build.imm(16) }, {}))
+			table.insert(failStubs, build.insn("call",
+				{ build.sym("filc_check_aligned_access_fail", "plt") },
+				{ control = "call", noreturnCall = true, uses = { pColored(a1), pColored(a2),
+					pColored(a3), pColored(a4), pColored(a5), pColored(a6) } }))
+			return lbl
+		end
+		local dstFail = nil
+		if rdiAlias then dstFail = repStackFailStub(rdiAlias, true)
+		else dstFail = repFailStub(rdiT, pf.lowerTemp[rdiT], true) end
 		local srcFail = nil
-		if rsiT then srcFail = repFailStub(rsiT, pf.lowerTemp[rsiT], false) end
+		if rsiT then
+			if rsiAlias then srcFail = repStackFailStub(rsiAlias, false)
+			else srcFail = repFailStub(rsiT, pf.lowerTemp[rsiT], false) end
+		end
 		-- Count-overflow guard: under `rep` with elem = 2^k > 1, N is
 		-- computed as %rcx << k by doubling adds, which wraps mod 2^64 for
 		-- %rcx >= 2^(64-k) (e.g. 2^61 qwords). The wrapped N would pass the
@@ -3452,8 +4044,28 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 			cg.subReg(room, upper, ptrT)
 			cg.cmpBranch(nT, room, "ugt", fail)
 		end
-		if rsiT then checkRange(rsiT, pf.lowerTemp[rsiT], false, srcFail) end
-		checkRange(rdiT, pf.lowerTemp[rdiT], true, dstFail)
+		-- A stack-alias side's DYNAMIC count check: the buffer's range covers the
+		-- alias's stack offset statically (proved by the frame pass), so only the
+		-- byte count N can leave the range: fail when N > hi - K (an unsigned
+		-- compare against the static room; N is the same doubling-adds count the
+		-- hardware's element multiply computes, and the overflow guard above has
+		-- already rejected counts whose N would wrap).
+		local function checkStackRange(alias, isWrite, fail)
+			local room = repStack.hi - alias.K
+			if room <= 0 then
+				-- Statically impossible (the frame pass rejects K >= hi), but
+				-- fail closed rather than assume.
+				cg.jump(fail)
+				return
+			end
+			cg.cmpImmBranchWidened(nT, room, "ugt", fail)
+		end
+		if rsiT then
+			if rsiAlias then checkStackRange(rsiAlias, false, srcFail)
+			else checkRange(rsiT, pf.lowerTemp[rsiT], false, srcFail) end
+		end
+		if rdiAlias then checkStackRange(rdiAlias, true, dstFail)
+		else checkRange(rdiT, pf.lowerTemp[rdiT], true, dstFail) end
 		cg.label(doneLbl)
 		-- Pin the webs into the implicit registers, run the instruction, and
 		-- pin the results back out into the post-instruction webs. Two webs
@@ -3467,11 +4079,41 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		--   * post count pinned: pin the count straight into it (a same-color
 		--     move the emitter drops when count and post coincide); the
 		--     hardware then leaves the post value in place — no pin-out.
-		-- (No counter save/restore is needed either way: a counter live
-		-- across the rep IS the count web — its post value is exactly what
-		-- the pins model — and otherwise no counter is live here.)
+		-- Otherwise the pin-in writes physical rcx from an UNRELATED web (the
+		-- rep's count), which destroys the value of any OTHER counter web
+		-- live across the instruction — a counter web is pinned to physical
+		-- rcx for its whole live range, and its liveness extends past this
+		-- sequence whenever the function keeps it alive across later
+		-- injected calls (every call saves/restores the counter, chaining the
+		-- web's live range through the whole function). The pin sequence is
+		-- therefore bracketed with the same counter save/restore every call
+		-- uses (see counterGuardArm above): the counter web's value
+		-- round-trips through a scratch web, making it dead across the pin —
+		-- exactly the shape the allocator expects around any physical-rcx
+		-- write. When the count or post web is itself pinned, no foreign
+		-- value is written (a counter web is the one being consumed or
+		-- defined, hardware-faithfully) and no guard is emitted; functions
+		-- without counters emit nothing.
 		local countPinned = temps[rcxT] and temps[rcxT].precolor == "rcx"
 		local defPinned = temps[rcxDefT] and temps[rcxDefT].precolor == "rcx"
+		local rcxGuard
+		if not countPinned and not defPinned then rcxGuard = counterGuardArm() end
+		-- A stack-alias side's web is defined by the MATERIALIZED lea the frame
+		-- rewrite emitted in place of the (formerly phantom) save: its value is
+		-- the lowered buffer address, so the ordinary pin moves work — pin-in
+		-- puts the buffer address in the implicit register, the hardware
+		-- advances it, and the pin-out defines the fresh web with the honest
+		-- post-rep address. (Without the materialization — an alias side whose
+		-- web would be the shared entry-argument web — we refuse: the pin-out
+		-- would corrupt the argument value that shares the web.)
+		if rsiAlias and not rsiAlias.materialized then
+			err.at(node.stmt, "internal error: rep stack-alias source was not"
+				.. " materialized: " .. raw)
+		end
+		if rdiAlias and not rdiAlias.materialized then
+			err.at(node.stmt, "internal error: rep stack-alias destination was not"
+				.. " materialized: " .. raw)
+		end
 		if rsiT then cg.move(pColored(6), rsiT) end
 		cg.move(pColored(7), rdiT)
 		if defPinned then cg.move(rcxDefT, rcxT)
@@ -3488,6 +4130,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				cg.move(rcxDefT, pColored(1))
 			end
 		end
+		counterGuardRestore(rcxGuard)
 	end
 
 	-- `.alloca size, alignment, result`: allocate `size` bytes with `alignment`
@@ -3506,13 +4149,13 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		local raw = node.stmt.raw or ".alloca"
 		local sizeOp, alignOp = ops[1], ops[2]
 		if not (sizeOp and alignOp and ops[3]) then
-			error("sarcasm: `.alloca` takes exactly 3 operands (size, alignment, result): " .. raw)
+			err.at(node.stmt, "`.alloca` takes exactly 3 operands (size, alignment, result): " .. raw)
 		end
 		local function operandTemp(op, what)
 			if op.kind == "imm" then return nil end
 			local t = node.opTemp and node.opTemp[op]
 			if not t then
-				error("sarcasm: `.alloca` " .. what .. " has no modeled value (must be an immediate, a register, or a spill slot): " .. raw)
+				err.at(node.stmt, "`.alloca` " .. what .. " has no modeled value (must be an immediate, a register, or a spill slot): " .. raw)
 			end
 			return t
 		end
@@ -3533,12 +4176,12 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		if not alignTemp then
 			alignImm = alignOp.value or tonumber(alignOp.text)
 			if not alignImm or alignImm < 1 or alignImm ~= math.floor(alignImm) then
-				error("sarcasm: `.alloca` alignment must be a positive power of two: " .. raw)
+				err.at(node.stmt, "`.alloca` alignment must be a positive power of two: " .. raw)
 			end
 			local p = 1
 			while p < alignImm do p = p * 2 end
 			if p ~= alignImm then
-				error("sarcasm: `.alloca` alignment must be a positive power of two: " .. raw)
+				err.at(node.stmt, "`.alloca` alignment must be a positive power of two: " .. raw)
 			end
 		end
 		-- Allocation size: the request, plus slack for aligning up (at most align-16
@@ -3562,11 +4205,11 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		counterGuardRestore(rcxSave)
 		local resultIv = node.defTemps and node.defTemps[1]
 		if not resultIv then
-			error("sarcasm: `.alloca` result has no modeled (GPR) destination: " .. raw)
+			err.at(node.stmt, "`.alloca` result has no modeled (GPR) destination: " .. raw)
 		end
 		local resultLo = pf.lowerTemp[resultIv]
 		if not resultLo then
-			error("sarcasm: internal error: `.alloca` result web has no capability lower: " .. raw)
+			err.at(node.stmt, "internal error: `.alloca` result web has no capability lower: " .. raw)
 		end
 		local ret = pColored(cc.rtRet)
 		local payload = allocTemp({ role = "dotalloca" })
@@ -3613,6 +4256,269 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	local function emitRegionRedirect(node)
 		if #allocaRegions == 0 or not cg.regionRedirect then return false end
 		return cg.regionRedirect(node, regionOf)
+	end
+
+	-- Partial (narrow) slot-access lowering. The frame rewrite routes a narrow
+	-- (1/2/4-byte) scalar access that falls inside a granule carrying 8-byte slot
+	-- traffic to the CONTAINING slot web and marks the statement x86_slotPartial =
+	-- { sub = <byte offset in the granule>, w = <width in bytes>, write = <bool> }.
+	-- The virtualized web is a colored register standing for the granule's 8 bytes,
+	-- so a narrow access must be lowered into explicit extract / merge sequences to
+	-- behave like the memory it stands for:
+	--
+	--   narrow LOAD at sub > 0:  movq web,%t ; shrq $(sub*8),%t ; <the access reads
+	--     %t at its own width> — the field lands in the temp's low bytes, and the
+	--     original instruction's own width semantics apply unchanged (a 32-bit read
+	--     zero-extends, a 16/8-bit read is the partial write it always was).
+	--   narrow LOAD at sub == 0: no lowering — the access already reads the low
+	--     bytes of the web (its historical spelling).
+	--   narrow STORE (any sub):  read-modify-write of the web — keep = old bytes
+	--     outside the field (double-shift, or movabs+and for a middle field), new =
+	--     the (zero-extended) source or the original instruction recomputed on the
+	--     extracted field, then or + a full 8-byte store back. This also fixes the
+	--     documented same-offset gap (a 32-bit store to offset 0 no longer
+	--     zero-extending-kills the 8-byte web's high bytes).
+	--
+	-- FLAGS: the extract/merge instructions write EFLAGS (shrq/shlq/orq/andq). The
+	-- lowering therefore brackets the whole sequence with the transform's standard
+	-- flag save/restore whenever the program's flags are live at the access
+	-- (withFlagSave — the same bracket every injected bounds check uses), and it
+	-- orders a flag-READING instruction's own op FIRST so it consumes the real
+	-- pending condition. Two shapes cannot be made sound this way and are REJECTED
+	-- with a clear message: a flag-reading read-modify-write (adc/sbb) at a non-zero
+	-- sub-offset, and a flag-reading load — the field extraction would necessarily
+	-- run between the flag write the instruction consumes and the instruction
+	-- itself. (Rejection, not a silent clobber: the pending condition would be
+	-- corrupted.)
+	--
+	-- CAPABILITIES: a web carrying a pointer (pf.isPtr — seeded by `store ptr` /
+	-- `load ptr` or propagated) is handled conservatively:
+	--   * at sub == 0 the access keeps its HISTORICAL form (no marker lowering): a
+	--     narrow store is the documented capability kill — its zero-extending def
+	--     corrupts the web's intval while the rooted lower survives, so every later
+	--     use fails its capability check (fail-closed; a truncated-but-in-bounds
+	--     intval can only pass the check into the SAME object, never out of bounds);
+	--   * at sub > 0 the access is REJECTED: the extract/merge would rewrite the
+	--     capability's intval bytes as raw integer data — sound only by the
+	--     fail-closed argument above, but pointless to accept when re-spelling with
+	--     a wide access plus register shifts is trivial.
+	--
+	-- Returns true when the node was fully replaced (stores); false when only
+	-- sequences were injected ahead of it (loads — the walk emits the node itself).
+	local function lowerPartialSlot(node)
+		local st = node.stmt
+		local part = st.x86_slotPartial
+		local ops = st.operands
+		local raw = st.raw or st.mnemonic or "?"
+		local slotOp = nil
+		for _, o in ops do
+			if o.kind == "reg" and o.isSlot then slotOp = slotOp or o end
+		end
+		if not slotOp then
+			err.at(node.stmt, "internal error: partial slot access has no slot operand: " .. raw)
+		end
+		local webT = node.opTemp and node.opTemp[slotOp] or nil
+		if not webT then
+			err.at(node.stmt, "internal error: partial slot access has no lifted web temp: " .. raw)
+		end
+		-- Capability safety (see the function comment).
+		if pf.isPtr[webT] then
+			if part.sub == 0 then
+				-- Aligned narrow traffic on a capability-carrying web: the historical
+				-- form (a shared web at the same offset) — including the documented
+				-- narrow-store capability kill. Emit via the ordinary walk path.
+				return false
+			end
+			err.at(node.stmt, "narrow (" .. tostring(part.w)
+				.. "-byte) access into a capability-carrying frame slot is not supported"
+				.. " (the slot's web holds a pointer; extracting or merging its bytes as"
+				.. " integer data would corrupt the capability — load the wide value and"
+				.. " shift in a register instead): " .. raw)
+		end
+		if not part.write and part.sub == 0 then
+			-- Granule-aligned narrow load: the access already reads the web's low
+			-- bytes. Emit it via the ordinary walk path (which handles pinning).
+			return false
+		end
+		local readsFlags = cgm.flagUse and cgm.flagUse(st) or false
+		-- Does the store's instruction READ the field (a true RMW rather than a
+		-- plain overwrite)? The classify model said so whenever the slot operand is
+		-- also a use (ALU2/DST_ONLY and the routed-store marker in the mov branch).
+		local isRmw = false
+		for _, u in (node.c and node.c.uses or {}) do
+			if u == slotOp then isRmw = true break end
+		end
+		-- The two unsoundable flag-reading shapes (see the function comment): the
+		-- field extraction would sit between the consumed condition and its reader.
+		if readsFlags and ((not part.write and part.sub > 0)
+			or (part.write and isRmw and part.sub > 0)) then
+			err.at(node.stmt, "narrow slot access on a flag-reading instruction at a"
+				.. " non-zero granule offset is not supported (the field extraction"
+				.. " would clobber the condition the instruction consumes): " .. raw)
+		end
+		if part.write and node.c and node.c.pin then
+			-- A store-path node is replaced by a fresh instruction; the implicit-
+			-- register pin moves (rax/rdx for div/mul/cmpxchg, rcx for %-cl shifts)
+			-- would be lost. Loads pass through the ordinary pinned emission.
+			err.at(node.stmt, "narrow slot store on an implicit-register-pinned"
+				.. " instruction (div/mul/cmpxchg/shift-by-%cl/...) is not supported: " .. raw)
+		end
+		local sub8 = part.sub * 8
+		-- keep = the web's value with the field cleared. The two run shapes (field at
+		-- the top / at the bottom) are two shifts; a middle field needs a materialized
+		-- mask (movabsq + andq — the mask never fits a sign-extended imm32).
+		local function emitKeep(t)
+			local lo, hi = sub8, sub8 + part.w * 8
+			if lo == 0 then
+				emit(build.insn("shr", { build.rt(t), build.imm(hi) }, { defs = { t }, uses = { t } }))
+				emit(build.insn("shl", { build.rt(t), build.imm(hi) }, { defs = { t }, uses = { t } }))
+			elseif hi == 64 then
+				emit(build.insn("shl", { build.rt(t), build.imm(64 - lo) }, { defs = { t }, uses = { t } }))
+				emit(build.insn("shr", { build.rt(t), build.imm(64 - lo) }, { defs = { t }, uses = { t } }))
+			else
+				-- keep bits outside [lo, hi) in each 32-bit word (bit32 arithmetic is
+				-- exact), then materialize the 64-bit mask as a hex literal — Luau
+				-- numbers are doubles, so a mask with significant bits at both ends
+				-- (e.g. bytes [0,8) and [16,64)) cannot ride a numeric constant.
+				local function wordMask(wlo, whi)
+					wlo = math.max(0, math.min(32, wlo))
+					whi = math.max(0, math.min(32, whi))
+					local low = 0
+					if wlo >= 32 then low = 0xFFFFFFFF
+					elseif wlo > 0 then low = bit32.lshift(1, wlo) - 1 end
+					local high = 0
+					if whi < 32 then high = bit32.lshift(0xFFFFFFFF, whi) end
+					return bit32.bor(low, high)
+				end
+				local lo32 = wordMask(sub8, sub8 + part.w * 8)
+				local hi32 = wordMask(sub8 - 32, sub8 + part.w * 8 - 32)
+				local tk = allocTemp({ role = "slotmask" })
+				cg.movBig(tk, string.format("0x%08x%08x", hi32, lo32))
+				emit(build.insn("and", { build.rt(t), build.rt(tk) },
+					{ defs = { t }, uses = { t, tk } }))
+			end
+		end
+		if not part.write then
+			-- Narrow load at sub > 0: extract the field into a fresh temp and re-point
+			-- the access at it. The node keeps its own def/use model (the def is the
+			-- destination's web; the slot use becomes the temp use). The extraction
+			-- writes flags, so bracket it when the program's flags are live (the node
+			-- itself does not read flags — that shape was rejected above).
+			withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+				local t = allocTemp({ role = "slottook" })
+				cg.move(t, webT)
+				if sub8 > 0 then
+					emit(build.insn("shr", { build.rt(t), build.imm(sub8) },
+						{ defs = { t }, uses = { t } }))
+				end
+				node.opTemp[slotOp] = t
+				for ti, ut in node.useTemps do
+					if ut == webT then node.useTemps[ti] = t break end
+				end
+			end)
+			-- The walk emits the node itself (the ordinary no-mem path).
+			return false
+		end
+		-- Narrow store (or RMW: any instruction whose destination is the field —
+		-- mov/add/or/sub/adc/sbb/inc/dec/neg/not/shift/setcc): replace the node with
+		-- an explicit merge sequence ending in a full 8-byte store back to the web.
+		withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+			local t1 = allocTemp({ role = "slotrmw" })
+			cg.move(t1, webT)  -- old
+			local t2 = allocTemp({ role = "slotfield" })
+			if isRmw then
+				-- Extract the field, run the original instruction on it (register
+				-- form), then shift it into place. The extraction's upper bytes hold
+				-- the old web's bytes above the field; a sub-32-bit instruction
+				-- preserves them and the shift below carries them back over keep's
+				-- (zeroed) copy of exactly those bytes — the OR is idempotent there.
+				-- (A flag-reading RMW at sub > 0 was rejected above; at sub == 0 the
+				-- copies below are flag-neutral, so the op consumes the real
+				-- pending condition.)
+				cg.move(t2, webT)
+				if sub8 > 0 then
+					emit(build.insn("shr", { build.rt(t2), build.imm(sub8) },
+						{ defs = { t2 }, uses = { t2 } }))
+				end
+				local newops, newUses = {}, {}
+				for _, o in ops do
+					if o == slotOp then
+						table.insert(newops, build.rt(t2, part.w * 8))
+					elseif o.kind == "reg" then
+						local ut = node.opTemp and node.opTemp[o] or nil
+						if not ut then
+							err.at(node.stmt, "internal error: partial slot RMW operand has no"
+								.. " lifted web temp: " .. raw)
+						end
+						table.insert(newops, build.rt(ut, o.width or 64))
+						table.insert(newUses, ut)
+					elseif o.kind == "imm" then
+						table.insert(newops, o)  -- renders verbatim ($text)
+					else
+						err.at(node.stmt, "narrow slot access on '" .. (st.mnemonic or "?")
+							.. "' with a " .. tostring(o.kind) .. " operand is not supported"
+							.. " (re-spell it through a register): " .. raw)
+					end
+				end
+				table.insert(newUses, t2)  -- the read of the extracted field
+				emit(build.insn(st.mnemonic, newops, { defs = { t2 }, uses = newUses }))
+				if sub8 > 0 then
+					emit(build.insn("shl", { build.rt(t2), build.imm(sub8) },
+						{ defs = { t2 }, uses = { t2 } }))
+				end
+			else
+				-- Plain overwrite: zero-extend the source to the field's position. A
+				-- 32-bit move IS a zero-extension (full def of the temp's web);
+				-- narrower register sources need an explicit movzx; an immediate
+				-- source rides a 32-bit move (zero-extending) and, below 4 bytes, a
+				-- shift truncation to the field width (a sub-32-bit register move
+				-- would not zero-extend, and the fresh temp's upper bytes are
+				-- undefined). A flag-reading overwrite (setcc) is ordered FIRST
+				-- (above), so it consumes the real pending condition before any of
+				-- the flag-writing merge instructions run.
+				local srcOp = nil
+				for _, o in ops do
+					if o ~= slotOp then srcOp = srcOp or o end
+				end
+				if not srcOp then
+					err.at(node.stmt, "internal error: partial slot store has no value operand: " .. raw)
+				end
+				if srcOp.kind == "imm" then
+					emit(build.insn("mov", { build.rt(t2, 32), srcOp },
+						{ defs = { t2 }, uses = {} }))
+					if part.w < 4 then
+						emit(build.insn("shl", { build.rt(t2), build.imm(32 - part.w * 8) },
+							{ defs = { t2 }, uses = { t2 } }))
+						emit(build.insn("shr", { build.rt(t2), build.imm(32 - part.w * 8) },
+							{ defs = { t2 }, uses = { t2 } }))
+					end
+				else
+					local srcT = node.opTemp and node.opTemp[srcOp] or nil
+					if srcOp.kind ~= "reg" or not srcT then
+						err.at(node.stmt, "narrow slot store on '" .. (st.mnemonic or "?")
+							.. "' with a " .. tostring(srcOp.kind) .. " value operand is not"
+							.. " supported (re-spell it through a register or immediate): " .. raw)
+					end
+					if part.w == 4 then
+						emit(build.insn("mov", { build.rt(t2, 32), build.rt(srcT, 32) },
+							{ defs = { t2 }, uses = { srcT } }))
+					else
+						emit(build.insn("movzx", { build.rt(t2), build.rt(srcT, part.w * 8) },
+							{ defs = { t2 }, uses = { srcT } }))
+					end
+				end
+				if sub8 > 0 then
+					emit(build.insn("shl", { build.rt(t2), build.imm(sub8) },
+						{ defs = { t2 }, uses = { t2 } }))
+				end
+			end
+			emitKeep(t1)
+			emit(build.insn("or", { build.rt(t1), build.rt(t2) },
+				{ defs = { t1 }, uses = { t1, t2 } }))
+			emit(build.insn("mov", { build.rt(webT), build.rt(t1) },
+				{ defs = { webT }, uses = { t1 } }))
+		end)
+		return true
 	end
 
 	-- The promoted fixed-frame region's allocation (D9): emitted ONCE, up top,
@@ -3715,11 +4621,67 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
 					emitRepString(node)
 				end)
+			elseif c.flagsPush then
+				-- Input pushf/pushfq[/pushfd] (x86_64): materialize the RFLAGS
+				-- value into its web — the same round-trip cg.saveFlags uses for
+				-- the injected checks (pushfq, then pop into a virtual temp), so
+				-- the value may spill freely and survives everything in between.
+				-- Nothing here writes flags, and the frame rewrite emitted the
+				-- word's slot store as the very next statement (an ordinary
+				-- register copy — no injected code can land between), so the
+				-- materialized word is exactly the pending condition. The word is
+				-- typed scalar (nothing seeds the flags web as a pointer), so the
+				-- stack word is never scanned by the GC.
+				local t = node.defTemps and node.defTemps[1]
+				if not t then
+					err.at(node.stmt, "internal error: " .. string.lower(node.stmt.mnemonic)
+						.. " with no lifted flags web: " .. (node.stmt.raw or "?"))
+				end
+				emit(build.insn("pushfq", {}, {}))
+				emit(build.insn("pop", { build.rt(t) }, { defs = { t } }))
+			elseif c.flagsPop then
+				-- Input popf/popfq[/popfd] (x86_64): the frame rewrite emitted the
+				-- word's slot load into the flags web as the previous statement;
+				-- push the value back and popfq (the cg.restoreFlags round-trip).
+				-- The pair is stack-neutral ON ITS OWN, so a path that skips it
+				-- keeps rsp exactly where the frame layout keeps it. The popfq
+				-- WRITES all six flags from the word (flagDefMask = FLAG_ALL), so
+				-- a following jcc/setcc/cmov reads the restored values and any
+				-- injected check in between is bracketed with a save/restore.
+				local t = node.useTemps and node.useTemps[1]
+				if not t then
+					err.at(node.stmt, "internal error: " .. string.lower(node.stmt.mnemonic)
+						.. " with no lifted flags web: " .. (node.stmt.raw or "?"))
+				end
+				emit(build.insn("push", { build.rt(t) }, { uses = { t } }))
+				emit(build.insn("popfq", {}, {}))
+			elseif node.stmt.x86_slotPartial ~= nil and lowerPartialSlot(node) then
+				-- Narrow scalar traffic into a containing 8-byte slot web: lowered in
+				-- place (stores — the node was replaced by the merge sequence; aligned
+				-- narrow loads fall through to the ordinary emission below).
 			else
 				local mem = cgm.memOperand(node.stmt)
 				local fref = funcrefNodes[node]
 				local glea = globalLeaNodes[node]
 				local gget = globalGetterNodes[node]
+				-- Annotated STACK BUFFER indexed access: emit the runtime bounds
+				-- check on the index register first (the instruction itself is
+				-- passed through verbatim further below — lowerSpecial's
+				-- stackBuf/frameSlot arm, or emitPinned for the pinned forms).
+				if node.stmt.x86StackBufIdx then
+					withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+						emitStackBufBoundsCheck(node, mem, node.stmt.x86StackBufIdx)
+					end)
+				end
+				-- Annotated STACK BUFFER by-address access: emit the runtime
+				-- bounds check on the base web first (the instruction itself is
+				-- emitted verbatim by the x86StackBufAddr arm below — original
+				-- base register, original displacement, no capability check).
+				if node.stmt.x86StackBufAddr then
+					withFlagSave(flagsLiveFrom(nodeIndex[node]), function()
+						emitStackBufAddrCheck(node, mem, node.stmt.x86StackBufAddr)
+					end)
+				end
 				if fref then
 					-- `#! funcref` lea (x86_64): define (iv, lower) as the
 					-- function's flight pointer. This is a pointer seed (ptrflow
@@ -3728,7 +4690,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					-- store (exactly like the global getters).
 					local dstIv = node.defTemps and node.defTemps[1]
 					if not dstIv then
-						error("sarcasm: `funcref` lea has no modeled (GPR) destination"
+						err.at(node.stmt, "`funcref` lea has no modeled (GPR) destination"
 							.. " register: " .. (node.stmt.raw or "?"))
 					end
 					local dstLo = pf.lowerTemp[dstIv]
@@ -3763,7 +4725,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					-- include pointer stores, which need registration).
 					local dstIv = node.defTemps and node.defTemps[1]
 					if not dstIv then
-						error("sarcasm: global lea has no modeled (GPR) destination"
+						err.at(node.stmt, "global lea has no modeled (GPR) destination"
 							.. " register: " .. (node.stmt.raw or "?"))
 					end
 					local dstLo = pf.lowerTemp[dstIv]
@@ -3784,7 +4746,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					-- Extern `#! global ptr` lea: the getter call defines (iv, lo).
 					local dstIv = node.defTemps and node.defTemps[1]
 					if not dstIv then
-						error("sarcasm: `global ptr` lea has no modeled (GPR) destination"
+						err.at(node.stmt, "`global ptr` lea has no modeled (GPR) destination"
 							.. " register: " .. (node.stmt.raw or "?"))
 					end
 					local dstLo = pf.lowerTemp[dstIv]
@@ -3828,6 +4790,56 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					table.insert(node.useTemps, effTemp)
 					if node.c and node.c.uses then table.insert(node.c.uses, newBase) end
 					if not (cg.emitPinned and cg.emitPinned(node)) then emit(node) end
+				elseif node.stmt.x86StackBufAddr then
+					-- A by-address `#! stack buffer` access: the runtime bounds
+					-- check ran just above; emit the ORIGINAL instruction
+					-- VERBATIM (original base register, original displacement) —
+					-- no computeAddr, no capability check. The base web stays
+					-- live across the check (the instruction itself uses it).
+					-- A lowerable {%kN}-masked vector move (the frame pass recorded
+					-- the scratch register and the unmasked twin in the mark)
+					-- lowers exactly like the frame pass's masked stack lowering
+					-- rides a redirected buffer operand: the FULL width was
+					-- bounds-checked above, so the unmasked full-width old-bytes
+					-- traffic and the original masked register-register move touch
+					-- only proven bytes, and masked-off lanes keep their memory.
+					local mk = node.stmt.x86StackBufAddr.masked
+					if mk then
+						local isStore = (node.stmt.operands[1] == mem)
+						local vop = isStore and node.stmt.operands[2] or node.stmt.operands[1]
+						local w = (vop.width or 128) // 8
+						local pfx = (w >= 64) and "zmm" or (w >= 32) and "ymm" or "xmm"
+						local scratch = { kind = "reg", rc = "xmm", num = mk.num,
+							width = w * 8, name = pfx .. mk.num }
+						local matU = {}
+						for kk, vv in pairs(mem) do matU[kk] = vv end
+						matU.deco = nil
+						if isStore then
+							-- scratch = old memory; scratch = k ? src : scratch
+							-- (the ORIGINAL masked move, its mask decorator moved
+							-- onto the scratch destination); store scratch back
+							emit(build.insn(mk.unal, { scratch, matU },
+								{ raw = node.stmt.raw, line = node.stmt.line }))
+							local dst = {}
+							for kk, vv in pairs(scratch) do dst[kk] = vv end
+							dst.deco = mk.deco
+							emit(build.insn(node.stmt.mnemonic, { dst, vop },
+								{ raw = node.stmt.raw, line = node.stmt.line }))
+							emit(build.insn(mk.unal, { matU, scratch },
+								{ raw = node.stmt.raw, line = node.stmt.line }))
+						else
+							-- scratch = full load; dest = k ? scratch : dest
+							emit(build.insn(mk.unal, { scratch, matU },
+								{ raw = node.stmt.raw, line = node.stmt.line }))
+							local dst = {}
+							for kk, vv in pairs(vop) do dst[kk] = vv end
+							dst.deco = mk.deco
+							emit(build.insn(node.stmt.mnemonic, { dst, scratch },
+								{ raw = node.stmt.raw, line = node.stmt.line }))
+						end
+					elseif not (cg.emitPinned and cg.emitPinned(node)) then
+						emit(node)
+					end
 				elseif cg.lowerSpecial(node, mem) then
 					-- arch-specific passthrough lowering (e.g. x86 cltq -> movslq, lea passthrough)
 				elseif loadPtrDefs[node] then
@@ -3835,7 +4847,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					-- an FP/vector (or otherwise unmodeled) destination has no temp:
 					-- reject cleanly instead of indexing the lower-temp table with nil.
 					if not dstIv then
-						error("sarcasm: `load ptr` requires a modeled (GPR) destination"
+						err.at(node.stmt, "`load ptr` requires a modeled (GPR) destination"
 							.. " register: " .. (node.stmt.raw or "?"))
 					end
 					local dstLo = pf.lowerTemp[dstIv]
@@ -3851,7 +4863,7 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 					local valOp = storeValueOperand(node.stmt, mem)
 					local valIv = valOp and node.opTemp[valOp] or nil
 					if not valIv then
-						error("sarcasm: `store ptr` requires a modeled (GPR) value"
+						err.at(node.stmt, "`store ptr` requires a modeled (GPR) value"
 							.. " register: " .. (node.stmt.raw or "?"))
 					end
 					local valLo = pf.lowerTemp[valIv]
@@ -3889,6 +4901,14 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 				elseif atomicRmwPtrNodes[node] then
 					local gEff, gLo = materializeGlobalPtrAccess(node, mem, true)
 					emitAtomicLoadStorePtr(node, mem, gEff, gLo)
+				elseif mem and mem.stackBuf then
+					-- A `#! stack buffer` access: real memory in the lowered buffer
+					-- region, no capability to check. lowerSpecial already passed the
+					-- non-pinned forms through verbatim; a PINNED form (div/mul/
+					-- cmpxchg with an indexed buffer operand) lands here — emit its
+					-- pin moves around the verbatim instruction. (The bounds check
+					-- for the indexed forms was emitted just above.)
+					if not (cg.emitPinned and cg.emitPinned(node)) then emit(node) end
 				elseif mem then
 					cg.checkMemInsn(node, mem)
 					local effTemp, capLo = cg.computeAddr(node, mem)
@@ -4023,15 +5043,31 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 			shift += 8
 		end
 		-- Mirror computeLayout's widened pad: the shift must be a multiple of
-		-- the EFFECTIVE frame alignment (the cluster-based width the layout
-		-- uses: max cluster areq capped at 64, 16 when none needs more) so the
-		-- clusters' alignment residues survive it. The raw `and $-N` note max
-		-- (fctx.fp.alignReq, uncapped e.g. 1024) must NOT be used here: the
-		-- layout pads only to the effective width, so a raw-width shift would
-		-- land shifted slots/saveOff outside the laid-out FP region.
+		-- the EFFECTIVE frame alignment (the width the layout uses: max
+		-- materialized-cluster areq and max stack-buffer group areq, each
+		-- capped at 64, 16 when none needs more) so the clusters' and the
+		-- buffer groups' alignment residues survive it. The raw `and $-N`
+		-- note max (fctx.fp.alignReq, uncapped e.g. 1024) must NOT be used
+		-- here: the layout pads only to the effective width, so a raw-width
+		-- shift would land shifted slots/saveOff outside the laid-out FP
+		-- region.
 		local alignMod = 16
 		for _, c in ((fctx and fctx.fp and fctx.fp.clusters) or {}) do
 			if c.areq and c.areq > alignMod then alignMod = math.min(c.areq, 64) end
+		end
+		local sblShift = framePolicy.stackBufLayout and framePolicy.stackBufLayout() or nil
+		if sblShift then
+			for _, g in (sblShift.groups or {}) do
+				if g.areq and g.areq > alignMod then alignMod = math.min(g.areq, 64) end
+				-- Absolute-alignment identities (xor-toggle feature) raise the
+				-- frame's effective alignment (see the return's frameAlignReq,
+				-- and computeLayout which consumes it) — this shift must mirror
+				-- the SAME widening, or the shifted slots land outside the
+				-- laid-out region.
+				if g.abs and g.abs.mod and g.abs.mod > alignMod then
+					alignMod = g.abs.mod
+				end
+			end
 		end
 		if alignMod > 16 then
 			while (shift % alignMod) ~= 0 do shift += 8 end
@@ -4053,11 +5089,113 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		end
 	end
 
+	-- Stack-buffer base fixup (x86_64 `#! stack buffer`): the buffer region sits
+	-- right below the spill slots, at frame offset
+	--   16 + 8*numRoots + fpPad + fpSaveBytes + fpBytes + yoloBytes
+	-- (mirroring computeLayout, whose spillBase adds bufBytes after the yolo
+	-- area). Every stackBuf-tagged memory operand carries a region-relative
+	-- placeholder displacement until this shift lands it on the real frame
+	-- offset. fpPad mirrors computeLayout exactly (including the widened pad for
+	-- a >16-byte frame alignment), so the shift is a multiple of 16 and the
+	-- groups' alignment residues survive.
+	if bufBytes > 0 then
+		local nRoots = #rootTemps
+		local fpSaveB = (fctx and fctx.fp and fctx.fp.saveBytes) or 0
+		local fpB = (fctx and fctx.fp and fctx.fp.bytes) or 0
+		local yoloB = (fctx and fctx.yolo and fctx.yolo.bytes) or 0
+		local fpPad = ((fpSaveB + fpB + yoloB + bufBytes) > 0 and nRoots % 2 == 1) and 8 or 0
+		local alignMod = 16
+		for _, cl in ((fctx and fctx.fp and fctx.fp.clusters) or {}) do
+			if cl.areq and cl.areq > alignMod then alignMod = math.min(cl.areq, 64) end
+		end
+		for _, g in (stackBufLayout and stackBufLayout.groups or {}) do
+			if g.areq and g.areq > alignMod then alignMod = math.min(g.areq, 64) end
+			-- An absolute-alignment identity (the xor-toggle feature) needs the
+			-- frame aligned to its modulus: the identity's residue story only
+			-- holds while rsp ≡ 0 (mod N), which the prologue's `and $-N` (the
+			-- frame's effective alignment below) provides. Uncapped: the
+			-- modulus comes from the INPUT's own `and $-N` note, whose width
+			-- the layout machinery handles for any power of two.
+			if g.abs and g.abs.mod and g.abs.mod > alignMod then
+				alignMod = g.abs.mod
+			end
+		end
+		if alignMod > 16 then
+			while ((8 * nRoots + fpPad) % alignMod) ~= 0 do fpPad += 8 end
+		end
+		local bufShift = 16 + 8 * nRoots + fpPad + fpSaveB + fpB + yoloB
+		-- Absolute-alignment identity placement: pad the START of the buffer
+		-- region so every identity-bearing group's base lands on its required
+		-- residue mod N. The pad shifts all groups uniformly, so identities are
+		-- jointly satisfiable exactly when the groups' base deltas match their
+		-- residue deltas; the frame pass proved each group's own residue, this
+		-- proves the cross-group deltas and pins the pad.
+		local sbPad = 0
+		do
+			local anchor = nil
+			for _, g in (stackBufLayout and stackBufLayout.groups or {}) do
+				if g.abs and g.abs.mod then
+					if anchor == nil then
+						anchor = g
+					else
+						local n = anchor.abs.mod
+						if n ~= g.abs.mod
+							or ((g.abs.res - anchor.abs.res - (g.base - anchor.base))
+								% n + n) % n ~= 0 then
+							-- A genuine TWO-construct conflict (an anchor group vs
+							-- this offending group): name BOTH declarations. The
+							-- offending group is the primary location; the anchor's
+							-- file:line rides in the message text (nil-safe: a group
+							-- without a recorded declaration omits the clause).
+							local anchorDeclSt = (anchor.decls and anchor.decls[1])
+								and origBody[anchor.decls[1].declIdx] or nil
+							local gDeclSt = (g.decls and g.decls[1])
+								and origBody[g.decls[1].declIdx] or nil
+							local anchorLoc = err.locStr(anchorDeclSt)
+							err.at(gDeclSt, "stack buffer groups with absolute"
+								.. " alignment identities cannot be placed together"
+								.. " (one region pad cannot satisfy both residue"
+								.. " stories)"
+								.. (anchorLoc and (" (the other group's declaration is at "
+									.. anchorLoc .. ")") or ""))
+						end
+					end
+				end
+			end
+			if anchor ~= nil then
+				local n = anchor.abs.mod
+				sbPad = ((anchor.abs.res - bufShift - anchor.base) % n + n) % n
+				bufShift += sbPad
+				bufBytes += sbPad
+			end
+		end
+		local seenBuf = {}
+		local function shiftBufOps(ops)
+			for _, o in (ops or {}) do
+				if o.kind == "mem" and o.stackBuf and not seenBuf[o] then
+					seenBuf[o] = true
+					o.dispVal = (o.dispVal or 0) + bufShift
+				end
+			end
+		end
+		for _, node in out do
+			shiftBufOps(node.operands)
+			if node.stmt then shiftBufOps(node.stmt.operands) end
+		end
+		for _, node in failStubs do
+			shiftBufOps(node.operands)
+			if node.stmt then shiftBufOps(node.stmt.operands) end
+		end
+	end
+
 	return {
 		name = name, sigDesc = sigDesc, fipNodes = out, temps = temps, vMyth = vMyth,
 		originSym = originSym, numRoots = #rootTemps, funcLine = funcLine, nextTemp = nextTemp,
 		rootTemps = rootTemps, accessOrigins = accessOrigins, calledExterns = externsList,
 		lf = lf, pf = pf,
+		-- `#! stack buffer` region size for the frame layout (0 when the function
+		-- declares none).
+		bufBytes = bufBytes,
 		-- Fixed colors of the function's implicit-counter webs (empty unless the
 		-- body contains loop/loopl/jrcxz/jecxz): the allocator removes these from
 		-- its color pool and never coalesces into them, so nothing else can ever
@@ -4075,10 +5213,27 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		-- proved each such cluster's input offsets aligned under an
 		-- `and $-N, %rsp` note; the layout dynamically aligns the synthesized
 		-- frame to this width so they stay aligned in the output.
+		-- `#! stack buffer` groups count too: a group's aligned accesses need
+		-- the output frame backed to their widest requirement even when no
+		-- materialized cluster needs it (the OpenSSL ChaCha20_16x shape — its
+		-- only 64-byte-aligned stack traffic lives inside the buffer).
 		frameAlignReq = (function()
 			local effA = 16
 			for _, c in ((fctx and fctx.fp and fctx.fp.clusters) or {}) do
 				if c.areq and c.areq > effA then effA = math.min(c.areq, 64) end
+			end
+			local sbl = framePolicy.stackBufLayout and framePolicy.stackBufLayout() or nil
+			if sbl then
+				for _, g in (sbl.groups or {}) do
+					if g.areq and g.areq > effA then effA = math.min(g.areq, 64) end
+					-- Absolute-alignment identities (xor-toggle feature) raise
+					-- the frame's effective alignment to their modulus (see the
+					-- bufShift block above); uncapped like the input's own
+					-- `and $-N` note.
+					if g.abs and g.abs.mod and g.abs.mod > effA then
+						effA = g.abs.mod
+					end
+				end
 			end
 			return effA
 		end)(),

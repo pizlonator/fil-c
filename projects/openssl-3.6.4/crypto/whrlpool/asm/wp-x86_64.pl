@@ -61,11 +61,6 @@ sub LL(){ $code.=".byte	".join(',',@_).",".join(',',@_)."\n"; }
 $func="whirlpool_block";
 $table=".Ltable";
 
-# Sarcasm rejects taking the frame's address (`lea 128(%rsp),%r10`), so the
-# parameter block below is spelled directly off %rsp; gas keeps the parked
-# pointer. PB($off,$base) renders the slot in the active spelling.
-sub PB { my ($o,$b)=@_; return $ENV{SARCASM} ? "128+$o(%rsp)" : "$o($b)"; }
-
 $code=<<___;
 .text
 
@@ -90,32 +85,40 @@ $func: #! void(ptr,ptr,size_t)
 .cfi_push	%r15
 
 	sub	\$128+40,%rsp
-___
-# Sarcasm rejects the dynamic 64-byte alignment below (an `and` on %rsp is
-# not a provable frame shape); the frame traffic is all scalar (<=8 bytes)
-# at 8-aligned addresses, so the fixed frame is already naturally aligned.
-$code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp
 ___
+# The parameter block below lives at a frame-escaped address: the leas take
+# the frame's address (they are mid-function, past the `and` alignment), so
+# sarcasm materializes the frame as a GC region.  Pointer round-trips through
+# it therefore carry `#! store ptr` / `#! load ptr` annotations -- a plain
+# store into region memory writes only the 8 raw bytes and the capability
+# would be lost on the reload (the .Lroundsdone reloads and the bottom-of-
+# loop update store below are annotated the same way).  Scalar slots (num,
+# the round counter) stay unannotated.  Gas ignores the annotations.
 $code.=<<___;
 
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	lea	128(%rsp),%r10
+	mov	%rdi,0(%r10)		#! store ptr # save parameter block
+	mov	%rsi,8(%r10)		#! store ptr # save inp
+	mov	%rdx,16(%r10)
 ___
+# The saved stack pointer is parked straight in its frame slot under
+# sarcasm: a stack value cannot be stored through the parked param-block
+# carrier. Gas keeps the carrier spelling.
+if ($ENV{SARCASM}) {
 $code.=<<___;
-	mov	%rdi,`&PB(0,"%r10")`		# save parameter block
-	mov	%rsi,`&PB(8,"%r10")`
-	mov	%rdx,`&PB(16,"%r10")`
-	mov	%rax,`&PB(32,"%r10")`		# saved stack pointer
+	mov	%rax,160(%rsp)		# saved stack pointer
+___
+} else {
+$code.=<<___;
+	mov	%rax,32(%r10)		# saved stack pointer
+___
+}
+$code.=<<___;
 .cfi_cfa_expression	%rsp+`128+32`,deref,+8
 .Lprologue:
 
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	%r10,%rbx
-___
-$code.=<<___;
 	lea	$table(%rip),%rbp
 
 	xor	%rcx,%rcx
@@ -128,27 +131,13 @@ for($i=0;$i<8;$i++) { $code.="xor $i*8(%rsi),@mm[$i]\n"; }	# L^=inp
 for($i=0;$i<8;$i++) { $code.="mov @mm[$i],64+$i*8(%rsp)\n"; }	# S=L
 $code.=<<___;
 	xor	%rsi,%rsi
-	mov	%rsi,`&PB(24,"%rbx")`		# zero round counter
+	mov	%rsi,24(%rbx)		# zero round counter
 	jmp	.Lround
 .align	16
 .Lround:
 	mov	4096(%rbp,%rsi,8),@mm[0]	# rc[r]
 	mov	0(%rsp),%eax
-___
-# Sarcasm miscompiles 4-byte loads from the high half of an 8-byte
-# virtualized frame slot (the low-half load is fine), so under SARCASM
-# the odd-half loads below are spelled as an 8-byte load plus shr $32
-# (value-identical: shr zeroes the top like the movl zero-extend;
-# flag-safe: no live flags in the straight-line round body). Gas keeps
-# the original movl pairs byte-identical.
-$code.=<<___ if ($ENV{SARCASM});
-	movq	0(%rsp),%rbx
-	shrq	\$32,%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	4(%rsp),%ebx
-___
-$code.=<<___;
 	movz	%al,%ecx
 	movz	%ah,%edx
 ___
@@ -176,15 +165,7 @@ for($i=0;$i<8;$i++) {
 	movz	%bh,%edx
 	$func	4(%rbp,%rsi,8),@mm[4]
 	$func	3(%rbp,%rdi,8),@mm[5]
-___
-$code.=<<___ if ($ENV{SARCASM});
-	movq	$i*8+8(%rsp),%rbx
-	shrq	\$32,%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	$i*8+8+4(%rsp),%ebx		# ($i+1)*8+4
-___
-$code.=<<___;
 	lea	(%rcx,%rcx),%rsi
 	movz	%al,%ecx
 	lea	(%rdx,%rdx),%rdi
@@ -218,14 +199,7 @@ for($i=0;$i<8;$i++) {
 	movz	%bh,%edx
 	xor	4(%rbp,%rsi,8),@mm[4]
 	xor	3(%rbp,%rdi,8),@mm[5]
-___
-$code.=<<___ if ($ENV{SARCASM});
-	`"movq	64+$i*8+8(%rsp),%rbx\n\tshrq	\\\$32,%rbx"	if($i<7);`
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	`"mov	64+$i*8+8+4(%rsp),%ebx"	if($i<7);`	# 64+($i+1)*8+4
-___
-$code.=<<___;
 	lea	(%rcx,%rcx),%rsi
 	movz	%al,%ecx
 	lea	(%rdx,%rdx),%rdi
@@ -236,26 +210,22 @@ ___
     push(@mm,shift(@mm));
 }
 $code.=<<___;
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	lea	128(%rsp),%rbx
-___
-$code.=<<___;
-	mov	`&PB(24,"%rbx")`,%rsi		# pull round counter
+	mov	24(%rbx),%rsi		# pull round counter
 	add	\$1,%rsi
 	cmp	\$10,%rsi
 	je	.Lroundsdone
 
-	mov	%rsi,`&PB(24,"%rbx")`		# update round counter
+	mov	%rsi,24(%rbx)		# update round counter
 ___
 for($i=0;$i<8;$i++) { $code.="mov @mm[$i],64+$i*8(%rsp)\n"; }	# S=L
 $code.=<<___;
 	jmp	.Lround
 .align	16
 .Lroundsdone:
-	mov	`&PB(0,"%rbx")`,%rdi		# reload argument block
-	mov	`&PB(8,"%rbx")`,%rsi
-	mov	`&PB(16,"%rbx")`,%rax
+	mov	0(%rbx),%rdi		#! load ptr # reload argument block
+	mov	8(%rbx),%rsi		#! load ptr # reload inp
+	mov	16(%rbx),%rax
 ___
 for($i=0;$i<8;$i++) { $code.="xor $i*8(%rsi),@mm[$i]\n"; }	# L^=inp
 for($i=0;$i<8;$i++) { $code.="xor $i*8(%rdi),@mm[$i]\n"; }	# L^=H
@@ -264,11 +234,30 @@ $code.=<<___;
 	lea	64(%rsi),%rsi		# inp+=64
 	sub	\$1,%rax		# num--
 	jz	.Lalldone
-	mov	%rsi,`&PB(8,"%rbx")`		# update parameter block
-	mov	%rax,`&PB(16,"%rbx")`
+	mov	%rsi,8(%rbx)		#! store ptr # update parameter block
+	mov	%rax,16(%rbx)
 	jmp	.Louterloop
 .Lalldone:
-	mov	`&PB(32,"%rbx")`,%rsi		# restore saved pointer
+___
+# The saved stack pointer is parked straight into its frame slot under
+# sarcasm (a stack value cannot be stored through the parked param-block
+# carrier). The parked-pointer round trip is not provable there either --
+# the param-block carriers take the frame's address, so the frame
+# materializes as a GC region and the parked value reads back as the
+# region pointer -- so the sarcasm epilogue drops the restore loads (the
+# callee-saved registers ride the dropped push/pop machinery) and undoes
+# the 6-push + 168-byte frame depth directly. Gas keeps the parked-pointer
+# spelling.
+if ($ENV{SARCASM}) {
+$code.=<<___;
+	lea	`6*8+128+40`(%rsp),%rsp
+.cfi_def_cfa_register	%rsp
+.Lepilogue:
+	ret
+___
+} else {
+$code.=<<___;
+	mov	32(%rbx),%rsi		# restore saved pointer
 .cfi_def_cfa	%rsi,8
 	mov	-48(%rsi),%r15
 .cfi_restore	%r15
@@ -286,6 +275,9 @@ $code.=<<___;
 .cfi_def_cfa_register	%rsp
 .Lepilogue:
 	ret
+___
+}
+$code.=<<___;
 .cfi_endproc
 .size	$func,.-$func
 
@@ -667,7 +659,6 @@ se_handler:
 	.rva	se_handler
 ___
 }
-
 
 $code =~ s/\`([^\`]*)\`/eval $1/gem;
 print $code;

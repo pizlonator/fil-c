@@ -183,6 +183,13 @@ public:
   bool HasOptfil;
   std::string PizfixRoot;
 
+  /// True if this is a cosmopolitan libc ("cosmo") flavored Fil-C: the pizfix
+  /// tree contains lib/libyolocosmo.a.  Cosmo builds link static, non-PIE
+  /// executables with no dynamic linker and no shared libraries, using the
+  /// cosmo crt1.o, ape.o, and ape.lds in pizfix/lib instead of the musl CRT
+  /// objects, and libyolocosmo.a instead of libyoloc.a/libyolom.a.
+  bool HasCosmo = false;
+
   /// The original path to the clang executable.
   std::string ClangExecutable;
 

@@ -21,41 +21,20 @@
 
 #include <features.h>
 #include <sys/types.h>
+/* Fil-C: accessing FPCR/FPSR requires system register reads/writes
+   (mrs/msr), which pizlonated code cannot do; the Fil-C compiler's safe
+   inline asm rejects them.  Route all FPCR/FPSR access through the Fil-C
+   runtime instead, like sysdeps/x86/fpu_control.h does for the x87
+   control word.  zmath_getcw/zmath_setcw read and write FPCR, and
+   zmath_getfpsr/zmath_setfpsr read and write FPSR.  */
+#include <pizlonated_math.h>
 
 /* Macros for accessing the FPCR and FPSR.  */
 
-#if __GNUC_PREREQ (6,0)
-# define _FPU_GETCW(fpcr) (fpcr = __builtin_aarch64_get_fpcr ())
-# define _FPU_SETCW(fpcr) __builtin_aarch64_set_fpcr (fpcr)
-# define _FPU_GETFPSR(fpsr) (fpsr = __builtin_aarch64_get_fpsr ())
-# define _FPU_SETFPSR(fpsr) __builtin_aarch64_set_fpsr (fpsr)
-#else
-# define _FPU_GETCW(fpcr)					\
-  ({ 								\
-   __uint64_t __fpcr;						\
-   __asm__ __volatile__ ("mrs	%0, fpcr" : "=r" (__fpcr));	\
-   fpcr = __fpcr;						\
-  })
-
-# define _FPU_SETCW(fpcr)					\
-  ({								\
-   __uint64_t __fpcr = fpcr;					\
-   __asm__ __volatile__ ("msr	fpcr, %0" : : "r" (__fpcr));    \
-  })
-
-# define _FPU_GETFPSR(fpsr)					\
-  ({								\
-   __uint64_t __fpsr;						\
-   __asm__ __volatile__ ("mrs	%0, fpsr" : "=r" (__fpsr));	\
-   fpsr = __fpsr;						\
-  })
-
-# define _FPU_SETFPSR(fpsr)					\
-  ({								\
-   __uint64_t __fpsr = fpsr;					\
-   __asm__ __volatile__ ("msr	fpsr, %0" : : "r" (__fpsr));    \
-  })
-#endif
+# define _FPU_GETCW(fpcr) (fpcr = zmath_getcw ())
+# define _FPU_SETCW(fpcr) zmath_setcw (fpcr)
+# define _FPU_GETFPSR(fpsr) (fpsr = zmath_getfpsr ())
+# define _FPU_SETFPSR(fpsr) zmath_setfpsr (fpsr)
 
 /* Reserved bits should be preserved when modifying register
    contents. These two masks indicate which bits in each of FPCR and

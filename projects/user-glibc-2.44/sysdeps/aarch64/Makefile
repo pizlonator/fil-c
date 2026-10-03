@@ -31,17 +31,10 @@ tst-audit27-ENV = LD_AUDIT=$(objpfx)tst-auditmod27.so
 endif
 
 ifeq ($(subdir),elf)
-sysdep-rtld-routines += \
-  dl-start \
-  # sysdep-rtld-routines
-sysdep-dl-routines += \
-  dl-tlsdesc \
-  tlsdesc \
-  # sysdep-dl-routines
-gen-as-const-headers += \
-  dl-link.sym \
-  rtld-global-offsets.sym \
-  # gen-as-const-headers
+# Fil-C: rtld-global-offsets.sym and dl-link.sym are dropped (they compute
+# offsets inside struct rtld_global / struct rtld_global_ro for ld.so-only
+# assembly like dl-tlsdesc.S and dl-link.S, and the ported ldsodefs.h no
+# longer defines those structs; the ld.so assembly is not built anyway).
 
 tests-internal += \
   tst-ifunc-arg-1 \
@@ -61,8 +54,12 @@ $(objpfx)tst-vpcs: $(objpfx)tst-vpcs-mod.so
 endif
 
 ifeq ($(subdir),csu)
+# Fil-C: rtld-global-offsets.sym is dropped (upstream it computes
+# GLRO offsets inside struct rtld_global_ro for dl-tlsdesc.S / other ld.so
+# asm, and the ported ldsodefs.h no longer defines struct rtld_global_ro;
+# none of the ld.so asm is built anyway).  tlsdesc.sym is kept since
+# tlsdesc.h is included by built code.
 gen-as-const-headers += \
-  rtld-global-offsets.sym \
   tlsdesc.sym \
   # gen-as-const-headers
 endif
@@ -79,28 +76,16 @@ ifeq ($(subdir),misc)
 sysdep_headers += \
   sys/ifunc.h \
   # sysdep_headers
-sysdep_routines += \
-  __alloc_gcs \
-  __arm_za_disable \
-  __mte_tag_region \
-  __mte_tag_region_zero \
-  # sysdep_routines
+# Fil-C: __alloc_gcs, __arm_za_disable, __mte_tag_region and
+# __mte_tag_region_zero are only needed by makecontext/setcontext, which are
+# provided by the Fil-C runtime's fiber context code (stdlib/makecontext.c
+# etc.); the raw-asm and raw-syscall implementations are not built.
 
 tests += \
   tst-sme-jmp \
   tst-sme-signal \
   tst-sme-za-state \
   # tests
-tests-internal += \
-  tst-sme-clone \
-  tst-sme-clone3 \
-  tst-sme-fork \
-  tst-sme-vfork \
-  tst-sme-za-disable-fail \
-  # tests-internal
-
-$(objpfx)tst-sme-clone3: $(objpfx)clone3.o $(objpfx)__arm_za_disable.o
-$(objpfx)tst-sme-za-disable-fail: $(objpfx)__arm_za_disable.o
 endif
 
 ifeq ($(subdir),malloc)

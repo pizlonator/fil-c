@@ -1,0 +1,11 @@
+#ifndef COSMOPOLITAN_LIBC_SYSV_CONSTS_TH_H_
+#define COSMOPOLITAN_LIBC_SYSV_CONSTS_TH_H_
+
+#define TH_FIN  1
+#define TH_SYN  2
+#define TH_RST  4
+#define TH_PUSH 8
+#define TH_URG  32
+#define TH_ACK  16
+
+#endif /* COSMOPOLITAN_LIBC_SYSV_CONSTS_TH_H_ */

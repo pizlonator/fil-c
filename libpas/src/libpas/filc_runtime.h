@@ -209,7 +209,15 @@ typedef uintptr_t filc_word;
 #define FILC_FINALIZER_STATE_ENQUEUED     ((uintptr_t)3)
 #define FILC_FINALIZER_STATE_MASK         ((uintptr_t)3)
 
+#if PAS_COSMO
+/* Cosmo's _NSIG is an `extern const int` (a link-time constant, so it can't
+   be used in an array bound), and it is the max signal number (64) rather
+   than the max-plus-one that musl's is. Cosmo's NSIG macro is the same value
+   but is a compile-time constant. */
+#define FILC_MAX_USER_SIGNUM              NSIG
+#else /* PAS_COSMO -> so !PAS_COSMO */
 #define FILC_MAX_USER_SIGNUM              (_NSIG - 1)
+#endif /* PAS_COSMO -> so end of !PAS_COSMO */
                                           
 #define FILC_THREAD_STATE_ENTERED         ((uint8_t)1)
 #define FILC_THREAD_STATE_CHECK_REQUESTED ((uint8_t)2)

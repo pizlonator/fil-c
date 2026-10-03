@@ -1,0 +1,8 @@
+#ifndef COSMOPOLITAN_DSP_TTY_WINDEX_H_
+#define COSMOPOLITAN_DSP_TTY_WINDEX_H_
+COSMOPOLITAN_C_START_
+
+extern unsigned (*windex)(uint16_t *, size_t);
+
+COSMOPOLITAN_C_END_
+#endif /* COSMOPOLITAN_DSP_TTY_WINDEX_H_ */

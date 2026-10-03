@@ -1,3 +1,6 @@
 return: success
 only-on-platform:
   x86_64
+
+# COSMO: MMX intrinsic headers (_mm_set_pi32 & co) are disabled in the Fil-C cosmo intel-header set; these tests cannot compile without re-enabling them.
+unsupportedOnCOSMO: true

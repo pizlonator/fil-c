@@ -155,6 +155,21 @@ void pas_fast_tls_destructor(void* arg)
         pas_log("[%d] Destructor call for TLS %p\n", pas_getpid(), thread_local_cache);
 
 #if !PAS_OS(DARWIN)
+    /* If this thread already marked its fast-TLS slot as destroyed, then any TLC pointer that
+       pthread passes us here is stale: either a previous invocation of this destructor already
+       destroyed it, or the thread itself decided that its TLC lifecycle is over before running
+       its pthread-exit teardown (see filc_native_zthread_exit()). Destroying it again would
+       acquire pas_heap_lock after the thread became invisible to stop-the-world, suspension, and
+       fork(), and would double-free the cache. The marker is only ever set and read by the
+       owning thread itself, so this check is same-thread and race-free. */
+    /* FIXME: This logic is nuts. https://github.com/pizlonator/fil-c/issues/326 */
+    if (pas_thread_local_cache_try_get_impl() == PAS_FAST_TLS_DESTROYED) {
+        if (verbose)
+            pas_log("[%d] Skipping destructor call for TLS %p because the thread already "
+                    "destroyed it\n", pas_getpid(), thread_local_cache);
+        return;
+    }
+
     /* If pthread_self_is_exiting_np does not exist, we set PAS_FAST_TLS_DESTROYED in the TLS so that
        subsequent calls of pas_thread_local_cache_try_get() can detect whether TLS is destroyed. Since
        PAS_FAST_TLS_DESTROYED is a non-null value, pthread will call this destructor again (up to

@@ -1,0 +1,48 @@
+/*-*- mode:c;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
+│ vi: set et ft=c ts=2 sts=2 sw=2 fenc=utf-8                               :vi │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright 2020 Justine Alexandra Roberts Tunney                              │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚─────────────────────────────────────────────────────────────────────────────*/
+#include "libc/str/str.h"
+#include "libc/macros.h"
+#include "libc/wctype.h"
+
+/**
+ * Compares UCS-2 strings case-insensitively w/ limit.
+ *
+ * @param a is first non-null char16 string pointer
+ * @param b is second non-null char16 string pointer
+ * @return is <0, 0, or >0 based on wint_t comparison
+ * @asyncsignalsafe
+ */
+int strncasecmp16(const char16_t *a, const char16_t *b, size_t n) {
+  if (a == b)
+    return 0;
+  wint_t x, y;
+  size_t i = -1;
+  do {
+    ++i;
+    if (i == n)
+      return 0;
+    x = towlower(a[i]);
+    y = towlower(b[i]);
+  } while (x == y && x);
+#if !TYPE_SIGNED(wint_t)
+  return x - y;
+#else
+  return (x > y) - (x < y);
+#endif
+}

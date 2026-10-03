@@ -55,6 +55,8 @@ pas_range pas_flex_large_free_heap_try_allocate(pas_flex_large_free_heap* heap,
     
     pas_red_black_tree_node* node;
     pas_aligned_allocation_result aligned_result;
+    pas_saved_float_environment saved_float_environment;
+    bool slop_says_fail;
 
     pas_heap_lock_assert_held();
 
@@ -72,7 +74,20 @@ pas_range pas_flex_large_free_heap_try_allocate(pas_flex_large_free_heap* heap,
 
         flex_node = (pas_flex_large_free_node*)node;
         PAS_ASSERT(pas_range_size(flex_node->range) >= size);
-        if ((double)pas_range_size(flex_node->range) / (double)size > PAS_MAX_FLEX_HEAP_SLOP)
+
+        /* The slop heuristic uses floating-point division, which usually raises FE_INEXACT,
+           and which would trap if the program unmasked floating-point exceptions.  Our
+           heuristics must be invisible to the program, so canonicalize the floating-point
+           environment for its sake and restore the program's environment afterwards. */
+        pas_save_float_environment(&saved_float_environment);
+        pas_set_float_environment_to_libpas_default();
+
+        slop_says_fail =
+            (double)pas_range_size(flex_node->range) / (double)size > PAS_MAX_FLEX_HEAP_SLOP;
+
+        pas_restore_float_environment(&saved_float_environment);
+
+        if (slop_says_fail)
             break;
 
         if (pas_is_aligned(flex_node->range.begin, alignment)) {

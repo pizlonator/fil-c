@@ -7,3 +7,6 @@ output-includes:
   - "Total victory!"
 slow:
   true
+
+# COSMO: fork()+GC+threads stress: the child's filc runtime state (WIFEXITED on the joined child) does not hold up under the cosmo flavor.
+unsupportedOnCOSMO: true

@@ -7,6 +7,7 @@
 local glue = {}
 
 local sig = require("./sig")
+local err = require("./err")
 
 local FUNCTION_UPPER_FLAGS = "36873221949095936" -- 0x83 << 48
 
@@ -52,7 +53,7 @@ end
 -- (ordinal 0: s0/d0).
 local function fpArgName(argTypes, k)
 	local w = sig.fpWidthBytes(argTypes[k])
-		or error("sarcasm: internal error: FP register name for a non-FP argument " .. tostring(k))
+		or err.plain("internal error: FP register name for a non-FP argument " .. tostring(k))
 	local m = 0
 	for i = 1, k - 1 do
 		if sig.isFpClass(argTypes[i]) then m += 1 end
@@ -346,7 +347,7 @@ function glue.callsiteThunk(out, callee: string, sigDesc)
 	-- reject it cleanly. (FP args need no hold: they stay in the v registers.)
 	local holdWords = argRegWords(sigDesc.argTypes, sigDesc.argWords)
 	if holdWords > 6 then
-		error("sarcasm: callsite thunk for '" .. callee .. "': >6 register argument words not yet supported"
+		err.plain("callsite thunk for '" .. callee .. "': >6 register argument words not yet supported"
 			.. " (this call's signature needs " .. tostring(holdWords) .. ")")
 	end
 	-- The fast tail call loads the canonical entrypoint into the first register past the

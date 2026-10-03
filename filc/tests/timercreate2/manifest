@@ -1,2 +1,5 @@
 return:
   success
+
+# COSMO: cosmo has no POSIX timer_create() surface (no struct sigevent, and SIGEV_THREAD needs the pthread-based emulation musl does internally); only the raw kernel syscall exists.
+unsupportedOnCOSMO: true

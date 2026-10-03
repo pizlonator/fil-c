@@ -1,0 +1,10 @@
+#ifndef COSMOPOLITAN_LIBC_NT_STRUCT_IMAGEBOUNDIMPORTDESCRIPTOR_H_
+#define COSMOPOLITAN_LIBC_NT_STRUCT_IMAGEBOUNDIMPORTDESCRIPTOR_H_
+
+struct NtImageBoundImportDescriptor {
+  uint32_t TimeDateStamp;
+  uint16_t OffsetModuleName;
+  uint16_t NumberOfModuleForwarderRefs;
+};
+
+#endif /* COSMOPOLITAN_LIBC_NT_STRUCT_IMAGEBOUNDIMPORTDESCRIPTOR_H_ */

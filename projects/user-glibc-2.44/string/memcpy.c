@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <memcopy.h>
+#include <stdfil.h>
 
 #ifndef MEMCPY
 # define MEMCPY memcpy
@@ -27,35 +28,13 @@
 void *
 MEMCPY (void *dstpp, const void *srcpp, size_t len)
 {
-  unsigned long int dstp = (long int) dstpp;
-  unsigned long int srcp = (long int) srcpp;
-
-  /* Copy from the beginning to the end.  */
-
-  /* If there not too few bytes to copy, use word copy.  */
-  if (len >= OP_T_THRES)
-    {
-      /* Copy just a few bytes to make DSTP aligned.  */
-      len -= (-dstp) % OPSIZ;
-      BYTE_COPY_FWD (dstp, srcp, (-dstp) % OPSIZ);
-
-      /* Copy whole pages from SRCP to DSTP by virtual address manipulation,
-	 as much as possible.  */
-
-      PAGE_COPY_FWD_MAYBE (dstp, srcp, len, len);
-
-      /* Copy from SRCP to DSTP taking advantage of the known alignment of
-	 DSTP.  Number of bytes remaining is put in the third argument,
-	 i.e. in LEN.  This number may vary from machine to machine.  */
-
-      WORD_COPY_FWD (dstp, srcp, len, len);
-
-      /* Fall out and copy the tail.  */
-    }
-
-  /* There are just a few bytes to copy.  Use byte memory operations.  */
-  BYTE_COPY_FWD (dstp, srcp, len);
-
+  /* Fil-C: the upstream implementation uses the wordcopy helpers (see
+     string/wordcopy.c), which convert pointers to integers and back and
+     rely on unsigned address arithmetic; the Fil-C port of memmove.c and
+     memset.c already replaced those with runtime calls.  Use zmemmove (an
+     unoptimizable copy) here for the same reason.  Note that this file is
+     not built on x86_64, where the multiarch dispatcher wins.  */
+  zmemmove (dstpp, (void *) srcpp, len);
   return dstpp;
 }
 libc_hidden_builtin_def (MEMCPY)

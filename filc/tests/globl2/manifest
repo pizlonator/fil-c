@@ -7,3 +7,6 @@ libraries:
       - foo.c
 extraLinkerArgs:
   "-Lfilc/test-output/globl2 -lfoo -rdynamic"
+
+# COSMO: dlopen()/dlsym() are stubbed out in the cosmo flavor (static-only links, no loader); the dlopen family tests can not work there yet.
+unsupportedOnCOSMO: true

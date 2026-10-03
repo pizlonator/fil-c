@@ -1,0 +1,9 @@
+#ifndef COSMOPOLITAN_LIBC_SOCK_WSAID_INTERNAL_H_
+#define COSMOPOLITAN_LIBC_SOCK_WSAID_INTERNAL_H_
+#include "libc/nt/struct/guid.h"
+COSMOPOLITAN_C_START_
+
+void *__get_wsaid(const struct NtGuid *);
+
+COSMOPOLITAN_C_END_
+#endif /* COSMOPOLITAN_LIBC_SOCK_WSAID_INTERNAL_H_ */

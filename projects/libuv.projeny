@@ -1,0 +1,327 @@
+URL: https://dist.libuv.org/dist/v1.53.0/libuv-v1.53.0-dist.tar.gz bac496ea32e638733e559bda45ccb80b31f01d262c366795cc7034ab1fbe1a8e
+Origname: libuv-1.53.0
+Name: libuv
+
+    libuv 1.53.0 rebased from 1.52.1 and converted from the deprecated
+    legacy-directory mode to a URL-based projeny project.  The Fil-C
+    patch is carried over from projects/libuv-1.52.1 (initial commit
+    6578dde696de).  The -dist tarball is used because it is the real
+    source distribution with the prebuilt configure script; the plain
+    libuv-v1.53.0.tar.gz on the same server is a raw repository
+    snapshot without configure.
+diff --git a/libuv/src/unix/fs.c b/libuv/src/unix/fs.c
+--- a/libuv/src/unix/fs.c
++++ b/libuv/src/unix/fs.c
+@@ -458,30 +458,29 @@
+                                  const struct iovec* bufs,
+                                  size_t nbufs,
+                                  off_t off,
+-                                 _Atomic uintptr_t* cache,
++                                 void*_Atomic* cache,
+                                  int is_pread) {
+-  union {
+-    int (*f)(int, const struct iovec*, uv__iovcnt, off_t);
+-    void* p;
+-  } u;
++  int (*f)(int, const struct iovec*, uv__iovcnt, off_t);
++  void* p;
+
+-  u.p = (void*) atomic_load_explicit(cache, memory_order_relaxed);
+-  if (u.p == NULL) {
++  p = (void*) atomic_load_explicit(cache, memory_order_relaxed);
++  if (p == NULL) {
+ #ifdef RTLD_DEFAULT
+     /* Try _LARGEFILE_SOURCE version of preadv/pwritev first,
+      * then fall back to the plain version, for libcs like musl.
+      */
+-    u.p = dlsym(RTLD_DEFAULT, is_pread ? "preadv64" : "pwritev64");
+-    if (u.p == NULL)
+-      u.p = dlsym(RTLD_DEFAULT, is_pread ? "preadv" : "pwritev");
++    p = dlsym(RTLD_DEFAULT, is_pread ? "preadv64" : "pwritev64");
++    if (p == NULL)
++      p = dlsym(RTLD_DEFAULT, is_pread ? "preadv" : "pwritev");
+     dlerror();  /* Clear errors. */
+ #endif  /* RTLD_DEFAULT */
+-    if (u.p == NULL)
+-      u.f = is_pread ? uv__preadv_emul : uv__pwritev_emul;
+-    atomic_store_explicit(cache, (uintptr_t) u.p, memory_order_relaxed);
++    if (p == NULL)
++      p = is_pread ? uv__preadv_emul : uv__pwritev_emul;
++    atomic_store_explicit(cache, p, memory_order_relaxed);
+   }
+
+-  return u.f(fd, bufs, nbufs, off);
++  f = p;
++  return f(fd, bufs, nbufs, off);
+ }
+
+
+@@ -489,7 +488,7 @@
+                           const struct iovec* bufs,
+                           size_t nbufs,
+                           off_t off) {
+-  static _Atomic uintptr_t cache;
++  static void*_Atomic cache;
+   return uv__preadv_or_pwritev(fd, bufs, nbufs, off, &cache, /*is_pread*/1);
+ }
+
+@@ -498,7 +497,7 @@
+                        const struct iovec* bufs,
+                        size_t nbufs,
+                        off_t off) {
+-  static _Atomic uintptr_t cache;
++  static void*_Atomic cache;
+   return uv__preadv_or_pwritev(fd, bufs, nbufs, off, &cache, /*is_pread*/0);
+ }
+
+diff --git a/libuv/src/unix/linux.c b/libuv/src/unix/linux.c
+--- a/libuv/src/unix/linux.c
++++ b/libuv/src/unix/linux.c
+@@ -516,6 +516,9 @@
+ #elif defined(__powerpc64__) || defined(__ppc64__)
+   /* See https://github.com/libuv/libuv/issues/4283. */
+   return 0; /* Random SIGSEGV in signal handler. */
++#elif defined(__FILC__)
++  /* The io_uring API is not yet supported by Fil-C, and may never be. */
++  return 0;
+ #else
+   /* Ternary: unknown=0, yes=1, no=-1 */
+   static _Atomic int use_io_uring;
+diff --git a/libuv/src/unix/process.c b/libuv/src/unix/process.c
+--- a/libuv/src/unix/process.c
++++ b/libuv/src/unix/process.c
+@@ -100,7 +100,9 @@
+   uv__wait_children(handle->loop);
+ }
+
++#include <stdfil.h>
+
++
+ int uv__process_init(uv_loop_t* loop) {
+   int err;
+
+@@ -342,7 +344,7 @@
+    * them internally.
+    */
+   for (n = 1; n < 32; n += 1) {
+-    if (n == SIGKILL || n == SIGSTOP)
++    if (n == SIGKILL || n == SIGSTOP || zis_unsafe_signal_for_handlers(n))
+       continue;  /* Can't be changed. */
+
+ #if defined(__HAIKU__)
+@@ -492,6 +494,11 @@
+    */
+ #else
+ #if !defined(__linux__) && !defined(_AIX) && !defined(__PASE__)
++  posix_spawn_works = 1;
++#elif defined(__FILC__)
++  /* FIXME: Fil-C does not support vfork (see the dash port), so skip the
++     vfork() probe below and assume posix_spawn() works.  This matches
++     libuv 1.52.1, which used posix_spawn() unconditionally on Linux. */
+   posix_spawn_works = 1;
+ #elif !defined(__ANDROID__)
+   pid_t pid;
+diff --git a/libuv/src/unix/proctitle.c b/libuv/src/unix/proctitle.c
+--- a/libuv/src/unix/proctitle.c
++++ b/libuv/src/unix/proctitle.c
+@@ -23,6 +23,7 @@
+
+ #include <stdlib.h>
+ #include <string.h>
++#include <stdfil.h>
+
+ struct uv__process_title {
+   char* str;
+@@ -85,7 +86,7 @@
+   }
+   new_argv[i] = NULL;
+
+-  pt.cap = argv[i - 1] + size - argv[0];
++  pt.cap = zlength(pt.str);
+
+   args_mem = new_argv;
+   process_title = pt;
+diff --git a/libuv/src/unix/signal.c b/libuv/src/unix/signal.c
+--- a/libuv/src/unix/signal.c
++++ b/libuv/src/unix/signal.c
+@@ -27,7 +27,15 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
++#include <stdfil.h>
+
++static zexact_ptrtable* handle_table;
++
++static void construct_ptrtable(void) __attribute__((constructor));
++static void construct_ptrtable(void) {
++  handle_table = zexact_ptrtable_new_weak();
++}
++
+ #ifndef SA_RESTART
+ # define SA_RESTART 0
+ #endif
+@@ -198,7 +206,7 @@
+     int r;
+
+     msg.signum = signum;
+-    msg.handle = handle;
++    msg.handle = (void*)zexact_ptrtable_encode(handle_table, handle);
+
+     /* write() should be atomic for small data chunks, so the entire message
+      * should be written at once. In theory the pipe could become full, in
+@@ -474,7 +482,7 @@
+
+     for (i = 0; i < end; i += sizeof(uv__signal_msg_t)) {
+       msg = (uv__signal_msg_t*) (buf + i);
+-      handle = msg->handle;
++      handle = zexact_ptrtable_decode(handle_table, (uintptr_t)msg->handle);
+
+       if (msg->signum == handle->signum) {
+         assert(!(handle->flags & UV_HANDLE_CLOSING));
+diff --git a/libuv/src/uv-common.c b/libuv/src/uv-common.c
+--- a/libuv/src/uv-common.c
++++ b/libuv/src/uv-common.c
+@@ -906,7 +906,11 @@
+ #if defined(_WIN32)
+   YieldProcessor();
+ #elif defined(__i386__) || defined(__x86_64__)
++#ifdef __FILC__
++  __builtin_ia32_pause();
++#else
+   __asm__ __volatile__ ("rep; nop" ::: "memory");  /* a.k.a. PAUSE */
++#endif
+ #elif (defined(__arm__) && __ARM_ARCH >= 7) || defined(__aarch64__)
+   __asm__ __volatile__ ("isb" ::: "memory");
+ #elif !defined(__APPLE__) && (defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__))
+diff --git a/libuv/test/test-process-priority.c b/libuv/test/test-process-priority.c
+--- a/libuv/test/test-process-priority.c
++++ b/libuv/test/test-process-priority.c
+@@ -71,8 +71,9 @@
+ #endif
+
+     /* Verify that the current PID and 0 are equivalent. */
+-    ASSERT_OK(uv_os_getpriority(uv_os_getpid(), &r));
+-    ASSERT_EQ(priority, r);
++    /* FIXME: On Fil-C, this fails, most likely due to the main thread hack we do. */
++    //ASSERT_OK(uv_os_getpriority(uv_os_getpid(), &r));
++    //ASSERT_EQ(priority, r);
+   }
+
+   /* Verify that invalid priorities return UV_EINVAL. */
+diff --git a/libuv/test/test-thread-name.c b/libuv/test/test-thread-name.c
+--- a/libuv/test/test-thread-name.c
++++ b/libuv/test/test-thread-name.c
+@@ -64,7 +64,7 @@
+ #if defined(__ANDROID_API__) && __ANDROID_API__ < 26 || \
+     defined(_AIX) || \
+     defined(__MVS__) || \
+-    defined(__PASE__)
++    defined(__PASE__) || defined(__FILC__) /* FIXME: Fil-C should support this https://github.com/pizlonator/fil-c/issues/112 */
+   RETURN_SKIP("API not available on this platform");
+ #endif
+
+@@ -169,7 +169,7 @@
+
+ TEST_IMPL(thread_name_threadpool) {
+
+-#if defined(_AIX) || defined(__PASE__)
++#if defined(_AIX) || defined(__PASE__) || defined(__FILC__)
+   RETURN_SKIP("API not available on this platform");
+ #endif
+   uv_work_t req;
+diff --git a/libuv/test/test-thread-priority.c b/libuv/test/test-thread-priority.c
+--- a/libuv/test/test-thread-priority.c
++++ b/libuv/test/test-thread-priority.c
+@@ -88,9 +88,10 @@
+  * test set nice value for the calling thread with default schedule policy
+ */
+ #ifdef __linux__
+-  ASSERT_OK(uv_thread_setpriority(pthread_self(), UV_THREAD_PRIORITY_LOWEST));
+-  ASSERT_OK(uv_thread_getpriority(pthread_self(), &priority));
+-  ASSERT_EQ(priority, (0 - UV_THREAD_PRIORITY_LOWEST * 2));
++  // FIXME: Why isn't the Fil-C runtime getting this right?
++  //ASSERT_OK(uv_thread_setpriority(pthread_self(), UV_THREAD_PRIORITY_LOWEST));
++  //ASSERT_OK(uv_thread_getpriority(pthread_self(), &priority));
++  //ASSERT_EQ(priority, (0 - UV_THREAD_PRIORITY_LOWEST * 2));
+ #endif
+
+   uv_sem_post(&sem);
+diff --git a/libuv/test/test-thread.c b/libuv/test/test-thread.c
+--- a/libuv/test/test-thread.c
++++ b/libuv/test/test-thread.c
+@@ -223,7 +223,7 @@
+   if (expected == 0)
+     expected = 512 * 1024;
+   ASSERT_GE(pthread_get_stacksize_np(pthread_self()), expected);
+-#elif defined(__linux__) && defined(__GLIBC__)
++#elif defined(__linux__) && defined(__GLIBC__) && !defined(__FILC__)
+   size_t expected;
+   struct rlimit lim;
+   size_t stack_size;
+diff --git a/libuv/test/test-timer.c b/libuv/test/test-timer.c
+--- a/libuv/test/test-timer.c
++++ b/libuv/test/test-timer.c
+@@ -330,22 +330,24 @@
+
+
+ TEST_IMPL(timer_run_once) {
+-  uv_timer_t timer_handle;
+-
+-  ASSERT_OK(uv_timer_init(uv_default_loop(), &timer_handle));
+-  ASSERT_OK(uv_timer_start(&timer_handle, timer_run_once_timer_cb, 0, 0));
+-  ASSERT_OK(uv_run(uv_default_loop(), UV_RUN_ONCE));
+-  ASSERT_EQ(1, timer_run_once_timer_cb_called);
+-
+-  ASSERT_OK(uv_timer_start(&timer_handle, timer_run_once_timer_cb, 1, 0));
+-  ASSERT_OK(uv_run(uv_default_loop(), UV_RUN_ONCE));
+-  ASSERT_EQ(2, timer_run_once_timer_cb_called);
+-
+-  uv_close((uv_handle_t*) &timer_handle, NULL);
+-  ASSERT_OK(uv_run(uv_default_loop(), UV_RUN_ONCE));
+-
+-  MAKE_VALGRIND_HAPPY(uv_default_loop());
+-  return 0;
++  // This has a flaky failure where the second uv_run call returns 1 in Fil-C.
++  
++  //uv_timer_t timer_handle;
++  //
++  //ASSERT_OK(uv_timer_init(uv_default_loop(), &timer_handle));
++  //ASSERT_OK(uv_timer_start(&timer_handle, timer_run_once_timer_cb, 0, 0));
++  //ASSERT_OK(uv_run(uv_default_loop(), UV_RUN_ONCE));
++  //ASSERT_EQ(1, timer_run_once_timer_cb_called);
++  //
++  //ASSERT_OK(uv_timer_start(&timer_hanfdle, timer_run_once_timer_cb, 1, 0));
++  //ASSERT_OK(uv_run(uv_default_loop(), UV_RUN_ONCE));
++  //ASSERT_EQ(2, timer_run_once_timer_cb_called);
++  //
++  //uv_close((uv_handle_t*) &timer_handle, NULL);
++  //ASSERT_OK(uv_run(uv_default_loop(), UV_RUN_ONCE));
++  //
++  //MAKE_VALGRIND_HAPPY(uv_default_loop());
++  //return 0;
+ }
+
+
+diff --git a/libuv/test/test-udp-recv-cb-close-pollerr.c b/libuv/test/test-udp-recv-cb-close-pollerr.c
+--- a/libuv/test/test-udp-recv-cb-close-pollerr.c
++++ b/libuv/test/test-udp-recv-cb-close-pollerr.c
+@@ -27,10 +27,17 @@
+ static int recv_cb_called;
+ static int send_cb_called;
+
++/* FIXME: This test originally did `buf->base = "uv"`, handing recvmsg a
++   read-only string literal. That only works because the kernel never writes
++   into the buffer in this scenario (recvmsg returns the queued ICMP error
++   without touching the payload). Fil-C's recvmsg wrapper eagerly validates
++   that the buffer is writable, so use a writable buffer instead. */
++static char recv_buf[2];
++
+ static void alloc_cb(uv_handle_t* handle, size_t sz, uv_buf_t* buf) {
+   alloc_cb_called++;
+-  buf->base = "uv";
+-  buf->len = 2;
++  buf->base = recv_buf;
++  buf->len = sizeof(recv_buf);
+ }
+
+ static void recv_cb(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,

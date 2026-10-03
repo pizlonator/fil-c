@@ -250,4 +250,10 @@ done:
   z += e;
   return (z);
 }
+#ifdef __aarch64__
+/* Fil-C (aarch64): see e_logl.c for why this is a strong_alias and not
+   libm_alias_finite.  */
+strong_alias (__ieee754_log2l, __log2l_finite)
+#else
 libm_alias_finite (__ieee754_log2l, __log2l)
+#endif

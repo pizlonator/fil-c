@@ -1,0 +1,51 @@
+/*-*- mode:c;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
+│ vi: set et ft=c ts=2 sts=2 sw=2 fenc=utf-8                               :vi │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright 2023 Justine Alexandra Roberts Tunney                              │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚─────────────────────────────────────────────────────────────────────────────*/
+#include "libc/fmt/conv.h"
+#include "libc/runtime/fenv.h"
+#include "third_party/gdtoa/gdtoa.h"
+
+/**
+ * Converts string to long double.
+ */
+long double strtold(const char *s, char **endptr) {
+  long double x;
+
+  // First try with IEEE rounding mode (default is nearest)
+#ifdef __x86_64__
+  strtorx(s, endptr, FLT_ROUNDS, &x);
+#else
+  strtorQ(s, endptr, FLT_ROUNDS, &x);
+#endif
+
+  // Detect if result looks problematic for very large values LDBL_MAX
+  // should be around 1.18e+4932, but wrong rounding can give values
+  // like: x86_64: 1.28e+4913, aarch64: 2.29e+4898
+  if (x > 1e+4890L && x < 1e+4920L) {
+    // Result looks wrong, try with FPI_Round_zero
+#ifdef __x86_64__
+    strtorx(s, endptr, FPI_Round_zero, &x);
+#else
+    strtorQ(s, endptr, FPI_Round_zero, &x);
+#endif
+  }
+
+  return x;
+}
+
+__weak_reference(strtold, strtold_l);

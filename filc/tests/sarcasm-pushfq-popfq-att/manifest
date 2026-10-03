@@ -1,0 +1,15 @@
+return:
+  success
+only-on-platform:
+  x86_64
+output-includes:
+  - "pushfq restore eq ok"
+  - "pushfq restore ne ok"
+  - "pushfq restore s ok"
+  - "pushfq restore ns ok"
+  - "pushfq restore c ok"
+  - "pushfq restore nc ok"
+  - "pushfq immediate identity ok"
+  - "pushfq register roundtrip e ok"
+  - "pushfq register roundtrip ne ok"
+  - "pushfq word readback ok"

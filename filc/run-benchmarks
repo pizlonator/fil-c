@@ -28,7 +28,7 @@ require 'pathname'
 require 'getoptlong'
 require 'shellwords'
 
-BASE_BENCHMARK_NAME = "PizBench9022"
+BASE_BENCHMARK_NAME = "PizBench9023"
 $benchmarkName = BASE_BENCHMARK_NAME
 
 $repeats = 10
@@ -432,13 +432,6 @@ if $hasX86SIMD
 end
 
 $benchmarks << Benchmark.new(
-    "bin/zstd",
-    "< benchmarkData/libcrypto.3.dylib > benchmarkOutput/libcrypto.3.dylib.zst",
-    [
-        "diff -n benchmarkOutput/libcrypto.3.dylib.zst benchmarkData/libcrypto.3.dylib.zst"
-    ])
-
-$benchmarks << Benchmark.new(
     "bin/dash",
     "benchmarkData/richards.sh",
     [])
@@ -452,13 +445,6 @@ $benchmarks << Benchmark.new(
     "bin/bash",
     "benchmarkData/richards.sh",
     [])
-
-$benchmarks << Benchmark.new(
-    "bin/lz4",
-    "< benchmarkData/libcrypto.3.dylib > benchmarkOutput/libcrypto.3.dylib.lz4",
-    [
-        "diff -n benchmarkOutput/libcrypto.3.dylib.lz4 benchmarkData/libcrypto.3.dylib.lz4"
-    ])
 
 $benchmarks << Benchmark.new(
     "bin/perl",

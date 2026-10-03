@@ -28,9 +28,14 @@
 set -e
 set -x
 
-cd projects/coreutils-9.11
-extract_source
+cd projects
+rm -rf coreutils/extracted-source
+../filc/projeny extract coreutils.projeny coreutils/extracted-source
+cd coreutils/extracted-source
+
 FORCE_UNSAFE_CONFIGURE=1 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ \
     ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
 make -j $NCPU install
+cd ..
+rm -rf extracted-source

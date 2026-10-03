@@ -13,7 +13,10 @@
     (!defined(__GNUC__) || __GNUC__ >= 13 ||                                   \
      (defined(__clang__) && __clang_major__ >= 14)) &&                         \
     !defined(__arm__) && !defined(_M_ARM) && !defined(__riscv) &&              \
-    !defined(_WIN32)
+    !defined(_WIN32) && !defined(__FILC__)
+/* Fil-C port: the Fil-Pizlonator's frontend has no _Complex _Float16 on
+   aarch64; disabling the typedef compiles the (unused) complex half paths
+   out of the demangler. */
 #define LIBC_TYPES_HAS_CFLOAT16
 typedef _Complex _Float16 cfloat16;
 #endif

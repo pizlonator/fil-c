@@ -12,13 +12,18 @@
 #include <sys/socket.h>
 #include <poll.h>
 #include <sys/ioctl.h>
+#ifndef __COSMOPOLITAN__
+/* COSMO: cosmo doesn't expose epoll or inotify at all. */
 #include <sys/epoll.h>
+#endif
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <time.h>
 #include <sys/time.h>
 #include <sys/syscall.h>
+#ifndef __COSMOPOLITAN__
 #include <sys/inotify.h>
+#endif
 
 struct foo {
     char* a;
@@ -182,6 +187,8 @@ int main(int argc, char** argv)
     ZASSERT(ppoll(pollfds, 1, NULL, NULL) == 1);
     ZASSERT(pollfds[0].revents == POLLIN);
 
+#ifndef __COSMOPOLITAN__
+    /* COSMO: cosmo doesn't expose epoll at all. */
     int epfd = epoll_create1(0);
     ZASSERT(epfd > 2);
     struct epoll_event ev;
@@ -214,7 +221,8 @@ int main(int argc, char** argv)
     ZASSERT(ev.data.fd == fds[0]);
 #endif
     ZASSERT(!close(epfd2));
-    
+#endif /* !__COSMOPOLITAN__ */
+
     ZASSERT(read(fds[0], buf, strlen("hello") + 1) == strlen("hello") + 1);
     ZASSERT(!strcmp(buf, "hello"));
 
@@ -310,6 +318,8 @@ int main(int argc, char** argv)
 
     fd = open("filc/test-output/fileio/allocatetest.txt", O_CREAT | O_WRONLY | O_EXCL, 0600);
     ZASSERT(fd > 2);
+#ifndef __COSMOPOLITAN__
+    /* COSMO: cosmo doesn't expose fallocate(2)/posix_fallocate(3). */
     ZASSERT(!posix_fallocate(fd, 666, 42));
     struct stat s;
     ZASSERT(!fstat(fd, &s));
@@ -317,6 +327,7 @@ int main(int argc, char** argv)
     struct my_statx sx;
     ZASSERT(!syscall(SYS_statx, fd, "", AT_EMPTY_PATH, 0xfff, &sx));
     ZASSERT(sx.stx_size == 666 + 42);
+#endif
 
     struct timeval tv[2];
     ZASSERT(!gettimeofday(tv, NULL));
@@ -358,7 +369,9 @@ int main(int argc, char** argv)
     ZASSERT(!memcmp(buf, "hello", 5));
     ZASSERT(!close(fd));
 
+#ifndef __COSMOPOLITAN__
     // Test inotify
+    // COSMO: cosmo doesn't expose inotify at all.
     int ifd = inotify_init1(IN_CLOEXEC);
     ZASSERT(ifd > 2);
     
@@ -394,6 +407,7 @@ int main(int argc, char** argv)
     // Clean up
     ZASSERT(!close(ifd));
     ZASSERT(!unlink("filc/test-output/fileio/inotifytest.txt"));
+#endif /* !__COSMOPOLITAN__ */
 
     // Test copy_file_range syscall
     int src_fd = open("filc/test-output/fileio/copy_src.txt", O_CREAT | O_RDWR | O_TRUNC, 0644);
@@ -504,6 +518,7 @@ int main(int argc, char** argv)
     ZASSERT(!unlink("filc/test-output/fileio/copy_src2.txt"));
     ZASSERT(!unlink("filc/test-output/fileio/copy_dst2.txt"));
 
+#ifndef __COSMOPOLITAN__
     // Test openat2 syscall
     {
         // Create a test file
@@ -537,6 +552,7 @@ int main(int argc, char** argv)
         // Clean up
         ZASSERT(!unlink("filc/test-output/fileio/openat2_test.txt"));
     }
+#endif
 
     return 0;
 }

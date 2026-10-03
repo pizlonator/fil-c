@@ -1,0 +1,255 @@
+#!/bin/bash
+# Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
+# zegarmistrz test runner: builds the emulator, compiles guest programs,
+# runs them in parallel (xargs -P, JOBS= to tune), checks output/exit codes.
+#
+# Suites: basic guests (filc hello, static, threads, args), AVX512/AES
+# differentials (native vs emulated output), poisoning client requests
+# (expect core dumps), core-dump gdb check, --no-core flag.
+# Does not touch filc/tests or filc/run-tests.
+set -u
+cd "$(dirname "$0")"
+
+JOBS="${JOBS:-$(nproc 2>/dev/null || echo 8)}"
+OUTDIR="test-output"
+
+log() { echo "[run-tests] $*"; }
+
+mkdir -p "$OUTDIR"
+# Build emulator.
+log "building zegarmistrz..."
+if ! make -j"$JOBS" >"$OUTDIR/build.log" 2>&1; then
+    log "build FAILED (see $OUTDIR/build.log)"
+    tail -20 "$OUTDIR/build.log"
+    exit 1
+fi
+
+# Compile guests (basic).
+log "compiling guests..."
+gcc -O2 -o "$OUTDIR/args" tests/args.c || { log "guest compile failed: args"; exit 1; }
+gcc -O2 -o "$OUTDIR/threads" tests/threads.c -pthread || { log "guest compile failed: threads"; exit 1; }
+gcc -O2 -static -o "$OUTDIR/static_hi" tests/static_hi.c || { log "guest compile failed: static_hi"; exit 1; }
+for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall; do
+    gcc -O2 -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null || { log "guest compile failed: $t"; exit 1; }
+done
+# CPUID presence + header-only client library tests.
+gcc -O2 -o "$OUTDIR/cpuid_vendor" tests/cpuid_vendor.c || { log "guest compile failed: cpuid_vendor"; exit 1; }
+gcc -O2 -Iinclude -o "$OUTDIR/zegarmistrz_lib" tests/zegarmistrz_lib.c || { log "guest compile failed: zegarmistrz_lib"; exit 1; }
+gcc -O2 -Iinclude -o "$OUTDIR/poison_header" tests/poison_header.c || { log "guest compile failed: poison_header"; exit 1; }
+# Masked/compress poisoning tests use AVX512 intrinsics (run only under the
+# emulator, expecting core dumps like the other poison-* fault tests).
+for t in poison_masked_load poison_masked_store poison_compress_expand; do
+    gcc -O2 -mavx512f -mavx512bw -mavx512vl -mavx512dq -mavx512vbmi -mavx512vbmi2 \
+        -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null \
+        || { log "guest compile failed: $t"; exit 1; }
+done
+# Crash guest for core-dump tests.
+cat > "$OUTDIR/crash.c" <<'EOF'
+#include <stdio.h>
+void boom(void) { volatile int* p = (int*)0x1234; *p = 42; }
+int main(void) { printf("before\n"); boom(); return 0; }
+EOF
+gcc -O0 -g -o "$OUTDIR/crash" "$OUTDIR/crash.c" || { log "guest compile failed: crash"; exit 1; }
+
+# AVX512/AES differentials: compile only if the host supports them.
+HAVE_AVX512=""
+if gcc -O2 -mavx2 -mbmi -mbmi2 -msse4.2 -c -o /dev/null -x c /dev/null 2>/dev/null; then
+    gcc -O2 -mavx512f -mavx512bw -mavx512vl -mavx512dq -mbmi -mbmi2 -msse4.2 \
+        -o "$OUTDIR/vex_smoke" tests/vex_smoke.c \
+        || { log "guest compile failed: vex_smoke"; exit 1; }
+    HAVE_VEX=1
+fi
+if gcc -O2 -mavx512f -mavx512bw -mavx512vl -mavx512dq -c -o /dev/null -x c /dev/null 2>/dev/null \
+   && grep -q avx512f /proc/cpuinfo; then
+    HAVE_AVX512=1
+    gcc -O2 -mavx512f -mavx512bw -mavx512vl -mavx512dq -o "$OUTDIR/avx512_smoke" tests/avx512_smoke.c \
+        || { log "guest compile failed: avx512_smoke"; exit 1; }
+fi
+HAVE_AES=""
+if grep -qE '\baes\b' /proc/cpuinfo && gcc -O2 -maes -mpclmul -msha -mfma -o "$OUTDIR/aes_smoke" tests/aes_smoke.c 2>/dev/null; then
+    HAVE_AES=1
+fi
+
+export HAVE_AVX512 HAVE_AES HAVE_VEX
+
+# Test list runs in parallel via xargs -P.
+{
+echo "filc-hello"
+echo "static-hi"
+echo "threads"
+echo "args-exit"
+echo "avx512-smoke"
+echo "aes-smoke"
+echo "vex-smoke"
+echo "poison-load"
+echo "poison-store"
+echo "poison-branch"
+echo "poison-index"
+echo "poison-syscall"
+echo "poison-masked-load"
+echo "poison-masked-store"
+echo "poison-compress-expand"
+echo "poison-unpoison"
+echo "poison-clear"
+echo "cpuid-emulated"
+echo "cpuid-native"
+echo "zeglib-emulated"
+echo "zeglib-native"
+echo "poison-header"
+echo "core-gdb"
+echo "no-core"
+} | xargs -P "$JOBS" -I{} bash -c '
+set -u
+t="{}"
+case "$t" in
+  filc-hello)
+    # Environment gate (like avx512/aes/core-gdb below): this test needs
+    # the repo-root Fil-C hello (an ELF PIE that prints "Hello!"). If
+    # ./hello is not an ELF file — e.g. it is a Cosmopolitan APE image,
+    # which starts with an MZ header — the loader rejects it before any
+    # instruction runs, so skip rather than report a bogus failure.
+    if [ "$(dd if=../../hello bs=1 count=4 2>/dev/null | od -An -tx1 | tr -d " \n")" != "7f454c46" ]; then
+      echo "SKIP filc-hello (repo-root ./hello is not a Fil-C ELF)"
+      exit 0
+    fi
+    out=$(timeout 120 ./zegarmistrz ../../hello 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "Hello!" ] && echo "PASS filc-hello" || echo "FAIL filc-hello: exit=$ec out=[$out]"
+    ;;
+  static-hi)
+    out=$(timeout 60 ./zegarmistrz test-output/static_hi 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "static-hi" ] && echo "PASS static-hi" || echo "FAIL static-hi: exit=$ec out=[$out]"
+    ;;
+  threads)
+    out=$(timeout 120 ./zegarmistrz test-output/threads 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "counter=20" ] && echo "PASS threads" || echo "FAIL threads: exit=$ec out=[$out]"
+    ;;
+  args-exit)
+    out=$(timeout 60 ./zegarmistrz test-output/args foo bar 2>/dev/null); ec=$?
+    tail=$(echo "$out" | tail -2)
+    [ "$ec" = 42 ] && [ "$tail" = "argv[1]=foo
+argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$out]"
+    ;;
+  avx512-smoke)
+    if [ -z "${HAVE_AVX512:-}" ]; then echo "SKIP avx512-smoke (no host AVX512)"; exit 0; fi
+    test-output/avx512_smoke > test-output/avx512.native 2>/dev/null
+    (cd test-output && timeout 300 ../zegarmistrz ./avx512_smoke > avx512.emu 2>/dev/null); ec=$?
+    if [ "$ec" = 0 ] && cmp -s test-output/avx512.native test-output/avx512.emu; then
+      echo "PASS avx512-smoke"
+    else
+      echo "FAIL avx512-smoke: exit=$ec"
+      diff test-output/avx512.native test-output/avx512.emu | head -5
+    fi
+    ;;
+  vex-smoke)
+    if [ -z "${HAVE_VEX:-}" ]; then echo "SKIP vex-smoke"; exit 0; fi
+    test-output/vex_smoke > test-output/vex.native 2>/dev/null
+    (cd test-output && timeout 300 ../zegarmistrz ./vex_smoke > vex.emu 2>/dev/null); ec=$?
+    if [ "$ec" = 0 ] && cmp -s test-output/vex.native test-output/vex.emu; then
+      echo "PASS vex-smoke"
+    else
+      echo "FAIL vex-smoke: exit=$ec"
+      diff test-output/vex.native test-output/vex.emu | head -5
+    fi
+    ;;
+  aes-smoke)
+    if [ -z "${HAVE_AES:-}" ]; then echo "SKIP aes-smoke (no host AES)"; exit 0; fi
+    test-output/aes_smoke > test-output/aes.native 2>/dev/null
+    (cd test-output && timeout 300 ../zegarmistrz ./aes_smoke > aes.emu 2>/dev/null); ec=$?
+    if [ "$ec" = 0 ] && cmp -s test-output/aes.native test-output/aes.emu; then
+      echo "PASS aes-smoke"
+    else
+      echo "FAIL aes-smoke: exit=$ec"
+      diff test-output/aes.native test-output/aes.emu | head -5
+    fi
+    ;;
+  poison-load|poison-store|poison-branch|poison-index|poison-syscall|poison-masked-load|poison-masked-store|poison-compress-expand)
+    name="$t"
+    bin=$(echo "$t" | tr "-" "_")
+    rm -f "test-output/zegarmistrz.core.$bin."*
+    (cd test-output && timeout 120 ../zegarmistrz ./$bin >/dev/null 2>$bin.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$bin.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ]; then
+      echo "PASS $name"
+    else
+      echo "FAIL $name: exit=$ec core=[$core]"
+    fi
+    rm -f "test-output/zegarmistrz.core.$bin."* "test-output/$bin.err.txt"
+    ;;
+  poison-unpoison)
+    out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_unpoison 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "unpoison-ok" ] && echo "PASS poison-unpoison" || echo "FAIL poison-unpoison: exit=$ec out=[$out]"
+    ;;
+  poison-clear)
+    out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_clear 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "clear-ok" ] && echo "PASS poison-clear" || echo "FAIL poison-clear: exit=$ec out=[$out]"
+    ;;
+  cpuid-emulated)
+    out=$(timeout 60 ./zegarmistrz test-output/cpuid_vendor 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "cpuid-zegarmistrz" ] && echo "PASS cpuid-emulated" || echo "FAIL cpuid-emulated: exit=$ec out=[$out]"
+    ;;
+  cpuid-native)
+    out=$(timeout 60 test-output/cpuid_vendor 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "cpuid-native" ] && echo "PASS cpuid-native" || echo "FAIL cpuid-native: exit=$ec out=[$out]"
+    ;;
+  zeglib-emulated)
+    out=$(timeout 60 ./zegarmistrz test-output/zegarmistrz_lib 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "zeglib-zegarmistrz" ] && echo "PASS zeglib-emulated" || echo "FAIL zeglib-emulated: exit=$ec out=[$out]"
+    ;;
+  zeglib-native)
+    out=$(timeout 60 test-output/zegarmistrz_lib 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "zeglib-native" ] && echo "PASS zeglib-native" || echo "FAIL zeglib-native: exit=$ec out=[$out]"
+    ;;
+  poison-header)
+    # include/zegarmistrz.h client library end-to-end: natively every
+    # service call is a no-op (exit 0); under the emulator the poison call
+    # must actually reach the emulator, so the cannot-store store faults
+    # with a guest core dump.
+    nat=ok
+    timeout 60 test-output/poison_header >/dev/null 2>&1 || nat=bad
+    rm -f test-output/zegarmistrz.core.poison_header.*
+    (cd test-output && timeout 120 ../zegarmistrz ./poison_header >/dev/null 2>poison_header.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.poison_header.* 2>/dev/null | head -1)
+    if [ "$nat" = ok ] && [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ]; then
+      echo "PASS poison-header"
+    else
+      echo "FAIL poison-header: native=$nat ec=$ec core=[$core]"
+    fi
+    rm -f test-output/zegarmistrz.core.poison_header.* test-output/poison_header.err.txt
+    ;;
+  core-gdb)
+    if ! command -v gdb >/dev/null 2>&1; then echo "SKIP core-gdb (no gdb)"; exit 0; fi
+    mkdir -p test-output/core-gdb
+    rm -f test-output/core-gdb/zegarmistrz.core.crash.*
+    (cd test-output/core-gdb && timeout 60 ../../zegarmistrz ../crash >/dev/null 2>&1)
+    core=$(ls test-output/core-gdb/zegarmistrz.core.crash.* 2>/dev/null | head -1)
+    if [ -z "$core" ]; then echo "FAIL core-gdb: no core file"; exit 0; fi
+    bt=$(gdb -batch -ex "set auto-load safe-path /" -ex bt "test-output/crash" "$core" 2>/dev/null)
+    rm -f test-output/core-gdb/zegarmistrz.core.crash.*
+    if echo "$bt" | grep -q "boom" && echo "$bt" | grep -q "main" && ! echo "$bt" | grep -q "zegarmistrz\|run_cpu_loop\|exec_one"; then
+      echo "PASS core-gdb"
+    else
+      echo "FAIL core-gdb: bt=[$bt]"
+    fi
+    ;;
+  no-core)
+    # --no-core disables core dumps; use a poisoning guest (GuestError path
+    # without host signal): expect the "disabled" message, no core file.
+    mkdir -p test-output/no-core
+    rm -f test-output/no-core/zegarmistrz.core.poison_load.*
+    (cd test-output/no-core && timeout 60 ../../zegarmistrz --no-core ../poison_load >/dev/null 2>nocore.err); ec=$?
+    core=$(ls test-output/no-core/zegarmistrz.core.poison_load.* 2>/dev/null | head -1)
+    if [ -z "$core" ] && grep -q "disabled" test-output/no-core/nocore.err; then
+      echo "PASS no-core"
+    else
+      echo "FAIL no-core: exit=$ec core=[$core]"
+    fi
+    rm -f test-output/no-core/zegarmistrz.core.poison_load.* test-output/no-core/nocore.err
+    ;;
+esac
+' | tee "$OUTDIR/results.txt"
+
+NPASS=$(grep -c "^PASS" "$OUTDIR/results.txt" || true)
+NFAIL=$(grep -c "^FAIL" "$OUTDIR/results.txt" || true)
+NSKIP=$(grep -c "^SKIP" "$OUTDIR/results.txt" || true)
+log "done: $NPASS passed, $NFAIL failed, $NSKIP skipped"
+[ "$NFAIL" = 0 ]

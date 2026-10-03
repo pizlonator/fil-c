@@ -3,3 +3,6 @@ return:
 output-includes:
   - "filc safety error"
   - "cannot write pointer with ptr < lower (ptr ="
+
+# COSMO: cosmo's accept() copies the peer address into its own buffer and only validates the caller's pointer after the blocking accept() returns, so these bad-pointer tests never trigger the check and would hang the suite.
+unsupportedOnCOSMO: true

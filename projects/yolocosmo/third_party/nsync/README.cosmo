@@ -1,0 +1,51 @@
+DESCRIPTION
+
+  *NSYNC is a synchronization primitives library.
+
+LICENSE
+
+  Apache 2.0
+
+ORIGIN
+
+  git@github.com:google/nsync
+  commit ac5489682760393fe21bd2a8e038b528442412a7
+  Author: Mike Burrows <m3b@google.com>
+  Date:   Wed Jun 1 16:47:52 2022 -0700
+
+LOCAL CHANGES
+
+  - Fix nsync_mu_unlock() on Apple Silicon
+
+  - Add clock parameter to many NSYNC wait APIs
+
+  - Time APIs were so good that they're now in libc
+
+  - Introduce nsync_mu_timedlock() and nsync_mu_clocklock()
+
+  - Double linked list API was so good that it's now in libc
+
+  - Max delay on sleep should be 20ms (not 4ms) on OpenBSD and NetBSD
+
+  - Support Apple's ulock futexes which are internal but nicer than GCD
+
+  - Have mutex functions return zero so POSIX mutexes can tail call it.
+
+  - Ensure resources such as POSIX semaphores are are released on fork.
+
+  - Make contended mutexes go 30% faster by using C11 atomics API. This
+    lets us use weak cas when appropriate. It also avoids a superfluous
+    relaxed load on failure. This mostly impacts aarch64, not x86_64.
+
+  - Rewrote most of the semaphore and futex system call support code so
+    it works well with Cosmopolitan's fat runtime portability. *NSYNC's
+    unit test suite passes on all supported platforms. However the BSDs
+    currently appear to be overutilizing CPU time compared with others.
+    This appears to be the fault of the OSes rather than *NSYNC / Cosmo
+
+  - Support POSIX thread cancellation. APIs that wait on condition vars
+    are now cancellation points. In PTHREAD_CANCEL_MASKED mode they may
+    return ECANCELED. In PTHREAD_CANCEL_DEFERRED mode the POSIX threads
+    library will unwind the stack to re-acquire locks and free waiters.
+    On the other hand the *NSYNC APIs for mutexes will now safely block
+    thread cancellation, but you can still use *NSYNC notes to do that.

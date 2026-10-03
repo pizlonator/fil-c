@@ -18,15 +18,21 @@
 
 #include <csu/libc-tls.c>
 #include <dl-tls.h>
+#include <stdfil.h>
 
 /* On AArch64, linker optimizations are not required, so __tls_get_addr
    can be called even in statically linked binaries.  In this case module
    must be always 1 and PT_TLS segment exist in the binary, otherwise it
-   would not link.  */
+   would not link.
+
+   Fil-C: the Fil-C compiler implements TLS itself (there is no DTV and
+   nothing installs one), so this cannot work; panic like the other
+   unsupported code paths do.  */
 
 void *
 __tls_get_addr (tls_index *ti)
 {
-  dtv_t *dtv = THREAD_DTV ();
-  return (char *) dtv[1].pointer.val + ti->ti_offset;
+  (void) ti;
+  zerror("__tls_get_addr not supported.");
+  return NULL;
 }

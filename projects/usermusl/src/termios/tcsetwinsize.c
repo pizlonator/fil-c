@@ -4,5 +4,5 @@
 
 int tcsetwinsize(int fd, const struct winsize *wsz)
 {
-	return syscall(SYS_ioctl, fd, TIOCSWINSZ, wsz);
+	return zsys_ioctl(fd, TIOCSWINSZ, wsz);
 }

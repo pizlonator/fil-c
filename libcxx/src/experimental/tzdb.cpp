@@ -52,7 +52,9 @@ namespace chrono {
 // This function is weak so it can be overriden in the tests. The
 // declaration is in the test header test/support/test_tzdb.h
 _LIBCPP_WEAK string_view __libcpp_tzdb_directory() {
-#if defined(__linux__)
+// Note: cosmo's headers undefine __linux__ (cosmo is polyglot), so we key on
+// the libc++ cosmo configuration instead.
+#if defined(__linux__) || _LIBCPP_HAS_COSMO_LIBC
   return "/usr/share/zoneinfo/";
 #else
 #  error "unknown path to the IANA Time Zone Database"

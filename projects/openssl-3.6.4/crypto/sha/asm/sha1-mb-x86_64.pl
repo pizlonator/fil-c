@@ -118,12 +118,6 @@ if (1) {
 
 $REG_SZ=16;
 
-# Sarcasm rejects dynamic stack alignment (`and $-256,%rsp`) and taking the
-# frame's address (`lea 128($MBF),%rax`), so each body below allocates its
-# frame as a GC allocation addressed through %fil_mbframe (identical slot
-# layout); gas keeps the rsp frame. $MBF renders the frame base register.
-my $MBF = $ENV{SARCASM} ? "%fil_mbframe" : "%rsp";
-
 sub Xi_off {
 my $off = shift;
 
@@ -385,11 +379,7 @@ $code.=<<___;
 .align	32
 sha1_multi_block: #! void(ptr,ptr,int)
 .cfi_startproc
-___
-# Scalar misaligned loads are fine (checked with alignment 1, like Fil-C);
-# the 8-byte capability-word load below works in both modes.
-$code.=<<___;
-	mov	OPENSSL_ia32cap_P+4(%rip),%rcx
+	mov	OPENSSL_ia32cap_P+4(%rip),%rcx #! global ptr
 	bt	\$61,%rcx			# check SHA bit
 	jc	_shaext_shortcut
 ___
@@ -397,10 +387,8 @@ $code.=<<___ if ($avx);
 	test	\$`1<<28`,%ecx
 	jnz	_avx_shortcut
 ___
-$code.=<<___ if (!$ENV{SARCASM});
-	mov	%rsp,%rax
-___
 $code.=<<___;
+	mov	%rsp,%rax
 .cfi_def_cfa_register	%rax
 	push	%rbx
 .cfi_push	%rbx
@@ -420,22 +408,17 @@ $code.=<<___ if ($win64);
 	movaps	%xmm14,-0x38(%rax)
 	movaps	%xmm15,-0x28(%rax)
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	.alloca	\$`$REG_SZ*18`,\$32,%fil_mbframe
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	sub	\$`$REG_SZ*18`,%rsp
 	and	\$-256,%rsp
 	mov	%rax,`$REG_SZ*17`(%rsp)		# original %rsp
-___
-$code.=<<___;
 .cfi_cfa_expression	%rsp+`$REG_SZ*17`,deref,+8
 .Lbody:
 	lea	K_XX_XX(%rip),$Tbl
-	lea	`$REG_SZ*16`($MBF),%rbx
+	lea	`$REG_SZ*16`(%rsp),%rbx
 
 .Loop_grande:
-	mov	$num,`$REG_SZ*17+8`($MBF)	# original $num
+	mov	$num,`$REG_SZ*17+8`(%rsp)	# original $num
 	xor	$num,$num
 ___
 for($i=0;$i<4;$i++) {
@@ -457,7 +440,7 @@ $code.=<<___;
 	jz	.Ldone
 
 	movdqu	0x00($ctx),$A			# load context
-	 lea	128($MBF),%rax
+	 lea	128(%rsp),%rax
 	movdqu	0x20($ctx),$B
 	movdqu	0x40($ctx),$C
 	movdqu	0x60($ctx),$D
@@ -519,15 +502,13 @@ $code.=<<___;
 	dec	$num
 	jnz	.Loop
 
-	mov	`$REG_SZ*17+8`($MBF),$num
+	mov	`$REG_SZ*17+8`(%rsp),$num
 	lea	$REG_SZ($ctx),$ctx
 	lea	`$inp_elm_size*$REG_SZ/4`($inp),$inp
 	dec	$num
 	jnz	.Loop_grande
 
 .Ldone:
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	`$REG_SZ*17`(%rsp),%rax		# original %rsp
 .cfi_def_cfa	%rax,8
 ___
@@ -543,22 +524,13 @@ $code.=<<___ if ($win64);
 	movaps	-0x38(%rax),%xmm14
 	movaps	-0x28(%rax),%xmm15
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	# No rsp save/recovery: rsp never moved (frame is a GC allocation).
-	pop	%rbp
-.cfi_pop	%rbp
-	pop	%rbx
-.cfi_pop	%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	mov	-16(%rax),%rbp
 .cfi_restore	%rbp
 	mov	-8(%rax),%rbx
 .cfi_restore	%rbx
 	lea	(%rax),%rsp
 .cfi_def_cfa_register	%rsp
-___
-$code.=<<___;
 .Lepilogue:
 	ret
 .cfi_endproc
@@ -575,11 +547,7 @@ $code.=<<___;
 sha1_multi_block_shaext: #! void(ptr,ptr,int)
 .cfi_startproc
 _shaext_shortcut:
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	%rsp,%rax
-___
-$code.=<<___;
 .cfi_def_cfa_register	%rax
 	push	%rbx
 .cfi_push	%rbx
@@ -599,40 +567,27 @@ $code.=<<___ if ($win64);
 	movaps	%xmm14,-0x38(%rax)
 	movaps	%xmm15,-0x28(%rax)
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	.alloca	\$`$REG_SZ*18`,\$32,%fil_mbframe
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	sub	\$`$REG_SZ*18`,%rsp
-___
-$code.=<<___;
 	shl	\$1,$num			# we process pair at a time
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	and	\$-256,%rsp
-___
-$code.=<<___;
 	lea	0x40($ctx),$ctx			# size optimization
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	%rax,`$REG_SZ*17`(%rsp)		# original %rsp
-___
-$code.=<<___;
 .Lbody_shaext:
 ___
-# Sarcasm cannot use %rsp as a data pointer (stack-address escape) in
-# the cancel-input below; park the K table address in $Tbl as the dummy
-# input area (64 readable bytes), exactly like the other bodies.
+# A canceled stream's input loads still execute every round and serve the
+# same accesses as the real input descriptors, so the dummy input area must
+# be capability-carrying: the 64-byte K table window ($Tbl), not %rsp.
 my $dummy = $ENV{SARCASM} ? $Tbl : "%rsp";
 $code.=<<___ if ($ENV{SARCASM});
 	lea	K_XX_XX(%rip),$Tbl
 ___
 $code.=<<___;
-	lea	`$REG_SZ*16`($MBF),%rbx
+	lea	`$REG_SZ*16`(%rsp),%rbx
 	movdqa	K_XX_XX+0x80(%rip),$BSWAP	# byte-n-word swap
 
 .Loop_grande_shaext:
-	mov	$num,`$REG_SZ*17+8`($MBF)	# original $num
+	mov	$num,`$REG_SZ*17+8`(%rsp)	# original $num
 	xor	$num,$num
 ___
 for($i=0;$i<2;$i++) {
@@ -689,13 +644,13 @@ $code.=<<___;
 	 lea		0x40(@ptr[1]),@ptr[1]
 	 pshufb		$BSWAP,@MSG1[1]
 
-	movdqa		$E0,0x50($MBF)		# offload
+	movdqa		$E0,0x50(%rsp)		# offload
 	paddd		@MSG0[0],$E0
-	 movdqa		$E1,0x70($MBF)
+	 movdqa		$E1,0x70(%rsp)
 	 paddd		@MSG1[0],$E1
-	movdqa		$ABCD0,0x40($MBF)	# offload
+	movdqa		$ABCD0,0x40(%rsp)	# offload
 	movdqa		$ABCD0,$E0_
-	 movdqa		$ABCD1,0x60($MBF)
+	 movdqa		$ABCD1,0x60(%rsp)
 	 movdqa		$ABCD1,$E1_
 	sha1rnds4	\$0,$E0,$ABCD0		# 0-3
 	sha1nexte	@MSG0[1],$E0_
@@ -796,16 +751,16 @@ $code.=<<___;
 	 pand		@MSG1[3],$E1
 	paddd		@MSG0[1],@MSG0[0]	# counters--
 
-	paddd		0x40($MBF),$ABCD0
-	paddd		0x50($MBF),$E0
-	 paddd		0x60($MBF),$ABCD1
-	 paddd		0x70($MBF),$E1
+	paddd		0x40(%rsp),$ABCD0
+	paddd		0x50(%rsp),$E0
+	 paddd		0x60(%rsp),$ABCD1
+	 paddd		0x70(%rsp),$E1
 
 	movq		@MSG0[0],(%rbx)		# save counters
 	dec		$num
 	jnz		.Loop_shaext
 
-	mov		`$REG_SZ*17+8`($MBF),$num
+	mov		`$REG_SZ*17+8`(%rsp),$num
 
 	pshufd		\$0b00011011,$ABCD0,$ABCD0
 	pshufd		\$0b00011011,$ABCD1,$ABCD1
@@ -843,22 +798,13 @@ $code.=<<___ if ($win64);
 	movaps	-0x38(%rax),%xmm14
 	movaps	-0x28(%rax),%xmm15
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	# No rsp save/recovery: rsp never moved (frame is a GC allocation).
-	pop	%rbp
-.cfi_pop	%rbp
-	pop	%rbx
-.cfi_pop	%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	mov	-16(%rax),%rbp
 .cfi_restore	%rbp
 	mov	-8(%rax),%rbx
 .cfi_restore	%rbx
 	lea	(%rax),%rsp
 .cfi_def_cfa_register	%rsp
-___
-$code.=<<___;
 .Lepilogue_shaext:
 	ret
 .cfi_endproc
@@ -1107,8 +1053,6 @@ sha1_multi_block_avx: #! void(ptr,ptr,int)
 .cfi_startproc
 _avx_shortcut:
 ___
-# The 8-byte capability load above leaves cap[2] in the upper half;
-# `shr` preserves the value in both modes (scalar integer op).
 $code.=<<___ if ($avx>1);
 	shr	\$32,%rcx
 	cmp	\$2,$num
@@ -1119,10 +1063,8 @@ $code.=<<___ if ($avx>1);
 .align	32
 .Lavx:
 ___
-$code.=<<___ if (!$ENV{SARCASM});
-	mov	%rsp,%rax
-___
 $code.=<<___;
+	mov	%rsp,%rax
 .cfi_def_cfa_register	%rax
 	push	%rbx
 .cfi_push	%rbx
@@ -1142,23 +1084,18 @@ $code.=<<___ if ($win64);
 	movaps	%xmm14,-0x38(%rax)
 	movaps	%xmm15,-0x28(%rax)
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	.alloca	\$`$REG_SZ*18`,\$32,%fil_mbframe
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	sub	\$`$REG_SZ*18`, %rsp
 	and	\$-256,%rsp
 	mov	%rax,`$REG_SZ*17`(%rsp)		# original %rsp
-___
-$code.=<<___;
 .cfi_cfa_expression	%rsp+`$REG_SZ*17`,deref,+8
 .Lbody_avx:
 	lea	K_XX_XX(%rip),$Tbl
-	lea	`$REG_SZ*16`($MBF),%rbx
+	lea	`$REG_SZ*16`(%rsp),%rbx
 
 	vzeroupper
 .Loop_grande_avx:
-	mov	$num,`$REG_SZ*17+8`($MBF)	# original $num
+	mov	$num,`$REG_SZ*17+8`(%rsp)	# original $num
 	xor	$num,$num
 ___
 for($i=0;$i<4;$i++) {
@@ -1180,7 +1117,7 @@ $code.=<<___;
 	jz	.Ldone_avx
 
 	vmovdqu	0x00($ctx),$A			# load context
-	 lea	128($MBF),%rax
+	 lea	128(%rsp),%rax
 	vmovdqu	0x20($ctx),$B
 	vmovdqu	0x40($ctx),$C
 	vmovdqu	0x60($ctx),$D
@@ -1236,19 +1173,15 @@ $code.=<<___;
 	dec	$num
 	jnz	.Loop_avx
 
-	mov	`$REG_SZ*17+8`($MBF),$num
+	mov	`$REG_SZ*17+8`(%rsp),$num
 	lea	$REG_SZ($ctx),$ctx
 	lea	`$inp_elm_size*$REG_SZ/4`($inp),$inp
 	dec	$num
 	jnz	.Loop_grande_avx
 
 .Ldone_avx:
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	`$REG_SZ*17`(%rsp),%rax		# original %rsp
 .cfi_def_cfa	%rax,8
-___
-$code.=<<___;
 	vzeroupper
 ___
 $code.=<<___ if ($win64);
@@ -1263,22 +1196,13 @@ $code.=<<___ if ($win64);
 	movaps	-0x38(%rax),%xmm14
 	movaps	-0x28(%rax),%xmm15
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	# No rsp save/recovery: rsp never moved (frame is a GC allocation).
-	pop	%rbp
-.cfi_pop	%rbp
-	pop	%rbx
-.cfi_pop	%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	mov	-16(%rax),%rbp
 .cfi_restore	%rbp
 	mov	-8(%rax),%rbx
 .cfi_restore	%rbx
 	lea	(%rax),%rsp
 .cfi_def_cfa_register	%rsp
-___
-$code.=<<___;
 .Lepilogue_avx:
 	ret
 .cfi_endproc
@@ -1303,11 +1227,7 @@ $code.=<<___;
 sha1_multi_block_avx2: #! void(ptr,ptr,int)
 .cfi_startproc
 _avx2_shortcut:
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	%rsp,%rax
-___
-$code.=<<___;
 .cfi_def_cfa_register	%rax
 	push	%rbx
 .cfi_push	%rbx
@@ -1335,15 +1255,10 @@ $code.=<<___ if ($win64);
 	movaps	%xmm14,-0x58(%rax)
 	movaps	%xmm15,-0x48(%rax)
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	.alloca	\$`$REG_SZ*18`,\$32,%fil_mbframe
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	sub	\$`$REG_SZ*18`, %rsp
 	and	\$-256,%rsp
 	mov	%rax,`$REG_SZ*17`(%rsp)		# original %rsp
-___
-$code.=<<___;
 .cfi_cfa_expression	%rsp+`$REG_SZ*17`,deref,+8
 .Lbody_avx2:
 	lea	K_XX_XX(%rip),$Tbl
@@ -1351,9 +1266,9 @@ $code.=<<___;
 
 	vzeroupper
 .Loop_grande_avx2:
-	mov	$num,`$REG_SZ*17+8`($MBF)	# original $num
+	mov	$num,`$REG_SZ*17+8`(%rsp)	# original $num
 	xor	$num,$num
-	lea	`$REG_SZ*16`($MBF),%rbx
+	lea	`$REG_SZ*16`(%rsp),%rbx
 ___
 for($i=0;$i<8;$i++) {
     $ptr_reg=&pointer_register($flavour,@ptr[$i]);
@@ -1371,9 +1286,9 @@ ___
 }
 $code.=<<___;
 	vmovdqu	0x00($ctx),$A			# load context
-	 lea	128($MBF),%rax
+	 lea	128(%rsp),%rax
 	vmovdqu	0x20($ctx),$B
-	 lea	256+128($MBF),%rbx
+	 lea	256+128(%rsp),%rbx
 	vmovdqu	0x40($ctx),$C
 	vmovdqu	0x60($ctx),$D
 	vmovdqu	0x80($ctx),$E
@@ -1393,7 +1308,7 @@ $code.="	vmovdqa	0x40($Tbl),$K\n";	# K_60_79
 for(;$i<80;$i++)	{ &BODY_20_39_avx($i,@V); unshift(@V,pop(@V)); }
 $code.=<<___;
 	mov	\$1,%ecx
-	lea	`$REG_SZ*16`($MBF),%rbx
+	lea	`$REG_SZ*16`(%rsp),%rbx
 ___
 for($i=0;$i<8;$i++) {
     $code.=<<___;
@@ -1425,24 +1340,20 @@ $code.=<<___;
 	vmovdqu	$E,0x80($ctx)
 
 	vmovdqu	$t0,(%rbx)			# save counters
-	lea	256+128($MBF),%rbx
+	lea	256+128(%rsp),%rbx
 	vmovdqu	0x60($Tbl),$tx			# pbswap_mask
 	dec	$num
 	jnz	.Loop_avx2
 
-	#mov	`$REG_SZ*17+8`($MBF),$num
+	#mov	`$REG_SZ*17+8`(%rsp),$num
 	#lea	$REG_SZ($ctx),$ctx
 	#lea	`$inp_elm_size*$REG_SZ/4`($inp),$inp
 	#dec	$num
 	#jnz	.Loop_grande_avx2
 
 .Ldone_avx2:
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	`$REG_SZ*17`(%rsp),%rax		# original %rsp
 .cfi_def_cfa	%rax,8
-___
-$code.=<<___;
 	vzeroupper
 ___
 $code.=<<___ if ($win64);
@@ -1457,22 +1368,7 @@ $code.=<<___ if ($win64);
 	movaps	-0x58(%rax),%xmm14
 	movaps	-0x48(%rax),%xmm15
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	# No rsp save/recovery: rsp never moved (frame is a GC allocation).
-	pop	%r15
-.cfi_pop	%r15
-	pop	%r14
-.cfi_pop	%r14
-	pop	%r13
-.cfi_pop	%r13
-	pop	%r12
-.cfi_pop	%r12
-	pop	%rbp
-.cfi_pop	%rbp
-	pop	%rbx
-.cfi_pop	%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	mov	-48(%rax),%r15
 .cfi_restore	%r15
 	mov	-40(%rax),%r14
@@ -1487,8 +1383,6 @@ $code.=<<___ if (!$ENV{SARCASM});
 .cfi_restore	%rbx
 	lea	(%rax),%rsp
 .cfi_def_cfa_register	%rsp
-___
-$code.=<<___;
 .Lepilogue_avx2:
 	ret
 .cfi_endproc

@@ -24,68 +24,61 @@
 int
 __feraiseexcept (int excepts)
 {
+  /* Fil-C: the upstream AArch64 version of this file raises each exception
+     with hand-written inline assembly (ldr/fdiv/fadd followed by mrs fpsr).
+     The Fil-C compiler's safe inline asm rejects the "m" (memory) constraints
+     and the ldr instructions used here, so raise the exceptions with plain C
+     arithmetic on volatile variables (the same trick the upstream code
+     conceptually relies on; the compiler cannot constant-fold through the
+     volatile reads) and then read the FPSR through _FPU_GETFPSR so that the
+     exception flags are visible immediately, like the asm did.
+
+     Note that raising FE_OVERFLOW also raises FE_INEXACT, which is
+     inherent to how the exception is produced and matches upstream.  */
+  volatile float fp_zero = 0.0f;
+  volatile float fp_one = 1.0f;
+  volatile float fp_max = FLT_MAX;
+  volatile float fp_min = FLT_MIN;
+  volatile float fp_1e32 = 1.0e32f;
+  volatile float fp_two = 2.0f;
+  volatile float fp_three = 3.0f;
   uint64_t fpsr;
-  const float fp_zero = 0.0;
-  const float fp_one = 1.0;
-  const float fp_max = FLT_MAX;
-  const float fp_min = FLT_MIN;
-  const float fp_1e32 = 1.0e32f;
-  const float fp_two = 2.0;
-  const float fp_three = 3.0;
-
-  /* Raise exceptions represented by EXCEPTS.  But we must raise only
-     one signal at a time.  It is important that if the OVERFLOW or
-     UNDERFLOW exception and the inexact exception are given at the
-     same time, the OVERFLOW or UNDERFLOW exception precedes the
-     INEXACT exception.
-
-     After each exception we read from the FPSR, to force the
-     exception to be raised immediately.  */
 
   if (FE_INVALID & excepts)
-    __asm__ __volatile__ (
-			  "ldr	s0, %1\n\t"
-			  "fdiv	s0, s0, s0\n\t"
-			  "mrs	%0, fpsr" : "=r" (fpsr)
-			  : "m" (fp_zero)
-			  : "d0");
+    {
+      float r = fp_zero / fp_zero;
+      (void) r;
+      _FPU_GETFPSR (fpsr);
+    }
 
   if (FE_DIVBYZERO & excepts)
-    __asm__ __volatile__ (
-			  "ldr	s0, %1\n\t"
-			  "ldr	s1, %2\n\t"
-			  "fdiv	s0, s0, s1\n\t"
-			  "mrs	%0, fpsr" : "=r" (fpsr)
-			  : "m" (fp_one), "m" (fp_zero)
-			  : "d0", "d1");
+    {
+      float r = fp_one / fp_zero;
+      (void) r;
+      _FPU_GETFPSR (fpsr);
+    }
 
   if (FE_OVERFLOW & excepts)
-    /* There's no way to raise overflow without also raising inexact.  */
-    __asm__ __volatile__ (
-			  "ldr	s0, %1\n\t"
-			  "ldr	s1, %2\n\t"
-			  "fadd s0, s0, s1\n\t"
-			  "mrs	%0, fpsr" : "=r" (fpsr)
-			  : "m" (fp_max), "m" (fp_1e32)
-			  : "d0", "d1");
+    {
+      /* There's no way to raise overflow without also raising inexact.  */
+      float r = fp_max + fp_1e32;
+      (void) r;
+      _FPU_GETFPSR (fpsr);
+    }
 
   if (FE_UNDERFLOW & excepts)
-    __asm__ __volatile__ (
-			  "ldr	s0, %1\n\t"
-			  "ldr	s1, %2\n\t"
-			  "fdiv s0, s0, s1\n\t"
-			  "mrs	%0, fpsr" : "=r" (fpsr)
-			  : "m" (fp_min), "m" (fp_three)
-			  : "d0", "d1");
+    {
+      float r = fp_min / fp_three;
+      (void) r;
+      _FPU_GETFPSR (fpsr);
+    }
 
   if (FE_INEXACT & excepts)
-    __asm__ __volatile__ (
-			  "ldr	s0, %1\n\t"
-			  "ldr	s1, %2\n\t"
-			  "fdiv s0, s0, s1\n\t"
-			  "mrs	%0, fpsr" : "=r" (fpsr)
-			  : "m" (fp_two), "m" (fp_three)
-			  : "d0", "d1");
+    {
+      float r = fp_two / fp_three;
+      (void) r;
+      _FPU_GETFPSR (fpsr);
+    }
 
   return 0;
 }

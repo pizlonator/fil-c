@@ -28,10 +28,14 @@
 set -e
 set -x
 
-cd projects/xz-5.8.3
-extract_source
+cd projects
+rm -rf xz/extracted-source
+../filc/projeny extract xz.projeny xz/extracted-source
+cd xz/extracted-source
 CC="$CCPREFIX$PWD/../../../build/bin/clang -O -g" ./configure \
     --disable-assembler --prefix=$PWD/../../../pizfix
 $MAKE -j $NCPU
 $MAKE install
+cd ..
+rm -rf extracted-source
 

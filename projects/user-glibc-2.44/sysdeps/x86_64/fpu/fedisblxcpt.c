@@ -18,22 +18,24 @@
 
 #include <fenv.h>
 #include <math-inline-asm.h>
+#include <fpu_control.h>
 
 int
 fedisableexcept (int excepts)
 {
-  unsigned short int new_exc, old_exc;
+  fpu_control_t new_exc;
+  unsigned short int old_exc;
   unsigned int new;
 
   excepts &= FE_ALL_EXCEPT;
 
   /* Get the current control word of the x87 FPU.  */
-  __asm__ ("fstcw %0" : "=m" (new_exc));
+  _FPU_GETCW (new_exc);
 
   old_exc = (~new_exc) & FE_ALL_EXCEPT;
 
   new_exc |= excepts;
-  __asm__ ("fldcw %0" : : "m" (new_exc));
+  _FPU_SETCW (new_exc);
 
   /* And now the same for the SSE MXCSR register.  */
   stmxcsr_inline_asm (&new);

@@ -51,8 +51,9 @@ then
 fi
 
 # The perlasm .pl files gate their sarcasm hunks (page-walk removals, frame
-# restructures, avx2 delegations) on this; x86_64-xlate.pl's signature/global
-# annotations are always emitted as gas-compatible `#!' comments.
+# restructures, avx2 delegations) on this; the same .pl files also emit the
+# signature and `#! global ptr' annotations directly, always as gas-compatible
+# `#!' comments that x86_64-xlate.pl just carries through.
 export SARCASM=1
 
 CC="$PWD/../../build/bin/clang -g -O2" ./Configure \

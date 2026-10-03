@@ -21,6 +21,7 @@
 -- non-empty; here we implement the classic actual-spill rewrite inline via a callback.
 
 local prof = require("./prof")
+local err = require("./err")
 
 local regalloc = {}
 
@@ -583,7 +584,9 @@ function regalloc.color(insns, temps, opts)
 			and not precoloredSet[t]
 			and not spilledSet[t]
 			and not coalescedNodes[t] then
-			error("sarcasm: register allocation left a value without a register (temp "
+			-- The generic IRC instruction list carries no statement back-references
+			-- (see the instruction contract above), so this rejection is unlocated.
+			err.plain("register allocation left a value without a register (temp "
 				.. t .. "); refusing to emit a mis-colored function")
 		end
 	end
@@ -606,7 +609,7 @@ function regalloc.color(insns, temps, opts)
 							-- color: a same-color move is a no-op the emitter drops
 							-- (see the move-exclusion in the interference build).
 							if not (ins.move and ins.move.wide ~= false and t == ins.move.src) then
-								error("sarcasm: register allocation assigned the same register to two simultaneously-live values (temps "
+								err.plain("register allocation assigned the same register to two simultaneously-live values (temps "
 									.. d .. " and " .. t .. " in " .. cd .. "); refusing to emit a mis-colored function")
 							end
 						end
@@ -620,7 +623,7 @@ function regalloc.color(insns, temps, opts)
 					for dj = di + 1, #defs do
 						local d2 = defs[dj]
 						if d2 ~= d and color[d2] == cd then
-							error("sarcasm: register allocation assigned the same register to two simultaneously-live values (temps "
+							err.plain("register allocation assigned the same register to two simultaneously-live values (temps "
 								.. d .. " and " .. d2 .. " in " .. cd .. "); refusing to emit a mis-colored function")
 						end
 					end

@@ -1,0 +1,41 @@
+#ifndef COSMOPOLITAN_LIBC_SYSV_CONSTS_O_H_
+#define COSMOPOLITAN_LIBC_SYSV_CONSTS_O_H_
+
+#define O_RDONLY  0
+#define O_WRONLY  1
+#define O_RDWR    2
+#define O_ACCMODE 3
+
+#define O_CREAT     0x00000040
+#define O_EXCL      0x00000080
+#define O_NOCTTY    0x00000100
+#define O_TRUNC     0x00000200
+#define O_APPEND    0x00000400
+#define O_NONBLOCK  0x00000800
+#define O_DSYNC     0x00001000
+#define O_DIRECT    0x00004000
+#define O_LARGEFILE 0x00008000
+#define O_DIRECTORY 0x00010000
+#define O_NOFOLLOW  0x00020000
+#define O_NOATIME   0x00040000
+#define O_CLOEXEC   0x00080000
+#define O_SYNC      0x00101000
+#define O_RSYNC     0x00101000
+#define _O_PATH     0x00200000
+#define _O_TMPFILE  0x00400000
+#define O_UNLINK    0x10000000
+
+#define O_NDELAY O_NONBLOCK
+
+#ifdef __aarch64__
+#undef O_DIRECTORY
+#define O_DIRECTORY 0x00004000
+#undef O_NOFOLLOW
+#define O_NOFOLLOW 0x00008000
+#undef O_DIRECT
+#define O_DIRECT 0x00010000
+#undef O_LARGEFILE
+#define O_LARGEFILE 0x00020000
+#endif
+
+#endif /* COSMOPOLITAN_LIBC_SYSV_CONSTS_O_H_ */

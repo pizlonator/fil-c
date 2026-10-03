@@ -4,3 +4,6 @@ output-includes:
   - "filc safety error"
   - "cannot read"
   - "bytes when upper - ptr ="
+
+# COSMO: cosmo's wrapper reads the timespec/sigset arguments itself before the runtime checks them, so the safety error fires with 'cannot read pointer with ptr >= upper' rather than the musl wording; the check itself is still enforced.
+unsupportedOnCOSMO: true

@@ -1,2 +1,5 @@
 return:
   success
+
+# COSMO: pthread_detach() reads the thread's TIB through a pointer whose filc object association is not established by the cosmo pthread lifecycle; needs filc pthread glue work.
+unsupportedOnCOSMO: true

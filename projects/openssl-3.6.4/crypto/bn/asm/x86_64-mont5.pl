@@ -76,16 +76,6 @@ if (!$addx && `$ENV{CC} -x c /dev/null -dM -E|grep __clang_major__`
 	}
 }
 
-# Sarcasm compiles bn_sqr8x_internal/bn_sqrx8x_internal as file-local
-# subroutines (see the .globl/.type gating at their definitions): their
-# bodies address the caller's frame with the return-address-compensated
-# (+8) convention, which only the localcall clone machinery can legalize
-# (a standalone sig'd function may not touch the caller's frame). Calls
-# therefore target the local __ aliases, which carry no signature
-# annotation, exactly like other local subroutines.
-my $sqr8x_internal = "__bn_sqr8x_internal";
-my $sqrx8x_internal = "__bn_sqrx8x_internal";
-
 # Sarcasm: the dynamic Montgomery frames below live in a GC-allocated
 # '.alloca' buffer, not on the stack (gas keeps the original %rsp math).
 # $FR spells the caller frame base in both modes (like aes-x86_64.pl's $FR):
@@ -194,13 +184,9 @@ bn_mul_mont_gather5: #! void(ptr,ptr,ptr,ptr,ptr,int,int)
 	jnz	.Lmul_enter
 ___
 $code.=<<___ if ($addx);
-	mov	OPENSSL_ia32cap_P+8(%rip),%r11d
-	and	\$0x80108,%r11d
-	cmp	\$0x80108,%r11d		# check for AD*X+BMI2+BMI1
-	je	.Lmulx4x_enter		# (hoisted from bn_mul4x_mont_gather5:
-	jmp	.Lmul4x_enter		# makes both dispatches first-level jumps)
+	mov	OPENSSL_ia32cap_P+8(%rip),%r11d #! global ptr
 ___
-$code.=<<___ if (!$addx);
+$code.=<<___;
 	jmp	.Lmul4x_enter
 ___
 $code.=<<___;
@@ -292,8 +278,6 @@ ___
 $code.=<<___;
 	lea	24-112($FR,$num,8),%r10# place the mask after tp[num+3] (+ICache optimization)
 	and	\$-16,%r10
-___
-$code.=<<___;
 
 	pshufd	\$0,%xmm5,%xmm5		# broadcast index
 	movdqa	%xmm1,%xmm4
@@ -446,8 +430,6 @@ ___
 $code.=<<___;
 	lea	24+128($FR,$num,8),%rdx	# where 256-byte mask is (+size optimization)
 	and	\$-16,%rdx
-___
-$code.=<<___;
 	pxor	%xmm4,%xmm4
 	pxor	%xmm5,%xmm5
 ___
@@ -632,6 +614,11 @@ bn_mul4x_mont_gather5: #! void(ptr,ptr,ptr,ptr,ptr,int,int)
 .cfi_def_cfa_register	%rax
 .Lmul4x_enter:
 ___
+$code.=<<___ if ($addx);
+	and	\$0x80108,%r11d
+	cmp	\$0x80108,%r11d		# check for AD*X+BMI2+BMI1
+	je	.Lmulx4x_enter
+___
 $code.=<<___;
 	push	%rbx
 .cfi_push	%rbx
@@ -794,8 +781,6 @@ ___
 # consume must agree on the slot; the displacement above is that slot.
 $code.=<<___;
 	lea	$maskoff($FR,$num),%r10	# place the mask after tp[num+1] (+ICache optimization)
-___
-$code.=<<___;
 	lea	128(%rdx),$bp		# size optimization
 
 	pshufd	\$0,%xmm5,%xmm5		# broadcast index
@@ -1305,7 +1290,7 @@ bn_power5: #! void(ptr,ptr,ptr,ptr,ptr,int,int)
 .cfi_def_cfa_register	%rax
 ___
 $code.=<<___ if ($addx);
-	mov	OPENSSL_ia32cap_P+8(%rip),%r11d
+	mov	OPENSSL_ia32cap_P+8(%rip),%r11d #! global ptr
 	and	\$0x80108,%r11d
 	cmp	\$0x80108,%r11d		# check for AD*X+BMI2+BMI1
 	je	.Lpowerx5_enter
@@ -1455,15 +1440,15 @@ ___
 }
 $code.=<<___;
 
-	call	$sqr8x_internal
+	call	__bn_sqr8x_internal
 	call	__bn_post4x_internal
-	call	$sqr8x_internal
+	call	__bn_sqr8x_internal
 	call	__bn_post4x_internal
-	call	$sqr8x_internal
+	call	__bn_sqr8x_internal
 	call	__bn_post4x_internal
-	call	$sqr8x_internal
+	call	__bn_sqr8x_internal
 	call	__bn_post4x_internal
-	call	$sqr8x_internal
+	call	__bn_sqr8x_internal
 	call	__bn_post4x_internal
 
 ___
@@ -1483,8 +1468,6 @@ ___
 }
 $code.=<<___;
 	mov	$aptr,$rptr
-___
-$code.=<<___;
 	mov	$RSAVE,%rax		# reload entry %rsp for the clone's 7th-arg read
 $power5_pass_n0
 	call	mul4x_internal
@@ -1539,11 +1522,11 @@ $code.=<<___ if (!$ENV{SARCASM});
 .hidden	bn_sqr8x_internal
 .type	bn_sqr8x_internal,\@abi-omnipotent
 ___
-# Sarcasm: no .globl/.type — file-local only (see the comment at
-# \$sqr8x_internal). The body addresses the caller's frame with the +8
-# convention, which is only legal inside a localcall clone; a standalone
-# sig'd compile cannot prove those accesses safe. mont.s's cross-file
-# call is a recorded sarcasm gap.
+# Sarcasm: no .globl/.type — the symbol stays file-local. The body
+# addresses the caller's frame with the return-address-compensated (+8)
+# convention, which is only legal inside the localcall clone machinery; a
+# standalone sig'd compile cannot prove those accesses safe. mont.s's
+# cross-file call is a recorded sarcasm gap.
 $code.=<<___;
 .align	32
 bn_sqr8x_internal:
@@ -2620,8 +2603,6 @@ ___
 # num_bytes and is also the destination (index read first).
 $code.=<<___;
 	lea	$maskoff($FR,%r10),%r10	# place the mask after tp[num+1] (+ICache optimization)
-___
-$code.=<<___;
 	lea	128($bp),$bptr		# size optimization
 
 	pshufd	\$0,%xmm5,%xmm5		# broadcast index
@@ -3114,15 +3095,15 @@ ___
 }
 $code.=<<___;
 
-	call	$sqrx8x_internal
+	call	__bn_sqrx8x_internal
 	call	__bn_postx4x_internal
-	call	$sqrx8x_internal
+	call	__bn_sqrx8x_internal
 	call	__bn_postx4x_internal
-	call	$sqrx8x_internal
+	call	__bn_sqrx8x_internal
 	call	__bn_postx4x_internal
-	call	$sqrx8x_internal
+	call	__bn_sqrx8x_internal
 	call	__bn_postx4x_internal
-	call	$sqrx8x_internal
+	call	__bn_sqrx8x_internal
 	call	__bn_postx4x_internal
 
 	mov	%r10,$num		# -num
@@ -3134,8 +3115,6 @@ if ($ENV{SARCASM}) { $code.="\tmovq\t%xmm3,%r11\t\t# -\$num\n\tneg\t%r11\n\tlea\
 else { $code.="\tmovq\t%xmm4,$bptr\n"; }
 $code.=<<___;
 
-___
-$code.=<<___;
 	mov	$RSAVE,%rax		# reload entry %rsp for the clone's 7th-arg read
 
 	call	mulx4x_internal
@@ -3191,8 +3170,10 @@ $code.=<<___ if (!$ENV{SARCASM});
 .hidden	bn_sqrx8x_internal
 .type	bn_sqrx8x_internal,\@abi-omnipotent
 ___
-# Sarcasm: no .globl/.type — file-local only (same reason as
-# bn_sqr8x_internal above).
+# Sarcasm: no .globl/.type — the symbol stays file-local for the same
+# reason as bn_sqr8x_internal above: the body addresses the caller's
+# frame with the return-address-compensated (+8) convention, which is
+# only legal inside the localcall clone machinery.
 $code.=<<___;
 .align	32
 bn_sqrx8x_internal:

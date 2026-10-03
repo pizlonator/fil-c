@@ -77,6 +77,15 @@ PAS_API void fugc_initialize_collector(void); /* Called fourth. */
 PAS_API void fugc_suspend(void);
 PAS_API void fugc_resume(void);
 
+/* Fork(2) support for the GC request natives (zgc_try_request, zgc_request_fresh, zgc_wait).  The
+   only caller is filc_native_zsys_fork_impl() in filc_runtime.c.  fugc_lock_locks_before_fork()
+   acquires the collector thread state lock after fugc_suspend() but before fork(2), so that the
+   forking thread is the only possible holder of that lock at the instant of the clone.
+   fugc_unlock_locks_after_fork() releases it after fork(2), in both the parent and the child.
+   See fugc.c for why only the collector thread state lock needs this treatment. */
+PAS_API void fugc_lock_locks_before_fork(void);
+PAS_API void fugc_unlock_locks_after_fork(void);
+
 /* Forces the FUGC to not shut down any threads and not create new threads. */
 PAS_API void fugc_lock_threads(void);
 

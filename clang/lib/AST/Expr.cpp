@@ -1663,8 +1663,10 @@ SourceLocation CallExpr::getBeginLoc() const {
     if (const auto *Method =
             dyn_cast_if_present<const CXXMethodDecl>(getCalleeDecl());
         Method && Method->isExplicitObjectMemberFunction()) {
+      // Temporary call expressions built during overload resolution
+      // (CallExpr::CreateTemporary) have no arguments; fall back to the
+      // callee's location for them (llvm/llvm-project#130272).
       bool HasFirstArg = getNumArgs() > 0 && getArg(0);
-      assert(HasFirstArg);
       if (HasFirstArg) {
         if (auto FirstArgLoc = getArg(0)->getBeginLoc(); FirstArgLoc.isValid()) {
           return FirstArgLoc;

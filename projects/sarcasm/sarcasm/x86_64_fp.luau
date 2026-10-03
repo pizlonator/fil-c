@@ -28,6 +28,8 @@
 -- except for the size-driven width functions (SIZE_DRIVEN: the x87 PTR fallback
 -- and cvtsi2ss/sd's integer source) which take their width from the annotation.
 
+local err = require("./err")
+
 local fp = {}
 
 -- ---------------------------------------------------------------------------
@@ -182,7 +184,7 @@ function fp.narrowSuffix(mnem, memSize)
 	return nil
 end
 
-local function vCvtNarrowW(ops, mem, mnem, raw)
+local function vCvtNarrowW(ops, mem, mnem, raw, st)
 	local fam, suf, base = narrowFamily(mnem)
 	base = base or mnem
 	local legal = { [16] = true, [32] = true, [64] = true }
@@ -192,7 +194,7 @@ local function vCvtNarrowW(ops, mem, mnem, raw)
 	elseif mem and mem.size then
 		w = mem.size
 		if not legal[w] then
-			error("sarcasm: PTR size annotation (" .. tostring(w) .. " bytes) is not a legal"
+			err.at(st, "PTR size annotation (" .. tostring(w) .. " bytes) is not a legal"
 				.. " memory source width for '" .. base .. "' (one of 16, 32, 64): " .. (raw or mnem))
 		end
 	elseif (fam == "dbl" or fam == "quad") and vecBytesOf(ops and ops[1]) == 32 then
@@ -201,7 +203,7 @@ local function vCvtNarrowW(ops, mem, mnem, raw)
 		-- ymm-dest form is its ONLY gas-encodable sized spelling.
 		w = 64
 	else
-		error("sarcasm: cannot determine the memory access width of '" .. mnem
+		err.at(st, "cannot determine the memory access width of '" .. mnem
 			.. "' (unsized memory operand is ambiguous; use a size suffix or PTR annotation): "
 			.. (raw or mnem))
 	end
@@ -210,7 +212,7 @@ local function vCvtNarrowW(ops, mem, mnem, raw)
 	local dw = vecBytesOf(ops and ops[1])
 	local need = ((fam == "dbl" or fam == "quad") and w == 64) and 32 or 16
 	if dw and dw ~= need then
-		error("sarcasm: '" .. mnem .. "' has no memory form with a " .. w
+		err.at(st, "'" .. mnem .. "' has no memory form with a " .. w
 			.. "-byte source and this destination register class: " .. (raw or mnem))
 	end
 	return w
@@ -300,7 +302,7 @@ end
 -- takes m8/m16/m32, an r64 destination takes m8/m64 — illegal combinations are
 -- rejected cleanly rather than emitted for gas to fail.
 local CRC32_SUFFIX = { b = 1, w = 2, l = 4, q = 8 }
-local function crc32W(ops, mem, mnem, raw)
+local function crc32W(ops, mem, mnem, raw, st)
 	local w = CRC32_SUFFIX[string.match(mnem, "^crc32([bwlq])$") or ""]
 	if not w then
 		local src = ops and ops[2]
@@ -313,7 +315,7 @@ local function crc32W(ops, mem, mnem, raw)
 	if not w and dstW then w = dstW end
 	w = w or 4
 	if dstW and not (w == 1 or (dstW == 4 and (w == 2 or w == 4)) or (dstW == 8 and w == 8)) then
-		error("sarcasm: illegal crc32 destination/source width combination (" .. dstW
+		err.at(st, "illegal crc32 destination/source width combination (" .. dstW
 			.. "-byte destination, " .. w .. "-byte source) for '" .. mnem .. "': "
 			.. (raw or mnem))
 	end
@@ -1003,14 +1005,14 @@ function fp.classify(insn)
 	local mem = memOperandOf(ops)
 	if entry then
 		if entry.reject then
-			error("sarcasm: " .. entry.reject .. ": " .. raw)
+			err.at(insn, entry.reject .. ": " .. raw)
 		end
 		if not opsHaveFp(ops) and not entry.claim then
 			return nil  -- not an FP use of a shared mnemonic (e.g. GPR `movq`)
 		end
 		if mem then
 			if entry.memOk == false then
-				error("sarcasm: `" .. mnem .. "` does not have a memory form"
+				err.at(insn, "`" .. mnem .. "` does not have a memory form"
 					.. " (cannot prove memory safety): " .. raw)
 			end
 			local knum = nil
@@ -1031,13 +1033,13 @@ function fp.classify(insn)
 				-- rejects (incl. masked ALU memory sources, whose lane/mask
 				-- structure sarcasm does not model).
 				if knum == "0" then
-					error("sarcasm: {%k0} is not a valid writemask on a memory access"
+					err.at(insn, "{%k0} is not a valid writemask on a memory access"
 						.. " (k0 reads as all-ones; gas rejects it too): " .. raw)
 				end
 				if not (mem.bcastN or BROADCAST_LOAD[mnem]) then
 					local mi = fp.maskedAccessInfo(mnem, ops)
 					if not mi or mi.extract ~= "k" then
-						error("sarcasm: AVX512 mask-register ({k}) memory access on '" .. mnem
+						err.at(insn, "AVX512 mask-register ({k}) memory access on '" .. mnem
 							.. "' is not supported (only the masked vector moves, truncating"
 							.. " stores, and expand/compress forms are; masked-off lanes may"
 							.. " not touch memory; cannot prove memory safety): " .. raw)
@@ -1052,7 +1054,7 @@ function fp.classify(insn)
 			if mnem == "vmaskmovps" or mnem == "vmaskmovpd"
 				or mnem == "vpmaskmovd" or mnem == "vpmaskmovq" then
 				if #ops ~= 3 or not isXmmOp(ops[2]) then
-					error("sarcasm: `" .. mnem .. "` requires the three-operand form"
+					err.at(insn, "`" .. mnem .. "` requires the three-operand form"
 						.. " (load: dest, mask, mem; store: mem, mask, src): " .. raw)
 				end
 			end
@@ -1087,7 +1089,7 @@ function fp.classify(insn)
 	-- operand whose width we cannot determine is unsound to check at any default
 	-- width, so reject it. Register-only unknown forms pass through.
 	if mem and (opsHaveFp(ops) or string.match(mnem, "^[fv]")) then
-		error("sarcasm: cannot determine the memory access width of '" .. mnem
+		err.at(insn, "cannot determine the memory access width of '" .. mnem
 			.. "' (cannot prove memory safety): " .. raw)
 	end
 	return nil
@@ -1109,13 +1111,13 @@ end
 -- their width FROM the annotation by design and are exempt. `raw` (the source
 -- text of the instruction) is used only for the rejection message.
 
-function fp.accessWidth(mnem, ops, raw)
+function fp.accessWidth(mnem, ops, raw, st)
 	ops = ops or {}
 	local mem = memOperandOf(ops)
 	if not mem then return nil end
 	local function checkSize(w)
 		if w and mem.size and mem.size ~= w then
-			error("sarcasm: PTR size annotation (" .. tostring(mem.size)
+			err.at(st, "PTR size annotation (" .. tostring(mem.size)
 				.. " bytes) contradicts the memory access width (" .. tostring(w)
 				.. " bytes) of '" .. mnem .. "': " .. (raw or mnem))
 		end
@@ -1133,7 +1135,7 @@ function fp.accessWidth(mnem, ops, raw)
 	local sizeDriven = false
 	if type(w) == "function" then
 		sizeDriven = SIZE_DRIVEN[w] or false
-		w = w(ops, mem, mnem, raw)
+		w = w(ops, mem, mnem, raw, st)
 	end
 	if w == "vec" then w = widestVecBytes(ops) end
 	if w == "pspd" then w = math.max(16, widestVecBytes(ops) or 16) end
@@ -1505,6 +1507,7 @@ local REASON_SGX = "SGX enclave instructions (encls/enclu/enclv) have implicit e
 local REASON_NOTRACK = "the CET `notrack` prefix is not supported (it changes indirect-branch tracking for the instruction that follows, which the checker does not model; cannot prove memory safety)"
 local REASON_LOOPZF = "loop's ZF-consuming form branches on the flags left by the PRECEDING instruction, and sarcasm's injected memory-access checks clobber EFLAGS (the documented known issue), so the pending condition could be silently polluted (modeling it cannot be proven sound; use plain `loop`, which branches on the decremented counter instead)"
 local REASON_ADDRSIZE = "an address-size prefix changes the addressing mode of the instruction that follows, which sarcasm does not model (the size-suffixed spelling is supported where one exists, e.g. loopl for the 0x67-address-size `loop`)"
+local REASON_FLAGXFER16 = "the 16-bit flag-stack transfers (pushfw/popfw) move a 2-byte word (rsp shifts by 2 and only the low 16 bits of EFLAGS transfer), which the stack model does not track (cannot prove memory safety; use the 64-bit pushf/popf or pushfq/popfq)"
 
 local REASON_FLAGREAD = "flag-reading/writing instructions with unmodeled EFLAGS effects cannot be proven sound against sarcasm's injected flag-clobbering checks (the flag-liveness model has no entry for this mnemonic, so a default-dead assumption would silently omit a required save/restore)"
 local REASON_BCD = "BCD arithmetic instructions (daa/das/aaa/aas/aam/aad) read and write AF/CF with unmodeled EFLAGS effects that sarcasm's injected flag-clobbering checks could silently pollute (cannot prove memory safety)"
@@ -1595,15 +1598,16 @@ local UNSAFE = {
 	-- prefixed instruction itself is not modeled. The size-suffixed spellings
 	-- (loopl/loopq, jecxz/jrcxz) are the supported way to write those forms.
 	addr32 = REASON_ADDRSIZE, addr16 = REASON_ADDRSIZE,
-	-- Flag-stack transfers: pushf/pushfq/pushfd READ EFLAGS (a pending
-	-- condition from a preceding flag-setter would be silently polluted by an
-	-- injected check) and popf/popfq/popfd WRITE EFLAGS with values the model
-	-- does not track. Neither is in the flag-liveness tables, so both stay
-	-- rejected rather than silently passing with a dead default.
-	pushf = REASON_FLAGREAD, pushfq = REASON_FLAGREAD, pushfd = REASON_FLAGREAD,
-	pushfw = REASON_FLAGREAD,
-	popf = REASON_FLAGREAD, popfq = REASON_FLAGREAD, popfd = REASON_FLAGREAD,
-	popfw = REASON_FLAGREAD,
+	-- Flag-stack transfers, 16-bit forms only: pushfw/popfw (the 0x66 prefixes)
+	-- move a 2-BYTE word — rsp shifts by 2 and only the low 16 bits of EFLAGS
+	-- transfer — which the 8-byte-word stack model does not track (see
+	-- REASON_FLAGXFER16). The 64-bit forms (pushf/pushfq[/pushfd], popf/popfq
+	-- [/popfd]) are MODELED now: x86_64_isa.classify defs/uses the virtual flags
+	-- register, the frame pass files the word like a spill push, and the
+	-- transform lowers the pair through the same pushfq/popq + pushq/popfq
+	-- round-trip its injected checks use — so they never reach this table.
+	pushfw = REASON_FLAGXFER16,
+	popfw = REASON_FLAGXFER16,
 	-- salc (set AL from carry) reads CF with no entry in the flag-use tables.
 	salc = REASON_FLAGREAD,
 	-- BCD arithmetic: AF/CF readers+writers with unmodeled flag effects.

@@ -11,6 +11,7 @@ local xparse = require("./x86_64_parse")
 local sig = require("./sig")
 local fp = require("./x86_64_fp")
 local regalloc = require("./regalloc")
+local err = require("./err")
 
 local M = {}
 
@@ -27,6 +28,7 @@ M.flagDef = isa.flagDef
 M.flagWriteNoDef = isa.flagWriteNoDef
 M.flagUseMask = isa.flagUseMask
 M.flagDefMask = isa.flagDefMask
+M.isFlagStackXfer = isa.isFlagStackXfer
 M.precolorName = function(num) return xparse.regName(num, 64) end
 M.ALLOCATABLE = isa.ALLOCATABLE
 
@@ -71,6 +73,13 @@ M.globalSupport = true
 -- acceptance on this flag (arm64 rejects those forms "not yet supported").
 M.crossFunctionJumps = true
 
+-- This backend implements the `#! stack buffer (...)` annotations: declared
+-- stack byte ranges lowered into a dedicated region of the synthesized frame
+-- (indexed accesses bounds-checked, static accesses redirected, no
+-- capabilities). validateBody's annotation walk accepts the annotation only
+-- when this flag is set (arm64 rejects it as unsupported).
+M.stackBuffers = true
+
 -- Calling convention (numbers are register encodings; see x86_64_isa).
 -- Fast entrypoint: rdi=myth, (rdx,rcx)=arg0, (r8,r9)=arg1; ret al=flags, rdx=iv, rcx=lo.
 -- Runtime (SysV) calls: rdi,rsi,rdx,... ; result in rax.  yolo params arrive in SysV regs.
@@ -103,14 +112,14 @@ M.cc = {
 -- the return rides in xmm0), so at most 8 of them are allowed; long double and the
 -- vector classes are rejected by the arch-aware signature class check (same rejection
 -- shape as arm64).
-function M.checkCallsiteSig(cs, callee)
-	sig.checkSupportedClasses(cs, "call to '" .. callee .. "'", { arch = "x86_64" })
+function M.checkCallsiteSig(cs, callee, st)
+	sig.checkSupportedClasses(cs, "call to '" .. callee .. "'", { arch = "x86_64" }, st)
 	local fpArgs = 0
 	for k = 1, cs.argWords do
 		if sig.isFpClass(cs.argTypes[k]) then fpArgs += 1 end
 	end
 	if fpArgs > 8 then
-		error("sarcasm: call to '" .. callee .. "': >8 floating-point arguments not yet supported"
+		err.at(st, "call to '" .. callee .. "': >8 floating-point arguments not yet supported"
 			.. " (this call's signature needs " .. tostring(fpArgs) .. ")")
 	end
 end
@@ -127,7 +136,7 @@ function M.accessSizeAlign(stmt)
 	-- FP/SIMD/x87 instructions get their access width from the knowledge module
 	-- (authoritative — it cleanly rejects an Intel PTR size annotation that
 	-- contradicts the ISA-fixed width).
-	local fw, fa = fp.accessWidth(mnem, stmt.operands or {}, stmt.raw)
+	local fw, fa = fp.accessWidth(mnem, stmt.operands or {}, stmt.raw, stmt)
 	if fw then
 		-- The access check's alignment is capped at the word size, exactly like the
 		-- Fil-C compiler (FilPizlonator's buildCheck does std::min(Alignment,
@@ -146,7 +155,7 @@ function M.accessSizeAlign(stmt)
 		local hasMem = false
 		for _, op in (stmt.operands or {}) do if op.kind == "mem" then hasMem = true break end end
 		if hasMem and fp.hasFpReg(stmt) then
-			error("sarcasm: cannot determine the memory access width of '" .. mnem
+			err.at(stmt, "cannot determine the memory access width of '" .. mnem
 				.. "' (cannot prove memory safety): " .. (stmt.raw or mnem))
 		end
 	end
@@ -163,7 +172,7 @@ function M.accessSizeAlign(stmt)
 	if mnem == "cmpxchg8b" or mnem == "cmpxchg16b" then
 		local w = (mnem == "cmpxchg16b") and 16 or 8
 		if mem and mem.size and mem.size ~= w then
-			error("sarcasm: PTR size annotation (" .. tostring(mem.size)
+			err.at(stmt, "PTR size annotation (" .. tostring(mem.size)
 				.. " bytes) contradicts the memory access width (" .. tostring(w)
 				.. " bytes) of '" .. mnem .. "': " .. (stmt.raw or mnem))
 		end
@@ -181,7 +190,7 @@ function M.accessSizeAlign(stmt)
 	-- nil for them).
 	local regW = isa.gprAccessRegWidth(stmt)
 	if mem and mem.size and regW and mem.size ~= regW then
-		error("sarcasm: PTR size annotation (" .. tostring(mem.size)
+		err.at(stmt, "PTR size annotation (" .. tostring(mem.size)
 			.. " bytes) contradicts the memory access width (" .. tostring(regW)
 			.. " bytes) of '" .. mnem .. "': " .. (stmt.raw or mnem))
 	end
@@ -243,7 +252,7 @@ function M.ptrAtomicShape(ann, stmt)
 	if ann == "atomic load ptr" or ann == "atomic store ptr" then
 		local want = (ann == "atomic load ptr") and "load" or "store"
 		if M.ptrAccessKind(stmt) ~= want then
-			error("sarcasm: `" .. ann .. "` requires a plain 8-byte GPR " .. want
+			err.at(stmt, "`" .. ann .. "` requires a plain 8-byte GPR " .. want
 				.. " instruction: " .. raw)
 		end
 		return (ann == "atomic load ptr") and "atomicload" or "atomicstore"
@@ -252,40 +261,40 @@ function M.ptrAtomicShape(ann, stmt)
 	local ops = stmt.operands or {}
 	if ann == "atomic ptr" then
 		if base ~= "cmpxchg" then
-			error("sarcasm: `atomic ptr` is only supported on cmpxchg (pointer"
+			err.at(stmt, "`atomic ptr` is only supported on cmpxchg (pointer"
 				.. " compare-exchange): " .. raw)
 		end
 		if not (ops[1] and ops[1].kind == "mem") then
-			error("sarcasm: `atomic ptr` requires cmpxchg with a memory destination"
+			err.at(stmt, "`atomic ptr` requires cmpxchg with a memory destination"
 				.. " (the register form has no capability slot to exchange against): " .. raw)
 		end
 		if #ops ~= 2 or not isa.isGpr(ops[2]) then
-			error("sarcasm: `atomic ptr` requires the cmpxchg mem, reg form"
+			err.at(stmt, "`atomic ptr` requires the cmpxchg mem, reg form"
 				.. " (a GPR new-value operand): " .. raw)
 		end
 		local w = M.accessSizeAlign(stmt)
 		if w ~= 8 then
-			error("sarcasm: `atomic ptr` requires the 8-byte (q) cmpxchg form"
+			err.at(stmt, "`atomic ptr` requires the 8-byte (q) cmpxchg form"
 				.. " (pointer slots are 8 bytes): " .. raw)
 		end
 		return "cas"
 	end
 	-- `;! load store ptr` / `;! atomic load store ptr`: pointer RMWs.
 	if M.ptrAccessKind(stmt) ~= "rmw" then
-		error("sarcasm: `" .. ann .. "` requires a memory-destination"
+		err.at(stmt, "`" .. ann .. "` requires a memory-destination"
 			.. " read-modify-write instruction: " .. raw)
 	end
 	if base == "cmpxchg" then
-		error("sarcasm: `" .. ann .. "` on cmpxchg; pointer compare-exchange needs"
+		err.at(stmt, "`" .. ann .. "` on cmpxchg; pointer compare-exchange needs"
 			.. " `atomic ptr`: " .. raw)
 	end
 	if string.match(string.lower(stmt.mnemonic), "^xadd[bwlq]?$") then
-		error("sarcasm: `" .. ann .. "` is not supported on xadd: its source register"
+		err.at(stmt, "`" .. ann .. "` is not supported on xadd: its source register"
 			.. " is also a destination (it would receive the old pointer value, needing a"
 			.. " pointer def + lower — use a `atomic ptr` cmpxchg loop instead): " .. raw)
 	end
 	if not PTR_RMW_OPS[base] then
-		error("sarcasm: `" .. ann .. "` is not supported on '" .. string.lower(stmt.mnemonic)
+		err.at(stmt, "`" .. ann .. "` is not supported on '" .. string.lower(stmt.mnemonic)
 			.. "' (supported pointer RMWs: add/adc/and/or/sbb/sub/xor, inc/dec/neg/not): " .. raw)
 	end
 	-- Operand shape: the unary forms are mem-only; the binary forms are
@@ -294,20 +303,20 @@ function M.ptrAtomicShape(ann, stmt)
 	-- register operation — reject it here.
 	if PTR_RMW_OPS[base] and (base == "inc" or base == "dec" or base == "neg" or base == "not") then
 		if #ops ~= 1 then
-			error("sarcasm: `" .. ann .. "` on " .. base .. " requires the one-operand"
+			err.at(stmt, "`" .. ann .. "` on " .. base .. " requires the one-operand"
 				.. " memory form: " .. raw)
 		end
 	elseif #ops ~= 2 or not (isa.isGpr(ops[2]) or ops[2].kind == "imm") then
-		error("sarcasm: `" .. ann .. "` requires a GPR register or immediate source"
+		err.at(stmt, "`" .. ann .. "` requires a GPR register or immediate source"
 			.. " operand (x86 has no mem-to-mem " .. base .. " form): " .. raw)
 	end
 	local w = M.accessSizeAlign(stmt)
 	if w ~= 8 then
-		error("sarcasm: `" .. ann .. "` requires the 8-byte (q) form"
+		err.at(stmt, "`" .. ann .. "` requires the 8-byte (q) form"
 			.. " (pointer slots are 8 bytes): " .. raw)
 	end
 	if ann == "load store ptr" and stmt.lockPrefix then
-		error("sarcasm: `lock` on a `load store ptr` RMW is a lie (the sequence is a"
+		err.at(stmt, "`lock` on a `load store ptr` RMW is a lie (the sequence is a"
 			.. " non-atomic load+op+store); use `atomic load store ptr` for an atomic"
 			.. " pointer RMW: " .. raw)
 	end
@@ -485,7 +494,7 @@ function M.make(ctx)
 	-- possibly live, e.g. the ret-size check's cc.retIv — is never clobbered.)
 	function cg.cmpImmBranchWidened(a, imm, cond, lbl)
 		imm = math.floor(tonumber(imm)
-			or error("sarcasm: internal error: bad compare immediate " .. tostring(imm)))
+			or err.plain("internal error: bad compare immediate " .. tostring(imm)))
 		if imm <= 2147483647 and imm >= -2147483648 then
 			cg.cmpImmBranch(a, imm, cond, lbl)
 		else
@@ -574,7 +583,7 @@ function M.make(ctx)
 	-- the instruction mnemonic selects the width).
 	function cg.fpArgRegName(class, ordinal)
 		local w = sig.fpWidthBytes(class)
-			or error("sarcasm: internal error: fpArgRegName on a non-FP class " .. tostring(class))
+			or err.plain("internal error: fpArgRegName on a non-FP class " .. tostring(class))
 		return "xmm" .. tostring(ordinal)
 	end
 
@@ -781,7 +790,7 @@ function M.make(ctx)
 					{ dispSym = desc.baseSym }) }, { defs = { loT } }))
 				return effTemp, loT
 			end
-			error("sarcasm: memory access with a symbolic address cannot be bounds-checked"
+			err.at(node.stmt, "memory access with a symbolic address cannot be bounds-checked"
 				.. " (if '" .. mem.dispSym .. "' is a Fil-C global defined in another module,"
 				.. " annotate the instruction with `#! global ptr`): " .. (node.stmt.raw or "?"))
 		end
@@ -1103,7 +1112,7 @@ function M.make(ctx)
 				if w then
 					local mnem = (n > 15) and EVEX_FORM[w] or SAVE_FORM[w]
 					if not mnem or w > vecBytes then
-						error("sarcasm: internal error: bad live vector width "
+						err.plain("internal error: bad live vector width "
 							.. tostring(w) .. " (vecBytes " .. tostring(vecBytes) .. ")")
 					end
 					local vreg = { kind = "reg", rc = "xmm", num = n, width = w * 8, name = SAVE_CLASS[w] .. n }
@@ -1159,15 +1168,28 @@ function M.make(ctx)
 		end
 		return nil  -- not a stack base (e.g. rbp as an ordinary GPR with frame-pointer omission)
 	end
-	-- The +8 rule for a clone statement's rsp-relative operand at a static depth
-	-- (the return-address compensation — localcall.luau; keyed exactly like the
-	-- frame rewrite's slot/region coordinates).
-	local function cloneStackOff(node, base, disp)
+	-- Depth normalization for a statement's rsp-relative operand at a static
+	-- depth: the slot model's coordinate (off = disp + D0 - d — the raw
+	-- displacement is the region coordinate only AT the frame base depth D0).
+	-- A CLONE statement's displacement additionally keys 8 lower (the +8 rule —
+	-- the return-address compensation, localcall.luau). Both are keyed exactly
+	-- like the frame rewrite's slot/region coordinates (x86_64_frame.luau's
+	-- slotKeyOf and its slot-block region lookup) and the transform's region-lea
+	-- seeding (transform.luau) — the three membership decisions must agree
+	-- exactly. Prologue statements stay keyed raw (mirroring the frame
+	-- rewrite's region lookup; the pre-existing behavior on both sides), and
+	-- B2-clone statements stay keyed raw too (their private band coordinates
+	-- are a separate, untouched keying).
+	local function normStackOff(node, base, disp)
 		local off = stackOff(base, disp)
-		if off and base.rc == "sp" and node.stmt and node.stmt.localClone then
+		if off and base.rc == "sp" and node.stmt then
 			local d = node.stmt.x86_depth
 			if d ~= nil and type(d) ~= "table" and d ~= "dyn" and fctx and fctx.callerDepth then
-				off = off + fctx.callerDepth - d - 8
+				if node.stmt.localClone then
+					off = off + fctx.callerDepth - d - 8
+				elseif not node.stmt.b2clone and not node.stmt.x86_prologue then
+					off = off + fctx.callerDepth - d
+				end
 			end
 		end
 		return off
@@ -1176,8 +1198,11 @@ function M.make(ctx)
 		-- A materialized FP frame-slot operand (disp(%rsp) into sarcasm's synthesized
 		-- frame) is NOT an input-frame access; its positive offset can numerically
 		-- coincide with an alloca-region frame offset. Never redirect/reject it.
+		-- The same holds for a `#! stack buffer` operand (it addresses the buffer
+		-- region of the synthesized frame, in region-relative placeholder
+		-- coordinates until the transform's buffer-base shift runs).
 		local fsmem = M.memOperand(node.stmt)
-		if fsmem and fsmem.frameSlot then return false end
+		if fsmem and (fsmem.frameSlot or fsmem.stackBuf) then return false end
 		local m = isa.baseMnemonic(string.lower(node.stmt.mnemonic))
 		local ops = node.stmt.operands
 		-- Region membership, reproducing the frame rewrite exactly: inside an
@@ -1233,7 +1258,7 @@ function M.make(ctx)
 		if m == "lea" then
 			local mem = M.memOperand(node.stmt)
 			if mem and not mem.dispSym and mem.base then
-				local off = cloneStackOff(node, mem.base, mem.dispVal or 0)
+				local off = normStackOff(node, mem.base, mem.dispVal or 0)
 				local r, reloff = nil, nil
 				if off then r, reloff = nodeRegion(off, mem.base and mem.base.rc == "sp") end
 				if r then
@@ -1268,7 +1293,7 @@ function M.make(ctx)
 		end
 		if m == "mov" and ops[1] and ops[1].kind == "reg" and ops[1].rc ~= "sp"
 			and ops[2] and ops[2].rc == "sp" then
-			local r, reloff = nodeRegion(cloneStackOff(node, { kind = "reg", rc = "sp" }, 0), true)
+			local r, reloff = nodeRegion(normStackOff(node, { kind = "reg", rc = "sp" }, 0), true)
 			if r then
 				local rd = node.defTemps[1]
 				-- rsp+0 redirected into the region: buffer + (0 - base), NOT buffer + 0.
@@ -1279,7 +1304,7 @@ function M.make(ctx)
 		end
 		local mem = M.memOperand(node.stmt)
 		if mem and not mem.dispSym then
-			local off = cloneStackOff(node, mem.base, mem.dispVal or 0)
+			local off = normStackOff(node, mem.base, mem.dispVal or 0)
 			local r, reloff = nil, nil
 			if off then r, reloff = nodeRegion(off, mem.base and mem.base.rc == "sp") end
 			if r then
@@ -1341,11 +1366,14 @@ function M.make(ctx)
 		-- own synthesized frame: the access is always in-bounds (the frame contains
 		-- its own slots), so it needs no access check — pass the instruction
 		-- through untouched. (`;! load/store ptr` on a stack access was already
-		-- rejected by the frame rewrite; keep a defensive copy here.)
-		if mem and mem.frameSlot then
+		-- rejected by the frame rewrite; keep a defensive copy here.) A
+		-- `#! stack buffer` operand is the same shape: a real disp(%rsp) (or
+		-- disp(%rsp,%idx,s)) into the lowered stack-buffer region, bounds-checked
+		-- separately by the transform for the indexed forms.
+		if mem and (mem.frameSlot or mem.stackBuf) then
 			local ann = node.stmt.annotation
 			if ann and sig.PTR_ANNOTATIONS[ann] then
-				error("sarcasm: `" .. ann .. "` on a stack-frame access is not supported"
+				err.at(node.stmt, "`" .. ann .. "` on a stack-frame access is not supported"
 					.. " (frame slots are virtualized/materialized, not real memory): "
 					.. (node.stmt.raw or "?"))
 			end
@@ -1413,7 +1441,7 @@ function M.make(ctx)
 			if d and d.kind == "reg" and d.rc == "gpr" and not d.isSlot then
 				local t = node.defTemps and node.defTemps[1]
 				if not t then
-					error("sarcasm: internal error: setcc destination has no web temp: "
+					err.at(node.stmt, "internal error: setcc destination has no web temp: "
 						.. (node.stmt.raw or node.stmt.mnemonic))
 				end
 				emit(node)

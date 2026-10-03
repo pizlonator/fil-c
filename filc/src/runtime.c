@@ -268,12 +268,15 @@ static void unlock_table(void)
         lock_unlock(&table[index].lock);
 }
 
+#if !defined(__COSMOPOLITAN__)
+/* Only used by zsys_epoll_create1(); cosmo doesn't expose epoll. */
 static struct fd_backer* fd_backer_create(void)
 {
     struct fd_backer* result = zgc_alloc(sizeof(struct fd_backer));
     result->epoll_table = zexact_ptrtable_new_weak();
     return result;
 }
+#endif
 
 static struct fd_backer* get_fd_backer(int fd)
 {
@@ -363,6 +366,10 @@ int zsys_fork(void)
     return result;
 }
 
+#if !defined(__COSMOPOLITAN__)
+/* The cosmo flavor doesn't expose epoll at all: the zsys_epoll_* forwarders
+   panic under PAS_COSMO, the usercosmo shims trap, and <sys/epoll.h> doesn't
+   exist there.  So the epoll fd-backer bookkeeping below is musl/glibc-only. */
 int zsys_epoll_create1(int flags)
 {
     int result = zsys_epoll_create1_impl(flags);
@@ -427,6 +434,7 @@ int zsys_epoll_pwait2(int epfd, void* events, int maxevents, const void* timeout
     fix_events(epfd, events, result);
     return result;
 }
+#endif /* !__COSMOPOLITAN__ */
 
 int zsys_close_range(unsigned first, unsigned last, int flags)
 {

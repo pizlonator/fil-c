@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# OVERVIEW
+#
+#   System Sanity Check
+#
+# DESCRIPTION
+#
+#   This script is launched at the start of Makefile to detect if
+#   binfmt_misc was tuned to launch 'MZ' shell scripts under WINE
+
+if [ x`uname -s` != xLinux ]; then
+  cat <<'EOF' >&2
+
+ERROR
+
+  Want Linux Build Environment
+
+DETAILS
+
+  Cosmopolitan builds binaries that run on all major platforms.
+  You need to compile them on Linux, using any distro you like.
+  Consider setting up Alpine, Debian, or Ubuntu in a VMWare VM.
+
+EOF
+  kill $1
+  exit 1
+fi
+
+if [ ! -f /proc/sys/fs/binfmt_misc/status ]; then
+  exit 0
+fi
+
+if ! build/bootstrap/echo -n; then
+  cat <<'EOF' >&2
+
+ERROR
+
+  APE Execution error.
+
+DETAILS
+
+  Your system has probably been configured to use binfmt_misc. You need
+  to run the command below to install /usr/bin/ape and register it with
+  binfmt_misc. See ape/loader.c for source code, and technical details.
+
+WORKAROUND
+
+  ape/apeinstall.sh
+
+NOTES
+
+  If it still doesn't work, possibly due to an overly aggressive WINE
+  or WSL registration, or possibly due to the ordering of definitions,
+  then one troubleshooting step is to just unregister everything using
+  sudo sh -c 'echo -1 >/proc/sys/fs/binfmt_misc/status' and try again.
+
+SEE ALSO
+
+  https://justine.lol/ape.html
+
+EOF
+  kill $1
+  exit 1
+fi

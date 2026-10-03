@@ -26,7 +26,7 @@ __feupdateenv (const fenv_t *envp)
   unsigned int xtemp;
 
   /* Save current exceptions.  */
-  asm volatile ("fnstsw %0" : "=m" (temp));
+  asm volatile ("fnstsw %0" : "=a" (temp));
   stmxcsr_inline_asm (&xtemp);
   temp = (temp | xtemp) & FE_ALL_EXCEPT;
 

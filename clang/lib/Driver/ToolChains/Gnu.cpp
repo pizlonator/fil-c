@@ -45,6 +45,46 @@ using namespace llvm::opt;
 using tools::addMultilibFlag;
 using tools::addPathIfExists;
 
+// Fil-C cosmo mode: the pizfix tree keeps one lib directory per supported
+// target architecture, since the cosmo CRT objects, linker scripts, APE
+// loaders, and libc archives are all per-architecture, while the headers
+// (pizfix/include, pizfix/stdfil-include, pizfix/yolo-include) are shared
+// between the arches.  Everything that resolves a cosmo-flavor artifact out
+// of the pizfix tree (the CRT objects and linker script here, the APE
+// loader below) has to go through this.
+static StringRef GetCosmoLibDir(const ToolChain& T) {
+  if (T.getDriver().HasCosmo && T.getTriple().getArch() == llvm::Triple::aarch64)
+    return "lib-aarch64";
+  return "lib";
+}
+
+// Fil-C fat APE mode: --filc-fat-ape re-runs the whole driver pipeline for
+// aarch64 (see the linker below), which only works when every linker input is
+// something the driver can recompile from source.  Anything that arrives at
+// the link as a precompiled artifact (user .o/.a inputs, x86_64 assembly,
+// LLVM bitcode, ...) cannot be turned into aarch64 code, so fat mode refuses
+// it with a clear error instead of silently producing an x86_64-only APE.
+// Everything the driver built itself keeps the original source file as its
+// base input, so the extension of that file tells the two cases apart; the
+// job-action class does not, since even a plain .c input arrives at the link
+// wrapped in backend/assemble jobs (the integrated assembler).
+static bool CanBuildFatAPEInput(const InputInfo &II) {
+  if (II.isNothing())
+    return true;
+  // Inputs that arrived as raw command-line arguments (foo.o, -Xlinker
+  // foo.a, ...) are precompiled x86_64 artifacts.
+  if (II.isInputArg())
+    return false;
+  StringRef Ext = llvm::sys::path::extension(II.getBaseInput());
+  return !(Ext.equals_insensitive(".o") || Ext.equals_insensitive(".obj") ||
+           Ext.equals_insensitive(".a") || Ext.equals_insensitive(".lib") ||
+           Ext.equals_insensitive(".so") || Ext.equals_insensitive(".lo") ||
+           Ext.equals_insensitive(".ll") || Ext.equals_insensitive(".bc") ||
+           Ext.equals_insensitive(".pcm") || Ext.equals_insensitive(".s") ||
+           Ext.equals_insensitive(".S") || Ext.equals_insensitive(".sx") ||
+           Ext.equals_insensitive(".asm"));
+}
+
 static bool forwardToGCC(const Option &O) {
   // LinkerInput options have been forwarded. Don't duplicate.
   if (O.hasFlag(options::LinkerInput))
@@ -507,11 +547,255 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   const bool isAndroid = ToolChain.getTriple().isAndroid();
   const bool IsIAMCU = ToolChain.getTriple().isOSIAMCU();
   const bool IsVE = ToolChain.getTriple().isVE();
-  const bool IsStaticPIE = getStaticPIE(Args, ToolChain);
-  const bool IsStatic = getStatic(Args);
+  const bool IsCosmo = D.HasCosmo;
+  bool IsStaticPIE;
+  bool IsStatic;
+  if (IsCosmo) {
+    // Cosmopolitan libc (cosmo) mode links static, non-PIE executables with
+    // no dynamic linker and no shared libraries, so refuse options that
+    // contradict that.
+    const llvm::opt::OptTable &Opts = D.getOpts();
+    if (Args.hasArg(options::OPT_shared))
+      D.Diag(diag::err_drv_filc_cosmo_not_linkable)
+          << Opts.getOptionName(options::OPT_shared);
+    if (Args.hasArg(options::OPT_pie))
+      D.Diag(diag::err_drv_filc_cosmo_not_linkable)
+          << Opts.getOptionName(options::OPT_pie);
+    if (Args.hasArg(options::OPT_static_pie))
+      D.Diag(diag::err_drv_filc_cosmo_not_linkable)
+          << Opts.getOptionName(options::OPT_static_pie);
+    // Note that we deliberately do not turn -static into -static-pie in cosmo
+    // mode (see getStaticPIE above): cosmo programs are plain static
+    // executables laid out by the cosmo ape.lds linker script, which places
+    // global variables above the low 4GB for us.
+    IsStaticPIE = false;
+    IsStatic = true;
+  } else {
+    IsStaticPIE = getStaticPIE(Args, ToolChain);
+    IsStatic = getStatic(Args);
+  }
   const bool HasCRTBeginEndFiles =
       ToolChain.getTriple().hasEnvironment() ||
       (ToolChain.getTriple().getVendor() != llvm::Triple::MipsTechnologies);
+
+  // Fil-C cosmo mode: after the link below, cosmo's apelink tool turns the
+  // freshly linked static ELF into an "actually portable executable" (APE).
+  // apelink embeds the APE loader (and the Apple-silicon loader source) and
+  // rewrites the file so that the "MZqFpD" magic comes first, which makes the
+  // program runnable on Windows x86_64, macOS, the *BSDs, and Linux (on
+  // Linux the kernel runs the ELF directly if binfmt_misc is registered, and
+  // otherwise the shell's ENOEXEC fallback executes the embedded shell
+  // stub).
+  //
+  // The default contract keeps both artifacts: the ELF that the link below
+  // produced stays at the requested output path (the kernel needs the ELF
+  // header at offset zero, and the test suite and pizfix tooling exec it
+  // directly), and the APE is written next to it as <output>.com.  The
+  // --filc-ape option inverts this for people who want the APE to be the
+  // main artifact: <output> becomes the APE and the ELF is kept as
+  // <output>.dbg.  If the APE tooling is missing from the pizfix tree (a
+  // half-installed tree), --filc-ape fails the link, since asking for APE
+  // semantics and not getting them would be a lie; the default mode just
+  // warns and ships the ELF.
+  //
+  // This is only done for cosmo-mode executable links: -shared is rejected
+  // in cosmo mode (see above) and -r links are not executables.  Both
+  // supported target architectures get APEs: x86_64 embeds the x86_64 loader
+  // (pizfix/lib/ape-x86_64.elf) and aarch64 embeds the aarch64 loader
+  // (pizfix/lib-aarch64/ape-aarch64.elf).  On aarch64 apelink also gets
+  // -M <pizfix>/libexec/ape-m1.c, the Apple-silicon loader source, which
+  // apelink only accepts when the input is a native arm64 (aarch64 ELF)
+  // image - which is exactly what an aarch64 cosmo-mode link produces - and
+  // which lets the APE run natively on arm64 macOS (xcode compiles the
+  // source on the fly).
+  //
+  // Fat APEs (--filc-fat-ape) go one step further: ONE file that runs on
+  // both x86_64 and aarch64, cosmocc-style.  clang's driver builds a single
+  // action graph for a single target triple, so the fat build is made by
+  // re-running the whole pipeline for the other architecture with a nested
+  // clang invocation - exactly what cosmo's own cosmocc wrapper does (it
+  // links both architectures and then merges them with apelink).  For
+  // `clang --filc-fat-ape -o foo ...` the x86_64 cosmo link job therefore
+  // runs, in order:
+  //
+  //   1. the normal x86_64 cosmo link, to <output>.com.dbg (the requested
+  //      output path is reserved for the fat APE),
+  //   2. a nested full-pipeline invocation of this same clang
+  //      (`--target=aarch64-linux-gnu <original user args> --filc-no-ape -o
+  //      <output>.aarch64.elf`), which recompiles every source with Fil-C
+  //      codegen in the same cosmo flavor (the pizfix probe finds the same
+  //      tree) and links the aarch64 cosmo link (lib-aarch64, aarch64.lds,
+  //      aarch64-linux-gnu-ld) without emitting an APE of its own, and
+  //   3. apelink -V -1 -l <pizfix>/lib/ape-x86_64.elf -l
+  //      <pizfix>/lib-aarch64/ape-aarch64.elf -M <pizfix>/libexec/ape-m1.c
+  //      -o <output> <output>.com.dbg <output>.aarch64.elf, which merges
+  //      both ELFs plus the loaders into the fat APE at the requested
+  //      output path (MZqFpD magic first), runnable on x86_64 and aarch64
+  //      and on Windows/macOS/BSD through the APE loaders.
+  //
+  // The nested invocation is a real child clang, so it inherits all of the
+  // user's compile options and Fil-C semantics; it fails the build loudly
+  // (all commands share the link job, and a failed command skips the
+  // commands that follow it).  Only source inputs can be supported, since
+  // aarch64 objects cannot be derived from x86_64 .o files (see
+  // CanBuildFatAPEInput above).  A future third architecture would slot in
+  // as another per-arch pizfix tree, another nested invocation, and another
+  // input ELF and -l loader in the apelink command.
+  const bool FatAPERequested = Args.hasArg(options::OPT_filc_fat_ape);
+  bool WantFatAPE = false;
+  const char *AArch64ELFOutputFilename = nullptr;
+  const char *AArch64APELoaderPath = nullptr;
+  if (FatAPERequested) {
+    if (Args.hasArg(options::OPT_filc_ape)) {
+      D.Diag(diag::err_drv_argument_not_allowed_with)
+          << "--filc-fat-ape" << "--filc-ape";
+      return;
+    }
+    if (Args.hasArg(options::OPT_filc_no_ape)) {
+      D.Diag(diag::err_drv_argument_not_allowed_with)
+          << "--filc-fat-ape" << "--filc-no-ape";
+      return;
+    }
+    if (Args.hasArg(options::OPT_r)) {
+      D.Diag(diag::err_drv_argument_not_allowed_with)
+          << "--filc-fat-ape" << "-r";
+      return;
+    }
+    if (!IsCosmo) {
+      D.Diag(diag::err_drv_filc_fat_ape_requires_cosmo);
+      return;
+    }
+    if (ToolChain.getArch() != llvm::Triple::x86_64) {
+      D.Diag(diag::err_drv_filc_fat_ape_arch) << Triple.getArchName();
+      return;
+    }
+    for (const InputInfo &II : Inputs) {
+      if (!CanBuildFatAPEInput(II)) {
+        D.Diag(diag::err_drv_filc_fat_ape_input) << II.getAsString();
+        return;
+      }
+    }
+    WantFatAPE = true;
+  }
+  bool IsCosmoAArch64 =
+      IsCosmo && ToolChain.getArch() == llvm::Triple::aarch64;
+  const char *APEM1Path = nullptr;
+  const char *APELinkPath = nullptr;
+  const char *APELoaderPath = nullptr;
+  const char *ELFOutputFilename = Output.getFilename();
+  const char *APEOutputFilename = nullptr;
+  if (IsCosmo &&
+      (ToolChain.getArch() == llvm::Triple::x86_64 || IsCosmoAArch64) &&
+      !Args.hasArg(options::OPT_shared) && !Args.hasArg(options::OPT_r) &&
+      !Args.hasArg(options::OPT_filc_no_ape)) {
+    // Resolve the APE tooling locations the same way the cosmo CRT objects
+    // above are: --filc-crt-path overrides the pizfix lib directory, else
+    // it is <pizfix>/lib (or <pizfix>/lib-aarch64 for aarch64 targets, see
+    // GetCosmoLibDir below).  The tools (apelink and the Apple-silicon
+    // loader source ape-m1.c) live in the libexec directory that sits next
+    // to the lib directory.
+    SmallString<128> LibDir;
+    if (Arg *A = Args.getLastArg(options::OPT_filc_crt_path)) {
+      A->claim();
+      LibDir = A->getValue();
+    } else if (D.HasPizfix) {
+      LibDir = D.PizfixRoot;
+      llvm::sys::path::append(LibDir, GetCosmoLibDir(ToolChain));
+    } else if (D.HasOptfil) {
+      LibDir = "/opt/fil/lib";
+    } else {
+      LibDir = "/usr/lib";
+    }
+    SmallString<128> LibexecDir(LibDir);
+    llvm::sys::path::remove_filename(LibexecDir);
+    llvm::sys::path::append(LibexecDir, "libexec");
+    // Fat APE mode additionally needs the aarch64 cosmo tree, which sits
+    // next to the x86_64 lib directory: its APE loader, its libc archive
+    // (as the marker of a fully-built cross tree), and the Apple-silicon
+    // loader source (a fat APE embeds an aarch64 image, so it needs -M for
+    // arm64 macOS, exactly like an aarch64 single-arch APE does).
+    if (WantFatAPE) {
+      SmallString<128> AALibDir(LibDir);           // <pizfix>/lib
+      llvm::sys::path::remove_filename(AALibDir);  // <pizfix>
+      llvm::sys::path::append(AALibDir, "lib-aarch64");
+      SmallString<128> AATree(AALibDir);
+      llvm::sys::path::append(AATree, "libyolocosmo.a");
+      SmallString<128> AALoader(AALibDir);
+      llvm::sys::path::append(AALoader, "ape-aarch64.elf");
+      SmallString<128> M1(LibexecDir);  // <pizfix>/libexec
+      llvm::sys::path::append(M1, "ape-m1.c");
+      SmallString<128> MissingFat;
+      if (!llvm::sys::fs::exists(AATree))
+        MissingFat = AATree;
+      else if (!llvm::sys::fs::exists(AALoader))
+        MissingFat = AALoader;
+      else if (!llvm::sys::fs::exists(M1))
+        MissingFat = M1;
+      if (!MissingFat.empty()) {
+        D.Diag(diag::err_drv_filc_fat_ape_tree_missing) << MissingFat;
+        return;
+      }
+      AArch64APELoaderPath = Args.MakeArgString(AALoader);
+      APEM1Path = Args.MakeArgString(M1);
+      SmallString<128> P(Output.getFilename());
+      P += ".aarch64.elf";
+      AArch64ELFOutputFilename = Args.MakeArgString(P);
+    }
+    llvm::sys::path::append(LibDir, IsCosmoAArch64 ? "ape-aarch64.elf"
+                                                   : "ape-x86_64.elf");
+    llvm::sys::path::append(LibexecDir, "apelink");
+
+    APELoaderPath = Args.MakeArgString(LibDir);
+    APELinkPath = Args.MakeArgString(LibexecDir);
+    if (IsCosmoAArch64) {
+      SmallString<128> M1(LibexecDir);
+      llvm::sys::path::remove_filename(M1);
+      llvm::sys::path::append(M1, "ape-m1.c");
+      APEM1Path = Args.MakeArgString(M1);
+    }
+
+    const char *Missing = nullptr;
+    if (!llvm::sys::fs::can_execute(APELinkPath))
+      Missing = APELinkPath;
+    else if (!llvm::sys::fs::exists(APELoaderPath))
+      Missing = APELoaderPath;
+    else if (APEM1Path && !llvm::sys::fs::exists(APEM1Path))
+      Missing = APEM1Path;
+    if (Missing) {
+      if (Args.hasArg(options::OPT_filc_ape) || WantFatAPE) {
+        D.Diag(diag::err_drv_filc_ape_tool_missing)
+            << Output.getFilename() << Missing;
+        return;
+      }
+      // Half-installed pizfix tree: degrade to shipping just the ELF.
+      D.Diag(diag::warn_drv_filc_ape_tool_missing)
+          << Output.getFilename() << Missing;
+    } else {
+      if (WantFatAPE) {
+        // The fat APE takes the requested output path; the x86_64 ELF is
+        // kept as <output>.com.dbg (kept for direct exec by tooling) and
+        // the aarch64 ELF - linked by the nested invocation below - as
+        // <output>.aarch64.elf.
+        SmallString<128> P(Output.getFilename());
+        P += ".com.dbg";
+        ELFOutputFilename = Args.MakeArgString(P);
+        APEOutputFilename = Output.getFilename();
+      } else if (Args.hasArg(options::OPT_filc_ape)) {
+        // The APE takes the requested output path and the ELF is kept
+        // alongside it as <output>.dbg.
+        SmallString<128> P(Output.getFilename());
+        P += ".dbg";
+        ELFOutputFilename = Args.MakeArgString(P);
+        APEOutputFilename = Output.getFilename();
+      } else {
+        // The ELF takes the requested output path and the APE is kept
+        // alongside it as <output>.com.
+        SmallString<128> P(Output.getFilename());
+        P += ".com";
+        APEOutputFilename = Args.MakeArgString(P);
+      }
+    }
+  }
 
   ArgStringList CmdArgs;
 
@@ -547,6 +831,15 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   }
 
   ToolChain.addExtraOpts(CmdArgs);
+
+  if (IsCosmo) {
+    // The cosmo ape.lds linker script doesn't like relro (cosmo's own build
+    // recipe uses -z norelro), so swap out the relro that the Linux toolchain
+    // puts in its extra options.
+    for (unsigned I = 0, E = CmdArgs.size(); I != E; ++I)
+      if (CmdArgs[I] == StringRef("relro"))
+        CmdArgs[I] = "norelro";
+  }
 
   CmdArgs.push_back("--eh-frame-hdr");
 
@@ -593,7 +886,10 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   }
 
   CmdArgs.push_back("-o");
-  CmdArgs.push_back(Output.getFilename());
+  // In cosmo mode with APE tooling this is either the requested output path
+  // (default: the APE goes to <output>.com) or <output>.dbg (--filc-ape: the
+  // APE takes the requested output path).
+  CmdArgs.push_back(ELFOutputFilename);
 
   auto GetYoloLibPath = [&] (const StringRef str) -> std::string {
     if (ToolChain.getDriver().HasPizfix) {
@@ -603,7 +899,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         BasePath = A->getValue();
       } else {
         SmallString<128> P(ToolChain.getDriver().PizfixRoot);
-        llvm::sys::path::append(P, "lib");
+        llvm::sys::path::append(P, GetCosmoLibDir(ToolChain));
         BasePath = std::string(P);
       }
       SmallString<128> FullPath(BasePath);
@@ -646,7 +942,18 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       if (crt1)
         CmdArgs.push_back(Args.MakeArgString(GetYoloLibPath(crt1)));
 
-      CmdArgs.push_back(Args.MakeArgString(GetYoloLibPath("crti.o")));
+      if (IsCosmo) {
+        // Cosmo mode has no crti.o; instead the APE header object goes right
+        // after the CRT.  Cosmo runs constructors straight out of
+        // __init_array, so it has no use for the .init/.fini prologue
+        // objects.  Only x86_64 has an APE header object: on aarch64 the
+        // linker script (aarch64.lds) carries no APE header data, and it is
+        // apelink that generates the PE/Mach-O headers (cosmocc does the
+        // same: CRT="$LIB/crt.o" with no ape object for aarch64).
+        if (!IsCosmoAArch64)
+          CmdArgs.push_back(Args.MakeArgString(GetYoloLibPath("ape.o")));
+      } else
+        CmdArgs.push_back(Args.MakeArgString(GetYoloLibPath("crti.o")));
     }
 
     if (IsVE) {
@@ -680,6 +987,17 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         P = GetGCCLibPath(crtbegin);
       }
       CmdArgs.push_back(Args.MakeArgString(P));
+      if (IsCosmo) {
+        // The cosmo linker script has to be seen before any archive (-l or
+        // .a) is scanned: the symbol expressions in the x86_64 ape.lds must
+        // be in the undefined set at that point or ld fails with undefined
+        // WinMain/_tss_end errors.  Plain objects before it are fine.  The
+        // aarch64 script is aarch64.lds (cosmo's own name for it; it has no
+        // such symbol arithmetic).
+        CmdArgs.push_back("-T");
+        CmdArgs.push_back(Args.MakeArgString(
+            GetYoloLibPath(IsCosmoAArch64 ? "aarch64.lds" : "ape.lds")));
+      }
     }
 
     // Add crtfastmath.o if available and fast math is enabled.
@@ -700,12 +1018,14 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       BasePath = A->getValue();
     } else {
       SmallString<128> P(ToolChain.getDriver().PizfixRoot);
-      llvm::sys::path::append(P, "lib");
+      llvm::sys::path::append(P, GetCosmoLibDir(ToolChain));
       BasePath = std::string(P);
     }
 
     const char* DashRPath;
-    if (IsStaticPIE)
+    if (IsCosmo || IsStaticPIE)
+      // Cosmo mode has no shared libraries at all, so there is nothing to
+      // rpath; -rpath-link is harmless (same choice as for static-PIE).
       DashRPath = "-rpath-link";
     else
       DashRPath = "-rpath";
@@ -846,8 +1166,21 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_r)) {
     if ((true)) {
+      // Cosmo links the C++ runtime as static archives.  Those archives
+      // reference each other (e.g. libc++experimental.a needs vtables from
+      // libc++.a), so scan them as a group, exactly like the yolo libs below.
+      // This is cosmo-only: in the other flavors the C++ runtime is usually
+      // shared, and the static archive link order works out there.
+      const bool LinkCxxGroup =
+          IsCosmo && ToolChain.ShouldLinkCXXStdlib(Args) &&
+          !Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
+                       options::OPT_nostdlibxx);
+      if (LinkCxxGroup)
+        CmdArgs.push_back("--start-group");
       if (ToolChain.ShouldLinkCXXStdlib(Args))
         ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
+      if (LinkCxxGroup)
+        CmdArgs.push_back("--end-group");
       if (!Args.hasArg(options::OPT_nodefaultlibs)) {
         CmdArgs.push_back("-lc");
         if (D.CCCIsCXX())
@@ -856,8 +1189,15 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       CmdArgs.push_back("-lpizlo");
       if (IsStatic || IsStaticPIE)
         CmdArgs.push_back("--start-group");
-      CmdArgs.push_back("-lyoloc");
-      CmdArgs.push_back("-lyolom");
+      CmdArgs.push_back("-lyolort");
+      if (IsCosmo) {
+        // Cosmo mode links against the cosmo libc archive instead of the
+        // musl-flavored ones.
+        CmdArgs.push_back("-lyolocosmo");
+      } else {
+        CmdArgs.push_back("-lyoloc");
+        CmdArgs.push_back("-lyolom");
+      }
       CmdArgs.push_back("-lyolort");
       CmdArgs.push_back("-lyolounwind");
       if (IsStatic || IsStaticPIE)
@@ -952,7 +1292,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
         }
         CmdArgs.push_back(Args.MakeArgString(P));
       }
-      if (!isAndroid)
+      if (!isAndroid && !IsCosmo)
         CmdArgs.push_back(Args.MakeArgString(GetYoloLibPath("crtn.o")));
     }
   }
@@ -960,9 +1300,110 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   Args.addAllArgs(CmdArgs, {options::OPT_T, options::OPT_t});
 
   const char *Exec = Args.MakeArgString(ToolChain.GetLinkerPath());
+  // Fil-C cosmo mode: an aarch64 link needs a linker with an aarch64linux
+  // emulation, which the default GNU ld on an x86_64 host does not have.
+  // When the user did not choose a linker, pick one that can handle the
+  // target: the GNU aarch64 cross linker first (cosmo's own aarch64
+  // toolchain links with GNU ld, and its APE machinery expects the segment
+  // layout that produces), then lld.  x86_64 cosmo links keep using whatever
+  // the toolchain default is.
+  if (IsCosmoAArch64 && !Args.getLastArg(options::OPT_fuse_ld_EQ) &&
+      !Args.getLastArg(options::OPT_ld_path_EQ)) {
+    std::string Candidate = ToolChain.GetProgramPath("aarch64-linux-gnu-ld");
+    if (!llvm::sys::fs::can_execute(Candidate))
+      Candidate = ToolChain.GetProgramPath("ld.lld");
+    if (llvm::sys::fs::can_execute(Candidate))
+      Exec = Args.MakeArgString(Candidate);
+  }
   C.addCommand(std::make_unique<Command>(JA, *this,
                                          ResponseFileSupport::AtFileCurCP(),
                                          Exec, CmdArgs, Inputs, Output));
+
+  if (WantFatAPE) {
+    // Fat APE step: re-run the whole pipeline for aarch64 by invoking this
+    // same clang on the original command line (minus -o, minus the fat/APE
+    // flags), with the aarch64 target and --filc-no-ape so the nested link
+    // produces just the aarch64 ELF for apelink to merge.  The nested
+    // invocation re-parses everything, so it compiles every source with
+    // Fil-C codegen and links the aarch64 cosmo link (lib-aarch64,
+    // aarch64.lds, aarch64linux emulation).  It is added after the x86_64
+    // link command and before the apelink command (all three share this
+    // link job), so apelink runs last and only if both ELFs were built, and
+    // any failure skips the commands that follow it.
+    ArgStringList AArch64Args;
+    // The nested invocation re-derives the driver mode from its argv, but
+    // it is the same binary either way (clang vs clang++), so make the
+    // parent's mode explicit: it decides whether the C++ runtime is linked.
+    AArch64Args.push_back(Args.MakeArgString(
+        Twine("--driver-mode=") + (D.CCCIsCXX() ? "g++" : "gcc")));
+    const llvm::opt::InputArgList &RawArgs = C.getInputArgs();
+    for (const llvm::opt::Arg *A : RawArgs) {
+      if (A->getOption().matches(options::OPT_o) ||
+          A->getOption().matches(options::OPT_driver_mode) ||
+          A->getOption().matches(options::OPT_filc_fat_ape) ||
+          A->getOption().matches(options::OPT_filc_ape) ||
+          A->getOption().matches(options::OPT_filc_no_ape))
+        continue;
+      A->render(RawArgs, AArch64Args);
+    }
+    // These go last: --target and --filc-cosmo override whatever the
+    // original command line said (the driver takes the last --target).
+    AArch64Args.push_back("--target=aarch64-linux-gnu");
+    AArch64Args.push_back("--filc-cosmo");
+    AArch64Args.push_back("--filc-no-ape");
+    AArch64Args.push_back("-o");
+    AArch64Args.push_back(AArch64ELFOutputFilename);
+
+    InputInfo AArch64Output(types::TY_Image, AArch64ELFOutputFilename,
+                            Output.getBaseInput());
+    C.addCommand(std::make_unique<Command>(
+        JA, *this, ResponseFileSupport::AtFileCurCP(),
+        D.getClangProgramPath(), AArch64Args, Inputs, AArch64Output));
+  }
+
+  if (APEOutputFilename) {
+    // Post-link step: run apelink on the ELF produced above.  Commands run
+    // in the order they are added, so this sees the linked ELF (and, in fat
+    // mode, the nested aarch64 ELF), and if an earlier command fails this
+    // command is skipped along with the rest of the failed job (all of the
+    // commands belong to the same JobAction).
+    ArgStringList APELinkArgs;
+    // -V -1 = the APE claims support for every OS (Linux, metal, Windows,
+    // XNU, and the BSDs), which is what cosmocc does by default.
+    APELinkArgs.push_back("-V");
+    APELinkArgs.push_back("-1");
+    APELinkArgs.push_back("-l");
+    APELinkArgs.push_back(APELoaderPath);
+    if (WantFatAPE) {
+      // Fat APE: merge both architectures into one file, exactly like
+      // cosmocc does: one -l loader per architecture, plus the
+      // Apple-silicon loader source for the aarch64 image.
+      APELinkArgs.push_back("-l");
+      APELinkArgs.push_back(AArch64APELoaderPath);
+      APELinkArgs.push_back("-M");
+      APELinkArgs.push_back(APEM1Path);
+    } else if (APEM1Path) {
+      // aarch64 APEs embed the Apple-silicon loader source (see above);
+      // apelink requires the input to be a native aarch64 image, which it
+      // is for an aarch64 cosmo-mode link.
+      APELinkArgs.push_back("-M");
+      APELinkArgs.push_back(APEM1Path);
+    }
+    APELinkArgs.push_back("-o");
+    APELinkArgs.push_back(APEOutputFilename);
+    APELinkArgs.push_back(ELFOutputFilename);
+    if (WantFatAPE)
+      APELinkArgs.push_back(AArch64ELFOutputFilename);
+
+    InputInfo ELFInput(Output.getType(), ELFOutputFilename,
+                       Output.getBaseInput());
+    InputInfo APEOutput(types::TY_Image, APEOutputFilename,
+                        Output.getBaseInput());
+    C.addCommand(std::make_unique<Command>(JA, *this,
+                                           ResponseFileSupport::None(),
+                                           APELinkPath, APELinkArgs, ELFInput,
+                                           APEOutput));
+  }
 }
 
 void tools::gnutools::Assembler::ConstructJob(Compilation &C,

@@ -1,0 +1,8 @@
+return:
+  compileFailure
+only-on-platform:
+  x86_64
+# Rejects with: "instruction requires 32 byte alignment, but offset is out of
+# phase by 16 bytes (use an aligned offset, or use the unaligned form (e.g.
+# vmovdqu/vmovups))" — 16(%rsp) under an `and $-32` note is 16 mod 32, out of
+# phase in the note's base coordinates.

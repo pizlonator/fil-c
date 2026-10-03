@@ -39,11 +39,6 @@ mkdir -p openssl-build
 ../filc/projeny extract openssl.projeny openssl-build/extracted-source
 cd openssl-build/extracted-source
 OPENSSL_ARGS="zlib"
-if [ "$ARCH" = aarch64 ]; then
-    # The aarch64 assembly is yolo asm that pizlonated C cannot call, and
-    # we have not ported it to Fil-C.  Use no-asm so everything is C.
-    OPENSSL_ARGS="no-asm zlib"
-fi
 CC="$PWD/../../../build/bin/clang -g -O2 -yolo-assembler" ./Configure \
     $OPENSSL_ARGS --prefix=$PWD/../../../pizfix --libdir=lib
 make -j $NCPU

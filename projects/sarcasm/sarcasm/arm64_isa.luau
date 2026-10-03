@@ -3,6 +3,8 @@
 -- defs/uses and control-flow behavior. Register operands are reported as the
 -- reg operand tables produced by parse.luau (with .num/.width/.name).
 
+local err = require("./err")
+
 local arm64 = {}
 
 -- Data-processing mnemonics whose first operand is the destination (def) and the
@@ -165,18 +167,18 @@ for _, m in {
 local function checkSve(insn)
 	local m = string.lower(insn.mnemonic)
 	if SVE_MNEMONICS[m] then
-		error("sarcasm: SVE is not yet supported (NEON/AdvSIMD only): " .. (insn.raw or m))
+		err.at(insn, "SVE is not yet supported (NEON/AdvSIMD only): " .. (insn.raw or m))
 	end
 	local function rcIsSve(o) return o and o.kind == "reg" and o.rc == "sve" end
 	for _, o in (insn.operands or {}) do
 		if rcIsSve(o) then
-			error("sarcasm: SVE is not yet supported (NEON/AdvSIMD only): " .. (insn.raw or m))
+			err.at(insn, "SVE is not yet supported (NEON/AdvSIMD only): " .. (insn.raw or m))
 		end
 		if o.kind == "reglist" and o.regs[1] and o.regs[1].rc == "sve" then
-			error("sarcasm: SVE is not yet supported (NEON/AdvSIMD only): " .. (insn.raw or m))
+			err.at(insn, "SVE is not yet supported (NEON/AdvSIMD only): " .. (insn.raw or m))
 		end
 		if o.kind == "mem" and (rcIsSve(o.base) or rcIsSve(o.index)) then
-			error("sarcasm: SVE is not yet supported (NEON/AdvSIMD only): " .. (insn.raw or m))
+			err.at(insn, "SVE is not yet supported (NEON/AdvSIMD only): " .. (insn.raw or m))
 		end
 	end
 end
@@ -206,16 +208,16 @@ function arm64.classify(insn)
 	local m = string.lower(insn.mnemonic)
 	checkSve(insn)
 	if isPauth(m) then
-		error("sarcasm: '" .. insn.mnemonic .. "' is not supported"
+		err.at(insn, "'" .. insn.mnemonic .. "' is not supported"
 			.. " (pointer-authentication instructions have implicit register effects"
 			.. " that cannot be modeled)")
 	end
 	if UNSUPPORTED_SYSCALL[m] then
-		error("sarcasm: '" .. insn.mnemonic .. "' is not supported"
+		err.at(insn, "'" .. insn.mnemonic .. "' is not supported"
 			.. " (a raw supervisor call bypasses Fil-C's syscall argument validation)")
 	end
 	if UNSUPPORTED_PRIV[m] then
-		error("sarcasm: '" .. insn.mnemonic .. "' is not supported"
+		err.at(insn, "'" .. insn.mnemonic .. "' is not supported"
 			.. " (privileged instructions cannot be made memory-safe)")
 	end
 	local ops = insn.operands or {}
@@ -233,19 +235,19 @@ function arm64.classify(insn)
 	-- operands, non-64-bit result widths) is a clean rejection.
 	if m == "alloca" then
 		if not insn.dotAlloca then
-			error("sarcasm: `alloca` is only supported as the `.alloca size, alignment, result` directive: " .. (insn.raw or m))
+			err.at(insn, "`alloca` is only supported as the `.alloca size, alignment, result` directive: " .. (insn.raw or m))
 		end
 		if #ops ~= 3 then
-			error("sarcasm: `.alloca` takes exactly 3 operands (size, alignment, result): " .. (insn.raw or m))
+			err.at(insn, "`.alloca` takes exactly 3 operands (size, alignment, result): " .. (insn.raw or m))
 		end
 		local function allocaUse(o, what)
 			if o.shift then
-				error("sarcasm: `.alloca` " .. what .. " has a shift/extend, which is not supported: " .. (insn.raw or m))
+				err.at(insn, "`.alloca` " .. what .. " has a shift/extend, which is not supported: " .. (insn.raw or m))
 			end
 			if o.kind == "imm" then return end
 			if isGpr(o) then
 				if o.width ~= 64 and o.width ~= 32 then
-					error("sarcasm: `.alloca` " .. what .. " must be a 32/64-bit register: " .. (insn.raw or m))
+					err.at(insn, "`.alloca` " .. what .. " must be a 32/64-bit register: " .. (insn.raw or m))
 				end
 				table.insert(uses, o)
 				return
@@ -253,18 +255,18 @@ function arm64.classify(insn)
 			if o.kind == "mem" and not o.writeback and not o.shift and not o.postShift
 				and o.base and (o.base.name == "sp" or o.base.name == "x29")
 				and (not o.index or o.index.kind == "imm") then return end
-			error("sarcasm: `.alloca` " .. what .. " must be an immediate, a GPR (including a pseudoregister), or a frame spill slot: " .. (insn.raw or m))
+			err.at(insn, "`.alloca` " .. what .. " must be an immediate, a GPR (including a pseudoregister), or a frame spill slot: " .. (insn.raw or m))
 		end
 		allocaUse(ops[1], "size")
 		allocaUse(ops[2], "alignment")
 		do
 			local o = ops[3]
 			if o.shift then
-				error("sarcasm: `.alloca` result has a shift/extend, which is not supported: " .. (insn.raw or m))
+				err.at(insn, "`.alloca` result has a shift/extend, which is not supported: " .. (insn.raw or m))
 			end
 			if isGpr(o) then
 				if o.width ~= 64 then
-					error("sarcasm: `.alloca` result must be a 64-bit register (a narrower destination would truncate the pointer): " .. (insn.raw or m))
+					err.at(insn, "`.alloca` result must be a 64-bit register (a narrower destination would truncate the pointer): " .. (insn.raw or m))
 				end
 				table.insert(defs, o)
 			elseif o.kind == "mem" and not o.writeback and not o.shift and not o.postShift
@@ -272,7 +274,7 @@ function arm64.classify(insn)
 				and (not o.index or o.index.kind == "imm") then
 			-- spill-slot result: converted by the frame rewrite; provisionally unmodeled.
 			else
-				error("sarcasm: `.alloca` result must be a 64-bit register, a pseudoregister, or a frame spill slot: " .. (insn.raw or m))
+				err.at(insn, "`.alloca` result must be a 64-bit register, a pseudoregister, or a frame spill slot: " .. (insn.raw or m))
 			end
 		end
 		return { defs = defs, uses = uses, rmw = rmw, control = "none",
@@ -309,7 +311,7 @@ function arm64.classify(insn)
 		-- is an indirect return whose target we cannot prove, so reject it instead of
 		-- silently dropping the operand (which would return to x30 regardless).
 		if isGpr(ops[1]) and ops[1].num ~= 30 then
-			error("sarcasm: ret with an explicit register other than x30 (indirect return) "
+			err.at(insn, "ret with an explicit register other than x30 (indirect return) "
 				.. "is not supported: " .. (insn.raw or "ret " .. (ops[1].name or "?")))
 		end
 		control, fallsThrough = "return", false
@@ -424,7 +426,7 @@ function arm64.classify(insn)
 		local function memAt(idx)
 			local o = ops[idx]
 			if not o or o.kind ~= "mem" then
-				error("sarcasm: '" .. insn.mnemonic .. "' is malformed (expected register"
+				err.at(insn, "'" .. insn.mnemonic .. "' is malformed (expected register"
 					.. " operands followed by one [base] memory operand): " .. (insn.raw or m))
 			end
 			return o

@@ -756,14 +756,6 @@ $code.=<<___;
 
 .Lcbc_body:
 	lea	.LCamellia_SBOX(%rip),$Tbl
-___
-if ($ENV{SARCASM}) {
-  # SARCASM-only: drop the SBOX cache-warming prefetch below (perf-only:
-  # it leaves $Tbl unchanged via the trailing sub, writes no live flags,
-  # and its counter/web shape trips sarcasm's register allocator). The gas
-  # path keeps it.
-} else {
-$code.=<<___;
 
 	mov	\$32,%ecx
 .align	4
@@ -775,9 +767,6 @@ $code.=<<___;
 	lea	128($Tbl),$Tbl
 	loop	.Lcbc_prefetch_sbox
 	sub	\$4096,$Tbl
-___
-}
-$code.=<<___;
 	shl	\$6,$keyend
 	mov	%rdx,%rcx		# len argument
 	lea	($key,$keyend),$keyend
@@ -847,41 +836,12 @@ $code.=<<___;
 	mov	%rax,$_res
 
 .Lcbc_enc_pushf:
-___
-# SARCASM-only: pushfq/popfq are rejected by sarcasm (unmodeled EFLAGS
-# effects), and the `cld` is dropped as well. Sarcasm's checked rep
-# lowering traps with ud2 when DF=1 and the count is nonzero (the count
-# here is the length residue, always >= 1 at this point: len == 0 aborts
-# up front and both entries to this tail are guarded by a nonzero
-# residue), so a DF=1 entry into Camellia_cbc_encrypt traps instead of
-# copying backwards (native hardware without cld) or silently returning
-# with the caller's DF cleared (a cld without the flag save/restore would
-# normalize DF). Trapping is sound because the System V ABI requires DF=0
-# across calls and sarcasm never emits std — only an ABI-violating caller
-# can arrive with DF=1 — and no cld/std sits between entry and this rep,
-# so the rep observes the entry DF. The DF=0 path copies forward exactly
-# like the pristine pushfq/cld/rep/popfq sequence. The gas path keeps the
-# pristine save/clear/copy/restore below. See
-# filc/tests/sarcasm-cmll-df-att (DF=1 entry traps) and
-# filc/tests/sarcasm-rep-movs-att's rep_movsb (DF=0 copies; same cld-less
-# shape).
-if ($ENV{SARCASM}) {
-  $code.=<<___;
-	mov	$inp,%rsi
-	lea	8+$ivec,%rdi
-	rep	movsb	# upstream '.long 0x9066A4F3' (rep movsb + nop pad)
-___
-} else {
-$code.=<<___;
 	pushfq
 	cld
 	mov	$inp,%rsi
 	lea	8+$ivec,%rdi
 	.long	0x9066A4F3		# rep movsb
 	popfq
-___
-}
-$code.=<<___;
 .Lcbc_enc_popf:
 
 	lea	$ivec,$inp
@@ -966,29 +926,12 @@ $code.=<<___;
 	mov	@S[3],12+$ivec
 
 .Lcbc_dec_pushf:
-___
-# SARCASM-only: same DF treatment as .Lcbc_enc_pushf above — no
-# pushfq/popfq, no cld, so a DF=1 entry traps in sarcasm's checked rep
-# (ud2) instead of silently mis-copying or normalizing DF. The count is
-# the length residue, always >= 1 here (the tail is entered only when
-# `cmp $0,%rcx` finds a nonzero residue).
-if ($ENV{SARCASM}) {
-  $code.=<<___;
-	lea	8+$ivec,%rsi
-	lea	($out),%rdi
-	rep	movsb	# upstream '.long 0x9066A4F3' (rep movsb + nop pad)
-___
-} else {
-$code.=<<___;
 	pushfq
 	cld
 	lea	8+$ivec,%rsi
 	lea	($out),%rdi
 	.long	0x9066A4F3		# rep movsb
 	popfq
-___
-}
-$code.=<<___;
 .Lcbc_dec_popf:
 
 	mov	%rax,(%rdx)		# write out IV residue

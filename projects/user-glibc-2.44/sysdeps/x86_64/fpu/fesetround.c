@@ -18,11 +18,12 @@
 
 #include <fenv.h>
 #include <math-inline-asm.h>
+#include <fpu_control.h>
 
 int
 __fesetround (int round)
 {
-  unsigned short int cw;
+  fpu_control_t cw;
   unsigned int mxcsr;
 
   if ((round & ~0xc00) != 0)
@@ -30,10 +31,10 @@ __fesetround (int round)
     return 1;
 
   /* First set the x87 FPU.  */
-  asm ("fnstcw %0" : "=m" (cw));
+  _FPU_GETCW (cw);
   cw &= ~0xc00;
   cw |= round;
-  asm ("fldcw %0" : : "m" (cw));
+  _FPU_SETCW (cw);
 
   /* And now the MSCSR register for SSE, the precision is at different bit
      positions in the different units, we need to shift it 3 bits.  */

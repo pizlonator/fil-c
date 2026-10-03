@@ -245,12 +245,30 @@ pas_large_free_allocate(pas_large_free free,
             pas_large_free_usable_space(result.left_free, config) +
             size +
             pas_large_free_usable_space(result.right_free, config);
-    
-        if ((double)pas_large_free_size(free) / (double)usage
-            > PAS_MAX_LARGE_ALIGNMENT_WASTEAGE) {
-            if (verbose)
-                pas_log("Wasteage says fail.\n");
-            return pas_large_allocation_result_create_empty();
+
+        /* The wasteage heuristic uses floating-point division, which usually raises
+           FE_INEXACT, and which would trap if the program unmasked floating-point
+           exceptions.  Our heuristics must be invisible to the program, so canonicalize
+           the floating-point environment for their sake and restore the program's
+           environment afterwards. */
+        {
+            pas_saved_float_environment saved_float_environment;
+            bool wasteage_says_fail;
+
+            pas_save_float_environment(&saved_float_environment);
+            pas_set_float_environment_to_libpas_default();
+
+            wasteage_says_fail =
+                (double)pas_large_free_size(free) / (double)usage
+                > PAS_MAX_LARGE_ALIGNMENT_WASTEAGE;
+
+            pas_restore_float_environment(&saved_float_environment);
+
+            if (wasteage_says_fail) {
+                if (verbose)
+                    pas_log("Wasteage says fail.\n");
+                return pas_large_allocation_result_create_empty();
+            }
         }
     }
     

@@ -1,0 +1,10 @@
+#ifndef COSMOPOLITAN_DSP_TTY_RGB_H_
+#define COSMOPOLITAN_DSP_TTY_RGB_H_
+COSMOPOLITAN_C_START_
+
+struct TtyRgb {
+  uint8_t r, g, b, xt;
+};
+
+COSMOPOLITAN_C_END_
+#endif /* COSMOPOLITAN_DSP_TTY_RGB_H_ */

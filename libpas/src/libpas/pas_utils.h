@@ -1662,7 +1662,7 @@ static inline int pas_getpid(void) { return _getpid(); }
 #else /* _WIN32 -> so !_WIN32 */
 typedef pthread_t pas_system_thread_id;
 static inline pas_system_thread_id pas_get_current_system_thread_id(void) { return pthread_self(); }
-#if PAS_OS(DARWIN) || PAS_OS(FREEBSD) || PAS_OS(OPENBSD) || (PAS_OS(LINUX) && !PAS_GLIBC && PAS_COMPILER(CLANG))
+#if PAS_OS(DARWIN) || PAS_OS(FREEBSD) || PAS_OS(OPENBSD) || (PAS_OS(LINUX) && !PAS_GLIBC && !PAS_COSMO && PAS_COMPILER(CLANG))
 #define PAS_SYSTEM_THREAD_ID_FORMAT "%p"
 #define PAS_NULL_SYSTEM_THREAD_ID NULL
 static inline bool pas_system_thread_id_weak_cas(pas_system_thread_id* ptr,
@@ -1671,7 +1671,7 @@ static inline bool pas_system_thread_id_weak_cas(pas_system_thread_id* ptr,
 {
     return pas_compare_and_swap_ptr_weak(ptr, expected, new_value);
 }
-#else
+#else /* PAS_OS(DARWIN) || PAS_OS(FREEBSD) || PAS_OS(OPENBSD) || (PAS_OS(LINUX) && !PAS_GLIBC && !PAS_COSMO && PAS_COMPILER(CLANG)) -> so !PAS_OS(DARWIN) && !PAS_OS(FREEBSD) && !PAS_OS(OPENBSD) && !(PAS_OS(LINUX) && !PAS_GLIBC && !PAS_COSMO && PAS_COMPILER(CLANG)) */
 #define PAS_SYSTEM_THREAD_ID_FORMAT "%" PRIxPTR
 #define PAS_NULL_SYSTEM_THREAD_ID 0
 static inline bool pas_system_thread_id_weak_cas(pas_system_thread_id* ptr,
@@ -1680,7 +1680,7 @@ static inline bool pas_system_thread_id_weak_cas(pas_system_thread_id* ptr,
 {
     return pas_compare_and_swap_uintptr_weak(ptr, expected, new_value);
 }
-#endif
+#endif /* PAS_OS(DARWIN) || PAS_OS(FREEBSD) || PAS_OS(OPENBSD) || (PAS_OS(LINUX) && !PAS_GLIBC && !PAS_COSMO && PAS_COMPILER(CLANG)) -> so end of !PAS_OS(DARWIN) && !PAS_OS(FREEBSD) && !PAS_OS(OPENBSD) && !(PAS_OS(LINUX) && !PAS_GLIBC && !PAS_COSMO && PAS_COMPILER(CLANG)) */
 
 extern pas_system_thread_id pas_panicking_thread;
 
@@ -1732,6 +1732,120 @@ static inline bool pas_memory_is_equal(const void* a, const void* b, size_t size
 }
 
 PAS_API void pas_reasonably_fill_sigset(sigset_t* set);
+
+/* Saving, canonicalizing, and restoring the floating-point environment.
+
+   libpas uses floating-point arithmetic for internal heuristics, like size
+   class selection and wasteage estimation.  Such code must not change the
+   floating-point state that the embedding program observes: a floating-point
+   division like the ones in our heuristics usually raises FE_INEXACT, and if
+   the program unmasked exceptions, it could even take a floating-point
+   exception trap.
+
+   Code that runs libpas's floating-point heuristics should first save the
+   floating-point environment with pas_save_float_environment, then switch to
+   the environment that is canonical for libpas with
+   pas_set_float_environment_to_libpas_default (all exceptions masked and
+   round-to-nearest, so that our heuristics can neither trap nor behave
+   differently because of rounding modes chosen by the program), then run the
+   heuristics, and then bring back the saved environment with
+   pas_restore_float_environment.
+
+   Do not do any of this on code that runs on its own thread (like the
+   scavenger or collector threads), since then the environment is private to
+   that thread anyway.  Also don't do this in code that computes
+   user-visible floating-point results (like a libc function that returns a
+   double). */
+
+typedef struct pas_saved_float_environment pas_saved_float_environment;
+
+#if defined(__x86_64__)
+
+/* All libpas floating-point math is SSE, so the MXCSR holds all of the state
+   that we care about.  0x1f80 masks all exceptions and selects
+   round-to-nearest. */
+struct pas_saved_float_environment {
+    uint32_t mxcsr;
+};
+
+static inline void pas_save_float_environment(
+    pas_saved_float_environment* environment)
+{
+    environment->mxcsr = __builtin_ia32_stmxcsr();
+}
+
+static inline void pas_set_float_environment_to_libpas_default(void)
+{
+    __builtin_ia32_ldmxcsr(0x1f80);
+}
+
+static inline void pas_restore_float_environment(
+    const pas_saved_float_environment* environment)
+{
+    __builtin_ia32_ldmxcsr(environment->mxcsr);
+}
+
+#elif defined(__aarch64__)
+
+/* AArch64 has an FPSCR-like split into the FPCR (rounding mode and trap
+   enables) and the FPSR (cumulative exception flags).  libpas's heuristics
+   must neither change the FPSR flags nor be affected by the program's FPCR
+   settings. */
+struct pas_saved_float_environment {
+    uint64_t fpcr;
+    uint64_t fpsr;
+};
+
+static inline void pas_save_float_environment(
+    pas_saved_float_environment* environment)
+{
+    __asm__ volatile ("mrs %0, fpcr" : "=r" (environment->fpcr));
+    __asm__ volatile ("mrs %0, fpsr" : "=r" (environment->fpsr));
+}
+
+static inline void pas_set_float_environment_to_libpas_default(void)
+{
+    /* Zero FPCR means round-to-nearest with no flush-to-zero and no trap
+       enables, which is AArch64's reset state.  Zeroing the FPSR clears the
+       cumulative exception flags. */
+    __asm__ volatile ("msr fpcr, %0" : : "r" ((uint64_t)0));
+    __asm__ volatile ("msr fpsr, %0" : : "r" ((uint64_t)0));
+}
+
+static inline void pas_restore_float_environment(
+    const pas_saved_float_environment* environment)
+{
+    __asm__ volatile ("msr fpcr, %0" : : "r" (environment->fpcr));
+    __asm__ volatile ("msr fpsr, %0" : : "r" (environment->fpsr));
+}
+
+#else
+
+/* Portable fallback for platforms without a special-cased implementation. */
+#include <fenv.h>
+
+struct pas_saved_float_environment {
+    fenv_t environment;
+};
+
+static inline void pas_save_float_environment(
+    pas_saved_float_environment* environment)
+{
+    PAS_ASSERT(!fegetenv(&environment->environment));
+}
+
+static inline void pas_set_float_environment_to_libpas_default(void)
+{
+    PAS_ASSERT(!fesetenv(FE_DFL_ENV));
+}
+
+static inline void pas_restore_float_environment(
+    const pas_saved_float_environment* environment)
+{
+    PAS_ASSERT(!fesetenv(&environment->environment));
+}
+
+#endif /* defined(__x86_64__) -> so end of float environment implementations */
 
 PAS_END_EXTERN_C;
 

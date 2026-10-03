@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -11,10 +12,10 @@
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY EPIC GAMES, INC. ``AS IS AND ANY
+# THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL EPIC GAMES, INC. OR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
 # CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -35,7 +36,7 @@ cd ../..
 rm -rf pizlonated-user-glibc-build
 mkdir pizlonated-user-glibc-build
 cd pizlonated-user-glibc-build
-CC="$PWD/../build/bin/clang -nostdlibinc -yolo-assembler -Wno-ignored-attributes -Wno-pointer-sign -Wno-unused-command-line-argument -Wno-macro-redefined" CXX="$PWD/../build/bin/clang++ -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" ../projects/user-glibc-2.44/configure --prefix=$PWD/../pizfix --disable-mathvec
+CC="$PWD/../build/bin/clang -nodefaultlibs -yolo-assembler -Wno-ignored-attributes -Wno-pointer-sign -Wno-unused-command-line-argument -Wno-macro-redefined" CXX="$PWD/../build/bin/clang++ -nostdlibinc -Wno-ignored-attributes -Wno-pointer-sign" ../projects/user-glibc-2.44/configure --prefix=$PWD/../pizfix --disable-mathvec
 make -j $NCPU
 make -j $NCPU install
 

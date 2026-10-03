@@ -1595,6 +1595,7 @@ class Pizlonator {
   FunctionCallee LifetimeStart;
   FunctionCallee LifetimeEnd;
   FunctionCallee StackCheckAsm;
+  FunctionCallee StoreStoreFenceAsm;
   FunctionCallee ThreadlocalAddress;
   FunctionCallee DoNothing;
 
@@ -1655,6 +1656,7 @@ class Pizlonator {
   std::unordered_map<Instruction*, Type*> InstTypes;
   std::unordered_map<Instruction*, std::vector<Type*>> InstTypeVectors;
   std::unordered_map<InvokeInst*, LandingPadInst*> LPIs;
+  std::unordered_set<CallInst*> FramePoppingMustTails;
 
   std::unordered_map<uint64_t, Function*> CallerEntrypointThunks;
   std::unordered_map<uint64_t, Function*> CalleeEntrypointThunks;
@@ -2707,6 +2709,8 @@ class Pizlonator {
       "", InsertBefore);
     Memset->addParamAttr(0, Attribute::getWithAlignment(C, Align(GCMinAlign)));
     Memset->setDebugLoc(InsertBefore->getDebugLoc());
+    CallInst::Create(StoreStoreFenceAsm, { }, "", InsertBefore)->setDebugLoc(
+      InsertBefore->getDebugLoc());
     return Allocate;
   }
 
@@ -2736,6 +2740,40 @@ class Pizlonator {
 
   Value* allocate(Value* Size, Value* Alignment, Instruction* InsertBefore) {
     return flightPtrForObject(allocateObject(Size, Alignment, InsertBefore), InsertBefore);
+  }
+
+  // A musttail call pops this function's Fil-C frame before the callee runs. Fil-C callers root
+  // the objects they pass as arguments; callees do not root their incoming arguments (except
+  // byval ones). So the frame can only be popped if no argument depends on it for rooting: every
+  // pointer-carrying argument must be one of our own non-byval arguments (or a pointer derived
+  // from one, which shares its object), which our caller roots, or a constant without a
+  // capability. Other musttail calls become ordinary calls. Globals are excluded because
+  // getting their address may run code (ifunc resolvers, initializers).
+  bool mustTailArgsRootedByCaller(CallInst* CI) {
+    for (unsigned Idx = 0; Idx < CI->arg_size(); ++Idx) {
+      if (CI->isByValArgument(Idx))
+        return false;
+      Value* V = CI->getArgOperand(Idx);
+      if (!countPtrs(V->getType()))
+        continue;
+      for (;;) {
+        if (GetElementPtrInst* GEP = dyn_cast<GetElementPtrInst>(V))
+          V = GEP->getPointerOperand();
+        else if (isa<BitCastInst>(V) || isa<AddrSpaceCastInst>(V))
+          V = cast<Instruction>(V)->getOperand(0);
+        else
+          break;
+      }
+      if (Argument* A = dyn_cast<Argument>(V)) {
+        if (A->getParent() == OldF && !A->hasByValAttr())
+          continue;
+        return false;
+      }
+      if (isa<ConstantPointerNull>(V) || isa<UndefValue>(V) || isa<ConstantAggregateZero>(V))
+        continue;
+      return false;
+    }
+    return true;
   }
 
   size_t countPtrs(Type* T) {
@@ -3140,6 +3178,21 @@ class Pizlonator {
       for (Instruction& I : *BB) {
         if (pointerKindDirect(&I) == PointerKind::LocalExplicit)
           StackAuxOrder.push_back(cast<AllocaInst>(&I));
+      }
+    }
+
+    // An alloca without lifetime markers is live throughout the function, but it never reaches a
+    // lifetime start above, so it must be made to interfere with every other explicit local here.
+    // Otherwise, such allocas (all of them, at -O0) share one lowers slot, and the collector only
+    // sees the stack aux of whichever one was initialized last.
+    for (AllocaInst* AI : StackAuxOrder) {
+      if (!AlwaysLive.count(AI))
+        continue;
+      for (AllocaInst* OtherAI : StackAuxOrder) {
+        if (OtherAI == AI)
+          continue;
+        StackAuxInterference[AI].insert(OtherAI);
+        StackAuxInterference[OtherAI].insert(AI);
       }
     }
 
@@ -7929,6 +7982,12 @@ class Pizlonator {
       case Intrinsic::x86_xgetbv:
       case Intrinsic::x86_sse2_pause:
       case Intrinsic::x86_rdtsc:
+      // HINT instructions don't access memory, so they can be left alone.
+      // Clang emits this intrinsic for the __builtin_arm_nop, __builtin_arm_yield,
+      // __builtin_arm_wfe, __builtin_arm_wfi, __builtin_arm_sev, and
+      // __builtin_arm_sevl builtins (and the __yield ACLE builtin), which use
+      // hint numbers 0 through 5.
+      case Intrinsic::aarch64_hint:
         return true;
 
       case Intrinsic::returnaddress:
@@ -14011,6 +14070,38 @@ class Pizlonator {
       }
       
       TheCall->setDebugLoc(CI->getDebugLoc());
+
+      // Preserve guaranteed tail calls whose arguments our caller keeps alive (see
+      // mustTailArgsRootedByCaller); other musttail calls, including coroutine symmetric
+      // transfer, become ordinary calls. The caller and callee had matching prototypes, so their
+      // lowered functions return the same (has_exception, value) aggregate, and the caller can
+      // hand the callee's result straight back to its own caller after popping its Fil-C frame.
+      if (isa<CallInst>(CI) && FramePoppingMustTails.count(cast<CallInst>(CI))
+          && TheCall->getType() == NewF->getReturnType()) {
+        new StoreInst(
+          new LoadInst(
+            RawPtrTy,
+            GetElementPtrInst::Create(
+              FrameTy, Frame, { ConstantInt::get(Int32Ty, 0), ConstantInt::get(Int32Ty, 0) },
+              "filc_frame_parent_ptr", TheCall),
+            "filc_frame_parent", TheCall),
+          threadTopFramePtr(MyThread, TheCall),
+          TheCall);
+        TheCall->setTailCallKind(CallInst::TCK_MustTail);
+        BasicBlock* CallBB = TheCall->getParent();
+        // The original ret after CI is now dead; it still gets lowered, so leave it valid.
+        SplitBlock(CallBB, CI);
+        ReplaceInstWithInst(CallBB->getTerminator(), ReturnInst::Create(C, TheCall));
+        if (FT->getReturnType() != VoidTy) {
+          LoadInst* LI = new LoadInst(
+            toFlightType(FT->getReturnType()), RawNull, "filc_dead_musttail_result", CI);
+          LI->setDebugLoc(CI->getDebugLoc());
+          CI->replaceAllUsesWith(LI);
+        }
+        CI->eraseFromParent();
+        return;
+      }
+
       Instruction* HasException = ExtractValueInst::Create(
         Int1Ty, TheCall, { 0 }, "filc_has_exception", CI);
       HasException->setDebugLoc(CI->getDebugLoc());
@@ -14339,6 +14430,23 @@ class Pizlonator {
             F->getName() == "sigsetjmp");
   }
 
+  /* Clang only marks setjmp returns_twice when it recognizes it as a builtin, which
+     -fno-builtin turns off. GCC recognizes these functions by name regardless, and so do we: the
+     rest of the pass depends on the attribute. */
+  void markSetjmpsReturnTwice() {
+    for (Function& F : M.functions()) {
+      if (!isSetjmp(&F))
+        continue;
+      F.addFnAttr(Attribute::ReturnsTwice);
+      for (User* U : F.users()) {
+        if (CallBase* CB = dyn_cast<CallBase>(U)) {
+          if (CB->getCalledOperand() == &F)
+            CB->addFnAttr(Attribute::ReturnsTwice);
+        }
+      }
+    }
+  }
+
   JmpBufKind getJmpBufKindForSetjmp(Function* F) {
     if (F->getName() == "setjmp")
       return JmpBufKind::setjmp;
@@ -14562,8 +14670,11 @@ class Pizlonator {
              G.getName() == "llvm.used" ||
              G.getName() == "llvm.compiler.used");
 
-      /* FIXME: Don't even know what this is? */
-      assert(G.getLinkage() != GlobalValue::CommonLinkage);
+      /* Common symbols (-fcommon, __attribute__((common))) are zero-initialized tentative
+         definitions that the linker merges across translation units. Weak definitions merge the
+         same way, and the rest of the pass knows how to handle them. */
+      if (G.getLinkage() == GlobalValue::CommonLinkage)
+        G.setLinkage(GlobalValue::WeakAnyLinkage);
 
       if (G.getLinkage() == GlobalValue::LinkOnceODRLinkage)
         G.setLinkage(GlobalValue::LinkOnceAnyLinkage);
@@ -16068,6 +16179,7 @@ public:
 
     Dummy = makeDummy(Int32Ty);
 
+    markSetjmpsReturnTwice();
     lowerIndirectBr();
 
     if (verbose)
@@ -16403,15 +16515,53 @@ public:
                          "b.cs 1f\n\t"
                          "b filc_stack_overflow_failure\n\t"
                          "1:",
-                         "=r,r,~{cc}",
+                         "=r,r,~{cc},~{memory}",
+                         /*hasSideEffects=*/true);
+      StoreStoreFenceAsm =
+          InlineAsm::get(FunctionType::get(VoidTy, false),
+                         "dmb ishst",
+                         "~{memory}",
                          /*hasSideEffects=*/true);
       break;
     case Triple::x86_64:
-      StackCheckAsm =
-          InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
-                         "cmp %rsp, $0\n\t"
-                         "jae filc_stack_overflow_failure@PLT",
-                         "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
+      if (M.getCodeModel() == CodeModel::Large) {
+        if (M.getPICLevel() == PICLevel::NotPIC) {
+          StackCheckAsm =
+              InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                             "cmp %rsp, $0\n\t"
+                             "jb 1f\n\t"
+                             "movabs $$filc_stack_overflow_failure, %r11\n\t"
+                             "jmp *%r11\n\t"
+                             "1:",
+                             "*m,~{r11},~{memory},~{dirflag},~{fpsr},~{flags}",
+                             /*hasSideEffects=*/true);
+        } else {
+          StackCheckAsm =
+              InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                             "cmp %rsp, $0\n\t"
+                             "jb 1f\n\t"
+                             "2:\n\t"
+                             "leaq 2b(%rip), %r10\n\t"
+                             "movabsq $$_GLOBAL_OFFSET_TABLE_-2b, %r11\n\t"
+                             "addq %r10, %r11\n\t"
+                             "movabsq $$filc_stack_overflow_failure@GOT, %r10\n\t"
+                             "jmp *(%r11,%r10)\n\t"
+                             "1:",
+                             "*m,~{r10},~{r11},~{memory},~{dirflag},~{fpsr},~{flags}",
+                             /*hasSideEffects=*/true);
+        }
+      } else {
+        StackCheckAsm =
+            InlineAsm::get(FunctionType::get(VoidTy, {RawPtrTy}, false),
+                           "cmp %rsp, $0\n\t"
+                           "jae filc_stack_overflow_failure@PLT",
+                           "*m,~{memory},~{dirflag},~{fpsr},~{flags}",
+                           /*hasSideEffects=*/true);
+      }
+      StoreStoreFenceAsm =
+          InlineAsm::get(FunctionType::get(VoidTy, false),
+                         "",
+                         "~{memory}",
                          /*hasSideEffects=*/true);
       break;
     default:
@@ -16936,6 +17086,15 @@ public:
           BB->insertInto(NewF);
         }
         computeFrameIndexMap(Blocks);
+        FramePoppingMustTails.clear();
+        for (BasicBlock* BB : Blocks) {
+          for (Instruction& I : *BB) {
+            if (CallInst* CI = dyn_cast<CallInst>(&I)) {
+              if (CI->isMustTailCall() && mustTailArgsRootedByCaller(CI))
+                FramePoppingMustTails.insert(CI);
+            }
+          }
+        }
         scheduleChecks(Blocks, BackEdgePreds);
         // Snapshot the instructions before we do crazy stuff.
         std::vector<Instruction*> Instructions;
@@ -17349,4 +17508,3 @@ PreservedAnalyses FilPizlonatorPass::run(Module &M, ModuleAnalysisManager&) {
   P.run();
   return PreservedAnalyses::none();
 }
-

@@ -2,3 +2,6 @@ return:
   success
 output-includes:
   Nic o nas bez nas.
+
+# COSMO: the cosmo crt/ape.lds does not run .fini_array (and prioritized constructor/destructor ordering) the way the musl flavor's crt does, so the destructor half of these tests never happens.
+unsupportedOnCOSMO: true

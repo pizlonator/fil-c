@@ -33,7 +33,7 @@
 // No _LIBCPP_ELAST needed on WASI
 #elif defined(__EMSCRIPTEN__)
 // No _LIBCPP_ELAST needed on Emscripten
-#elif defined(__linux__) || _LIBCPP_HAS_MUSL_LIBC
+#elif defined(__linux__) || _LIBCPP_HAS_MUSL_LIBC || _LIBCPP_HAS_COSMO_LIBC
 #  define _LIBCPP_ELAST 4095
 #elif defined(__APPLE__)
 // No _LIBCPP_ELAST needed on Apple

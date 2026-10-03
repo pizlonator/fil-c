@@ -1,0 +1,30 @@
+URL: https://ftp.gnu.org/gnu/gzip/gzip-1.15.tar.gz 3cbe9101598ebf6e2525578fd2f1218c00bbbefe8667f12417ac0cc9250948fc
+URL: https://ftpmirror.gnu.org/gzip/gzip-1.15.tar.gz 3cbe9101598ebf6e2525578fd2f1218c00bbbefe8667f12417ac0cc9250948fc
+Origname: gzip-1.15
+Name: gzip
+
+    gzip 1.15 with one Fil-C change: gzip.c includes <signal.h> before
+    gzip.h because gzip.h's `head` macro collides with `head` struct
+    members in the aarch64 <asm/sigcontext.h> that <signal.h> pulls in.
+    This used to be consumed as the raw pizlix/gzip-1.14.tar.xz tarball;
+    it is now a URL-based projeny project so that the pizlix tarball
+    convention can be retired for it.  The pizlix prelc (cross-toolchain,
+    pre-Fil-C) build of gzip still uses the raw pizlix tarball, since
+    pizlonated tarballs cannot exist at that stage.
+diff --git a/gzip/gzip.c b/gzip/gzip.c
+--- a/gzip/gzip.c
++++ b/gzip/gzip.c
+@@ -58,6 +58,13 @@
+
+ #include "tailor.h"
+
++/* Include <signal.h> before gzip.h.  gzip.h defines a macro named `head',
++   which collides with the struct members named `head' in the Linux kernel's
++   <asm/sigcontext.h>, which <signal.h> includes on some architectures,
++   such as aarch64.  */
++
++#include <signal.h>
++
+ #include "gzip.h"
+ #include "lzw.h"
+ #include "revision.h"

@@ -23,11 +23,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 // projeny - project tarball+patch manager.
-// Uses only the C++ standard library and POSIX. No third-party dependencies.
+// Uses only the C++ standard library and POSIX for the utilities here.
+// (The projeny binary as a whole links libcurl and compiles in the
+// vendored blake3 (src/blake3/) for URL: archive downloads — see
+// download.h/download.cc; this header's helpers remain third-party-free.)
 #pragma once
 
+#include <exception>
+#include <functional>
+#include <mutex>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <cstdint>
@@ -45,10 +50,62 @@ CmdResult run_cmd(const std::vector<std::string>& argv, const std::string& cwd =
                   const std::string& stdin_data = "", const std::string& stdin_file = "",
                   const std::vector<std::string>& extra_env = std::vector<std::string>());
 
-// Print "projeny: error: <msg>" (plus optional detail) and exit(1).
-// Also removes any registered temp dirs first.
+// Thrown by die(). Lets parallel workers isolate per-project hard errors:
+// worker threads catch it, record the failure, and keep other projects
+// running; main() catches it for the single-project exit(1) behavior.
+// message() is the error message itself (no "projeny: error: " prefix, no
+// detail): die() has already printed the full report to stderr by the time
+// it throws.
+class ProjenyFatalError : public std::exception {
+  public:
+    explicit ProjenyFatalError(std::string message);
+    const char* what() const noexcept override;
+    const std::string& message() const noexcept;
+  private:
+    std::string message_;
+};
+
+// Serializes note/warn/die and download progress printing so parallel
+// workers never interleave partial lines. Every message projeny prints to
+// stderr goes through a fprintf under one lock of this mutex.
+extern std::mutex g_output_mutex;
+
+// Print "projeny: error: <msg>" (plus optional detail, verbatim) to stderr —
+// exactly the bytes die() has always printed — and then throw
+// ProjenyFatalError(msg) instead of exiting. Temp dirs are NOT removed here:
+// in parallel mode other threads own their own temp dirs, so the sweep moves
+// to cleanup_tempdirs(), which main() runs after catching (all threads have
+// joined by then). Callers keep treating die() as noreturn.
 [[noreturn]] void die(const std::string& msg, const std::string& detail = "");
+// Both lock g_output_mutex for their whole line and prefix the thread's
+// output label (see set_output_label) after the "projeny:" prefix:
+// "projeny: [<label>] warning: <msg>" / "projeny: [<label>] <msg>".
 void warn(const std::string& msg);
+// Print "projeny: <msg>" to stderr: informational output that is neither an
+// error nor a warning (download announcements, verification notes), so the
+// "projeny:" prefix stays uniform across every message we print.
+void note(const std::string& msg);
+
+// When non-empty, note/warn/die prefix messages with "[<label>] " after the
+// "projeny:" prefix — "projeny: [<label>] <msg>", "projeny: [<label>]
+// warning: <msg>", "projeny: [<label>] error: <msg>" — so an error stays one
+// greppable line while remaining attributable to its project. Set per-thread
+// by parallel workers (each worker labels itself with the project it is
+// running); empty on the main thread, whose output stays byte-identical to
+// the single-project behavior. The label lives in thread_local storage: no
+// locking, and a worker's label never leaks into another thread.
+void set_output_label(const std::string& label);   // sets thread_local label
+const std::string& output_label();                 // reads it
+
+// Run `ntasks` work items across at most `nthreads` std::threads
+// (nthreads >= 1; the actual thread count is min(nthreads, ntasks), and 0
+// tasks means no threads at all). All threads are joined before return.
+// Exceptions from tasks are captured and, after the join, the one from the
+// lowest task index is rethrown. Used for parallel hash checks and
+// per-project parallel work. Note a task that dies() is exactly this case:
+// the ProjenyFatalError lands here, the remaining tasks still run to
+// completion, and the throw surfaces once the pool has quiesced.
+void run_parallel(int nthreads, size_t ntasks, const std::function<void(size_t)>& task);
 
 // Whole-file binary-safe IO. Reading a missing file dies.
 std::string read_file_bytes(const std::string& path);
@@ -56,7 +113,7 @@ bool try_read_file_bytes(const std::string& path, std::string* out);
 void write_file_bytes(const std::string& path, const std::string& data);
 void copy_file_bytes(const std::string& src, const std::string& dst);
 // Try-variant of copy_file_bytes for best-effort callers: same
-// temp-file+fsync+rename protocol as write_file_bytes, but returns false
+// temp-file+rename protocol as write_file_bytes, but returns false
 // instead of dying (*err, when non-null, receives a strerror-style reason).
 bool try_copy_file_bytes(const std::string& src, const std::string& dst,
                          std::string* err = nullptr);
@@ -93,6 +150,18 @@ std::string absolutize(const std::string& p); // lexical, based on get_cwd()
 // Lexically normalize: collapse ".", duplicate slashes; ".." pops textually.
 std::string normalize_lexical(const std::string& p);
 
+// Split a path into its components, dropping empty and "." components;
+// ".." components are kept verbatim when keep_dots is true. Used by the
+// lexical path algebra (normalize_lexical, rel_to_cwd).
+std::vector<std::string> split_path_components(const std::string& p,
+                                               bool keep_dots);
+
+// Read a symlink's target, retrying when the link grows between the lstat
+// size hint and readlink (a single read would silently truncate). Dies on
+// failure; callers invoke it for a path they just saw as a symlink, so an
+// error here is a race.
+std::string read_link_target(const std::string& path);
+
 // Outcome of lexically resolving a symlink/hardlink target against a tree
 // root.
 enum class LinkResolve {
@@ -115,17 +184,29 @@ LinkResolve resolve_link_target(const std::string& base_dir,
 
 // Create a unique temp dir parent/prefixXXXXXX (mkdtemp). Dies on failure.
 std::string make_tempdir(const std::string& parent, const std::string& prefix);
+
+// Physical (symlink-resolved) form of `path` via realpath(3). Dies on
+// failure: callers invoke it only for paths that already exist on disk, so
+// an error here is a race (the path vanished) or an unreadable ancestor.
+std::string physical_path(const std::string& path);
+
 // System scratch parent for temp dirs/files that must never live inside a
 // workdir (crashed runs would otherwise pollute the next diff): $TMPDIR when
 // it names an existing absolute directory, else /tmp.
 std::string system_scratch_parent();
-// Create a temp file containing data; returns path (caller removes it).
-std::string write_temp_input(const std::string& parent, const std::string& prefix,
-                             const std::string& data);
 
-// Temp dir tracking so die() can clean up even on hard-error paths.
+// Temp dir tracking so hard-error cleanup can remove even still-registered
+// dirs once every thread has joined. The registry is shared by all threads
+// (parallel workers register their own temp dirs), so register/unregister/
+// cleanup serialize internally.
 void register_tempdir(const std::string& path);
 void unregister_tempdir(const std::string& path);
+// Remove every still-registered temp dir (deepest-first, so children go
+// before parents) and forget the registry. Called by main() on the hard-
+// error paths — after all worker threads have joined, so no other thread can
+// be using (or removing) a registered dir concurrently. Missing paths are
+// skipped silently: an unwinding TempDir may already have removed its own.
+void cleanup_tempdirs();
 
 // RAII temp dir. Removes the tree on destruction unless released().
 class TempDir {
@@ -140,8 +221,13 @@ class TempDir {
     bool owned_ = false;
 };
 
-bool remove_recursive(const std::string& path); // true on success; missing -> true
-void fsync_dir(const std::string& path); // persist dir entries, dies on failure
+// Remove `path` recursively (rm -rf): files, symlinks, and directory trees.
+// True on success; a missing path is success. When `err` is non-null it
+// receives the FIRST failing syscall's strerror-style reason (naming the
+// path) while the removal of everything else continues — a caller that must
+// press on after a failed deletion (erase-setup) uses it to report what
+// went wrong without stopping.
+bool remove_recursive(const std::string& path, std::string* err = nullptr);
 void make_dirs(const std::string& path);        // mkdir -p, dies on failure
 std::vector<std::string> list_dir_names(const std::string& path); // sorted, no . / ..
 void move_path(const std::string& src, const std::string& dst);   // rename(2), dies

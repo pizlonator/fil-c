@@ -241,6 +241,21 @@ std::string CUIDOptions::getCUID(StringRef InputFile,
   }
   return CUID;
 }
+
+// A pizfix tree is a "cosmo" pizfix (cosmopolitan libc flavored Fil-C) if its
+// lib directory contains libyolocosmo.a, which is the cosmo libc archive.
+// The aarch64 flavor of that archive lives in lib-aarch64 (see
+// build_yolocosmo.sh), so both locations are accepted.
+static bool hasCosmoMarker(StringRef PizfixRoot) {
+  SmallString<128> P(PizfixRoot);
+  llvm::sys::path::append(P, "lib", "libyolocosmo.a");
+  if (llvm::sys::fs::is_regular_file(P))
+    return true;
+  SmallString<128> Q(PizfixRoot);
+  llvm::sys::path::append(Q, "lib-aarch64", "libyolocosmo.a");
+  return llvm::sys::fs::is_regular_file(Q);
+}
+
 Driver::Driver(StringRef ClangExecutable, StringRef TargetTriple,
                DiagnosticsEngine &Diags, std::string Title,
                IntrusiveRefCntPtr<llvm::vfs::FileSystem> VFS)
@@ -269,6 +284,8 @@ Driver::Driver(StringRef ClangExecutable, StringRef TargetTriple,
     if (HasPizfix)
       PizfixRoot = std::string(P);
   }
+  if (HasPizfix)
+    HasCosmo = hasCosmoMarker(PizfixRoot);
   if (!HasPizfix) {
     SmallString<128> RealPath;
     if (!llvm::sys::fs::real_path(Dir, RealPath)
@@ -1503,6 +1520,37 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
     A->claim();
     HasPizfix = true;
   }
+
+  // Re-probe for the cosmo marker in case the pizfix root came from
+  // --filc-resource-dir (this makes it possible to test a cosmo pizfix tree
+  // without replacing the real one).
+  if (HasPizfix)
+    HasCosmo = hasCosmoMarker(PizfixRoot);
+
+  // --filc-cosmo forces cosmopolitan libc mode.  It still requires a pizfix
+  // tree, since the cosmo CRT objects, linker script, and libraries all live
+  // there.
+  if (Arg *A = Args.getLastArg(options::OPT_filc_cosmo)) {
+    A->claim();
+    if (!HasPizfix)
+      Diag(diag::err_drv_filc_cosmo_requires_pizfix);
+    else
+      HasCosmo = true;
+  }
+
+  // --filc-ape is consumed by the cosmo-mode link job (see
+  // tools::gnutools::Linker::ConstructJob); claim it up front so that
+  // invocations that never reach a cosmo-mode link (like compile-only ones)
+  // do not get an unused-argument warning.  --filc-fat-ape is consumed there
+  // too (it turns a cosmo-mode link into a fat x86_64+aarch64 APE build) and
+  // --filc-no-ape is the internal suppressor that the fat mode's nested
+  // aarch64 link passes so it does not emit an APE of its own; claim both.
+  if (Arg *A = Args.getLastArg(options::OPT_filc_ape))
+    A->claim();
+  if (Arg *A = Args.getLastArg(options::OPT_filc_fat_ape))
+    A->claim();
+  if (Arg *A = Args.getLastArg(options::OPT_filc_no_ape))
+    A->claim();
 
   // Check for missing include directories.
   if (!Diags.isIgnored(diag::warn_missing_include_dirs, SourceLocation())) {

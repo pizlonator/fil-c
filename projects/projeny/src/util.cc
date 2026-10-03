@@ -25,49 +25,214 @@
 #include "util.h"
 
 #include <algorithm>
+#include <array>
+#include <atomic>
 #include <cerrno>
+#include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <dirent.h>
+#include <exception>
 #include <fcntl.h>
+#include <functional>
+#include <mutex>
 #include <spawn.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <thread>
 #include <unistd.h>
+#include <utility>
 #include <vector>
 
 extern char** environ;
 
+// Serializes every stderr line (note/warn/die and the download progress
+// lines) so parallel workers never interleave partial lines. See util.h.
+std::mutex g_output_mutex;
+
 namespace {
+
+// The temp-dir registry is shared: in parallel mode each worker thread
+// registers its own temp dirs while main() (or, later, a joining worker)
+// sweeps the remains. A dedicated mutex keeps register/unregister/cleanup
+// from racing; note it never nests with g_output_mutex, so the two can't
+// deadlock.
+std::mutex g_tempdirs_mu;
 std::vector<std::string> g_tempdirs;
+
+// Per-thread output label (see set_output_label in util.h): empty on the
+// main thread, the project name inside a parallel worker. thread_local means
+// no locking and no cross-thread leakage.
+thread_local std::string t_output_label;
+
+// "[<label>] " when this thread has a label, "" otherwise. note/warn/die
+// splice it in right after the "projeny:" prefix, so a labeled line stays
+// exactly one line: "projeny: [<label>] <msg>" (and the .../warning:/error:
+// variants). An empty label contributes nothing, keeping single-threaded
+// output byte-identical to the unlabeled form.
+std::string label_prefix()
+{
+    if (t_output_label.empty())
+        return "";
+    return "[" + t_output_label + "] ";
+}
+
+} // namespace
+
+void set_output_label(const std::string& label)
+{
+    t_output_label = label;
+}
+
+const std::string& output_label()
+{
+    return t_output_label;
+}
+
+ProjenyFatalError::ProjenyFatalError(std::string message)
+    : message_(std::move(message))
+{
+}
+
+const char* ProjenyFatalError::what() const noexcept
+{
+    return message_.c_str();
+}
+
+const std::string& ProjenyFatalError::message() const noexcept
+{
+    return message_;
 }
 
 void register_tempdir(const std::string& path)
 {
+    std::lock_guard<std::mutex> lk(g_tempdirs_mu);
     g_tempdirs.push_back(path);
 }
 
 void unregister_tempdir(const std::string& path)
 {
+    std::lock_guard<std::mutex> lk(g_tempdirs_mu);
     g_tempdirs.erase(std::remove(g_tempdirs.begin(), g_tempdirs.end(), path),
                      g_tempdirs.end());
 }
 
+void cleanup_tempdirs()
+{
+    std::vector<std::string> dirs;
+    {
+        std::lock_guard<std::mutex> lk(g_tempdirs_mu);
+        dirs.swap(g_tempdirs);
+    }
+    for (auto it = dirs.rbegin(); it != dirs.rend(); ++it)
+        remove_recursive(*it);
+}
+
 void die(const std::string& msg, const std::string& detail)
 {
-    for (auto it = g_tempdirs.rbegin(); it != g_tempdirs.rend(); ++it)
-        remove_recursive(*it);
-    fprintf(stderr, "projeny: error: %s\n", msg.c_str());
-    if (!detail.empty())
-        fprintf(stderr, "%s", detail.c_str());
-    exit(1);
+    std::string m = "projeny: " + label_prefix() + "error: " + msg + "\n";
+    {
+        // One lock for the whole report (message line + detail, verbatim
+        // bytes of the report die() has always printed) so a parallel
+        // worker's error never interleaves with another thread's output.
+        std::lock_guard<std::mutex> lk(g_output_mutex);
+        fprintf(stderr, "%s", m.c_str());
+        if (!detail.empty())
+            fprintf(stderr, "%s", detail.c_str());
+    }
+    // The report is out; hand the failure to the caller. main() catches
+    // ProjenyFatalError, sweeps any still-registered temp dirs (all threads
+    // have joined by then), and exits 1 — the same observable behavior the
+    // exit(1) here used to produce, while letting worker threads isolate
+    // per-project failures instead.
+    throw ProjenyFatalError(msg);
 }
 
 void warn(const std::string& msg)
 {
-    fprintf(stderr, "projeny: warning: %s\n", msg.c_str());
+    std::lock_guard<std::mutex> lk(g_output_mutex);
+    fprintf(stderr, "projeny: %swarning: %s\n", label_prefix().c_str(),
+            msg.c_str());
+}
+
+void note(const std::string& msg)
+{
+    std::lock_guard<std::mutex> lk(g_output_mutex);
+    fprintf(stderr, "projeny: %s%s\n", label_prefix().c_str(), msg.c_str());
+}
+
+void run_parallel(int nthreads, size_t ntasks,
+                  const std::function<void(size_t)>& task)
+{
+    if (ntasks == 0)
+        return; // no tasks: no threads at all
+    size_t n = nthreads < 1 ? 1 : (size_t)nthreads;
+    if (n > ntasks)
+        n = ntasks; // never more threads than tasks
+
+    // A mutex + condition_variable worker pool: the shared state below is
+    // guarded by `mu`, and workers that find the task queue momentarily
+    // empty block on `cv` until the pool quiesces (the queue never refills,
+    // so the last worker out wakes everybody to let them exit). Exceptions
+    // are captured (never allowed to escape a thread — that would
+    // std::terminate) with the lowest failing index remembered; after the
+    // join the winner is rethrown on this thread.
+    std::mutex mu;
+    std::condition_variable cv;
+    size_t next_index = 0; // next task index to hand out (guarded by mu)
+    size_t running = 0;    // tasks currently executing (guarded by mu)
+    std::exception_ptr first_exc;
+    size_t first_index = ntasks; // past-the-end sentinel: nothing failed yet
+    std::vector<std::thread> threads;
+    threads.reserve(n);
+    for (size_t t = 0; t < n; ++t) {
+        threads.emplace_back([&]() {
+            std::unique_lock<std::mutex> lk(mu);
+            for (;;) {
+                if (next_index < ntasks) {
+                    // Take the next task and run it with the lock released,
+                    // so tasks finish in whatever order the threads get to
+                    // them and a slow task never idles the others.
+                    size_t i = next_index++;
+                    ++running;
+                    lk.unlock();
+                    try {
+                        task(i);
+                    } catch (...) {
+                        // Keep going: every remaining task still runs (a
+                        // per-project failure must not starve the others).
+                        lk.lock();
+                        if (i < first_index) {
+                            first_index = i;
+                            first_exc = std::current_exception();
+                        }
+                        --running;
+                        continue;
+                    }
+                    lk.lock();
+                    --running;
+                    continue;
+                }
+                if (running > 0) {
+                    // Other workers are still finishing the handed-out
+                    // tasks: wait for the pool to quiesce. (Spurious
+                    // wakeups re-check from the top.)
+                    cv.wait(lk);
+                    continue;
+                }
+                // Every task handed out and finished: wake any fellow
+                // waiters so they exit too, and leave.
+                cv.notify_all();
+                return;
+            }
+        });
+    }
+    for (auto& t : threads)
+        t.join();
+    if (first_exc)
+        std::rethrow_exception(first_exc);
 }
 
 namespace {
@@ -275,7 +440,7 @@ bool try_read_file_bytes(const std::string& path, std::string* out)
 
 namespace {
 
-// Try-variant of write_file_bytes: the same write-temp + fsync + rename
+// Try-variant of write_file_bytes: the same write-temp + rename
 // protocol (a crash never leaves a half-written file), but reports failure
 // via the return value (strerror reason in *err when non-null) instead of
 // dying. Used by write_file_bytes and the best-effort try_copy_file_bytes.
@@ -288,7 +453,16 @@ bool write_file_bytes_try(const std::string& path, const std::string& data,
         return false;
     };
     // Write-then-rename so a crash never leaves a half-written file behind.
-    std::string tmp = path + ".tmp";
+    // The temp name is unique per write (pid plus a process-wide counter):
+    // parallel workers of one multi-project command can write the same
+    // target path concurrently (the shared snapshot of two projects that
+    // use one archive, say), and a fixed ".tmp" suffix would let one
+    // worker's rename move the shared temp out from under another, whose
+    // own rename would then fail with ENOENT (TSAN and stress probes both
+    // caught exactly that).
+    static std::atomic<unsigned long long> tmp_counter(0);
+    std::string tmp = path + ".tmp." + std::to_string(getpid()) + "." +
+                      std::to_string(tmp_counter.fetch_add(1));
     int fd = open(tmp.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0)
         return fail(errno);
@@ -304,15 +478,6 @@ bool write_file_bytes_try(const std::string& path, const std::string& data,
             return fail(e);
         }
         off += (size_t)w;
-    }
-    // fsync before rename so the data is durable on disk (not just in the
-    // page cache) when the rename makes it visible; crash recovery then
-    // only ever sees complete files.
-    if (fsync(fd) != 0) {
-        int e = errno;
-        close(fd);
-        unlink(tmp.c_str());
-        return fail(e);
     }
     if (close(fd) != 0) {
         int e = errno;
@@ -336,23 +501,6 @@ void write_file_bytes(const std::string& path, const std::string& data)
         die("cannot write file '" + path + "': " + err);
 }
 
-void fsync_dir(const std::string& path)
-{
-    // Persist a directory entry itself (fsync the dir fd) so renames into
-    // it survive a crash. Best-effort on filesystems that reject dir fsync
-    // (EINVAL): the rename itself is still ordered after the fsynced file
-    // data by write_file_bytes, so recovery only ever sees complete files.
-    int fd = open(path.c_str(), O_RDONLY | O_DIRECTORY);
-    if (fd < 0)
-        die("cannot open directory '" + path + "': " + strerror(errno));
-    if (fsync(fd) != 0 && errno != EINVAL) {
-        int e = errno;
-        close(fd);
-        die("cannot fsync directory '" + path + "': " + strerror(e));
-    }
-    close(fd);
-}
-
 void copy_file_bytes(const std::string& src, const std::string& dst)
 {
     write_file_bytes(dst, read_file_bytes(src));
@@ -374,7 +522,7 @@ bool try_copy_file_bytes(const std::string& src, const std::string& dst,
 // "same basename, different content" tarballs in rebase — not cryptographic.
 std::string file_hash_hex(const std::string& path)
 {
-    uint64_t h = 1469598103934665603ULL;
+    uint64_t h = 14695981039346656037ULL;
     int fd = open(path.c_str(), O_RDONLY);
     if (fd < 0)
         die("cannot read file '" + path + "': " + strerror(errno));
@@ -549,6 +697,36 @@ std::string get_cwd()
     return buf;
 }
 
+std::string physical_path(const std::string& path)
+{
+    char buf[8192];
+    if (!realpath(path.c_str(), buf))
+        die("cannot resolve '" + path + "': " + strerror(errno));
+    return buf;
+}
+
+std::string read_link_target(const std::string& path)
+{
+    // A link target that grows between the lstat size hint and readlink
+    // would be silently truncated; retry from a fresh lstat until the
+    // target fits (bounded, so a pathological swap loop dies instead of
+    // spinning).
+    for (int attempt = 0; attempt < 8; ++attempt) {
+        struct stat st;
+        if (lstat(path.c_str(), &st) != 0)
+            die("cannot stat '" + path + "': " + strerror(errno));
+        if (!S_ISLNK(st.st_mode))
+            die("'" + path + "' is not a symlink");
+        std::vector<char> buf(st.st_size > 0 ? (size_t)st.st_size + 1 : 4096);
+        ssize_t r = readlink(path.c_str(), buf.data(), buf.size());
+        if (r < 0)
+            die("cannot read link '" + path + "': " + strerror(errno));
+        if ((size_t)r < buf.size())
+            return std::string(buf.data(), (size_t)r);
+    }
+    die("cannot read link '" + path + "': target keeps growing");
+}
+
 std::string absolutize(const std::string& p)
 {
     if (!p.empty() && p[0] == '/')
@@ -556,12 +734,15 @@ std::string absolutize(const std::string& p)
     return normalize_lexical(join_path(get_cwd(), p));
 }
 
-std::string normalize_lexical(const std::string& p)
+// Split a path into its components: empty and "." components are dropped
+// (so duplicate slashes vanish); ".." components are kept verbatim when
+// keep_dots is true. Used by the lexical path algebra (normalize_lexical,
+// rel_to_cwd); make_dirs and resolve_link_target keep their own
+// special-purpose walkers.
+std::vector<std::string> split_path_components(const std::string& p,
+                                               bool keep_dots)
 {
-    if (p.empty())
-        return ".";
-    bool absolute = p[0] == '/';
-    std::vector<std::string> parts;
+    std::vector<std::string> out;
     size_t i = 0;
     while (i <= p.size()) {
         size_t j = p.find('/', i);
@@ -573,6 +754,20 @@ std::string normalize_lexical(const std::string& p)
             i = j + 1;
         if (comp.empty() || comp == ".")
             continue;
+        if (comp == ".." && !keep_dots)
+            continue;
+        out.push_back(comp);
+    }
+    return out;
+}
+
+std::string normalize_lexical(const std::string& p)
+{
+    if (p.empty())
+        return ".";
+    bool absolute = p[0] == '/';
+    std::vector<std::string> parts;
+    for (const std::string& comp : split_path_components(p, true)) {
         if (comp == "..") {
             if (!parts.empty() && parts.back() != "..") {
                 // For absolute paths, ".." at root is a no-op (stays at /).
@@ -687,35 +882,6 @@ std::string make_tempdir(const std::string& parent, const std::string& prefix) {
     return buf.data();
 }
 
-std::string write_temp_input(const std::string& parent, const std::string& prefix,
-                             const std::string& data)
-{
-    make_dirs(parent);
-    std::string tmpl = join_path(parent, prefix + "XXXXXX");
-    std::vector<char> buf(tmpl.begin(), tmpl.end());
-    buf.push_back('\0');
-    int fd = mkstemp(buf.data());
-    if (fd < 0)
-        die("cannot create temp file in '" + parent + "': " + strerror(errno));
-    size_t off = 0;
-    while (off < data.size()) {
-        ssize_t w = write(fd, data.data() + off, data.size() - off);
-        if (w < 0) {
-            if (errno == EINTR)
-                continue;
-            int e = errno;
-            close(fd);
-            die("cannot write temp file: " + std::string(strerror(e)));
-        }
-        off += (size_t)w;
-    }
-    close(fd);
-    // Return an absolute path: callers pass this to children that run with a
-    // different cwd (git apply runs with cwd=treedir), where a relative
-    // path would resolve to the wrong place.
-    return absolutize(buf.data());
-}
-
 TempDir::TempDir(const std::string& parent, const std::string& prefix)
     : path(make_tempdir(parent, prefix)), owned_(true)
 {
@@ -724,8 +890,17 @@ TempDir::TempDir(const std::string& parent, const std::string& prefix)
 
 TempDir::~TempDir()
 {
-    if (owned_)
+    if (owned_) {
+        // Unregister first so a cleanup_tempdirs() sweep can never re-remove
+        // a (partially) deleted tree; and this destructor must stay
+        // non-dying — it runs during exception unwinding (die() throws), and
+        // a throw from here would std::terminate. remove_recursive reports
+        // failure via its return value, which is deliberately ignored: a
+        // temp dir that cannot be removed is not worth failing the real
+        // work over.
+        unregister_tempdir(path);
         remove_recursive(path);
+    }
 }
 
 void TempDir::release()
@@ -736,31 +911,53 @@ void TempDir::release()
     }
 }
 
-bool remove_recursive(const std::string& path)
+bool remove_recursive(const std::string& path, std::string* err)
 {
+    // Report the FIRST failure reason into *err (naming the path and the
+    // syscall's errno) while continuing to remove the remaining entries.
+    // Every failure point calls this immediately, so the errno it reads is
+    // still the failing syscall's.
+    auto fail = [&](const char* what) {
+        if (err != nullptr && err->empty())
+            *err = std::string(what) + " '" + path + "': " + strerror(errno);
+        return false;
+    };
     struct stat st;
-    if (lstat(path.c_str(), &st) != 0)
-        return errno == ENOENT;
+    if (lstat(path.c_str(), &st) != 0) {
+        if (errno == ENOENT)
+            return true;
+        return fail("cannot lstat");
+    }
     if (!S_ISDIR(st.st_mode)) {
-        if (unlink(path.c_str()) != 0)
-            return false;
+        if (unlink(path.c_str()) != 0) {
+            // A parallel sibling may have removed it first (two erase-setup
+            // workers sharing one snapshot, say): gone is gone.
+            if (errno == ENOENT)
+                return true;
+            return fail("cannot remove");
+        }
         return true;
     }
     DIR* d = opendir(path.c_str());
-    if (!d)
-        return false;
+    if (!d) {
+        if (errno == ENOENT)
+            return true;
+        return fail("cannot open directory");
+    }
     bool ok = true;
     struct dirent* e;
     while ((e = readdir(d)) != nullptr) {
         std::string n = e->d_name;
         if (n == "." || n == "..")
             continue;
-        if (!remove_recursive(join_path(path, n)))
+        if (!remove_recursive(join_path(path, n), err))
             ok = false;
     }
     closedir(d);
-    if (rmdir(path.c_str()) != 0)
+    if (rmdir(path.c_str()) != 0 && errno != ENOENT) {
         ok = false;
+        fail("cannot remove directory");
+    }
     return ok;
 }
 
@@ -847,11 +1044,7 @@ void copy_path_preserving(const std::string& src, const std::string& dst)
     if (lstat(src.c_str(), &st) != 0)
         die("cannot stat '" + src + "': " + strerror(errno));
     if (S_ISLNK(st.st_mode)) {
-        std::vector<char> buf(st.st_size > 0 ? (size_t)st.st_size + 1 : 4096);
-        ssize_t r = readlink(src.c_str(), buf.data(), buf.size());
-        if (r < 0)
-            die("cannot read link '" + src + "': " + strerror(errno));
-        std::string target(buf.data(), (size_t)r);
+        std::string target = read_link_target(src);
         make_dirs(dirname_of(dst));
         // Never follow: replace whatever sits at dst (file or link).
         if (path_exists(dst) && !remove_recursive(dst))
@@ -917,16 +1110,15 @@ std::string base64_encode(const std::string& data)
 
 bool base64_decode(const std::string& s, std::string* out)
 {
-    static signed char rev[256];
-    static bool init = false;
-    if (!init) {
+    static const std::array<signed char, 256> rev = [] {
+        std::array<signed char, 256> r{};
         for (int i = 0; i < 256; ++i)
-            rev[i] = -1;
+            r[i] = -1;
         const char* tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
         for (int i = 0; tab[i]; ++i)
-            rev[(unsigned char)tab[i]] = (signed char)i;
-        init = true;
-    }
+            r[(unsigned char)tab[i]] = (signed char)i;
+        return r;
+    }();
     out->clear();
     if (s.empty())
         return true;

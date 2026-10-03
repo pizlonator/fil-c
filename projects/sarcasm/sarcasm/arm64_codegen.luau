@@ -8,6 +8,7 @@ local build = require("./build")
 local isa = require("./arm64_isa")
 local sig = require("./sig")
 local regalloc = require("./regalloc")
+local err = require("./err")
 
 local M = {}
 
@@ -113,8 +114,8 @@ M.cc = {
 -- are allowed; long double and the vector classes are rejected by the arch-aware
 -- signature class check (same rejection shape as x86_64, which rejects every FP
 -- class).
-function M.checkCallsiteSig(cs, callee)
-	sig.checkSupportedClasses(cs, "call to '" .. callee .. "'", { arch = "arm64" })
+function M.checkCallsiteSig(cs, callee, st)
+	sig.checkSupportedClasses(cs, "call to '" .. callee .. "'", { arch = "arm64" }, st)
 	local words, fpArgs = 0, 0
 	for k = 1, cs.argWords do
 		if sig.isFpClass(cs.argTypes[k]) then
@@ -124,11 +125,11 @@ function M.checkCallsiteSig(cs, callee)
 		end
 	end
 	if words > 6 then
-		error("sarcasm: call to '" .. callee .. "': >6 register argument words not yet supported"
+		err.at(st, "call to '" .. callee .. "': >6 register argument words not yet supported"
 			.. " (this call's signature needs " .. tostring(words) .. ")")
 	end
 	if fpArgs > 8 then
-		error("sarcasm: call to '" .. callee .. "': >8 floating-point arguments not yet supported"
+		err.at(st, "call to '" .. callee .. "': >8 floating-point arguments not yet supported"
 			.. " (this call's signature needs " .. tostring(fpArgs) .. ")")
 	end
 end
@@ -185,7 +186,7 @@ local function msAccessBytes(stmt, counts, raw)
 	local rl = stmt.operands[1]
 	local mnem = string.lower(stmt.mnemonic)
 	if not rl or rl.kind ~= "reglist" or #rl.regs < counts[1] or #rl.regs > counts[2] then
-		error("sarcasm: NEON structure load/store register list does not match '"
+		err.at(stmt, "NEON structure load/store register list does not match '"
 			.. mnem .. "' (cannot size the access): " .. raw)
 	end
 	local nst = #rl.regs
@@ -195,17 +196,17 @@ local function msAccessBytes(stmt, counts, raw)
 		-- from the arrangement qualifier (the lane index sits outside the braces).
 		local el = (r0.element and r0.element.elem) or (r0.arrangement and r0.arrangement.elem)
 		if not el then
-			error("sarcasm: NEON single-element structure access without an element"
+			err.at(stmt, "NEON single-element structure access without an element"
 				.. " qualifier cannot be sized: " .. raw)
 		end
 		return nst * (isa.ELEM_BYTES[el] or 16)
 	end
 	if r0.element then
-		error("sarcasm: malformed NEON structure register list (cannot size the access): " .. raw)
+		err.at(stmt, "malformed NEON structure register list (cannot size the access): " .. raw)
 	end
 	local arr = r0.arrangement
 	if not arr or not arr.elem then
-		error("sarcasm: NEON structure access without an arrangement qualifier"
+		err.at(stmt, "NEON structure access without an arrangement qualifier"
 			.. " cannot be sized: " .. raw)
 	end
 	local elemB = isa.ELEM_BYTES[arr.elem] or 16
@@ -214,17 +215,17 @@ local function msAccessBytes(stmt, counts, raw)
 		return nst * elemB
 	end
 	if not arr.lanes then
-		error("sarcasm: NEON structure access without a lane count cannot be sized: " .. raw)
+		err.at(stmt, "NEON structure access without a lane count cannot be sized: " .. raw)
 	end
 	local per = arr.lanes * elemB
 	if per ~= 8 and per ~= 16 then
-		error("sarcasm: NEON structure arrangement gives a non-8/16-byte register width"
+		err.at(stmt, "NEON structure arrangement gives a non-8/16-byte register width"
 			.. " (" .. tostring(per) .. " bytes; not a legal shape): " .. raw)
 	end
 	for i = 2, nst do
 		local a2 = rl.regs[i].arrangement
 		if not a2 or not a2.lanes or a2.lanes * (isa.ELEM_BYTES[a2.elem] or 16) ~= per then
-			error("sarcasm: mixed NEON structure arrangements cannot be sized: " .. raw)
+			err.at(stmt, "mixed NEON structure arrangements cannot be sized: " .. raw)
 		end
 	end
 	return nst * per
@@ -328,7 +329,7 @@ function M.validatePtrAccess(stmt, what)
 	local m = string.lower(stmt.mnemonic)
 	local raw = stmt.raw or m
 	local function bad(why)
-		error("sarcasm: `" .. what .. " ptr` is only valid on a 64-bit scalar "
+		err.at(stmt, "`" .. what .. " ptr` is only valid on a 64-bit scalar "
 			.. (what == "load" and "load (ldr/ldur xN, [...])" or "store (str/stur xN, [...])")
 			.. ": " .. why .. ": " .. raw)
 	end
@@ -366,14 +367,14 @@ function M.checkForgedAddress(stmt)
 	if m == "adrp" or m == "adr" then
 		local op2 = ops[2]
 		if op2 and op2.kind == "sym" then
-			error("sarcasm: '" .. m .. "' to symbol '" .. op2.text
+			err.at(stmt, "'" .. m .. "' to symbol '" .. op2.text
 				.. "' forges a raw address to a global (globals cannot be made memory-safe"
 				.. " automatically): " .. (stmt.raw or m))
 		end
 	elseif m == "ldr" then
 		local op2 = ops[2]
 		if op2 and op2.kind == "sym" and string.sub(op2.text, 1, 1) ~= "=" then
-			error("sarcasm: literal-pool load from symbol '" .. op2.text
+			err.at(stmt, "literal-pool load from symbol '" .. op2.text
 				.. "' is not supported (literal pool data cannot be made memory-safe"
 				.. " automatically): " .. (stmt.raw or m))
 		end
@@ -457,7 +458,7 @@ function M.ptrAtomicShape(ann, stmt)
 	local function valReg(idx, what)
 		local r = ops[idx]
 		if not r or r.kind ~= "reg" or r.rc ~= "gpr" or r.width ~= 64 then
-			error("sarcasm: `" .. ann .. "` requires a 64-bit GPR " .. what
+			err.at(stmt, "`" .. ann .. "` requires a 64-bit GPR " .. what
 				.. " (pointer slots are 8 bytes): " .. raw)
 		end
 		return r
@@ -468,25 +469,25 @@ function M.ptrAtomicShape(ann, stmt)
 	-- no atomic form has it.
 	local function checkMemShape(allowIndex)
 		if not mem then
-			error("sarcasm: `" .. ann .. "` requires a memory operand: " .. raw)
+			err.at(stmt, "`" .. ann .. "` requires a memory operand: " .. raw)
 		end
 		if mem.writeback then
-			error("sarcasm: `" .. ann .. "` does not support writeback addressing"
+			err.at(stmt, "`" .. ann .. "` does not support writeback addressing"
 				.. " (no atomic form exists; split the address update from the access): " .. raw)
 		end
 		if not allowIndex and (mem.index or mem.shift) then
-			error("sarcasm: `" .. ann .. "` on '" .. m .. "' requires a plain [base]"
+			err.at(stmt, "`" .. ann .. "` on '" .. m .. "' requires a plain [base]"
 				.. " memory operand (no offset/index exists in its encoding): " .. raw)
 		end
 		if not mem.base or mem.base.rc ~= "gpr" then
-			error("sarcasm: `" .. ann .. "` requires a GPR base register"
+			err.at(stmt, "`" .. ann .. "` requires a GPR base register"
 				.. " (sp/x29 frame slots cannot carry a capability): " .. raw)
 		end
 	end
 
 	if ann == "atomic load ptr" then
 		if not ({ ldr = true, ldur = true, ldar = true, ldapr = true })[m] then
-			error("sarcasm: `atomic load ptr` requires a plain 64-bit scalar load"
+			err.at(stmt, "`atomic load ptr` requires a plain 64-bit scalar load"
 				.. " (ldr/ldur/ldar/ldapr xN, [...]): " .. raw)
 		end
 		valReg(1, "destination")
@@ -495,7 +496,7 @@ function M.ptrAtomicShape(ann, stmt)
 	end
 	if ann == "atomic store ptr" then
 		if not ({ str = true, stur = true, stlr = true })[m] then
-			error("sarcasm: `atomic store ptr` requires a plain 64-bit scalar store"
+			err.at(stmt, "`atomic store ptr` requires a plain 64-bit scalar store"
 				.. " (str/stur/stlr xN, [...]): " .. raw)
 		end
 		valReg(1, "stored value")
@@ -505,16 +506,16 @@ function M.ptrAtomicShape(ann, stmt)
 	if ann == "atomic ptr" then
 		local kind = isa.LSE_KIND[m]
 		if kind == "casp" then
-			error("sarcasm: " .. m .. " cannot operate on pointers (a 16-byte"
+			err.at(stmt, m .. " cannot operate on pointers (a 16-byte"
 				.. " compare-exchange cannot update an invisicap (intval, lower) pair"
 				.. " atomically): " .. raw)
 		end
 		if kind ~= "cas" then
-			error("sarcasm: `atomic ptr` is only supported on cas (pointer"
+			err.at(stmt, "`atomic ptr` is only supported on cas (pointer"
 				.. " compare-exchange): " .. raw)
 		end
 		if string.sub(m, -1) == "b" or string.sub(m, -1) == "h" then
-			error("sarcasm: `atomic ptr` requires the 64-bit cas form"
+			err.at(stmt, "`atomic ptr` requires the 64-bit cas form"
 				.. " (pointer slots are 8 bytes): " .. raw)
 		end
 		valReg(1, "compare/expected register")
@@ -523,7 +524,7 @@ function M.ptrAtomicShape(ann, stmt)
 		return "cas"
 	end
 	if ann == "load store ptr" then
-		error("sarcasm: `load store ptr` is not supported on ARM64: arm64 has no"
+		err.at(stmt, "`load store ptr` is not supported on ARM64: arm64 has no"
 			.. " non-atomic single-instruction memory read-modify-write; write the"
 			.. " load, op and store as separate instructions annotated `load ptr`"
 			.. " and `store ptr` (the capability rides through the slot), or use"
@@ -531,17 +532,17 @@ function M.ptrAtomicShape(ann, stmt)
 	end
 	-- `;! atomic load store ptr`: pointer RMW via the runtime compare-exchange loop.
 	if not isa.LSE_KIND[m] then
-		error("sarcasm: `atomic load store ptr` requires an LSE atomic"
+		err.at(stmt, "`atomic load store ptr` requires an LSE atomic"
 			.. " read-modify-write instruction (ldadd/ldset/ldeor/ldclr/swp; arm64 has"
 			.. " no plain memory-destination ALU RMW): " .. raw)
 	end
 	if not ATOMIC_PTR_RMW[m] then
-		error("sarcasm: `atomic load store ptr` is not supported on '" .. m
+		err.at(stmt, "`atomic load store ptr` is not supported on '" .. m
 			.. "' (supported pointer RMWs: ldadd/ldset/ldeor/ldclr/swp and the st<op>"
 			.. " aliases; cas wants `atomic ptr`): " .. raw)
 	end
 	if string.sub(m, -1) == "b" or string.sub(m, -1) == "h" then
-		error("sarcasm: `atomic load store ptr` requires the 64-bit (x-register)"
+		err.at(stmt, "`atomic load store ptr` requires the 64-bit (x-register)"
 			.. " form (pointer slots are 8 bytes): " .. raw)
 	end
 	valReg(1, "operand")
@@ -591,7 +592,7 @@ function M.make(ctx)
 	-- nil here; reject cleanly instead of rendering a nil register.
 	local function checkValTemp(t, what)
 		if t == nil then
-			error("sarcasm: " .. what .. " has no usable 64-bit GPR value register "
+			err.plain(what .. " has no usable 64-bit GPR value register "
 				.. "(a pointer load/store annotation requires a plain GPR load/store)")
 		end
 	end
@@ -692,7 +693,7 @@ function M.make(ctx)
 	-- check's cc.retIv — is never clobbered.)
 	function cg.cmpImmBranchWidened(a, imm, cond, lbl)
 		imm = math.floor(tonumber(imm)
-			or error("sarcasm: internal error: bad compare immediate " .. tostring(imm)))
+			or err.plain("internal error: bad compare immediate " .. tostring(imm)))
 		if imm <= 4095 then
 			cg.cmpImmBranch(a, imm, cond, lbl)
 		elseif imm <= 65535 then
@@ -797,7 +798,7 @@ function M.make(ctx)
 	-- "d0".."d7" for double, "s0".."s7" for float (the low 32 bits of the v reg).
 	function cg.fpArgRegName(class, ordinal)
 		local w = sig.fpWidthBytes(class)
-			or error("sarcasm: internal error: fpArgRegName on a non-FP class " .. tostring(class))
+			or err.plain("internal error: fpArgRegName on a non-FP class " .. tostring(class))
 		return (w == 4 and "s" or "d") .. tostring(ordinal)
 	end
 
@@ -867,21 +868,21 @@ function M.make(ctx)
 
 	function cg.computeAddr(node, mem)
 		if mem == nil then
-			error("sarcasm: instruction has no memory operand to make memory-safe: "
+			err.at(node.stmt, "instruction has no memory operand to make memory-safe: "
 				.. (node.stmt and node.stmt.raw or "?"))
 		end
 		local baseTemp = node.opTemp[mem.base]
 		if baseTemp == nil then
 			-- The base register carries no value we can check (sp/x29/xzr or an
 			-- unmodeled register): there is no capability to bounds-check against.
-			error("sarcasm: memory operand base '"
+			err.at(node.stmt, "memory operand base '"
 				.. ((mem.base and mem.base.name) or "?")
 				.. "' has no usable value (cannot prove safety): "
 				.. (node.stmt and node.stmt.raw or "?"))
 		end
 		local indexTemp = (mem.index and mem.index.kind == "reg") and node.opTemp[mem.index] or nil
 		if mem.index and mem.index.kind == "reg" and indexTemp == nil then
-			error("sarcasm: memory operand index '"
+			err.at(node.stmt, "memory operand index '"
 				.. (mem.index.name or "?")
 				.. "' has no usable value (cannot prove safety): "
 				.. (node.stmt and node.stmt.raw or "?"))
@@ -889,7 +890,7 @@ function M.make(ctx)
 		if mem.index and mem.index.kind ~= "imm" and mem.index.kind ~= "reg" then
 			-- e.g. a symbolic :lo12: offset folded into the brackets: the checked
 			-- address would not match the accessed address.
-			error("sarcasm: memory operand with a symbolic index cannot be made memory-safe: "
+			err.at(node.stmt, "memory operand with a symbolic index cannot be made memory-safe: "
 				.. (node.stmt and node.stmt.raw or "?"))
 		end
 		local capLo
@@ -997,7 +998,7 @@ function M.make(ctx)
 				(mem.index and mem.index.kind == "imm")
 					and (mem.index.value or tonumber(mem.index.text) or 0) or 0)
 			if off and regionOf(off) then
-				error("sarcasm: direct stack-relative memory access into an alloca region is not supported: " .. node.stmt.raw)
+				err.at(node.stmt, "direct stack-relative memory access into an alloca region is not supported: " .. node.stmt.raw)
 			end
 		end
 		return false
@@ -1201,7 +1202,7 @@ function M.make(ctx)
 				if w then
 					local rn = SAVE_NAME[w]
 					if not rn then
-						error("sarcasm: internal error: bad live vector width " .. tostring(w))
+						err.plain("internal error: bad live vector width " .. tostring(w))
 					end
 					local vreg = { kind = "reg", rc = "neon", num = n, width = w * 8, name = rn .. n }
 					local slot = build.mem(build.sp(), slotBase + 16 * n)
@@ -1340,11 +1341,11 @@ function M.make(ctx)
 	function cg.checkMemInsn(node, mem)
 		local mnem = string.lower(node.stmt.mnemonic)
 		if not M.isMemInsn(mnem) then
-			error("sarcasm: memory operand on non-load/store instruction '"
+			err.at(node.stmt, "memory operand on non-load/store instruction '"
 				.. node.stmt.mnemonic .. "' cannot be made memory-safe: " .. node.stmt.raw)
 		end
 		if BARE_MEM_ATOMIC[mnem] and (mem.index or mem.shift or mem.writeback) then
-			error("sarcasm: '" .. mnem .. "' takes a plain [base] memory operand"
+			err.at(node.stmt, "'" .. mnem .. "' takes a plain [base] memory operand"
 				.. " (no offset, index or writeback exists in its encoding): " .. node.stmt.raw)
 		end
 		if mem.writeback then
@@ -1355,18 +1356,18 @@ function M.make(ctx)
 			local msRegPost = MS_STRUCTS[mnem] and mem.writeback == "post"
 				and mem.index and mem.index.kind == "reg"
 			if not msRegPost and ((mem.index and mem.index.kind ~= "imm") or mem.postShift) then
-				error("sarcasm: memory operand with non-immediate writeback index cannot be made memory-safe: "
+				err.at(node.stmt, "memory operand with non-immediate writeback index cannot be made memory-safe: "
 					.. node.stmt.raw)
 			end
 			-- The structure family has no pre-index encoding.
 			if MS_STRUCTS[mnem] and mem.writeback == "pre" then
-				error("sarcasm: NEON structure load/store with pre-index writeback"
+				err.at(node.stmt, "NEON structure load/store with pre-index writeback"
 					.. " is not part of the modeled subset: " .. node.stmt.raw)
 			end
 		end
 		-- A shift/extend inside the brackets only makes sense with a register index.
 		if mem.shift and not (mem.index and mem.index.kind == "reg") then
-			error("sarcasm: memory operand has a shift/extend but no index register: " .. node.stmt.raw)
+			err.at(node.stmt, "memory operand has a shift/extend but no index register: " .. node.stmt.raw)
 		end
 	end
 

@@ -1,0 +1,10 @@
+return:
+  success
+only-on-platform:
+  x86_64
+output-includes:
+  - "pushfq across call ok"
+  - "pushfq across call ne ok"
+  - "pushfq callee-clobbered flags ok"
+  - "pushfq nested call five ok"
+  - "pushfq call-gc all ok"

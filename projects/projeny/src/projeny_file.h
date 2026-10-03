@@ -28,11 +28,20 @@
 #include <utility>
 #include <vector>
 
+// One "URL: <url> <blake3-hash>" header line (see ProjenyFile::urls). The
+// hash is stored lowercase; the URL is stored exactly as written.
+struct ProjenyUrl {
+    std::string url;
+    std::string hash;
+};
+
 // A parsed .projeny file.
 //
 // Layout: "Key: value" headers at the top, terminated by a blank line,
-// then free text and a git-style patch. Only the three required keys are
-// interpreted; everything else is preserved verbatim:
+// then free text and a git-style patch. The required keys are Origname:,
+// Name:, and either Archive: (a tarball checked into git next to the
+// .projeny file) or one or more URL: lines (the tarball is downloaded and
+// verified); everything else is preserved verbatim:
 //   head    = the header block (without the trailing blank line)
 //   patch   = everything from the "diff --git" block onward (may be empty)
 //   middle  = free text between the blank line and the first "diff --git"
@@ -44,6 +53,17 @@ struct ProjenyFile {
     std::string archive;
     std::string origname;
     std::string name;
+    // The "URL: <url> <blake3-hash>" headers, in file order. Empty for the
+    // classic Archive:-based form. When non-empty, Archive: is absent and
+    // `archive` holds the name derived from the FIRST URL's basename: the
+    // downloaded tarball is cached (and verified against the hashes) as the
+    // .<archive>.snapshot next to the .projeny file, exactly where a classic
+    // project's snapshot copy lives.
+    std::vector<ProjenyUrl> urls;
+
+    // True when the tarball is fetched from URL: lines instead of a checked-in
+    // Archive: tarball.
+    bool is_url_based() const { return !urls.empty(); }
 
     static ProjenyFile parse(const std::string& path);
     static ProjenyFile parse_bytes(const std::string& data,
@@ -51,9 +71,19 @@ struct ProjenyFile {
     std::string header_value(const std::string& key) const; // "" if absent
 
     // Rebuild raw from head/middle/patch (headers kept verbatim, patch body
-    // replaced). Used by commit/rebase to preserve the user's headers.
+    // replaced). Used by commit/rebase/freeze-mtime/unfreeze-mtime to
+    // preserve the user's headers.
     void rebuild(const std::string& new_patch);
 };
+
+// The archive filename a URL implies (the URL's basename): everything up to
+// and including "://" is stripped (any scheme), then any "?query" or
+// "#fragment", then everything up to the last '/'. Returns "" when the
+// result would be empty, ".", or ".." — i.e. when the URL does not name the
+// archive file itself (projeny needs the basename to name the snapshot).
+// Also used best-effort when extracting the archive name from a status
+// file's embedded .projeny copy.
+std::string archive_name_from_url(const std::string& url);
 
 // Git conflict-marker helpers for .projeny files.
 //

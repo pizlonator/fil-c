@@ -226,19 +226,48 @@ inline _LIBCPP_HIDE_FROM_ABI int __tolower(int __ch, __locale_t __loc) { return 
 
 #      if _LIBCPP_HAS_WIDE_CHARACTERS
 inline _LIBCPP_HIDE_FROM_ABI int __wcscoll(const wchar_t* __s1, const wchar_t* __s2, __locale_t __loc) {
+#        if _LIBCPP_HAS_COSMO_LIBC
+  // Cosmo declares wcscoll_l but does not implement it (and does not implement
+  // plain wcscoll either).  Cosmo only has the "C" locale, where collation is
+  // code point order, i.e. wcscmp.
+  return wcscmp(__s1, __s2);
+#        else
   return wcscoll_l(__s1, __s2, __loc);
+#        endif
 }
 inline _LIBCPP_HIDE_FROM_ABI size_t __wcsxfrm(wchar_t* __dest, const wchar_t* __src, size_t __n, __locale_t __loc) {
   return wcsxfrm_l(__dest, __src, __n, __loc);
 }
 inline _LIBCPP_HIDE_FROM_ABI int __iswctype(wint_t __ch, wctype_t __type, __locale_t __loc) {
+#        if _LIBCPP_HAS_COSMO_LIBC
+  // Cosmo declares iswctype_l but does not implement it.  Cosmo only has the
+  // "C" locale, where iswctype_l is iswctype.
+  return iswctype(__ch, __type);
+#        else
   return iswctype_l(__ch, __type, __loc);
+#        endif
 }
 inline _LIBCPP_HIDE_FROM_ABI int __iswspace(wint_t __ch, __locale_t __loc) { return iswspace_l(__ch, __loc); }
 inline _LIBCPP_HIDE_FROM_ABI int __iswprint(wint_t __ch, __locale_t __loc) { return iswprint_l(__ch, __loc); }
 inline _LIBCPP_HIDE_FROM_ABI int __iswcntrl(wint_t __ch, __locale_t __loc) { return iswcntrl_l(__ch, __loc); }
-inline _LIBCPP_HIDE_FROM_ABI int __iswupper(wint_t __ch, __locale_t __loc) { return iswupper_l(__ch, __loc); }
-inline _LIBCPP_HIDE_FROM_ABI int __iswlower(wint_t __ch, __locale_t __loc) { return iswlower_l(__ch, __loc); }
+inline _LIBCPP_HIDE_FROM_ABI int __iswupper(wint_t __ch, __locale_t __loc) {
+#        if _LIBCPP_HAS_COSMO_LIBC
+  // Cosmo declares iswupper_l but does not implement it.  Cosmo only has the
+  // "C" locale, where iswupper_l is iswupper.
+  return iswupper(__ch);
+#        else
+  return iswupper_l(__ch, __loc);
+#        endif
+}
+inline _LIBCPP_HIDE_FROM_ABI int __iswlower(wint_t __ch, __locale_t __loc) {
+#        if _LIBCPP_HAS_COSMO_LIBC
+  // Cosmo declares iswlower_l but does not implement it.  Cosmo only has the
+  // "C" locale, where iswlower_l is iswlower.
+  return iswlower(__ch);
+#        else
+  return iswlower_l(__ch, __loc);
+#        endif
+}
 inline _LIBCPP_HIDE_FROM_ABI int __iswalpha(wint_t __ch, __locale_t __loc) { return iswalpha_l(__ch, __loc); }
 inline _LIBCPP_HIDE_FROM_ABI int __iswblank(wint_t __ch, __locale_t __loc) { return iswblank_l(__ch, __loc); }
 inline _LIBCPP_HIDE_FROM_ABI int __iswdigit(wint_t __ch, __locale_t __loc) { return iswdigit_l(__ch, __loc); }

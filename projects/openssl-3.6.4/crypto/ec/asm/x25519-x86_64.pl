@@ -498,7 +498,7 @@ $code.=<<___;
 .align	32
 x25519_fe64_eligible: #! int()
 .cfi_startproc
-	mov	OPENSSL_ia32cap_P+8(%rip),%ecx
+	mov	OPENSSL_ia32cap_P+8(%rip),%ecx #! global ptr
 	xor	%eax,%eax
 	and	\$0x80100,%ecx
 	cmp	\$0x80100,%ecx

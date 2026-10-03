@@ -25,4 +25,7 @@
 
 export ALTYOLO=./build_yolo_glibc.sh
 export ALTUSER=./build_user_glibc.sh
-export ALTLLVMLIBCOPT=" "
+# Explicitly turn off the musl libc option so that a reconfigure of an existing
+# build tree (which keeps old cache entries) does not leak the musl setting into
+# the glibc-mode libc++ build.
+export ALTLLVMLIBCOPT="-DLIBCXX_HAS_MUSL_LIBC=OFF"

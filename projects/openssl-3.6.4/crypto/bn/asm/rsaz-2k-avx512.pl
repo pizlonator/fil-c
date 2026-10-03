@@ -84,7 +84,7 @@ $code.=<<___;
 .type   ossl_rsaz_avx512ifma_eligible,\@abi-omnipotent
 .align  32
 ossl_rsaz_avx512ifma_eligible: #! int()
-    mov OPENSSL_ia32cap_P+8(%rip), %ecx
+    mov OPENSSL_ia32cap_P+8(%rip), %ecx #! global ptr
     xor %eax,%eax
     and \$`1<<31|1<<21|1<<17|1<<16`, %ecx     # avx512vl + avx512ifma + avx512dq + avx512f
     cmp \$`1<<31|1<<21|1<<17|1<<16`, %ecx

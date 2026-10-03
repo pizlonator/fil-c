@@ -16,6 +16,8 @@
 -- for inputs without numeric labels. A reference with no matching definition in the
 -- requested direction is a clean compile-time error.
 
+local err = require("./err")
+
 local numlabel = {}
 
 local function isNumericName(name)
@@ -38,9 +40,10 @@ local function resolveRef(defs, i, num, dir)
 end
 
 -- Matches and rewrites a numeric-label reference in operand `op` (either a numref
--- operand or a memory operand whose displacement symbol is one). Returns nothing;
+-- operand or a memory operand whose displacement symbol is one). `st` is the
+-- statement containing the reference (used to locate the error). Returns nothing;
 -- errors on an unresolvable reference.
-local function rewriteOperand(defs, i, op)
+local function rewriteOperand(defs, i, op, st)
 	local refText, refNum, refDir
 	if op.kind == "numref" then
 		refText, refNum, refDir = op.text, op.num, op.dir
@@ -51,7 +54,7 @@ local function rewriteOperand(defs, i, op)
 	if not refText then return end
 	local d = resolveRef(defs, i, refNum, refDir)
 	if not d then
-		error("sarcasm: unresolved numeric label reference '" .. refText .. "'")
+		err.at(st, "unresolved numeric label reference '" .. refText .. "'")
 	end
 	if op.kind == "numref" then
 		op.kind = "sym"
@@ -96,7 +99,7 @@ function numlabel.resolve(out)
 	for i, st in out do
 		if st.kind == "insn" then
 			for _, op in (st.operands or {}) do
-				rewriteOperand(defs, i, op)
+				rewriteOperand(defs, i, op, st)
 			end
 		end
 	end

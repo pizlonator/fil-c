@@ -41,35 +41,23 @@
 #endif
 
 #if !IS_IN (ldconfig)
-# if !defined PROCINFO_DECL && defined SHARED
-  ._dl_aarch64_cpu_features
-# else
+/* Fil-C: dl-support.c (which includes this file) is built into libc.so as
+   well as libc.a in the pizlonated build, so the !PROCINFO_DECL + SHARED
+   "array element" form cannot be used.  Use plain declarations, matching
+   sysdeps/x86_64/dl-procinfo.c.  */
 PROCINFO_CLASS struct cpu_features _dl_aarch64_cpu_features
-# endif
 # ifndef PROCINFO_DECL
 = { }
 # endif
-# if !defined SHARED || defined PROCINFO_DECL
 ;
-# else
-,
-# endif
 #endif
 
 #if !IS_IN (ldconfig)
-# if !defined PROCINFO_DECL && defined SHARED
-  ._dl_aarch64_bti
-# else
 PROCINFO_CLASS unsigned long _dl_aarch64_bti
-# endif
 # ifndef PROCINFO_DECL
 = BTI_CHECK_PERMISSIVE
 # endif
-# if !defined SHARED || defined PROCINFO_DECL
 ;
-# else
-,
-# endif
 #endif
 
 #undef PROCINFO_DECL

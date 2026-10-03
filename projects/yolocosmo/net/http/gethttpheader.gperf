@@ -1,0 +1,106 @@
+%{
+#include "libc/str/str.h"
+#include "net/http/http.h"
+#define GPERF_DOWNCASE
+%}
+%compare-strncmp
+%ignore-case
+%language=ANSI-C
+%readonly-tables
+%struct-type
+%define lookup-function-name LookupHttpHeader
+struct thatispacked HttpHeaderSlot { char *name; char code; };
+%%
+Host,                             kHttpHost
+Cache-Control,                    kHttpCacheControl
+Connection,                       kHttpConnection
+Accept,                           kHttpAccept
+Accept-Language,                  kHttpAcceptLanguage
+Accept-Encoding,                  kHttpAcceptEncoding
+User-Agent,                       kHttpUserAgent
+Referer,                          kHttpReferer
+X-Forwarded-For,                  kHttpXForwardedFor
+Origin,                           kHttpOrigin
+Upgrade-Insecure-Requests,        kHttpUpgradeInsecureRequests
+Pragma,                           kHttpPragma
+Cookie,                           kHttpCookie
+DNT,                              kHttpDnt
+Sec-GPC,                          kHttpSecGpc
+From,                             kHttpFrom
+If-Modified-Since,                kHttpIfModifiedSince
+X-Requested-With,                 kHttpXRequestedWith
+X-Forwarded-Host,                 kHttpXForwardedHost
+X-Forwarded-Proto,                kHttpXForwardedProto
+X-CSRF-Token,                     kHttpXCsrfToken
+Save-Data,                        kHttpSaveData
+Range,                            kHttpRange
+Content-Length,                   kHttpContentLength
+Content-Type,                     kHttpContentType
+Vary,                             kHttpVary
+Date,                             kHttpDate
+Server,                           kHttpServer
+Expires,                          kHttpExpires
+Content-Encoding,                 kHttpContentEncoding
+Last-Modified,                    kHttpLastModified
+ETag,                             kHttpEtag
+Allow,                            kHttpAllow
+Content-Range,                    kHttpContentRange
+Accept-Charset,                   kHttpAcceptCharset
+Access-Control-Allow-Credentials, kHttpAccessControlAllowCredentials
+Access-Control-Allow-Headers,     kHttpAccessControlAllowHeaders
+Access-Control-Allow-Methods,     kHttpAccessControlAllowMethods
+Access-Control-Allow-Origin,      kHttpAccessControlAllowOrigin
+Access-Control-MaxAge,            kHttpAccessControlMaxAge
+Access-Control-Method,            kHttpAccessControlMethod
+Access-Control-RequestHeaders,    kHttpAccessControlRequestHeaders
+Access-Control-Request-Method,    kHttpAccessControlRequestMethod
+Access-Control-Request-Methods,   kHttpAccessControlRequestMethods
+Age,                              kHttpAge
+Authorization,                    kHttpAuthorization
+Content-Base,                     kHttpContentBase
+Content-Description,              kHttpContentDescription
+Content-Disposition,              kHttpContentDisposition
+Content-Language,                 kHttpContentLanguage
+Content-Location,                 kHttpContentLocation
+Content-MD5,                      kHttpContentMd5
+Expect,                           kHttpExpect
+If-Match,                         kHttpIfMatch
+If-None-Match,                    kHttpIfNoneMatch
+If-Range,                         kHttpIfRange
+If-Unmodified-Since,              kHttpIfUnmodifiedSince
+Keep-Alive,                       kHttpKeepAlive
+Link,                             kHttpLink
+Location,                         kHttpLocation
+Max-Forwards,                     kHttpMaxForwards
+Proxy-Authenticate,               kHttpProxyAuthenticate
+Proxy-Authorization,              kHttpProxyAuthorization
+Proxy-Connection,                 kHttpProxyConnection
+Public,                           kHttpPublic
+Retry-After,                      kHttpRetryAfter
+TE,                               kHttpTe
+Trailer,                          kHttpTrailer
+Transfer-Encoding,                kHttpTransferEncoding
+Upgrade,                          kHttpUpgrade
+Warning,                          kHttpWarning
+WWW-Authenticate,                 kHttpWwwAuthenticate
+Via,                              kHttpVia
+Strict-Transport-Security,        kHttpStrictTransportSecurity
+X-Frame-Options,                  kHttpXFrameOptions
+X-Content-Type-Options,           kHttpXContentTypeOptions
+Alt-Svc,                          kHttpAltSvc
+Referrer-Policy,                  kHttpReferrerPolicy
+X-XSS-Protection,                 kHttpXXssProtection
+Accept-Ranges,                    kHttpAcceptRanges
+Set-Cookie,                       kHttpSetCookie
+Sec-CH-UA,                        kHttpSecChUa
+Sec-CH-UA-Mobile,                 kHttpSecChUaMobile
+Sec-CH-UA-Platform,               kHttpSecChUaPlatform
+Sec-Fetch-Site,                   kHttpSecFetchSite
+Sec-Fetch-Mode,                   kHttpSecFetchMode
+Sec-Fetch-User,                   kHttpSecFetchUser
+Sec-Fetch-Dest,                   kHttpSecFetchDest
+CF-RAY,                           kHttpCfRay
+CF-Visitor,                       kHttpCfVisitor
+CF-Connecting-IP,                 kHttpCfConnectingIp
+CF-IPCountry,                     kHttpCfIpcountry
+CDN-Loop,                         kHttpCdnLoop

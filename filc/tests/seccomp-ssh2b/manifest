@@ -5,3 +5,6 @@ output-includes:
   - "Success!"
 slow:
   true
+
+# COSMO: after the ssh seccomp filter is installed, the cosmo flavor's runtime issues a syscall that the filter kills (SIGSYS; the musl flavor's runtime does not), so the tests can not run to completion.
+unsupportedOnCOSMO: true

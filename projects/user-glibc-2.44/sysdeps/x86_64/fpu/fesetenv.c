@@ -18,6 +18,16 @@
 
 #include <fenv.h>
 #include <pizlonated_math.h>
+#include <math-inline-asm.h>
+#include <filc-x87-env.h>
+#include <fpu_control.h>
+#include <assert.h>
+
+
+/* All exceptions, including the x86-specific "denormal operand"
+   exception.  */
+#define FE_ALL_EXCEPT_X86 (FE_ALL_EXCEPT | __FE_DENORM)
+
 
 /* The upstream x86_64 __fesetenv reads and writes the FPU environment with fnstenv/fldenv/stmxcsr/
    ldmxcsr inline asm whose operands are pointers, which Fil-C cannot instrument. Run the whole

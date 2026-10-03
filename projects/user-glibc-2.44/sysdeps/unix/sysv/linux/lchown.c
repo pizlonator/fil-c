@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sysdep.h>
+#include <pizlonated_syscalls.h>
 
 /* Change the owner and group of FILE.  */
 int
@@ -27,8 +28,16 @@ __lchown (const char *file, uid_t owner, gid_t group)
 #ifdef __NR_lchown
   return INLINE_SYSCALL_CALL (lchown, file, owner, group);
 #else
-  return INLINE_SYSCALL_CALL (fchownat, AT_FDCWD, file, owner, group,
-			      AT_SYMLINK_NOFOLLOW);
+  /* Fil-C: aarch64 has no lchown kernel syscall, so this fallback would use
+     a raw svc inline asm, which Fil-C cannot make memory safe.  Route it
+     through the zsys runtime instead.  x86_64 defines __NR_lchown and uses
+     the INLINE_SYSCALL_CALL above (in practice x86_64 does not even compile
+     this file: the shared sysdeps/unix/sysv/linux/syscalls.list lchown entry
+     - there is no lchown entry in the x86_64 syscalls.list - generates a
+     zsys_lchown stub via the ported sysdeps/unix/make-syscalls.sh zsys
+     redirect, and that generated rule overrides the implicit rule for this
+     file).  */
+  return zsys_fchownat (AT_FDCWD, file, owner, group, AT_SYMLINK_NOFOLLOW);
 #endif
 }
 weak_alias (__lchown, lchown)

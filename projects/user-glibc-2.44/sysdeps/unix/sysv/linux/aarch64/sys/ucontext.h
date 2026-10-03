@@ -64,6 +64,8 @@ typedef struct
   } mcontext_t;
 
 /* User-level context.  */
+typedef struct zfiber_context zfiber_context;
+
 typedef struct ucontext_t
   {
     unsigned long __ctx(uc_flags);
@@ -71,6 +73,10 @@ typedef struct ucontext_t
     stack_t uc_stack;
     sigset_t uc_sigmask;
     mcontext_t uc_mcontext;
+    /* Fil-C: the user-level context switch is implemented by the Fil-C
+       runtime (zfiber_context_*); this mirrors the extra field that
+       sysdeps/unix/sysv/linux/x86/sys/ucontext.h has.  */
+    zfiber_context* __uc_fiber_context;
   } ucontext_t;
 
 #undef __ctx

@@ -20,8 +20,10 @@ function emit.emitFip(out, tr, colorResult, render, syntax)
 	-- FP frame-slot region sizes are x86_64-only (nil elsewhere; arm64's
 	-- computeLayout ignores the extra args). frameAlignReq carries the `and
 	-- $-N, %rsp` frame alignment (x86_64 only; arm64 ignores it like the rest).
+	-- bufBytes is the `#! stack buffer` region size (x86_64 stack-buffer
+	-- feature; 0/nil elsewhere — arm64's computeLayout ignores it too).
 	local layout = render.computeLayout(calleeSaved, tr.numRoots, (tr.numSpillSlots or 0) * 8,
-		tr.fpSaveBytes, tr.fpBytes, tr.yoloBytes, tr.frameAlignReq)
+		tr.fpSaveBytes, tr.fpBytes, tr.yoloBytes, tr.frameAlignReq, tr.bufBytes)
 	local sigName = "pizlonatedFIP" .. tostring(tr.sigDesc.signature) .. "_" .. tr.name
 	local rc = {
 		out = out, tr = tr, layout = layout, colorNum = colorNum,

@@ -1,0 +1,9 @@
+return:
+  compileFailure
+only-on-platform:
+  x86_64
+# Rejects with: "stack alignment is only 16 bytes but instruction requires 32
+# byte alignment (incoming stack arguments are only 16-byte aligned; use the
+# unaligned form)" — the incoming-stack-argument flavor: a 32-byte aligned
+# vector read of the incoming stack-arg words, which are only ever 16-byte
+# aligned.

@@ -44,7 +44,7 @@ cd $FILCSRC/optfil
 
 . ../libpas/common.sh
 
-package_name=optfil-0.685-$OS-$ARCH
+package_name=optfil-0.686-$OS-$ARCH
 
 rm -rf $package_name
 mkdir -v $package_name
@@ -53,7 +53,8 @@ cp -v fil.tar.xz $package_name/
 cp -v ../README.md $package_name/
 cp -v ../LLVM-LICENSE.txt $package_name/
 cp -v ../libpas/LICENSE.txt $package_name/PAS-LICENSE.txt
-cp -v setup.sh $package_name/
+sed 's/ARCH=$(uname -m)/'"ARCH=$(uname -m)/" setup.sh > $package_name/setup.sh
+chmod -v 755 $package_name/setup.sh
 cp -v sshd_setup.md $package_name/
 
 # Copy all project license files

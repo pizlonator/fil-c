@@ -3,3 +3,6 @@ return:
 output-includes:
   - "filc safety error"
   - "cannot write pointer with ptr < lower"
+
+# COSMO: cosmo's pselect() reads the fd_set arguments (so that it can restore them after EINTR) before the kernel writes them, so the safety error fires with 'cannot read ...' instead of the expected 'cannot write ...' wording; the check itself is still enforced.
+unsupportedOnCOSMO: true

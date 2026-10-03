@@ -113,9 +113,9 @@ $m1="%rbp";
 # buffer.
 my $FRraw = "%fil_montframe_raw";
 my $FR = $ENV{SARCASM} ? "%fil_montframe" : "%rsp";
-# Shared save-slot spellings for the displacement-only teardown restores
-# below (Task 3: collapse into unconditional emission; gas output is
-# byte-identical either way).
+# $RSAVE/$RSAVE40 spell the saved-%rsp slot for the epilogue restores:
+# gas keeps the vanilla slots (8(%rsp,$num,8) / 40(%rsp)); sarcasm parks
+# the original %rsp in the fixed frame slot 0(%rsp).
 my $RSAVE = $ENV{SARCASM} ? "0(%rsp)" : "8(%rsp,$num,8)";
 my $RSAVE40 = $ENV{SARCASM} ? "0(%rsp)" : "40(%rsp)";
 
@@ -138,7 +138,7 @@ bn_mul_mont: #! int(ptr,ptr,ptr,ptr,ptr,int)
 	jb	.Lmul_enter
 ___
 $code.=<<___ if ($addx);
-	mov	OPENSSL_ia32cap_P+8(%rip),%r11d
+	mov	OPENSSL_ia32cap_P+8(%rip),%r11d #! global ptr
 ___
 $code.=<<___;
 	cmp	$ap,$bp
@@ -148,7 +148,8 @@ ___
 $code.=<<___ if (!$ENV{SARCASM});
 	jz	.Lsqr8x_enter
 ___
-# Sarcasm: bn_sqr8x_mont body not emitted (see below); fall through to mul4x.
+# Sarcasm: bn_sqr8x_mont body is not emitted (see below), so the sqr8x
+# dispatch is gone and every shape enters mul4x.
 $code.=<<___;
 	jmp	.Lmul4x_enter
 
@@ -389,8 +390,6 @@ $code.=<<___;
 	sub	\$1,$j
 	jnz	.Lcopy
 
-___
-$code.=<<___;
 	mov	$RSAVE,%rsi		# restore %rsp
 .cfi_def_cfa	%rsi,8
 	mov	\$1,%rax
@@ -429,13 +428,7 @@ ___
 $code.=<<___ if ($addx);
 	and	\$0x80100,%r11d
 	cmp	\$0x80100,%r11d
-	jne	.Lmul4x_not_mulx
-	# (was `je .Lmulx4x_enter`: nested cross-function jump; call+ret
-	# instead. bn_mulx4x_mont always returns 1.)
-	call	bn_mulx4x_mont #! int(ptr,ptr,ptr,ptr,ptr,int)
-	mov	\$1,%eax
-	ret
-.Lmul4x_not_mulx:
+	je	.Lmulx4x_enter
 ___
 $code.=<<___;
 	push	%rbx
@@ -891,8 +884,10 @@ $code.=<<___;
 .size	bn_mul4x_mont,.-bn_mul4x_mont
 ___
 }}}
-# Sarcasm: skip the bn_sqr8x_mont body entirely -- see the dispatch comment
-# above (its cross-file calls to x86_64-mont5's internals cannot link).
+# Sarcasm: the bn_sqr8x_mont body is skipped entirely: its calls to
+# bn_sqr8x_internal / bn_sqrx8x_internal are defined in x86_64-mont5 and
+# cannot link cross-file. The bn_mul_mont dispatch above routes every
+# shape into bn_mul4x_mont instead.
 if (!$ENV{SARCASM}) {{{{
 ######################################################################
 # void bn_sqr8x_mont(
@@ -997,7 +992,7 @@ bn_sqr8x_mont:
 	movq	%r10, %xmm3		# -$num
 ___
 $code.=<<___ if ($addx);
-	mov	OPENSSL_ia32cap_P+8(%rip),%eax
+	mov	OPENSSL_ia32cap_P+8(%rip),%eax #! global ptr
 	and	\$0x80100,%eax
 	cmp	\$0x80100,%eax
 	jne	.Lsqr8x_nox
@@ -1454,8 +1449,6 @@ $code.=<<___;
 	movq	%r15,%xmm1
 	pxor	%xmm0,%xmm0
 	pshufd	\$0,%xmm1,%xmm1
-___
-$code.=<<___;
 	mov	$RSAVE40,%rsi		# restore %rsp
 .cfi_def_cfa	%rsi,8
 	jmp	.Lmulx4x_cond_copy

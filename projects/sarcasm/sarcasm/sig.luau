@@ -5,6 +5,8 @@
 --   RET(ARG0, ARG1, ...)        e.g. "unsigned(ptr)", "int(ptr, size_t)", "void(ptr,ptr)"
 -- Types are C-ish tokens; we only need to know each type's Fil-C type class.
 
+local err = require("./err")
+
 local sig = {}
 
 -- Fil-C type-class indices (see ABI-NOTES.md).
@@ -33,7 +35,9 @@ local INTEGER_WORDS = {
 
 -- Map a C type token (already trimmed, may contain spaces) to a type class.
 -- Raises a clean `sarcasm:` error for a token that names no known type class.
-local function classifyType(tok: string): number?
+-- `st` (optional) is the statement carrying the annotation, used to locate the
+-- error (nil → unlocated).
+local function classifyType(tok: string, st: any): number?
 	tok = (string.gsub(tok, "%s+", " "))
 	tok = (string.gsub(tok, "^%s*(.-)%s*$", "%1"))
 	local low = string.lower(tok)
@@ -66,7 +70,8 @@ local function classifyType(tok: string): number?
 	end
 	for word in string.gmatch(low, "%S+") do
 		if not INTEGER_WORDS[word] then
-			error("sarcasm: unknown type '" .. tok .. "' in signature annotation")
+			local msg = "unknown type '" .. tok .. "' in signature annotation"
+			if st then err.at(st, msg) else err.plain(msg) end
 		end
 	end
 	-- all-integer words: int, unsigned, long, size_t, uint64_t, enums, etc.
@@ -108,19 +113,22 @@ end
 -- Parse "RET(ARGS)" into a descriptor:
 --   { retTypes = {..}, argTypes = {..}, signature = <number>, argWords = <number>,
 --     retWords = <number>, isVoid = <bool> }
-function sig.parseSignature(ann: string)
+-- `st` (optional) is the statement carrying the annotation; when given, parse
+-- errors are located at it (else they are unlocated).
+function sig.parseSignature(ann: string, st: any)
 	local retStr, argStr = string.match(ann, "^%s*(.-)%s*%((.*)%)%s*$")
 	if not retStr then
-		error("sarcasm: cannot parse function signature annotation: " .. ann)
+		local msg = "cannot parse function signature annotation: " .. ann
+		if st then err.at(st, msg) else err.plain(msg) end
 	end
 	local retTypes = {}
-	local rc = classifyType(retStr)
+	local rc = classifyType(retStr, st)
 	if rc ~= nil then
 		table.insert(retTypes, rc)
 	end
 	local argTypes = {}
 	for _, a in splitArgs(argStr) do
-		local c = classifyType(a)
+		local c = classifyType(a, st)
 		-- void as a lone arg means no args
 		if c ~= nil then
 			table.insert(argTypes, c)
@@ -175,22 +183,26 @@ end
 -- "arm64"` selects that behavior, and `opts` == nil means x86_64 (both x86 call
 -- sites pass { arch = "x86_64" } explicitly).
 --
--- `where` optionally prefixes a context (e.g. "call to 'foo'"). Raises a clean
--- sarcasm: error naming the offending type.
-function sig.checkSupportedClasses(sd, where, opts)
-	local prefix = "sarcasm: " .. (where and (where .. ": ") or "")
+-- `where` optionally prefixes a context (e.g. "call to 'foo'"). `st` (optional)
+-- is the statement carrying the annotation/call; when given, rejections are
+-- located at it (else they are unlocated). Raises a clean sarcasm: error naming
+-- the offending type.
+function sig.checkSupportedClasses(sd, where, opts, st)
+	local prefix = (where and (where .. ": ") or "")
 	local function check(t)
 		if t == TYPE_INT or t == TYPE_PTR then return end
 		if t == TYPE_FLOAT or t == TYPE_DOUBLE then return end
 		if t == TYPE_LONGDOUBLE then
 			local arch = (opts and opts.arch == "arm64") and "arm64" or "x86_64"
-			error(prefix .. "only float and double floating-point types are supported"
-				.. " in signatures on " .. arch .. ": long double")
+			local msg = prefix .. "only float and double floating-point types are supported"
+				.. " in signatures on " .. arch .. ": long double"
+			if st then err.at(st, msg) else err.plain(msg) end
 		end
 		local arch = (opts and opts.arch == "arm64") and "arm64" or "x86_64"
-		error(prefix .. "vector types are not supported in signatures on " .. arch
+		local msg = prefix .. "vector types are not supported in signatures on " .. arch
 			.. " (SIMD signatures are not supported): "
-			.. (CLASS_NAME[t] or ("type class " .. tostring(t))))
+			.. (CLASS_NAME[t] or ("type class " .. tostring(t)))
+		if st then err.at(st, msg) else err.plain(msg) end
 	end
 	for _, t in (sd.retTypes or {}) do check(t) end
 	for _, t in (sd.argTypes or {}) do check(t) end

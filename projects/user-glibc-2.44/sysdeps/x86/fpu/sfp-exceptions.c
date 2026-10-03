@@ -20,6 +20,7 @@
 #include <fenv.h>
 #include <float.h>
 #include <soft-fp.h>
+#include <filc-x87-env.h>
 
 #ifdef __SSE_MATH__
 # define __math_force_eval_div(x, y) \
@@ -32,8 +33,6 @@
 void
 __sfp_handle_exceptions (int _fex)
 {
-  fenv_t temp;
-
   if (_fex & FP_EX_INVALID)
     {
       float f = 0.0f;
@@ -41,10 +40,7 @@ __sfp_handle_exceptions (int _fex)
     }
   if (_fex & FP_EX_DENORM)
     {
-      asm volatile ("fnstenv\t%0" : "=m" (temp));
-      temp.__status_word |= FP_EX_DENORM;
-      asm volatile ("fldenv\t%0" : : "m" (temp));
-      asm volatile ("fwait");
+      __builtin_ia32_ldmxcsr (__builtin_ia32_stmxcsr () | FP_EX_DENORM);
     }
   if (_fex & FP_EX_DIVZERO)
     {
@@ -53,17 +49,11 @@ __sfp_handle_exceptions (int _fex)
     }
   if (_fex & FP_EX_OVERFLOW)
     {
-      asm volatile ("fnstenv\t%0" : "=m" (temp));
-      temp.__status_word |= FP_EX_OVERFLOW;
-      asm volatile ("fldenv\t%0" : : "m" (temp));
-      asm volatile ("fwait");
+      filc_raise_flag (FP_EX_OVERFLOW);
     }
   if (_fex & FP_EX_UNDERFLOW)
     {
-      asm volatile ("fnstenv\t%0" : "=m" (temp));
-      temp.__status_word |= FP_EX_UNDERFLOW;
-      asm volatile ("fldenv\t%0" : : "m" (temp));
-      asm volatile ("fwait");
+      filc_raise_flag (FP_EX_UNDERFLOW);
     }
   if (_fex & FP_EX_INEXACT)
     {

@@ -26,6 +26,12 @@
 
 #include "pas_config.h"
 
+#if PAS_COSMO
+/* Cosmo's sys/auxv.h doesn't define AT_MAX_KEY; musl's elf.h sets it to 51
+   (AT_RSEQ_ALIGN, the highest known auxv key). */
+#define AT_MAX_KEY 51
+#endif /* PAS_COSMO */
+
 #if LIBPAS_ENABLED && PAS_ENABLE_FILC
 
 #include "filc_native.h"
@@ -128,7 +134,7 @@ static void really_start_program(
     PAS_ASSERT(!auxv[num_entries - 1]);
 
     filc_set_user_environment(my_thread, argc, argv, pizlonated_argv, environ_ptr, auxv_ptr);
-    
+
     if (pizlonated___libc_start_main) {
         __libc_start_main_ptr = pizlonated___libc_start_main(my_thread, NULL);
         if (verbose) {
@@ -226,6 +232,20 @@ void filc_start_program(int argc, char** argv,
     intptr_t stack_min = PTHREAD_STACK_MIN;
     PAS_ASSERT(stack_min > 0);
     PAS_ASSERT(!getrlimit(RLIMIT_STACK, &stack_rlim));
+#if PAS_COSMO
+    /* On Windows there are no real rlimits: cosmo's getrlimit() reads the
+       PIB's inverted-default rlimit table, which comes back as RLIM_INFINITY
+       (i.e. ~0ul, which is -1 when viewed as a signed intptr_t).  The signed
+       assertion below therefore used to fire on every Windows boot.  Treat
+       any infinite, negative-as-signed, or below-minimum value as "unknown"
+       and substitute 8 MiB: the same main-thread stack size that a typical
+       Linux `ulimit -s` (RLIMIT_STACK = 8 MiB) hands this code path.  The
+       phony main thread spawned below carries the whole program, so this is
+       the effective main stack size on such hosts. */
+    if (stack_rlim.rlim_cur == (rlim_t)RLIM_INFINITY
+        || (intptr_t)stack_rlim.rlim_cur < stack_min)
+        stack_rlim.rlim_cur = (rlim_t)8 * 1024 * 1024;
+#endif /* PAS_COSMO */
     PAS_ASSERT((intptr_t)stack_rlim.rlim_cur >= stack_min);
     PAS_ASSERT(!pthread_attr_setstacksize(&attr, stack_rlim.rlim_cur));
 

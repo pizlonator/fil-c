@@ -28,8 +28,10 @@
 set -e
 set -x
 
-cd projects/libuv-1.52.1
-extract_source
+cd projects
+rm -rf libuv/extracted-source
+../filc/projeny extract libuv.projeny libuv/extracted-source
+cd libuv/extracted-source
 CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
 

@@ -96,9 +96,7 @@ ___
 # Scalar misaligned loads are fine (checked with alignment 1, like Fil-C);
 # the 8-byte capability-word load below works in both modes.
 $code .= <<___;
-    mov OPENSSL_ia32cap_P+8(%rip), %rcx
-___
-$code .= <<___;
+    mov OPENSSL_ia32cap_P+8(%rip), %rcx #! global ptr
     # avx512vpclmulqdq + avx512vaes + avx512vl + avx512bw + avx512dq + avx512f
     mov \$`1<<42|1<<41|1<<31|1<<30|1<<17|1<<16`,%rdx
     xor %eax,%eax
@@ -125,13 +123,6 @@ my $CLEAR_SCRATCH_REGISTERS = 0;
 
 # ; Zero HKeys storage from the stack if they are stored there
 my $CLEAR_HKEYS_STORAGE_ON_EXIT = 1;
-
-# SARCASM hkeys window: under sarcasm the 768-byte HKEYS area (frame offsets
-# 0..768) moves to a 64-byte-aligned GC `.alloca` buffer ($HKBASE names it;
-# "%rsp" under gas so gas output is unchanged). Dynamic key selection
-# (`disp(%rbx)`) through the heap buffer is an ordinary checked access,
-# while dynamic indexing into the frame is rejected. Set per PROLOG call.
-my $HKBASE = "%rsp";
 
 # ; Enable / disable check of function arguments for null pointer
 # ; Currently disabled, as this check is handled outside.
@@ -307,7 +298,7 @@ sub EffectiveAddress {
 # ; Provides memory location of corresponding HashKey power
 sub HashKeyByIdx {
   my ($idx, $base) = @_;
-  my $base_str = ($base eq "%rsp" || $base =~ /^%fil_/) ? "frame" : "context";
+  my $base_str = ($base eq "%rsp") ? "frame" : "context";
 
   my $offset = &HashKeyOffsetByIdx($idx, $base_str);
   return "$offset($base)";
@@ -331,6 +322,22 @@ sub HashKeyOffsetByIdx {
     $offset_idx  = ($AES_BLOCK_SIZE * ($HKEYS_CONTEXT_CAPACITY - $idx));
   }
   return $offset_base + $offset_idx;
+}
+
+# ; Sarcasm annotation for the frame HKEYS window ([%rsp + 0, %rsp + 768)):
+# ; dynamic (register-indexed) HKEYS accesses carry a `#! stack buffer` suffix
+# ; so sarcasm can bounds-check them. The first dynamic site in the file
+# ; declares the canonical range (long form); later sites reference it by id
+# ; (short form). Only emitted under SARCASM, so gas output is unchanged.
+my $HKEYS_STACK_BUFFER_SITES = 0;
+sub HKStackBufferAnnotation {
+  my ($base, $offset) = @_;
+  return "" if (!$ENV{SARCASM});
+  return "" if (!defined($offset) || $offset =~ /^\d+\z/ || $base ne "%rsp");
+  if ($HKEYS_STACK_BUFFER_SITES++ == 0) {
+    return " #! stack buffer (hkeys, %rsp + 0, %rsp + 768)";
+  }
+  return " #! stack buffer (hkeys)";
 }
 
 # ; Creates local frame and does back up of non-volatile registers.
@@ -395,15 +402,7 @@ ___
     #
     # ; It also serves as an anchor for retrieving stack arguments on both Linux
     # ; and Windows.
-___
-  if ($ENV{SARCASM} && !$win64) {
-    # ; sarcasm recognizes `mov %rsp,%rbp` as frame-pointer establishment but
-    # ; not `lea 0(%rsp),%rbp`; spell it as mov (identical semantics).
-    $code .= "    mov     %rsp,%rbp\n";
-  } else {
-    $code .= "    lea     `$XMM_STORAGE`(%rsp),%rbp\n";
-  }
-  $code .= <<___;
+    lea     `$XMM_STORAGE`(%rsp),%rbp
 .cfi_def_cfa_register %rbp
 .L${func_name}_seh_setfp:
 ___
@@ -429,16 +428,6 @@ ___
         sub               \$`$DYNAMIC_STACK_ALLOC_SIZE + $DYNAMIC_STACK_ALLOC_ALIGNMENT_SPACE`,%rsp
         and               \$(-64),%rsp
 ___
-    if ($ENV{SARCASM} && $need_hkeys_stack_storage) {
-      # sarcasm: heap HKEYS window (64-aligned); dynamic key selection below
-      # addresses it through $HKBASE instead of indexing the frame.
-      $code .= ".alloca          \$${HKEYS_STORAGE},\$64,%fil_hkeys_${func_name}\n";
-      $HKBASE = "%fil_hkeys_${func_name}";
-    } else {
-      $HKBASE = "%rsp";
-    }
-  } else {
-    $HKBASE = "%rsp";
   }
 }
 
@@ -461,7 +450,7 @@ sub EPILOG {
         vpxor             %xmm0,%xmm0,%xmm0
 ___
     for (my $i = 0; $i < int($HKEYS_STORAGE / 64); $i++) {
-      $code .= "vmovdqa64         %zmm0,`$STACK_HKEYS_OFFSET + 64*$i`($HKBASE)\n";
+      $code .= "vmovdqa64         %zmm0,`$STACK_HKEYS_OFFSET + 64*$i`(%rsp)\n";
     }
     $code .= ".Lskip_hkeys_cleanup_${label_suffix}:\n";
   }
@@ -582,31 +571,31 @@ ___
     $code .= <<___;
         # ; Move 16 hkeys from the context to stack
         vmovdqu64         @{[HashKeyByIdx(4,$GCM128_CTX)]},$ZTMP0
-        vmovdqu64         $ZTMP0,@{[HashKeyByIdx(4,$HKBASE)]}
+        vmovdqu64         $ZTMP0,@{[HashKeyByIdx(4,"%rsp")]}
 
         vmovdqu64         @{[HashKeyByIdx(8,$GCM128_CTX)]},$ZTMP1
-        vmovdqu64         $ZTMP1,@{[HashKeyByIdx(8,$HKBASE)]}
+        vmovdqu64         $ZTMP1,@{[HashKeyByIdx(8,"%rsp")]}
 
         # ; broadcast HashKey^8
         vshufi64x2        \$0x00,$ZTMP1,$ZTMP1,$ZTMP1
 
         vmovdqu64         @{[HashKeyByIdx(12,$GCM128_CTX)]},$ZTMP2
-        vmovdqu64         $ZTMP2,@{[HashKeyByIdx(12,$HKBASE)]}
+        vmovdqu64         $ZTMP2,@{[HashKeyByIdx(12,"%rsp")]}
 
         vmovdqu64         @{[HashKeyByIdx(16,$GCM128_CTX)]},$ZTMP3
-        vmovdqu64         $ZTMP3,@{[HashKeyByIdx(16,$HKBASE)]}
+        vmovdqu64         $ZTMP3,@{[HashKeyByIdx(16,"%rsp")]}
 ___
   }
 
   if ($HKEYS_RANGE eq "mid16" || $HKEYS_RANGE eq "last32") {
     $code .= <<___;
-        vmovdqu64         @{[HashKeyByIdx(8,$HKBASE)]},$ZTMP1
+        vmovdqu64         @{[HashKeyByIdx(8,"%rsp")]},$ZTMP1
 
         # ; broadcast HashKey^8
         vshufi64x2        \$0x00,$ZTMP1,$ZTMP1,$ZTMP1
 
-        vmovdqu64         @{[HashKeyByIdx(12,$HKBASE)]},$ZTMP2
-        vmovdqu64         @{[HashKeyByIdx(16,$HKBASE)]},$ZTMP3
+        vmovdqu64         @{[HashKeyByIdx(12,"%rsp")]},$ZTMP2
+        vmovdqu64         @{[HashKeyByIdx(16,"%rsp")]},$ZTMP3
 ___
 
   }
@@ -619,12 +608,12 @@ ___
 
       # ;; compute HashKey^(4 + n), HashKey^(3 + n), ... HashKey^(1 + n)
       &GHASH_MUL($ZTMP2, $ZTMP1, $ZTMP4, $ZTMP5, $ZTMP6);
-      $code .= "vmovdqu64         $ZTMP2,@{[HashKeyByIdx($i,$HKBASE)]}\n";
+      $code .= "vmovdqu64         $ZTMP2,@{[HashKeyByIdx($i,\"%rsp\")]}\n";
       $i += 4;
 
       # ;; compute HashKey^(8 + n), HashKey^(7 + n), ... HashKey^(5 + n)
       &GHASH_MUL($ZTMP3, $ZTMP1, $ZTMP4, $ZTMP5, $ZTMP6);
-      $code .= "vmovdqu64         $ZTMP3,@{[HashKeyByIdx($i,$HKBASE)]}\n";
+      $code .= "vmovdqu64         $ZTMP3,@{[HashKeyByIdx($i,\"%rsp\")]}\n";
       $i += 4;
     }
   }
@@ -637,12 +626,12 @@ ___
 
       # ;; compute HashKey^(4 + n), HashKey^(3 + n), ... HashKey^(1 + n)
       &GHASH_MUL($ZTMP2, $ZTMP1, $ZTMP4, $ZTMP5, $ZTMP6);
-      $code .= "vmovdqu64         $ZTMP2,@{[HashKeyByIdx($i,$HKBASE)]}\n";
+      $code .= "vmovdqu64         $ZTMP2,@{[HashKeyByIdx($i,\"%rsp\")]}\n";
       $i += 4;
 
       # ;; compute HashKey^(8 + n), HashKey^(7 + n), ... HashKey^(5 + n)
       &GHASH_MUL($ZTMP3, $ZTMP1, $ZTMP4, $ZTMP5, $ZTMP6);
-      $code .= "vmovdqu64         $ZTMP3,@{[HashKeyByIdx($i,$HKBASE)]}\n";
+      $code .= "vmovdqu64         $ZTMP3,@{[HashKeyByIdx($i,\"%rsp\")]}\n";
       $i += 4;
     }
   }
@@ -897,8 +886,6 @@ sub GHASH_16 {
   my $INOFF = $_[5];     # [in] data input offset
   my $INDIS = $_[6];     # [in] data input displacement
   my $HKPTR = $_[7];     # [in] hash key pointer
-  # SARCASM hkeys window (see $HKBASE): heap-base frame-relative key loads.
-  my $HKB = ($HKPTR eq "%rsp") ? $HKBASE : $HKPTR;
   my $HKOFF = $_[8];     # [in] hash key offset (can be either numerical offset, or register containing offset)
   my $HKDIS = $_[9];     # [in] hash key displacement
   my $HASH  = $_[10];    # [in/out] ZMM hash value in/out
@@ -943,7 +930,7 @@ sub GHASH_16 {
     $code .= "vpxorq            $HASH,$ZTMP9,$ZTMP9\n";
   }
   $code .= <<___;
-        vmovdqu64         @{[EffectiveAddress($HKB,$HKOFF,($HKDIS+0*64))]},$ZTMP8
+        vmovdqu64         @{[EffectiveAddress($HKPTR,$HKOFF,($HKDIS+0*64))]},$ZTMP8@{[HKStackBufferAnnotation($HKPTR,$HKOFF)]}
         vpclmulqdq        \$0x11,$ZTMP8,$ZTMP9,$ZTMP0      # ; T0H = a1*b1
         vpclmulqdq        \$0x00,$ZTMP8,$ZTMP9,$ZTMP1      # ; T0L = a0*b0
         vpclmulqdq        \$0x01,$ZTMP8,$ZTMP9,$ZTMP2      # ; T0M1 = a1*b0
@@ -957,7 +944,7 @@ ___
     $ZTMP9 = $DAT1;
   }
   $code .= <<___;
-        vmovdqu64         @{[EffectiveAddress($HKB,$HKOFF,($HKDIS+1*64))]},$ZTMP8
+        vmovdqu64         @{[EffectiveAddress($HKPTR,$HKOFF,($HKDIS+1*64))]},$ZTMP8@{[HKStackBufferAnnotation($HKPTR,$HKOFF)]}
         vpclmulqdq        \$0x11,$ZTMP8,$ZTMP9,$ZTMP4      # ; T1H = a1*b1
         vpclmulqdq        \$0x00,$ZTMP8,$ZTMP9,$ZTMP5      # ; T1L = a0*b0
         vpclmulqdq        \$0x01,$ZTMP8,$ZTMP9,$ZTMP6      # ; T1M1 = a1*b0
@@ -988,7 +975,7 @@ ___
     $ZTMP9 = $DAT2;
   }
   $code .= <<___;
-        vmovdqu64         @{[EffectiveAddress($HKB,$HKOFF,($HKDIS+2*64))]},$ZTMP8
+        vmovdqu64         @{[EffectiveAddress($HKPTR,$HKOFF,($HKDIS+2*64))]},$ZTMP8@{[HKStackBufferAnnotation($HKPTR,$HKOFF)]}
         vpclmulqdq        \$0x11,$ZTMP8,$ZTMP9,$ZTMP0      # ; T0H = a1*b1
         vpclmulqdq        \$0x00,$ZTMP8,$ZTMP9,$ZTMP1      # ; T0L = a0*b0
         vpclmulqdq        \$0x01,$ZTMP8,$ZTMP9,$ZTMP2      # ; T0M1 = a1*b0
@@ -1002,7 +989,7 @@ ___
     $ZTMP9 = $DAT3;
   }
   $code .= <<___;
-        vmovdqu64         @{[EffectiveAddress($HKB,$HKOFF,($HKDIS+3*64))]},$ZTMP8
+        vmovdqu64         @{[EffectiveAddress($HKPTR,$HKOFF,($HKDIS+3*64))]},$ZTMP8@{[HKStackBufferAnnotation($HKPTR,$HKOFF)]}
         vpclmulqdq        \$0x11,$ZTMP8,$ZTMP9,$ZTMP4      # ; T1H = a1*b1
         vpclmulqdq        \$0x00,$ZTMP8,$ZTMP9,$ZTMP5      # ; T1L = a0*b0
         vpclmulqdq        \$0x01,$ZTMP8,$ZTMP9,$ZTMP6      # ; T1M1 = a1*b0
@@ -2402,7 +2389,7 @@ ___
     $code .= "vmovdqa64         `$GHASHIN_BLK_OFFSET + (0*64)`(%rsp),$GHDAT1\n";
   }
 
-  $code .= "vmovdqu64         @{[EffectiveAddress($HKBASE,$HASHKEY_OFFSET,0*64)]},$GHKEY1\n";
+  $code .= "vmovdqu64         @{[EffectiveAddress(\"%rsp\",$HASHKEY_OFFSET,0*64)]},$GHKEY1@{[HKStackBufferAnnotation(\"%rsp\",$HASHKEY_OFFSET)]}\n";
 
   # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   # ;; save counter for the next round
@@ -2422,7 +2409,7 @@ ___
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         # ;; pre-load constants
         vbroadcastf64x2    `(16 * 1)`($AES_KEYS),$AESKEY2
-        vmovdqu64         @{[EffectiveAddress($HKBASE,$HASHKEY_OFFSET,1*64)]},$GHKEY2
+        vmovdqu64         @{[EffectiveAddress("%rsp",$HASHKEY_OFFSET,1*64)]},$GHKEY2@{[HKStackBufferAnnotation("%rsp",$HASHKEY_OFFSET)]}
         vmovdqa64         `$GHASHIN_BLK_OFFSET + (1*64)`(%rsp),$GHDAT2
 ___
 
@@ -2444,7 +2431,7 @@ ___
         vpclmulqdq        \$0x00,$GHKEY1,$GHDAT1,$GH1L      # ; a0*b0
         vpclmulqdq        \$0x01,$GHKEY1,$GHDAT1,$GH1M      # ; a1*b0
         vpclmulqdq        \$0x10,$GHKEY1,$GHDAT1,$GH1T      # ; a0*b1
-        vmovdqu64         @{[EffectiveAddress($HKBASE,$HASHKEY_OFFSET,2*64)]},$GHKEY1
+        vmovdqu64         @{[EffectiveAddress("%rsp",$HASHKEY_OFFSET,2*64)]},$GHKEY1@{[HKStackBufferAnnotation("%rsp",$HASHKEY_OFFSET)]}
         vmovdqa64         `$GHASHIN_BLK_OFFSET + (2*64)`(%rsp),$GHDAT1
 ___
 
@@ -2462,7 +2449,7 @@ ___
         vpclmulqdq        \$0x01,$GHKEY2,$GHDAT2,$GH2T      # ; a1*b0
         vpclmulqdq        \$0x11,$GHKEY2,$GHDAT2,$GH2H      # ; a1*b1
         vpclmulqdq        \$0x00,$GHKEY2,$GHDAT2,$GH2L      # ; a0*b0
-        vmovdqu64         @{[EffectiveAddress($HKBASE,$HASHKEY_OFFSET,3*64)]},$GHKEY2
+        vmovdqu64         @{[EffectiveAddress("%rsp",$HASHKEY_OFFSET,3*64)]},$GHKEY2@{[HKStackBufferAnnotation("%rsp",$HASHKEY_OFFSET)]}
         vmovdqa64         `$GHASHIN_BLK_OFFSET + (3*64)`(%rsp),$GHDAT2
 ___
 
@@ -3056,7 +3043,7 @@ ___
   }
 
   $code .= <<___;
-        vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (0*4)),$HKBASE)]},$GHKEY1
+        vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (0*4)),"%rsp")]},$GHKEY1
 
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         # ;; save counter for the next round
@@ -3066,7 +3053,7 @@ ___
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         # ;; pre-load constants
         vbroadcastf64x2    `(16 * 1)`($AES_KEYS),$AESKEY2
-        vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (1*4)),$HKBASE)]},$GHKEY2
+        vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (1*4)),"%rsp")]},$GHKEY2
         vmovdqa64         `$GHASHIN_BLK_OFFSET + (1*64)`(%rsp),$GHDAT2
 
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3087,7 +3074,7 @@ ___
         vpclmulqdq        \$0x00,$GHKEY1,$GHDAT1,$GH1L      # ; a0*b0
         vpclmulqdq        \$0x01,$GHKEY1,$GHDAT1,$GH1M      # ; a1*b0
         vpclmulqdq        \$0x10,$GHKEY1,$GHDAT1,$GH1T      # ; a0*b1
-        vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (2*4)),$HKBASE)]},$GHKEY1
+        vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (2*4)),"%rsp")]},$GHKEY1
         vmovdqa64         `$GHASHIN_BLK_OFFSET + (2*64)`(%rsp),$GHDAT1
 
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3104,7 +3091,7 @@ ___
         vpclmulqdq        \$0x01,$GHKEY2,$GHDAT2,$GH2T      # ; a1*b0
         vpclmulqdq        \$0x11,$GHKEY2,$GHDAT2,$GH2H      # ; a1*b1
         vpclmulqdq        \$0x00,$GHKEY2,$GHDAT2,$GH2L      # ; a0*b0
-        vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (3*4)),$HKBASE)]},$GHKEY2
+        vmovdqu64         @{[HashKeyByIdx(($HASHKEY_OFFSET - (3*4)),"%rsp")]},$GHKEY2
         vmovdqa64         `$GHASHIN_BLK_OFFSET + (3*64)`(%rsp),$GHDAT2
 
         # ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4999,31 +4986,14 @@ ossl_vaes_vpclmulqdq_capable: #! int()
 .globl ossl_aes_gcm_finalize_avx512
 .globl ossl_gcm_gmult_avx512
 
+.type ossl_aes_gcm_init_avx512,\@abi-omnipotent
 ossl_aes_gcm_init_avx512: #! void(ptr,ptr)
-    .byte   0x0f,0x0b    # ud2
-    ret
-.type ossl_aes_gcm_setiv_avx512,\@abi-omnipotent
-ossl_aes_gcm_setiv_avx512: #! void(ptr,ptr,ptr,size_t)
-    .byte   0x0f,0x0b    # ud2
-    ret
-.type ossl_aes_gcm_update_aad_avx512,\@abi-omnipotent
-ossl_aes_gcm_update_aad_avx512: #! void(ptr,ptr,size_t)
-    .byte   0x0f,0x0b    # ud2
-    ret
-.type ossl_aes_gcm_encrypt_avx512,\@abi-omnipotent
-ossl_aes_gcm_encrypt_avx512: #! void(ptr,ptr,ptr,ptr,size_t,ptr)
-    .byte   0x0f,0x0b    # ud2
-    ret
-.type ossl_aes_gcm_decrypt_avx512,\@abi-omnipotent
-ossl_aes_gcm_decrypt_avx512: #! void(ptr,ptr,ptr,ptr,size_t,ptr)
-    .byte   0x0f,0x0b    # ud2
-    ret
-.type ossl_aes_gcm_finalize_avx512,\@abi-omnipotent
-ossl_aes_gcm_finalize_avx512: #! void(ptr,unsigned)
-    .byte   0x0f,0x0b    # ud2
-    ret
-.type ossl_gcm_gmult_avx512,\@abi-omnipotent
-ossl_gcm_gmult_avx512: #! void(ptr,ptr)
+ossl_aes_gcm_setiv_avx512:
+ossl_aes_gcm_update_aad_avx512:
+ossl_aes_gcm_encrypt_avx512:
+ossl_aes_gcm_decrypt_avx512:
+ossl_aes_gcm_finalize_avx512:
+ossl_gcm_gmult_avx512:
     .byte   0x0f,0x0b    # ud2
     ret
 .size   ossl_aes_gcm_init_avx512, .-ossl_aes_gcm_init_avx512

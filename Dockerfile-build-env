@@ -11,6 +11,7 @@ RUN apt update && apt upgrade -y
 RUN apt install -y build-essential
 
 # Install development dependencies required for building Fil-C and related projects
+# (libcurl4-openssl-dev is needed because projeny links libcurl directly)
 RUN apt install -y \
     pkg-config autotools-dev automake autoconf libtool \
     clang lld cmake ninja-build ruby \
@@ -18,6 +19,24 @@ RUN apt install -y \
 
 # Install basic utilities for development and version control
 RUN apt install -y curl vim git
+
+# Build the BLAKE3 C library into /usr/local. Ubuntu ships no libblake3-dev
+# package, but projeny links libblake3 directly (it downloads URL: archives
+# and verifies their blake3 hash in-process), so build the portable C
+# implementation from the pristine upstream tarball checked into the repo.
+# The -DBLAKE3_NO_* macros disable the SIMD code paths, making
+# blake3_dispatch.c fall back to the portable implementation.
+COPY projects/BLAKE3-1.8.7.tar.gz /usr/local/src/
+RUN cd /usr/local/src && \
+    tar -xf BLAKE3-1.8.7.tar.gz && \
+    cd BLAKE3-1.8.7/c && \
+    cc -O2 -DBLAKE3_NO_SSE2 -DBLAKE3_NO_SSE41 -DBLAKE3_NO_AVX2 -DBLAKE3_NO_AVX512 \
+        -c blake3.c blake3_dispatch.c blake3_portable.c && \
+    ar rcs libblake3.a blake3.o blake3_dispatch.o blake3_portable.o && \
+    install -m 644 blake3.h /usr/local/include/blake3.h && \
+    install -m 644 libblake3.a /usr/local/lib/libblake3.a && \
+    cd /usr/local/src && \
+    rm -rf BLAKE3-1.8.7 BLAKE3-1.8.7.tar.gz
 
 # Create the project source directory inside the container
 RUN mkdir -p /opt/fil-c

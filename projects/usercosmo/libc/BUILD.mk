@@ -1,0 +1,227 @@
+#-*-mode:makefile-gmake;indent-tabs-mode:t;tab-width:8;coding:utf-8-*-┐
+#── vi: set noet ft=make ts=8 sw=8 fenc=utf-8 :vi ────────────────────┘
+
+PKGS += LIBC
+
+LIBC_ISYSTEM = \
+libc/isystem/alloca.h \
+libc/isystem/ammintrin.h \
+libc/isystem/ar.h \
+libc/isystem/arm_acle.h \
+libc/isystem/arm_bf16.h \
+libc/isystem/arm_fp16.h \
+libc/isystem/arm_neon.h \
+libc/isystem/arpa/inet.h \
+libc/isystem/arpa/nameser.h \
+libc/isystem/arpa/telnet.h \
+libc/isystem/assert.h \
+libc/isystem/bsd/readpassphrase.h \
+libc/isystem/bsd/stdlib.h \
+libc/isystem/bsd/string.h \
+libc/isystem/byteswap.h \
+libc/isystem/clzerointrin.h \
+libc/isystem/complex.h \
+libc/isystem/cosmo.h \
+libc/isystem/cosmoaudio.h \
+libc/isystem/cosmotime.h \
+libc/isystem/cpio.h \
+libc/isystem/cpuid.h \
+libc/isystem/crypt.h \
+libc/isystem/ctype.h \
+libc/isystem/cxxabi.h \
+libc/isystem/dirent.h \
+libc/isystem/dlfcn.h \
+libc/isystem/elf.h \
+libc/isystem/emmintrin.h \
+libc/isystem/endian.h \
+libc/isystem/err.h \
+libc/isystem/errno.h \
+libc/isystem/fcntl.h \
+libc/isystem/features.h \
+libc/isystem/fenv.h \
+libc/isystem/float.h \
+libc/isystem/fnmatch.h \
+libc/isystem/ftw.h \
+libc/isystem/getopt.h \
+libc/isystem/glob.h \
+libc/isystem/grp.h \
+libc/isystem/iconv.h \
+libc/isystem/ifaddrs.h \
+libc/isystem/immintrin.h \
+libc/isystem/inttypes.h \
+libc/isystem/iso646.h \
+libc/isystem/langinfo.h \
+libc/isystem/libgen.h \
+libc/isystem/limits.h \
+libc/isystem/link.h \
+libc/isystem/linux/f2fs.h \
+libc/isystem/linux/futex.h \
+libc/isystem/linux/ioctl.h \
+libc/isystem/linux/limits.h \
+libc/isystem/linux/param.h \
+libc/isystem/linux/rseq.h \
+libc/isystem/linux/types.h \
+libc/isystem/locale.h \
+libc/isystem/malloc.h \
+libc/isystem/math.h \
+libc/isystem/memory.h \
+libc/isystem/mm3dnow.h \
+libc/isystem/mm_malloc.h \
+libc/isystem/mmintrin.h \
+libc/isystem/mntent.h \
+libc/isystem/monetary.h \
+libc/isystem/mwaitxintrin.h \
+libc/isystem/net/ethernet.h \
+libc/isystem/net/if.h \
+libc/isystem/net/if_arp.h \
+libc/isystem/netdb.h \
+libc/isystem/netinet/in.h \
+libc/isystem/netinet/in_systm.h \
+libc/isystem/netinet/ip.h \
+libc/isystem/netinet/tcp.h \
+libc/isystem/netinet/udp.h \
+libc/isystem/nl_types.h \
+libc/isystem/nmmintrin.h \
+libc/isystem/nsync.h \
+libc/isystem/nsync_atomic.h \
+libc/isystem/nsync_counter.h \
+libc/isystem/nsync_cv.h \
+libc/isystem/nsync_debug.h \
+libc/isystem/nsync_mu.h \
+libc/isystem/nsync_mu_wait.h \
+libc/isystem/nsync_note.h \
+libc/isystem/nsync_once.h \
+libc/isystem/nsync_time.h \
+libc/isystem/nsync_waiter.h \
+libc/isystem/omp-tools.h \
+libc/isystem/omp.h \
+libc/isystem/ompx.h \
+libc/isystem/paths.h \
+libc/isystem/pmmintrin.h \
+libc/isystem/poll.h \
+libc/isystem/popcntintrin.h \
+libc/isystem/pthread.h \
+libc/isystem/pty.h \
+libc/isystem/pwd.h \
+libc/isystem/readpassphrase.h \
+libc/isystem/regex.h \
+libc/isystem/resolv.h \
+libc/isystem/sched.h \
+libc/isystem/search.h \
+libc/isystem/semaphore.h \
+libc/isystem/setjmp.h \
+libc/isystem/sgxintrin.h \
+libc/isystem/shadow.h \
+libc/isystem/signal.h \
+libc/isystem/smmintrin.h \
+libc/isystem/spawn.h \
+libc/isystem/stdalign.h \
+libc/isystem/stdarg.h \
+libc/isystem/stdatomic.h \
+libc/isystem/stdbool.h \
+libc/isystem/stdc-predef.h \
+libc/isystem/stdckdint.h \
+libc/isystem/stddef.h \
+libc/isystem/stdint.h \
+libc/isystem/stdio.h \
+libc/isystem/stdio_ext.h \
+libc/isystem/stdlib.h \
+libc/isystem/stdnoreturn.h \
+libc/isystem/string.h \
+libc/isystem/strings.h \
+libc/isystem/sys/auxv.h \
+libc/isystem/sys/cdefs.h \
+libc/isystem/sys/dir.h \
+libc/isystem/sys/errno.h \
+libc/isystem/sys/event.h \
+libc/isystem/sys/fcntl.h \
+libc/isystem/sys/file.h \
+libc/isystem/sys/ioctl.h \
+libc/isystem/sys/ipc.h \
+libc/isystem/sys/mman.h \
+libc/isystem/sys/mount.h \
+libc/isystem/sys/msg.h \
+libc/isystem/sys/param.h \
+libc/isystem/sys/poll.h \
+libc/isystem/sys/prctl.h \
+libc/isystem/sys/procfs.h \
+libc/isystem/sys/random.h \
+libc/isystem/sys/reboot.h \
+libc/isystem/sys/resource.h \
+libc/isystem/sys/select.h \
+libc/isystem/sys/sendfile.h \
+libc/isystem/sys/signal.h \
+libc/isystem/sys/socket.h \
+libc/isystem/sys/stat.h \
+libc/isystem/sys/statfs.h \
+libc/isystem/sys/statvfs.h \
+libc/isystem/sys/syscall.h \
+libc/isystem/sys/sysinfo.h \
+libc/isystem/sys/sysmacros.h \
+libc/isystem/sys/termios.h \
+libc/isystem/sys/time.h \
+libc/isystem/sys/times.h \
+libc/isystem/sys/ttydefaults.h \
+libc/isystem/sys/types.h \
+libc/isystem/sys/ucontext.h \
+libc/isystem/sys/uio.h \
+libc/isystem/sys/un.h \
+libc/isystem/sys/user.h \
+libc/isystem/sys/utsname.h \
+libc/isystem/sys/vfs.h \
+libc/isystem/sys/wait.h \
+libc/isystem/sysexits.h \
+libc/isystem/syslog.h \
+libc/isystem/termios.h \
+libc/isystem/tgmath.h \
+libc/isystem/threads.h \
+libc/isystem/time.h \
+libc/isystem/tmmintrin.h \
+libc/isystem/uchar.h \
+libc/isystem/ucontext.h \
+libc/isystem/uio.h \
+libc/isystem/unistd.h \
+libc/isystem/unwind.h \
+libc/isystem/utime.h \
+libc/isystem/utmp.h \
+libc/isystem/utmpx.h \
+libc/isystem/wait.h \
+libc/isystem/wchar.h \
+libc/isystem/wctype.h \
+libc/isystem/winternl.h \
+libc/isystem/wmmintrin.h \
+libc/isystem/x86intrin.h \
+libc/isystem/xmmintrin.h \
+
+LIBC_HDRS = $(filter %.h,$(LIBC_FILES)) $(LIBC_ISYSTEM)
+LIBC_HDRS_H = $(filter %.h,$(LIBC_HDRS))
+LIBC_INCS = $(filter %.inc,$(LIBC_FILES))
+LIBC_CHECKS = $(LIBC_HDRS_H:%=o/$(MODE)/%.ok)
+LIBC_FILES := $(wildcard libc/*)
+
+o/$(MODE)/libc/isystem/ompx.h.ok: private CPPFLAGS += -Wno-unknown-pragmas
+
+.PHONY:		o/$(MODE)/libc
+o/$(MODE)/libc:	o/$(MODE)/libc/calls		\
+		o/$(MODE)/libc/crt		\
+		o/$(MODE)/libc/dlopen		\
+		o/$(MODE)/libc/elf		\
+		o/$(MODE)/libc/fmt		\
+		o/$(MODE)/libc/intrin		\
+		o/$(MODE)/libc/irq		\
+		o/$(MODE)/libc/log		\
+		o/$(MODE)/libc/mem		\
+		o/$(MODE)/libc/nexgen32e	\
+		o/$(MODE)/libc/nt		\
+		o/$(MODE)/libc/proc		\
+		o/$(MODE)/libc/runtime		\
+		o/$(MODE)/libc/sock		\
+		o/$(MODE)/libc/stdio		\
+		o/$(MODE)/libc/str		\
+		o/$(MODE)/libc/sysv		\
+		o/$(MODE)/libc/testlib		\
+		o/$(MODE)/libc/thread		\
+		o/$(MODE)/libc/tinymath		\
+		o/$(MODE)/libc/vga		\
+		o/$(MODE)/libc/x		\
+		$(LIBC_CHECKS)

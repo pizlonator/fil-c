@@ -1,0 +1,10 @@
+return:
+  compileFailure
+only-on-platform:
+  x86_64
+# Rejects with: "stack alignment is only 32 bytes but instruction requires 64
+# byte alignment (align the frame with `and $-64, %rsp` in the prologue, or use
+# the unaligned form (e.g. vmovdqu/vmovups))" — the `and $-32` note only
+# guarantees 32-byte alignment but the zmm access requires 64.
+needsAVX512:
+  true

@@ -1,0 +1,14 @@
+return:
+  success
+output-includes:
+  - "spawnmt2 ok"
+slow:
+  true
+extraLinkerArgs:
+  "-lm"
+
+# COSMO: fork()+posix_spawn()+GC+threads stress: like mtforkgctest and spawnmt, the child's
+# filc runtime state does not hold up under the cosmo flavor, and this test additionally
+# hammers posix_spawn with live threads in a recursively spawned process tree while other
+# threads sit inside the zgc_* GC request natives.
+unsupportedOnCOSMO: true

@@ -1666,6 +1666,7 @@ pas_segregated_heap_ensure_size_directory_for_size(
         pas_compact_atomic_segregated_size_directory_ptr* index_to_small_size_directory;
         pas_segregated_size_directory* basic_size_directory_and_head;
         bool did_add_to_size_lookup;
+        pas_saved_float_environment saved_float_environment;
 
         index_to_small_size_directory = heap->index_to_small_size_directory;
         
@@ -1714,6 +1715,15 @@ pas_segregated_heap_ensure_size_directory_for_size(
         /* Figure out the best case scenario if we did create a page directory for this size. */
         best_bytes_dirtied_per_object = PAS_INFINITY;
         best_page_config = NULL;
+
+        /* The bytes dirtied per object heuristics below use floating-point division, which
+           usually raises FE_INEXACT, and which would trap if the program unmasked
+           floating-point exceptions.  Our heuristics must be invisible to the program, so
+           canonicalize the floating-point environment for their sake and restore the
+           program's environment afterwards. */
+        pas_save_float_environment(&saved_float_environment);
+        pas_set_float_environment_to_libpas_default();
+
         if (object_size <= heap->runtime_config->max_segregated_object_size) {
             for (PAS_EACH_SEGREGATED_PAGE_CONFIG_VARIANT_DESCENDING(variant)) {
                 const pas_segregated_page_config* page_config_ptr;
@@ -1794,6 +1804,8 @@ pas_segregated_heap_ensure_size_directory_for_size(
                 > bytes_dirtied_per_object_by_candidate)
                 result = candidate;
         }
+
+        pas_restore_float_environment(&saved_float_environment);
 
         if (result)
             object_size = result->object_size;

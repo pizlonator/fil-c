@@ -48,7 +48,7 @@ tar -xf pizlonated-xz.tar.gz
 cd pizlonated-xz
 ./configure --prefix=/usr \
     --disable-static \
-    --docdir=/usr/share/doc/xz-5.8.3
+    --docdir=/usr/share/doc/xz-5.8.4
 make
 make install
 cd ..
@@ -222,7 +222,7 @@ tar -xf pizlonated-pkgconf.tar.gz
 cd pizlonated-pkgconf
 ./configure --prefix=/usr \
     --disable-static \
-    --docdir=/usr/share/doc/pkgconf-3.0.6
+    --docdir=/usr/share/doc/pkgconf-3.0.7
 make
 make install
 ln -sv pkgconf /usr/bin/pkg-config

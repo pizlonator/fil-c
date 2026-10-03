@@ -1,0 +1,760 @@
+URL: https://github.com/linux-pam/linux-pam/releases/download/v1.7.3/Linux-PAM-1.7.3.tar.xz 8bce4bc50c42c909cd8b4cc33c0d42a8ab058ba58d616cce49c2c4c82d970b32
+Origname: Linux-PAM-1.7.3
+Name: Linux-PAM
+
+    Linux-PAM 1.7.3 rebased from 1.7.2 and converted from the deprecated
+    legacy-directory mode to a URL-based projeny project.  The Fil-C
+    patch is carried over from projects/Linux-PAM-1.7.2 (initial commit
+    028788ad2113): the linker-driver version-script fix and the backport
+    of the Ubuntu 1.7.0-5ubuntu2 patches.  The intermediate configurable-
+    config-location and sysconfdir changes (9aebcb5f502c, 9e12702d0507)
+    canceled out in the 1.7.2 patch, so they are not carried over;
+    upstream already hardcodes /etc and build_opt.sh passes
+    -D sysconfdir=/etc.  Two cosmetic pieces of the Ubuntu backport
+    could not be carried over: the removal of the pam_env user_readenv
+    deprecation-notice logging and the removal of the use_uid
+    documentation from pam_wheel.8.xml.  Both are pure line-deletion
+    diffs, which projeny's patch applier silently skips as
+    already-applied, so carrying them would make the stored patch
+    diverge from the packaged tarball.  The matching pam_wheel.c
+    use_uid code cleanup is carried over.
+diff --git a/Linux-PAM/libpam/meson.build b/Linux-PAM/libpam/meson.build
+--- a/Linux-PAM/libpam/meson.build
++++ b/Linux-PAM/libpam/meson.build
+@@ -41,7 +41,7 @@
+ libpam_map_path = meson.current_source_dir() / libpam_map
+
+ libpam_link_deps = [libpam_map]
+-libpam_link_args = ['-Wl,--version-script=' + libpam_map_path]
++libpam_link_args = ['--version-script=' + libpam_map_path]
+
+ libpam = shared_library(
+   'pam',
+diff --git a/Linux-PAM/libpam/pam_dispatch.c b/Linux-PAM/libpam/pam_dispatch.c
+--- a/Linux-PAM/libpam/pam_dispatch.c
++++ b/Linux-PAM/libpam/pam_dispatch.c
+@@ -260,22 +260,7 @@
+ 	    if ( _PAM_ACTION_IS_JUMP(action) ) {
+
+ 		/* If we are evaluating a cached chain, we treat this
+-		   module as required (aka _PAM_ACTION_OK) as well as
+-		   executing the jump. */
+-
+-		if (use_cached_chain) {
+-		    if (impression == _PAM_UNDEF
+-			|| (impression == _PAM_POSITIVE
+-			    && status == PAM_SUCCESS) ) {
+-			if ( retval != PAM_IGNORE || cached_retval == retval ) {
+-			    if ( impression == _PAM_UNDEF && retval == PAM_SUCCESS ) {
+-				h->grantor = 1;
+-			    }
+-			    impression = _PAM_POSITIVE;
+-			    status = retval;
+-			}
+-		    }
+-		}
++		   module as ignored as well as executing the jump. */
+
+ 		/* this means that we need to skip #action stacked modules */
+ 		while (h->next != NULL && h->next->stack_level >= stack_level && action > 0) {
+diff --git a/Linux-PAM/libpam/pam_handlers.c b/Linux-PAM/libpam/pam_handlers.c
+--- a/Linux-PAM/libpam/pam_handlers.c
++++ b/Linux-PAM/libpam/pam_handlers.c
+@@ -127,6 +127,10 @@
+ 		    module_type = PAM_T_ACCT;
+ 		} else if (!strcasecmp("password", tok)) {
+ 		    module_type = PAM_T_PASS;
++		} else if (!strcasecmp("@include", tok)) {
++		    pam_include = 1;
++		    module_type = requested_module_type;
++		    goto parsing_done;
+ 		} else {
+ 		    /* Illegal module type */
+ 		    D(("bad module type: %s", tok));
+@@ -197,6 +201,7 @@
+ 		_pam_set_default_control(actions, _PAM_ACTION_BAD);
+ 	    }
+
++parsing_done:
+ 	    tok = _pam_tokenize(NULL, &nexttok);
+ 	    if (pam_include) {
+ 		if (substack) {
+diff --git a/Linux-PAM/libpam_misc/meson.build b/Linux-PAM/libpam_misc/meson.build
+--- a/Linux-PAM/libpam_misc/meson.build
++++ b/Linux-PAM/libpam_misc/meson.build
+@@ -12,7 +12,7 @@
+ libpam_misc_map_path = meson.current_source_dir() / libpam_misc_map
+
+ libpam_misc_link_deps = [libpam_misc_map]
+-libpam_misc_link_args = ['-Wl,--version-script=' + libpam_misc_map_path]
++libpam_misc_link_args = ['--version-script=' + libpam_misc_map_path]
+
+ libpam_misc = shared_library(
+   'pam_misc',
+diff --git a/Linux-PAM/libpamc/meson.build b/Linux-PAM/libpamc/meson.build
+--- a/Linux-PAM/libpamc/meson.build
++++ b/Linux-PAM/libpamc/meson.build
+@@ -13,7 +13,7 @@
+ libpamc_map_path = meson.current_source_dir() / libpamc_map
+
+ libpamc_link_deps = [libpamc_map]
+-libpamc_link_args = ['-Wl,--version-script=' + libpamc_map_path]
++libpamc_link_args = ['--version-script=' + libpamc_map_path]
+
+ libpamc = shared_library(
+   'pamc',
+diff --git a/Linux-PAM/modules/module-meson.build b/Linux-PAM/modules/module-meson.build
+--- a/Linux-PAM/modules/module-meson.build
++++ b/Linux-PAM/modules/module-meson.build
+@@ -106,6 +106,7 @@
+                     'pam_unix_auth.c',
+                     'pam_unix_passwd.c',
+                     'pam_unix_sess.c',
++                    'obscure.c',
+                     'support.c',
+                     'passverify.c',
+                     'md5_good.c',
+@@ -132,7 +133,7 @@
+ pam_module_map_path = meson.current_source_dir() / pam_module_map
+
+ pam_module_link_deps = [pam_module_map]
+-pam_module_link_args = ['-Wl,--version-script=' + pam_module_map_path]
++pam_module_link_args = ['--version-script=' + pam_module_map_path]
+
+ pam_module = shared_module(
+   module,
+diff --git a/Linux-PAM/modules/pam_limits/limits.conf b/Linux-PAM/modules/pam_limits/limits.conf
+--- a/Linux-PAM/modules/pam_limits/limits.conf
++++ b/Linux-PAM/modules/pam_limits/limits.conf
+@@ -47,6 +47,7 @@
+ #        - nice - max nice priority allowed to raise to values: [-20, 19]
+ #        - rtprio - max realtime priority
+ #        - rttime - timeout for realtime tasks
++#        - chroot - change root to directory (Debian-specific)
+ #
+ #<domain>      <type>  <item>         <value>
+ #
+@@ -57,6 +58,7 @@
+ #@faculty        soft    nproc           20
+ #@faculty        hard    nproc           50
+ #ftp             hard    nproc           0
++#ftp             -       chroot          /ftp
+ #@student        -       maxlogins       4
+
+ # End of file
+diff --git a/Linux-PAM/modules/pam_limits/limits.conf.5.xml b/Linux-PAM/modules/pam_limits/limits.conf.5.xml
+--- a/Linux-PAM/modules/pam_limits/limits.conf.5.xml
++++ b/Linux-PAM/modules/pam_limits/limits.conf.5.xml
+@@ -272,6 +272,12 @@
+                 <para>Timeout for real-time tasks in microseconds (Linux 2.6.25 and higher)</para>
+               </listitem>
+             </varlistentry>
++            <varlistentry>
++              <term><option>chroot</option></term>
++              <listitem>
++                <para>the directory to chroot the user to</para>
++              </listitem>
++            </varlistentry>
+           </variablelist>
+         </listitem>
+       </varlistentry>
+diff --git a/Linux-PAM/modules/pam_limits/pam_limits.c b/Linux-PAM/modules/pam_limits/pam_limits.c
+--- a/Linux-PAM/modules/pam_limits/pam_limits.c
++++ b/Linux-PAM/modules/pam_limits/pam_limits.c
+@@ -101,6 +101,7 @@
+ 			      specific user or to count all logins */
+     int priority;	 /* the priority to run user process with */
+     int nonewprivs;	/* whether to prctl(PR_SET_NO_NEW_PRIVS) */
++    char chroot_dir[8092]; /* directory to chroot into */
+     struct user_limits_struct limits[RLIM_NLIMITS];
+     const char *conf_file;
+     int utmp_after_pam_call;
+@@ -109,9 +110,9 @@
+
+ #define LIMIT_LOGIN (RLIM_NLIMITS+1)
+ #define LIMIT_NUMSYSLOGINS (RLIM_NLIMITS+2)
+-
+ #define LIMIT_PRI (RLIM_NLIMITS+3)
+ #define LIMIT_NONEWPRIVS (RLIM_NLIMITS+4)
++#define LIMIT_CHROOT (RLIM_NLIMITS+5)
+
+ #define LIMIT_SOFT  1
+ #define LIMIT_HARD  2
+@@ -582,6 +583,8 @@
+     pl->login_limit_def = LIMITS_DEF_NONE;
+     pl->login_group = NULL;
+
++    pl->chroot_dir[0] = '\0';
++    
+     return retval;
+ }
+
+@@ -694,6 +697,8 @@
+ 	limit_item = LIMIT_PRI;
+     } else if (strcmp(lim_item, "nonewprivs") == 0) {
+ 	limit_item = LIMIT_NONEWPRIVS;
++    } else if (strcmp(lim_item, "chroot") == 0) {
++        limit_item = LIMIT_CHROOT;
+     } else {
+         pam_syslog(pamh, LOG_DEBUG, "unknown limit item '%s'", lim_item);
+         return;
+@@ -743,9 +748,9 @@
+ 			pam_syslog(pamh, LOG_WARNING,
+ 				   "wrong limit value '%s' for limit item '%s' of type '%s'",
+ 				   lim_value, lim_item, lim_type);
+-            return;
++			return;
+ 		}
+-	} else {
++	} else if (limit_item != LIMIT_CHROOT) {
+ #ifdef __USE_FILE_OFFSET64
+ 		rlimit_value = strtoull (lim_value, &endptr, 10);
+ #else
+@@ -820,7 +825,11 @@
+ 	break;
+     }
+
+-    if ( (limit_item != LIMIT_LOGIN)
++    if (limit_item == LIMIT_CHROOT) {
++	strncpy(pl->chroot_dir, value_orig, sizeof(pl->chroot_dir)-1);
++        pl->chroot_dir[sizeof(pl->chroot_dir)-1]='\0';
++    }
++    else if ( (limit_item != LIMIT_LOGIN)
+ 	 && (limit_item != LIMIT_NUMSYSLOGINS)
+ 	 && (limit_item != LIMIT_PRI)
+ 	 && (limit_item != LIMIT_NONEWPRIVS) ) {
+@@ -1193,9 +1202,21 @@
+         if (pl->limits[i].limit.rlim_cur > pl->limits[i].limit.rlim_max)
+             pl->limits[i].limit.rlim_cur = pl->limits[i].limit.rlim_max;
+ 	res = setrlimit(i, &pl->limits[i].limit);
+-	if (res != 0)
+-	  pam_syslog(pamh, LOG_ERR, "Could not set limit for '%s': %m",
+-		     rlimit2str(i));
++	if (res != 0 && (i != RLIMIT_NOFILE
++	                    || pl->limits[i].limit.rlim_cur != RLIM_INFINITY))
++	{
++		int save_errno = errno;
++		pam_syslog(pamh, LOG_DEBUG,
++		           "Could not set limit for '%s' to soft=%d, hard=%d:"
++		           " %m; uid=%lu,euid=%lu", rlimit2str(i),
++		           pl->limits[i].limit.rlim_cur,
++		           pl->limits[i].limit.rlim_max,
++		           (unsigned long) getuid(),
++		           (unsigned long) geteuid());
++		errno = save_errno;
++	}
++	if (res == -1 && errno == EPERM)
++	    continue;
+ 	status |= res;
+     }
+
+@@ -1237,6 +1258,15 @@
+ #endif
+     }
+
++    if (!retval && pl->chroot_dir[0]) {
++	i = chdir(pl->chroot_dir);
++	if (i == 0)
++	    i = chroot(pl->chroot_dir);
++	if (i == 0)
++	    i = chdir("/");
++	if (i != 0)
++	    retval = LIMIT_ERR;
++    }
+     return retval;
+ }
+
+diff --git a/Linux-PAM/modules/pam_motd/pam_motd.8.xml b/Linux-PAM/modules/pam_motd/pam_motd.8.xml
+--- a/Linux-PAM/modules/pam_motd/pam_motd.8.xml
++++ b/Linux-PAM/modules/pam_motd/pam_motd.8.xml
+@@ -112,6 +112,17 @@
+           </para>
+         </listitem>
+       </varlistentry>
++      <varlistentry>
++        <term>
++          <option>noupdate</option>
++        </term>
++        <listitem>
++          <para>
++            Don't run the scripts in <filename>/etc/update-motd.d</filename>
++            to refresh the motd file.
++          </para>
++        </listitem>
++      </varlistentry>
+     </variablelist>
+     <para>
+       When no options are given, the default behavior applies for both
+diff --git a/Linux-PAM/modules/pam_motd/pam_motd.c b/Linux-PAM/modules/pam_motd/pam_motd.c
+--- a/Linux-PAM/modules/pam_motd/pam_motd.c
++++ b/Linux-PAM/modules/pam_motd/pam_motd.c
+@@ -370,6 +370,7 @@
+ 			int argc, const char **argv)
+ {
+     int retval = PAM_IGNORE;
++    int do_update = 1;
+     const char *motd_path = NULL;
+     char *motd_path_copy = NULL;
+     size_t num_motd_paths = 0;
+@@ -379,6 +380,7 @@
+     size_t num_motd_dir_paths = 0;
+     char **motd_dir_path_split = NULL;
+     int report_missing;
++    struct stat st;
+
+     if (flags & PAM_SILENT) {
+ 	return retval;
+@@ -408,6 +410,9 @@
+ 			   "motd_dir= specification missing argument - ignored");
+ 	    }
+ 	}
++	else if (!strcmp(*argv,"noupdate")) {
++		do_update = 0;
++	}
+ 	else
+ 	    pam_syslog(pamh, LOG_ERR, "unknown option: %s", *argv);
+     }
+@@ -418,6 +423,19 @@
+ 	report_missing = 0;
+     } else {
+ 	report_missing = 1;
++    }
++
++    /* Run the update-motd dynamic motd scripts, outputting to /run/motd.dynamic.
++       This will be displayed only when calling pam_motd with
++       motd=/run/motd.dynamic; current /etc/pam.d/login and /etc/pam.d/sshd
++       display both this file and /etc/motd. */
++    if (do_update && (stat("/etc/update-motd.d", &st) == 0)
++        && S_ISDIR(st.st_mode))
++    {
++       mode_t old_mask = umask(0022);
++       if (!system("/usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin run-parts --lsbsysinit /etc/update-motd.d > /run/motd.dynamic.new"))
++           rename("/run/motd.dynamic.new", "/run/motd.dynamic");
++       umask(old_mask);
+     }
+
+     if (motd_path != NULL) {
+diff --git a/Linux-PAM/modules/pam_unix/obscure.c b/Linux-PAM/modules/pam_unix/obscure.c
+new file mode 100644
+--- /dev/null
++++ b/Linux-PAM/modules/pam_unix/obscure.c
+@@ -0,0 +1,199 @@
++/*
++ * Copyright 1989 - 1994, Julianne Frances Haugh
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. Neither the name of Julianne F. Haugh nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY JULIE HAUGH AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL JULIE HAUGH OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ */
++
++#include "config.h"
++
++#include <ctype.h>
++#include <stdio.h>
++#include <unistd.h>
++#include <string.h>
++#include <stdlib.h>
++#include <pwd.h>
++#include <security/pam_modules.h>
++#include <security/_pam_macros.h>
++
++
++#include "pam_i18n.h"
++#include "support.h"
++
++/* can't be a palindrome - like `R A D A R' or `M A D A M' */
++static int palindrome(const char *old, const char *new) {
++	int	i, j;
++
++	i = strlen (new);
++
++	for (j = 0;j < i;j++)
++		if (new[i - j - 1] != new[j])
++			return 0;
++
++	return 1;
++}
++
++/* more than half of the characters are different ones. */
++static int similar(const char *old, const char *new) {
++	int i, j;
++
++	/*
++	 * XXX - sometimes this fails when changing from a simple password
++	 * to a really long one (MD5).  For now, I just return success if
++	 * the new password is long enough.  Please feel free to suggest
++	 * something better...  --marekm
++	 */
++	if (strlen(new) >= 8)
++		return 0;
++
++	for (i = j = 0; new[i] && old[i]; i++)
++		if (strchr(new, old[i]))
++			j++;
++
++	if (i >= j * 2)
++		return 0;
++
++	return 1;
++}
++
++/* a nice mix of characters. */
++static int simple(const char *old, const char *new) {
++	int	digits = 0;
++	int	uppers = 0;
++	int	lowers = 0;
++	int	others = 0;
++	int	size;
++	int	i;
++
++	for (i = 0;new[i];i++) {
++		if (isdigit (new[i]))
++			digits++;
++		else if (isupper (new[i]))
++			uppers++;
++		else if (islower (new[i]))
++			lowers++;
++		else
++			others++;
++	}
++
++	/*
++	 * The scam is this - a password of only one character type
++	 * must be 8 letters long.  Two types, 7, and so on.
++	 */
++
++	size = 9;
++	if (digits) size--;
++	if (uppers) size--;
++	if (lowers) size--;
++	if (others) size--;
++
++	if (size <= i)
++		return 0;
++
++	return 1;
++}
++
++static char *str_lower(char *string) {
++	char *cp;
++
++	for (cp = string; *cp; cp++)
++		*cp = tolower(*cp);
++	return string;
++}
++
++static const char * password_check(const char *old, const char *new,
++				   const struct passwd *pwdp) {
++	const char *msg = NULL;
++	char *oldmono, *newmono, *wrapped;
++
++	if (strcmp(new, old) == 0)
++		return _("Bad: new password must be different than the old one");
++
++	newmono = str_lower(strdup(new));
++	oldmono = str_lower(strdup(old));
++	wrapped = (char *)malloc(strlen(oldmono) * 2 + 1);
++	strcpy (wrapped, oldmono);
++	strcat (wrapped, oldmono);
++
++	if (palindrome(oldmono, newmono)) {
++		msg = _("Bad: new password cannot be a palindrome");
++	} else if (strcmp(oldmono, newmono) == 0) {
++		msg = _("Bad: new and old password must differ by more than just case");
++	} else if (similar(oldmono, newmono)) {
++		msg = _("Bad: new and old password are too similar");
++	} else if (simple(old, new)) {
++		msg = _("Bad: new password is too simple");
++	} else if (strstr(wrapped, newmono)) {
++		msg = _("Bad: new password is just a wrapped version of the old one");
++	}
++
++	_pam_delete(newmono);
++	_pam_delete(oldmono);
++	_pam_delete(wrapped);
++
++	return msg;
++}
++
++const char *obscure_msg(const char *old, const char *new,
++			       const struct passwd *pwdp, unsigned int ctrl) {
++	int oldlen, newlen;
++	char *new1, *old1;
++	const char *msg;
++
++	if (old == NULL)
++		return NULL; /* no check if old is NULL */
++
++	oldlen = strlen(old);
++	newlen = strlen(new);
++
++	/* Remaining checks are optional. */
++	if (off(UNIX_OBSCURE_CHECKS,ctrl))
++		return NULL;
++
++	if ((msg = password_check(old, new, pwdp)) != NULL)
++		return msg;
++
++	/* The traditional crypt() truncates passwords to 8 chars.  It is
++	   possible to circumvent the above checks by choosing an easy
++	   8-char password and adding some random characters to it...
++	   Example: "password$%^&*123".  So check it again, this time
++	   truncated to the maximum length.  Idea from npasswd.  --marekm */
++
++	if (ctrl & UNIX_HASH_ALGO_FLAGS)
++		return NULL;  /* unlimited password length */
++
++	if (oldlen <= 8 && newlen <= 8)
++		return NULL;
++
++	new1 = strndup(new,8);
++	old1 = strndup(old,8);
++
++	msg = password_check(old1, new1, pwdp);
++
++	_pam_delete(new1);
++	_pam_delete(old1);
++
++	return msg;
++}
+diff --git a/Linux-PAM/modules/pam_unix/pam_unix.8.xml b/Linux-PAM/modules/pam_unix/pam_unix.8.xml
+--- a/Linux-PAM/modules/pam_unix/pam_unix.8.xml
++++ b/Linux-PAM/modules/pam_unix/pam_unix.8.xml
+@@ -394,6 +394,79 @@
+       </varlistentry>
+       <varlistentry>
+         <term>
++          <option>obscure</option>
++        </term>
++        <listitem>
++          <para>
++            Enable some extra checks on password strength.  These checks
++            are based on the "obscure" checks in the original shadow
++            package.  The behavior is similar to the pam_cracklib
++            module, but for non-dictionary-based checks.  The following
++            checks are implemented:
++            <variablelist>
++              <varlistentry>
++                <term>
++                  <option>Palindrome</option>
++                </term>
++                <listitem>
++                  <para>
++                    Verifies that the new password is not a palindrome
++                    of (i.e., the reverse of) the previous one.
++                  </para>
++                </listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>
++                  <option>Case Change Only</option>
++                </term>
++                <listitem>
++                  <para>
++                    Verifies that the new password isn't the same as the
++                    old one with a change of case.
++                  </para>
++                </listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>
++                  <option>Similar</option>
++                </term>
++                <listitem>
++                  <para>
++                    Verifies that the new password isn't too much like
++                    the previous one.
++                  </para>
++                </listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>
++                  <option>Simple</option>
++                </term>
++                <listitem>
++                  <para>
++                    Is the new password too simple?  This is based on
++                    the length of the password and the number of
++                    different types of characters (alpha, numeric, etc.)
++                    used.
++                  </para>
++                </listitem>
++              </varlistentry>
++              <varlistentry>
++                <term>
++                  <option>Rotated</option>
++                </term>
++                <listitem>
++                  <para>
++                    Is the new password a rotated version of the old
++                    password?  (E.g., "billy" and "illyb")
++                  </para>
++                </listitem>
++              </varlistentry>
++            </variablelist>
++          </para>
++        </listitem>
++      </varlistentry>
++      <varlistentry>
++        <term>
+           no_pass_expiry
+         </term>
+         <listitem>
+diff --git a/Linux-PAM/modules/pam_unix/pam_unix_passwd.c b/Linux-PAM/modules/pam_unix/pam_unix_passwd.c
+--- a/Linux-PAM/modules/pam_unix/pam_unix_passwd.c
++++ b/Linux-PAM/modules/pam_unix/pam_unix_passwd.c
+@@ -86,6 +86,9 @@
+ # endif				/* GNU libc 2.1 */
+ #endif
+
++extern const char *obscure_msg(const char *, const char *, const struct passwd *,
++			       unsigned int);
++
+ /*
+    How it works:
+    Gets in username (has to be done) from the calling program
+@@ -576,6 +579,11 @@
+ 				return retval;
+ 			}
+ 		}
++		if (!remark && pass_old != NULL) { /* only check if we don't already have a failure */
++			struct passwd *pwd;
++			pwd = pam_modutil_getpwnam(pamh, user);
++			remark = (char *)obscure_msg(pass_old,pass_new,pwd,ctrl); /* do obscure checks */
++		}
+ 	}
+ 	if (remark) {
+ 		_make_remark(pamh, ctrl, PAM_ERROR_MSG, remark);
+@@ -591,7 +599,7 @@
+ 	int retval;
+ 	int remember = -1;
+ 	int rounds = 0;
+-	int pass_min_len = 0;
++	int pass_min_len = 6;
+ 	struct passwd *pwd;
+
+ 	/* <DO NOT free() THESE> */
+diff --git a/Linux-PAM/modules/pam_unix/support.h b/Linux-PAM/modules/pam_unix/support.h
+--- a/Linux-PAM/modules/pam_unix/support.h
++++ b/Linux-PAM/modules/pam_unix/support.h
+@@ -6,6 +6,7 @@
+ #define _PAM_UNIX_SUPPORT_H
+
+ #include <pwd.h>
++#include "pam_inline.h"
+
+ /*
+  * File to read value of ENCRYPT_METHOD from.
+@@ -100,8 +101,10 @@
+ #define UNIX_YESCRYPT_PASS       30     /* new password hashes will use yescrypt */
+ #define UNIX_NULLRESETOK         31     /* allow empty password if password reset is enforced */
+ #define UNIX_EXPIRED_ONLY        32	/* only allow setting if password expired */
++#define UNIX_OBSCURE_CHECKS      33	/* enable obscure checks on passwords */
++#define UNIX_NULLOK_SECURE       34	/* deprecated alias for nullok */
+ /* -------------- */
+-#define UNIX_CTRLS_              33	/* number of ctrl arguments defined */
++#define UNIX_CTRLS_              35	/* number of ctrl arguments defined */
+
+ /*
+  * Mask of all hash algorithm flags, used for mutual exclusion:
+@@ -154,6 +157,8 @@
+ /* UNIX_YESCRYPT_PASS */       {"yescrypt",         _ALL_ON_^UNIX_HASH_ALGO_FLAGS,010000000000, 1},
+ /* UNIX_NULLRESETOK */         {"nullresetok",      _ALL_ON_,                    020000000000, 0},
+ /* UNIX_EXPIRED_ONLY */        {NULL,               _ALL_ON_,                    040000000000, 0},
++/* UNIX_OBSCURE_CHECKS */      {"obscure",          _ALL_ON_,                   0100000000000, 0},
++/* UNIX_NULLOK_SECURE */       {"nullok_secure",    _ALL_ON_^(01000ULL),                    0, 0},
+ };
+
+ /* Change this to switch the built-in default hash for new passwords. */
+diff --git a/Linux-PAM/modules/pam_wheel/pam_wheel.c b/Linux-PAM/modules/pam_wheel/pam_wheel.c
+--- a/Linux-PAM/modules/pam_wheel/pam_wheel.c
++++ b/Linux-PAM/modules/pam_wheel/pam_wheel.c
+@@ -47,9 +47,8 @@
+ /* argument parsing */
+
+ #define PAM_DEBUG_ARG       0x0001
+-#define PAM_USE_UID_ARG     0x0002
+-#define PAM_TRUST_ARG       0x0004
+-#define PAM_DENY_ARG        0x0010
++#define PAM_TRUST_ARG       0x0002
++#define PAM_DENY_ARG        0x0004
+ #define PAM_ROOT_ONLY_ARG   0x0020
+
+ static int
+@@ -68,8 +67,7 @@
+
+           if (!strcmp(*argv,"debug"))
+                ctrl |= PAM_DEBUG_ARG;
+-          else if (!strcmp(*argv,"use_uid"))
+-               ctrl |= PAM_USE_UID_ARG;
++          else if (!strcmp(*argv,"use_uid")); /* ignored for compat. */
+           else if (!strcmp(*argv,"trust"))
+                ctrl |= PAM_TRUST_ARG;
+           else if (!strcmp(*argv,"deny"))
+@@ -118,39 +116,14 @@
+         }
+     }
+
+-    if (ctrl & PAM_USE_UID_ARG) {
+-        tpwd = pam_modutil_getpwuid (pamh, getuid());
+-        if (tpwd == NULL) {
+-            if (ctrl & PAM_DEBUG_ARG) {
+-                pam_syslog(pamh, LOG_NOTICE, "who is running me ?!");
+-            }
+-            return PAM_SERVICE_ERR;
++    tpwd = pam_modutil_getpwuid (pamh, getuid());
++    if (tpwd == NULL) {
++        if (ctrl & PAM_DEBUG_ARG) {
++            pam_syslog(pamh, LOG_NOTICE, "who is running me ?!");
+         }
+-        fromsu = tpwd->pw_name;
+-    } else {
+-        fromsu = pam_modutil_getlogin(pamh);
+-
+-        /* if getlogin fails try a fallback to PAM_RUSER */
+-        if (fromsu == NULL) {
+-            const char *rhostname;
+-
+-            retval = pam_get_item(pamh, PAM_RHOST, (const void **)&rhostname);
+-            if (retval != PAM_SUCCESS || rhostname == NULL) {
+-                retval = pam_get_item(pamh, PAM_RUSER, (const void **)&fromsu);
+-            }
+-        }
+-
+-        if (fromsu != NULL) {
+-            tpwd = pam_modutil_getpwnam (pamh, fromsu);
+-        }
+-
+-        if (fromsu == NULL || tpwd == NULL) {
+-            if (ctrl & PAM_DEBUG_ARG) {
+-                pam_syslog(pamh, LOG_NOTICE, "who is running me ?!");
+-            }
+-            return PAM_SERVICE_ERR;
+-        }
++        return PAM_SERVICE_ERR;
+     }
++    fromsu = tpwd->pw_name;
+
+     /*
+      * At this point fromsu = username-of-invoker; tpwd = pwd ptr for fromsu

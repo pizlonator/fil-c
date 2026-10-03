@@ -26,7 +26,13 @@
 --     — is a valid call target; the clone is then the region statements
 --     REACHABLE from the mid-label, in source order — which may include
 --     backward-branch loop heads BEFORE the label, like aesni's
---     .Lenc_loop8 reached from a `call .Lenc_loop8_enter`),
+--     .Lenc_loop8 reached from a `call .Lenc_loop8_enter`) and, x86_64 only,
+--     labels INSIDE a signatured function's body (aesni set_encrypt_key's
+--     `call .Lkey_expansion_128` self-calls): such a mid-body label's region
+--     is a pristine copy of the owner's whole body entered at that label, so
+--     the clone is exactly the code a hardware `call` would run — see the
+--     mid-body soundness validation below for the frame-access rule that
+--     makes cross-function landings safe,
 --     claim the regions referenced by an unannotated or `#! local` call,
 --     reject recursion (direct or mutual), fall-off-the-end bodies, and
 --     branches that escape the clone range — EXCEPT a mid-body TAIL JOIN into
@@ -34,7 +40,10 @@
 --     cross-function jump (tailcall.luau), recorded as a "tailjoin" edge
 --     whose target tail augment clones into each caller with the jumping
 --     subroutine's clone id (the +8 context and the ret dispatch are the
---     jumping subroutine's — the tail executes inside its activation).
+--     jumping subroutine's — the tail executes inside its activation). Tail
+--     joins out of a mid-body clone of a signatured function are rejected:
+--     the tail's +8 context would be the owner's, and the owner's frame does
+--     not exist in a foreign caller's activation.
 --     Discovery marks the claimed statements consumed so the driver's
 --     top-level scan skips them. On arm64 discovery is a clean "not yet
 --     supported" error.
@@ -68,6 +77,7 @@
 local x86_64_parse = require("./x86_64_parse")
 local x86_64_isa = require("./x86_64_isa")
 local tailcall = require("./tailcall")
+local err = require("./err")
 
 local localcall = {}
 
@@ -89,6 +99,18 @@ local function isRetMnem(m, arch)
 	m = string.lower(m or "")
 	if arch == "arm64" then return m == "ret" end
 	return x86_64_isa.baseMnemonic(m) == "ret"
+end
+
+-- Unconditionally trapping mnemonics (ud2 — including the `.byte 0x0f,0x0b`
+-- spelling, which decodes to ud2 — int3/int $3/hlt): a control-flow path through
+-- a trap has NO successors, exactly like ret. Mirrors x86_64_isa.classify's
+-- fallsThrough=false and x86_64_frame's successors(); the clone-range walk below
+-- is mnemonic-based (it runs on raw source statements, before classify), so it
+-- needs its own copy of the trap set.
+local TRAP_MNEM = { ud2 = true, int3 = true, int = true, hlt = true }
+
+local function isTrapMnem(m)
+	return TRAP_MNEM[string.lower(m or "")] == true
 end
 
 -- Is `st` a potentially-local call (a direct call with a bare-symbol target,
@@ -249,29 +271,60 @@ function localcall.discover(stmts, consumed, globals, arch, opts)
 		return r
 	end
 
+	-- Mid-body labels of signatured functions (x86_64): a call to a label
+	-- INSIDE a sig'd function's body — not the entry itself, not an
+	-- entry-adjacent alias (those resolve through aliasFn above), not .globl —
+	-- resolves to a local subroutine whose region is the owner's WHOLE-body
+	-- pristine copy entered at that label (the fnRegion machinery: the clone
+	-- range is the reachable set from the label, so the clone is exactly the
+	-- code a hardware `call` to that label would run). This is the aesni
+	-- set_encrypt_key shape — `${PREFIX}_set_encrypt_key`/`__aesni_set_encrypt_key`
+	-- calling its own .Lkey_expansion_* routines mid-body — which needs no
+	-- perlasm restructuring: the key-expansion code stays inside the
+	-- signatured function, and each caller (the function's own body, and any
+	-- entry-adjacent-alias whole-body clone) gets its own renamed copy.
+	local midOwner = {}
+	if arch == "x86_64" then
+		local aliasNames = opts.aliases or {}
+		for _, fn in (opts.functions or {}) do
+			for _, st in fn.body do
+				if st.kind == "label" and st.name ~= fn.name
+					and not globals[st.name] and not aliasNames[st.name]
+					and not midOwner[st.name] then
+					midOwner[st.name] = fn.name
+				end
+			end
+		end
+	end
+
 	-- Claiming: a label is a local subroutine iff it is defined in a region
-	-- (or names a sig'd function's alias entry, x86_64 only), is not .globl,
-	-- and is referenced by a call from a function body or from an (already
-	-- claimed) subroutine. Worklist over claim edges; claim order follows
-	-- statement order (deterministic).
+	-- (or names a sig'd function's alias entry or one of its mid-body labels,
+	-- x86_64 only), is not .globl, and is referenced by a call from a function
+	-- body or from an (already claimed) subroutine. Worklist over claim edges;
+	-- claim order follows statement order (deterministic).
 	local subs = {}
 	local order = {}
 	local function claimable(name)
-		return (labelRegion[name] ~= nil or aliasFn[name] ~= nil) and not globals[name]
+		return (labelRegion[name] ~= nil or aliasFn[name] ~= nil
+			or midOwner[name] ~= nil) and not globals[name]
 	end
 	local function claim(name)
 		if subs[name] then return end
 		if labelRegion[name] then
 			local r = labelRegion[name]
 			subs[name] = { name = name, region = r, entryPos = r.labels[name] }
-		else
+		elseif aliasFn[name] then
 			local r = fnRegion(aliasFn[name])
 			subs[name] = { name = name, region = r, entryPos = r.labels[name] }
+		else
+			local r = fnRegion(midOwner[name])
+			subs[name] = { name = name, region = r, entryPos = r.labels[name],
+				midOwner = midOwner[name] }
 		end
 		table.insert(order, name)
 	end
 	local function localMismatch(cs)
-		error("sarcasm: `local` annotation on call to '" .. cs.target
+		err.at(cs.stmt, "`local` annotation on call to '" .. cs.target
 			.. "', which does not resolve to a local subroutine: "
 			.. (cs.stmt.raw or cs.target))
 	end
@@ -306,7 +359,13 @@ function localcall.discover(stmts, consumed, globals, arch, opts)
 	-- materialized with adrp/add into a web, compare-chain dispatch); for now
 	-- it is a clean compile-time rejection.
 	if arch == "arm64" then
-		error("sarcasm: local functions are not yet supported on arm64"
+		-- Locate a callsite statement that claimed the first subroutine so the
+		-- rejection names where the unsupported local call happens.
+		local firstCsStmt
+		for _, cs in fnCallsites do
+			if cs.target == order[1] then firstCsStmt = cs.stmt break end
+		end
+		err.at(firstCsStmt, "local functions are not yet supported on arm64"
 			.. " (local subroutine '" .. order[1] .. "' is called with a custom"
 			.. " register convention)")
 	end
@@ -351,6 +410,10 @@ function localcall.discover(stmts, consumed, globals, arch, opts)
 								for _, p in (labelPos[op.text] or {}) do table.insert(work, p) end
 							end
 							ft = b ~= "jmp"
+						elseif isTrapMnem(st.mnemonic) then
+							-- a trap terminates the path (no successors, no
+							-- fall-through), exactly like ret
+							ft = false
 						end
 					end
 					if ft then table.insert(work, pos + 1) end
@@ -426,6 +489,20 @@ function localcall.discover(stmts, consumed, globals, arch, opts)
 						if op and op.kind == "sym" and not inRange[op.text] then
 							local tr = labelRegion[op.text]
 							if tr and tr ~= r then
+								-- A mid-body clone of a signatured function may not tail
+								-- join: the tail would execute with this clone's +8
+								-- context (the OWNER's frame convention) inside a caller
+								-- that may not be the owner, re-keying the tail's
+								-- rsp-relative accesses against a frame the cloned text
+								-- was not written against. Fail closed; the mont5 shape
+								-- (a jump from a top-level subroutine) is unaffected.
+								if sub.midOwner then
+									err.at(st, "branch to '" .. op.text .. "' in local subroutine '"
+										.. name .. "' (a mid-body clone of function '" .. sub.midOwner
+										.. "') leaves the function; a tail join into another local"
+										.. " subroutine is not supported from a mid-body clone: "
+										.. (st.raw or st.mnemonic))
+								end
 								local region = tailcall.computeRegion(rctx, tr.entry, tr.stmts,
 									tr.entry, op.text, tr.labels[op.text], name)
 								local tj = { stmt = st, target = op.text, region = region,
@@ -440,6 +517,84 @@ function localcall.discover(stmts, consumed, globals, arch, opts)
 								for _, t in tj.tailCalls do table.insert(edges[name], t) end
 							end
 						end
+					end
+				end
+			end
+		end
+	end
+
+	-- Mid-body clone soundness (x86_64). A mid-body clone executes on the
+	-- CALLER's stack at the caller's rsp: the frame pass re-keys the clone's
+	-- rsp-relative displacements 8 lower (the +8 rule — the hardware
+	-- return-address compensation) and leaves rbp-relative displacements
+	-- absolute. Those displacements were written against the OWNER function's
+	-- frame, so they only mean what the hardware would do when the clone runs
+	-- in the owner's own activation:
+	--   * a DIRECT call from the owner's body (the aesni
+	--     aesni_set_encrypt_key -> .Lkey_expansion_* self-call shape) is
+	--     exactly the hardware convention — a real `call` pushes the return
+	--     address, so the sub's `8(%rsp)` is the caller's (here: the owner's
+	--     own) `0(%rsp)` at the callsite depth, and rbp does not move;
+	--   * any other landing would silently re-key those accesses to a foreign
+	--     frame: a call from a DIFFERENT function's body (the clone would
+	--     address the foreign caller's frame), or a nested call from inside
+	--     another subroutine's clone range (the model compensates one
+	--     return-address push per clone, not per nesting level, so even a
+	--     chain that ends in the owner's activation keys one push off).
+	-- A mid-body clone whose reachable range touches the stack frame at all
+	-- (an rsp/rbp register or memory operand, or push/pop/enter/leave) is
+	-- therefore accepted only when EVERY call edge into it is a direct call
+	-- from the owner's body; a frame-free clone (registers and memory through
+	-- other pointers only — the key-expansion shape) clones into any caller.
+	local function frameTouching(sub)
+		local r = sub.region
+		local function touchesFrame(o)
+			if type(o) ~= "table" then return false end
+			if o.kind == "reg" and (o.rc == "sp" or o.name == "rbp"
+				or o.name == "ebp" or o.name == "bp") then return true end
+			if o.kind == "mem" then
+				return touchesFrame(o.base) or touchesFrame(o.index)
+			end
+			return false
+		end
+		for _, pos in sub.clonePos do
+			local st = r.stmts[pos]
+			if st.kind == "insn" then
+				local b = x86_64_isa.baseMnemonic(string.lower(st.mnemonic))
+				if b == "push" or b == "pop" or b == "enter" or b == "leave" then
+					return true
+				end
+				for _, op in (st.operands or {}) do
+					if touchesFrame(op) then return true end
+				end
+			end
+		end
+		return false
+	end
+	for _, name in order do
+		local sub = subs[name]
+		if sub.midOwner and frameTouching(sub) then
+			for _, cs in fnCallsites do
+				if cs.target == name and cs.fn.name ~= sub.midOwner then
+					err.at(cs.stmt, "localcall to '" .. name .. "', a mid-body label inside"
+						.. " function '" .. sub.midOwner .. "', cannot be cloned into function '"
+						.. cs.fn.name .. "': the cloned code addresses " .. sub.midOwner
+						.. "'s stack frame (rsp/rbp-relative), which only exists in its own"
+						.. " activation; call it only directly from '" .. sub.midOwner
+						.. "' itself, or make the cloned range frame-free: "
+						.. (cs.stmt.raw or cs.target))
+				end
+			end
+			for _, css in pairs(callsBySub) do
+				for _, cs in css do
+					if cs.target == name then
+						err.at(cs.stmt, "localcall to '" .. name .. "', a mid-body label inside"
+							.. " function '" .. sub.midOwner .. "', from inside another local"
+							.. " subroutine's clone would address " .. sub.midOwner
+							.. "'s stack frame one return-address push off (the clone model"
+							.. " compensates one push per clone, not per nesting level); call it"
+							.. " only directly from '" .. sub.midOwner .. "': "
+							.. (cs.stmt.raw or cs.target))
 					end
 				end
 			end
@@ -469,7 +624,19 @@ function localcall.discover(stmts, consumed, globals, arch, opts)
 						if rec then table.insert(cyc, s) end
 					end
 					table.insert(cyc, m)
-					error("sarcasm: recursive local subroutine calls are not supported ("
+					-- Locate the callsite statement whose edge closes the cycle
+					-- (falls back to any callsite in the closing subroutine,
+					-- then to an unlocated message via err.at's nil tolerance —
+					-- tail-join edges have no per-callsite record).
+					local cycStmt
+					for _, c in (callsBySub[n] or {}) do
+						if c.target == m then cycStmt = c.stmt break end
+					end
+					if not cycStmt then
+						local l = callsBySub[n] or {}
+						cycStmt = l[1] and l[1].stmt or nil
+					end
+					err.at(cycStmt, "recursive local subroutine calls are not supported ("
 						.. table.concat(cyc, " calls ") .. ")")
 				elseif color[m] ~= BLACK then
 					visit(m, stack)
@@ -510,7 +677,7 @@ function localcall.discover(stmts, consumed, globals, arch, opts)
 							if tj.stmt == st then isTailjoin = true break end
 						end
 						if not isTailjoin then
-							error("sarcasm: branch to '" .. op.text .. "' in local subroutine '"
+							err.at(st, "branch to '" .. op.text .. "' in local subroutine '"
 								.. name .. "' leaves the subroutine (cross-function jumps to"
 								.. " function entries are not supported from subroutines; mid-body"
 								.. " tail joins into another local subroutine are): "
@@ -525,15 +692,17 @@ function localcall.discover(stmts, consumed, globals, arch, opts)
 			-- end of a run of legacy AES/SHA encodings hides the ret): name that
 			-- likely cause in the message.
 			local hint = ""
+			local lastStmt
 			for _, pos in sub.clonePos do
 				local st = r.stmts[pos]
+				lastStmt = st
 				if st.kind == "directive" and st.name == ".byte" then
 					hint = " (the region contains undecodable .byte encodings,"
 						.. " which may hide the ret)"
 					break
 				end
 			end
-			error("sarcasm: local subroutine '" .. name .. "' can fall off its end;"
+			err.at(lastStmt, "local subroutine '" .. name .. "' can fall off its end;"
 				.. " every control-flow path must end with a ret instruction" .. hint)
 		end
 	end

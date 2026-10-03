@@ -69,6 +69,10 @@ do {						\
 
 #define FP_HANDLE_EXCEPTIONS						\
   do {									\
+    /* Fil-C: reading FPSR requires an mrs, which pizlonated code cannot   \
+       do; use _FPU_GETFPSR, which fpu_control.h routes through the Fil-C  \
+       runtime (zmath_getfpsr).  The fdiv/fadd/fmul/fsub sequences below   \
+       still run as safe inline asm to raise the hardware flags. */        \
     const float fp_max = __FLT_MAX__;					\
     const float fp_min = __FLT_MIN__;					\
     const float fp_1e32 = 1.0e32f;					\
@@ -81,7 +85,7 @@ do {						\
 			      :						\
 			      : "w" (fp_zero)				\
 			      : "s0");					\
-	__asm__ __volatile__ ("mrs\t%0, fpsr" : "=r" (fpsr));		\
+	_FPU_GETFPSR (fpsr);		\
       }									\
     if (_fex & FP_EX_DIVZERO)						\
       {									\
@@ -89,7 +93,7 @@ do {						\
 			      :						\
 			      : "w" (fp_one), "w" (fp_zero)		\
 			      : "s0");					\
-	__asm__ __volatile__ ("mrs\t%0, fpsr" : "=r" (fpsr));		\
+	_FPU_GETFPSR (fpsr);		\
       }									\
     if (_fex & FP_EX_OVERFLOW)						\
       {									\
@@ -97,7 +101,7 @@ do {						\
 			      :						\
 			      : "w" (fp_max), "w" (fp_1e32)		\
 			      : "s0");					\
-        __asm__ __volatile__ ("mrs\t%0, fpsr" : "=r" (fpsr));		\
+        _FPU_GETFPSR (fpsr);		\
       }									\
     if (_fex & FP_EX_UNDERFLOW)						\
       {									\
@@ -105,7 +109,7 @@ do {						\
 			      :						\
 			      : "w" (fp_min)				\
 			      : "s0");					\
-	__asm__ __volatile__ ("mrs\t%0, fpsr" : "=r" (fpsr));		\
+	_FPU_GETFPSR (fpsr);		\
       }									\
     if (_fex & FP_EX_INEXACT)						\
       {									\
@@ -113,7 +117,7 @@ do {						\
 			      :						\
 			      : "w" (fp_max), "w" (fp_one)		\
 			      : "s0");					\
-	__asm__ __volatile__ ("mrs\t%0, fpsr" : "=r" (fpsr));		\
+	_FPU_GETFPSR (fpsr);		\
       }									\
   } while (0)
 

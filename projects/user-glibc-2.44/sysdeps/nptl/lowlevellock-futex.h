@@ -118,9 +118,11 @@
 		     FUTEX_OP_CLEAR_WAKE_IF_GT_ONE)
 
 
+/* zsys_futex_unlock_pi returns the yolo futex_unlock_pi result, which is
+   zero or a positive errno, but callers expect a negated errno.  */
 #define lll_futex_timed_unlock_pi(futexp, private) 			\
-  zsys_futex_unlock_pi ((volatile int *) futexp,                        \
-                        __lll_zsys_private_arg (private))
+  (-zsys_futex_unlock_pi ((volatile int *) futexp,                      \
+                         __lll_zsys_private_arg (private)))
 
 /* Like lll_futex_requeue, but pairs with lll_futex_wait_requeue_pi
    and inherits priority from the waiter.  */

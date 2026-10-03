@@ -1,0 +1,113 @@
+Archive: xz-5.8.4.tar.xz
+Origname: xz-5.8.4
+Name: xz
+
+    xz 5.8.4 with the Fil-C port.
+diff --git a/xz/src/liblzma/Makefile.am b/xz/src/liblzma/Makefile.am
+--- a/xz/src/liblzma/Makefile.am
++++ b/xz/src/liblzma/Makefile.am
+@@ -26,12 +26,12 @@
+ if COND_SYMVERS_GENERIC
+ liblzma_la_LDFLAGS += \
+ 	$(LINKER_FLAG_UNDEFINED_VERSION) \
+-	-Wl,--version-script=$(top_srcdir)/src/liblzma/liblzma_generic.map
++	-XCClinker --version-script=$(top_srcdir)/src/liblzma/liblzma_generic.map
+ endif
+ if COND_SYMVERS_LINUX
+ liblzma_la_LDFLAGS += \
+ 	$(LINKER_FLAG_UNDEFINED_VERSION) \
+-	-Wl,--version-script=$(top_srcdir)/src/liblzma/liblzma_linux.map
++	-XCClinker --version-script=$(top_srcdir)/src/liblzma/liblzma_linux.map
+ endif
+
+ liblzma_la_SOURCES += ../common/tuklib_physmem.c
+diff --git a/xz/src/liblzma/Makefile.in b/xz/src/liblzma/Makefile.in
+--- a/xz/src/liblzma/Makefile.in
++++ b/xz/src/liblzma/Makefile.in
+@@ -93,11 +93,11 @@
+ host_triplet = @host@
+ @COND_SYMVERS_GENERIC_TRUE@am__append_1 = \
+ @COND_SYMVERS_GENERIC_TRUE@	$(LINKER_FLAG_UNDEFINED_VERSION) \
+-@COND_SYMVERS_GENERIC_TRUE@	-Wl,--version-script=$(top_srcdir)/src/liblzma/liblzma_generic.map
++@COND_SYMVERS_GENERIC_TRUE@	-XCClinker --version-script=$(top_srcdir)/src/liblzma/liblzma_generic.map
+
+ @COND_SYMVERS_LINUX_TRUE@am__append_2 = \
+ @COND_SYMVERS_LINUX_TRUE@	$(LINKER_FLAG_UNDEFINED_VERSION) \
+-@COND_SYMVERS_LINUX_TRUE@	-Wl,--version-script=$(top_srcdir)/src/liblzma/liblzma_linux.map
++@COND_SYMVERS_LINUX_TRUE@	-XCClinker --version-script=$(top_srcdir)/src/liblzma/liblzma_linux.map
+
+ @COND_THREADS_TRUE@am__append_3 = ../common/tuklib_cpucores.c
+ @COND_THREADS_TRUE@am__append_4 = \
+diff --git a/xz/src/liblzma/check/crc32_fast.c b/xz/src/liblzma/check/crc32_fast.c
+--- a/xz/src/liblzma/check/crc32_fast.c
++++ b/xz/src/liblzma/check/crc32_fast.c
+@@ -22,7 +22,9 @@
+ #	include "crc32_loongarch.h"
+ #endif
+
++#include <stdfil.h>
+
++
+ #ifdef CRC32_GENERIC
+
+ ///////////////////
+@@ -177,6 +179,10 @@
+ lzma_crc32(const uint8_t *buf, size_t size, uint32_t crc)
+ {
+ #if defined(CRC32_GENERIC) && defined(CRC32_ARCH_OPTIMIZED)
++        if (!zinbounds(zmkptr(buf, (uintptr_t)buf & -16)) ||
++            !zinbounds(zmkptr(buf, (((uintptr_t)buf + size + 15) & -16) - 1)))
++                return lzma_crc32_generic(buf, size, crc);
++
+ /*
+ #ifndef HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR
+ 	// See crc32_dispatch(). This would be the alternative which uses
+diff --git a/xz/src/liblzma/check/crc64_fast.c b/xz/src/liblzma/check/crc64_fast.c
+--- a/xz/src/liblzma/check/crc64_fast.c
++++ b/xz/src/liblzma/check/crc64_fast.c
+@@ -18,7 +18,9 @@
+ #	include "crc_x86_clmul.h"
+ #endif
+
++#include <stdfil.h>
+
++
+ #ifdef CRC64_GENERIC
+
+ /////////////////////////////////
+@@ -147,6 +149,10 @@
+ lzma_crc64(const uint8_t *buf, size_t size, uint64_t crc)
+ {
+ #if defined(CRC64_GENERIC) && defined(CRC64_ARCH_OPTIMIZED)
++        if (!zinbounds(zmkptr(buf, (uintptr_t)buf & -16)) ||
++            !zinbounds(zmkptr(buf, (((uintptr_t)buf + size + 15) & -16) - 1)))
++                return lzma_crc64_generic(buf, size, crc);
++
+ 	return crc64_func(buf, size, crc);
+
+ #elif defined(CRC64_ARCH_OPTIMIZED)
+diff --git a/xz/src/liblzma/rangecoder/range_decoder.h b/xz/src/liblzma/rangecoder/range_decoder.h
+--- a/xz/src/liblzma/rangecoder/range_decoder.h
++++ b/xz/src/liblzma/rangecoder/range_decoder.h
+@@ -47,7 +47,8 @@
+ #	if defined(__x86_64__) && !defined(__ILP32__) \
+ 			&& !defined(__arm64ec__) && !defined(_M_ARM64EC) \
+ 			&& !defined(__NVCOMPILER) \
+-			&& (defined(__GNUC__) || defined(__clang__))
++			&& (defined(__GNUC__) || defined(__clang__)) \
++                        && !defined(__PIZLONATOR_WAS_HERE__)
+ #		define LZMA_RANGE_DECODER_CONFIG 0x1F0
+ #	else
+ #		define LZMA_RANGE_DECODER_CONFIG 0
+diff --git a/xz/src/xz/file_io.h b/xz/src/xz/file_io.h
+--- a/xz/src/xz/file_io.h
++++ b/xz/src/xz/file_io.h
+@@ -33,7 +33,7 @@
+ /// to avoid strict aliasing violations. Taking a pointer of u8
+ /// should be fine as long as uint8_t maps to unsigned char which
+ /// can alias anything.
+-typedef union {
++typedef union __attribute__((aligned(16))) {
+ 	uint8_t u8[IO_BUFFER_SIZE];
+ 	uint32_t u32[IO_BUFFER_SIZE / sizeof(uint32_t)];
+ 	uint64_t u64[IO_BUFFER_SIZE / sizeof(uint64_t)];

@@ -14,6 +14,7 @@
 #include "Arch/RISCV.h"
 #include "CommonArgs.h"
 #include "clang/Config/config.h"
+#include "clang/Driver/Action.h"
 #include "clang/Driver/Distro.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Driver/Options.h"
@@ -456,6 +457,13 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
   const llvm::Triple::ArchType Arch = getArch();
   const llvm::Triple &Triple = getTriple();
 
+  if (getDriver().HasCosmo) {
+    // Cosmo programs are static; there is no dynamic linker.  (The Gnu.cpp
+    // link job also never emits -dynamic-linker in cosmo mode; this is just
+    // belt and braces so that no caller can leak one into a cosmo link.)
+    return "";
+  }
+
   if ((true)) {
     // Check for explicit override flag
     if (Arg *A = Args.getLastArg(options::OPT_filc_dynamic_linker)) {
@@ -655,6 +663,40 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
   return "/" + LibDir + "/" + Loader;
 }
 
+void Linux::addClangTargetOptions(
+    const llvm::opt::ArgList &DriverArgs, llvm::opt::ArgStringList &CC1Args,
+    Action::OffloadKind DeviceOffloadKind) const {
+  const Driver &D = getDriver();
+
+  // Cosmopolitan libc keeps its thread information block (the "TIB") in the
+  // x28 register on aarch64, and everything in a cosmo-mode Fil-C process
+  // that can be entered while pizlonated code is on the stack -- the yolo
+  // cosmo layer (libyolocosmo.a), libpizlo, the pizlonated user libc, and
+  // the pizlonated C++ runtimes -- reads that TIB from x28 (see
+  // libc/thread/tls.h and the errno fast path in libc/errno.h).  The
+  // upstream cosmo build enforces this with -ffixed-x28 (see
+  // build/definitions.mk); the Fil-C-compiled parts of the program enforce
+  // it the same way, or the register allocator is free to use x28 as
+  // scratch inside a pizlonated function, and any TIB read that survives
+  // inside it then sees garbage (e.g. libpizlo's pthread_getspecific-based
+  // filc_get_my_thread(), which asserts in filc_pollcheck_slow when a
+  // C++ global ctor allocates).  This mirrors the -ffixed-x18 -ffixed-x28
+  // that the cosmo-mode libpas (libpas/Makefile), pizlonated libc
+  // (projects/usercosmo/filc.mk) and C++ runtime (build_cxx.sh) builds
+  // already use.  x18 is the aarch64 platform register, which the cosmo
+  // build also reserves (Apple Silicon clobbers it).
+  //
+  // Only aarch64 in cosmo mode is affected; every other target (and every
+  // non-cosmo flavor) keeps the default register allocation.
+  if (D.HasCosmo && getTriple().getArch() == llvm::Triple::aarch64) {
+    // The cc1-level spelling of -ffixed-x18/-ffixed-x28.
+    CC1Args.push_back("-target-feature");
+    CC1Args.push_back("+reserve-x18");
+    CC1Args.push_back("-target-feature");
+    CC1Args.push_back("+reserve-x28");
+  }
+}
+
 void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
                                       ArgStringList &CC1Args) const {
   const Driver &D = getDriver();
@@ -681,7 +723,19 @@ void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
         P = A->getValue();
       } else {
         SmallString<128> Path(D.PizfixRoot);
-        llvm::sys::path::append(Path, "os-include");
+        if (D.HasCosmo && getTriple().getArch() == llvm::Triple::aarch64) {
+          // The kernel headers (os-include's linux/asm/asm-generic) are
+          // per-architecture.  build_yolocosmo.sh installs the aarch64
+          // variant of os-include from the cross toolchain's headers; if it
+          // is missing, fall back to the cross toolchain's directory, which
+          // carries the same tree.
+          llvm::sys::path::append(Path, "os-include-aarch64");
+          if (!llvm::sys::fs::is_directory(Path)) {
+            Path = "/usr/aarch64-linux-gnu/include";
+          }
+        } else {
+          llvm::sys::path::append(Path, "os-include");
+        }
         P = std::string(Path);
       }
       addSystemInclude(DriverArgs, CC1Args, P);

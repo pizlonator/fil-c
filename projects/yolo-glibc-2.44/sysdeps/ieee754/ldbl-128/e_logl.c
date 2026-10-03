@@ -280,4 +280,15 @@ __ieee754_logl(_Float128 x)
   y += e * ln2a;
   return y;
 }
+#ifdef __aarch64__
+/* Fil-C (aarch64): yolo-glibc's math/Versions exports __logl_finite in the
+   GLIBC_2.44 block and the Fil-C runtime references it unversioned, so it
+   must have a default version.  libm_alias_finite would make it a compat
+   alias, which cannot satisfy unversioned references.  On x86_64 this is
+   handled by defining __logl_finite directly in sysdeps/x86_64/fpu/e_logl.S.
+   This file is only built on ldbl-128 architectures, so x86_64 is not
+   affected.  */
+strong_alias (__ieee754_logl, __logl_finite)
+#else
 libm_alias_finite (__ieee754_logl, __logl)
+#endif

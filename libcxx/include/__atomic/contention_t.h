@@ -19,11 +19,14 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if defined(__linux__) || (defined(_AIX) && !defined(__64BIT__))
+// Note: cosmo's headers undefine __linux__ (cosmo is polyglot), and whether
+// that has happened depends on include order, so the cosmo configuration is
+// checked directly to keep __cxx_contention_t consistent everywhere.
+#if defined(__linux__) || _LIBCPP_HAS_COSMO_LIBC || (defined(_AIX) && !defined(__64BIT__))
 using __cxx_contention_t _LIBCPP_NODEBUG = int32_t;
 #else
 using __cxx_contention_t _LIBCPP_NODEBUG = int64_t;
-#endif // __linux__ || (_AIX && !__64BIT__)
+#endif // __linux__ || _LIBCPP_HAS_COSMO_LIBC || (_AIX && !__64BIT__)
 
 using __cxx_atomic_contention_t _LIBCPP_NODEBUG = __cxx_atomic_impl<__cxx_contention_t>;
 

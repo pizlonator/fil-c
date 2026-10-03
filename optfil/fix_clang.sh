@@ -44,8 +44,22 @@ strip bin/filcc-clang-20
 patchelf --remove-rpath bin/filcc-clang-20
 
 ARCH=`uname -m`
+case $ARCH in
+    x86_64)
+        OLDLDNAME=ld-linux-${ARCH//_/-}.so.2
+        ;;
+    aarch64)
+        # On aarch64, glibc's dynamic loader is ld-linux-aarch64.so.1 (the
+        # .so.1 suffix is correct for aarch64; x86_64 uses .so.2).
+        OLDLDNAME=ld-linux-aarch64.so.1
+        ;;
+    *)
+        echo "Unsupported arch: $ARCH"
+        exit 1
+        ;;
+esac
 patchelf --set-interpreter /opt/fil/lib/ld-fil1-$ARCH.so bin/filcc-clang-20
-patchelf --replace-needed ld-linux-${ARCH//_/-}.so.2 ld-fil1-$ARCH.so bin/filcc-clang-20
+patchelf --replace-needed $OLDLDNAME ld-fil1-$ARCH.so bin/filcc-clang-20
 patchelf --replace-needed libc.so.6 libyolocimpl.so bin/filcc-clang-20
 patchelf --replace-needed libm.so.6 libyolomimpl.so bin/filcc-clang-20
 

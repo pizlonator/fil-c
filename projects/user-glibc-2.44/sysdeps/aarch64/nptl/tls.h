@@ -26,6 +26,7 @@
 # include <stddef.h>
 # include <stdint.h>
 # include <dl-dtv.h>
+# include <pizlonated_runtime.h>
 #endif /* __ASSEMBLER__ */
 
 #ifndef __ASSEMBLER__
@@ -46,11 +47,18 @@ typedef struct
   void *private;
 } tcbhead_t;
 
-/* This is the size of the initial TCB.  */
-# define TLS_INIT_TCB_SIZE	sizeof (tcbhead_t)
+/* This is the size of the initial TCB.
+
+   Fil-C: the runtime owns thread stacks and the pizlonated code treats the
+   pointer passed to TLS_INIT_TP as the pointer to the struct pthread (this
+   is what allocatestack.c and csu/libc-tls.c allocate with
+   zgc_alloc (TLS_TCB_SIZE), and what zthread_set_self_cookie stores as the
+   thread cookie).  So allocate enough space for the whole struct pthread,
+   mirroring what sysdeps/x86_64/nptl/tls.h does.  */
+# define TLS_INIT_TCB_SIZE	sizeof (struct pthread)
 
 /* This is the size of the TCB.  */
-# define TLS_TCB_SIZE		sizeof (tcbhead_t)
+# define TLS_TCB_SIZE		sizeof (struct pthread)
 
 /* This is the size we need before TCB.  */
 # define TLS_PRE_TCB_SIZE	sizeof (struct pthread)
@@ -70,20 +78,36 @@ typedef struct
 
 /* Code to initially initialize the thread pointer.  This might need
    special attention since 'errno' is not yet available and if the
-   operation can cause a failure 'errno' must not be touched.  */
+   operation can cause a failure 'errno' must not be touched.
+
+   Fil-C: we do not write tpidr_el0 here (the pizlonated libc cannot perform
+   system register writes).  The thread's struct pthread pointer is recorded
+   in the Fil-C runtime instead; THREAD_SELF below reads it back.  Note that
+   in the Fil-C port the argument is the struct pthread pointer itself, not
+   the TCB above it, matching how allocatestack.c and csu/libc-tls.c
+   allocate the TCB and how zthread_set_self_cookie is called from
+   start_thread.  */
 # define TLS_INIT_TP(tcbp) \
-  ({ __asm __volatile ("msr tpidr_el0, %0" : : "r" (tcbp)); true; })
+  ({ zthread_set_self_cookie (tcbp); true; })
 
 /* Value passed to 'clone' for initialization of the thread register.  */
-# define TLS_DEFINE_INIT_TP(tp, pd) void *tp = (pd) + 1
+# define TLS_DEFINE_INIT_TP(tp, pd) void *tp = (pd)
 
-/* Return the address of the dtv for the current thread.  */
+/* Return the address of the dtv for the current thread.
+
+   Fil-C: the pizlonated libc never installs a real DTV (the Fil-C compiler
+   implements TLS itself and __tls_get_addr is a stub; see
+   sysdeps/aarch64/libc-tls.c), so there is no live dtv field to read
+   here.  Note that on AArch64 (TLS_DTV_AT_TP) struct pthread does not
+   embed a tcbhead_t at all.  */
 # define THREAD_DTV() \
-  (((tcbhead_t *) __builtin_thread_pointer ())->dtv)
+  ((dtv_t *) 0)
 
-/* Return the thread descriptor for the current thread.  */
-# define THREAD_SELF \
- ((struct pthread *)__builtin_thread_pointer () - 1)
+/* Return the thread descriptor for the current thread.
+
+   The Fil-C runtime stores the struct pthread pointer as the thread cookie.
+   See TLS_INIT_TP above and zthread_set_self_cookie.  */
+# define THREAD_SELF ((struct pthread *) zthread_self_cookie ())
 
 /* Magic for libthread_db to know how to do THREAD_SELF.  */
 # define DB_THREAD_SELF \

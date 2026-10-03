@@ -1,0 +1,37 @@
+DESCRIPTION
+
+  zlib implements the deflate compression algorithm
+
+LICENSE
+
+  See LICENSE file
+
+ORIGIN
+
+  The zlib sources were obtained from Chromium's zlib fork.
+
+    https://chromium.googlesource.com/chromium/src/third_party/zlib
+    commit 14dd4c4455602c9b71a1a89b5cafd1f4030d2e3f
+    Author: Adenilson Cavalcanti <cavalcantii@chromium.org>
+    Date:   Tue Apr 11 17:40:40 2023 +0000
+
+  The source code for puff was obtained from zlib itself:
+
+    Origin: git@github.com:madler/zlib.git
+    Commit: 03614c56ad299f9b238c75aa1e66f0c08fc4fc8b
+    Author: Mark Adler <madler@alumni.caltech.edu>
+    Date:   Sun Oct 30 08:36:13 2016 -0700
+
+LOCAL CHANGES
+
+  - Use X86_HAVE() for runtime dispatching
+
+  - Changed Trace(stderr) calls to use kprintf()
+
+  - Made the type signature of crc32_z() less obnoxious
+
+  - Fix a Chromium Zlib regression where malloc() failures inside
+    deflateInit2() will result in a segmentation fault
+
+  - Provide THIRD_PARTY_ZLIB_GZ as a separate package, because it
+    can't work without malloc/stdio/etc. but the rest of zlib can

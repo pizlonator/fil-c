@@ -19,25 +19,59 @@ The unpacked work tree (`lua/`) and the dot-prefixed
 
 ## Usage
 
-All commands take the `.projeny` path (relative or absolute). The tarball is
-looked up next to the `.projeny` file, and the work tree is created next to
-it as well (named by the `Name:` header).
+Every command that names a project takes a project argument (relative or
+absolute): the `.projeny` file itself, the work tree (or any directory
+holding exactly one `.projeny` file), or a path whose `<arg>.projeny`
+sibling exists — typically the checkout directory before it was ever
+created, or a bare name like `lua` for `lua.projeny`. The work-tree
+sibling rule wins over the scan: a directory sitting next to a
+`<dir>.projeny` file IS that project's workdir, even when it holds stray
+`.projeny` files of its own. Relative arguments
+are lexically normalized first, so from inside the work tree `.` names
+the project and, from a work tree subdirectory, `..` does too; an
+argument that exists on disk is resolved physically (symlinks and all),
+so `sym/..` through a symlinked intermediate names the directory the
+symlink really leads to. The
+tarball is
+looked up next to the `.projeny` file — or, for a URL:-based project,
+downloaded and verified (see the `.projeny` format section below) — and
+the work tree is created next
+to it as well (named by the `Name:` header).
 
 ```
-projeny setup <f.projeny>                unpack archive, apply patch
-projeny commit <f.projeny>               fold workdir changes into the patch
-projeny add <f.projeny> <path>           mark a file as added
-projeny rm <f.projeny> <path>            delete a file, mark as removed
-projeny mv <f.projeny> <src> <dst>       rename a file, mark as renamed
-projeny resolve <f.projeny> <path>       clear a conflict entry
-projeny rebase <f.projeny> <tarball>     point the project at a new tarball
-projeny status <f.projeny>               show setup/conflict/pending state
-projeny diff <dir> <other-dir>           print the diff between two trees
-projeny patch <dir> <patch-file>         apply a patch file to a tree
-projeny package <f.projeny|dir> <out>    setup, then tar the tracked files
-projeny extract <f.projeny|dir> <dest>   setup, then copy tracked files to a dir
-projeny help [command]                   show help (per-command with a name)
+projeny setup <f.projeny|dir> [...]         unpack archive(s), apply patch(es), in parallel
+projeny commit <f.projeny|dir>              fold workdir changes into the patch
+projeny add <f.projeny|dir> <path>          mark a file as added
+projeny rm <f.projeny|dir> <path>           delete a file, mark as removed
+projeny mv <f.projeny|dir> <src> <dst>      rename a file, mark as renamed
+projeny resolve <f.projeny|dir> <path>      clear a conflict entry
+projeny rebase <f.projeny|dir> <tarball>    point the project at a new tarball
+projeny status <f.projeny|dir>              show setup/conflict/pending state
+projeny diff <f.projeny|dir>                print a checkout's uncommitted diff
+projeny diff <dir> <other-dir>              print the diff between two trees
+projeny patch <dir> <patch-file>            apply a patch file to a tree
+projeny package <f.projeny|dir> <out>       setup, then tar the tracked files; pairs run in parallel
+projeny extract <f.projeny|dir> <dest>      setup, then copy tracked files; pairs run in parallel
+projeny download <url> <hash> [...]         download URL/hash pairs into the cwd
+projeny erase-setup <f.projeny|dir> [...]   delete the checkout + status file (DESTRUCTIVE); parallel
+projeny freeze-mtime <f.projeny|dir> <file>...
+projeny unfreeze-mtime <f.projeny|dir> <file>...
+projeny list-frozen-mtimes <f.projeny|dir>
+projeny get-attributes <f.projeny|dir> [<path or paths or directories>]
+projeny hash <file>                         print the blake3 hash of a file
+projeny help [command]                      show help (per-command with a name)
 ```
+
+`setup`, `package`, and `extract` also accept several projects at once and
+run them in parallel (`package`/`extract` take (project,
+output/destination) pairs), `projeny download <url> <hash>...` fetches
+URL/hash pairs into the current directory, and `projeny erase-setup`
+erases several projects' setup state at once (see
+[Erasing a setup](#erasing-a-setup)). `setup`/`package`/`extract`/`download`
+are controlled with -j/--jobs and -c/--curl-jobs; `erase-setup` takes
+-j/--jobs plus the --erase-snapshots and --force flags (it has no download
+phase, so -c/--curl-jobs is an unknown option there); see
+[Parallel setup, package, extract, and download](#parallel-setup-package-extract-and-download).
 
 Paths into the work tree may be CWD-relative, absolute, or workdir-relative
 (`<Name>/...`); they are stored relative to the workdir.
@@ -53,15 +87,21 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   along like user-added files); otherwise it refuses, listing the paths it
   would have overwritten (see "File naming and migration" below). If the
   workdir exists and the status file does too, projeny reconstructs the
-  expected
-  tree from the status copy, diffs it against the workdir to find your
-  uncommitted changes, and merges them onto a fresh setup of the *current*
-  `.projeny` (which may name a different `Archive:` — e.g. upstream moved
-  to a newer tarball). Merge failures leave conflict markers in the workdir
-  and record the files in the status file. A setup that leaves conflicts
-  still finishes (workdir, `.projeny` file, and status are all updated) but
-  exits 1, so scripts under `set -e` stop instead of building from a
-  conflicted tree; fix the files, `resolve` each one, and `commit`.
+  expected tree from the status copy, diffs it against the workdir to find
+  your uncommitted changes, and merges them onto a fresh setup of the
+  *current* `.projeny` (which may name a different `Archive:` — e.g.
+  upstream moved to a newer tarball). Merge failures leave conflict markers
+  in the workdir and record the files in the status file. A setup that
+  leaves conflicts still finishes (workdir, `.projeny` file, and status are
+  all updated) but exits 1, so scripts under `set -e` stop instead of
+  building from a conflicted tree; fix the files, `resolve` each one, and
+  `commit`. The reporting is honest about whether a merge happened: a
+  checkout with no local changes re-sets up fresh ("no local changes"),
+  untracked files (never `projeny add`ed) merely ride along into the new
+  tree ("no local changes; kept N untracked file(s)"), and a real merge
+  prints one line per file — `merged:`, `added:`, `deleted:`, or
+  `renamed:` — plus a `conflict:` line for every file left conflicted
+  (exactly the status file's `Conflict:` entries).
 - `commit`: requires the `.projeny` file to match the status copy exactly
   (else hard error: run `setup` to merge first) and refuses when conflicts
   are pending. Otherwise it diffs the workdir against the base archive and
@@ -91,6 +131,15 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   warns to stderr and proceeds with the new file — it never silently keeps
   the old bytes.
 
+- `diff <f.projeny|dir>`: prints the checkout's uncommitted change to stdout —
+  the diff of the workdir against what a *fresh* `setup` of the current
+  `.projeny` file would check out (tarball plus current patch). For
+  ordinary edits this is also the patch `commit` would store; the two
+  differ only when a pending `mv` renames a file that the last commit
+  itself added or renamed (commit re-derives the rename from the tarball's
+  paths: a committed-added file becomes a plain add, a committed rename
+  re-traces to the original tarball path). See "The uncommitted diff"
+  below for the exact semantics.
 - `diff <dir> <other-dir>`: prints the minimal unified diff between
   two on-disk trees to stdout (labels use the second directory's
   basename, so the output feeds `projeny patch`, `git apply`, and
@@ -105,16 +154,166 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   base archive plus patch plus pending add/rm/mv ops, minus untracked
   files — like `git archive` / `package-source.sh`. The first argument may
   be the `.projeny` file or a directory holding (or, as `<dir>.projeny`
-  for a `<dir>` workdir, naming) exactly one of them. The archive holds a
+  for a `<dir>` workdir, naming) exactly one of them, or a path whose
+  `<arg>.projeny` sibling exists (a missing checkout directory also works
+  then). The archive holds a
   single top-level directory named after the output file, and compression
   is autodetected from its extension (`.tar`, `.tar.gz`/`.tgz`,
-  `.tar.bz2`, `.tar.xz`, `.tar.zst`).
+  `.tar.bz2`/`.tbz2`/`.tbz`, `.tar.xz`/`.txz`, `.tar.zst`/`.tzst`).
 - `extract <f.projeny|dir> <dest-dir>`: like `package`, except the tracked
   files are copied into `<dest-dir>` instead of archived — the projeny
   variant of `extract_source`, for building outside the checkout. The
   destination must not exist or must be empty.
+- `freeze-mtime <f.projeny|dir> <filenames...>`: pin the mtimes of tracked
+  regular files to what the tarball wants (see
+  [Frozen mtimes](#frozen-mtimes)). At the time the command runs, the
+  checked out files are stamped with the archive member's mtimes, and the
+  attribute is recorded in the `.projeny` patch as a `frozen-mtime <ts>`
+  extended header so every later setup restores it.
+- `unfreeze-mtime <f.projeny|dir> <filenames...>`: drop the attribute again
+  (future setups stop re-stamping the file; the current mtime is left
+  alone). A block that held nothing but the attribute is removed entirely.
+- `list-frozen-mtimes <f.projeny|dir>`: one line per frozen file,
+  `<workdir-relative path> <unix-epoch timestamp>`; hard-errors when
+  nothing is frozen.
+- `get-attributes <f.projeny|dir> [<path>...]`: print
+  the special attributes (frozen mtime, nonstandard mode — see below) of
+  the requested tracked files: all of them when no paths are given, a
+  directory's subtree recursively, or a single file. Files without special
+  attributes are not printed; a project with nothing to report prints
+  nothing (the command is silent by design, unlike `list-frozen-mtimes`,
+  which hard-errors when nothing is frozen). The mode line reports the
+  current workdir mode, and a disappeared tracked file only ever reports
+  a frozen mtime.
+- `hash <file>`: prints the blake3 hash of a regular file as 64 lowercase
+  hex chars and nothing else — the value to paste into a `URL: <url>
+  <blake3-hash>` header of a [URL:-based](#projeny-format) `.projeny`
+  file. Refuses anything that is not a regular readable file.
+- `download <url> <hash> [<url> <hash>...]`: downloads every URL into the
+  current directory (named after the URL's basename) as one parallel
+  batch, verifying each against its blake3 hash; a file already present
+  with a matching hash is kept instead of re-downloaded. See
+  [Parallel setup, package, extract, and download](#parallel-setup-package-extract-and-download).
 - `help [command]`: with a command name, prints a detailed explanation
   of that command.
+
+## Frozen mtimes
+
+A patched file gets a fresh timestamp when the patch is applied, which
+makes timestamp-driven build machinery (autoconf comparing `configure.ac`
+against a generated `tests/local.mk`, make comparing sources against
+generated files) rebuild things it need not rebuild. `projeny freeze-mtime
+<project> <filenames...>` pins a tracked file's checkout mtime to what the
+tarball wants:
+
+- At the time the command runs, the workdir file is stamped with the
+  archive member's mtime.
+- The attribute is recorded in the `.projeny` patch (and the status copy,
+  which stays byte-identical to it) as an extended header inside the
+  file's `diff --git` block, placed right after the `diff --git` line and
+  before any `old mode`/`new mode` lines — the same region the parser
+  scans for modes:
+
+  ```
+  diff --git a/lua/tests/local.mk b/lua/tests/local.mk
+  frozen-mtime 1734567890
+  ```
+
+  The value is the tarball's own member mtime as unix-epoch seconds. A
+  file may be frozen without any content or mode change: that stores an
+  attribute-only block (`diff --git` line plus the `frozen-mtime` line,
+  no hunks — the analogue of a mode-only block). Re-freezing updates the
+  value; a delete block never carries the header, so a frozen entry dies
+  with the file. A rename moves the pin: `commit` and `rebase` re-key the
+  frozen entry to the rename's destination (keeping the original
+  timestamp), so `freeze f`, `mv f g`, `commit` leaves `g` frozen. The
+  `frozen-mtime` header is projeny-internal: plain `git apply` does not
+  understand it and rejects attribute-only patches outright, while
+  `patch -p1` applies the same patches fine.
+- Every `setup` (and `rebase`, and the setups `package`/`extract` run)
+  re-stamps frozen files after the workdir is in place, so a file the
+  patch rewrote ends at the archive's mtime. `commit` and `rebase` keep
+  the header in the regenerated patch and refresh the stored values from
+  the archive (after a rebase: the *new* archive's members), so the
+  invariant holds that a frozen value is always the archive's member
+  mtime for that file. Every setup that can parse the `.projeny` file
+  stamps frozen files — including setups that end in conflicts — so a
+  frozen file keeps the archive's mtime even when its content ends up
+  with conflict markers. Only a `.projeny` file that itself contains git
+  conflict markers defers stamping to the next clean setup.
+  `freeze-mtime` itself re-stamps all frozen files of the project, not
+  just the ones it names.
+  `package`/`extract` then carry those mtimes into
+  output tarballs / extracted trees, because tracked files are staged
+  with their times preserved.
+- `unfreeze-mtime` removes the attribute (a block that held nothing but
+  the attribute is dropped whole) and leaves the current file mtime
+  alone; `list-frozen-mtimes` prints `<path> <ts>` per frozen file.
+- `get-attributes` reports the special attributes of tracked files:
+  `frozen-mtime <ts>` and a nonstandard mode — `mode 100755` for a
+  regular file with any exec bit (symlinks are standard and never
+  reported). Files with no special attribute are not printed.
+
+The file arguments of `freeze-mtime`/`unfreeze-mtime`/`get-attributes` use
+the same forms as `add`/`rm`/`mv` (CWD-relative, absolute, or
+workdir-relative `<Name>/...`). Freezing refuses directories, symlinks,
+untracked files, and pending (uncommitted) adds; a file the committed
+patch adds (no archive member) freezes at its current workdir mtime. The
+mutating commands require the `.projeny` file to match the status copy
+and refuse while conflicts are pending, like `commit`.
+
+## The uncommitted diff
+
+`projeny diff <f.projeny|dir>` prints the uncommitted change of a checkout: the
+diff of the workdir against what a fresh `setup` of the current `.projeny`
+file would check out — the tarball plus the current patch. It takes the
+same refusals `commit` does (the `.projeny` file must match the status
+copy, conflicts must be resolved, pending ops must match the workdir).
+
+The diff and `commit` answer different questions about the same workdir:
+the diff is relative to the checked-in tree (what a fresh `setup` would
+produce), while the stored patch is relative to the raw tarball. For
+ordinary edits they are the same patch. They differ only when a pending
+`mv` renames a file that the last commit itself added or renamed: the
+diff describes the move against the checked-in paths, while `commit`
+re-derives the rename from the tarball's paths — a committed-added file
+commits as a plain add of its new name, and a committed rename re-traces
+to the original tarball path. Each output is correct for its own baseline.
+
+Which changes appear is decided by the pending ops, the same way `commit`
+decides:
+
+- Files added with `projeny add` (and `projeny mv` destinations) show as
+  `new file mode` blocks; files removed with `projeny rm` (and `projeny mv`
+  sources) show as `deleted file mode` blocks. `add`/`rm` take directories,
+  and a directory entry covers everything under it.
+- `projeny mv` renders as a `rename from`/`rename to` block — always, even
+  when the moved file's content diverged beyond the rename similarity
+  threshold. Chained moves (`mv a b`, then `mv b c`) collapse into a single
+  rename `a -> c` with no mention of `b`, and moving a directory renames
+  each contained file.
+- Everything untracked — created without `projeny add`, whether text,
+  symlink, or binary — stays out of the diff, like git leaves untracked
+  files out of commits (one exception: files created inside a directory
+  that a pending `mv` moved — the move destination is registered on the
+  add side, so new files under it ride along in the diff and in the
+  commit).
+- A tracked file deleted *without* `projeny rm` is not part of the diff
+  either (the next `setup` would restore it); each such file instead
+  produces a warning on stderr naming the `projeny rm` command that would
+  record it, so an otherwise empty output cannot masquerade as "no local
+  changes".
+
+The exit status is 0 whenever the diff itself succeeds — even when it
+prints changes or warnings. stdout carries only the patch; warnings go to
+stderr. Combined with `projeny patch`, the diff moves a change between
+checkouts:
+
+```
+projeny diff mylib.projeny > /tmp/uncommitted.patch
+# ...in a second checkout of the same .projeny file:
+projeny patch mylib /tmp/uncommitted.patch
+```
 
 ## Recovering a git-conflicted `.projeny` file
 
@@ -131,7 +330,10 @@ hand-written prose must indent every non-empty line with a leading space.
 and status copy, merges the local-side patch into the workdir
 with conflicts marked (three-way against the shared base archive when
 both sides name the same tarball), and re-applies any uncommitted
-workdir-vs-status changes on top. Which side is upstream is auto-detected:
+workdir-vs-status changes on top; the final report lists each merged
+file (`merged:`/`added:`/`deleted:`/`renamed:` plus `conflict:` lines),
+or says there was nothing to merge when the local side is empty. Which
+side is upstream is auto-detected:
 `git merge` keeps ours=local, while `git pull --rebase`/`rebase` and
 `stash pop` swap the sides (`<<<<<<< HEAD` holds upstream there) —
 projeny reads the branch labels (`upstream`/`origin`/`remote`/`theirs`,
@@ -156,7 +358,38 @@ diff --git a/lua/makefile b/lua/makefile
 ...
 ```
 
-Headers (`Archive:`, `Origname:`, `Name:` — all required; extra headers are
+Instead of an `Archive:` header, the tarball may be fetched from the
+network with one or more `URL:` headers (no tarball checked into git):
+
+```
+URL: http://gondor.apana.org.au/~herbert/dash/files/dash-0.5.13.5.tar.gz 7871678c86c4fda68266f79b4914d38792a8c4604e221cc3fc8d901da21560a1
+Origname: dash-0.5.13.5
+Name: dash
+```
+
+Each `URL:` line is exactly `URL: <url> <blake3-hash>` — the tarball's URL
+and the blake3 hash of its bytes (compute the hash with
+`projeny hash <file>`). The URL lines are mirrors and are tried in the
+order listed: a download that fails or does not match its hash prints a
+warning and the next line is tried, and it is a hard error only when no
+URL yields a download matching its recorded hash. Every download is
+announced on stderr (`projeny: downloading '<url>'` — the only line that
+names the URL), with short progress lines (`projeny: download progress:
+...`, sized to fit an 80-column terminal) printed every 64 KiB received —
+capped at whole-percent steps when the total size is known, so a 70 MB
+tarball reports ~100 updates, not ~1100. Progress lines end with a bare
+carriage return and use no other terminal tricks, so a terminal redraws
+the line in place while a run captured to a log retains every one. A
+verified download reports `blake3 hash verified` and the snapshot it
+wrote; a mismatched one warns and falls through to the next URL. The
+archive name (and the snapshot's name) is derived from the URL's basename
+(after stripping any scheme, `?query`, and `#fragment`), so
+the URL must name the tarball file itself. `Archive:` and `URL:` headers
+are mutually exclusive; see "Archive snapshots" below for how the download
+is cached and verified.
+
+Headers (`Origname:`, `Name:` — required, plus exactly one of `Archive:`
+or at least one `URL:` line; extra headers are
 preserved verbatim) end at the first blank line. Everything up to the first
 `diff --git` line is free text. Every non-empty free-text line starts with
 a space or tab (projeny prepends a single space on write when one is
@@ -175,10 +408,18 @@ tabs, quotes, backslashes, `->`, or other special bytes are stored git
 C-quoted (`"a/<Name>/my file.c"`); plain paths stay unquoted. Either form is
 accepted on input, so hand-written patches need no special handling.
 
+A `.projeny` file may end without a trailing newline (common in
+hand-written files); the prose is preserved byte-for-byte on round-trip,
+and a commit or rebase that stores no patch (a no-op) keeps the file
+byte-identical. When a patch is (re)written, it always starts on its own
+line: projeny adds exactly one newline after prose that lacks it, so the
+first `diff --git` line can never glue onto the last prose line (gluing
+would make the next parse treat the whole patch as prose and silently
+drop it).
+
 ## `.status` format
 
 Text file `.<f>.projeny.status` (untracked by git; older projenies wrote
-
 `<f>.projeny.status`, which is renamed into the dotted form on first use):
 
 ```
@@ -216,6 +457,235 @@ recreates them); when both the archive and its snapshot are missing, setup
 fails with recovery guidance. Snapshots left behind by a tarball that no
 longer exists are not auto-cleaned.
 
+For a URL:-based project the snapshot IS the archive's local copy: the
+tarball is not checked into git anywhere, so `setup` downloads it (linked-in
+libcurl, no `curl` subprocess) and stores it as `.<archive>.snapshot` next
+to the `.projeny` file, where `<archive>` is derived from the URL's
+basename. Before any network access, the existing snapshot is verified
+against the URL: hashes: while it matches at least one of them, it IS the
+archive and nothing is downloaded; only a missing snapshot — or one that no
+longer matches any hash (a tampered or truncated file) — triggers a
+re-download, and a mismatching snapshot is warned about and replaced. Each
+`URL:` line is tried in order (a download that fails or does not match its
+hash warns and falls through to the next mirror), and the first verified
+download replaces the snapshot atomically. When the snapshot already
+matches, the commands that materialize the archive (`setup`, `commit`,
+`package`, `extract`) say so — `using existing snapshot '<path>' (blake3
+hash matches); skipping the download` — once per run, no matter how many
+times the same archive is materialized, while the read-only reconstruction
+paths (`status`, `diff`, `get-attributes`, `freeze-mtime`) stay silent
+about a matching snapshot unless they actually have to download. Moving the
+project to a new tarball is done by editing the URL: header(s) to the new
+URL and hash (compute it with `projeny hash <file>`) and running `setup`,
+which re-downloads and merges local changes onto the new base; `rebase`
+refuses URL:-based projects.
+
+## Parallel setup, package, extract, and download
+
+`setup`, `package`, and `extract` accept any number of projects and run
+them in parallel:
+
+```
+projeny setup projects/foo.projeny projects/bar.projeny projects/baz.projeny
+projeny package foo.projeny foo.tar.gz bar.projeny bar.tar.gz
+projeny extract foo.projeny dest-foo bar.projeny dest-bar
+```
+
+`package` and `extract` take (project, output/destination) pairs. Two
+options control the parallelism; they may appear anywhere among the
+arguments, and are accepted by these three commands and `download` only
+(every other command keeps its exact argument shape):
+
+- `-j N` / `--jobs N` (also spelled `-jN` or `--jobs=N`) caps both the
+  per-project threads and the parallel blake3 hash checks at N; the
+  default is the CPU count.
+- `-c N` / `--curl-jobs N` (also spelled `-cN` or `--curl-jobs=N`) caps
+  the curl transfers in flight at N; the default is 8.
+
+Naming one project twice collapses into one operation — keyed on the
+resolved `.projeny` file, so two spellings of the same project (the
+checkout directory and the file, say) dedupe as well — with a warning
+naming the dropped argument (`'a.projeny' is listed more than once;
+setting it up only once`; the `package`/`extract` forms name the ignored
+output/destination). Two DIFFERENT projects whose package outputs or
+extract destinations resolve to the same path are warned about too
+(`package outputs 'x.tar.gz' and './x.tar.gz' both resolve to
+'/abs/x.tar.gz'; the parallel runs write the same file`), once per
+colliding group. One project's failure does not stop the others:
+each project's report is labeled with its file name (`[f.projeny] ...`),
+a project whose archive could not be obtained dies with `'<Name>'
+needs archive '<pkg>', but the parallel download phase failed
+to obtain it`, and a failed run ends with one summary line
+(`projeny: 1 of 3 setup(s) failed: f.projeny`) and a nonzero exit —
+after every other project finished. A single project runs the plain
+single-project command, byte-identically: no planning phase, no labels,
+no summary.
+
+The download work is separated from the per-project work entirely. Every
+named `.projeny` file is read first and all of its `URL:` headers are
+collected; the downloads then run as one batch — the curl multi API with
+at most `-c` transfers in flight, never two concurrent transfers of the
+same package, blake3 checks on at most `-j` threads, and one full retry
+pass over whatever still failed (parallel retries when several packages
+failed) — and only then do the projects themselves run, on at most `-j`
+threads.
+
+Because several files may want the same archive (the same URL basename),
+the batch is deduplicated by archive name: a shared archive downloads
+exactly once, and every file asking for it receives the same downloaded
+archive file. The candidate URLs tried for a shared package are the URLs
+all of its contributors have in common first (the remaining mirrors
+after that). Two loud warnings cover the conflicts this can hide:
+
+- files downloading archives with the same name but from DIFFERENT URL
+  sets get `WARNING: N PROJENY FILES DOWNLOAD ARCHIVES WITH THE SAME
+  NAME '<archive>' BUT WITH DIFFERENT URL SETS: ...` (naming the files;
+  the warning ends `DOWNLOADS ARE DEDUPLICATED BY ARCHIVE NAME, SO EVERY
+  ONE OF THEM WILL GET THE SAME ARCHIVE FILE.`), and
+- the same URL listed with different blake3 hashes warns even louder:
+  `WARNING: URL '<url>' IS LISTED WITH DIFFERENT BLAKE3 HASHES (<hash>,
+  <hash>) IN <files>. THIS IS ALMOST CERTAINLY A MISTAKE. ALL OF THESE
+  FILES WILL RECEIVE THE SAME DOWNLOADED ARCHIVE.`
+
+Both only warn — the download is deduplicated either way. A project
+whose snapshot already verifies against one of the hashes its archive
+was listed with needs no download at all. Each attempt is announced
+(`projeny: downloading '<archive>' from '<url>'`), a verified one
+reports `downloaded '<archive>' (<N> bytes); blake3 hash verified`, and
+a failing batch announces `retrying <k> failed download(s): <names>`
+before the retry pass. The whole batch shares ONE combined progress line
+(`projeny: download progress: <e1> <e2> ...`, redrawn in place like the
+single-project line): one single-token entry per package the pass has
+announced so far, in first-announcement order — entry N is the Nth
+announcement, and the roster only ever grows, a completed transfer staying
+listed at `100%`. An entry is the transfer's whole-percent (`N%`) when its
+total size is known, otherwise the bytes received so far in compact units
+(`0B`, `65535B`, `37KiB`, `1.2MiB`) — never `?`. Renders are throttled: at
+most one per scheduler iteration, only after at least 200ms, and only when
+some entry's rendered text changed. Each
+download round closes with one deterministic final progress line listing
+every package it announced — `100%` per transferred package, `0B` for one
+that never finished one — on its own line. The per-project phase of a
+parallel command stays silent about snapshots: a `using existing
+snapshot` note belongs to single-project runs only, since in parallel
+mode the batch phase has already said what it downloaded (the
+single-project download keeps its own progress form, see
+[`.projeny` format](#projeny-format)).
+
+`projeny download <url> <hash> [<url> <hash>...]` runs any number of
+URL/hash pairs through the same machinery and writes each verified
+download into the current directory, named after the URL's basename
+(`https://foo.dev/foo-1.2.3.tar.gz` is saved as `foo-1.2.3.tar.gz`).
+The hashes are the same 64-hex-char blake3 values a `URL:` header wants
+(`projeny hash <file>` computes them; uppercase hex is accepted). A file
+already present with a matching hash is kept instead of re-downloaded
+(`already have <name> (blake3 hash verified)`); a verified download
+reports `wrote <name> (<N> bytes)`. Pairs sharing an archive basename
+deduplicate exactly like the setup batch above (exact duplicate URL/hash
+pairs collapse silently), and any failure — after every other package
+finished — exits nonzero.
+
+## Erasing a setup
+
+`projeny erase-setup <f.projeny|dir> [...]` deletes what a `setup` created
+for each named project, in parallel (at most `-j/--jobs` threads, default
+the CPU count; options may appear anywhere among the arguments). This is
+DESTRUCTIVE and cannot be undone — the checkout is discarded whole,
+uncommitted changes included. Without `--force`, erase-setup refuses to
+erase anything when a project's `status` reports changes a commit would
+fold in (see
+[The no-force check](#the-no-force-check-uncommitted-changes-are-protected-by-default)
+below); with `--force` it erases unconditionally:
+
+- the checkout directory — the workdir named by the `Name:` header, e.g.
+  `lua/` for `lua.projeny` — removed recursively, exactly like
+  `rm -rf lua/` (note the project argument's stem is irrelevant: a
+  `weird.projeny` whose header says `Name: realname` erases `realname/`),
+- the status file `.<f>.projeny.status`, plus the legacy undotted
+  `<f>.projeny.status` when it exists (both names, so nothing survives
+  under either form),
+- the crash-recovery setup journal `<f>.projeny.setup-journal`, deleted
+  silently (it is not worth a warning when absent, and leaving it would
+  make the next `setup` run crash recovery against a checkout that no
+  longer exists).
+
+The `.projeny` file itself, the checked-in `Archive:` tarball, and
+everything else next to them are left alone. With `--erase-snapshots`, the
+`.<archive>.snapshot` file the next setup would pick up is deleted too —
+for a URL:-based project the snapshot named after the first URL's
+basename, for a classic project the snapshot of the `Archive:` tarball,
+plus the legacy undotted `<Archive>.snapshot` form (setup would otherwise
+migrate it back into use). ONLY that exact snapshot goes: a similarly
+named snapshot for a different version (the `.<old-archive>.snapshot` a
+rebase left behind, say) survives, and the checked-in tarball is never
+touched. The next `setup` then re-downloads (URL: projects) or unpacks
+from the checked-in tarball (Archive: projects).
+
+Missing things are not errors: a checkout that is already gone or a status
+file that does not exist only prints a warning (`'<path>' did not exist;
+nothing to erase`) and counts as success, so erasing twice is harmless.
+Anything that cannot be deleted prints an error naming the path (with the
+errno detail) and fails that project — but erase-setup still tries to
+finish the rest of that project's deletions and the other projects': a
+failed run ends with the usual one-line summary
+(`projeny: 1 of 2 erase-setup(s) failed: f.projeny`) and exit status 1
+after everything else finished. Each successful project reports one line
+naming what it erased (`erased setup state for 'lua' (checkout 'lua',
+status '.lua.projeny.status'[, snapshot '.lua-5.4.7.tar.bz2.snapshot'])`);
+a project with nothing left reports `nothing to erase for '<Name>'`.
+
+The `.projeny` file must be readable and parseable — it names what would
+be deleted — so a missing, garbage, or git-conflicted file fails its own
+project without anything being erased for it. With `--force` the other
+projects still erase; without it, the whole invocation refuses before
+erasing anything (see below). Naming one project twice collapses into a
+single erase with a warning
+(`'a.projeny' is listed more than once; erasing it only once`), keyed on
+the resolved `.projeny` path like every parallel command. There is no
+`-c/--curl-jobs` for erase-setup: it never downloads anything, so that
+spelling is rejected as an unknown option.
+
+### The no-force check: uncommitted changes are protected by default
+
+By itself (without `--force`), erase-setup refuses to erase anything until
+every named project has passed a check: in parallel (subject to
+`-j/--jobs`), each project is asked whether a commit would have anything
+to do — that is, whether `projeny status` reports anything other than
+untracked files. Any `Conflict:`, `Added:`, `Removed:`, `Renamed:`,
+`Modified:`, or `Disappeared:` entry makes the project dirty; untracked
+files alone do not (they are not changes a commit would fold in, and they
+go with the checkout as they always have).
+
+If ANY project is dirty, the whole invocation refuses with one error and
+exit status 1, and NOTHING is erased — not even the clean projects' setup
+state:
+
+```
+projeny: error: refusing to erase 1 of 2 project(s) with uncommitted changes (use --force to erase anyway)
+  'lua.projeny': modified: 'src/luaconf.h'; added: 'notes.txt'
+```
+
+The check is all-or-nothing across the invocation, and each dirty project
+is named in argument order with its changes in status's own vocabulary.
+A project whose state cannot even be assessed refuses the whole
+invocation the same way: a missing, garbage, or git-conflicted `.projeny`
+file (`cannot check 1 of 2 project(s) for uncommitted changes; refusing
+to erase anything (use --force to erase anyway)`), a status file that
+cannot be read or parsed, or a checkout whose archive and its snapshot
+are both missing or unusable — the live diff that would compare the
+checkout against the recorded tree cannot run, and a project that cannot
+be checked is never assumed clean, so even a checkout that happens to be
+clean refuses (erase-setup cannot know it is clean; `--force` is the
+override). A checkout directory that is already gone — or a project with
+no status file — is clean by definition: there is nothing there to
+destroy, so it erases normally (with the usual did-not-exist warnings),
+and the check never renames anything to `.stale` behind the user's back.
+
+`--force` skips the check entirely and restores the unconditional
+erasure: every named project is erased no matter what its status reports
+— the escape hatch for deliberately discarding uncommitted work. It
+combines freely with `--erase-snapshots`.
+
 ## File naming and migration
 
 Two bookkeeping files live next to the tracked files, and both are hidden
@@ -225,7 +695,8 @@ checkins:
 - `.<f>.projeny.status` — the status file for `f.projeny` (e.g.
   `.lua.projeny.status`), and
 - `.<Archive>.snapshot` — the snapshot copy of an archive (e.g.
-  `.lua-5.4.7.tar.bz2.snapshot`).
+  `.lua-5.4.7.tar.bz2.snapshot`). For a URL:-based project the same name
+  (derived from the URL's basename) holds the verified download.
 
 Older projenies wrote the undotted forms (`f.projeny.status` and
 `<Archive>.snapshot`). Both forms keep working: on first use — by any
@@ -312,7 +783,19 @@ tree — only pending removals and pending rename sources are re-applied as
 deletions. Timestamps from the tarball are preserved end to end: files the
 patch never touches keep their archive mtimes through `setup`, `package`,
 and `extract` (so builds like libffi's skip up-to-date steps, e.g. `doc`),
-while files rewritten by patch application get fresh timestamps.
+while files rewritten by patch application get fresh timestamps — except
+files with a [frozen mtime](#frozen-mtimes), which are re-stamped to the
+archive's mtime after every setup.
+
+libcurl is the only external library linked into the binary (never invoked
+as a subprocess): it (the `curl_easy` API) downloads the tarball of a
+URL:-based project, and it must be installed with its dev package
+(`libcurl4-openssl-dev` on Debian/Ubuntu; linked with `-lcurl`). blake3
+(the `blake3_hasher` API) verifies downloads and backs `projeny hash`; it
+is vendored as plain portable C in `src/blake3/` (upstream 1.8.7 files,
+SIMD disabled, CC0-licensed — see `src/blake3/LICENSE_CC0` and
+`src/blake3/README`) and compiled in by the Makefile, so no blake3 package
+is needed.
 
 ## Build and test
 
@@ -322,12 +805,14 @@ make test           # builds (if needed) and runs tests/run_tests.sh
 make clean          # removes the binary and all .o/.d files
 ```
 
-The Makefile supports `CXX`/`CC` overrides and generates header
-dependencies (`-MMD -MP`) so parallel builds work. The code is warning-free
-with `-Wall -Wextra` under both system `g++` and the Fil-C compiler:
+The Makefile honors `CC` and `CXX` overrides (the projeny sources are C++
+and the vendored blake3 is C; build_projeny.sh passes both spellings) and
+generates header dependencies (`-MMD -MP`) so parallel builds work. The
+code is warning-free with `-Wall -Wextra` under both system `g++`/`cc` and
+the Fil-C compiler:
 
 ```
-make clean && make CXX=$(pwd)/../../build/bin/clang++ -j$(nproc) && make test
+make clean && make CC=$(pwd)/../../build/bin/clang CXX=$(pwd)/../../build/bin/clang++ -j$(nproc) && make test
 ```
 
 Builds can also be out-of-tree. Pass `BUILD_DIR=<dir>` to `make` and all
@@ -341,12 +826,14 @@ Fil-C's build scripts use `BUILD_DIR=build-yolo` for the yolo build
 
 ## Testing with the Fil-C compiler
 
-After `./build_all_fast.sh`, `build/bin/clang++` exists at the repo root.
-Build and test projeny with it (absolute `CXX` path, from this directory):
+After `./build_all_fast.sh`, `build/bin/clang` and `build/bin/clang++`
+exist at the repo root. Build and test projeny with them (absolute `CC`
+and `CXX` paths, from this directory — both are needed, since the vendored
+blake3 is C and the rest is C++):
 
 ```
 make clean BUILD_DIR=build-filc
-make CXX=/path/to/fil-c/build/bin/clang++ BUILD_DIR=build-filc -j$(nproc)
+make CC=/path/to/fil-c/build/bin/clang CXX=/path/to/fil-c/build/bin/clang++ BUILD_DIR=build-filc -j$(nproc)
 make test BUILD_DIR=build-filc
 make clean BUILD_DIR=build-filc
 ```

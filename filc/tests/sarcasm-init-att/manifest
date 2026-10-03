@@ -4,3 +4,9 @@ only-on-platform:
   x86_64
 output-includes:
   - "init att ok"
+
+# COSMO: `.section .init` chunks are glued into _init by the cosmo crt/ape.lds
+# machinery, which runs them before the Fil-C runtime is started; the annotated
+# Fil-C constructor calls in this test only work where the crt routes .init
+# through filc_defer_or_run_global_ctor (the musl flavor).
+unsupportedOnCOSMO: true

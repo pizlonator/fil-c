@@ -1,0 +1,114 @@
+/*-*- mode:c;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
+│ vi: set et ft=c ts=2 sts=2 sw=2 fenc=utf-8                               :vi │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright 2020 Justine Alexandra Roberts Tunney                              │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚─────────────────────────────────────────────────────────────────────────────*/
+#include "libc/assert.h"
+#include "libc/calls/calls.h"
+#include "libc/calls/internal.h"
+#include "libc/calls/state.internal.h"
+#include "libc/calls/struct/rlimit.h"
+#include "libc/calls/struct/sigset.internal.h"
+#include "libc/calls/syscall_support-nt.internal.h"
+#include "libc/errno.h"
+#include "libc/intrin/fds.h"
+#include "libc/intrin/weaken.h"
+#include "libc/nt/files.h"
+#include "libc/nt/runtime.h"
+#include "libc/runtime/zipos.internal.h"
+#include "libc/sock/internal.h"
+#include "libc/str/str.h"
+#include "libc/sysv/consts/o.h"
+#include "libc/sysv/errfuns.h"
+#include "libc/sysv/pib.h"
+
+// Implements dup(), dup2(), dup3(), and F_DUPFD for Windows.
+textwindows static int sys_dup_nt_impl(int oldfd, int newfd, int flags,
+                                       int start) {
+  int64_t handle;
+  unassert(!(flags & ~O_CLOEXEC));
+
+  // validate args
+  if (!__isfdopen(oldfd))
+    return ebadf();
+
+  __fds_lock();
+
+  // determine new fd
+  bool reserved = false;
+  if (newfd == -1) {
+    if ((newfd = __reservefd_unlocked(start)) == -1) {
+      __fds_unlock();
+      return -1;
+    }
+    reserved = true;
+  } else {
+    if (newfd >= ~__get_pib()->rlimit[RLIMIT_NOFILE].rlim_cur) {
+      __fds_unlock();
+      return emfile();
+    }
+    if (__ensurefds_unlocked(newfd) == -1) {
+      __fds_unlock();
+      return -1;
+    }
+  }
+
+  if (__isfdkind(oldfd, kFdZip)) {
+    handle = (intptr_t)_weaken(__zipos_keep)(
+        (struct ZiposHandle *)(intptr_t)__get_pib()->fds.p[oldfd].handle);
+  } else {
+    if (!DuplicateHandle(GetCurrentProcess(), __get_pib()->fds.p[oldfd].handle,
+                         GetCurrentProcess(), &handle, 0, true,
+                         kNtDuplicateSameAccess)) {
+      if (reserved)
+        __releasefd(newfd);
+      __fds_unlock();
+      return __winerr();
+    }
+  }
+
+  // close overwritten fd upon success
+  if (!reserved) {
+    if (__get_pib()->fds.p[newfd].kind) {
+      if (!__vforked || __get_pib()->fds.p[newfd].was_created_during_vfork) {
+        int e = errno;
+        close(newfd);  // needs fds mutex to be recursive :(
+        errno = e;
+      }
+    }
+  }
+
+  // track fd to file descriptors table
+  __get_pib()->fds.p[newfd] = __get_pib()->fds.p[oldfd];
+  __get_pib()->fds.p[newfd].handle = handle;
+  __get_pib()->fds.p[newfd].was_created_during_vfork = __vforked;
+  __cursor_ref(__get_pib()->fds.p[newfd].cursor);
+  if (flags & O_CLOEXEC) {
+    __get_pib()->fds.p[newfd].flags |= O_CLOEXEC;
+  } else {
+    __get_pib()->fds.p[newfd].flags &= ~O_CLOEXEC;
+  }
+  __fds_unlock();
+  return newfd;
+}
+
+textwindows int sys_dup_nt(int oldfd, int newfd, int flags, int start) {
+  int rc;
+  BLOCK_SIGNALS;
+  rc = sys_dup_nt_impl(oldfd, newfd, flags, start);
+  ALLOW_SIGNALS;
+  return rc;
+}

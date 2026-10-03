@@ -70,12 +70,14 @@ rm -rf pizfix
 ./configure_llvm.sh
 ./build_clang.sh
 
+KERNELINCLUDE=kernel-include-`uname -m`
+
 rm -rf pizfix/os-include
 mkdir -p pizfix/os-include
 pushd pizfix/os-include
-ln -s ../../optfil/kernel-include/linux .
-ln -s ../../optfil/kernel-include/asm .
-ln -s ../../optfil/kernel-include/asm-generic .
+ln -s ../../optfil/$KERNELINCLUDE/linux .
+ln -s ../../optfil/$KERNELINCLUDE/asm .
+ln -s ../../optfil/$KERNELINCLUDE/asm-generic .
 popd
 
 ./build_yolo_glibc.sh

@@ -126,7 +126,7 @@ static void deallocate_impl(void* ptr, size_t size)
 #ifdef _WIN32
     BOOL result;
 #endif
-    
+
     if (!size)
         return;
 

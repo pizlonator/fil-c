@@ -31,7 +31,6 @@ set -x
 
 test ! -d projects/pizfix
 
-./build_projeny.sh
 ./build_ffi.sh
 ./build_pkgconf.sh
 ./build_dash.sh
@@ -65,6 +64,9 @@ test ! -d projects/pizfix
 
 ./build_nghttp2.sh
 ./build_curl.sh
+# projeny links -lcurl -lblake3, so it must come after build_blake3.sh and
+# build_curl.sh (both of which are above).
+./build_projeny.sh
 ./build_openssh.sh
 ./build_mg.sh
 ./build_tcl.sh

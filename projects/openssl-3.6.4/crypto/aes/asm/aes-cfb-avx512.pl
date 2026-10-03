@@ -88,7 +88,7 @@ ossl_aes_cfb128_vaes_eligible: #! int()
 .cfi_startproc
     endbranch
 
-    mov OPENSSL_ia32cap_P+8(%rip),%ecx
+    mov OPENSSL_ia32cap_P+8(%rip),%ecx #! global ptr
     xor %eax,%eax
 
     # Check 3rd 32-bit word of OPENSSL_ia32cap_P for the feature bit(s):
@@ -98,7 +98,7 @@ ossl_aes_cfb128_vaes_eligible: #! int()
     cmp \$0x40030000,%ecx
     jne .Laes_cfb128_vaes_eligible_done
 
-    mov OPENSSL_ia32cap_P+12(%rip),%ecx
+    mov OPENSSL_ia32cap_P+12(%rip),%ecx #! global ptr
 
     # Check 4th 32-bit word of OPENSSL_ia32cap_P for the feature bit(s):
     # AVX512VAES (bit 9)
@@ -1005,18 +1005,15 @@ ___
 
 $code .= <<___;
 .globl     ossl_aes_cfb128_vaes_enc
-.type      ossl_aes_cfb128_vaes_enc,\@function,6
 .globl     ossl_aes_cfb128_vaes_dec
-.type      ossl_aes_cfb128_vaes_dec,\@function,6
 
 # Mock implementations of AES-CFB128 encryption/decryption
 # that always fail. Should not be executed under normal circumstances.
 
 ossl_aes_cfb128_vaes_enc: #! void(ptr,ptr,size_t,ptr,ptr,ptr)
+ossl_aes_cfb128_vaes_dec:
     .byte 0x0f,0x0b                # Undefined Instruction in the Intel architecture
-    ret
-ossl_aes_cfb128_vaes_dec: #! void(ptr,ptr,size_t,ptr,ptr,ptr)
-    .byte 0x0f,0x0b                # Undefined Instruction
+                                   # Raises the Invalid Opcode exception
     ret
 
 #################################################################

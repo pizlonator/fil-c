@@ -105,111 +105,8 @@ open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
 # input parameter block
 ($out,$inp,$len,$key,$counter)=("%rdi","%rsi","%rdx","%rcx","%r8");
 
-# SARCASM-only byte-tail emitter for the .Loop_tail* loops below. The
-# pristine `movzb (%rsp,$idx),...` tail loop indexes the frame with a
-# dynamic index, which sarcasm rejects (frame slots require static
-# offsets). Every tail consumes fewer than 64 bytes of a 64-byte
-# keystream block sitting at 0(%rsp) (exact-multiple lengths bypass the
-# tail via the je-guarded block paths above each loop), so consume the
-# block as sixteen static 4-byte windows held in a scratch word, bumping
-# the dead-after-tail inp (%rsi) / out (%rdi) pointers instead of indexing
-# them. Byte-equivalent to the pristine loop for every reachable tail
-# length. Windows are 4 bytes wide because GPR-only frame ranges are
-# virtualized per-offset: an 8-byte load straddling two 4-byte stores
-# would read a half-stale word, while a 4-byte load always lands inside a
-# single stored range. Ranges overlapping a 16-byte vector store are
-# materialized to real memory instead (so any width is sound there), but
-# the uniform 4-byte shape is sound in both homes. A movl needs only
-# 4-byte alignment: %rsp is 16-byte aligned and every window offset is a
-# multiple of 4, and sarcasm (like hardware) requires only natural
-# alignment for integer loads — the stricter vector-alignment rules do not
-# apply to these integer loads, misaligned or otherwise. $len_reg counts
-# down exactly like the pristine `dec $len`; $ctr_reg is the repurposed
-# pristine index register (re-initialized per window with `mov $4,...`, so
-# its entry value is irrelevant; after the tail it is dead — restored from
-# the fixed frame for the callee-saved %rbx case, otherwise never read
-# again). %eax is scratch in the pristine tail at every site, hence dead.
-# $done is the label the pristine loop falls through to (for most tails
-# the .Ldone* label itself; for the tails with post-loop clears a dedicated
-# label placed before them).
-# Liveness ($scratch, "ecx" or "edx"): the window scratch is exactly the
-# register the pristine tail at that site already clobbers — "edx" for
-# ChaCha20_ctr32 (whose pristine tail does `movzb (%rsp,%rbx),%edx`) and
-# "ecx" for the other eight tails (whose pristine tails do
-# `movzb (...),%ecx`). Both the pristine movzb-to-32-bit-dest and our movl
-# zero the upper 32 bits, so the clobber is a full 64-bit kill in both
-# versions: no 64-bit value in that register is live at any tail, by
-# construction. Concretely, %rcx's key-schedule pointer / offload base is
-# fully consumed once the keystream block is stored, and ctr32's %rdx
-# length is likewise consumed (the remaining length lives in %rbp there).
-# Canonicalize a tail register operand to its 64-bit base name ("r8d" ->
-# "r8", "ebx" -> "rbx", "rbp" -> "rbp"), for the scratch-liveness check in
-# chacha_tail_sarcasm below. Covers exactly the operand shapes the nine
-# call sites use; anything else passes through unchanged (never equal to
-# "rcx"/"rdx" by accident — unknown spellings fail the check loudly only
-# if they alias the scratch, otherwise they pass).
-sub _chacha_r64 {
-  my ($r) = @_;
-  $r =~ s/^%//;
-  return "r$1" if $r =~ /^r(\d+)[d]?$/;
-  return "rbp" if $r eq "ebp" or $r eq "rbp";
-  return "rbx" if $r eq "ebx" or $r eq "rbx";
-  return "rcx" if $r eq "ecx" or $r eq "rcx";
-  return "rdx" if $r eq "edx" or $r eq "rdx";
-  return "rax" if $r eq "eax" or $r eq "rax";
-  return "rsi" if $r eq "esi" or $r eq "rsi";
-  return "rdi" if $r eq "edi" or $r eq "rdi";
-  return $r;
-}
-
-sub chacha_tail_sarcasm {
-  my ($tag, $done, $len_reg, $ctr_reg, $scratch) = @_;
-  $scratch = "ecx" unless defined $scratch;
-  die "chacha_tail_sarcasm($tag): scratch must be ecx or edx (got '$scratch')"
-    unless $scratch eq "ecx" or $scratch eq "edx";
-  # Liveness ($scratch dead at every tail entry) enforced IN CODE, not
-  # merely "by construction": $len_reg and $ctr_reg count down across the
-  # tail (dec $len_reg / dec $ctr_reg every byte with jz/jnz exits), so
-  # both are live at every tail entry by definition — a scratch aliasing
-  # either would silently destroy the length or the window counter (and a
-  # live 64-bit value in the scratch would lose its upper 32 to the movl's
-  # zero-extension). Die at generation time instead of emitting the
-  # miscompile. The remaining half (the key pointer in %rcx / the ctr32
-  # length in %rdx being fully consumed before the tail) is a property of
-  # the code BEFORE each call site, so it stays a documented audit cite
-  # (see below) pinned by filc/tests/sarcasm-reject-chacha-scratch-live-att
-  # (a live 64-bit value clobbered tail-style then used must fail) and by
-  # the real-vector runs in filc/tests/sarcasm-chacha-vec-att.
-  my $s64want = $scratch eq "edx" ? "rdx" : "rcx";
-  for my $live ($len_reg, $ctr_reg) {
-    if (_chacha_r64($live) eq $s64want) {
-      die "chacha_tail_sarcasm($tag): scratch \%$scratch aliases live $live";
-    }
-  }
-  my ($s32, $s64, $s8);
-  if ($scratch eq "edx") {
-    ($s32, $s64, $s8) = ("%edx", "%rdx", "%dl");
-  } else {
-    ($s32, $s64, $s8) = ("%ecx", "%rcx", "%cl");
-  }
-  my $s = "";
-  for (my $off = 0; $off < 64; $off += 4) {
-    $s .= "\tmovl\t$off(%rsp),$s32\n";
-    $s .= "\tmov\t\$4,$ctr_reg\n";
-    $s .= ".Ltail_sarc_${tag}_${off}:\n";
-    $s .= "\tmovzb\t(%rsi),%eax\n";
-    $s .= "\txor\t$s8,%al\n";
-    $s .= "\tmov\t%al,(%rdi)\n";
-    $s .= "\tshr\t\$8,$s64\n";
-    $s .= "\tlea\t1(%rsi),%rsi\n";
-    $s .= "\tlea\t1(%rdi),%rdi\n";
-    $s .= "\tdec\t$len_reg\n";
-    $s .= "\tjz\t$done\n";
-    $s .= "\tdec\t$ctr_reg\n";
-    $s .= "\tjnz\t.Ltail_sarc_${tag}_${off}\n";
-  }
-  return $s;
-}
+# Each tail loop reads its 64-byte keystream block straight off the stack;
+# the `#! stack buffer` annotations on the tail loads declare those areas.
 
 $code.=<<___;
 .text
@@ -373,11 +270,7 @@ ChaCha20_ctr32: #! void(ptr,ptr,size_t,ptr,ptr)
 .cfi_startproc
 	cmp	\$0,$len
 	je	.Lno_data
-___
-# GPR scalar loads need only hardware-required alignment, so the pristine
-# 8-byte capability-word load serves both modes.
-$code.=<<___;
-	mov	OPENSSL_ia32cap_P+4(%rip),%r10
+	mov	OPENSSL_ia32cap_P+4(%rip),%r10 #! global ptr
 ___
 $code.=<<___	if ($avx>2);
 	bt	\$48,%r10		# check for AVX512F
@@ -565,23 +458,14 @@ $code.=<<___;
 	mov	@x[15],4*15(%rsp)
 
 .Loop_tail:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm): %rbp counts down.
-  # Scratch is %edx, matching the pristine ctr32 tail's own %edx clobber.
-  $code .= chacha_tail_sarcasm("ctr32", ".Ldone", "%rbp", "%ebx", "edx");
-} else {
-$code.=<<___;
 	movzb	($inp,%rbx),%eax
-	movzb	(%rsp,%rbx),%edx
+	movzb	(%rsp,%rbx),%edx #! stack buffer (ks_ctr32, %rsp, %rsp + 64)
 	lea	1(%rbx),%rbx
 	xor	%edx,%eax
 	mov	%al,-1($out,%rbx)
 	dec	%rbp
 	jnz	.Loop_tail
-___
-}
-$code.=<<___;
+
 .Ldone:
 ___
 if ($ENV{SARCASM}) {
@@ -757,22 +641,14 @@ $code.=<<___;
 	xor	$counter,$counter
 
 .Loop_tail_ssse3:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm).
-  $code .= chacha_tail_sarcasm("ssse3", ".Ldone_ssse3", $len, "%r8d", "ecx");
-} else {
-$code.=<<___;
 	movzb	($inp,$counter),%eax
-	movzb	(%rsp,$counter),%ecx
+	movzb	(%rsp,$counter),%ecx #! stack buffer (ks_ssse3, %rsp, %rsp + 64)
 	lea	1($counter),$counter
 	xor	%ecx,%eax
 	mov	%al,-1($out,$counter)
 	dec	$len
 	jnz	.Loop_tail_ssse3
-___
-}
-$code.=<<___;
+
 .Ldone_ssse3:
 ___
 $code.=<<___	if ($win64);
@@ -1096,8 +972,6 @@ ChaCha20_4x: #! void(ptr,ptr,size_t,ptr,ptr)
 .LChaCha20_4x:
 	mov		%rsp,%r9		# frame pointer
 .cfi_def_cfa_register	%r9
-___
-$code.=<<___;
 	mov		%r10,%r11
 ___
 $code.=<<___	if ($avx>1);
@@ -1513,22 +1387,14 @@ $code.=<<___;
 	movdqa		$xd3,0x30(%rsp)
 
 .Loop_tail4x:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm).
-  $code .= chacha_tail_sarcasm("4x", ".Ldone4x", $len, "%r10d", "ecx");
-} else {
-$code.=<<___;
 	movzb		($inp,%r10),%eax
-	movzb		(%rsp,%r10),%ecx
+	movzb		(%rsp,%r10),%ecx #! stack buffer (ks_4x, %rsp, %rsp + 64)
 	lea		1(%r10),%r10
 	xor		%ecx,%eax
 	mov		%al,-1($out,%r10)
 	dec		$len
 	jnz		.Loop_tail4x
-___
-}
-$code.=<<___;
+
 .Ldone4x:
 ___
 $code.=<<___	if ($win64);
@@ -1976,22 +1842,14 @@ $code.=<<___;
 	vmovdqa		$xd3,0x30(%rsp)
 
 .Loop_tail4xop:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm).
-  $code .= chacha_tail_sarcasm("4xop", ".Ldone4xop", $len, "%r10d", "ecx");
-} else {
-$code.=<<___;
 	movzb		($inp,%r10),%eax
-	movzb		(%rsp,%r10),%ecx
+	movzb		(%rsp,%r10),%ecx #! stack buffer (ks_4xop, %rsp, %rsp + 64)
 	lea		1(%r10),%r10
 	xor		%ecx,%eax
 	mov		%al,-1($out,%r10)
 	dec		$len
 	jnz		.Loop_tail4xop
-___
-}
-$code.=<<___;
+
 .Ldone4xop:
 	vzeroupper
 ___
@@ -2629,22 +2487,14 @@ $code.=<<___;
 	vmovdqa		$xd3,0x20(%rsp)
 
 .Loop_tail8x:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm).
-  $code .= chacha_tail_sarcasm("8x", ".Ldone8x", $len, "%r10d", "ecx");
-} else {
-$code.=<<___;
 	movzb		($inp,%r10),%eax
-	movzb		(%rsp,%r10),%ecx
+	movzb		(%rsp,%r10),%ecx #! stack buffer (ks_8x, %rsp, %rsp + 64)
 	lea		1(%r10),%r10
 	xor		%ecx,%eax
 	mov		%al,-1($out,%r10)
 	dec		$len
 	jnz		.Loop_tail8x
-___
-}
-$code.=<<___;
+
 .Ldone8x:
 	vzeroall
 ___
@@ -2887,24 +2737,14 @@ $code.=<<___;
 	add		\$64,$len
 
 .Loop_tail_avx512:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm); exits rejoin before
-  # the post-loop state restore below.
-  $code .= chacha_tail_sarcasm("avx512", ".Ltail_avx512_sarcdone", $len, "%r8d", "ecx");
-  $code .= ".Ltail_avx512_sarcdone:\n";
-} else {
-$code.=<<___;
 	movzb		($inp,$counter),%eax
-	movzb		(%rsp,$counter),%ecx
+	movzb		(%rsp,$counter),%ecx #! stack buffer (ks_avx512, %rsp, %rsp + 64)
 	lea		1($counter),$counter
 	xor		%ecx,%eax
 	mov		%al,-1($out,$counter)
 	dec		$len
 	jnz		.Loop_tail_avx512
-___
-}
-$code.=<<___;
+
 	vmovdqu32	$a_,0x00(%rsp)
 
 .Ldone_avx512:
@@ -3065,24 +2905,14 @@ $code.=<<___;
 	add		\$64,$len
 
 .Loop_tail_avx512vl:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm); exits rejoin before
-  # the post-loop state restore below.
-  $code .= chacha_tail_sarcasm("avx512vl", ".Ltail_avx512vl_sarcdone", $len, "%r8d", "ecx");
-  $code .= ".Ltail_avx512vl_sarcdone:\n";
-} else {
-$code.=<<___;
 	movzb		($inp,$counter),%eax
-	movzb		(%rsp,$counter),%ecx
+	movzb		(%rsp,$counter),%ecx #! stack buffer (ks_avx512vl, %rsp, %rsp + 64)
 	lea		1($counter),$counter
 	xor		%ecx,%eax
 	mov		%al,-1($out,$counter)
 	dec		$len
 	jnz		.Loop_tail_avx512vl
-___
-}
-$code.=<<___;
+
 	vmovdqu32	$a_,0x00(%rsp)
 	vmovdqu32	$a_,0x20(%rsp)
 
@@ -3581,24 +3411,14 @@ $code.=<<___;
 	and		\$63,$len
 
 .Loop_tail16x:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm); exits rejoin before
-  # the post-loop state clear below.
-  $code .= chacha_tail_sarcasm("16x", ".Ltail_16x_sarcdone", $len, "%r10d", "ecx");
-  $code .= ".Ltail_16x_sarcdone:\n";
-} else {
-$code.=<<___;
 	movzb		($inp,%r10),%eax
-	movzb		(%rsp,%r10),%ecx
+	movzb		(%rsp,%r10),%ecx #! stack buffer (ks_16x, %rsp, %rsp + 64)
 	lea		1(%r10),%r10
 	xor		%ecx,%eax
 	mov		%al,-1($out,%r10)
 	dec		$len
 	jnz		.Loop_tail16x
-___
-}
-$code.=<<___;
+
 	vpxord		$xa0,$xa0,$xa0
 	vmovdqa32	$xa0,0(%rsp)
 
@@ -3980,24 +3800,14 @@ $code.=<<___;
 	and		\$63,$len
 
 .Loop_tail8xvl:
-___
-if ($ENV{SARCASM}) {
-  # Static-window tail (see chacha_tail_sarcasm); exits rejoin before
-  # the post-loop state clear below.
-  $code .= chacha_tail_sarcasm("8xvl", ".Ltail_8xvl_sarcdone", $len, "%r10d", "ecx");
-  $code .= ".Ltail_8xvl_sarcdone:\n";
-} else {
-$code.=<<___;
 	movzb		($inp,%r10),%eax
-	movzb		(%rsp,%r10),%ecx
+	movzb		(%rsp,%r10),%ecx #! stack buffer (ks_8xvl, %rsp, %rsp + 64)
 	lea		1(%r10),%r10
 	xor		%ecx,%eax
 	mov		%al,-1($out,%r10)
 	dec		$len
 	jnz		.Loop_tail8xvl
-___
-}
-$code.=<<___;
+
 	vpxor		$xa0,$xa0,$xa0
 	vmovdqa		$xa0,0x00(%rsp)
 	vmovdqa		$xa0,0x20(%rsp)
@@ -4280,19 +4090,6 @@ foreach (split("\n",$code)) {
 	s/\`([^\`]*)\`/eval $1/ge;
 
 	s/%x#%[yz]/%x/g;	# "down-shift"
-
-  # SARCASM-only: the 4x/4xop/8x bodies address the frame through
-  # offload bases (%rcx = %rsp+0x100, %rax = %rsp+0x200, a size
-  # optimization for shorter encodings), but taking the frame's
-  # address is rejected, so use plain %rsp-relative accesses instead
-  # (address-preserving: D-0x100(%rcx) == D(%rsp)). Applied here so
-  # the bodies above stay untouched for the gas path.
-  if ($ENV{SARCASM}) {
-    s/-0x100\(%rcx\)/(%rsp)/g;
-    s/-0x200\(%rax\)/(%rsp)/g;
-    next if (/^\tlea\t\t0x100\(%rsp\),%rcx\t# size optimization$/);
-    next if (/^\tlea\t\t0x200\(%rsp\),%rax\t# size optimization$/);
-  }
 
 	print $_,"\n";
 }

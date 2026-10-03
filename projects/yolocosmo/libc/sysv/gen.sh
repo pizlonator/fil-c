@@ -1,0 +1,82 @@
+/*bin/echo   ' -*- mode:sh; indent-tabs-mode:nil; tab-width:8; coding:utf-8 -*-│
+│ vi: set et ft=sh ts=8 sts=2 sw=2 fenc=utf-8                              :vi │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright 2020 Justine Alexandra Roberts Tunney                              │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚────────────────────────────────────────────────────────────────'>/dev/null #*/
+mkdir -p $dir
+rm -f $dir/*.s $dir/*.S
+
+IFS=","
+
+if [ x"$(((0x8d18fc8d128e6807 & 0x7ff000) >> 12))" != x230 ]; then
+  echo "error: $SHELL does not support bitwise expressions" >&2
+  exit 1
+fi
+
+scall() {
+  {
+    name=$1
+    amd=$2
+    arm_linux=$(($3 + 0))
+    arm_xnu=$((($amd & 0xfff000) >> 12))
+    arm_freebsd=$((($amd & 0x000000fff0000000) >> 28))
+    if [ $arm_xnu != 4095 ]; then
+      arm_xnu=$(($arm_xnu & 0xfff))
+    fi
+    shift 3
+    set -- "$name" "$amd" "$arm_linux" "$arm_xnu" "$arm_freebsd" "$*"
+    echo "#include \"libc/sysv/macros.internal.h\""
+    echo ".scall" "$*"
+  } >"$dir/${1/$/-}.S"
+}
+
+syscon() {
+  {
+    echo "#include \"libc/sysv/consts/syscon.internal.h\""
+    echo ".syscon" "$*"
+  } >"$dir/${2/$/-}.S"
+}
+
+sysstr() {
+  {
+    echo "#include \"libc/sysv/macros.internal.h\""
+    echo ".sysstr $1 \"$2\""
+  } >"$dir/${1/$/-}.S"
+}
+
+errfun() {
+  NAME="$1"
+  ERRNO="$2"
+  {
+    printf '#include "libc/errno.h"\n'
+    printf '#include "libc/macros.h"\n.text.unlikely\n\n'
+    printf '\t.ftrace1\n'
+    printf '%s:\n' "$NAME"
+    printf '\t.ftrace2\n'
+    printf '#ifdef __x86_64__
+	push	$%s
+	pop	%%rdi
+	jmp	__errfun
+#elif defined(__aarch64__)
+	mov	x0,#%s
+	b	__errfun
+#else
+#error "unsupported architecture"
+#endif
+	.endfn	%s,globl,hidden
+' "$ERRNO" "$ERRNO" "$NAME"
+  } >"$dir/${1/$/-}.S"
+}

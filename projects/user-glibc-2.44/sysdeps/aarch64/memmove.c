@@ -1,1 +1,0 @@
-/* memmove is part of memcpy.S.  */

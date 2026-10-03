@@ -127,7 +127,7 @@ ___
 $code.=<<___ if ($avx);
 	cmp	\$2,$num
 	jb	.Lenc_non_avx
-	mov	OPENSSL_ia32cap_P+4(%rip),%ecx
+	mov	OPENSSL_ia32cap_P+4(%rip),%ecx #! global ptr
 	test	\$`1<<28`,%ecx			# AVX bit
 	jnz	_avx_cbc_enc_shortcut
 	jmp	.Lenc_non_avx
@@ -171,17 +171,7 @@ $code.=<<___;
 	# +32	counters
 
 	sub	\$48,%rsp
-___
-if ($ENV{SARCASM}) {
-  $code.=<<___;
-	# sarcasm: plain sub frame above (slots virtualized; no re-alignment).
-___
-} else {
-  $code.=<<___;
 	and	\$-64,%rsp
-___
-}
-$code.=<<___;
 	mov	%rax,16(%rsp)			# original %rsp
 .cfi_cfa_expression	%rsp+16,deref,+8
 
@@ -405,56 +395,16 @@ $code.=<<___ if ($win64);
 	#movaps	-0x58(%rax),%xmm14
 	#movaps	-0x48(%rax),%xmm15
 ___
-$code.=<<___;
-___
 if ($ENV{SARCASM}) {
-  # %rax is reused ($rounds lives in %eax), so saves cannot be recovered
-  # through it; reload straight from frame slots (precedent:
-  # aes-x86_64.pl .Lcbc_exit) and drop the frame with one add.
-  if ($win64) {
-    $code.=<<___;
-	movaps	48(%rsp),%xmm6
-	movaps	64(%rsp),%xmm7
-	movaps	80(%rsp),%xmm8
-	movaps	96(%rsp),%xmm9
-	movaps	112(%rsp),%xmm10
-	movaps	128(%rsp),%xmm11
-	movaps	144(%rsp),%xmm12
-	mov	216(%rsp),%r15
-.cfi_restore	%r15
-	mov	224(%rsp),%r14
-.cfi_restore	%r14
-	mov	232(%rsp),%r13
-.cfi_restore	%r13
-	mov	240(%rsp),%r12
-.cfi_restore	%r12
-	mov	248(%rsp),%rbp
-.cfi_restore	%rbp
-	mov	256(%rsp),%rbx
-.cfi_restore	%rbx
-	add	\$0x108,%rsp
-.cfi_adjust_cfa_offset	-264
-___
-  } else {
-    $code.=<<___;
-	mov	48(%rsp),%r15
-.cfi_restore	%r15
-	mov	56(%rsp),%r14
-.cfi_restore	%r14
-	mov	64(%rsp),%r13
-.cfi_restore	%r13
-	mov	72(%rsp),%r12
-.cfi_restore	%r12
-	mov	80(%rsp),%rbp
-.cfi_restore	%rbp
-	mov	88(%rsp),%rbx
-.cfi_restore	%rbx
-	add	\$0x60,%rsp
-.cfi_adjust_cfa_offset	-96
-___
-  }
-} else {
+  # SARCASM-linux reloads the saved stack pointer first: the body reused
+  # %rax (it holds $rounds, not the saved rsp), so the carrier must be
+  # re-materialized from its slot before the restores below can read through
+  # it. (Gas skips the reload: %rax still holds the saved rsp on its paths.)
   $code.=<<___;
+	mov	16(%rsp),%rax			# original %rsp
+___
+}
+$code.=<<___;
 	mov	-48(%rax),%r15
 .cfi_restore	%r15
 	mov	-40(%rax),%r14
@@ -468,9 +418,6 @@ ___
 	mov	-8(%rax),%rbx
 .cfi_restore	%rbx
 	lea	(%rax),%rsp
-___
-}
-$code.=<<___;
 .cfi_def_cfa_register	%rsp
 .Lenc4x_epilogue:
 	ret
@@ -486,7 +433,7 @@ ___
 $code.=<<___ if ($avx);
 	cmp	\$2,$num
 	jb	.Ldec_non_avx
-	mov	OPENSSL_ia32cap_P+4(%rip),%ecx
+	mov	OPENSSL_ia32cap_P+4(%rip),%ecx #! global ptr
 	test	\$`1<<28`,%ecx			# AVX bit
 	jnz	_avx_cbc_dec_shortcut
 	jmp	.Ldec_non_avx
@@ -530,17 +477,7 @@ $code.=<<___;
 	# +32	counters
 
 	sub	\$48,%rsp
-___
-if ($ENV{SARCASM}) {
-  $code.=<<___;
-	# sarcasm: plain sub frame above (slots virtualized; no re-alignment).
-___
-} else {
-  $code.=<<___;
 	and	\$-64,%rsp
-___
-}
-$code.=<<___;
 	mov	%rax,16(%rsp)			# original %rsp
 .cfi_cfa_expression	%rsp+16,deref,+8
 
@@ -754,56 +691,16 @@ $code.=<<___ if ($win64);
 	#movaps	-0x58(%rax),%xmm14
 	#movaps	-0x48(%rax),%xmm15
 ___
-$code.=<<___;
-___
 if ($ENV{SARCASM}) {
-  # %rax is reused ($rounds lives in %eax), so saves cannot be recovered
-  # through it; reload straight from frame slots (precedent:
-  # aes-x86_64.pl .Lcbc_exit) and drop the frame with one add.
-  if ($win64) {
-    $code.=<<___;
-	movaps	48(%rsp),%xmm6
-	movaps	64(%rsp),%xmm7
-	movaps	80(%rsp),%xmm8
-	movaps	96(%rsp),%xmm9
-	movaps	112(%rsp),%xmm10
-	movaps	128(%rsp),%xmm11
-	movaps	144(%rsp),%xmm12
-	mov	216(%rsp),%r15
-.cfi_restore	%r15
-	mov	224(%rsp),%r14
-.cfi_restore	%r14
-	mov	232(%rsp),%r13
-.cfi_restore	%r13
-	mov	240(%rsp),%r12
-.cfi_restore	%r12
-	mov	248(%rsp),%rbp
-.cfi_restore	%rbp
-	mov	256(%rsp),%rbx
-.cfi_restore	%rbx
-	add	\$0x108,%rsp
-.cfi_adjust_cfa_offset	-264
-___
-  } else {
-    $code.=<<___;
-	mov	48(%rsp),%r15
-.cfi_restore	%r15
-	mov	56(%rsp),%r14
-.cfi_restore	%r14
-	mov	64(%rsp),%r13
-.cfi_restore	%r13
-	mov	72(%rsp),%r12
-.cfi_restore	%r12
-	mov	80(%rsp),%rbp
-.cfi_restore	%rbp
-	mov	88(%rsp),%rbx
-.cfi_restore	%rbx
-	add	\$0x60,%rsp
-.cfi_adjust_cfa_offset	-96
-___
-  }
-} else {
+  # SARCASM-linux reloads the saved stack pointer first: the body reused
+  # %rax (it holds $rounds, not the saved rsp), so the carrier must be
+  # re-materialized from its slot before the restores below can read through
+  # it. (Gas skips the reload: %rax still holds the saved rsp on its paths.)
   $code.=<<___;
+	mov	16(%rsp),%rax			# original %rsp
+___
+}
+$code.=<<___;
 	mov	-48(%rax),%r15
 .cfi_restore	%r15
 	mov	-40(%rax),%r14
@@ -817,9 +714,6 @@ ___
 	mov	-8(%rax),%rbx
 .cfi_restore	%rbx
 	lea	(%rax),%rsp
-___
-}
-$code.=<<___;
 .cfi_def_cfa_register	%rsp
 .Ldec4x_epilogue:
 	ret
@@ -834,12 +728,20 @@ my $offload=$sink;
 my @out=map("%xmm$_",(2..9));
 my @inp=map("%xmm$_",(10..13));
 my ($counters,$zero)=("%xmm14","%xmm15");
-# Sarcasm frame: under SARCASM the avx scratch frames below live in
-# 128/256-aligned GC '.alloca' buffers (gas keeps sub/and frames).
-my $FR = $ENV{SARCASM} ? "%fil_mbencframe" : "%rsp";
-sub FRm { my ($d,$b) = @_; $b = $ENV{SARCASM} ? $b : "%rsp"; return "`$d`($b)"; }
-
-
+# The 64+8*$i slots hold the OUTPUT pointers as capabilities (`store ptr`/
+# `load ptr`) and the output stores go through them directly.  The distance
+# scheme the plain mode uses (a sub/and frame keeping the input->output
+# distance in $offset, the output pointer rebuilt from the input
+# capability) capability-checks every output store against the input
+# object, so it is not available under SARCASM.  The frame slots survive
+# sarcasm's virtualized round-trips, so a capability stored into one comes
+# back intact.  Every teardown reloads the saved-rsp carrier
+# (`mov 16(%rsp),%rax`) because sarcasm drops the entry `mov %rsp,%rax`
+# save and the body clobbers %rax; `mov -K(%rax),%reg` restores the pushed
+# saves and `lea (%rax),%rsp` revives the entry rsp.  All 16B vector slots
+# stay 16-aligned on both paths (sarcasm materializes the FP-touched slot
+# ranges into 16-aligned areas of its synthesized frame; enc8x %rsp is
+# 128-aligned, dec8x %rsp%256==64).
 $code.=<<___;
 .type	aesni_multi_cbc_encrypt_avx,\@function,3
 .align	32
@@ -883,34 +785,9 @@ $code.=<<___;
 	# +64	distances between inputs and outputs
 	# +128	off-load area for @inp[0..3]
 
-___
-if ($ENV{SARCASM} && !$win64) {
-  # Sarcasm: the 192-byte scratch frame lives in a 128-aligned GC
-  # '.alloca' buffer (gas keeps the sub/and frame); slots spell via
-  # $FR, pushes stay on %rsp so the teardown only drops 48.
-  $code.=<<___;
-	.alloca	\$192,\$128,%fil_mbencframe
-___
-} else {
-  $code.=<<___;
 	sub	\$192,%rsp
-___
-  if (!$ENV{SARCASM}) {
-    $code.=<<___;
 	and	\$-128,%rsp
-___
-  }
-}
-if ($ENV{SARCASM}) {
-  $code.=<<___;
-	# sarcasm: plain sub frame above (slots virtualized; no re-alignment).
-___
-} else {
-  $code.=<<___;
 	mov	%rax,16(%rsp)			# original %rsp
-___
-}
-$code.=<<___;
 .cfi_cfa_expression	%rsp+16,deref,+8
 
 .Lenc8x_body:
@@ -940,28 +817,25 @@ for($i=0;$i<8;$i++) {
 	test	$one,$one
 	# load IV
 	vmovdqu	`$inp_elm_size*$i+2*$ptr_size+8-$inp_elm_size*4`($inp),@out[$i]
-	mov	$one,@{[FRm("32+4*$i","%fil_mbencframe")]}		# initialize counters
+	mov	$one,`32+4*$i`(%rsp)		# initialize counters
 ___
+  # The canceled input pointer becomes the sink object.  The sink pointer is
+  # materialized into a register that is dead here -- $sink while $i==0
+  # (%rbp is not claimed until the offload setup below) and $offset once
+  # $i>0 (the $i==0 store below already consumed the output pointer %rbx
+  # held) -- because $temp occupies the other register at each $i.  The
+  # cmov then selects between the input capability and the sink, and the
+  # output position is kept as a proper capability in the slot.
   if ($ENV{SARCASM}) {
-    # $cancel_src cannot survive the load-ptr of the output pointer
-    # above (same register): materialize sink at the assignment site.
+    my $tmp = $i ? $offset : $sink;
     $code.=<<___;
-	jg	.LkeepE$i
-	leaq	aesni_mb_sink(%rip),@ptr[$i]
-.LkeepE$i:
+	leaq	aesni_mb_sink(%rip),$tmp
+	cmovle	$tmp,@ptr[$i]			# cancel input
+	mov	$temp,`64+8*$i`(%rsp)		#! store ptr
 ___
   } else {
     $code.=<<___;
 	cmovle	%rsp,@ptr[$i]			# cancel input
-___
-  }
-  if ($ENV{SARCASM}) {
-    # output positions are kept as proper capabilities in the slots
-    $code.=<<___;
-	mov	$temp,@{[FRm("64+8*$i","%fil_mbencframe")]}		#! store ptr
-___
-  } else {
-    $code.=<<___;
 	sub	@ptr[$i],$temp			# distance between input and output
 	mov	$temp,`64+8*$i`(%rsp)		# initialize distances
 ___
@@ -977,18 +851,13 @@ $code.=<<___;
 
 	vpxor	(@ptr[0]),$zero,@inp[0]		# load inputs and xor with 0-round
 ___
-if ($ENV{SARCASM}) {
-  # SARCASM: frame takes are rejected; spill to a GC buffer instead.
-  # (Constant base here, so no toggle is needed.)
-  $code.=<<___;
-	.alloca	\$64,\$16,%fil_offe8
-	mov	%fil_offe8,$offload
-___
-} else {
-  $code.=<<___;
+	# The offload area is a declared stack buffer (%rsp+128..%rsp+192): the
+	# accesses below carry `#! stack buffer` annotations, so sarcasm lowers
+	# them into its synthesized frame with runtime bounds checks and the
+	# base lea stays a plain buffer-address value.
+$code.=<<___;
 	 lea	128(%rsp),$offload		# offload area
 ___
-}
 $code.=<<___;
 	vpxor	(@ptr[1]),$zero,@inp[1]
 	vpxor	(@ptr[2]),$zero,@inp[2]
@@ -1021,8 +890,8 @@ my $rndkey=($i&1)?$rndkey0:$rndkey1;
     # lea, which would make the output store use the *input* capability.
     $code.=<<___;
 	vaesenc		$rndkey,@out[0],@out[0]
-	 mov		64+8*$i($FR),$offset		#! load ptr
-	 cmp		32+4*$i($FR),$one
+	 mov		64+8*$i(%rsp),$offset		#! load ptr
+	 cmp		32+4*$i(%rsp),$one
 	vaesenc		$rndkey,@out[1],@out[1]
 	prefetcht0	31(@ptr[$i])			# prefetch input
 	vaesenc		$rndkey,@out[2],@out[2]
@@ -1041,32 +910,36 @@ ___
 .LcoutE$i:
 	vaesenc		$rndkey,@out[5],@out[5]
 	 vpxor		16(@ptr[$i]),$zero,@inp[$i%4]	# load input and xor with 0-round
-	 mov		$offset,64+8*$i($FR)		#! store ptr
+	 mov		$offset,64+8*$i(%rsp)		#! store ptr
 	vaesenc		$rndkey,@out[6],@out[6]
 	vaesenc		$rndkey,@out[7],@out[7]
 	vmovups		`16*(3+$i)-0x78`($key),$rndkey
 	 lea		16(@ptr[$i]),@ptr[$i]	# advance input
 ___
+    # All enc8x offload accesses sit in a B2-shared body, so every annotation
+    # is the long form (a clone's buffer window is private to its own frame
+    # context and cannot share a short form's file-wide range).
+    my $offe = " #! stack buffer (offe, %rsp + 128, %rsp + 192)";
     $code.=<<___ if ($i<4)
-	 vmovdqu	@inp[$i%4],`16*$i`($offload)	# off-load
+	 vmovdqu	@inp[$i%4],`16*$i`($offload)$offe	# off-load
 ___
   } else {
-    $code.=<<___;
+$code.=<<___;
 	vaesenc		$rndkey,@out[0],@out[0]
 	 cmp		32+4*$i(%rsp),$one
 ___
-    $code.=<<___ if ($i);
+$code.=<<___ if ($i);
 	 mov		64+8*$i(%rsp),$offset
 ___
-    $code.=<<___;
+$code.=<<___;
 	vaesenc		$rndkey,@out[1],@out[1]
 	prefetcht0	31(@ptr[$i])			# prefetch input
 	vaesenc		$rndkey,@out[2],@out[2]
 ___
-    $code.=<<___ if ($i>1);
+$code.=<<___ if ($i>1);
 	prefetcht0	15(@ptr[$i-2])			# prefetch output
 ___
-    $code.=<<___;
+$code.=<<___;
 	vaesenc		$rndkey,@out[3],@out[3]
 	 lea		(@ptr[$i],$offset),$offset
 	 cmovge		%rsp,@ptr[$i]			# cancel input
@@ -1081,13 +954,13 @@ ___
 	vmovups		`16*(3+$i)-0x78`($key),$rndkey
 	 lea		16(@ptr[$i],$offset),@ptr[$i]	# switch to output
 ___
-    $code.=<<___ if ($i<4)
+$code.=<<___ if ($i<4)
 	 vmovdqu	@inp[$i%4],`16*$i`($offload)	# off-load
 ___
   }
 }
 $code.=<<___;
-	 vmovdqu	32($FR),$counters
+	 vmovdqu	32(%rsp),$counters
 	prefetcht0	15(@ptr[$i-2])			# prefetch output
 	prefetcht0	15(@ptr[$i-1])
 	cmp	\$11,$rounds
@@ -1143,15 +1016,15 @@ $code.=<<___;
 	vaesenc		$rndkey1,@out[3],@out[3]
 	vaesenc		$rndkey1,@out[4],@out[4]
 	 vpaddd		$counters,$zero,$zero		# decrement counters
-	 vmovdqu	48($FR),$counters
+	 vmovdqu	48(%rsp),$counters
 	vaesenc		$rndkey1,@out[5],@out[5]
-	 mov		64($FR),$offset		#! load ptr		# pre-load 1st offset
+	 mov		64(%rsp),$offset		#! load ptr		# pre-load 1st offset
 	vaesenc		$rndkey1,@out[6],@out[6]
 	vaesenc		$rndkey1,@out[7],@out[7]
 	vmovups		0x10-0x78($key),$rndkey1
 
 	vaesenclast	$rndkey0,@out[0],@out[0]
-	 vmovdqa	$zero,32($FR)			# update counters
+	 vmovdqa	$zero,32(%rsp)			# update counters
 	 vpxor		$zero,$zero,$zero
 	vaesenclast	$rndkey0,@out[1],@out[1]
 	vaesenclast	$rndkey0,@out[2],@out[2]
@@ -1162,7 +1035,7 @@ $code.=<<___;
 	 vmovdqu	-0x78($key),$zero		# 0-round
 	vaesenclast	$rndkey0,@out[5],@out[5]
 	vaesenclast	$rndkey0,@out[6],@out[6]
-	 vmovdqa	$counters,48($FR)		# update counters
+	 vmovdqa	$counters,48(%rsp)		# update counters
 	vaesenclast	$rndkey0,@out[7],@out[7]
 	vmovups		0x20-0x78($key),$rndkey0
 
@@ -1172,42 +1045,42 @@ if ($ENV{SARCASM}) {
   $code.=<<___;
 	vmovups		@out[0],($offset)		# write output
 	 lea		16($offset),$offset
-	 mov		$offset,64($FR)		#! store ptr
-	 vpxor		0x00($offload),@out[0],@out[0]
-	mov		64+8($FR),$offset		#! load ptr
+	 mov		$offset,64(%rsp)		#! store ptr
+	 vpxor		0x00($offload),@out[0],@out[0]	#! stack buffer (offe, %rsp + 128, %rsp + 192)
+	mov		64+8(%rsp),$offset		#! load ptr
 	vmovups		@out[1],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+8($FR)		#! store ptr
-	 vpxor		0x10($offload),@out[1],@out[1]
-	mov		64+16($FR),$offset		#! load ptr
+	 mov		$offset,64+8(%rsp)		#! store ptr
+	 vpxor		0x10($offload),@out[1],@out[1]	#! stack buffer (offe, %rsp + 128, %rsp + 192)
+	mov		64+16(%rsp),$offset		#! load ptr
 	vmovups		@out[2],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+16($FR)		#! store ptr
-	 vpxor		0x20($offload),@out[2],@out[2]
-	mov		64+24($FR),$offset		#! load ptr
+	 mov		$offset,64+16(%rsp)		#! store ptr
+	 vpxor		0x20($offload),@out[2],@out[2]	#! stack buffer (offe, %rsp + 128, %rsp + 192)
+	mov		64+24(%rsp),$offset		#! load ptr
 	vmovups		@out[3],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+24($FR)		#! store ptr
-	 vpxor		0x30($offload),@out[3],@out[3]
-	mov		64+32($FR),$offset		#! load ptr
+	 mov		$offset,64+24(%rsp)		#! store ptr
+	 vpxor		0x30($offload),@out[3],@out[3]	#! stack buffer (offe, %rsp + 128, %rsp + 192)
+	mov		64+32(%rsp),$offset		#! load ptr
 	vmovups		@out[4],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+32($FR)		#! store ptr
+	 mov		$offset,64+32(%rsp)		#! store ptr
 	 vpxor		@inp[0],@out[4],@out[4]
-	mov		64+40($FR),$offset		#! load ptr
+	mov		64+40(%rsp),$offset		#! load ptr
 	vmovups		@out[5],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+40($FR)		#! store ptr
+	 mov		$offset,64+40(%rsp)		#! store ptr
 	 vpxor		@inp[1],@out[5],@out[5]
-	mov		64+48($FR),$offset		#! load ptr
+	mov		64+48(%rsp),$offset		#! load ptr
 	vmovups		@out[6],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+48($FR)		#! store ptr
+	 mov		$offset,64+48(%rsp)		#! store ptr
 	 vpxor		@inp[2],@out[6],@out[6]
-	mov		64+56($FR),$offset		#! load ptr
+	mov		64+56(%rsp),$offset		#! load ptr
 	vmovups		@out[7],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+56($FR)		#! store ptr
+	 mov		$offset,64+56(%rsp)		#! store ptr
 	 vpxor		@inp[3],@out[7],@out[7]
 
 	dec	$num
@@ -1242,10 +1115,6 @@ ___
 
 	dec	$num
 	jnz	.Loop_enc8x
-___
-}
-if (!$ENV{SARCASM}) {
-  $code.=<<___;
 
 	mov	16(%rsp),%rax			# original %rsp
 ___
@@ -1272,60 +1141,16 @@ $code.=<<___ if ($win64);
 	movaps	-0x58(%rax),%xmm14
 	movaps	-0x48(%rax),%xmm15
 ___
-$code.=<<___;
-___
 if ($ENV{SARCASM}) {
-  # %rax is reused ($rounds lives in %eax), so saves cannot be recovered
-  # through it; reload straight from frame slots (precedent:
-  # aes-x86_64.pl .Lcbc_exit) and drop the frame with one add.
-  if ($win64) {
-    $code.=<<___;
-	movaps	192(%rsp),%xmm6
-	movaps	208(%rsp),%xmm7
-	movaps	224(%rsp),%xmm8
-	movaps	240(%rsp),%xmm9
-	movaps	256(%rsp),%xmm10
-	movaps	272(%rsp),%xmm11
-	movaps	288(%rsp),%xmm12
-	movaps	304(%rsp),%xmm13
-	movaps	320(%rsp),%xmm14
-	movaps	336(%rsp),%xmm15
-	mov	360($FR),%r15
-.cfi_restore	%r15
-	mov	368($FR),%r14
-.cfi_restore	%r14
-	mov	376($FR),%r13
-.cfi_restore	%r13
-	mov	384($FR),%r12
-.cfi_restore	%r12
-	mov	392($FR),%rbp
-.cfi_restore	%rbp
-	mov	400($FR),%rbx
-.cfi_restore	%rbx
-	add	\$0x198,%rsp
-.cfi_adjust_cfa_offset	-408
-___
-  } else {
-    $code.=<<___;
-    # .alloca frame (no sub): pushed regs at 0..40(%rsp), drop 48.
-	mov	0(%rsp),%r15
-.cfi_restore	%r15
-	mov	8(%rsp),%r14
-.cfi_restore	%r14
-	mov	16(%rsp),%r13
-.cfi_restore	%r13
-	mov	24(%rsp),%r12
-.cfi_restore	%r12
-	mov	32(%rsp),%rbp
-.cfi_restore	%rbp
-	mov	40(%rsp),%rbx
-.cfi_restore	%rbx
-	add	\$0x30,%rsp
-.cfi_adjust_cfa_offset	-48
-___
-  }
-} else {
+  # SARCASM-linux reloads the saved stack pointer first: the body reused
+  # %rax (it holds $rounds, not the saved rsp), so the carrier must be
+  # re-materialized from its slot before the restores below can read through
+  # it. (Gas skips the reload: %rax still holds the saved rsp on its paths.)
   $code.=<<___;
+	mov	16(%rsp),%rax			# original %rsp
+___
+}
+$code.=<<___;
 	mov	-48(%rax),%r15
 .cfi_restore	%r15
 	mov	-40(%rax),%r14
@@ -1339,10 +1164,6 @@ ___
 	mov	-8(%rax),%rbx
 .cfi_restore	%rbx
 	lea	(%rax),%rsp
-___
-}
-my $FRd = $ENV{SARCASM} ? "%fil_mbdecframe" : "%rsp";
-$code.=<<___;
 .cfi_def_cfa_register	%rsp
 .Lenc8x_epilogue:
 	ret
@@ -1392,32 +1213,10 @@ $code.=<<___;
 	# +128	off-load area for @inp[0..3]
 	# +192	IV/input offload
 
-___
-if ($ENV{SARCASM} && !$win64) {
-  # Sarcasm (linux): the 448-byte scratch frame lives in a 256-aligned GC
-  # '.alloca' buffer (gas keeps the sub/and/sub frame); slots spell via
-  # $FRd, pushes stay on %rsp so the teardown only drops 48.
-  $code.=<<___;
-	.alloca	\$448,\$256,%fil_mbdecframe
-___
-} elsif ($ENV{SARCASM}) {
-  $code.=<<___;
-	sub	\$448,%rsp
-	# sarcasm: no re-alignment (slots virtualized).
-___
-} else {
-  $code.=<<___;
 	sub	\$256,%rsp
 	and	\$-256,%rsp
 	sub	\$192,%rsp
-___
-}
-if (!$ENV{SARCASM}) {
-  $code.=<<___;
 	mov	%rax,16(%rsp)			# original %rsp
-___
-}
-$code.=<<___;
 .cfi_cfa_expression	%rsp+16,deref,+8
 
 .Ldec8x_body:
@@ -1447,29 +1246,22 @@ for($i=0;$i<8;$i++) {
 	test	$one,$one
 	# load IV
 	vmovdqu	`$inp_elm_size*$i+2*$ptr_size+8-$inp_elm_size*4`($inp),@out[$i]
-	mov	$one,@{[FRm("32+4*$i","%fil_mbdecframe")]}		# initialize counters
+	mov	$one,`32+4*$i`(%rsp)		# initialize counters
 ___
+  # The canceled input pointer becomes the sink object and the output
+  # position is kept as a proper capability in the slot; see the encrypt
+  # loop above for the register choice.
   if ($ENV{SARCASM}) {
-    # $cancel_src cannot survive the load-ptr of the output pointer
-    # above (same register): materialize sink at the assignment site.
+    my $tmp = $i ? $offset : $sink;
     $code.=<<___;
-	jg	.LkeepD$i
-	leaq	aesni_mb_sink(%rip),@ptr[$i]
-.LkeepD$i:
+	leaq	aesni_mb_sink(%rip),$tmp
+	cmovle	$tmp,@ptr[$i]			# cancel input
+	mov	$temp,`64+8*$i`(%rsp)		#! store ptr
+	vmovdqu	@out[$i],`192+16*$i`(%rsp)	# offload IV
 ___
   } else {
     $code.=<<___;
 	cmovle	%rsp,@ptr[$i]			# cancel input
-___
-  }
-  if ($ENV{SARCASM}) {
-    # output positions are kept as proper capabilities in the slots
-    $code.=<<___;
-	mov	$temp,@{[FRm("64+8*$i","%fil_mbdecframe")]}		#! store ptr
-	vmovdqu	@out[$i],@{[FRm("192+16*$i","%fil_mbdecframe")]}	# offload IV
-___
-  } else {
-    $code.=<<___;
 	sub	@ptr[$i],$temp			# distance between input and output
 	mov	$temp,`64+8*$i`(%rsp)		# initialize distances
 	vmovdqu	@out[$i],`192+16*$i`(%rsp)	# offload IV
@@ -1484,20 +1276,9 @@ $code.=<<___;
 	vmovups	0x20-0x78($key),$rndkey0
 	mov	0xf0-0x78($key),$rounds
 ___
-if ($ENV{SARCASM}) {
-  # SARCASM: frame takes are rejected; the IV/ciphertext ping-pong areas
-  # live in a GC buffer ($offload=%rbp selects +128/+0 by the flag byte in
-  # the dead 24(%rsp) slot). All ($offload) uses below stay unchanged.
-  $code.=<<___;
-	.alloca	\$256,\$16,%fil_offd8
-	lea	128(%fil_offd8),$offload
-	movb	\$0,24($FRd)
-___
-} else {
-  $code.=<<___;
+$code.=<<___;
 	 lea	192+128(%rsp),$offload		# offload area
 ___
-}
 $code.=<<___;
 
 	vmovdqu	(@ptr[0]),@out[0]		# load inputs
@@ -1508,39 +1289,35 @@ $code.=<<___;
 	vmovdqu	(@ptr[5]),@out[5]
 	vmovdqu	(@ptr[6]),@out[6]
 	vmovdqu	(@ptr[7]),@out[7]
-	vmovdqu	@out[0],0x00($offload)		# offload inputs
+	vmovdqu	@out[0],0x00($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)	# offload inputs
 	vpxor	$zero,@out[0],@out[0]		# xor inputs with 0-round
-	vmovdqu	@out[1],0x10($offload)
+	vmovdqu	@out[1],0x10($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vpxor	$zero,@out[1],@out[1]
-	vmovdqu	@out[2],0x20($offload)
+	vmovdqu	@out[2],0x20($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vpxor	$zero,@out[2],@out[2]
-	vmovdqu	@out[3],0x30($offload)
+	vmovdqu	@out[3],0x30($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vpxor	$zero,@out[3],@out[3]
-	vmovdqu	@out[4],0x40($offload)
+	vmovdqu	@out[4],0x40($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vpxor	$zero,@out[4],@out[4]
-	vmovdqu	@out[5],0x50($offload)
+	vmovdqu	@out[5],0x50($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vpxor	$zero,@out[5],@out[5]
-	vmovdqu	@out[6],0x60($offload)
+	vmovdqu	@out[6],0x60($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vpxor	$zero,@out[6],@out[6]
-	vmovdqu	@out[7],0x70($offload)
+	vmovdqu	@out[7],0x70($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vpxor	$zero,@out[7],@out[7]
 ___
-if ($ENV{SARCASM}) {
-  # The original xor $0x80 ping-pong between the IV area (rsp+192) and
-  # the ciphertext area (rsp+320) relies on %rsp%256==64 produced by the
-  # sub256/and/sub192 frame.  The merged alloca frame yields %rsp%256==0,
-  # under which xor $0x80 would land at rsp+448.  Switch to explicit,
-  # alignment-independent arithmetic (identical results under the original
-  # frame, too).
-  # SARCASM heap buffer (see setup above): entry base is already the
-  # +128 ciphertext area, so nothing to do here.
-  $code.=<<___;
-___
-} else {
-  $code.=<<___;
+  # The ping-pong areas are a declared stack buffer (offd, %rsp+192 ..
+  # %rsp+448): the ($offload) accesses carry `#! stack buffer` annotations,
+  # so sarcasm lowers the base lea into its synthesized buffer region and
+  # they become runtime-checked by-address accesses.  $offload ping-pongs
+  # between the IV area (%rsp+192) and the ciphertext area (%rsp+320): the
+  # sub256/and/sub192 frame leaves %rsp%256==64, so the areas sit exactly
+  # 0x80 apart, and the xor $0x80 below (matching xor $128 at the loop
+  # bottom) flips the base between them, keeping it inside the declared
+  # range.
+$code.=<<___;
 	xor	\$0x80,$offload
 ___
-}
 $code.=<<___;
 	mov	\$1,$one			# constant of 1
 	jmp	.Loop_dec8x
@@ -1554,8 +1331,8 @@ my $rndkey=($i&1)?$rndkey0:$rndkey1;
     # Capability-safe form: see the encrypt loop above.
     $code.=<<___;
 	vaesdec		$rndkey,@out[0],@out[0]
-	 mov		64+8*$i($FRd),$offset		#! load ptr
-	 cmp		32+4*$i($FRd),$one
+	 mov		64+8*$i(%rsp),$offset		#! load ptr
+	 cmp		32+4*$i(%rsp),$one
 	vaesdec		$rndkey,@out[1],@out[1]
 	prefetcht0	31(@ptr[$i])			# prefetch input
 	vaesdec		$rndkey,@out[2],@out[2]
@@ -1574,32 +1351,32 @@ ___
 .LcoutD$i:
 	vaesdec		$rndkey,@out[5],@out[5]
 	 vmovdqu	16(@ptr[$i]),@inp[$i%4]		# load input
-	 mov		$offset,64+8*$i($FRd)		#! store ptr
+	 mov		$offset,64+8*$i(%rsp)		#! store ptr
 	vaesdec		$rndkey,@out[6],@out[6]
 	vaesdec		$rndkey,@out[7],@out[7]
 	vmovups		`16*(3+$i)-0x78`($key),$rndkey
 	 lea		16(@ptr[$i]),@ptr[$i]	# advance input
 ___
     $code.=<<___ if ($i<4);
-	 vmovdqu	@inp[$i%4],@{[FRm("128+16*$i","%fil_mbdecframe")]}	# off-load
+	 vmovdqu	@inp[$i%4],`128+16*$i`(%rsp)	# off-load
 ___
   } else {
-    $code.=<<___;
+$code.=<<___;
 	vaesdec		$rndkey,@out[0],@out[0]
 	 cmp		32+4*$i(%rsp),$one
 ___
-    $code.=<<___ if ($i);
+$code.=<<___ if ($i);
 	 mov		64+8*$i(%rsp),$offset
 ___
-    $code.=<<___;
+$code.=<<___;
 	vaesdec		$rndkey,@out[1],@out[1]
 	prefetcht0	31(@ptr[$i])			# prefetch input
 	vaesdec		$rndkey,@out[2],@out[2]
 ___
-    $code.=<<___ if ($i>1);
+$code.=<<___ if ($i>1);
 	prefetcht0	15(@ptr[$i-2])			# prefetch output
 ___
-    $code.=<<___;
+$code.=<<___;
 	vaesdec		$rndkey,@out[3],@out[3]
 	 lea		(@ptr[$i],$offset),$offset
 	 cmovge		%rsp,@ptr[$i]			# cancel input
@@ -1614,13 +1391,13 @@ ___
 	vmovups		`16*(3+$i)-0x78`($key),$rndkey
 	 lea		16(@ptr[$i],$offset),@ptr[$i]	# switch to output
 ___
-    $code.=<<___ if ($i<4);
+$code.=<<___ if ($i<4);
 	 vmovdqu	@inp[$i%4],`128+16*$i`(%rsp)	# off-load
 ___
   }
 }
 $code.=<<___;
-	 vmovdqu	32($FRd),$counters
+	 vmovdqu	32(%rsp),$counters
 	prefetcht0	15(@ptr[$i-2])			# prefetch output
 	prefetcht0	15(@ptr[$i-1])
 	cmp	\$11,$rounds
@@ -1676,34 +1453,34 @@ $code.=<<___;
 	vaesdec		$rndkey1,@out[3],@out[3]
 	vaesdec		$rndkey1,@out[4],@out[4]
 	 vpaddd		$counters,$zero,$zero		# decrement counters
-	 vmovdqu	48($FRd),$counters
+	 vmovdqu	48(%rsp),$counters
 	vaesdec		$rndkey1,@out[5],@out[5]
-	 mov		64($FRd),$offset		#! load ptr		# pre-load 1st offset
+	 mov		64(%rsp),$offset		#! load ptr		# pre-load 1st offset
 	vaesdec		$rndkey1,@out[6],@out[6]
 	vaesdec		$rndkey1,@out[7],@out[7]
 	vmovups		0x10-0x78($key),$rndkey1
 
 	vaesdeclast	$rndkey0,@out[0],@out[0]
-	 vmovdqa	$zero,32($FRd)			# update counters
+	 vmovdqa	$zero,32(%rsp)			# update counters
 	 vpxor		$zero,$zero,$zero
 	vaesdeclast	$rndkey0,@out[1],@out[1]
-	vpxor		0x00($offload),@out[0],@out[0]	# xor with IV
+	vpxor		0x00($offload),@out[0],@out[0]	#! stack buffer (offd, %rsp + 192, %rsp + 448)	# xor with IV
 	vaesdeclast	$rndkey0,@out[2],@out[2]
-	vpxor		0x10($offload),@out[1],@out[1]
+	vpxor		0x10($offload),@out[1],@out[1]	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpcmpgtd	$zero,$counters,$zero
 	vaesdeclast	$rndkey0,@out[3],@out[3]
-	vpxor		0x20($offload),@out[2],@out[2]
+	vpxor		0x20($offload),@out[2],@out[2]	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vaesdeclast	$rndkey0,@out[4],@out[4]
-	vpxor		0x30($offload),@out[3],@out[3]
+	vpxor		0x30($offload),@out[3],@out[3]	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpaddd		$zero,$counters,$counters	# decrement counters
 	 vmovdqu	-0x78($key),$zero		# 0-round
 	vaesdeclast	$rndkey0,@out[5],@out[5]
-	vpxor		0x40($offload),@out[4],@out[4]
+	vpxor		0x40($offload),@out[4],@out[4]	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vaesdeclast	$rndkey0,@out[6],@out[6]
-	vpxor		0x50($offload),@out[5],@out[5]
-	 vmovdqa	$counters,48($FRd)		# update counters
+	vpxor		0x50($offload),@out[5],@out[5]	#! stack buffer (offd, %rsp + 192, %rsp + 448)
+	 vmovdqa	$counters,48(%rsp)		# update counters
 	vaesdeclast	$rndkey0,@out[7],@out[7]
-	vpxor		0x60($offload),@out[6],@out[6]
+	vpxor		0x60($offload),@out[6],@out[6]	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vmovups		0x20-0x78($key),$rndkey0
 
 ___
@@ -1712,70 +1489,58 @@ if ($ENV{SARCASM}) {
   $code.=<<___;
 	vmovups		@out[0],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+0($FRd)		#! store ptr
-	 vmovdqu	128+0($FRd),@out[0]
-	vpxor		0x70($offload),@out[7],@out[7]
-	mov		64+8($FRd),$offset		#! load ptr
+	 mov		$offset,64+0(%rsp)		#! store ptr
+	 vmovdqu	128+0(%rsp),@out[0]
+	vpxor		0x70($offload),@out[7],@out[7]	#! stack buffer (offd, %rsp + 192, %rsp + 448)
+	mov		64+8(%rsp),$offset		#! load ptr
 	vmovups		@out[1],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+8($FRd)		#! store ptr
-	 vmovdqu	@out[0],0x00($offload)
+	 mov		$offset,64+8(%rsp)		#! store ptr
+	 vmovdqu	@out[0],0x00($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		$zero,@out[0],@out[0]
-	 vmovdqu	128+16($FRd),@out[1]
-	mov		64+16($FRd),$offset		#! load ptr
+	 vmovdqu	128+16(%rsp),@out[1]
+	mov		64+16(%rsp),$offset		#! load ptr
 	vmovups		@out[2],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+16($FRd)		#! store ptr
-	 vmovdqu	@out[1],0x10($offload)
+	 mov		$offset,64+16(%rsp)		#! store ptr
+	 vmovdqu	@out[1],0x10($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		$zero,@out[1],@out[1]
-	 vmovdqu	128+32($FRd),@out[2]
-	mov		64+24($FRd),$offset		#! load ptr
+	 vmovdqu	128+32(%rsp),@out[2]
+	mov		64+24(%rsp),$offset		#! load ptr
 	vmovups		@out[3],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+24($FRd)		#! store ptr
-	 vmovdqu	@out[2],0x20($offload)
+	 mov		$offset,64+24(%rsp)		#! store ptr
+	 vmovdqu	@out[2],0x20($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		$zero,@out[2],@out[2]
-	 vmovdqu	128+48($FRd),@out[3]
-	mov		64+32($FRd),$offset		#! load ptr
+	 vmovdqu	128+48(%rsp),@out[3]
+	mov		64+32(%rsp),$offset		#! load ptr
 	vmovups		@out[4],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+32($FRd)		#! store ptr
-	 vmovdqu	@out[3],0x30($offload)
+	 mov		$offset,64+32(%rsp)		#! store ptr
+	 vmovdqu	@out[3],0x30($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		$zero,@out[3],@out[3]
-	 vmovdqu	@inp[0],0x40($offload)
+	 vmovdqu	@inp[0],0x40($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		@inp[0],$zero,@out[4]
-	mov		64+40($FRd),$offset		#! load ptr
+	mov		64+40(%rsp),$offset		#! load ptr
 	vmovups		@out[5],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+40($FRd)		#! store ptr
-	 vmovdqu	@inp[1],0x50($offload)
+	 mov		$offset,64+40(%rsp)		#! store ptr
+	 vmovdqu	@inp[1],0x50($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		@inp[1],$zero,@out[5]
-	mov		64+48($FRd),$offset		#! load ptr
+	mov		64+48(%rsp),$offset		#! load ptr
 	vmovups		@out[6],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+48($FRd)		#! store ptr
-	 vmovdqu	@inp[2],0x60($offload)
+	 mov		$offset,64+48(%rsp)		#! store ptr
+	 vmovdqu	@inp[2],0x60($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		@inp[2],$zero,@out[6]
-	mov		64+56($FRd),$offset		#! load ptr
+	mov		64+56(%rsp),$offset		#! load ptr
 	vmovups		@out[7],($offset)
 	 lea		16($offset),$offset
-	 mov		$offset,64+56($FRd)		#! store ptr
-	 vmovdqu	@inp[3],0x70($offload)
+	 mov		$offset,64+56(%rsp)		#! store ptr
+	 vmovdqu	@inp[3],0x70($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		@inp[3],$zero,@out[7]
 
-	# SARCASM heap toggle (replaces the address-bit test below, which needs
-	# a real frame address): flag byte in dead slot 24(%rsp) selects the
-	# +128 ciphertext area (0) or the +0 IV area (1); bases materialized
-	# fresh from %fil_offd8 (no pointer arithmetic).
-	cmpb	\$0,24($FRd)
-	jnz	.Ldec8x_offlo
-	lea	128(%fil_offd8),$offload
-	movb	\$1,24($FRd)
-	jmp	.Ldec8x_offdone
-.Ldec8x_offlo:
-	mov	%fil_offd8,$offload
-	movb	\$0,24($FRd)
-.Ldec8x_offdone:
+	xor	\$128,$offload
 	dec	$num
 	jnz	.Loop_dec8x
 ___
@@ -1784,48 +1549,44 @@ ___
 	vmovups		@out[0],-16(@ptr[0])		# write output
 	 sub		$offset,@ptr[0]			# switch to input
 	 vmovdqu	128+0(%rsp),@out[0]
-	vpxor		0x70($offload),@out[7],@out[7]
+	vpxor		0x70($offload),@out[7],@out[7]	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	vmovups		@out[1],-16(@ptr[1])
 	 sub		`64+1*8`(%rsp),@ptr[1]
-	 vmovdqu	@out[0],0x00($offload)
+	 vmovdqu	@out[0],0x00($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		$zero,@out[0],@out[0]
 	 vmovdqu	128+16(%rsp),@out[1]
 	vmovups		@out[2],-16(@ptr[2])
 	 sub		`64+2*8`(%rsp),@ptr[2]
-	 vmovdqu	@out[1],0x10($offload)
+	 vmovdqu	@out[1],0x10($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		$zero,@out[1],@out[1]
 	 vmovdqu	128+32(%rsp),@out[2]
 	vmovups		@out[3],-16(@ptr[3])
 	 sub		`64+3*8`(%rsp),@ptr[3]
-	 vmovdqu	@out[2],0x20($offload)
+	 vmovdqu	@out[2],0x20($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		$zero,@out[2],@out[2]
 	 vmovdqu	128+48(%rsp),@out[3]
 	vmovups		@out[4],-16(@ptr[4])
 	 sub		`64+4*8`(%rsp),@ptr[4]
-	 vmovdqu	@out[3],0x30($offload)
+	 vmovdqu	@out[3],0x30($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		$zero,@out[3],@out[3]
-	 vmovdqu	@inp[0],0x40($offload)
+	 vmovdqu	@inp[0],0x40($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		@inp[0],$zero,@out[4]
 	vmovups		@out[5],-16(@ptr[5])
 	 sub		`64+5*8`(%rsp),@ptr[5]
-	 vmovdqu	@inp[1],0x50($offload)
+	 vmovdqu	@inp[1],0x50($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		@inp[1],$zero,@out[5]
 	vmovups		@out[6],-16(@ptr[6])
 	 sub		`64+6*8`(%rsp),@ptr[6]
-	 vmovdqu	@inp[2],0x60($offload)
+	 vmovdqu	@inp[2],0x60($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		@inp[2],$zero,@out[6]
 	vmovups		@out[7],-16(@ptr[7])
 	 sub		`64+7*8`(%rsp),@ptr[7]
-	 vmovdqu	@inp[3],0x70($offload)
+	 vmovdqu	@inp[3],0x70($offload)	#! stack buffer (offd, %rsp + 192, %rsp + 448)
 	 vpxor		@inp[3],$zero,@out[7]
 
 	xor	\$128,$offload
 	dec	$num
 	jnz	.Loop_dec8x
-___
-}
-if (!$ENV{SARCASM}) {
-  $code.=<<___;
 
 	mov	16(%rsp),%rax			# original %rsp
 ___
@@ -1852,61 +1613,16 @@ $code.=<<___ if ($win64);
 	movaps	-0x58(%rax),%xmm14
 	movaps	-0x48(%rax),%xmm15
 ___
-$code.=<<___;
-___
 if ($ENV{SARCASM}) {
-  # %rax is reused ($rounds lives in %eax), so saves cannot be recovered
-  # through it; reload straight from frame slots (precedent:
-  # aes-x86_64.pl .Lcbc_exit) and drop the frame with one add.
-  if ($win64) {
-    $code.=<<___;
-	movaps	448(%rsp),%xmm6
-	movaps	464(%rsp),%xmm7
-	movaps	480(%rsp),%xmm8
-	movaps	496(%rsp),%xmm9
-	movaps	512(%rsp),%xmm10
-	movaps	528(%rsp),%xmm11
-	movaps	544(%rsp),%xmm12
-	movaps	560(%rsp),%xmm13
-	movaps	576(%rsp),%xmm14
-	movaps	592(%rsp),%xmm15
-	mov	616(%rsp),%r15
-.cfi_restore	%r15
-	mov	624(%rsp),%r14
-.cfi_restore	%r14
-	mov	632(%rsp),%r13
-.cfi_restore	%r13
-	mov	640(%rsp),%r12
-.cfi_restore	%r12
-	mov	648(%rsp),%rbp
-.cfi_restore	%rbp
-	mov	656(%rsp),%rbx
-.cfi_restore	%rbx
-	add	\$0x298,%rsp
-.cfi_adjust_cfa_offset	-664
-___
-  } else {
-    # SARCASM non-win64 teardown: .alloca frame (no sub), pushed regs at
-    # 0..40(%rsp), drop 48. (win64 keeps its own branch above.)
-    $code.=<<___;
-	mov	0(%rsp),%r15
-.cfi_restore	%r15
-	mov	8(%rsp),%r14
-.cfi_restore	%r14
-	mov	16(%rsp),%r13
-.cfi_restore	%r13
-	mov	24(%rsp),%r12
-.cfi_restore	%r12
-	mov	32(%rsp),%rbp
-.cfi_restore	%rbp
-	mov	40(%rsp),%rbx
-.cfi_restore	%rbx
-	add	\$0x30,%rsp
-.cfi_adjust_cfa_offset	-48
-___
-  }
-} else {
+  # SARCASM-linux reloads the saved stack pointer first: the body reused
+  # %rax (it holds $rounds, not the saved rsp), so the carrier must be
+  # re-materialized from its slot before the restores below can read through
+  # it. (Gas skips the reload: %rax still holds the saved rsp on its paths.)
   $code.=<<___;
+	mov	16(%rsp),%rax			# original %rsp
+___
+}
+$code.=<<___;
 	mov	-48(%rax),%r15
 .cfi_restore	%r15
 	mov	-40(%rax),%r14
@@ -1920,9 +1636,6 @@ ___
 	mov	-8(%rax),%rbx
 .cfi_restore	%rbx
 	lea	(%rax),%rsp
-___
-}
-$code.=<<___;
 .cfi_def_cfa_register	%rsp
 .Ldec8x_epilogue:
 	ret
@@ -2117,10 +1830,10 @@ sub aesni {
 	return undef if (!defined($opcodelet{$1}));
 	my $off = $2;
 	push @opcode,0x44 if ($3>=8);
-  push @opcode,0x0f,0x38,$opcodelet{$1};
-  push @opcode,0x44|(($3&7)<<3),0x24;	# ModR/M
-  push @opcode,($off=~/^0/?oct($off):$off)&0xff;
-  return ".byte\t".join(',',@opcode);
+	push @opcode,0x0f,0x38,$opcodelet{$1};
+	push @opcode,0x44|(($3&7)<<3),0x24;	# ModR/M
+	push @opcode,($off=~/^0/?oct($off):$off)&0xff;
+	return ".byte\t".join(',',@opcode);
     }
     return $line;
 }

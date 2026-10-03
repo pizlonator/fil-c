@@ -4,3 +4,6 @@ output-includes:
   - "filc safety error"
   - "cannot read"
   - "bytes when upper - ptr ="
+
+# COSMO: the test hands ppoll() an opaque()ed sigmask pointer; filc cannot check accesses through opaque pointers, so the bad pointer reaches the kernel and ppoll blocks forever (the suite would hang).
+unsupportedOnCOSMO: true

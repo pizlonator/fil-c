@@ -1,0 +1,95 @@
+/*-*- mode:c;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
+│ vi: set et ft=c ts=2 sts=2 sw=2 fenc=utf-8                               :vi │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright 2020 Justine Alexandra Roberts Tunney                              │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚─────────────────────────────────────────────────────────────────────────────*/
+#include "libc/calls/internal.h"
+#include "libc/calls/sig.internal.h"
+#include "libc/calls/state.internal.h"
+#include "libc/calls/struct/sigset.internal.h"
+#include "libc/calls/syscall_support-nt.internal.h"
+#include "libc/nt/createfile.h"
+#include "libc/nt/enum/accessmask.h"
+#include "libc/nt/enum/creationdisposition.h"
+#include "libc/nt/enum/fileflagandattributes.h"
+#include "libc/nt/enum/filesharemode.h"
+#include "libc/nt/ipc.h"
+#include "libc/nt/runtime.h"
+#include "libc/sysv/consts/limits.h"
+#include "libc/sysv/consts/o.h"
+#include "libc/sysv/errfuns.h"
+#include "libc/sysv/pib.h"
+
+textwindows static int sys_pipe_nt_impl(int pipefd[2], unsigned flags) {
+  uint32_t mode;
+  int64_t hin, hout;
+  int reader, writer;
+  char16_t pipename[64];
+  __create_pipe_name(pipename);
+  __fds_lock();
+  if ((reader = __reservefd_unlocked(-1)) == -1) {
+    __fds_unlock();
+    return -1;
+  }
+  if ((writer = __reservefd_unlocked(-1)) == -1) {
+    __releasefd(reader);
+    __fds_unlock();
+    return -1;
+  }
+  if (~flags & O_DIRECT) {
+    mode = kNtPipeTypeByte | kNtPipeReadmodeByte;
+  } else {
+    mode = kNtPipeTypeMessage | kNtPipeReadmodeMessage;
+  }
+  __fds_unlock();
+  hin = CreateNamedPipe(pipename, kNtPipeAccessInbound | kNtFileFlagOverlapped,
+                        mode, 1, 65536, 65536, 0, &kNtIsInheritable);
+  if (hin != -1) {
+    if ((hout = CreateFile(
+             pipename, kNtGenericWrite,
+             kNtFileShareRead | kNtFileShareWrite | kNtFileShareDelete,
+             &kNtIsInheritable, kNtOpenExisting, kNtFileFlagOverlapped, 0)) !=
+        -1) {
+      __get_pib()->fds.p[reader].kind = kFdFile;
+      __get_pib()->fds.p[reader].flags = O_RDONLY | flags;
+      __get_pib()->fds.p[reader].mode = 0010444;
+      __get_pib()->fds.p[reader].handle = hin;
+      __get_pib()->fds.p[reader].was_created_during_vfork = __vforked;
+      __get_pib()->fds.p[writer].kind = kFdFile;
+      __get_pib()->fds.p[writer].flags = O_WRONLY | flags;
+      __get_pib()->fds.p[writer].mode = 0010222;
+      __get_pib()->fds.p[writer].handle = hout;
+      __get_pib()->fds.p[writer].was_created_during_vfork = __vforked;
+      pipefd[0] = reader;
+      pipefd[1] = writer;
+      return 0;
+    } else {
+      __winerr();
+      CloseHandle(hin);
+    }
+  }
+  __releasefd(writer);
+  __releasefd(reader);
+  return -1;
+}
+
+textwindows int sys_pipe_nt(int pipefd[2], unsigned flags) {
+  int rc;
+  BLOCK_SIGNALS;
+  rc = sys_pipe_nt_impl(pipefd, flags);
+  ALLOW_SIGNALS;
+  return rc;
+}

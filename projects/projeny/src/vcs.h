@@ -37,8 +37,11 @@
 // never as a hard error and never silently.
 #pragma once
 
-#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 // Compute the user diff between two on-disk trees. Labels are
@@ -48,6 +51,108 @@
 // mode-only changes of binaries carry no payload.
 std::string vcs_diff_trees(const std::string& base_tree, const std::string& workdir,
                            const std::string& wid);
+
+// Options for the pending-aware diff below. A null pointer disables the
+// corresponding behavior, so default-constructed options give exactly the
+// plain tree diff of vcs_diff_trees.
+struct VcsDiffOpts {
+    // Pending `projeny mv` pairs (workdir-relative src -> dst). Each pair
+    // is forced into a rename block even when content similarity would
+    // never pair the sides, taking precedence over content-based pairing.
+    // Sources that name no base-tree path (even after resolving through
+    // `committed_patch`) are ignored: there is no delete side to pair.
+    const std::vector<std::pair<std::string, std::string>>* forced_renames =
+        nullptr;
+    // The committed patch (wid-label form) to resolve pending rename
+    // sources through when the base tree predates the committed renames
+    // (commit diffs the raw archive). Null or empty: the base tree already
+    // contains the committed renames (a fresh-setup expected tree).
+    const std::string* committed_patch = nullptr;
+    // Keep lists (workdir-relative; an entry also covers everything under
+    // it, since add/rm/mv accept directories). When non-null, pure-add
+    // blocks survive only when their new path is covered by `add_keep`
+    // (untracked files — text, symlink, or binary — stay out), and rename
+    // blocks survive only when a covered side justifies them: both sides
+    // covered keeps the rename, one side degrades to that side's pure
+    // delete/add, neither drops the block.
+    const std::vector<std::string>* add_keep = nullptr;
+    // When non-null, pure-delete blocks survive only when their old path
+    // is covered by `delete_keep` (unregistered disappearances stay out;
+    // the caller reports them via `disappeared`). Coverage through an
+    // entry that is exactly a pending rename source (a moved directory)
+    // additionally requires the file to have moved with the directory:
+    // its counterpart under the rename destination must exist in the
+    // workdir or be covered itself. A plain `rm` of a file inside a moved
+    // directory is therefore unregistered — warned and left out — like a
+    // plain rm anywhere else.
+    const std::vector<std::string>* delete_keep = nullptr;
+    // Filled (sorted, uniqued) with the base-tree file paths missing from
+    // the workdir and not covered by `delete_keep`: files that vanished
+    // locally without `projeny rm`. Computed from the trees themselves, so
+    // rename pairing can never hide one. Null: not collected.
+    std::vector<std::string>* disappeared = nullptr;
+    // Frozen-mtime attributes (workdir-relative path -> unix-epoch seconds).
+    // When non-null, every emitted block for a path in the set carries the
+    // extended header line `frozen-mtime <ts>` immediately after its
+    // `diff --git` line (the same region as the old/new mode lines), so the
+    // attribute survives a patch regenerated from scratch. Blocks for paths
+    // absent from the set never carry the header, so a frozen entry whose
+    // file was deleted (or renamed away) dies naturally. Header emission is
+    // skipped for a path whose new side does not exist (a delete) and for
+    // symlinks (freezing is a regular-file attribute); a frozen path that
+    // is now a symlink warns, so its pin is dropped noisily, never
+    // silently.
+    const std::map<std::string, uint64_t>* frozen_mtimes = nullptr;
+    // When true, a path in `frozen_mtimes` whose content and mode are
+    // UNCHANGED between the two trees still gets a block: a bare
+    // `diff --git a/X b/X` + `frozen-mtime <ts>` attribute-only block (no
+    // ---/+++/hunks — the analogue of a mode-only block). Commit and rebase
+    // set this so the frozen set survives a patch regenerated from scratch;
+    // the uncommitted-diff command leaves it false, so a clean checkout of a
+    // frozen project still diffs empty (a frozen mtime is not a local
+    // change) and only modified frozen files carry the header there.
+    bool frozen_attribute_blocks = false;
+};
+
+// vcs_diff_trees with pending-op awareness (see VcsDiffOpts): forced
+// rename pairing, keep-list filtering, and disappearance collection. All
+// of it is off for default-constructed options.
+std::string vcs_diff_trees_ex(const std::string& base_tree,
+                              const std::string& workdir,
+                              const std::string& wid, const VcsDiffOpts& opts);
+
+// True when `rel` is exactly a `keep` entry or lives under a kept entry
+// (add/rm/mv take directories, so keep entries may name directories and
+// then cover everything under them). The shared keep-list predicate: the
+// pending-aware diff and `commit`'s disappeared check both use it for
+// their exact/under-a-directory coverage decisions.
+bool vcs_covers_keep_path(const std::vector<std::string>& keep,
+                          const std::string& rel);
+
+// True for legacy scratch entries that must never be diffed or reported
+// (left behind inside workdirs by older crashed runs; scratch now lives
+// outside): ".projeny-tmp*" at the workdir root or under any directory.
+// Exported so status/get-attributes/commit share the diff's filtering.
+bool vcs_is_scratch_rel(const std::string& rel);
+
+// Shared "delete-keep coverage with directory-move exception" rule, used by
+// the pending-aware diff (vcs_diff_trees_ex) and commit's disappeared check:
+// a deletion of `rel` is registered (covered) when `keep` names it exactly,
+// or when it lives under a kept entry (add/rm take directories) — EXCEPT
+// when that entry is exactly a pending rename source in `renames` (a
+// directory move): there the file counts as covered only when it moved with
+// the directory, i.e. `counterpart_exists` holds for the file's counterpart
+// under the rename destination (the rename pairing handles content changes;
+// the caller decides what "exists" means — see the two call sites, whose
+// probes intentionally differ). Otherwise the deletion is unregistered: the
+// diff drops the block / commit reports the path as disappeared. File
+// rename sources cover exactly (rel == k), and their destinations are
+// validated to exist before the caller runs.
+bool vcs_delete_covered(
+    const std::vector<std::string>& keep,
+    const std::vector<std::pair<std::string, std::string>>* renames,
+    const std::string& rel,
+    const std::function<bool(const std::string&)>& counterpart_exists);
 
 // Drop pure-deletion blocks whose deleted path is not in `keep` (workdir-
 // relative). Used by setup to restore files that vanished without an
@@ -60,16 +165,33 @@ std::string vcs_drop_deletes_not_in(const std::string& patch,
                                     const std::vector<std::string>& keep);
 
 // Workdir-relative new paths of binary-add blocks in `patch` (binary blocks
-// with a payload that create a file). Used by commit to tell previously
-// committed binary adds (tracked: keep them on every recommits) apart from
-// truly untracked binaries (leave them out).
+// with a payload that create a file), plus the destinations of every binary
+// rename block (payload-free pure renames included). Used by commit to tell
+// previously committed binary adds and renames (tracked: keep them on every
+// recommit) apart from truly untracked binaries (leave them out). The rename
+// destinations belong here because commit re-derives its diff against the
+// RAW archive, which predates every committed rename: when a committed
+// rename's content diverged beyond rename detection (binaries never
+// similarity-pair), the re-derived diff is a delete of the old path plus an
+// add of the new one — and if that add were dropped as "untracked", the
+// stored patch would lose the new file entirely and the next setup would
+// resurrect the old path with the committed file silently gone.
 std::vector<std::string> vcs_binary_add_paths(const std::string& patch,
                                               const std::string& wid);
 
 // Workdir-relative new paths of pure-add blocks in `patch` (text, symlink
-// and binary adds that create a file, excluding renames). Used by commit to
-// tell previously committed adds (tracked: keep them on every recommit)
-// apart from truly untracked files (leave them out).
+// and binary adds that create a file), plus the destinations of every rename
+// block. Used by commit to tell previously committed adds and renames
+// (tracked: keep them on every recommit) apart from truly untracked files
+// (leave them out). The rename destinations belong here because commit
+// re-derives its diff against the RAW archive, which predates every
+// committed rename: when a committed rename's content has diverged beyond
+// rename detection (below the 50% line-similarity threshold, or any binary
+// whose bytes changed), the re-derived diff is a delete of the old path plus
+// an add of the new one — and if that add were dropped as "untracked", the
+// stored patch would lose the new file entirely and the next setup would
+// resurrect the old path with the committed file silently gone. Where
+// pairing re-finds the rename instead, the extra keep entry is harmless.
 std::vector<std::string> vcs_add_paths(const std::string& patch,
                                        const std::string& wid);
 
@@ -151,3 +273,22 @@ std::vector<std::string> vcs_touched_paths(const std::string& patch,
 bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_file,
                         const std::string& theirs_file, const std::string& dst_path,
                         const std::string& dst_root);
+
+// The frozen-mtime attributes recorded in `patch` (wid-label form):
+// workdir-relative path -> unix-epoch seconds. Only blocks carrying a
+// `frozen-mtime <ts>` extended header appear. Keys prefer the block's new
+// path (a rename's destination over its source).
+std::map<std::string, uint64_t> vcs_frozen_mtimes(const std::string& patch,
+                                                  const std::string& wid);
+
+// Rewrite `patch` (wid-label form) so its frozen-mtime headers exactly match
+// `frozen`: each existing block for a frozen path gains (or has updated) its
+// `frozen-mtime <ts>` header right after the `diff --git` line, blocks for
+// paths absent from `frozen` lose the header (dropping the whole block when
+// that leaves a bare `diff --git` husk), and frozen paths the patch does not
+// mention yet gain a new attribute-only block. Frozen entries whose block is
+// a deletion are left headerless (a frozen mtime needs a live file), and a
+// rename records the header on its destination only. Returns the rewritten
+// patch text (callers normalize it like any other generated patch).
+std::string vcs_set_frozen_mtimes(const std::string& patch, const std::string& wid,
+                                  const std::map<std::string, uint64_t>& frozen);

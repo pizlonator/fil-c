@@ -299,10 +299,25 @@ static PAS_ALWAYS_INLINE void pas_local_allocator_scan_bits_to_set_up_free_bits_
 #if PAS_LOCAL_ALLOCATOR_MEASURE_REFILL_EFFICIENCY
     PAS_ASSERT(num_taken_objects <= num_total_objects);
 
-    pas_local_allocator_refill_efficiency_lock_lock();
-    pas_local_allocator_refill_efficiency_sum += (double)num_taken_objects / (double)num_total_objects;
-    pas_local_allocator_refill_efficiency_n++;
-    pas_local_allocator_refill_efficiency_lock_unlock();
+    /* The efficiency stat uses floating-point division, which usually raises FE_INEXACT,
+       and which would trap if the program unmasked floating-point exceptions.  Our
+       heuristics must be invisible to the program, so canonicalize the floating-point
+       environment for its sake and restore the program's environment afterwards. */
+    {
+        pas_saved_float_environment saved_float_environment;
+
+        pas_local_allocator_refill_efficiency_lock_lock();
+
+        pas_save_float_environment(&saved_float_environment);
+        pas_set_float_environment_to_libpas_default();
+
+        pas_local_allocator_refill_efficiency_sum += (double)num_taken_objects / (double)num_total_objects;
+
+        pas_restore_float_environment(&saved_float_environment);
+
+        pas_local_allocator_refill_efficiency_n++;
+        pas_local_allocator_refill_efficiency_lock_unlock();
+    }
 #endif /* PAS_LOCAL_ALLOCATOR_MEASURE_REFILL_EFFICIENCY */
 }
 

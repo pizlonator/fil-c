@@ -14,6 +14,8 @@
 -- Returns { isPtr = {temp->bool}, lowerTemp = {temp->loTemp}, newTemps = {...} }
 -- New lower temps are allocated via allocTemp().
 
+local err = require("./err")
+
 local ptrflow = {}
 
 function ptrflow.analyze(lf, seeds, allocTemp, opts)
@@ -603,9 +605,17 @@ function ptrflow.analyze(lf, seeds, allocTemp, opts)
 				if not any then
 					-- Genuine conflict (or widening disabled on this target): one web
 					-- has a single runtime lower, so it cannot hold pointers from two
-					-- origins — reject cleanly instead of spinning.
-					error("sarcasm: pointer-flow analysis does not converge: a register web "
-						.. "has conflicting pointer sources (one temp cannot carry two capabilities)")
+					-- origins — reject cleanly instead of spinning. The fixpoint state
+					-- names no single offending statement, so locate at the function's
+					-- first instruction (falls back to an unlocated error when absent).
+					local msg = "pointer-flow analysis does not converge: a register web "
+						.. "has conflicting pointer sources (one temp cannot carry two capabilities)"
+					local fst = lf.flow and lf.flow[1] and lf.flow[1].stmt or nil
+					if fst then
+						err.at(fst, msg)
+					else
+						err.plain(msg)
+					end
 				end
 				seenStates = {}
 			else

@@ -35,8 +35,15 @@
 #include <mach/thread_switch.h>
 #endif
 #if PAS_OS(LINUX)
+#if PAS_COSMO
+/* Cosmo doesn't expose SYS_futex/FUTEX_* to C code (its syscall() only knows
+   a few numbers), so use the yolo futex primitives provided by the cosmo
+   flavor instead. */
+#include <futex_calls.h>
+#else /* PAS_COSMO -> so !PAS_COSMO */
 #include <sys/syscall.h>
 #include <linux/futex.h>
+#endif /* PAS_COSMO -> so end of !PAS_COSMO */
 #endif
 
 bool pas_lock_disallowed;
@@ -118,7 +125,11 @@ void pas_lock_lock_slow(pas_lock* lock)
             PAS_ASSERT(old_state == PAS_LOCK_HELD_WAITING);
         locked_state = PAS_LOCK_HELD_WAITING;
 
+#if PAS_COSMO
+        yolo_futex_wait((volatile int*)&lock->lock, PAS_LOCK_HELD_WAITING, 1);
+#else /* PAS_COSMO -> so !PAS_COSMO */
         syscall(SYS_futex, &lock->lock, FUTEX_WAIT_PRIVATE, PAS_LOCK_HELD_WAITING, 0, 0, 0);
+#endif /* PAS_COSMO -> so end of !PAS_COSMO */
     }
 }
 
@@ -134,7 +145,11 @@ void pas_lock_unlock_slow(pas_lock* lock)
 
         if (pas_compare_and_swap_uint32_strong(&lock->lock, PAS_LOCK_HELD_WAITING, PAS_LOCK_NOT_HELD)
             == PAS_LOCK_HELD_WAITING) {
+#if PAS_COSMO
+            yolo_futex_wake((volatile int*)&lock->lock, 1, 1);
+#else /* PAS_COSMO -> so !PAS_COSMO */
             syscall(SYS_futex, &lock->lock, FUTEX_WAKE_PRIVATE, 1, 0, 0, 0);
+#endif /* PAS_COSMO -> so end of !PAS_COSMO */
             return;
         }
     }

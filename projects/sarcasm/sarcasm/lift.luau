@@ -14,6 +14,7 @@
 
 local arm64 = require("./arm64_isa")
 local prof = require("./prof")
+local err = require("./err")
 
 local lift = {}
 
@@ -133,14 +134,14 @@ function lift.liftFunction(body, opts)
 	for i = 1, n do
 		for _, r in flow[i].c.uses do
 			if r.num == nil then
-				error("sarcasm: internal error: unnumbered register use (rc="
+				err.at(flow[i].stmt, "internal error: unnumbered register use (rc="
 					.. tostring(r.rc) .. ") in '" .. tostring(flow[i].stmt and flow[i].stmt.raw or "?") .. "'")
 			end
 			usedRegs[r.num] = true
 		end
 		for _, r in flow[i].c.defs do
 			if r.num == nil then
-				error("sarcasm: internal error: unnumbered register def (rc="
+				err.at(flow[i].stmt, "internal error: unnumbered register def (rc="
 					.. tostring(r.rc) .. ") in '" .. tostring(flow[i].stmt and flow[i].stmt.raw or "?") .. "'")
 			end
 			usedRegs[r.num] = true

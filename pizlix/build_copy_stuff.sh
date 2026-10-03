@@ -38,8 +38,7 @@ cp -v \
     bzip2-1.0.8-install_docs-1.patch \
     bzip2-1.0.8.tar.gz \
     check-0.15.2.tar.gz \
-    coreutils-9.11-i18n-1.patch \
-    coreutils-9.11.tar.xz \
+    coreutils-9.12.tar.xz \
     curl-8.22.0.tar.xz \
     dejagnu-1.6.3.tar.gz \
     dhcpcd-10.0.8.tar.xz \
@@ -71,7 +70,7 @@ cp -v \
     iproute2-6.10.0.tar.xz \
     jinja2-3.1.4.tar.gz \
     kmod-33.tar.xz \
-    less-709-beta.tar.gz \
+    less-710.tar.gz \
     libcap-2.70.tar.xz \
     libffi-3.8.0.tar.gz \
     libpipeline-1.5.7.tar.gz \
@@ -90,7 +89,7 @@ cp -v \
     openssl-3.3.1.tar.gz \
     patch-2.8.tar.xz \
     perl-5.40.0.tar.xz \
-    pkgconf-3.0.6.tar.xz \
+    pkgconf-3.0.7.tar.xz \
     procps-ng-4.0.7.tar.xz \
     psmisc-23.7.tar.xz \
     python-3.12.5-docs-html.tar.bz2 \
@@ -113,7 +112,7 @@ cp -v \
     vim-9.1.0660.tar.gz \
     wheel-0.44.0.tar.gz \
     XML-Parser-2.47.tar.gz \
-    xz-5.8.3.tar.xz \
+    xz-5.8.4.tar.xz \
     zlib-1.3.2.tar.gz \
     zstd-1.5.7.tar.gz \
     build_prelc_sub2_chroot_part1.sh \

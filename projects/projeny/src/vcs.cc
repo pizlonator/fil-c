@@ -37,7 +37,6 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <dirent.h>
 #include <fcntl.h>
 #include <map>
 #include <set>
@@ -46,6 +45,12 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+// The frozen-mtime extended header prefix (`frozen-mtime <ts>`, emitted
+// right after the `diff --git` line) and its length. File-scope static: the
+// parse, emit, and edit paths all share it (a magic 13 invites typos).
+static const char kFrozenMtimeHeader[] = "frozen-mtime ";
+static const size_t kFrozenMtimeHeaderLen = sizeof(kFrozenMtimeHeader) - 1;
 
 namespace {
 
@@ -98,17 +103,6 @@ std::string join_content(const std::vector<std::string>& lines, bool ends_nl)
     return out;
 }
 
-// True for legacy scratch entries that must never be diffed (left behind
-// inside workdirs by older crashed runs; scratch now lives outside).
-bool is_scratch_rel(const std::string& rel)
-{
-    if (rel == ".projeny-tmp" || rel.compare(0, 13, ".projeny-tmp") == 0)
-        return true;
-    if (rel.find("/.projeny-tmp") != std::string::npos)
-        return true;
-    return false;
-}
-
 struct Collected {
     bool is_symlink = false;
     bool is_exec = false; // regular files only
@@ -131,19 +125,9 @@ void collect_into(const std::string& root, const std::string& rel,
         return;
     }
     if (S_ISLNK(st.st_mode)) {
-        std::vector<char> buf(st.st_size > 0 ? (size_t)st.st_size + 1 : 4096);
-        ssize_t r = readlink(full.c_str(), buf.data(), buf.size());
-        if (r < 0)
-            die("cannot read link '" + full + "': " + strerror(errno));
-        if ((size_t)r >= buf.size()) {
-            buf.resize((size_t)r + 1);
-            r = readlink(full.c_str(), buf.data(), buf.size());
-            if (r < 0)
-                die("cannot read link '" + full + "': " + strerror(errno));
-        }
         Collected c;
         c.is_symlink = true;
-        c.content.assign(buf.data(), (size_t)r);
+        c.content = read_link_target(full);
         if (c.content.find('\0') != std::string::npos)
             die(what + ": '" + rel + "' is a binary file; binary files are not supported");
         // Fail fast on targets that do not stay inside the tree (absolute,
@@ -446,25 +430,51 @@ std::string diff_label(const std::string& side, const std::string& wid,
 // Emit one file block. `old_rel`/`new_rel` are workdir-relative paths (one
 // may be empty for add/delete but not both). `old_c`/`new_c` are null when
 // the side is absent. `rename` marks a rename pair (old_rel != new_rel with
-// shared content lineage). Returns block text ending with '\n'.
+// shared content lineage). `frozen` (usually the diff options'
+// frozen_mtimes map) adds the `frozen-mtime <ts>` extended header for a
+// frozen path, immediately after the `diff --git` line and before any
+// old/new mode lines — the same header region the parser scans for modes.
+// Returns block text ending with '\n'. Callers never invoke this for a pair
+// with identical content, mode, and path: those are skipped before dispatch.
 std::string emit_block(const std::string& wid, const std::string& old_rel,
                        const std::string& new_rel, const Collected* old_c,
-                       const Collected* new_c, bool rename, int similarity)
+                       const Collected* new_c, bool rename, int similarity,
+                       const std::map<std::string, uint64_t>* frozen)
 {
     std::string out;
-    // For deletes the b-side label is /dev/null; for adds the a-side is.
+    // For adds and deletes the `diff --git` line repeats the live path on
+    // both sides (like git); /dev/null appears only on the ---/+++ lines.
     std::string da = old_c ? diff_label("a", wid, old_rel) : "/dev/null";
     std::string db = new_c ? diff_label("b", wid, new_rel) : "/dev/null";
-    // The `diff --git` line names both sides (absent side shown as /dev/null
-    // only when the other side is also /dev/null-free; for adds/deletes git
-    // repeats the present path on both sides — we emit /dev/null form which
-    // git apply and patch both accept... but to stay closest to git output,
-    // repeat the present path like git does).
     if (!old_c)
         da = diff_label("a", wid, new_rel);
     if (!new_c)
         db = diff_label("b", wid, old_rel);
     out += "diff --git " + da + " " + db + "\n";
+    // Frozen-mtime attribute header for the block's live path (the rename
+    // destination when both sides exist, since that is the path the checkout
+    // uses). Deleted blocks carry no attribute: the file is gone, and a
+    // frozen entry for it dies with the block (deletion is an explicit op
+    // that prunes the pin, so no warning there). Symlinks are skipped too —
+    // freezing is a regular-file attribute — but a frozen path whose new
+    // side is a symlink (a typechange in place, or a pending mv re-keyed to
+    // a destination that is now a symlink; symlink flips never pair as
+    // renames, so the add-block path covers that) loses its pin when this
+    // patch replaces the stored one, so warn instead of dropping it
+    // silently. Only callers that thread a frozen map (commit, rebase, the
+    // uncommitted diff) can reach the warning.
+    if (frozen && new_c) {
+        std::string live = new_rel.empty() ? old_rel : new_rel;
+        if (new_c->is_symlink) {
+            if (frozen->count(live))
+                warn("dropping the frozen mtime for '" + live +
+                     "': the file is now a symlink");
+        } else {
+            auto it = frozen->find(live);
+            if (it != frozen->end())
+                out += kFrozenMtimeHeader + std::to_string(it->second) + "\n";
+        }
+    }
     std::string om = old_c ? mode_of(*old_c) : "";
     std::string nm = new_c ? mode_of(*new_c) : "";
     if (!old_c && new_c) {
@@ -529,9 +539,6 @@ std::string emit_block(const std::string& wid, const std::string& old_rel,
         if (fl.lines.empty())
             return out;
     }
-    if (old_c && new_c && om == nm && !rename) {
-        // Fast path: identical handled by caller (no block at all).
-    }
     std::string minus = old_c ? quote_git_path("a/" + wid + "/" + old_rel) : "/dev/null";
     std::string plus = new_c ? quote_git_path("b/" + wid + "/" + new_rel) : "/dev/null";
     if (rename) {
@@ -542,17 +549,10 @@ std::string emit_block(const std::string& wid, const std::string& old_rel,
     if (old_c && new_c && entry_lines(*old_c).lines == entry_lines(*new_c).lines &&
         ((old_c->is_symlink == new_c->is_symlink) &&
          entry_lines(*old_c).ends_nl == entry_lines(*new_c).ends_nl)) {
-        // Content identical (only mode differs, or pure rename without edits
-        // when hunks would be empty).
-        if (om != nm || rename) {
-            if (!rename) {
-                // mode-only: git emits no ---/+++/hunks.
-                return out;
-            }
-            // Pure rename: git emits no ---/+++/hunks either.
-            return out;
-        }
-        return out; // identical: caller should not have asked
+        // Content identical: mode-only changes and pure renames emit no
+        // hunks (like git). A fully identical pair should never reach here
+        // (the caller skips it), so a header-only block is the fallback.
+        return out;
     }
     out += "--- " + minus + "\n";
     out += "+++ " + plus + "\n";
@@ -642,15 +642,116 @@ struct Pending {
 
 } // namespace
 
-std::string vcs_diff_trees(const std::string& base_tree, const std::string& workdir,
-                           const std::string& wid)
+namespace {
+
+// Forward declarations: the pending-aware differ below resolves pending
+// rename sources through the committed patch, which needs the patch parser
+// defined further down (same unnamed namespace, so these complete there).
+struct PBlock;
+std::vector<PBlock> parse_patch(const std::string& patch, const std::string& wid);
+
+// Strictly parse a `frozen-mtime` header value: decimal digits only — no
+// sign, no whitespace, no other characters, and no overflow. strtoull would
+// silently clamp out-of-range values to ULLONG_MAX and map garbage to 0,
+// which reads as "no header" and would silently disable the attribute.
+// Dies otherwise.
+uint64_t parse_frozen_mtime_value(const std::string& v)
+{
+    if (v.empty() || v.find_first_not_of("0123456789") != std::string::npos ||
+        v.size() > 20)
+        die("malformed frozen-mtime header '" + v +
+            "' (expected a unix-epoch timestamp in seconds)");
+    errno = 0;
+    unsigned long long val = strtoull(v.c_str(), nullptr, 10);
+    if (errno == ERANGE)
+        die("malformed frozen-mtime header '" + v +
+            "' (timestamp overflows 64 bits)");
+    return (uint64_t)val;
+}
+
+std::vector<std::pair<std::string, std::string>> committed_rename_pairs(
+    const std::string& patch, const std::string& wid);
+
+} // namespace
+
+// True when `rel` is `k` itself or lives under kept directory `k` — the
+// same predicate commit and the pending-aware diff use for their keep
+// lists (add/rm/mv take directories, so keep entries may name dirs).
+// Exported (declared in vcs.h) so `commit`'s disappeared check shares it.
+bool vcs_covers_keep_path(const std::vector<std::string>& keep,
+                          const std::string& rel)
+{
+    for (const auto& k : keep) {
+        if (k.empty())
+            continue;
+        if (rel == k)
+            return true;
+        if (rel.size() > k.size() && rel.compare(0, k.size(), k) == 0 &&
+            rel[k.size()] == '/')
+            return true;
+    }
+    return false;
+}
+
+bool vcs_delete_covered(
+    const std::vector<std::string>& keep,
+    const std::vector<std::pair<std::string, std::string>>* renames,
+    const std::string& rel,
+    const std::function<bool(const std::string&)>& counterpart_exists)
+{
+    for (const auto& k : keep) {
+        if (k.empty())
+            continue;
+        if (rel == k)
+            return true; // exact: a removal (or file rename source)
+        if (!(rel.size() > k.size() &&
+              rel.compare(0, k.size(), k) == 0 && rel[k.size()] == '/'))
+            continue;
+        // rel lives under k. Authoritative unless k is exactly a
+        // pending rename source (a directory move).
+        bool is_dir_move = false;
+        if (renames) {
+            for (const auto& rn : *renames) {
+                if (rn.first != k)
+                    continue;
+                is_dir_move = true;
+                std::string counterpart =
+                    rn.second + rel.substr(k.size());
+                if (counterpart_exists(counterpart))
+                    return true; // moved with the directory
+            }
+        }
+        if (!is_dir_move)
+            return true;
+    }
+    // Only directory-move sources covered rel and none of them moved
+    // this file: unregistered.
+    return false;
+}
+
+// True for legacy scratch entries that must never be diffed or reported
+// (left behind inside workdirs by older crashed runs; scratch now lives
+// outside): ".projeny-tmp*" at the workdir root or under any directory.
+bool vcs_is_scratch_rel(const std::string& rel)
+{
+    // The prefix compare covers ".projeny-tmp" itself and every suffix.
+    if (rel.compare(0, 13, ".projeny-tmp") == 0)
+        return true;
+    if (rel.find("/.projeny-tmp") != std::string::npos)
+        return true;
+    return false;
+}
+
+std::string vcs_diff_trees_ex(const std::string& base_tree,
+                              const std::string& workdir, const std::string& wid,
+                              const VcsDiffOpts& opts)
 {
     std::map<std::string, Collected> base, work;
     collect_into(base_tree, "", base, "base tree");
     collect_into(workdir, "", work, "workdir");
     bool warned_scratch = false;
     auto skip_scratch = [&](const std::string& rel) -> bool {
-        if (is_scratch_rel(rel)) {
+        if (vcs_is_scratch_rel(rel)) {
             if (!warned_scratch) {
                 warn("ignoring stale '.projeny-tmp*' scratch entries inside the workdir");
                 warned_scratch = true;
@@ -658,6 +759,23 @@ std::string vcs_diff_trees(const std::string& base_tree, const std::string& work
             return true;
         }
         return false;
+    };
+    // Refined delete-side keep coverage. Callers pass a non-null
+    // delete_keep (the null handling lives at the call sites: delete
+    // blocks are kept, rename old sides are ok, and every missing base
+    // file counts as disappeared). The rule lives in vcs_delete_covered;
+    // this probe counts a moved file's counterpart as present when it
+    // exists in the workdir OR is itself registered by the full keep list
+    // (e.g. `projeny rm` after the move, or a further pending rename of
+    // the moved-to path).
+    auto delete_covered = [&](const std::string& rel) -> bool {
+        return vcs_delete_covered(*opts.delete_keep, opts.forced_renames, rel,
+                                  [&](const std::string& counterpart) {
+                                      return work.count(counterpart) > 0 ||
+                                             vcs_covers_keep_path(
+                                                 *opts.delete_keep,
+                                                 counterpart);
+                                  });
     };
     // Partition.
     std::map<std::string, Collected> common_base, common_work;
@@ -682,6 +800,10 @@ std::string vcs_diff_trees(const std::string& base_tree, const std::string& work
     struct BlockJob {
         std::string sort_key;
         std::string text;
+        char kind = 'm'; // 'm' modify/typechange, 'r' rename, 'd' delete, 'a' add
+        std::string old_rel, new_rel; // rename sides (for keep filtering)
+        const Collected* old_c = nullptr; // rename sides' content (conversions)
+        const Collected* new_c = nullptr;
     };
     std::vector<BlockJob> jobs;
     // Modified in place.
@@ -690,22 +812,142 @@ std::string vcs_diff_trees(const std::string& base_tree, const std::string& work
         const Collected& ob = kv.second;
         const Collected& nw = common_work[rel];
         if (ob.is_symlink == nw.is_symlink && ob.content == nw.content &&
-            mode_of(ob) == mode_of(nw))
-            continue; // unchanged
+            mode_of(ob) == mode_of(nw)) {
+            // Unchanged — except that a frozen path must still emit its
+            // attribute: an attribute-only block (diff --git + frozen-mtime,
+            // no ---/+++/hunks) keeps the header alive in a patch that commit
+            // or rebase regenerates from scratch. Only the regenerate path
+            // asks for this (frozen_attribute_blocks), so a clean checkout of
+            // a frozen project still diffs empty.
+            if (opts.frozen_attribute_blocks && opts.frozen_mtimes &&
+                !nw.is_symlink && opts.frozen_mtimes->count(rel)) {
+                BlockJob j;
+                j.sort_key = rel;
+                j.text = emit_block(wid, rel, rel, &ob, &nw, false, 0,
+                                    opts.frozen_mtimes);
+                jobs.push_back(std::move(j));
+            }
+            continue; // unchanged: identical pairs never reach emit_block
+        }
         if (ob.is_symlink != nw.is_symlink) {
             // Typechange: emit as delete+add hunks in one block (mode lines
             // record the transition; hunks carry old->new content).
-            jobs.push_back({rel, emit_block(wid, rel, rel, &ob, &nw, false, 0)});
+            BlockJob j;
+            j.sort_key = rel;
+            j.text = emit_block(wid, rel, rel, &ob, &nw, false, 0,
+                                opts.frozen_mtimes);
+            jobs.push_back(std::move(j));
             continue;
         }
-        jobs.push_back({rel, emit_block(wid, rel, rel, &ob, &nw, false, 0)});
+        BlockJob j;
+        j.sort_key = rel;
+        j.text = emit_block(wid, rel, rel, &ob, &nw, false, 0,
+                            opts.frozen_mtimes);
+        jobs.push_back(std::move(j));
     }
-    // Rename detection: exact matches first, then similar pairs (>50%).
+    // Rename detection: forced (pending-op) pairs first, then exact
+    // content matches, then similar pairs (>50%).
     std::vector<bool> used_d(deleted.size(), false), used_a(added.size(), false);
     struct Rename {
         size_t di, ai;
         int sim;
     };
+    std::vector<Rename> chosen;
+    if (opts.forced_renames && !opts.forced_renames->empty()) {
+        // Pending `projeny mv` pairs pair up before any content guesswork:
+        // a move must render as a rename even when the moved file's content
+        // diverged beyond the similarity threshold, and it must win the
+        // pairing when several same-content files changed hands at once.
+        // Committed rename blocks, parsed once, for resolving a pending
+        // source backwards to a base-tree path: commit diffs the raw
+        // archive, which predates the committed renames, so a pending
+        // rename of an already-committed rename names no base path until
+        // unwound. Empty (the expected tree of a fresh setup already
+        // contains the committed renames): sources resolve directly.
+        std::vector<std::pair<std::string, std::string>> committed;
+        if (opts.committed_patch && !opts.committed_patch->empty())
+            committed = committed_rename_pairs(*opts.committed_patch, wid);
+        // A map key names a directory when some file lives under it (the
+        // maps hold file entries only; keys are sorted, so everything
+        // under `rel/` is one contiguous range).
+        auto is_dir_key = [](const std::map<std::string, Collected>& m,
+                             const std::string& rel) -> bool {
+            std::string pfx = rel + "/";
+            auto it = m.lower_bound(pfx);
+            return it != m.end() && it->first.compare(0, pfx.size(), pfx) == 0;
+        };
+        std::unordered_map<std::string, size_t> didx, aidx;
+        for (size_t i = 0; i < deleted.size(); ++i)
+            didx.emplace(deleted[i].rel, i);
+        for (size_t j = 0; j < added.size(); ++j)
+            aidx.emplace(added[j].rel, j);
+        // Resolve `s` backwards through committed renames (a from -> to
+        // block with to == s replaces s by from) until it names a
+        // base-tree path; "" when unresolvable (e.g. the source was itself
+        // committed-added, so no base path backs it and no delete side is
+        // needed — the add side is settled by the keep filtering). Cycles
+        // cannot occur in a projeny-generated patch; guarded anyway.
+        auto resolve_to_base = [&](const std::string& start) -> std::string {
+            std::string s = start;
+            std::unordered_set<std::string> seen;
+            seen.insert(s);
+            while (!base.count(s) && !is_dir_key(base, s)) {
+                bool advanced = false;
+                for (const auto& cp : committed) {
+                    if (cp.second == s) {
+                        s = cp.first;
+                        advanced = true;
+                        break;
+                    }
+                }
+                if (!advanced || !seen.insert(s).second)
+                    return "";
+            }
+            return s;
+        };
+        // Pair one (source, destination): both sides must still be
+        // pending, and a symlink flip is not a rename (typechanges are
+        // their own thing, like the in-place case). Regular non-binary
+        // pairs show their real similarity; everything else displays 100.
+        auto try_pair = [&](const std::string& s, const std::string& d) {
+            auto di = didx.find(s);
+            if (di == didx.end())
+                return;
+            auto ai = aidx.find(d);
+            if (ai == aidx.end())
+                return;
+            if (used_d[di->second] || used_a[ai->second])
+                return;
+            const Collected& oc = deleted[di->second].c;
+            const Collected& nc = added[ai->second].c;
+            if (oc.is_symlink != nc.is_symlink)
+                return;
+            int sim = 100;
+            if (!oc.is_symlink && !oc.is_binary && !nc.is_binary)
+                sim = line_similarity(oc.content, nc.content);
+            used_d[di->second] = true;
+            used_a[ai->second] = true;
+            chosen.push_back({di->second, ai->second, sim});
+        };
+        for (const auto& fr : *opts.forced_renames) {
+            std::string s = resolve_to_base(fr.first);
+            if (s.empty())
+                continue; // no base path: nothing to pair (no delete side)
+            if (is_dir_key(base, s) && is_dir_key(work, fr.second)) {
+                // Directory move: pair every base file under the source
+                // dir with the same relative path under the destination
+                // (files the move dropped or replaced stay unpaired).
+                std::string pfx = s + "/";
+                for (auto it = base.lower_bound(pfx);
+                     it != base.end() &&
+                     it->first.compare(0, pfx.size(), pfx) == 0; ++it) {
+                    try_pair(it->first, fr.second + it->first.substr(s.size()));
+                }
+            } else {
+                try_pair(s, fr.second);
+            }
+        }
+    }
     std::vector<Rename> renames;
     for (size_t i = 0; i < deleted.size(); ++i) {
         for (size_t j = 0; j < added.size(); ++j) {
@@ -722,7 +964,6 @@ std::string vcs_diff_trees(const std::string& base_tree, const std::string& work
             return deleted[x.di].rel < deleted[y.di].rel;
         return added[x.ai].rel < added[y.ai].rel;
     });
-    std::vector<Rename> chosen;
     for (auto& r : renames) {
         if (!used_d[r.di] && !used_a[r.ai]) {
             used_d[r.di] = true;
@@ -762,20 +1003,104 @@ std::string vcs_diff_trees(const std::string& base_tree, const std::string& work
         const std::string& nrel = added[r.ai].rel;
         const Collected& ob = deleted[r.di].c;
         const Collected& nw = added[r.ai].c;
-        jobs.push_back({nrel, emit_block(wid, orel, nrel, &ob, &nw, true, r.sim)});
+        BlockJob j;
+        j.sort_key = nrel;
+        j.kind = 'r';
+        j.old_rel = orel;
+        j.new_rel = nrel;
+        j.old_c = &ob;
+        j.new_c = &nw;
+        j.text = emit_block(wid, orel, nrel, &ob, &nw, true, r.sim,
+                            opts.frozen_mtimes);
+        jobs.push_back(std::move(j));
     }
     for (size_t i = 0; i < deleted.size(); ++i) {
         if (used_d[i])
             continue;
-        jobs.push_back(
-            {deleted[i].rel, emit_block(wid, deleted[i].rel, "", &deleted[i].c,
-                                        nullptr, false, 0)});
+        BlockJob j;
+        j.sort_key = deleted[i].rel;
+        j.kind = 'd';
+        j.old_rel = deleted[i].rel;
+        j.old_c = &deleted[i].c;
+        j.text = emit_block(wid, deleted[i].rel, "", &deleted[i].c, nullptr,
+                            false, 0, opts.frozen_mtimes);
+        jobs.push_back(std::move(j));
     }
     for (size_t j = 0; j < added.size(); ++j) {
         if (used_a[j])
             continue;
-        jobs.push_back({added[j].rel, emit_block(wid, "", added[j].rel, nullptr,
-                                                 &added[j].c, false, 0)});
+        BlockJob b;
+        b.sort_key = added[j].rel;
+        b.kind = 'a';
+        b.new_rel = added[j].rel;
+        b.new_c = &added[j].c;
+        b.text = emit_block(wid, "", added[j].rel, nullptr, &added[j].c,
+                            false, 0, opts.frozen_mtimes);
+        jobs.push_back(std::move(b));
+    }
+    // Keep-list filtering (pending-aware callers only: both pointers null
+    // keeps every block, which is what the plain tree diff must do). An
+    // untracked anything (text, symlink, or binary) is dropped; an
+    // unregistered deletion is dropped; a rename stands only when its
+    // covered sides justify it, degrading to the surviving side's
+    // delete/add so the tracked half of the move is still recorded.
+    if (opts.add_keep || opts.delete_keep) {
+        std::vector<BlockJob> kept;
+        kept.reserve(jobs.size());
+        for (BlockJob& j : jobs) {
+            if (j.kind == 'a' && opts.add_keep &&
+                !vcs_covers_keep_path(*opts.add_keep, j.new_rel))
+                continue; // untracked add: leave it out, like git
+            if (j.kind == 'd' && opts.delete_keep &&
+                !delete_covered(j.old_rel))
+                continue; // unregistered deletion: not part of this diff
+            if (j.kind == 'r' && (opts.add_keep || opts.delete_keep)) {
+                bool o_ok =
+                    !opts.delete_keep || delete_covered(j.old_rel);
+                bool n_ok =
+                    !opts.add_keep ||
+                    vcs_covers_keep_path(*opts.add_keep, j.new_rel);
+                if (!o_ok && !n_ok)
+                    continue; // neither side tracked: drop the move
+                if (!n_ok) {
+                    // Only the old side is tracked: render as a delete.
+                    j.text = emit_block(wid, j.old_rel, "", j.old_c, nullptr,
+                                        false, 0, opts.frozen_mtimes);
+                    j.sort_key = j.old_rel;
+                    j.kind = 'd';
+                } else if (!o_ok) {
+                    // Only the new side is tracked: render as an add.
+                    j.text = emit_block(wid, "", j.new_rel, nullptr, j.new_c,
+                                        false, 0, opts.frozen_mtimes);
+                    j.kind = 'a';
+                }
+            }
+            kept.push_back(std::move(j));
+        }
+        jobs.swap(kept);
+    }
+    // Authoritative disappearance list: base-tree files missing from the
+    // workdir and not covered by the delete keep list. Collected from the
+    // trees themselves rather than the blocks, so content-based rename
+    // pairing can never attribute a disappearance to the wrong source.
+    // With a null delete_keep, nothing counts as registered (callers that
+    // ask for disappearances without filtering are telling the truth);
+    // with one, the refined predicate decides (a directory move covers
+    // its inner files only when they moved with it).
+    if (opts.disappeared) {
+        for (const auto& kv : base) {
+            if (skip_scratch(kv.first))
+                continue;
+            if (work.count(kv.first))
+                continue;
+            if (opts.delete_keep && delete_covered(kv.first))
+                continue;
+            opts.disappeared->push_back(kv.first);
+        }
+        std::sort(opts.disappeared->begin(), opts.disappeared->end());
+        opts.disappeared->erase(
+            std::unique(opts.disappeared->begin(), opts.disappeared->end()),
+            opts.disappeared->end());
     }
     std::sort(jobs.begin(), jobs.end(), [](const BlockJob& x, const BlockJob& y) {
         return x.sort_key < y.sort_key;
@@ -784,6 +1109,16 @@ std::string vcs_diff_trees(const std::string& base_tree, const std::string& work
     for (auto& j : jobs)
         out += j.text;
     return out;
+}
+
+std::string vcs_diff_trees(const std::string& base_tree, const std::string& workdir,
+                           const std::string& wid)
+{
+    // Plain tree diff: every pending-aware behavior is keyed off a null
+    // option pointer, so this must stay byte-identical to the pre-ex
+    // implementation (2-dir diff, setup's U-diff, and rebase rely on it).
+    VcsDiffOpts opts;
+    return vcs_diff_trees_ex(base_tree, workdir, wid, opts);
 }
 
 namespace {
@@ -809,6 +1144,12 @@ struct PBlock {
     bool is_rename = false;
     std::string rename_from, rename_to;
     std::string old_mode, new_mode; // "" if absent
+    // Frozen-mtime attribute (unix-epoch seconds) from the `frozen-mtime`
+    // extended header. 0 means "no header" (the sentinel vcs_frozen_mtimes
+    // and emit_block test for), so an archive mtime of epoch-0 can never be
+    // frozen — practically impossible, and treated as absent if it ever
+    // appears in a patch.
+    uint64_t frozen_mtime = 0;
     bool is_new = false, is_deleted = false;
     bool is_binary = false;
     // Binary payload (projeny base64 `GIT binary patch` literals): the first
@@ -1070,6 +1411,10 @@ std::vector<PBlock> parse_patch(const std::string& patch, const std::string& wid
                 blk.old_mode = t.substr(9);
             else if (t.compare(0, 9, "new mode ") == 0)
                 blk.new_mode = t.substr(9);
+            else if (t.compare(0, kFrozenMtimeHeaderLen,
+                               kFrozenMtimeHeader) == 0)
+                blk.frozen_mtime = parse_frozen_mtime_value(
+                    t.substr(kFrozenMtimeHeaderLen));
             else if (t.compare(0, 17, "deleted file mode") == 0) {
                 blk.is_deleted = true;
                 std::string v = t.size() > 18 ? ltrim(t.substr(17)) : "";
@@ -1310,6 +1655,137 @@ std::vector<PBlock> parse_patch(const std::string& patch, const std::string& wid
     return out;
 }
 
+// (from, to) pairs of every rename block in `patch` (wid-label form, wid ==
+// `wid`). Used by the pending-aware diff to follow a pending rename source
+// backwards through committed renames until it names a base-tree path.
+std::vector<std::pair<std::string, std::string>> committed_rename_pairs(
+    const std::string& patch, const std::string& wid)
+{
+    std::vector<std::pair<std::string, std::string>> out;
+    if (patch.empty())
+        return out;
+    for (const PBlock& b : parse_patch(patch, wid)) {
+        if (b.is_rename && b.has_old && b.has_new && !b.rename_from.empty() &&
+            !b.rename_to.empty())
+            out.push_back({b.rename_from, b.rename_to});
+    }
+    return out;
+}
+
+// ---- frozen-mtime attribute editing ----
+//
+// The `frozen-mtime <ts>` extended header lives in the same region of a
+// block as the old/new mode lines: immediately after the `diff --git` line,
+// before any mode lines. Blocks are edited byte-exactly (hunk bodies and
+// binary payloads are never re-encoded), so set/unfreeze only ever touch
+// the header line itself.
+
+// Rebuild one raw block with its frozen-mtime header set (set=true, value
+// `ts`) or removed (set=false). The header is placed right after the block's
+// first line (the `diff --git` line) and replaces any existing one.
+std::string block_set_frozen(const std::string& raw, bool set, uint64_t ts)
+{
+    std::vector<std::string> lines = split_raw(raw);
+    std::string out;
+    for (size_t i = 0; i < lines.size(); ++i) {
+        if (i == 0) {
+            out += lines[0];
+            out += "\n";
+            if (set)
+                out += kFrozenMtimeHeader + std::to_string(ts) + "\n";
+            continue;
+        }
+        if (no_cr(lines[i]).compare(0, kFrozenMtimeHeaderLen,
+                                    kFrozenMtimeHeader) == 0)
+            continue; // an existing header: replaced (or dropped) above
+        out += lines[i];
+        out += "\n";
+    }
+    return out;
+}
+
+// True when `raw` is a bare `diff --git` header line with nothing else: the
+// husk an attribute-only block leaves behind once its frozen-mtime header is
+// removed. Such a block describes no change at all, so it is dropped rather
+// than kept.
+bool block_is_husk(const std::string& raw)
+{
+    std::vector<std::string> lines = split_raw(raw);
+    if (lines.size() != 1)
+        return false;
+    std::string t = no_cr(lines[0]);
+    return starts_with(t, "diff --git ") || starts_with(t, "diff --cc ") ||
+           starts_with(t, "diff --combined ");
+}
+
+// The text of an attribute-only block: `diff --git a/X b/X` plus the
+// frozen-mtime header, with no ---/+++/hunks (the analogue of a mode-only
+// block, which carries no hunks either).
+std::string frozen_attribute_block(const std::string& wid, const std::string& rel,
+                                   uint64_t ts)
+{
+    std::string a = quote_git_path("a/" + wid + "/" + rel);
+    std::string b = quote_git_path("b/" + wid + "/" + rel);
+    return "diff --git " + a + " " + b + "\n" + kFrozenMtimeHeader +
+           std::to_string(ts) + "\n";
+}
+
+} // namespace
+
+std::map<std::string, uint64_t> vcs_frozen_mtimes(const std::string& patch,
+                                                  const std::string& wid)
+{
+    std::map<std::string, uint64_t> out;
+    if (patch.empty())
+        return out;
+    for (const PBlock& b : parse_patch(patch, wid)) {
+        if (b.frozen_mtime == 0)
+            continue;
+        // A frozen attribute belongs to the block's live path: the rename
+        // destination when both sides exist, else whichever side is named.
+        std::string key = !b.new_rel.empty() ? b.new_rel : b.old_rel;
+        if (key.empty())
+            continue;
+        out[key] = b.frozen_mtime;
+    }
+    return out;
+}
+
+std::string vcs_set_frozen_mtimes(const std::string& patch, const std::string& wid,
+                                  const std::map<std::string, uint64_t>& frozen)
+{
+    if (patch.empty() && frozen.empty())
+        return patch;
+    std::vector<PBlock> blocks = parse_patch(patch, wid);
+    std::string out;
+    std::set<std::string> covered;
+    for (const PBlock& b : blocks) {
+        std::string key = !b.new_rel.empty() ? b.new_rel : b.old_rel;
+        auto it = key.empty() ? frozen.end() : frozen.find(key);
+        // A deletion never carries the header: a frozen mtime needs a live
+        // file, and the attribute dies with the file (matching emit_block,
+        // which skips frozen paths on delete blocks).
+        bool keep_header = it != frozen.end() && !b.is_deleted;
+        std::string raw = keep_header ? block_set_frozen(b.raw, true, it->second)
+                                      : block_set_frozen(b.raw, false, 0);
+        if (keep_header)
+            covered.insert(key);
+        if (block_is_husk(raw))
+            continue; // attribute-only block whose freeze was removed
+        out += raw;
+    }
+    // Frozen paths the patch does not mention yet (unchanged tarball files):
+    // new attribute-only blocks so the attribute has a home in the patch.
+    for (const auto& kv : frozen) {
+        if (covered.count(kv.first))
+            continue;
+        out += frozen_attribute_block(wid, kv.first, kv.second);
+    }
+    return out;
+}
+
+namespace {
+
 // ---- Hunk matching/application with fuzz ----
 
 // Check hunk body lines against file lines at pos with fuzz f (ignores up to
@@ -1496,11 +1972,9 @@ bool apply_hunks(const FileLines& file, const std::vector<PHunk>& hunks,
     } else if (last_touches_eof) {
         result->ends_nl = !hunks.back().new_no_nl;
     } else {
+        // If some hunk carried a new marker but did not touch EOF (should
+        // not happen in well-formed diffs), honor it conservatively.
         result->ends_nl = new_no_nl_file ? false : file.ends_nl;
-        // If some hunk carried a new marker but did not touch EOF (should not
-        // happen in well-formed diffs), honor it conservatively.
-        if (new_no_nl_file)
-            result->ends_nl = false;
     }
     return true;
 }
@@ -1570,12 +2044,8 @@ RawContent read_raw_content(const std::string& full)
     if (lstat(full.c_str(), &st) != 0)
         return rc;
     if (S_ISLNK(st.st_mode)) {
-        std::vector<char> buf(st.st_size > 0 ? (size_t)st.st_size + 1 : 4096);
-        ssize_t r = readlink(full.c_str(), buf.data(), buf.size());
-        if (r < 0)
-            die("cannot read link '" + full + "': " + strerror(errno));
         rc.kind = RawKind::Link;
-        rc.bytes.assign(buf.data(), (size_t)r);
+        rc.bytes = read_link_target(full);
         return rc;
     }
     if (S_ISREG(st.st_mode)) {
@@ -1679,14 +2149,11 @@ FileLines read_target_lines(const std::string& full, bool* is_link,
     }
     if (S_ISLNK(st.st_mode)) {
         *is_link = true;
-        std::vector<char> buf(st.st_size > 0 ? (size_t)st.st_size + 1 : 4096);
-        ssize_t r = readlink(full.c_str(), buf.data(), buf.size());
-        if (r < 0)
-            die("cannot read link '" + full + "': " + strerror(errno));
+        std::string target = read_link_target(full);
         if (link_target)
-            link_target->assign(buf.data(), (size_t)r);
+            *link_target = target;
         FileLines fl;
-        fl.lines.push_back(std::string(buf.data(), (size_t)r));
+        fl.lines.push_back(target);
         fl.ends_nl = false;
         return fl;
     }
@@ -1927,8 +2394,15 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
         have_old_path = have_new_path = true;
     }
 
+    // A binary block carries a `GIT binary patch` payload instead of text
+    // hunks, so a rename whose content changed has empty hunks but real
+    // bytes to write. Only payload-free renames (pure rename, or mode-only
+    // rename of a binary — the emitter omits the payload when the bytes are
+    // identical) may take the move-only fast path below; a payload-bearing
+    // rename must fall through to the modify path, which verifies the old
+    // bytes at the source and writes the new bytes to the destination.
     bool pure_rename = blk.is_rename && blk.hunks.empty() && !blk.is_new &&
-                       !blk.is_deleted;
+                       !blk.is_deleted && !blk.binary_has_payload;
     if (pure_rename) {
         if (blk.is_combined)
             return BlkStatus::Failed;
@@ -2288,31 +2762,17 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
         // enforcing mode/newline even on the Already path.
         if (path_kind(dst_full) == PathKind::Other)
             return BlkStatus::Failed;
-        if (blk.is_rename && path_exists(dst_full)) {
+        // Reverse-match hunks against the destination (whether the block
+        // renames or not — both shapes read the same way). A pure rename
+        // (empty hunks) whose destination exists is already applied too.
+        if (path_exists(dst_full)) {
             if (!blk.is_binary && path_is_binary_file(dst_full))
                 return BlkStatus::Failed; // text block vs binary file
             bool is_link = false;
             FileLines cur = read_target_lines(dst_full, &is_link, nullptr);
-            if (!blk.hunks.empty() &&
-                hunks_match_all(cur.lines, blk.hunks, true)) {
-                if (!confined_for_write(treedir, dst_full))
-                    return BlkStatus::Failed;
-                ensure_already_state(dst_full, cur, blk, is_link);
-                return BlkStatus::Already;
-            }
-            if (blk.hunks.empty()) {
-                if (!confined_for_write(treedir, dst_full))
-                    return BlkStatus::Failed;
-                ensure_already_state(dst_full, cur, blk, is_link);
-                return BlkStatus::Already;
-            }
-        } else if (!blk.is_rename && path_exists(dst_full)) {
-            if (!blk.is_binary && path_is_binary_file(dst_full))
-                return BlkStatus::Failed; // text block vs binary file
-            bool is_link = false;
-            FileLines cur = read_target_lines(dst_full, &is_link, nullptr);
-            if (!blk.hunks.empty() &&
-                hunks_match_all(cur.lines, blk.hunks, true)) {
+            if ((!blk.hunks.empty() &&
+                 hunks_match_all(cur.lines, blk.hunks, true)) ||
+                (blk.is_rename && blk.hunks.empty())) {
                 if (!confined_for_write(treedir, dst_full))
                     return BlkStatus::Failed;
                 ensure_already_state(dst_full, cur, blk, is_link);
@@ -2356,15 +2816,12 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
     // enforcing effective mode and trailing-newline state even when the
     // content already matches so retry/re-setup repairs drift.
     if (hunks_match_all(cur.lines, blk.hunks, true)) {
-        std::string dst = blk.is_rename ? dst_full : src_full;
         // For renames the content lives at dst when src is gone; here src
-        // exists, so the content is at src. Enforce there (and on dst when
-        // both exist with equal content? src is the live copy).
+        // exists, so the content is at src. Enforce there.
         // Gate the rewrite/chmod like any other: never write through a link.
         if (!confined_for_write(treedir, src_full))
             return BlkStatus::Failed;
         ensure_already_state(src_full, cur, blk, is_link);
-        (void)dst;
         return BlkStatus::Already;
     }
     FileLines res;
@@ -2912,10 +3369,64 @@ std::vector<std::string> vcs_binary_add_paths(const std::string& patch,
     if (patch.empty())
         return out;
     for (auto& b : parse_patch(patch, wid)) {
-        if (b.is_binary && b.binary_has_payload && b.is_new && !b.is_rename &&
-            !b.new_rel.empty() &&
+        if (b.is_combined || b.new_rel.empty())
+            continue;
+        // Tracked binaries: payload-carrying adds, and EVERY binary rename
+        // destination (payload-free pure renames included). Commit re-derives
+        // its diff against the raw archive, which predates every committed
+        // rename, so a committed binary rename whose bytes changed re-derives
+        // as delete+add (binaries never similarity-pair); without the
+        // destination here that add is dropped as untracked and the committed
+        // file silently vanishes on the next setup. Where pairing re-finds
+        // the rename instead, the extra entry is harmless: it only re-covers
+        // a path the stored patch already carries.
+        bool tracked = (b.is_binary && b.binary_has_payload && b.is_new &&
+                        !b.is_rename) ||
+                       (b.is_binary && b.is_rename);
+        if (tracked &&
             std::find(out.begin(), out.end(), b.new_rel) == out.end())
             out.push_back(b.new_rel);
+    }
+    return out;
+}
+
+// Shared implementation of vcs_add_paths / vcs_deleted_paths: collect the
+// workdir-relative paths of the patch's pure adds (plus rename
+// destinations, whose commit-derived diff needs them) or pure deletes
+// respectively — deduplicated, in patch order.
+static std::vector<std::string> patch_side_paths(const std::string& patch,
+                                                 const std::string& wid,
+                                                 bool adds)
+{
+    std::vector<std::string> out;
+    if (patch.empty())
+        return out;
+    for (auto& b : parse_patch(patch, wid)) {
+        bool hit;
+        if (adds) {
+            bool pure_add = b.is_new && !b.is_rename && !b.is_deleted &&
+                            !b.is_combined;
+            // Rename destinations are tracked too (see the header comment):
+            // a committed rename's content can diverge beyond rename
+            // detection, in which case commit's re-derived diff (against the
+            // raw archive, which predates the rename) is a delete of the old
+            // path plus an add of the new one — dropping that add loses the
+            // committed file.
+            bool rename_new = b.is_rename && !b.is_combined;
+            hit = pure_add || rename_new;
+        } else {
+            hit = b.is_deleted && !b.is_rename && !b.is_new && !b.is_combined;
+        }
+        if (!hit)
+            continue;
+        std::string rel = adds ? b.new_rel : b.old_rel;
+        if (rel.empty())
+            rel = failure_for_block(b, wid).display;
+        if (rel.empty() || rel == "<unknown file>" || rel == "<combined diff>" ||
+            rel == "<rename>")
+            continue;
+        if (std::find(out.begin(), out.end(), rel) == out.end())
+            out.push_back(rel);
     }
     return out;
 }
@@ -2923,47 +3434,13 @@ std::vector<std::string> vcs_binary_add_paths(const std::string& patch,
 std::vector<std::string> vcs_add_paths(const std::string& patch,
                                        const std::string& wid)
 {
-    std::vector<std::string> out;
-    if (patch.empty())
-        return out;
-    for (auto& b : parse_patch(patch, wid)) {
-        bool pure_add = b.is_new && !b.is_rename && !b.is_deleted &&
-                        !b.is_combined;
-        if (!pure_add)
-            continue;
-        std::string rel = b.new_rel;
-        if (rel.empty())
-            rel = failure_for_block(b, wid).display;
-        if (rel.empty() || rel == "<unknown file>" || rel == "<combined diff>" ||
-            rel == "<rename>")
-            continue;
-        if (std::find(out.begin(), out.end(), rel) == out.end())
-            out.push_back(rel);
-    }
-    return out;
+    return patch_side_paths(patch, wid, true);
 }
 
 std::vector<std::string> vcs_deleted_paths(const std::string& patch,
                                            const std::string& wid)
 {
-    std::vector<std::string> out;
-    if (patch.empty())
-        return out;
-    for (auto& b : parse_patch(patch, wid)) {
-        bool pure_delete = b.is_deleted && !b.is_rename && !b.is_new &&
-                           !b.is_combined;
-        if (!pure_delete)
-            continue;
-        std::string rel = b.old_rel;
-        if (rel.empty())
-            rel = failure_for_block(b, wid).display;
-        if (rel.empty() || rel == "<unknown file>" || rel == "<combined diff>" ||
-            rel == "<rename>")
-            continue;
-        if (std::find(out.begin(), out.end(), rel) == out.end())
-            out.push_back(rel);
-    }
-    return out;
+    return patch_side_paths(patch, wid, false);
 }
 
 namespace {
@@ -3130,15 +3607,7 @@ bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_fi
             make_dirs(dirname_of(dst_path));
             remove_recursive(dst_path);
             if (k == 1) {
-                struct stat st;
-                if (lstat(src.c_str(), &st) != 0)
-                    die("cannot stat '" + src + "': " + strerror(errno));
-                std::vector<char> buf(st.st_size > 0 ? (size_t)st.st_size + 1
-                                                     : 4096);
-                ssize_t r = readlink(src.c_str(), buf.data(), buf.size());
-                if (r < 0)
-                    die("cannot read link '" + src + "': " + strerror(errno));
-                std::string target(buf.data(), (size_t)r);
+                std::string target = read_link_target(src);
                 check_patch_link_target(dst_root, dst_path, target);
                 if (symlink(target.c_str(), dst_path.c_str()) != 0)
                     die("cannot create symlink '" + dst_path +
@@ -3182,20 +3651,7 @@ bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_fi
         return S_ISLNK(st.st_mode);
     };
     auto read_target = [](const std::string& f) -> std::string {
-        struct stat st;
-        if (lstat(f.c_str(), &st) != 0)
-            die("cannot stat '" + f + "': " + strerror(errno));
-        std::vector<char> buf(st.st_size > 0 ? (size_t)st.st_size + 1 : 4096);
-        ssize_t r = readlink(f.c_str(), buf.data(), buf.size());
-        if (r < 0)
-            die("cannot read link '" + f + "': " + strerror(errno));
-        if ((size_t)r >= buf.size()) {
-            buf.resize((size_t)r + 1);
-            r = readlink(f.c_str(), buf.data(), buf.size());
-            if (r < 0)
-                die("cannot read link '" + f + "': " + strerror(errno));
-        }
-        return std::string(buf.data(), (size_t)r);
+        return read_link_target(f);
     };
     // Copy src to dst preserving symlink-ness and permission bits, so a
     // clean merge never introduces spurious mode changes (which the next
@@ -3745,20 +4201,9 @@ bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_fi
             ++q;
         } else if (c1 && c2) {
             size_t u_end = c1->base_end > c2->base_end ? c1->base_end : c2->base_end;
-            // Ours/theirs versions of the union range.
-            std::vector<std::string> ov, tv;
-            // Ours version: its fresh lines plus base lines in union gaps it
-            // does not cover.
-            if (c1->base_start == i && c1->base_end == i) {
-                ov = c1->fresh; // pure insertion
-            } else {
-                ov = c1->fresh;
-            }
-            if (c2->base_start == i && c2->base_end == i) {
-                tv = c2->fresh;
-            } else {
-                tv = c2->fresh;
-            }
+            // Ours/theirs versions of the union range: each is the chunk's
+            // fresh lines (plus base tail lines spliced in below).
+            std::vector<std::string> ov = c1->fresh, tv = c2->fresh;
             // For overlapping ranges with different extents, splice base tail
             // lines the shorter side does not cover so both versions span the
             // union (diff3 semantics for adjacent-but-unequal edits).

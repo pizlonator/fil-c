@@ -1442,9 +1442,9 @@ ___
 if ($ENV{SARCASM}) {
   # %rsp never moved for the key schedule (GC `.alloca`), so drop the
   # fixed frame with a plain add reaching the ret (6 pushes + 0x48
-  # frame, plus 0xa0 on win64); the movs above already reloaded the
-  # callee-saved registers from their save slots.
-  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # frame); the movs above already reloaded the callee-saved registers
+  # from their save slots.
+  $code .= 	"\tadd\t\$0x78,%rsp\n";
 } else {
   $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
@@ -1720,9 +1720,9 @@ ___
 if ($ENV{SARCASM}) {
   # %rsp never moved for the key schedule (GC `.alloca`), so drop the
   # fixed frame with a plain add reaching the ret (6 pushes + 0x48
-  # frame, plus 0xa0 on win64); the movs above already reloaded the
-  # callee-saved registers from their save slots.
-  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # frame); the movs above already reloaded the callee-saved registers
+  # from their save slots.
+  $code .= 	"\tadd\t\$0x78,%rsp\n";
 } else {
   $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
@@ -2059,9 +2059,9 @@ ___
 if ($ENV{SARCASM}) {
   # %rsp never moved for the key schedule (GC `.alloca`), so drop the
   # fixed frame with a plain add reaching the ret (6 pushes + 0x48
-  # frame, plus 0xa0 on win64); the movs above already reloaded the
-  # callee-saved registers from their save slots.
-  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # frame); the movs above already reloaded the callee-saved registers
+  # from their save slots.
+  $code .= 	"\tadd\t\$0x78,%rsp\n";
 } else {
   $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
@@ -2342,9 +2342,9 @@ ___
 if ($ENV{SARCASM}) {
   # %rsp never moved for the key schedule (GC `.alloca`), so drop the
   # fixed frame with a plain add reaching the ret (6 pushes + 0x48
-  # frame, plus 0xa0 on win64); the movs above already reloaded the
-  # callee-saved registers from their save slots.
-  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # frame); the movs above already reloaded the callee-saved registers
+  # from their save slots.
+  $code .= 	"\tadd\t\$0x78,%rsp\n";
 } else {
   $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
@@ -2781,9 +2781,9 @@ ___
 if ($ENV{SARCASM}) {
   # %rsp never moved for the key schedule (GC `.alloca`), so drop the
   # fixed frame with a plain add reaching the ret (6 pushes + 0x48
-  # frame, plus 0xa0 on win64); the movs above already reloaded the
-  # callee-saved registers from their save slots.
-  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # frame); the movs above already reloaded the callee-saved registers
+  # from their save slots.
+  $code .= 	"\tadd\t\$0x78,%rsp\n";
 } else {
   $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp
@@ -3236,9 +3236,9 @@ ___
 if ($ENV{SARCASM}) {
   # %rsp never moved for the key schedule (GC `.alloca`), so drop the
   # fixed frame with a plain add reaching the ret (6 pushes + 0x48
-  # frame, plus 0xa0 on win64); the movs above already reloaded the
-  # callee-saved registers from their save slots.
-  $code .= 	"\tadd\t\$" . ($win64 ? "0x118" : "0x78") . ",%rsp\n";
+  # frame); the movs above already reloaded the callee-saved registers
+  # from their save slots.
+  $code .= 	"\tadd\t\$0x78,%rsp\n";
 } else {
   $code.=<<___;
 	lea	(%rax), %rsp		# restore %rsp

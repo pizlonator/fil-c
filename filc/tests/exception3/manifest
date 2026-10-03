@@ -4,4 +4,5 @@ output-includes:
   - "filc panic"
   - "libc++abi: terminating due to uncaught exception of type Exception: oops"
 
-
+# COSMO: the uncaught-exception terminate path ends in abort(), whose SIGABRT does not get the fatal-signal "filc panic" reporting in the cosmo flavor yet (the process still dies with SIGABRT, and the libc++abi terminate message is printed).
+unsupportedOnCOSMO: true

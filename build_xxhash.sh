@@ -28,9 +28,13 @@
 set -e
 set -x
 
-cd projects/xxHash-0.8.3
-extract_source
+cd projects
+rm -rf xxHash/extracted-source
+../filc/projeny extract xxHash.projeny xxHash/extracted-source
+cd xxHash/extracted-source
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ make -j $NCPU prefix=$PWD/../../../pizfix
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ make check -j $NCPU prefix=$PWD/../../../pizfix
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ make install -j $NCPU prefix=$PWD/../../../pizfix
+cd ..
+rm -rf extracted-source
 

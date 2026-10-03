@@ -4,6 +4,7 @@
 -- sp/x29-relative slots as pseudo-registers, and rejecting stack-address escapes.
 
 local sig = require("./sig")
+local err = require("./err")
 
 local arm64_frame = {}
 
@@ -232,9 +233,10 @@ local function dFormReg(num)
 end
 
 -- Virtualize a NEON scalar store of `src` (b/h/s/d/q reg) at slot offset off.
-local function neonStore(ctx, off, src, raw)
+-- `st` is the source statement (threaded for diagnostics: checkBounds location).
+local function neonStore(ctx, off, src, raw, st)
 	local sz = neonScalarWidth(src)
-	ctx.checkBounds(off, sz, true, raw)
+	ctx.checkBounds(off, sz, true, raw, nil, st)
 	if sz == 16 then
 		emitInsn(ctx, raw, "fmov", { ctx.slotReg(off, 64), dFormReg(src.num) })
 		emitInsn(ctx, raw, "fmov", { ctx.slotReg(off + 8, 64), vElemReg(src.num, "d", 1) })
@@ -254,9 +256,9 @@ local function neonStore(ctx, off, src, raw)
 end
 
 -- Virtualize a NEON scalar load into `dst` (b/h/s/d/q reg) at slot offset off.
-local function neonLoad(ctx, off, dst, raw)
+local function neonLoad(ctx, off, dst, raw, st)
 	local sz = neonScalarWidth(dst)
-	ctx.checkBounds(off, sz, false, raw)
+	ctx.checkBounds(off, sz, false, raw, nil, st)
 	if sz == 16 then
 		emitInsn(ctx, raw, "fmov", { dFormReg(dst.num), ctx.slotReg(off, 64) })
 		emitInsn(ctx, raw, "fmov", { vElemReg(dst.num, "d", 1), ctx.slotReg(off + 8, 64) })
@@ -276,33 +278,33 @@ local function neonLoad(ctx, off, dst, raw)
 end
 
 -- Virtualize a NEON pair (s/d/q element stride e) load/store at [off, off+2e).
-local function neonPair(ctx, off, r1, r2, isStore, raw)
+local function neonPair(ctx, off, r1, r2, isStore, raw, st)
 	local e1, e2 = neonScalarWidth(r1), neonScalarWidth(r2)
 	if e1 ~= e2 then
-		error("sarcasm: NEON register pair with mixed element widths cannot be virtualized: " .. raw)
+		err.at(st, "NEON register pair with mixed element widths cannot be virtualized: " .. raw)
 	end
 	if isStore then
-		neonStore(ctx, off, r1, raw)
-		neonStore(ctx, off + e1, r2, raw)
+		neonStore(ctx, off, r1, raw, st)
+		neonStore(ctx, off + e1, r2, raw, st)
 	else
-		neonLoad(ctx, off, r1, raw)
-		neonLoad(ctx, off + e1, r2, raw)
+		neonLoad(ctx, off, r1, raw, st)
+		neonLoad(ctx, off + e1, r2, raw, st)
 	end
 end
 
 -- Virtualize a single-structure full-vector ld1/st1 ({v0.16b} / {v0.8b} / ...).
 -- Per-register bytes are 16 (q semantics) or 8 (d semantics; the ld1 also
 -- zeroes the upper half, which the fmov d-form reproduces).
-local function neonFullVector(ctx, off, rl, isStore, raw)
+local function neonFullVector(ctx, off, rl, isStore, raw, st)
 	local arr = rl.regs[1].arrangement
 	local per = arr and arr.lanes and (arr.lanes * ({ b = 1, h = 2, s = 4, d = 8 })[arr.elem] or 0) or 0
 	if per ~= 8 and per ~= 16 then
-		error("sarcasm: NEON stack access with an unsupported arrangement cannot be virtualized: " .. raw)
+		err.at(st, "NEON stack access with an unsupported arrangement cannot be virtualized: " .. raw)
 	end
 	local n = rl.regs[1].num
 	local asReg = { kind = "reg", rc = "neon", num = n, width = per * 8,
 		name = ((per == 16) and "q" or "d") .. tostring(n) }
-	if isStore then neonStore(ctx, off, asReg, raw) else neonLoad(ctx, off, asReg, raw) end
+	if isStore then neonStore(ctx, off, asReg, raw, st) else neonLoad(ctx, off, asReg, raw, st) end
 end
 
 function arm64_frame.rewrite(st, ctx)
@@ -331,17 +333,17 @@ function arm64_frame.rewrite(st, ctx)
 			if o.kind ~= "mem" then table.insert(anewops, o)
 			else
 				if o.writeback or o.shift or o.postShift then
-					error("sarcasm: `.alloca` spill-slot operand must be a plain [sp, #off]/[x29, #off] reference: " .. araw)
+					err.at(st, "`.alloca` spill-slot operand must be a plain [sp, #off]/[x29, #off] reference: " .. araw)
 				end
 				if o.index and o.index.kind ~= "imm" then
-					error("sarcasm: indexed `.alloca` spill-slot operand is not supported: " .. araw)
+					err.at(st, "indexed `.alloca` spill-slot operand is not supported: " .. araw)
 				end
 				if not isFrameBase(o.base) then
-					error("sarcasm: `.alloca` operand is not a register, immediate, or frame spill slot: " .. araw)
+					err.at(st, "`.alloca` operand is not a register, immediate, or frame spill slot: " .. araw)
 				end
 				local abase = (o.base.name == "sp") and 0 or ctx.fpOffset
 				local aoff = abase + immVal(o.index)
-				ctx.checkBounds(aoff, 8, oi == 3, araw)
+				ctx.checkBounds(aoff, 8, oi == 3, araw, nil, st)
 				table.insert(anewops, ctx.slotReg(aoff, 64))
 			end
 		end
@@ -382,12 +384,12 @@ function arm64_frame.rewrite(st, ctx)
 	-- which never touches sp).
 	if (m == "sub" or m == "add") and ops[1] and isSp(ops[1]) then
 		if ops[2] and isSp(ops[2]) and ops[3] and ops[3].kind == "imm" then return end
-		error("sarcasm: dynamic sp adjustment is not supported (allocate with the `.alloca` directive, which never touches sp): " .. raw)
+		err.at(st, "dynamic sp adjustment is not supported (allocate with the `.alloca` directive, which never touches sp): " .. raw)
 	end
 	if (m == "mov" or m == "add") and ops[1] and ops[1].name == "x29" then return end
 	if m == "mov" and ops[1] and isSp(ops[1]) then
 		if ops[2] and ops[2].name == "x29" then return end  -- `mov sp, x29` (epilogue restore)
-		error("sarcasm: write to sp from a register is not supported (allocate with the `.alloca` directive, which never touches sp): " .. raw)
+		err.at(st, "write to sp from a register is not supported (allocate with the `.alloca` directive, which never touches sp): " .. raw)
 	end
 
 	local mem = nil
@@ -420,36 +422,36 @@ function arm64_frame.rewrite(st, ctx)
 				local isLoad = (m == "ldr" or m == "ldur" or m == "ldp" or m == "ldnp")
 				local amt = (mem.index and mem.index.kind == "imm") and immVal(mem.index) or nil
 				if not amt or not (isStore or isLoad) then
-					error("sarcasm: frame-relative NEON access with base writeback is not supported "
+					err.at(st, "frame-relative NEON access with base writeback is not supported "
 						.. "(only callee-saved str/ldr/stp/ldp prologue/epilogue forms can be modeled): " .. raw)
 				end
 				if not ((isStore and mem.writeback == "pre" and amt < 0)
 					or (isLoad and mem.writeback == "post" and amt > 0)) then
-					error("sarcasm: frame-relative NEON access with base writeback is not supported "
+					err.at(st, "frame-relative NEON access with base writeback is not supported "
 						.. "(only callee-saved str/ldr/stp/ldp prologue/epilogue forms can be modeled): " .. raw)
 				end
 				local off = ctx.frameSize - cumBefore + ((mem.writeback == "pre") and amt or 0)
 				if (m == "str" or m == "stur") and ops[1].kind == "reg" then
-					neonStore(ctx, off, ops[1], raw)
+					neonStore(ctx, off, ops[1], raw, st)
 				elseif (m == "ldr" or m == "ldur") and ops[1].kind == "reg" then
-					neonLoad(ctx, off, ops[1], raw)
+					neonLoad(ctx, off, ops[1], raw, st)
 				elseif (m == "stp" or m == "stnp") and isNeonData(ops[2]) then
-					neonPair(ctx, off, ops[1], ops[2], true, raw)
+					neonPair(ctx, off, ops[1], ops[2], true, raw, st)
 				elseif (m == "ldp" or m == "ldnp") and isNeonData(ops[2]) then
-					neonPair(ctx, off, ops[1], ops[2], false, raw)
+					neonPair(ctx, off, ops[1], ops[2], false, raw, st)
 				else
-					error("sarcasm: frame-relative NEON access with base writeback cannot be "
+					err.at(st, "frame-relative NEON access with base writeback cannot be "
 						.. "virtualized (register-list/lane forms are not supported here): " .. raw)
 				end
 				return
 			end
-			error("sarcasm: frame-relative memory access with base writeback is not supported "
+			err.at(st, "frame-relative memory access with base writeback is not supported "
 				.. "(only callee-saved stp/ldp prologue/epilogue forms can be modeled): " .. raw)
 		end
 
 		-- Only plain base+immediate slots are virtualizable (no index register).
 		if mem.index and mem.index.kind ~= "imm" then
-			error("sarcasm: indexed stack-relative access is not supported on arm64: " .. raw)
+			err.at(st, "indexed stack-relative access is not supported on arm64: " .. raw)
 		end
 		local base = (mem.base.name == "sp") and 0 or ctx.fpOffset
 		local off = base + immVal(mem.index)
@@ -458,21 +460,21 @@ function arm64_frame.rewrite(st, ctx)
 		-- explicit GPR<->vector moves (see the note at the top of this file).
 		if isNeonData(ops[1]) then
 			if (m == "str" or m == "stur") and ops[1].kind == "reg" then
-				neonStore(ctx, off, ops[1], raw)
+				neonStore(ctx, off, ops[1], raw, st)
 			elseif (m == "ldr" or m == "ldur") and ops[1].kind == "reg" then
-				neonLoad(ctx, off, ops[1], raw)
+				neonLoad(ctx, off, ops[1], raw, st)
 			elseif (m == "stp" or m == "stnp") and isNeonData(ops[2]) then
-				neonPair(ctx, off, ops[1], ops[2], true, raw)
+				neonPair(ctx, off, ops[1], ops[2], true, raw, st)
 			elseif (m == "ldp" or m == "ldnp") and isNeonData(ops[2]) then
-				neonPair(ctx, off, ops[1], ops[2], false, raw)
+				neonPair(ctx, off, ops[1], ops[2], false, raw, st)
 			elseif (m == "st1" or m == "ld1") and ops[1].kind == "reglist"
 				and #ops[1].regs == 1 and ops[1].lane == nil then
-				neonFullVector(ctx, off, ops[1], m == "st1", raw)
+				neonFullVector(ctx, off, ops[1], m == "st1", raw, st)
 			else
 				-- Multi-structure (ld2-4/st2-4), replicate (ld1r-4r) and
 				-- lane-indexed single-element stack accesses cannot be
 				-- virtualized — reject cleanly rather than mis-model them.
-				error("sarcasm: NEON stack access cannot be virtualized "
+				err.at(st, "NEON stack access cannot be virtualized "
 					.. "(multi-structure, replicate and lane-indexed forms are not"
 					.. " supported on a frame base; only plain NEON scalar, pair and"
 					.. " single-structure full-vector stack slots are): " .. raw)
@@ -482,7 +484,7 @@ function arm64_frame.rewrite(st, ctx)
 
 		local function dataReg(op, what)
 			if op and op.kind == "reg" and (op.rc == "gpr" or op.rc == "zr") then return op end
-			error("sarcasm: cannot virtualize frame-relative " .. what
+			err.at(st, "cannot virtualize frame-relative " .. what
 				.. " (unsupported data register): " .. raw)
 		end
 		local function mov(dst, src)
@@ -491,12 +493,12 @@ function arm64_frame.rewrite(st, ctx)
 
 		if FULL_STORE[m] then
 			local src = dataReg(ops[1], "store")
-			ctx.checkBounds(off, (src.width == 32) and 4 or 8, true, raw)
+			ctx.checkBounds(off, (src.width == 32) and 4 or 8, true, raw, nil, st)
 			mov(ctx.slotReg(off, src.width), src)
 		elseif SUB_STORE[m] then
 			local src = dataReg(ops[1], "store")
 			local sz = SUB_STORE[m]
-			ctx.checkBounds(off, sz, true, raw)
+			ctx.checkBounds(off, sz, true, raw, nil, st)
 			-- bfi inserts the low sz bytes, preserving the slot's upper bits exactly
 			-- like a narrow memory store preserves the neighboring bytes.
 			local src64
@@ -512,28 +514,28 @@ function arm64_frame.rewrite(st, ctx)
 				raw = st.raw })
 		elseif FULL_LOAD[m] then
 			local dst = dataReg(ops[1], "load")
-			ctx.checkBounds(off, (dst.width == 32) and 4 or 8, false, raw)
+			ctx.checkBounds(off, (dst.width == 32) and 4 or 8, false, raw, nil, st)
 			mov(dst, ctx.slotReg(off, dst.width))
 		elseif SUB_LOAD[m] then
 			local dst = dataReg(ops[1], "load")
 			local t = SUB_LOAD[m]
-			ctx.checkBounds(off, t.size, false, raw)
+			ctx.checkBounds(off, t.size, false, raw, nil, st)
 			emit({ kind = "insn", mnemonic = t.ext, operands = { dst, ctx.slotReg(off, 32) }, raw = st.raw })
 		elseif PAIR_STORE[m] then
 			local s1, s2 = dataReg(ops[1], "pair store"), dataReg(ops[2], "pair store")
 			local e = (s1.width == 32) and 4 or 8  -- element stride: w-pairs pack at 4 bytes
-			ctx.checkBounds(off, e * 2, true, raw)
+			ctx.checkBounds(off, e * 2, true, raw, nil, st)
 			mov(ctx.slotReg(off, s1.width), s1)
 			mov(ctx.slotReg(off + e, s2.width), s2)
 		elseif PAIR_LOAD[m] then
 			local d1, d2 = dataReg(ops[1], "pair load"), dataReg(ops[2], "pair load")
 			local e = (d1.width == 32) and 4 or 8
-			ctx.checkBounds(off, e * 2, false, raw)
+			ctx.checkBounds(off, e * 2, false, raw, nil, st)
 			mov(d1, ctx.slotReg(off, d1.width))
 			mov(d2, ctx.slotReg(off + e, d2.width))
 		elseif m == "ldpsw" then
 			local d1, d2 = dataReg(ops[1], "pair load"), dataReg(ops[2], "pair load")
-			ctx.checkBounds(off, 8, false, raw)
+			ctx.checkBounds(off, 8, false, raw, nil, st)
 			emit({ kind = "insn", mnemonic = "sxtw", operands = { d1, ctx.slotReg(off, 32) }, raw = st.raw })
 			emit({ kind = "insn", mnemonic = "sxtw", operands = { d2, ctx.slotReg(off + 4, 32) }, raw = st.raw })
 		else
@@ -552,7 +554,7 @@ function arm64_frame.rewrite(st, ctx)
 	if (m == "add" or m == "mov" or m == "sub") then
 		for _, o in ops do
 			if isSp(o) and ops[1] and not isSp(ops[1]) then
-				ctx.rejectEscape(raw)
+				ctx.rejectEscape(raw, st)
 			end
 		end
 	end

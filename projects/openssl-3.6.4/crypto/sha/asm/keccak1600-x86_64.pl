@@ -453,8 +453,6 @@ SHA3_absorb: #! size_t(ptr,ptr,size_t,size_t)
 
 	shr	\$3,$bsz
 	lea	-100(%rdi),$A_flat
-___
-$code.=<<___;
 
 .Lblock_absorb:
 	mov	($inp),%rax
@@ -465,8 +463,6 @@ $code.=<<___;
 	mov	%rax,-8($A_flat)
 	sub	\$1,$bsz
 	jnz	.Lblock_absorb
-___
-$code.=<<___;
 
 	mov	$inp,200-100(%rsi)	#! store ptr # save inp
 	mov	$len,208-100(%rsi)	# save len
@@ -530,8 +526,6 @@ SHA3_squeeze: #! void(ptr,ptr,size_t,size_t,int)
 	mov	%rcx,$bsz
 	bt	\$0,${next}d
 	jc	.Lnext_block
-___
-$code.=<<___;
 	jmp	.Loop_squeeze
 
 .align	32
@@ -552,17 +546,13 @@ $code.=<<___;
 	call	KeccakF1600 #! void(ptr)
 	mov	$A_flat,%r9
 	mov	$bsz,%rcx
-___
-$code.=<<___;
 	jmp	.Loop_squeeze
-___
-$code.=<<___;
 
 .Ltail_squeeze:
 	mov	%r9, %rsi
 	mov	$out,%rdi
 	mov	$len,%rcx
-	rep	movsb	# upstream '.byte 0xf3,0xa4' (rep movsb)
+	.byte	0xf3,0xa4		# rep	movsb
 
 .Ldone_squeeze:
 	pop	%r14

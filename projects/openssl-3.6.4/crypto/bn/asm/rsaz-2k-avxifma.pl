@@ -66,7 +66,7 @@ $code.=<<___;
 .type   ossl_rsaz_avxifma_eligible,\@abi-omnipotent
 .align  32
 ossl_rsaz_avxifma_eligible: #! int()
-    mov OPENSSL_ia32cap_P+20(%rip), %ecx
+    mov OPENSSL_ia32cap_P+20(%rip), %ecx #! global ptr
     xor %eax,%eax
     and \$`1<<23`, %ecx     # avxifma
     cmp \$`1<<23`, %ecx

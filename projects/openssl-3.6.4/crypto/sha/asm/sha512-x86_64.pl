@@ -188,15 +188,10 @@ $ctx="%rdi";	# 1st arg, zapped by $a3
 $inp="%rsi";	# 2nd arg
 $Tbl="%rbp";
 
-# Sarcasm rejects dynamic stack alignment (`and $-64,%rsp`), so the frames
-# below are GC allocations addressed through %fil_sha512frame (identical slot
-# layout); gas keeps the rsp frames. $SFR renders the frame base register.
-my $SFR = $ENV{SARCASM} ? "%fil_sha512frame" : "%rsp";
-
-$_ctx="16*$SZ+0*8($SFR)";
-$_inp="16*$SZ+1*8($SFR)";
-$_end="16*$SZ+2*8($SFR)";
-$_rsp="`16*$SZ+3*8`($SFR)";
+$_ctx="16*$SZ+0*8(%rsp)";
+$_inp="16*$SZ+1*8(%rsp)";
+$_end="16*$SZ+2*8(%rsp)";
+$_rsp="`16*$SZ+3*8`(%rsp)";
 $framesz="16*$SZ+4*8";
 
 
@@ -213,7 +208,7 @@ $code.=<<___;
 	ror	\$`$Sigma0[2]-$Sigma0[1]`,$a1
 	xor	$g,$a2			# f^g
 
-	mov	$T1,`$SZ*($i&0xf)`($SFR)
+	mov	$T1,`$SZ*($i&0xf)`(%rsp)
 	xor	$a,$a1
 	and	$e,$a2			# (f^g)&e
 
@@ -253,8 +248,8 @@ sub ROUND_16_XX()
 { my ($i,$a,$b,$c,$d,$e,$f,$g,$h) = @_;
 
 $code.=<<___;
-	mov	`$SZ*(($i+1)&0xf)`($SFR),$a0
-	mov	`$SZ*(($i+14)&0xf)`($SFR),$a2
+	mov	`$SZ*(($i+1)&0xf)`(%rsp),$a0
+	mov	`$SZ*(($i+14)&0xf)`(%rsp),$a2
 
 	mov	$a0,$T1
 	ror	\$`$sigma0[1]-$sigma0[0]`,$a0
@@ -271,9 +266,9 @@ $code.=<<___;
 	ror	\$$sigma1[0],$a2
 	xor	$a0,$T1			# sigma0(X[(i+1)&0xf])
 	xor	$a1,$a2			# sigma1(X[(i+14)&0xf])
-	add	`$SZ*(($i+9)&0xf)`($SFR),$T1
+	add	`$SZ*(($i+9)&0xf)`(%rsp),$T1
 
-	add	`$SZ*($i&0xf)`($SFR),$T1
+	add	`$SZ*($i&0xf)`(%rsp),$T1
 	mov	$e,$a0
 	add	$a2,$T1
 	mov	$a,$a1
@@ -292,7 +287,7 @@ $func: #! void(ptr,ptr,size_t)
 .cfi_startproc
 ___
 $code.=<<___ if ($SZ==4 || $avx);
-    lea OPENSSL_ia32cap_P(%rip),%r10
+    lea OPENSSL_ia32cap_P(%rip),%r10 #! global ptr
     mov 0(%r10),%r9
     mov 8(%r10),%r11d
 ___
@@ -337,10 +332,8 @@ $code.=<<___ if ($SZ==4);
     bt \$41,%r9                     # mask SSSE3
     jc .Lssse3_shortcut
 ___
-$code.=<<___ if (!$ENV{SARCASM});
-	mov	%rsp,%rax		# copy %rsp
-___
 $code.=<<___;
+	mov	%rsp,%rax		# copy %rsp
 .cfi_def_cfa_register	%rax
 	push	%rbx
 .cfi_push	%rbx
@@ -355,28 +348,13 @@ $code.=<<___;
 	push	%r15
 .cfi_push	%r15
 	shl	\$4,%rdx		# num*16
-___
-$code.=<<___ if ($ENV{SARCASM});
-	.alloca	\$`$framesz`,\$64,%fil_sha512frame
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	sub	\$$framesz,%rsp
-___
-$code.=<<___;
 	lea	($inp,%rdx,$SZ),%rdx	# inp+num*16*$SZ
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp		# align stack frame
-___
-$code.=<<___;
-	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
-	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
-	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
-___
-$code.=<<___ if (!$ENV{SARCASM});
+	mov	$ctx,$_ctx		# save ctx, 1st arg
+	mov	$inp,$_inp		# save inp, 2nd arh
+	mov	%rdx,$_end		# save end pointer, "3rd" arg
 	mov	%rax,$_rsp		# save copy of %rsp
-___
-$code.=<<___;
 .cfi_cfa_expression	$_rsp,deref,+8
 .Lprologue:
 
@@ -418,7 +396,7 @@ $code.=<<___;
 	cmpb	\$0,`$SZ-1`($Tbl)
 	jnz	.Lrounds_16_xx
 
-	mov	$_ctx,$ctx		 #! load ptr
+	mov	$_ctx,$ctx
 	add	$a1,$A			# modulo-scheduled h+=Sigma0(a)
 	lea	16*$SZ($inp),$inp
 
@@ -443,8 +421,6 @@ $code.=<<___;
 	mov	$H,$SZ*7($ctx)
 	jb	.Lloop
 
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	$_rsp,%rsi
 .cfi_def_cfa	%rsi,8
 	mov	-48(%rsi),%r15
@@ -461,23 +437,6 @@ $code.=<<___ if (!$ENV{SARCASM});
 .cfi_restore	%rbx
 	lea	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
-___
-$code.=<<___ if ($ENV{SARCASM});
-	# No rsp save/recovery: rsp never moved (frame is a GC allocation).
-	pop	%r15
-.cfi_pop	%r15
-	pop	%r14
-.cfi_pop	%r14
-	pop	%r13
-.cfi_pop	%r13
-	pop	%r12
-.cfi_pop	%r12
-	pop	%rbp
-.cfi_pop	%rbp
-	pop	%rbx
-.cfi_pop	%rbx
-___
-$code.=<<___;
 .Lepilogue:
 	ret
 .cfi_endproc
@@ -866,7 +825,7 @@ sub body_00_15 () {
 	'&and	($a4,$e)',			# (f^g)&e
 
 	'&xor	($a0,$e)',
-  '&add	($h,$SZ*($i&15)."($SFR)")',	# h+=X[i]+K[i]
+	'&add	($h,$SZ*($i&15)."(%rsp)")',	# h+=X[i]+K[i]
 	'&mov	($a2,$a)',
 
 	'&xor	($a4,$g)',			# Ch(e,f,g)=((f^g)&e)^g
@@ -904,11 +863,7 @@ $code.=<<___;
 ${func}_ssse3: #! void(ptr,ptr,size_t)
 .cfi_startproc
 .Lssse3_shortcut:
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	%rsp,%rax		# copy %rsp
-___
-$code.=<<___;
 .cfi_def_cfa_register	%rax
 	push	%rbx
 .cfi_push	%rbx
@@ -923,28 +878,13 @@ $code.=<<___;
 	push	%r15
 .cfi_push	%r15
 	shl	\$4,%rdx		# num*16
-___
-$code.=<<___ if ($ENV{SARCASM});
-	.alloca	\$`$framesz`,\$64,%fil_sha512frame
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	sub	\$`$framesz+$win64*16*4`,%rsp
-___
-$code.=<<___;
 	lea	($inp,%rdx,$SZ),%rdx	# inp+num*16*$SZ
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp		# align stack frame
-___
-$code.=<<___;
-	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
-	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
-	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
-___
-$code.=<<___ if (!$ENV{SARCASM});
+	mov	$ctx,$_ctx		# save ctx, 1st arg
+	mov	$inp,$_inp		# save inp, 2nd arh
+	mov	%rdx,$_end		# save end pointer, "3rd" arg
 	mov	%rax,$_rsp		# save copy of %rsp
-___
-$code.=<<___;
 .cfi_cfa_expression	$_rsp,deref,+8
 ___
 $code.=<<___ if ($win64);
@@ -990,13 +930,13 @@ $code.=<<___;
 	paddd	@X[1],$t1
 	paddd	@X[2],$t2
 	paddd	@X[3],$t3
-	movdqa	$t0,0x00($SFR)
+	movdqa	$t0,0x00(%rsp)
 	mov	$A,$a1
-	movdqa	$t1,0x10($SFR)
+	movdqa	$t1,0x10(%rsp)
 	mov	$B,$a3
-	movdqa	$t2,0x20($SFR)
+	movdqa	$t2,0x20(%rsp)
 	xor	$C,$a3			# magic
-	movdqa	$t3,0x30($SFR)
+	movdqa	$t3,0x30(%rsp)
 	mov	$E,$a0
 	jmp	.Lssse3_00_47
 
@@ -1204,7 +1144,7 @@ my @insns = (&$body,&$body,&$body,&$body);	# 104 instructions
     }
 	&paddd		($t2,@X[0]);
 	  foreach (@insns) { eval; }		# remaining instructions
-  &movdqa		(16*$j."($SFR)",$t2);
+	&movdqa		(16*$j."(%rsp)",$t2);
 }
 
     for ($i=0,$j=0; $j<4; $j++) {
@@ -1218,7 +1158,7 @@ my @insns = (&$body,&$body,&$body,&$body);	# 104 instructions
 	foreach(body_00_15()) { eval; }
     }
 $code.=<<___;
-	mov	$_ctx,$ctx		 #! load ptr
+	mov	$_ctx,$ctx
 	mov	$a1,$A
 
 	add	$SZ*0($ctx),$A
@@ -1243,8 +1183,6 @@ $code.=<<___;
 	mov	$H,$SZ*7($ctx)
 	jb	.Lloop_ssse3
 
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	$_rsp,%rsi
 .cfi_def_cfa	%rsi,8
 ___
@@ -1254,22 +1192,7 @@ $code.=<<___ if ($win64);
 	movaps	16*$SZ+64(%rsp),%xmm8
 	movaps	16*$SZ+80(%rsp),%xmm9
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	# No rsp save/recovery: rsp never moved (frame is a GC allocation).
-	pop	%r15
-.cfi_pop	%r15
-	pop	%r14
-.cfi_pop	%r14
-	pop	%r13
-.cfi_pop	%r13
-	pop	%r12
-.cfi_pop	%r12
-	pop	%rbp
-.cfi_pop	%rbp
-	pop	%rbx
-.cfi_pop	%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	mov	-48(%rsi),%r15
 .cfi_restore	%r15
 	mov	-40(%rsi),%r14
@@ -1284,8 +1207,6 @@ $code.=<<___ if (!$ENV{SARCASM});
 .cfi_restore	%rbx
 	lea	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
-___
-$code.=<<___;
 .Lepilogue_ssse3:
 	ret
 .cfi_endproc
@@ -1304,11 +1225,7 @@ $code.=<<___;
 ${func}_xop: #! void(ptr,ptr,size_t)
 .cfi_startproc
 .Lxop_shortcut:
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	%rsp,%rax		# copy %rsp
-___
-$code.=<<___;
 .cfi_def_cfa_register	%rax
 	push	%rbx
 .cfi_push	%rbx
@@ -1323,28 +1240,13 @@ $code.=<<___;
 	push	%r15
 .cfi_push	%r15
 	shl	\$4,%rdx		# num*16
-___
-$code.=<<___ if ($ENV{SARCASM});
-	.alloca	\$`$framesz`,\$64,%fil_sha512frame
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	sub	\$`$framesz+$win64*16*($SZ==4?4:6)`,%rsp
-___
-$code.=<<___;
 	lea	($inp,%rdx,$SZ),%rdx	# inp+num*16*$SZ
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp		# align stack frame
-___
-$code.=<<___;
-	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
-	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
-	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
-___
-$code.=<<___ if (!$ENV{SARCASM});
+	mov	$ctx,$_ctx		# save ctx, 1st arg
+	mov	$inp,$_inp		# save inp, 2nd arh
+	mov	%rdx,$_end		# save end pointer, "3rd" arg
 	mov	%rax,$_rsp		# save copy of %rsp
-___
-$code.=<<___;
 .cfi_cfa_expression	$_rsp,deref,+8
 ___
 $code.=<<___ if ($win64);
@@ -1392,13 +1294,13 @@ $code.=<<___;
 	vpaddd	0x20($Tbl),@X[1],$t1
 	vpaddd	0x40($Tbl),@X[2],$t2
 	vpaddd	0x60($Tbl),@X[3],$t3
-	vmovdqa	$t0,0x00($SFR)
+	vmovdqa	$t0,0x00(%rsp)
 	mov	$A,$a1
-	vmovdqa	$t1,0x10($SFR)
+	vmovdqa	$t1,0x10(%rsp)
 	mov	$B,$a3
-	vmovdqa	$t2,0x20($SFR)
+	vmovdqa	$t2,0x20(%rsp)
 	xor	$C,$a3			# magic
-	vmovdqa	$t3,0x30($SFR)
+	vmovdqa	$t3,0x30(%rsp)
 	mov	$E,$a0
 	jmp	.Lxop_00_47
 
@@ -1503,7 +1405,7 @@ my @insns = (&$body,&$body,&$body,&$body);	# 104 instructions
 	  eval(shift(@insns));
 	&vpaddd		($t2,@X[0],16*2*$j."($Tbl)");
 	  foreach (@insns) { eval; }		# remaining instructions
-  &vmovdqa	(16*$j."($SFR)",$t2);
+	&vmovdqa	(16*$j."(%rsp)",$t2);
 }
 
     for ($i=0,$j=0; $j<4; $j++) {
@@ -1546,21 +1448,21 @@ $code.=<<___;
 	vpshufb	$t3,@X[7],@X[7]
 	vpaddq	-0x40($Tbl),@X[2],$t2
 	vpaddq	-0x20($Tbl),@X[3],$t3
-	vmovdqa	$t0,0x00($SFR)
+	vmovdqa	$t0,0x00(%rsp)
 	vpaddq	0x00($Tbl),@X[4],$t0
-	vmovdqa	$t1,0x10($SFR)
+	vmovdqa	$t1,0x10(%rsp)
 	vpaddq	0x20($Tbl),@X[5],$t1
-	vmovdqa	$t2,0x20($SFR)
+	vmovdqa	$t2,0x20(%rsp)
 	vpaddq	0x40($Tbl),@X[6],$t2
-	vmovdqa	$t3,0x30($SFR)
+	vmovdqa	$t3,0x30(%rsp)
 	vpaddq	0x60($Tbl),@X[7],$t3
-	vmovdqa	$t0,0x40($SFR)
+	vmovdqa	$t0,0x40(%rsp)
 	mov	$A,$a1
-	vmovdqa	$t1,0x50($SFR)
+	vmovdqa	$t1,0x50(%rsp)
 	mov	$B,$a3
-	vmovdqa	$t2,0x60($SFR)
+	vmovdqa	$t2,0x60(%rsp)
 	xor	$C,$a3			# magic
-	vmovdqa	$t3,0x70($SFR)
+	vmovdqa	$t3,0x70(%rsp)
 	mov	$E,$a0
 	jmp	.Lxop_00_47
 
@@ -1631,7 +1533,7 @@ my @insns = (&$body,&$body);			# 52 instructions
 	  eval(shift(@insns));
 	&vpaddq		($t2,@X[0],16*2*$j-0x80."($Tbl)");
 	  foreach (@insns) { eval; }		# remaining instructions
-  &vmovdqa	(16*$j."($SFR)",$t2);
+	&vmovdqa	(16*$j."(%rsp)",$t2);
 }
 
     for ($i=0,$j=0; $j<8; $j++) {
@@ -1646,7 +1548,7 @@ my @insns = (&$body,&$body);			# 52 instructions
     }
 }
 $code.=<<___;
-	mov	$_ctx,$ctx		 #! load ptr
+	mov	$_ctx,$ctx
 	mov	$a1,$A
 
 	add	$SZ*0($ctx),$A
@@ -1671,12 +1573,8 @@ $code.=<<___;
 	mov	$H,$SZ*7($ctx)
 	jb	.Lloop_xop
 
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	$_rsp,%rsi
 .cfi_def_cfa	%rsi,8
-___
-$code.=<<___;
 	vzeroupper
 ___
 $code.=<<___ if ($win64);
@@ -1689,22 +1587,7 @@ $code.=<<___ if ($win64 && $SZ>4);
 	movaps	16*$SZ+96(%rsp),%xmm10
 	movaps	16*$SZ+112(%rsp),%xmm11
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	# No rsp save/recovery: rsp never moved (frame is a GC allocation).
-	pop	%r15
-.cfi_pop	%r15
-	pop	%r14
-.cfi_pop	%r14
-	pop	%r13
-.cfi_pop	%r13
-	pop	%r12
-.cfi_pop	%r12
-	pop	%rbp
-.cfi_pop	%rbp
-	pop	%rbx
-.cfi_pop	%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	mov	-48(%rsi),%r15
 .cfi_restore	%r15
 	mov	-40(%rsi),%r14
@@ -1719,8 +1602,6 @@ $code.=<<___ if (!$ENV{SARCASM});
 .cfi_restore	%rbx
 	lea	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
-___
-$code.=<<___;
 .Lepilogue_xop:
 	ret
 .cfi_endproc
@@ -1738,11 +1619,7 @@ $code.=<<___;
 ${func}_avx: #! void(ptr,ptr,size_t)
 .cfi_startproc
 .Lavx_shortcut:
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	%rsp,%rax		# copy %rsp
-___
-$code.=<<___;
 .cfi_def_cfa_register	%rax
 	push	%rbx
 .cfi_push	%rbx
@@ -1757,28 +1634,13 @@ $code.=<<___;
 	push	%r15
 .cfi_push	%r15
 	shl	\$4,%rdx		# num*16
-___
-$code.=<<___ if ($ENV{SARCASM});
-	.alloca	\$`$framesz`,\$64,%fil_sha512frame
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	sub	\$`$framesz+$win64*16*($SZ==4?4:6)`,%rsp
-___
-$code.=<<___;
 	lea	($inp,%rdx,$SZ),%rdx	# inp+num*16*$SZ
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	and	\$-64,%rsp		# align stack frame
-___
-$code.=<<___;
-	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
-	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
-	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
-___
-$code.=<<___ if (!$ENV{SARCASM});
+	mov	$ctx,$_ctx		# save ctx, 1st arg
+	mov	$inp,$_inp		# save inp, 2nd arh
+	mov	%rdx,$_end		# save end pointer, "3rd" arg
 	mov	%rax,$_rsp		# save copy of %rsp
-___
-$code.=<<___;
 .cfi_cfa_expression	$_rsp,deref,+8
 ___
 $code.=<<___ if ($win64);
@@ -1828,13 +1690,13 @@ $code.=<<___;
 	vpaddd	0x20($Tbl),@X[1],$t1
 	vpaddd	0x40($Tbl),@X[2],$t2
 	vpaddd	0x60($Tbl),@X[3],$t3
-	vmovdqa	$t0,0x00($SFR)
+	vmovdqa	$t0,0x00(%rsp)
 	mov	$A,$a1
-	vmovdqa	$t1,0x10($SFR)
+	vmovdqa	$t1,0x10(%rsp)
 	mov	$B,$a3
-	vmovdqa	$t2,0x20($SFR)
+	vmovdqa	$t2,0x20(%rsp)
 	xor	$C,$a3			# magic
-	vmovdqa	$t3,0x30($SFR)
+	vmovdqa	$t3,0x30(%rsp)
 	mov	$E,$a0
 	jmp	.Lavx_00_47
 
@@ -1890,7 +1752,7 @@ my @insns = (&$body,&$body,&$body,&$body);	# 104 instructions
 	}
 	&vpaddd		($t2,@X[0],16*2*$j."($Tbl)");
 	  foreach (@insns) { eval; }		# remaining instructions
-  &vmovdqa	(16*$j."($SFR)",$t2);
+	&vmovdqa	(16*$j."(%rsp)",$t2);
 }
 
     for ($i=0,$j=0; $j<4; $j++) {
@@ -1934,21 +1796,21 @@ $code.=<<___;
 	vpshufb	$t3,@X[7],@X[7]
 	vpaddq	-0x40($Tbl),@X[2],$t2
 	vpaddq	-0x20($Tbl),@X[3],$t3
-	vmovdqa	$t0,0x00($SFR)
+	vmovdqa	$t0,0x00(%rsp)
 	vpaddq	0x00($Tbl),@X[4],$t0
-	vmovdqa	$t1,0x10($SFR)
+	vmovdqa	$t1,0x10(%rsp)
 	vpaddq	0x20($Tbl),@X[5],$t1
-	vmovdqa	$t2,0x20($SFR)
+	vmovdqa	$t2,0x20(%rsp)
 	vpaddq	0x40($Tbl),@X[6],$t2
-	vmovdqa	$t3,0x30($SFR)
+	vmovdqa	$t3,0x30(%rsp)
 	vpaddq	0x60($Tbl),@X[7],$t3
-	vmovdqa	$t0,0x40($SFR)
+	vmovdqa	$t0,0x40(%rsp)
 	mov	$A,$a1
-	vmovdqa	$t1,0x50($SFR)
+	vmovdqa	$t1,0x50(%rsp)
 	mov	$B,$a3
-	vmovdqa	$t2,0x60($SFR)
+	vmovdqa	$t2,0x60(%rsp)
 	xor	$C,$a3			# magic
-	vmovdqa	$t3,0x70($SFR)
+	vmovdqa	$t3,0x70(%rsp)
 	mov	$E,$a0
 	jmp	.Lavx_00_47
 
@@ -1997,7 +1859,7 @@ my @insns = (&$body,&$body);			# 52 instructions
 	}
 	&vpaddq		($t2,@X[0],16*2*$j-0x80."($Tbl)");
 	  foreach (@insns) { eval; }		# remaining instructions
-  &vmovdqa	(16*$j."($SFR)",$t2);
+	&vmovdqa	(16*$j."(%rsp)",$t2);
 }
 
     for ($i=0,$j=0; $j<8; $j++) {
@@ -2012,7 +1874,7 @@ my @insns = (&$body,&$body);			# 52 instructions
     }
 }
 $code.=<<___;
-	mov	$_ctx,$ctx		 #! load ptr
+	mov	$_ctx,$ctx
 	mov	$a1,$A
 
 	add	$SZ*0($ctx),$A
@@ -2037,12 +1899,8 @@ $code.=<<___;
 	mov	$H,$SZ*7($ctx)
 	jb	.Lloop_avx
 
-___
-$code.=<<___ if (!$ENV{SARCASM});
 	mov	$_rsp,%rsi
 .cfi_def_cfa	%rsi,8
-___
-$code.=<<___;
 	vzeroupper
 ___
 $code.=<<___ if ($win64);
@@ -2055,22 +1913,7 @@ $code.=<<___ if ($win64 && $SZ>4);
 	movaps	16*$SZ+96(%rsp),%xmm10
 	movaps	16*$SZ+112(%rsp),%xmm11
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	# No rsp save/recovery: rsp never moved (frame is a GC allocation).
-	pop	%r15
-.cfi_pop	%r15
-	pop	%r14
-.cfi_pop	%r14
-	pop	%r13
-.cfi_pop	%r13
-	pop	%r12
-.cfi_pop	%r12
-	pop	%rbp
-.cfi_pop	%rbp
-	pop	%rbx
-.cfi_pop	%rbx
-___
-$code.=<<___ if (!$ENV{SARCASM});
+$code.=<<___;
 	mov	-48(%rsi),%r15
 .cfi_restore	%r15
 	mov	-40(%rsi),%r14
@@ -2085,8 +1928,6 @@ $code.=<<___ if (!$ENV{SARCASM});
 .cfi_restore	%rbx
 	lea	(%rsi),%rsp
 .cfi_def_cfa_register	%rsp
-___
-$code.=<<___;
 .Lepilogue_avx:
 	ret
 .cfi_endproc
@@ -2189,9 +2030,9 @@ ${func}_avx2: #! void(ptr,ptr,size_t)
 	and	\$-256*$SZ,%rsp		# align stack frame
 	lea	($inp,%rdx,$SZ),%rdx	# inp+num*16*$SZ
 	add	\$`2*$SZ*($rounds-8)`,%rsp
-	mov	$ctx,$_ctx		#! store ptr # save ctx, 1st arg
-	mov	$inp,$_inp		#! store ptr # save inp, 2nd arh
-	mov	%rdx,$_end		#! store ptr # save end pointer, "3rd" arg
+	mov	$ctx,$_ctx		# save ctx, 1st arg
+	mov	$inp,$_inp		# save inp, 2nd arh
+	mov	%rdx,$_end		# save end pointer, "3rd" arg
 	mov	%rax,$_rsp		# save copy of %rsp
 .cfi_cfa_expression	$_rsp,deref,+8
 ___

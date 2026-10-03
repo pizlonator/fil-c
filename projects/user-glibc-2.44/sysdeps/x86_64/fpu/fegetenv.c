@@ -18,6 +18,8 @@
 
 #include <fenv.h>
 #include <pizlonated_math.h>
+#include <math-inline-asm.h>
+#include <filc-x87-env.h>
 
 /* fnstenv/fldenv/stmxcsr are inline asm with pointer operands, which Fil-C cannot instrument;
    run the operation out of line in the Yolo runtime instead (see zmath_fegetenv).  */

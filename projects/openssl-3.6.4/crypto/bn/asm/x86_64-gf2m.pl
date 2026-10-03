@@ -50,19 +50,6 @@ open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
 ($a1,$a2,$a4,$a8,$a12,$a48)=map("%r$_",(9..15));
 ($R,$Tx)=("%xmm0","%xmm1");
 
-# Sarcasm: _mul_1x1 keeps its sub/add frame when inlined as a localcall
-# clone (a constant adjustment at a known depth keys perturbed slots
-# exactly, and the clone spills into the caller's synthesized frame like
-# any other code). Its 16-entry tab still lives in a GC-allocated
-# '.alloca' buffer: indexed frame access cannot be virtualized (the index
-# is dynamic), but indexed access through the heap buffer pointer is
-# capability-checked and fine. The gas path keeps the frame tab at 0(%rsp)
-# (clone displacement D keys to the caller's D-8, the +8 rule). $TAB is
-# gas-only now: the heap tab lives in %fil_gf2mtab (see tabslot/tabidx).
-my $TAB = 0;
-sub tabslot { my $o = shift; return $ENV{SARCASM} ? "$o(%fil_gf2mtab)" : ($TAB+$o)."(%rsp)"; }
-sub tabidx { my $r = shift; return $ENV{SARCASM} ? "(%fil_gf2mtab,$r,8)" : "$TAB(%rsp,$r,8)"; }
-
 $code.=<<___;
 .text
 
@@ -101,57 +88,57 @@ _mul_1x1:
 	xor	$t0,$hi
 
 	mov	$a1,$a12
-	movq	\$0,`tabslot(0)`		# tab[0]=0
+	movq	\$0,0(%rsp)		# tab[0]=0
 	xor	$a2,$a12		# a1^a2
-	mov	$a1,`tabslot(8)`		# tab[1]=a1
+	mov	$a1,8(%rsp)		# tab[1]=a1
 	 mov	$a4,$a48
-	mov	$a2,`tabslot(16)`		# tab[2]=a2
+	mov	$a2,16(%rsp)		# tab[2]=a2
 	 xor	$a8,$a48		# a4^a8
-	mov	$a12,`tabslot(24)`		# tab[3]=a1^a2
+	mov	$a12,24(%rsp)		# tab[3]=a1^a2
 
 	xor	$a4,$a1
-	mov	$a4,`tabslot(32)`		# tab[4]=a4
+	mov	$a4,32(%rsp)		# tab[4]=a4
 	xor	$a4,$a2
-	mov	$a1,`tabslot(40)`		# tab[5]=a1^a4
+	mov	$a1,40(%rsp)		# tab[5]=a1^a4
 	xor	$a4,$a12
-	mov	$a2,`tabslot(48)`		# tab[6]=a2^a4
+	mov	$a2,48(%rsp)		# tab[6]=a2^a4
 	 xor	$a48,$a1		# a1^a4^a4^a8=a1^a8
-	mov	$a12,`tabslot(56)`		# tab[7]=a1^a2^a4
+	mov	$a12,56(%rsp)		# tab[7]=a1^a2^a4
 	 xor	$a48,$a2		# a2^a4^a4^a8=a1^a8
 
-	mov	$a8,`tabslot(64)`		# tab[8]=a8
+	mov	$a8,64(%rsp)		# tab[8]=a8
 	xor	$a48,$a12		# a1^a2^a4^a4^a8=a1^a2^a8
-	mov	$a1,`tabslot(72)`		# tab[9]=a1^a8
+	mov	$a1,72(%rsp)		# tab[9]=a1^a8
 	 xor	$a4,$a1			# a1^a8^a4
-	mov	$a2,`tabslot(80)`		# tab[10]=a2^a8
+	mov	$a2,80(%rsp)		# tab[10]=a2^a8
 	 xor	$a4,$a2			# a2^a8^a4
-	mov	$a12,`tabslot(88)`		# tab[11]=a1^a2^a8
+	mov	$a12,88(%rsp)		# tab[11]=a1^a2^a8
 
 	xor	$a4,$a12		# a1^a2^a8^a4
-	mov	$a48,`tabslot(96)`		# tab[12]=a4^a8
+	mov	$a48,96(%rsp)		# tab[12]=a4^a8
 	 mov	$mask,$i0
-	mov	$a1,`tabslot(104)`		# tab[13]=a1^a4^a8
+	mov	$a1,104(%rsp)		# tab[13]=a1^a4^a8
 	 and	$b,$i0
-	mov	$a2,`tabslot(112)`		# tab[14]=a2^a4^a8
+	mov	$a2,112(%rsp)		# tab[14]=a2^a4^a8
 	 shr	\$4,$b
-	mov	$a12,`tabslot(120)`		# tab[15]=a1^a2^a4^a8
+	mov	$a12,120(%rsp)		# tab[15]=a1^a2^a4^a8
 	 mov	$mask,$i1
 	 and	$b,$i1
 	 shr	\$4,$b
 
-	movq	`tabidx('$i0')`,$R		# half of calculations is done in SSE2
+	movq	(%rsp,$i0,8),$R	#! stack buffer (tab, %rsp + 0, %rsp + 128) # half of calculations is done in SSE2
 	mov	$mask,$i0
 	and	$b,$i0
 	shr	\$4,$b
 ___
     for ($n=1;$n<8;$n++) {
 	$code.=<<___;
-	mov	`tabidx('$i1')`,$t1
+	mov	(%rsp,$i1,8),$t1	#! stack buffer (tab)
 	mov	$mask,$i1
 	mov	$t1,$t0
 	shl	\$`8*$n-4`,$t1
 	and	$b,$i1
-	 movq	`tabidx('$i0')`,$Tx
+	 movq	(%rsp,$i0,8),$Tx	#! stack buffer (tab)
 	shr	\$`64-(8*$n-4)`,$t0
 	xor	$t1,$lo
 	 pslldq	\$$n,$Tx
@@ -164,7 +151,7 @@ ___
 ___
     }
 $code.=<<___;
-	mov	`tabidx('$i1')`,$t1
+	mov	(%rsp,$i1,8),$t1	#! stack buffer (tab)
 	mov	$t1,$t0
 	shl	\$`8*$n-4`,$t1
 	movq	$R,$i0
@@ -195,7 +182,7 @@ $code.=<<___;
 bn_GF2m_mul_2x2: #! void(ptr,long,long,long,long)
 .cfi_startproc
 	mov	%rsp,%rax
-	mov	OPENSSL_ia32cap_P(%rip),%r10
+	mov	OPENSSL_ia32cap_P(%rip),%r10 #! global ptr
 	bt	\$33,%r10
 	jnc	.Lvanilla_mul_2x2
 
@@ -230,23 +217,7 @@ $code.=<<___;
 
 .align	16
 .Lvanilla_mul_2x2:
-___
-if ($ENV{SARCASM}) {
-  # Fixed region + parked entry %rsp (the balanced mid-function
-  # lea-alloc pair cannot be proven safe); the 16-entry tab for
-  # _mul_1x1 lives in a GC-allocated buffer (see $TAB above), so the
-  # region only grows by 8 for the save slot.
-  $code.=<<___;
-	.alloca	\$128,\$8,%fil_gf2mtab
-	sub	\$8*17+8,%rsp
-	mov	%rax,8*17(%rsp)		# park entry %rsp in the region
-___
-} else {
-  $code.=<<___;
 	lea	-8*17(%rsp),%rsp
-___
-}
-$code.=<<___;
 .cfi_adjust_cfa_offset	8*17
 ___
 $code.=<<___ if ($win64);
@@ -266,7 +237,7 @@ $code.=<<___;
 	mov	%rbx,8*14(%rsp)
 .cfi_rel_offset	%rbx,8*14
 .Lbody_mul_2x2:
-	mov	$rp,32(%rsp)
+	mov	$rp,32(%rsp)		# save the arguments
 	mov	$a1,40(%rsp)
 	mov	$a0,48(%rsp)
 	mov	$b1,56(%rsp)
@@ -326,14 +297,8 @@ $code.=<<___ if ($win64);
 	mov	8*15(%rsp),%rdi
 	mov	8*16(%rsp),%rsi
 ___
-$code.=<<___ if ($ENV{SARCASM});
-	mov	8*17(%rsp),%rsi		# reload parked entry %rsp
-	lea	(%rsi),%rsp
-___
-$code.=<<___ if (!$ENV{SARCASM});
-	lea	8*17(%rsp),%rsp
-___
 $code.=<<___;
+	lea	8*17(%rsp),%rsp
 .cfi_adjust_cfa_offset	-8*17
 .Lepilogue_mul_2x2:
 	ret

@@ -1,0 +1,20 @@
+# File name	Caller	Syscall name	# args	Strong name	Weak names
+
+# Fil-C: aarch64 has no syscalls.list upstream, so the generic C files in
+# sysdeps/unix/sysv/linux provide the socket syscalls.  Those use raw
+# INLINE_SYSCALL svc instructions, which Fil-C cannot make memory safe (they
+# would turn into filc_error panic stubs).  x86_64 avoids this because
+# sysdeps/unix/sysv/linux/x86_64/syscalls.list comes earlier in the sysdeps
+# order and therefore overrides the generic C files with generated syscall
+# stubs, which the Fil-C build redirects to zsys_* runtime calls.  Provide the
+# same entries here (minus the x86-only arch_prctl/modify_ldt ones) so that
+# aarch64 matches x86_64 behavior.
+
+# proper socket implementations:
+bind		-	bind		i:ipi	__bind		bind
+getpeername	-	getpeername	i:ipp	__getpeername	getpeername
+getsockname	-	getsockname	i:ipp	__getsockname	getsockname
+listen		-	listen		i:ii	__listen	listen
+shutdown	-	shutdown	i:ii	__shutdown	shutdown
+socket		-	socket		i:iii	__socket	socket
+socketpair	-	socketpair	i:iiif	__socketpair	socketpair

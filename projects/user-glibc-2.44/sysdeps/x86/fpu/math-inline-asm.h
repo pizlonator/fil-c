@@ -57,13 +57,14 @@ truncf_inline_asm (float x)
 static __always_inline void
 stmxcsr_inline_asm (unsigned int *mxcsr)
 {
-  asm volatile (VPREFIX "stmxcsr %0" : "=m" (*mxcsr));
+  /* Fil-C: no inline asm with memory operands.  */
+  *mxcsr = __builtin_ia32_stmxcsr ();
 }
 
 static __always_inline void
 ldmxcsr_inline_asm (unsigned int *mxcsr)
 {
-  asm volatile (VPREFIX "ldmxcsr %0" : : "m" (*mxcsr));
+  __builtin_ia32_ldmxcsr (*mxcsr);
 }
 
 static __always_inline float

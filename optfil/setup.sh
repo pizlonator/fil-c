@@ -26,12 +26,15 @@
 
 set -e
 
-VERSION="0.685"
+VERSION="0.686"
+
+# This gets replaced with a literal when we copy the script into the install package.
+ARCH=$(uname -m)
 
 usage() {
     echo "Usage: ./setup.sh [OPTIONS]"
     echo
-    echo "Install the Fil-C /opt/fil distribution version $VERSION."
+    echo "Install the Fil-C /opt/fil distribution version $VERSION for $ARCH."
     echo
     echo "Fil-C is a memory-safe implementation of C and C++ that prevents all memory"
     echo "safety errors (out-of-bounds access, use-after-free, type confusion, etc.)"
@@ -114,7 +117,7 @@ echo "==========================================================================
 if [ "$SSH_SETUP_ONLY" = true ]; then
     heading="Fil-C $VERSION SSH Setup (Re-run)"
 else
-    heading="Fil-C $VERSION /opt/fil Distribution"
+    heading="Fil-C $VERSION $ARCH /opt/fil Distribution"
 fi
 printf "%*s%s\n" $(((80 - ${#heading}) / 2)) "" "$heading"
 echo "================================================================================"
@@ -144,6 +147,13 @@ else
     echo "THIS SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND."
     echo "********************************************************************************"
     echo
+fi
+
+if [ "$ARCH" != "$(uname -m)" ]; then
+    echo "ERROR: This installer is intended for $ARCH, but you're on $(uname -m)."
+    echo "Visit https://fil-c.org/install_optfil to find the right package for your"
+    echo "system."
+    exit 1
 fi
 
 if [ "$(id -u)" -ne 0 ]; then
@@ -192,6 +202,19 @@ else
         if [ "$response" != "YES" ]; then
             echo "Installation aborted."
             exit 1
+        fi
+
+        if [ "$ARCH" != x86_64 ]; then
+            echo
+            echo "The $ARCH version of the /opt/fil distribution is still experimental!"
+            echo "Are you really sure? Type YES (in all caps) to proceed:"
+
+            read -r response
+            
+            if [ "$response" != "YES" ]; then
+                echo "Installation aborted."
+                exit 1
+            fi
         fi
     fi
 
@@ -483,7 +506,12 @@ else
         /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
         /usr/lib64/ld-linux-x86-64.so.2 \
         /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
-        /lib/ld-linux-x86-64.so.2)
+        /lib/ld-linux-x86-64.so.2 \
+        /lib64/ld-linux-aarch64.so.1 \
+        /lib/aarch64-linux-gnu/ld-linux-aarch64.so.1 \
+        /usr/lib64/ld-linux-aarch64.so.1 \
+        /usr/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1 \
+        /lib/ld-linux-aarch64.so.1)
 
     # For lib_t we probe a list of widely-shipped libraries rather than
     # libc, because some distributions' SELinux policies use a more
@@ -497,7 +525,12 @@ else
         /lib64/libm.so.6 \
         /lib/x86_64-linux-gnu/libm.so.6 \
         /usr/lib64/libcrypt.so.1 \
-        /usr/lib/x86_64-linux-gnu/libcrypt.so.1)
+        /usr/lib/x86_64-linux-gnu/libcrypt.so.1 \
+        /lib/aarch64-linux-gnu/libz.so.1 \
+        /usr/lib/aarch64-linux-gnu/libz.so.1 \
+        /lib/aarch64-linux-gnu/libm.so.6 \
+        /lib/aarch64-linux-gnu/libcrypt.so.1 \
+        /usr/lib/aarch64-linux-gnu/libcrypt.so.1)
 
     # Tell the user what we found before we try to do anything, so a
     # missing reference is reported up-front instead of as one of N
@@ -600,15 +633,19 @@ else
             '/opt/fil/lib/.+\.so(\..+)?' \
             "/opt/fil/lib"
 
-        # /opt/fil/lib/ld-fil1-x86_64.so -> ld_so_t. Registered after the
+        # /opt/fil/lib/ld-fil1-$ARCH.so -> ld_so_t. Registered after the
         # library rule (see comment above) so that semanage's most-recent
-        # entry wins for the loader file at restorecon time.
+        # entry wins for the loader file at restorecon time. The loader's
+        # name depends on the machine architecture (build_opt.sh names it
+        # ld-fil1-`uname -m`.so, e.g. ld-fil1-x86_64.so on x86_64 or
+        # ld-fil1-aarch64.so on aarch64).
+        filc_loader="/opt/fil/lib/ld-fil1-$ARCH.so"
         selinux_run_rule selinux_label_file \
-            "/opt/fil/lib/ld-fil1-x86_64.so (loader)" \
+            "$filc_loader (loader)" \
             "$SYS_LOADER" \
             ld_so_t \
-            '/opt/fil/lib/ld-fil1-x86_64\.so' \
-            "/opt/fil/lib/ld-fil1-x86_64.so"
+            "/opt/fil/lib/ld-fil1-$ARCH\.so" \
+            "$filc_loader"
 
         selinux_attempts_total=$((selinux_attempts_succeeded + selinux_attempts_failed))
 

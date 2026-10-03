@@ -6,6 +6,7 @@ local fs = require("@lute/fs")
 local process = require("@lute/process")
 
 -- Shared modules.
+local err = require("./err")
 local sig = require("./sig")
 local transform = require("./transform")
 local regalloc = require("./regalloc")
@@ -162,7 +163,7 @@ local function splitFunctions(stmts, opts)
 						table.insert(l, st.name)
 					end
 				elseif funcSyms[st.name] and (globalsSet[st.name] or not localCalled[st.name]) then
-					error("sarcasm: function '" .. st.name .. "' has no signature annotation "
+					err.at(st, "function '" .. st.name .. "' has no signature annotation "
 						.. "(add one to its label, e.g. `" .. st.name .. ": ;! int(ptr)`)")
 				elseif cur then
 					-- a following local alias: record it AND keep the label in the body
@@ -236,7 +237,7 @@ local function buildRaInsns(nodes, bigMode)
 				-- which keys on move.dst) is only sound for exactly that shape:
 				-- assert it here rather than trusting it.
 				if #(node.defTemps or {}) ~= 1 or node.defTemps[1] ~= mv.dst then
-					error("sarcasm: internal error: move-marked insn must have exactly one def, equal to its move destination")
+					err.at(node.stmt, "internal error: move-marked insn must have exactly one def, equal to its move destination")
 				end
 				-- The move-exclusion (src and dst may share a color because a
 				-- same-color move is a droppable no-op) is only sound for a FULL-WIDTH
@@ -461,10 +462,11 @@ local function allocateWithSpilling(tr, target)
 	-- Spill slots sit above the frame header, the GC root slots, and the (x86_64-only,
 	-- 16-byte-aligned) FP/SIMD region: reserved vector-save area + materialized FP
 	-- frame-slot clusters + the materialized incoming yolo stack-argument area + its
-	-- alignment pad. Must match the target render's computeLayout
-	-- (x86_64_render.luau / arm64_render.luau).
+	-- alignment pad + the `#! stack buffer` region. Must match the target render's
+	-- computeLayout (x86_64_render.luau / arm64_render.luau).
 	local numRoots = tr.numRoots or 0
 	local fpRegion = (tr.fpSaveBytes or 0) + (tr.fpBytes or 0) + (tr.yoloBytes or 0)
+		+ (tr.bufBytes or 0)
 	local fpPad = (fpRegion > 0 and numRoots % 2 == 1) and 8 or 0
 	-- Mirror x86_64_render.computeLayout's widened pad: a dynamically-aligned
 	-- frame (effective alignment A > 16, from `and $-N, %rsp` notes covering
@@ -511,7 +513,7 @@ local function allocateWithSpilling(tr, target)
 		end
 		tr.fipNodes = rewriteSpills(tr.fipNodes, spilledSet, slotOf, allocTemp, spillBase, target)
 	end
-	error("sarcasm: register allocation did not converge (excessive register pressure)")
+	err.plain("register allocation did not converge (excessive register pressure)")
 end
 
 -- x86_64 data-object collection (global variables) -------------------------------------
@@ -544,7 +546,7 @@ end
 -- array. Handles the C-style escapes gas documents; anything else (\x hex,
 -- unknown escapes) is a clean rejection — a misdecoded byte count would silently
 -- corrupt the payload bounds.
-local function decodeGasString(body, raw)
+local function decodeGasString(body, raw, st)
 	local bytes = {}
 	local SIMPLE = { n = 10, t = 9, r = 13, b = 8, f = 12, a = 7, v = 11,
 		["\\"] = 92, ['"'] = 34, ["'"] = 39, ["?"] = 63 }
@@ -560,7 +562,7 @@ local function decodeGasString(body, raw)
 				table.insert(bytes, tonumber(oct, 8) % 256)
 				i += 1 + #oct
 			else
-				error("sarcasm: unsupported string escape '\\" .. d
+				err.at(st, "unsupported string escape '\\" .. d
 					.. "' in data string literal: " .. raw)
 			end
 		else
@@ -604,6 +606,10 @@ local DATA_WIDTH = { [".byte"] = 1, [".short"] = 2, [".hword"] = 2, [".2byte"] =
 
 local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 	local dataGlobals = {}
+	-- First defining statement per dataGlobals name (label records carry their
+	-- statement in `.st`): lets the duplicate-global rejections name BOTH the
+	-- offending and the original location.
+	local dataGlobalStmts = {}
 	local dos = {}
 
 	-- Section classification. Returns "ro" (read-only collectable), "w" (writable
@@ -617,10 +623,17 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 	end
 
 	-- Fold a numeric constant argument (no symbol allowed) for a data directive.
-	local function numArg(text, raw)
+	local function numArg(text, raw, st)
+		-- parseDispExpr re-enters the parser at COMPILE time (the parser's
+		-- beginParse window closed when parsing finished), so its err.here
+		-- rejections would carry no location. Publish this directive's statement
+		-- location for the re-entry; on error the state doesn't matter (the
+		-- process reports and exits), so endParse runs on the success path only.
+		if st and st.file then err.beginParse(st.file); err.atParseLine(st.line) end
 		local e = x86_64_parse.parseDispExpr(text, "displacement")
+		err.endParse()
 		if e.sym then
-			error("sarcasm: symbolic data initializer '" .. text .. "' is not supported"
+			err.at(st, "symbolic data initializer '" .. text .. "' is not supported"
 				.. " (pointer initializers and constant relocations cannot be made"
 				.. " memory-safe automatically): " .. raw)
 		end
@@ -636,25 +649,25 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 		if w then
 			local fields = splitDataArgs(st.args or "")
 			if #fields == 0 then
-				error("sarcasm: data directive with no arguments: " .. (st.raw or st.name))
+				err.at(st, "data directive with no arguments: " .. (st.raw or st.name))
 			end
-			for _, f in fields do numArg(f, st.raw or st.name) end
+			for _, f in fields do numArg(f, st.raw or st.name, st) end
 			return w * #fields
 		end
 		if st.name == ".ascii" or st.name == ".asciz" or st.name == ".string" then
 			local zTerm = (st.name ~= ".ascii") and 1 or 0
 			local fields = splitDataArgs(st.args or "")
 			if #fields == 0 then
-				error("sarcasm: data directive with no arguments: " .. (st.raw or st.name))
+				err.at(st, "data directive with no arguments: " .. (st.raw or st.name))
 			end
 			local total, bytes = 0, {}
 			for _, f in fields do
 				local body = string.match(f, '^"(.*)"$')
 				if not body then
-					error("sarcasm: " .. st.name .. " argument is not a string literal: "
+					err.at(st, st.name .. " argument is not a string literal: "
 						.. (st.raw or st.name))
 				end
-				local b = decodeGasString(body, st.raw or st.name)
+				local b = decodeGasString(body, st.raw or st.name, st)
 				for _, v in b do table.insert(bytes, v) end
 				total += #b + zTerm
 				for _ = 1, zTerm do table.insert(bytes, 0) end
@@ -665,11 +678,11 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 		if st.name == ".zero" or st.name == ".space" or st.name == ".skip" then
 			local fields = splitDataArgs(st.args or "")
 			if #fields < 1 or #fields > 2 then
-				error("sarcasm: malformed " .. st.name .. " directive: " .. (st.raw or st.name))
+				err.at(st, "malformed " .. st.name .. " directive: " .. (st.raw or st.name))
 			end
-			local n = numArg(fields[1], st.raw or st.name)
+			local n = numArg(fields[1], st.raw or st.name, st)
 			if n ~= math.floor(n) or n < 0 then
-				error("sarcasm: " .. st.name .. " size is not a non-negative integer: "
+				err.at(st, st.name .. " size is not a non-negative integer: "
 					.. (st.raw or st.name))
 			end
 			return n
@@ -677,16 +690,16 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 		if st.name == ".fill" then
 			local fields = splitDataArgs(st.args or "")
 			if #fields < 1 or #fields > 3 then
-				error("sarcasm: malformed .fill directive: " .. (st.raw or st.name))
+				err.at(st, "malformed .fill directive: " .. (st.raw or st.name))
 			end
-			local count = numArg(fields[1], st.raw or st.name)
-			local sz = fields[2] and numArg(fields[2], st.raw or st.name) or 1
+			local count = numArg(fields[1], st.raw or st.name, st)
+			local sz = fields[2] and numArg(fields[2], st.raw or st.name, st) or 1
 			if count < 0 or sz < 0 then
-				error("sarcasm: .fill count/size is negative: " .. (st.raw or st.name))
+				err.at(st, ".fill count/size is negative: " .. (st.raw or st.name))
 			end
 			return count * sz
 		end
-		error("sarcasm: data directive '" .. st.name .. "' is not supported in a data"
+		err.at(st, "data directive '" .. st.name .. "' is not supported in a data"
 			.. " object (only scalar initializers: .byte/.short/.long/.quad, .ascii/.asciz,"
 			.. " .zero/.space/.fill, alignment padding): " .. (st.raw or st.name))
 	end
@@ -803,7 +816,9 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 			if segLive then
 				local firstSym = seg.firstLabel.name
 				if dataGlobals[firstSym] then
-					error("sarcasm: duplicate definition of global '" .. firstSym .. "'")
+					local firstLoc = err.locStr(dataGlobalStmts[firstSym])
+					err.at(seg.firstLabel.st, "duplicate definition of global '" .. firstSym .. "'"
+						.. (firstLoc and (" (first defined at " .. firstLoc .. ")") or ""))
 				end
 				local doAlign = math.max(8, maxAlign)
 				local desc, pad = defineDesc(firstSym, seg.exported,
@@ -820,9 +835,12 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 				end
 				for _, l in seg.labels do
 					if l ~= seg.firstLabel and dataGlobals[l.name] then
-						error("sarcasm: duplicate definition of global '" .. l.name .. "'")
+						local firstLoc = err.locStr(dataGlobalStmts[l.name])
+						err.at(l.st, "duplicate definition of global '" .. l.name .. "'"
+							.. (firstLoc and (" (first defined at " .. firstLoc .. ")") or ""))
 					end
 					dataGlobals[l.name] = desc
+					dataGlobalStmts[l.name] = l.st
 				end
 				table.insert(dos, {
 					firstSym = firstSym, doSym = desc.doSym, baseSym = desc.baseSym,
@@ -871,22 +889,25 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 					or csize ~= math.floor(csize) or csize < 0
 					or (calign ~= nil and (calign ~= math.floor(calign) or calign < 1
 						or calign ~= 2 ^ math.floor(math.log(calign) / math.log(2) + 0.5))) then
-					error("sarcasm: malformed " .. nm .. " directive (expected `"
+					err.at(st, "malformed " .. nm .. " directive (expected `"
 						.. nm .. " name,size[,align]` with a numeric size and a"
 						.. " power-of-two alignment): " .. (st.raw or nm))
 				end
 				if st.annotation then
-					error("sarcasm: annotation '" .. st.annotation .. "' on a directive ('"
+					err.at(st, "annotation '" .. st.annotation .. "' on a directive ('"
 						.. nm .. "') is not supported")
 				end
 				local exported = (nm ~= ".lcomm")
 				if dataGlobals[cname] then
-					error("sarcasm: duplicate definition of global '" .. cname .. "'")
+					local firstLoc = err.locStr(dataGlobalStmts[cname])
+					err.at(st, "duplicate definition of global '" .. cname .. "'"
+						.. (firstLoc and (" (first defined at " .. firstLoc .. ")") or ""))
 				end
 				local doAlign = math.max(8, calign or 8)
 				local desc, pad = defineDesc(cname, exported, hidden[cname], false, doAlign)
 				local payloadSize = math.max(8, math.ceil(csize / 8) * 8)
 				dataGlobals[cname] = desc
+				dataGlobalStmts[cname] = st
 				table.insert(dos, {
 					firstSym = cname, doSym = desc.doSym, baseSym = desc.baseSym,
 					gpSym = desc.gpSym, gsSym = desc.gsSym,
@@ -901,7 +922,7 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 			elseif curSec and (nm == ".p2align" or nm == ".align") then
 				-- alignment padding inside (or leading) a data block
 				if st.annotation then
-					error("sarcasm: annotation '" .. st.annotation .. "' on a directive ('"
+					err.at(st, "annotation '" .. st.annotation .. "' on a directive ('"
 						.. nm .. "') is not supported")
 				end
 				local a = itemAlign(st)
@@ -909,8 +930,12 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 				if not a then
 					-- Tolerated like bad content: the error is re-raised at
 					-- finalization iff the block proves live (dead-content drop).
+					-- The deferred message carries the statement's location when one
+					-- can be derived (same shape err.at produces).
+					local loc = err.locStr(st)
 					table.insert(block.items, { kind = "data", st = st, off = block.off,
-						size = 0, err = "sarcasm: unsupported alignment directive in a data"
+						size = 0, err = "sarcasm: " .. (loc and (loc .. ": ") or "")
+							.. "unsupported alignment directive in a data"
 							.. " object (only `.p2align N` / `.p2align N, 0` and a power-of-two"
 							.. " `.align A` are supported): " .. (st.raw or nm) })
 				else
@@ -926,13 +951,13 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 				-- (tolerantly — content errors are re-raised at finalization iff the
 				-- block proves live, keeping the dead-content drop rule).
 				if st.annotation then
-					error("sarcasm: annotation '" .. st.annotation .. "' on a directive ('"
+					err.at(st, "annotation '" .. st.annotation .. "' on a directive ('"
 						.. nm .. "') is not supported")
 				end
 				openBlock(curSec)
-				local sz, err = trySize(st)
+				local sz, emsg = trySize(st)
 				table.insert(block.items, { kind = "data", st = st, off = block.off,
-					size = sz, err = err })
+					size = sz, err = emsg })
 				block.off += sz
 				consumed[i] = "data"
 			elseif nm == ".type" or nm == ".size" or nm == ".globl" or nm == ".global"
@@ -951,11 +976,11 @@ local function collectX86Data(stmts, consumed, globals, hidden, referenced)
 		elseif st.kind == "label" then
 			if curSec then
 				if st.annotation then
-					error("sarcasm: annotation '" .. st.annotation .. "' on a label ('" .. st.name
+					err.at(st, "annotation '" .. st.annotation .. "' on a label ('" .. st.name
 						.. "') in a data section is not supported")
 				end
 				openBlock(curSec)
-				table.insert(block.labels, { name = st.name, off = block.off })
+				table.insert(block.labels, { name = st.name, off = block.off, st = st })
 				table.insert(block.items, { kind = "label", st = st, off = block.off, size = 0 })
 				consumed[i] = "data"
 			else
@@ -1043,6 +1068,151 @@ function sarcasm.compile(stmts, fileDirective, debug, target)
 		for _, fn in functions do fn.body = target.decodeBody(fn.body) end
 	end
 	prof.mark("decodeBody")
+	-- `#! stack buffer (...)` declarations (x86_64): collect the LONG forms across
+	-- ALL functions BEFORE any function is transformed, resolve each against its
+	-- own function's frame analysis (run here in resolution-only mode), and record
+	-- the canonical normalized byte range per buffer id. Short forms reference the
+	-- canonical range and re-validate it against their own function's frame; two
+	-- long forms of one id resolving to different normalized ranges are a compile
+	-- error ("the offsets must match" — this also rejects two long forms sharing
+	-- one stack-alias register that aliases the stack at different offsets).
+	if target.arch == "x86_64" then
+		x86_64_frame.beginStackBufResolution()
+		-- The collection helper shared by the function-body scan and the local
+		-- subroutine scan below: parse a statement's `#! stack buffer (...)`
+		-- annotation and record it on the statement (the long forms are the
+		-- declarations the resolution consumes; a short form only needs the
+		-- parse so validateBody and the frame pass see a consistent statement).
+		local function collectStackBufAnno(st, decls)
+			if st.kind ~= "insn" or not st.annotation then return end
+			local sb = transform.parseStackBufAnno(st.annotation, st)
+			if sb then
+				st.stackBufAnno = sb
+				if not sb.short then
+					-- Only collect declarations whose statement has the basic
+					-- shape (a stack-relative memory operand or a string op);
+					-- anything else is validateBody's business (it runs before
+					-- the per-function frame analysis and rejects the shape
+					-- with its precise message).
+					local shaped = false
+					local m = string.lower(st.mnemonic)
+					if st.repPrefix ~= nil
+						or (#(st.operands or {}) == 0
+							and (string.match(m, "^movs[bwlqd]?$")
+								or string.match(m, "^stos[bwlqd]?$"))) then
+						-- A rep string op or a bare single-step string op.
+						shaped = true
+					else
+						-- The cheap gate only checks that the statement names
+						-- memory at all (mirroring validateBody); whether the
+						-- base is %rsp/%rbp, a live stack alias, or something
+						-- unresolvable is the frame pass's precise business.
+						for _, o in (st.operands or {}) do
+							if o.kind == "mem" and o.base and o.base.kind == "reg" then
+								shaped = true
+							end
+						end
+					end
+					if shaped then table.insert(decls, st) end
+				end
+			end
+		end
+		for _, fn in functions do
+			local decls = {}
+			for _, st in fn.body do
+				collectStackBufAnno(st, decls)
+			end
+			if #decls > 0 then
+				-- Resolution needs each statement's depth/carrier marks: run the
+				-- frame analysis (resolution-only mode suppresses the buffer group
+				-- scan — the canonical table is not complete yet).
+				x86_64_frame.analyzeFrame(fn.body, sig.parseSignature(fn.sigAnn, fn.body[1]), {})
+				for _, st in decls do
+					local lo, hi = x86_64_frame.resolveStackBufDeclAt(st)
+					if lo then
+						local canon = x86_64_frame.stackBufCanonOf(st.stackBufAnno.id)
+						if canon == nil then
+							x86_64_frame.recordStackBufCanon(st.stackBufAnno.id, lo, hi,
+								fn.name, nil, st)
+						elseif canon.lo ~= lo or canon.hi ~= hi then
+							err.at(st, "`stack buffer (" .. st.stackBufAnno.id
+								.. ")` long forms disagree: the declaration in function '"
+								.. tostring(canon.fn) .. "' at " .. (err.locStr(canon.st) or "?")
+								.. " resolves to [" .. tostring(canon.lo)
+								.. ", " .. tostring(canon.hi) .. ") but the declaration in '"
+								.. fn.name .. "' resolves to [" .. tostring(lo)
+								.. ", " .. tostring(hi) .. ") (the offsets must match): "
+								.. (st.raw or st.mnemonic))
+						end
+					end
+				end
+			end
+		end
+		-- LOCAL SUBROUTINE bodies: a long form inside a subroutine's own text
+		-- (which becomes a per-caller clone with its own `sub` frame) registers
+		-- the buffer's canonical range in the SUBROUTINE'S OWN frame coordinates
+		-- — caller-independent, so two callers' clones re-resolve it consistently
+		-- and a same-named declaration outside the subroutine at different
+		-- offsets still hits the canonical mismatch. The subroutine's statements
+		-- are only ever COMPILED as clones (their per-caller keying is the real
+		-- story), so a resolution failure here is best-effort: the clones' own
+		-- per-function scans re-derive everything they need, and a skipped
+		-- registration only loses the cross-function mismatch check for that id.
+		if locals then
+			local names = {}
+			for nm in pairs(locals.subs) do table.insert(names, nm) end
+			table.sort(names)
+			for _, nm in names do
+				local sub = locals.subs[nm]
+				local decls = {}
+				for _, st in sub.region.stmts do
+					collectStackBufAnno(st, decls)
+				end
+				if #decls > 0 then
+					local ok, emsg = pcall(function()
+						x86_64_frame.analyzeFrame(sub.region.stmts, nil, {})
+						for _, st in decls do
+							local lo, hi = x86_64_frame.resolveStackBufDeclAt(st)
+							if lo then
+								local canon = x86_64_frame.stackBufCanonOf(st.stackBufAnno.id)
+								if canon == nil then
+									x86_64_frame.recordStackBufCanon(st.stackBufAnno.id,
+										lo, hi, nm, true, st)
+								elseif canon.lo ~= lo or canon.hi ~= hi then
+									local where = (canon.sub and "local subroutine '"
+										.. tostring(canon.fn) .. "'" or "function '"
+										.. tostring(canon.fn) .. "'")
+										.. " at " .. (err.locStr(canon.st) or "?")
+									err.at(st, "`stack buffer (" .. st.stackBufAnno.id
+										.. ")` long forms disagree: the declaration in " .. where
+										.. " resolves to [" .. tostring(canon.lo)
+										.. ", " .. tostring(canon.hi) .. ") but the declaration in '"
+										.. nm .. "' resolves to [" .. tostring(lo) .. ", "
+										.. tostring(hi) .. ") (the offsets must match): "
+										.. (st.raw or st.mnemonic))
+								end
+							end
+						end
+					end)
+					if not ok then
+						-- The file-wide canonical rejection is a REAL user-facing
+						-- rejection: re-raise it. Any OTHER failure is the
+						-- subroutine's standalone analysis hitting a shape its
+						-- CLONE context would not (a clone executes at the
+						-- caller's depth with the +8 keying) — skip the
+						-- registration; the clones' own scans own the proof.
+						if type(emsg) == "string"
+							and string.find(emsg, "the offsets must match", 1, true) then
+							error(emsg)
+						end
+						prof.mark("  [sub " .. nm .. "] stackBufDecl skipped")
+					end
+				end
+			end
+		end
+		x86_64_frame.endStackBufResolution()
+		prof.mark("stackBufDeclarations")
+	end
 	-- Cross-function jumps (x86_64): the B1/B2 resolution context (tail branches
 	-- to signatured function entries become call+epilogue; mid-body shared-tail
 	-- joins clone the region into the jumper — tailcall.luau). arm64 does not
@@ -1147,35 +1317,35 @@ function sarcasm.compile(stmts, fileDirective, debug, target)
 						or (st.kind == "label" and (st.name .. ":") or nil)
 						or (st.kind == "directive" and (st.name .. " " .. (st.args or "")) or "?")
 					if st.kind == "label" then
-						error("sarcasm: a label in " .. sectDesc .. " content is not supported"
+						err.at(st, "a label in " .. sectDesc .. " content is not supported"
 							.. " (only annotated direct calls may appear there): " .. raw)
 					elseif st.kind == "directive" then
 						-- Structural directives (visibility, .type, alignment, ...)
 						-- emit no section content and stay accepted; data-emitting
 						-- directives and annotated ones are rejected.
 						if transform.DATA_DIRECTIVES[st.name] then
-							error("sarcasm: data in " .. sectDesc .. " content is not supported"
+							err.at(st, "data in " .. sectDesc .. " content is not supported"
 								.. " (only annotated direct calls may appear there): directive '"
 								.. st.name .. "'")
 						end
 						if st.annotation then
-							error("sarcasm: annotation '" .. st.annotation .. "' on a directive ('"
+							err.at(st, "annotation '" .. st.annotation .. "' on a directive ('"
 								.. st.name .. "') is not supported")
 						end
 					else
 						-- an instruction in .init/.fini content
 						if target.arch ~= "x86_64" then
-							error("sarcasm: " .. sectDesc .. " content is not yet supported"
+							err.at(st, sectDesc .. " content is not yet supported"
 								.. " on this target: " .. raw)
 						end
 						local m = string.lower(st.mnemonic or "")
 						local op = st.operands and st.operands[1]
 						if (m ~= "call" and m ~= "callq") or not op or op.kind ~= "sym" then
-							error("sarcasm: only annotated direct calls are supported in "
+							err.at(st, "only annotated direct calls are supported in "
 								.. sectDesc .. " content: " .. raw)
 						end
 						if not st.annotation then
-							error("sarcasm: call to '" .. op.text .. "' in " .. sectDesc
+							err.at(st, "call to '" .. op.text .. "' in " .. sectDesc
 								.. " content has no signature annotation (annotate it, e.g."
 								.. " `call " .. op.text .. " ;! void()`): " .. raw)
 						end
@@ -1183,19 +1353,19 @@ function sarcasm.compile(stmts, fileDirective, debug, target)
 						-- are no incoming Fil-C argument registers, so only void() calls
 						-- can be marshalled soundly (they take no args and return
 						-- nothing).
-						local cs = sig.parseSignature(st.annotation)
+						local cs = sig.parseSignature(st.annotation, st)
 						if not cs.isVoid or cs.argWords ~= 0 then
-							error("sarcasm: only void() calls are supported in " .. sectDesc
+							err.at(st, "only void() calls are supported in " .. sectDesc
 								.. " content (the .init context has no Fil-C argument"
 								.. " state): " .. raw)
 						end
 						local owner = fnNames[op.text]
 						if not owner and dataGlobals and dataGlobals[op.text] then
-							error("sarcasm: call target '" .. op.text .. "' in " .. sectDesc
+							err.at(st, "call target '" .. op.text .. "' in " .. sectDesc
 								.. " content is a data object, not a function: " .. raw)
 						end
 						if not owner and subNames and subNames[op.text] then
-							error("sarcasm: call target '" .. op.text .. "' in " .. sectDesc
+							err.at(st, "call target '" .. op.text .. "' in " .. sectDesc
 								.. " content is a local subroutine (it has no function"
 								.. " object): " .. raw)
 						end
@@ -1205,15 +1375,15 @@ function sarcasm.compile(stmts, fileDirective, debug, target)
 					end
 				elseif st.kind == "blank" then
 					if st.annotation then
-						error("sarcasm: annotation '" .. st.annotation
+						err.at(st, "annotation '" .. st.annotation
 							.. "' on an otherwise-empty line (annotations go on the instruction's own line)")
 					end
 				elseif st.kind == "insn" then
-					error("sarcasm: instruction outside any function (only annotated functions"
+					err.at(st, "instruction outside any function (only annotated functions"
 						.. " are compiled): " .. (st.raw or st.mnemonic))
 				elseif st.kind == "label" then
 					if globals[st.name] or referenced[st.name] then
-						error("sarcasm: label '" .. st.name .. "' outside any function is not supported"
+						err.at(st, "label '" .. st.name .. "' outside any function is not supported"
 							.. " (globals cannot be made memory-safe automatically)")
 					end
 					table.insert(recentLabels, st.name)
@@ -1231,14 +1401,14 @@ function sarcasm.compile(stmts, fileDirective, debug, target)
 							if globals[ln] or referenced[ln] then live = ln; break end
 						end
 						if always or live then
-							error("sarcasm: data sections and symbol/macro definitions are not supported"
+							err.at(st, "data sections and symbol/macro definitions are not supported"
 								.. " (globals cannot be made memory-safe automatically): directive '"
 								.. st.name .. "'" .. (live and (" (under label '" .. live .. "')") or ""))
 						end
 						recentLabels = {}
 					end
 					if st.annotation then
-						error("sarcasm: annotation '" .. st.annotation .. "' on a directive ('"
+						err.at(st, "annotation '" .. st.annotation .. "' on a directive ('"
 							.. st.name .. "') is not supported")
 					end
 				end
@@ -1279,14 +1449,14 @@ function sarcasm.compile(stmts, fileDirective, debug, target)
 	for n in fileUserLabels do fileAllLabels[n] = true end
 
 	for _, fn in functions do
-		local sigDesc = sig.parseSignature(fn.sigAnn)
+		local sigDesc = sig.parseSignature(fn.sigAnn, fn.body[1])
 		-- Signature class check, arch-aware: float and double are fully supported
 		-- on BOTH arches (FP args pass in xmm0..xmm7 / v0..v7 in declaration order
 		-- among the FP args, FP returns ride in xmm0 / v0, and the generic/buffer
 		-- thunks marshal them); long double stays rejected (filcc gives it
 		-- signature word 0 and NO fast CC) and so do the vector classes (a vec4
 		-- signature would need q-register / xmm-quad CC machinery).
-		sig.checkSupportedClasses(sigDesc, nil, { arch = target.arch })
+		sig.checkSupportedClasses(sigDesc, nil, { arch = target.arch }, fn.body[1])
 		-- Entry-signature arity limits. The fast CC packs GPR argument words DENSELY
 		-- (a pointer arg = 2 words); x86_64 packs the first FOUR into rdx,rcx,r8,r9
 		-- and passes the rest on the stack as densely packed 8-byte slots, which
@@ -1306,10 +1476,10 @@ function sarcasm.compile(stmts, fileDirective, debug, target)
 				end
 			end
 			if gprArgs > 3 then
-				error("sarcasm: >3 register args not yet supported")
+				err.at(fn.body[1], ">3 register args not yet supported")
 			end
 			if words > 6 then
-				error("sarcasm: function '" .. fn.name
+				err.at(fn.body[1], "function '" .. fn.name
 					.. "': >6 register argument words not yet supported (this signature needs "
 					.. tostring(words) .. ")")
 			end
@@ -1319,7 +1489,7 @@ function sarcasm.compile(stmts, fileDirective, debug, target)
 			if sig.isFpClass(sigDesc.argTypes[k]) then fpArgs += 1 end
 		end
 		if fpArgs > 8 then
-			error("sarcasm: function '" .. fn.name
+			err.at(fn.body[1], "function '" .. fn.name
 				.. "': >8 floating-point arguments not yet supported (this signature needs "
 				.. tostring(fpArgs) .. ")")
 		end
@@ -1587,8 +1757,13 @@ function sarcasm.main(argv)
 	-- Parse + compile under one pcall: parse-time rejections (e.g. an unresolvable
 	-- numeric label reference) get the same clean "sarcasm: <file>: <msg>" treatment
 	-- as compile-time rejections.
+	-- Statements carry the 1-based line but (until the parsers stamp `file`) not the
+	-- file: publish the input path as err's location fallback, and pass it to the
+	-- parsers (they will publish it to err themselves once they take it).
+	err.setDefaultFile(input :: string?)
 	local ok, asm = pcall(function()
-		local stmts = (arch == "x86_64") and x86_64_parse.parseString(text, syntax) or arm64_parse.parseString(text)
+		local stmts = (arch == "x86_64") and x86_64_parse.parseString(text, syntax, input)
+			or arm64_parse.parseString(text, input)
 		prof.mark("parse")
 		local r = sarcasm.compile(stmts, fileName, debug, target)
 		prof.mark("compile")
@@ -1602,7 +1777,15 @@ function sarcasm.main(argv)
 		-- re-raise so the underlying stack trace is preserved for debugging.
 		local idx = string.find(msg, "sarcasm:", 1, true)
 		if idx then
-			return diag(input .. ": " .. string.sub(msg, idx + 8):gsub("^%s+", ""))
+			local body = string.sub(msg, idx + 8):gsub("^%s+", "")
+			-- Errors raised through err.at/err.here already carry their own
+			-- "<file>:<line>: " location (the file being the input path as given).
+			-- Only prepend the input path for unlocated messages.
+			if string.sub(body, 1, #input) == input
+				and string.match(string.sub(body, #input + 1), "^:(%d+):%s") then
+				return diag(body)
+			end
+			return diag(input .. ": " .. body)
 		end
 		error(msg, 0)
 	end

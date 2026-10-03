@@ -18,6 +18,7 @@
 
 #include <fenv.h>
 #include <math-inline-asm.h>
+#include <filc-x87-env.h>
 #include <math.h>
 
 int
@@ -36,13 +37,13 @@ fesetexceptflag (const fexcept_t *flagp, int excepts)
 
   /* Get the current x87 FPU environment.  We have to do this since we
      cannot separately set the status word.  */
-  __asm__ ("fnstenv %0" : "=m" (temp));
+  filc_fnstenv (&temp);
 
   /* Clear relevant flags.  */
   temp.__status_word &= ~(excepts & ~ *flagp);
 
   /* Store the new status word (along with the rest of the environment).  */
-  __asm__ ("fldenv %0" : : "m" (temp));
+  filc_fldenv (&temp);
 
   /* And now similarly for SSE.  */
   stmxcsr_inline_asm (&mxcsr);

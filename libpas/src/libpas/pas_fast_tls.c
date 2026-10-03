@@ -44,7 +44,12 @@ void pas_fast_tls_initialize_if_necessary(void)
 #elif !defined(_WIN32)
 bool pas_fast_tls_is_initialized = false;
 pthread_key_t pas_fast_tls_key;
+#if !PAS_COSMO
+/* In cosmo mode the fast __thread variable is not used (see pas_fast_tls.h):
+   direct %fs TLS codegen does not work on all of cosmo's target operating
+   systems, so pas_fast_tls_get/set go through the pthread key instead. */
 __thread void* pas_fast_tls_variable;
+#endif /* !PAS_COSMO */
 
 void pas_fast_tls_initialize_if_necessary(void)
 {

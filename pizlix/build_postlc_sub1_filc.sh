@@ -18,14 +18,23 @@ test $EUID -eq `stat -c %u $FILCSRC`
 cd $FILCSRC
 
 rm -vf projects/*/pizlonated-*.tar.gz
+
+filc/projeny package \
+    projects/xz.projeny projects/xz/pizlonated-xz.tar.gz \
+    projects/m4.projeny projects/m4/pizlonated-m4.tar.gz \
+    projects/pkgconf.projeny projects/pkgconf/pizlonated-pkgconf.tar.gz \
+    projects/attr.projeny projects/attr/pizlonated-attr.tar.gz \
+    projects/openssl.projeny projects/openssl/pizlonated-openssl.tar.gz \
+    projects/libffi.projeny projects/libffi/pizlonated-libffi.tar.gz \
+    projects/util-linux.projeny projects/util-linux/pizlonated-util-linux.tar.gz \
+    projects/coreutils.projeny projects/coreutils/pizlonated-coreutils.tar.gz \
+    projects/mg.projeny projects/mg/pizlonated-mg.tar.gz \
+    projects/gzip.projeny projects/gzip/pizlonated-gzip.tar.gz
+
 ./package-source.sh projects/lfs-bootscripts-20240825 pizlonated-lfs-bootscripts
 ./package-source.sh projects/kbd-2.6.4 pizlonated-kbd
-./package-source.sh projects/xz-5.8.3 pizlonated-xz
-filc/projeny package projects/m4.projeny projects/m4/pizlonated-m4.tar.gz
-filc/projeny package projects/pkgconf.projeny projects/pkgconf/pizlonated-pkgconf.tar.gz
 ./package-source.sh projects/binutils-2.47 pizlonated-binutils
 ./package-source.sh projects/gmp-6.3.0 pizlonated-gmp
-filc/projeny package projects/attr.projeny projects/attr/pizlonated-attr.tar.gz
 ./package-source.sh projects/libxcrypt-4.5.2 pizlonated-libxcrypt
 ./package-source.sh projects/shadow-4.16.0 pizlonated-shadow
 ./package-source.sh projects/sed-4.10 pizlonated-sed
@@ -34,9 +43,7 @@ filc/projeny package projects/attr.projeny projects/attr/pizlonated-attr.tar.gz
 ./package-source.sh projects/bash-5.3 pizlonated-bash
 ./package-source.sh projects/perl-5.40.0 pizlonated-perl
 ./package-source.sh projects/XML-Parser-2.47 pizlonated-xml-parser
-filc/projeny package projects/openssl.projeny projects/openssl/pizlonated-openssl.tar.gz
 ./package-source.sh projects/elfutils-0.191 pizlonated-elfutils
-filc/projeny package projects/libffi.projeny projects/libffi/pizlonated-libffi.tar.gz
 ./package-source.sh projects/Python-3.12.5 pizlonated-cpython
 ./package-source.sh projects/check-0.15.2 pizlonated-check
 ./package-source.sh projects/diffutils-3.12 pizlonated-diffutils
@@ -44,7 +51,6 @@ filc/projeny package projects/libffi.projeny projects/libffi/pizlonated-libffi.t
 ./package-source.sh projects/libpipeline-1.5.7 pizlonated-libpipeline
 ./package-source.sh projects/texinfo-7.1 pizlonated-texinfo
 ./package-source.sh projects/vim-9.1.0660 pizlonated-vim
-filc/projeny package projects/util-linux.projeny projects/util-linux/pizlonated-util-linux.tar.gz
 ./package-source.sh projects/systemd-256.4 pizlonated-systemd
 ./package-source.sh projects/procps-ng-4.0.7 pizlonated-procps
 ./package-source.sh projects/make-4.4.1 pizlonated-make
@@ -55,6 +61,4 @@ filc/projeny package projects/util-linux.projeny projects/util-linux/pizlonated-
 ./package-source.sh projects/tar-1.35 pizlonated-tar
 ./package-source.sh projects/meson-1.5.1 pizlonated-meson
 ./package-source.sh projects/zstd-1.5.7 pizlonated-zstd
-./package-source.sh projects/coreutils-9.11 pizlonated-coreutils
-filc/projeny package projects/mg.projeny projects/mg/pizlonated-mg.tar.gz
 

@@ -4,6 +4,7 @@
 #include <bits/floatn.h>
 #include <fenv.h>
 #include <fpu_control.h>
+#include <filc-x87-env.h>
 
 /* This file is used by both the 32- and 64-bit ports.  The 64-bit port
    has a field in the fenv_t for the mxcsr; the 32-bit port does not.
@@ -34,12 +35,9 @@ libc_feholdexcept_sse (fenv_t *e)
 static __always_inline void
 libc_feholdexcept_387 (fenv_t *e)
 {
-  /* Recall that fnstenv has a side-effect of masking exceptions.
-     Clobber all of the fp registers so that the TOS field is 0.  */
-  asm volatile ("fnstenv %0; fnclex"
-		: "=m"(*e)
-		: : "st", "st(1)", "st(2)", "st(3)",
-		    "st(4)", "st(5)", "st(6)", "st(7)");
+  /* Recall that fnstenv has a side-effect of masking exceptions.  */
+  filc_fnstenv (e);
+  asm volatile ("fnclex");
 }
 
 static __always_inline void
@@ -117,12 +115,7 @@ libc_fesetenv_sse (fenv_t *e)
 static __always_inline void
 libc_fesetenv_387 (fenv_t *e)
 {
-  /* Clobber all fp registers so that the TOS value we saved earlier is
-     compatible with the current state of the compiler.  */
-  asm volatile ("fldenv %0"
-		: : "m" (*e)
-		: "st", "st(1)", "st(2)", "st(3)",
-		  "st(4)", "st(5)", "st(6)", "st(7)");
+  filc_fldenv (e);
 }
 
 static __always_inline int

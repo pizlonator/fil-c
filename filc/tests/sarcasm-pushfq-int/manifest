@@ -1,0 +1,10 @@
+return:
+  success
+only-on-platform:
+  x86_64
+output-includes:
+  - "pushfd intel restore eq ok"
+  - "pushfd intel restore ne ok"
+  - "popfd intel from register ok"
+  - "pushf intel bare spellings ok"
+  - "pushfq intel all ok"

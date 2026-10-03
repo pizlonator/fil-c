@@ -1,0 +1,10 @@
+return:
+  success
+only-on-platform:
+  x86_64
+output-includes:
+  - "cmll pushfq enc df0 ok"
+  - "cmll pushfq dec df0 ok"
+  - "cmll pushfq enc df1 ok"
+  - "cmll pushfq dec df1 ok"
+  - "cmll pushfq rep all ok"

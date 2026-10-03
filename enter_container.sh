@@ -298,16 +298,33 @@ RUN apt-get install -y \
     clang lld cmake ninja-build ruby \
     patchelf bison flex texinfo gettext autopoint
 
+# Dependencies for the cosmo (APE) flavor of Fil-C: build_yolocosmo.sh
+# cross-compiles compiler-rt and libpas for aarch64 using the host clang plus
+# the aarch64 cross binutils and headers, aarch64 binaries are run under
+# qemu-aarch64, and cosmo's build needs unzip to unpack its toolchain on
+# first use.  The libstdc++ cross headers package is named after the cross
+# GCC version, which differs between Ubuntu releases, so try 13 first and
+# fall back to 12.
+RUN apt-get install -y \
+    unzip \
+    qemu-user \
+    gcc-aarch64-linux-gnu \
+    libc6-dev-arm64-cross \
+    linux-libc-dev-arm64-cross && \
+    (apt-get install -y libstdc++-13-dev-arm64-cross || \
+     apt-get install -y libstdc++-12-dev-arm64-cross)
+
 # Install basic utilities for development and version control
 RUN apt-get install -y curl vim git
 
 # Additional build dependencies for complete Fil-C development
+# (libcurl4-openssl-dev is needed because projeny links libcurl directly)
 RUN apt-get install -y \
     gcc g++ make gawk \
     python3 python3-pip python3-setuptools \
     wget rsync file less sudo \
-    libncurses-dev libssl-dev zlib1g-dev \
-    xz-utils bzip2 gzip gdb lldb mg screen tmux
+    libcurl4-openssl-dev libncurses-dev libssl-dev zlib1g-dev \
+    xz-utils bzip2 gzip gdb lldb mg screen tmux libzydis-dev libzycore-dev
 
 RUN pip install meson
 

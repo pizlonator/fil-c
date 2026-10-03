@@ -1,0 +1,45 @@
+URL: https://github.com/Cyan4973/xxHash/archive/refs/tags/v0.8.4.tar.gz 0d1be0dc10898ebc6aa1840a81e3ab72e261ccdd03b4b44f5a74c270bae077a0
+Origname: xxHash-0.8.4
+Name: xxHash
+
+    xxHash 0.8.4 with the Fil-C port: XXH_xgetbv() returns zxgetbv() and
+    XXH_cpuid() zeroes its outputs and uses __get_cpuid_count() instead
+    of inline assembly.
+diff --git a/xxHash/xxh_x86dispatch.c b/xxHash/xxh_x86dispatch.c
+--- a/xxHash/xxh_x86dispatch.c
++++ b/xxHash/xxh_x86dispatch.c
+@@ -32,6 +32,8 @@
+  *   - xxHash source repository: https://github.com/Cyan4973/xxHash
+  */
+
++#include <stdfil.h>
++#include <cpuid.h>
+
+ /*!
+  * @file xxh_x86dispatch.c
+@@ -253,7 +255,13 @@
+  */
+ static void XXH_cpuid(xxh_u32 eax, xxh_u32 ecx, xxh_u32* abcd)
+ {
+-#if defined(_MSC_VER)
++#if defined(__FILC__)
++    abcd[0] = 0;
++    abcd[1] = 0;
++    abcd[2] = 0;
++    abcd[3] = 0;
++    __get_cpuid_count(eax, ecx, abcd + 0, abcd + 1, abcd + 2, abcd + 3);
++#elif defined(_MSC_VER)
+     __cpuidex((int*)abcd, eax, ecx);
+ #else
+     xxh_u32 ebx, edx;
+@@ -305,7 +313,9 @@
+  */
+ static xxh_u64 XXH_xgetbv(void)
+ {
+-#if defined(_MSC_VER)
++#if defined(__FILC__)
++    return zxgetbv();
++#elif defined(_MSC_VER)
+     return _xgetbv(0);  /* min VS2010 SP1 compiler is required */
+ #else
+     xxh_u32 xcr0_lo, xcr0_hi;

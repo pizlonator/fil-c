@@ -54,24 +54,6 @@ struct FileDiff {
 // never silently merge two files' hunks.
 std::vector<FileDiff> split_file_diffs(const std::string& patch);
 
-// Rewrite a WID-label diff (labels "a/<wid>/..." / "b/<wid>/...") into
-// plain a//b/ label form relative to the workdir root, for internal -p1
-// application with cwd=workdir (strip "a"/"b" and <wid>; tolerate an absent
-// wid). keep_wid=true keeps the wid component. Returns the rewritten patch.
-std::string relabel_wid_patch(const std::string& patch, const std::string& wid,
-                              bool keep_wid);
-
-// Labels in freshly generated patches are canonical: "a/<wid>/..." /
-// "b/<wid>/..." where wid is the workdir basename, rename lines are bare
-// workdir-relative paths, and no absolute paths appear anywhere.
-std::string canonicalize_git_diff(const std::string& patch, const std::string& wid,
-                                  const std::string& base_abs,
-                                  const std::string& work_abs);
-
-// Unified-diff hunk headers carry stale line counts after we split/rewrite
-// patches; recount them so application never trips on count mismatches.
-std::string recount_patch(const std::string& patch);
-
 // Wrap binary-safe invariant: these helpers operate on text patches. A patch
 // containing NUL bytes is a hard error (it came from a text file anyway).
 void require_text_patch(const std::string& patch, const std::string& what);
@@ -80,20 +62,20 @@ void require_text_patch(const std::string& patch, const std::string& what);
 // context line as "" (empty) while some producers write it as " " (one
 // space); map the latter to the former. All other lines (including context/added lines with
 // significant trailing spaces or tabs) are preserved EXACTLY. Only the final
-// line terminator is normalized: the result ends with exactly one '\n' when
-// non-empty ("" stays ""). In particular, NO blanket right-trimming is done.
+// line terminator is normalized: a non-empty result always ends with '\n',
+// and a patch whose content ends with a blank line ends with '\n\n' (that
+// blank line is part of the patch, e.g. the line after a binary block); ""
+// stays "". In particular, NO blanket right-trimming is done. All rebuild()
+// callers pass normalize_patch_text output, so stored patches observe this.
 std::string normalize_patch_text(const std::string& patch);
 
-// Compute the user diff: unpack `archive` (expecting top dir `origname`) to a
-// temp dir and diff base-tree vs `workdir` internally. Labels are
-// a/<wid>/... and b/<wid>/... where wid is the workdir basename.
-std::string diff_workdir_vs_base(const std::string& archive,
-                                 const std::string& origname,
-                                 const std::string& workdir,
-                                 const std::string& scratch_parent);
-
-// Same but between two on-disk trees (used at commit). Includes rename
-// detection so pending Renamed ops render as rename diffs.
+// Diff two on-disk trees (a plain vcs_diff_trees wrapper: no pending-op or
+// frozen-mtime options — commit and rebase regenerate patches through
+// vcs_diff_trees_ex instead). Used by setup's re-merge paths (the user diff
+// against the recorded base, both the normal merge and the journal-recovery
+// variant), rebase's clean-workdir check, and the dir-vs-dir `projeny diff
+// A B` form. Includes rename detection so moved files render as rename
+// diffs.
 std::string diff_trees(const std::string& base_tree, const std::string& workdir,
                        const std::string& wid);
 

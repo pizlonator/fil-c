@@ -19,6 +19,7 @@
 #include <fenv.h>
 #include <math-inline-asm.h>
 #include <math.h>
+#include <filc-x87-env.h>
 
 int
 __feraiseexcept (int excepts)
@@ -39,69 +40,15 @@ __feraiseexcept (int excepts)
 
   /* Next: overflow.  */
   if ((FE_OVERFLOW & excepts) != 0)
-    {
-      /* XXX: Is it ok to only set the x87 FPU?  */
-      /* There is no way to raise only the overflow flag.  Do it the
-	 hard way.  */
-      fenv_t temp;
-
-      /* Bah, we have to clear selected exceptions.  Since there is no
-	 `fldsw' instruction we have to do it the hard way.  */
-      __asm__ __volatile__ ("fnstenv %0" : "=m" (temp));
-
-      /* Set the relevant bits.  */
-      temp.__status_word |= FE_OVERFLOW;
-
-      /* Put the new data in effect.  */
-      __asm__ __volatile__ ("fldenv %0" : : "m" (temp));
-
-      /* And raise the exception.  */
-      __asm__ __volatile__ ("fwait");
-    }
+    filc_raise_flag (FE_OVERFLOW);
 
   /* Next: underflow.  */
   if ((FE_UNDERFLOW & excepts) != 0)
-    {
-      /* XXX: Is it ok to only set the x87 FPU?  */
-      /* There is no way to raise only the underflow flag.  Do it the
-	 hard way.  */
-      fenv_t temp;
-
-      /* Bah, we have to clear selected exceptions.  Since there is no
-	 `fldsw' instruction we have to do it the hard way.  */
-      __asm__ __volatile__ ("fnstenv %0" : "=m" (temp));
-
-      /* Set the relevant bits.  */
-      temp.__status_word |= FE_UNDERFLOW;
-
-      /* Put the new data in effect.  */
-      __asm__ __volatile__ ("fldenv %0" : : "m" (temp));
-
-      /* And raise the exception.  */
-      __asm__ __volatile__ ("fwait");
-    }
+    filc_raise_flag (FE_UNDERFLOW);
 
   /* Last: inexact.  */
   if ((FE_INEXACT & excepts) != 0)
-    {
-      /* XXX: Is it ok to only set the x87 FPU?  */
-      /* There is no way to raise only the inexact flag.  Do it the
-	 hard way.  */
-      fenv_t temp;
-
-      /* Bah, we have to clear selected exceptions.  Since there is no
-	 `fldsw' instruction we have to do it the hard way.  */
-      __asm__ __volatile__ ("fnstenv %0" : "=m" (temp));
-
-      /* Set the relevant bits.  */
-      temp.__status_word |= FE_INEXACT;
-
-      /* Put the new data in effect.  */
-      __asm__ __volatile__ ("fldenv %0" : : "m" (temp));
-
-      /* And raise the exception.  */
-      __asm__ __volatile__ ("fwait");
-    }
+    filc_raise_flag (FE_INEXACT);
 
   /* Success.  */
   return 0;

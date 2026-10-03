@@ -77,8 +77,23 @@ uint64_t pas_get_current_monotonic_time_nanoseconds(void)
 uint64_t pas_get_current_monotonic_time_nanoseconds(void)
 {
     struct timespec ts;
+    pas_saved_float_environment saved_float_environment;
+    uint64_t result;
+
     clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
-    return ts.tv_sec * 1.0e9 + ts.tv_nsec;
+
+    /* The time computation uses floating-point arithmetic, which can raise FE_INEXACT, and
+       which would trap if the program unmasked floating-point exceptions.  Our timekeeping
+       must be invisible to the program, so canonicalize the floating-point environment for
+       its sake and restore the program's environment afterwards. */
+    pas_save_float_environment(&saved_float_environment);
+    pas_set_float_environment_to_libpas_default();
+
+    result = (uint64_t)(ts.tv_sec * 1.0e9 + ts.tv_nsec);
+
+    pas_restore_float_environment(&saved_float_environment);
+
+    return result;
 }
 
 #elif PAS_OS(OPENBSD)
@@ -86,8 +101,23 @@ uint64_t pas_get_current_monotonic_time_nanoseconds(void)
 uint64_t pas_get_current_monotonic_time_nanoseconds(void)
 {
     struct timespec ts;
+    pas_saved_float_environment saved_float_environment;
+    uint64_t result;
+
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ts.tv_sec * 1.0e9 + ts.tv_nsec;
+
+    /* The time computation uses floating-point arithmetic, which can raise FE_INEXACT, and
+       which would trap if the program unmasked floating-point exceptions.  Our timekeeping
+       must be invisible to the program, so canonicalize the floating-point environment for
+       its sake and restore the program's environment afterwards. */
+    pas_save_float_environment(&saved_float_environment);
+    pas_set_float_environment_to_libpas_default();
+
+    result = (uint64_t)(ts.tv_sec * 1.0e9 + ts.tv_nsec);
+
+    pas_restore_float_environment(&saved_float_environment);
+
+    return result;
 }
 
 #elif PAS_PLATFORM(PLAYSTATION)

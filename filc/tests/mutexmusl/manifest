@@ -2,3 +2,6 @@ return:
   success
 output-includes:
   Bardzo dobrze
+
+# COSMO: cosmo's recursive mutexes go through nsync, which does not hold up under the filc runtime here; the musl flavor's pthread_mutex implementation is used instead and works.
+unsupportedOnCOSMO: true

@@ -1,0 +1,8 @@
+#ifndef COSMOPOLITAN_LIBC_NT_ENUM_FILEMOVEMETHOD_H_
+#define COSMOPOLITAN_LIBC_NT_ENUM_FILEMOVEMETHOD_H_
+
+#define kNtFileBegin   0
+#define kNtFileCurrent 1
+#define kNtFileEnd     2
+
+#endif /* COSMOPOLITAN_LIBC_NT_ENUM_FILEMOVEMETHOD_H_ */

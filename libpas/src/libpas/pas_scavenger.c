@@ -392,9 +392,24 @@ static pas_thread_return_type scavenger_thread_main(void* arg)
             shut_down_callback = pas_scavenger_will_shut_down_callback;
             if (shut_down_callback)
                 shut_down_callback();
-            
+
             if (verbose)
                 pas_log("Killing the scavenger.\n");
+
+            /* The scavenger must not have a TLC at this point. If it somehow did, then its
+               pthread-exit teardown would run __pthread_tsd_run_dtors() ->
+               pas_fast_tls_destructor() -> destroy(), which acquires pas_heap_lock - and that
+               would happen *after* we set pas_scavenger_current_state to
+               pas_scavenger_state_no_thread above. Anyone who observed no_thread - most
+               importantly pas_scavenger_suspend(), which fork() calls before cloning - has
+               already concluded that there is no scavenger thread left to synchronize with, so
+               that TLC teardown would acquire pas locks while no fork can know to wait for it.
+               A clone() landing in that window would then leave the CoW child holding the
+               pas_heap_lock word (or a scavenger_lock) with no owner that will ever release it.
+               The scavenger doesn't allocate anything for itself, so it should never get a TLC
+               in the first place; this assert verifies that. */
+            PAS_ASSERT(!pas_thread_local_cache_try_get());
+
             return PAS_THREAD_RETURN_VALUE;
         }
     }

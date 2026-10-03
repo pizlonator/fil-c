@@ -1,0 +1,10 @@
+#!/bin/sh
+exec grep                       \
+     --exclude=TAGS             \
+     --exclude=HTAGS            \
+     --exclude=*.dbg            \
+     --exclude-dir=o            \
+     --exclude-dir=gcc          \
+     --exclude-dir=.git         \
+     --exclude=archive-contents \
+     "$@"

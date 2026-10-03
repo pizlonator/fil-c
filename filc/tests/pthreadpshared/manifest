@@ -2,3 +2,6 @@ return:
   success
 output-includes:
   - "hello, world!"
+
+# COSMO: cosmo's PTHREAD_PROCESS_SHARED is 4 (not POSIX's 1) and process-shared futexes across the filc runtime's fork are not supported yet; these tests exercise exactly that gap.
+unsupportedOnCOSMO: true

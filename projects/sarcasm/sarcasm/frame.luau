@@ -18,6 +18,8 @@
 -- provides the slot constructor, region lookup, bounds check, escape rejection, and the
 -- output sink.
 
+local err = require("./err")
+
 local frame = {}
 
 -- Slot pseudo-registers get reg numbers in a high range so they never collide with real
@@ -78,24 +80,29 @@ function frame.preprocess(body, regions, policy, sigDesc)
 
 	-- `lowBound` overrides the lowest legal offset (default 0); x86_64 passes -128 for
 	-- both rsp-relative and (normalized) rbp-relative accesses to permit the SysV red
-	-- zone below the stack pointer.
-	local function checkBounds(off, width, isWrite, raw, lowBound)
+	-- zone below the stack pointer. `st` (optional) is the statement performing the
+	-- access; when given, rejections are located at it (else they are unlocated).
+	local function checkBounds(off, width, isWrite, raw, lowBound, st)
 		if off < (lowBound or 0) then
-			error("sarcasm: stack access below frame (sp offset " .. off .. "): " .. (raw or "?"))
+			local msg = "stack access below frame (sp offset " .. off .. "): " .. (raw or "?")
+			if st then err.at(st, msg) else err.plain(msg) end
 		end
 		if off + width > frameSize then
 			if isWrite then
-				error("sarcasm: store into the caller's argument area / outside the frame "
-					.. "(sp offset " .. off .. ", frame size " .. frameSize .. "): " .. (raw or "?"))
+				local msg = "store into the caller's argument area / outside the frame "
+					.. "(sp offset " .. off .. ", frame size " .. frameSize .. "): " .. (raw or "?")
+				if st then err.at(st, msg) else err.plain(msg) end
 			end
-			error("sarcasm: stack access outside the frame (sp offset " .. off
-				.. ", frame size " .. frameSize .. "): " .. (raw or "?"))
+			local msg = "stack access outside the frame (sp offset " .. off
+				.. ", frame size " .. frameSize .. "): " .. (raw or "?")
+			if st then err.at(st, msg) else err.plain(msg) end
 		end
 	end
 
-	local function rejectEscape(raw)
-		error("sarcasm: taking address of stack frame is not supported (cannot prove safety): "
-			.. (raw or "?"))
+	local function rejectEscape(raw, st)
+		local msg = "taking address of stack frame is not supported (cannot prove safety): "
+			.. (raw or "?")
+		if st then err.at(st, msg) else err.plain(msg) end
 	end
 
 	local ctx = {

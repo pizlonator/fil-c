@@ -25,6 +25,7 @@
 -- A shift is { op = "lsl"|"lsr"|"asr"|"ror"|"uxtb"|... , amount = <number?>, amountText = <string?> }
 
 local numlabel = require("./numlabel")
+local err = require("./err")
 
 local parse = {}
 
@@ -72,7 +73,7 @@ local function classifyReg(tok: string)
 		return { kind = "reg", name = canon, rc = "gpr", width = 64, num = n, pseudo = ident }
 	end
 	if string.match(low, "^fil_") or low == "fil" then
-		error("sarcasm: bad pseudoregister name `" .. tok .. "` (expected `fil_<ident>` with <ident> matching [0-9a-zA-Z_]+)")
+		err.here("bad pseudoregister name `" .. tok .. "` (expected `fil_<ident>` with <ident> matching [0-9a-zA-Z_]+)")
 	end
 	if low == "sp" then
 		return { kind = "reg", name = "sp", rc = "sp", width = 64 }
@@ -226,7 +227,7 @@ local function parseSimple(field: string)
 	if string.sub(field, 1, 1) == "{" then
 		local rl = parseRegList(field)
 		if not rl then
-			error("sarcasm: malformed register list operand '" .. field .. "'")
+			err.here("malformed register list operand '" .. field .. "'")
 		end
 		return rl
 	end
@@ -527,7 +528,7 @@ local function cutCodeHash(s: string): string
 				return s
 			end
 			if string.sub(s, i + 1, i + 1) == "!" then
-				error("sarcasm: '#!' is not an annotation marker on arm64 (use '//!' or ';!'): " .. s)
+				err.here("'#!' is not an annotation marker on arm64 (use '//!' or ';!'): " .. s)
 			end
 			-- comment: keep only the labels before it
 			return prefix
@@ -562,19 +563,19 @@ local function parseDotAlloca(rest, raw)
 		table.insert(fields, (string.gsub(table.concat(cur), "^%s*(.-)%s*$", "%1")))
 	end
 	if #fields ~= 3 or fields[1] == "" or fields[2] == "" or fields[3] == "" then
-		error("sarcasm: `.alloca` takes exactly 3 operands (size, alignment, result): " .. raw)
+		err.here("`.alloca` takes exactly 3 operands (size, alignment, result): " .. raw)
 	end
 	local operands = {}
 	for k, f in fields do
 		local ops = parseOperands(f)
 		if #ops ~= 1 then
-			error("sarcasm: `.alloca` operand did not parse as one operand: `" .. f .. "` (" .. raw .. ")")
+			err.here("`.alloca` operand did not parse as one operand: `" .. f .. "` (" .. raw .. ")")
 		end
 		operands[k] = ops[1]
 	end
 	for _, op in operands do
 		if op.kind == "sym" then
-			error("sarcasm: `.alloca` operand is a symbol, but size/alignment must be a register, spill slot, or immediate"
+			err.here("`.alloca` operand is a symbol, but size/alignment must be a register, spill slot, or immediate"
 				.. " and result a register, pseudo-register, or spill slot: " .. raw)
 		end
 	end
@@ -638,7 +639,7 @@ local function parseLine(rawLine: string, out)
 		-- directive (`#`-initial comments are cut by cutCodeHash above, so this is
 		-- junk like a stray `"` or `@`). Fabricating a statement for it would
 		-- silently drop the line downstream; raise a normal parse error instead.
-		error("sarcasm: cannot parse line: " .. trimmed)
+		err.here("cannot parse line: " .. trimmed)
 	end
 	rest = trim(rest)
 
@@ -668,7 +669,7 @@ local function parseLine(rawLine: string, out)
 	-- unbalanced quote would swallow the rest of the file in the final GNU-as
 	-- pass.
 	if string.find(rest, '"', 1, true) then
-		error("sarcasm: cannot parse line: " .. trimmed)
+		err.here("cannot parse line: " .. trimmed)
 	end
 	local operands = parseOperands(rest)
 	table.insert(out, {
@@ -680,7 +681,7 @@ local function parseLine(rawLine: string, out)
 	})
 end
 
-function parse.parseString(text: string)
+function parse.parseString(text: string, fileName: string?)
 	-- Per-file pseudo-registry reset. pseudoNums/numPseudos live at module scope
 	-- (the require cache persists them across files in one process), so
 	-- reinitialize them here for deterministic per-file numbering from
@@ -695,15 +696,24 @@ function parse.parseString(text: string)
 	-- strip C/C++ comments (string-literal aware) before line splitting; the `//!`
 	-- annotation marker survives this pass so splitAnnotation can find it
 	text = stripComments(text)
+	-- publish the input file and current line so err.here (used by the deep
+	-- parse helpers, which only receive strings) can locate rejections
+	err.beginParse(fileName)
 	local lineNo = 0
 	for line in (text .. "\n"):gmatch("(.-)\n") do
 		lineNo += 1
+		err.atParseLine(lineNo)
 		local before = #out
 		parseLine(line, out)
-		-- stamp every statement produced from this source line with its line number
-		for k = before + 1, #out do out[k].line = lineNo end
+		-- stamp every statement produced from this source line with its line
+		-- number and the input file
+		for k = before + 1, #out do
+			out[k].line = lineNo
+			out[k].file = fileName
+		end
 	end
 	numlabel.resolve(out)
+	err.endParse()
 	return out
 end
 

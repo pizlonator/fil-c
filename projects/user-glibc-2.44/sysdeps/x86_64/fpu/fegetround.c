@@ -17,15 +17,16 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fpu_control.h>
 
 int
 __fegetround (void)
 {
-  int cw;
+  fpu_control_t cw;
   /* We only check the x87 FPU unit.  The SSE unit should be the same
      - and if it's not the same there's no way to signal it.  */
 
-  __asm__ ("fnstcw %0" : "=m" (cw));
+  _FPU_GETCW (cw);
 
   return cw & 0xc00;
 }

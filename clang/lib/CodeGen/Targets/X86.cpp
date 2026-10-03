@@ -2569,9 +2569,6 @@ GetX86_64ByValArgumentPair(llvm::Type *Lo, llvm::Type *Hi,
 
 ABIArgInfo X86_64ABIInfo::
 classifyReturnType(QualType RetTy) const {
-  if (RetTy->isUnionType())
-    return getIndirectReturnResult(RetTy);
-  
   // AMD64-ABI 3.2.3p4: Rule 1. Classify the return type with the
   // classification algorithm.
   X86_64ABIInfo::Class Lo, Hi;
@@ -2705,11 +2702,7 @@ X86_64ABIInfo::classifyArgumentType(QualType Ty, unsigned freeIntRegs,
   Ty = useFirstFieldIfTransparentUnion(Ty);
 
   X86_64ABIInfo::Class Lo, Hi;
-  if (Ty->isUnionType()) {
-    Lo = Memory;
-    Hi = NoClass;
-  } else
-    classify(Ty, 0, Lo, Hi, isNamedArg, IsRegCall);
+  classify(Ty, 0, Lo, Hi, isNamedArg, IsRegCall);
 
   // Check some invariants.
   // FIXME: Enforce these by construction.

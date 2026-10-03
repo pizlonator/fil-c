@@ -1,0 +1,11 @@
+return:
+  compileFailure
+only-on-platform:
+  x86_64
+# Regression test for the keyed-aware alignment gate: -16(%rbp) is out of phase
+# by 16 bytes in the SysV coordinates the rbp-relative cluster is placed in
+# (rbp holds the pre-and rsp). The old code checked the and-base identity
+# instead and silently emitted a misaligned vmovdqa for this shape.
+# Rejects with: "instruction requires 32 byte alignment, but offset is out of
+# phase by 16 bytes (use an aligned offset, or use the unaligned form (e.g.
+# vmovdqu/vmovups))".

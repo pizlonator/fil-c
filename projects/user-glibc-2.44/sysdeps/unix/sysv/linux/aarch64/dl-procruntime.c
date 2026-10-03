@@ -21,17 +21,13 @@
 #endif
 
 #if !IS_IN (ldconfig)
-# if !defined PROCINFO_DECL && defined SHARED
-  ._dl_aarch64_gcs
-# else
+/* Fil-C: dl-support.c (which includes this file) is built into libc.so as
+   well as libc.a in the pizlonated build, so the !PROCINFO_DECL + SHARED
+   "array element" form cannot be used.  Use plain declarations, matching
+   sysdeps/x86_64/dl-procruntime.c.  */
 PROCINFO_CLASS unsigned long _dl_aarch64_gcs
-# endif
 # ifndef PROCINFO_DECL
 = 0
 # endif
-# if !defined SHARED || defined PROCINFO_DECL
 ;
-# else
-,
-# endif
 #endif

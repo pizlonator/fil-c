@@ -7,6 +7,7 @@
 local glue_x86 = {}
 
 local sig = require("./sig")
+local err = require("./err")
 
 local FUNCTION_UPPER_FLAGS = "36873221949095936" -- 0x83 << 48
 
@@ -69,7 +70,7 @@ end
 -- xmm0).
 local function fpArgForm(argTypes, k)
 	local w = sig.fpWidthBytes(argTypes[k])
-		or error("sarcasm: internal error: FP register name for a non-FP argument " .. tostring(k))
+		or err.plain("internal error: FP register name for a non-FP argument " .. tostring(k))
 	local m = 0
 	for i = 1, k - 1 do
 		if sig.isFpClass(argTypes[i]) then m += 1 end

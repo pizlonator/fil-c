@@ -39,7 +39,6 @@ cp -v libunistring-1.4.2.tar.xz $LFS/sources
 cp -v libpsl-0.23.3.tar.gz $LFS/sources
 cp -v make-ca-1.16.1.tar.gz $LFS/sources
 cp -v nghttp2-1.70.0.tar.xz $LFS/sources
-cp -v pcre2-10.48.tar.bz2 $LFS/sources
 cp -v wget-1.25.0.tar.gz $LFS/sources
 cp -v blfs-bootscripts-20240416.tar.xz $LFS/sources
 cp -v build_postlc2_sub2_chroot.sh $LFS/sources

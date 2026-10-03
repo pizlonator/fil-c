@@ -17,14 +17,15 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fpu_control.h>
 
 int
 fegetexcept (void)
 {
-  unsigned short int exc;
+  fpu_control_t exc;
 
   /* Get the current control word.  */
-  __asm__ ("fstcw %0" : "=m" (exc));
+  _FPU_GETCW (exc);
 
   return (~exc) & FE_ALL_EXCEPT;
 }

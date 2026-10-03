@@ -65,7 +65,6 @@ mv $LFS/usr $LFS/yolo-glibc-prefix
 ./build_lc_make_usr.sh
 
 ARCH=`uname -m`
-OLDLDNAME=ld-linux-${ARCH//_/-}.so.2
 OLDLIBCIMPLNAME=libc.so.6
 OLDLIBCNONSHAREDNAME=libc_nonshared.a
 OLDLIBMIMPLNAME=libm.so.6
@@ -77,22 +76,18 @@ LIBCIMPLNAME=${LIBCNAMEBASE}impl.so
 LIBCNONSHAREDNAME=${LIBCNAMEBASE}_nonshared.a
 LIBMIMPLNAME=${LIBNAMEBASE}mimpl.so
 LIBMNAME=${LIBNAMEBASE}m.so
-cp -v $LFS/yolo-glibc-prefix/lib/$OLDLDNAME $LFS/usr/lib/$LDNAME
+cp -v $LFS/yolo-glibc-prefix/lib/$LDNAME $LFS/usr/lib/$LDNAME
 cp -v $LFS/yolo-glibc-prefix/lib/$OLDLIBCIMPLNAME $LFS/usr/lib/$LIBCIMPLNAME
 cp -v $LFS/yolo-glibc-prefix/lib/$OLDLIBCNONSHAREDNAME $LFS/usr/lib/$LIBCNONSHAREDNAME
 cp -v $LFS/yolo-glibc-prefix/lib/$OLDLIBMIMPLNAME $LFS/usr/lib/$LIBMIMPLNAME
 cp -v $LFS/yolo-glibc-prefix/lib/*.o $LFS/usr/lib/
-patchelf --replace-needed $OLDLDNAME $LDNAME $LFS/usr/lib/$LIBCIMPLNAME
 patchelf --set-soname $LIBCIMPLNAME $LFS/usr/lib/$LIBCIMPLNAME
-patchelf --set-soname $LDNAME $LFS/usr/lib/$LDNAME
-patchelf --replace-needed $OLDLDNAME $LDNAME $LFS/usr/lib/$LIBMIMPLNAME
 patchelf --replace-needed $OLDLIBCIMPLNAME $LIBCIMPLNAME $LFS/usr/lib/$LIBMIMPLNAME
 patchelf --set-soname $LIBMIMPLNAME $LFS/usr/lib/$LIBMIMPLNAME
 echo "OUTPUT_FORMAT(elf64-x86-64)" > $LFS/usr/lib/$LIBCNAME
 echo "GROUP ( /usr/lib/$LIBCIMPLNAME /usr/lib/$LIBCNONSHAREDNAME  AS_NEEDED ( /usr/lib/$LDNAME ) )" >> $LFS/usr/lib/$LIBCNAME
 echo "OUTPUT_FORMAT(elf64-x86-64)" > $LFS/usr/lib/$LIBMNAME
 echo "GROUP ( /usr/lib/$LIBMIMPLNAME )" >> $LFS/usr/lib/$LIBMNAME
-unset OLDLDNAME
 unset OLDLIBCIMPLNAME
 unset OLDLIBCNONSHAREDNAME
 unset OLDLIBMIMPLNAME

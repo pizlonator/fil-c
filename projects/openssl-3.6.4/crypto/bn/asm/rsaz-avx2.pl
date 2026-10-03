@@ -178,8 +178,8 @@ $code.=<<___;
 ___
 if ($ENV{SARCASM}) {
   # Merged allocation (used bytes + alignment slack): the conditional
-  # n-copy sub/and dance below is a page-crossing performance workaround
-  # that cannot be proven safe, so it is dropped and the frame is sized
+  # n-copy sub/and dance in the gas branch is a page-crossing performance
+  # workaround that cannot be proven safe, so the sarcasm frame is sized
   # to cover both the slots and the alignment in one allocation. (The
   # fixed frame promotes to a GC region, so stack+offset carriers cannot
   # observe it; see the epilogue below.)
@@ -236,11 +236,7 @@ ___
 }
 $code.=<<___;
 .Lsqr_1024_no_n_copy:
-___
-$code.=<<___;
 	and		\$-1024, %rsp
-___
-$code.=<<___;
 
 	vmovdqu		32*1-128($ap), $ACC1
 	vmovdqu		32*2-128($ap), $ACC2
@@ -1051,11 +1047,7 @@ ___
 }
 $code.=<<___;
 .Lmul_1024_no_n_copy:
-___
-$code.=<<___;
 	and	\$-64,%rsp
-___
-$code.=<<___;
 
 	mov	($bp), %rbx
 	vpbroadcastq ($bp), $Bi
@@ -1663,11 +1655,6 @@ $code.=<<___;
 ___
 }
 {
-# The gather spill slots ride the u-op-density region base -128(%rsp) in %rax
-# (sarcasm models stack+offset alias registers and the and $-32 alignment).
-sub gslot { my $k = shift; return "32*$k+128(%rax)"; }
-sub gstore { return "vmovdqa"; }
-
 my ($out,$inp,$power) = $win64 ? ("%rcx","%rdx","%r8d") : ("%rdi","%rsi","%edx");
 
 $code.=<<___;
@@ -1724,18 +1711,10 @@ $code.=<<___ if ($win64);
 	.byte	0xc5,0x78,0x29,0x78,0x70	# vmovaps %xmm15,0x70(%rax)
 ___
 $code.=<<___;
-___
-$code.=<<___;
 	lea	-0x100(%rsp),%rsp
 	and	\$-32, %rsp
-___
-$code.=<<___;
 	lea	.Linc(%rip), %r10
-___
-$code.=<<___;
 	lea	-128(%rsp),%rax			# control u-op density
-___
-$code.=<<___;
 
 	vmovd		$power, %xmm4
 	vmovdqa		(%r10),%ymm0
@@ -1747,28 +1726,28 @@ $code.=<<___;
 	vpcmpeqd	%ymm4, %ymm0, %ymm0
 	vpaddd		%ymm5, %ymm1, %ymm3
 	vpcmpeqd	%ymm4, %ymm1, %ymm1
-	@{[gstore]}		%ymm0, @{[gslot(0)]}
+	vmovdqa		%ymm0, 32*0+128(%rax)
 	vpaddd		%ymm5, %ymm2, %ymm0
 	vpcmpeqd	%ymm4, %ymm2, %ymm2
-	@{[gstore]}		%ymm1, @{[gslot(1)]}
+	vmovdqa		%ymm1, 32*1+128(%rax)
 	vpaddd		%ymm5, %ymm3, %ymm1
 	vpcmpeqd	%ymm4, %ymm3, %ymm3
-	@{[gstore]}		%ymm2, @{[gslot(2)]}
+	vmovdqa		%ymm2, 32*2+128(%rax)
 	vpaddd		%ymm5, %ymm0, %ymm2
 	vpcmpeqd	%ymm4, %ymm0, %ymm0
-	@{[gstore]}		%ymm3, @{[gslot(3)]}
+	vmovdqa		%ymm3, 32*3+128(%rax)
 	vpaddd		%ymm5, %ymm1, %ymm3
 	vpcmpeqd	%ymm4, %ymm1, %ymm1
-	@{[gstore]}		%ymm0, @{[gslot(4)]}
+	vmovdqa		%ymm0, 32*4+128(%rax)
 	vpaddd		%ymm5, %ymm2, %ymm8
 	vpcmpeqd	%ymm4, %ymm2, %ymm2
-	@{[gstore]}		%ymm1, @{[gslot(5)]}
+	vmovdqa		%ymm1, 32*5+128(%rax)
 	vpaddd		%ymm5, %ymm3, %ymm9
 	vpcmpeqd	%ymm4, %ymm3, %ymm3
-	@{[gstore]}		%ymm2, @{[gslot(6)]}
+	vmovdqa		%ymm2, 32*6+128(%rax)
 	vpaddd		%ymm5, %ymm8, %ymm10
 	vpcmpeqd	%ymm4, %ymm8, %ymm8
-	@{[gstore]}		%ymm3, @{[gslot(7)]}
+	vmovdqa		%ymm3, 32*7+128(%rax)
 	vpaddd		%ymm5, %ymm9, %ymm11
 	vpcmpeqd	%ymm4, %ymm9, %ymm9
 	vpaddd		%ymm5, %ymm10, %ymm12
@@ -1791,21 +1770,21 @@ $code.=<<___;
 	vmovdqa		32*1-128($inp),	%ymm1
 	vmovdqa		32*2-128($inp),	%ymm2
 	vmovdqa		32*3-128($inp),	%ymm3
-	vpand		@{[gslot(0)]},	%ymm0,	%ymm0
-	vpand		@{[gslot(1)]},	%ymm1,	%ymm1
-	vpand		@{[gslot(2)]},	%ymm2,	%ymm2
+	vpand		32*0+128(%rax),	%ymm0,	%ymm0
+	vpand		32*1+128(%rax),	%ymm1,	%ymm1
+	vpand		32*2+128(%rax),	%ymm2,	%ymm2
 	vpor		%ymm0, %ymm1, %ymm4
-	vpand		@{[gslot(3)]},	%ymm3,	%ymm3
+	vpand		32*3+128(%rax),	%ymm3,	%ymm3
 	vmovdqa		32*4-128($inp),	%ymm0
 	vmovdqa		32*5-128($inp),	%ymm1
 	vpor		%ymm2, %ymm3, %ymm5
 	vmovdqa		32*6-128($inp),	%ymm2
 	vmovdqa		32*7-128($inp),	%ymm3
-	vpand		@{[gslot(4)]},	%ymm0,	%ymm0
-	vpand		@{[gslot(5)]},	%ymm1,	%ymm1
-	vpand		@{[gslot(6)]},	%ymm2,	%ymm2
+	vpand		32*4+128(%rax),	%ymm0,	%ymm0
+	vpand		32*5+128(%rax),	%ymm1,	%ymm1
+	vpand		32*6+128(%rax),	%ymm2,	%ymm2
 	vpor		%ymm0, %ymm4, %ymm4
-	vpand		@{[gslot(7)]},	%ymm3,	%ymm3
+	vpand		32*7+128(%rax),	%ymm3,	%ymm3
 	vpand		32*8-128($inp),	%ymm8,	%ymm0
 	vpor		%ymm1, %ymm5, %ymm5
 	vpand		32*9-128($inp),	%ymm9,	%ymm1
@@ -1868,7 +1847,7 @@ $code.=<<___;
 .type	rsaz_avx2_eligible,\@abi-omnipotent
 .align	32
 rsaz_avx2_eligible: #! int()
-	mov	OPENSSL_ia32cap_P+8(%rip),%eax
+	mov	OPENSSL_ia32cap_P+8(%rip),%eax #! global ptr
 ___
 $code.=<<___	if ($addx);
 	mov	\$`1<<8|1<<19`,%ecx
