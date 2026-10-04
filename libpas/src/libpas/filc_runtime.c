@@ -6211,7 +6211,7 @@ void filc_demote_already_checked_heap_to_stack_without_exiting(
         filc_not_word_aligned, filc_exit_not_allowed, NULL);
 }
 
-static filc_ptr promote_cc_to_heap(filc_thread* my_thread, size_t size, bool do_tracking)
+static filc_ptr promote_cc_to_heap(filc_thread* my_thread, size_t size)
 {
     PAS_ASSERT(size <= filc_thread_cc_total_size(my_thread));
 
@@ -6221,8 +6221,15 @@ static filc_ptr promote_cc_to_heap(filc_thread* my_thread, size_t size, bool do_
     /* The calling convention requires that the CC size is always a multiple of word size. */
     PAS_ASSERT(pas_is_aligned(size, FILC_WORD_SIZE));
 
+    /* The CC buffer is not scanned by the GC, and the compiler can only root the named arguments;
+       the varargs tail is not tracked, since the compiler cannot statically know how many
+       arguments there are. So, this does all of its allocations without exiting: with no exits,
+       there are no pollchecks, so the GC cannot observe the window of time when the pointers in
+       the CC buffer are not tracked. The object that we return is tracked here and is then
+       recorded by the compiler's prologue, at which point its aux makes the copied pointers
+       visible to the GC. */
     filc_object* result_object = allocate_impl(
-        my_thread, size, FILC_OBJECT_FLAG_READONLY, filc_exit_allowed);
+        my_thread, size, FILC_OBJECT_FLAG_READONLY, filc_exit_not_allowed);
     filc_thread_track_object(my_thread, result_object);
 
     size_t offset;
@@ -6231,24 +6238,12 @@ static filc_ptr promote_cc_to_heap(filc_thread* my_thread, size_t size, bool do_
             *(filc_word*)filc_thread_cc_slot_at_offset(my_thread, offset);
     }
 
-    /* Only need to do tracking when converting return values, since arguments are tracked by the
-       caller. */
-    if (do_tracking) {
-        for (offset = 0; offset < size; offset += FILC_WORD_SIZE) {
-            void* lower = filc_lower_or_box_get_lower(
-                filc_lower_or_box_load_unfenced(
-                    filc_thread_cc_aux_slot_at_offset(my_thread, offset)));
-            if (lower)
-                filc_thread_track_object(my_thread, filc_object_for_lower(lower));
-        }
-    }
-
     for (offset = 0; offset < size; offset += FILC_WORD_SIZE) {
         void* lower = filc_lower_or_box_get_lower(
             filc_lower_or_box_load_unfenced(
                 filc_thread_cc_aux_slot_at_offset(my_thread, offset)));
         if (lower) {
-            char* aux_ptr = filc_object_ensure_aux_ptr(my_thread, result_object);
+            char* aux_ptr = filc_object_ensure_aux_ptr_without_exiting(my_thread, result_object);
             filc_store_barrier(my_thread, filc_object_for_lower(lower));
             filc_lower_or_box_store_unfenced_unbarriered(
                 (filc_lower_or_box*)(aux_ptr + offset),
@@ -6259,8 +6254,7 @@ static filc_ptr promote_cc_to_heap(filc_thread* my_thread, size_t size, bool do_
     return filc_ptr_create_with_object_and_manual_tracking(result_object);
 }
 
-static size_t demote_cc_from_heap(filc_thread* my_thread, filc_ptr ptr, const filc_origin* origin,
-                                  bool do_tracking)
+static size_t demote_cc_from_heap(filc_thread* my_thread, filc_ptr ptr, const filc_origin* origin)
 {
     if (!filc_ptr_ptr(ptr))
         return 0;
@@ -6309,8 +6303,6 @@ static size_t demote_cc_from_heap(filc_thread* my_thread, filc_ptr ptr, const fi
             lower = filc_lower_or_box_extract_lower(
                 filc_lower_or_box_load_unfenced((filc_lower_or_box*)(
                                                     aux_ptr + filc_ptr_offset(ptr) + offset)));
-            if (do_tracking)
-                filc_thread_track_object(my_thread, filc_object_for_lower(lower));
         } else
             lower = NULL;
         filc_lower_or_box_store_unfenced_unbarriered(
@@ -6326,8 +6318,7 @@ filc_ptr filc_promote_args_to_heap(filc_thread* my_thread, size_t size)
     filc_native_frame native_frame;
     filc_push_native_frame(my_thread, &native_frame);
 
-    bool do_tracking = false;
-    filc_ptr result = promote_cc_to_heap(my_thread, size, do_tracking);
+    filc_ptr result = promote_cc_to_heap(my_thread, size);
 
     filc_pop_native_frame(my_thread, &native_frame);
 
@@ -6337,16 +6328,14 @@ filc_ptr filc_promote_args_to_heap(filc_thread* my_thread, size_t size)
 size_t filc_prepare_to_return_with_data(filc_thread* my_thread, filc_ptr rets,
                                         const filc_origin* origin)
 {
-    bool do_tracking = false; /* It's not necessary for the function doing the returning to track
-                                 pointers that it returns, unless it exits before returning, since
-                                 it's the caller's responsibility to track those pointers. */
-    return demote_cc_from_heap(my_thread, rets, origin, do_tracking);
+    /* The CC buffer is not scanned by the GC, but we don't have to track the pointers that we put
+       in it: there are no GC safepoints between here and the caller recording the return value. */
+    return demote_cc_from_heap(my_thread, rets, origin);
 }
 
 filc_exception_and_ptr filc_native_zcall(filc_thread* my_thread, filc_ptr callee_ptr, filc_ptr args_ptr)
 {
-    bool do_tracking = true;
-    size_t arg_size = demote_cc_from_heap(my_thread, args_ptr, NULL, do_tracking);
+    size_t arg_size = demote_cc_from_heap(my_thread, args_ptr, NULL);
     
     filc_check_function_call(callee_ptr);
 
@@ -6359,9 +6348,8 @@ filc_exception_and_ptr filc_native_zcall(filc_thread* my_thread, filc_ptr callee
     if (result.has_exception)
         return filc_exception_and_ptr_with_exception();
     
-    do_tracking = true;
     return filc_exception_and_ptr_with_ptr(
-        promote_cc_to_heap(my_thread, result.return_size, do_tracking));
+        promote_cc_to_heap(my_thread, result.return_size));
 }
 
 void filc_native_zmemset(filc_thread* my_thread, filc_ptr dst_ptr, unsigned value, size_t count)

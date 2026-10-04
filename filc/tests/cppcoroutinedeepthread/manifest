@@ -1,24 +1,12 @@
-# FIXME(bug): Thread variant of cppcoroutinedeep: see the FIXME in
-# cppcoroutinedeepthread.cpp and in cppcoroutinedeep. Fil-C demotes the
-# musttail call that LLVM emits for coroutine symmetric transfer, so a chain
-# of symmetric transfers consumes O(depth) C stack. Fil-C pthreads default to
-# an 80 KB stack, so this program overflows at depth 137 (depth 136 passes),
-# where ordinary C++ compilers run at depth 10,000,000 thanks to the
-# musttail. Fil-C catches the overflow itself ("filc safety error: stack
-# overflow.", then the generic "filc panic: thwarted a futile attempt to
-# violate memory safety."), so this is a compatibility limitation, not a
-# memory safety bug. If this is ever fixed, change `return`
-# to success.
+# Thread variant of cppcoroutinedeep: this proves that coroutine symmetric
+# transfer consumes O(1) C stack even on a thread with Fil-C's default 80 KB
+# thread stack.
 
 return:
 
-  failure
+  success
 
 output-includes:
 
-  - "filc safety error: stack overflow."
-
-output-excludes:
-
-  - "deep="
+  - "deep=1000000"
 

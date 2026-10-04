@@ -2874,6 +2874,17 @@ static inline filc_ptr filc_ptr_create_with_lower(filc_thread* my_thread, void* 
     return filc_ptr_create_with_lower_and_manual_tracking(lower);
 }
 
+/* Create a pointer to the (ptr, lower) pair and track the object in the current native frame, so
+   that the GC knows that the pointer is live. This is part of the Fil-C ABI: callees are
+   responsible for rooting the arguments that are passed to them. */
+static inline filc_ptr filc_ptr_create_with_lower_and_ptr(filc_thread* my_thread, void* lower,
+                                                          void* ptr)
+{
+    filc_ptr result = filc_ptr_create_with_lower_and_ptr_and_manual_tracking(lower, ptr);
+    filc_thread_track_object(my_thread, filc_ptr_object(result));
+    return result;
+}
+
 static inline filc_ptr filc_ptr_create_with_object_and_ptr_and_manual_tracking_yolo(
     filc_object* object, void* ptr)
 {
@@ -3468,12 +3479,14 @@ static PAS_ALWAYS_INLINE filc_lower_or_box* filc_thread_cc_aux_slot_at_offset(fi
     return (filc_lower_or_box*)(my_thread->cc_outline_aux_buffer + (offset - FILC_CC_INLINE_SIZE));
 }
 
-/* NOTE: It's entirely the caller's responsibility to track all pointers passed as arguments.
-   Therefore, this is the right function to call for retrieving pointers to arguments. */
+/* NOTE: This tracks the pointer in the current native frame, since callees are responsible for
+   rooting their incoming arguments. Therefore, this is the right function to call for retrieving
+   pointers to arguments. */
 static inline filc_ptr filc_cc_cursor_get_next_ptr(filc_thread* my_thread, filc_cc_cursor* cursor)
 {
     size_t offset = filc_cc_cursor_get_next_arg_offset(cursor, sizeof(void*));
-    return filc_ptr_create_with_lower_and_ptr_and_manual_tracking(
+    return filc_ptr_create_with_lower_and_ptr(
+        my_thread,
         *(void**)filc_thread_cc_aux_slot_at_offset(my_thread, offset),
         *(void**)filc_thread_cc_slot_at_offset(my_thread, offset));
 }
@@ -3489,16 +3502,6 @@ static inline void filc_cc_cursor_set_next_ptr(filc_thread* my_thread, filc_cc_c
 static inline void filc_cc_sizer_add_ptr(filc_cc_sizer* sizer)
 {
     filc_cc_sizer_add_arg(sizer, sizeof(void*));
-}
-
-/* NOTE: It's entirely the caller's responsibility to track all pointers returned. Therefore, this
-   is the right function to call for retrieving pointers to return values. */
-static inline filc_ptr filc_cc_cursor_get_next_ptr_and_track(filc_thread* my_thread,
-                                                             filc_cc_cursor* cursor)
-{
-    filc_ptr result = filc_cc_cursor_get_next_ptr(my_thread, cursor);
-    filc_thread_track_object(my_thread, filc_ptr_object(result));
-    return result;
 }
 
 #define filc_cc_cursor_get_next_int_ptr_impl(thread, cursor, int_type) \

@@ -72,6 +72,6 @@ Task<long> deep(int d) {
 int main(int argc, char **argv) {
   int depth = argc > 1 ? atoi(argv[1]) : 10000;
   printf("%s\n", middle(9).run().c_str());
-  printf("deep=%ld\n", deep(depth).run());  // symmetric transfer uses stack under Fil-C
+  printf("deep=%ld\n", deep(depth).run());  // symmetric transfer is a frame-popping musttail call
   return 0;
 }

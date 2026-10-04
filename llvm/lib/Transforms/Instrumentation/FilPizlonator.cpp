@@ -2742,36 +2742,20 @@ class Pizlonator {
     return flightPtrForObject(allocateObject(Size, Alignment, InsertBefore), InsertBefore);
   }
 
-  // A musttail call pops this function's Fil-C frame before the callee runs. Fil-C callers root
-  // the objects they pass as arguments; callees do not root their incoming arguments (except
-  // byval ones). So the frame can only be popped if no argument depends on it for rooting: every
-  // pointer-carrying argument must be one of our own non-byval arguments (or a pointer derived
-  // from one, which shares its object), which our caller roots, or a constant without a
-  // capability. Other musttail calls become ordinary calls. Globals are excluded because
-  // getting their address may run code (ifunc resolvers, initializers).
-  bool mustTailArgsRootedByCaller(CallInst* CI) {
+  // A musttail call pops this function's Fil-C frame before the callee runs. Fil-C callees root
+  // their incoming arguments by recording their lowers in their own prologues, so popping our
+  // frame never drops the rooting of the arguments we pass, even if those arguments were our own
+  // incoming arguments or were computed inside of us. We only refrain from popping when the call
+  // has byval arguments or calls a variadic function, since in those cases the callee's prologue
+  // allocates (byval promotion, variadic snapshot) before it records the forwarded arguments, and
+  // popping would leave the arguments unrooted across those GC safepoints. Such musttail calls
+  // become ordinary calls.
+  bool musttailCanPopFrame(CallInst* CI) {
+    if (CI->getFunctionType()->isVarArg())
+      return false;
     for (unsigned Idx = 0; Idx < CI->arg_size(); ++Idx) {
       if (CI->isByValArgument(Idx))
         return false;
-      Value* V = CI->getArgOperand(Idx);
-      if (!countPtrs(V->getType()))
-        continue;
-      for (;;) {
-        if (GetElementPtrInst* GEP = dyn_cast<GetElementPtrInst>(V))
-          V = GEP->getPointerOperand();
-        else if (isa<BitCastInst>(V) || isa<AddrSpaceCastInst>(V))
-          V = cast<Instruction>(V)->getOperand(0);
-        else
-          break;
-      }
-      if (Argument* A = dyn_cast<Argument>(V)) {
-        if (A->getParent() == OldF && !A->hasByValAttr())
-          continue;
-        return false;
-      }
-      if (isa<ConstantPointerNull>(V) || isa<UndefValue>(V) || isa<ConstantAggregateZero>(V))
-        continue;
-      return false;
     }
     return true;
   }
@@ -2901,19 +2885,20 @@ class Pizlonator {
 
     assert(!Blocks.empty());
 
+    // Arguments are frame-live: callees record the lowers of their incoming arguments in their
+    // prologues, so an argument's frame slot must not be reused while the argument is still live.
     auto LiveCast = [&] (Value* V) -> Value* {
       if (underlyingPointerKind(V) != PointerKind::Escaping)
         return nullptr;
       if (isa<Instruction>(V))
         return V;
-      if (Argument* A = dyn_cast<Argument>(V)) {
-        if (A->hasByValAttr())
-          return A;
-      }
-      if (!isa<Argument>(V) && !isa<Constant>(V) && !isa<MetadataAsValue>(V) && !isa<InlineAsm>(V)
+      if (isa<Argument>(V))
+        return V;
+      if (!isa<Constant>(V) && !isa<MetadataAsValue>(V) && !isa<InlineAsm>(V)
           && !isa<BasicBlock>(V)) {
         errs() << "V = " << *V << "\n";
-        assert(isa<Constant>(V) || isa<MetadataAsValue>(V) || isa<InlineAsm>(V) || isa<BasicBlock>(V));
+        assert(isa<Constant>(V) || isa<MetadataAsValue>(V) || isa<InlineAsm>(V)
+               || isa<BasicBlock>(V));
       }
       return nullptr;
     };
@@ -2970,7 +2955,6 @@ class Pizlonator {
             if (!isa<Argument>(V))
               errs() << "Unexpected live: " << *V << "\n";
             assert(isa<Argument>(V));
-            assert(cast<Argument>(V)->hasByValAttr());
           }
         }
 
@@ -14071,11 +14055,12 @@ class Pizlonator {
       
       TheCall->setDebugLoc(CI->getDebugLoc());
 
-      // Preserve guaranteed tail calls whose arguments our caller keeps alive (see
-      // mustTailArgsRootedByCaller); other musttail calls, including coroutine symmetric
-      // transfer, become ordinary calls. The caller and callee had matching prototypes, so their
-      // lowered functions return the same (has_exception, value) aggregate, and the caller can
-      // hand the callee's result straight back to its own caller after popping its Fil-C frame.
+      // Preserve guaranteed tail calls that don't need the callee prologue to
+      // allocate before re-recording the arguments (see musttailCanPopFrame); other musttail
+      // calls, including those with byval arguments or variadic targets, become ordinary calls.
+      // The caller and callee had matching prototypes, so their lowered functions return the same
+      // (has_exception, value) aggregate, and the caller can hand the callee's result straight
+      // back to its own caller after popping its Fil-C frame.
       if (isa<CallInst>(CI) && FramePoppingMustTails.count(cast<CallInst>(CI))
           && TheCall->getType() == NewF->getReturnType()) {
         new StoreInst(
@@ -17090,7 +17075,7 @@ public:
         for (BasicBlock* BB : Blocks) {
           for (Instruction& I : *BB) {
             if (CallInst* CI = dyn_cast<CallInst>(&I)) {
-              if (CI->isMustTailCall() && mustTailArgsRootedByCaller(CI))
+              if (CI->isMustTailCall() && musttailCanPopFrame(CI))
                 FramePoppingMustTails.insert(CI);
             }
           }
@@ -17282,6 +17267,10 @@ public:
                 recordLowers(F->getArg(Index), F->getArg(Index)->getType(), V, InsertionPoint);
                 Args.push_back(V);
               } else {
+                // Part of the Fil-C ABI: callees record the lowers of their
+                // incoming direct arguments, so that the arguments are GC-safe
+                // even if this frame gets popped by a musttail call.
+                recordLowers(F->getArg(Index), F->getArg(Index)->getType(), V, InsertionPoint);
                 Args.push_back(convertFromNormalizedArgType(
                                  F->getArg(Index)->getType(), V, InsertionPoint));
               }
@@ -17291,6 +17280,12 @@ public:
                    == F->getFunctionType()->getNumParams() + 2);
             for (unsigned Index = 0; Index < F->getFunctionType()->getNumParams(); ++Index) {
               assert(AIs[Index].AK == ArgKind::Direct);
+              // Part of the Fil-C ABI: callees record the lowers of their
+              // incoming direct arguments, so that the arguments are GC-safe
+              // even if this frame gets popped by a musttail call.
+              recordLowers(
+                F->getArg(Index), F->getArg(Index)->getType(), NewF->getArg(2 + Index),
+                InsertionPoint);
               Args.push_back(convertFromNormalizedArgType(
                                F->getArg(Index)->getType(),
                                NewF->getArg(2 + Index),
