@@ -158,21 +158,20 @@ private:
   /// considered as a base subobject, requires a non-zero bitpattern
   /// when zero-initialized.
   bool IsZeroInitializableAsBase : 1;
-  
-  /// True if we did the Fil-C union hack for pointers.
-  bool IsFilPtrUnion : 1;
+
+  /// Fil-C represents this union as pointer words plus an exact byte tail.
+  /// Member accesses still use their declared types and AST offsets.
+  bool HasPointerWordStorage : 1;
 
 public:
   CGRecordLayout(llvm::StructType *CompleteObjectType,
-                 llvm::StructType *BaseSubobjectType,
-                 bool IsZeroInitializable,
-                 bool IsZeroInitializableAsBase,
-                 bool IsFilPtrUnion)
-    : CompleteObjectType(CompleteObjectType),
-      BaseSubobjectType(BaseSubobjectType),
-      IsZeroInitializable(IsZeroInitializable),
-      IsZeroInitializableAsBase(IsZeroInitializableAsBase),
-      IsFilPtrUnion(IsFilPtrUnion) {}
+                 llvm::StructType *BaseSubobjectType, bool IsZeroInitializable,
+                 bool IsZeroInitializableAsBase, bool HasPointerWordStorage)
+      : CompleteObjectType(CompleteObjectType),
+        BaseSubobjectType(BaseSubobjectType),
+        IsZeroInitializable(IsZeroInitializable),
+        IsZeroInitializableAsBase(IsZeroInitializableAsBase),
+        HasPointerWordStorage(HasPointerWordStorage) {}
 
   /// Return the "complete object" LLVM type associated with
   /// this record.
@@ -198,10 +197,7 @@ public:
     return IsZeroInitializableAsBase;
   }
 
-  // Check if this type is a hacked union in Fil-C.
-  bool isFilPtrUnion() const {
-    return IsFilPtrUnion;
-  }
+  bool hasPointerWordStorage() const { return HasPointerWordStorage; }
 
   bool containsFieldDecl(const FieldDecl *FD) const {
     return FieldInfo.count(FD) != 0;

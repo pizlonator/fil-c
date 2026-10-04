@@ -1,0 +1,19 @@
+return:
+  success
+libraries:
+  liba:
+    isBundle: false
+    files:
+      - liba.c
+  libb.so:
+    isBundle: true
+    files:
+      - libb.c
+optFlags:
+  "-O2 -fPIC"
+extraLinkerArgs:
+  "-Lfilc/test-output/descriptorlocal -la"
+extraLDPath:
+  "filc/test-output/descriptorlocal"
+output-includes:
+  - "descriptorlocal ok"

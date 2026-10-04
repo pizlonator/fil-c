@@ -101,6 +101,9 @@ int main()
     Nonzero3c& nz3c = *new Nonzero3c();
     Nonzero4& nz4 = *new Nonzero4();
 
+    // An all-ones numeric null representation must not invent a capability.
+    ZASSERT(!zhasvalidcap(nz.pointer));
+    ZASSERT(!zhasvalidcap(nz3c.s2.pointer2));
     ZASSERT(nz.pointer == (int*)-1);
     ZASSERT(nz2.pointer == (int*)-1);
     ZASSERT(nz2.pointer2 == (int*)-1);

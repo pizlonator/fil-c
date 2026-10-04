@@ -2158,6 +2158,13 @@ filc_ptr filc_strong_cas_ptr_with_manual_tracking(
         } else {
             void* old_ptr = *(void**)filc_ptr_ptr(ptr);
             if (old_ptr != filc_ptr_ptr(expected)) {
+                /* Another thread may have swapped in a box and written its value to the
+                   primary word after we loaded lower_or_box; pairing that value with the
+                   stale lower would lose its capability. Order the primary load before
+                   the validating shadow load, including on ARM64. Retry until they agree. */
+                pas_load_load_fence();
+                if (filc_lower_or_box_load(lower_or_box_ptr).encoded_value != lower_or_box.encoded_value)
+                    continue;
                 old_value = filc_ptr_create_with_lower_and_ptr_and_manual_tracking(
                     filc_lower_or_box_get_lower(lower_or_box), old_ptr);
             } else {
@@ -7427,6 +7434,117 @@ static unwind_reason_code call_personality(
         context_ptr);
 }
 
+/* The unwind state (context, exception, found frame, forced-unwind callbacks) lives in the thread
+   rather than in the exception object, and the compiler's resume does not pass the exception back.
+   So an exception that is raised and caught while a landing pad runs a cleanup for another one
+   (a destructor with its own try/catch, say) would otherwise overwrite the outer unwind's state:
+   the outer resume then continued with the inner exception, which __cxa_end_catch had already
+   freed, and a frame that had already returned. Save the outer state when the inner raise finds
+   its handler, and restore it when the inner exception lands there. */
+struct saved_unwind_state {
+    void* next;
+    void* unwind_context;
+    void* exception_object;
+    void* force_stop_callback;
+    void* force_stop_arg;
+    filc_frame* found_frame;
+    filc_frame* cleanup_frame;
+    bool is_force_unwinding;
+};
+
+typedef struct saved_unwind_state saved_unwind_state;
+
+static filc_ptr package_unwind_state(filc_thread* my_thread)
+{
+    filc_ptr saved_ptr = filc_ptr_create_with_object(
+        my_thread, filc_allocate(my_thread, sizeof(saved_unwind_state)));
+    saved_unwind_state* saved = (saved_unwind_state*)filc_ptr_ptr(saved_ptr);
+    filc_store_ptr_at(my_thread, saved_ptr, &saved->next,
+                      filc_flight_ptr_load(my_thread, &my_thread->saved_unwind_state_ptr));
+    filc_store_ptr_at(my_thread, saved_ptr, &saved->unwind_context,
+                      filc_flight_ptr_load(my_thread, &my_thread->unwind_context_ptr));
+    filc_store_ptr_at(my_thread, saved_ptr, &saved->exception_object,
+                      filc_flight_ptr_load(my_thread, &my_thread->exception_object_ptr));
+    filc_store_ptr_at(my_thread, saved_ptr, &saved->force_stop_callback,
+                      filc_flight_ptr_load(my_thread, &my_thread->force_stop_callback));
+    filc_store_ptr_at(my_thread, saved_ptr, &saved->force_stop_arg,
+                      filc_flight_ptr_load(my_thread, &my_thread->force_stop_arg_ptr));
+    saved->found_frame = my_thread->found_frame_for_unwind;
+    saved->cleanup_frame = my_thread->cleanup_frame_for_unwind;
+    saved->is_force_unwinding = my_thread->is_force_unwinding;
+    return saved_ptr;
+}
+
+/* Restores the state packaged by package_unwind_state, including the chain of saved states below
+   it. A null saved_ptr means no unwind in progress. */
+static void unpackage_unwind_state(filc_thread* my_thread, filc_ptr saved_ptr)
+{
+    if (filc_ptr_is_totally_null(saved_ptr)) {
+        filc_flight_ptr_store(my_thread, &my_thread->saved_unwind_state_ptr, filc_ptr_forge_null());
+        filc_flight_ptr_store(my_thread, &my_thread->unwind_context_ptr, filc_ptr_forge_null());
+        filc_flight_ptr_store(my_thread, &my_thread->exception_object_ptr, filc_ptr_forge_null());
+        filc_flight_ptr_store(my_thread, &my_thread->force_stop_callback, filc_ptr_forge_null());
+        filc_flight_ptr_store(my_thread, &my_thread->force_stop_arg_ptr, filc_ptr_forge_null());
+        my_thread->found_frame_for_unwind = NULL;
+        my_thread->cleanup_frame_for_unwind = NULL;
+        my_thread->is_force_unwinding = false;
+        return;
+    }
+    saved_unwind_state* saved = (saved_unwind_state*)filc_ptr_ptr(saved_ptr);
+    filc_flight_ptr_store(my_thread, &my_thread->saved_unwind_state_ptr,
+                          filc_load_ptr_at(my_thread, saved_ptr, &saved->next));
+    filc_flight_ptr_store(my_thread, &my_thread->unwind_context_ptr,
+                          filc_load_ptr_at(my_thread, saved_ptr, &saved->unwind_context));
+    filc_flight_ptr_store(my_thread, &my_thread->exception_object_ptr,
+                          filc_load_ptr_at(my_thread, saved_ptr, &saved->exception_object));
+    filc_flight_ptr_store(my_thread, &my_thread->force_stop_callback,
+                          filc_load_ptr_at(my_thread, saved_ptr, &saved->force_stop_callback));
+    filc_flight_ptr_store(my_thread, &my_thread->force_stop_arg_ptr,
+                          filc_load_ptr_at(my_thread, saved_ptr, &saved->force_stop_arg));
+    my_thread->found_frame_for_unwind = saved->found_frame;
+    my_thread->cleanup_frame_for_unwind = saved->cleanup_frame;
+    my_thread->is_force_unwinding = saved->is_force_unwinding;
+}
+
+static void save_unwind_state(filc_thread* my_thread)
+{
+    filc_flight_ptr_store(my_thread, &my_thread->saved_unwind_state_ptr,
+                          package_unwind_state(my_thread));
+}
+
+static bool frame_is_live_from(filc_frame* target, filc_frame* start)
+{
+    filc_frame* frame;
+    if (!target)
+        return false;
+    for (frame = start; frame; frame = frame->parent) {
+        if (frame == target)
+            return true;
+    }
+    return false;
+}
+
+/* Called when an exception lands in the handler frame that phase 1 found for it: the unwind is
+   over. Resume the unwind that it interrupted, if the frame running that unwind's cleanup is still
+   live (an ancestor of, or the same as, the handler frame); an unwind whose cleanup frame the inner
+   exception escaped is abandoned, as with native unwinding. */
+static void finish_unwind(filc_thread* my_thread, filc_frame* handler_frame)
+{
+    for (;;) {
+        filc_ptr saved_ptr = filc_flight_ptr_load(my_thread, &my_thread->saved_unwind_state_ptr);
+        if (filc_ptr_is_totally_null(saved_ptr))
+            break;
+        saved_unwind_state* saved = (saved_unwind_state*)filc_ptr_ptr(saved_ptr);
+        if (frame_is_live_from(saved->cleanup_frame, handler_frame)) {
+            unpackage_unwind_state(my_thread, saved_ptr);
+            return;
+        }
+        filc_flight_ptr_store(my_thread, &my_thread->saved_unwind_state_ptr,
+                              filc_load_ptr_at(my_thread, saved_ptr, &saved->next));
+    }
+    unpackage_unwind_state(my_thread, filc_ptr_forge_null());
+}
+
 filc_exception_and_int filc_native__Unwind_RaiseException(
     filc_thread* my_thread, filc_ptr exception_object_ptr)
 {
@@ -7451,6 +7569,7 @@ filc_exception_and_int filc_native__Unwind_RaiseException(
     filc_frame* first_frame = my_frame->parent;
     filc_frame* current_frame;
 
+    bool outer_is_force_unwinding = my_thread->is_force_unwinding;
     my_thread->is_force_unwinding = false;
 
     /* Phase 1 */
@@ -7460,17 +7579,24 @@ filc_exception_and_int filc_native__Unwind_RaiseException(
             filc_origin_get_function_origin(current_frame->origin);
         
         if (!function_origin->can_catch)
-            return filc_exception_and_int_with_int(unwind_reason_fatal_phase1_error);
+            break;
 
         if (!function_origin->personality_getter) {
             if (!function_origin->can_throw)
-                return filc_exception_and_int_with_int(unwind_reason_fatal_phase1_error);
+                break;
             continue;
         }
 
         unwind_reason_code personality_result = call_personality(
             my_thread, current_frame, unwind_action_search_phase, exception_object_ptr, context_ptr);
         if (personality_result == unwind_reason_handler_found) {
+            if (my_thread->found_frame_for_unwind || outer_is_force_unwinding) {
+                /* We're in a cleanup for another unwind. */
+                my_thread->is_force_unwinding = outer_is_force_unwinding;
+                save_unwind_state(my_thread);
+                my_thread->is_force_unwinding = false;
+            }
+            my_thread->cleanup_frame_for_unwind = NULL;
             my_thread->found_frame_for_unwind = current_frame;
             filc_flight_ptr_store(my_thread, &my_thread->unwind_context_ptr, context_ptr);
             filc_flight_ptr_store(my_thread, &my_thread->exception_object_ptr, exception_object_ptr);
@@ -7481,9 +7607,13 @@ filc_exception_and_int filc_native__Unwind_RaiseException(
         if (personality_result == unwind_reason_continue_unwind && function_origin->can_throw)
             continue;
 
-        return filc_exception_and_int_with_int(unwind_reason_fatal_phase1_error);
+        break;
     }
 
+    /* No handler, so the outer unwind (if any) is untouched. */
+    my_thread->is_force_unwinding = outer_is_force_unwinding;
+    if (current_frame)
+        return filc_exception_and_int_with_int(unwind_reason_fatal_phase1_error);
     return filc_exception_and_int_with_int(unwind_reason_end_of_stack);
 }
 
@@ -7614,6 +7744,7 @@ static bool landing_pad_impl(filc_thread* my_thread, filc_ptr context_ptr,
         if (current_frame != found_frame)
             return false;
         my_thread->found_frame_for_unwind = NULL;
+        my_thread->cleanup_frame_for_unwind = current_frame;
     } else {
         if (!function_origin->personality_getter)
             return false;
@@ -7631,6 +7762,11 @@ static bool landing_pad_impl(filc_thread* my_thread, filc_ptr context_ptr,
             personality_result == unwind_reason_install_context,
             NULL,
             "personality function returned neither continue_unwind nor install_context.");
+
+        if (current_frame == found_frame)
+            finish_unwind(my_thread, current_frame);
+        else
+            my_thread->cleanup_frame_for_unwind = current_frame;
     }
 
     check_unwind_context(context_ptr, filc_write_access);
@@ -8135,6 +8271,9 @@ static filc_thread* finish_switch_to_fiber_context(void)
     fiber_context->special_signal_deferral_depth = 0;
     my_thread->stack_limit = fiber_context->stack_limit.stack_limit;
     my_thread->stack_top = fiber_context->stack_limit.stack_top;
+    unpackage_unwind_state(
+        my_thread, filc_flight_ptr_load(my_thread, &fiber_context->unwind_state_ptr));
+    filc_flight_ptr_store(my_thread, &fiber_context->unwind_state_ptr, filc_ptr_forge_null());
     if (my_thread->current_fiber_context) {
         fiber_context_send_sigset_to_user(my_thread->current_fiber_context);
         pas_lock_unlock(&my_thread->current_fiber_context->lock);
@@ -8230,6 +8369,22 @@ void filc_native_zfiber_context_swapcontext(filc_thread* my_thread, filc_ptr fro
         "cannot call swapcontext with from == to (from/to fiber context = %s).",
         filc_ptr_to_new_string(from_fiber_context_ptr));
     
+    /* The unwind state belongs to the stack we're leaving, as it would in native code, where it
+       lives in the exception object and the landing pads' frames. An exception can be in flight
+       on each fiber (say, a coroutine being unwound by boost's forced_unwind while its caller is
+       unwinding), so move it into the context and take the target's back in
+       finish_switch_to_fiber_context. Package it before taking the locks, because allocating can
+       wait for the collector, which takes fiber context locks. */
+    if (!filc_ptr_is_totally_null(
+            filc_flight_ptr_load(my_thread, &my_thread->saved_unwind_state_ptr))
+        || !filc_ptr_is_totally_null(
+            filc_flight_ptr_load(my_thread, &my_thread->unwind_context_ptr))
+        || my_thread->found_frame_for_unwind || my_thread->cleanup_frame_for_unwind
+        || my_thread->is_force_unwinding) {
+        filc_flight_ptr_store(my_thread, &from_fiber_context->unwind_state_ptr,
+                              package_unwind_state(my_thread));
+    }
+
     if (from_fiber_context < to_fiber_context) {
         pas_lock_lock(&from_fiber_context->lock);
         pas_lock_lock(&to_fiber_context->lock);
@@ -15568,5 +15723,4 @@ PAS_END_EXTERN_C;
 #endif /* PAS_ENABLE_FILC */
 
 #endif /* LIBPAS_ENABLED */
-
 
