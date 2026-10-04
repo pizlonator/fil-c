@@ -1,6 +1,6 @@
-/* A musttail call must not drop the GC roots of pointers it passes. The
-   caller roots its arguments; if the call popped its frame, p would be
-   unreachable while g runs. */
+/* A musttail call pops the caller's Fil-C frame, and the callee roots its own
+   incoming arguments by recording them in its own prologue. So even though
+   this musttail call pops f's frame, p stays live while g runs. */
 #include <stdfil.h>
 #include <stdio.h>
 #include <stdlib.h>

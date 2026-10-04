@@ -98,11 +98,10 @@ static Task<long> link(int depth, long salt)
     co_return r + 1;
 }
 
-// NOTE: this runs a depth-10000 symmetric-transfer chain, which consumes
-// about 3.5 MB of the 8 MB main-thread stack in Fil-C (two C frames per
-// level; see the FIXME in cppcoroutinedeep). This test needs a default-sized
-// main stack and will fail under a smaller `ulimit -s` (so does
-// cppcoroutinetask, which does the same thing at the same depth).
+// NOTE: this runs depth-10000 symmetric-transfer chains while another thread
+// triggers GC cycles. The chain executes as frame-popping musttail calls, so
+// this exercises the rooting of coroutine handles that are passed across a
+// popped Fil-C frame.
 
 static void chain_test(int depth, long runs)
 {
