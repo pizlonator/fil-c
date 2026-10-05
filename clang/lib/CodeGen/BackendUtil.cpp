@@ -100,6 +100,9 @@
 #include "llvm/Transforms/Scalar/SCCP.h"
 #include "llvm/Transforms/Scalar/SROA.h"
 #include "llvm/Transforms/Scalar/SimplifyCFG.h"
+#include "llvm/Transforms/Scalar/LoopRotation.h"
+#include "llvm/Transforms/Scalar/LoopPassManager.h"
+#include "llvm/Transforms/Utils/LoopSimplify.h"
 #include "llvm/Transforms/Utils/Debugify.h"
 #include "llvm/Transforms/Utils/ModuleUtils.h"
 #include <limits>
@@ -180,8 +183,14 @@ static cl::opt<bool> FilCInlineADCE(
   cl::init(true));
 static cl::opt<bool> FilCInlineDSE(
   "filc-inline-dse", cl::desc("Run DSE during Fil-C inlining pipeline"), cl::Hidden, cl::init(true));
+static cl::opt<bool> FilCInlineLoopRotate(
+  "filc-inline-loop-rotate", cl::desc("Run LoopRotate during Fil-C inlining pipeline"), cl::Hidden,
+  cl::init(true));
 static cl::opt<bool> FilCDSE(
   "filc-dse", cl::desc("Run DSE during Fil-C pipeline"), cl::Hidden, cl::init(false));
+static cl::opt<bool> FilCLoopBoundsElim(
+  "filc-loop-bounds-elim", cl::desc("Eliminate loop upper bound checks via SCEV"), cl::Hidden,
+  cl::init(true));
 
 namespace {
 
@@ -1101,6 +1110,10 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
                 InlinerFPM.addPass(DSEPass());
               if (FilCInlineInstCombineLate)
                 InlinerFPM.addPass(InstCombinePass());
+              if (FilCInlineLoopRotate) {
+                InlinerFPM.addPass(LoopSimplifyPass());
+                InlinerFPM.addPass(createFunctionToLoopPassAdaptor(LoopRotatePass()));
+              }
               MainCGPipeline.addPass(
                 createCGSCCToFunctionPassAdaptor(
                   std::move(InlinerFPM),
@@ -1136,6 +1149,16 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
     PB.registerOptimizerLastEPCallback([](ModulePassManager &MPM,
                                           OptimizationLevel Level,
                                           ThinOrFullLTOPhase) {
+      if (FilCLoopBoundsElim && Level != OptimizationLevel::O0) {
+        FunctionPassManager BoundsFPM;
+        BoundsFPM.addPass(LoopSimplifyPass());
+        BoundsFPM.addPass(InstCombinePass());
+        BoundsFPM.addPass(LoopSimplifyPass());
+        BoundsFPM.addPass(FilCLoopBoundsEliminationPass());
+        BoundsFPM.addPass(SimplifyCFGPass());
+        BoundsFPM.addPass(InstCombinePass());
+        MPM.addPass(createModuleToFunctionPassAdaptor(std::move(BoundsFPM)));
+      }
       MPM.addPass(DeleteRedundantPollchecksPass());
     });
 

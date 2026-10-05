@@ -13,6 +13,12 @@ public:
   static bool isRequired() { return true; }
 };
 
+class FilCLoopBoundsEliminationPass : public PassInfoMixin<FilCLoopBoundsEliminationPass> {
+public:
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM);
+  static bool isRequired() { return true; }
+};
+
 } // namespace llvm
 
 #endif /* LLVM_TRANSFORMS_INSTRUMENTATION_FILPIZLONATOR_H */

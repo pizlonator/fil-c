@@ -13,6 +13,12 @@
 #include "llvm/Transforms/Instrumentation/FilPizlonator.h"
 
 #include <llvm/Analysis/CFG.h>
+#include <llvm/Analysis/LoopInfo.h>
+#include <llvm/Analysis/ScalarEvolution.h>
+#include <llvm/Analysis/ScalarEvolutionExpressions.h>
+#include <llvm/Transforms/Utils/ScalarEvolutionExpander.h>
+#include <llvm/Transforms/Utils/BasicBlockUtils.h>
+#include <llvm/Transforms/Utils/LoopUtils.h>
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/IR/Comdat.h>
 #include <llvm/IR/DebugInfo.h>
@@ -3944,6 +3950,35 @@ class Pizlonator {
     emitChecks(Iter->second, Inst);
   }
 
+  Value* getRootPtr(Value* P) {
+    if (!P)
+      return nullptr;
+    while (true) {
+      if (GetElementPtrInst* GEP = dyn_cast<GetElementPtrInst>(P)) {
+        P = GEP->getPointerOperand();
+        continue;
+      }
+      if (ConstantExpr* CE = dyn_cast<ConstantExpr>(P)) {
+        if (CE->getOpcode() == Instruction::GetElementPtr) {
+          P = CE->getOperand(0);
+          continue;
+        }
+        if (CE->isCast()) {
+          P = CE->getOperand(0);
+          continue;
+        }
+      }
+      if (CastInst* Cast = dyn_cast<CastInst>(P)) {
+        if (Cast->isNoopCast(DLBefore)) {
+          P = Cast->getOperand(0);
+          continue;
+        }
+      }
+      break;
+    }
+    return P;
+  }
+
   void buildCheck(int64_t Size, int64_t Alignment, Value* CanonicalPtr, int64_t Offset,
                   AccessKind AK, const CombinedDI* DI, std::vector<AccessCheckWithDI>& Checks) {
     if (verbose) {
@@ -3956,14 +3991,15 @@ class Pizlonator {
     assert(!((Alignment - 1) & Alignment));
     assert((int32_t)Offset == Offset);
     Alignment = std::min(Alignment, static_cast<int64_t>(WordSize));
+    Value* RootPtr = getRootPtr(CanonicalPtr);
     Checks.push_back(
-      AccessCheckWithDI(CanonicalPtr, 0, 0, CheckKind::ValidObject, DI));
+      AccessCheckWithDI(RootPtr, 0, 0, CheckKind::ValidObject, DI));
     Checks.push_back(
       AccessCheckWithDI(CanonicalPtr, PositiveModulo(Offset, Alignment), Alignment,
                         CheckKind::Alignment, DI));
     if (AK == AccessKind::Write) {
       Checks.push_back(
-        AccessCheckWithDI(CanonicalPtr, 0, 0, CheckKind::CanWrite, DI));
+        AccessCheckWithDI(RootPtr, 0, 0, CheckKind::CanWrite, DI));
     }
     Checks.push_back(
       AccessCheckWithDI(CanonicalPtr, Offset, 0, CheckKind::LowerBound, DI));
@@ -3971,7 +4007,7 @@ class Pizlonator {
     Checks.push_back(
       AccessCheckWithDI(CanonicalPtr, Offset + Size, 0, CheckKind::UpperBound, DI));
     Checks.push_back(
-      AccessCheckWithDI(CanonicalPtr, 0, 0, CheckKind::NotFree, DI));
+      AccessCheckWithDI(RootPtr, 0, 0, CheckKind::NotFree, DI));
   }
 
   bool needToCheckAlignment(Type* T) {
@@ -4040,9 +4076,10 @@ class Pizlonator {
       // FIXME: atomic accesses do checks in native code, so it's kinda redundant that we also do them
       // in compiled code. The aux ptr shenanigans are especially redundant.
       buildCheck(WordSize, WordSize, HighP, Offset, AK, DI, Checks);
-      Checks.push_back(AccessCheckWithDI(HighP, 0, 0, CheckKind::GetAuxPtr, DI));
+      Value* RootPtr = getRootPtr(HighP);
+      Checks.push_back(AccessCheckWithDI(RootPtr, 0, 0, CheckKind::GetAuxPtr, DI));
       if (AK == AccessKind::Write)
-        Checks.push_back(AccessCheckWithDI(HighP, 0, 0, CheckKind::EnsureAuxPtr, DI));
+        Checks.push_back(AccessCheckWithDI(RootPtr, 0, 0, CheckKind::EnsureAuxPtr, DI));
       return;
     }
 
@@ -4680,7 +4717,7 @@ class Pizlonator {
       const CombinedDI* DI = basicDI(I->getDebugLoc());
       buildCheck(Count, Alignment.value(), PAO.HighP, PAO.Offset, AK, DI, Checks);
       if (CouldHavePtrs || AK == AccessKind::Write)
-        Checks.push_back(AccessCheckWithDI(PAO.HighP, 0, 0, CheckKind::GetAuxPtr, DI));
+        Checks.push_back(AccessCheckWithDI(getRootPtr(PAO.HighP), 0, 0, CheckKind::GetAuxPtr, DI));
       return;
     }
 
@@ -4975,7 +5012,7 @@ class Pizlonator {
         POD.PAR = underlyingPtr(PAO);
         POD.PK = pointerKindDirect(POD.PAR.P);
         if (POD.PK == PointerKind::Escaping)
-          POD.AuxBaseVar = canonicalPtrAuxBaseVar(PAO.HighP);
+          POD.AuxBaseVar = canonicalPtrAuxBaseVar(getRootPtr(PAO.HighP));
         else {
           AllocaInst* AI = cast<AllocaInst>(POD.PAR.P);
           assert(LocalAllocaDatas.count(AI));
@@ -5726,6 +5763,9 @@ class Pizlonator {
             Value* P = PAO.HighP;
             assert(isa<Instruction>(P) || isa<Argument>(P) || isa<Constant>(P));
             Live.insert(P);
+            Value* Root = getRootPtr(P);
+            if (Root && (isa<Instruction>(Root) || isa<Argument>(Root) || isa<Constant>(Root)))
+              Live.insert(Root);
           });
         }
 
@@ -5860,7 +5900,16 @@ class Pizlonator {
           Checks.clear();
         else {
           canonicalizeAccessChecks(Checks);
+          bool HasNonBackEdgePred = false;
           for (BasicBlock* PBB : predecessors(BB)) {
+            if (!BackEdgePreds.count(PBB)) {
+              HasNonBackEdgePred = true;
+              break;
+            }
+          }
+          for (BasicBlock* PBB : predecessors(BB)) {
+            if (HasNonBackEdgePred && BackEdgePreds.count(PBB))
+              continue;
             ChecksWithDIOrBottom& PCOB = BackwardChecksAtTail[PBB];
             if (PCOB.Bottom)
               continue;
@@ -5890,6 +5939,8 @@ class Pizlonator {
           errs() << "Checks at head after removing unprofitable: " << Checks << "\n";
         BackwardChecksAtHead[BB] = Checks;
         for (BasicBlock* PBB : predecessors(BB)) {
+          if (BackEdgePreds.count(PBB))
+            continue;
           ChecksWithDIOrBottom& PCOB = BackwardChecksAtTail[PBB];
           if (PCOB.Bottom) {
             PCOB.Bottom = false;
@@ -17079,6 +17130,35 @@ public:
 
         UsesVariadicCC = usesVariadicCC(F);
 
+        // Ensure all loop headers have dedicated preheaders so loop-invariant
+        // capability checks can be hoisted safely.
+        SmallVector<std::pair<const BasicBlock*, const BasicBlock*>> InitialBackEdges;
+        FindFunctionBackedges(*F, InitialBackEdges);
+        std::unordered_set<const BasicBlock*> LoopHeaders;
+        for (const auto& Edge : InitialBackEdges)
+          LoopHeaders.insert(Edge.second);
+
+        for (const BasicBlock* ConstHeader : LoopHeaders) {
+          BasicBlock* Header = const_cast<BasicBlock*>(ConstHeader);
+          SmallVector<BasicBlock*, 4> EntryPreds;
+          for (BasicBlock* P : predecessors(Header)) {
+            bool IsBackEdge = false;
+            for (const auto& Edge : InitialBackEdges) {
+              if (Edge.first == P && Edge.second == Header) {
+                IsBackEdge = true;
+                break;
+              }
+            }
+            if (!IsBackEdge)
+              EntryPreds.push_back(P);
+          }
+          if (EntryPreds.empty())
+            continue;
+          if (EntryPreds.size() == 1 && EntryPreds[0]->getSingleSuccessor() == Header)
+            continue;
+          SplitBlockPredecessors(Header, EntryPreds, ".preheader");
+        }
+
         SmallVector<std::pair<const BasicBlock*, const BasicBlock*>> BackEdges;
         FindFunctionBackedges(*F, BackEdges);
         std::unordered_set<const BasicBlock*> BackEdgePreds;
@@ -17518,4 +17598,602 @@ PreservedAnalyses FilPizlonatorPass::run(Module &M, ModuleAnalysisManager&) {
   Pizlonator P(M);
   P.run();
   return PreservedAnalyses::none();
+}
+
+namespace {
+
+class FilCLoopBoundsEliminator {
+public:
+  Function &F;
+  LoopInfo &LI;
+  ScalarEvolution &SE;
+  DominatorTree &DT;
+  const DataLayout &DL;
+
+  FilCLoopBoundsEliminator(Function &F, LoopInfo &LI, ScalarEvolution &SE, DominatorTree &DT)
+    : F(F), LI(LI), SE(SE), DT(DT), DL(F.getParent()->getDataLayout()) {}
+
+  bool isFailBlock(BasicBlock *BB) {
+    if (BB->getName().contains("range_fail"))
+      return true;
+    for (Instruction &I : *BB) {
+      if (CallInst *CI = dyn_cast<CallInst>(&I)) {
+        if (Function *Callee = CI->getCalledFunction()) {
+          StringRef Name = Callee->getName();
+          if (Name.contains("access_check_fail") ||
+              Name.contains("range_fail"))
+            return true;
+        }
+      }
+      if (isa<UnreachableInst>(&I))
+        return true;
+    }
+    return false;
+  }
+
+  Value *hoistUpperMinusToPreheader(Value *UpperMinus, Loop *L, BasicBlock *Preheader) {
+    if (L->isLoopInvariant(UpperMinus))
+      return UpperMinus;
+
+    Instruction *InsertPt = Preheader->getTerminator();
+
+    if (LoadInst *DirectLI = dyn_cast<LoadInst>(UpperMinus)) {
+      GetElementPtrInst *HeaderGEP = dyn_cast<GetElementPtrInst>(DirectLI->getPointerOperand());
+      if (!HeaderGEP)
+        return nullptr;
+      Value *Lower = HeaderGEP->getPointerOperand();
+      if (!L->isLoopInvariant(Lower))
+        return nullptr;
+
+      Instruction *HoistedHeaderGEP = HeaderGEP->clone();
+      HoistedHeaderGEP->insertBefore(InsertPt->getIterator());
+
+      Instruction *HoistedLI = DirectLI->clone();
+      HoistedLI->setOperand(0, HoistedHeaderGEP);
+      HoistedLI->insertBefore(InsertPt->getIterator());
+
+      return HoistedLI;
+    }
+
+    GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(UpperMinus);
+    if (!GEP)
+      return nullptr;
+
+    LoadInst *LI = dyn_cast<LoadInst>(GEP->getPointerOperand());
+    if (!LI)
+      return nullptr;
+
+    GetElementPtrInst *HeaderGEP = dyn_cast<GetElementPtrInst>(LI->getPointerOperand());
+    if (!HeaderGEP)
+      return nullptr;
+
+    Value *Lower = HeaderGEP->getPointerOperand();
+    if (!L->isLoopInvariant(Lower))
+      return nullptr;
+
+    Instruction *HoistedHeaderGEP = HeaderGEP->clone();
+    HoistedHeaderGEP->insertBefore(InsertPt->getIterator());
+
+    Instruction *HoistedLI = LI->clone();
+    HoistedLI->setOperand(0, HoistedHeaderGEP);
+    HoistedLI->insertBefore(InsertPt->getIterator());
+
+    Instruction *HoistedGEP = GEP->clone();
+    HoistedGEP->setOperand(0, HoistedLI);
+    HoistedGEP->insertBefore(InsertPt->getIterator());
+
+    return HoistedGEP;
+  }
+
+  void hoistInvariants(Loop *L, BasicBlock *Preheader) {
+    bool Changed = true;
+    while (Changed) {
+      Changed = false;
+      for (BasicBlock *BB : L->blocks()) {
+        for (auto It = BB->begin(), End = BB->end(); It != End;) {
+          Instruction &I = *It++;
+          if (isa<ExtractValueInst>(&I) || isa<CastInst>(&I)) {
+            bool AllOpsInvariant = true;
+            for (Value *Op : I.operands()) {
+              if (!L->isLoopInvariant(Op)) {
+                AllOpsInvariant = false;
+                break;
+              }
+            }
+            if (AllOpsInvariant) {
+              I.moveBefore(Preheader->getTerminator()->getIterator());
+              Changed = true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  bool eliminateBoundsChecksInLoop(Loop *L) {
+    BasicBlock *Preheader = L->getLoopPreheader();
+    if (!Preheader)
+      Preheader = InsertPreheaderForLoop(L, &DT, &LI, nullptr, false);
+    if (!Preheader)
+      return false;
+
+    BasicBlock *Latch = L->getLoopLatch();
+    if (!Latch)
+      return false;
+
+    hoistInvariants(L, Preheader);
+    SE.forgetLoop(L);
+
+    static bool Debug = (getenv("FILC_DEBUG_BOUNDS") != nullptr);
+    if (Debug) {
+      errs() << "[FilC LoopBoundsElim] Function " << F.getName() << " loop with preheader "
+             << (Preheader ? Preheader->getName() : "null") << "\n";
+    }
+
+    // A loop is safe for bounds check hoisting only if it has EXACTLY ONE normal (non-fail) exit.
+    // Loops with multiple normal exits (e.g. data-dependent searches like strcmp, strncmp)
+    // exit early based on data values, so hoisting checks for iterations beyond early exits
+    // is unsound.
+    SmallVector<BasicBlock *, 8> ExitingBlocks;
+    L->getExitingBlocks(ExitingBlocks);
+    BasicBlock *NormalEB = nullptr;
+    for (BasicBlock *EB : ExitingBlocks) {
+      Instruction *Term = EB->getTerminator();
+      bool ExitsToFailOnly = true;
+      for (unsigned i = 0; i < Term->getNumSuccessors(); ++i) {
+        BasicBlock *Succ = Term->getSuccessor(i);
+        if (!L->contains(Succ) && !isFailBlock(Succ)) {
+          ExitsToFailOnly = false;
+          break;
+        }
+      }
+      if (!ExitsToFailOnly) {
+        if (NormalEB) {
+          if (Debug)
+            errs() << "  Loop has multiple normal exits, skipping.\n";
+          return false;
+        }
+        NormalEB = EB;
+      }
+    }
+
+    if (!NormalEB)
+      return false;
+
+    const SCEV *EC = SE.getExitCount(L, NormalEB);
+    if (!EC || isa<SCEVCouldNotCompute>(EC))
+      return false;
+
+    if (const SCEVConstant *C = dyn_cast<SCEVConstant>(EC)) {
+      if (C->getAPInt().isAllOnes() || C->getAPInt().isNegative())
+        return false;
+    }
+
+    const SCEV *BTC = EC;
+    if (Debug) {
+      errs() << "  Normal exit from " << NormalEB->getName() << " with BTC: ";
+      BTC->print(errs());
+      errs() << "\n";
+    }
+
+    enum class CheckType { Upper, Lower };
+
+    struct PointerBoundsSCEV {
+      const SCEV *Start = nullptr;
+      const SCEV *Max = nullptr;
+      bool Valid = false;
+    };
+
+    std::function<const SCEV *(const SCEV *, const SCEV *)> evalSCEV =
+        [&](const SCEV *S, const SCEV *Iter) -> const SCEV * {
+      if (!S)
+        return nullptr;
+      if (SE.isLoopInvariant(S, L))
+        return S;
+      if (const SCEVAddRecExpr *AR = dyn_cast<SCEVAddRecExpr>(S)) {
+        if (AR->getLoop() == L && AR->isAffine()) {
+          const SCEV *Step = AR->getStepRecurrence(SE);
+          const SCEVConstant *ConstStep = dyn_cast<SCEVConstant>(Step);
+          if (ConstStep && !ConstStep->getAPInt().isNegative() && !ConstStep->getAPInt().isZero()) {
+            const SCEV *AdaptedIter = Iter;
+            if (AR->getType()->isIntegerTy() && Iter->getType() != AR->getType()) {
+              AdaptedIter = SE.getTruncateOrZeroExtend(Iter, AR->getType());
+            } else if (AR->getType()->isPointerTy() && Iter->getType() != Step->getType()) {
+              AdaptedIter = SE.getTruncateOrZeroExtend(Iter, Step->getType());
+            }
+            return AR->evaluateAtIteration(AdaptedIter, SE);
+          }
+        }
+        return nullptr;
+      }
+      if (const SCEVAddExpr *Add = dyn_cast<SCEVAddExpr>(S)) {
+        SmallVector<const SCEV *, 4> Ops;
+        for (const SCEV *Op : Add->operands()) {
+          const SCEV *EOp = evalSCEV(Op, Iter);
+          if (!EOp)
+            return nullptr;
+          Ops.push_back(EOp);
+        }
+        return SE.getAddExpr(Ops);
+      }
+      if (const SCEVMulExpr *Mul = dyn_cast<SCEVMulExpr>(S)) {
+        SmallVector<const SCEV *, 4> Ops;
+        for (const SCEV *Op : Mul->operands()) {
+          const SCEV *EOp = evalSCEV(Op, Iter);
+          if (!EOp)
+            return nullptr;
+          Ops.push_back(EOp);
+        }
+        return SE.getMulExpr(Ops);
+      }
+      if (const SCEVZeroExtendExpr *ZExt = dyn_cast<SCEVZeroExtendExpr>(S)) {
+        const SCEV *EOp = evalSCEV(ZExt->getOperand(), Iter);
+        return EOp ? SE.getZeroExtendExpr(EOp, ZExt->getType()) : nullptr;
+      }
+      if (const SCEVSignExtendExpr *SExt = dyn_cast<SCEVSignExtendExpr>(S)) {
+        const SCEV *EOp = evalSCEV(SExt->getOperand(), Iter);
+        return EOp ? SE.getSignExtendExpr(EOp, SExt->getType()) : nullptr;
+      }
+      if (const SCEVTruncateExpr *Trunc = dyn_cast<SCEVTruncateExpr>(S)) {
+        const SCEV *EOp = evalSCEV(Trunc->getOperand(), Iter);
+        return EOp ? SE.getTruncateExpr(EOp, Trunc->getType()) : nullptr;
+      }
+      return nullptr;
+    };
+
+    auto analyzePointerSCEV = [&](Value *PtrVal) -> PointerBoundsSCEV {
+      const SCEV *PtrSCEV = SE.getSCEV(PtrVal);
+      const SCEV *Zero = SE.getZero(BTC->getType());
+      const SCEV *Start = evalSCEV(PtrSCEV, Zero);
+      const SCEV *Max = evalSCEV(PtrSCEV, BTC);
+      if (Start && Max && SE.isLoopInvariant(Start, L) && SE.isLoopInvariant(Max, L))
+        return {Start, Max, true};
+
+      if (PHINode *PN = dyn_cast<PHINode>(PtrVal)) {
+        if (PN->getParent() == L->getHeader() && PN->getNumIncomingValues() == 2) {
+          int PreheaderIdx = PN->getBasicBlockIndex(Preheader);
+          if (PreheaderIdx >= 0) {
+            Value *StartVal = PN->getIncomingValue(PreheaderIdx);
+            Value *LoopVal = PN->getIncomingValue(1 - PreheaderIdx);
+            const SCEV *StartSCEV = SE.getSCEV(StartVal);
+            const SCEV *LoopValSCEV = SE.getSCEV(LoopVal);
+
+            if (const SCEVConstant *C = dyn_cast<SCEVConstant>(BTC)) {
+              if (C->isZero()) {
+                if (SE.isLoopInvariant(StartSCEV, L))
+                  return {StartSCEV, StartSCEV, true};
+              }
+            }
+
+            const SCEV *One = SE.getOne(BTC->getType());
+            const SCEV *BTCMinusOne = SE.getMinusSCEV(BTC, One);
+            const SCEV *MaxSCEV = evalSCEV(LoopValSCEV, BTCMinusOne);
+            if (MaxSCEV && SE.isLoopInvariant(StartSCEV, L) && SE.isLoopInvariant(MaxSCEV, L)) {
+              return {StartSCEV, MaxSCEV, true};
+            }
+          }
+        }
+      }
+
+      return {nullptr, nullptr, false};
+    };
+
+    struct BoundCheckInfo {
+      BranchInst *BI;
+      ICmpInst *Cmp;
+      Value *Ptr;
+      Value *BoundVal;
+      BasicBlock *FailB;
+      BasicBlock *SuccessB;
+      bool Invert; // true if cond == true means success
+      const SCEV *Start;
+      const SCEV *Max;
+      CheckType Type;
+      ICmpInst::Predicate Pred;
+    };
+
+    SmallVector<BoundCheckInfo, 8> ChecksToEliminate;
+
+    for (BasicBlock *BB : L->blocks()) {
+      if (!DT.dominates(BB, Latch))
+        continue;
+
+      BranchInst *BI = dyn_cast<BranchInst>(BB->getTerminator());
+      if (!BI || !BI->isConditional())
+        continue;
+
+      ICmpInst *Cmp = dyn_cast<ICmpInst>(BI->getCondition());
+      if (!Cmp)
+        continue;
+
+      BasicBlock *Succ0 = BI->getSuccessor(0);
+      BasicBlock *Succ1 = BI->getSuccessor(1);
+
+      BasicBlock *FailB = nullptr;
+      BasicBlock *SuccessB = nullptr;
+      bool Invert = false;
+
+      if (!L->contains(Succ0) && L->contains(Succ1)) {
+        FailB = Succ0;
+        SuccessB = Succ1;
+        Invert = false; // cond true -> FailB
+      } else if (L->contains(Succ0) && !L->contains(Succ1)) {
+        SuccessB = Succ0;
+        FailB = Succ1;
+        Invert = true; // cond true -> SuccessB
+      } else {
+        continue;
+      }
+
+      if (!isFailBlock(FailB))
+        continue;
+
+      if (!Cmp->getOperand(0)->getType()->isPointerTy())
+        continue;
+
+      Value *Op0 = Cmp->getOperand(0);
+      Value *Op1 = Cmp->getOperand(1);
+      ICmpInst::Predicate Pred = Cmp->getPredicate();
+      if (L->isLoopInvariant(Op0) && !L->isLoopInvariant(Op1)) {
+        std::swap(Op0, Op1);
+        Pred = Cmp->getSwappedPredicate();
+      }
+
+      Value *Ptr = Op0;
+      Value *BoundVal = Op1;
+      CheckType CType;
+
+      if (!Invert && Pred == ICmpInst::ICMP_UGT) {
+        // Ptr > UpperMinus -> fail
+        CType = CheckType::Upper;
+      } else if (Invert && Pred == ICmpInst::ICMP_ULE) {
+        // Ptr <= UpperMinus -> success
+        CType = CheckType::Upper;
+      } else if (!Invert && Pred == ICmpInst::ICMP_UGE) {
+        // Ptr >= Upper -> fail
+        CType = CheckType::Upper;
+      } else if (Invert && Pred == ICmpInst::ICMP_ULT) {
+        // Ptr < Upper -> success (pointer store access)
+        CType = CheckType::Upper;
+      } else if (!Invert && Pred == ICmpInst::ICMP_ULT) {
+        // Ptr < Lower -> fail
+        CType = CheckType::Lower;
+      } else if (Invert && Pred == ICmpInst::ICMP_UGE) {
+        // Ptr >= Lower -> success
+        CType = CheckType::Lower;
+      } else {
+        continue;
+      }
+
+      if (Debug) {
+        errs() << "  Examining branch in " << BB->getName() << ": ";
+        Cmp->print(errs());
+        errs() << "\n  FailB=" << FailB->getName() << ", SuccessB=" << SuccessB->getName()
+               << ", CType=" << (CType == CheckType::Upper ? "Upper" : "Lower") << "\n";
+      }
+
+      // Ptr must be an affine induction pointer in L with positive step
+      PointerBoundsSCEV Bounds = analyzePointerSCEV(Ptr);
+      if (!Bounds.Valid) {
+        if (Debug) {
+          errs() << "  Not valid affine induction pointer in L: ";
+          Ptr->printAsOperand(errs(), false);
+          errs() << "\n";
+        }
+        continue;
+      }
+
+      if (CType == CheckType::Lower) {
+        if (!L->isLoopInvariant(BoundVal) && !SE.isLoopInvariant(SE.getSCEV(BoundVal), L)) {
+          if (Debug) {
+            errs() << "  Lower bound not invariant: ";
+            BoundVal->print(errs());
+            errs() << "\n";
+          }
+          continue;
+        }
+      }
+
+      if (Debug) {
+        errs() << "  -> QUEUED check for elimination! Ptr=";
+        Ptr->printAsOperand(errs(), false);
+        errs() << " Start=";
+        Bounds.Start->print(errs());
+        errs() << " Max=";
+        Bounds.Max->print(errs());
+        errs() << "\n";
+      }
+
+      ChecksToEliminate.push_back({BI, Cmp, Ptr, BoundVal, FailB, SuccessB, Invert, Bounds.Start, Bounds.Max, CType, Pred});
+    }
+
+    if (ChecksToEliminate.empty())
+      return false;
+
+    SCEVExpander Expander(SE, DL, "filc_bounds");
+    bool Modified = false;
+
+    auto createHoistedFailBlock = [&](Value *FailingPtr, BasicBlock *OrigFailB) -> BasicBlock * {
+      BasicBlock *HoistedFailB = BasicBlock::Create(F.getContext(), "filc_hoisted_fail_block", &F);
+      IRBuilder<> FailBuilder(HoistedFailB);
+      CallInst *FailCall = nullptr;
+      BasicBlock *CurBB = OrigFailB;
+      while (CurBB) {
+        for (Instruction &I : *CurBB) {
+          if (CallInst *CI = dyn_cast<CallInst>(&I)) {
+            if (Function *Callee = CI->getCalledFunction()) {
+              StringRef Name = Callee->getName();
+              if (Name.contains("fail") || Name.contains("panic")) {
+                FailCall = CI;
+                break;
+              }
+            }
+          }
+        }
+        if (FailCall || !CurBB->getSingleSuccessor())
+          break;
+        CurBB = CurBB->getSingleSuccessor();
+      }
+
+      if (FailCall) {
+        SmallVector<Value *, 4> Args;
+        Type *Arg0Ty = FailCall->getArgOperand(0)->getType();
+        for (unsigned i = 0; i < FailCall->arg_size(); ++i) {
+          if (i == 0) {
+            Value *Arg0 = FailingPtr;
+            if (Arg0Ty->isStructTy()) {
+              Value *Lower = nullptr;
+              if (InsertValueInst *IVI = dyn_cast<InsertValueInst>(FailCall->getArgOperand(0))) {
+                if (IVI->getIndices()[0] == 1) {
+                  Lower = IVI->getInsertedValueOperand();
+                } else if (InsertValueInst *IVI2 = dyn_cast<InsertValueInst>(IVI->getAggregateOperand())) {
+                  if (IVI2->getIndices()[0] == 1)
+                    Lower = IVI2->getInsertedValueOperand();
+                }
+              }
+              if (!Lower)
+                Lower = ConstantPointerNull::get(PointerType::getUnqual(F.getContext()));
+              Value *FP = FailBuilder.CreateInsertValue(UndefValue::get(Arg0Ty), FailingPtr, { 0 }, "filc_hoisted_fp");
+              Arg0 = FailBuilder.CreateInsertValue(FP, Lower, { 1 }, "filc_hoisted_flight_ptr");
+            } else if (Arg0Ty->isIntegerTy()) {
+              Value *PtrAsInt = FailBuilder.CreatePtrToInt(FailingPtr, Arg0Ty, "filc_hoisted_ptr_as_int");
+              Arg0 = PtrAsInt;
+              if (BinaryOperator *Sub = dyn_cast<BinaryOperator>(FailCall->getArgOperand(0))) {
+                if (Sub->getOpcode() == Instruction::Sub) {
+                  Value *Payload = Sub->getOperand(1);
+                  Arg0 = FailBuilder.CreateSub(PtrAsInt, Payload, "filc_hoisted_offset");
+                }
+              }
+            } else if (Arg0Ty->isPointerTy()) {
+              if (Arg0->getType() != Arg0Ty)
+                Arg0 = FailBuilder.CreatePointerCast(Arg0, Arg0Ty);
+            }
+            Args.push_back(Arg0);
+          } else {
+            Args.push_back(FailCall->getArgOperand(i));
+          }
+        }
+        CallInst *NewCI = FailBuilder.CreateCall(FailCall->getFunctionType(), FailCall->getCalledOperand(), Args);
+        NewCI->setDebugLoc(FailCall->getDebugLoc());
+      }
+      FailBuilder.CreateUnreachable();
+      return HoistedFailB;
+    };
+
+    for (auto &Info : ChecksToEliminate) {
+      if (Info.Type == CheckType::Upper) {
+        Value *HoistedUpperMinus = hoistUpperMinusToPreheader(Info.BoundVal, L, Preheader);
+        if (!HoistedUpperMinus) {
+          if (Debug)
+            errs() << "  Could not hoist UpperMinus!\n";
+          continue;
+        }
+
+        Instruction *InsertPt = Preheader->getTerminator();
+        Value *MaxPtr = Expander.expandCodeFor(Info.Max, Info.Ptr->getType(), InsertPt);
+
+        IRBuilder<> Builder(InsertPt);
+        Value *AllInBounds = nullptr;
+        if (Info.Pred == ICmpInst::ICMP_ULT || Info.Pred == ICmpInst::ICMP_UGE)
+          AllInBounds = Builder.CreateICmpULT(MaxPtr, HoistedUpperMinus, "filc_all_in_bounds");
+        else
+          AllInBounds = Builder.CreateICmpULE(MaxPtr, HoistedUpperMinus, "filc_all_in_bounds");
+
+        BasicBlock *HoistedFailB = createHoistedFailBlock(MaxPtr, Info.FailB);
+
+        Instruction *PreheaderTerm = Preheader->getTerminator();
+        BasicBlock *NewPreheader = SplitBlock(Preheader, PreheaderTerm, &DT, &LI);
+        Preheader->getTerminator()->eraseFromParent();
+        BranchInst::Create(NewPreheader, HoistedFailB, AllInBounds, Preheader);
+        DT.addNewBlock(HoistedFailB, Preheader);
+
+        if (!Info.Invert)
+          Info.BI->setCondition(ConstantInt::getFalse(Type::getInt1Ty(F.getContext())));
+        else
+          Info.BI->setCondition(ConstantInt::getTrue(Type::getInt1Ty(F.getContext())));
+
+        if (Debug)
+          errs() << "  ELIMINATED UpperBound check!\n";
+
+        Preheader = NewPreheader;
+        Modified = true;
+      } else {
+        // Lower bound check: StartPtr >= Lower
+        Instruction *InsertPt = Preheader->getTerminator();
+        Value *StartPtr = Expander.expandCodeFor(Info.Start, Info.Ptr->getType(), InsertPt);
+
+        IRBuilder<> Builder(InsertPt);
+        Value *LowerInBounds = Builder.CreateICmpUGE(StartPtr, Info.BoundVal, "filc_lower_in_bounds");
+
+        BasicBlock *HoistedFailB = createHoistedFailBlock(StartPtr, Info.FailB);
+
+        Instruction *PreheaderTerm = Preheader->getTerminator();
+        BasicBlock *NewPreheader = SplitBlock(Preheader, PreheaderTerm, &DT, &LI);
+        Preheader->getTerminator()->eraseFromParent();
+        BranchInst::Create(NewPreheader, HoistedFailB, LowerInBounds, Preheader);
+        DT.addNewBlock(HoistedFailB, Preheader);
+
+        if (!Info.Invert)
+          Info.BI->setCondition(ConstantInt::getFalse(Type::getInt1Ty(F.getContext())));
+        else
+          Info.BI->setCondition(ConstantInt::getTrue(Type::getInt1Ty(F.getContext())));
+
+        if (Debug)
+          errs() << "  ELIMINATED LowerBound check!\n";
+
+        Preheader = NewPreheader;
+        Modified = true;
+      }
+    }
+
+    return Modified;
+  }
+
+  bool run() {
+    static bool Debug = (getenv("FILC_DEBUG_BOUNDS") != nullptr);
+    bool Changed = false;
+    SmallVector<Loop*, 8> Worklist;
+    for (Loop *L : LI) {
+      for (Loop *SubL : L->getLoopsInPreorder())
+        Worklist.push_back(SubL);
+    }
+    std::reverse(Worklist.begin(), Worklist.end());
+
+    if (Debug && !Worklist.empty())
+      errs() << "[FilC LoopBoundsElim] Function " << F.getName() << " has " << Worklist.size() << " loops.\n";
+
+    for (Loop *L : Worklist)
+      Changed |= eliminateBoundsChecksInLoop(L);
+
+    if (Changed)
+      DT.recalculate(F);
+
+    return Changed;
+  }
+};
+
+} // anonymous namespace
+
+PreservedAnalyses FilCLoopBoundsEliminationPass::run(Function &F, FunctionAnalysisManager &FAM) {
+  if (F.isDeclaration())
+    return PreservedAnalyses::all();
+
+  static bool Debug = (getenv("FILC_DEBUG_BOUNDS") != nullptr);
+  if (Debug)
+    errs() << "[FilC LoopBoundsElim] Pass invoked on: " << F.getName() << "\n";
+
+  LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
+  ScalarEvolution &SE = FAM.getResult<ScalarEvolutionAnalysis>(F);
+  DominatorTree &DT = FAM.getResult<DominatorTreeAnalysis>(F);
+
+  FilCLoopBoundsEliminator Eliminator(F, LI, SE, DT);
+  if (Eliminator.run()) {
+    if (Debug)
+      errs() << "[FilC LoopBoundsElim] SUCCESS: Modified " << F.getName() << "\n";
+    PreservedAnalyses PA;
+    PA.preserve<DominatorTreeAnalysis>();
+    return PA;
+  }
+
+  return PreservedAnalyses::all();
 }
