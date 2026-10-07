@@ -857,13 +857,13 @@ def filc_cosmo : Flag<["--"], "filc-cosmo">, Flags<[NoXarchOption]>,
   HelpText<"Force Fil-C cosmopolitan libc mode (static, non-PIE executables linked with cosmo CRT, ape.lds, and libyolocosmo.a)">;
 def filc_ape : Flag<["--"], "filc-ape">, Flags<[NoXarchOption]>,
   Visibility<[ClangOption]>,
-  HelpText<"In cosmo mode, make the requested output file the APE (runnable on Windows x86_64/macOS/BSD/Linux) and keep the statically-linked ELF as <output>.dbg.  By default the ELF takes the requested output path and the APE is written next to it as <output>.com">;
+  HelpText<"In cosmo mode, build a single-architecture APE: the requested output file is the APE and the ELF is kept as <output>.dbg (also disables .aarch64 shadow compiles)">;
 def filc_fat_ape : Flag<["--"], "filc-fat-ape">, Flags<[NoXarchOption]>,
   Visibility<[ClangOption]>,
-  HelpText<"In cosmo mode for an x86_64 target, also build for aarch64 (cosmocc-style double link) and merge both images into one fat APE at <output> that runs on x86_64 and aarch64, on Linux/Windows/macOS/BSD.  The x86_64 ELF is kept as <output>.com.dbg and the aarch64 ELF as <output>.aarch64.elf.  Requires source inputs">;
-def filc_no_ape : Flag<["--"], "filc-no-ape">, Flags<[NoXarchOption, HelpHidden]>,
+  HelpText<"In cosmo mode for an x86_64 target, build a fat APE: one binary at <output> containing x86_64 and aarch64 images (runs on x86_64 and aarch64, on Linux/Windows/macOS/BSD), with the x86_64 ELF kept as <output>.com.dbg and the aarch64 ELF as <output>.aarch64.elf.  This is now the default; the flag is accepted for compatibility">;
+def filc_no_ape : Flag<["--"], "filc-no-ape">, Flags<[NoXarchOption]>,
   Visibility<[ClangOption]>,
-  HelpText<"Internal: skip the APE post-link step in cosmo mode (used by the nested aarch64 link that --filc-fat-ape spawns)">;
+  HelpText<"Disable Fil-C cosmo APE behavior: link plain ELF executables instead of APEs (no fat x86_64+aarch64 builds) and compile single-architecture objects without .aarch64 shadow copies.  Use this when building the Fil-C cosmo runtime itself (libpizlo, libc, etc.)">;
 def yolo_assembler : Flag<["-"], "yolo-assembler">, Flags<[NoXarchOption]>,
   Visibility<[ClangOption]>,
   HelpText<"Use the built-in YOLO assembler for .s inputs instead of sarcasm, and recognize the zunsafe_* unsafe call intrinsics">;

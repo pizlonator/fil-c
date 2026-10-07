@@ -45,9 +45,12 @@
 #
 # The exception is the APE linker tooling (the `filcapetools` make target):
 # apelink and pecheck are full-blown cosmo programs that the Fil-C clang
-# driver runs at link time, so they are built in the Linux-only x86_64-
-# optlinux mode (they only ever run on the Linux build host).  They are
-# installed as pizfix/libexec/apelink and pizfix/libexec/pecheck, next to
+# driver runs as the post-link step of every cosmo-mode executable link (it
+# merges the x86_64 and aarch64 ELF halves into the fat APE that the driver
+# writes at the -o path; see the install block below), so they are built in
+# the Linux-only x86_64-optlinux mode (they only ever run on the Linux build
+# host).  They are installed as pizfix/libexec/apelink and
+# pizfix/libexec/pecheck, next to
 # the Apple-silicon loader source that apelink embeds, as
 # pizfix/libexec/ape-m1.c, and the per-architecture APE loaders that apelink
 # embeds, installed as pizfix/lib/ape-x86_64.elf and
@@ -121,17 +124,30 @@ do
 done
 
 # The APE linker tooling, which the Fil-C clang driver runs as a post-link
-# step for every cosmo-mode executable link:
+# step for every cosmo-mode executable link.  The default link produces a fat
+# APE at the -o path: the driver links the x86_64 half to <out>.com.dbg,
+# links the aarch64 half to <out>.aarch64.elf (a nested clang invocation for
+# source inputs; for .o inputs it re-links the .aarch64/ shadow objects that
+# the compiles left next to them), and then runs apelink to merge both
+# images plus the loaders into <out>:
 #
-#   libexec/apelink     <- rewrites the linked ELF into an APE (MZqFpD magic
-#                          first), embedding the loaders and the m1 loader
-#                          source; the driver runs it as
+#   libexec/apelink     <- merges the linked ELF image(s) and the loaders
+#                          into the APE (MZqFpD magic first); the driver runs
+#                          it as
 #                            apelink -V -1 -l <pizfix>/lib/ape-x86_64.elf \
-#                              -o <out>.com <out>          (x86_64 links)
+#                              -l <pizfix>/lib-aarch64/ape-aarch64.elf \
+#                              -M <pizfix>/libexec/ape-m1.c \
+#                              -o <out> <out>.com.dbg <out>.aarch64.elf
+#                                                        (default fat APE)
+#                            apelink -V -1 -l <pizfix>/lib/ape-x86_64.elf \
+#                              -o <out> <out>.dbg        (--filc-ape, x86_64)
 #                            apelink -V -1 \
 #                              -l <pizfix>/lib-aarch64/ape-aarch64.elf \
 #                              -M <pizfix>/libexec/ape-m1.c \
-#                              -o <out>.com <out>          (aarch64 links)
+#                              -o <out> <out>.dbg  (--filc-ape or aarch64)
+#                          If apelink or the loaders are missing, the driver
+#                          skips the APE step and leaves the plain ELF (with
+#                          a warning).
 #   libexec/ape-m1.c    <- the macOS-arm64 APE loader source, compiled on the
 #                          fly by Xcode when an APE runs on Apple silicon
 #                          (only embedded for aarch64 inputs)
@@ -265,7 +281,11 @@ do
     # then a rerun of compute-closure.py if the closure changed).
     # Makefile-setup installs the stdfil headers into pizfix, which the
     # filc/src objects need; the host build in build_runtime.sh runs it
-    # later, but this script runs before that on a fresh tree.
+    # later, but this script runs before that on a fresh tree.  The libpas
+    # Makefile itself passes --filc-no-ape to the Fil-C driver in cosmo mode
+    # (its FILC_DRIVER_FLAGS), so these per-architecture objects get no
+    # aarch64 shadow compiles and no APE behavior without any extra flags
+    # here.
     mkdir -p pizfix/stdfil-include
     make -C libpas -f Makefile-setup FILC_OUTPUT_ROOT=`pwd`/pizfix
     make -C libpas -f Makefile FILCARCH=$COSMOARCH \

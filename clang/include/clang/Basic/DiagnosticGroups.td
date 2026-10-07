@@ -129,6 +129,11 @@ def MathErrnoEnabledWithVecLib : DiagGroup<"math-errno-enabled-with-veclib">;
 
 def FrameAddress : DiagGroup<"frame-address">;
 def FreeNonHeapObject : DiagGroup<"free-nonheap-object">;
+// Fil-C cosmo-mode APE degradation warnings (the fat x86_64+aarch64 APE build
+// and its aarch64 half are best-effort; see the cosmo-mode linker in
+// ToolChains/Gnu.cpp).  Defined explicitly, since more than one diagnostic
+// shares it and TableGen only tolerates one implicit group definition.
+def filc_ape : DiagGroup<"filc-ape">;
 def DoublePromotion : DiagGroup<"double-promotion">;
 def EnumTooLarge : DiagGroup<"enum-too-large">;
 def UnsupportedNan : DiagGroup<"unsupported-nan">;

@@ -27,6 +27,30 @@ namespace tools {
 void addPathIfExists(const Driver &D, const Twine &Path,
                      ToolChain::path_list &Paths);
 
+// Fil-C fat APE mode (cosmo mode; see the linker in ToolChains/Gnu.cpp and
+// the shadow compiles in ToolChains/Clang.cpp): the default cosmo-mode
+// executable link is a fat x86_64+aarch64 APE.  The aarch64 half of the build
+// either recompiles source inputs or consumes aarch64 "shadow objects", which
+// the compile step writes next to the x86_64 objects.  These helpers classify
+// paths and compute shadow paths; they are shared between the compile and
+// link sides so both agree on the conventions.
+
+/// True if Path looks like C-family source code, i.e. something the aarch64
+/// half of a fat APE build can recompile from scratch.
+bool isFilCFatAPESourceInput(llvm::StringRef Path);
+
+/// True if Path looks like a precompiled artifact (an object or a static
+/// archive), i.e. something the aarch64 half of a fat APE build cannot
+/// recompile and needs a shadow object for.
+bool isFilCFatAPEPrecompiledInput(llvm::StringRef Path);
+
+/// Compute the aarch64 shadow object path for FilePath: the file with the
+/// same name in the ".aarch64" subdirectory of FilePath's directory.  This
+/// mirrors the compile step, which writes the aarch64 object for
+/// <dir>/<name> to <dir>/.aarch64/<name>.
+void getFilCFatAPEShadowPath(llvm::StringRef FilePath,
+                             llvm::SmallString<128> &Out);
+
 void AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
                      const llvm::opt::ArgList &Args,
                      llvm::opt::ArgStringList &CmdArgs, const JobAction &JA);

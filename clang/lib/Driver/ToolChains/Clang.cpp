@@ -8177,6 +8177,129 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
       Input.getInputArg().renderAsInput(Args, CmdArgs);
   }
 
+  // Fil-C cosmo mode, x86_64 target, compiling to an object file: also build
+  // the aarch64 "shadow object" for fat APE links (see the big APE contract
+  // comment in ToolChains/Gnu.cpp).  The default cosmo-mode executable link
+  // is a fat x86_64+aarch64 APE, and a link that consumes precompiled
+  // artifacts needs an aarch64 counterpart for each of them: aarch64 objects
+  // cannot be derived from x86_64 ones.  So every compile that produces an
+  // object also produces the aarch64 object for it, at
+  // <dir>/.aarch64/<name>; the link step then swaps the x86_64 objects for
+  // their shadows.  (Inputs that are still source code when they reach the
+  // link - driver-built temporaries from one-shot compile+link invocations -
+  // are recompiled by the nested aarch64 link instead, which is why the gate
+  // below excludes the compile-to-temp jobs of compile+link invocations via
+  // the -c check.)
+  //
+  // The shadow compile re-runs the whole driver for aarch64, exactly like
+  // the nested aarch64 link does: it replays the original command line with
+  // an aarch64 target, --filc-no-ape (so the nested invocation does not
+  // recurse into fat builds), and -o pointing at the shadow path.  It is a
+  // best-effort (SoftFail) command: if the aarch64 compile fails - because
+  // the source is x86_64-specific (x86 intrinsics, inline asm, ...), or
+  // because the aarch64 half of the pizfix tree is missing, or whatever -
+  // we warn and keep the x86_64-only object, and the link then degrades to
+  // an x86_64-only APE.
+  //
+  // Ordering is load-bearing: the shadow command is added BEFORE the main
+  // cc1 command, so .aarch64/foo.o is always produced before foo.o (never
+  // the other way around) and make-style dependency tracking ("foo.o: foo.c"
+  // rebuilds both, and nothing considers .aarch64/foo.o up to date when
+  // foo.o is out of date) works.  Commands run sequentially in insertion
+  // order; no parallelism is introduced here.
+  //
+  // A THIRD command (below, after the cc1 command) bumps the shadow's
+  // modification time with /bin/touch: the link accepts a shadow only if it
+  // is at least as new as the primary object, so a primary that was rebuilt
+  // without its shadow (with --filc-no-ape, or by a compilation cache that
+  // does not know about shadow objects, like ccache) is detectably stale.
+  // The bump marks the shadow as produced-by-this-compilation; without it
+  // the shadow would always be the older of the two files, since it is
+  // written first.
+  SmallString<128> ShadowPath;
+  if (D.HasCosmo && TC.getTriple().isOSLinux() &&
+      TC.getTriple().getArch() == llvm::Triple::x86_64 &&
+      JA.getType() == types::TY_Object && Output.isFilename() &&
+      Args.hasArg(options::OPT_c) &&
+      !Args.hasArg(options::OPT_filc_no_ape) &&
+      !Args.hasArg(options::OPT_filc_ape) &&
+      !D.CCGenDiagnostics &&
+      tools::isFilCFatAPESourceInput(Output.getBaseInput()) &&
+      // Compiling into the shadow directory itself (the nested aarch64
+      // invocation does exactly that) must not recurse.  Neither may a
+      // "does it compile" probe like `clang -c -o /dev/null x.c`: its
+      // shadow path would be /dev/.aarch64/null, creating /dev/.aarch64.
+      llvm::sys::path::filename(
+          llvm::sys::path::parent_path(Output.getFilename())) != ".aarch64" &&
+      llvm::sys::path::parent_path(Output.getFilename()) != "/dev") {
+    tools::getFilCFatAPEShadowPath(Output.getFilename(), ShadowPath);
+    ArgStringList ShadowArgs;
+    // The nested invocation re-derives the driver mode from its argv, but it
+    // is the same binary either way (clang vs clang++), so make the parent's
+    // mode explicit: it decides how the input is compiled (C vs C++).
+    ShadowArgs.push_back(
+        Args.MakeArgString(Twine("--driver-mode=") +
+                           (D.CCCIsCXX() ? "g++" : "gcc")));
+    const llvm::opt::InputArgList &RawArgs = C.getInputArgs();
+    bool SawBaseInput = false;
+    for (const llvm::opt::Arg *A : RawArgs) {
+      if (A->getOption().matches(options::OPT_o) ||
+          A->getOption().matches(options::OPT_driver_mode) ||
+          A->getOption().matches(options::OPT_filc_fat_ape) ||
+          A->getOption().matches(options::OPT_filc_ape) ||
+          A->getOption().matches(options::OPT_filc_no_ape))
+        continue;
+      if (A->getOption().matches(options::OPT_INPUT)) {
+        // A multi-input `clang -c a.c b.c` runs one job per input, but all
+        // of the jobs see the same raw args.  Each shadow compile compiles
+        // exactly this job's input (a -o with multiple -c inputs is an
+        // error), so drop the other inputs from the replay - and keep only
+        // the first occurrence of this job's own input.
+        if (!SawBaseInput && A->getNumValues() == 1 &&
+            StringRef(A->getValue(0)) == Output.getBaseInput()) {
+          SawBaseInput = true;
+          A->render(RawArgs, ShadowArgs);
+        }
+        continue;
+      }
+      A->render(RawArgs, ShadowArgs);
+    }
+    if (!SawBaseInput)
+      ShadowArgs.push_back(Args.MakeArgString(Output.getBaseInput()));
+    // These go last: --target and --filc-cosmo override whatever the
+    // original command line said (the driver takes the last --target), and
+    // --filc-no-ape stops the nested invocation from producing an APE (for
+    // compile jobs there would not be one anyway) and from recursing into
+    // the shadow compile logic.
+    ShadowArgs.push_back("--target=aarch64-linux-gnu");
+    ShadowArgs.push_back("--filc-cosmo");
+    ShadowArgs.push_back("--filc-no-ape");
+    ShadowArgs.push_back("-o");
+    ShadowArgs.push_back(Args.MakeArgString(ShadowPath));
+
+    // clang does not create missing output directories, and the nested
+    // invocation would fail on a missing .aarch64 directory for reasons that
+    // have nothing to do with the source.  Create it here - except in a dry
+    // run (-###), which must not touch the filesystem.
+    if (!C.getInputArgs().hasArg(options::OPT__HASH_HASH_HASH)) {
+      SmallString<128> ShadowDir(llvm::sys::path::parent_path(ShadowPath));
+      if (!ShadowDir.empty()) {
+        // Ignore the error: the shadow compile will then fail on its own,
+        // which soft-fails with a warning, exactly like any other failure of
+        // the aarch64 half of the build.
+        llvm::sys::fs::create_directories(ShadowDir);
+      }
+    }
+
+    InputInfo ShadowOutput(types::TY_Object, Args.MakeArgString(ShadowPath),
+                           Output.getBaseInput());
+    auto ShadowCommand = std::make_unique<Command>(
+        JA, *this, ResponseFileSupport::AtFileCurCP(),
+        D.getClangProgramPath(), ShadowArgs, Inputs, ShadowOutput);
+    ShadowCommand->SoftFail = true;
+    C.addCommand(std::move(ShadowCommand));
+  }
+
   if (D.CC1Main && !D.CCGenDiagnostics) {
     // Invoke the CC1 directly in this process
     C.addCommand(std::make_unique<CC1Command>(
@@ -8186,6 +8309,34 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     C.addCommand(std::make_unique<Command>(
         JA, *this, ResponseFileSupport::AtFileUTF8(), Exec, CmdArgs, Inputs,
         Output, D.getPrependArg()));
+  }
+
+  // Fil-C fat APE: mark the shadow object as produced by this compilation by
+  // bumping its modification time (see the shadow-compile comment above).
+  // This runs LAST (commands execute in insertion order), so the shadow's
+  // mtime ends up newer than the primary object's: the link-side freshness
+  // check (ToolChains/Gnu.cpp) accepts a shadow only if it is at least as
+  // new as the primary it shadows, which detects a primary that was rebuilt
+  // without its shadow - with --filc-no-ape, or by a compilation cache that
+  // does not know about shadow objects, like ccache - and degrades to an
+  // x86_64-only APE with a warning instead of silently mixing old aarch64
+  // code with new x86_64 code.
+  //
+  // The touch declares NO inputs and NO outputs.  Not declaring the shadow as
+  // its output matters: this command is SoftFail, and a soft-failed command's
+  // declared outputs are removed on failure (Compilation::ExecuteJobs) - the
+  // cleanup must never delete a successfully refreshed shadow.  If the touch
+  // itself fails, nothing is deleted and the link's freshness check simply
+  // degrades safely (a shadow older than its primary is rejected).
+  if (!ShadowPath.empty()) {
+    ArgStringList TouchArgs;
+    TouchArgs.push_back("-c");
+    TouchArgs.push_back(Args.MakeArgString(ShadowPath));
+    auto TouchCommand = std::make_unique<Command>(
+        JA, *this, ResponseFileSupport::None(), "/bin/touch", TouchArgs,
+        ArrayRef<InputInfo>{}, ArrayRef<InputInfo>{});
+    TouchCommand->SoftFail = true;
+    C.addCommand(std::move(TouchCommand));
   }
 
   // Make the compile command echo its inputs for /showFilenames.

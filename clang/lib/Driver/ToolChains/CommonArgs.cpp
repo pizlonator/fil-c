@@ -74,6 +74,32 @@ using namespace clang::driver::tools;
 using namespace clang;
 using namespace llvm::opt;
 
+bool tools::isFilCFatAPESourceInput(llvm::StringRef Path) {
+  StringRef Ext = llvm::sys::path::extension(Path);
+  return Ext.equals_insensitive(".c") || Ext.equals_insensitive(".i") ||
+         Ext.equals_insensitive(".cpp") || Ext.equals_insensitive(".cc") ||
+         Ext.equals_insensitive(".cp") || Ext.equals_insensitive(".cxx") ||
+         Ext.equals_insensitive(".c++") || Ext.equals_insensitive(".C") ||
+         Ext.equals_insensitive(".ii") || Ext.equals_insensitive(".m") ||
+         Ext.equals_insensitive(".mm") || Ext.equals_insensitive(".mii") ||
+         Ext.equals_insensitive(".mpp") || Ext.equals_insensitive(".cppm") ||
+         Ext.equals_insensitive(".c++m");
+}
+
+bool tools::isFilCFatAPEPrecompiledInput(llvm::StringRef Path) {
+  StringRef Ext = llvm::sys::path::extension(Path);
+  return Ext.equals_insensitive(".o") || Ext.equals_insensitive(".obj") ||
+         Ext.equals_insensitive(".a") || Ext.equals_insensitive(".lib") ||
+         Ext.equals_insensitive(".lo");
+}
+
+void tools::getFilCFatAPEShadowPath(llvm::StringRef FilePath,
+                                    llvm::SmallString<128> &Out) {
+  Out = llvm::sys::path::parent_path(FilePath);
+  llvm::sys::path::append(Out, ".aarch64");
+  llvm::sys::path::append(Out, llvm::sys::path::filename(FilePath));
+}
+
 static bool useFramePointerForTargetByDefault(const llvm::opt::ArgList &Args,
                                               const llvm::Triple &Triple) {
   if (Args.hasArg(clang::driver::options::OPT_pg) &&

@@ -41,7 +41,12 @@ cd projects/minilute
 # seconds and keeps this script correct when run standalone, too.
 make distclean
 
-make -j $NCPU CC="$PWD/../../build/bin/clang" CXX="$PWD/../../build/bin/clang++"
+# minilute is a build tool: a plain host x86_64 ELF is what we want, not an
+# APE.  --filc-no-ape disables the Fil-C driver's default cosmo behavior
+# (aarch64 shadow compiles and the fat-APE post-link), which would double this
+# build and leave fat-APE side files (minilute.com.dbg, minilute.aarch64.elf)
+# behind - the cp below installs the result into pizfix/bin.
+make -j $NCPU CC="$PWD/../../build/bin/clang --filc-no-ape" CXX="$PWD/../../build/bin/clang++ --filc-no-ape"
 
 cp minilute ../../pizfix/bin/
 

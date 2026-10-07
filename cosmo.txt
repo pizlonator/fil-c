@@ -5,15 +5,15 @@ flavors.  It uses [cosmopolitan libc](https://justine.lol/cosmopolitan/) (cosmo)
 on both sides of the Fil-C sandwich: cosmo is the yolo (un-pizlonated) libc
 below libpizlo, and it is also the user libc above it (rebuilt by the Fil-C
 compiler).  Cosmo-mode programs are static, non-PIE executables with no dynamic
-linker, and every cosmo-mode link produces an "actually portable executable"
-(APE): one file that runs on multiple operating systems and, with the fat APE
-mode described below, on both x86_64 and ARM64.
+linker, and every cosmo-mode link produces a fat "actually portable
+executable" (APE): one file that runs on multiple operating systems and on
+both x86_64 and ARM64.
 
 Like the other flavors, cosmo mode is selected entirely by what is installed in
 `pizfix/`.  The compiler itself is flavor-blind: at startup it probes
 `pizfix/lib/libyolocosmo.a`, and if that file exists it links cosmo-style
 (static, non-PIE, via cosmo's APE linker script) and post-processes the link
-into an APE.  No reconfigure or rebuild of LLVM/clang is needed to switch
+into a fat APE.  No reconfigure or rebuild of LLVM/clang is needed to switch
 flavors.
 
 Everything below was verified against the scripts and binaries in this tree,
@@ -50,15 +50,17 @@ Build Fil-C in cosmo mode (full build + test suite):
 ./build_all_fast_cosmo.sh
 ```
 
-Build one fat x86_64 + aarch64 APE:
+Build one fat x86_64 + aarch64 APE (this is just the default link - no
+special flag required):
 
 ```
-build/bin/clang --filc-fat-ape -o hello hello.c
+build/bin/clang -o hello hello.c
 ./hello
 ```
 
-That's it.  `hello` is a single APE that runs on x86_64 and aarch64 Linux,
-macOS, and the BSDs, and on x86_64 Windows.  Details below.
+That's it.  `hello` is a single fat APE that runs on x86_64 and aarch64
+Linux, macOS, and the BSDs, and on x86_64 Windows.  (`--filc-fat-ape` is
+still accepted as an explicit spelling of the default.)  Details below.
 
 ## Building Fil-C in cosmo mode
 
@@ -235,22 +237,39 @@ Once `pizfix` is in cosmo state (check: `ls pizfix/lib/libyolocosmo.a`), the
 stock `build/bin/clang` produces cosmo-mode binaries by default.  The examples
 below are run from the repo root with the repo's compiler.
 
-### Default: ELF plus `.com` APE twin
+### Default: fat APE plus ELF side files
 
 ```
 build/bin/clang -o hello hello.c
 ```
 
-You get two files:
+You get three files:
 
-- `hello` - a static, non-PIE x86_64 ELF executable (`file hello` says
-  `statically linked`, `readelf -h` says `EXEC`, and there is no `INTERP`
-  segment: cosmo programs have no dynamic linker).  This is what the kernel,
-  test tooling, and scripts exec directly.
-- `hello.com` - the same program as an APE ("actually portable executable"),
-  produced by running `pizfix/libexec/apelink` over the ELF as a post-link
-  step.  It starts with the `MZqFpD` magic and runs on Linux-x86_64, Windows
-  x86_64, macOS, and the BSDs.
+- `hello` - a single fat APE ("actually portable executable", `MZqFpD` magic),
+  produced by running `pizfix/libexec/apelink` over the x86_64 and aarch64
+  ELF halves as a post-link step.  It runs on x86_64 and aarch64 Linux,
+  Windows x86_64, macOS, and the BSDs.
+- `hello.com.dbg` - the x86_64 half: a static, non-PIE x86_64 ELF executable
+  (`file hello.com.dbg` says `statically linked`, `readelf -h` says `EXEC`,
+  and there is no `INTERP` segment: cosmo programs have no dynamic linker).
+  This is what the kernel, test tooling, and scripts exec directly.
+- `hello.aarch64.elf` - the aarch64 half: a static aarch64 ELF (run it under
+  `qemu-aarch64` on an x86_64 host, or exec it directly on arm64).
+
+Compiles get an aarch64 shadow object too:
+
+```
+build/bin/clang -c -o hello.o hello.c
+```
+
+produces `hello.o` (the x86_64 object you asked for) plus `.aarch64/hello.o`
+(the aarch64 "shadow" object, in a `.aarch64/` subdirectory of the output
+directory).  The shadow is always produced first and the requested object
+last, so build-system dependency tracking on `hello.o` implies that the
+shadow is fresh: both files are written by the same invocation, shadow first,
+and links consume `hello.o` before `.aarch64/hello.o`.  Separate compilation
+just works: `clang -c -o hello.o hello.c && clang -o hello hello.o` gives the
+same fat APE as the one-step build.
 
 ### Running APEs on Linux
 
@@ -260,8 +279,8 @@ returns `ENOEXEC` ("Exec format error").  Two ways to run one:
 - **Just run it from a shell.**  `sh`, `bash`, and friends have an ENOEXEC
   fallback that re-executes the file as a shell script; the APE header
   (`MZqFpD='` ... - the magic is deliberately valid shell syntax) detects this
-  and re-launches the embedded payload.  So `./hello.com` and
-  `sh -c './hello.com args'` work everywhere with no setup.  A raw `execve()`
+  and re-launches the embedded payload.  So `./hello` and
+  `sh -c './hello args'` work everywhere with no setup.  A raw `execve()`
   (e.g. from Python's `subprocess` without a shell) still fails with
   `ENOEXEC`.  Note that the first shell-run of an APE extracts the APE loader
   into the current directory as a hidden file named `.ape-1.10` (an ELF; it is
@@ -271,18 +290,41 @@ returns `ENOEXEC` ("Exec format error").  Two ways to run one:
   documentation (`ape/apeloader` / the `binfmt` setup that ships with cosmocc)
   for the one-line registration.
 - **Assimilate the APE into a plain ELF** when you need a file the kernel can
-  `execve()` directly and do not want to keep both artifacts:
-  `./hello.com --assimilate` rewrites the APE in place into a normal
+  `execve()` directly and do not want to keep the extra artifacts:
+  `./hello --assimilate` rewrites the APE in place into a normal
   (single-architecture) x86_64 ELF.
 
-`hello` (the ELF) always runs directly - that is why it is the default
-artifact.  On Windows/macOS the `.com` file is the one you ship (on Apple
-silicon the APE embeds `ape-m1.c`, which Xcode compiles on the fly).
+One caveat about running an APE through the loader: the process that the kernel
+exec'd is the loader, not your program.  The shell stub does
+`exec <loader> <APE-path> <args...>` and the loader loads your program
+in-process on a fresh stack, so `/proc/self/exe` is the loader and the kernel's
+`/proc/self/cmdline` forever shows `<loader>\0<APE-path>\0<args...>`.  Your
+program still sees a normal `argc`/`argv` (with `argv[0]` being the APE path),
+but that argv lives outside the region the kernel considers the arg area, so
+`zsetproctitle` rewrites it in-process without the kernel ever noticing:
+`/proc/self/cmdline` and `ps` keep showing the loader invocation.  That is
+inherent to interpreter-style APE execution - binfmt_misc execs the interpreter
+the same way - and it is not fixable with `PR_SET_MM`, which is unavailable to
+unprivileged programs.  If you need kernel-visible process titles, exec the ELF
+sidecar (`<out>.com.dbg`) or build with `--filc-no-ape`.  The `setproctitle*`
+tests verify the strict kernel-visibility contract by re-executing the ELF
+sidecar next to themselves (`<out>.com.dbg`, or `<out>.dbg` for `--filc-ape`
+builds; a candidate is skipped when it is the running image itself, matched by
+device and inode, so re-exec'ing the sidecar cannot loop).  The loader-exec'd
+APE run still exercises `zsetproctitle` with relaxed checks, and if the
+sidecar cannot run (for example an x86_64 sidecar on an aarch64 host) only the
+relaxed checks hold: `zsetproctitle` must not panic and the kernel's cmdline
+must stay intact.  No loader-name matching is involved.
+
+`hello` (the fat APE) is the default artifact and the one you ship (on Apple
+silicon it embeds `ape-m1.c`, which Xcode compiles on the fly).  When you
+need a file that the Linux kernel (or a script, or a test harness) can
+`execve()` directly, use the `hello.com.dbg` side file.
 
 Validate an APE with the PE checker that the build installed:
 
 ```
-pizfix/libexec/pecheck hello.com      # silent, exit 0 on a valid x86_64 APE
+pizfix/libexec/pecheck hello      # silent, exit 0 on a valid fat APE
 ```
 
 `pecheck` validates the PE headers (the Windows side of the APE).  It passes
@@ -291,15 +333,16 @@ for x86_64 and fat APEs.  Single-architecture aarch64 APEs fail it with
 (linux/macOS/BSD only; Windows is not in the aarch64 support vector) carry no
 PE header at all.
 
-### `--filc-ape`: make the APE the primary output
+### `--filc-ape`: a single-architecture APE
 
 ```
 build/bin/clang --filc-ape -o hello hello.c
 ```
 
-Same link, but the APE takes the requested output path and the ELF is kept as
-`hello.dbg`.  Use this when you want to ship `hello` and keep the ELF only for
-debugging.
+Skips the aarch64 half: the APE takes the requested output path and the
+x86_64 ELF is kept as `hello.dbg` (this also disables the aarch64 shadow
+compiles).  Use this when you want to ship `hello` and keep the ELF only for
+debugging, but do not need the aarch64 half.
 
 ### aarch64 target
 
@@ -307,12 +350,15 @@ debugging.
 build/bin/clang --target=aarch64-linux-gnu -o helloarm hello.c
 ```
 
-Produces `helloarm` (static aarch64 ELF) and `helloarm.com` (aarch64 APE with
-the Apple-silicon loader embedded).  Run it on real arm64 hardware, or on an
-x86_64 host with qemu:
+aarch64 builds are single-architecture by design (the two-architecture fat
+APE is what the driver builds *for* you when you target x86_64).  The default
+aarch64 link produces `helloarm` (an aarch64 APE with the Apple-silicon
+loader embedded) plus the aarch64 ELF at `helloarm.dbg`.  Run it on real
+arm64 hardware, or on an x86_64 host with qemu (use the `.dbg` ELF for that -
+qemu loads ELFs, not APEs):
 
 ```
-qemu-aarch64 ./helloarm              # or: qemu-aarch64 ./helloarm args...
+qemu-aarch64 ./helloarm.dbg          # or: qemu-aarch64 ./helloarm.dbg args...
 ```
 
 (Directly exec'ing an aarch64 binary on an x86_64 host gives `Exec format
@@ -328,8 +374,9 @@ build/bin/clang++ -o prog prog.cpp    # iostream, std::thread, etc.
 ./prog
 ```
 
-The C++ tests run in cosmo mode too.  Fat APEs work the same way with
-`clang++`.
+The C++ tests run in cosmo mode too.  The default fat APE works the same way
+with `clang++` (the nested aarch64 compile reads the aarch64 C++ headers that
+`build_cxx.sh` installs into `build/include/aarch64-unknown-linux-gnu/`).
 
 ### Static-only
 
@@ -345,12 +392,13 @@ The same error covers `-pie` and friends.  `dlopen()` links (cosmo provides a
 stub in `libyolocosmo.a`) but always fails at runtime with
 `dlopen() isn't supported; consider using cosmo_dlopen() and read its docs`.
 
-## Fat binaries: `--filc-fat-ape`
+## Fat APEs: the default output (and `--filc-fat-ape`)
 
-The headline feature: ONE file that runs on both x86_64 and aarch64.
+The headline feature is the default: ONE file that runs on both x86_64 and
+aarch64.
 
 ```
-build/bin/clang --filc-fat-ape -o hello hello.c
+build/bin/clang -o hello hello.c
 ```
 
 This produces three files:
@@ -364,10 +412,14 @@ This produces three files:
   `qemu-aarch64 ./hello.aarch64.elf` on an x86_64 host, or exec it directly on
   arm64).
 
+`--filc-fat-ape` is still accepted and does exactly what the default does
+(it cannot be combined with `--filc-ape` or `--filc-no-ape`, and it works for
+C++ too: `clang++ --filc-fat-ape -o prog prog.cpp`).
+
 Verified session on this repo:
 
 ```
-$ build/bin/clang --filc-fat-ape -o hello hello.c
+$ build/bin/clang -o hello hello.c
 $ ls -la hello hello.com.dbg hello.aarch64.elf
 $ ./hello fat-run one two
 Hello from cosmo (3 args)
@@ -388,47 +440,72 @@ hello.com.dbg:    ELF 64-bit LSB executable, x86-64, statically linked
 hello.aarch64.elf: ELF 64-bit LSB executable, ARM aarch64, statically linked
 ```
 
-Requirements and constraints (all enforced with clear errors):
-
-- **Source inputs only.**  The aarch64 half is produced by recompiling your
-  sources for aarch64, so prebuilt x86_64 objects cannot be used:
-  ```
-  $ build/bin/clang --filc-fat-ape -o hello hello.o
-  clang: error: cannot build a fat APE from '"hello.o"': '--filc-fat-ape'
-  requires source inputs, since aarch64 objects cannot be derived from x86_64
-  object files
-  ```
-  (`.o`, `.a`, `.so`, `.ll`, `.bc`, `.pcm`, `.s`/`.S`/`.asm` inputs and
-  `-r` links all refuse; plain C/C++/asm-through-the-compiler sources are
-  fine.)
-- **Both per-arch cosmo trees must be installed.**  The default
-  `COSMOARCHES="x86_64 aarch64"` builds both, so this just works; if
-  `pizfix/lib-aarch64/libyolocosmo.a` is missing you get:
-  ```
-  clang: error: '--filc-fat-ape' requires the aarch64 cosmo libraries in the
-  pizfix tree (build them with build_yolocosmo.sh), but
-  .../pizfix/lib-aarch64/libyolocosmo.a is missing
-  ```
-- **x86_64 cosmo target only** (`--target=aarch64-linux-gnu --filc-fat-ape`
-  is refused - the aarch64 build is what the driver does *for* you).
-- **Cannot be combined** with `--filc-ape` or `--filc-no-ape`.
-- Works for C++ too: `clang++ --filc-fat-ape -o prog prog.cpp`.
-- It is opt-in: without the flag you still get the default ELF + single-arch
-  `.com` behavior.
+Compiles participate too: a default `clang -c -o hello.o hello.c` produces
+`hello.o` plus the aarch64 shadow object `.aarch64/hello.o` (see "Default:
+fat APE plus ELF side files" above).  That is what makes separate compilation
+work: the aarch64 half of a link whose inputs are objects is produced by
+re-linking those shadows.
 
 How it works (for context): a clang driver invocation builds one action graph
-for one target, so fat mode is implemented as a cosmocc-style double link -
-the driver queues three commands in one link job: the normal x86_64 cosmo
-link (to `<output>.com.dbg`), a nested full-pipeline clang invocation
-(`--target=aarch64-linux-gnu --filc-cosmo --filc-no-ape -o
-<output>.aarch64.elf` over your original arguments, which recompiles every
-source with Fil-C codegen and links the aarch64 cosmo libraries from
-`pizfix/lib-aarch64`), and finally `pizfix/libexec/apelink -V -1 -l
+for one target, so the aarch64 half is produced by a nested full-pipeline
+clang invocation (`--target=aarch64-linux-gnu --filc-cosmo --filc-no-ape`
+over your original arguments, so all of your other command-line flags are
+reused).  For source inputs, that child recompiles every source with Fil-C
+codegen and links the aarch64 cosmo libraries from `pizfix/lib-aarch64` to
+`<output>.aarch64.elf`.  For object inputs, the aarch64 link instead consumes
+the `.aarch64/` shadow objects (the driver rewrites the input paths to their
+shadows and adds `<dir>/.aarch64` to the `-L` search paths).  The x86_64 half
+links to `<output>.com.dbg`, and finally `pizfix/libexec/apelink -V -1 -l
 pizfix/lib/ape-x86_64.elf -l pizfix/lib-aarch64/ape-aarch64.elf -M
-pizfix/libexec/ape-m1.c -o <output> <output>.com.dbg <output>.aarch64.elf`,
-which merges both images plus the loaders into the fat APE.  Run any fat link
-with `-v` to see all three commands.  A failed step skips the ones after it,
-so a broken aarch64 half fails the whole link loudly.
+pizfix/libexec/ape-m1.c -o <output> <output>.com.dbg <output>.aarch64.elf`
+merges both images plus the loaders into the fat APE.  Run any link with `-v`
+to see all of the commands.
+
+The aarch64 half is best-effort: anything that keeps it from being built
+degrades the link to an X86_64-ONLY APE with a warning (the binary still
+runs on x86_64).  That happens when:
+
+- the aarch64 cosmo libraries are missing from the pizfix tree
+  (`pizfix/lib-aarch64/libyolocosmo.a` was not built - e.g. a
+  `COSMOARCHES="x86_64"` build);
+- an input has no shadow: foreign `.o`/`.a` files that this driver did not
+  build, x86-only assembly, or bitcode;
+- an input's shadow is stale: the driver refreshes the shadow's mtime after
+  the primary object is written (a `/bin/touch` command that runs last in
+  every compile job), and the link accepts a shadow only if it is at least
+  as new as its primary object.  A primary rebuilt without its shadow -
+  with `--filc-no-ape`, or restored by a compilation cache that does not
+  know about shadow objects, like ccache - therefore degrades to an
+  x86_64-only APE with a warning instead of silently mixing old aarch64
+  code with new x86_64 code;
+- the aarch64 half itself fails.
+
+A failed aarch64 command also cleans up after itself: the partial or stale
+output of a best-effort command is deleted before the build continues, so
+nothing downstream ever consumes an aarch64 artifact that a failed command
+left behind.
+
+Only missing APE tooling (`pizfix/libexec/apelink` or the loaders) falls back
+further, to a plain x86_64 ELF at `<output>`, also with a warning.
+
+Archives deserve a note: the driver creates shadow objects, not archives, so
+a user archive that the aarch64 link should consume needs its own shadow
+archive at `<dir>/.aarch64/<name>.a` (same members, aarch64 target).  A build
+system that archives Fil-C objects has to build those shadow archives
+itself; without them, the link degrades to the x86_64-only APE per above.
+
+The knobs:
+
+- `--filc-no-ape` - the public off switch for all of this.  Links produce a
+  plain single-architecture ELF executable and compiles produce only the
+  requested object (no `.aarch64/` shadows, no side files).  This is what
+  builds of the cosmo runtime itself use - libpizlo (libpas/Makefile), the
+  pizlonated cosmo libc (projects/usercosmo/filc.mk), and the C++ runtimes
+  (build_cxx.sh) - since those build each architecture explicitly and must
+  not double-compile or leave shadow directories behind.
+- `--filc-ape` - a single-architecture APE at `<output>` with the x86_64 ELF
+  at `<output>.dbg` (it also disables the shadow compiles).
+- `--filc-fat-ape` - accepted for compatibility; this is the default.
 
 ## Running on macOS (Apple Silicon)
 
@@ -555,12 +632,14 @@ SDK-less Mac, not a Fil-C defect):
   `clang --filc-cosmo --filc-resource-dir=/tmp/pizfix-cosmo -o hello hello.c`.
   Without a pizfix tree it fails with ``'--filc-cosmo' requires a Fil-C
   pizfix directory (point at one with '--filc-resource-dir=')``.
-- `--filc-no-ape` - skip the APE post-link step; you get only the static ELF,
-  no `.com` twin.  Mostly an internal flag (it is what the nested aarch64 link
-  in fat mode passes), but handy when you want the ELF without paying for the
-  APE step or without the APE tooling being required.
-- `--filc-ape` - swap the roles of the two default outputs (APE at
-  `<output>`, ELF at `<output>.dbg`).
+- `--filc-no-ape` - the public off switch for all of the APE machinery: links
+  produce only the static ELF (no fat APE, no side files) and compiles
+  produce only the requested object (no `.aarch64/` shadows).  This is what
+  the cosmo runtime builds themselves use (libpas, projects/usercosmo,
+  build_cxx.sh), since they build each architecture explicitly.  (It is also
+  what the driver's nested aarch64 pipeline passes internally.)
+- `--filc-ape` - a single-architecture APE at `<output>` with the ELF at
+  `<output>.dbg` (and no shadow compiles).
 - `COSMOARCHES` - the list of cosmo architectures built by
   `build_yolocosmo.sh` and `build_usercosmo.sh`
   (`COSMOARCHES="x86_64 aarch64"` by default).  The per-arch cosmo mode is
@@ -675,14 +754,17 @@ Run through this after a fresh cosmo build to confirm everything works:
    `SUCCESS` (each test prints a dot in the default mode).  On this tree that
    was 6445 tests executed, all green (the count grows as tests are added;
    the full gate takes ~10 minutes on a warm 32-core box).
-3. x86_64: `clang -o hello hello.c && ./hello && ./hello.com` - both work;
-   `file hello` says statically linked; `head -c 6 hello.com` shows `MZqFpD`;
-   `pizfix/libexec/pecheck hello.com` exits 0.
+3. Default fat APE: `clang -o hello hello.c && ./hello` (the fat APE runs);
+   `head -c 6 hello` shows `MZqFpD`; `pizfix/libexec/pecheck hello` exits 0;
+   `file hello.com.dbg` says a statically linked x86-64 ELF; and
+   `qemu-aarch64 ./hello.aarch64.elf` runs the aarch64 half.
 4. aarch64: `clang --target=aarch64-linux-gnu -o helloarm hello.c &&
-   qemu-aarch64 ./helloarm`.
-5. Fat: `clang --filc-fat-ape -o hello hello.c && ./hello` (native x86_64
-   half) `&& qemu-aarch64 ./hello.aarch64.elf` (aarch64 half), plus
-   `pecheck hello`.
+   qemu-aarch64 ./helloarm.dbg`.
+5. Knobs: `clang --filc-fat-ape -o hello hello.c` behaves exactly like the
+   default; `clang --filc-no-ape -o hello hello.c` gives a plain x86_64 ELF
+   (`file hello` says ELF, with no side files and no shadow objects); and
+   `clang --filc-ape -o hello hello.c` gives a single-architecture APE plus
+   `hello.dbg`.
 6. C++: `clang++ -o prog prog.cpp && ./prog` with an iostream/thread program.
 7. Fat-APE macOS story (documented, no Linux action needed): the stub's
    Darwin branch compiles `ape-m1.c` with `cc -w -O` on first run and

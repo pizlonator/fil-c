@@ -85,6 +85,20 @@ COSMO_CCFLAGS = \
 	-D__COSMOPOLITAN__ \
 	-D_COSMO_SOURCE=1 \
 	-DPAS_COSMO=1
+
+# The cosmo runtime components built here (libpizlo.a, filc_crt.o,
+# filc_mincrt.o) are compiled per-architecture by the build system itself
+# (build_runtime.sh for the host architecture, build_yolocosmo.sh's tail loop
+# for the cross architectures) and are only ever archived, never linked into
+# executables.  The Fil-C driver's default cosmo behavior would only get in
+# the way: a -c compile would also emit an aarch64 "shadow" object in a
+# .aarch64/ directory next to the requested object (doubling the compile work
+# and leaving files nothing consumes), and an executable link would be
+# post-processed into a fat APE.  So disable all of that with the driver's
+# public --filc-no-ape option.  This covers the cross (FILCARCH=aarch64) cosmo
+# builds too, because COSMO probes the per-architecture lib directory
+# (pizfix/lib-<arch>/libyolocosmo.a).
+FILC_DRIVER_FLAGS += --filc-no-ape
 endif
 
 # The ISA flags follow the target architecture, not the host (for cross

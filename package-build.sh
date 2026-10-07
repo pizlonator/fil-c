@@ -93,9 +93,11 @@ cp -R build/include/$ARCH-unknown-linux-gnu/c++ $build_name/build/include/$ARCH-
 if test "x$flavor" = "xcosmo" && test -d build/include/aarch64-unknown-linux-gnu/c++
 then
     # The aarch64 C++ headers, which the driver's nested aarch64 clang
-    # invocation needs when --filc-fat-ape builds a fat APE out of C++
+    # invocation needs to build the aarch64 half of a fat APE out of C++
     # sources (it recompiles everything for aarch64, and that compile reads
-    # build/include/aarch64-unknown-linux-gnu/c++/v1/__config_site).
+    # build/include/aarch64-unknown-linux-gnu/c++/v1/__config_site).  Fat APEs
+    # are the default in cosmo mode now, so this is needed for every C++ fat
+    # APE build, not just for explicit --filc-fat-ape links.
     mkdir -p $build_name/build/include/aarch64-unknown-linux-gnu/
     cp -R build/include/aarch64-unknown-linux-gnu/c++ $build_name/build/include/aarch64-unknown-linux-gnu/
 fi
@@ -182,10 +184,12 @@ if test "x$flavor" = "xcosmo"
 then
     # The aarch64 kernel headers, exactly like build_yolocosmo.sh creates
     # them in-tree.  They are only recreated when the package actually has
-    # the aarch64 cosmo tree (needed for --target=aarch64-linux-gnu links
-    # and for --filc-fat-ape) and when the machine installing the package
-    # has the aarch64 kernel headers; otherwise the driver falls back to
-    # /usr/aarch64-linux-gnu/include on its own.
+    # the aarch64 cosmo tree (needed for every default fat-APE link, whose
+    # nested aarch64 half compiles and links with --target=aarch64-linux-gnu,
+    # and for explicit --target=aarch64-linux-gnu links) and when the
+    # machine installing the package has the aarch64 kernel headers;
+    # otherwise the driver falls back to /usr/aarch64-linux-gnu/include on
+    # its own.
     echo "if test -d pizfix/lib-aarch64 && test -d /usr/aarch64-linux-gnu/include/linux" >> setup.sh
     echo "then" >> setup.sh
     echo "    cd pizfix" >> setup.sh
@@ -211,12 +215,23 @@ echo 'echo' >> setup.sh
 
 if test "x$flavor" = "xcosmo"
 then
-    echo 'echo "Every link also writes an APE (actually portable executable) next to"' >> setup.sh
-    echo 'echo "the ELF: whatever.com runs on Linux, macOS, the BSDs, and Windows."' >> setup.sh
+    echo 'echo "The commands above produce fat APEs (actually portable executables):"' >> setup.sh
+    echo 'echo "whatever is one file that runs on both x86_64 and ARM64, on Linux,"' >> setup.sh
+    echo 'echo "Windows, macOS, and the BSDs.  Every link also writes two side files"' >> setup.sh
+    echo 'echo "next to it: whatever.com.dbg (the x86_64 ELF) and whatever.aarch64.elf"' >> setup.sh
+    echo 'echo "(the ARM64 ELF, handy for running the ARM64 half under"' >> setup.sh
+    echo 'echo "qemu-aarch64 or in a debugger)."' >> setup.sh
     echo 'echo' >> setup.sh
-    echo 'echo "To build one file that runs on both x86_64 and ARM64, try:"' >> setup.sh
+    echo 'echo "For plain single-architecture output instead (plain ELF executables,"' >> setup.sh
+    echo 'echo "objects only where you asked for them, no side files), use"' >> setup.sh
+    echo 'echo "--filc-no-ape:"' >> setup.sh
     echo 'echo' >> setup.sh
-    echo 'echo "    build/bin/clang --filc-fat-ape -o whatever whatever.c"' >> setup.sh
+    echo 'echo "    build/bin/clang --filc-no-ape -o whatever whatever.c"' >> setup.sh
+    echo 'echo' >> setup.sh
+    echo 'echo "For a single-architecture APE (the APE at whatever, the ELF at"' >> setup.sh
+    echo 'echo "whatever.dbg), use --filc-ape:"' >> setup.sh
+    echo 'echo' >> setup.sh
+    echo 'echo "    build/bin/clang --filc-ape -o whatever whatever.c"' >> setup.sh
     echo 'echo' >> setup.sh
 fi
 

@@ -169,6 +169,29 @@ public:
   /// Whether the command will be executed in this process or not.
   bool InProcess = false;
 
+  /// Whether a failure of this command is tolerable and only worth a
+  /// warning.  This is used by the Fil-C fat APE build (see the cosmo-mode
+  /// link in ToolChains/Gnu.cpp and the shadow compiles in
+  /// ToolChains/Clang.cpp): the aarch64 half of the build is best-effort,
+  /// and if it fails the fat APE degrades to an x86_64-only one instead of
+  /// failing the build, so the later commands of the same job (like the
+  /// apelink merge) must still run.
+  ///
+  /// Cleanup semantics: when a SoftFail command fails, Compilation::ExecuteJobs
+  /// emits the warning and then removes every file the command declared as its
+  /// output (see getOutputFilenames).  A soft-failed command's partial or
+  /// stale output must never be consumed by later commands - neither the ones
+  /// that follow it in the same job (like the apelink merge, which checks for
+  /// its input at execution time) nor a later build, which would otherwise
+  /// silently pick up an aarch64 artifact that does not match the x86_64 one.
+  /// Consequently, a SoftFail command must only declare outputs that it is
+  /// safe to delete (never an input of a command that cannot cope with the
+  /// file being absent), and it must not declare as its output a file that
+  /// was produced by an earlier, successful command - deleting that would
+  /// discard good work.  (The Fil-C shadow-mtime bump command, for instance,
+  /// declares no outputs for exactly that reason.)
+  bool SoftFail = false;
+
   Command(const Action &Source, const Tool &Creator,
           ResponseFileSupport ResponseSupport, const char *Executable,
           const llvm::opt::ArgStringList &Arguments, ArrayRef<InputInfo> Inputs,

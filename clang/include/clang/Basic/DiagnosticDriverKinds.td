@@ -203,15 +203,19 @@ def err_drv_filc_ape_tool_missing : Error<
   "cannot build an APE for '%0': Fil-C APE tooling is missing (%1 is not installed in the pizfix tree)">;
 def warn_drv_filc_ape_tool_missing : Warning<
   "not building an APE for '%0': Fil-C APE tooling is missing (%1 is not installed in the pizfix tree)">,
-  InGroup<DiagGroup<"filc-ape">>;
-def err_drv_filc_fat_ape_requires_cosmo : Error<
-  "'--filc-fat-ape' requires Fil-C cosmopolitan libc mode (run with a cosmo pizfix tree or pass '--filc-cosmo')">;
-def err_drv_filc_fat_ape_arch : Error<
-  "'--filc-fat-ape' builds an x86_64+aarch64 fat APE and is only supported for x86_64 cosmo targets, not '%0'">;
-def err_drv_filc_fat_ape_input : Error<
-  "cannot build a fat APE from '%0': '--filc-fat-ape' requires source inputs, since aarch64 objects cannot be derived from x86_64 object files">;
-def err_drv_filc_fat_ape_tree_missing : Error<
-  "'--filc-fat-ape' requires the aarch64 cosmo libraries in the pizfix tree (build them with build_yolocosmo.sh), but %0 is missing">;
+  InGroup<filc_ape>;
+def warn_drv_filc_fat_ape_tree_missing : Warning<
+  "not building a fat APE for '%0': the aarch64 cosmo libraries are missing from the pizfix tree (%1 is not installed; build them with build_yolocosmo.sh); producing an x86_64-only APE instead">,
+  InGroup<filc_ape>;
+def warn_drv_filc_fat_ape_no_shadow : Warning<
+  "not building a fat APE for '%0': '%1' has no aarch64 counterpart (expected at '%2'); producing an x86_64-only APE instead">,
+  InGroup<filc_ape>;
+def warn_drv_filc_fat_ape_stale_shadow : Warning<
+  "not building a fat APE for '%0': the aarch64 object '%1' is stale (older than '%2'); producing an x86_64-only APE instead">,
+  InGroup<filc_ape>;
+def warn_drv_filc_fat_ape_aarch64_failed : Warning<
+  "the aarch64 half of the fat APE build failed (%0 failed); producing an x86_64-only APE instead">,
+  InGroup<filc_ape>;
 def err_drv_invalid_Xarch_argument_with_args : Error<
   "invalid Xarch argument: '%0', options requiring arguments are unsupported">;
 def err_drv_Xopenmp_target_missing_triple : Error<

@@ -249,6 +249,31 @@ void Compilation::ExecuteJobs(const JobList &Jobs,
       continue;
     const Command *FailingCommand = nullptr;
     if (int Res = ExecuteCommand(Job, FailingCommand, LogOnly)) {
+      if (Job.SoftFail) {
+        // Fil-C fat APE builds run best-effort aarch64 commands (the .aarch64
+        // shadow compiles and the nested aarch64 link; see the cosmo-mode
+        // tools in ToolChains/Gnu.cpp and ToolChains/Clang.cpp).  When one of
+        // them fails, the fat APE degrades to an x86_64-only APE, so this is
+        // a warning rather than a failure: the failed command must not be
+        // recorded (that would skip the commands that follow it in the same
+        // job, like the apelink merge, and make the whole job fail) and the
+        // remaining jobs must still run.  LogOnly (-###) mode cannot get
+        // here, since ExecuteCommand does not execute anything in that mode.
+        TheDriver.Diag(diag::warn_drv_filc_fat_ape_aarch64_failed)
+            << Job.getExecutable();
+        // Whatever the failed command did write must not be consumed by the
+        // commands that follow it in this job (or by a later build): a
+        // partial or stale output would silently mix the architectures (an
+        // aarch64 object from an older source, or a half-written ELF), which
+        // is exactly the failure mode the soft-fail degradation is supposed
+        // to avoid.  Remove the command's declared outputs; the commands
+        // that follow already degrade gracefully when their inputs are
+        // missing (the sh-wrapped apelink merge checks for the aarch64 ELF,
+        // and the link-side classification degrades on a missing shadow).
+        for (const std::string &OutputFilename : Job.getOutputFilenames())
+          llvm::sys::fs::remove(OutputFilename, /*IgnoreNonExisting=*/true);
+        continue;
+      }
       FailingCommands.push_back(std::make_pair(Res, FailingCommand));
       // Bail as soon as one command fails in cl driver mode.
       if (TheDriver.IsCLMode())

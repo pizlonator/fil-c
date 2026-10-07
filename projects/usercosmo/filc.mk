@@ -141,11 +141,22 @@ COSMO_INC = \
  -isystem $(CLANG_RES) \
  -include $(COSMO)/libc/integral/normalize.inc
 
+# The Fil-C driver's cosmo-mode default is to produce fat APE executables and
+# an aarch64 "shadow" object next to every requested object.  None of that
+# applies to this libc build: every architecture is built explicitly (the
+# host-arch build installs into pizfix/lib, the FILCARCH=aarch64 cross build
+# into pizfix/lib-aarch64), this makefile only compiles and archives (it never
+# links executables), and a shadow object would double the build and leave
+# files nothing consumes.  --filc-no-ape is the driver's public off switch for
+# all of that.
+FILC_DRIVER_FLAGS = --filc-no-ape
+
 CFLAGS = $(TARGET_FLAG) -O2 -g -std=gnu23 \
  -DSUPPORT_VECTOR=1 -D_COSMO_SOURCE -DNDEBUG -DMODE=\"filc\" \
  $(ARCH_CFLAGS) \
  -fno-omit-frame-pointer -fno-stack-protector -fwrapv \
  -fno-common -w \
+ $(FILC_DRIVER_FLAGS) \
  $(COSMO_INC)
 
 # A few cosmo sources are C++ (.cc): libc/str/isw{lower,upper,separator}.cc
@@ -160,6 +171,7 @@ CXXFLAGS = $(TARGET_FLAG) -O2 -g -std=gnu++20 \
  $(ARCH_CFLAGS) \
  -fno-omit-frame-pointer -fno-stack-protector -fwrapv \
  -fno-common -w -fno-exceptions -fno-rtti -nostdinc++ \
+ $(FILC_DRIVER_FLAGS) \
  $(COSMO_INC)
 
 # FORCE=1 rebuilds everything (see the file header).

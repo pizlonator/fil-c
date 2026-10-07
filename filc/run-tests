@@ -549,6 +549,44 @@ $testDirectory.each_entry {
                 outp.puts "    cat #{Shellwords.shellescape(compilerOutput)}"
                 outp.puts "    exit 1"
                 outp.puts "fi"
+                if $hasCOSMO and data["isStatic"] and not data["files"].empty?
+                    # Cosmo links produce fat APEs: the driver looks for the
+                    # aarch64 counterpart of an archive in the .aarch64
+                    # subdirectory of the archive's directory, and it searches
+                    # the .aarch64 subdirectory of each -L path first.  The
+                    # compile steps above had the driver write aarch64 shadow
+                    # objects next to the primary ones, so archive them into
+                    # such a subarchive.  The guard is checked at compile time,
+                    # since that is when the shadow objects exist: if any
+                    # member has no shadow (like a sarcasm-assembled .s file),
+                    # this is a no-op and the link just degrades to an
+                    # x86_64-only APE.
+                    shadowObjects = data["files"].map {
+                        | file |
+                        objectPath = (outputPath + file).to_s + ".o"
+                        File.join(File.dirname(objectPath), ".aarch64", File.basename(objectPath))
+                    }
+                    outp.puts "if " + shadowObjects.map {
+                        | shadowObject |
+                        "[ -f #{Shellwords.shellescape(shadowObject)} ]"
+                    }.join(" && ")
+                    outp.puts "then"
+                    archivePath = (outputPath + libname).to_s
+                    shadowArchiveDir = File.join(File.dirname(archivePath), ".aarch64")
+                    outp.print "    mkdir -p #{Shellwords.shellescape(shadowArchiveDir)} && ar cr #{Shellwords.shellescape(File.join(shadowArchiveDir, File.basename(archivePath)))}"
+                    shadowObjects.each {
+                        | shadowObject |
+                        outp.print " #{Shellwords.shellescape(shadowObject)}"
+                    }
+                    outp.puts " >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
+                    outp.puts "    if [ $? -ne 0 ]"
+                    outp.puts "    then"
+                    outp.puts("        echo " + Shellwords.shellescape(runScript.to_s + ": FAIL: couldn't link #{libname}"))
+                    outp.puts "        cat #{Shellwords.shellescape(compilerOutput)}"
+                    outp.puts "        exit 1"
+                    outp.puts "    fi"
+                    outp.puts "fi"
+                end
             }
         end
         linkerIsCpp = false

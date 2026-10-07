@@ -1541,10 +1541,16 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
   // --filc-ape is consumed by the cosmo-mode link job (see
   // tools::gnutools::Linker::ConstructJob); claim it up front so that
   // invocations that never reach a cosmo-mode link (like compile-only ones)
-  // do not get an unused-argument warning.  --filc-fat-ape is consumed there
-  // too (it turns a cosmo-mode link into a fat x86_64+aarch64 APE build) and
-  // --filc-no-ape is the internal suppressor that the fat mode's nested
-  // aarch64 link passes so it does not emit an APE of its own; claim both.
+  // do not get an unused-argument warning.  --filc-no-ape is the public off
+  // switch for all cosmo APE behavior: it suppresses the APE post-link step
+  // (plain ELF executables instead of fat x86_64+aarch64 APEs, which are the
+  // cosmo-mode default) and the .aarch64 shadow compiles.  It is also what
+  // the runtime build passes (building libpizlo, the libc sandwich, etc. as
+  // fat APEs would buy nothing) and what the fat APE build's nested aarch64
+  // invocations pass so that they do not recurse into fat builds of their
+  // own.  --filc-fat-ape is consumed there too; it is accepted for
+  // compatibility but is a no-op now that the fat APE build is the default.
+  // Claim all three.
   if (Arg *A = Args.getLastArg(options::OPT_filc_ape))
     A->claim();
   if (Arg *A = Args.getLastArg(options::OPT_filc_fat_ape))

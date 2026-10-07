@@ -68,6 +68,8 @@ fi
 
 SHARED_LIBS=
 
+COSMO_CMAKE_FLAGS=
+
 if test "x$IS_COSMO" = "x1"
 then
     # Explicitly pin the musl knob off so that a stale cache entry cannot leak
@@ -75,6 +77,19 @@ then
     # and glibc flavors keep getting both .a and .so, exactly as before.
     LLVMLIBCOPT="-DLIBCXX_HAS_MUSL_LIBC=OFF -DLIBCXX_HAS_COSMO_LIBC=ON"
     SHARED_LIBS="-DLIBCXX_ENABLE_SHARED=OFF -DLIBCXXABI_ENABLE_SHARED=OFF"
+
+    # In cosmo mode the Fil-C driver's default behavior is to produce fat APE
+    # executables (plus ELF side files) and to emit an aarch64 "shadow" object
+    # next to every requested object.  This host runtimes build compiles
+    # x86_64 libc++/libc++abi explicitly for one architecture and only ever
+    # archives the results, so that behavior must be off: it would double
+    # every compile and leave shadow files nothing consumes.  --filc-no-ape is
+    # the driver's public off switch; pass it through the cmake language
+    # flags.  The aarch64 cmake configuration below does not need this: the
+    # driver only shadows x86_64-target compiles, so aarch64-target compiles
+    # never grow shadows (and changing that configuration's flags would
+    # trigger an unnecessary rebuild of the aarch64 tree).
+    COSMO_CMAKE_FLAGS="-DCMAKE_C_FLAGS=--filc-no-ape -DCMAKE_CXX_FLAGS=--filc-no-ape -DCMAKE_ASM_FLAGS=--filc-no-ape"
 fi
 
 test -e build/bin/clang -a -e build/bin/clang++
@@ -99,6 +114,7 @@ cmake -S runtimes -B runtimes-build -G Ninja \
     -DLIBCXXABI_ENABLE_EXCEPTIONS=ON -DLIBCXX_HAS_PTHREAD_API=ON \
     $LLVMLIBCOPT -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
     $SHARED_LIBS \
+    $COSMO_CMAKE_FLAGS \
     -DLIBCXX_FORCE_LIBCXXABI=ON \
     -DLLVM_ENABLE_ASSERTIONS=ON \
     -DLIBCXX_HARDENING_MODE=extensive \
