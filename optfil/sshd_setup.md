@@ -36,7 +36,7 @@ included OpenSSH build supports common Linux sshd features like:
 - systemd socket activation (but without a dependency on systemd)
 - gssapi for authentication and kex
 
-`/opt/fil/sbin/sshd` is based on OpenSSH 10.3p1 with small changes for Fil-C
+`/opt/fil/sbin/sshd` is based on OpenSSH 10.6p1 with small changes for Fil-C
 compatibility plus Debian patches to support things like gssapi and systemd.
 
 Using `/opt/fil/sbin/sshd` as a replacement has been tested on Ubuntu,

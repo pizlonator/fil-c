@@ -91,7 +91,7 @@ filc/projeny package \
 
 ./package-source.sh projects/libxcrypt-4.5.2 pizlonated-libxcrypt
 ./package-source.sh projects/bash-5.3 pizlonated-bash
-./package-source.sh projects/openssh-10.5p1 pizlonated-openssh
+filc/projeny package projects/openssh.projeny projects/openssh/pizlonated-openssh.tar.gz
 ./package-source.sh projects/binutils-2.47 pizlonated-binutils
 ./package-source.sh projects/audit-userspace-4.2.1 pizlonated-audit
 ./package-source.sh projects/keyutils-1.6.3 pizlonated-keyutils

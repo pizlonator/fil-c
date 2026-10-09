@@ -29,8 +29,12 @@
 set -e
 set -x
 
-cd projects/openssh-10.5p1
-extract_source
+cd projects
+rm -rf openssh/extracted-source
+../filc/projeny extract openssh.projeny openssh/extracted-source
+cd openssh/extracted-source
 CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix
 make -j $NCPU
 make -j $NCPU install
+cd ..
+rm -rf extracted-source
