@@ -6199,15 +6199,15 @@ void filc_demote_word_aligned_already_checked_heap_to_stack_without_exiting(
     filc_ptr ptr, void* payload, void* aux, size_t size)
 {
     copy_heap_to_stack_already_checked(
-        NULL, payload, aux, ptr, size, filc_word_aligned, filc_word_aligned, filc_word_aligned,
-        filc_exit_not_allowed, NULL);
+        NULL, payload, aux, ptr, size, filc_word_aligned, filc_word_aligned,
+        filc_word_aligned, filc_exit_not_allowed, NULL);
 }
 
 void filc_demote_already_checked_heap_to_stack_without_exiting(
     filc_ptr ptr, void* payload, void* aux, size_t size)
 {
     copy_heap_to_stack_already_checked(
-        NULL, payload, aux, ptr, size, filc_not_word_aligned, filc_word_aligned,
+        NULL, payload, aux, ptr, size, filc_word_aligned, filc_not_word_aligned,
         filc_not_word_aligned, filc_exit_not_allowed, NULL);
 }
 

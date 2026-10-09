@@ -4947,8 +4947,17 @@ class Pizlonator {
       for (size_t Idx = 0; Idx < CI->arg_size(); ++Idx) {
         if (!CI->isByValArgument(Idx))
           continue;
-        Func(CI, CI->getParamByValType(Idx), CI->getArgOperand(Idx), Align(1),
-             AtomicOrdering::NotAtomic, AccessKind::Read);
+        // passing a byval argument is a memcpy, so we check the size here. Basically nothing else
+        // matters. But: the ABI doesn't let us use the faster version of demotion unless we have
+        // checked word size alignment.
+        Type* OrigT = CI->getParamByValType(Idx);
+        Type* CheckT;
+        if (hasPtrs(OrigT))
+          CheckT = ArrayType::get(RawPtrTy, DL.getTypeAllocSize(OrigT) / WordSize);
+        else
+          CheckT = ArrayType::get(Int8Ty, DL.getTypeAllocSize(OrigT));
+        Func(CI, CheckT, CI->getArgOperand(Idx), Align(1), AtomicOrdering::NotAtomic,
+             AccessKind::Read);
       }
     }
   }
@@ -6544,7 +6553,7 @@ class Pizlonator {
       }
       case ArgKind::ByVal: {
         FunctionCallee DemoteFunc;
-        if (DL.getABITypeAlign(AI.T).value() >= WordSize) {
+        if (hasPtrs(AI.T)) {
           assert(!(DL.getTypeAllocSize(AI.T) & (WordSize - 1)));
           DemoteFunc = DemoteWordAlignedAlreadyCheckedHeapToStackWithoutExiting;
         } else
