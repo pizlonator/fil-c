@@ -434,7 +434,7 @@ tar -xf $FILCSRC/projects/pkgconf/pizlonated-pkgconf.tar.gz
 cd pizlonated-pkgconf
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil \
     --disable-static \
-    --docdir=/opt/fil/share/doc/pkgconf-3.0.7
+    --docdir=/opt/fil/share/doc/pkgconf-3.0.8
 make -j `nproc`
 make -j `nproc` install
 ln -sv pkgconf /opt/fil/bin/pkg-config

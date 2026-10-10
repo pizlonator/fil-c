@@ -89,7 +89,7 @@ cp -v \
     openssl-3.3.1.tar.gz \
     patch-2.8.tar.xz \
     perl-5.40.0.tar.xz \
-    pkgconf-3.0.7.tar.xz \
+    pkgconf-3.0.8.tar.xz \
     procps-ng-4.0.7.tar.xz \
     psmisc-23.7.tar.xz \
     python-3.12.5-docs-html.tar.bz2 \
