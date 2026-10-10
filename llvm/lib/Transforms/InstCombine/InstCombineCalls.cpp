@@ -127,12 +127,16 @@ Instruction *InstCombinerImpl::SimplifyAnyMemTransfer(AnyMemTransferInst *MI) {
     return MI;
   }
 
+  // Fil-C copies preserve full-word capabilities and clear partial destination
+  // words. Integer loads/stores do neither, even for a one-byte transfer.
+  // Unlike SROA's pointer-word case, opaque endpoints provide no carrier type.
+  if (DL.isFilC())
+    return nullptr;
+
   // If we have a store to a location which is known constant, we can conclude
   // that the store must be storing the constant value (else the memory
   // wouldn't be constant), and this must be a noop.
   if (!isModSet(AA->getModRefInfoMask(MI->getDest()))) {
-    if (DL.isFilC())
-      return nullptr;
     // Set the size of the copy to 0, it will be deleted on the next iteration.
     MI->setLength(Constant::getNullValue(MI->getLength()->getType()));
     return MI;
@@ -227,6 +231,10 @@ Instruction *InstCombinerImpl::SimplifyAnyMemSet(AnyMemSetInst *MI) {
     MI->setDestAlignment(KnownAlignment);
     return MI;
   }
+
+  // memset clears shadow state; a numeric store leaves it untouched.
+  if (DL.isFilC())
+    return nullptr;
 
   // If we have a store to a location which is known constant, we can conclude
   // that the store must be storing the constant value (else the memory
@@ -1664,8 +1672,9 @@ Instruction *InstCombinerImpl::visitCallInst(CallInst &CI) {
     }
 
     if (AnyMemTransferInst *MTI = dyn_cast<AnyMemTransferInst>(MI)) {
-      // memmove(x,x,size) -> noop.
-      if (MTI->getSource() == MTI->getDest())
+      // memmove(x,x,size) -> noop, except in Fil-C: partial destination words
+      // lose their capabilities even when the payload bytes do not change.
+      if (!DL.isFilC() && MTI->getSource() == MTI->getDest())
         return eraseInstFromFunction(CI);
     }
 

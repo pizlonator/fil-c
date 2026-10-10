@@ -364,17 +364,14 @@ public:
   using CGBuilderBaseTy::CreateMemCpy;
   llvm::CallInst *CreateMemCpy(Address Dest, Address Src, llvm::Value *Size,
                                bool IsVolatile = false) {
-    llvm::Value *DestPtr = emitRawPointerFromAddress(Dest);
-    llvm::Value *SrcPtr = emitRawPointerFromAddress(Src);
-    return CreateMemCpy(DestPtr, Dest.getAlignment().getAsAlign(), SrcPtr,
+    return CreateMemCpy(emitRawPointerFromAddress(Dest),
+                        Dest.getAlignment().getAsAlign(),
+                        emitRawPointerFromAddress(Src),
                         Src.getAlignment().getAsAlign(), Size, IsVolatile);
   }
   llvm::CallInst *CreateMemCpy(Address Dest, Address Src, uint64_t Size,
                                bool IsVolatile = false) {
-    llvm::Value *DestPtr = emitRawPointerFromAddress(Dest);
-    llvm::Value *SrcPtr = emitRawPointerFromAddress(Src);
-    return CreateMemCpy(DestPtr, Dest.getAlignment().getAsAlign(), SrcPtr,
-                        Src.getAlignment().getAsAlign(), Size, IsVolatile);
+    return CreateMemCpy(Dest, Src, getSize(Size), IsVolatile);
   }
 
   using CGBuilderBaseTy::CreateMemCpyInline;

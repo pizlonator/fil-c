@@ -106,13 +106,15 @@
 #include <stdint.h>
 #include <sysdep.h>
 #include <pointer_guard.h>
+#include <stdfil.h>
 
+/* Fil-C's jmp_buf does not hold a machine stack pointer. Identify the
+   frame as x86_64/jmpbuf-unwind.h does, so forced unwinding compares it
+   with the unwinder's CFA. */
 static inline uintptr_t __attribute__ ((unused))
 _jmpbuf_sp (__jmp_buf jmpbuf)
 {
-  uintptr_t sp = jmpbuf[JB_SP];
-  PTR_DEMANGLE (sp);
-  return sp;
+  return (uintptr_t) zget_jmp_buf_frame (jmpbuf);
 }
 #endif
 

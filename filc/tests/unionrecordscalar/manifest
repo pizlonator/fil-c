@@ -1,8 +1,4 @@
-# return:
-#   success
-# output-includes:
-#   - "union scalar ABI ok"
-
-# Fil-C generally doesn't take kindly to misaligned pointers, so it might be fine that this fails!
-# But we could make the failure more graceul https://github.com/pizlonator/fil-c/issues/331
-return: failure
+return:
+  success
+output-includes:
+  - "union scalar ABI ok"

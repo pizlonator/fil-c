@@ -4729,7 +4729,8 @@ class Pizlonator {
                && (F->getIntrinsicID() == Intrinsic::memcpy ||
                    F->getIntrinsicID() == Intrinsic::memcpy_inline ||
                    F->getIntrinsicID() == Intrinsic::memmove)) ||
-              ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin")
+              ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin" ||
+                F->getName() == "zmemmove_builtin_volatile")
                && isMemmoveFT(FT)));
     }
     return false;
@@ -4745,6 +4746,9 @@ class Pizlonator {
       return isa<ConstantInt>(CI->getArgOperand(3))
         && cast<ConstantInt>(CI->getArgOperand(3))->isZero();
     }
+    if (Function* F = dyn_cast<Function>(CI->getCalledOperand()))
+      if (F->getName() == "zmemmove_builtin_volatile")
+        return false;
     return true;
   }
 
@@ -4786,6 +4790,7 @@ class Pizlonator {
     return F->willReturn() ||
       F->getName() == "zmemmove_union" ||
       F->getName() == "zmemmove_builtin" ||
+      F->getName() == "zmemmove_builtin_volatile" ||
       F->getName() == "zhas_union" ||
       F->getName() == "zgc_alloc" ||
       F->getName() == "malloc" ||
@@ -4920,6 +4925,12 @@ class Pizlonator {
     if (IntrinsicInst* II = dyn_cast<IntrinsicInst>(I)) {
       switch (II->getIntrinsicID()) {
       case Intrinsic::vastart:
+        Func(II, RawPtrTy, II->getArgOperand(0), Align(WordSize), AtomicOrdering::NotAtomic,
+             AccessKind::Write);
+        return;
+      case Intrinsic::filc_va_arg_address:
+        Func(II, RawPtrTy, II->getArgOperand(0), Align(WordSize), AtomicOrdering::NotAtomic,
+             AccessKind::Read);
         Func(II, RawPtrTy, II->getArgOperand(0), Align(WordSize), AtomicOrdering::NotAtomic,
              AccessKind::Write);
         return;
@@ -7972,6 +7983,36 @@ class Pizlonator {
         II->eraseFromParent();
         return true;
       }
+
+      case Intrinsic::filc_va_arg_address: {
+        lowerConstantOperand(II->getArgOperandUse(0), II);
+        FullMemoryAccessData Access = accessDataForOperand(II->getArgOperand(0), II, 0, II);
+        Value* Cursor = loadPtr(Access.MAD, II);
+        uint64_t Alignment = cast<ConstantInt>(II->getArgOperand(2))->getZExtValue();
+        assert(Alignment >= WordSize && isPowerOf2_64(Alignment));
+        // Packet offsets are aligned relative to the allocation's payload,
+        // even when the heap base is not aligned to a vector's ABI alignment.
+        Value* Offset = flightPtrOffset(Cursor, II);
+        Offset = BinaryOperator::CreateAdd(
+          Offset, ConstantInt::get(IntPtrTy, Alignment - 1), "filc_va_arg_round", II);
+        Offset = BinaryOperator::CreateAnd(
+          Offset, ConstantInt::get(IntPtrTy, -Alignment), "filc_va_arg_offset", II);
+        Value* AlignedPtr = GetElementPtrInst::Create(
+          Int8Ty, flightPtrLower(Cursor, II), { Offset }, "filc_va_arg_aligned", II);
+        storePtr(flightPtrWithPtr(Cursor, AlignedPtr, II), Access.MAD, II);
+        storeOrigin(getOrigin(II->getDebugLoc()), II);
+        CallInst* Call = CallInst::Create(
+          GetNextPtrBytesForVAArg,
+          { II->getArgOperand(0), II->getArgOperand(1),
+            ConstantInt::get(IntPtrTy, std::min<uint64_t>(16, Alignment)) },
+          "filc_va_arg_address", II);
+        Value* Payload = ExtractValueInst::Create(RawPtrTy, Call, { 0 }, "filc_va_arg_payload", II);
+        // The helper may observe a changed cursor. Subsequent aggregate copying
+        // checks this reconstructed capability; the helper's check is not reused.
+        II->replaceAllUsesWith(flightPtrWithPtr(Cursor, Payload, II));
+        II->eraseFromParent();
+        return true;
+      }
         
       case Intrinsic::vaend:
         II->eraseFromParent();
@@ -8381,7 +8422,8 @@ class Pizlonator {
           return true;
         }
 
-        if ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin")
+        if ((F->getName() == "zmemmove_union" || F->getName() == "zmemmove_builtin" ||
+             F->getName() == "zmemmove_builtin_volatile")
             && isMemmoveFT(FT)) {
           lowerMemmoveCall(CI);
           Erasify();
@@ -16686,6 +16728,22 @@ public:
           GlobalAlias::create(ImplFuncTy, 0, F->getLinkage(), buf.str(), NewF, &M);
         }
 
+        // The function object is this module's descriptor for F, so it must run this module's
+        // implementation. NewF usually has F's linkage and visibility, which makes its symbol
+        // interposable; referencing it would let another DSO that defines the same function
+        // supply the code, so dlsym(handle, "f") on an RTLD_LOCAL library or a -Bsymbolic
+        // library could run a different library's f. Reference NewF through a private alias,
+        // which the assembler resolves against the section. Direct calls keep using NewF's
+        // symbol, so they stay interposable as native calls are.
+        Constant* DescriptorImpl = NewF;
+        if (!NewF->hasLocalLinkage() && !NewF->hasAvailableExternallyLinkage()) {
+          GlobalAlias* LocalImpl = GlobalAlias::create(
+            ImplFuncTy, NewF->getAddressSpace(), GlobalValue::PrivateLinkage,
+            NewF->getName() + ".local", NewF, &M);
+          LocalImpl->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
+          DescriptorImpl = LocalImpl;
+        }
+
         GlobalVariable* NewObjectG = new GlobalVariable(
           M, FunctionObjectTy, true, GlobalValue::InternalLinkage, nullptr,
           "pizlonatedFO_" + F->getName());
@@ -16707,8 +16765,8 @@ public:
                     IntPtrTy, static_cast<uintptr_t>(ObjectFlags) << ObjectAuxFlagsShift)) }),
             ConstantStruct::get(
               FunctionPayloadTy,
-              { Signature == GenericSignature ? RawNull : NewF,
-                Signature == GenericSignature ? NewF : calleeEntrypointThunk(
+              { Signature == GenericSignature ? RawNull : DescriptorImpl,
+                Signature == GenericSignature ? DescriptorImpl : calleeEntrypointThunk(
                   Signature, AIs, NormalizedRetType),
                 ConstantInt::get(Int64Ty, Signature) }) });
         NewObjectG->setInitializer(NewObjC);

@@ -7,7 +7,6 @@ union WideValue wide_value(union WideValue value) { return value; }
 union Numeric numeric(union Numeric value) { return value; }
 union NumericPair numeric_pair(union NumericPair value) { return value; }
 union Aligned aligned(union Aligned value) { return value; }
-union UnderAligned under_aligned(union UnderAligned value) { return value; }
 union MixedIS mixed_is(union MixedIS value) { return value; }
 union MixedSI mixed_si(union MixedSI value) { return value; }
 union HiddenLast hidden_last(union HiddenLast value) { return value; }

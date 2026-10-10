@@ -822,6 +822,12 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     bool is_force_unwinding;
     filc_ptr force_stop_callback;
     filc_ptr force_stop_arg_ptr;
+    /* The frame whose landing pad is running a cleanup for the unwind above. If that cleanup
+       raises and catches its own exception, the unwind state above is saved in
+       saved_unwind_state_ptr (a chain of runtime-private objects) and restored when the inner
+       exception reaches its handler. */
+    filc_frame* cleanup_frame_for_unwind;
+    filc_ptr saved_unwind_state_ptr;
 
     sigset_t initial_blocked_sigs;
 
@@ -1387,6 +1393,8 @@ struct filc_fiber_context {
     void* stack;
     filc_ptr closure_ptr;
     filc_ptr bound_sigset_ptr;
+    /* The unwind state of this context's stack while it's switched out (see swapcontext). */
+    filc_ptr unwind_state_ptr;
     filc_thread* owning_thread;
     filc_fiber_context* stack_owner;
     bool is_grey;

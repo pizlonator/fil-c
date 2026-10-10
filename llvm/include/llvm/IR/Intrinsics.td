@@ -715,6 +715,12 @@ def int_vacopy  : DefaultAttrsIntrinsic<[],
 def int_vaend   : DefaultAttrsIntrinsic<[],
                                         [llvm_anyptr_ty], [], "llvm.va_end">;
 
+// Fil-C aggregate extraction returns a capability-bearing packet address.
+// Size and alignment describe the full byval packet entry, not an ABI coercion.
+def int_filc_va_arg_address : Intrinsic<[llvm_ptr_ty],
+    [llvm_ptr_ty, llvm_i64_ty, llvm_i64_ty],
+    [ImmArg<ArgIndex<1>>, ImmArg<ArgIndex<2>>]>;
+
 //===------------------- Garbage Collection Intrinsics --------------------===//
 //
 def int_gcroot  : Intrinsic<[],

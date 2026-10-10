@@ -2590,139 +2590,86 @@ static llvm::Constant *EmitNullConstantForBase(CodeGenModule &CGM,
                                                llvm::Type *baseType,
                                                const CXXRecordDecl *base);
 
-constexpr bool filVerbose = false;
+static llvm::Constant *EmitNullConstant(CodeGenModule &CGM,
+                                        const RecordDecl *record,
+                                        bool asCompleteObject) {
+  const CGRecordLayout &layout = CGM.getTypes().getCGRecordLayout(record);
+  llvm::StructType *structure =
+    (asCompleteObject ? layout.getLLVMType()
+                      : layout.getBaseSubobjectLLVMType());
 
-static void FixFilPtrUnionConstant(CodeGenModule &CGM,
-                                   const RecordDecl *record,
-                                   bool asCompleteObject,
-                                   int64_t offset,
-                                   std::vector<llvm::Constant *> &elements);
+  // Zero initialization includes padding. Seed the entire byte extent before
+  // overlaying nonzero null representations; builder gaps otherwise use undef.
+  ConstantAggregateBuilder Builder(CGM);
+  llvm::Constant *ZeroBytes = llvm::Constant::getNullValue(llvm::ArrayType::get(
+      CGM.CharTy, CGM.getDataLayout().getTypeAllocSize(structure)));
+  Builder.add(ZeroBytes, CharUnits::Zero(), false);
 
-static void FixFilPtrUnionConstant(CodeGenModule &CGM,
-                                   QualType T,
-                                   int64_t offset,
-                                   std::vector<llvm::Constant *> &elements) {
-  if (filVerbose)
-    llvm::errs() << "Have type " << T << " at offset " << offset << "\n";
-  
-  if (T->getAs<PointerType>())
-    return;
-  
-  if (CGM.getTypes().isZeroInitializable(T))
-    return;
-
-  if (const ConstantArrayType *CAT = CGM.getContext().getAsConstantArrayType(T)) {
-    unsigned NumElements = CAT->getZExtSize();
-    for (unsigned index = NumElements; index--;) {
-      FixFilPtrUnionConstant(
-        CGM, CAT->getElementType(),
-        offset + CGM.getContext().getTypeSizeInChars(CAT->getElementType()).getQuantity() * index,
-        elements);
+  if (layout.hasPointerWordStorage()) {
+    // Initialize the first named member, including an anonymous aggregate
+    // containing named members. Let Clang's existing null emitter handle that
+    // member's arrays, bases, nested unions, and ABI-specific member pointers.
+    for (const FieldDecl *Field : record->fields()) {
+      const RecordDecl *FieldRecord = Field->getType()->getAsRecordDecl();
+      if (!Field->getIdentifier() &&
+          (!FieldRecord || !FieldRecord->findFirstNamedDataMember()))
+        continue;
+      if (!Field->isBitField() &&
+          !isEmptyFieldForLayout(CGM.getContext(), Field)) {
+        llvm::Constant *Member = CGM.EmitNullConstant(Field->getType());
+        // A zero aggregate's implicit LLVM padding would replace our explicit
+        // zero bytes. Leave the seed intact for wholly zero aggregates.
+        if (!isa<llvm::ConstantAggregateZero>(Member)) {
+          bool Added = Builder.add(Member, CharUnits::Zero(), true);
+          assert(Added && "Cannot lay out union null initializer");
+          (void)Added;
+        }
+      }
+      break;
     }
-    return;
+    return Builder.build(structure, /*AllowOversized=*/false);
   }
 
-  if (const RecordType *RT = T->getAs<RecordType>()) {
-    FixFilPtrUnionConstant(CGM, RT->getDecl(), /*complete object*/ true,
-                           offset, elements);
-    return;
-  }
+  unsigned numElements = structure->getNumElements();
+  std::vector<llvm::Constant *> elements(numElements);
 
-  assert(T->isMemberDataPointerType() &&
-         "Should only see pointers to data members here!");
-
-  if (T->castAs<MemberPointerType>()->isMemberDataPointer()) {
-    assert(!(offset % 8)); // FIXME
-    if (filVerbose)
-      llvm::errs() << "offset = " << offset << "\n";
-    elements[offset / 8] = llvm::ConstantExpr::getIntToPtr(
-      llvm::ConstantInt::get(CGM.PtrDiffTy, (int64_t)-1, true),
-      CGM.VoidPtrTy);
-  }
-}
-
-static void FixFilPtrUnionConstantForBase(CodeGenModule &CGM,
-                                          const CXXRecordDecl *base,
-                                          int64_t offset,
-                                          std::vector<llvm::Constant *> &elements) {
-  const CGRecordLayout &baseLayout = CGM.getTypes().getCGRecordLayout(base);
-
-  // Just zero out bases that don't have any pointer to data members (i.e. nothing
-  // to do).
-  if (baseLayout.isZeroInitializableAsBase())
-    return;
-
-  // Otherwise, we can just use its null constant.
-  return FixFilPtrUnionConstant(
-    CGM, base, /*asCompleteObject=*/false, offset, elements);
-}
-
-static void FixFilPtrUnionConstant(CodeGenModule &CGM,
-                                   const RecordDecl *record,
-                                   bool asCompleteObject,
-                                   int64_t offset,
-                                   std::vector<llvm::Constant *> &elements) {
-  if (filVerbose)
-    llvm::errs() << "have " << *record << " at offset " << offset << "\n";
-  
-  const ASTRecordLayout &RL = CGM.getContext().getASTRecordLayout(record);
-  
   auto CXXR = dyn_cast<CXXRecordDecl>(record);
   // Fill in all the bases.
   if (CXXR) {
-    // Fill in the virtual bases, if we're working with the complete object.
-    // We do this first so whatever this does gets overwritten later.
-    if (asCompleteObject) {
-      for (const auto &I : CXXR->vbases()) {
-        const CXXRecordDecl *base =
-          cast<CXXRecordDecl>(I.getType()->castAs<RecordType>()->getDecl());
-        
-        // Ignore empty bases.
-        if (isEmptyRecordForLayout(CGM.getContext(), I.getType()))
-          continue;
-        
-        FixFilPtrUnionConstantForBase(
-          CGM, base, offset + RL.getVBaseClassOffset(base).getQuantity(), elements);
-      }
-    }
-  
     for (const auto &I : CXXR->bases()) {
       if (I.isVirtual()) {
         // Ignore virtual bases; if we're laying out for a complete
         // object, we'll lay these out later.
         continue;
       }
-      
+
       const CXXRecordDecl *base =
         cast<CXXRecordDecl>(I.getType()->castAs<RecordType>()->getDecl());
-      
+
       // Ignore empty bases.
       if (isEmptyRecordForLayout(CGM.getContext(), I.getType()) ||
           CGM.getContext()
-          .getASTRecordLayout(base)
-          .getNonVirtualSize()
-          .isZero())
+              .getASTRecordLayout(base)
+              .getNonVirtualSize()
+              .isZero())
         continue;
 
-      FixFilPtrUnionConstantForBase(
-        CGM, base, offset + RL.getBaseClassOffset(base).getQuantity(), elements);
+      unsigned fieldIndex = layout.getNonVirtualBaseLLVMFieldNo(base);
+      llvm::Type *baseType = structure->getElementType(fieldIndex);
+      elements[fieldIndex] = EmitNullConstantForBase(CGM, baseType, base);
     }
   }
-  
+
   // Fill in all the fields.
   for (const auto *Field : record->fields()) {
     // Fill in non-bitfields. (Bitfields always use a zero pattern, which we
     // will fill in later.)
     if (!Field->isBitField() &&
-        !isEmptyFieldForLayout(CGM.getContext(), Field) &&
-        (!record->isUnion() || Field->getIdentifier())) {
-      if (filVerbose)
-        llvm::errs() << "dealing with field " << *Field << " at offset " << RL.getFieldOffset(Field->getFieldIndex()) << "\n";
-      FixFilPtrUnionConstant(
-        CGM, Field->getType(),
-        RL.getFieldOffset(Field->getFieldIndex()) / 8 + offset, elements);
+        !isEmptyFieldForLayout(CGM.getContext(), Field)) {
+      unsigned fieldIndex = layout.getLLVMFieldNo(Field);
+      elements[fieldIndex] = CGM.EmitNullConstant(Field->getType());
     }
-    
+
     // For unions, stop after the first named field.
     if (record->isUnion()) {
       if (Field->getIdentifier())
@@ -2732,118 +2679,45 @@ static void FixFilPtrUnionConstant(CodeGenModule &CGM,
           break;
     }
   }
-}
 
-static llvm::Constant *EmitNullConstant(CodeGenModule &CGM,
-                                        const RecordDecl *record,
-                                        bool asCompleteObject) {
-  const CGRecordLayout &layout = CGM.getTypes().getCGRecordLayout(record);
-  llvm::StructType *structure =
-    (asCompleteObject ? layout.getLLVMType()
-                      : layout.getBaseSubobjectLLVMType());
+  // Fill in the virtual bases, if we're working with the complete object.
+  if (CXXR && asCompleteObject) {
+    for (const auto &I : CXXR->vbases()) {
+      const CXXRecordDecl *base =
+        cast<CXXRecordDecl>(I.getType()->castAs<RecordType>()->getDecl());
 
-  unsigned numElements = structure->getNumElements();
-  std::vector<llvm::Constant *> elements(numElements);
+      // Ignore empty bases.
+      if (isEmptyRecordForLayout(CGM.getContext(), I.getType()))
+        continue;
 
-  if (layout.isFilPtrUnion()) {
-    if (filVerbose)
-      llvm::errs() << "is fil ptr union: " << *record << "\n";
-    assert(numElements == 1);
-    llvm::StructType* subStructure = cast<llvm::StructType>(structure->getElementType(0));
-    unsigned numSubElements = subStructure->getNumElements();
-    std::vector<llvm::Constant *> subElements(numSubElements);
-    for (unsigned fieldIndex = 0; fieldIndex < numSubElements; ++fieldIndex)
-      subElements[fieldIndex] =
-        llvm::Constant::getNullValue(subStructure->getElementType(fieldIndex));
+      unsigned fieldIndex = layout.getVirtualBaseIndex(base);
 
-    FixFilPtrUnionConstant(CGM, record, asCompleteObject, 0, subElements);
+      // We might have already laid this field out.
+      if (elements[fieldIndex]) continue;
 
-    elements[0] = llvm::ConstantStruct::get(subStructure, subElements);
-  } else {
-    if (filVerbose)
-      llvm::errs() << "is NOT fil ptr union\n";
-    auto CXXR = dyn_cast<CXXRecordDecl>(record);
-    // Fill in all the bases.
-    if (CXXR) {
-      for (const auto &I : CXXR->bases()) {
-        if (I.isVirtual()) {
-          // Ignore virtual bases; if we're laying out for a complete
-          // object, we'll lay these out later.
-          continue;
-        }
-
-        const CXXRecordDecl *base =
-          cast<CXXRecordDecl>(I.getType()->castAs<RecordType>()->getDecl());
-
-        // Ignore empty bases.
-        if (isEmptyRecordForLayout(CGM.getContext(), I.getType()) ||
-            CGM.getContext()
-            .getASTRecordLayout(base)
-            .getNonVirtualSize()
-            .isZero())
-          continue;
-
-        unsigned fieldIndex = layout.getNonVirtualBaseLLVMFieldNo(base);
-        llvm::Type *baseType = structure->getElementType(fieldIndex);
-        elements[fieldIndex] = EmitNullConstantForBase(CGM, baseType, base);
-      }
-    }
-
-    // Fill in all the fields.
-    for (const auto *Field : record->fields()) {
-      // Fill in non-bitfields. (Bitfields always use a zero pattern, which we
-      // will fill in later.)
-      if (!Field->isBitField() &&
-          !isEmptyFieldForLayout(CGM.getContext(), Field)) {
-        unsigned fieldIndex = layout.getLLVMFieldNo(Field);
-        elements[fieldIndex] = CGM.EmitNullConstant(Field->getType());
-      }
-
-      // For unions, stop after the first named field.
-      if (record->isUnion()) {
-        if (Field->getIdentifier())
-          break;
-        if (const auto *FieldRD = Field->getType()->getAsRecordDecl())
-          if (FieldRD->findFirstNamedDataMember())
-            break;
-      }
-    }
-
-    // Fill in the virtual bases, if we're working with the complete object.
-    if (CXXR && asCompleteObject) {
-      for (const auto &I : CXXR->vbases()) {
-        const CXXRecordDecl *base =
-          cast<CXXRecordDecl>(I.getType()->castAs<RecordType>()->getDecl());
-
-        // Ignore empty bases.
-        if (isEmptyRecordForLayout(CGM.getContext(), I.getType()))
-          continue;
-
-        unsigned fieldIndex = layout.getVirtualBaseIndex(base);
-
-        // We might have already laid this field out.
-        if (elements[fieldIndex]) continue;
-
-        llvm::Type *baseType = structure->getElementType(fieldIndex);
-        elements[fieldIndex] = EmitNullConstantForBase(CGM, baseType, base);
-      }
-    }
-
-    // Now go through all other fields and zero them out.
-    for (unsigned i = 0; i != numElements; ++i) {
-      if (!elements[i])
-        elements[i] = llvm::Constant::getNullValue(structure->getElementType(i));
+      llvm::Type *baseType = structure->getElementType(fieldIndex);
+      elements[fieldIndex] = EmitNullConstantForBase(CGM, baseType, base);
     }
   }
 
-  if (filVerbose) {
-    llvm::errs() << "structure = " << *structure << "\n";
-    llvm::errs() << "elements:";
-    for (auto C : elements)
-      llvm::errs() << " " << *C;
-    llvm::errs() << "\n";
+  // Now go through all other fields and zero them out.
+  for (unsigned i = 0; i != numElements; ++i) {
+    if (!elements[i])
+      elements[i] = llvm::Constant::getNullValue(structure->getElementType(i));
   }
-  return llvm::ConstantStruct::get(structure, elements);
+
+  // A normalized union's null initializer may use integer/byte storage instead
+  // of its object type. Preserve the containing record's exact byte offsets.
+  const llvm::StructLayout *SL = CGM.getDataLayout().getStructLayout(structure);
+  for (unsigned I = 0; I < numElements; ++I) {
+    if (isa<llvm::ConstantAggregateZero>(elements[I]))
+      continue;
+    bool Added = Builder.add(
+        elements[I], CharUnits::fromQuantity(SL->getElementOffset(I)), true);
+    assert(Added && "Cannot lay out record null initializer");
+    (void)Added;
+  }
+  return Builder.build(structure, /*AllowOversized=*/false);
 }
 
 /// Emit the null constant for a base subobject.
@@ -2883,7 +2757,8 @@ llvm::Constant *CodeGenModule::EmitNullConstant(QualType T) {
       ConstantEmitter::emitNullForMemory(*this, ElementTy);
     unsigned NumElements = CAT->getZExtSize();
     SmallVector<llvm::Constant *, 8> Array(NumElements, Element);
-    return llvm::ConstantArray::get(ATy, Array);
+    return EmitArrayConstant(*this, ATy, Element->getType(), NumElements, Array,
+                             Element);
   }
 
   if (const RecordType *RT = T->getAs<RecordType>())
