@@ -1,11 +1,13 @@
-Archive: patchelf-0.19.1.tar.gz
-Origname: patchelf-0.19.1
+URL: https://github.com/NixOS/patchelf/releases/download/0.19.2/patchelf-0.19.2.tar.bz2 fd56770e4cc20d6382a38577055cf22264cb151a13556cede1f222cc06c063ee
+URL: https://github.com/NixOS/patchelf/releases/download/0.19.2/patchelf-0.19.2.tar.gz c68aec3e0c9aa2b021492637944e23a36b339d9dfade6911ed5e38fd2889c546
+Origname: patchelf-0.19.2
 Name: patchelf
 
-    patchelf 0.19.1 with no Fil-C changes needed. The 0.18.0 Fil-C patch
+    patchelf 0.19.2 with no Fil-C changes needed. The 0.18.0 Fil-C patch
     rewrote the .shstrtab pointer to be derived as
     fileContents->data() + rdi(shdrs[shstrtabIndex].sh_offset) instead of
     round-tripping a pointer through size_t, which Fil-C cannot do
     safely; upstream 0.19.1 restructured that code to the same
-    capability-safe shape (data() + shstrtabOffset), so the patch is
-    empty and the rebase needed no conflict resolution.
+    capability-safe shape (data() + shstrtabOffset), and 0.19.2 keeps
+    that shape, so the patch is empty and the rebase needed no conflict
+    resolution.
