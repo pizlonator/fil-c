@@ -904,7 +904,7 @@ cd ..
 rm -rf wget-1.25.0
 hash -r
 
-tar -xf $FILCSRC/projects/git-2.55.0/pizlonated-git.tar.gz
+tar -xf $FILCSRC/projects/git/pizlonated-git.tar.gz
 cd pizlonated-git
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --sysconfdir=/etc --with-libpcre2
 make -j `nproc`

@@ -28,10 +28,18 @@
 set -e
 set -x
 
-cd projects/git-2.55.0
-extract_source
-PATH=$PWD/../../../pizfix/bin:$PATH CC=$PWD/../../../build/bin/clang ./configure --prefix=$PWD/../../../pizfix \
+cd projects
+rm -rf git/extracted-source
+../filc/projeny extract git.projeny git/extracted-source
+cd git/extracted-source
+# Canonicalize the prefix: git bakes it into the binary for exec-path and
+# init templates, and this build tree is deleted after install, so the
+# prefix must not point through it.
+PZ=$(cd $PWD/../../.. && echo $PWD/pizfix)
+PATH=$PZ/bin:$PATH CC=$PWD/../../../build/bin/clang ./configure --prefix=$PZ \
             --with-gitconfig=/etc/gitconfig \
             --with-python=python3 --with-libpcre2
 make -j $NCPU
 make -j $NCPU install
+cd ..
+rm -rf extracted-source

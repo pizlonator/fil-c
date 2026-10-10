@@ -110,7 +110,7 @@ filc/projeny package \
 ./package-source.sh projects/libtasn1-4.21.0 pizlonated-libtasn1
 ./package-source.sh projects/p11-kit-0.26.5 pizlonated-p11-kit
 ./package-source.sh projects/curl-8.22.0 pizlonated-curl
-./package-source.sh projects/git-2.55.0 pizlonated-git
+filc/projeny package projects/git.projeny projects/git/pizlonated-git.tar.gz
 ./package-source.sh projects/libevent-2.1.13 pizlonated-libevent
 ./package-source.sh projects/zstd-1.5.7 pizlonated-zstd
 ./package-source.sh projects/zip-3.0 pizlonated-zip

@@ -1,0 +1,694 @@
+URL: https://www.kernel.org/pub/software/scm/git/git-2.56.0.tar.xz 596b02fea3d67e2ca45208aabebc92d2c14e7f2827f82cba59a630d55eea0854
+URL: https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.56.0.tar.xz 596b02fea3d67e2ca45208aabebc92d2c14e7f2827f82cba59a630d55eea0854
+Origname: git-2.56.0
+Name: git
+
+    git 2.56.0 with three Fil-C adaptations, carried over from the legacy
+    projects/git-2.55.0 tree: (1) the parse-options defval fix: Fil-C
+    pointers lose their capability when round-tripped through intptr_t, so
+    storing string or pointer default values in 'intptr_t defval' compiles
+    but crashes at runtime ("cannot read pointer with null object") as
+    soon as the default is used (e.g. 'git status -u', 'git archive
+    --add-file'); struct option's defval becomes void *, integer-valued
+    option macros cast their defvals to (void *), string/pointer defvals
+    are stored as real pointers, and integer use sites in parse-options.c,
+    builtin/am.c and builtin/config.c cast back to intptr_t. (2) The
+    compat/obstack fix: _obstack_begin/_obstack_begin_1 size every chunk
+    at sizeof(struct _obstack_chunk) + alignment_mask (one object per
+    chunk), _obstack_newchunk computes its size from the object being
+    allocated, and obstack_blank always calls _obstack_newchunk instead of
+    relying on chunk_limit - next_free pointer arithmetic. This disallows
+    out-of-bounds writes between objects allocated via obstack; git always
+    builds compat/obstack.o and uses it from kwset.c, which backs
+    fixed-string 'git grep -F'. (3) config.mak sets NO_RUST = 1 to disable
+    the Rust component (libgitcore), since there is no Fil-C Rust
+    toolchain; the C fallback varint.o is compiled instead and the
+    WITH_RUST code in help.c/repository.c compiles out. Upstream changed
+    nothing relevant between 2.55.0 and 2.56.0 (compat/obstack is
+    byte-identical, the Rust handling is the same, and only line-number
+    drift in a few option tables needed fuzz), so the 2.55.0 patch applies
+    in full and nothing had to be dropped. This used to be consumed as the
+    legacy source tree projects/git-2.55.0; it is now a URL-based projeny
+    project pointing at the official kernel.org release tarball, with the
+    mirrors.edge.kernel.org copy as a fallback mirror.
+diff --git a/git/archive.c b/git/archive.c
+--- a/git/archive.c
++++ b/git/archive.c
+@@ -657,7 +657,7 @@
+ 			.argh = N_("file"),
+ 			.help = N_("add untracked file to archive"),
+ 			.callback = add_file_cb,
+-			.defval = (intptr_t) &base,
++			.defval = &base,
+ 		},
+ 		{
+ 			.type = OPTION_CALLBACK,
+@@ -666,7 +666,7 @@
+ 			.argh = N_("path:content"),
+ 			.help = N_("add untracked file to archive"),
+ 			.callback = add_file_cb,
+-			.defval = (intptr_t) &base,
++			.defval = &base,
+ 		},
+ 		OPT_STRING('o', "output", &output, N_("file"),
+ 			N_("write the archive to this file")),
+diff --git a/git/builtin/am.c b/git/builtin/am.c
+--- a/git/builtin/am.c
++++ b/git/builtin/am.c
+@@ -2294,7 +2294,7 @@
+ 	BUG_ON_OPT_NEG(unset);
+
+ 	if (!arg)
+-		*opt_value = opt->defval;
++		*opt_value = (intptr_t)opt->defval;
+ 	else if (!strcmp(arg, "raw"))
+ 		*opt_value = RESUME_SHOW_PATCH_RAW;
+ 	else if (!strcmp(arg, "diff"))
+@@ -2413,7 +2413,7 @@
+ 			.help = N_("show the patch being applied"),
+ 			.flags = PARSE_OPT_CMDMODE | PARSE_OPT_OPTARG | PARSE_OPT_NONEG | PARSE_OPT_LITERAL_ARGHELP,
+ 			.callback = parse_opt_show_current_patch,
+-			.defval = RESUME_SHOW_PATCH_RAW,
++			.defval = (void *)RESUME_SHOW_PATCH_RAW,
+ 		},
+ 		OPT_CMDMODE(0, "retry", &resume_mode,
+ 			N_("try to apply current patch again"),
+@@ -2435,7 +2435,7 @@
+ 			.argh = N_("key-id"),
+ 			.help = N_("GPG-sign commits"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t) "",
++			.defval = "",
+ 		},
+ 		OPT_CALLBACK_F(0, "empty", &state.empty_type, "(stop|drop|keep)",
+ 		  N_("how to handle empty patches"),
+diff --git a/git/builtin/clone.c b/git/builtin/clone.c
+--- a/git/builtin/clone.c
++++ b/git/builtin/clone.c
+@@ -946,7 +946,7 @@
+ 			.help = N_("initialize submodules in the clone"),
+ 			.flags = PARSE_OPT_OPTARG,
+ 			.callback = recurse_submodules_cb,
+-			.defval = (intptr_t)".",
++			.defval = ".",
+ 		},
+ 		OPT_ALIAS(0, "recursive", "recurse-submodules"),
+ 		OPT_INTEGER('j', "jobs", &max_jobs,
+diff --git a/git/builtin/commit-tree.c b/git/builtin/commit-tree.c
+--- a/git/builtin/commit-tree.c
++++ b/git/builtin/commit-tree.c
+@@ -120,7 +120,7 @@
+ 			.argh = N_("key-id"),
+ 			.help = N_("GPG sign commit"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t) "",
++			.defval = "",
+ 		},
+ 		OPT_END()
+ 	};
+diff --git a/git/builtin/commit.c b/git/builtin/commit.c
+--- a/git/builtin/commit.c
++++ b/git/builtin/commit.c
+@@ -1571,7 +1571,7 @@
+ 			.argh = N_("mode"),
+ 			.help = N_("show untracked files, optional modes: all, normal, no. (Default: all)"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t)"all",
++			.defval = "all",
+ 		},
+ 		{
+ 			.type = OPTION_STRING,
+@@ -1580,7 +1580,7 @@
+ 			.argh = N_("mode"),
+ 			.help = N_("show ignored files, optional modes: traditional, matching, no. (Default: traditional)"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t)"traditional",
++			.defval = "traditional",
+ 		},
+ 		{
+ 			.type = OPTION_STRING,
+@@ -1589,7 +1589,7 @@
+ 			.argh = N_("when"),
+ 			.help = N_("ignore changes to submodules, optional when: all, dirty, untracked. (Default: all)"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t)"all",
++			.defval = "all",
+ 		},
+ 		OPT_COLUMN(0, "column", &s.colopts, N_("list untracked files in columns")),
+ 		OPT_BOOL(0, "no-renames", &no_renames, N_("do not detect renames")),
+@@ -1735,7 +1735,7 @@
+ 			.argh = N_("key-id"),
+ 			.help = N_("GPG sign commit"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t) "",
++			.defval = "",
+ 		},
+ 		/* end commit message options */
+
+@@ -1771,7 +1771,7 @@
+ 			.argh = N_("mode"),
+ 			.help = N_("show untracked files, optional modes: all, normal, no. (Default: all)"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t)"all",
++			.defval = "all",
+ 		},
+ 		OPT_PATHSPEC_FROM_FILE(&pathspec_from_file),
+ 		OPT_PATHSPEC_FILE_NUL(&pathspec_file_nul),
+diff --git a/git/builtin/config.c b/git/builtin/config.c
+--- a/git/builtin/config.c
++++ b/git/builtin/config.c
+@@ -145,7 +145,7 @@
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_NOARG | PARSE_OPT_NONEG, \
+ 	.callback = option_parse_type, \
+-	.defval = (i), \
++	.defval = (void *)(i), \
+ }
+
+ static int option_parse_type(const struct option *opt, const char *arg,
+@@ -162,7 +162,7 @@
+ 	 * To support '--<type>' style flags, begin with new_type equal to
+ 	 * opt->defval.
+ 	 */
+-	new_type = opt->defval;
++	new_type = (intptr_t)opt->defval;
+ 	if (!new_type) {
+ 		if (!strcmp(arg, "bool"))
+ 			new_type = TYPE_BOOL;
+diff --git a/git/builtin/describe.c b/git/builtin/describe.c
+--- a/git/builtin/describe.c
++++ b/git/builtin/describe.c
+@@ -633,7 +633,7 @@
+ 			.argh = N_("mark"),
+ 			.help = N_("append <mark> on dirty working tree (default: \"-dirty\")"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t) "-dirty",
++			.defval = "-dirty",
+ 		},
+ 		{
+ 			.type = OPTION_STRING,
+@@ -642,7 +642,7 @@
+ 			.argh = N_("mark"),
+ 			.help = N_("append <mark> on broken working tree (default: \"-broken\")"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t) "-broken",
++			.defval = "-broken",
+ 		},
+ 		OPT_END(),
+ 	};
+diff --git a/git/builtin/fmt-merge-msg.c b/git/builtin/fmt-merge-msg.c
+--- a/git/builtin/fmt-merge-msg.c
++++ b/git/builtin/fmt-merge-msg.c
+@@ -28,7 +28,7 @@
+ 			.argh = N_("n"),
+ 			.help = N_("populate log with at most <n> entries from shortlog"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = DEFAULT_MERGE_LOG_LEN,
++			.defval = (void *) DEFAULT_MERGE_LOG_LEN,
+ 		},
+ 		{
+ 			.type = OPTION_INTEGER,
+@@ -38,7 +38,7 @@
+ 			.argh = N_("n"),
+ 			.help = N_("alias for --log (deprecated)"),
+ 			.flags = PARSE_OPT_OPTARG | PARSE_OPT_HIDDEN,
+-			.defval = DEFAULT_MERGE_LOG_LEN,
++			.defval = (void *) DEFAULT_MERGE_LOG_LEN,
+ 		},
+ 		OPT_STRING('m', "message", &message, N_("text"),
+ 			N_("use <text> as start of message")),
+diff --git a/git/builtin/gc.c b/git/builtin/gc.c
+--- a/git/builtin/gc.c
++++ b/git/builtin/gc.c
+@@ -590,7 +590,7 @@
+ 			.argh = N_("date"),
+ 			.help = N_("prune unreferenced objects"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t)prune_expire_arg,
++			.defval = prune_expire_arg,
+ 		},
+ 		OPT_BOOL(0, "cruft", &cfg.cruft_packs, N_("pack unreferenced objects separately")),
+ 		OPT_UNSIGNED(0, "max-cruft-size", &cfg.max_cruft_size,
+diff --git a/git/builtin/grep.c b/git/builtin/grep.c
+--- a/git/builtin/grep.c
++++ b/git/builtin/grep.c
+@@ -1152,7 +1152,7 @@
+ 			.argh = N_("pager"),
+ 			.help = N_("show matching files in the pager"),
+ 			.flags = PARSE_OPT_OPTARG | PARSE_OPT_NOCOMPLETE,
+-			.defval = (intptr_t)default_pager,
++			.defval = default_pager,
+ 		},
+ 		OPT_BOOL_F(0, "ext-grep", &external_grep_allowed__ignored,
+ 			   N_("allow calling of grep(1) (ignored by this build)"),
+diff --git a/git/builtin/merge.c b/git/builtin/merge.c
+--- a/git/builtin/merge.c
++++ b/git/builtin/merge.c
+@@ -276,7 +276,7 @@
+ 		.argh = N_("n"),
+ 		.help = N_("add (at most <n>) entries from shortlog to merge commit message"),
+ 		.flags = PARSE_OPT_OPTARG,
+-		.defval = DEFAULT_MERGE_LOG_LEN,
++		.defval = (void *) DEFAULT_MERGE_LOG_LEN,
+ 	},
+ 	OPT_BOOL(0, "squash", &squash,
+ 		N_("create a single commit instead of doing a merge")),
+@@ -329,7 +329,7 @@
+ 		.argh = N_("key-id"),
+ 		.help = N_("GPG sign commit"),
+ 		.flags = PARSE_OPT_OPTARG,
+-		.defval = (intptr_t) "",
++		.defval = "",
+ 	},
+ 	OPT_AUTOSTASH(&autostash),
+ 	OPT_BOOL(0, "overwrite-ignore", &overwrite_ignore, N_("update ignored files (default)")),
+diff --git a/git/builtin/rebase.c b/git/builtin/rebase.c
+--- a/git/builtin/rebase.c
++++ b/git/builtin/rebase.c
+@@ -1142,7 +1142,7 @@
+ 			.precision = sizeof(options.flags),
+ 			.help = N_("do not show diffstat of what changed upstream"),
+ 			.flags = PARSE_OPT_NOARG,
+-			.defval = REBASE_DIFFSTAT,
++			.defval = (void *) REBASE_DIFFSTAT,
+ 		},
+ 		OPT_STRVEC(0, "trailer", &options.trailer_args, N_("trailer"),
+ 			   N_("add custom trailer(s)")),
+@@ -1219,7 +1219,7 @@
+ 			.argh = N_("key-id"),
+ 			.help = N_("GPG-sign commits"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t) "",
++			.defval = "",
+ 		},
+ 		OPT_AUTOSTASH(&options.autostash),
+ 		OPT_STRING_LIST('x', "exec", &options.exec, N_("exec"),
+diff --git a/git/builtin/revert.c b/git/builtin/revert.c
+--- a/git/builtin/revert.c
++++ b/git/builtin/revert.c
+@@ -141,7 +141,7 @@
+ 			.argh = N_("key-id"),
+ 			.help = N_("GPG sign commit"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = (intptr_t) "",
++			.defval = "",
+ 		},
+ 		OPT_END()
+ 	};
+diff --git a/git/builtin/show-branch.c b/git/builtin/show-branch.c
+--- a/git/builtin/show-branch.c
++++ b/git/builtin/show-branch.c
+@@ -674,7 +674,7 @@
+ 			.argh = N_("n"),
+ 			.help = N_("show <n> more commits after the common ancestor"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = 1,
++			.defval = (void *)1,
+ 		},
+ 		OPT_SET_INT(0, "list", &extra, N_("synonym to more=-1"), -1),
+ 		OPT_BOOL(0, "no-name", &no_name, N_("suppress naming strings")),
+diff --git a/git/builtin/tag.c b/git/builtin/tag.c
+--- a/git/builtin/tag.c
++++ b/git/builtin/tag.c
+@@ -488,7 +488,7 @@
+ 			.argh = N_("n"),
+ 			.help = N_("print <n> lines of each tag message"),
+ 			.flags = PARSE_OPT_OPTARG,
+-			.defval = 1,
++			.defval = (void *)1,
+ 		},
+ 		OPT_CMDMODE('d', "delete", &cmdmode, N_("delete tags"), 'd'),
+ 		OPT_CMDMODE('v', "verify", &cmdmode, N_("verify tags"), 'v'),
+@@ -528,7 +528,7 @@
+ 			.help = N_("print only tags of the object"),
+ 			.flags = PARSE_OPT_LASTARG_DEFAULT,
+ 			.callback = parse_opt_object_name,
+-			.defval = (intptr_t) "HEAD",
++			.defval = "HEAD",
+ 		},
+ 		OPT_STRING(  0 , "format", &format.format, N_("format"),
+ 			   N_("format to use for the output")),
+diff --git a/git/builtin/update-index.c b/git/builtin/update-index.c
+--- a/git/builtin/update-index.c
++++ b/git/builtin/update-index.c
+@@ -978,7 +978,7 @@
+ 			.precision = sizeof(mark_valid_only),
+ 			.help = N_("mark files as \"not changing\""),
+ 			.flags = PARSE_OPT_NOARG | PARSE_OPT_NONEG,
+-			.defval = MARK_FLAG,
++			.defval = (void *) MARK_FLAG,
+ 		},
+ 		{
+ 			.type = OPTION_SET_INT,
+@@ -987,7 +987,7 @@
+ 			.precision = sizeof(mark_valid_only),
+ 			.help = N_("clear assumed-unchanged bit"),
+ 			.flags = PARSE_OPT_NOARG | PARSE_OPT_NONEG,
+-			.defval = UNMARK_FLAG,
++			.defval = (void *) UNMARK_FLAG,
+ 		},
+ 		{
+ 			.type = OPTION_SET_INT,
+@@ -996,7 +996,7 @@
+ 			.precision = sizeof(mark_skip_worktree_only),
+ 			.help = N_("mark files as \"index-only\""),
+ 			.flags = PARSE_OPT_NOARG | PARSE_OPT_NONEG,
+-			.defval = MARK_FLAG,
++			.defval = (void *) MARK_FLAG,
+ 		},
+ 		{
+ 			.type = OPTION_SET_INT,
+@@ -1005,7 +1005,7 @@
+ 			.precision = sizeof(mark_skip_worktree_only),
+ 			.help = N_("clear skip-worktree bit"),
+ 			.flags = PARSE_OPT_NOARG | PARSE_OPT_NONEG,
+-			.defval = UNMARK_FLAG,
++			.defval = (void *) UNMARK_FLAG,
+ 		},
+ 		OPT_BOOL(0, "ignore-skip-worktree-entries", &ignore_skip_worktree_entries,
+ 			 N_("do not touch index-only entries")),
+@@ -1080,7 +1080,7 @@
+ 			.precision = sizeof(mark_fsmonitor_only),
+ 			.help = N_("mark files as fsmonitor valid"),
+ 			.flags = PARSE_OPT_NOARG | PARSE_OPT_NONEG,
+-			.defval = MARK_FLAG,
++			.defval = (void *) MARK_FLAG,
+ 		},
+ 		{
+ 			.type = OPTION_SET_INT,
+@@ -1089,7 +1089,7 @@
+ 			.precision = sizeof(mark_fsmonitor_only),
+ 			.help = N_("clear fsmonitor valid bit"),
+ 			.flags = PARSE_OPT_NOARG | PARSE_OPT_NONEG,
+-			.defval = UNMARK_FLAG,
++			.defval = (void *) UNMARK_FLAG,
+ 		},
+ 		OPT_END()
+ 	};
+diff --git a/git/builtin/write-tree.c b/git/builtin/write-tree.c
+--- a/git/builtin/write-tree.c
++++ b/git/builtin/write-tree.c
+@@ -39,7 +39,7 @@
+ 			.precision = sizeof(flags),
+ 			.help = N_("only useful for debugging"),
+ 			.flags = PARSE_OPT_HIDDEN | PARSE_OPT_NOARG,
+-			.defval = WRITE_TREE_IGNORE_CACHE_TREE,
++			.defval = (void *) WRITE_TREE_IGNORE_CACHE_TREE,
+ 		},
+ 		OPT_END()
+ 	};
+diff --git a/git/compat/obstack.c b/git/compat/obstack.c
+--- a/git/compat/obstack.c
++++ b/git/compat/obstack.c
+@@ -142,27 +142,12 @@
+
+   if (alignment == 0)
+     alignment = DEFAULT_ALIGNMENT;
+-  if (size == 0)
+-    /* Default size is what GNU malloc can fit in a 4096-byte block.  */
+-    {
+-      /* 12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
+-	 Use the values for range checking, because if range checking is off,
+-	 the extra bytes won't be missed terribly, but if range checking is on
+-	 and we used a larger request, a whole extra 4096 bytes would be
+-	 allocated.
+
+-	 These number are irrelevant to the new GNU malloc.  I suspect it is
+-	 less sensitive to the size of the request.  */
+-      int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
+-		    + 4 + DEFAULT_ROUNDING - 1)
+-		   & ~(DEFAULT_ROUNDING - 1));
+-      size = 4096 - extra;
+-    }
+-
+   h->chunkfun.plain = chunkfun;
+   h->freefun.plain = freefun;
+-  h->chunk_size = size;
+   h->alignment_mask = alignment - 1;
++  size = sizeof (struct _obstack_chunk) + h->alignment_mask;
++  h->chunk_size = size;
+   h->use_extra_arg = 0;
+
+   chunk = h->chunk = CALL_CHUNKFUN (h, h -> chunk_size);
+@@ -189,28 +174,13 @@
+
+   if (alignment == 0)
+     alignment = DEFAULT_ALIGNMENT;
+-  if (size == 0)
+-    /* Default size is what GNU malloc can fit in a 4096-byte block.  */
+-    {
+-      /* 12 is sizeof (mhead) and 4 is EXTRA from GNU malloc.
+-	 Use the values for range checking, because if range checking is off,
+-	 the extra bytes won't be missed terribly, but if range checking is on
+-	 and we used a larger request, a whole extra 4096 bytes would be
+-	 allocated.
+
+-	 These number are irrelevant to the new GNU malloc.  I suspect it is
+-	 less sensitive to the size of the request.  */
+-      int extra = ((((12 + DEFAULT_ROUNDING - 1) & ~(DEFAULT_ROUNDING - 1))
+-		    + 4 + DEFAULT_ROUNDING - 1)
+-		   & ~(DEFAULT_ROUNDING - 1));
+-      size = 4096 - extra;
+-    }
+-
+   h->chunkfun.extra = (struct _obstack_chunk * (*)(void *,long)) chunkfun;
+   h->freefun.extra = (void (*) (void *, struct _obstack_chunk *)) freefun;
+
+-  h->chunk_size = size;
+   h->alignment_mask = alignment - 1;
++  size = sizeof (struct _obstack_chunk) + h->alignment_mask;
++  h->chunk_size = size;
+   h->extra_arg = arg;
+   h->use_extra_arg = 1;
+
+@@ -246,9 +216,11 @@
+   char *object_base;
+
+   /* Compute size for new chunk.  */
+-  new_size = (obj_size + length) + (obj_size >> 3) + h->alignment_mask + 100;
+-  if (new_size < h->chunk_size)
+-    new_size = h->chunk_size;
++  if (obj_size)
++    new_size = 2 * (obj_size + length);
++  else
++    new_size = length;
++  new_size += sizeof (struct _obstack_chunk) + h->alignment_mask;
+
+   /* Allocate and initialize the new chunk.  */
+   new_chunk = CALL_CHUNKFUN (h, new_size);
+diff --git a/git/compat/obstack.h b/git/compat/obstack.h
+--- a/git/compat/obstack.h
++++ b/git/compat/obstack.h
+@@ -356,8 +356,7 @@
+ __extension__								\
+ ({ struct obstack *__o = (OBSTACK);					\
+    int __len = (length);						\
+-   if (__o->chunk_limit - __o->next_free < __len)			\
+-     _obstack_newchunk (__o, __len);					\
++   _obstack_newchunk (__o, __len);					\
+    obstack_blank_fast (__o, __len);					\
+    (void) 0; })
+
+@@ -467,8 +466,7 @@
+
+ # define obstack_blank(h,length)					\
+ ( (h)->temp.tempint = (length),						\
+-  (((h)->chunk_limit - (h)->next_free < (h)->temp.tempint)		\
+-   ? (_obstack_newchunk ((h), (h)->temp.tempint), 0) : 0),		\
++  _obstack_newchunk ((h), (h)->temp.tempint),		\
+   obstack_blank_fast (h, (h)->temp.tempint))
+
+ # define obstack_alloc(h,length)					\
+diff --git a/git/config.mak b/git/config.mak
+new file mode 100644
+--- /dev/null
++++ b/git/config.mak
+@@ -0,0 +1,8 @@
++# Fil-C build configuration.
++#
++# git builds a Rust component (libgitcore, linked into the git binary)
++# by default, which requires cargo. There is no Fil-C Rust compiler, so
++# disable the Rust parts; the C code is fully functional without them
++# (varint.o provides the C fallback used when Rust is disabled, and the
++# WITH_RUST code in help.c/repository.c compiles out).
++NO_RUST = 1
+diff --git a/git/parse-options.c b/git/parse-options.c
+--- a/git/parse-options.c
++++ b/git/parse-options.c
+@@ -150,9 +150,9 @@
+ 	{
+ 		intmax_t value = get_int_value(opt, flags);
+ 		if (unset)
+-			value &= ~opt->defval;
++			value &= ~(intptr_t)opt->defval;
+ 		else
+-			value |= opt->defval;
++			value |= (intptr_t)opt->defval;
+ 		return set_int_value(opt, flags, value);
+ 	}
+
+@@ -160,9 +160,9 @@
+ 	{
+ 		intmax_t value = get_int_value(opt, flags);
+ 		if (unset)
+-			value |= opt->defval;
++			value |= (intptr_t)opt->defval;
+ 		else
+-			value &= ~opt->defval;
++			value &= ~(intptr_t)opt->defval;
+ 		return set_int_value(opt, flags, value);
+ 	}
+
+@@ -172,7 +172,7 @@
+ 		if (unset)
+ 			BUG("BITOP can't have unset form");
+ 		value &= ~opt->extra;
+-		value |= opt->defval;
++		value |= (intptr_t)opt->defval;
+ 		return set_int_value(opt, flags, value);
+ 	}
+
+@@ -195,7 +195,7 @@
+ 	}
+
+ 	case OPTION_SET_INT:
+-		return set_int_value(opt, flags, unset ? 0 : opt->defval);
++		return set_int_value(opt, flags, unset ? 0 : (intptr_t)opt->defval);
+
+ 	case OPTION_STRING:
+ 		if (unset)
+@@ -266,7 +266,7 @@
+ 		if (unset) {
+ 			value = 0;
+ 		} else if (opt->flags & PARSE_OPT_OPTARG && !p->opt) {
+-			value = opt->defval;
++			value = (intptr_t)opt->defval;
+ 		} else if (get_arg(p, opt, flags, &arg)) {
+ 			return -1;
+ 		} else if (!*arg) {
+@@ -295,7 +295,7 @@
+ 		if (unset) {
+ 			value = 0;
+ 		} else if (opt->flags & PARSE_OPT_OPTARG && !p->opt) {
+-			value = opt->defval;
++			value = (intptr_t)opt->defval;
+ 		} else if (get_arg(p, opt, flags, &arg)) {
+ 			return -1;
+ 		} else if (!*arg) {
+@@ -678,7 +678,7 @@
+ 		case OPTION_NEGBIT:
+ 		case OPTION_BITOP:
+ 		case OPTION_COUNTUP:
+-			if (!signed_int_fits(opts->defval, opts->precision))
++			if (!signed_int_fits((intptr_t)opts->defval, opts->precision))
+ 				optbug(opts, "has invalid defval");
+ 			/* fallthru */
+ 		case OPTION_NUMBER:
+diff --git a/git/parse-options.h b/git/parse-options.h
+--- a/git/parse-options.h
++++ b/git/parse-options.h
+@@ -163,7 +163,7 @@
+
+ 	enum parse_opt_option_flags flags;
+ 	parse_opt_cb *callback;
+-	intptr_t defval;
++	void *defval;
+ 	parse_opt_ll_cb *ll_callback;
+ 	intptr_t extra;
+ 	parse_opt_subcommand_fn *subcommand_fn;
+@@ -178,7 +178,7 @@
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_NOARG|(f), \
+ 	.callback = NULL, \
+-	.defval = (b), \
++	.defval = (void *)(b), \
+ }
+ #define OPT_COUNTUP_F(s, l, v, h, f) { \
+ 	.type = OPTION_COUNTUP, \
+@@ -197,7 +197,7 @@
+ 	.precision = sizeof(*v), \
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_NOARG | (f), \
+-	.defval = (i), \
++	.defval = (void *)(i), \
+ }
+ #define OPT_BOOL_F(s, l, v, h, f)   OPT_SET_INT_F(s, l, v, h, 1, f)
+ #define OPT_CALLBACK_F(s, l, v, a, h, f, cb) { \
+@@ -251,7 +251,7 @@
+ 	.precision = sizeof(*v), \
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_NOARG|PARSE_OPT_NONEG, \
+-	.defval = (set), \
++	.defval = (void *)(set), \
+ 	.extra = (clear), \
+ }
+ #define OPT_NEGBIT(s, l, v, h, b) { \
+@@ -262,7 +262,7 @@
+ 	.precision = sizeof(*v), \
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_NOARG, \
+-	.defval = (b), \
++	.defval = (void *)(b), \
+ }
+ #define OPT_COUNTUP(s, l, v, h)     OPT_COUNTUP_F(s, l, v, h, 0)
+ #define OPT_SET_INT(s, l, v, h, i)  OPT_SET_INT_F(s, l, v, h, i, 0)
+@@ -275,7 +275,7 @@
+ 	.precision = sizeof(*v), \
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_NOARG | PARSE_OPT_HIDDEN, \
+-	.defval = 1, \
++	.defval = (void *)1, \
+ }
+ #define OPT_CMDMODE_F(s, l, v, h, i, f) { \
+ 	.type = OPTION_SET_INT, \
+@@ -285,7 +285,7 @@
+ 	.precision = sizeof(*v), \
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_CMDMODE|PARSE_OPT_NOARG|PARSE_OPT_NONEG | (f), \
+-	.defval = (i), \
++	.defval = (void *)(i), \
+ }
+ #define OPT_CMDMODE(s, l, v, h, i)  OPT_CMDMODE_F(s, l, v, h, i, 0)
+
+@@ -362,7 +362,7 @@
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_OPTARG, \
+ 	.callback = parse_opt_color_flag_cb, \
+-	.defval = (intptr_t)"always", \
++	.defval = "always", \
+ }
+
+ #define OPT_NOOP_NOARG(s, l) { \
+@@ -620,7 +620,7 @@
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_LASTARG_DEFAULT | (f), \
+ 	.callback = parse_opt_commits, \
+-	.defval = (intptr_t) "HEAD", \
++	.defval = "HEAD", \
+ }
+ #define OPT_CONTAINS(v, h) _OPT_CONTAINS_OR_WITH("contains", v, h, PARSE_OPT_NONEG)
+ #define OPT_NO_CONTAINS(v, h) _OPT_CONTAINS_OR_WITH("no-contains", v, h, PARSE_OPT_NONEG)
+diff --git a/git/ref-filter.h b/git/ref-filter.h
+--- a/git/ref-filter.h
++++ b/git/ref-filter.h
+@@ -126,7 +126,7 @@
+ 	.help = (h), \
+ 	.flags = PARSE_OPT_LASTARG_DEFAULT | PARSE_OPT_NONEG, \
+ 	.callback = parse_opt_merge_filter, \
+-	.defval = (intptr_t) "HEAD", \
++	.defval = "HEAD", \
+ }
+ #define OPT_MERGED(f, h) _OPT_MERGED_NO_MERGED("merged", f, h)
+ #define OPT_NO_MERGED(f, h) _OPT_MERGED_NO_MERGED("no-merged", f, h)
+diff --git a/git/t/helper/test-parse-options.c b/git/t/helper/test-parse-options.c
+--- a/git/t/helper/test-parse-options.c
++++ b/git/t/helper/test-parse-options.c
+@@ -134,7 +134,7 @@
+ 			.precision = sizeof(boolean),
+ 			.help = "be brave",
+ 			.flags = PARSE_OPT_NOARG | PARSE_OPT_NONEG,
+-			.defval = 1,
++			.defval = (void *)1,
+ 		},
+ 		OPT_COUNTUP('b', "boolean", &boolean, "increment by one"),
+ 		OPT_BIT('4', "or4", &boolean,
