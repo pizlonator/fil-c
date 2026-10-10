@@ -21,6 +21,7 @@ The new mode (projeny):
     -> Projeny supports having multiple URL lines. Try to see if there are multiple URLs where the same package (same version, same software) can be downloaded from. If so, add multiple URL lines to the projeny file for redundancy.
     -> For an example of a projects that already uses URL, see projects/dash.projeny.
 - Building the project involves doing a `projeny setup projects/foo.projeny`, which creates a directory called projects/foo, which contains the contents of the tarball plus the changes from the patch.
+- Projeny supports a rebase command (filc/projeny rebase projects/foo.projeny <URL1> [<hash1>] [<URL2>...]). Use that command to rebase projects that already use projeny. If you encounter trouble with projeny itself, fix the issues you find in projeny as part of the rebase!
 
 The deprecated mode:
 
@@ -84,9 +85,9 @@ AVOID SOURCE DISTRIBUTION TARBALLS THAT ARE RAW REPOSITORY SNAPSHOTS - ESPECIALL
 
 Note that OpenSSL is especially special: there are two versions:
 - projects/openssl-3.6.4, which is a work-in-progress port of OpenSSL to sarcasm (see projects/sarcasm).
-- projects/openssl.projeny and its checkout, projects/openssl. This is also OpenSSL 3.6.4, but it's using zunsafe crypto (see https://fil-c.org/constant_time_crypto).
+- projects/openssl.projeny and its checkout, projects/openssl. This is also OpenSSL 3.6.5, but it's using zunsafe crypto (see https://fil-c.org/constant_time_crypto).
 
-IF you decide to rebase OpenSSL, then it's only meaningful to rebase the zunsafe version (projects/openssl aka projects/openssl.projeny).
+IF you decide to rebase OpenSSL, then it's only meaningful to rebase the zunsafe version (projects/openssl aka projects/openssl.projeny). DO NOT update OpenSSL to the 4-series yet; stick to the latest release in the 3-series.
 
 What success looks like:
     - There's a commit of the projects/projectname.projeny file. There is not commit of any tarball, because the projeny file points at a URL where the tarball can be fetched.
@@ -105,6 +106,8 @@ cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
 Remember that you have the agent_browser tool. You can use that to research what new versions of the projects there are. Then, you can use curl to download the new tarball from within your container. Note that agent_browser does *not* work in your container, but outside of it, so at some point you'll use the output of agent_browser to work out what URL to pass to curl within the container. Agent_browser is better for reading web pages; curl is better for downloads.
 
 Remember that if you're rebasing packages used by optfil, you have to consider BOTH packages pulled in from projects/ AND packages pulled in from pizlix/. There are lots of packages used by optfil that do not require any changes, so we just use a tarball in pizlix/. Those need rebasing too! Rebasing pizlix/ projects means turning them into projeny projects in the projects/ directory (with a URL, rather than checking the tarball into git).
+
+IMPORTANT: When told to rebase /opt/fil, always produce a list of packages in your report and indicate what their current versions are in /opt/fil, what the latest released version is, which ones you rebased, and which ones are left to rebase. That list *must* include all packages used by optfil/build.sh. DO NOT simply look at optfil/build_filc_packages.sh, since THAT IS NOT THE COMPLETE LIST. You can also sanity check if you have the complete list by looking at optfil/*-LICENSE.txt.
 
 NOTE: If you encounter bugs in projeny while you are working, fix those bugs! It's fine to have one changeset that both rebases some project and contains the fixes to projeny that you needed to get there.
 
