@@ -17612,6 +17612,416 @@ fi
 expect_file_contains "the binary add is marked" \
     "$TAB/A/.fake.projeny.status" "Added: data.bin"
 
+# ------------------- 318. reverse-match anchors deleted runs and vetoes
+#                     surviving pre-images
+#
+# A hunk that only deletes lines (e.g. 2 of 3 consecutive blank lines, the
+# old openssh sntrup761.c case) used to reverse-match any file holding its
+# context: the deleted lines were never checked, and fuzz let the context
+# match slide across them, so patch/apply/re-setup silently reported
+# "already applied" on a pristine tree and skipped the change. The reverse
+# match now requires every deleted run to be anchored (follower/leader
+# inside the verified window, boundary checks for runs touching a hunk
+# edge) and vetoes slid matches whose exact pre-image survives in the file
+# (hunk_matches_at), so these all apply — and re-patching stays idempotent.
+
+TBM="$ROOT/t318"
+mkdir -p "$TBM/A" "$TBM/B" "$TBM/T"
+printf 'x\ny\n\n\n\nz\n' > "$TBM/A/f.c"
+printf 'x\ny\n\nz\n' > "$TBM/B/f.c"
+printf 'x\ny\n\n\n\nz\n' > "$TBM/T/f.c"
+(cd "$TBM" && "$PROJENY" diff A B) > "$TBM/blank.diff"
+run_in "$TBM" expect_ok "blank-line-only deletion applies to a pristine tree" \
+    "$PROJENY" patch T blank.diff
+expect_file_eq "the blank deletion lands byte-exact" "$TBM/T/f.c" "$TBM/B/f.c"
+run_in "$TBM" expect_ok "re-patching the blank deletion is idempotent" \
+    "$PROJENY" patch T blank.diff
+expect_file_eq "the idempotent re-patch leaves the file alone" "$TBM/T/f.c" \
+    "$TBM/B/f.c"
+
+# EOF pure-deletion: the hunk's deleted run reaches the hunk's end, so the
+# match is anchored by the file boundary (the file must not continue with
+# the deleted content right after the post-image span).
+mkdir -p "$TBM/EA" "$TBM/EB" "$TBM/ET"
+printf 'a\nb\nc\nd\ne\n' > "$TBM/EA/f.c"
+printf 'a\nb\nc\n' > "$TBM/EB/f.c"
+printf 'a\nb\nc\nd\ne\n' > "$TBM/ET/f.c"
+(cd "$TBM" && "$PROJENY" diff EA EB) > "$TBM/eof.diff"
+run_in "$TBM" expect_ok "EOF pure-deletion applies to a pristine tree" \
+    "$PROJENY" patch ET eof.diff
+expect_file_eq "the EOF deletion lands byte-exact" "$TBM/ET/f.c" "$TBM/EB/f.c"
+run_in "$TBM" expect_ok "re-patching the EOF deletion is idempotent" \
+    "$PROJENY" patch ET eof.diff
+expect_file_eq "the idempotent EOF re-patch leaves the file alone" \
+    "$TBM/ET/f.c" "$TBM/EB/f.c"
+
+# BOF pure-deletion: the deleted run starts the hunk, so the match is
+# anchored by what precedes the post-image span (or the file's very start).
+mkdir -p "$TBM/BA" "$TBM/BB" "$TBM/BT"
+printf 'a\nb\nc\nd\ne\n' > "$TBM/BA/f.c"
+printf 'c\nd\ne\n' > "$TBM/BB/f.c"
+printf 'a\nb\nc\nd\ne\n' > "$TBM/BT/f.c"
+(cd "$TBM" && "$PROJENY" diff BA BB) > "$TBM/bof.diff"
+run_in "$TBM" expect_ok "BOF pure-deletion applies to a pristine tree" \
+    "$PROJENY" patch BT bof.diff
+expect_file_eq "the BOF deletion lands byte-exact" "$TBM/BT/f.c" "$TBM/BB/f.c"
+run_in "$TBM" expect_ok "re-patching the BOF deletion is idempotent" \
+    "$PROJENY" patch BT bof.diff
+expect_file_eq "the idempotent BOF re-patch leaves the file alone" \
+    "$TBM/BT/f.c" "$TBM/BB/f.c"
+
+# The setup path: setup's patch application must not skip the committed
+# blank-line deletion when the fresh checkout still holds the tarball's
+# blanks (the reported re-setup symptom).
+mkdir -p "$TBM/blk-1.0/src"
+printf 'a\nb\n\n\n\nc\n' > "$TBM/blk-1.0/src/f.c"
+(cd "$TBM" && tar -czf blk-1.0.tar.gz blk-1.0 && rm -rf blk-1.0)
+printf 'Archive: blk-1.0.tar.gz\nOrigname: blk-1.0\nName: blk\n\n    Blank deletion setup test.\n\n' \
+    > "$TBM/blk.projeny"
+run_in "$TBM" expect_ok "blank fixture setup" "$PROJENY" setup blk.projeny
+printf 'a\nb\n\nc\n' > "$TBM/blk/src/f.c"
+cp "$TBM/blk/src/f.c" "$ROOT/t318-blk-expect.c"
+run_in "$TBM" expect_ok "commit the blank deletion" "$PROJENY" commit blk.projeny
+run_in "$TBM" expect_ok "erase the checkout" "$PROJENY" erase-setup blk.projeny
+run_in "$TBM" expect_ok "re-setup applies the committed blank deletion" \
+    "$PROJENY" setup blk.projeny
+expect_file_eq "re-setup leaves exactly one blank line" "$TBM/blk/src/f.c" \
+    "$ROOT/t318-blk-expect.c"
+
+# ------------------- 319. differ stays exact for huge near-identical files
+#
+# The differ used to bail to one wholesale -/+ replacement whenever the
+# middle after common-prefix/suffix trimming was large (n + m > 10000), even
+# when both sides were nearly identical: openssh's configure plus one stray
+# blank line at EOF next to a small top-of-file change produced a ~18k-line
+# hunk. The size guard is replaced by an adaptive Myers D limit (trace
+# memory and time bounded, edit distance small => exact), so only a
+# genuinely huge edit distance falls back to wholesale.
+
+TDL="$ROOT/t319"
+mkdir -p "$TDL/A" "$TDL/B"
+python3 - "$TDL" <<'EOF'
+import sys
+root = sys.argv[1]
+lines = ["line %d" % i for i in range(1, 9001)]
+open(root + "/A/f.c", "w").write("\n".join(lines) + "\n")
+open(root + "/B/f.c", "w").write("\n".join(lines) + "\n\n")
+EOF
+(cd "$TDL" && "$PROJENY" diff A B) > "$TDL/tail.diff"
+if [ "$(grep -c '^@@' "$TDL/tail.diff")" -eq 1 ]; then
+    ok "the trailing-blank diff is a single hunk"
+else
+    fail "the trailing-blank diff is a single hunk" \
+        "hunks: $(grep -c '^@@' "$TDL/tail.diff")"
+fi
+if [ "$(wc -l < "$TDL/tail.diff")" -le 15 ]; then
+    ok "the trailing-blank diff stays small"
+else
+    fail "the trailing-blank diff stays small" "lines: $(wc -l < "$TDL/tail.diff")"
+fi
+rm -rf "$TDL/C" && cp -r "$TDL/A" "$TDL/C"
+run_in "$TDL" expect_ok "patch the trailing-blank diff" "$PROJENY" patch C \
+    tail.diff
+expect_file_eq "the trailing-blank patch lands byte-exact" "$TDL/C/f.c" \
+    "$TDL/B/f.c"
+
+# The historical wholesale trigger: a small top-of-file change (the
+# regenerated autoconf banner) stops the prefix trim, the stray EOF blank
+# stops the suffix trim, and the nearly-identical middle went wholesale.
+mkdir -p "$TDL/D" "$TDL/E"
+python3 - "$TDL" <<'EOF'
+import sys
+root = sys.argv[1]
+lines = ["line %d" % i for i in range(1, 9001)]
+top = list(lines)
+top[1] = "line 2 regenerated"
+open(root + "/D/f.c", "w").write("\n".join(top) + "\n")
+open(root + "/E/f.c", "w").write("\n".join(lines) + "\n\n")
+EOF
+(cd "$TDL" && "$PROJENY" diff D E) > "$TDL/autoconf.diff"
+if [ "$(grep -c '^@@' "$TDL/autoconf.diff")" -le 3 ] && \
+   [ "$(wc -l < "$TDL/autoconf.diff")" -le 30 ]; then
+    ok "the regenerated+blank diff stays exact"
+else
+    fail "the regenerated+blank diff stays exact" \
+        "hunks: $(grep -c '^@@' "$TDL/autoconf.diff") lines: $(wc -l < "$TDL/autoconf.diff")"
+fi
+rm -rf "$TDL/F" && cp -r "$TDL/D" "$TDL/F"
+run_in "$TDL" expect_ok "patch the regenerated+blank diff" "$PROJENY" patch F \
+    autoconf.diff
+expect_file_eq "the regenerated+blank patch lands byte-exact" "$TDL/F/f.c" \
+    "$TDL/E/f.c"
+
+# Dissimilar large files: the wholesale fallback must survive the rework —
+# the diff succeeds and patches roundtrip byte-exactly.
+mkdir -p "$TDL/G" "$TDL/H"
+python3 - "$TDL" <<'EOF'
+import sys
+root = sys.argv[1]
+open(root + "/G/f.c", "w").write(
+    "".join("left %d\n" % i for i in range(1, 9001)))
+open(root + "/H/f.c", "w").write(
+    "".join("right %d\n" % i for i in range(9001, 18001)))
+EOF
+run_in "$TDL" expect_ok "the dissimilar-halves diff still succeeds" \
+    "$PROJENY" diff G H
+(cd "$TDL" && "$PROJENY" diff G H) > "$TDL/dis.diff"
+rm -rf "$TDL/I" && cp -r "$TDL/G" "$TDL/I"
+run_in "$TDL" expect_ok "patch the dissimilar-halves diff" "$PROJENY" patch I \
+    dis.diff
+expect_file_eq "the dissimilar-halves patch lands byte-exact" "$TDL/I/f.c" \
+    "$TDL/H/f.c"
+
+# Second half replaced entirely: the similarity probe (ratio < 0.3) sends
+# this to wholesale; the roundtrip must stay byte-exact.
+mkdir -p "$TDL/J" "$TDL/K"
+python3 - "$TDL" <<'EOF'
+import sys
+root = sys.argv[1]
+lines = ["line %d" % i for i in range(1, 9001)]
+other = ["other %d" % i for i in range(1, 4501)]
+open(root + "/J/f.c", "w").write("\n".join(lines) + "\n")
+open(root + "/K/f.c", "w").write("\n".join(lines[:4500] + other) + "\n")
+EOF
+run_in "$TDL" expect_ok "the second-half-replaced diff still succeeds" \
+    "$PROJENY" diff J K
+(cd "$TDL" && "$PROJENY" diff J K) > "$TDL/half.diff"
+rm -rf "$TDL/L" && cp -r "$TDL/J" "$TDL/L"
+run_in "$TDL" expect_ok "patch the second-half-replaced diff" "$PROJENY" \
+    patch L half.diff
+expect_file_eq "the second-half-replaced patch lands byte-exact" \
+    "$TDL/L/f.c" "$TDL/K/f.c"
+
+# Interleaved changes: similarity above the probe's cutoff but an edit
+# distance far past the adaptive D limit — exercises the in-loop abort to
+# wholesale (the fallback itself, which must stay byte-exact).
+mkdir -p "$TDL/M" "$TDL/N"
+python3 - "$TDL" <<'EOF'
+import sys
+root = sys.argv[1]
+a = ["same %d" % i if i % 2 else "line %d" % i for i in range(1, 9001)]
+b = ["same %d" % i if i % 2 else "flip %d" % i for i in range(1, 9001)]
+open(root + "/M/f.c", "w").write("\n".join(a) + "\n")
+open(root + "/N/f.c", "w").write("\n".join(b) + "\n")
+EOF
+run_in "$TDL" expect_ok "the interleaved big-edit diff still succeeds" \
+    "$PROJENY" diff M N
+(cd "$TDL" && "$PROJENY" diff M N) > "$TDL/inter.diff"
+rm -rf "$TDL/O" && cp -r "$TDL/M" "$TDL/O"
+run_in "$TDL" expect_ok "patch the interleaved big-edit diff" "$PROJENY" \
+    patch O inter.diff
+expect_file_eq "the interleaved big-edit patch lands byte-exact" \
+    "$TDL/O/f.c" "$TDL/N/f.c"
+
+# ------------------- 320. setup applies .projeny patches fresh
+#
+# Reverse matching cannot fully anchor blank-adjacent deletions (blank equals
+# blank), so several blank-line-only-deletion shapes used to read as "already
+# applied" while setup applied the committed patch to the freshly unpacked
+# tarball — silently dropping the deletion on re-setup (the reported
+# symptom). Setup now builds its tree with kFreshApply (VcsApplyMode): the
+# tree was just extracted from the very tarball the patch was diffed
+# against, "already applied" is impossible by construction, and every block
+# is applied forward. (Rebase's application onto a NEW upstream tarball
+# keeps kAllowAlready: that tarball may legitimately already contain the
+# user's change, and the Already path is what repairs drift there — the
+# blank-deletion class is closed on that path by the pre-image veto in
+# hunks_match_all instead.) Each case below commits one of the five reviewer
+# shapes and requires erase-setup + re-setup to land the target content
+# byte-for-byte.
+
+TFS="$ROOT/t320"
+mkdir -p "$TFS"
+
+setup_shape_case() {
+    # $1 = case name, $2 = pristine printf format, $3 = target printf format
+    _sn="$1"
+    mkdir -p "$TFS/$_sn-1.0/src"
+    printf "$2" > "$TFS/$_sn-1.0/src/f.c"
+    printf 'unrelated\n' > "$TFS/$_sn-1.0/src/g.c"
+    (cd "$TFS" && tar -czf "$_sn-1.0.tar.gz" "$_sn-1.0" && rm -rf "$_sn-1.0")
+    printf 'Archive: %s-1.0.tar.gz\nOrigname: %s-1.0\nName: %s\n\n    Fresh-apply setup test %s.\n\n' \
+        "$_sn" "$_sn" "$_sn" "$_sn" > "$TFS/$_sn.projeny"
+    run_in "$TFS" expect_ok "$_sn fixture setup" "$PROJENY" setup \
+        "$_sn.projeny"
+    printf "$3" > "$TFS/$_sn/src/f.c"
+    cp "$TFS/$_sn/src/f.c" "$TFS/$_sn.expected"
+    run_in "$TFS" expect_ok "$_sn commit the blank deletion" "$PROJENY" \
+        commit "$_sn.projeny"
+    run_in "$TFS" expect_ok "$_sn erase-setup accepts the committed tree" \
+        "$PROJENY" erase-setup "$_sn.projeny"
+    run_in "$TFS" expect_ok "$_sn re-setup applies the patch fresh" \
+        "$PROJENY" setup "$_sn.projeny"
+    expect_file_eq "$_sn re-setup lands the target byte-exact" \
+        "$TFS/$_sn/src/f.c" "$TFS/$_sn.expected"
+}
+
+# S1: deleting 1 of 2 blanks between lineb and x.
+setup_shape_case s1 'lineb\n\n\nx\n' 'lineb\n\nx\n'
+# S2: deleting 2 of 5 blanks at BOF (END anchor). This is also the shape
+# whose pre-image spans the whole pristine file — on the setup path it must
+# still apply, because fresh application never consults already-applied
+# detection.
+setup_shape_case s2 '\n\n\n\n\nEND\n' '\n\n\nEND\n'
+# S3: deleting 2 of 6 trailing blanks at EOF (START anchor).
+setup_shape_case s3 'START\n\n\n\n\n\n\n' 'START\n\n\n\n'
+# S4: deleting 2 of 7 blanks in an all-blank file.
+setup_shape_case s4 '\n\n\n\n\n\n\n' '\n\n\n\n\n'
+# S5: the original repro (x/y context around the blank deletion).
+setup_shape_case s5 'x\ny\n\n\n\nz\n' 'x\ny\n\nz\n'
+
+# ------------------- 321. patch-path behavior for the blank shapes (S1-S5)
+#
+# Pins the finalized `projeny patch` behavior on a pristine tree for each
+# shape, plus patch-path idempotency (re-patching after application must be
+# a byte-identical no-op). All five shapes apply byte-exact: their deleted
+# runs are anchored (a non-blank follower/leader item, the pre-image veto,
+# the boundary checks rejecting the EOF-aligned span, or — for S2, whose
+# slid reverse matches park the span under blank deleted content — the
+# mid-hunk preceding-content check). The residual whole-file-pre-image
+# class (the file equals context + deleted lines exactly, e.g. an all-blank
+# file vs a hunk whose deleted run reaches the hunk's end) still reads as
+# already applied on a pristine tree and keeps patch(1)-style behavior; no
+# local algorithm can distinguish it from the applied state without
+# breaking idempotency elsewhere.
+
+TFP="$ROOT/t321"
+mkdir -p "$TFP"
+
+patch_shape_case() {
+    # $1 = case name, $2 = pristine printf format, $3 = target printf format
+    _pn="$1"
+    mkdir -p "$TFP/$_pn/A" "$TFP/$_pn/B" "$TFP/$_pn/T"
+    printf "$2" > "$TFP/$_pn/A/f.c"
+    printf "$3" > "$TFP/$_pn/B/f.c"
+    printf "$2" > "$TFP/$_pn/T/f.c"
+    (cd "$TFP/$_pn" && "$PROJENY" diff A B) > "$TFP/$_pn/d.diff"
+}
+
+# S1 (1 of 2 blanks between lineb and x): applies byte-exact.
+patch_shape_case s1 'lineb\n\n\nx\n' 'lineb\n\nx\n'
+run_in "$TFP/s1" expect_ok "S1 patch applies to the pristine tree" \
+    "$PROJENY" patch T d.diff
+expect_file_eq "S1 lands byte-exact" "$TFP/s1/T/f.c" "$TFP/s1/B/f.c"
+run_in "$TFP/s1" expect_ok "S1 re-patch is idempotent" "$PROJENY" patch T \
+    d.diff
+expect_file_eq "S1 re-patch leaves the file byte-exact" "$TFP/s1/T/f.c" \
+    "$TFP/s1/B/f.c"
+
+# S2 (2 of 5 blanks at BOF): the pristine file equals the hunk's pre-image
+# exactly (whole-file-pre-image degenerate shape), but the deleted run is
+# mid-hunk (context blanks above, END below), so the slid reverse matches on
+# the pristine tree are rejected by the mid-hunk preceding-content check
+# (the file line above the span is a blank — the run's last deleted line)
+# and the hunk applies forward byte-exact. The applied file reverse-matches
+# exactly where the header says (pos 0, where the check cannot fire), so
+# the re-patch stays a no-op.
+patch_shape_case s2 '\n\n\n\n\nEND\n' '\n\n\nEND\n'
+run_in "$TFP/s2" expect_ok "S2 patch applies to the pristine tree" \
+    "$PROJENY" patch T d.diff
+expect_file_eq "S2 lands byte-exact" "$TFP/s2/T/f.c" "$TFP/s2/B/f.c"
+run_in "$TFP/s2" expect_ok "S2 re-patch is idempotent" "$PROJENY" patch T \
+    d.diff
+expect_file_eq "S2 re-patch leaves the file byte-exact" "$TFP/s2/T/f.c" \
+    "$TFP/s2/B/f.c"
+
+# S3 (2 of 6 trailing blanks at EOF): the reverse match used to park the
+# post-image span at an EOF-aligned position; the pre-image veto now rejects
+# it (the pre-image [6 blanks] survives as a proper sub-window), so it
+# applies byte-exact.
+patch_shape_case s3 'START\n\n\n\n\n\n\n' 'START\n\n\n\n'
+run_in "$TFP/s3" expect_ok "S3 patch applies to the pristine tree" \
+    "$PROJENY" patch T d.diff
+expect_file_eq "S3 lands byte-exact" "$TFP/s3/T/f.c" "$TFP/s3/B/f.c"
+run_in "$TFP/s3" expect_ok "S3 re-patch is idempotent" "$PROJENY" patch T \
+    d.diff
+expect_file_eq "S3 re-patch leaves the file byte-exact" "$TFP/s3/T/f.c" \
+    "$TFP/s3/B/f.c"
+
+# S4 (2 of 7 blanks in an all-blank file): same EOF-aligned skip as S3; the
+# veto fires (pre-image [5 blanks] matches at p=0 with 5 < 7, a proper
+# sub-window) while the applied file [5 blanks] stays exempt (the pre-image
+# matches only as the whole file), so it applies and stays idempotent.
+patch_shape_case s4 '\n\n\n\n\n\n\n' '\n\n\n\n\n'
+run_in "$TFP/s4" expect_ok "S4 patch applies to the pristine tree" \
+    "$PROJENY" patch T d.diff
+expect_file_eq "S4 lands byte-exact" "$TFP/s4/T/f.c" "$TFP/s4/B/f.c"
+run_in "$TFP/s4" expect_ok "S4 re-patch is idempotent" "$PROJENY" patch T \
+    d.diff
+expect_file_eq "S4 re-patch leaves the file byte-exact" "$TFP/s4/T/f.c" \
+    "$TFP/s4/B/f.c"
+
+# S5 (the original repro): was already fixed by the anchored-run checks;
+# kept here so every reviewer shape is regression-guarded on the patch path.
+patch_shape_case s5 'x\ny\n\n\n\nz\n' 'x\ny\n\nz\n'
+run_in "$TFP/s5" expect_ok "S5 patch applies to the pristine tree" \
+    "$PROJENY" patch T d.diff
+expect_file_eq "S5 lands byte-exact" "$TFP/s5/T/f.c" "$TFP/s5/B/f.c"
+run_in "$TFP/s5" expect_ok "S5 re-patch is idempotent" "$PROJENY" patch T \
+    d.diff
+expect_file_eq "S5 re-patch leaves the file byte-exact" "$TFP/s5/T/f.c" \
+    "$TFP/s5/B/f.c"
+
+# ------------------- 322. mid-hunk deleted run in a foreign '+'-before-'-' hunk
+#
+# A hand-written hunk with '+' BEFORE '-' (projeny's own differ never emits
+# '+' immediately followed by '-' inside a hunk, so this shape only arises
+# from foreign/hand-written patches): the deleted run is mid-hunk (not
+# leading, not reaching the hunk's end), so it used to get only the
+# follower-in-window check — vacuous here, the follower ctx genuinely
+# matches — and no boundary check, while the pre-image veto stayed silent
+# because the pre-image [x,x,ctx] does not survive contiguously in the
+# spliced file [x,x,a,ctx]. That file then reverse-matched at the slid
+# position 2 and read as "already applied", silently leaving the
+# still-present [x,x] untouched. The mid-hunk preceding-content check
+# (hunk_matches_at) now rejects that slid match — the file line above the
+# span is the run's last deleted line — so the honest outcome is the
+# forward-apply path: the same byte result GNU patch produces for this
+# input (fuzz 1 trims the trailing context from the match, the deleted
+# [x,x] at the top matches, and the hunk splices in, duplicating the 'a'
+# the spliced file already holds). Not a silent skip either way.
+
+TFH="$ROOT/t322"
+mkdir -p "$TFH/A" "$TFH/B" "$TFH/U"
+printf 'x\nx\nctx\n' > "$TFH/A/f"         # the hunk's pre-image (pristine)
+printf 'a\nctx\n' > "$TFH/B/f"            # the hunk's post-image (applied)
+printf 'x\nx\na\nctx\n' > "$TFH/U/f"      # pre-image + post-image spliced
+cat > "$TFH/foreign.diff" <<'EOF'
+diff --git a/f b/f
+--- a/f
++++ b/f
+@@ -1,3 +1,2 @@
++a
+-x
+-x
+ ctx
+EOF
+printf 'a\na\nctx\n' > "$ROOT/t322-forward-expected"
+
+# The hunk applies byte-exact to the pristine tree (reviewer-verified
+# working behavior, unchanged by the closing check).
+run_in "$TFH" expect_ok "the foreign hunk applies to the pristine tree" \
+    "$PROJENY" patch A foreign.diff
+expect_file_eq "the foreign hunk lands byte-exact" "$TFH/A/f" "$TFH/B/f"
+# Re-patch is idempotent: the applied file [a,ctx] reverse-matches at pos 0,
+# where the mid-run check is skipped.
+run_in "$TFH" \
+    expect_ok "re-patching the applied foreign hunk is idempotent" \
+    "$PROJENY" patch A foreign.diff
+expect_file_eq "the idempotent foreign re-patch leaves the file alone" \
+    "$TFH/A/f" "$TFH/B/f"
+
+# The spliced (unapplied) file must NOT silently read as already applied:
+# the slid reverse match is rejected and forward application proceeds, so
+# `projeny patch` exits 0 and the file CHANGES — to exactly the bytes GNU
+# patch produces — instead of staying byte-identical with [x,x] still
+# present.
+run_in "$TFH" expect_ok "the spliced file takes the forward-apply path" \
+    "$PROJENY" patch U foreign.diff
+expect_file_eq \
+    "the spliced file is no longer skipped (forward-apply bytes land)" \
+    "$TFH/U/f" "$ROOT/t322-forward-expected"
+
 # ------------------------------------------------------------- summary
 echo "---"
 echo "passed: $PASS, failed: $FAIL"

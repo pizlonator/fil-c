@@ -862,11 +862,17 @@ std::string build_tree_from_patch(TempDir& tmp, const std::string& archive,
     std::string tree = join_path(tmp.path, origname);
     if (normalize_patch_text(patch_wid).empty())
         return tree;
-    if (!apply_patch_whole(tree, patch_wid, wid, scratch)) {
+    if (!apply_patch_whole(tree, patch_wid, wid, scratch,
+                           VcsApplyMode::kFreshApply)) {
         // Retry per-file to produce a precise error. Failures carry
         // workdir-relative paths from the single patch parser (no second
         // parser, so block counts cannot diverge into OOB/wrong names).
-        std::vector<VcsFailure> bad = apply_patch_per_file(tree, patch_wid, wid);
+        // kFreshApply: the tree was just unpacked from the pristine tarball,
+        // so "already applied" is impossible and the reverse-match path is
+        // never consulted — a needed deletion cannot be silently dropped
+        // here.
+        std::vector<VcsFailure> bad = apply_patch_per_file(
+            tree, patch_wid, wid, VcsApplyMode::kFreshApply);
         die("cannot apply " + what + ": patch does not apply cleanly",
             bullet_list(bad));
     }
@@ -917,8 +923,13 @@ void merge_user_diff_onto(const std::string& base_tree, const std::string& fresh
     // Parse U with its own wid (uwid): U was diffed with the old wid, which
     // may differ from the fresh tree's wid. Failures already carry
     // workdir-relative paths, so no second parser and no wid stripping here.
+    // kAllowAlready: the target tree N is fresh, but U is the user's
+    // recorded diff — the new base may already contain part of it (upstream
+    // incorporated the same change), and skipping those blocks is what keeps
+    // that a clean merge instead of a spurious conflict.
     (void)wid;
-    std::vector<VcsFailure> bad = apply_patch_per_file(workdir, upatch, uwid);
+    std::vector<VcsFailure> bad =
+        apply_patch_per_file(workdir, upatch, uwid, VcsApplyMode::kAllowAlready);
     if (bad.empty())
         return;
     // For each failed block, do a 3-way merge of base/ours(=fresh)/theirs.
@@ -3357,7 +3368,8 @@ int cmd_rebase(const std::string& projeny_arg,
         std::string expect = join_path(tC.path, cur.origname);
         if (!normalize_patch_text(cur.patch).empty() &&
             !apply_patch_whole(expect, cur.patch, cur.name,
-                               scratch_parent_for(ctx.pdir)))
+                               scratch_parent_for(ctx.pdir),
+                               VcsApplyMode::kFreshApply))
             die("patch in '" + ctx.projeny_arg +
                 "' does not apply to its own base archive '" + cur.archive +
                 "'; run setup to repair first");
@@ -3445,11 +3457,22 @@ int cmd_rebase(const std::string& projeny_arg,
     std::map<std::string, uint64_t> frozen =
         refresh_frozen_from_tree(vcs_frozen_mtimes(cur.patch, cur.name), tree);
     std::vector<std::string> conflicts;
+    // kAllowAlready (not kFreshApply) for the application onto the NEW base:
+    // the new tarball is pristine, but it is a DIFFERENT upstream snapshot
+    // that may already contain the user's change (upstream incorporated it —
+    // the entire reason rebases exist). There the forward application fails
+    // and the Already path is what recognizes the incorporated change and
+    // still repairs mode/newline drift; kFreshApply here would drop that
+    // repair (and the blank-adjacent deletion class this mode exists for is
+    // closed by the pre-image veto in hunks_match_all instead). The
+    // freshly-unpacked-own-base check above keeps kFreshApply: the patch
+    // must apply forward to the very tarball it was diffed against.
     if (!normalize_patch_text(cur.patch).empty() &&
         !apply_patch_whole(tree, cur.patch, cur.name,
-                           scratch_parent_for(ctx.pdir))) {
-        std::vector<VcsFailure> bad =
-            apply_patch_per_file(tree, cur.patch, cur.name);
+                           scratch_parent_for(ctx.pdir),
+                           VcsApplyMode::kAllowAlready)) {
+        std::vector<VcsFailure> bad = apply_patch_per_file(
+            tree, cur.patch, cur.name, VcsApplyMode::kAllowAlready);
         // 3-way merge each failed file: base = OLD tree file, ours = new
         // tree file (patched except failed parts), theirs = old tree file.
         TempDir tO(scratch_parent_for(ctx.pdir), "projeny-rebase-old-");
@@ -4170,9 +4193,13 @@ int cmd_patch(const std::string& dir, const std::string& patch_file)
     // wid (authoritative when consistent), then the basename, then none.
     std::string use_wid = pick_patch_wid(dir, patch, wid, false);
     std::vector<std::string> conflicts;
+    // kAllowAlready: an arbitrary target directory may genuinely already
+    // hold (part of) the patch, and skipping those blocks is what makes
+    // re-running `projeny patch` idempotent.
     bool clean = apply_patch_with_conflicts(dir, patch, use_wid,
                                             system_scratch_parent(),
-                                            &conflicts);
+                                            &conflicts,
+                                            VcsApplyMode::kAllowAlready);
     sort_unique(&conflicts);
     if (clean) {
         printf("projeny: patched '%s'\n", dir.c_str());
@@ -4275,9 +4302,13 @@ int cmd_apply(const std::string& projeny_arg, const std::string& patch_file)
     std::vector<std::string> dels = vcs_deleted_paths(patch, use_wid);
 
     std::vector<std::string> conflicts;
+    // kAllowAlready: the checkout may genuinely already hold (part of) the
+    // patch, and skipping those blocks is what makes re-running
+    // `projeny apply` idempotent.
     bool clean = apply_patch_with_conflicts(workdir, patch, use_wid,
                                             system_scratch_parent(),
-                                            &conflicts);
+                                            &conflicts,
+                                            VcsApplyMode::kAllowAlready);
     sort_unique(&conflicts);
 
     // Post-apply bookkeeping, mirroring what add/rm/mv record by hand:

@@ -260,7 +260,15 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   basename, so the output feeds `projeny patch`, `git apply`, and
   `patch -p1`). Both arguments must be directories.
 - `patch <dir> <patch-file>`: applies a patch file to a directory with
-  fuzz; already-applied blocks are skipped. Unapplyable blocks become
+  fuzz; already-applied blocks are skipped (already-applied means the
+  file already holds the hunk's exact post-image with every deleted run
+  anchored — leading deleted runs, and slid matches of mid-hunk deleted
+  runs, also require the file line above the post-image span not to be
+  the run's last deleted line — plus the hunk's exact pre-image must not
+  survive as a proper sub-window of the file — blank-adjacent shapes
+  whose pre-image spans the whole file, and pure insertions, remain
+  patch(1)-style heuristics).
+  Unapplyable blocks become
   conflicts: markers (`<<<<<<< current` / `=======` / `>>>>>>> patched`)
   go inline and the conflicted files are listed on stdout (exit stays 0).
 - `apply <f.projeny|dir> <patch-file>`: applies a patch file inside a
@@ -272,8 +280,18 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   adds are marked added, files it deletes are marked removed, renames are
   recorded as pending renames (chained through existing pending renames
   exactly like `mv`), and mode changes (exec bit, symlinks) are applied
-  to the files. Already-applied blocks are skipped, so re-applying is
-  idempotent. Unapplyable blocks get the same inline conflict markers and
+  to the files. Already-applied blocks are skipped (the file must hold
+  the hunk's exact post-image with every deleted run anchored — leading
+  deleted runs, and slid matches of mid-hunk deleted runs, also require
+  the file line above the post-image span not to be the run's last
+  deleted line — plus the hunk's exact pre-image must not survive as a
+  proper sub-window of the file — whole-file-pre-image blank shapes and
+  pure insertions remain heuristic; setup applies .projeny patches fresh
+  to the pristine tarball and never consults already-applied detection at
+  all, and neither does rebase's check that the patch applies to its own
+  base), so re-applying is idempotent.
+  Unapplyable blocks get the same
+  inline conflict markers and
   are marked conflicted in the status file, and the command exits 1 —
   resolve with `projeny resolve`, then `commit`. When the patch touches a
   file that is already marked conflicted nothing is applied at all (no

@@ -231,16 +231,42 @@ std::string vcs_drop_binary_adds_not_in(const std::string& patch,
                                         const std::string& wid,
                                         const std::vector<std::string>& keep);
 
+// How the applier may use already-applied detection (reverse matching).
+//
+// kAllowAlready: reverse-match "Already" decisions are live — a file holding
+// the hunk's exact post-image (each deleted run anchored per
+// hunk_matches_at, plus hunks_match_all's pre-image veto for slid matches)
+// skips the block. This is the right mode whenever the target may genuinely
+// already contain the patch: `projeny patch`, `projeny apply`, rebase's
+// application onto the NEW upstream tarball (upstream may have incorporated
+// the user's change — skipping is what recognizes that and keeps the drift
+// repair), and the setup/rebase paths that merge a recorded user diff onto
+// a freshly built tree.
+//
+// kFreshApply: the target tree was just extracted from the very tarball the
+// patch was diffed against (setup's build_tree_from_patch, rebase's
+// own-base check), so "already applied" is impossible by construction and
+// reverse matching is pure bug surface (it is exactly how blank-line-only
+// deletions used to be silently dropped in setup). Already decisions are
+// skipped and every block is applied forward; a rename/missing-src block
+// that cannot apply forward fails into the existing Failed handling, same
+// as any other conflict.
+enum class VcsApplyMode { kAllowAlready, kFreshApply };
+
 // Apply `patch` (wid-label form, wid == `wid`) inside `treedir`.
 // Returns true on full success; the tree may be partially patched on failure.
-// Blocks already applied are skipped. Binary blocks compare and write raw
-// bytes; unparseable binary blocks fail instead of dying.
+// In kAllowAlready mode, blocks already applied are skipped; in kFreshApply
+// mode every block is applied forward (see the VcsApplyMode comment). Binary
+// blocks compare and write raw bytes; unparseable binary blocks fail instead
+// of dying.
 bool vcs_apply_whole(const std::string& treedir, const std::string& patch,
-                     const std::string& wid);
+                     const std::string& wid, VcsApplyMode mode);
 
 // Apply each file block of `patch` individually. Returns per-block failures
 // with workdir-relative paths (no indices into any other parser's output).
-// Blocks already applied are skipped. Each entry carries a display name for
+// In kAllowAlready mode, blocks already applied are skipped; in kFreshApply
+// mode every block is applied forward (see the VcsApplyMode comment). Each
+// entry carries a display name for
 // error messages plus the list of workdir-relative files it touches for
 // three-way merging (empty when the block has no parseable path, e.g. an
 // unsupported combined-diff block).
@@ -251,11 +277,14 @@ struct VcsFailure {
 
 std::vector<VcsFailure> vcs_apply_per_file(const std::string& workdir,
                                             const std::string& patch,
-                                            const std::string& wid);
+                                            const std::string& wid,
+                                            VcsApplyMode mode);
 
 // Apply `patch` (wid-label form, wid == `wid`) inside `treedir`, writing
 // git-style conflict markers inline for blocks that do not apply cleanly.
-// Clean blocks (including already-applied ones) are applied as usual; each
+// Clean blocks (including already-applied ones in kAllowAlready mode) are
+// applied as usual; in kFreshApply mode every block is applied forward
+// (see the VcsApplyMode comment). Each
 // failed block keeps the successfully applied hunks (modify blocks) or the
 // current file (add/delete/rename blocks, including binary blocks, which
 // never get inline markers) and records its workdir-relative
@@ -264,7 +293,8 @@ std::vector<VcsFailure> vcs_apply_per_file(const std::string& workdir,
 // when everything applied cleanly.
 bool vcs_apply_with_conflicts(const std::string& treedir,
                               const std::string& patch, const std::string& wid,
-                              std::vector<std::string>* conflicts);
+                              std::vector<std::string>* conflicts,
+                              VcsApplyMode mode);
 
 // All workdir-relative paths `patch` touches under `wid` (both sides of
 // renames; display fallback when a block has no parseable path). Used to

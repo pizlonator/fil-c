@@ -516,34 +516,38 @@ std::string diff_trees(const std::string& base_tree, const std::string& workdir,
 }
 
 bool apply_patch_whole(const std::string& treedir, const std::string& patch,
-                       const std::string& wid, const std::string& scratch_parent)
+                       const std::string& wid, const std::string& scratch_parent,
+                       VcsApplyMode mode)
 {
     (void)scratch_parent; // no temp files needed; kept for call compatibility
     if (normalize_patch_text(patch).empty())
         return true;
-    return vcs_apply_whole(treedir, patch, wid);
+    return vcs_apply_whole(treedir, patch, wid, mode);
 }
 
 std::vector<VcsFailure> apply_patch_per_file(const std::string& workdir,
-                                              const std::string& patch,
-                                              const std::string& wid)
+                                             const std::string& patch,
+                                             const std::string& wid,
+                                             VcsApplyMode mode)
 {
-    // Internal per-file application with -p1 semantics. Blocks already
-    // applied are detected (reverse-match) and skipped; they are not
-    // reported as failures. Single-parser source of truth: failures carry
+    // Internal per-file application with -p1 semantics. In kAllowAlready
+    // mode, blocks already applied are detected (reverse-match) and skipped;
+    // they are not reported as failures. In kFreshApply mode every block is
+    // applied forward. Single-parser source of truth: failures carry
     // workdir-relative paths, never indices into another parser's blocks.
-    return vcs_apply_per_file(workdir, patch, wid);
+    return vcs_apply_per_file(workdir, patch, wid, mode);
 }
 
 bool apply_patch_with_conflicts(const std::string& treedir,
                                 const std::string& patch, const std::string& wid,
                                 const std::string& scratch_parent,
-                                std::vector<std::string>* conflicts)
+                                std::vector<std::string>* conflicts,
+                                VcsApplyMode mode)
 {
     (void)scratch_parent; // no temp files needed; kept for call compatibility
     if (normalize_patch_text(patch).empty())
         return true;
-    return vcs_apply_with_conflicts(treedir, patch, wid, conflicts);
+    return vcs_apply_with_conflicts(treedir, patch, wid, conflicts, mode);
 }
 
 std::vector<std::string> patch_touched_paths(const std::string& patch,

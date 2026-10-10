@@ -83,27 +83,43 @@ std::string diff_trees(const std::string& base_tree, const std::string& workdir,
 // semantics. `wid` is the patch's workdir name, which may differ
 // from basename(treedir) for unpacked "origname" trees. Returns true on full
 // success. On failure the tree may be partially patched; callers prefer the
-// per-file path below for merge.
+// per-file path below for merge. `mode` decides whether already-applied
+// detection (reverse matching) may skip blocks at all: kAllowAlready for
+// targets that may genuinely hold the patch, kFreshApply when `treedir` was
+// just extracted from the very tarball the patch was diffed against
+// (setup's build_tree_from_patch, rebase's own-base check) and "already
+// applied" is impossible — there every block is applied forward (see the
+// VcsApplyMode comment in vcs.h).
 bool apply_patch_whole(const std::string& treedir, const std::string& patch,
-                       const std::string& wid, const std::string& scratch_parent);
+                       const std::string& wid, const std::string& scratch_parent,
+                       VcsApplyMode mode);
 
 // Apply each file block of `patch` individually with -p1 semantics.
 // Returns per-block failures with workdir-relative paths (single-parser
 // source of truth; no indices into any other parser's output).
-// Blocks already applied are detected (reverse-match) and skipped.
+// In kAllowAlready mode, blocks already applied are detected (reverse-match:
+// each deleted run anchored per hunk_matches_at plus the pre-image veto in
+// hunks_match_all — not a proof of absence; blank-adjacent shapes whose
+// pre-image spans the whole file stay heuristic) and skipped. In kFreshApply
+// mode every block is applied forward; "already applied" is impossible on a
+// freshly extracted tree, so the reverse-match path is never consulted.
 std::vector<VcsFailure> apply_patch_per_file(const std::string& workdir,
-                                              const std::string& patch,
-                                              const std::string& wid);
+                                             const std::string& patch,
+                                             const std::string& wid,
+                                             VcsApplyMode mode);
 
 // Apply `patch` (WID-label form, wid == `wid`) inside `treedir`, writing
 // git-style conflict markers ("<<<<<<< current" / "=======" /
 // ">>>>>>> patched") inline for blocks that do not apply cleanly and
 // appending their workdir-relative paths to `conflicts`. Returns true when
-// everything applied cleanly. Used by `projeny patch`.
+// everything applied cleanly. Used by `projeny patch` and `projeny apply`
+// (both kAllowAlready: the target may genuinely already hold the patch, and
+// skipping it is what makes re-application idempotent).
 bool apply_patch_with_conflicts(const std::string& treedir,
                                 const std::string& patch, const std::string& wid,
                                 const std::string& scratch_parent,
-                                std::vector<std::string>* conflicts);
+                                std::vector<std::string>* conflicts,
+                                VcsApplyMode mode);
 
 // Workdir-relative paths `patch` touches under `wid` (see vcs_touched_paths).
 std::vector<std::string> patch_touched_paths(const std::string& patch,

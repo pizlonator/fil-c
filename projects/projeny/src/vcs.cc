@@ -178,8 +178,9 @@ struct Op {
     std::string line;
 };
 
-// Myers O(ND) greedy diff with prefix/suffix trim and fallbacks for huge or
-// highly dissimilar inputs (emits wholesale replacement then).
+// Myers O(ND) greedy diff with prefix/suffix trim and fallbacks for highly
+// dissimilar inputs or edit distances beyond the adaptive D limit (emits a
+// wholesale replacement then — see the D-limit computation below).
 std::vector<Op> myers_lines(const std::vector<std::string>& a,
                             const std::vector<std::string>& b)
 {
@@ -211,9 +212,7 @@ std::vector<Op> myers_lines(const std::vector<std::string>& a,
     } else {
         size_t n = am.size(), m = bm.size();
         bool wholesale = false;
-        if (n + m > 10000 || n * m > 25000000)
-            wholesale = true;
-        if (!wholesale && n + m > 2000) {
+        if (n + m > 2000) {
             // Cheap similarity probe: fraction of am lines found in bm.
             std::unordered_multiset<std::string> bset(bm.begin(), bm.end());
             size_t common = 0;
@@ -239,18 +238,37 @@ std::vector<Op> myers_lines(const std::vector<std::string>& a,
     if (!done_middle) {
         size_t n = am.size(), m = bm.size();
         size_t maxd = n + m;
-        // D-limit guard inside the loop aborts to wholesale past 5000
-        // (bounds trace memory); small edits in big files stay exact.
+        // Myers is O((n+m)*D) time, and the backtrack needs one trace
+        // snapshot (a copy of v, (2*maxd+1) ints) per D step — so both costs
+        // scale with the edit distance D, not with the file size. Bound D
+        // adaptively instead of giving up on big inputs: near-identical huge
+        // files (one stray line in a 30k-line configure) stay exact, and the
+        // wholesale fallback triggers only when the limit itself is exceeded
+        // (mem_cap arithmetic alone targets ~512MB, but the worst-case trace
+        // is (dlimit+1) row snapshots PLUS the live v row ≈ 640MB when the
+        // 8-step floor binds; time is bounded by ~2e8 compared lines, and
+        // 5000 D-steps outright). am and bm are both non-empty here, so
+        // n + m >= 2 and neither division can divide by zero.
         const size_t kDLimit = 5000;
-        {
+        size_t mem_cap =
+            (size_t)((512ULL << 20) / ((2 * maxd + 1) * sizeof(int)));
+        size_t time_cap = (size_t)(200000000ULL / (n + m));
+        size_t dlimit = std::min({kDLimit, mem_cap, time_cap});
+        if (dlimit < 8) {
+            // Too big to bound exactly: emit the wholesale replacement.
+            for (auto& l : am)
+                out.push_back({'-', l});
+            for (auto& l : bm)
+                out.push_back({'+', l});
+        } else {
             int off = (int)maxd;
             std::vector<int> v(2 * maxd + 1, -1);
             v[off + 1] = 0;
             std::vector<std::vector<int>> trace;
-            trace.reserve(64);
+            trace.reserve((size_t)std::min(dlimit + 1, (size_t)8192));
             int found_d = -1;
             for (size_t d = 0; d <= maxd; ++d) {
-                if (d > kDLimit) {
+                if (d > dlimit) {
                     found_d = -2; // give up
                     break;
                 }
@@ -1790,27 +1808,98 @@ namespace {
 
 // Check hunk body lines against file lines at pos with fuzz f (ignores up to
 // f leading/trailing context lines; '-' lines always checked).
+//
+// In reverse mode ("already applied" detection) a match is accepted only when
+// each maximal run of deleted lines is anchored. This is NOT a proof that the
+// deleted lines are absent: they swap to '+' and are never checked as items,
+// so when the anchor lines are themselves blank (blank == blank) the checks
+// below can pass vacuously. What reverse mode requires here: the post-image
+// item following each run (or, for a run reaching the hunk's end, the item
+// preceding it) must lie inside the fuzz-verified window; runs touching a
+// hunk edge must be justified by the file boundary (the file must not
+// continue with the run's deleted content right after the post-image span,
+// nor precede the span with it — and a leading run at any position, or a
+// mid-hunk run (items on both sides) whose match slid off the header's
+// position, rejects a match whose preceding file line is the run's last
+// deleted line: the signature of the file holding deleted content spliced
+// directly above the matched post-image span); and — via
+// hunks_match_all, for reverse matches that had to slide off the header's
+// position — the hunk's exact pre-image must not survive as a proper
+// sub-window of the file.
+// Blank-adjacent deleted runs whose pre-image spans the whole file (the file
+// equals context + deleted lines exactly, e.g. all-blank files) remain
+// fundamentally ambiguous locally and keep patch(1)-style behavior, as does
+// a foreign hunk whose header parks the expected post-image position exactly
+// on the spliced span (locally indistinguishable from the applied state that
+// header claims — the same exact-position trust that keeps genuine
+// re-applications idempotent); pure-insertion hunks keep fuzz so idempotent
+// re-application never duplicates insertions.
+//
+// Accepted tradeoff: a foreign patch with truncated trailing context that
+// ends in a deletion can false-negative here on the Already path (the
+// boundary checks reject the fuzz level it needs), leading to a re-apply
+// attempt that fails into the conflict/Failed path — preferred over silently
+// skipping needed deletions. The mid-hunk preceding-content check has the
+// same accepted false-negative on the genuinely applied side: an applied
+// file whose reverse match slid (content repetition can move it) and whose
+// line immediately above the post-image span coincides with the run's last
+// deleted line no longer reads as already applied and fails into the
+// conflict path instead of the no-op.
 bool hunk_matches_at(const std::vector<std::string>& file, size_t pos,
-                     const PHunk& h, int fuzz, bool reverse)
+                     const PHunk& h, int fuzz, bool reverse, long expected)
 {
     // Collect checkable (file-side) lines with their file offsets.
     struct Item {
         std::string text;
         long file_off; // offset from pos
     };
+    // A maximal run of original '-' lines (the deletions). In reverse mode
+    // these lines swap to '+' and are never checked as items.
+    struct DeletedRun {
+        long follower; // item index of the first item after the run, or -1
+                       // when the run reaches the hunk's end
+        long leader;   // item index of the last item before the run, or -1
+                       // when the run starts the hunk (or is the whole hunk)
+        bool leading;  // no item before the run (the hunk starts with it)
+        std::string first; // first deleted line of the run
+        std::string last;  // last deleted line of the run
+    };
     std::vector<Item> items;
+    std::vector<DeletedRun> runs;
+    bool run_open = false;
     long off = 0;
-    for (auto& ln : h.lines) {
-        char op = ln.op;
+    for (size_t li = 0; li < h.lines.size(); ++li) {
+        char op = h.lines[li].op;
         if (reverse && (op == '-' || op == '+'))
             op = (op == '-') ? '+' : '-';
         if (op == ' ' || op == '-') {
-            items.push_back({ln.text, off});
+            if (run_open) {
+                // A maximal deleted run ends right before this line, which
+                // is the first item following it: its item index is the
+                // size of `items` before it is pushed.
+                runs.back().follower = (long)items.size();
+                run_open = false;
+            }
+            items.push_back({h.lines[li].text, off});
             ++off;
         } else if (op == '+') {
+            if (reverse) {
+                // Swapped to '+': an original '-' line — a deleted line the
+                // reverse match never checks as an item. Track its run.
+                if (!run_open) {
+                    run_open = true;
+                    runs.push_back({-1,
+                                    items.empty() ? -1 : (long)items.size() - 1,
+                                    li == 0, h.lines[li].text,
+                                    h.lines[li].text});
+                } else {
+                    runs.back().last = h.lines[li].text;
+                }
+            }
             // inserted: no file line consumed
         }
     }
+    // (A run still open here reaches the hunk's end and keeps follower -1.)
     // Fuzz skips leading/trailing *context* items (not '-' items).
     size_t lo = 0, hi = items.size();
     // Map items back to hunk lines to know which are context.
@@ -1830,6 +1919,63 @@ bool hunk_matches_at(const std::vector<std::string>& file, size_t pos,
     while (hi > lo && skip_hi > 0 && kinds[hi - 1] == ' ') {
         --hi;
         --skip_hi;
+    }
+    if (reverse) {
+        for (const DeletedRun& r : runs) {
+            if (r.follower >= 0 &&
+                ((size_t)r.follower < lo || (size_t)r.follower >= hi)) {
+                // The follower item is verified at its fixed post-image
+                // offset; if the deleted lines were still present it would
+                // sit below them. A fuzz level that trims the follower out
+                // of the window proves nothing, so reject it (lower fuzz
+                // levels keep the follower and get their own chance).
+                return false;
+            }
+            if (r.follower < 0) {
+                // Deletion reaching the hunk's end (e.g. an EOF deletion):
+                // absence cannot be proven by a follower item. The item
+                // before the run must stay inside the window (it anchors
+                // the match position — with it trimmed away, fuzz could
+                // park the empty-checked span anywhere), and the file must
+                // not continue with the deleted content right after the
+                // post-image span — an unapplied file always does.
+                if (r.leader >= 0 &&
+                    ((size_t)r.leader < lo || (size_t)r.leader >= hi))
+                    return false;
+                size_t after = pos + items.size();
+                if (after < file.size() && file[after] == r.first)
+                    return false;
+            }
+            if (r.leading || (r.leader >= 0 && r.follower >= 0)) {
+                // Deletion at the very start of the hunk, or mid-hunk (items
+                // on both sides of the run): when the reverse match has slid
+                // below deleted content, the file line immediately above the
+                // matched post-image span is the run's last deleted line —
+                // the file holds the deleted run spliced directly above the
+                // post-image span (unapplied), so the honest outcome is the
+                // forward-apply/conflict path, not a silent skip. At pos == 0
+                // nothing can precede the span at all, so the check cannot
+                // fire. Leading runs check every non-zero position (a
+                // spliced file always slides a leading run's match — the run
+                // occupies the top of the pre-image, so the post-image span
+                // lands below the header's position). Mid-hunk runs check
+                // only slid matches: their deleted lines sit INSIDE the
+                // pre-image span, below its leading context, so the line
+                // above a match at the header's own position is ordinary
+                // file content — rejecting there would break idempotency for
+                // every applied hunk whose preceding line repeats the
+                // deleted text (e.g. the t79 aaa/bbb alternation, where the
+                // pre-image survives elsewhere and forward application would
+                // mis-land and corrupt the file). Runs reaching the hunk's
+                // end are excluded entirely: their EOF-aligned matches
+                // legitimately sit under identical content (an all-blank
+                // applied file), and the trailing-run branch above handles
+                // them.
+                if (pos != 0 && (r.leading || (long)pos != expected) &&
+                    file[pos - 1] == r.last)
+                    return false;
+            }
+        }
     }
     for (size_t i = lo; i < hi; ++i) {
         size_t fp = pos + (size_t)items[i].file_off;
@@ -1877,7 +2023,7 @@ long find_hunk_pos(const std::vector<std::string>& file, const PHunk& h,
         // Clamp expected into range.
         long lo = 0, hi = (long)file.size();
         for (long p = lo; p <= hi; ++p) {
-            if (!hunk_matches_at(file, (size_t)p, h, f, reverse))
+            if (!hunk_matches_at(file, (size_t)p, h, f, reverse, expected))
                 continue;
             long dist = p >= expected ? p - expected : expected - p;
             if (best < 0 || dist < best_dist ||
@@ -1897,6 +2043,12 @@ long find_hunk_pos(const std::vector<std::string>& file, const PHunk& h,
 bool hunks_match_all(const std::vector<std::string>& file,
                      const std::vector<PHunk>& hunks, bool reverse)
 {
+    // Per hunk: whether the reverse match landed exactly where the header
+    // says (pos == expected) or had to slide. A slid match is how the
+    // blank-adjacent degeneracies manifest (the post-image span parks
+    // somewhere the deleted lines used to be); an exact-position match is
+    // the normal already-applied state and is trusted as-is.
+    std::vector<bool> slid;
     long offset = 0;
     for (auto& h : hunks) {
         long exp = hunk_expected(h, reverse) + offset;
@@ -1907,9 +2059,77 @@ bool hunks_match_all(const std::vector<std::string>& file,
         long pos = find_hunk_pos(file, h, exp, reverse);
         if (pos < 0)
             return false;
+        slid.push_back(pos != exp);
         long rem = 0, add = 0;
         hunk_body_counts(h, &rem, &add, reverse);
         offset += (reverse ? (rem - add) : (add - rem));
+    }
+    if (reverse) {
+        // Pre-image veto, after every hunk has reverse-matched: a hunk that
+        // actually changes content (its pre-image — context + deleted lines,
+        // in order — differs from its post-image — context + added lines)
+        // must not leave its exact pre-image sitting in the file. If the
+        // file still contains that exact line sequence at contiguous
+        // offsets, applying the hunk WOULD change the file, so "already
+        // applied" is wrong; veto the match and let forward application
+        // proceed (patch(1) semantics: it would apply at that spot). The
+        // scan is O(file * pre_len) per hunk, fine for the Already path.
+        //
+        // The veto runs only for hunks whose reverse match SLID (pos !=
+        // expected). Narrowing it that way keeps idempotency for hunks
+        // whose pre-image is content that recurs throughout the file (an
+        // aaa/bbb alternation, a repeated boilerplate line): their applied
+        // state reverse-matches exactly where the header says, and scanning
+        // there would veto every re-application. Every blank-adjacent
+        // degenerate skip reverses at a SLID position (the span parks
+        // EOF-aligned or past the deleted blanks), so the narrowing costs
+        // nothing where it matters.
+        //
+        // One exemption preserves idempotency for the genuinely ambiguous
+        // degenerate case: when the file EQUALS the hunk's pre-image exactly
+        // (p == 0 && pre_len == file.size()), no local algorithm can tell
+        // the unapplied state from an applied file that happens to equal its
+        // own pre-image (e.g. an all-blank file: pristine [b x7] -> applied
+        // [b x5] with hunk pre-image [b x5] — after application the file
+        // still equals the pre-image). Such whole-file-pre-image shapes stay
+        // patch(1)-style heuristics and may still read as "already applied"
+        // on a pristine tree; every other placement of a surviving pre-image
+        // is a proper sub-window and vetoes. Pure-insertion hunks never get
+        // here (their pre- and post-images are both just the context), so
+        // idempotent re-application of fuzz-applied insertions keeps working.
+        for (size_t hi = 0; hi < hunks.size(); ++hi) {
+            if (!slid[hi])
+                continue; // exact-position reverse match: trusted
+            const PHunk& h = hunks[hi];
+            std::vector<std::string> pre, post;
+            for (auto& ln : h.lines) {
+                if (ln.op == ' ') {
+                    pre.push_back(ln.text);
+                    post.push_back(ln.text);
+                } else if (ln.op == '-') {
+                    pre.push_back(ln.text);
+                } else if (ln.op == '+') {
+                    post.push_back(ln.text);
+                }
+            }
+            // No '-' lines (pure insertion) or an identity hunk: applying
+            // changes nothing the veto could be right about.
+            if (pre == post)
+                continue;
+            size_t n = file.size(), plen = pre.size();
+            if (plen == 0 || plen > n)
+                continue; // the pre-image cannot appear in this file at all
+            for (size_t p = 0; p + plen <= n; ++p) {
+                size_t i = 0;
+                while (i < plen && file[p + i] == pre[i])
+                    ++i;
+                if (i < plen)
+                    continue;
+                if (p == 0 && plen == n)
+                    continue; // degenerate whole-file span: exempt (see above)
+                return false; // pre-image survives as a proper sub-window
+            }
+        }
     }
     return true;
 }
@@ -2348,7 +2568,7 @@ bool confined_for_write(const std::string& treedir, const std::string& full)
 }
 
 BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
-                      const std::string& wid)
+                      const std::string& wid, VcsApplyMode mode)
 {
     // Resolve target paths.
     std::string old_full, new_full;
@@ -2759,13 +2979,16 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
         return BlkStatus::Failed; // dir/special: conflict, not die/hang
     if (src_k == PathKind::Missing) {
         // Already applied? Check the destination: reverse-match hunks there,
-        // enforcing mode/newline even on the Already path.
+        // enforcing mode/newline even on the Already path. Only in
+        // kAllowAlready mode: on a freshly extracted tree (kFreshApply) the
+        // source cannot legitimately be missing, so this is a conflict, not
+        // an already-applied state.
         if (path_kind(dst_full) == PathKind::Other)
             return BlkStatus::Failed;
         // Reverse-match hunks against the destination (whether the block
         // renames or not — both shapes read the same way). A pure rename
         // (empty hunks) whose destination exists is already applied too.
-        if (path_exists(dst_full)) {
+        if (mode == VcsApplyMode::kAllowAlready && path_exists(dst_full)) {
             if (!blk.is_binary && path_is_binary_file(dst_full))
                 return BlkStatus::Failed; // text block vs binary file
             bool is_link = false;
@@ -2814,8 +3037,18 @@ BlkStatus apply_block(const std::string& treedir, const PBlock& blk,
     FileLines cur = read_target_lines(src_full, &is_link, nullptr);
     // Already applied? Reverse-match first (like `apply -R --check`),
     // enforcing effective mode and trailing-newline state even when the
-    // content already matches so retry/re-setup repairs drift.
-    if (hunks_match_all(cur.lines, blk.hunks, true)) {
+    // content already matches so retry/re-setup repairs drift. The reverse
+    // match is anchored (hunk_matches_at) plus hunks_match_all's pre-image
+    // veto, so a pristine file whose hunk still has its pre-image in place
+    // can never read as already applied — but only in kAllowAlready mode.
+    // In kFreshApply mode (setup's build_tree_from_patch and rebase's
+    // own-base check: the tree was just extracted from the very tarball the
+    // patch was diffed against) "already applied" is impossible by
+    // construction, so the reverse-match decision is skipped entirely and
+    // application proceeds forward: this is what keeps blank-adjacent
+    // deletions from being silently dropped on the .projeny critical paths.
+    if (mode == VcsApplyMode::kAllowAlready &&
+        hunks_match_all(cur.lines, blk.hunks, true)) {
         // For renames the content lives at dst when src is gone; here src
         // exists, so the content is at src. Enforce there.
         // Gate the rewrite/chmod like any other: never write through a link.
@@ -2991,7 +3224,7 @@ VcsFailure failure_for_block(const PBlock& blk, const std::string& wid)
 } // namespace
 
 bool vcs_apply_whole(const std::string& treedir, const std::string& patch,
-                     const std::string& wid)
+                     const std::string& wid, VcsApplyMode mode)
 {
     if (patch.empty())
         return true;
@@ -3008,7 +3241,7 @@ bool vcs_apply_whole(const std::string& treedir, const std::string& patch,
         return true;
     std::vector<PBlock> blocks = parse_patch(patch, wid);
     for (auto& b : blocks) {
-        BlkStatus st = apply_block(treedir, b, wid);
+        BlkStatus st = apply_block(treedir, b, wid, mode);
         if (st == BlkStatus::Failed)
             return false;
     }
@@ -3017,12 +3250,13 @@ bool vcs_apply_whole(const std::string& treedir, const std::string& patch,
 
 std::vector<VcsFailure> vcs_apply_per_file(const std::string& workdir,
                                               const std::string& patch,
-                                              const std::string& wid)
+                                              const std::string& wid,
+                                              VcsApplyMode mode)
 {
     std::vector<VcsFailure> failed;
     std::vector<PBlock> blocks = parse_patch(patch, wid);
     for (size_t i = 0; i < blocks.size(); ++i) {
-        BlkStatus st = apply_block(workdir, blocks[i], wid);
+        BlkStatus st = apply_block(workdir, blocks[i], wid, mode);
         if (st == BlkStatus::Failed)
             failed.push_back(failure_for_block(blocks[i], wid));
     }
@@ -3232,7 +3466,8 @@ static void write_conflict_for_block(const std::string& treedir,
 
 bool vcs_apply_with_conflicts(const std::string& treedir,
                               const std::string& patch, const std::string& wid,
-                              std::vector<std::string>* conflicts)
+                              std::vector<std::string>* conflicts,
+                              VcsApplyMode mode)
 {
     if (patch.empty())
         return true;
@@ -3244,7 +3479,7 @@ bool vcs_apply_with_conflicts(const std::string& treedir,
     bool all_clean = true;
     for (size_t i = 0; i < blocks.size(); ++i) {
         const PBlock& blk = blocks[i];
-        BlkStatus st = apply_block(treedir, blk, wid);
+        BlkStatus st = apply_block(treedir, blk, wid, mode);
         if (st != BlkStatus::Failed)
             continue;
         all_clean = false;
