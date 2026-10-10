@@ -564,6 +564,99 @@ expect_file_contains "conflicting rebase leaves markers" "$T9/fake/src/a.c" "<<<
 expect_file_contains "conflicting rebase records conflict" "$T9/.fake.projeny.status" "Conflict: src/a.c"
 expect_file_contains "conflicting rebase still updates Archive" "$T9/fake.projeny" "Archive: fake-2.0.tar.gz"
 
+# ------------- 9b. rebase merge: one side's whole-file change must not swallow
+# the other side's edits. When the base->new diff is coarse (here: two files
+# with nothing in common trip the bounded-Myers wholesale fallback, like two
+# heavily-renumbered generated files), the merge sees ONE ours-change covering
+# the whole file while the committed local edit sits inside that range. The
+# merge must conflict and keep both views; silently emitting ours alone would
+# drop the local edit without any conflict being reported.
+T9B="$ROOT/t9b"
+mkdir -p "$T9B/v1/src" "$T9B/v2/src"
+python3 - "$T9B" <<'EOF'
+import sys
+d = sys.argv[1]
+# v1 and v2 share no lines at all, so the base->new middle diff (1200+1200
+# lines, above the 2000-line probe threshold, 0% common) takes the wholesale
+# fallback: ours becomes one whole-file change.
+open(d + "/v1/src/big.c", "w").write(
+    "".join("alpha %d = %d\n" % (i, i) for i in range(1200)))
+open(d + "/v2/src/big.c", "w").write(
+    "".join("omega %d = %d\n" % (i, i) for i in range(1200)))
+EOF
+printf 'readme v1\n' > "$T9B/v1/README"
+printf 'readme v2\n' > "$T9B/v2/README"
+(cd "$T9B" && tar -czf v1.tar.gz v1 && tar -czf v2.tar.gz v2 && rm -rf v1 v2)
+cat > "$T9B/big.projeny" <<'EOF'
+Archive: v1.tar.gz
+Origname: v1
+Name: big
+
+    Wholesale-diff merge regression fixture.
+
+EOF
+(cd "$T9B" && "$PROJENY" setup big.projeny >/dev/null 2>&1)
+python3 - "$T9B/big/src/big.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("alpha 600 = 600\n", "alpha 600 = LOCAL\n")
+open(p, "w").write(s)
+EOF
+(cd "$T9B" && "$PROJENY" commit big.projeny >/dev/null 2>&1)
+run_in "$T9B" expect_ok "wholesale-diff rebase exits 0 (with markers)" "$PROJENY" rebase big.projeny v2.tar.gz
+expect_file_contains "wholesale-diff rebase leaves markers" "$T9B/big/src/big.c" "<<<<<<<"
+expect_file_contains "wholesale-diff rebase records conflict" "$T9B/.big.projeny.status" "Conflict: src/big.c"
+expect_file_contains "local edit survives inside the conflict" "$T9B/big/src/big.c" "alpha 600 = LOCAL"
+expect_file_contains "new content present inside the conflict" "$T9B/big/src/big.c" "omega 1199 = 1199"
+
+# ------------- 9c. setup merge: same swallow class without the wholesale
+# fallback. The committed local rewrite replaces the whole (small) file, so
+# theirs is one big change spanning the whole base while ours (an upstream
+# edit to a line strictly inside that range) sits inside it: the upstream
+# edit must not be silently dropped by emitting theirs alone.
+T9C="$ROOT/t9c"
+make_tarballs "$T9C" fake
+write_projeny "$T9C" fake 1.0 fake
+(cd "$T9C" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+python3 - "$T9C/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 100;")
+open(p, "w").write(s)
+EOF
+(cd "$T9C" && "$PROJENY" commit fake.projeny >/dev/null 2>&1)
+cp "$T9C/fake.projeny" "$ROOT/t9c-local.projeny"
+# upstream: same committed base, gamma edit (base line 4, strictly inside the
+# whole-file range the local rewrite will span) committed on top.
+U9C="$ROOT/t9cup"
+mkdir -p "$U9C"
+cp "$T9C/fake-1.0.tar.gz" "$U9C/"
+cp "$ROOT/t9c-local.projeny" "$U9C/fake.projeny"
+(cd "$U9C" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+python3 - "$U9C/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 2;")
+open(p, "w").write(s)
+EOF
+(cd "$U9C" && "$PROJENY" commit fake.projeny >/dev/null 2>&1)
+cp "$U9C/fake.projeny" "$ROOT/t9c-upstream.projeny"
+# local clone: committed base, UNCOMMITTED whole-file rewrite of a.c.
+rm -rf "$T9C/fake" "$T9C/.fake.projeny.status"
+cp "$ROOT/t9c-local.projeny" "$T9C/fake.projeny"
+(cd "$T9C" && "$PROJENY" setup fake.projeny >/dev/null 2>&1)
+python3 - "$T9C/fake/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+open(p, "w").write("".join("local %d = %d\n" % (i, i) for i in range(1200)))
+EOF
+cp "$ROOT/t9c-upstream.projeny" "$T9C/fake.projeny"
+run_in "$T9C" expect_fail "whole-file-rewrite setup merge exits nonzero (with markers)" "$PROJENY" setup fake.projeny
+expect_file_contains "whole-file-rewrite merge leaves markers" "$T9C/fake/src/a.c" "<<<<<<<"
+expect_file_contains "whole-file-rewrite merge lists conflict" "$T9C/.fake.projeny.status" "Conflict: src/a.c"
+expect_file_contains "upstream edit survives inside the conflict" "$T9C/fake/src/a.c" "int gamma = 2;"
+expect_file_contains "local rewrite survives inside the conflict" "$T9C/fake/src/a.c" "local 1199 = 1199"
+
 # ----------------------------------------- 10. missing-status setup error
 T10="$ROOT/t10"
 make_tarballs "$T10" fake

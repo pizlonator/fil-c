@@ -93,7 +93,7 @@ mkdir -pv /var/lib/hwclock
     --disable-liblastlog2 \
     --without-python \
     ADJTIME_PATH=/var/lib/hwclock/adjtime \
-    --docdir=/yolo/share/doc/util-linux-2.40.2
+    --docdir=/yolo/share/doc/util-linux-2.42.4
 make
 make install
 cd ..

@@ -4376,6 +4376,56 @@ bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_fi
     std::vector<std::string> merged;
     bool clean = true;
     size_t i = 0, p = 0, q = 0;
+    // One side's view of the base range [s,e): base lines with every
+    // not-yet-consumed change of that side that intersects the range
+    // spliced in. Used by the wholesale-swallow conflicts below, where a
+    // coarse diff (e.g. the bounded-Myers wholesale fallback on two
+    // heavily-drifted generated files) hands the merge one giant change on
+    // one side while the other side's changes sit inside its range: taking
+    // the giant side's fresh lines alone would silently drop those edits,
+    // so the overlap must become a conflict that shows both views.
+    // `qi` advances past every change the view consumed; changes that
+    // straddle the range boundary are clamped (they cannot be represented
+    // fully inside the range and must never be re-consumed by the walk).
+    auto view_of_range = [&](const std::vector<Change>& chs, size_t& qi,
+                             size_t s, size_t e) {
+        std::vector<std::string> out;
+        size_t k = s;
+        while (k < e) {
+            if (qi < chs.size() && chs[qi].base_start < e &&
+                chs[qi].base_end > k) {
+                size_t cs = chs[qi].base_start, ce = chs[qi].base_end;
+                if (cs > k)
+                    for (size_t t = k; t < cs; ++t)
+                        out.push_back(base.lines[t]);
+                if (cs >= s && ce <= e) {
+                    for (auto& l : chs[qi].fresh)
+                        out.push_back(l);
+                } else {
+                    // Straddles the range boundary: keep the base lines it
+                    // replaces (clamped) so the range view stays complete.
+                    for (size_t t = cs < s ? s : cs; t < (ce > e ? e : ce);
+                         ++t)
+                        out.push_back(base.lines[t]);
+                }
+                k = ce > e ? e : ce;
+                ++qi;
+                continue;
+            }
+            out.push_back(base.lines[k]);
+            ++k;
+        }
+        return out;
+    };
+    // Whether any change from `qi` on intersects [s,e) (lists are sorted by
+    // base_start and internally non-overlapping).
+    auto overlaps_ahead = [](const std::vector<Change>& chs, size_t qi,
+                             size_t s, size_t e) {
+        for (size_t t = qi; t < chs.size() && chs[t].base_start < e; ++t)
+            if (chs[t].base_end > s)
+                return true;
+        return false;
+    };
     // Source of the trailing newline when clean (resolved after the loop).
     while (i < base.lines.size() || p < co.size() || q < ct.size()) {
         // Next change boundaries at/after i.
@@ -4461,11 +4511,52 @@ bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_fi
         else if (q < ct.size() && ct[q].base_start == i && ct[q].base_end == i)
             c2 = &ct[q];
         if (c1 && !c2) {
+            // Ours changed this region and theirs did not — unless a later
+            // theirs-change sits inside this range. That happens when the
+            // ours-diff is coarse (bounded-Myers wholesale fallback) and
+            // would silently drop theirs' edits, so conflict over the whole
+            // range instead, splicing theirs' changes into its view.
+            if (overlaps_ahead(ct, q, c1->base_start, c1->base_end)) {
+                size_t tq = q;
+                std::vector<std::string> tv2 =
+                    view_of_range(ct, tq, c1->base_start, c1->base_end);
+                clean = false;
+                merged.push_back("<<<<<<< projeny (new setup)");
+                for (auto& l : c1->fresh)
+                    merged.push_back(l);
+                merged.push_back("=======");
+                for (auto& l : tv2)
+                    merged.push_back(l);
+                merged.push_back(">>>>>>> projeny (local changes)");
+                i = c1->base_end;
+                ++p;
+                q = tq;
+                continue;
+            }
             for (auto& l : c1->fresh)
                 merged.push_back(l);
             i = c1->base_end;
             ++p;
         } else if (!c1 && c2) {
+            // Symmetric: theirs changed this region and a later ours-change
+            // sits inside the range.
+            if (overlaps_ahead(co, p, c2->base_start, c2->base_end)) {
+                size_t tp = p;
+                std::vector<std::string> ov2 =
+                    view_of_range(co, tp, c2->base_start, c2->base_end);
+                clean = false;
+                merged.push_back("<<<<<<< projeny (new setup)");
+                for (auto& l : ov2)
+                    merged.push_back(l);
+                merged.push_back("=======");
+                for (auto& l : c2->fresh)
+                    merged.push_back(l);
+                merged.push_back(">>>>>>> projeny (local changes)");
+                i = c2->base_end;
+                ++q;
+                p = tp;
+                continue;
+            }
             for (auto& l : c2->fresh)
                 merged.push_back(l);
             i = c2->base_end;

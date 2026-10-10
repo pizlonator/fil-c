@@ -455,7 +455,7 @@ cd pizlonated-util-linux
     --without-systemd \
     --without-systemdsystemunitdir \
     ADJTIME_PATH=/var/lib/hwclock/adjtime \
-    --docdir=/usr/share/doc/util-linux-2.40.2
+    --docdir=/usr/share/doc/util-linux-2.42.4
 make
 make install
 cd ..
@@ -515,7 +515,7 @@ cd pizlonated-util-linux
     --without-systemd \
     --without-systemdsystemunitdir \
     ADJTIME_PATH=/var/lib/hwclock/adjtime \
-    --docdir=/usr/share/doc/util-linux-2.40.2
+    --docdir=/usr/share/doc/util-linux-2.42.4
 make
 make install
 cd ..
