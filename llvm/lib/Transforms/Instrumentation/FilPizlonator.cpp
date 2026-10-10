@@ -806,7 +806,7 @@ raw_ostream& operator<<(raw_ostream& OS, const AccessCheck& AC) {
 }
 
 template<typename T>
-raw_ostream& PrintVector(raw_ostream& OS, const std::vector<T>& V) {
+raw_ostream& PrintVector(raw_ostream& OS, const SmallVector<T>& V) {
   for (size_t Index = 0; Index < V.size(); ++Index) {
     if (Index)
       OS << ", ";
@@ -815,7 +815,7 @@ raw_ostream& PrintVector(raw_ostream& OS, const std::vector<T>& V) {
   return OS;
 }
 
-raw_ostream& operator<<(raw_ostream& OS, const std::vector<AccessCheck>& Checks) {
+raw_ostream& operator<<(raw_ostream& OS, const SmallVector<AccessCheck>& Checks) {
   return PrintVector(OS, Checks);
 }
 
@@ -840,20 +840,20 @@ struct AccessCheckWithDI : AccessCheck {
   }
 };
 
-raw_ostream& operator<<(raw_ostream& OS, const std::vector<AccessCheckWithDI>& Checks) {
+raw_ostream& operator<<(raw_ostream& OS, const SmallVector<AccessCheckWithDI>& Checks) {
   return PrintVector(OS, Checks);
 }
 
 struct ChecksOrBottom {
   bool Bottom;
-  std::vector<AccessCheck> Checks;
+  SmallVector<AccessCheck> Checks;
 
   ChecksOrBottom(): Bottom(true) {}
 };
 
 struct ChecksWithDIOrBottom {
   bool Bottom;
-  std::vector<AccessCheckWithDI> Checks;
+  SmallVector<AccessCheckWithDI> Checks;
 
   ChecksWithDIOrBottom(): Bottom(true) {}
 };
@@ -902,7 +902,7 @@ struct PtrAndRandom {
 struct GEPKey {
   Type* SourceTy { nullptr };
   Value* Pointer { nullptr };
-  std::vector<Value*> Indices;
+  SmallVector<Value*> Indices;
 
   GEPKey() = default;
 
@@ -976,13 +976,13 @@ struct AlignmentAndOffset {
 };
 
 struct OptimizedAlignmentContradictionOriginKey {
-  std::vector<AlignmentAndOffset> Alignments;
+  SmallVector<AlignmentAndOffset> Alignments;
   DILocation* ScheduledDI { nullptr };
   const CombinedDI* SemanticDI { nullptr };
 
   OptimizedAlignmentContradictionOriginKey() = default;
 
-  OptimizedAlignmentContradictionOriginKey(const std::vector<AlignmentAndOffset>& Alignments,
+  OptimizedAlignmentContradictionOriginKey(const SmallVector<AlignmentAndOffset>& Alignments,
                                            DILocation* ScheduledDI, const CombinedDI* SemanticDI):
     Alignments(Alignments), ScheduledDI(ScheduledDI), SemanticDI(SemanticDI) {
   }
@@ -1629,19 +1629,19 @@ class Pizlonator {
   bool HasSetjmps;
   size_t SetjmpSetFrameIndex;
   std::unordered_map<Type*, Constant*> CCTypes;
-  std::unordered_map<Instruction*, std::vector<AccessCheckWithDI>> ChecksForInst;
+  std::unordered_map<Instruction*, SmallVector<AccessCheckWithDI>> ChecksForInst;
   std::unordered_map<OptimizedAccessCheckOriginKey, GlobalVariable*> OptimizedAccessCheckOrigins;
   std::unordered_map<OptimizedAlignmentContradictionOriginKey,
                      GlobalVariable*> OptimizedAlignmentContradictionOrigins;
   std::unordered_map<Value*, AllocaInst*> CanonicalPtrAuxBaseVars;
   std::unordered_map<AllocaInst*, LocalAllocaData> LocalAllocaDatas;
-  std::unordered_map<Instruction*, std::vector<PtrOperandData>> PtrOperandDatas;
+  std::unordered_map<Instruction*, SmallVector<PtrOperandData>> PtrOperandDatas;
   bool AuxBaseVarCreationAllowed { false };
 
-  std::vector<GlobalVariable*> Globals;
-  std::vector<Function*> Functions;
-  std::vector<GlobalAlias*> Aliases;
-  std::vector<GlobalIFunc*> IFuncs;
+  SmallVector<GlobalVariable*> Globals;
+  SmallVector<Function*> Functions;
+  SmallVector<GlobalAlias*> Aliases;
+  SmallVector<GlobalIFunc*> IFuncs;
 
   std::unordered_map<Type*, Type*> FlightedTypes;
 
@@ -1657,14 +1657,14 @@ class Pizlonator {
 
   std::unordered_map<std::string, BitCastInst*> UnsafeFuncs;
   std::unordered_set<GlobalVariable*> UnsafeExportGVs;
-  std::vector<UnsafeExport> UnsafeExports;
+  SmallVector<UnsafeExport> UnsafeExports;
 
   std::string FunctionName;
   Function* OldF { nullptr };
   Function* NewF { nullptr };
 
   std::unordered_map<Instruction*, Type*> InstTypes;
-  std::unordered_map<Instruction*, std::vector<Type*>> InstTypeVectors;
+  std::unordered_map<Instruction*, SmallVector<Type*>> InstTypeVectors;
   std::unordered_map<InvokeInst*, LandingPadInst*> LPIs;
   std::unordered_set<CallInst*> FramePoppingMustTails;
 
@@ -1685,7 +1685,7 @@ class Pizlonator {
   size_t SnapshottedArgsFrameIndex;
   Value* SnapshottedArgsPtrForVastart;
   Value* SnapshottedArgsPtrForZargs;
-  std::vector<Value*> Args;
+  SmallVector<Value*> Args;
 
   Value* MyThread { nullptr };
 
@@ -1695,7 +1695,7 @@ class Pizlonator {
   size_t NumStackAuxes { SIZE_MAX };
   Value* Frame;
 
-  std::vector<Instruction*> ToErase;
+  SmallVector<Instruction*> ToErase;
 
   BitCastInst* makeDummy(Type* T) {
     return new BitCastInst(UndefValue::get(T), T, "dummy");
@@ -1908,7 +1908,7 @@ class Pizlonator {
     if (StructType* ST = dyn_cast<StructType>(T)) {
       if (ST->isOpaque())
         return ST;
-      std::vector<Type*> Elements;
+      SmallVector<Type*> Elements;
       for (Type* InnerT : ST->elements())
         Elements.push_back(toFlightType(InnerT));
       if (ST->isLiteral())
@@ -2898,7 +2898,7 @@ class Pizlonator {
     return false;
   }
 
-  void computeFrameIndexMap(const std::vector<BasicBlock*>& Blocks) {
+  void computeFrameIndexMap(const SmallVector<BasicBlock*>& Blocks) {
     assert(FrameSize == SIZE_MAX);
     assert(NumStackAuxes == SIZE_MAX);
     
@@ -3082,7 +3082,7 @@ class Pizlonator {
     }
 
     // Make this deterministic by having a known order in which we process stuff.
-    std::vector<ValuePtr> Order;
+    SmallVector<ValuePtr> Order;
     for (Argument& A : OldF->args()) {
       for (size_t PtrIndex = countPtrs(A.getType()); PtrIndex--;)
         Order.push_back(ValuePtr(&A, PtrIndex));
@@ -3183,7 +3183,7 @@ class Pizlonator {
     if (verbose)
       errs() << "Before explicit stack aux allocation, FrameSize = " << FrameSize << "\n";
     
-    std::vector<AllocaInst*> StackAuxOrder;
+    SmallVector<AllocaInst*> StackAuxOrder;
     for (BasicBlock* BB : Blocks) {
       for (Instruction& I : *BB) {
         if (pointerKindDirect(&I) == PointerKind::LocalExplicit)
@@ -3367,7 +3367,7 @@ class Pizlonator {
     size_t SemanticDILength = SemanticDI ? SemanticDI->Locations.size() : 0;
     ArrayType* AT = ArrayType::get(RawPtrTy, SemanticDILength + 1);
     StructType* ST = StructType::get(C, { Int32Ty, Int8Ty, Int8Ty, Int8Ty, RawPtrTy, AT });
-    std::vector<Constant*> SemanticDICs;
+    SmallVector<Constant*> SemanticDICs;
     if (SemanticDI) {
       for (DILocation* DI : SemanticDI->Locations)
         SemanticDICs.push_back(getOrigin(DI));
@@ -3387,7 +3387,7 @@ class Pizlonator {
   }
 
   Constant* optimizedAlignmentContradictionOrigin(
-    const std::vector<AlignmentAndOffset>& Alignments, DebugLoc ScheduledDI,
+    const SmallVector<AlignmentAndOffset>& Alignments, DebugLoc ScheduledDI,
     const CombinedDI* SemanticDI) {
     assert(Alignments.size() >= 2);
 
@@ -3396,7 +3396,7 @@ class Pizlonator {
     if (Iter != OptimizedAlignmentContradictionOrigins.end())
       return Iter->second;
 
-    std::vector<Constant*> AlignmentConsts;
+    SmallVector<Constant*> AlignmentConsts;
     for (AlignmentAndOffset Alignment : Alignments) {
       AlignmentConsts.push_back(
         ConstantStruct::get(
@@ -3416,7 +3416,7 @@ class Pizlonator {
     size_t SemanticDILength = SemanticDI ? SemanticDI->Locations.size() : 0;
     AT = ArrayType::get(RawPtrTy, SemanticDILength + 1);
     StructType* ST = StructType::get(C, { RawPtrTy, RawPtrTy, AT });
-    std::vector<Constant*> SemanticDICs;
+    SmallVector<Constant*> SemanticDICs;
     if (SemanticDI) {
       for (DILocation* DI : SemanticDI->Locations)
         SemanticDICs.push_back(getOrigin(DI));
@@ -3433,7 +3433,7 @@ class Pizlonator {
   }
 
   template<typename CheckT>
-  void checkCanonicalizedAccessChecks(const std::vector<CheckT>& Checks) {
+  void checkCanonicalizedAccessChecks(const SmallVector<CheckT>& Checks) {
     for (size_t Index = 0; Index < Checks.size();) {
       Value* CanonicalPtr = Checks[Index].CanonicalPtr;
 
@@ -3571,7 +3571,7 @@ class Pizlonator {
     return FMAD;
   }
 
-  void emitChecks(std::vector<AccessCheckWithDI> Checks, Instruction* Inst) {
+  void emitChecks(SmallVector<AccessCheckWithDI> Checks, Instruction* Inst) {
     if (verbose)
       errs() << "Raw checks: " << Checks << "\n";
     canonicalizeAccessChecks(Checks);
@@ -3663,7 +3663,7 @@ class Pizlonator {
       Index = EndIndex;
 
       if (AlignmentContradiction) {
-        std::vector<AlignmentAndOffset> Alignments;
+        SmallVector<AlignmentAndOffset> Alignments;
         for (size_t SubIndex = BeginIndex; SubIndex < EndIndex; ++SubIndex) {
           AccessCheckWithDI AC = Checks[SubIndex];
           switch (AC.CK) {
@@ -3980,7 +3980,7 @@ class Pizlonator {
   }
 
   void buildCheck(int64_t Size, int64_t Alignment, Value* CanonicalPtr, int64_t Offset,
-                  AccessKind AK, const CombinedDI* DI, std::vector<AccessCheckWithDI>& Checks) {
+                  AccessKind AK, const CombinedDI* DI, SmallVector<AccessCheckWithDI>& Checks) {
     if (verbose) {
       errs() << "Building check: Size = " << Size << ", Alignment = " << Alignment
              << ", CanonicalPtr = " << CanonicalPtr->getName() << ", Offset = " << Offset
@@ -4049,7 +4049,7 @@ class Pizlonator {
 
   void buildChecksRecurse(Type* T, Value* HighP, int64_t Offset, size_t Alignment, AtomicOrdering AO,
                           AccessKind AK, const CombinedDI* DI,
-                          std::vector<AccessCheckWithDI>& Checks) {
+                          SmallVector<AccessCheckWithDI>& Checks) {
     if (!hasPtrs(T)) {
       size_t CheckedAlignment;
       if (needToCheckAlignment(T) || AO != AtomicOrdering::NotAtomic)
@@ -4674,7 +4674,7 @@ class Pizlonator {
   }
 
   void buildChecksImpl(Instruction* I, Type* T, Value* HighP, Align Alignment, AtomicOrdering AO,
-                       AccessKind AK, std::vector<AccessCheckWithDI>& Checks) {
+                       AccessKind AK, SmallVector<AccessCheckWithDI>& Checks) {
     if (verbose) {
       errs() << "Building checks for " << *I << " with T = ";
       if (!T)
@@ -4726,7 +4726,7 @@ class Pizlonator {
   }
 
   void buildChecks(Instruction* I, Type* T, Value* HighP, Align Alignment, AtomicOrdering AO,
-                   AccessKind AK, std::vector<AccessCheckWithDI>& Checks) {
+                   AccessKind AK, SmallVector<AccessCheckWithDI>& Checks) {
     buildChecksImpl(I, T, HighP, Alignment, AO, AK, Checks);
     canonicalizeAccessChecks(Checks);
   }
@@ -4990,7 +4990,7 @@ class Pizlonator {
     }
   }
 
-  void buildChecks(Instruction* I, std::vector<AccessCheckWithDI>& Checks) {
+  void buildChecks(Instruction* I, SmallVector<AccessCheckWithDI>& Checks) {
     forEachCheck(I, [&] (Instruction* I, Type* T, Value* HighP, Align Alignment, AtomicOrdering AO,
                          AccessKind AK) {
       buildChecks(I, T, HighP, Alignment, AO, AK, Checks);
@@ -5004,7 +5004,7 @@ class Pizlonator {
     });
   }
 
-  void capturePointerOperands(const std::vector<Instruction*>& Instructions) {
+  void capturePointerOperands(const SmallVector<Instruction*>& Instructions) {
     AuxBaseVarCreationAllowed = true;
     for (Instruction* I : Instructions) {
       auto DealWithPtr = [&] (PtrAndOffset PAO) {
@@ -5199,8 +5199,8 @@ class Pizlonator {
   //
   // Note that this is not optional since emitChecks asserts that there are no upper bounds checks
   // with lower offset than the lower bounds check.
-  void removeUnprofitableChecks(std::vector<AccessCheckWithDI>& Checks) {
-    std::vector<AccessCheckWithDI> NewChecks;
+  void removeUnprofitableChecks(SmallVector<AccessCheckWithDI>& Checks) {
+    SmallVector<AccessCheckWithDI> NewChecks;
     for (size_t Index = 0; Index < Checks.size();) {
       Value* CanonicalPtr = Checks[Index].CanonicalPtr;
       size_t BeginIndex = Index;
@@ -5263,7 +5263,7 @@ class Pizlonator {
   // since forward prop uses AccessCheck, not AccessCheckWithDI. For backward prop, it means that the
   // checks that dominate win the DI battle.
   template<typename CheckT>
-  void canonicalizeAccessChecks(std::vector<CheckT>& Checks) {
+  void canonicalizeAccessChecks(SmallVector<CheckT>& Checks) {
     std::stable_sort(Checks.begin(), Checks.end());
   
     size_t DstIndex = 0;
@@ -5338,8 +5338,8 @@ class Pizlonator {
   // Given two lists of checks, produces the set of checks that is the superset of the two. This is the
   // opposite of merging.
   template<typename ToCheckT, typename FromCheckT>
-  void addAccessChecks(std::vector<ToCheckT>& ToChecks,
-                       const std::vector<FromCheckT>& FromChecks) {
+  void addAccessChecks(SmallVector<ToCheckT>& ToChecks,
+                       const SmallVector<FromCheckT>& FromChecks) {
     ToChecks.insert(ToChecks.end(), FromChecks.begin(), FromChecks.end());
     canonicalizeAccessChecks(ToChecks);
   }
@@ -5357,8 +5357,8 @@ class Pizlonator {
   //
   // Returns true if ToChecks is changed.
   template<typename CheckT>
-  bool mergeAccessChecks(std::vector<CheckT>& ToChecks,
-                         const std::vector<CheckT>& FromChecks,
+  bool mergeAccessChecks(SmallVector<CheckT>& ToChecks,
+                         const SmallVector<CheckT>& FromChecks,
                          AIDirection Direction) {
     size_t DstToIndex = 0;
     size_t SrcToIndex = 0;
@@ -5473,8 +5473,8 @@ class Pizlonator {
 
   // Removes checks in ToChecks that are subsumed by FromChecks. Conservatively keeps ToChecks.
   template<typename ToCheckT, typename FromCheckT>
-  void subtractChecks(std::vector<ToCheckT>& ToChecks,
-                      const std::vector<FromCheckT>& FromChecks,
+  void subtractChecks(SmallVector<ToCheckT>& ToChecks,
+                      const SmallVector<FromCheckT>& FromChecks,
                       bool CreateKnowns = false) {
     size_t DstToIndex = 0;
     size_t SrcToIndex = 0;
@@ -5549,17 +5549,17 @@ class Pizlonator {
   }
 
   template<typename ToCheckT, typename FromCheckT>
-  void subtractChecksCreatingKnowns(std::vector<ToCheckT>& ToChecks,
-                                    const std::vector<FromCheckT>& FromChecks) {
+  void subtractChecksCreatingKnowns(SmallVector<ToCheckT>& ToChecks,
+                                    const SmallVector<FromCheckT>& FromChecks) {
     subtractChecks(ToChecks, FromChecks, /*CreateKnowns=*/true);
   }
   
   void removeRedundantChecksUsingForwardAI(
-    const std::vector<BasicBlock*>& Blocks,
+    const SmallVector<BasicBlock*>& Blocks,
     const std::unordered_set<const BasicBlock*>& BackEdgePreds,
     const std::unordered_map<BasicBlock*, std::unordered_set<Value*>> CanonicalPtrLiveAtTail,
     std::unordered_map<BasicBlock*, ChecksOrBottom>& ForwardChecksAtHead,
-    std::unordered_map<BasicBlock*, std::vector<AccessCheck>>& ForwardChecksAtTail) {
+    std::unordered_map<BasicBlock*, SmallVector<AccessCheck>>& ForwardChecksAtTail) {
 
     ForwardChecksAtHead.clear();
     ForwardChecksAtTail.clear();
@@ -5577,7 +5577,7 @@ class Pizlonator {
         if (COB.Bottom)
           continue;
 
-        std::vector<AccessCheck> Checks = COB.Checks;
+        SmallVector<AccessCheck> Checks = COB.Checks;
         if (verbose)
           errs() << "Checks at head: " << Checks << "\n";
 
@@ -5639,7 +5639,7 @@ class Pizlonator {
     // We have to pick a check schedule at this point. If we don't then we'll forget what we learned
     // from forward propagation.
 
-    std::unordered_map<Instruction*, std::vector<AccessCheckWithDI>> NewChecksForInst;
+    std::unordered_map<Instruction*, SmallVector<AccessCheckWithDI>> NewChecksForInst;
     
     for (BasicBlock* BB : Blocks) {
       if (verbose)
@@ -5650,7 +5650,7 @@ class Pizlonator {
       if (StateWithBottom.Bottom)
         continue;
       
-      std::vector<AccessCheck> Checks = StateWithBottom.Checks;
+      SmallVector<AccessCheck> Checks = StateWithBottom.Checks;
       bool NeedToCanonicalize = false;
 
       if (verbose)
@@ -5670,7 +5670,7 @@ class Pizlonator {
 
         auto Iter = ChecksForInst.find(&I);
         if (Iter != ChecksForInst.end()) {
-          std::vector<AccessCheckWithDI> NewChecks = Iter->second;
+          SmallVector<AccessCheckWithDI> NewChecks = Iter->second;
           if (verbose) {
             errs() << "Dealing with previously scheduled checks at " << I << ":\n    "
                    << NewChecks << "\n";
@@ -5714,7 +5714,7 @@ class Pizlonator {
   }
   
   void scheduleChecks(
-    const std::vector<BasicBlock*>& Blocks,
+    const SmallVector<BasicBlock*>& Blocks,
     const std::unordered_set<const BasicBlock*>& BackEdgePreds) {
 
     if (verbose)
@@ -5724,7 +5724,7 @@ class Pizlonator {
     
     for (BasicBlock* BB : Blocks) {
       for (Instruction& I : *BB) {
-        std::vector<AccessCheckWithDI> Checks;
+        SmallVector<AccessCheckWithDI> Checks;
         buildChecks(&I, Checks);
         if (!Checks.empty()) {
           assert(!ChecksForInst.count(&I));
@@ -5790,7 +5790,7 @@ class Pizlonator {
     // which paths, which aids in making good choices during backward propagation.
     
     std::unordered_map<BasicBlock*, ChecksOrBottom> ForwardChecksAtHead;
-    std::unordered_map<BasicBlock*, std::vector<AccessCheck>> ForwardChecksAtTail;
+    std::unordered_map<BasicBlock*, SmallVector<AccessCheck>> ForwardChecksAtTail;
 
     removeRedundantChecksUsingForwardAI(
       Blocks, BackEdgePreds, CanonicalPtrLiveAtTail, ForwardChecksAtHead, ForwardChecksAtTail);
@@ -5811,7 +5811,7 @@ class Pizlonator {
     }
     
     std::unordered_map<BasicBlock*, ChecksWithDIOrBottom> BackwardChecksAtTail;
-    std::unordered_map<BasicBlock*, std::vector<AccessCheckWithDI>> BackwardChecksAtHead;
+    std::unordered_map<BasicBlock*, SmallVector<AccessCheckWithDI>> BackwardChecksAtHead;
 
     if (verbose) {
       for (const BasicBlock* BB : BackEdgePreds)
@@ -5850,7 +5850,7 @@ class Pizlonator {
         if (COB.Bottom)
           continue;
 
-        std::vector<AccessCheckWithDI> Checks = COB.Checks;
+        SmallVector<AccessCheckWithDI> Checks = COB.Checks;
 
         if (verbose)
           errs() << "Starting with checks: " << Checks << "\n";
@@ -5879,7 +5879,7 @@ class Pizlonator {
 
           auto Iter = ChecksForInst.find(I);
           if (Iter != ChecksForInst.end()) {
-            std::vector<AccessCheckWithDI> ChecksForThisInst = Iter->second;
+            SmallVector<AccessCheckWithDI> ChecksForThisInst = Iter->second;
             EraseIf(ChecksForThisInst, [&] (const AccessCheckWithDI& AC) ->bool {
               return AC.CK == CheckKind::GetAuxPtr || AC.CK == CheckKind::EnsureAuxPtr;
             });
@@ -5915,7 +5915,7 @@ class Pizlonator {
               continue;
             if (verbose)
               errs() << "Considering non-bottom predecessor " << PBB->getName() << "\n";
-            std::vector<AccessCheckWithDI> ChecksAtTail = PCOB.Checks;
+            SmallVector<AccessCheckWithDI> ChecksAtTail = PCOB.Checks;
             if (verbose)
               errs() << "    Backwards checks at tail: " << ChecksAtTail << "\n";
             // Avoid having the merged Checks include all of the DI's if the predecessors' merged
@@ -5952,14 +5952,14 @@ class Pizlonator {
       }
     }
 
-    std::unordered_map<Instruction*, std::vector<AccessCheckWithDI>> NewChecksForInst;
+    std::unordered_map<Instruction*, SmallVector<AccessCheckWithDI>> NewChecksForInst;
     
     for (BasicBlock* BB : Blocks) {
       if (verbose) {
         errs() << "Scheduling checks in " << BB->getName()
                << " using results of backward propagation\n";
       }
-      std::vector<AccessCheckWithDI> Checks = BackwardChecksAtTail[BB].Checks;
+      SmallVector<AccessCheckWithDI> Checks = BackwardChecksAtTail[BB].Checks;
       if (verbose)
         errs() << "Starting with checks: " << Checks << "\n";
       subtractChecks(Checks, ForwardChecksAtTail[BB]);
@@ -5967,7 +5967,7 @@ class Pizlonator {
         errs() << "Checks after forward-pruning and removing unprofitable: " << Checks << "\n";
 
       Instruction* LastI = nullptr;
-      std::vector<AccessCheckWithDI> ChecksToEmit;
+      SmallVector<AccessCheckWithDI> ChecksToEmit;
       bool SawPhi = false;
       for (auto It = BB->rbegin(); It != BB->rend(); ++It) {
         Instruction* I = &*It;
@@ -5997,7 +5997,7 @@ class Pizlonator {
         
         auto Iter = ChecksForInst.find(I);
         if (Iter != ChecksForInst.end()) {
-          std::vector<AccessCheckWithDI> ChecksForThisInst = Iter->second;
+          SmallVector<AccessCheckWithDI> ChecksForThisInst = Iter->second;
           EraseIf(ChecksForThisInst, [&] (const AccessCheckWithDI& AC) -> bool {
             return AC.CK == CheckKind::GetAuxPtr || AC.CK == CheckKind::EnsureAuxPtr;
           });
@@ -6054,7 +6054,7 @@ class Pizlonator {
     }
 
     for (auto& Pair : ChecksForInst) {
-      std::vector<AccessCheckWithDI>* Checks = nullptr;
+      SmallVector<AccessCheckWithDI>* Checks = nullptr;
       for (const AccessCheckWithDI& AC : Pair.second) {
         if (AC.CK == CheckKind::GetAuxPtr || AC.CK == CheckKind::EnsureAuxPtr) {
           if (!Checks)
@@ -6078,7 +6078,7 @@ class Pizlonator {
   }
   
   template<typename FuncTy>
-  size_t iterateArgs(const std::vector<ArgInfo>& Elements,
+  size_t iterateArgs(const SmallVector<ArgInfo>& Elements,
                      const FuncTy& Func) {
     size_t Offset = 0;
     for (size_t Idx = 0; Idx < Elements.size(); ++Idx) {
@@ -6091,11 +6091,11 @@ class Pizlonator {
     return (Offset + WordSize - 1) & -WordSize;
   }
 
-  size_t argsSize(const std::vector<ArgInfo>& Elements) {
+  size_t argsSize(const SmallVector<ArgInfo>& Elements) {
     return iterateArgs(Elements, [] (size_t, ArgInfo, size_t) { });
   }
 
-  size_t argsAlignment(const std::vector<ArgInfo>& Elements) {
+  size_t argsAlignment(const SmallVector<ArgInfo>& Elements) {
     size_t Alignment = WordSize;
     iterateArgs(Elements, [&] (size_t Idx, ArgInfo AI, size_t Offset) {
       Alignment = std::max(Alignment, AI.A.value());
@@ -6103,8 +6103,8 @@ class Pizlonator {
     return Alignment;
   }
 
-  std::vector<ArgInfo> argInfosForFunction(Function* F) {
-    std::vector<ArgInfo> Elements;
+  SmallVector<ArgInfo> argInfosForFunction(Function* F) {
+    SmallVector<ArgInfo> Elements;
     for (Argument& A : F->args()) {
       if (A.hasByValAttr()) {
         Elements.push_back(
@@ -6174,7 +6174,7 @@ class Pizlonator {
     if (StructType* ST = dyn_cast<StructType>(T)) {
       assert(!ST->isOpaque());
       if (ST->isLiteral() && !ST->isPacked()) {
-        std::vector<Type*> Elements;
+        SmallVector<Type*> Elements;
         for (Type* InnerT : ST->elements())
           Elements.push_back(normalizeArgType(InnerT));
         return StructType::get(C, Elements, false);
@@ -6369,7 +6369,7 @@ class Pizlonator {
     func(T);
   }
 
-  uint64_t computeSignature(const std::vector<Type*>& NormalizedArgTypes, Type* NormalizedRetType) {
+  uint64_t computeSignature(const SmallVector<Type*>& NormalizedArgTypes, Type* NormalizedRetType) {
     FastTypeAccumulator RetAcc;
     iterateReturnType(NormalizedRetType, [&] (Type* T) {
       RetAcc.addType(fastArgType(T));
@@ -6385,8 +6385,8 @@ class Pizlonator {
     return SafeAdd64(1, SafeAdd64(RetAcc.getResult(), SafeMul64(ArgAcc.getResult(), 133)));
   }
 
-  uint64_t computeSignature(const std::vector<ArgInfo>& AIs, Type* NormalizedRetType) {
-    std::vector<Type*> NormalizedArgTypes;
+  uint64_t computeSignature(const SmallVector<ArgInfo>& AIs, Type* NormalizedRetType) {
+    SmallVector<Type*> NormalizedArgTypes;
     for (ArgInfo AI : AIs) {
       if (AI.AK != ArgKind::Direct)
         return GenericSignature;
@@ -6396,7 +6396,7 @@ class Pizlonator {
     return computeSignature(NormalizedArgTypes, NormalizedRetType);
   }
 
-  std::vector<Value*> loadCC(const std::vector<ArgInfo>& AIs, Value* PassedSize,
+  SmallVector<Value*> loadCC(const SmallVector<ArgInfo>& AIs, Value* PassedSize,
                              FunctionCallee CCCheckFailure, Instruction* InsertBefore,
                              DebugLoc DI) {
     size_t TotalSize = argsSize(AIs);
@@ -6477,7 +6477,7 @@ class Pizlonator {
       Call->addParamAttr(1, Attribute::getWithAlignment(C, Align(CCAlignment)));
       Call->setDebugLoc(DI);
     }
-    std::vector<Value*> Results;
+    SmallVector<Value*> Results;
     iterateArgs(AIs, [&] (size_t Index, ArgInfo AI, size_t Offset) {
       Value* PayloadPtr = GetElementPtrInst::Create(
         Int8Ty, PayloadAlloca, { ConstantInt::get(IntPtrTy, Offset) }, "filc_offset_payload",
@@ -6523,16 +6523,16 @@ class Pizlonator {
 
   Value* loadCC(Type* T, Value* PassedSize, FunctionCallee CCCheckFailure, Instruction* InsertBefore,
                 DebugLoc DI) {
-    std::vector<ArgInfo> AIs;
+    SmallVector<ArgInfo> AIs;
     AIs.push_back(ArgInfo(T, ArgKind::Direct, DL.getABITypeAlign(T)));
-    std::vector<Value*> Vs = loadCC(AIs, PassedSize, CCCheckFailure, InsertBefore, DI);
+    SmallVector<Value*> Vs = loadCC(AIs, PassedSize, CCCheckFailure, InsertBefore, DI);
     assert(Vs.size() == 1);
     return Vs[0];
   }
 
   // Returns the passed CC size. That's just for convenience, since you could calculate it yourself
   // from the type.
-  Value* storeCC(const std::vector<ArgInfo>& AIs, const std::vector<Value*>& Vs,
+  Value* storeCC(const SmallVector<ArgInfo>& AIs, const SmallVector<Value*>& Vs,
                  Instruction* InsertBefore, DebugLoc DI) {
     size_t TotalSize = argsSize(AIs);
     size_t Alignment = argsAlignment(AIs);
@@ -6669,9 +6669,9 @@ class Pizlonator {
   }
 
   Value* storeCC(Type* T, Value* V, Instruction* InsertBefore, DebugLoc DI) {
-    std::vector<ArgInfo> AIs;
+    SmallVector<ArgInfo> AIs;
     AIs.push_back(ArgInfo(T, ArgKind::Direct, DL.getABITypeAlign(T)));
-    std::vector<Value*> Vs;
+    SmallVector<Value*> Vs;
     Vs.push_back(V);
     return storeCC(AIs, Vs, InsertBefore, DI);
   }
@@ -6747,7 +6747,7 @@ class Pizlonator {
       return C;
 
     if (ConstantArray* CA = dyn_cast<ConstantArray>(C)) {
-      std::vector<Constant*> Args;
+      SmallVector<Constant*> Args;
       for (size_t Index = 0; Index < CA->getNumOperands(); ++Index) {
         Constant* LowC = tryLowerConstantImpl(CA->getOperand(Index), LM);
         if (!LowC)
@@ -6759,7 +6759,7 @@ class Pizlonator {
     if (ConstantStruct* CS = dyn_cast<ConstantStruct>(C)) {
       if (verbose)
         errs() << "Dealing with CS = " << *CS << "\n";
-      std::vector<Constant*> Args;
+      SmallVector<Constant*> Args;
       for (size_t Index = 0; Index < CS->getNumOperands(); ++Index) {
         Constant* LowC = tryLowerConstantImpl(CS->getOperand(Index), LM);
         if (!LowC)
@@ -6771,7 +6771,7 @@ class Pizlonator {
       return ConstantStruct::get(cast<StructType>(ResultT), Args);
     }
     if (ConstantVector* CV = dyn_cast<ConstantVector>(C)) {
-      std::vector<Constant*> Args;
+      SmallVector<Constant*> Args;
       for (size_t Index = 0; Index < CV->getNumOperands(); ++Index) {
         Constant* LowC = tryLowerConstantImpl(CV->getOperand(Index), LM);
         if (!LowC)
@@ -6850,7 +6850,7 @@ class Pizlonator {
     return ConstantTarget();
   }
 
-  bool computeConstantRelocations(Constant* C, std::vector<ConstantRelocation>& Result, size_t Offset = 0) {
+  bool computeConstantRelocations(Constant* C, SmallVector<ConstantRelocation>& Result, size_t Offset = 0) {
     assert(C->getType() != FlightPtrTy);
 
     if (ConstantTarget CT = constexprRecurse(C)) {
@@ -7047,7 +7047,7 @@ class Pizlonator {
     }
 
     if (CallBase* CI = dyn_cast<CallBase>(I)) {
-      std::vector<Type*> Types;
+      SmallVector<Type*> Types;
       for (size_t Index = 0; Index < CI->arg_size(); ++Index)
         Types.push_back(CI->getArgOperand(Index)->getType());
       InstTypeVectors[I] = std::move(Types);
@@ -7512,7 +7512,7 @@ class Pizlonator {
         "", I)->setDebugLoc(I->getDebugLoc());
 
       // Copy the lowers.
-      std::vector<AllocaInst*> LowerAllocas;
+      SmallVector<AllocaInst*> LowerAllocas;
       for (size_t Index = (Count + 7) / 8; Index--;) {
         AllocaInst* Alloca = new AllocaInst(
           RawPtrTy, 0, ConstantInt::get(IntPtrTy, 1), Align(WordSize), "filc_memove_lower_alloca",
@@ -7698,7 +7698,7 @@ class Pizlonator {
         Instruction* SlowTerm = SplitBlockAndInsertIfThen(DstAuxIsNull, NonNullTerm, false);
         BasicBlock* SlowB = SlowTerm->getParent();
         storeOrigin(getOrigin(I->getDebugLoc()), SlowTerm);
-        std::vector<Value*> Args;
+        SmallVector<Value*> Args;
         FunctionCallee Callee;
         switch (LowerAllocas.size()) {
         case 1:
@@ -8275,9 +8275,9 @@ class Pizlonator {
             Dummy = makeDummy(RawPtrTy);
             UnsafeFuncs[StrConst] = Dummy;
           }
-          std::vector<Value*> Args;
+          SmallVector<Value*> Args;
           assert(InstTypeVectors.count(CI));
-          std::vector<Type*> ArgTypes = InstTypeVectors[CI];
+          SmallVector<Type*> ArgTypes = InstTypeVectors[CI];
           assert(ArgTypes.size() == CI->arg_size());
           for (unsigned Idx = FirstArg + 1; Idx < CI->arg_size(); ++Idx) {
             Value* Arg = lowerConstantValue(CI->getArgOperand(Idx), CI);
@@ -8632,7 +8632,7 @@ class Pizlonator {
       int MatchingTarget = -1;
     };
 
-    std::vector<ParsedConstraint> Constraints;
+    SmallVector<ParsedConstraint> Constraints;
     bool HasCCClobber = false;
     bool HasFPSRClobber = false;
     bool HasDirFlagClobber = false;
@@ -8813,7 +8813,7 @@ class Pizlonator {
     enum OperandRole { RoleInput, RoleOutput, RoleBoth };
 
     auto parseMnemonic = [&](const std::string& mnem, std::string& baseMnemonic,
-                             bool& setsFlags, std::vector<OperandRole>& roles) -> bool {
+                             bool& setsFlags, SmallVector<OperandRole>& roles) -> bool {
       StringRef m(mnem);
 
       if (m.starts_with("cmov")) {
@@ -8941,7 +8941,7 @@ class Pizlonator {
         return true;
       }
 
-      static const std::unordered_map<std::string, std::pair<bool, std::vector<OperandRole>>> info = {
+      static const std::unordered_map<std::string, std::pair<bool, SmallVector<OperandRole>>> info = {
         {"sar", {true, {RoleInput, RoleBoth}}},
         {"shr", {true, {RoleInput, RoleBoth}}},
         {"and", {true, {RoleInput, RoleBoth}}},
@@ -9734,7 +9734,7 @@ class Pizlonator {
 
     // Split asm string into lines on \n and ;.
     std::string AsmStr = IA->getAsmString();
-    std::vector<std::string> lines;
+    SmallVector<std::string> lines;
     {
       std::string cur;
       for (char c : AsmStr) {
@@ -10021,13 +10021,13 @@ class Pizlonator {
 
       std::string baseMnemonic;
       bool setsFlags = false;
-      std::vector<OperandRole> roles;
+      SmallVector<OperandRole> roles;
       if (!parseMnemonic(mnemonic, baseMnemonic, setsFlags, roles)) {
         Reason = "unsupported mnemonic for safe inline asm: " + mnemonic;
         return false;
       }
 
-      std::vector<std::string> operands;
+      SmallVector<std::string> operands;
       {
         std::string cur;
         int depth = 0;
@@ -10684,7 +10684,7 @@ class Pizlonator {
           return false;
         }
         // Normalize one-operand forms to two-operand forms.
-        std::vector<std::string> effectiveOperands = operands;
+        SmallVector<std::string> effectiveOperands = operands;
         if (effectiveOperands.size() == 1) {
           effectiveOperands.push_back("%st");
         } else if (effectiveOperands.size() != 2) {
@@ -10692,7 +10692,7 @@ class Pizlonator {
           return false;
         }
         // These instructions use src,dst operand ordering in AT&T syntax.
-        std::vector<OperandRole> fdivRoles = {RoleInput, RoleBoth};
+        SmallVector<OperandRole> fdivRoles = {RoleInput, RoleBoth};
         for (size_t i = 0; i < effectiveOperands.size(); ++i) {
           const std::string& op = effectiveOperands[i];
           if (!isX87RegOperand(op) && op.find_first_of("()[]") != std::string::npos) {
@@ -11276,7 +11276,7 @@ class Pizlonator {
       int MatchingTarget = -1;
     };
 
-    std::vector<ParsedConstraint> Constraints;
+    SmallVector<ParsedConstraint> Constraints;
     bool HasCCClobber = false;
     bool HasFPSRClobber = false;
     std::unordered_set<std::string> ClobberFamilies;
@@ -11461,7 +11461,7 @@ class Pizlonator {
       pc.Family = targetPc.Family;
     }
 
-    std::vector<ParsedConstraint> OperandConstraints;
+    SmallVector<ParsedConstraint> OperandConstraints;
     for (const auto& pc : Constraints) {
       if (pc.Kind != ParsedConstraint::Clobber)
         OperandConstraints.push_back(pc);
@@ -11506,11 +11506,11 @@ class Pizlonator {
     // register is allowed.
 
     struct A64InsnInfo {
-      A64InsnInfo(bool SetsFlags, std::vector<OperandRole> Roles, bool SetsFpFlags = false)
+      A64InsnInfo(bool SetsFlags, SmallVector<OperandRole> Roles, bool SetsFpFlags = false)
         : SetsFlags(SetsFlags), SetsFpFlags(SetsFpFlags), Roles(std::move(Roles)) {}
       bool SetsFlags;
       bool SetsFpFlags;
-      std::vector<OperandRole> Roles;
+      SmallVector<OperandRole> Roles;
     };
 
     // The safe-instruction database. Roles are in as-written order (destination
@@ -12348,7 +12348,7 @@ class Pizlonator {
 
     // Split the asm string into statements on '\n' and ';'.
     std::string AsmStr = IA->getAsmString();
-    std::vector<std::string> lines;
+    SmallVector<std::string> lines;
     {
       std::string cur;
       for (char c : AsmStr) {
@@ -12397,7 +12397,7 @@ class Pizlonator {
 
       // Split operands on top-level commas, tracking bracket depth for
       // memory operands ([...]) and ${...} placeholders.
-      std::vector<std::string> operands;
+      SmallVector<std::string> operands;
       {
         std::string cur;
         int depth = 0;
@@ -12586,7 +12586,7 @@ class Pizlonator {
         // that it refers to an input register). Shift amounts are not
         // range-checked, and modifier forms that the assembler would reject
         // are harmless to accept here - the assembler is the final gate.
-        std::vector<std::string> pieces;
+        SmallVector<std::string> pieces;
         for (size_t start = 0; start <= inner.size(); ) {
           size_t comma = inner.find(',', start);
           if (comma == std::string::npos)
@@ -12813,7 +12813,7 @@ class Pizlonator {
       // generic comma splitter would tear it apart), so re-split the
       // operand text here with brace depth tracked.
       if (mnemonic == "tbl" || mnemonic == "tbx") {
-        std::vector<std::string> ops;
+        SmallVector<std::string> ops;
         {
           std::string cur;
           int depth = 0;
@@ -12951,7 +12951,7 @@ class Pizlonator {
       }
       bool setsFlags = it->second.SetsFlags;
       bool setsFpFlags = it->second.SetsFpFlags;
-      std::vector<OperandRole> roles = it->second.Roles;
+      SmallVector<OperandRole> roles = it->second.Roles;
 
       // Reduce a trailing shift/extend modifier (e.g. "lsl #3", "uxtw") so
       // that "add x0, x1, x2, lsl #3" and "add w0, w1, w2, uxtw" validate as
@@ -13161,7 +13161,7 @@ class Pizlonator {
     // analysis rather than relying on InlineAsm::ParseConstraints because we cannot handle the
     // more complex ones and this parser rejects the ones we cannot handle.
 
-    std::vector<Type*> OutputTypes;
+    SmallVector<Type*> OutputTypes;
     
     auto checkType = [&] (Type* T) {
       if (T->isIntegerTy() || T->isFloatTy() || T->isPointerTy() || T->isVectorTy())
@@ -13188,9 +13188,9 @@ class Pizlonator {
       }
     }
 
-    std::vector<AsmConstraint> ConstraintsArray;
-    std::vector<AsmIO> Outputs;
-    std::vector<AsmIO> Inputs;
+    SmallVector<AsmConstraint> ConstraintsArray;
+    SmallVector<AsmIO> Outputs;
+    SmallVector<AsmIO> Inputs;
 
     std::string Constraints = IA->getConstraintString();
     for (size_t Index = 0, EndIndex; Index < Constraints.size(); Index = EndIndex + 1) {
@@ -13364,9 +13364,9 @@ class Pizlonator {
     assert(Outputs.size() == OutputTypes.size());
     assert(Inputs.size() == CI->arg_size());
 
-    std::vector<Type*> NewOutputTypes;
-    std::vector<Value*> NewInputOperands;
-    std::vector<Type*> NewInputElementTypes;
+    SmallVector<Type*> NewOutputTypes;
+    SmallVector<Value*> NewInputOperands;
+    SmallVector<Type*> NewInputElementTypes;
     std::ostringstream NewConstraintBuf;
     size_t NumNewConstraints = 0;
 
@@ -13464,7 +13464,7 @@ class Pizlonator {
     else
       NewRetT = StructType::get(C, NewOutputTypes);
 
-    std::vector<Type*> NewInputTypes;
+    SmallVector<Type*> NewInputTypes;
     for (Value* V : NewInputOperands)
       NewInputTypes.push_back(V->getType());
 
@@ -13502,7 +13502,7 @@ class Pizlonator {
         return Result;
       };
 
-      std::vector<Value*> NewOutputValues;
+      SmallVector<Value*> NewOutputValues;
       for (size_t Index = 0, ReturnValueIndex = 0; Index < Outputs.size(); ++Index) {
         assert(ReturnValueIndex < NewOutputTypes.size());
         const AsmIO& AIO = Outputs[Index];
@@ -13529,7 +13529,7 @@ class Pizlonator {
         assert(toFlightType(CI->getType()) == NewOutputValues[0]->getType());
         CI->replaceAllUsesWith(NewOutputValues[0]);
       } else {
-        std::vector<Type*> NewOutputValueTypes;
+        SmallVector<Type*> NewOutputValueTypes;
         for (Value* V : NewOutputValues)
           NewOutputValueTypes.push_back(V->getType());
         StructType* ST = StructType::get(C, NewOutputValueTypes);
@@ -13551,14 +13551,14 @@ class Pizlonator {
     return true;
   }
 
-  FunctionType* fastFunctionTypeForSignature(const std::vector<Type*>& NormalizedArgTypes,
+  FunctionType* fastFunctionTypeForSignature(const SmallVector<Type*>& NormalizedArgTypes,
                                              Type* NormalizedRetType) {
-    std::vector<Type*> ArgTypes;
+    SmallVector<Type*> ArgTypes;
     ArgTypes.push_back(RawPtrTy); // thread
     ArgTypes.push_back(RawPtrTy); // callee function object
     for (Type* T : NormalizedArgTypes)
       ArgTypes.push_back(toFlightType(T));
-    std::vector<Type*> RetTypes;
+    SmallVector<Type*> RetTypes;
     RetTypes.push_back(Int1Ty); // has_exception
     iterateReturnType(NormalizedRetType, [&] (Type* T) -> void {
       RetTypes.push_back(toFlightType(T));
@@ -13566,8 +13566,8 @@ class Pizlonator {
     return FunctionType::get(StructType::get(C, RetTypes), ArgTypes, false);
   }
 
-  std::vector<Type*> argTypesForDirectInfos(const std::vector<ArgInfo>& AIs) {
-    std::vector<Type*> NormalizedArgTypes;
+  SmallVector<Type*> argTypesForDirectInfos(const SmallVector<ArgInfo>& AIs) {
+    SmallVector<Type*> NormalizedArgTypes;
     for (ArgInfo AI : AIs) {
       assert(AI.AK == ArgKind::Direct);
       assert(normalizeArgType(AI.T) == AI.T);
@@ -13576,7 +13576,7 @@ class Pizlonator {
     return NormalizedArgTypes;
   }
 
-  FunctionType* fastFunctionTypeForSignature(const std::vector<ArgInfo>& AIs,
+  FunctionType* fastFunctionTypeForSignature(const SmallVector<ArgInfo>& AIs,
                                              Type* NormalizedRetType) {
     return fastFunctionTypeForSignature(argTypesForDirectInfos(AIs), NormalizedRetType);
   }
@@ -13617,10 +13617,10 @@ class Pizlonator {
   }
 
   Value* callGenericFromFastThunk(Value* CalleeLower, Function* Result,
-                                  const std::vector<ArgInfo>& AIs, Type* NormalizedRetType,
+                                  const SmallVector<ArgInfo>& AIs, Type* NormalizedRetType,
                                   Instruction* Before) {
     assert(Result->getFunctionType()->getNumParams() == AIs.size() + 2);
-    std::vector<Value*> Args;
+    SmallVector<Value*> Args;
     for (size_t Idx = 0; Idx < AIs.size(); ++Idx) {
       assert(AIs[Idx].AK == ArgKind::Direct);
       assert(toFlightType(AIs[Idx].T) == Result->getArg(Idx + 2)->getType());
@@ -13658,7 +13658,7 @@ class Pizlonator {
     return FastResultPHI;
   }
 
-  Function* callerEntrypointThunk(uint64_t Signature, const std::vector<ArgInfo>& AIs,
+  Function* callerEntrypointThunk(uint64_t Signature, const SmallVector<ArgInfo>& AIs,
                                   Type* NormalizedRetType) {
     assert(Signature != GenericSignature);
     assert(computeSignature(AIs, NormalizedRetType) == Signature);
@@ -13702,7 +13702,7 @@ class Pizlonator {
     return Result;
   }
   
-  Function* calleeEntrypointThunk(uint64_t Signature, const std::vector<ArgInfo>& AIs,
+  Function* calleeEntrypointThunk(uint64_t Signature, const SmallVector<ArgInfo>& AIs,
                                   Type* NormalizedRetType) {
     assert(Signature != GenericSignature);
     assert(computeSignature(AIs, NormalizedRetType) == Signature);
@@ -13735,11 +13735,11 @@ class Pizlonator {
     BasicBlock* RootB = BasicBlock::Create(C, "filc_callee_entrypoint_thunk_root", Result);
     ReturnInst* Return = ReturnInst::Create(C, UndefValue::get(FuncTy->getReturnType()), RootB);
 
-    std::vector<Value*> IncomingArgs;
+    SmallVector<Value*> IncomingArgs;
     if (!AIs.empty())
       IncomingArgs = loadCC(AIs, ArgSize, CCArgsCheckFailure, Return, DebugLoc());
     assert(IncomingArgs.size() == AIs.size());
-    std::vector<Value*> Args;
+    SmallVector<Value*> Args;
     Args.push_back(MyThread);
     Args.push_back(CalleeLower);
     for (size_t Idx = 0; Idx < AIs.size(); ++Idx) {
@@ -13811,7 +13811,7 @@ class Pizlonator {
     return CalledLower;
   }
 
-  Value* knownTargetCallsiteThunk(Function* F, uint64_t Signature, const std::vector<ArgInfo>& AIs,
+  Value* knownTargetCallsiteThunk(Function* F, uint64_t Signature, const SmallVector<ArgInfo>& AIs,
                                   Type* NormalizedRetType, Instruction* Before) {
     assert(computeSignature(AIs, NormalizedRetType) == Signature);
 
@@ -13906,7 +13906,7 @@ class Pizlonator {
           ConstantInt::get(Int64Ty, Signature), "filc_signature_matches");
         Instruction* ThenTerm = SplitBlockAndInsertIfThen(
           expectTrue(SignatureMatches, Return), Return, true);
-        std::vector<Value*> FastArgs;
+        SmallVector<Value*> FastArgs;
         FastArgs.push_back(MyThread);
         FastArgs.push_back(CalledLower);
         for (unsigned Idx = 2; Idx < FuncTy->getNumParams(); ++Idx)
@@ -14031,10 +14031,10 @@ class Pizlonator {
 
       FunctionType *FT = CI->getFunctionType();
       assert(InstTypeVectors.count(CI));
-      std::vector<Type*> ArgTypes = InstTypeVectors[CI];
+      SmallVector<Type*> ArgTypes = InstTypeVectors[CI];
       assert(ArgTypes.size() == CI->arg_size());
-      std::vector<ArgInfo> AIs;
-      std::vector<Value*> Vs;
+      SmallVector<ArgInfo> AIs;
+      SmallVector<Value*> Vs;
       for (size_t Idx = 0; Idx < CI->arg_size(); ++Idx) {
         if (CI->isByValArgument(Idx)) {
           AIs.push_back(ArgInfo(CI->getParamByValType(Idx),
@@ -14087,7 +14087,7 @@ class Pizlonator {
       };
 
       auto CallFast = [&] (Value* CalledLower, Value* Callee) {
-        std::vector<Value*> Args;
+        SmallVector<Value*> Args;
         Args.push_back(MyThread);
         Args.push_back(CalledLower);
         for (Value* V : Vs)
@@ -14693,7 +14693,7 @@ class Pizlonator {
   }
 
   void lowerIndirectBr() {
-    std::vector<BlockAddress*> ToDelete;
+    SmallVector<BlockAddress*> ToDelete;
     for (Function& F : M.functions()) {
       lowerIndirectBrForFunction(F);
       for (Value* User : F.users()) {
@@ -14914,10 +14914,10 @@ class Pizlonator {
     for (Function& F : M.functions()) {
       if (F.isDeclaration())
         continue;
-      std::vector<LoadInst*> Loads;
-      std::vector<StoreInst*> Stores;
-      std::vector<AtomicCmpXchgInst*> CmpXchgs;
-      std::vector<AtomicRMWInst*> RMWs;
+      SmallVector<LoadInst*> Loads;
+      SmallVector<StoreInst*> Stores;
+      SmallVector<AtomicCmpXchgInst*> CmpXchgs;
+      SmallVector<AtomicRMWInst*> RMWs;
       for (BasicBlock& BB : F) {
         for (Instruction& I : BB) {
           if (LoadInst* LI = dyn_cast<LoadInst>(&I)) {
@@ -14979,7 +14979,7 @@ class Pizlonator {
         continue;
       
       for (BasicBlock& BB : F) {
-        std::vector<Instruction*> Insts;
+        SmallVector<Instruction*> Insts;
         for (Instruction& I : BB)
           Insts.push_back(&I);
         for (Instruction* I : Insts)
@@ -15010,12 +15010,12 @@ class Pizlonator {
 
     std::unordered_map<Instruction*, InferredCapability> InferredCapabilities;
 
-    std::vector<Instruction*> AllInsts;
+    SmallVector<Instruction*> AllInsts;
     for (BasicBlock& BB : F) {
       for (Instruction& I : BB)
         AllInsts.push_back(&I);
     }
-    std::vector<Instruction*> InferInsts;
+    SmallVector<Instruction*> InferInsts;
     for (Instruction* I : AllInsts) {
       if (PtrToIntInst* PtrToInt = dyn_cast<PtrToIntInst>(I)) {
         InferredCapabilities[I] = InferredCapability(
@@ -15138,7 +15138,7 @@ class Pizlonator {
   }
 
   void makeEHDatas() {
-    std::vector<LandingPadInst*> LPIs;
+    SmallVector<LandingPadInst*> LPIs;
     
     for (Function& F : M.functions()) {
       for (BasicBlock& BB : F) {
@@ -15151,7 +15151,7 @@ class Pizlonator {
     if (LPIs.empty())
       return;
     
-    std::vector<Constant*> LowTypesAndFilters;
+    SmallVector<Constant*> LowTypesAndFilters;
     unsigned NumTypes = 0;
     unsigned NumFilters = 0;
     std::unordered_map<Constant*, int> TypeOrFilterToAction;
@@ -15219,7 +15219,7 @@ class Pizlonator {
       if (EHDatas.count(EHDataKey(LPI)))
         continue;
 
-      std::vector<int> Actions;
+      SmallVector<int> Actions;
 
       for (unsigned Idx = 0; Idx < LPI->getNumClauses(); ++Idx) {
         assert(TypeOrFilterToAction.count(LPI->getClause(Idx)));
@@ -15558,7 +15558,7 @@ class Pizlonator {
       }
     };
     
-    std::vector<BasicBlock*> Blocks;
+    SmallVector<BasicBlock*> Blocks;
     for (BasicBlock& BB : F)
       Blocks.push_back(&BB);
     bool Changed = true;
@@ -15620,7 +15620,7 @@ class Pizlonator {
       return true;
     };
 
-    std::vector<CallBase*> MemmovesToReconsider;
+    SmallVector<CallBase*> MemmovesToReconsider;
     for (BasicBlock& BB : F) {
       std::unordered_map<AllocaInst*, LifetimeState> Lifetime = LifetimeAtTail[&BB];
       for (auto It = BB.rbegin(); It != BB.rend(); ++It) {
@@ -15738,7 +15738,7 @@ class Pizlonator {
       if (F.isDeclaration())
         continue;
       for (BasicBlock& BB : F) {
-        std::vector<Instruction*> ToErase;
+        SmallVector<Instruction*> ToErase;
         for (Instruction& I : BB) {
           if (I.DebugMarker)
             I.DebugMarker->eraseFromParent();
@@ -15794,7 +15794,7 @@ class Pizlonator {
       if (F.isDeclaration())
         continue;
       for (BasicBlock& BB : F) {
-        std::vector<Instruction*> ToErase;
+        SmallVector<Instruction*> ToErase;
         for (Instruction& I : BB) {
           CallBase* CI = dyn_cast<CallBase>(&I);
           if (!CI)
@@ -15913,7 +15913,7 @@ class Pizlonator {
     }
 
     std::unordered_map<AllocaInst*, AllocaInst*> ToLazyAlloca;
-    std::vector<AllocaInst*> LazyAllocas;
+    SmallVector<AllocaInst*> LazyAllocas;
     for (AllocaInst* AI : Allocas) {
       AllocaInst* LazyAI = new AllocaInst(RawPtrTy, 0, nullptr, "filc_lazy_alloca", AI);
       LazyAI->setDebugLoc(AI->getDebugLoc());
@@ -15922,9 +15922,9 @@ class Pizlonator {
       LazyAllocas.push_back(LazyAI);
     }
 
-    std::vector<Use*> MaybeInitialized;
-    std::vector<Use*> Uninitialized;
-    std::vector<Use*> NeedsLoad;
+    SmallVector<Use*> MaybeInitialized;
+    SmallVector<Use*> Uninitialized;
+    SmallVector<Use*> NeedsLoad;
     
     for (BasicBlock& BB : F) {
       std::unordered_map<AllocaInst*, AIState> State = AtHeadForBB[&BB];
@@ -16034,8 +16034,8 @@ class Pizlonator {
     if (verbose)
       errs() << "Canonicalizing GEP = " << *GEP << "\n";
 
-    std::vector<Value*> LeadingOperands;
-    std::vector<Value*> TrailingOperands;
+    SmallVector<Value*> LeadingOperands;
+    SmallVector<Value*> TrailingOperands;
     for (unsigned Index = 1; Index < ConstantOperandIndexStart; ++Index)
       LeadingOperands.push_back(GEP->getOperand(Index));
     TrailingOperands.push_back(ConstantInt::get(Int32Ty, 0));
@@ -16063,7 +16063,7 @@ class Pizlonator {
       return;
 
     for (BasicBlock& BB : F) {
-      std::vector<Instruction*> Instructions;
+      SmallVector<Instruction*> Instructions;
       for (Instruction& I : BB)
         Instructions.push_back(&I);
       for (Instruction* I : Instructions)
@@ -16123,11 +16123,11 @@ class Pizlonator {
   }
 
   template<typename KeyType>
-  void simpleCSE(Function& F, std::unordered_map<KeyType, std::vector<Instruction*>>& InstMap) {
+  void simpleCSE(Function& F, std::unordered_map<KeyType, SmallVector<Instruction*>>& InstMap) {
     DominatorTree DT(F);
 
     for (auto& Pair : InstMap) {
-      std::vector<Instruction*>& Insts = Pair.second;
+      SmallVector<Instruction*>& Insts = Pair.second;
 
       if (verbose) {
         errs() << "Considering insts:\n";
@@ -16163,7 +16163,7 @@ class Pizlonator {
     if (F.isDeclaration())
       return;
 
-    std::unordered_map<GEPKey, std::vector<Instruction*>> GEPMap;
+    std::unordered_map<GEPKey, SmallVector<Instruction*>> GEPMap;
 
     for (BasicBlock& BB : F) {
       for (Instruction& I : BB) {
@@ -16178,7 +16178,7 @@ class Pizlonator {
   }
 
   void optimizeGetters() {
-    std::unordered_map<Value*, std::vector<Instruction*>> GetterCallsForGetter;
+    std::unordered_map<Value*, SmallVector<Instruction*>> GetterCallsForGetter;
 
     for (BasicBlock& BB : *NewF) {
       for (Instruction& I : BB) {
@@ -16294,7 +16294,7 @@ public:
     FrameTy = StructType::create({ RawPtrTy, RawPtrTy, RawPtrTy }, "filc_frame");
     UnsafeFuncTy = FunctionType::get(IntPtrTy, true);
 
-    std::vector<Type*> ThreadMembers;
+    SmallVector<Type*> ThreadMembers;
     ThreadMembers.push_back(IntPtrTy); // stack_limit, index 0
     ThreadMembers.push_back(Int8Ty); // state, index 1
     ThreadMembers.push_back(Int32Ty); // tid, index 2
@@ -16638,7 +16638,7 @@ public:
 
     CurrentMarkingState = M.getOrInsertGlobal("filc_current_marking_state", Int32Ty);
 
-    std::vector<GlobalValue*> ToDelete;
+    SmallVector<GlobalValue*> ToDelete;
     auto HandleGlobal = [&] (GlobalValue* G) {
       if (verbose)
         errs() << "Handling global: " << G->getName() << "\n";
@@ -16692,7 +16692,7 @@ public:
         // Otherwise, we end up in situations where we inline references to the hidden function and
         // then the hidden function gets duplicated even if the global was linkonce.
 
-        std::vector<ArgInfo> AIs = argInfosForFunction(F);
+        SmallVector<ArgInfo> AIs = argInfosForFunction(F);
         Type* NormalizedRetType = normalizeRetType(F->getReturnType());
         uint64_t Signature;
         if (usesVariadicCC(F))
@@ -16776,7 +16776,7 @@ public:
     
     if (GlobalVariable* GlobalCtors = M.getGlobalVariable("llvm.global_ctors")) {
       ConstantArray* Array = cast<ConstantArray>(GlobalCtors->getInitializer());
-      std::vector<Constant*> Args;
+      SmallVector<Constant*> Args;
       for (size_t Index = 0; Index < Array->getNumOperands(); ++Index) {
         ConstantStruct* Struct = cast<ConstantStruct>(Array->getOperand(Index));
         Function* Ctor = cast<Function>(Struct->getOperand(1));
@@ -16801,7 +16801,7 @@ public:
     // __cxa_atexit from a global constructor instead of registering a global destructor.
     if (GlobalVariable* GlobalDtors = M.getGlobalVariable("llvm.global_dtors")) {
       ConstantArray* Array = cast<ConstantArray>(GlobalDtors->getInitializer());
-      std::vector<Constant*> Args;
+      SmallVector<Constant*> Args;
       for (size_t Index = 0; Index < Array->getNumOperands(); ++Index) {
         ConstantStruct* Struct = cast<ConstantStruct>(Array->getOperand(Index));
         Function* Dtor = cast<Function>(Struct->getOperand(1));
@@ -16823,7 +16823,7 @@ public:
 
     auto HandleUsed = [&] (GlobalVariable* Used) {
       ConstantArray* Array = cast<ConstantArray>(Used->getInitializer());
-      std::vector<Constant*> Args;
+      SmallVector<Constant*> Args;
       for (size_t Index = 0; Index < Array->getNumOperands(); ++Index) {
         // NOTE: This could have a GEP, supposedly. Pretend it can't for now.
         Function* GetterF = GlobalToGetter[cast<GlobalValue>(Array->getOperand(Index))];
@@ -16925,7 +16925,7 @@ public:
       size_t CSize = DL.getTypeStoreSize(NewC->getType());
       assert(!(CSize % WordSize));
 
-      std::vector<ConstantRelocation> Relocations;
+      SmallVector<ConstantRelocation> Relocations;
       bool RelocationsSucceeded = computeConstantRelocations(G->getInitializer(), Relocations);
       bool IsConstant = G->isConstant() && RelocationsSucceeded && !Relocations.size();
 
@@ -16943,7 +16943,7 @@ public:
         AuxPtr = RawNull;
       }
 
-      std::vector<Type*> ObjectGTyFields;
+      SmallVector<Type*> ObjectGTyFields;
       size_t AlignmentOffset = 0;
       ArrayType* AlignmentTy = nullptr;
       if (Alignment > ObjectSize) {
@@ -16966,7 +16966,7 @@ public:
         ObjectFlags |= ObjectFlagGlobalAux;
       if (G->isConstant())
         ObjectFlags |= ObjectFlagReadonly;
-      std::vector<Constant*> NewObjCFields;
+      SmallVector<Constant*> NewObjCFields;
       if (AlignmentTy)
         NewObjCFields.push_back(ConstantAggregateZero::get(AlignmentTy));
       NewObjCFields.push_back(
@@ -17050,7 +17050,7 @@ public:
         errs() << "Lowering constant " << *G->getInitializer() << "\n";
       if (RelocationsSucceeded) {
         if (Relocations.size()) {
-          std::vector<Constant*> Constants;
+          SmallVector<Constant*> Constants;
           for (const ConstantRelocation& Relocation : Relocations) {
             Constants.push_back(
               ConstantStruct::get(
@@ -17167,7 +17167,7 @@ public:
 
         assert(!MyThread);
         MyThread = NewF->getArg(0);
-        std::vector<BasicBlock*> Blocks;
+        SmallVector<BasicBlock*> Blocks;
         for (BasicBlock& BB : *F)
           Blocks.push_back(&BB);
         assert(!Blocks.empty());
@@ -17188,8 +17188,8 @@ public:
         }
         scheduleChecks(Blocks, BackEdgePreds);
         // Snapshot the instructions before we do crazy stuff.
-        std::vector<Instruction*> Instructions;
-        std::vector<AllocaInst*> LocalAllocas;
+        SmallVector<Instruction*> Instructions;
+        SmallVector<AllocaInst*> LocalAllocas;
         for (BasicBlock* BB : Blocks) {
           for (Instruction& I : *BB) {
             PointerKind PK = pointerKindDirect(&I);
@@ -17259,7 +17259,7 @@ public:
             toFlightType(F->getReturnType()), 1, "filc_return_value", ReturnB);
         }
 
-        std::vector<ArgInfo> AIs = argInfosForFunction(F);
+        SmallVector<ArgInfo> AIs = argInfosForFunction(F);
         Type* NormalizedRetType = normalizeRetType(F->getReturnType());
         uint64_t Signature;
         if (UsesVariadicCC)
@@ -17365,7 +17365,7 @@ public:
         if (F->getFunctionType()->getNumParams()) {
           if (Signature == GenericSignature) {
             LastOffset = argsSize(AIs);
-            std::vector<Value*> Vs = loadCC(
+            SmallVector<Value*> Vs = loadCC(
               AIs, NewF->getArg(2), CCArgsCheckFailure, InsertionPoint, DebugLoc());
             for (unsigned Index = 0; Index < F->getFunctionType()->getNumParams(); ++Index) {
               Value* V = Vs[Index];
@@ -17411,7 +17411,7 @@ public:
 
         FirstRealBlock = InsertionPoint->getParent();
 
-        std::vector<PHINode*> Phis;
+        SmallVector<PHINode*> Phis;
         for (Instruction* I : Instructions) {
           if (PHINode* Phi = dyn_cast<PHINode>(I)) {
             Phis.push_back(Phi);
@@ -17605,13 +17605,10 @@ namespace {
 class FilCLoopBoundsEliminator {
 public:
   Function &F;
-  LoopInfo &LI;
-  ScalarEvolution &SE;
   DominatorTree &DT;
-  const DataLayout &DL;
 
   FilCLoopBoundsEliminator(Function &F, LoopInfo &LI, ScalarEvolution &SE, DominatorTree &DT)
-    : F(F), LI(LI), SE(SE), DT(DT), DL(F.getParent()->getDataLayout()) {}
+    : F(F), DT(DT) {}
 
   bool isFailBlock(BasicBlock *BB) {
     if (BB->getName().contains("range_fail"))
@@ -17631,543 +17628,51 @@ public:
     return false;
   }
 
-  Value *hoistUpperMinusToPreheader(Value *UpperMinus, Loop *L, BasicBlock *Preheader) {
-    if (L->isLoopInvariant(UpperMinus))
-      return UpperMinus;
-
-    Instruction *InsertPt = Preheader->getTerminator();
-
-    if (LoadInst *DirectLI = dyn_cast<LoadInst>(UpperMinus)) {
-      GetElementPtrInst *HeaderGEP = dyn_cast<GetElementPtrInst>(DirectLI->getPointerOperand());
-      if (!HeaderGEP)
-        return nullptr;
-      Value *Lower = HeaderGEP->getPointerOperand();
-      if (!L->isLoopInvariant(Lower))
-        return nullptr;
-
-      Instruction *HoistedHeaderGEP = HeaderGEP->clone();
-      HoistedHeaderGEP->insertBefore(InsertPt->getIterator());
-
-      Instruction *HoistedLI = DirectLI->clone();
-      HoistedLI->setOperand(0, HoistedHeaderGEP);
-      HoistedLI->insertBefore(InsertPt->getIterator());
-
-      return HoistedLI;
-    }
-
-    GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(UpperMinus);
-    if (!GEP)
-      return nullptr;
-
-    LoadInst *LI = dyn_cast<LoadInst>(GEP->getPointerOperand());
-    if (!LI)
-      return nullptr;
-
-    GetElementPtrInst *HeaderGEP = dyn_cast<GetElementPtrInst>(LI->getPointerOperand());
-    if (!HeaderGEP)
-      return nullptr;
-
-    Value *Lower = HeaderGEP->getPointerOperand();
-    if (!L->isLoopInvariant(Lower))
-      return nullptr;
-
-    Instruction *HoistedHeaderGEP = HeaderGEP->clone();
-    HoistedHeaderGEP->insertBefore(InsertPt->getIterator());
-
-    Instruction *HoistedLI = LI->clone();
-    HoistedLI->setOperand(0, HoistedHeaderGEP);
-    HoistedLI->insertBefore(InsertPt->getIterator());
-
-    Instruction *HoistedGEP = GEP->clone();
-    HoistedGEP->setOperand(0, HoistedLI);
-    HoistedGEP->insertBefore(InsertPt->getIterator());
-
-    return HoistedGEP;
-  }
-
-  void hoistInvariants(Loop *L, BasicBlock *Preheader) {
-    bool Changed = true;
-    while (Changed) {
-      Changed = false;
-      for (BasicBlock *BB : L->blocks()) {
-        for (auto It = BB->begin(), End = BB->end(); It != End;) {
-          Instruction &I = *It++;
-          if (isa<ExtractValueInst>(&I) || isa<CastInst>(&I)) {
-            bool AllOpsInvariant = true;
-            for (Value *Op : I.operands()) {
-              if (!L->isLoopInvariant(Op)) {
-                AllOpsInvariant = false;
-                break;
-              }
-            }
-            if (AllOpsInvariant) {
-              I.moveBefore(Preheader->getTerminator()->getIterator());
-              Changed = true;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  bool eliminateBoundsChecksInLoop(Loop *L) {
-    BasicBlock *Preheader = L->getLoopPreheader();
-    if (!Preheader)
-      Preheader = InsertPreheaderForLoop(L, &DT, &LI, nullptr, false);
-    if (!Preheader)
-      return false;
-
-    BasicBlock *Latch = L->getLoopLatch();
-    if (!Latch)
-      return false;
-
-    hoistInvariants(L, Preheader);
-    SE.forgetLoop(L);
-
-    static bool Debug = (getenv("FILC_DEBUG_BOUNDS") != nullptr);
-    if (Debug) {
-      errs() << "[FilC LoopBoundsElim] Function " << F.getName() << " loop with preheader "
-             << (Preheader ? Preheader->getName() : "null") << "\n";
-    }
-
-    // A loop is safe for bounds check hoisting only if it has EXACTLY ONE normal (non-fail) exit.
-    // Loops with multiple normal exits (e.g. data-dependent searches like strcmp, strncmp)
-    // exit early based on data values, so hoisting checks for iterations beyond early exits
-    // is unsound.
-    SmallVector<BasicBlock *, 8> ExitingBlocks;
-    L->getExitingBlocks(ExitingBlocks);
-    BasicBlock *NormalEB = nullptr;
-    for (BasicBlock *EB : ExitingBlocks) {
-      Instruction *Term = EB->getTerminator();
-      bool ExitsToFailOnly = true;
-      for (unsigned i = 0; i < Term->getNumSuccessors(); ++i) {
-        BasicBlock *Succ = Term->getSuccessor(i);
-        if (!L->contains(Succ) && !isFailBlock(Succ)) {
-          ExitsToFailOnly = false;
-          break;
-        }
-      }
-      if (!ExitsToFailOnly) {
-        if (NormalEB) {
-          if (Debug)
-            errs() << "  Loop has multiple normal exits, skipping.\n";
-          return false;
-        }
-        NormalEB = EB;
-      }
-    }
-
-    if (!NormalEB)
-      return false;
-
-    const SCEV *EC = SE.getExitCount(L, NormalEB);
-    if (!EC || isa<SCEVCouldNotCompute>(EC))
-      return false;
-
-    if (const SCEVConstant *C = dyn_cast<SCEVConstant>(EC)) {
-      if (C->getAPInt().isAllOnes() || C->getAPInt().isNegative())
-        return false;
-    }
-
-    const SCEV *BTC = EC;
-    if (Debug) {
-      errs() << "  Normal exit from " << NormalEB->getName() << " with BTC: ";
-      BTC->print(errs());
-      errs() << "\n";
-    }
-
-    enum class CheckType { Upper, Lower };
-
-    struct PointerBoundsSCEV {
-      const SCEV *Start = nullptr;
-      const SCEV *Max = nullptr;
-      bool Valid = false;
-    };
-
-    std::function<const SCEV *(const SCEV *, const SCEV *)> evalSCEV =
-        [&](const SCEV *S, const SCEV *Iter) -> const SCEV * {
-      if (!S)
-        return nullptr;
-      if (SE.isLoopInvariant(S, L))
-        return S;
-      if (const SCEVAddRecExpr *AR = dyn_cast<SCEVAddRecExpr>(S)) {
-        if (AR->getLoop() == L && AR->isAffine()) {
-          const SCEV *Step = AR->getStepRecurrence(SE);
-          const SCEVConstant *ConstStep = dyn_cast<SCEVConstant>(Step);
-          if (ConstStep && !ConstStep->getAPInt().isNegative() && !ConstStep->getAPInt().isZero()) {
-            const SCEV *AdaptedIter = Iter;
-            if (AR->getType()->isIntegerTy() && Iter->getType() != AR->getType()) {
-              AdaptedIter = SE.getTruncateOrZeroExtend(Iter, AR->getType());
-            } else if (AR->getType()->isPointerTy() && Iter->getType() != Step->getType()) {
-              AdaptedIter = SE.getTruncateOrZeroExtend(Iter, Step->getType());
-            }
-            return AR->evaluateAtIteration(AdaptedIter, SE);
-          }
-        }
-        return nullptr;
-      }
-      if (const SCEVAddExpr *Add = dyn_cast<SCEVAddExpr>(S)) {
-        SmallVector<const SCEV *, 4> Ops;
-        for (const SCEV *Op : Add->operands()) {
-          const SCEV *EOp = evalSCEV(Op, Iter);
-          if (!EOp)
-            return nullptr;
-          Ops.push_back(EOp);
-        }
-        return SE.getAddExpr(Ops);
-      }
-      if (const SCEVMulExpr *Mul = dyn_cast<SCEVMulExpr>(S)) {
-        SmallVector<const SCEV *, 4> Ops;
-        for (const SCEV *Op : Mul->operands()) {
-          const SCEV *EOp = evalSCEV(Op, Iter);
-          if (!EOp)
-            return nullptr;
-          Ops.push_back(EOp);
-        }
-        return SE.getMulExpr(Ops);
-      }
-      if (const SCEVZeroExtendExpr *ZExt = dyn_cast<SCEVZeroExtendExpr>(S)) {
-        const SCEV *EOp = evalSCEV(ZExt->getOperand(), Iter);
-        return EOp ? SE.getZeroExtendExpr(EOp, ZExt->getType()) : nullptr;
-      }
-      if (const SCEVSignExtendExpr *SExt = dyn_cast<SCEVSignExtendExpr>(S)) {
-        const SCEV *EOp = evalSCEV(SExt->getOperand(), Iter);
-        return EOp ? SE.getSignExtendExpr(EOp, SExt->getType()) : nullptr;
-      }
-      if (const SCEVTruncateExpr *Trunc = dyn_cast<SCEVTruncateExpr>(S)) {
-        const SCEV *EOp = evalSCEV(Trunc->getOperand(), Iter);
-        return EOp ? SE.getTruncateExpr(EOp, Trunc->getType()) : nullptr;
-      }
-      return nullptr;
-    };
-
-    auto analyzePointerSCEV = [&](Value *PtrVal) -> PointerBoundsSCEV {
-      const SCEV *PtrSCEV = SE.getSCEV(PtrVal);
-      const SCEV *Zero = SE.getZero(BTC->getType());
-      const SCEV *Start = evalSCEV(PtrSCEV, Zero);
-      const SCEV *Max = evalSCEV(PtrSCEV, BTC);
-      if (Start && Max && SE.isLoopInvariant(Start, L) && SE.isLoopInvariant(Max, L))
-        return {Start, Max, true};
-
-      if (PHINode *PN = dyn_cast<PHINode>(PtrVal)) {
-        if (PN->getParent() == L->getHeader() && PN->getNumIncomingValues() == 2) {
-          int PreheaderIdx = PN->getBasicBlockIndex(Preheader);
-          if (PreheaderIdx >= 0) {
-            Value *StartVal = PN->getIncomingValue(PreheaderIdx);
-            Value *LoopVal = PN->getIncomingValue(1 - PreheaderIdx);
-            const SCEV *StartSCEV = SE.getSCEV(StartVal);
-            const SCEV *LoopValSCEV = SE.getSCEV(LoopVal);
-
-            if (const SCEVConstant *C = dyn_cast<SCEVConstant>(BTC)) {
-              if (C->isZero()) {
-                if (SE.isLoopInvariant(StartSCEV, L))
-                  return {StartSCEV, StartSCEV, true};
-              }
-            }
-
-            const SCEV *One = SE.getOne(BTC->getType());
-            const SCEV *BTCMinusOne = SE.getMinusSCEV(BTC, One);
-            const SCEV *MaxSCEV = evalSCEV(LoopValSCEV, BTCMinusOne);
-            if (MaxSCEV && SE.isLoopInvariant(StartSCEV, L) && SE.isLoopInvariant(MaxSCEV, L)) {
-              return {StartSCEV, MaxSCEV, true};
-            }
-          }
-        }
-      }
-
-      return {nullptr, nullptr, false};
-    };
-
-    struct BoundCheckInfo {
-      BranchInst *BI;
-      ICmpInst *Cmp;
-      Value *Ptr;
-      Value *BoundVal;
-      BasicBlock *FailB;
-      BasicBlock *SuccessB;
-      bool Invert; // true if cond == true means success
-      const SCEV *Start;
-      const SCEV *Max;
-      CheckType Type;
-      ICmpInst::Predicate Pred;
-    };
-
-    SmallVector<BoundCheckInfo, 8> ChecksToEliminate;
-
-    for (BasicBlock *BB : L->blocks()) {
-      if (!DT.dominates(BB, Latch))
-        continue;
-
-      BranchInst *BI = dyn_cast<BranchInst>(BB->getTerminator());
-      if (!BI || !BI->isConditional())
-        continue;
-
-      ICmpInst *Cmp = dyn_cast<ICmpInst>(BI->getCondition());
-      if (!Cmp)
-        continue;
-
-      BasicBlock *Succ0 = BI->getSuccessor(0);
-      BasicBlock *Succ1 = BI->getSuccessor(1);
-
-      BasicBlock *FailB = nullptr;
-      BasicBlock *SuccessB = nullptr;
-      bool Invert = false;
-
-      if (!L->contains(Succ0) && L->contains(Succ1)) {
-        FailB = Succ0;
-        SuccessB = Succ1;
-        Invert = false; // cond true -> FailB
-      } else if (L->contains(Succ0) && !L->contains(Succ1)) {
-        SuccessB = Succ0;
-        FailB = Succ1;
-        Invert = true; // cond true -> SuccessB
-      } else {
-        continue;
-      }
-
-      if (!isFailBlock(FailB))
-        continue;
-
-      if (!Cmp->getOperand(0)->getType()->isPointerTy())
-        continue;
-
-      Value *Op0 = Cmp->getOperand(0);
-      Value *Op1 = Cmp->getOperand(1);
-      ICmpInst::Predicate Pred = Cmp->getPredicate();
-      if (L->isLoopInvariant(Op0) && !L->isLoopInvariant(Op1)) {
-        std::swap(Op0, Op1);
-        Pred = Cmp->getSwappedPredicate();
-      }
-
-      Value *Ptr = Op0;
-      Value *BoundVal = Op1;
-      CheckType CType;
-
-      if (!Invert && Pred == ICmpInst::ICMP_UGT) {
-        // Ptr > UpperMinus -> fail
-        CType = CheckType::Upper;
-      } else if (Invert && Pred == ICmpInst::ICMP_ULE) {
-        // Ptr <= UpperMinus -> success
-        CType = CheckType::Upper;
-      } else if (!Invert && Pred == ICmpInst::ICMP_UGE) {
-        // Ptr >= Upper -> fail
-        CType = CheckType::Upper;
-      } else if (Invert && Pred == ICmpInst::ICMP_ULT) {
-        // Ptr < Upper -> success (pointer store access)
-        CType = CheckType::Upper;
-      } else if (!Invert && Pred == ICmpInst::ICMP_ULT) {
-        // Ptr < Lower -> fail
-        CType = CheckType::Lower;
-      } else if (Invert && Pred == ICmpInst::ICMP_UGE) {
-        // Ptr >= Lower -> success
-        CType = CheckType::Lower;
-      } else {
-        continue;
-      }
-
-      if (Debug) {
-        errs() << "  Examining branch in " << BB->getName() << ": ";
-        Cmp->print(errs());
-        errs() << "\n  FailB=" << FailB->getName() << ", SuccessB=" << SuccessB->getName()
-               << ", CType=" << (CType == CheckType::Upper ? "Upper" : "Lower") << "\n";
-      }
-
-      // Ptr must be an affine induction pointer in L with positive step
-      PointerBoundsSCEV Bounds = analyzePointerSCEV(Ptr);
-      if (!Bounds.Valid) {
-        if (Debug) {
-          errs() << "  Not valid affine induction pointer in L: ";
-          Ptr->printAsOperand(errs(), false);
-          errs() << "\n";
-        }
-        continue;
-      }
-
-      if (CType == CheckType::Lower) {
-        if (!L->isLoopInvariant(BoundVal) && !SE.isLoopInvariant(SE.getSCEV(BoundVal), L)) {
-          if (Debug) {
-            errs() << "  Lower bound not invariant: ";
-            BoundVal->print(errs());
-            errs() << "\n";
-          }
-          continue;
-        }
-      }
-
-      if (Debug) {
-        errs() << "  -> QUEUED check for elimination! Ptr=";
-        Ptr->printAsOperand(errs(), false);
-        errs() << " Start=";
-        Bounds.Start->print(errs());
-        errs() << " Max=";
-        Bounds.Max->print(errs());
-        errs() << "\n";
-      }
-
-      ChecksToEliminate.push_back({BI, Cmp, Ptr, BoundVal, FailB, SuccessB, Invert, Bounds.Start, Bounds.Max, CType, Pred});
-    }
-
-    if (ChecksToEliminate.empty())
-      return false;
-
-    SCEVExpander Expander(SE, DL, "filc_bounds");
-    bool Modified = false;
-
-    auto createHoistedFailBlock = [&](Value *FailingPtr, BasicBlock *OrigFailB) -> BasicBlock * {
-      BasicBlock *HoistedFailB = BasicBlock::Create(F.getContext(), "filc_hoisted_fail_block", &F);
-      IRBuilder<> FailBuilder(HoistedFailB);
-      CallInst *FailCall = nullptr;
-      BasicBlock *CurBB = OrigFailB;
-      while (CurBB) {
-        for (Instruction &I : *CurBB) {
-          if (CallInst *CI = dyn_cast<CallInst>(&I)) {
-            if (Function *Callee = CI->getCalledFunction()) {
-              StringRef Name = Callee->getName();
-              if (Name.contains("fail") || Name.contains("panic")) {
-                FailCall = CI;
-                break;
-              }
-            }
-          }
-        }
-        if (FailCall || !CurBB->getSingleSuccessor())
-          break;
-        CurBB = CurBB->getSingleSuccessor();
-      }
-
-      if (FailCall) {
-        SmallVector<Value *, 4> Args;
-        Type *Arg0Ty = FailCall->getArgOperand(0)->getType();
-        for (unsigned i = 0; i < FailCall->arg_size(); ++i) {
-          if (i == 0) {
-            Value *Arg0 = FailingPtr;
-            if (Arg0Ty->isStructTy()) {
-              Value *Lower = nullptr;
-              if (InsertValueInst *IVI = dyn_cast<InsertValueInst>(FailCall->getArgOperand(0))) {
-                if (IVI->getIndices()[0] == 1) {
-                  Lower = IVI->getInsertedValueOperand();
-                } else if (InsertValueInst *IVI2 = dyn_cast<InsertValueInst>(IVI->getAggregateOperand())) {
-                  if (IVI2->getIndices()[0] == 1)
-                    Lower = IVI2->getInsertedValueOperand();
-                }
-              }
-              if (!Lower)
-                Lower = ConstantPointerNull::get(PointerType::getUnqual(F.getContext()));
-              Value *FP = FailBuilder.CreateInsertValue(UndefValue::get(Arg0Ty), FailingPtr, { 0 }, "filc_hoisted_fp");
-              Arg0 = FailBuilder.CreateInsertValue(FP, Lower, { 1 }, "filc_hoisted_flight_ptr");
-            } else if (Arg0Ty->isIntegerTy()) {
-              Value *PtrAsInt = FailBuilder.CreatePtrToInt(FailingPtr, Arg0Ty, "filc_hoisted_ptr_as_int");
-              Arg0 = PtrAsInt;
-              if (BinaryOperator *Sub = dyn_cast<BinaryOperator>(FailCall->getArgOperand(0))) {
-                if (Sub->getOpcode() == Instruction::Sub) {
-                  Value *Payload = Sub->getOperand(1);
-                  Arg0 = FailBuilder.CreateSub(PtrAsInt, Payload, "filc_hoisted_offset");
-                }
-              }
-            } else if (Arg0Ty->isPointerTy()) {
-              if (Arg0->getType() != Arg0Ty)
-                Arg0 = FailBuilder.CreatePointerCast(Arg0, Arg0Ty);
-            }
-            Args.push_back(Arg0);
-          } else {
-            Args.push_back(FailCall->getArgOperand(i));
-          }
-        }
-        CallInst *NewCI = FailBuilder.CreateCall(FailCall->getFunctionType(), FailCall->getCalledOperand(), Args);
-        NewCI->setDebugLoc(FailCall->getDebugLoc());
-      }
-      FailBuilder.CreateUnreachable();
-      return HoistedFailB;
-    };
-
-    for (auto &Info : ChecksToEliminate) {
-      if (Info.Type == CheckType::Upper) {
-        Value *HoistedUpperMinus = hoistUpperMinusToPreheader(Info.BoundVal, L, Preheader);
-        if (!HoistedUpperMinus) {
-          if (Debug)
-            errs() << "  Could not hoist UpperMinus!\n";
-          continue;
-        }
-
-        Instruction *InsertPt = Preheader->getTerminator();
-        Value *MaxPtr = Expander.expandCodeFor(Info.Max, Info.Ptr->getType(), InsertPt);
-
-        IRBuilder<> Builder(InsertPt);
-        Value *AllInBounds = nullptr;
-        if (Info.Pred == ICmpInst::ICMP_ULT || Info.Pred == ICmpInst::ICMP_UGE)
-          AllInBounds = Builder.CreateICmpULT(MaxPtr, HoistedUpperMinus, "filc_all_in_bounds");
-        else
-          AllInBounds = Builder.CreateICmpULE(MaxPtr, HoistedUpperMinus, "filc_all_in_bounds");
-
-        BasicBlock *HoistedFailB = createHoistedFailBlock(MaxPtr, Info.FailB);
-
-        Instruction *PreheaderTerm = Preheader->getTerminator();
-        BasicBlock *NewPreheader = SplitBlock(Preheader, PreheaderTerm, &DT, &LI);
-        Preheader->getTerminator()->eraseFromParent();
-        BranchInst::Create(NewPreheader, HoistedFailB, AllInBounds, Preheader);
-        DT.addNewBlock(HoistedFailB, Preheader);
-
-        if (!Info.Invert)
-          Info.BI->setCondition(ConstantInt::getFalse(Type::getInt1Ty(F.getContext())));
-        else
-          Info.BI->setCondition(ConstantInt::getTrue(Type::getInt1Ty(F.getContext())));
-
-        if (Debug)
-          errs() << "  ELIMINATED UpperBound check!\n";
-
-        Preheader = NewPreheader;
-        Modified = true;
-      } else {
-        // Lower bound check: StartPtr >= Lower
-        Instruction *InsertPt = Preheader->getTerminator();
-        Value *StartPtr = Expander.expandCodeFor(Info.Start, Info.Ptr->getType(), InsertPt);
-
-        IRBuilder<> Builder(InsertPt);
-        Value *LowerInBounds = Builder.CreateICmpUGE(StartPtr, Info.BoundVal, "filc_lower_in_bounds");
-
-        BasicBlock *HoistedFailB = createHoistedFailBlock(StartPtr, Info.FailB);
-
-        Instruction *PreheaderTerm = Preheader->getTerminator();
-        BasicBlock *NewPreheader = SplitBlock(Preheader, PreheaderTerm, &DT, &LI);
-        Preheader->getTerminator()->eraseFromParent();
-        BranchInst::Create(NewPreheader, HoistedFailB, LowerInBounds, Preheader);
-        DT.addNewBlock(HoistedFailB, Preheader);
-
-        if (!Info.Invert)
-          Info.BI->setCondition(ConstantInt::getFalse(Type::getInt1Ty(F.getContext())));
-        else
-          Info.BI->setCondition(ConstantInt::getTrue(Type::getInt1Ty(F.getContext())));
-
-        if (Debug)
-          errs() << "  ELIMINATED LowerBound check!\n";
-
-        Preheader = NewPreheader;
-        Modified = true;
-      }
-    }
-
-    return Modified;
-  }
-
   bool run() {
-    static bool Debug = (getenv("FILC_DEBUG_BOUNDS") != nullptr);
     bool Changed = false;
-    SmallVector<Loop*, 8> Worklist;
-    for (Loop *L : LI) {
-      for (Loop *SubL : L->getLoopsInPreorder())
-        Worklist.push_back(SubL);
+    // Intra-Block Redundant Check Elimination
+    // Only eliminate bounds checks if the exact same condition is already verified 
+    // earlier in the EXACT SAME BasicBlock, ensuring no concurrency violations.
+    for (BasicBlock &BB : F) {
+      SmallVector<Value*> VerifiedConditions;
+      for (auto It = BB.begin(); It != BB.end(); ) {
+        Instruction &I = *It++;
+        if (BranchInst *BI = dyn_cast<BranchInst>(&I)) {
+          if (BI->isConditional()) {
+            Value *Cond = BI->getCondition();
+            BasicBlock *TrueSucc = BI->getSuccessor(0);
+            BasicBlock *FalseSucc = BI->getSuccessor(1);
+            
+            bool TrueIsFail = isFailBlock(TrueSucc);
+            bool FalseIsFail = isFailBlock(FalseSucc);
+            
+            if (TrueIsFail || FalseIsFail) {
+              // This is a bounds check branch.
+              // Check if we have already verified this exact condition in this block.
+              bool AlreadyVerified = false;
+              for (Value *V : VerifiedConditions) {
+                if (V == Cond) {
+                  AlreadyVerified = true;
+                  break;
+                }
+              }
+              
+              if (AlreadyVerified) {
+                // Eliminate the redundant check by forcing the branch to the safe path.
+                if (TrueIsFail) {
+                  BI->setCondition(ConstantInt::getFalse(Type::getInt1Ty(F.getContext())));
+                } else {
+                  BI->setCondition(ConstantInt::getTrue(Type::getInt1Ty(F.getContext())));
+                }
+                Changed = true;
+              } else {
+                VerifiedConditions.push_back(Cond);
+              }
+            }
+          }
+        }
+      }
     }
-    std::reverse(Worklist.begin(), Worklist.end());
-
-    if (Debug && !Worklist.empty())
-      errs() << "[FilC LoopBoundsElim] Function " << F.getName() << " has " << Worklist.size() << " loops.\n";
-
-    for (Loop *L : Worklist)
-      Changed |= eliminateBoundsChecksInLoop(L);
-
-    if (Changed)
-      DT.recalculate(F);
-
     return Changed;
   }
 };
