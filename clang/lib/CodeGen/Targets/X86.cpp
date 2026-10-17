@@ -2445,7 +2445,6 @@ GetSSETypeAtOffset(llvm::Type *IRType, unsigned IROffset,
   return llvm::Type::getDoubleTy(getVMContext());
 }
 
-
 /// GetINTEGERTypeAtOffset - The ABI specifies that a value should be passed in
 /// an 8-byte GPR.  This means that we either have a scalar or we are talking
 /// about the high or low part of an up-to-16-byte struct.  This routine picks
@@ -2460,9 +2459,10 @@ GetSSETypeAtOffset(llvm::Type *IRType, unsigned IROffset,
 /// SourceTy is the source-level type for the entire argument.  SourceOffset is
 /// an offset into this that we're processing (which is always either 0 or 8).
 ///
-llvm::Type *X86_64ABIInfo::
-GetINTEGERTypeAtOffset(llvm::Type *IRType, unsigned IROffset,
-                       QualType SourceTy, unsigned SourceOffset) const {
+llvm::Type *X86_64ABIInfo::GetINTEGERTypeAtOffset(llvm::Type *IRType,
+                                                  unsigned IROffset,
+                                                  QualType SourceTy,
+                                                  unsigned SourceOffset) const {
   // If we're dealing with an un-offset LLVM IR type, then it means that we're
   // returning an 8-byte unit starting with it.  See if we can safely use it.
   if (IROffset == 0) {
@@ -2522,7 +2522,6 @@ GetINTEGERTypeAtOffset(llvm::Type *IRType, unsigned IROffset,
                                 std::min(TySizeInBytes-SourceOffset, 8U)*8);
 }
 
-
 /// GetX86_64ByValArgumentPair - Given a high and low type that can ideally
 /// be used as elements of a two register pair to pass or return, return a
 /// first class aggregate to represent them.  For example, if the low part of
@@ -2567,8 +2566,7 @@ GetX86_64ByValArgumentPair(llvm::Type *Lo, llvm::Type *Hi,
   return Result;
 }
 
-ABIArgInfo X86_64ABIInfo::
-classifyReturnType(QualType RetTy) const {
+ABIArgInfo X86_64ABIInfo::classifyReturnType(QualType RetTy) const {
   // AMD64-ABI 3.2.3p4: Rule 1. Classify the return type with the
   // classification algorithm.
   X86_64ABIInfo::Class Lo, Hi;
@@ -2699,6 +2697,20 @@ ABIArgInfo
 X86_64ABIInfo::classifyArgumentType(QualType Ty, unsigned freeIntRegs,
                                     unsigned &neededInt, unsigned &neededSSE,
                                     bool isNamedArg, bool IsRegCall) const {
+  // Fil-C snapshots unnamed aggregates as complete objects. Register coercions
+  // can omit tail padding or flatten fields with a different packet layout.
+  // Keep nontrivial C++ invisible-reference arguments on their existing path.
+  if (!isNamedArg && isAggregateTypeForABI(Ty) &&
+      !getRecordArgABI(Ty, getCXXABI())) {
+    neededInt = neededSSE = 0;
+    // The packet demoter requires a word-aligned source even for an odd-sized
+    // object. This also makes CGCall stage packed subobjects when necessary.
+    ABIArgInfo AI = getNaturalAlignIndirect(Ty, /*ByVal=*/true);
+    AI.setIndirectAlign(
+        std::max(AI.getIndirectAlign(), CharUnits::fromQuantity(8)));
+    return AI;
+  }
+
   Ty = useFirstFieldIfTransparentUnion(Ty);
 
   X86_64ABIInfo::Class Lo, Hi;
@@ -3014,6 +3026,24 @@ static Address EmitX86_64VAArgFromMemory(CodeGenFunction &CGF,
 
 RValue X86_64ABIInfo::EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
                                 QualType Ty, AggValueSlot Slot) const {
+  if (isAggregateTypeForABI(Ty) && !getRecordArgABI(Ty, getCXXABI())) {
+    llvm::Type *Storage = CGF.ConvertTypeForMem(Ty);
+    const llvm::DataLayout &DL = CGT.getDataLayout();
+    uint64_t Size = DL.getTypeAllocSize(Storage);
+    uint64_t PacketAlignment =
+        std::max<uint64_t>(8, DL.getABITypeAlign(Storage).value());
+    llvm::Value *Ptr = CGF.Builder.CreateCall(
+        CGF.CGM.getIntrinsic(llvm::Intrinsic::filc_va_arg_address),
+        {VAListAddr.emitRawPointer(CGF),
+         llvm::ConstantInt::get(CGF.Int64Ty, Size),
+         llvm::ConstantInt::get(CGF.Int64Ty, PacketAlignment)}, "vaarg.addr");
+    // Snapshots are heap allocations with at least 16-byte base alignment.
+    // Entry offsets may be more aligned than their absolute packet addresses.
+    Address Source(
+        Ptr, Storage,
+        CharUnits::fromQuantity(std::min<uint64_t>(16, PacketAlignment)));
+    return CGF.EmitLoadOfAnyValue(CGF.MakeAddrLValue(Source, Ty), Slot);
+  }
   return CGF.EmitLoadOfAnyValue(
     CGF.MakeAddrLValue(
       EmitVAArgInstr(CGF, VAListAddr, Ty, ABIArgInfo::getDirect()), Ty),

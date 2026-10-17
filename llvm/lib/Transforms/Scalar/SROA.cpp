@@ -5691,11 +5691,94 @@ bool SROA::propagateStoredValuesToLoads(AllocaInst &AI, AllocaSlices &AS) {
   return true;
 }
 
-/// Analyze an alloca for SROA.
-///
-/// This analyzes the alloca to ensure we can reason about it, builds
-/// the slices of the alloca, and then hands it off to be split and
-/// rewritten as needed.
+// Fil-C copies transport shadow capabilities as well as bytes. A scalar
+// integer/FP access does not establish that memcpy can become an integer/FP
+// load/store: that would discard shadow state. Likewise, splitting a copy at
+// a partial-word boundary changes which destination capabilities it clears.
+// Permit the simple, dense pointer-word case; leave other copied storage in
+// memory. This rule does not depend on whether Clang called the object a union.
+static bool isDenseFilCPointerStorage(Type *Ty, const DataLayout &DL) {
+  if (Ty->isPointerTy())
+    return Ty->getPointerAddressSpace() == 0 && DL.getPointerSize() == 8;
+  if (auto *AT = dyn_cast<ArrayType>(Ty))
+    return isDenseFilCPointerStorage(AT->getElementType(), DL);
+  if (auto *ST = dyn_cast<StructType>(Ty)) {
+    const StructLayout *Layout = DL.getStructLayout(ST);
+    uint64_t End = 0;
+    for (unsigned I = 0; I < ST->getNumElements(); ++I) {
+      Type *Element = ST->getElementType(I);
+      if (Layout->getElementOffset(I) != End ||
+          !isDenseFilCPointerStorage(Element, DL))
+        return false;
+      End += DL.getTypeAllocSize(Element);
+    }
+    return End == DL.getTypeAllocSize(ST);
+  }
+  return false;
+}
+
+static bool canRewriteFilCMemory(AllocaInst &AI, const DataLayout &DL) {
+  bool HasMemoryIntrinsic = false;
+  bool PointerWordsOnly = AI.getAlign() >= Align(8) &&
+                          isDenseFilCPointerStorage(AI.getAllocatedType(), DL);
+  SmallVector<Value *, 16> Worklist{&AI};
+  SmallPtrSet<Value *, 16> Visited;
+  while (!Worklist.empty()) {
+    Value *Address = Worklist.pop_back_val();
+    if (!Visited.insert(Address).second)
+      continue;
+    int64_t Offset = 0;
+    bool IsWord =
+        GetPointerBaseWithConstantOffset(Address, Offset, DL) == &AI &&
+        Offset >= 0 && Offset % 8 == 0 &&
+        uint64_t(Offset) + 8 <= DL.getTypeAllocSize(AI.getAllocatedType());
+    for (User *U : Address->users()) {
+      if (auto *GEP = dyn_cast<GetElementPtrInst>(U)) {
+        Worklist.push_back(GEP);
+      } else if (auto *Cast = dyn_cast<BitCastInst>(U)) {
+        Worklist.push_back(Cast);
+      } else if (auto *LI = dyn_cast<LoadInst>(U)) {
+        PointerWordsOnly &= IsWord && LI->isSimple() &&
+                            LI->getType()->isPointerTy() &&
+                            LI->getType()->getPointerAddressSpace() == 0 &&
+                            LI->getAlign() >= Align(8);
+      } else if (auto *SI = dyn_cast<StoreInst>(U)) {
+        Type *Ty = SI->getValueOperand()->getType();
+        PointerWordsOnly &= SI->getPointerOperand() == Address && IsWord &&
+                            SI->isSimple() && Ty->isPointerTy() &&
+                            Ty->getPointerAddressSpace() == 0 &&
+                            SI->getAlign() >= Align(8);
+      } else if (auto *MI = dyn_cast<MemIntrinsic>(U)) {
+        HasMemoryIntrinsic = true;
+        auto *MT = dyn_cast<MemTransferInst>(MI);
+        auto *Length = dyn_cast<ConstantInt>(MI->getLength());
+        PointerWordsOnly &=
+            IsWord && MT && Length &&
+            Length->getValue().getActiveBits() <= 64 &&
+            Length->getZExtValue() % 8 == 0 &&
+            Length->getZExtValue() <=
+                DL.getTypeAllocSize(AI.getAllocatedType()) - uint64_t(Offset) &&
+            !MI->isVolatile();
+        if (MT)
+          PointerWordsOnly &= MT->getSourceAlign().valueOrOne() >= Align(8) &&
+                              MT->getDestAlign().valueOrOne() >= Align(8);
+      } else if (auto *II = dyn_cast<IntrinsicInst>(U);
+                 II && (II->isLifetimeStartOrEnd() || II->isDroppable())) {
+        continue;
+      } else {
+        PointerWordsOnly = false;
+        // Discover intrinsics behind pointer merges too, but never admit them
+        // to the pointer-only exception. Ordinary escaping uses already make
+        // the existing SROA analysis decline the allocation.
+        if (U->getType()->isPointerTy())
+          Worklist.push_back(U);
+      }
+    }
+  }
+  return !HasMemoryIntrinsic || PointerWordsOnly;
+}
+
+/// Analyze an alloca for SROA before splitting and rewriting its slices.
 std::pair<bool /*Changed*/, bool /*CFGChanged*/>
 SROA::runOnAlloca(AllocaInst &AI) {
   bool Changed = false;
@@ -5717,6 +5800,10 @@ SROA::runOnAlloca(AllocaInst &AI) {
   TypeSize Size = DL.getTypeAllocSize(AT);
   if (AI.isArrayAllocation() || !AT->isSized() || Size.isScalable() ||
       Size.getFixedValue() == 0)
+    return {Changed, CFGChanged};
+
+  // Check before aggregate scalarization, value propagation or partitioning.
+  if (DL.isFilC() && !canRewriteFilCMemory(AI, DL))
     return {Changed, CFGChanged};
 
   // First, split any FCA loads and stores touching this alloca to promote

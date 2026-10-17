@@ -87,9 +87,8 @@ enum VariableTypeDescriptorKind : uint16_t {
 RawAddress
 CodeGenFunction::CreateTempAllocaWithoutCast(llvm::Type *Ty, CharUnits Align,
                                              const Twine &Name,
-                                             llvm::Value *ArraySize,
-                                             bool HasUnion) {
-  auto Alloca = CreateTempAlloca(Ty, Name, ArraySize, HasUnion);
+                                             llvm::Value *ArraySize) {
+  auto Alloca = CreateTempAlloca(Ty, Name, ArraySize);
   Alloca->setAlignment(Align.getAsAlign());
   return RawAddress(Alloca, Ty, Align, KnownNonNull);
 }
@@ -99,9 +98,8 @@ CodeGenFunction::CreateTempAllocaWithoutCast(llvm::Type *Ty, CharUnits Align,
 RawAddress CodeGenFunction::CreateTempAlloca(llvm::Type *Ty, CharUnits Align,
                                              const Twine &Name,
                                              llvm::Value *ArraySize,
-                                             RawAddress *AllocaAddr,
-                                             bool HasUnion) {
-  auto Alloca = CreateTempAllocaWithoutCast(Ty, Align, Name, ArraySize, HasUnion);
+                                             RawAddress *AllocaAddr) {
+  auto Alloca = CreateTempAllocaWithoutCast(Ty, Align, Name, ArraySize);
   if (AllocaAddr)
     *AllocaAddr = Alloca;
   llvm::Value *V = Alloca.getPointer();
@@ -130,8 +128,7 @@ RawAddress CodeGenFunction::CreateTempAlloca(llvm::Type *Ty, CharUnits Align,
 /// insertion point of the builder.
 llvm::AllocaInst *CodeGenFunction::CreateTempAlloca(llvm::Type *Ty,
                                                     const Twine &Name,
-                                                    llvm::Value *ArraySize,
-                                                    bool HasUnion) {
+                                                    llvm::Value *ArraySize) {
   llvm::AllocaInst *Alloca;
   if (ArraySize)
     Alloca = Builder.CreateAlloca(Ty, ArraySize, Name);
@@ -139,12 +136,6 @@ llvm::AllocaInst *CodeGenFunction::CreateTempAlloca(llvm::Type *Ty,
     Alloca =
         new llvm::AllocaInst(Ty, CGM.getDataLayout().getAllocaAddrSpace(),
                              ArraySize, Name, AllocaInsertPt->getIterator());
-  if (HasUnion && (ArraySize || CGM.getDataLayout().getTypeAllocSize(Ty) >= 8)) {
-    Builder.CreateCall(
-      CGM.CreateRuntimeFunction(
-        llvm::FunctionType::get(VoidTy, { Int8PtrTy }, false), "zhas_union"),
-      { Alloca });
-  }
   if (Allocas) {
     Allocas->Add(Alloca);
   }
@@ -164,7 +155,7 @@ RawAddress CodeGenFunction::CreateDefaultAlignTempAlloca(llvm::Type *Ty,
 
 RawAddress CodeGenFunction::CreateIRTemp(QualType Ty, const Twine &Name) {
   CharUnits Align = getContext().getTypeAlignInChars(Ty);
-  return CreateTempAlloca(ConvertType(Ty), Align, Name, nullptr, nullptr, Ty.hasUnion());
+  return CreateTempAlloca(ConvertType(Ty), Align, Name);
 }
 
 RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, const Twine &Name,
@@ -177,7 +168,7 @@ RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, CharUnits Align,
                                           const Twine &Name,
                                           RawAddress *Alloca) {
   RawAddress Result = CreateTempAlloca(ConvertTypeForMem(Ty), Align, Name,
-                                       /*ArraySize=*/nullptr, Alloca, Ty.hasUnion());
+                                       /*ArraySize=*/nullptr, Alloca);
 
   if (Ty->isConstantMatrixType()) {
     auto *ArrayTy = cast<llvm::ArrayType>(Result.getElementType());
@@ -193,7 +184,7 @@ RawAddress CodeGenFunction::CreateMemTemp(QualType Ty, CharUnits Align,
 RawAddress CodeGenFunction::CreateMemTempWithoutCast(QualType Ty,
                                                      CharUnits Align,
                                                      const Twine &Name) {
-  return CreateTempAllocaWithoutCast(ConvertTypeForMem(Ty), Align, Name, nullptr, Ty.hasUnion());
+  return CreateTempAllocaWithoutCast(ConvertTypeForMem(Ty), Align, Name);
 }
 
 RawAddress CodeGenFunction::CreateMemTempWithoutCast(QualType Ty,
@@ -523,7 +514,7 @@ EmitMaterializeTemporaryExpr(const MaterializeTemporaryExpr *M) {
       if (Var->hasInitializer())
         return MakeAddrLValue(Object, M->getType(), AlignmentSource::Decl);
 
-      Var->setInitializer(CGM.EmitNullConstant(E->getType()));
+      Var->replaceInitializer(CGM.EmitNullConstant(E->getType()));
     }
     LValue RefTempDst = MakeAddrLValue(Object, M->getType(),
                                        AlignmentSource::Decl);
@@ -573,7 +564,9 @@ EmitMaterializeTemporaryExpr(const MaterializeTemporaryExpr *M) {
     // constant temporary that we promoted to a global, we may have already
     // initialized it.
     if (!Var->hasInitializer()) {
-      Var->setInitializer(CGM.EmitNullConstant(E->getType()));
+      // A union's initializer may have different LLVM storage with the same
+      // byte layout. Object keeps the declared access type independently.
+      Var->replaceInitializer(CGM.EmitNullConstant(E->getType()));
       EmitAnyExprToMem(E, Object, Qualifiers(), /*IsInit*/true);
     }
   } else {

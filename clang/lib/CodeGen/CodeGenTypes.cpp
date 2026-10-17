@@ -844,6 +844,41 @@ bool CodeGenTypes::isPointerZeroInitializable(QualType T) {
   return isZeroInitializable(T);
 }
 
+bool CodeGenTypes::hasPointerRepresentation(llvm::Type *T) {
+  if (T->isPointerTy())
+    return true;
+  for (llvm::Type *Element : T->subtypes())
+    if (hasPointerRepresentation(Element))
+      return true;
+  return false;
+}
+
+bool CodeGenTypes::hasUnalignedPointers(llvm::Type *T, CharUnits Alignment,
+                                        const llvm::DataLayout &DL) {
+  if (auto *PT = dyn_cast<llvm::PointerType>(T))
+    return Alignment <
+           CharUnits::fromQuantity(DL.getPointerSize(PT->getAddressSpace()));
+  if (auto *ST = dyn_cast<llvm::StructType>(T)) {
+    const llvm::StructLayout *Layout = DL.getStructLayout(ST);
+    for (unsigned I = 0; I < ST->getNumElements(); ++I)
+      if (hasUnalignedPointers(
+              ST->getElementType(I),
+              Alignment.alignmentAtOffset(
+                  CharUnits::fromQuantity(Layout->getElementOffset(I))),
+              DL))
+        return true;
+  } else if (auto *AT = dyn_cast<llvm::ArrayType>(T)) {
+    if (AT->getNumElements() == 0)
+      return false;
+    CharUnits Stride =
+        CharUnits::fromQuantity(DL.getTypeAllocSize(AT->getElementType()));
+    if (AT->getNumElements() > 1)
+      Alignment = Alignment.alignmentOfArrayElement(Stride);
+    return hasUnalignedPointers(AT->getElementType(), Alignment, DL);
+  }
+  return false;
+}
+
 bool CodeGenTypes::isZeroInitializable(QualType T) {
   if (T->getAs<PointerType>())
     return Context.getTargetNullPointerValue(T) == 0;

@@ -8,12 +8,11 @@ static int add(int value) { return value + 13; }
 
 static void aligned_volatile_values(int* first, int* second)
 {
-    struct __attribute__((packed)) Packed {
+    struct __attribute__((packed, aligned(8))) Packed {
         union Scalar value;
         unsigned char suffix;
     };
-    // The declared alignment is weak, but malloc's actual base is aligned.
-    // Volatile staging must copy capabilities, not just the payload bytes.
+    // Packing is allowed when all pointer offsets and array strides are aligned.
     volatile struct Packed* p = malloc(sizeof(struct Packed));
     p->value.pointer = first;
     p->suffix = 97;
@@ -25,9 +24,9 @@ static void aligned_volatile_values(int* first, int* second)
     free((void*)p);
 }
 
-static void packed_values(void)
+static void nested_values(void)
 {
-    struct __attribute__((packed)) {
+    struct {
         unsigned char prefix[7];
         union Scalar one;
         unsigned short gap;
@@ -36,8 +35,7 @@ static void packed_values(void)
     } p = { .prefix = { 0, 0, 0, 19 }, .one.integer = -123456789,
             .gap = 73, .two.bits = { 0x0123456789abcdefUL, 0xfedcba9876543210UL },
             .suffix = 97 };
-    // Named calls from packed subobjects must stage pointer-shaped carriers
-    // through aligned temporaries, even though the union type is aligned.
+    // Nested scalar alternatives keep all bits through pointer-shaped carriers.
     union Scalar one = scalar(p.one);
     assert(one.integer == -123456789);
     union WideValue two = wide_value(p.two);
@@ -48,7 +46,7 @@ static void packed_values(void)
     assert(p.two.bits[0] == 0x0123456789abcdefUL && p.two.bits[1] == 0xfedcba9876543210UL);
     assert(p.prefix[3] == 19 && p.gap == 73 && p.suffix == 97);
 
-    volatile struct __attribute__((packed)) {
+    volatile struct {
         unsigned char prefix[7];
         union Scalar value;
         unsigned char suffix;
@@ -64,7 +62,7 @@ static void packed_values(void)
 int main(void)
 {
     int x = 42, y = 7;
-    packed_values();
+    nested_values();
     union Numeric n = { .bits = 0xfedcba9876543210UL };
     n = numeric(n);
     assert(n.bits == 0xfedcba9876543210UL);
@@ -74,9 +72,6 @@ int main(void)
     union Aligned over = { .pointer = &x };
     over = aligned(over);
     assert(*over.pointer == 42);
-    union UnderAligned under = { .integer = -987654321 };
-    under = under_aligned(under);
-    assert(under.integer == -987654321);
     union Scalar bare = { .pointer = &x };
     union Scalar (*volatile indirect_bare)(union Scalar) = scalar;
     bare = indirect_bare(bare);

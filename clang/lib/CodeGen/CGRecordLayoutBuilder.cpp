@@ -24,7 +24,6 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Type.h"
-#include "llvm/IR/TypedPointerType.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
@@ -223,7 +222,7 @@ struct CGRecordLowering {
   llvm::DenseMap<const CXXRecordDecl *, unsigned> VirtualBases;
   bool IsZeroInitializable : 1;
   bool IsZeroInitializableAsBase : 1;
-  bool IsFilPtrUnion : 1;
+  bool HasPointerWordStorage : 1;
   bool Packed : 1;
 private:
   CGRecordLowering(const CGRecordLowering &) = delete;
@@ -237,7 +236,8 @@ CGRecordLowering::CGRecordLowering(CodeGenTypes &Types, const RecordDecl *D,
       RD(dyn_cast<CXXRecordDecl>(D)),
       Layout(Types.getContext().getASTRecordLayout(D)),
       DataLayout(Types.getDataLayout()), IsZeroInitializable(true),
-      IsZeroInitializableAsBase(true), IsFilPtrUnion(false), Packed(Packed) {}
+      IsZeroInitializableAsBase(true), HasPointerWordStorage(false),
+      Packed(Packed) {}
 
 void CGRecordLowering::setBitFieldInfo(
     const FieldDecl *FD, CharUnits StartOffset, llvm::Type *StorageType) {
@@ -312,45 +312,6 @@ void CGRecordLowering::lower(bool NVBaseType) {
   computeVolatileBitfields();
 }
 
-static bool hasPointers(llvm::Type* T) {
-  if (isa<llvm::FunctionType>(T)) {
-    llvm_unreachable("shouldn't see function types in hasPointers");
-    return false;
-  }
-
-  if (isa<llvm::TypedPointerType>(T)) {
-    llvm_unreachable("Shouldn't ever see typed pointers");
-    return false;
-  }
-
-  if (isa<llvm::PointerType>(T)) {
-    assert (!T->getPointerAddressSpace());
-    return true;
-  }
-
-  if (llvm::StructType* ST = dyn_cast<llvm::StructType>(T)) {
-    for (unsigned Index = ST->getNumElements(); Index--;) {
-      llvm::Type* InnerT = ST->getElementType(Index);
-      if (hasPointers(InnerT))
-        return true;
-    }
-    return false;
-  }
-      
-  if (llvm::ArrayType* AT = dyn_cast<llvm::ArrayType>(T))
-    return hasPointers(AT->getElementType());
-
-  if (llvm::FixedVectorType* VT = dyn_cast<llvm::FixedVectorType>(T))
-    return hasPointers(VT->getElementType());
-
-  if (isa<llvm::ScalableVectorType>(T)) {
-    llvm_unreachable("Shouldn't ever see scalable vectors in hasPtrs");
-    return false;
-  }
-    
-  return false;
-}
-
 void CGRecordLowering::lowerUnion(bool isNonVirtualBaseType) {
   CharUnits LayoutSize =
       isNonVirtualBaseType ? Layout.getDataSize() : Layout.getSize();
@@ -373,7 +334,9 @@ void CGRecordLowering::lowerUnion(bool isNonVirtualBaseType) {
     }
     Fields[Field->getCanonicalDecl()] = 0;
     llvm::Type *FieldType = getStorageType(Field);
-    HasPointers |= hasPointers(FieldType);
+    // Scan every alternative before the nonzero-null case skips the storage
+    // heuristic. Nested unions already expose their pointer words here.
+    HasPointers |= CodeGenTypes::hasPointerRepresentation(FieldType);
     // Compute zero-initializable status.
     // This union might not be zero initialized: it may contain a pointer to
     // data member which might have some exotic initialization sequence.
@@ -402,28 +365,33 @@ void CGRecordLowering::lowerUnion(bool isNonVirtualBaseType) {
         (!StorageType->isPointerTy() && FieldType->isPointerTy()))
       StorageType = FieldType;
   }
-  // If we are zero-initializable and have pointers, create a type consisting of pointers.
+  // Make all pointer alternatives visible to aggregate copies and the ABI,
+  // including pointers hidden by the ordinary storage-field heuristic. Keep
+  // the AST byte layout exact: packed unions may have a partial final word.
   if (HasPointers) {
-    std::vector<llvm::Type*> Ts;
-    CharUnits RemainingSize = LayoutSize;
-    while (RemainingSize >= CharUnits::fromQuantity(8)) {
-      Ts.push_back(llvm::PointerType::get(Types.getLLVMContext(), 0));
-      RemainingSize -= CharUnits::fromQuantity(8);
-    }
-    if (!RemainingSize.isZero())
-      Ts.push_back(getByteArrayType(RemainingSize));
-    llvm::Type* NewStorageType = llvm::StructType::get(Types.getLLVMContext(), Ts, /*Packed=*/true);
-    if (LayoutSize != getSize(NewStorageType)) {
-      llvm::errs() << "Lowering union " << *D << "\n";
-      llvm::errs() << "LayoutSize = " << LayoutSize.getQuantity() << "\n";
-      llvm::errs() << "StorageType size = " << getSize(StorageType).getQuantity() << "\n";
-      llvm::errs() << "StorageType = " << *StorageType << "\n";
-      llvm::errs() << "NewStorageType size = " << getSize(NewStorageType).getQuantity() << "\n";
-      llvm::errs() << "NewStorageType = " << *NewStorageType << "\n";
-    }
-    assert(LayoutSize == getSize(NewStorageType));
-    StorageType = NewStorageType;
-    IsFilPtrUnion = true;
+    // Synthetic pointer words must agree with every alternative's pointer
+    // alignment. In particular, an aligned outer union does not repair a
+    // packed member with a pointer at byte 1. Reject rather than introducing
+    // a second, pointer-free transport representation for such layouts.
+    for (const FieldDecl *Field : D->fields())
+      if (!Field->isBitField() &&
+          CodeGenTypes::hasUnalignedPointers(getStorageType(Field),
+                                             Layout.getAlignment(), DataLayout))
+        Types.getCGM().ErrorUnsupported(Field,
+                                        "unaligned pointer-bearing union");
+    llvm::Type *Pointer = llvm::PointerType::get(Types.getLLVMContext(), 0);
+    CharUnits WordSize =
+        CharUnits::fromQuantity(DataLayout.getTypeAllocSize(Pointer));
+    SmallVector<llvm::Type *, 2> Words;
+    if (uint64_t Count = LayoutSize / WordSize)
+      Words.push_back(llvm::ArrayType::get(Pointer, Count));
+    CharUnits Remaining = CharUnits::fromQuantity(LayoutSize % WordSize);
+    if (!Remaining.isZero())
+      Words.push_back(getByteArrayType(Remaining));
+    StorageType = llvm::StructType::get(Types.getLLVMContext(), Words,
+                                        /*isPacked=*/true);
+    HasPointerWordStorage = true;
+    assert(getSize(StorageType) == LayoutSize && "Union storage changed size");
   }
   // If we have no storage type just pad to the appropriate size and return.
   if (!StorageType)
@@ -1170,8 +1138,9 @@ CodeGenTypes::ComputeRecordLayout(const RecordDecl *D, llvm::StructType *Ty) {
       // on both of them with the same index.
       assert(Builder.Packed == BaseBuilder.Packed &&
              "Non-virtual and complete types must agree on packedness");
-      assert(Builder.IsFilPtrUnion == BaseBuilder.IsFilPtrUnion &&
-             "Non-virtual and complete types must agree on pizlness");
+      assert(
+          Builder.HasPointerWordStorage == BaseBuilder.HasPointerWordStorage &&
+          "Non-virtual and complete types must agree on pointer-word storage");
     }
   }
 
@@ -1180,10 +1149,21 @@ CodeGenTypes::ComputeRecordLayout(const RecordDecl *D, llvm::StructType *Ty) {
   // but we may need to recursively layout D while laying D out as a base type.
   Ty->setBody(Builder.FieldTypes, Builder.Packed);
 
+  // Check effective offsets and array strides, not just the packed attribute.
+  // This deliberately restricts union-containing records; ordinary packed
+  // records keep their existing checked pointer-access behavior.
+  QualType RecordTy = getContext().getRecordType(D);
+  if (RecordTy.hasUnion()) {
+    CharUnits Alignment = getContext().getASTRecordLayout(D).getAlignment();
+    if (hasUnalignedPointers(Ty, Alignment, getDataLayout()) ||
+        (BaseTy && hasUnalignedPointers(BaseTy, Alignment, getDataLayout())))
+      CGM.ErrorUnsupported(D, "unaligned pointer-bearing union storage");
+  }
+
   auto RL = std::make_unique<CGRecordLayout>(
       Ty, BaseTy, (bool)Builder.IsZeroInitializable,
       (bool)Builder.IsZeroInitializableAsBase,
-      (bool)Builder.IsFilPtrUnion);
+      (bool)Builder.HasPointerWordStorage);
 
   RL->NonVirtualBases.swap(Builder.NonVirtualBases);
   RL->CompleteObjectVirtualBases.swap(Builder.VirtualBases);
@@ -1290,7 +1270,7 @@ void CGRecordLayout::print(raw_ostream &OS) const {
   if (BaseSubobjectType)
     OS << "  NonVirtualBaseLLVMType:" << *BaseSubobjectType << "\n";
   OS << "  IsZeroInitializable:" << IsZeroInitializable << "\n";
-  OS << "  IsFilPtrUnion:" << IsFilPtrUnion << "\n";
+  OS << "  HasPointerWordStorage:" << HasPointerWordStorage << "\n";
   OS << "  BitFields:[\n";
 
   // Print bit-field infos in declaration order.

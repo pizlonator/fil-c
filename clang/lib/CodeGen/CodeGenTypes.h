@@ -301,6 +301,14 @@ public:  // These are internal details of CGT that shouldn't be used externally.
   /// zero-initialized (in the C++ sense) with an LLVM zeroinitializer.
   bool isZeroInitializable(QualType T);
 
+  /// Whether the recursively lowered storage type contains a pointer leaf.
+  static bool hasPointerRepresentation(llvm::Type *T);
+
+  /// Whether any pointer leaf may be unaligned, including nested offsets and
+  /// array strides. An aligned aggregate base alone is not sufficient.
+  static bool hasUnalignedPointers(llvm::Type *T, CharUnits Alignment,
+                                   const llvm::DataLayout &DL);
+
   /// Check if the pointer type can be zero-initialized (in the C++ sense)
   /// with an LLVM zeroinitializer.
   bool isPointerZeroInitializable(QualType T);
