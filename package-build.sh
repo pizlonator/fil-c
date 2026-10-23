@@ -209,7 +209,16 @@ fi
 
 echo 'set +x' >> setup.sh
 echo 'echo' >> setup.sh
-echo 'echo "You are all set. Try compiling something with:"' >> setup.sh
+
+if test "x$flavor" = "xcosmo"
+then
+    echo 'echo "Welcome to an experimental release of Peregrine Fil-C!"' >> setup.sh
+    echo 'echo' >> setup.sh
+    echo 'echo "Try compiling something with:"' >> setup.sh
+else
+    echo 'echo "You are all set. Try compiling something with:"' >> setup.sh
+fi
+
 echo 'echo' >> setup.sh
 echo "echo \"    build/bin/clang -o whatever whatever.c -O2 -g\"" >> setup.sh
 echo 'echo' >> setup.sh
@@ -237,6 +246,11 @@ then
     echo 'echo "whatever.dbg), use --filc-ape:"' >> setup.sh
     echo 'echo' >> setup.sh
     echo 'echo "    build/bin/clang --filc-ape -o whatever whatever.c"' >> setup.sh
+    echo 'echo' >> setup.sh
+    echo 'echo "NOTE: Peregrine Fil-C requires aarch64 binutils. You may need to run"' >> setup.sh
+    echo 'echo "something like the following to avoid link errors:"' >> setup.sh
+    echo 'echo' >> setup.sh
+    echo 'echo "    sudo apt install binutils-aarch64-linux-gnu"' >> setup.sh
     echo 'echo' >> setup.sh
 fi
 

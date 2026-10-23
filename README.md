@@ -67,7 +67,8 @@ Linux/x86_64 host to build.
 Previous versions natively worked on Darwin/ARM64 and FreeBSD. At some point
 I switched to focusing on Linux because it allowed me to do a faithful job of
 implementing *all* of libc. There's nothing fundamentally stopping Fil-C from
-working natively on other architectures or OSes other than Linux.
+working natively on other architectures or OSes other than Linux. Patches
+welcome.
 
 ## Getting Started
 
