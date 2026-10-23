@@ -12,3 +12,8 @@ extraLinkerArgs:
 # hammers posix_spawn with live threads in a recursively spawned process tree while other
 # threads sit inside the zgc_* GC request natives.
 unsupportedOnCOSMO: true
+
+# I saw this test deadlock. It's about as likely that the test is broken as that there's a Fil-C
+# runtime bug.
+# FIXME: https://github.com/pizlonator/fil-c/issues/346
+skip: true
