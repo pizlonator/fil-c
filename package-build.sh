@@ -74,7 +74,12 @@ mkdir $build_name
 cp README.md $build_name/
 cp LLVM-LICENSE.txt $build_name/
 cp libpas/LICENSE.txt $build_name/PAS-LICENSE.txt
-cp projects/usermusl/COPYRIGHT $build_name/MUSL-LICENSE.txt
+if test "x$flavor" = "xcosmo"
+then
+    cp projects/usercosmo/LICENSE $build_name/COSMO-LICENSE.txt
+else
+    cp projects/usermusl/COPYRIGHT $build_name/MUSL-LICENSE.txt
+fi
 
 mkdir -p $build_name/build/bin
 cp build/bin/clang-20 $build_name/build/bin/

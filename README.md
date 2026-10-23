@@ -39,10 +39,13 @@ The compiler (clang + LLVM) is covered by LLVM-LICENSE.txt. The runtime is
 covered by PAS-LICENSE.txt (see libpas/LICENSE.txt in the source distribution).
 In the case of the classic musl-based Fil-C distribution, the musl libc is
 covered by MUSL-LICENSE.txt (see projects/yolomusl/COPYRIGHT and
-projects/usermusl/COPYRIGHT in the source distribution). In the case of the
-/opt/fil distribution, glibc is covered by glibc-LICENSE.txt, and all other
-included programs are covered by the respective <program-name>-LICENSE.txt
-files. The C++ libraries (libc++/libc++abi) are covered by LLVM-LICENSE.txt.
+projects/usermusl/COPYRIGHT in the source distribution). For Peregrine Fil-C,
+the cosmo libc and APE machinery is covered by COSMO-LICENSE.txt (see
+projects/yolocosmo/LICENSE and projects/usercosmo/LICENSE in the source
+distribution). In the case of the /opt/fil distribution, glibc is covered by
+glibc-LICENSE.txt, and all other included programs are covered by the
+respective <program-name>-LICENSE.txt files. The C++ libraries
+(libc++/libc++abi) are covered by LLVM-LICENSE.txt.
 
 You can fetch the source for the compiler, runtime, libc++/libc++abi, libc
 (musl and glibc), and all included programs from
