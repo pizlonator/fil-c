@@ -108,6 +108,17 @@ struct Collected {
     bool is_exec = false; // regular files only
     bool is_binary = false; // regular files only: content holds NUL bytes.
     std::string content;  // regular: raw bytes; symlink: link target
+    // Symlinks only: the target does not stay inside the tree (absolute, or
+    // resolving above the root). Recorded instead of refused so trees that
+    // legitimately hold such links — upstream tarball fixtures like
+    // gnome-autoar's tests/files/.../reference/arextract -> /tmp, which the
+    // tar-unpack audit admits as leaf symlinks (tree.cc) — diff, status,
+    // and commit like any other content: an unchanged escape link produces
+    // no patch block. Blocks that would create or retarget an escape link
+    // are refused at emit time (emit_block), which keeps commit from
+    // storing a patch that setup would later have to refuse.
+    bool link_escapes = false;
+    std::string link_escape_resolved;
 };
 
 void collect_into(const std::string& root, const std::string& rel,
@@ -130,22 +141,22 @@ void collect_into(const std::string& root, const std::string& rel,
         c.content = read_link_target(full);
         if (c.content.find('\0') != std::string::npos)
             die(what + ": '" + rel + "' is a binary file; binary files are not supported");
-        // Fail fast on targets that do not stay inside the tree (absolute,
-        // or resolving above the root), exactly like tar unpack and patch
-        // application: refusing here keeps commit from storing a patch that
-        // setup would later have to refuse. In-tree ".." spellings (e.g.
-        // "sub/link -> ../file") resolve back inside and are fine.
+        // Targets that do not stay inside the tree (absolute, or resolving
+        // above the root) are recorded, not refused: the link may have come
+        // straight from the archive (see the Collected::link_escapes
+        // comment). Only when a patch block would create or retarget such
+        // a link is it a hard error, and that is enforced by emit_block.
         {
             std::string resolved;
             LinkResolve lr =
                 resolve_link_target(dirname_of(rel), c.content, &resolved);
-            if (lr == LinkResolve::Absolute)
-                die(what + ": '" + rel + "' links to absolute target '" +
-                    c.content + "'; refusing (symlink escape)");
-            if (lr == LinkResolve::Escapes)
-                die(what + ": '" + rel + "' links to '" + c.content +
-                    "' (resolves to '" + resolved +
-                    "'); refusing (link target escapes the tree)");
+            if (lr == LinkResolve::Absolute) {
+                c.link_escapes = true;
+                c.link_escape_resolved = c.content;
+            } else if (lr == LinkResolve::Escapes) {
+                c.link_escapes = true;
+                c.link_escape_resolved = resolved;
+            }
         }
         out[rel] = c;
         return;
@@ -459,6 +470,24 @@ std::string emit_block(const std::string& wid, const std::string& old_rel,
                        const Collected* new_c, bool rename, int similarity,
                        const std::map<std::string, uint64_t>* frozen)
 {
+    // A block whose new side is a symlink creates or retargets that link
+    // when the patch applies, so its target must stay inside the tree —
+    // the same rule patch application enforces (write_target/
+    // write_raw_target -> check_patch_link_target). Refusing here rather
+    // than at apply time keeps commit/diff/rebase from ever storing a
+    // patch that setup would have to refuse. Links that merely ride along
+    // from the archive never reach this: unchanged pairs produce no block,
+    // deletes carry no new side, and a rename of an escape link still
+    // re-creates it at the new path, so it refuses too.
+    if (new_c && new_c->is_symlink && new_c->link_escapes) {
+        std::string live = new_rel.empty() ? old_rel : new_rel;
+        if (new_c->content.empty() || new_c->content[0] == '/')
+            die("patch block sets symlink '" + live + "' to absolute target '" +
+                new_c->content + "'; refusing (symlink escape)");
+        die("patch block sets symlink '" + live + "' to '" + new_c->content +
+            "' (resolves to '" + new_c->link_escape_resolved +
+            "'); refusing (link target escapes the tree)");
+    }
     std::string out;
     // For adds and deletes the `diff --git` line repeats the live path on
     // both sides (like git); /dev/null appears only on the ---/+++ lines.

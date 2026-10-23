@@ -35,10 +35,15 @@ test -n "$name"
 cd $dir
 if git diff-index --quiet HEAD -- .
 then
-    git archive --format=tar.gz HEAD --prefix=$name/ -o $name.tar.gz
+    # The trailing "-- ." pathspec limits the archive to this directory's
+    # subtree.  The pathspec is CWD-relative, so this is identical when
+    # $dir is its own nested git repo; without it, a checked-in tree with
+    # no nested .git (a fresh clone) would make git resolve the main repo
+    # and archive the WHOLE monorepo.
+    git archive --format=tar.gz HEAD --prefix=$name/ -o $name.tar.gz -- .
 else
     rm -rf $name
-    git archive --format=tar HEAD --prefix=$name/ | tar -xf -
+    git archive --format=tar HEAD --prefix=$name/ -- . | tar -xf -
     git diff --relative HEAD . | (cd $name && patch -p1)
     tar -czf $name.tar.gz $name
     rm -rf $name

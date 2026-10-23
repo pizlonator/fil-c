@@ -17,6 +17,36 @@ set -x
 # where they aborted every fresh ./build.sh - the postlc7 smoke ran before
 # the shell existed, while the shell-port sprints only saw a chroot that
 # already had everything.  They were moved here.)
+#
+# Sprint 11: the private session bus below (dbus-run-session, plus the
+# gjs and dconf-service children it may spawn) is torn down by an EXIT
+# trap, registered before the session starts: however this script exits -
+# success, a failed check, a hung session - the whole process group goes,
+# leaving no session bus behind in the chroot.
+
+# PID of the dbus-run-session started below; empty until then.  The trap
+# tolerates that (it also fires on failures that precede the session).
+SESSION_PID=
+
+cleanup() {
+    if [ -n "$SESSION_PID" ]; then
+        # dbus-run-session runs under setsid, so it leads its own session
+        # and process group; the bus, gjs, and any dconf-service it
+        # spawned are all in that group.  Kill the group (TERM, then KILL
+        # after a grace sleep), then the pid itself for good measure.
+        # The pgid is looked up from our own pid, so it can only name our
+        # group - never a host process group.
+        local pgid=""
+        pgid=$(ps -o pgid= -p $SESSION_PID 2>/dev/null | tr -d ' ' || true)
+        if [ -n "$pgid" ]; then
+            kill -TERM -$pgid 2>/dev/null || true
+            sleep 1
+            kill -KILL -$pgid 2>/dev/null || true
+        fi
+        kill $SESSION_PID 2>/dev/null || true
+    fi
+}
+trap cleanup EXIT
 
 cd /sources
 
@@ -70,9 +100,15 @@ gjs -c 'print("gjs ok")'
 # environment /usr/bin/pizlix-shell exports and the postlc8 headless gate
 # verified: the shell/mutter typelibs live outside the default
 # girepository dir.  A private session bus, like the headless gate.
+# dbus-run-session runs in the background under setsid so the EXIT trap
+# can take down its whole process group if anything below fails while
+# the bus is still up; wait() propagates gjs's exit status.
 export GI_TYPELIB_PATH=/usr/lib/gnome-shell:/usr/lib/mutter-14
 export LD_LIBRARY_PATH=/usr/lib/gnome-shell:/usr/lib/mutter-14
-dbus-run-session -- gjs -c 'imports.gi.Meta; imports.gi.Clutter; imports.gi.St; imports.gi.Shell; print("gjs imports ok")'
+setsid dbus-run-session -- gjs -c 'imports.gi.Meta; imports.gi.Clutter; imports.gi.St; imports.gi.Shell; print("gjs imports ok")' &
+SESSION_PID=$!
+wait $SESSION_PID
+SESSION_PID=
 
 # The shell binary identifies itself.
 gnome-shell --version

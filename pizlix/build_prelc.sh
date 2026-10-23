@@ -20,6 +20,15 @@ test -d $FILCSRC/projects
 
 FILCOWNER=`stat -c %U $FILCSRC`
 id -u $FILCOWNER
+
+# Build the yolo projeny binary (filc/projeny) before anything needs it:
+# filc/projeny is an untracked build product, so on a fresh clone it does
+# not exist yet and the sub0 step below (which runs filc/projeny to
+# package projects) would die immediately.  The script is
+# incremental/validating; it must run as FILCOWNER, from the repo root
+# (it cd's into projects/projeny itself).
+(cd $FILCSRC && su $FILCOWNER ./build_projeny_yolo.sh)
+
 su $FILCOWNER ./build_prelc_sub0_filc.sh
 
 ./build_unmount.sh

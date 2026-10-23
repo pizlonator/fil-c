@@ -1,5 +1,5 @@
-Archive: gnome-autoar-0.4.4.tar.xz
+URL: https://download.gnome.org/sources/gnome-autoar/0.4/gnome-autoar-0.4.4.tar.xz 9df113bdcf4e073f122e2ac0d87e1b011c35593e0ec3b6fa26fd8f28675f7341
 Origname: gnome-autoar-0.4.4
 Name: gnome-autoar-0.4.4
 
-    gnome-autoar 0.4.4 (zip/bundle handling lib) — needed by gnome-shell's extensions-tool subproject (the gnome-extensions CLI); repacked tarball drops tests/files/extract/test-symlink-parent/reference/arextract, a test fixture symlink to /tmp that projeny refuses to extract
+    gnome-autoar 0.4.4 (zip/bundle handling lib) — needed by gnome-shell's extensions-tool subproject (the gnome-extensions CLI); the pristine upstream tarball (it ships a test fixture, tests/files/extract/test-symlink-parent/reference/arextract -> /tmp, which projeny admits as a leaf symlink: nothing extracts through it, and tests are not built)

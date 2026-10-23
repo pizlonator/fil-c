@@ -953,14 +953,27 @@ Exactly two external programs (no shell, no `system()`/`popen()` anywhere
   list archives (`-tf` for top-dir discovery, `-tvf` for the
   symlink/hardlink-escape audit). Before unpacking, projeny hard-errors on
   absolute member paths, `..` member components, and symlink/hardlink
-  members whose target does not stay inside the tree: absolute targets are
-  refused, and relative targets are resolved lexically against the member's
-  directory (a symlink's target is member-directory-relative; a hardlink's
-  target is archive-root-relative, matching how tar links) — a target like
+  members whose target does not stay inside the tree: relative targets are
+  resolved lexically against the member's directory (a symlink's target is
+  member-directory-relative; a hardlink's target is archive-root-relative,
+  matching how tar links) — a target like
   `b3sum/LICENSE_A2 -> ../LICENSE_A2` resolves back inside the tree and is
-  kept, while any target that climbs above the tree root is refused. The
-  same resolve-based check applies to the links `commit` collects from the
-  workdir and to the links a patch or merge creates.
+  kept, while any target that climbs above the tree root is refused (leaf
+  or not, keeping the `..` shape strict like git does). An absolute symlink
+  target is refused too, unless the symlink is a leaf of the archive — no
+  other member's path lives inside the symlink's path — in which case
+  nothing can be written through the link while tar unpacks and the inert
+  link is kept; upstream tarballs ship such fixtures (gnome-autoar's
+  `tests/files/extract/test-symlink-parent/reference/arextract -> /tmp`),
+  and refusing them would force repacking pristine tarballs. A non-leaf
+  absolute escape (some member would extract through the link) and every
+  hardlink escape (a hardlink binds tree content to outside content) are
+  still refused. The same resolve-based check applies to the links a patch
+  or merge creates, and to the links commit collects from the workdir —
+  where a link that merely rides along from the archive is recorded, not
+  refused, while any patch block that would create or retarget an escaping
+  link dies at emit time, so commit never stores a patch that setup would
+  later have to refuse.
 - `cp -a` for whole-tree copies (moving trees across filesystems when
   `rename(2)` returns `EXDEV` — scratch dirs live in the system temp dir,
   never inside the workdir — and snapshotting files for three-way merges).
@@ -1066,7 +1079,8 @@ executable-bit preservation (including content-only changes on `+x` files),
 new executable files, rename-with-modification, manual delete+add rename
 detection, plain `a/`/`b/` and hand-written `p0` patch forms, shifted hunk
 offsets (fuzz), symlinks (preserve/retarget/escape rejection, with in-tree
-`..` targets resolving inside the tree and kept),
+`..` targets resolving inside the tree and kept, leaf absolute targets
+allowed, and non-leaf/`..`/hardlink escapes refused),
 long single-line files, tabs, quote/tab filenames, extra-header
 preservation, no-change commits, and CLI error paths — plus optional
 `git apply --check` / `patch -p1 --dry-run` compatibility spot-checks that

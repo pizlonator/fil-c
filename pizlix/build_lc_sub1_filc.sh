@@ -32,8 +32,12 @@ test -d $LFS
 
 cd $FILCSRC
 
+# The trailing "-- ." pathspec limits each archive to the named project's
+# subtree (CWD-relative, so identical when the project has its own nested
+# .git; without it, a fresh clone would make git resolve the main repo and
+# archive the WHOLE monorepo).
 cd projects/yolo-glibc-2.44
-git archive --format=tar HEAD --prefix=pizlonated-yolo-glibc/ | tar -xf -
+git archive --format=tar HEAD --prefix=pizlonated-yolo-glibc/ -- . | tar -xf -
 git diff --relative HEAD . | (cd pizlonated-yolo-glibc && patch -p1)
 cd pizlonated-yolo-glibc
 autoconf
@@ -43,7 +47,7 @@ rm -rf pizlonated-yolo-glibc
 cd ../..
 
 cd projects/user-glibc-2.44
-git archive --format=tar HEAD --prefix=pizlonated-user-glibc/ | tar -xf -
+git archive --format=tar HEAD --prefix=pizlonated-user-glibc/ -- . | tar -xf -
 git diff --relative HEAD . | (cd pizlonated-user-glibc && patch -p1)
 cd pizlonated-user-glibc
 autoconf

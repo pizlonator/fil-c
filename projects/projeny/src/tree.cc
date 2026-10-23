@@ -258,26 +258,65 @@ bool is_archive_metadata_entry(const std::string& name)
 // member's name, which tar resolves against the extraction root (it strips
 // leading ".." before linking). In-tree ".." spellings (e.g.
 // "b3sum/LICENSE_A2 -> ../LICENSE_A2") resolve back inside the tree and are
-// fine; only absolute targets and true escapes are refused.
+// fine. Refused: relative targets that climb above the tree root (always —
+// even when the link is a leaf, keeping the ".." shape strict like git
+// does), and absolute targets (a symlink shipping one is a fixture shape
+// upstream tarballs really use — gnome-autoar's
+// tests/files/extract/test-symlink-parent/reference/arextract -> /tmp —
+// and refusing it would force repacking pristine tarballs, which the
+// project rules forbid). The absolute exception: a symlink that is a LEAF
+// of the archive — no other member's path lives inside the symlink's path
+// — can never be written through while tar unpacks, so its inert target is
+// allowed. A non-leaf absolute escape is still refused (a later member
+// would extract through the link to the outside), and so is every hardlink
+// escape (a hardlink binds tree content to outside content no matter
+// what). `members` is the full archive listing (./-stripped) used for the
+// leaf test.
 void check_tar_link_target(const std::string& member, const std::string& target,
-                           bool hardlink)
+                           bool hardlink,
+                           const std::vector<std::string>& members)
 {
     if (target.empty())
         return;
-    if (target[0] == '/')
-        die("archive member '" + member + "' links to absolute target '" +
-            target + "'; refusing (symlink/hardlink escape)");
     // Strip the "./" spellings tar emits so the member's directory is
     // relative to the tree root.
     std::string m = member;
     while (starts_with(m, "./"))
         m = m.substr(2);
     std::string resolved;
-    if (resolve_link_target(hardlink ? std::string(".") : dirname_of(m),
-                            target, &resolved) == LinkResolve::Escapes)
-        die("archive member '" + member + "' links to '" + target +
-            "' (resolves to '" + resolved +
-            "'); refusing (link target escapes the tree)");
+    bool absolute = target[0] == '/';
+    if (absolute) {
+        resolved = target;
+    } else if (resolve_link_target(
+                   hardlink ? std::string(".") : dirname_of(m), target,
+                   &resolved) != LinkResolve::Escapes) {
+        return; // resolves inside the tree: fine
+    }
+    // The target does not stay inside the tree. Absolute leaf symlinks are
+    // inert at unpack time; everything else is refused.
+    if (!hardlink && absolute) {
+        // Leaf test: no OTHER member extracts inside the symlink's path, so
+        // nothing can be written through the link during unpack. (The link
+        // itself is in the listing; the != compare ignores it. A "d/"
+        // directory entry next to a "d" symlink counts as inside, which is
+        // the conservative read of a contradictory archive.)
+        std::string prefix = m + "/";
+        bool leaf = true;
+        for (const std::string& n : members) {
+            if (n != m && starts_with(n, prefix)) {
+                leaf = false;
+                break;
+            }
+        }
+        if (leaf)
+            return;
+    }
+    if (absolute)
+        die("archive member '" + member + "' links to absolute target '" +
+            target + "'; refusing (symlink/hardlink escape)");
+    die("archive member '" + member + "' links to '" + target +
+        "' (resolves to '" + resolved +
+        "'); refusing (link target escapes the tree)");
 }
 
 // `tar -tv` long-listing line -> (member name, link target or "", hardlink).
@@ -357,6 +396,7 @@ std::string parse_tar_member_name(const std::string& line)
 // listing where targets are visible.
 void check_archive_members_safe(const std::string& archive)
 {
+    std::vector<std::string> members; // ./-stripped, for the leaf test
     {
         CmdResult r = run_cmd({"tar", "-tf", absolutize(archive)});
         if (r.code != 0)
@@ -390,6 +430,7 @@ void check_archive_members_safe(const std::string& archive)
             }
             if (escapes)
                 die("archive member '" + member + "' contains '..'; refusing");
+            members.push_back(m);
         }
     }
     CmdResult r = run_cmd({"tar", "-tvf", absolutize(archive)});
@@ -414,7 +455,7 @@ void check_archive_members_safe(const std::string& archive)
         bool hardlink = false;
         if (parse_tar_verbose_line(line, &link_member, &target, &hardlink))
             check_tar_link_target(link_member.empty() ? member : link_member,
-                                  target, hardlink);
+                                  target, hardlink, members);
     }
 }
 

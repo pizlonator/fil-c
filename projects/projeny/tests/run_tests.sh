@@ -4,7 +4,10 @@
 # noops, divergent merges (clean + conflicting, the latter exiting nonzero),
 # add/rm/mv + commit, rebase (clean + conflict), package/extract (tracked-only
 # payloads, compression autodetect incl. the short .tbz/.tbz2/.txz/.tzst
-# forms, conflict refusal), and the hard-error paths.
+# forms, conflict refusal), and the hard-error paths (including the non-leaf
+# absolute symlink escape; leaf absolute symlinks — nothing else in the
+# archive inside their path — unpack, ride along outside the patch, refuse
+# retargeting, and delete fine).
 # Later sections cover the dot-prefixed bookkeeping names: legacy undotted
 # .projeny.status / .snapshot migration on first use, stale-state
 # reconciliation (.stale, .stale2, ...) when the workdir is gone (both
@@ -884,12 +887,22 @@ case "$out" in
 esac
 
 # ----------------------------------------- 20. tar escape rejection
-# Symlink members pointing outside the tree must hard-error on setup.
+# Symlink members whose targets do not stay inside the tree must hard-error
+# on setup. The absolute target here is NOT a leaf: the archive also carries
+# a member inside the link's path, so tar would write through the link —
+# the malicious shape the audit exists for. (A leaf absolute symlink —
+# nothing inside its path — is allowed; see the next section.)
 T20="$ROOT/t20"
-mkdir -p "$T20/evil-1.0"
+mkdir -p "$T20/evil-1.0" "$T20/stage"
 printf 'hi\n' > "$T20/evil-1.0/f.c"
-ln -s /etc/passwd "$T20/evil-1.0/evil-link"
-(cd "$T20" && tar -czf evil-1.0.tar.gz evil-1.0)
+ln -s /etc/passwd "$T20/stage/evil-link"
+printf 'payload\n' > "$T20/stage/payload.txt"
+# (a filesystem cannot hold both a symlink "evil-link" and a file
+# "evil-link/payload.txt" in one directory, but a tarball can — and that is
+# exactly the shape tar would extract through the link).
+(cd "$T20" && tar -cf evil-1.0.tar -C stage evil-link \
+    && tar -rf evil-1.0.tar --transform 's,^payload\.txt$,evil-link/payload.txt,' -C stage payload.txt \
+    && gzip -n -f evil-1.0.tar)
 cat > "$T20/e.projeny" <<'EOF'
 Archive: evil-1.0.tar.gz
 Origname: evil-1.0
@@ -899,6 +912,56 @@ Name: e
 
 EOF
 run_in "$T20" expect_fail "absolute symlink target hard-errors" "$PROJENY" setup e.projeny
+
+# ----------------------------------------- 20b. leaf absolute symlink allowed
+# An absolute symlink target is refused unless the symlink is a leaf of the
+# archive (no member extracts inside its path): nothing can then be written
+# through the link while tar unpacks, so the pristine-upstream fixture shape
+# (gnome-autoar's tests/files/.../reference/arextract -> /tmp) unpacks as
+# is, rides along through commit/package, and never enters the patch. A
+# retarget of the link into another escape is still refused at commit (a
+# patch block would create it), while deleting it commits fine.
+T20B="$ROOT/t20b"
+mkdir -p "$T20B/leafy-1.0"
+printf 'hi\n' > "$T20B/leafy-1.0/f.c"
+ln -s /tmp "$T20B/leafy-1.0/arextract"
+(cd "$T20B" && tar -czf leafy-1.0.tar.gz leafy-1.0)
+cat > "$T20B/l.projeny" <<'EOF'
+Archive: leafy-1.0.tar.gz
+Origname: leafy-1.0
+Name: l
+
+    Leaf absolute symlink fixture.
+
+EOF
+run_in "$T20B" expect_ok "leaf absolute symlink target unpacks" "$PROJENY" setup l.projeny
+if [ -L "$T20B/l/arextract" ] && [ "$(readlink "$T20B/l/arextract")" = "/tmp" ]; then
+    ok "leaf symlink unpacked with target intact"
+else
+    fail "leaf symlink unpacked with target intact" "ls: $(ls -l "$T20B/l" 2>&1)"
+fi
+run_in "$T20B" expect_ok "commit keeps leaf symlink riding along" "$PROJENY" commit l.projeny
+if grep -q 'arextract' "$T20B/l.projeny"; then
+    fail "leaf symlink stays out of the patch" "arextract found in l.projeny"
+else
+    ok "leaf symlink stays out of the patch"
+fi
+run_in "$T20B" expect_ok "re-setup keeps leaf symlink" "$PROJENY" setup l.projeny
+if [ -L "$T20B/l/arextract" ] && [ "$(readlink "$T20B/l/arextract")" = "/tmp" ]; then
+    ok "leaf symlink survives re-setup"
+else
+    fail "leaf symlink survives re-setup" "ls: $(ls -l "$T20B/l" 2>&1)"
+fi
+rm -f "$T20B/l/arextract"
+ln -s /etc "$T20B/l/arextract"
+run_in "$T20B" expect_fail "retargeting an escape symlink hard-errors" "$PROJENY" commit l.projeny
+# `projeny rm` resolves paths physically, so the escape link reads as
+# outside the workdir and is refused there too; dropping the link for good
+# takes an erase-setup + fresh setup.
+run_in "$T20B" expect_fail "rm refuses the escape symlink" "$PROJENY" rm l.projeny arextract
+rm -f "$T20B/l/arextract"
+ln -s /tmp "$T20B/l/arextract"
+run_in "$T20B" expect_ok "re-setup after restoring the link is clean" "$PROJENY" setup l.projeny
 
 # ----------------------------------------- 21. rebase keeps pending ops
 # Pending add/rm/mv operations must survive a clean rebase.

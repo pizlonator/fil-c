@@ -19,6 +19,73 @@ set -x
 # when postlc7 runs on a fresh ./build.sh - checking for them here
 # aborted the whole chain (the shell-port sprints grew this file in place
 # while testing against a chroot that already had everything).
+#
+# Sprint 11: teardown moved into an EXIT trap, registered BEFORE any
+# process is started.  Whatever way this script exits - the happy path,
+# a failed check, a kill - the system bus and elogind it started are
+# taken back down, so a failed smoke leaves no daemon behind in the
+# chroot and no /sys/fs/cgroup mount for build_unmount.sh to trip over.
+# Every cleanup step tolerates nothing having been started yet, since
+# the trap also fires on the earliest failures.
+
+# Pids of the processes this script started, recorded as they come up.
+# Empty until then; the trap and the pidof fallbacks below tolerate that.
+DBUS_PID=
+DBUS_STARTED=
+ELOGIND_PID=
+
+# Our processes live in this chroot, but /proc is the host's, so a bare
+# pidof match could name a host daemon.  A pid is ours only when its
+# root is this chroot's own root.  The trailing "/." matters: a bare
+# /proc/$p/root stat reports a per-process anonymous device, while
+# /proc/$p/root/. resolves through the magic symlink onto the root
+# directory itself and gives its real device:inode (the host's daemons
+# sit on the host root filesystem, ours on the chroot's).
+ours() {
+    local p self root
+    self=$(stat -c %d:%i /. 2>/dev/null) || return 0
+    for p in "$@"; do
+        root=$(stat -c %d:%i /proc/$p/root/. 2>/dev/null) || continue
+        if [ "$root" = "$self" ]; then
+            echo $p
+        fi
+    done
+}
+
+cleanup() {
+    # Our elogind first (normal kill, then -9 after a grace sleep): killing
+    # the system bus below would make elogind drop its bus connection and
+    # self-exit mid-race, so take the daemon down explicitly while the bus
+    # it watches is still up.
+    local pid=""
+    pid=$(ours ${ELOGIND_PID:-} $(pidof elogind 2>/dev/null) 2>/dev/null || true)
+    if [ -n "$pid" ]; then
+        kill $pid 2>/dev/null || true
+        sleep 1
+        kill -9 $pid 2>/dev/null || true
+    fi
+    # Our dbus-daemon: the pid we recorded when it came up, else the pid
+    # file it wrote (this is the chroot's /run, so the file can only name
+    # a daemon this script started), else pidof restricted to processes
+    # rooted in this chroot.
+    if [ -n "$DBUS_PID" ]; then
+        pid=$DBUS_PID
+    elif [ -f /run/dbus/pid ]; then
+        pid=$(cat /run/dbus/pid 2>/dev/null || true)
+    elif [ -n "$DBUS_STARTED" ]; then
+        pid=$(ours $(pidof dbus-daemon 2>/dev/null) 2>/dev/null || true)
+    fi
+    if [ -n "$pid" ]; then
+        kill $pid 2>/dev/null || true
+    fi
+    # elogind mounted cgroup2 at /sys/fs/cgroup while it ran.  Take that
+    # nested mount down too, so the build's unmount step can unmount the
+    # chroot's /sys (otherwise /sys stays busy and the postlc7 snapshot tar
+    # walks live sysfs).  If elogind left /sys/fs/cgroup as a plain dir,
+    # leave it: extraction recreates the empty dir.
+    umount /sys/fs/cgroup 2>/dev/null || true
+}
+trap cleanup EXIT
 
 mkdir -p /run/dbus
 rm -f /run/dbus/pid /run/dbus/system_bus_socket
@@ -26,6 +93,8 @@ rm -f /run/dbus/pid /run/dbus/system_bus_socket
 # dbus-daemon self-daemonizes (<fork/> in the stock system.conf) and
 # writes /run/dbus/pid.
 dbus-daemon --system
+DBUS_STARTED=1
+DBUS_PID=$(cat /run/dbus/pid 2>/dev/null || true)
 
 sleep 1
 
@@ -38,6 +107,7 @@ dbus-send --system --dest=org.freedesktop.DBus --print-reply / \
 
 # Start elogind (daemonizes) and prove it claims its bus name.
 /usr/libexec/elogind --daemon
+ELOGIND_PID=$(pidof elogind 2>/dev/null || true)
 sleep 1
 dbus-send --system --dest=org.freedesktop.DBus --print-reply / \
     org.freedesktop.DBus.ListNames | grep -i login
@@ -66,16 +136,7 @@ ls -l /usr/bin/pizlix-gnome /usr/bin/pizlix-shell /usr/bin/pizlix-mutter \
       /etc/xdg/autostart/org.gnome.Shell.desktop \
       /etc/xdg/autostart/pizlix-terminal.desktop
 
-# Tear it all back down.
-kill $(pidof elogind) || true
-sleep 1
-kill $(cat /run/dbus/pid)
-
-# elogind mounted cgroup2 at /sys/fs/cgroup while it ran.  Take that
-# nested mount down too, so the build's unmount step can unmount the
-# chroot's /sys (otherwise /sys stays busy and the postlc7 snapshot tar
-# walks live sysfs).  If elogind left /sys/fs/cgroup as a plain dir,
-# leave it: extraction recreates the empty dir.
-umount /sys/fs/cgroup 2>/dev/null || true
+# No inline teardown here: the EXIT trap registered above does it, on the
+# happy path just like on any failure path.
 
 echo GNOME-SMOKE-OK
