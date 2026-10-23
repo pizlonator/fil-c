@@ -54,12 +54,17 @@ and their licenses are in `additional-licenses/` in that distribution.
 
 ## Requirements
 
-Fil-C only works on Linux/X86_64 or Linux/ARM64.
+Fil-C works natively on Linux/X86_64 or Linux/ARM64.
 
-Previous versions worked on Darwin/ARM64 and FreeBSD, but now I'm focusing just
-on Linux because it allows me to do a more faithful job of implementing libc.
-There's nothing fundamentally stopping Fil-C from working on other
-architectures or OSes other than Linux.
+[Peregrine Fil-C](https://fil-c.org/peregrine) uses APEs and a Cosmo-derived
+libs, which allows binaries it produces to run on Linux/X86_64, Darwin/ARM64,
+and Windows/X86_64. Peregrine Fil-C is still experimental and requires a
+Linux/x86_64 host to build.
+
+Previous versions natively worked on Darwin/ARM64 and FreeBSD. At some point
+I switched to focusing on Linux because it allowed me to do a faithful job of
+implementing *all* of libc. There's nothing fundamentally stopping Fil-C from
+working natively on other architectures or OSes other than Linux.
 
 ## Getting Started
 
@@ -71,8 +76,9 @@ This has a different effect depending on which binary distribution you
 selected:
 
 - In case of the classic musl-based distribution
-  (`filc-0.687-linux-x86_64.tar.xz` or `filc-0.687-linux-aarch64.tar.xz`), this
-  sets up Fil-C to run in the current directory.
+  (`filc-0.687-linux-x86_64.tar.xz` or `filc-0.687-linux-aarch64.tar.xz`) or
+  the Peregrine Fil-C distribution (`perefil-0.687-linux-x86_64.tar.xz`),
+  this sets up Fil-C to run in the current directory.
 
 - In case of the /opt/fil glibc-based distribution
   (`optfil-0.687-linux-x86_64.tar.xz` or `optfil-0.687-linux-aarch64.tar.xz`),
@@ -96,6 +102,8 @@ If you are using source, then you can also:
 
 - `./build_all_glibc.sh` - full glibc-based build (builds even more software
   that was ported to Fil-C).
+
+- `./build_all_fast_cosmo.sh` - builds Peregrine Fil-C.
 
 - `cd pizlix && sudo ./build.sh` - builds the [Pizlix](https://fil-c.org/pizlix)
   Linux distribution.

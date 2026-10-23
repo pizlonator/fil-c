@@ -42,7 +42,7 @@ fi
 if test -f pizfix/lib/libyolocosmo.a
 then
     flavor=cosmo
-    build_name_base="cosmo-filc"
+    build_name_base="perefil"
 elif test -f pizfix/lib/libc.so.6666
 then
     echo "This is a glibc build.  package-build.sh does not package the glibc" \
