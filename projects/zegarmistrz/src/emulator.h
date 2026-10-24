@@ -41,6 +41,7 @@ struct Emulator {
     bool trace_insn = false; // -v: disassemble each instruction
     bool trace_syscall = false; // --trace-syscalls (implied by -v)
     bool no_core = false; // --no-core / --passthrough-signals: no core dumps
+    bool stack_trace = true; // --no-stack-trace disables the crash-time guest backtrace
 
     // Guest memory map snapshot for ELF core dumps (filled by the loader;
     // guest VA == host VA so the dumper can memcpy directly).
@@ -49,6 +50,7 @@ struct Emulator {
         uint64_t end = 0; // exclusive
         int prot = 0; // PROT_* bits
         std::string path; // object path (may be empty)
+        uint64_t bias = 0; // load bias (guest VA - ELF vaddr); for stack traces
     };
     std::mutex maps_mu;
     std::vector<GuestMap> guest_maps;

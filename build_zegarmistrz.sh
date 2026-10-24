@@ -33,6 +33,21 @@ int main(){return 0;}' | gcc -x c -o /dev/null - -lZydis -lZycore 2>/dev/null; t
     fi
 fi
 
+# BFD (binutils-dev) powers the crash-time guest stack traces.
+if ! echo '#include <bfd.h>
+int main(){bfd_init();return 0;}' | gcc -x c -isystem /usr/include \
+        -DPACKAGE='"zegarmistrz"' -DPACKAGE_VERSION='"1"' -o /dev/null - -lbfd 2>/dev/null; then
+    echo "build_zegarmistrz: BFD (binutils-dev) not found." >&2
+    echo "Install it first, e.g.:" >&2
+    echo "  sudo apt-get install -y binutils-dev" >&2
+    if command -v apt-get >/dev/null 2>&1 && [ "$(id -u)" = 0 ]; then
+        echo "Trying apt-get install..." >&2
+        apt-get update && apt-get install -y binutils-dev || exit 1
+    else
+        exit 1
+    fi
+fi
+
 echo "build_zegarmistrz: building in $SRC (-j$JOBS)..."
 make -C "$SRC" -j"$JOBS" || { echo "build_zegarmistrz: build FAILED" >&2; exit 1; }
 

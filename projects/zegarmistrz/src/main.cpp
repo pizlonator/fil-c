@@ -101,6 +101,9 @@ static void usage(const char* argv0) {
             "usage: %s [options] <program> [args...]\n"
             "  -v, --trace       disassemble each guest instruction to stderr\n"
             "  --trace-syscalls  log guest syscalls to stderr (implied by -v)\n"
+            "  --stack-trace / --no-stack-trace\n"
+            "                    print a symbolized guest stack trace on a fatal\n"
+            "                    guest error, before the core file (default: on)\n"
             "  --no-core, --passthrough-signals\n"
             "                    do not install host signal handlers and do not\n"
             "                    write core dumps (guest errors just print)\n"
@@ -125,7 +128,8 @@ static void usage(const char* argv0) {
             "zegarmistrz_unpoison_range; all no-ops outside the emulator).\n"
             "\n"
             "On a fatal guest error (poison violation, bad memory access,\n"
-            "host signal), zegarmistrz writes zegarmistrz.core.<processname>.\n"
+            "host signal), zegarmistrz prints a symbolized guest stack trace\n"
+            "(BFD) and then writes zegarmistrz.core.<processname>.\n"
             "<pid> in the current directory as an ELF core (ET_CORE) with\n"
             "guest registers, auxv and memory, readable with gdb/lldb:\n"
             "  gdb -batch -ex bt ./prog zegarmistrz.core.prog.<pid>\n",
@@ -277,6 +281,10 @@ int main(int argc, char** argv) {
         } else if (a == "--no-core" || a == "--passthrough-signals") {
             emu.no_core = true;
             mem_set_passthrough(true);
+        } else if (a == "--stack-trace") {
+            emu.stack_trace = true;
+        } else if (a == "--no-stack-trace") {
+            emu.stack_trace = false;
         } else if (a == "-h" || a == "--help") {
             usage(argv[0]);
             return 0;

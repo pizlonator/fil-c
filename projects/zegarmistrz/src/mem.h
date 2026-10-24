@@ -148,6 +148,15 @@ void mem_install_fault_handler();
 void mem_set_passthrough(bool v);
 bool mem_passthrough();
 
+// While the calling thread is producing a crash dump, host faults in dump
+// code kill the process instead of jumping back into the interpreter loop
+// (which would re-enter the dump and livelock); fault-guarded
+// guest-memory copies keep recovering locally. Per-thread state: other
+// guest threads keep their own loop recovery while one thread dumps.
+// Set for the duration of dump_core().
+void mem_set_dumping(bool v);
+bool mem_dumping();
+
 // Fault recovery scope: set around the interpreter loop body per instruction.
 struct FaultScope {
     CPU* cpu;

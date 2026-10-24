@@ -5,7 +5,8 @@
 #
 # Suites: basic guests (filc hello, static, threads, args), AVX512/AES
 # differentials (native vs emulated output), poisoning client requests
-# (expect core dumps), core-dump gdb check, --no-core flag.
+# (expect core dumps), core-dump gdb check, crash-time stack traces
+# (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag.
 # Does not touch filc/tests or filc/run-tests.
 set -u
 cd "$(dirname "$0")"
@@ -50,6 +51,7 @@ void boom(void) { volatile int* p = (int*)0x1234; *p = 42; }
 int main(void) { printf("before\n"); boom(); return 0; }
 EOF
 gcc -O0 -g -o "$OUTDIR/crash" "$OUTDIR/crash.c" || { log "guest compile failed: crash"; exit 1; }
+gcc -O2 -g -o "$OUTDIR/crash_o2" "$OUTDIR/crash.c" || { log "guest compile failed: crash_o2"; exit 1; }
 
 # AVX512/AES differentials: compile only if the host supports them.
 HAVE_AVX512=""
@@ -97,6 +99,10 @@ echo "zeglib-emulated"
 echo "zeglib-native"
 echo "poison-header"
 echo "core-gdb"
+echo "stack-trace"
+echo "stack-trace-off"
+echo "stack-trace-o2"
+echo "stack-trace-fault"
 echo "no-core"
 } | xargs -P "$JOBS" -I{} bash -c '
 set -u
@@ -230,6 +236,92 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     else
       echo "FAIL core-gdb: bt=[$bt]"
     fi
+    ;;
+  stack-trace)
+    # Default mode: a fatal guest error prints a symbolized guest stack
+    # trace (BFD) BEFORE the core file is written, and the core is still
+    # produced. boom must appear before main, and the trace before [core:.
+    mkdir -p test-output/stack-trace
+    rm -f test-output/stack-trace/zegarmistrz.core.crash.*
+    (cd test-output/stack-trace && timeout 60 ../../zegarmistrz ../crash >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/stack-trace/zegarmistrz.core.crash.* 2>/dev/null | head -1)
+    err=test-output/stack-trace/trace.err
+    trace_line=$(grep -n "Guest stack trace" "$err" 2>/dev/null | head -1 | cut -d: -f1)
+    boom_line=$(grep -n "in boom () at .*crash\.c:2" "$err" 2>/dev/null | head -1 | cut -d: -f1)
+    main_line=$(grep -n "in main ()" "$err" 2>/dev/null | head -1 | cut -d: -f1)
+    core_line=$(grep -n "\[core:" "$err" 2>/dev/null | head -1 | cut -d: -f1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && [ -n "$trace_line" ] && [ -n "$boom_line" ] && [ -n "$main_line" ] \
+       && [ -n "$core_line" ] \
+       && [ "$boom_line" -lt "$main_line" ] && [ "$trace_line" -lt "$core_line" ]; then
+      echo "PASS stack-trace"
+    else
+      echo "FAIL stack-trace: ec=$ec core=[$core] lines=[trace=$trace_line boom=$boom_line main=$main_line core=$core_line]"
+      head -20 "$err"
+    fi
+    rm -f test-output/stack-trace/zegarmistrz.core.crash.* test-output/stack-trace/trace.err
+    ;;
+  stack-trace-off)
+    # --no-stack-trace suppresses the trace; the core is still produced.
+    mkdir -p test-output/stack-trace-off
+    rm -f test-output/stack-trace-off/zegarmistrz.core.crash.*
+    (cd test-output/stack-trace-off && timeout 60 ../../zegarmistrz --no-stack-trace ../crash >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/stack-trace-off/zegarmistrz.core.crash.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && ! grep -q "Guest stack trace" test-output/stack-trace-off/trace.err; then
+      echo "PASS stack-trace-off"
+    else
+      echo "FAIL stack-trace-off: ec=$ec core=[$core]"
+      cat test-output/stack-trace-off/trace.err 2>/dev/null
+    fi
+    rm -f test-output/stack-trace-off/zegarmistrz.core.crash.* test-output/stack-trace-off/trace.err
+    ;;
+  stack-trace-o2)
+    # -O2 guest (frame pointers omitted): the trace must still appear,
+    # via the approximate stack scan if the RBP chain is unusable.
+    mkdir -p test-output/stack-trace-o2
+    rm -f test-output/stack-trace-o2/zegarmistrz.core.crash_o2.*
+    (cd test-output/stack-trace-o2 && timeout 60 ../../zegarmistrz ../crash_o2 >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/stack-trace-o2/zegarmistrz.core.crash_o2.* 2>/dev/null | head -1)
+    err=test-output/stack-trace-o2/trace.err
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "Guest stack trace" "$err" && grep -q "#0" "$err" \
+       && grep -qE " in (boom|main) \(\)" "$err"; then
+      echo "PASS stack-trace-o2"
+    else
+      echo "FAIL stack-trace-o2: ec=$ec core=[$core]"
+      head -20 "$err"
+    fi
+    rm -f test-output/stack-trace-o2/zegarmistrz.core.crash_o2.* test-output/stack-trace-o2/trace.err
+    ;;
+  stack-trace-fault)
+    # A host fault inside the dump path (injected by the test-only
+    # ZEG_TEST_CRASH_IN_TRACE hook) must kill the process for real: the
+    # pre-fix behavior longjmp-ed back into the interpreter loop and
+    # re-entered the dump forever (banner repeats, no exit). Host core is
+    # disabled so the resulting real SIGSEGV does not write a giant host
+    # core in the test dir.
+    mkdir -p test-output/stack-trace-fault
+    rm -f test-output/stack-trace-fault/zegarmistrz.core.crash.* \
+          test-output/stack-trace-fault/core*
+    (
+      ulimit -c 0
+      cd test-output/stack-trace-fault &&
+        ZEG_TEST_CRASH_IN_TRACE=1 timeout 60 ../../zegarmistrz ../crash \
+        >/dev/null 2>trace.err
+    ); ec=$?
+    banners=$(grep -c "fatal guest error" \
+              test-output/stack-trace-fault/trace.err 2>/dev/null || true)
+    cores=$(ls test-output/stack-trace-fault/zegarmistrz.core.crash.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ "$banners" = 1 ] && [ -z "$cores" ]; then
+      echo "PASS stack-trace-fault"
+    else
+      echo "FAIL stack-trace-fault: ec=$ec banners=$banners core=[$cores]"
+      head -20 test-output/stack-trace-fault/trace.err 2>/dev/null
+    fi
+    rm -f test-output/stack-trace-fault/zegarmistrz.core.crash.* \
+          test-output/stack-trace-fault/core* \
+          test-output/stack-trace-fault/trace.err
     ;;
   no-core)
     # --no-core disables core dumps; use a poisoning guest (GuestError path

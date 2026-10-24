@@ -46,6 +46,7 @@
 #include "cpu.h"
 #include "emulator.h"
 #include "mem.h"
+#include "stack_trace.h"
 
 #include <atomic>
 
@@ -139,6 +140,17 @@ static void append_note(std::vector<uint8_t>& out, uint32_t type,
 
 const char* dump_core(CPU* cpu, const char* reason, unsigned long fault_addr,
                       int signo) {
+    // A host fault while producing the dump (e.g. inside BFD parsing)
+    // must kill the process, not longjmp back into run_cpu_loop: the
+    // LoopScope recovery is still armed in the caller, so the jump would
+    // re-enter this dump and livelock. The flag is per-thread: other
+    // guest threads keep executing (with their own recovery) while this
+    // thread dumps. mem_copy_guarded() still recovers locally (its
+    // recovery point is checked first). See fault_handler().
+    struct DumpingScope {
+        DumpingScope() { mem_set_dumping(true); }
+        ~DumpingScope() { mem_set_dumping(false); }
+    } dumping;
     static thread_local char path[256];
     const char* prog = cpu->emu->prog_path.c_str();
     const char* base = strrchr(prog, '/');
@@ -147,14 +159,22 @@ const char* dump_core(CPU* cpu, const char* reason, unsigned long fault_addr,
         base = "guest";
     snprintf(path, sizeof(path), "zegarmistrz.core.%s.%d", base, (int)getpid());
 
+    // Fatal-error banner first, then the guest stack trace (on by
+    // default), then the core file itself -- so the trace is visible
+    // even if producing the core is interrupted (Ctrl-C).
+    fprintf(stderr, "zegarmistrz: fatal guest error (tid=%d): %s at rip=%#lx",
+            cpu->tid, reason ? reason : "?", cpu->rip);
+    if (fault_addr)
+        fprintf(stderr, " fault_addr=%#lx", fault_addr);
+    fprintf(stderr, "\n");
+    fflush(stderr);
+
+    if (cpu->emu->stack_trace)
+        print_guest_stack_trace(cpu);
+
     if (mem_passthrough()) {
         // --no-core: report without writing anything.
-        fprintf(stderr,
-                "zegarmistrz: fatal guest error (tid=%d): %s at rip=%#lx",
-                cpu->tid, reason ? reason : "?", cpu->rip);
-        if (fault_addr)
-            fprintf(stderr, " fault_addr=%#lx", fault_addr);
-        fprintf(stderr, " [core dumps disabled]\n");
+        fprintf(stderr, "zegarmistrz: [core dumps disabled]\n");
         fflush(stderr);
         return path;
     }
@@ -330,11 +350,7 @@ const char* dump_core(CPU* cpu, const char* reason, unsigned long fault_addr,
     fclose(f);
     chmod(path, 0600);
 
-    fprintf(stderr, "zegarmistrz: fatal guest error (tid=%d): %s at rip=%#lx",
-            cpu->tid, reason ? reason : "?", cpu->rip);
-    if (fault_addr)
-        fprintf(stderr, " fault_addr=%#lx", fault_addr);
-    fprintf(stderr, " [core: %s]\n", path);
+    fprintf(stderr, "zegarmistrz: [core: %s]\n", path);
     fflush(stderr);
     return path;
 }

@@ -38,8 +38,9 @@ conversion, CLI, parallel tests, `./build_zegarmistrz.sh`.
 
 ```bash
 sudo apt-get install -y libzydis-dev libzycore-dev   # Zydis decoder
+sudo apt-get install -y binutils-dev      # BFD (crash-time guest stack traces)
 make -j$(nproc)        # builds ./zegarmistrz
-./run-tests            # builds guests, runs 24 tests in parallel (xargs -P)
+./run-tests            # builds guests, runs 28 tests in parallel (xargs -P)
 ./check-isa.sh         # verify ISA coverage against binaries
 ./zegarmistrz <program> [args...]
 ./zegarmistrz -v ./hello                             # trace instructions
@@ -60,7 +61,14 @@ the `include/zegarmistrz.h` client library, each run under the emulator
 and natively), `poison-header` (header-library poison must fault under
 the emulator; the native run exits 0), `core-gdb`
 (`gdb -batch -ex bt` shows guest `boom` → `main`, no interpreter
-frames), `no-core` (`--no-core` writes no core). It does not touch
+frames), `stack-trace` (symbolized guest trace with `boom` before
+`main`, printed before the core), `stack-trace-off` (`--no-stack-trace`:
+no trace, core still produced), `stack-trace-o2` (trace also works for
+`-O2` guests without frame pointers), `stack-trace-fault` (a host fault
+injected inside the dump path via the test-only
+`ZEG_TEST_CRASH_IN_TRACE` hook must kill the process for real instead of
+livelocking), `no-core` (`--no-core` writes no
+core). It does not touch
 `filc/tests`.
 
 `./build_zegarmistrz.sh` (repo root) rebuilds and installs the binary at
@@ -125,6 +133,11 @@ frames), `no-core` (`--no-core` writes no core). It does not touch
   with `AT_PHDR/ENTRY/BASE/HWCAP/RANDOM/EXECFN/...`, 16-byte aligned),
   main-thread CPU, interpreter loop. `SIGUSR1` dumps guest
   backtraces (debug aid).
+- `src/stack_trace.h`, `src/stack_trace.cpp` — crash-time guest stack
+  traces: walks the guest stack from the faulting RIP (RBP chain through
+  guarded guest-memory reads, approximate scan fallback) and symbolizes
+  guest addresses with BFD against the ELF objects the emulator loaded;
+  printed by `dump_core` before the core file is written.
 - `tests/` — guest sources (`args.c`, `threads.c`, `static_hi.c`);
   `test-output/` — build/run artifacts.
 
@@ -258,10 +271,69 @@ clears that dimension's cannot bit (store sanitizes).
 `cannot-load`/`cannot-store`/clear bits are sticky. All violations
 throw guest errors → ELF core dumps.
 
+## Crash-time guest stack traces
+
+On a fatal guest error, `zegarmistrz` prints a symbolized **guest stack
+trace** to stderr (default: on). `--stack-trace` / `--no-stack-trace`
+turn it on/off (last one wins).
+
+Ordering guarantee: the fatal-error banner and the guest stack trace are
+printed BEFORE the core file is written, so the trace is visible even if
+producing the core is interrupted (Ctrl-C kills the process mid-write;
+the trace has already been printed). `--no-core` /
+`--passthrough-signals` still prints the banner + trace and then reports
+`[core dumps disabled]` instead of writing anything — except that a
+guest error which is a *real host fault* (unmapped access in passthrough
+mode, where no signal handler is installed) kills the process outright,
+before any output.
+
+Fault policy: while the dump is being produced, host fault recovery is
+disarmed on the dumping thread — a host fault inside the dump code
+itself (e.g. in BFD) kills the process immediately instead of
+longjmp-ing back into the interpreter loop and re-entering the dump.
+(The fault-guarded guest-memory reads the dump uses still recover
+locally. Other guest threads keep executing — and keep their own fault
+recovery — while one thread dumps.)
+
+How the walk works: it starts at the faulting RIP and follows the guest
+RBP frame chain (`[rbp]` = caller rbp, `[rbp+8]` = return address) via
+fault-guarded guest-memory reads, validating every frame against the
+guest memory map (return addresses must land in guest-executable
+mappings, frame pointers in read/write mappings or the guest stack). If
+the chain is unusable — e.g. the guest was built with
+`-fomit-frame-pointer` — it falls back to an approximate scan of the
+guest stack for slots holding plausible return addresses (bytes before
+the target look like a `call`); those frames are marked
+`(approximate)`. The first frame is always the exact faulting RIP.
+
+Symbolization uses BFD (`bfd_find_nearest_line`, with `__cxa_demangle`
+for C++ names) against the ELF objects the emulator itself loaded: the
+main executable and the `PT_INTERP` interpreter (each `PT_LOAD` records
+its load bias, so `guest VA - bias == ELF vaddr`). Addresses in
+objects the guest's `ld.so` maps later (mmap/brk tag entries, which
+have no file path) print as raw addresses; addresses inside a known
+object that do not symbolize print as `module+0xOFFSET`. Stripped
+binaries have no symtab/debug info; the dynamic symbol table is still
+consulted as a last resort (names only, no file/line), but functions
+internal to an executable are usually not exported there, so
+stripped-binary frames typically print as `module+0xOFFSET`.
+
+Dependency: `sudo apt-get install -y binutils-dev` (also auto-installed
+by `./build_zegarmistrz.sh`). The `Makefile` probes BFD at parse time
+and explicitly pairs the SYSTEM `/usr/include/bfd.h` with the system
+`libbfd.so` by absolute path on the link line (located via
+`$(CXX) -print-multiarch`, with a `/usr/lib/*/libbfd.so` glob fallback,
+so it works on any arch): a from-source binutils under `/usr/local`
+must not have its `bfd.h` mixed with the system `libbfd` — that
+combination compiles and links fine but symbolization silently returns
+nothing. (The system header is forced in by absolute path via
+`-include`, since `-isystem /usr/include` would reorder the C++ header
+chain and break libstdc++'s `#include_next <stdlib.h>`.)
+
 ## Status / phase 2
 
 Works: `./hello` → `Hello!` (exit 0), static/dynamic/threaded guests,
-full `run-tests` green (24 tests, parallel), zero compiler warnings.
+full `run-tests` green (28 tests, parallel), zero compiler warnings.
 Threads, futexes, TLS (`FS`), `rseq`, robust lists, `brk`, `mmap`,
 AVX/AVX2, BMI/BMI2 (incl. `BEXTR`), x87 (+`FLDENV`/`FNSTENV`), `XSAVE`,
 `RDPKRU`/`WRPKRU` — all exercised by the loader + libc + Fil-C runtime
@@ -298,7 +370,9 @@ Phase 2 additions:
 - **Core dumps**: ELF `ET_CORE`
   `zegarmistrz.core.<processname>.<pid>` (`NT_PRSTATUS` guest regs,
   `NT_PRPSINFO` name, `NT_AUXV`, `PT_LOAD`s); `gdb`/`lldb` show guest
-  frames only. Host `SIGSEGV`/`SIGBUS`/`SIGILL`/`SIGFPE` during guest
+  frames only. A symbolized guest stack trace (BFD) is printed before
+  the core is written (default; `--no-stack-trace` disables). Host
+  `SIGSEGV`/`SIGBUS`/`SIGILL`/`SIGFPE` during guest
   execution convert to guest cores; `--no-core` /
   `--passthrough-signals` turns that off.
 

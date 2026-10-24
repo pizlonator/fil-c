@@ -60,13 +60,34 @@ static bool g_passthrough = false;
 void mem_set_passthrough(bool v) { g_passthrough = v; }
 bool mem_passthrough() { return g_passthrough; }
 
+// Crash-dump policy: while a dump (core writer + BFD guest stack trace) is
+// being produced, host faults in dump code must kill the process instead of
+// longjmp-ing back into the interpreter loop -- dump_core() runs with the
+// LoopScope recovery still armed, so the loop recovery would re-enter the
+// dump and livelock. Per-thread: other guest threads keep executing (and
+// keep their own loop recovery) while one thread dumps, so only the
+// dumping thread's fault handling may change -- and thread_local needs no
+// atomics because fault_handler only ever reads the dumping thread's own
+// flag. Fault-guarded guest-memory copies still recover locally: their
+// recovery point is checked first in fault_handler().
+static thread_local bool g_dumping = false;
+
+void mem_set_dumping(bool v) { g_dumping = v; }
+bool mem_dumping() { return g_dumping; }
+
 static void fault_handler(int sig, siginfo_t* info, void*) {
     if ((sig == SIGSEGV || sig == SIGBUS) && t_recovery_armed) {
         t_recovery_fault =
             info && info->si_addr ? (uint64_t)(uintptr_t)info->si_addr : 0;
         siglongjmp(t_recovery_buf, 1);
     }
-    if (t_loop_armed && t_loop_cpu) {
+    // While this thread is producing a crash dump, the interpreter-loop recovery
+    // must not fire: dump_core() runs with LoopScope still armed, so a
+    // fault in dump code (BFD parsing, the demangler, ...) would longjmp
+    // back into the loop and re-enter the dump forever. Fall through to
+    // the re-raise below and die for real. Fault-guarded guest-memory
+    // copies still recover locally (checked above).
+    if (!g_dumping && t_loop_armed && t_loop_cpu) {
         t_loop_sig = sig;
         t_loop_addr =
             info && info->si_addr ? (uint64_t)(uintptr_t)info->si_addr : 0;

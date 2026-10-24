@@ -159,6 +159,7 @@ LoadedObj elf_load_object(Emulator* emu, const std::string& path,
             gm.end = mend;
             gm.prot = prot;
             gm.path = path;
+            gm.bias = bias; // guest VA - ELF vaddr (for stack traces)
             std::lock_guard<std::mutex> l(emu->maps_mu);
             emu->guest_maps.push_back(gm);
         }
