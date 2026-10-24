@@ -5,7 +5,8 @@
 #
 # Suites: basic guests (filc hello, static, threads, args), AVX512/AES
 # differentials (native vs emulated output), poisoning client requests
-# (expect core dumps), core-dump gdb check, crash-time stack traces
+# (faults + taint laundering + clear-on-store; faults expect core dumps),
+# core-dump gdb check, crash-time stack traces
 # (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag.
 # Does not touch filc/tests or filc/run-tests.
 set -u
@@ -30,7 +31,7 @@ log "compiling guests..."
 gcc -O2 -o "$OUTDIR/args" tests/args.c || { log "guest compile failed: args"; exit 1; }
 gcc -O2 -o "$OUTDIR/threads" tests/threads.c -pthread || { log "guest compile failed: threads"; exit 1; }
 gcc -O2 -static -o "$OUTDIR/static_hi" tests/static_hi.c || { log "guest compile failed: static_hi"; exit 1; }
-for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall; do
+for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall poison_launder_branch poison_launder_index poison_launder_clear; do
     gcc -O2 -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null || { log "guest compile failed: $t"; exit 1; }
 done
 # CPUID presence + header-only client library tests.
@@ -93,6 +94,9 @@ echo "poison-masked-store"
 echo "poison-compress-expand"
 echo "poison-unpoison"
 echo "poison-clear"
+echo "poison-launder-branch"
+echo "poison-launder-index"
+echo "poison-launder-clear"
 echo "cpuid-emulated"
 echo "cpuid-native"
 echo "zeglib-emulated"
@@ -188,6 +192,50 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
   poison-clear)
     out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_clear 2>/dev/null); ec=$?
     [ "$ec" = 0 ] && [ "$out" = "clear-ok" ] && echo "PASS poison-clear" || echo "FAIL poison-clear: exit=$ec out=[$out]"
+    ;;
+  poison-launder-branch)
+    # Laundering: poison CANNOT_BRANCH without clear-branch-on-store; a
+    # clean store must NOT sanitize it, so the loaded value is tainted
+    # and branching on it faults with the cannot-branch reason. (If the
+    # emulator wrongly sanitized or wrongly blocked the store/load, the
+    # exit code or the reason grep catches it.)
+    name=poison_launder_branch
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-branch" "test-output/$name.err.txt"; then
+      echo "PASS poison-launder-branch"
+    else
+      echo "FAIL poison-launder-branch: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
+
+  poison-launder-index)
+    # Laundering: poison CANNOT_INDEX without clear-index-on-store; a
+    # clean store must NOT sanitize it, so the loaded pointer is tainted
+    # and dereferencing it faults with the cannot-index reason.
+    name=poison_launder_index
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-index" "test-output/$name.err.txt"; then
+      echo "PASS poison-launder-index"
+    else
+      echo "FAIL poison-launder-index: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
+
+  poison-launder-clear)
+    # The complement: with clear-branch-on-store, the clean store DOES
+    # sanitize, so the load is clean and the branch succeeds (exit 0).
+    out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_launder_clear 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "launder-clear-ok" ] && echo "PASS poison-launder-clear" || echo "FAIL poison-launder-clear: exit=$ec out=[$out]"
     ;;
   cpuid-emulated)
     out=$(timeout 60 ./zegarmistrz test-output/cpuid_vendor 2>/dev/null); ec=$?

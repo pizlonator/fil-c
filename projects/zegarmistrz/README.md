@@ -40,7 +40,7 @@ conversion, CLI, parallel tests, `./build_zegarmistrz.sh`.
 sudo apt-get install -y libzydis-dev libzycore-dev   # Zydis decoder
 sudo apt-get install -y binutils-dev      # BFD (crash-time guest stack traces)
 make -j$(nproc)        # builds ./zegarmistrz
-./run-tests            # builds guests, runs 28 tests in parallel (xargs -P)
+./run-tests            # builds guests, runs 31 tests in parallel (xargs -P)
 ./check-isa.sh         # verify ISA coverage against binaries
 ./zegarmistrz <program> [args...]
 ./zegarmistrz -v ./hello                             # trace instructions
@@ -55,7 +55,12 @@ create/join + mutex), `args-exit` (argv passing + exit code 42),
 `avx512-smoke` + `aes-smoke` + `vex-smoke` (native-vs-emulated
 differentials, skipped if the host lacks the features),
 `poison-{load,store,branch,index,syscall}` (each must dump core),
-`poison-unpoison` + `poison-clear` (must exit 0), `cpuid-emulated` +
+`poison-unpoison` + `poison-clear` (must exit 0),
+`poison-launder-branch` + `poison-launder-index` (store-laundering
+through a cannot-branch/cannot-index-poisoned slot without the CLEAR_*
+bit keeps the poison, so using the reloaded value faults with the
+matching reason) and `poison-launder-clear` (with CLEAR_BRANCH_ON_STORE
+the clean store sanitizes and the branch succeeds), `cpuid-emulated` +
 `cpuid-native` + `zeglib-emulated` + `zeglib-native` (CPUID presence and
 the `include/zegarmistrz.h` client library, each run under the emulator
 and natively), `poison-header` (header-library poison must fault under
@@ -333,7 +338,7 @@ chain and break libstdc++'s `#include_next <stdlib.h>`.)
 ## Status / phase 2
 
 Works: `./hello` → `Hello!` (exit 0), static/dynamic/threaded guests,
-full `run-tests` green (28 tests, parallel), zero compiler warnings.
+full `run-tests` green (31 tests, parallel), zero compiler warnings.
 Threads, futexes, TLS (`FS`), `rseq`, robust lists, `brk`, `mmap`,
 AVX/AVX2, BMI/BMI2 (incl. `BEXTR`), x87 (+`FLDENV`/`FNSTENV`), `XSAVE`,
 `RDPKRU`/`WRPKRU` — all exercised by the loader + libc + Fil-C runtime
