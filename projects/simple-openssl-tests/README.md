@@ -3,9 +3,10 @@
 A suite of small, self-contained C programs — one per cryptosystem — that
 exercise OpenSSL 3's public API with known-answer and behavior tests.  Every
 program is a single `.c` file that builds and runs identically under Fil-C,
-under Yolo-C, and under a normal glibc compiler, so each cryptosystem can be
-watched through all of the repo's C stacks.  All working buffers (keys,
-inputs, outputs, IVs, AAD, tags, salts, ...) are malloc'd through small
+under Yolo-C, and under a normal (unpizlonated) compiler, so each
+cryptosystem can be watched through all of the repo's C stacks.  All
+working buffers (keys, inputs, outputs, IVs, AAD, tags, salts, ...) are
+malloc'd through small
 labeled `ALLOCATE_*` functions with optional poisoning hooks, so that a real
 poisoning implementation can be attached later without touching a single
 test program.
@@ -64,10 +65,13 @@ name contains "fil", and to the system OpenSSL otherwise.  The convenience
 wrappers do the same:
 
 ```sh
-./build_glibc.sh     # gcc (+ system OpenSSL); CC=.../OPENSSL_HOME=... overridable
+./build_yolo.sh      # normal (unpizlonated) compiler, gcc by default
+                     # (+ system OpenSSL); CC=.../OPENSSL_HOME=... overridable
 ./build_filc.sh      # <repo>/build/bin/filcc (+ pizfix); FILCC=... overridable
-./build_yoloc.sh     # Yolo-C (+ a separately built "yolo" OpenSSL; see below)
 ```
+
+There is no wrapper for a Yolo-C (yolo-glibc) build — drive `make` directly;
+see [Yolo-C](#yolo-c) below.
 
 Extra arguments go to `make`, e.g. `./build_filc.sh clean test`.
 
@@ -100,10 +104,10 @@ x86_64) with `make clean`, a full build, and then `./run_all.sh`,
 
 | Configuration | Command | Compiler | OpenSSL linked | Result |
 |---|---|---|---|---|
-| glibc | `./build_glibc.sh` (= `make CC=gcc`) | gcc 12.4.0 | system 3.0.13 | 80 passed, 0 failed (~1.5 s suite) |
+| yolo (normal compiler) | `./build_yolo.sh` (= `make CC=gcc`) | gcc 12.4.0 | system 3.0.13 | 80 passed, 0 failed (~1.5 s suite) |
 | Fil-C (primary) | `./build_filc.sh` | `build/bin/filcc` (Fil-C 0.686, clang 20.1.8) | pizfix 3.6.5 | 80 passed, 0 failed (~4 s suite) |
 | Fil-C (secondary) | `FILCC=/opt/fil/bin/filcc ./build_filc.sh` | `/opt/fil/bin/filcc` | repo pizfix 3.6.5 (the `/opt/fil` install ships no sysroot OpenSSL) | 80 passed, 0 failed |
-| Yolo-C | `./build_yoloc.sh` | host gcc 12.4.0 via the generated yolocc wrapper | yolo-built 3.6.5 at `/tmp/yolo-openssl-install` (override with `YOLO_OPENSSL_HOME=`) | 80 passed, 0 failed |
+| Yolo-C (yolo glibc) | `make CC=/tmp/yolocc OPENSSL_HOME=/tmp/yolo-openssl-install` | host gcc 12.4.0 via the `/tmp/yolocc` wrapper | yolo-built 3.6.5 at `/tmp/yolo-openssl-install` | 80 passed, 0 failed |
 
 `make CC=clang` was also smoke-verified (clang 18.1.3 + system OpenSSL
 3.0.13, same code path as gcc).  Fil-C programs are built with `-g -O2` per
@@ -155,12 +159,16 @@ this repo's "yolo" glibc in `pizfix/` (`crt1.o`/`crti.o`/`crtn.o` +
 `crtbegin.o`/`crtend.o`, `-lyoloc`, and the `ld-fil1-x86_64.so` dynamic
 loader; the full libc lives in `libyolocimpl.so`).  A Yolo-C binary cannot
 link the pizlonated libcrypto in `pizfix/` (the ABI slice problem), so it
-needs its own separately-built, unpizlonated ("yolo") OpenSSL.
+needs its own separately-built, unpizlonated ("yolo") OpenSSL.  (Note the
+two senses of "yolo" in this repo: elsewhere — e.g. `./build_yolo.sh` —
+"yolo" just means a normal, unpizlonated compiler; "Yolo-C" here is the
+flavor that additionally links this repo's yolo glibc.)
 
-`./build_yoloc.sh` looks for that OpenSSL in `/tmp/yolo-openssl-install` by
-default (override with `YOLO_OPENSSL_HOME=/some/prefix`), generates a
-`yolocc` compiler wrapper into a mktemp file, and runs `make` with it.  The
-wrapper mirrors the proven `/tmp/yolocc` recipe:
+There is no wrapper script for this configuration: drive `make` directly
+with a CC wrapper that knows the yolo link recipe and with `OPENSSL_HOME`
+pointing at the yolo OpenSSL prefix — on this machine,
+`make clean && make CC=/tmp/yolocc OPENSSL_HOME=/tmp/yolo-openssl-install`,
+where `/tmp/yolocc` is the proven gcc wrapper with this behavior:
 
 * compile-only (`-c`, `-E`, `-S`, `-M`, `-MM`) and info probes (`--version`,
   `-v`, `-print-*`, `-dump*`): plain `gcc`;
@@ -197,8 +205,7 @@ mkdir -p /tmp/yolo-openssl-build && cd /tmp/yolo-openssl-build
 make -j && make install_sw
 ```
 
-`/tmp/yolocc` is the wrapper described above (identical logic to the one
-`./build_yoloc.sh` generates).  `install_sw` produces
+`/tmp/yolocc` is the wrapper described above.  `install_sw` produces
 `/tmp/yolo-openssl-install/{include,bin,lib64}`; the `lib -> lib64` symlink
 in that prefix exists so the Makefile's plain `-L<prefix>/lib` also works.
 Both the pizfix build and the yolo build report `OpenSSL 3.6.5 29 Sep 2026`.
@@ -555,5 +562,5 @@ picked up by the Makefile automatically.  House rules:
    the ABI slice problem that Yolo-C works around above).
 
 Before committing a new program, make sure it builds and passes under
-`./build_glibc.sh`, `./build_filc.sh` and `./build_yoloc.sh`, and once with
-`--poison-all`; then add its row to the test list above.
+`./build_yolo.sh` and `./build_filc.sh`, and once with `--poison-all`; then
+add its row to the test list above.

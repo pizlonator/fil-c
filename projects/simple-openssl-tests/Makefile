@@ -8,7 +8,7 @@
 #   make CC=<repo>/build/bin/filcc               # Fil-C + pizfix OpenSSL 3
 #   make CC=gcc OPENSSL_HOME=/some/openssl/prefix
 #
-# Convenience wrappers: ./build_glibc.sh, ./build_filc.sh, ./build_yoloc.sh.
+# Convenience wrappers: ./build_yolo.sh (normal compiler), ./build_filc.sh.
 
 ifeq ($(origin CC),default)
 CC := cc
