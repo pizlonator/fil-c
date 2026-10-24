@@ -42,6 +42,8 @@ If you run into trouble, see the [Build Stages](#stages).
 
 ## Using Pizlix
 
+Pizlix boots to a plain text login: it uses sysvinit with gettys on tty1 through tty6, and there is no graphical login manager. Log in as a non-root user (like `pizlo`, password `pizlo`).
+
 Pizlix by default has the following configuration:
 
 - `sshd` is running. It's a memory safe OpenSSH daemon!
@@ -62,19 +64,76 @@ Once you get your internet to work (it will "just work" if `eth0` is DHCP capabl
 
 As `root`. Without this, `curl` and `wget` will have problems with HTTPS.
 
-To see what this thing is really capable of, log in as a non-root user (like `pizlo`) and do:
+To see what this thing is really capable of, do:
 
     weston
 
-And enjoy a totally memory safe GUI!
+And enjoy a totally memory safe GUI! `weston` is the simple Wayland compositor. It talks to seatd directly and coexists with the GNOME session (run it on one VT, GNOME on another).
 
-You can also run a GNOME Wayland session. Log in as a non-root user and do:
+To run the full GNOME desktop, do:
 
     pizlix-gnome
 
-This starts mutter as the Wayland compositor with gnome-session managing it (a weston-terminal will be autostarted; launch GNOME apps from there, e.g. `gnome-text-editor`).
+This starts the full GNOME Shell session: the mutter Wayland compositor with the GNOME shell on top — top bar, Activities overview, app grid, notifications. A weston-terminal is autostarted; launch GNOME apps from there or from the Activities search, e.g. `gnome-text-editor`.
 
-With Post-LC 8 built, `pizlix-gnome` starts the full GNOME Shell (top bar, overview, app grid) instead of the bare mutter session.
+See <a href="#gnome-services">GNOME services and how they're wired up</a> below for what the session needs from the boot scripts, PAM, and D-Bus.
+
+<a name="gnome-services"></a>
+## GNOME services and how they're wired up
+
+Everything below is installed by `build_postlc7_chroot_setup_scripts_for_gnome.sh` (plus the postlc3 weston setup script) and was verified live.
+
+### Boot services
+
+The setup script copies the bootscripts and creates the rc symlinks (S20dbus/S25elogind in rc2.d through rc5.d, matching K links in rc0.d/rc1.d/rc6.d). Boot order in practice:
+
+- `S20dbus` starts the D-Bus system message bus (`dbus-daemon --system`, daemonizes, pid in `/run/dbus/pid`). Everything else wants the bus up first.
+- `S25elogind` starts elogind (`/usr/libexec/elogind --daemon`), which claims `org.freedesktop.login1` on the system bus and provides the logind API (sessions and seats).
+- The rest follows: `S10sysklogd`, `S20network` (dhcpcd on eth0), `S30sshd`, `S80seatd` (used by weston).
+
+The same setup script also fixes two prerequisites: it appends `USE_PAM yes` to `/etc/login.defs` (shadow's login is built with Linux-PAM in this stage), and it changes the `mountvirtfs` bootscript to create `/run/user` with mode 755 instead of 1777 (elogind refuses every session on a world-writable `/run/user`).
+
+### Login
+
+`/bin/login` is built with Linux-PAM, and `/etc/pam.d/login` loads `pam_elogind.so`, so every console login registers a session with elogind. After logging in on a getty, `loginctl list-sessions` shows the session as active on `seat0`. mutter/gnome-shell uses that elogind session to take control of the seat and become DRM master of `/dev/dri/card0`.
+
+Note: shadow's login prints `configuration error - unknown item 'USE_PAM'` before the password prompt. That's cosmetic — the `USE_PAM` key only exists in `login.defs` tables for shadow builds *without* PAM; PAM itself runs fine (the session registers, `/run/user/$UID` gets created).
+
+### Starting GNOME
+
+`pizlix-gnome` execs `dbus-run-session -- gnome-session --session=pizlix-gnome`. The session definition (`/usr/share/gnome-session/sessions/pizlix-gnome.session`) requires exactly one component, `org.gnome.Shell`:
+
+- gnome-session resolves it by desktop-file id to `/etc/xdg/autostart/org.gnome.Shell.desktop` (`X-GNOME-Autostart-Phase=DisplayServer`), which runs `/usr/bin/pizlix-shell`. That wrapper starts `gnome-shell --wayland`, waits for the Wayland socket, registers with `org.gnome.SessionManager.RegisterClient` using its `DESKTOP_AUTOSTART_ID` (GNOME 46 dropped the shell's own registration code and we run without systemd), and stays in the foreground for as long as the shell lives.
+- Once the compositor is up, the remaining autostart entries launch: `pizlix-terminal.desktop` autostarts a weston-terminal.
+
+### Compositor environment
+
+The wrappers (`pizlix-gnome`, `pizlix-shell`) export what the session needs:
+
+- `GBM_ALWAYS_SOFTWARE=true`: the only GPU is QEMU's display-only bochs-drm (no render node), so gbm/EGL must take the kms_swrast (llvmpipe) path.
+- `NIR_DEBUG=novalidate`: disables Mesa's NIR shader validator, which bit-tags a pointer that Fil-C provenance tracks. Known limitation, see the postlc7 notes.
+- `GI_TYPELIB_PATH`/`LD_LIBRARY_PATH` pointing at `/usr/lib/gnome-shell` and `/usr/lib/mutter-14` (the shell's introspection data and private libraries).
+- `ADW_DISABLE_PORTAL=1`: no xdg-desktop-portal is built, and libadwaita only reads the gsettings color-scheme (Dark Style) when the portal is disabled.
+
+### Odds and ends
+
+- `XDG_RUNTIME_DIR` comes from `/etc/profile.d/xdg-runtime-dir.sh` (`/run/user/$(id -u)`, created mode 700).
+- `/etc/machine-id` is a symlink to `/var/lib/dbus/machine-id`, created by `dbus-uuidgen --ensure`; dbus and elogind both want it.
+- Settings are gsettings/dconf: `dconf-service` D-Bus-activates on the session bus on first write and persists to `~/.config/dconf/user`.
+
+### weston vs GNOME
+
+`weston` uses seatd directly (independent of elogind), which is why the simple compositor and the full GNOME session coexist.
+
+### Current limitations
+
+- No display manager: text login on the console only, no graphical login screen.
+- No Gdm, so the shell disables screen locking ("Screen Lock disabled — Screen Locking requires the GNOME display manager" notification at session start).
+- No NetworkManager: no wifi/bluetooth tiles in quick settings; dhcpcd on eth0 only.
+- No PipeWire: no audio.
+- No calendar server (evolution-data-server): the clock has no calendar dropdown.
+- No librsvg: SVG icons degrade to a generic glyph; PNG icons render fine.
+- No gnome-settings-daemon: gnome-session logs "Missing required core component Settings, expect trouble…" and some integration (e.g. color management) is absent.
 
 <a name="stages"></a>
 ## Build Stages
@@ -125,7 +184,7 @@ If you want to start the build here, do `sudo ./build_with_recovered_postlc2.sh`
 
 ### Post-LC 7
 
-This builds the GNOME desktop on top of the Wayland environment: dbus, elogind, dconf, mutter (the Wayland compositor), gnome-session, libadwaita, and a couple of GNOME apps. It is the Wayland analog of Weston.
+This builds the GNOME desktop on top of the Wayland environment: dbus, elogind, dconf, mutter (the Wayland compositor), gnome-session, libadwaita, and a couple of GNOME apps. It also installs the session wiring (dbus/elogind bootscripts, the PAM bits that make logins register with elogind, and the `pizlix-gnome`/`pizlix-shell` launchers). At this point `pizlix-gnome` starts a bare mutter session; the shell UI comes in the next stage.
 
 If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc7.sh`.
 
@@ -133,7 +192,7 @@ If you want to start the build here, do `sudo ./build_with_recovered_postlc6.sh`
 
 ### Post-LC 8
 
-This builds GNOME Shell: the SpiderMonkey JavaScript engine (mozjs), gjs (the JS-to-GNOME bindings), and gnome-shell (the full GNOME desktop shell: top bar, activities overview, app grid, notifications). This is the full GNOME desktop experience. If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc8.sh`. If you want to start the build here, do `sudo ./build_with_recovered_postlc7.sh`.
+This builds GNOME Shell: the SpiderMonkey JavaScript engine (mozjs), gjs (the JS-to-GNOME bindings), and gnome-shell (the full GNOME desktop shell: top bar, activities overview, app grid, notifications). After this stage, `pizlix-gnome` starts the full GNOME Shell session — this is the full GNOME desktop experience. If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc8.sh`. If you want to start the build here, do `sudo ./build_with_recovered_postlc7.sh`.
 
 ### Other Tricks
 

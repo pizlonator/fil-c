@@ -51,6 +51,9 @@ export GI_TYPELIB_PATH=/usr/lib/gnome-shell:/usr/lib/mutter-14
 export LD_LIBRARY_PATH=/usr/lib/gnome-shell:/usr/lib/mutter-14${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 export GBM_ALWAYS_SOFTWARE=true
 export NIR_DEBUG=novalidate
+# The shell's Adw.StyleManager also needs this to pick up the gsettings
+# color-scheme (Dark Style) when no xdg-desktop-portal is running.
+export ADW_DISABLE_PORTAL=1
 
 # Remove stale Wayland sockets from previous (crashed) compositor runs:
 # otherwise the readiness check below sees a dead socket file and hands
