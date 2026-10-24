@@ -54,9 +54,12 @@ filc/projeny package projects/duktape.projeny projects/duktape/pizlonated-duktap
 # pygobject: Sprint 3 brought the Sprint 4 build under projeny to carry the
 # Fil-C import-gi fix (PyGObject_MetaType is still NULL while the _gi module
 # executes; the pizlonated CPython asserts zhasvalidcap() in Py_SET_TYPE).
-# The output name matches what postlc4's packaging produced so the chroot
-# script and the cp glob are unchanged.
-filc/projeny package projects/pygobject.projeny projects/pygobject-3.48.2/pizlonated-pygobject.tar.gz
+# Name is 'pygobject' (NOT 'pygobject-3.48.2'): the latter would collide with
+# the checked-in projects/pygobject-3.48.2/ tree that postlc4's packaging
+# uses (on a fresh clone the tracked tree exists but projeny's status file
+# does not, so setup refuses).  The output NAME still matches what postlc4's
+# packaging produced, so the chroot script and the cp glob are unchanged.
+filc/projeny package projects/pygobject.projeny projects/pygobject/pizlonated-pygobject.tar.gz
 
 # The Shell itself.
 filc/projeny package projects/gnome-shell.projeny projects/gnome-shell/pizlonated-gnome-shell.tar.gz

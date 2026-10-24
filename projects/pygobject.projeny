@@ -1,11 +1,11 @@
 URL: https://download.gnome.org/sources/pygobject/3.48/pygobject-3.48.2.tar.xz ff8a3c3c9a12eff6ef6453eb0bc81b9b8b67d26873513bd0abd0578bc0fcb4e6
 Origname: pygobject-3.48.2
-Name: pygobject-3.48.2
+Name: pygobject
 
     pygobject 3.48.2 (Python GObject bindings) — previously built in Sprint 4 from a bare tarball without a projeny project; brought under projeny now to carry the Fil-C import fix.
-diff --git a/pygobject-3.48.2/gi/gimodule.c b/pygobject-3.48.2/gi/gimodule.c
---- a/pygobject-3.48.2/gi/gimodule.c
-+++ b/pygobject-3.48.2/gi/gimodule.c
+diff --git a/pygobject/gi/gimodule.c b/pygobject/gi/gimodule.c
+--- a/pygobject/gi/gimodule.c
++++ b/pygobject/gi/gimodule.c
 @@ -192,8 +192,55 @@
  {
      GParamSpec *pspec = NULL;
@@ -253,9 +253,9 @@ diff --git a/pygobject-3.48.2/gi/gimodule.c b/pygobject-3.48.2/gi/gimodule.c
 
      if (!pspec) {
  	char buf[128];
-diff --git a/pygobject-3.48.2/gi/pygi-value.c b/pygobject-3.48.2/gi/pygi-value.c
---- a/pygobject-3.48.2/gi/pygi-value.c
-+++ b/pygobject-3.48.2/gi/pygi-value.c
+diff --git a/pygobject/gi/pygi-value.c b/pygobject/gi/pygi-value.c
+--- a/pygobject/gi/pygi-value.c
++++ b/pygobject/gi/pygi-value.c
 @@ -326,8 +326,55 @@
  {
      GType value_type = G_VALUE_TYPE(value);
@@ -723,9 +723,9 @@ diff --git a/pygobject-3.48.2/gi/pygi-value.c b/pygobject-3.48.2/gi/pygi-value.c
 
      type_name = g_type_name (G_VALUE_TYPE (value));
      if (type_name == NULL) {
-diff --git a/pygobject-3.48.2/gi/pygobject-object.c b/pygobject-3.48.2/gi/pygobject-object.c
---- a/pygobject-3.48.2/gi/pygobject-object.c
-+++ b/pygobject-3.48.2/gi/pygobject-object.c
+diff --git a/pygobject/gi/pygobject-object.c b/pygobject/gi/pygobject-object.c
+--- a/pygobject/gi/pygobject-object.c
++++ b/pygobject/gi/pygobject-object.c
 @@ -560,7 +560,15 @@
      } else
          bases = runtime_bases;
@@ -793,9 +793,9 @@ diff --git a/pygobject-3.48.2/gi/pygobject-object.c b/pygobject-3.48.2/gi/pygobj
      g_signal_chain_from_overridden(params, &ret);
      for (i = 0; i < query.n_params + 1; i++)
  	g_value_unset(&params[i]);
-diff --git a/pygobject-3.48.2/tests/testhelpermodule.c b/pygobject-3.48.2/tests/testhelpermodule.c
---- a/pygobject-3.48.2/tests/testhelpermodule.c
-+++ b/pygobject-3.48.2/tests/testhelpermodule.c
+diff --git a/pygobject/tests/testhelpermodule.c b/pygobject/tests/testhelpermodule.c
+--- a/pygobject/tests/testhelpermodule.c
++++ b/pygobject/tests/testhelpermodule.c
 @@ -383,23 +383,20 @@
    ret = g_malloc0 (sizeof (GValue));
    g_value_init (ret, type);
