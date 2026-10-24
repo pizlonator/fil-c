@@ -766,13 +766,13 @@ cd ..
 rm -rf pizlonated-make
 hash -r
 
-tar -xf $FILCSRC/pizlix/patch-2.8.tar.xz
-cd patch-2.8
+tar -xf $FILCSRC/projects/patch/pizlonated-patch.tar.gz
+cd pizlonated-patch
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf patch-2.8
+rm -rf pizlonated-patch
 hash -r
 
 tar -xf $FILCSRC/projects/tar-1.35/pizlonated-tar.tar.gz

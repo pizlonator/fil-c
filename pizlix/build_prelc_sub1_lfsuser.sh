@@ -309,15 +309,15 @@ make DESTDIR=$LFS install
 cd ..
 rm -rf make-4.4.1
 
-tar -xf patch-2.8.tar.xz
-cd patch-2.8
+tar -xf pizlonated-patch.tar.gz
+cd pizlonated-patch
 ./configure --prefix=/yolo \
     --host=$LFS_TGT \
     --build=$(build-aux/config.guess)
 make
 make DESTDIR=$LFS install
 cd ..
-rm -rf patch-2.8
+rm -rf pizlonated-patch
 
 tar -xf sed-4.10.tar.xz
 cd sed-4.10

@@ -79,6 +79,7 @@ filc/projeny package \
     projects/xxHash.projeny projects/xxHash/pizlonated-xxHash.tar.gz \
     projects/rsync.projeny projects/rsync/pizlonated-rsync.tar.gz \
     projects/gzip.projeny projects/gzip/pizlonated-gzip.tar.gz \
+    projects/patch.projeny projects/patch/pizlonated-patch.tar.gz \
     projects/attr.projeny projects/attr/pizlonated-attr.tar.gz \
     projects/libedit.projeny projects/libedit/pizlonated-libedit.tar.gz \
     projects/patchelf.projeny projects/patchelf/pizlonated-patchelf.tar.gz \

@@ -87,7 +87,6 @@ cp -v \
     ncurses-6.6.tar.gz \
     ninja-1.12.1.tar.gz \
     openssl-3.3.1.tar.gz \
-    patch-2.8.tar.xz \
     perl-5.40.0.tar.xz \
     procps-ng-4.0.7.tar.xz \
     psmisc-23.7.tar.xz \

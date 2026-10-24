@@ -16,3 +16,4 @@ cd $FILCSRC
 rm -vf projects/*/pizlonated-*.tar.gz
 ./package-source.sh projects/linux-6.10.5 pizlonated-linux
 filc/projeny package projects/yolo-util-linux.projeny projects/yolo-util-linux/pizlonated-yolo-util-linux.tar.gz
+filc/projeny package projects/patch.projeny projects/patch/pizlonated-patch.tar.gz
