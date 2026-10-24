@@ -1,0 +1,10 @@
+return:
+  compileFailure
+output-includes:
+  - "Fil-C cannot initialize 'packed_global': a pointer in its initializer is not word-aligned"
+  - "Fil-C cannot initialize 'packed_tls': a pointer in its initializer is not word-aligned"
+  - "Fil-C cannot initialize 'null_tls': a pointer in its initializer is not word-aligned"
+  - "Fil-C cannot initialize 'odd_global': a pointer in its initializer is not word-aligned"
+  - "Fil-C cannot initialize 'odd_tls': a pointer in its initializer is not word-aligned"
+output-excludes:
+  - Assertion

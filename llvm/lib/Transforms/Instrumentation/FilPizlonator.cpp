@@ -6640,6 +6640,47 @@ class Pizlonator {
     return storeCC(AIs, Vs, InsertBefore, DI);
   }
 
+  // Whether a pointer leaf of T lies at a non-word offset from a word-aligned base. Global and
+  // thread-local initializers store pointer leaves without access checks, so such a leaf would
+  // write a capability across two aux words. Packed records and underaligned unions can place one
+  // there.
+  bool hasMisalignedPtrs(Type* T, size_t Offset = 0) {
+    if (!hasPtrs(T))
+      return false;
+    if (isa<PointerType>(T))
+      return Offset % WordSize;
+    if (StructType* ST = dyn_cast<StructType>(T)) {
+      const StructLayout* SL = DL.getStructLayout(ST);
+      for (size_t Index = 0; Index < ST->getNumElements(); ++Index) {
+        if (hasMisalignedPtrs(ST->getElementType(Index), Offset + SL->getElementOffset(Index)))
+          return true;
+      }
+      return false;
+    }
+    Type* ElementT;
+    uint64_t Count;
+    if (ArrayType* AT = dyn_cast<ArrayType>(T)) {
+      ElementT = AT->getElementType();
+      Count = AT->getNumElements();
+    } else {
+      FixedVectorType* VT = cast<FixedVectorType>(T);
+      ElementT = VT->getElementType();
+      Count = VT->getNumElements();
+    }
+    // Element offsets modulo the word size repeat after at most WordSize elements.
+    size_t ElementSize = DL.getTypeAllocSize(ElementT);
+    for (uint64_t Index = 0; Index < std::min<uint64_t>(Count, WordSize); ++Index) {
+      if (hasMisalignedPtrs(ElementT, Offset + Index * ElementSize))
+        return true;
+    }
+    return false;
+  }
+
+  void reportMisalignedInitializer(GlobalVariable* G) {
+    C.emitError("Fil-C cannot initialize '" + G->getName() +
+                "': a pointer in its initializer is not word-aligned");
+  }
+
   bool hasNonNullPtrs(Constant* C) {
     if (isa<ConstantData>(C))
       return false;
@@ -6818,7 +6859,10 @@ class Pizlonator {
     assert(C->getType() != FlightPtrTy);
 
     if (ConstantTarget CT = constexprRecurse(C)) {
-      assert(!(Offset % WordSize));
+      // A relocation writes a whole aux word. Fall back to the recursive store, which rejects
+      // misaligned pointer leaves and stores other leaves as plain data.
+      if (Offset % WordSize)
+        return false;
       Result.push_back(ConstantRelocation(Offset, CT.Kind, CT.Target));
       return true;
     }
@@ -16846,7 +16890,11 @@ public:
         else
           AuxP = RawNull;
         Return->getOperandUse(0) = Lower;
-        if (!isa<ConstantAggregateZero, ConstantPointerNull>(G->getInitializer())) {
+        if (isa<ConstantAggregateZero, ConstantPointerNull>(G->getInitializer())) {
+          // The allocation is already zero.
+        } else if (hasMisalignedPtrs(G->getValueType())) {
+          reportMisalignedInitializer(G);
+        } else {
           Value* Const = constantToFlightValue(G->getInitializer(), Return);
           storeValueRecurseAfterCheck(
             G->getValueType(), Const,
@@ -17030,6 +17078,8 @@ public:
             { MyThread, NewDataObjectC, RelocG, ConstantInt::get(IntPtrTy, Constants.size()) },
             "", Return);
         }
+      } else if (hasMisalignedPtrs(G->getInitializer()->getType())) {
+        reportMisalignedInitializer(G);
       } else {
         Value* C = constantToFlightValue(G->getInitializer(), Return);
         storeValueRecurseAfterCheck(
