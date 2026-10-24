@@ -34,11 +34,6 @@ cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
 cp -v build_postlc8_sub2_chroot.sh $LFS/sources
 cp -v build_postlc8_chroot_project_*.sh $LFS/sources
 
-# The session glue is NOT re-installed here: postlc7 owns the session
-# wiring (build_postlc7_chroot_setup_scripts_for_gnome.sh runs at the end
-# of postlc7's sub2), so the postlc7 snapshot this stage builds on already
-# carries it.  This stage has exactly ONE build_chroot_late call.
-
 ./build_chroot_late.sh /sources/build_postlc8_sub2_chroot.sh
 
 echo "postlc8" > $LFS/sources/lfsbuildstate

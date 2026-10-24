@@ -61,11 +61,6 @@ cp -v etc/gnome/pizlix-gnome.sh etc/gnome/pizlix-shell.sh \
 
 ./build_chroot_late.sh /sources/build_postlc7_sub2_chroot.sh
 
-# Exactly ONE build_chroot_late call in this stage: the session wiring
-# (build_postlc7_chroot_setup_scripts_for_gnome.sh) is installed by sub2
-# itself, at the end of the chroot phase, so the postlc7 snapshot below
-# already carries it.
-
 echo "postlc7" > $LFS/sources/lfsbuildstate
 
 ./build_unmount.sh
