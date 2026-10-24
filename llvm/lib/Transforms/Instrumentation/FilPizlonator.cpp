@@ -16673,8 +16673,10 @@ public:
           ImplFuncTy, Linkage, F->getAddressSpace(),
           buf.str(), &M);
         FunctionToHiddenFunction[F] = NewF;
-        if (!UsesCallee)
+        if (!UsesCallee) {
+          NewF->setVisibility(F->getVisibility());
           FunctionToSignature[F] = Signature;
+        }
         NewF->setSubprogram(F->getSubprogram());
 
         PutImplIntoComdat(F, NewF);
@@ -16682,7 +16684,9 @@ public:
         if (F->getLinkage() == GlobalValue::ExternalLinkage && !UsesCallee) {
           std::ostringstream buf;
           buf << "pizlonatedFI" << Signature << "_" << std::string(F->getName());
-          GlobalAlias::create(ImplFuncTy, 0, F->getLinkage(), buf.str(), NewF, &M);
+          GlobalAlias* Alias =
+            GlobalAlias::create(ImplFuncTy, 0, F->getLinkage(), buf.str(), NewF, &M);
+          Alias->setVisibility(F->getVisibility());
         }
 
         GlobalVariable* NewObjectG = new GlobalVariable(
@@ -16822,6 +16826,7 @@ public:
         GlobalVariable* NewG = new GlobalVariable(
           M, RawPtrTy, false, G->getLinkage(), G->isDeclaration() ? nullptr : RawNull,
           "pizlonatedTP_" + G->getName(), nullptr, G->getThreadLocalMode());
+        NewG->setVisibility(G->getVisibility());
         if (GlobalToComdat.count(G))
           NewG->setComdat(GlobalToComdat[G]);
 

@@ -1,0 +1,16 @@
+return:
+  success
+libraries:
+  libprovider.so:
+    isBundle: true
+    files:
+      - provider.c
+  libconsumer.so:
+    isBundle: true
+    files:
+      - consumer.c
+      - caller.c
+optFlags:
+  "-O2 -fPIC -fvisibility=hidden -fsemantic-interposition"
+output-includes:
+  - "hidden visibility ok"
