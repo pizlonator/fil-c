@@ -9,14 +9,6 @@ cd /sources
 
 ./build_postlc7_chroot_project_dbus.sh
 hash -r
-#!/bin/bash
-
-set -e
-set -x
-
-ulimit -c unlimited
-
-cd /sources
 
 # PAM first: everything else in this stage (shadow, elogind) needs it.
 ./build_postlc7_chroot_project_pam.sh
@@ -140,4 +132,15 @@ hash -r
 
 # Icon theme last (data only; runs gtk4-update-icon-cache).
 ./build_postlc7_chroot_project_adwaita_icon_theme.sh
+hash -r
+
+# Session wiring, LAST (all packages above must be in place first): the
+# dbus/elogind bootscript links, the GNOME session file, the autostart
+# entries, and the /usr/bin/pizlix-* launchers, installed from the glue
+# files build_postlc7.sh copied into /sources/etc.  This used to be a
+# second build_chroot_late call in build_postlc7.sh (with a smoke test
+# after it); the stage now has exactly ONE build_chroot_late call, so the
+# setup script runs here, at the end of the chroot phase, and the postlc7
+# snapshot carries the glue.
+./build_postlc7_chroot_setup_scripts_for_gnome.sh
 hash -r
