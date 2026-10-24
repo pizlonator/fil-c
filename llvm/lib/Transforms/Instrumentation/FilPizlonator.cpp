@@ -3000,10 +3000,36 @@ class Pizlonator {
 
     // Make sure that AlwaysLive allocas are always live. This is very hacky, but is obviously
     // correct.
+    //
+    // At -O0 nothing has lifetime markers, so every small alloca is AlwaysLive. Putting all of them
+    // into every live set makes them interfere with each other and with every pointer in the
+    // function, so building that graph is quadratic and coloring it greedily is cubic. Instead,
+    // the naked ones in the root block (which is where static allocas live) stay out of the live
+    // sets. Such an alloca is live everywhere except above its definition in the root block, so at
+    // any point the live ones are a prefix of RootAlwaysLive. The coloring below visits the root
+    // block first and in order, so when it reaches a value, the RootAlwaysLive allocas it has
+    // already colored are exactly the ones that were live where that value was defined, so it
+    // avoids their frame indices instead of us recording those edges.
+    //
+    // AlwaysLive LocalExplicit allocas have no lowers here, and the stack aux coloring makes them
+    // interfere with every other explicit local, so they need no liveness at all.
+    std::vector<AllocaInst*> RootAlwaysLive;
+    std::unordered_map<Value*, size_t> RootAlwaysLiveIndex;
+    std::unordered_map<AllocaInst*, size_t> NumRootAlwaysLiveBefore;
     for (BasicBlock* BB : Blocks) {
       for (Instruction& I : *BB) {
         if (AllocaInst* AI = dyn_cast<AllocaInst>(&I)) {
+          if (BB == Blocks[0])
+            NumRootAlwaysLiveBefore[AI] = RootAlwaysLive.size();
           if (AlwaysLive.count(AI)) {
+            PointerKind PK = pointerKindDirect(AI);
+            if (PK == PointerKind::LocalExplicit)
+              continue;
+            if (PK == PointerKind::LocalNaked && BB == Blocks[0]) {
+              RootAlwaysLiveIndex[AI] = RootAlwaysLive.size();
+              RootAlwaysLive.push_back(AI);
+              continue;
+            }
             for (auto& Pair : LiveAtTail)
               Pair.second.insert(&I);
           }
@@ -3013,9 +3039,20 @@ class Pizlonator {
 
     std::unordered_map<ValuePtr, std::unordered_set<ValuePtr>> Interference;
 
+    auto AddInterference = [&] (Value* A, size_t NumAPtrs, Value* B, size_t NumBPtrs) {
+      for (size_t BPtrIndex = NumBPtrs; BPtrIndex--;) {
+        for (size_t APtrIndex = NumAPtrs; APtrIndex--;) {
+          Interference[ValuePtr(A, APtrIndex)].insert(ValuePtr(B, BPtrIndex));
+          Interference[ValuePtr(B, BPtrIndex)].insert(ValuePtr(A, APtrIndex));
+        }
+      }
+    };
+
     for (size_t BlockIndex = Blocks.size(); BlockIndex--;) {
       BasicBlock* BB = Blocks[BlockIndex];
       std::unordered_set<Value*> Live = LiveAtTail[BB];
+      // RootAlwaysLive[0, NumLiveRootAlwaysLive) are live here.
+      size_t NumLiveRootAlwaysLive = RootAlwaysLive.size();
       
       for (auto It = BB->rbegin(); It != BB->rend(); ++It) {
         Instruction* I = &*It;
@@ -3029,18 +3066,29 @@ class Pizlonator {
         } else {
           Live.erase(I);
           Defined = I;
+          auto Iter = RootAlwaysLiveIndex.find(I);
+          if (Iter != RootAlwaysLiveIndex.end()) {
+            assert(Iter->second + 1 == NumLiveRootAlwaysLive);
+            NumLiveRootAlwaysLive = Iter->second;
+          }
         }
 
         if (Defined) {
           size_t NumIPtrs = countPtrsForValue(Defined);
           if (NumIPtrs) {
-            for (Value* LV : Live) {
-              size_t NumVIPtrs = countPtrsForValue(LV);
-              for (size_t LVPtrIndex = NumVIPtrs; LVPtrIndex--;) {
-                for (size_t IPtrIndex = NumIPtrs; IPtrIndex--;) {
-                  Interference[ValuePtr(Defined, IPtrIndex)].insert(ValuePtr(LV, LVPtrIndex));
-                  Interference[ValuePtr(LV, LVPtrIndex)].insert(ValuePtr(Defined, IPtrIndex));
-                }
+            for (Value* LV : Live)
+              AddInterference(Defined, NumIPtrs, LV, countPtrsForValue(LV));
+
+            // Defined also interferes with the live RootAlwaysLive allocas. The coloring accounts
+            // for the ones it colors before Defined. A lifetime start can be after RootAlwaysLive
+            // allocas that are colored after its alloca, so record those edges.
+            if (Defined != I) {
+              auto Iter = NumRootAlwaysLiveBefore.find(cast<AllocaInst>(Defined));
+              size_t NumColoredBefore = Iter == NumRootAlwaysLiveBefore.end()
+                ? RootAlwaysLive.size() : Iter->second;
+              for (size_t Index = NumColoredBefore; Index < NumLiveRootAlwaysLive; ++Index) {
+                AllocaInst* AI = RootAlwaysLive[Index];
+                AddInterference(Defined, NumIPtrs, AI, countPtrsForValue(AI));
               }
             }
           }
@@ -3107,29 +3155,67 @@ class Pizlonator {
       }
     }
 
-    for (ValuePtr IP : Order) {
-      const std::unordered_set<ValuePtr>& Adjacency = Interference[IP];
-      for (size_t FrameIndex = NumSpecialFrameObjects; ; FrameIndex++) {
-        bool Ok = true;
-        for (ValuePtr AIP : Adjacency) {
-          if (FrameIndexMap.count(AIP) && FrameIndexMap[AIP].Index == FrameIndex) {
-            Ok = false;
-            break;
-          }
-        }
-        if (Ok) {
-          FrameEntryKind FEK;
-          PointerKind PK = pointerKindDirect(IP.V);
-          assert(PK == PointerKind::Escaping || PK == PointerKind::LocalNaked);
-          if (PK == PointerKind::LocalNaked)
-            FEK = FrameEntryKind::LowerFromStackAux;
-          else
-            FEK = FrameEntryKind::Lower;
-          FrameIndexMap[IP] = FrameEntry(FEK, FrameIndex);
-          FrameSize = std::max(FrameSize, FrameIndex + 1);
-          break;
-        }
+    // A growing set of frame indices that knows its lowest missing index.
+    struct FrameIndexSet {
+      std::vector<bool> Contains;
+      size_t FirstMissing { 0 };
+
+      bool contains(size_t Index) const {
+        return Index < Contains.size() && Contains[Index];
       }
+
+      void add(size_t Index) {
+        if (Index >= Contains.size())
+          Contains.resize(Index + 1);
+        Contains[Index] = true;
+        while (contains(FirstMissing))
+          FirstMissing++;
+      }
+    };
+
+    // Picks the lowest frame index at or above Begin that is not in Taken and not used by a
+    // neighbor in Adjacency.
+    std::vector<size_t> NeighborPick;
+    size_t Pick = 0;
+    auto PickFrameIndex = [&] (
+      size_t Begin, const FrameIndexSet& Taken, auto& Adjacency, auto KeyOf) -> size_t {
+      Pick++;
+      for (auto& Neighbor : Adjacency) {
+        auto Iter = FrameIndexMap.find(KeyOf(Neighbor));
+        if (Iter == FrameIndexMap.end())
+          continue;
+        size_t Index = Iter->second.Index;
+        if (Index >= NeighborPick.size())
+          NeighborPick.resize(Index + 1);
+        NeighborPick[Index] = Pick;
+      }
+      for (size_t Index = std::max(Begin, Taken.FirstMissing); ; Index++) {
+        if (!Taken.contains(Index) && (Index >= NeighborPick.size() || NeighborPick[Index] != Pick))
+          return Index;
+      }
+    };
+
+    // Frame indices of the RootAlwaysLive allocas colored so far. Every value we color interferes
+    // with all of them; see above.
+    FrameIndexSet RootAlwaysLiveIndices;
+    std::unordered_set<ValuePtr> NoAdjacency;
+    for (ValuePtr IP : Order) {
+      auto AdjacencyIter = Interference.find(IP);
+      const std::unordered_set<ValuePtr>& Adjacency =
+        AdjacencyIter == Interference.end() ? NoAdjacency : AdjacencyIter->second;
+      size_t FrameIndex = PickFrameIndex(
+        NumSpecialFrameObjects, RootAlwaysLiveIndices, Adjacency, [] (ValuePtr P) { return P; });
+      FrameEntryKind FEK;
+      PointerKind PK = pointerKindDirect(IP.V);
+      assert(PK == PointerKind::Escaping || PK == PointerKind::LocalNaked);
+      if (PK == PointerKind::LocalNaked)
+        FEK = FrameEntryKind::LowerFromStackAux;
+      else
+        FEK = FrameEntryKind::Lower;
+      FrameIndexMap[IP] = FrameEntry(FEK, FrameIndex);
+      FrameSize = std::max(FrameSize, FrameIndex + 1);
+      if (RootAlwaysLiveIndex.count(IP.V))
+        RootAlwaysLiveIndices.add(FrameIndex);
     }
 
     for (BasicBlock* BB : Blocks) {
@@ -3201,39 +3287,29 @@ class Pizlonator {
     // An alloca without lifetime markers is live throughout the function, but it never reaches a
     // lifetime start above, so it must be made to interfere with every other explicit local here.
     // Otherwise, such allocas (all of them, at -O0) share one lowers slot, and the collector only
-    // sees the stack aux of whichever one was initialized last.
+    // sees the stack aux of whichever one was initialized last. Recording those edges would be
+    // quadratic, so the coloring accounts for them: an AlwaysLive alloca avoids the indices of all
+    // explicit locals colored so far, and any other one avoids those of the AlwaysLive ones.
+    FrameIndexSet StackAuxIndices;
+    FrameIndexSet AlwaysLiveStackAuxIndices;
+    std::unordered_set<AllocaInst*> NoStackAuxAdjacency;
     for (AllocaInst* AI : StackAuxOrder) {
-      if (!AlwaysLive.count(AI))
-        continue;
-      for (AllocaInst* OtherAI : StackAuxOrder) {
-        if (OtherAI == AI)
-          continue;
-        StackAuxInterference[AI].insert(OtherAI);
-        StackAuxInterference[OtherAI].insert(AI);
+      auto AdjacencyIter = StackAuxInterference.find(AI);
+      const std::unordered_set<AllocaInst*>& Adjacency =
+        AdjacencyIter == StackAuxInterference.end() ? NoStackAuxAdjacency : AdjacencyIter->second;
+      bool IsAlwaysLive = AlwaysLive.count(AI);
+      size_t FrameIndex = PickFrameIndex(
+        FrameSize, IsAlwaysLive ? StackAuxIndices : AlwaysLiveStackAuxIndices, Adjacency,
+        [] (AllocaInst* AAI) { return ValuePtr(AAI, 0); });
+      if (verbose) {
+        errs() << "For explicit local " << AI->getName() << " using lowers index " << FrameIndex
+               << "\n";
       }
-    }
-
-    for (AllocaInst* AI : StackAuxOrder) {
-      const std::unordered_set<AllocaInst*>& Adjacency = StackAuxInterference[AI];
-      for (size_t FrameIndex = FrameSize; ; FrameIndex++) {
-        bool Ok = true;
-        for (AllocaInst* AAI : Adjacency) {
-          if (FrameIndexMap.count(ValuePtr(AAI, 0))
-              && FrameIndexMap[ValuePtr(AAI, 0)].Index == FrameIndex) {
-            Ok = false;
-            break;
-          }
-        }
-        if (Ok) {
-          if (verbose) {
-            errs() << "For explicit local " << AI->getName() << " using lowers index " << FrameIndex
-                   << "\n";
-          }
-          FrameIndexMap[ValuePtr(AI, 0)] = FrameEntry(FrameEntryKind::ExplicitStackAux, FrameIndex);
-          NumStackAuxes = std::max(NumStackAuxes, FrameIndex + 1 - FrameSize);
-          break;
-        }
-      }
+      FrameIndexMap[ValuePtr(AI, 0)] = FrameEntry(FrameEntryKind::ExplicitStackAux, FrameIndex);
+      NumStackAuxes = std::max(NumStackAuxes, FrameIndex + 1 - FrameSize);
+      StackAuxIndices.add(FrameIndex);
+      if (IsAlwaysLive)
+        AlwaysLiveStackAuxIndices.add(FrameIndex);
     }
 
     FrameSize += NumStackAuxes;
@@ -5530,7 +5606,7 @@ class Pizlonator {
   void removeRedundantChecksUsingForwardAI(
     const std::vector<BasicBlock*>& Blocks,
     const std::unordered_set<const BasicBlock*>& BackEdgePreds,
-    const std::unordered_map<BasicBlock*, std::unordered_set<Value*>> CanonicalPtrLiveAtTail,
+    const std::unordered_map<BasicBlock*, std::unordered_set<Value*>>& CanonicalPtrLiveAtTail,
     std::unordered_map<BasicBlock*, ChecksOrBottom>& ForwardChecksAtHead,
     std::unordered_map<BasicBlock*, std::vector<AccessCheck>>& ForwardChecksAtTail) {
 
