@@ -26,6 +26,15 @@ export GBM_ALWAYS_SOFTWARE=true
 # validation off.  Known limitation, see the postlc7 notes.
 export NIR_DEBUG=novalidate
 
+# Force the software (stage-drawn) cursor: bochs-drm exposes only the
+# primary KMS plane (no hardware cursor plane), so mutter must not try the
+# KMS cursor manager; with this env it logs "Disabling hardware cursors
+# because MUTTER_DEBUG_DISABLE_HW_CURSORS is set" and the cursor is drawn by
+# the software cursor renderer as part of the stage paint - the only path
+# that can work on this hardware.  (The GNOME session wrappers export it
+# too; this copy keeps mutter-only testing consistent.)
+export MUTTER_DEBUG_DISABLE_HW_CURSORS=1
+
 # Remove stale Wayland sockets from previous (crashed) compositor runs:
 # otherwise the readiness check below sees a dead socket file and hands
 # control to the next phase before mutter has bound a live one.

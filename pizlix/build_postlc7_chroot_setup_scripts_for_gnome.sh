@@ -75,3 +75,35 @@ sed -i 's|mkdir -m 1777 /run/user|mkdir -m 755 /run/user|' /etc/rc.d/init.d/moun
 grep -n 'run/user' /etc/rc.d/init.d/mountvirtfs
 
 grep '^USE_PAM' /etc/login.defs
+
+# Fontconfig caches (postlc8 finding: with no /var/cache/fontconfig caches
+# every GUI launch rebuilt them from scratch, burning ~1 min of CPU per
+# app).  Build them once as root, world-readable, so every user (and every
+# app's fontconfig instance) starts from a warm cache.
+fc-cache -f
+ls -lv /var/cache/fontconfig | head
+
+# gdk-pixbuf loader cache: GTK apps query it on every startup; regenerate
+# it if it is missing or older than the loader directory so no app has to
+# fall back to a cold scan.
+if [ ! -s /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache ] \
+   || [ "$(find /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders -newer /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache | head -1)" ]; then
+    gdk-pixbuf-query-loaders --update-cache
+fi
+ls -lv /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+
+# Session default: animations off.  The shell runs on QEMU bochs-drm +
+# llvmpipe (GBM_ALWAYS_SOFTWARE) with a fil-C pizlonated mozjs that is
+# interpreter-only (JIT cannot pass fil-C's guarantees) - a single overview
+# animation is dozens of full-screen software repaints, each dominated by
+# ~3-orders-of-magnitude-slower JS, which pegs gnome-shell >100% CPU for
+# tens of seconds and makes input lag by the same amount.  Ship with
+# animations disabled (a GSettings *schema override*, i.e. the compiled-in
+# default: no dbus session is needed at build time, it applies to every
+# user, and a user can still turn animations back on with gsettings).
+cat > /usr/share/glib-2.0/schemas/81_pizlix-software-gpu.gschema.override <<'EOF'
+[org.gnome.desktop.interface]
+enable-animations=false
+EOF
+glib-compile-schemas /usr/share/glib-2.0/schemas/
+gsettings get org.gnome.desktop.interface enable-animations
