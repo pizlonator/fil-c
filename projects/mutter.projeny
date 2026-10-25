@@ -548,3 +548,105 @@ diff --git a/mutter/src/meta/meta-enum-types.c.in b/mutter/src/meta/meta-enum-ty
 +  return (GType) g_enum_type_id;
  }
  /*** END value-tail ***/
+
+    Pizlix perf: coalesce queued pointer motion (drop stale MOTION per device; bounds input backlog under load; buttons/scroll/keys/touch never dropped)
+diff --git a/mutter/clutter/clutter/clutter-event.c b/mutter/clutter/clutter/clutter-event.c
+--- a/mutter/clutter/clutter/clutter-event.c	2025-03-04 11:59:55.000000000 -0800
++++ b/mutter/clutter/clutter/clutter-event.c	2026-10-24 19:21:02.387861704 -0700
+@@ -973,6 +973,40 @@
+  *
+  * Return value: A #ClutterEvent or NULL if queue empty
+  */
++/* Pizlix: motion event coalescing.
++ *
++ * When the compositor cannot keep up with the pointer's event rate, MOTION
++ * events accumulate in the event queue faster than they are dispatched and
++ * the backlog grows without bound (cursor and input lag grow for as long as
++ * the pointer keeps moving). Pointer motion is idempotent state: only the
++ * most recent position matters. We therefore keep, per device, a reference
++ * to the MOTION event we most recently queued; when a newer MOTION for the
++ * same device arrives while the older one is still queued, the older one is
++ * removed from the queue and freed. The dispatcher either sees one queued
++ * motion per device (the newest) or none (already dispatched).
++ *
++ * Only CLUTTER_MOTION events are coalesced. Button, scroll, key and touch
++ * events are never dropped, so click/drag/scroll semantics are unchanged.
++ */
++G_LOCK_DEFINE_STATIC (motion_coalesce);
++static GHashTable *motion_coalesce_table = NULL;
++
++static void
++motion_coalesce_forget (const ClutterEvent *event)
++{
++  ClutterInputDevice *device = clutter_event_get_device (event);
++
++  if (G_UNLIKELY (motion_coalesce_table == NULL))
++    return;
++
++  G_LOCK (motion_coalesce);
++
++  if (g_hash_table_lookup (motion_coalesce_table, device) == event)
++    g_hash_table_remove (motion_coalesce_table, device);
++
++  G_UNLOCK (motion_coalesce);
++}
++
+ ClutterEvent *
+ clutter_event_get (void)
+ {
+@@ -981,6 +1015,12 @@
+ 
+   event = g_async_queue_try_pop (context->events_queue);
+ 
++  /* The popped event is no longer in the queue; stop tracking it so a
++   * future MOTION for this device is not compared against it. */
++  if (G_UNLIKELY (event != NULL &&
++                  clutter_event_type (event) == CLUTTER_MOTION))
++    motion_coalesce_forget (event);
++
+   return event;
+ }
+ 
+@@ -989,6 +1029,9 @@
+                      gboolean            do_copy)
+ {
+   ClutterContext *context = _clutter_context_get_default ();
++  ClutterInputDevice *device = NULL;
++  ClutterEvent *prev = NULL;
++  gboolean is_motion;
+ 
+   g_assert (context != NULL);
+ 
+@@ -1000,6 +1043,32 @@
+       event = copy;
+     }
+ 
++  is_motion = clutter_event_type (event) == CLUTTER_MOTION;
++  if (is_motion)
++    device = clutter_event_get_device (event);
++
++  if (is_motion)
++    {
++      G_LOCK (motion_coalesce);
++
++      if (G_UNLIKELY (motion_coalesce_table == NULL))
++        motion_coalesce_table = g_hash_table_new (NULL, NULL);
++
++      prev = g_hash_table_lookup (motion_coalesce_table, device);
++      g_hash_table_replace (motion_coalesce_table, device, (gpointer) event);
++
++      G_UNLOCK (motion_coalesce);
++
++      /* Take the superseded event out of the queue, if it is still there.
++       * If it is not (it was already dispatched) the dispatcher owns it
++       * and we must not free it. */
++      if (prev != NULL)
++        {
++          if (g_async_queue_remove (context->events_queue, prev))
++            clutter_event_free (prev);
++        }
++    }
++
+   g_async_queue_push (context->events_queue, (gpointer) event);
+   g_main_context_wakeup (NULL);
+ }
