@@ -1,0 +1,16 @@
+# JIT lazy-extern cache atomics (benign first-use
+# race over Acquire/Release cache slots, verifyModule-clean IR) plus
+# AddGlobalMapping acceptance of genuine Fil-C function payloads.
+# Uses explicit contexts and one session per round (no contended global
+# lock held across exit), so all four harness GC modes run unimpeded.
+return:
+  success
+output-includes:
+  - "atomics-check mapping OK"
+  - "resolve OK"
+  - "invoke OK"
+  - "atomics-check OK"
+output-excludes:
+  - "filc panic"
+  - "filc safety error"
+extraLinkerArgs: "-enable-filc-jit"

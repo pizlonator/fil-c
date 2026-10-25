@@ -1,0 +1,14 @@
+# Root-stress plus GC-config proof. The run-tests
+# harness already executes every test in four GC configurations (rage,
+# scribble+verify, STW, release), so no per-mode manifest variants are
+# needed: the context-gc and post-gc phases below run in all of them.
+return:
+  success
+output-includes:
+  - "context-gc OK"
+  - "post-gc resolve OK"
+  - "root-stress OK"
+output-excludes:
+  - "filc panic"
+  - "filc safety error"
+extraLinkerArgs: "-enable-filc-jit"

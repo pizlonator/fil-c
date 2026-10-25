@@ -216,6 +216,12 @@ def warn_drv_filc_fat_ape_stale_shadow : Warning<
 def warn_drv_filc_fat_ape_aarch64_failed : Warning<
   "the aarch64 half of the fat APE build failed (%0 failed); producing an x86_64-only APE instead">,
   InGroup<filc_ape>;
+def warn_drv_filc_jit_ignored_with_shared : Warning<
+  "ignoring '%0' with '%1': the Fil-C JIT CRT is only linked into executables, so '%0' has no effect when building a shared library">,
+  InGroup<filc_jit>;
+def warn_drv_filc_jit_with_relocatable : Warning<
+  "'%0' has no effect with '%1': the Fil-C JIT CRT cannot be linked into a relocatable object; link the final executable with '%0' instead">,
+  InGroup<filc_jit>;
 def err_drv_invalid_Xarch_argument_with_args : Error<
   "invalid Xarch argument: '%0', options requiring arguments are unsupported">;
 def err_drv_Xopenmp_target_missing_triple : Error<

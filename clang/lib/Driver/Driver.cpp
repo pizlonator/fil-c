@@ -1558,6 +1558,15 @@ Compilation *Driver::BuildCompilation(ArrayRef<const char *> ArgList) {
   if (Arg *A = Args.getLastArg(options::OPT_filc_no_ape))
     A->claim();
 
+  // -enable-filc-jit / --filc-enable-jit is consumed by the link job (see
+  // tools::gnutools::Linker::ConstructJob, which selects filc_jit_crt.o or
+  // filc_jit_mincrt.o); claim it up front so that invocations that never
+  // reach a link (like compile-only ones) do not get an unused-argument
+  // warning. Claim both spellings.
+  if (Arg *A = Args.getLastArg(options::OPT_enable_filc_jit,
+                               options::OPT_filc_enable_jit))
+    A->claim();
+
   // Check for missing include directories.
   if (!Diags.isIgnored(diag::warn_missing_include_dirs, SourceLocation())) {
     for (auto IncludeDir : Args.getAllArgValues(options::OPT_I_Group)) {

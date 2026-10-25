@@ -29,3 +29,7 @@ set -x
 cd libpas
 ./clean.sh
 ./build.sh
+# Build the LLVM JIT shim (libfilcllvmjit.so into ../pizfix/libexec/).
+# Hooked here (rather than in libpas/Makefile or common.mk) to avoid
+# conflicting with other in-flight runtime work.
+./build_llvmjit.sh

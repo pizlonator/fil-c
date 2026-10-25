@@ -1,0 +1,16 @@
+return:
+  success
+output-includes:
+  - "invoke run == 42"
+  - "invoke run2 == 42"
+  - "invoke run3 == 42"
+  - "invoke run4 == 42"
+  - "invoke run5 == 38"
+  - "ghost_data bound OK"
+  - "ghost-fn rejected:"
+  - "invoke run_chain == 42"
+  - "rebind-call hosted OK"
+output-excludes:
+  - "filc panic"
+  - "filc safety error"
+extraLinkerArgs: "-enable-filc-jit"
