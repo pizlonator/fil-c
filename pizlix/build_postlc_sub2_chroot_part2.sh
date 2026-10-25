@@ -640,6 +640,58 @@ install ohci_hcd /sbin/modprobe ehci_hcd ; /sbin/modprobe -i ohci_hcd ; true
 install uhci_hcd /sbin/modprobe ehci_hcd ; /sbin/modprobe -i uhci_hcd ; true
 # End /etc/modprobe.d/usb.conf
 EOF
+
+# Build and install perf, the kernel's userspace profiling tool.  It is
+# built from the same extracted tree as the kernel and with the Fil-C
+# compiler, so it is pizlonated like everything else in the system.
+# Keep the feature set minimal: everything that needs an optional library
+# is disabled with NO_* knobs so that perf only depends on what the
+# chroot already has (zlib, plus flex/bison for the event parser).
+# Consequences: no TUI (use --stdio), no scripting, no BPF, no DWARF
+# unwinding, no demangling - but perf stat/record/report/top all work
+# and all kernel events are still available through perf_event_open.
+make -C tools/perf prefix=/usr \
+    CC=cc \
+    HOSTCC="/usr/bin/gcc -Wno-unknown-warning-option" \
+    NO_LIBELF=1 \
+    NO_SLANG=1 \
+    NO_GTK2=1 \
+    NO_LIBPYTHON=1 \
+    NO_LIBNUMA=1 \
+    NO_LIBAUDIT=1 \
+    NO_LIBCRYPTO=1 \
+    NO_LIBBPF=1 \
+    NO_LIBTRACEEVENT=1 \
+    NO_JEVENTS=1 \
+    NO_LIBPERL=1 \
+    NO_DEMANGLE=1 \
+    NO_LIBZSTD=1 \
+    NO_LZMA=1 \
+    NO_SDT=1 \
+    NO_LIBCAP=1 \
+    NO_BACKTRACE=1
+
+make -C tools/perf install prefix=/usr \
+    CC=cc \
+    HOSTCC="/usr/bin/gcc -Wno-unknown-warning-option" \
+    NO_LIBELF=1 \
+    NO_SLANG=1 \
+    NO_GTK2=1 \
+    NO_LIBPYTHON=1 \
+    NO_LIBNUMA=1 \
+    NO_LIBAUDIT=1 \
+    NO_LIBCRYPTO=1 \
+    NO_LIBBPF=1 \
+    NO_LIBTRACEEVENT=1 \
+    NO_JEVENTS=1 \
+    NO_LIBPERL=1 \
+    NO_DEMANGLE=1 \
+    NO_LIBZSTD=1 \
+    NO_LZMA=1 \
+    NO_SDT=1 \
+    NO_LIBCAP=1 \
+    NO_BACKTRACE=1
+
 cd ..
 rm -rf pizlonated-linux
 

@@ -76,6 +76,20 @@ static char *get_file(struct vdso_file *vdso_file)
 	size_t size;
 	int fd;
 
+	/* Fil-C: find_map() hands us the location of our own [vdso] mapping
+	 * as a pair of integers parsed out of /proc/self/maps, and the code
+	 * below then reads the vdso image through a pointer formed from
+	 * those integers.  Fil-C pointers carry object capabilities, so a
+	 * pointer made from an integer has no object and dereferencing it
+	 * panics.  Just skip dumping the vdso image: the only consequence
+	 * is that samples inside the vdso symbolize as "[vdso]" instead of
+	 * individual function names. */
+#ifdef __PIZLONATOR_WAS_HERE__
+	if (!vdso_file->found)
+		vdso_file->error = true;
+	return NULL;
+#endif
+
 	if (vdso_file->found)
 		return vdso_file->temp_file_name;
 

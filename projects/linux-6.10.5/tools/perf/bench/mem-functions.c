@@ -275,9 +275,15 @@ struct function memcpy_functions[] = {
 	  .fn.memcpy	= memcpy },
 
 #ifdef HAVE_ARCH_X86_64_SUPPORT
+/* Fil-C: the x86-64 asm memcpy/memset bench variants are not built under
+ * Fil-C (sarcasm cannot assemble the kernel's memcpy_64.S/memset_64.S),
+ * so do not reference them either.  See mem-memcpy-x86-64-asm.S.
+ */
+#if !defined(__PIZLONATOR_WAS_HERE__)
 # define MEMCPY_FN(_fn, _name, _desc) {.name = _name, .desc = _desc, .fn.memcpy = _fn},
 # include "mem-memcpy-x86-64-asm-def.h"
 # undef MEMCPY_FN
+#endif
 #endif
 
 	{ .name = NULL, }
@@ -354,9 +360,12 @@ static const struct function memset_functions[] = {
 	  .fn.memset	= memset },
 
 #ifdef HAVE_ARCH_X86_64_SUPPORT
+/* Fil-C: see the memcpy variant above; no asm memset benches under Fil-C. */
+#if !defined(__PIZLONATOR_WAS_HERE__)
 # define MEMSET_FN(_fn, _name, _desc) { .name = _name, .desc = _desc, .fn.memset = _fn },
 # include "mem-memset-x86-64-asm-def.h"
 # undef MEMSET_FN
+#endif
 #endif
 
 	{ .name = NULL, }

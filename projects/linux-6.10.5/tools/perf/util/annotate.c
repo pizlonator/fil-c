@@ -84,13 +84,20 @@ struct annotated_data_type canary_type = {
 	},
 };
 
-/* symbol histogram: key = offset << 16 | evsel->core.idx */
-static size_t sym_hist_hash(long key, void *ctx __maybe_unused)
+/* symbol histogram: key = offset << 16 | evsel->core.idx
+ *
+ * Fil-C: the hashmap API passes keys as pointers; this map keys by a
+ * long that is only hashed and compared, so it is smuggled through
+ * uintptr_t.
+ */
+static size_t sym_hist_hash(const void *key, void *ctx __maybe_unused)
 {
-	return (key >> 16) + (key & 0xffff);
+	long lkey = (long)(intptr_t)key;
+
+	return (lkey >> 16) + (lkey & 0xffff);
 }
 
-static bool sym_hist_equal(long key1, long key2, void *ctx __maybe_unused)
+static bool sym_hist_equal(const void *key1, const void *key2, void *ctx __maybe_unused)
 {
 	return key1 == key2;
 }
@@ -233,12 +240,12 @@ static int __symbol__inc_addr_samples(struct map_symbol *ms,
 	}
 
 	hash_key = offset << 16 | evidx;
-	if (!hashmap__find(src->samples, hash_key, &entry)) {
+	if (!hashmap__find(src->samples, (const void *)(intptr_t)hash_key, &entry)) {
 		entry = zalloc(sizeof(*entry));
 		if (entry == NULL)
 			return -ENOMEM;
 
-		if (hashmap__add(src->samples, hash_key, entry) < 0)
+		if (hashmap__add(src->samples, (const void *)(intptr_t)hash_key, entry) < 0)
 			return -ENOMEM;
 	}
 

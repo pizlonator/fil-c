@@ -43,9 +43,13 @@ static int read_build_id(void *note_data, size_t note_len, struct build_id *bid,
 	void *ptr;
 
 	ptr = note_data;
-	while (ptr < (note_data + note_len)) {
+	/* Fil-C: bounds-check every step; the note buffer is exactly
+	 * note_len bytes and Fil-C panics on any read past its end
+	 * (malformed or unusual notes used to walk past it). */
+	while (ptr + sizeof(*nhdr) <= (void *)((char *)note_data + note_len)) {
 		const char *name;
 		size_t namesz, descsz;
+		size_t remaining = note_len - (ptr - note_data);
 
 		nhdr = ptr;
 		if (need_swap) {
@@ -58,18 +62,27 @@ static int read_build_id(void *note_data, size_t note_len, struct build_id *bid,
 		descsz = NOTE_ALIGN(nhdr->n_descsz);
 
 		ptr += sizeof(*nhdr);
+		remaining -= sizeof(*nhdr);
+		if (namesz > remaining)
+			break;
 		name = ptr;
 		ptr += namesz;
+		remaining -= namesz;
 		if (nhdr->n_type == NT_GNU_BUILD_ID &&
 		    nhdr->n_namesz == sizeof("GNU")) {
 			if (memcmp(name, "GNU", sizeof("GNU")) == 0) {
 				size_t sz = min(size, descsz);
+
+				if (sz > remaining)
+					sz = remaining;
 				memcpy(bid->data, ptr, sz);
 				memset(bid->data + sz, 0, size - sz);
 				bid->size = sz;
 				return 0;
 			}
 		}
+		if (descsz > remaining)
+			break;
 		ptr += descsz;
 	}
 
@@ -147,18 +160,25 @@ int filename__read_build_id(const char *filename, struct build_id *bid)
 			if (phdr->p_type != PT_NOTE)
 				continue;
 
+			/* Fil-C: this used to realloc() buf, which frees the
+			 * phdr array that the loop is still iterating over;
+			 * reading phdr->p_type on the next PT_NOTE iteration
+			 * was a use-after-free that Fil-C panics on.  Put the
+			 * note in its own buffer instead. */
 			buf_size = phdr->p_filesz;
 			offset = phdr->p_offset;
-			tmp = realloc(buf, buf_size);
+			tmp = malloc(buf_size);
 			if (tmp == NULL)
 				goto out_free;
 
-			buf = tmp;
 			fseek(fp, offset, SEEK_SET);
-			if (fread(buf, buf_size, 1, fp) != 1)
+			if (fread(tmp, buf_size, 1, fp) != 1) {
+				free(tmp);
 				goto out_free;
+			}
 
-			ret = read_build_id(buf, buf_size, bid, need_swap);
+			ret = read_build_id(tmp, buf_size, bid, need_swap);
+			free(tmp);
 			if (ret == 0) {
 				ret = bid->size;
 				break;
@@ -199,18 +219,23 @@ int filename__read_build_id(const char *filename, struct build_id *bid)
 			if (phdr->p_type != PT_NOTE)
 				continue;
 
+			/* Fil-C: see the same fix in the ELFCLASS32 branch; the
+			 * realloc() here was a use-after-free of the phdr
+			 * array that this loop is still iterating. */
 			buf_size = phdr->p_filesz;
 			offset = phdr->p_offset;
-			tmp = realloc(buf, buf_size);
+			tmp = malloc(buf_size);
 			if (tmp == NULL)
 				goto out_free;
 
-			buf = tmp;
 			fseek(fp, offset, SEEK_SET);
-			if (fread(buf, buf_size, 1, fp) != 1)
+			if (fread(tmp, buf_size, 1, fp) != 1) {
+				free(tmp);
 				goto out_free;
+			}
 
-			ret = read_build_id(buf, buf_size, bid, need_swap);
+			ret = read_build_id(tmp, buf_size, bid, need_swap);
+			free(tmp);
 			if (ret == 0) {
 				ret = bid->size;
 				break;

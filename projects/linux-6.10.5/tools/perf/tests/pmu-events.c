@@ -1009,10 +1009,10 @@ static int metric_parse_fake(const char *metric_name, const char *str)
 	 */
 	i = 1;
 	hashmap__for_each_entry(ctx->ids, cur, bkt)
-		expr__add_id_val(ctx, strdup(cur->pkey), i++);
+		expr__add_id_val(ctx, strdup((const char *)cur->pkey), i++);
 
 	hashmap__for_each_entry(ctx->ids, cur, bkt) {
-		if (check_parse_fake(cur->pkey)) {
+		if (check_parse_fake((const char *)cur->pkey)) {
 			pr_err("check_parse_fake failed\n");
 			goto out;
 		}
@@ -1026,7 +1026,7 @@ static int metric_parse_fake(const char *metric_name, const char *str)
 		 */
 		i = 1024;
 		hashmap__for_each_entry(ctx->ids, cur, bkt)
-			expr__add_id_val(ctx, strdup(cur->pkey), i--);
+			expr__add_id_val(ctx, strdup((const char *)cur->pkey), i--);
 		if (expr__parse(&result, ctx, str)) {
 			pr_err("expr__parse failed for %s\n", metric_name);
 			/* The following have hard to avoid divide by zero. */

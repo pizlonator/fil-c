@@ -128,7 +128,7 @@ static int hashmap_grow(struct hashmap *map)
 }
 
 static bool hashmap_find_entry(const struct hashmap *map,
-			       const long key, size_t hash,
+			       const void *key, size_t hash,
 			       struct hashmap_entry ***pprev,
 			       struct hashmap_entry **entry)
 {
@@ -151,18 +151,18 @@ static bool hashmap_find_entry(const struct hashmap *map,
 	return false;
 }
 
-int hashmap_insert(struct hashmap *map, long key, long value,
+int hashmap_insert(struct hashmap *map, const void *key, void *value,
 		   enum hashmap_insert_strategy strategy,
-		   long *old_key, long *old_value)
+		   const void **old_key, void **old_value)
 {
 	struct hashmap_entry *entry;
 	size_t h;
 	int err;
 
 	if (old_key)
-		*old_key = 0;
+		*old_key = NULL;
 	if (old_value)
-		*old_value = 0;
+		*old_value = NULL;
 
 	h = hash_bits(map->hash_fn(key, map->ctx), map->cap_bits);
 	if (strategy != HASHMAP_APPEND &&
@@ -203,7 +203,7 @@ int hashmap_insert(struct hashmap *map, long key, long value,
 	return 0;
 }
 
-bool hashmap_find(const struct hashmap *map, long key, long *value)
+bool hashmap_find(const struct hashmap *map, const void *key, void **value)
 {
 	struct hashmap_entry *entry;
 	size_t h;
@@ -217,8 +217,8 @@ bool hashmap_find(const struct hashmap *map, long key, long *value)
 	return true;
 }
 
-bool hashmap_delete(struct hashmap *map, long key,
-		    long *old_key, long *old_value)
+bool hashmap_delete(struct hashmap *map, const void *key,
+		    const void **old_key, void **old_value)
 {
 	struct hashmap_entry **pprev, *entry;
 	size_t h;

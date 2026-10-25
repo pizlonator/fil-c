@@ -9,13 +9,21 @@ static struct threads_table_entry *threads__table(struct threads *threads, pid_t
 	return &threads->table[(unsigned int)tid % THREADS__TABLE_SIZE];
 }
 
-static size_t key_hash(long key, void *ctx __maybe_unused)
+/* Fil-C: hashmap keys are pointers; smuggle integer tids through
+ * uintptr_t.  Keys are only ever hashed and compared, never dereferenced,
+ * so the capabilities lost in the conversion do not matter. */
+static inline const void *tid_key(pid_t tid)
 {
-	/* The table lookup removes low bit entropy, but this is just ignored here. */
-	return key;
+	return (const void *)(intptr_t)tid;
 }
 
-static bool key_equal(long key1, long key2, void *ctx __maybe_unused)
+static size_t key_hash(const void *key, void *ctx __maybe_unused)
+{
+	/* The table lookup removes low bit entropy, but this is just ignored here. */
+	return (size_t)(uintptr_t)key;
+}
+
+static bool key_equal(const void *key1, const void *key2, void *ctx __maybe_unused)
 {
 	return key1 == key2;
 }
@@ -97,7 +105,7 @@ struct thread *threads__find(struct threads *threads, pid_t tid)
 	down_read(&table->lock);
 	res = __threads_table_entry__get_last_match(table, tid);
 	if (!res) {
-		if (hashmap__find(&table->shard, tid, &res))
+		if (hashmap__find(&table->shard, tid_key(tid), &res))
 			res = thread__get(res);
 	}
 	up_read(&table->lock);
@@ -115,11 +123,11 @@ struct thread *threads__findnew(struct threads *threads, pid_t pid, pid_t tid, b
 	down_write(&table->lock);
 	res = thread__new(pid, tid);
 	if (res) {
-		if (hashmap__add(&table->shard, tid, res)) {
+		if (hashmap__add(&table->shard, tid_key(tid), res)) {
 			/* Add failed. Assume a race so find other entry. */
 			thread__put(res);
 			res = NULL;
-			if (hashmap__find(&table->shard, tid, &res))
+			if (hashmap__find(&table->shard, tid_key(tid), &res))
 				res = thread__get(res);
 		} else {
 			res = thread__get(res);
@@ -160,7 +168,7 @@ void threads__remove(struct threads *threads, struct thread *thread)
 	if (table->last_match && RC_CHK_EQUAL(table->last_match, thread))
 		__threads_table_entry__set_last_match(table, NULL);
 
-	hashmap__delete(&table->shard, thread__tid(thread), /*old_key=*/NULL, &old_value);
+	hashmap__delete(&table->shard, tid_key(thread__tid(thread)), /*old_key=*/NULL, &old_value);
 	thread__put(old_value);
 	up_write(&table->lock);
 }

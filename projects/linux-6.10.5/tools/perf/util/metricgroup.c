@@ -679,7 +679,7 @@ static int metricgroup__build_event_string(struct strbuf *events,
 #define RETURN_IF_NON_ZERO(x) do { if (x) return x; } while (0)
 
 	hashmap__for_each_entry(ctx->ids, cur, bkt) {
-		const char *sep, *rsep, *id = cur->pkey;
+		const char *sep, *rsep, *id = (const char *)cur->pkey;
 		enum perf_tool_event ev;
 
 		pr_debug("found event %s\n", id);
@@ -867,14 +867,14 @@ static int resolve_metric(struct list_head *metric_list,
 	hashmap__for_each_entry(root_metric->pctx->ids, cur, bkt) {
 		struct pmu_metric pm;
 
-		if (metricgroup__find_metric(pmu, cur->pkey, table, &pm)) {
+		if (metricgroup__find_metric(pmu, (const char *)cur->pkey, table, &pm)) {
 			pending = realloc(pending,
 					(pending_cnt + 1) * sizeof(struct to_resolve));
 			if (!pending)
 				return -ENOMEM;
 
 			memcpy(&pending[pending_cnt].pm, &pm, sizeof(pm));
-			pending[pending_cnt].key = cur->pkey;
+			pending[pending_cnt].key = (const char *)cur->pkey;
 			pending_cnt++;
 		}
 	}
@@ -1414,7 +1414,7 @@ static int build_combined_expr_ctx(const struct list_head *metric_list,
 	list_for_each_entry(m, metric_list, nd) {
 		if (!m->group_events && !m->modifier) {
 			hashmap__for_each_entry(m->pctx->ids, cur, bkt) {
-				dup = strdup(cur->pkey);
+				dup = strdup((const char *)cur->pkey);
 				if (!dup) {
 					ret = -ENOMEM;
 					goto err_out;

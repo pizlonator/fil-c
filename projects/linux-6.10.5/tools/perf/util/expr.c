@@ -52,7 +52,7 @@ struct expr_id_data {
 	} kind;
 };
 
-static size_t key_hash(long key, void *ctx __maybe_unused)
+static size_t key_hash(const void *key, void *ctx __maybe_unused)
 {
 	const char *str = (const char *)key;
 	size_t hash = 0;
@@ -65,7 +65,7 @@ static size_t key_hash(long key, void *ctx __maybe_unused)
 	return hash;
 }
 
-static bool key_equal(long key1, long key2, void *ctx __maybe_unused)
+static bool key_equal(const void *key1, const void *key2, void *ctx __maybe_unused)
 {
 	return !strcmp((const char *)key1, (const char *)key2);
 }
@@ -233,7 +233,7 @@ bool expr__subset_of_ids(struct expr_parse_ctx *haystack,
 	struct expr_id_data *data;
 
 	hashmap__for_each_entry(needles->ids, cur, bkt) {
-		if (expr__get_id(haystack, cur->pkey, &data))
+		if (expr__get_id(haystack, (const char *)cur->pkey, &data))
 			return false;
 	}
 	return true;

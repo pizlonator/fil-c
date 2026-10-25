@@ -41,8 +41,13 @@ volatile long the_var;
 /*
  * Use ASM to ensure watchpoint and breakpoint can be triggered
  * at one instruction.
+ *
+ * Fil-C: the pizlonator cannot handle a module-level asm() blob (and
+ * sarcasm, the Fil-C assembler, requires annotated functions anyway).
+ * Use the portable C version when building with Fil-C; the test still
+ * works, it just does not get the one-instruction guarantee.
  */
-#if defined (__x86_64__)
+#if defined (__x86_64__) && !defined(__PIZLONATOR_WAS_HERE__)
 extern void __test_function(volatile long *ptr);
 asm (
 	".pushsection .text;"

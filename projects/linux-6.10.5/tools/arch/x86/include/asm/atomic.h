@@ -2,6 +2,18 @@
 #ifndef _TOOLS_LINUX_ASM_X86_ATOMIC_H
 #define _TOOLS_LINUX_ASM_X86_ATOMIC_H
 
+/* Fil-C: the x86 atomic ops below are implemented with inline assembly
+ * that takes pointer operands (e.g. "lock; incl %0" with "+m" (v->counter)),
+ * which the pizlonator cannot execute - it panics with "cannot handle
+ * inline asm".  When building with Fil-C, use the portable __sync-based
+ * generic versions instead; they compile to real atomic instructions
+ * that Fil-C understands. */
+#ifdef __PIZLONATOR_WAS_HERE__
+
+#include <asm-generic/atomic-gcc.h>
+
+#else
+
 #include <linux/compiler.h>
 #include <linux/types.h>
 #include "rmwcc.h"
@@ -80,5 +92,7 @@ static inline int test_and_clear_bit(long nr, unsigned long *addr)
 {
 	GEN_BINARY_RMWcc(LOCK_PREFIX __ASM_SIZE(btc), *addr, "Ir", nr, "%0", "c");
 }
+
+#endif /* __PIZLONATOR_WAS_HERE__ */
 
 #endif /* _TOOLS_LINUX_ASM_X86_ATOMIC_H */

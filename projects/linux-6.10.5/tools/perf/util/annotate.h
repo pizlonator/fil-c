@@ -363,7 +363,7 @@ annotated_source__hist_entry(struct annotated_source *src, int idx, u64 offset)
 	struct sym_hist_entry *entry;
 	long key = offset << 16 | idx;
 
-	if (!hashmap__find(src->samples, key, &entry))
+	if (!hashmap__find(src->samples, (const void *)(intptr_t)key, &entry))
 		return NULL;
 	return entry;
 }
