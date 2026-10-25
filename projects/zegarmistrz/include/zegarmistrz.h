@@ -86,6 +86,8 @@
 #define ZEGARMISTRZ_POISON_CANNOT_INDEX 0x8u
 #define ZEGARMISTRZ_POISON_CLEAR_BRANCH_ON_STORE 0x10u
 #define ZEGARMISTRZ_POISON_CLEAR_INDEX_ON_STORE 0x20u
+#define ZEGARMISTRZ_POISON_CANNOT_VAR_TIME_OP 0x40u
+#define ZEGARMISTRZ_POISON_CLEAR_VAR_TIME_OP_ON_STORE 0x80u
 
 // Detects zegarmistrz using the two-CPUID technique from cpuid.txt: gate
 // on CPUID.1:ECX bit 31 ("hypervisor present"), then match the vendor

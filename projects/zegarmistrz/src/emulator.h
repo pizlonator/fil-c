@@ -43,6 +43,13 @@ struct Emulator {
     bool no_core = false; // --no-core / --passthrough-signals: no core dumps
     bool stack_trace = true; // --no-stack-trace disables the crash-time guest backtrace
 
+    // CANNOT_VAR_TIME_OP checking level (--var-time-op=):
+    //   known      - trap only on instructions the doc lists as known data-dependent (§4)
+    //   plausible  - also §5 suspects
+    //   everything - trap on anything not in the guaranteed list (§6+§7)
+    enum { ZG_VAR_TIME_KNOWN = 1, ZG_VAR_TIME_PLAUSIBLE = 2, ZG_VAR_TIME_EVERYTHING = 3 };
+    int var_time_op = ZG_VAR_TIME_KNOWN;
+
     // Guest memory map snapshot for ELF core dumps (filled by the loader;
     // guest VA == host VA so the dumper can memcpy directly).
     struct GuestMap {

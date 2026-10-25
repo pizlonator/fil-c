@@ -407,8 +407,7 @@ Val op_load(CPU* cpu, const Dec& d, int oi) {
             guest_error(cpu, "unsupported register operand");
         uint64_t full = cpu->gpr[idx].val;
         r.v = (full >> shift) & mask_for(size);
-        r.taint.cannot_branch = cpu->gpr[idx].taint.cannot_branch;
-        r.taint.cannot_index = cpu->gpr[idx].taint.cannot_index;
+        r.taint = cpu->gpr[idx].taint;
         return r;
     }
     if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
@@ -453,8 +452,7 @@ void op_store(CPU* cpu, const Dec& d, int oi, Val v) {
             full = (full & ~m) | ((v.v & mask_for(size)) << shift);
         }
         cpu->gpr[idx].val = full;
-        cpu->gpr[idx].taint.cannot_branch = v.taint.cannot_branch;
-        cpu->gpr[idx].taint.cannot_index = v.taint.cannot_index;
+        cpu->gpr[idx].taint = v.taint;
         return;
     }
     if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
@@ -588,22 +586,20 @@ void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const VecVal& in, unsigned 
 }
 
 // --- taint helpers ---------------------------------------------------------
-// All computation propagates OR of inputs' cannot-branch/index bits, except
-// self-xor (and self-sub) of the same register, which produce untagged zero.
+// All computation propagates the OR of inputs' taint bits (cannot-branch,
+// cannot-index, cannot-var-time-op as whole Taint values), except self-xor
+// (and self-sub) of the same register, which produce untagged zero.
 
 void flags_taint2(CPU* cpu, Val a, Val b) {
-    cpu->flags_taint.cannot_branch = a.taint.cannot_branch || b.taint.cannot_branch;
-    cpu->flags_taint.cannot_index = a.taint.cannot_index || b.taint.cannot_index;
+    cpu->flags_taint = a.taint | b.taint;
 }
 
 void flags_taint1(CPU* cpu, Val a) {
-    cpu->flags_taint.cannot_branch = a.taint.cannot_branch;
-    cpu->flags_taint.cannot_index = a.taint.cannot_index;
+    cpu->flags_taint = a.taint;
 }
 
 void flags_clear(CPU* cpu) {
-    cpu->flags_taint.cannot_branch = false;
-    cpu->flags_taint.cannot_index = false;
+    cpu->flags_taint.clear();
 }
 
 void check_flags_taint(CPU* cpu, const char* what) {
@@ -795,12 +791,10 @@ void exec_pop(CPU* cpu, const Dec& d) {
 void exec_leave(CPU* cpu, const Dec& d) {
     // MOV RSP,RBP semantics: RSP takes RBP's value and pointer taint.
     cpu->gpr[ZG_RSP].val = cpu->gpr[ZG_RBP].val;
-    cpu->gpr[ZG_RSP].taint.cannot_branch = cpu->gpr[ZG_RBP].taint.cannot_branch;
-    cpu->gpr[ZG_RSP].taint.cannot_index = cpu->gpr[ZG_RBP].taint.cannot_index;
+    cpu->gpr[ZG_RSP].taint = cpu->gpr[ZG_RBP].taint;
     Val v = pop64(cpu);
     cpu->gpr[ZG_RBP].val = v.v;
-    cpu->gpr[ZG_RBP].taint.cannot_branch = v.taint.cannot_branch;
-    cpu->gpr[ZG_RBP].taint.cannot_index = v.taint.cannot_index;
+    cpu->gpr[ZG_RBP].taint = v.taint;
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -888,8 +882,7 @@ void exec_alu(CPU* cpu, const Dec& d, ZydisMnemonic m) {
             flags_logic(cpu, w, 0);
             flags_clear(cpu);
             out.v = 0;
-            out.taint.cannot_branch = false;
-            out.taint.cannot_index = false;
+            out.taint.clear();
             op_store(cpu, d, 0, out);
             cpu->rip = next_rip(cpu, d);
             return;
@@ -939,8 +932,7 @@ void exec_alu(CPU* cpu, const Dec& d, ZydisMnemonic m) {
             flags_logic(cpu, w, 0);
             flags_clear(cpu);
             out.v = 0;
-            out.taint.cannot_branch = false;
-            out.taint.cannot_index = false;
+            out.taint.clear();
             if (m == ZYDIS_MNEMONIC_XOR) {
                 op_store(cpu, d, 0, out);
                 cpu->rip = next_rip(cpu, d);
@@ -955,8 +947,7 @@ void exec_alu(CPU* cpu, const Dec& d, ZydisMnemonic m) {
     default: guest_error(cpu, "bad alu op");
     }
     // Taint propagation (except zero idiom handled above).
-    out.taint.cannot_branch = dst.taint.cannot_branch || src.taint.cannot_branch;
-    out.taint.cannot_index = dst.taint.cannot_index || src.taint.cannot_index;
+    out.taint = dst.taint | src.taint;
     flags_taint2(cpu, dst, src);
     if (m == ZYDIS_MNEMONIC_CMP || m == ZYDIS_MNEMONIC_TEST) {
         cpu->rip = next_rip(cpu, d);
@@ -984,8 +975,7 @@ void exec_incdec(CPU* cpu, const Dec& d, bool is_inc) {
     cpu->set_flag(FLAG_CF, old_cf); // INC/DEC preserve CF
     Val out;
     out.v = r;
-    out.taint.cannot_branch = v.taint.cannot_branch;
-    out.taint.cannot_index = v.taint.cannot_index;
+    out.taint = v.taint;
     flags_taint1(cpu, v);
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
@@ -1000,8 +990,7 @@ void exec_neg(CPU* cpu, const Dec& d) {
     flags_sub(cpu, w, 0, a, r);
     Val out;
     out.v = r;
-    out.taint.cannot_branch = v.taint.cannot_branch;
-    out.taint.cannot_index = v.taint.cannot_index;
+    out.taint = v.taint;
     flags_taint1(cpu, v);
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
@@ -1012,8 +1001,7 @@ void exec_not(CPU* cpu, const Dec& d) {
     int w = common_int_width(d);
     Val out;
     out.v = (~v.v) & mask_for(w);
-    out.taint.cannot_branch = v.taint.cannot_branch;
-    out.taint.cannot_index = v.taint.cannot_index;
+    out.taint = v.taint;
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
 }
@@ -1026,8 +1014,7 @@ void exec_shift(CPU* cpu, const Dec& d, ZydisMnemonic m) {
     uint64_t count = cnt.v & (bits == 64 ? 63 : 31);
     uint64_t a = dst.v & mask_for(w);
     Val out;
-    out.taint.cannot_branch = dst.taint.cannot_branch || cnt.taint.cannot_branch;
-    out.taint.cannot_index = dst.taint.cannot_index || cnt.taint.cannot_index;
+    out.taint = dst.taint | cnt.taint;
     if (count == 0) {
         cpu->rip = next_rip(cpu, d);
         return;
@@ -1174,8 +1161,7 @@ void exec_imul(CPU* cpu, const Dec& d) {
     cpu->set_flag(FLAG_ZF, false);
     cpu->set_flag(FLAG_SF, false);
     cpu->set_flag(FLAG_PF, false);
-    out.taint.cannot_branch = s0.taint.cannot_branch || s1.taint.cannot_branch;
-    out.taint.cannot_index = s0.taint.cannot_index || s1.taint.cannot_index;
+    out.taint = s0.taint | s1.taint;
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
 }
@@ -1310,8 +1296,7 @@ void exec_movzx(CPU* cpu, const Dec& d) {
     Val s = op_load(cpu, d, 1);
     Val out;
     out.v = s.v; // op_load already masks to source width; zero-extend is free
-    out.taint.cannot_branch = s.taint.cannot_branch;
-    out.taint.cannot_index = s.taint.cannot_index;
+    out.taint = s.taint;
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
 }
@@ -1328,8 +1313,7 @@ void exec_movsx(CPU* cpu, const Dec& d) {
         sv = (int32_t)s.v;
     Val out;
     out.v = (uint64_t)sv;
-    out.taint.cannot_branch = s.taint.cannot_branch;
-    out.taint.cannot_index = s.taint.cannot_index;
+    out.taint = s.taint;
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
 }
@@ -1340,8 +1324,7 @@ void exec_setcc(CPU* cpu, const Dec& d) {
     // rather than a fault).
     Val out;
     out.v = eval_cond(cpu, d.insn.mnemonic) ? 1 : 0;
-    out.taint.cannot_branch = cpu->flags_taint.cannot_branch;
-    out.taint.cannot_index = cpu->flags_taint.cannot_index;
+    out.taint = cpu->flags_taint;
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
 }
@@ -1352,15 +1335,13 @@ void exec_cmovcc(CPU* cpu, const Dec& d) {
     bool take = eval_cond(cpu, d.insn.mnemonic);
     if (take) {
         Val s = op_load(cpu, d, 1);
-        s.taint.cannot_branch = s.taint.cannot_branch || cpu->flags_taint.cannot_branch;
-        s.taint.cannot_index = s.taint.cannot_index || cpu->flags_taint.cannot_index;
+        s.taint |= cpu->flags_taint;
         op_store(cpu, d, 0, s);
-    } else if (cpu->flags_taint.cannot_branch || cpu->flags_taint.cannot_index) {
+    } else if (!cpu->flags_taint.empty()) {
         // Not taken: taint the destination in place (CMOV dest is always a
         // register, so this load+store is side-effect free).
         Val cur = op_load(cpu, d, 0);
-        cur.taint.cannot_branch = cur.taint.cannot_branch || cpu->flags_taint.cannot_branch;
-        cur.taint.cannot_index = cur.taint.cannot_index || cpu->flags_taint.cannot_index;
+        cur.taint |= cpu->flags_taint;
         op_store(cpu, d, 0, cur);
     }
     cpu->rip = next_rip(cpu, d);
@@ -1406,8 +1387,7 @@ void exec_bswap(CPU* cpu, const Dec& d) {
     out.v = __builtin_bswap64(v.v) >> (64 - 8 * common_int_width(d));
     if (common_int_width(d) == 4)
         out.v = __builtin_bswap32((uint32_t)v.v);
-    out.taint.cannot_branch = v.taint.cannot_branch;
-    out.taint.cannot_index = v.taint.cannot_index;
+    out.taint = v.taint;
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
 }
@@ -1422,9 +1402,12 @@ void exec_bit_test(CPU* cpu, const Dec& d) {
     // implement the full semantics.
     int64_t bit = (int64_t)off.v;
     Val out = base;
-    out.taint.cannot_branch = base.taint.cannot_branch || off.taint.cannot_branch;
-    out.taint.cannot_index = base.taint.cannot_index || off.taint.cannot_index;
+    out.taint = base.taint | off.taint;
     if (d.ops[0].type == ZYDIS_OPERAND_TYPE_MEMORY) {
+        // The bit offset is an address component for the memory form
+        // (address = m + (r >> 3), doc 3.1): cannot-index, not var-time.
+        if (off.taint.cannot_index)
+            guest_error(cpu, "tainted (cannot-index) value used as BT bit offset");
         int64_t byte_off;
         unsigned bit_in_byte;
         if (bit >= 0) {
@@ -1437,6 +1420,11 @@ void exec_bit_test(CPU* cpu, const Dec& d) {
         uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length) + (uint64_t)byte_off;
         uint8_t byte = mem_load8(cpu, addr);
         cpu->set_flag(FLAG_CF, (byte >> bit_in_byte) & 1);
+        // CF is the tested bit, which comes from memory: the tested byte's
+        // taint ORs into the flags taint (a later branch on CF is a leak).
+        Taint bt;
+        mem_get_taint(addr, 1, &bt);
+        cpu->flags_taint = cpu->flags_taint | bt;
         if (d.insn.mnemonic == ZYDIS_MNEMONIC_BTS)
             mem_store8(cpu, addr, byte | (1u << bit_in_byte));
         else if (d.insn.mnemonic == ZYDIS_MNEMONIC_BTR)
@@ -1447,6 +1435,11 @@ void exec_bit_test(CPU* cpu, const Dec& d) {
         unsigned b = ((bit % (int64_t)bits) + bits) % bits;
         uint64_t m = mask_for(w);
         cpu->set_flag(FLAG_CF, ((base.v & m) >> b) & 1);
+        // The tested bit is derived from both operands (base value and bit
+        // offset): their taints OR into the flags sidecar so a later Jcc on
+        // CF cannot leak a cannot-branch value. (The bit offset of the
+        // memory form is INDEX-checked above.)
+        cpu->flags_taint = cpu->flags_taint | base.taint | off.taint;
         uint64_t r = base.v & m;
         if (d.insn.mnemonic == ZYDIS_MNEMONIC_BTS)
             r |= (1ULL << b);
@@ -1465,8 +1458,7 @@ void exec_bsfbsr(CPU* cpu, const Dec& d, bool is_bsr) {
     int w = common_int_width(d);
     uint64_t v = s.v & mask_for(w);
     Val out;
-    out.taint.cannot_branch = s.taint.cannot_branch;
-    out.taint.cannot_index = s.taint.cannot_index;
+    out.taint = s.taint;
     if (v == 0) {
         cpu->set_flag(FLAG_ZF, true);
         // dest undefined on zero; leave it.
@@ -1483,8 +1475,7 @@ void exec_popcnt(CPU* cpu, const Dec& d) {
     int w = common_int_width(d);
     Val out;
     out.v = __builtin_popcountll(s.v & mask_for(w));
-    out.taint.cannot_branch = s.taint.cannot_branch;
-    out.taint.cannot_index = s.taint.cannot_index;
+    out.taint = s.taint;
     cpu->set_flag(FLAG_CF, false);
     cpu->set_flag(FLAG_OF, false);
     cpu->set_flag(FLAG_SF, false);
@@ -1500,8 +1491,7 @@ void exec_tzcnt_lzcnt(CPU* cpu, const Dec& d, bool is_tzcnt) {
     int w = common_int_width(d);
     uint64_t v = s.v & mask_for(w);
     Val out;
-    out.taint.cannot_branch = s.taint.cannot_branch;
-    out.taint.cannot_index = s.taint.cannot_index;
+    out.taint = s.taint;
     if (is_tzcnt)
         out.v = (v == 0) ? w * 8 : __builtin_ctzll(v);
     else
@@ -1538,8 +1528,7 @@ void exec_cmpxchg(CPU* cpu, const Dec& d) {
     if (acc == dv) {
         Val out;
         out.v = sv;
-        out.taint.cannot_branch = src.taint.cannot_branch;
-        out.taint.cannot_index = src.taint.cannot_index;
+        out.taint = src.taint;
         op_store(cpu, d, 0, out);
     } else {
         uint64_t full = cpu->gpr[ZG_RAX].val;
@@ -1565,12 +1554,10 @@ void exec_xadd(CPU* cpu, const Dec& d) {
     flags_add(cpu, w, dst.v & m, src.v & m, r);
     Val to_dst;
     to_dst.v = r;
-    to_dst.taint.cannot_branch = dst.taint.cannot_branch || src.taint.cannot_branch;
-    to_dst.taint.cannot_index = dst.taint.cannot_index || src.taint.cannot_index;
+    to_dst.taint = dst.taint | src.taint;
     Val to_src;
     to_src.v = dst.v & m;
-    to_src.taint.cannot_branch = dst.taint.cannot_branch;
-    to_src.taint.cannot_index = dst.taint.cannot_index;
+    to_src.taint = dst.taint;
     op_store(cpu, d, 0, to_dst);
     op_store(cpu, d, 1, to_src);
     cpu->rip = next_rip(cpu, d);
@@ -1626,8 +1613,7 @@ void exec_movbe(CPU* cpu, const Dec& d) {
         out.v = __builtin_bswap64(s.v);
     else
         guest_error(cpu, "bad movbe width");
-    out.taint.cannot_branch = s.taint.cannot_branch;
-    out.taint.cannot_index = s.taint.cannot_index;
+    out.taint = s.taint;
     op_store(cpu, d, 0, out);
     cpu->rip = next_rip(cpu, d);
 }
@@ -1651,8 +1637,7 @@ void handle_magic_call(CPU* cpu, const Dec& d) {
     uint64_t flags = cpu->gpr[ZG_RCX].val;
     uint64_t ret = mem_client_request(cpu->emu, cpu, op, ptr, size, flags);
     cpu->gpr[ZG_RAX].val = ret;
-    cpu->gpr[ZG_RAX].taint.cannot_branch = false;
-    cpu->gpr[ZG_RAX].taint.cannot_index = false;
+    cpu->gpr[ZG_RAX].taint.clear();
     // CALL semantics without touching the stack: RIP advances past CALL.
     cpu->rip = next_rip(cpu, d);
 }
@@ -1810,6 +1795,25 @@ void check_rep_taint(CPU* cpu, const Dec& d) {
         return;
     if (cpu->gpr[ZG_RCX].taint.cannot_branch || cpu->gpr[ZG_RCX].taint.cannot_index)
         guest_error(cpu, "tainted (cannot-branch/index) RCX in rep string op");
+    // Doc 4.4: for REP MOVS/STOS/LODS the RCX iteration count is a VAL
+    // dependency (microcode picks among ERMSB/FSRM/fast paths by count), so
+    // a cannot-var-time-op-poisoned count makes the instruction's execution
+    // time data-dependent. Doc 4.4 is KNOWN, so this fires in every mode.
+    // REPE/REPNE CMPS/SCAS keep RCX classified CTRL (their data-dependent
+    // trip count is covered by the cannot-branch check above and the
+    // compared-value check in exec_string), so they must NOT trap here.
+    ZydisMnemonic m = d.insn.mnemonic;
+    bool count_is_val =
+        (m == ZYDIS_MNEMONIC_MOVSB || m == ZYDIS_MNEMONIC_MOVSW ||
+         m == ZYDIS_MNEMONIC_MOVSD || m == ZYDIS_MNEMONIC_MOVSQ ||
+         m == ZYDIS_MNEMONIC_STOSB || m == ZYDIS_MNEMONIC_STOSW ||
+         m == ZYDIS_MNEMONIC_STOSD || m == ZYDIS_MNEMONIC_STOSQ ||
+         m == ZYDIS_MNEMONIC_LODSB || m == ZYDIS_MNEMONIC_LODSW ||
+         m == ZYDIS_MNEMONIC_LODSD || m == ZYDIS_MNEMONIC_LODSQ);
+    if (count_is_val && cpu->gpr[ZG_RCX].taint.cannot_var_time_op)
+        guest_error(cpu,
+                    "tainted (cannot-var-time-op) RCX in rep MOVS/STOS/LODS "
+                    "(count is a data-dependent timing operand)");
 }
 
 void exec_string(CPU* cpu, const Dec& d) {
@@ -1850,6 +1854,11 @@ void exec_string(CPU* cpu, const Dec& d) {
     uint64_t di = cpu->gpr[ZG_RDI].val;
     uint64_t ax = cpu->gpr[ZG_RAX].val & mask_for(w);
     Taint ax_taint = cpu->gpr[ZG_RAX].taint;
+    // SCAS compares the fixed AL/AX/EAX/RAX against memory inside a rep loop
+    // whose iteration count depends on the data (doc 4.4 CTRL), so a tainted
+    // (cannot-branch) AL/AX/EAX/RAX leaks through the loop trip count.
+    if (rep && is_scas && ax_taint.cannot_branch)
+        guest_error(cpu, "tainted (cannot-branch) value in rep CMPS/SCAS");
     uint64_t done = 0;
     for (uint64_t i = 0; i < count; i++) {
         if (is_movs) {
@@ -1893,6 +1902,18 @@ void exec_string(CPU* cpu, const Dec& d) {
             si += step;
             done++;
         } else if (is_scas || is_cmps) {
+            if (rep) {
+                // REPE/REPNE CMPS/SCAS stop at the first mismatch/match, so
+                // the iteration count is a secret-dependent loop (doc 4.4
+                // CTRL): a cannot-branch value reaching the compared data is
+                // a leak. Checked per iteration (the strings move).
+                Taint cbt;
+                if (is_cmps)
+                    mem_get_taint(si, w, &cbt);
+                mem_get_taint(di, w, &cbt);
+                if (cbt.cannot_branch)
+                    guest_error(cpu, "tainted (cannot-branch) value in rep CMPS/SCAS");
+            }
             uint64_t b;
             Taint sctaint;
             if (is_scas) {
@@ -2011,8 +2032,7 @@ void exec_cpuid(CPU* cpu, const Dec& d) {
     cpu->gpr[ZG_RCX].val = c;
     cpu->gpr[ZG_RDX].val = e;
     for (int r : {ZG_RAX, ZG_RBX, ZG_RCX, ZG_RDX}) {
-        cpu->gpr[r].taint.cannot_branch = false;
-        cpu->gpr[r].taint.cannot_index = false;
+        cpu->gpr[r].taint.clear();
     }
     cpu->rip = next_rip(cpu, d);
 }
@@ -2057,8 +2077,7 @@ void exec_popf(CPU* cpu, const Dec& d) {
                           FLAG_DF | FLAG_OF;
     cpu->rflags = (cpu->rflags & ~mask) | (v.v & mask) | 0x2;
     // Flags restored from a tainted stack slot inherit its taint.
-    cpu->flags_taint.cannot_branch = v.taint.cannot_branch;
-    cpu->flags_taint.cannot_index = v.taint.cannot_index;
+    cpu->flags_taint = v.taint;
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -2516,6 +2535,8 @@ void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
             Val s = op_load(cpu, d, 1);
             memset(cpu->xmm[vi].bytes, 0, 16);
             memcpy(cpu->xmm[vi].bytes, &s.v, is_q ? 8 : 4);
+            // Sidecar: the moved GPR value's taint follows into the vector.
+            cpu->xmm[vi].taint = s.taint;
         } else {
             guest_error(cpu, "bad movd operands");
         }
@@ -2523,13 +2544,14 @@ void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
         int vi = -1, vw = 0;
         if (!reg_to_vec(d.ops[1].reg.value, vi, vw))
             guest_error(cpu, "bad movd operands");
-        uint64_t addr = resolve_mem(cpu, d.ops[1 - 1], cpu->rip + d.insn.length);
         // op1 is index 1? For MOVD m32, xmm: ops[0]=mem, ops[1]=xmm.
-        addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
+        uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
         if (is_q)
             mem_store64(cpu, addr, *(uint64_t*)cpu->xmm[vi].bytes);
         else
             mem_store32(cpu, addr, *(uint32_t*)cpu->xmm[vi].bytes);
+        // Poisoning: the stored (clean or tainted) value follows the bytes.
+        mem_note_store(cpu, addr, is_q ? 8 : 4, cpu->xmm[vi].taint);
     } else {
         // load: xmm <- mem
         int vi = -1, vw = 0;
@@ -2541,6 +2563,8 @@ void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
             *(uint64_t*)cpu->xmm[vi].bytes = mem_load64(cpu, addr);
         else
             *(uint32_t*)cpu->xmm[vi].bytes = mem_load32(cpu, addr);
+        // Sidecar: the loaded bytes' poison follows into the vector.
+        mem_get_taint(addr, is_q ? 8 : 4, &cpu->xmm[vi].taint);
     }
     cpu->rip = next_rip(cpu, d);
 }
@@ -2727,6 +2751,8 @@ void exec_cvtsi2s(CPU* cpu, const Dec& d, bool to_sd) {
         float v = (float)iv;
         memcpy(cpu->xmm[dsti].bytes, &v, 4);
     }
+    // The result derives from the converted integer: propagate its taint.
+    cpu->xmm[dsti].taint |= s.taint;
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -2842,18 +2868,40 @@ void exec_movsd_sse(CPU* cpu, const Dec& d) {
     bool src_is_vec = (d.ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                        reg_to_vec(d.ops[1].reg.value, srci, srcw));
     if (dst_is_vec && src_is_vec) {
-        // reg-reg: copy low 64 bits.
-        memcpy(cpu->xmm[dsti].bytes, cpu->xmm[srci].bytes, 8);
+        if (is_vex(d) && explicit_ops(d) >= 3) {
+            // VEX 3-operand form (SDM VMOVSD xmm1, xmm2, xmm3):
+            // dst[63:0] = src2 (ops[2])[63:0] and dst[127:64] =
+            // src1 (ops[1])[127:64]; VEX.128 zeroes the bits above 127.
+            int s2i = -1, s2w = 0;
+            if (!reg_to_vec(d.ops[2].reg.value, s2i, s2w))
+                guest_error(cpu, "bad vmovsd src2");
+            uint64_t lo;
+            memcpy(&lo, cpu->xmm[s2i].bytes, 8);
+            memcpy(cpu->xmm[dsti].bytes, &lo, 8);
+            memcpy(cpu->xmm[dsti].bytes + 8, cpu->xmm[srci].bytes + 8, 8);
+            memset(cpu->xmm[dsti].bytes + 16, 0, MAX_VEC_BYTES - 16);
+            // The result derives from both sources: OR their taints.
+            cpu->xmm[dsti].taint = cpu->xmm[srci].taint | cpu->xmm[s2i].taint;
+        } else {
+            // reg-reg: copy low 64 bits (the legacy form keeps the upper).
+            memcpy(cpu->xmm[dsti].bytes, cpu->xmm[srci].bytes, 8);
+            // Sidecar: the moved half's taint follows (mirrors movss).
+            cpu->xmm[dsti].taint = cpu->xmm[srci].taint;
+        }
     } else if (dst_is_vec) {
         // load m64: low 64 bits, zero upper.
         uint64_t addr = resolve_mem(cpu, d.ops[1], cpu->rip + d.insn.length);
         uint64_t v = mem_load64(cpu, addr);
         memcpy(cpu->xmm[dsti].bytes, &v, 8);
         memset(cpu->xmm[dsti].bytes + 8, 0, 56);
+        // Sidecar: the loaded bytes' poison follows (8 bytes).
+        mem_get_taint(addr, 8, &cpu->xmm[dsti].taint);
     } else {
         // store m64: low 64 bits.
         uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
         mem_store64(cpu, addr, *(uint64_t*)cpu->xmm[srci].bytes);
+        // Poisoning: the stored value's taint follows the bytes.
+        mem_note_store(cpu, addr, 8, cpu->xmm[srci].taint);
     }
     cpu->rip = next_rip(cpu, d);
 }
@@ -2865,15 +2913,36 @@ void exec_movss_sse(CPU* cpu, const Dec& d) {
     bool src_is_vec = (d.ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                        reg_to_vec(d.ops[1].reg.value, srci, srcw));
     if (dst_is_vec && src_is_vec) {
-        memcpy(cpu->xmm[dsti].bytes, cpu->xmm[srci].bytes, 4);
+        if (is_vex(d) && explicit_ops(d) >= 3) {
+            // VEX 3-operand form (SDM VMOVSS xmm1, xmm2, xmm3):
+            // dst[31:0] = src2 (ops[2])[31:0] and dst[127:32] =
+            // src1 (ops[1])[127:32]; VEX.128 zeroes the bits above 127.
+            int s2i = -1, s2w = 0;
+            if (!reg_to_vec(d.ops[2].reg.value, s2i, s2w))
+                guest_error(cpu, "bad vmovss src2");
+            uint32_t lo;
+            memcpy(&lo, cpu->xmm[s2i].bytes, 4);
+            memcpy(cpu->xmm[dsti].bytes, &lo, 4);
+            memcpy(cpu->xmm[dsti].bytes + 4, cpu->xmm[srci].bytes + 4, 12);
+            memset(cpu->xmm[dsti].bytes + 16, 0, MAX_VEC_BYTES - 16);
+            // The result derives from both sources: OR their taints.
+            cpu->xmm[dsti].taint = cpu->xmm[srci].taint | cpu->xmm[s2i].taint;
+        } else {
+            // reg-reg: copy low 32 bits (the legacy form keeps the upper).
+            memcpy(cpu->xmm[dsti].bytes, cpu->xmm[srci].bytes, 4);
+            // Sidecar: the moved half's taint follows.
+            cpu->xmm[dsti].taint = cpu->xmm[srci].taint;
+        }
     } else if (dst_is_vec) {
         uint64_t addr = resolve_mem(cpu, d.ops[1], cpu->rip + d.insn.length);
         uint32_t v = mem_load32(cpu, addr);
         memcpy(cpu->xmm[dsti].bytes, &v, 4);
         memset(cpu->xmm[dsti].bytes + 4, 0, 60);
+        mem_get_taint(addr, 4, &cpu->xmm[dsti].taint);
     } else {
         uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
         mem_store32(cpu, addr, *(uint32_t*)cpu->xmm[srci].bytes);
+        mem_note_store(cpu, addr, 4, cpu->xmm[srci].taint);
     }
     cpu->rip = next_rip(cpu, d);
 }
@@ -2889,6 +2958,7 @@ void exec_movlp(CPU* cpu, const Dec& d, bool high, bool is_pd) {
         uint64_t v;
         memcpy(&v, cpu->xmm[srci].bytes + (high ? 8 : 0), 8);
         mem_store64(cpu, addr, v);
+        mem_note_store(cpu, addr, 8, cpu->xmm[srci].taint);
     } else if (d.ops[1].type == ZYDIS_OPERAND_TYPE_MEMORY) {
         int dsti = -1, dstw = 0;
         if (!reg_to_vec(d.ops[0].reg.value, dsti, dstw))
@@ -2896,6 +2966,9 @@ void exec_movlp(CPU* cpu, const Dec& d, bool high, bool is_pd) {
         uint64_t addr = resolve_mem(cpu, d.ops[1], cpu->rip + d.insn.length);
         uint64_t v = mem_load64(cpu, addr);
         memcpy(cpu->xmm[dsti].bytes + (high ? 8 : 0), &v, 8);
+        Taint t;
+        mem_get_taint(addr, 8, &t);
+        cpu->xmm[dsti].taint |= t;
     } else {
         int dsti = -1, dstw = 0, srci = -1, srcw = 0;
         reg_to_vec(d.ops[0].reg.value, dsti, dstw);
@@ -2903,6 +2976,9 @@ void exec_movlp(CPU* cpu, const Dec& d, bool high, bool is_pd) {
         uint64_t v;
         memcpy(&v, cpu->xmm[srci].bytes + (high ? 8 : 0), 8);
         memcpy(cpu->xmm[dsti].bytes + (high ? 8 : 0), &v, 8);
+        // The moved half's taint follows; the other half keeps its own (the
+        // sidecar is per-register, so merge like movhlps/movlhps).
+        cpu->xmm[dsti].taint |= cpu->xmm[srci].taint;
     }
     cpu->rip = next_rip(cpu, d);
 }
@@ -2918,6 +2994,8 @@ void exec_movhlps(CPU* cpu, const Dec& d, bool hl) {
         // MOVLHPS: dst[127:64] = src[63:0].
         memcpy(cpu->xmm[dsti].bytes + 8, cpu->xmm[srci].bytes, 8);
     }
+    // The moved half's taint follows (dst merges with its other half).
+    cpu->xmm[dsti].taint |= cpu->xmm[srci].taint;
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -3211,20 +3289,33 @@ namespace {
 
 long double& fpu_st(CPU* cpu, int i) { return cpu->st[(cpu->fpu_top + i) & 7]; }
 
-void fpu_push(CPU* cpu, long double v) {
+// Taint sidecar for x87 stack registers, indexed exactly like fpu_st() (i is
+// relative to TOP). x87 taint is per-register (no byte granularity) and does
+// not survive FXSAVE/XSAVE snapshots (xsave_legacy_read clears it).
+Taint& fpu_st_taint(CPU* cpu, int i) {
+    return cpu->st_taint[(cpu->fpu_top + i) & 7];
+}
+
+void fpu_push(CPU* cpu, long double v, Taint t = Taint()) {
     cpu->fpu_top = (cpu->fpu_top - 1) & 7;
     cpu->st[cpu->fpu_top] = v;
+    cpu->st_taint[cpu->fpu_top] = t;
 }
 
 long double fpu_pop(CPU* cpu) {
     long double v = cpu->st[cpu->fpu_top];
+    // The popped register becomes empty: drop its taint so a later push (or
+    // a stray read of the empty slot) cannot resurrect it.
+    cpu->st_taint[cpu->fpu_top].clear();
     cpu->fpu_top = (cpu->fpu_top + 1) & 7;
     return v;
 }
 
-long double x87_mem_load(CPU* cpu, const Dec& d, int oi) {
+long double x87_mem_load(CPU* cpu, const Dec& d, int oi, Taint* t = nullptr) {
     unsigned bytes = d.ops[oi].size / 8;
     uint64_t addr = resolve_mem(cpu, d.ops[oi], cpu->rip + d.insn.length);
+    if (t)
+        mem_get_taint(addr, bytes, t);
     if (bytes == 4) {
         float v;
         mem_load_bytes(cpu, addr, (uint8_t*)&v, 4);
@@ -3249,7 +3340,7 @@ long double x87_mem_load(CPU* cpu, const Dec& d, int oi) {
     guest_error(cpu, "bad x87 mem size");
 }
 
-void x87_mem_store(CPU* cpu, const Dec& d, int oi, long double v) {
+void x87_mem_store(CPU* cpu, const Dec& d, int oi, long double v, Taint t = Taint()) {
     unsigned bytes = d.ops[oi].size / 8;
     uint64_t addr = resolve_mem(cpu, d.ops[oi], cpu->rip + d.insn.length);
     if (bytes == 4) {
@@ -3265,6 +3356,8 @@ void x87_mem_store(CPU* cpu, const Dec& d, int oi, long double v) {
     } else {
         guest_error(cpu, "bad x87 mem size");
     }
+    // Poisoning: the stored ST(0) value's taint follows the bytes.
+    mem_note_store(cpu, addr, bytes, t);
 }
 
 void x87_compare(CPU* cpu, long double a, long double b, bool to_eflags) {
@@ -3301,19 +3394,28 @@ void exec_x87(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_FLD: {
-        if (d.ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER)
-            fpu_push(cpu, fpu_st(cpu, x87_st_index(cpu, d, 0)));
-        else
-            fpu_push(cpu, x87_mem_load(cpu, d, 0));
+        if (d.ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER) {
+            int si = x87_st_index(cpu, d, 0);
+            fpu_push(cpu, fpu_st(cpu, si), fpu_st_taint(cpu, si));
+        } else {
+            Taint t;
+            fpu_push(cpu, x87_mem_load(cpu, d, 0, &t), t);
+        }
         break;
     }
     case ZYDIS_MNEMONIC_FST:
     case ZYDIS_MNEMONIC_FSTP: {
         long double v = fpu_st(cpu, 0);
+        Taint t = fpu_st_taint(cpu, 0);
         if (d.ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER) {
-            fpu_st(cpu, x87_st_index(cpu, d, 0)) = v;
+            int si = x87_st_index(cpu, d, 0);
+            fpu_st(cpu, si) = v;
+            if (si == 0)
+                fpu_st_taint(cpu, si) |= t;
+            else
+                fpu_st_taint(cpu, si) = t;
         } else {
-            x87_mem_store(cpu, d, 0, v);
+            x87_mem_store(cpu, d, 0, v, t);
         }
         if (d.insn.mnemonic == ZYDIS_MNEMONIC_FSTP)
             fpu_pop(cpu);
@@ -3322,12 +3424,14 @@ void exec_x87(CPU* cpu, const Dec& d) {
     case ZYDIS_MNEMONIC_FILD: {
         unsigned bytes = d.ops[0].size / 8;
         uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
+        Taint t;
+        mem_get_taint(addr, bytes, &t);
         if (bytes == 2)
-            fpu_push(cpu, (int16_t)mem_load16(cpu, addr));
+            fpu_push(cpu, (int16_t)mem_load16(cpu, addr), t);
         else if (bytes == 4)
-            fpu_push(cpu, (int32_t)mem_load32(cpu, addr));
+            fpu_push(cpu, (int32_t)mem_load32(cpu, addr), t);
         else if (bytes == 8)
-            fpu_push(cpu, (int64_t)mem_load64(cpu, addr));
+            fpu_push(cpu, (int64_t)mem_load64(cpu, addr), t);
         else
             guest_error(cpu, "bad FILD size");
         break;
@@ -3338,6 +3442,7 @@ void exec_x87(CPU* cpu, const Dec& d) {
         unsigned bytes = d.ops[0].size / 8;
         uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
         long double v = fpu_st(cpu, 0);
+        Taint t0 = fpu_st_taint(cpu, 0);
         bool trunc = (d.insn.mnemonic == ZYDIS_MNEMONIC_FISTTP);
         long double rv = trunc ? __builtin_truncl(v) : __builtin_roundl(v);
         if (bytes == 2)
@@ -3348,6 +3453,8 @@ void exec_x87(CPU* cpu, const Dec& d) {
             mem_store64(cpu, addr, (int64_t)rv);
         else
             guest_error(cpu, "bad FIST size");
+        // Poisoning: the stored (converted) ST(0) value keeps ST(0)'s taint.
+        mem_note_store(cpu, addr, bytes, t0);
         if (d.insn.mnemonic != ZYDIS_MNEMONIC_FIST)
             fpu_pop(cpu);
         break;
@@ -3386,13 +3493,15 @@ void exec_x87(CPU* cpu, const Dec& d) {
                      d.insn.mnemonic == ZYDIS_MNEMONIC_FIMUL ||
                      d.insn.mnemonic == ZYDIS_MNEMONIC_FIDIV);
         long double a = fpu_st(cpu, 0), b = 0;
+        Taint ta = fpu_st_taint(cpu, 0), tb;
         int dsti = 0;
         if (n == 0) {
             // FADD ST(0),ST(1) implicit form? Actually no-operand FADDP etc.
             b = fpu_st(cpu, 1);
+            tb = fpu_st_taint(cpu, 1);
             dsti = 1;
         } else if (d.ops[n - 1].type == ZYDIS_OPERAND_TYPE_MEMORY) {
-            b = is_i ? 0 : x87_mem_load(cpu, d, n - 1);
+            Taint mt;
             if (is_i) {
                 unsigned bytes = d.ops[n - 1].size / 8;
                 uint64_t addr =
@@ -3403,13 +3512,20 @@ void exec_x87(CPU* cpu, const Dec& d) {
                     b = (int32_t)mem_load32(cpu, addr);
                 else
                     guest_error(cpu, "bad FILD size");
+                mem_get_taint(addr, bytes, &mt);
+            } else {
+                b = x87_mem_load(cpu, d, n - 1, &mt);
             }
+            tb = mt;
             dsti = 0;
         } else {
             // st, st(i) form: dst is op0.
             dsti = x87_st_index(cpu, d, 0);
-            b = (n > 1) ? fpu_st(cpu, x87_st_index(cpu, d, 1)) : fpu_st(cpu, 0);
+            int srci = (n > 1) ? x87_st_index(cpu, d, 1) : 0;
+            b = fpu_st(cpu, srci);
+            tb = fpu_st_taint(cpu, srci);
             a = fpu_st(cpu, dsti);
+            ta = fpu_st_taint(cpu, dsti);
         }
         long double r = 0;
         switch (d.insn.mnemonic) {
@@ -3429,11 +3545,15 @@ void exec_x87(CPU* cpu, const Dec& d) {
         case ZYDIS_MNEMONIC_FSUBRP: r = b - a; break;
         default: r = b / a; break;
         }
+        // Result taint: OR of the ST(0)/ST(i)/memory input taints.
+        Taint rt = ta | tb;
         if (is_p) {
             fpu_st(cpu, dsti) = r;
+            fpu_st_taint(cpu, dsti) = rt;
             fpu_pop(cpu);
         } else {
             fpu_st(cpu, dsti) = r;
+            fpu_st_taint(cpu, dsti) = rt;
         }
         break;
     }
@@ -3487,13 +3607,19 @@ void exec_x87(CPU* cpu, const Dec& d) {
     case ZYDIS_MNEMONIC_FCMOVNBE:
     case ZYDIS_MNEMONIC_FCMOVNU: {
         long double a = fpu_st(cpu, 0);
-        long double b = fpu_st(cpu, x87_st_index(cpu, d, n - 1));
+        int bi = x87_st_index(cpu, d, n - 1);
+        long double b = fpu_st(cpu, bi);
+        Taint ta = fpu_st_taint(cpu, 0), tb = fpu_st_taint(cpu, bi);
         bool cmp = (d.insn.mnemonic == ZYDIS_MNEMONIC_FCOMI ||
                     d.insn.mnemonic == ZYDIS_MNEMONIC_FUCOMI ||
                     d.insn.mnemonic == ZYDIS_MNEMONIC_FCOMIP ||
                     d.insn.mnemonic == ZYDIS_MNEMONIC_FUCOMIP);
         if (cmp) {
             x87_compare(cpu, a, b, true);
+            // EFLAGS-writing x87 compares: the condition flags derive from
+            // the compared ST values, so their taint becomes the flags taint
+            // (a later Jcc on those flags is the branch-side leak).
+            cpu->flags_taint = ta | tb;
             if (d.insn.mnemonic == ZYDIS_MNEMONIC_FCOMIP ||
                 d.insn.mnemonic == ZYDIS_MNEMONIC_FUCOMIP)
                 fpu_pop(cpu);
@@ -3510,8 +3636,10 @@ void exec_x87(CPU* cpu, const Dec& d) {
             case ZYDIS_MNEMONIC_FCMOVNBE: eq = ZYDIS_MNEMONIC_CMOVNBE; break;
             default: eq = ZYDIS_MNEMONIC_CMOVNP; break;
             }
-            if (eval_cond(cpu, eq))
+            if (eval_cond(cpu, eq)) {
                 fpu_st(cpu, 0) = b;
+                fpu_st_taint(cpu, 0) = ta | tb;
+            }
         }
         break;
     }
@@ -3575,11 +3703,17 @@ void exec_x87(CPU* cpu, const Dec& d) {
             long double t = fpu_st(cpu, 0);
             fpu_st(cpu, 0) = fpu_st(cpu, 1);
             fpu_st(cpu, 1) = t;
+            Taint tt = fpu_st_taint(cpu, 0);
+            fpu_st_taint(cpu, 0) = fpu_st_taint(cpu, 1);
+            fpu_st_taint(cpu, 1) = tt;
         } else {
             int i = x87_st_index(cpu, d, n - 1);
             long double t = fpu_st(cpu, 0);
             fpu_st(cpu, 0) = fpu_st(cpu, i);
             fpu_st(cpu, i) = t;
+            Taint tt = fpu_st_taint(cpu, 0);
+            fpu_st_taint(cpu, 0) = fpu_st_taint(cpu, i);
+            fpu_st_taint(cpu, i) = tt;
         }
         break;
     case ZYDIS_MNEMONIC_FRNDINT:
@@ -3589,10 +3723,13 @@ void exec_x87(CPU* cpu, const Dec& d) {
     case ZYDIS_MNEMONIC_FPREM1: {
         long double a = fpu_st(cpu, 0), b = fpu_st(cpu, 1);
         fpu_st(cpu, 0) = __builtin_fmodl(a, b);
+        // The result derives from both ST(0) and ST(1) (exponent reduction).
+        fpu_st_taint(cpu, 0) |= fpu_st_taint(cpu, 1);
         break;
     }
     case ZYDIS_MNEMONIC_FSCALE:
         fpu_st(cpu, 0) = fpu_st(cpu, 0) * __builtin_powil(2.0L, __builtin_truncl(fpu_st(cpu, 1)));
+        fpu_st_taint(cpu, 0) |= fpu_st_taint(cpu, 1);
         break;
     case ZYDIS_MNEMONIC_FSQRT: fpu_st(cpu, 0) = __builtin_sqrtl(fpu_st(cpu, 0)); break;
     case ZYDIS_MNEMONIC_FSIN: fpu_st(cpu, 0) = __builtin_sinl(fpu_st(cpu, 0)); break;
@@ -3602,26 +3739,32 @@ void exec_x87(CPU* cpu, const Dec& d) {
         break;
     case ZYDIS_MNEMONIC_FYL2X: {
         long double r = __builtin_log2l(fpu_st(cpu, 0)) * fpu_st(cpu, 1);
+        // The result derives from ST(0) and ST(1); it replaces the popped ST(0).
+        Taint rt = fpu_st_taint(cpu, 0) | fpu_st_taint(cpu, 1);
         fpu_pop(cpu);
         fpu_st(cpu, 0) = r;
+        fpu_st_taint(cpu, 0) = rt;
         break;
     }
     case ZYDIS_MNEMONIC_FPATAN: {
         long double r = __builtin_atan2l(fpu_st(cpu, 1), fpu_st(cpu, 0));
+        Taint rt = fpu_st_taint(cpu, 0) | fpu_st_taint(cpu, 1);
         fpu_pop(cpu);
         fpu_st(cpu, 0) = r;
+        fpu_st_taint(cpu, 0) = rt;
         break;
     }
     case ZYDIS_MNEMONIC_FPTAN: {
         long double v = __builtin_tanl(fpu_st(cpu, 0));
         fpu_st(cpu, 0) = v;
-        fpu_push(cpu, 1.0L);
+        fpu_push(cpu, 1.0L); // the pushed 1.0 is a constant (clean)
         break;
     }
     case ZYDIS_MNEMONIC_FSINCOS: {
         long double v = fpu_st(cpu, 0);
         fpu_st(cpu, 0) = __builtin_sinl(v);
-        fpu_push(cpu, __builtin_cosl(v));
+        // cos(v) derives from ST(0)'s value: propagate its taint.
+        fpu_push(cpu, __builtin_cosl(v), fpu_st_taint(cpu, 0));
         break;
     }
     case ZYDIS_MNEMONIC_FTST:
@@ -3646,6 +3789,9 @@ void exec_x87(CPU* cpu, const Dec& d) {
         cpu->fpu_top = 0;
         cpu->fcw = 0x037f;
         cpu->fsw = 0;
+        // FPU reset: all stack registers become empty (drop any taint).
+        for (int i = 0; i < 8; i++)
+            cpu->st_taint[i].clear();
         break;
     case ZYDIS_MNEMONIC_FNCLEX:
         cpu->fsw &= ~0x7f;
@@ -3662,10 +3808,13 @@ void exec_x87(CPU* cpu, const Dec& d) {
         }
         int top2 = (bcd[9] & 0x7f);
         v += (long double)(top2 & 0xf) * 1e18L + (long double)((top2 >> 4) & 0x7) * 1e19L;
-        fpu_push(cpu, neg ? -v : v);
+        Taint t;
+        mem_get_taint(addr, 10, &t);
+        fpu_push(cpu, neg ? -v : v, t);
         break;
     }
     case ZYDIS_MNEMONIC_FBSTP: {
+        Taint t0 = fpu_st_taint(cpu, 0); // capture before the pop clears it
         long double v = fpu_pop(cpu);
         bool neg = v < 0;
         if (neg)
@@ -3684,6 +3833,8 @@ void exec_x87(CPU* cpu, const Dec& d) {
         if (neg)
             bcd[9] |= 0x80;
         mem_store_bytes(cpu, addr, bcd, 10);
+        // Poisoning: the converted ST(0) value keeps ST(0)'s taint.
+        mem_note_store(cpu, addr, 10, t0);
         break;
     }
     default:
@@ -3703,8 +3854,7 @@ void exec_shld_shrd(CPU* cpu, const Dec& d, bool is_shld) {
     unsigned bits = w * 8;
     uint64_t c = cnt.v & (bits == 64 ? 63 : 31);
     Val out;
-    out.taint.cannot_branch = dst.taint.cannot_branch || src.taint.cannot_branch || cnt.taint.cannot_branch;
-    out.taint.cannot_index = dst.taint.cannot_index || src.taint.cannot_index || cnt.taint.cannot_index;
+    out.taint = dst.taint | src.taint | cnt.taint;
     if (c == 0) {
         cpu->rip = next_rip(cpu, d);
         return;
@@ -3782,8 +3932,7 @@ void exec_bmi_simple(CPU* cpu, const Dec& d) {
     int w = common_int_width(d);
     uint64_t m = mask_for(w);
     Val out;
-    out.taint.cannot_branch = s0.taint.cannot_branch || s1.taint.cannot_branch;
-    out.taint.cannot_index = s0.taint.cannot_index || s1.taint.cannot_index;
+    out.taint = s0.taint | s1.taint;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_ANDN:
         out.v = (~(s0.v & m) & s1.v) & m;
@@ -3834,8 +3983,7 @@ void exec_bmi_simple(CPU* cpu, const Dec& d) {
         cpu->set_flag(FLAG_ZF, out.v == 0);
         cpu->set_flag(FLAG_SF, (out.v >> (bits - 1)) & 1);
         cpu->set_flag(FLAG_OF, false);
-        out.taint.cannot_branch = out.taint.cannot_branch || idx.taint.cannot_branch;
-        out.taint.cannot_index = out.taint.cannot_index || idx.taint.cannot_index;
+        out.taint |= idx.taint;
         break;
     }
     case ZYDIS_MNEMONIC_SHLX:
@@ -3856,8 +4004,7 @@ void exec_bmi_simple(CPU* cpu, const Dec& d) {
             else
                 out.v = t >> c;
         }
-        out.taint.cannot_branch = out.taint.cannot_branch || cnt.taint.cannot_branch;
-        out.taint.cannot_index = out.taint.cannot_index || cnt.taint.cannot_index;
+        out.taint |= cnt.taint;
         break;
     }
     case ZYDIS_MNEMONIC_RORX: {
@@ -3866,8 +4013,7 @@ void exec_bmi_simple(CPU* cpu, const Dec& d) {
         unsigned c = (unsigned)cnt.v & (bits - 1);
         uint64_t t = s0.v & m;
         out.v = ((t >> c) | (t << (bits - c))) & m;
-        out.taint.cannot_branch = out.taint.cannot_branch || cnt.taint.cannot_branch;
-        out.taint.cannot_index = out.taint.cannot_index || cnt.taint.cannot_index;
+        out.taint |= cnt.taint;
         break;
     }
     case ZYDIS_MNEMONIC_MULX: {
@@ -4344,6 +4490,37 @@ bool evex_broadcasting(const Dec& d) {
     return (d.insn.attributes & ZYDIS_ATTRIB_HAS_EVEX_B) != 0;
 }
 
+// Taint of the active EVEX write mask ({k1}-style), if any: masked-off
+// result lanes merge with the old destination mask, so its taint flows into
+// mask-producing results too. k0 (no masking) is clean.
+Taint evex_write_mask_taint(CPU* cpu, const Dec& d) {
+    if (d.insn.avx.mask.mode == ZYDIS_MASK_MODE_DISABLED ||
+        d.insn.avx.mask.mode == ZYDIS_MASK_MODE_INVALID)
+        return Taint();
+    int k;
+    if (!reg_to_opmask(d.insn.avx.mask.reg, k) || k == 0)
+        return Taint();
+    return cpu->opmask_taint[k];
+}
+
+// §4.7: {k1}-masked memory loads/stores have data-dependent timing (the mask
+// decides which lanes/pages are touched, including fault suppression). A
+// tainted (cannot-var-time-op) value in the active mask register is therefore
+// a var-time leak. Callers only invoke this on genuine MEMORY operations: a
+// {k}-masked register-form op is value-independent.
+void check_evex_mem_mask(CPU* cpu, const Dec& d) {
+    if (d.insn.avx.mask.mode == ZYDIS_MASK_MODE_DISABLED ||
+        d.insn.avx.mask.mode == ZYDIS_MASK_MODE_INVALID)
+        return;
+    int k;
+    if (!reg_to_opmask(d.insn.avx.mask.reg, k) || k == 0)
+        return;
+    if (cpu->opmask_taint[k].cannot_var_time_op)
+        guest_error(cpu,
+                    "tainted (cannot-var-time-op) value in EVEX mask register "
+                    "(masked memory op has data-dependent timing)");
+}
+
 // Load an EVEX vector source with broadcast + taint handling. `elem` is the
 // element size for embedded-broadcast detection (bytes); broadcasts replicate
 // one element across the full width. Static-broadcast instructions
@@ -4377,6 +4554,8 @@ void evex_load(CPU* cpu, const Dec& d, int oi, VecVal& out, unsigned w,
         return;
     }
     if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
+        // §4.7: {k}-masked load from memory -- the mask is timing-relevant.
+        check_evex_mem_mask(cpu, d);
         if (elem && evex_broadcasting(d)) {
             if (kbits != 0) {
                 uint8_t one[8];
@@ -4446,6 +4625,8 @@ void evex_store(CPU* cpu, const Dec& d, int oi, const VecVal& res,
         return;
     }
     if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
+        // §4.7: {k}-masked store to memory -- the mask is timing-relevant.
+        check_evex_mem_mask(cpu, d);
         uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
         unsigned lanes = w / elem;
         uint64_t all = (lanes >= 64) ? ~0ULL : ((lanes == 0) ? 0 : ((1ULL << lanes) - 1));
@@ -4556,6 +4737,9 @@ void xsave_legacy_read(CPU* cpu, uint64_t addr) {
         long double v = 0;
         memcpy(&v, area + 32 + i * 16, 16);
         cpu->st[(cpu->fpu_top + i) & 7] = v;
+        // x87 taint is per-register and does not survive FXSAVE/XSAVE
+        // snapshots: the restored area carries no sidecar, so it clears.
+        cpu->st_taint[(cpu->fpu_top + i) & 7].clear();
     }
     for (int i = 0; i < 16; i++)
         memcpy(cpu->xmm[i].bytes, area + 160 + i * 16, 16);
@@ -4767,17 +4951,48 @@ uint64_t kload(CPU* cpu, const Dec& d, int oi, unsigned bits) {
     guest_error(cpu, "unsupported K operand");
 }
 
-void kstore(CPU* cpu, const Dec& d, int oi, uint64_t v, unsigned bits) {
+// Taint sidecar of a K operand source (k register, GPR, or memory; clean for
+// immediates). kload() above loads the value; this mirrors it taint-only so
+// kstore can propagate the source taint into the destination sidecar.
+Taint kload_taint(CPU* cpu, const Dec& d, int oi, unsigned bits) {
+    const auto& op = d.ops[oi];
+    if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
+        int k;
+        if (reg_to_opmask(op.reg.value, k))
+            return cpu->opmask_taint[k];
+        int idx, size, shift;
+        if (reg_to_gpr(op.reg.value, idx, size, shift))
+            return cpu->gpr[idx].taint;
+        return Taint();
+    }
+    if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
+        uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
+        unsigned bytes = (bits + 7) / 8;
+        Taint t;
+        mem_get_taint(addr, bytes, &t);
+        return t;
+    }
+    return Taint(); // immediate: clean
+}
+
+// Store a K result (k register, GPR, or memory) as low `bits` bits. The
+// source taint t (OR of the inputs' taints) lands in cpu->opmask_taint[k]
+// for k-register destinations, in the GPR sidecar via op_store, or in the
+// stored memory bytes via mem_note_store.
+void kstore(CPU* cpu, const Dec& d, int oi, uint64_t v, unsigned bits,
+            Taint t = Taint()) {
     const auto& op = d.ops[oi];
     v = kmask(v, bits);
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
         int k;
         if (reg_to_opmask(op.reg.value, k)) {
             cpu->opmask[k] = v;
+            cpu->opmask_taint[k] = t;
             return;
         }
         Val g;
         g.v = v;
+        g.taint = t;
         op_store(cpu, d, oi, g);
         return;
     }
@@ -4785,6 +5000,7 @@ void kstore(CPU* cpu, const Dec& d, int oi, uint64_t v, unsigned bits) {
         uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
         unsigned bytes = (bits + 7) / 8;
         mem_store_bytes(cpu, addr, (uint8_t*)&v, bytes);
+        mem_note_store(cpu, addr, bytes, t);
         return;
     }
     guest_error(cpu, "cannot store K result to operand");
@@ -4810,14 +5026,17 @@ void exec_kop(CPU* cpu, const Dec& d) {
     if (is_kmov_mn(m)) {
         if (n < 2)
             guest_error(cpu, "kmov needs 2 operands");
-        kstore(cpu, d, ex[0], kload(cpu, d, ex[1], bits), bits);
+        kstore(cpu, d, ex[0], kload(cpu, d, ex[1], bits), bits,
+               kload_taint(cpu, d, ex[1], bits));
         cpu->rip = next_rip(cpu, d);
         return;
     }
     if (is_knot_mn(m)) {
         if (n < 2)
             guest_error(cpu, "knot needs 2 operands");
-        kstore(cpu, d, ex[0], ~kload(cpu, d, ex[1], bits), bits);
+        // Conservative: KNOT keeps the source's taint (OR, not negation).
+        kstore(cpu, d, ex[0], ~kload(cpu, d, ex[1], bits), bits,
+               kload_taint(cpu, d, ex[1], bits));
         cpu->rip = next_rip(cpu, d);
         return;
     }
@@ -4836,7 +5055,11 @@ void exec_kop(CPU* cpu, const Dec& d) {
         cpu->set_flag(FLAG_OF, false);
         cpu->set_flag(FLAG_AF, false);
         cpu->set_flag(FLAG_PF, false);
-        flags_clear(cpu);
+        // ZF/CF are derived from both (tainted) mask inputs: tag the flags
+        // sidecar with the OR of their taints so a following Jcc cannot
+        // leak (instead of flags_clear()).
+        cpu->flags_taint =
+            kload_taint(cpu, d, ex[0], bits) | kload_taint(cpu, d, ex[1], bits);
         cpu->rip = next_rip(cpu, d);
         return;
     }
@@ -4850,43 +5073,51 @@ void exec_kop(CPU* cpu, const Dec& d) {
         cpu->set_flag(FLAG_OF, false);
         cpu->set_flag(FLAG_AF, false);
         cpu->set_flag(FLAG_PF, false);
-        flags_clear(cpu);
+        // ZF/CF are derived from both (tainted) mask inputs: tag the flags
+        // sidecar with the OR of their taints so a following Jcc cannot
+        // leak (instead of flags_clear()).
+        cpu->flags_taint =
+            kload_taint(cpu, d, ex[0], bits) | kload_taint(cpu, d, ex[1], bits);
         cpu->rip = next_rip(cpu, d);
         return;
     }
-    // KSHIFT: dst,src,imm8.
+    // KSHIFT: dst,src,imm8 -- the shifted VALUE is the source (ex[1]), both
+    // for the result and for its taint (ex[0] is only the destination). The
+    // imm8 count is architectural 0..255 with no 6-bit masking: counts
+    // >= 64 shift out to zero (also keeps the C shifts defined).
     if (m == ZYDIS_MNEMONIC_KSHIFTLB || m == ZYDIS_MNEMONIC_KSHIFTLW ||
         m == ZYDIS_MNEMONIC_KSHIFTLD || m == ZYDIS_MNEMONIC_KSHIFTLQ ||
         m == ZYDIS_MNEMONIC_KSHIFTRB || m == ZYDIS_MNEMONIC_KSHIFTRW ||
         m == ZYDIS_MNEMONIC_KSHIFTRD || m == ZYDIS_MNEMONIC_KSHIFTRQ) {
         if (n < 3)
             guest_error(cpu, "kshift needs 3 operands");
-        uint64_t a = kload(cpu, d, ex[0], bits);
+        uint64_t a = kload(cpu, d, ex[1], bits);
         uint64_t cnt = kload(cpu, d, ex[2], 8);
         bool left = (m == ZYDIS_MNEMONIC_KSHIFTLB || m == ZYDIS_MNEMONIC_KSHIFTLW ||
                      m == ZYDIS_MNEMONIC_KSHIFTLD || m == ZYDIS_MNEMONIC_KSHIFTLQ);
-        kstore(cpu, d, ex[0], left ? (a << cnt) : (a >> cnt), bits);
+        uint64_t r = cnt < 64 ? (left ? (a << cnt) : (a >> cnt)) : 0;
+        kstore(cpu, d, ex[0], r, bits, kload_taint(cpu, d, ex[1], bits));
         cpu->rip = next_rip(cpu, d);
         return;
     }
-    // KUNPCK: interleave chunks of a and b.
+    // KUNPCK: interleave the low chunks of the two sources -- architecturally
+    // dst[chunk-1:0] = src2 (ex[2]) and dst[2*chunk-1:chunk] = src1 (ex[1]),
+    // where chunk is half the instruction's mask width. (kmask_width() does
+    // not model the KUNPCK widths: B=16, W=32, Q=64 -- derive from mnemonic.)
     if (m == ZYDIS_MNEMONIC_KUNPCKBW || m == ZYDIS_MNEMONIC_KUNPCKWD ||
         m == ZYDIS_MNEMONIC_KUNPCKDQ) {
         if (n < 3)
             guest_error(cpu, "kunpck needs 3 operands");
-        uint64_t a = kload(cpu, d, ex[1], bits);
-        uint64_t b = kload(cpu, d, ex[2], bits);
-        unsigned chunk = (m == ZYDIS_MNEMONIC_KUNPCKBW) ? 4
-                         : (m == ZYDIS_MNEMONIC_KUNPCKWD) ? 8
-                                                          : 16;
-        uint64_t lo = 0;
-        for (unsigned i = 0; i < bits / (2 * chunk); i++) {
-            uint64_t cm = (chunk >= 64) ? ~0ULL : ((1ULL << chunk) - 1);
-            uint64_t abit = (a >> (i * chunk)) & cm;
-            uint64_t bbit = (b >> (i * chunk)) & cm;
-            lo |= (abit << (2 * i * chunk)) | (bbit << ((2 * i + 1) * chunk));
-        }
-        kstore(cpu, d, ex[0], lo, bits);
+        unsigned w = (m == ZYDIS_MNEMONIC_KUNPCKBW) ? 16
+                     : (m == ZYDIS_MNEMONIC_KUNPCKWD) ? 32
+                                                      : 64;
+        uint64_t a = kload(cpu, d, ex[1], w);
+        uint64_t b = kload(cpu, d, ex[2], w);
+        unsigned chunk = w / 2;
+        uint64_t cm = (1ULL << chunk) - 1;
+        uint64_t lo = (b & cm) | ((a & cm) << chunk);
+        kstore(cpu, d, ex[0], lo, w,
+               kload_taint(cpu, d, ex[1], w) | kload_taint(cpu, d, ex[2], w));
         cpu->rip = next_rip(cpu, d);
         return;
     }
@@ -4926,7 +5157,9 @@ void exec_kop(CPU* cpu, const Dec& d) {
     case ZYDIS_MNEMONIC_KANDNR: r = (~a) & b; break;
     default: guest_error(cpu, "unsupported K operation");
     }
-    kstore(cpu, d, ex[0], r, bits);
+    kstore(cpu, d, ex[0], r, bits,
+           kload_taint(cpu, d, ex[n == 2 ? 0 : 1], bits) |
+               kload_taint(cpu, d, ex[n == 2 ? 1 : 2], bits));
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -5152,7 +5385,10 @@ void exec_evex_vpcmp_core(CPU* cpu, const Dec& d, unsigned elem, bool us,
         else if (!zeroing)
             out |= (old & (1ULL << i));
     }
-    kstore(cpu, d, ex[0], out, 64);
+    // The produced mask derives from the compared vectors plus the merged
+    // old destination mask (under the write mask): OR all of their taints
+    // into the destination k-register sidecar.
+    kstore(cpu, d, ex[0], out, 64, a.taint | b.taint | evex_write_mask_taint(cpu, d));
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -5264,7 +5500,10 @@ void exec_evex_vptestm(CPU* cpu, const Dec& d, bool is_n) {
         else if (!zeroing)
             out |= (old & (1ULL << i));
     }
-    kstore(cpu, d, ex[0], out, 64);
+    // The produced mask derives from the tested vectors plus the merged old
+    // destination mask (under the write mask): OR all of their taints into
+    // the destination k-register sidecar.
+    kstore(cpu, d, ex[0], out, 64, a.taint | b.taint | evex_write_mask_taint(cpu, d));
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -5553,6 +5792,9 @@ void exec_evex_broadcast(CPU* cpu, const Dec& d) {
         if (k < 0)
             k = 0;
         memcpy(src, &cpu->opmask[k], srcn);
+        // The broadcast value derives from the k register: propagate its
+        // taint into the produced vector.
+        src.taint = cpu->opmask_taint[k];
     } else if (sop.type == ZYDIS_OPERAND_TYPE_REGISTER) {
         int idx, width;
         if (reg_to_vec(sop.reg.value, idx, width)) {
@@ -5873,7 +6115,18 @@ void exec_evex_movm(CPU* cpu, const Dec& d, bool to_vec) {
         evex_old(cpu, d, ex[0], old, w);
         bool zeroing = false;
         uint64_t kbits = evex_mask(cpu, d, lanes, zeroing);
+        // The materialized vector derives from the k register: propagate the
+        // k-register's taint (clean for k0/absent mask).
         o.taint.clear();
+        if (k >= 0)
+            o.taint = cpu->opmask_taint[k];
+        else {
+            const auto& sop = d.ops[ex[1]];
+            int kk;
+            if (sop.type == ZYDIS_OPERAND_TYPE_REGISTER &&
+                reg_to_opmask(sop.reg.value, kk))
+                o.taint = cpu->opmask_taint[kk];
+        }
         evex_store(cpu, d, ex[0], o, old, w, elem, kbits, zeroing);
         cpu->rip = next_rip(cpu, d);
         return;
@@ -5887,7 +6140,9 @@ void exec_evex_movm(CPU* cpu, const Dec& d, bool to_vec) {
         if (v != 0)
             res |= (1ULL << i);
     }
-    kstore(cpu, d, ex[0], res, 64);
+    // Vector -> mask: the source vector's taint (plus the merged old
+    // destination mask's taint under the write mask) lands in the k register.
+    kstore(cpu, d, ex[0], res, 64, a.taint | evex_write_mask_taint(cpu, d));
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -5992,10 +6247,14 @@ void exec_evex_p2intersect(CPU* cpu, const Dec& d) {
             }
         }
     }
-    kstore(cpu, d, ex[0], k1, 64);
+    // Both produced masks derive from the compared vectors: their taint
+    // lands in the k-register sidecars (write-mask result included).
+    kstore(cpu, d, ex[0], k1, 64, a.taint | b.taint);
     int dk = -1;
-    if (reg_to_opmask(d.insn.avx.mask.reg, dk) && dk != 0)
+    if (reg_to_opmask(d.insn.avx.mask.reg, dk) && dk != 0) {
         cpu->opmask[dk] = k2;
+        cpu->opmask_taint[dk] = a.taint | b.taint;
+    }
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -6119,6 +6378,9 @@ void exec_evex_gather(CPU* cpu, const Dec& d, unsigned idx_elem,
     }
     if (dsti < 0 || memi < 0)
         guest_error(cpu, "bad gather operands");
+    // §4.7: the EVEX gather mask (k register) decides which lanes are
+    // touched, so a tainted mask is a var-time leak (KNOWN, all modes).
+    check_evex_mem_mask(cpu, d);
     unsigned lanes = w / data_elem;
     VecVal o, old;
     evex_old(cpu, d, dsti, old, w);
@@ -6198,6 +6460,9 @@ void exec_evex_scatter(CPU* cpu, const Dec& d, unsigned idx_elem,
     }
     if (dsti < 0 || srci < 0)
         guest_error(cpu, "bad scatter operands");
+    // §4.7: the scatter mask (k register) decides which lanes are written,
+    // so a tainted mask is a var-time leak (KNOWN, all modes).
+    check_evex_mem_mask(cpu, d);
     unsigned lanes = w / data_elem;
     bool zeroing_s = false;
     uint64_t kbits_s = evex_mask(cpu, d, lanes, zeroing_s);
@@ -7374,8 +7639,7 @@ void exec_bextr(CPU* cpu, const Dec& d) {
     unsigned start = (unsigned)ctl.v & 0xff;
     unsigned len = ((unsigned)ctl.v >> 8) & 0xff;
     Val out;
-    out.taint.cannot_branch = src.taint.cannot_branch || ctl.taint.cannot_branch;
-    out.taint.cannot_index = src.taint.cannot_index || ctl.taint.cannot_index;
+    out.taint = src.taint | ctl.taint;
     if (start >= bits) {
         out.v = 0;
         cpu->set_flag(FLAG_ZF, true);
@@ -7586,8 +7850,7 @@ void exec_pcmpestri(CPU* cpu, const Dec& d, bool want_index) {
         out.v = any ? (uint64_t)final_idx : (uint64_t)elems;
         out.taint = ataint | btaint;
         cpu->gpr[ZG_RCX].val = out.v;
-        cpu->gpr[ZG_RCX].taint.cannot_branch = out.taint.cannot_branch;
-        cpu->gpr[ZG_RCX].taint.cannot_index = out.taint.cannot_index;
+        cpu->gpr[ZG_RCX].taint = out.taint;
     } else {
         // PCMPESTRM: XMM0 = mask (zero-extended to 128 bits).
         uint8_t mout[16] = {0};
@@ -7924,6 +8187,11 @@ void exec_evex_compress(CPU* cpu, const Dec& d, bool expand) {
             o.taint = a.taint;
             evex_store(cpu, d, ex[0], o, old, w, w, ~0ULL, false);
         } else {
+            // §4.7: compress-to-memory writes a popcount(k)-dependent number
+            // of bytes -- a tainted mask is a KNOWN var-time leak (all modes).
+            // (Compress/expand classify GUARANTEED so the generic operand
+            // scan does not double-fire; this is the form-aware check.)
+            check_evex_mem_mask(cpu, d);
             uint64_t addr = resolve_mem(cpu, dop, cpu->rip + d.insn.length);
             mem_store_bytes(cpu, addr, o, out * elem);
             // Only bytes actually written gain taint (enabled lanes only).
@@ -7949,6 +8217,11 @@ void exec_evex_compress(CPU* cpu, const Dec& d, bool expand) {
             else
                 a.taint.clear();
         } else {
+            // §5: expand-from-memory reads a mask-dependent number of bytes
+            // (mirror image of compress-store). Only a suspect, so this is
+            // gated to --var-time-op=plausible and above.
+            if (cpu->emu->var_time_op >= Emulator::ZG_VAR_TIME_PLAUSIBLE)
+                check_evex_mem_mask(cpu, d);
             uint64_t addr = resolve_mem(cpu, sop, cpu->rip + d.insn.length);
             memset(a, 0, w);
             if (in > 0) {
@@ -8622,6 +8895,9 @@ void exec_evex_movd(CPU* cpu, const Dec& d, bool is_q) {
             if (enabled)
                 t = cpu->xmm[idx].taint;
         } else if (sop.type == ZYDIS_OPERAND_TYPE_MEMORY) {
+            // §4.7: {k}-masked load -- the mask decides whether the line is
+            // touched at all.
+            check_evex_mem_mask(cpu, d);
             uint64_t addr = resolve_mem(cpu, sop, cpu->rip + d.insn.length);
             if (enabled) {
                 mem_load_bytes(cpu, addr, tmp, elem);
@@ -8691,6 +8967,9 @@ void exec_evex_movd(CPU* cpu, const Dec& d, bool is_q) {
             else
                 cpu->xmm[idx].taint = t;
         } else if (dop.type == ZYDIS_OPERAND_TYPE_MEMORY) {
+            // §4.7: {k}-masked store -- the mask decides whether the line is
+            // touched at all.
+            check_evex_mem_mask(cpu, d);
             uint64_t addr = resolve_mem(cpu, dop, cpu->rip + d.insn.length);
             if (enabled) {
                 mem_store_bytes(cpu, addr, tmp, elem);
@@ -8721,10 +9000,8 @@ void exec_pkru(CPU* cpu, const Dec& d, bool write) {
         asm volatile("rdpkru" : "=a"(lo), "=d"(hi) : "c"(0u));
         cpu->gpr[ZG_RAX].val = lo;
         cpu->gpr[ZG_RDX].val = hi;
-        cpu->gpr[ZG_RAX].taint.cannot_branch = false;
-        cpu->gpr[ZG_RAX].taint.cannot_index = false;
-        cpu->gpr[ZG_RDX].taint.cannot_branch = false;
-        cpu->gpr[ZG_RDX].taint.cannot_index = false;
+        cpu->gpr[ZG_RAX].taint.clear();
+        cpu->gpr[ZG_RDX].taint.clear();
     }
     cpu->rip = next_rip(cpu, d);
 }
@@ -8777,9 +9054,18 @@ bool touches_seg_or_sysreg(const Dec& d) {
 }
 
 void exec_xlat(CPU* cpu, const Dec& d) {
+    // XLAT's address is RBX + zero-extended AL: both are address components
+    // (doc 3.1), so they are cannot-index (not cannot-var-time-op) values.
+    if (cpu->gpr[ZG_RBX].taint.cannot_index ||
+        cpu->gpr[ZG_RAX].taint.cannot_index)
+        guest_error(cpu, "tainted (cannot-index) value used as XLAT table index/base");
     uint64_t addr = cpu->gpr[ZG_RBX].val + (cpu->gpr[ZG_RAX].val & 0xff);
     uint8_t v = mem_load8(cpu, addr);
     cpu->gpr[ZG_RAX].val = (cpu->gpr[ZG_RAX].val & ~0xffULL) | v;
+    // The loaded byte lands in AL: propagate its memory taint.
+    Taint t;
+    mem_get_taint(addr, 1, &t);
+    cpu->gpr[ZG_RAX].taint |= t;
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -8800,7 +9086,1233 @@ void exec_fsbase(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_nop_like(CPU* cpu, const Dec& d) { cpu->rip = next_rip(cpu, d); }
+void exec_nop_like(CPU* cpu, const Dec& d) {
+    // Cache-control / prefetch hints perform no data access, but their
+    // effective address is an ADDR timing dependency (doc 3.1), so it must
+    // go through resolve_mem for the cannot-index base/index checks even
+    // though nothing else happens. Keep them GUARANTEED for var-time (their
+    // classification is untouched -- no data-dependent time in the datapath
+    // itself). NOP/PAUSE/fences/SERIALIZE/CLAC/STAC/FNOP/FWAIT have no
+    // memory operand and are not on the ADDR list, so they stay unchecked.
+    switch (d.insn.mnemonic) {
+    case ZYDIS_MNEMONIC_CLFLUSH:
+    case ZYDIS_MNEMONIC_CLFLUSHOPT:
+    case ZYDIS_MNEMONIC_CLWB:
+    case ZYDIS_MNEMONIC_PREFETCH:
+    case ZYDIS_MNEMONIC_PREFETCHW:
+    case ZYDIS_MNEMONIC_PREFETCHNTA:
+    case ZYDIS_MNEMONIC_PREFETCHT0:
+    case ZYDIS_MNEMONIC_PREFETCHT1:
+    case ZYDIS_MNEMONIC_PREFETCHT2:
+        for (int i = 0; i < d.insn.operand_count; i++)
+            if (d.ops[i].type == ZYDIS_OPERAND_TYPE_MEMORY)
+                (void)resolve_mem(cpu, d.ops[i], next_rip(cpu, d));
+        break;
+    default: break;
+    }
+    cpu->rip = next_rip(cpu, d);
+}
+
+} // namespace
+
+// --- cannot-var-time-op: data-dependent execution-time checks ---------------
+// Classification follows x86_64_data_dependent_timing.md (repo root):
+// §4 known var-time => KNOWN, §5 suspects => PLAUSIBLE, §6+§7 => GUARANTEED.
+// Everything else => OTHER (only mode "everything" traps). Branch (CTRL) and
+// address (ADDR) dependencies are the existing cannot-branch / cannot-index
+// checks and are deliberately NOT re-checked here.
+//
+// Only mnemonics zegarmistrz actually implements are listed; an unimplemented
+// mnemonic classifies as OTHER but never dispatches (it fails later with an
+// "unimplemented" guest error -- in "everything" mode such an instruction
+// with a tainted operand reports var-time first; both are fatal guest errors).
+
+namespace {
+
+enum class VarTimeClass { GUARANTEED, KNOWN, PLAUSIBLE, OTHER };
+
+// FMA family via mnemonic-string prefix (precedent: fma_info): every
+// VFMADD*/VFNMADD*/VFMSUB*/VFNMSUB* form (132/213/231 and the 4-operand
+// forms, PS/PD/SS/SD, plus VFMADDSUB*/VFMSUBADD*) can hit subnormal
+// assists (§4.5a) => KNOWN.
+bool mn_is_fma(ZydisMnemonic m) {
+    return mn_starts_with(m, "VFMADD") || mn_starts_with(m, "VFNMADD") ||
+           mn_starts_with(m, "VFMSUB") || mn_starts_with(m, "VFNMSUB");
+}
+
+// All implemented opmask instructions: every x86-64 mnemonic starting with
+// "K" operates on k registers (doc 7.1 "all K* operations") => GUARANTEED.
+bool mn_is_kop(ZydisMnemonic m) {
+    const char* s = ZydisMnemonicGetString(m);
+    return s && s[0] == 'K';
+}
+
+VarTimeClass var_time_class(ZydisMnemonic m) {
+    if (mn_is_fma(m))
+        return VarTimeClass::KNOWN;
+    if (mn_is_kop(m))
+        return VarTimeClass::GUARANTEED;
+    switch (m) {
+    // ---- §4.1 integer division ------------------------------------------
+    case ZYDIS_MNEMONIC_DIV:
+    case ZYDIS_MNEMONIC_IDIV:
+    // ---- §4.2 PDEP/PEXT (mask operand; AMD Zen 1/2 microcode) ------------
+    case ZYDIS_MNEMONIC_PDEP:
+    case ZYDIS_MNEMONIC_PEXT:
+    // ---- §4.9 CPUID / XSAVE family ---------------------------------------
+    case ZYDIS_MNEMONIC_CPUID:
+    case ZYDIS_MNEMONIC_XSAVE:
+    case ZYDIS_MNEMONIC_XSAVE64:
+    case ZYDIS_MNEMONIC_XSAVEOPT:
+    case ZYDIS_MNEMONIC_XSAVEOPT64:
+    case ZYDIS_MNEMONIC_XSAVEC:
+    case ZYDIS_MNEMONIC_XSAVEC64:
+    case ZYDIS_MNEMONIC_XSAVES:
+    case ZYDIS_MNEMONIC_XSAVES64:
+    case ZYDIS_MNEMONIC_XRSTOR:
+    case ZYDIS_MNEMONIC_XRSTOR64:
+    case ZYDIS_MNEMONIC_XRSTORS:
+    case ZYDIS_MNEMONIC_XRSTORS64:
+        return VarTimeClass::KNOWN;
+
+    // ---- §4.5a FP add/sub/mul + denormal assists --------------------------
+    case ZYDIS_MNEMONIC_ADDSS:
+    case ZYDIS_MNEMONIC_VADDSS:
+    case ZYDIS_MNEMONIC_ADDSD:
+    case ZYDIS_MNEMONIC_VADDSD:
+    case ZYDIS_MNEMONIC_ADDPS:
+    case ZYDIS_MNEMONIC_VADDPS:
+    case ZYDIS_MNEMONIC_ADDPD:
+    case ZYDIS_MNEMONIC_VADDPD:
+    case ZYDIS_MNEMONIC_SUBSS:
+    case ZYDIS_MNEMONIC_VSUBSS:
+    case ZYDIS_MNEMONIC_SUBSD:
+    case ZYDIS_MNEMONIC_VSUBSD:
+    case ZYDIS_MNEMONIC_SUBPS:
+    case ZYDIS_MNEMONIC_VSUBPS:
+    case ZYDIS_MNEMONIC_SUBPD:
+    case ZYDIS_MNEMONIC_VSUBPD:
+    case ZYDIS_MNEMONIC_MULSS:
+    case ZYDIS_MNEMONIC_VMULSS:
+    case ZYDIS_MNEMONIC_MULSD:
+    case ZYDIS_MNEMONIC_VMULSD:
+    case ZYDIS_MNEMONIC_MULPS:
+    case ZYDIS_MNEMONIC_VMULPS:
+    case ZYDIS_MNEMONIC_MULPD:
+    case ZYDIS_MNEMONIC_VMULPD:
+    case ZYDIS_MNEMONIC_ADDSUBPS:
+    case ZYDIS_MNEMONIC_VADDSUBPS:
+    case ZYDIS_MNEMONIC_ADDSUBPD:
+    case ZYDIS_MNEMONIC_VADDSUBPD:
+    case ZYDIS_MNEMONIC_HADDPS:
+    case ZYDIS_MNEMONIC_VHADDPS:
+    case ZYDIS_MNEMONIC_HADDPD:
+    case ZYDIS_MNEMONIC_VHADDPD:
+    case ZYDIS_MNEMONIC_HSUBPS:
+    case ZYDIS_MNEMONIC_VHSUBPS:
+    case ZYDIS_MNEMONIC_HSUBPD:
+    case ZYDIS_MNEMONIC_VHSUBPD:
+    // ---- §4.5a FP->FP and FP->int conversions (subnormal in/out) ----------
+    case ZYDIS_MNEMONIC_CVTSS2SD:
+    case ZYDIS_MNEMONIC_VCVTSS2SD:
+    case ZYDIS_MNEMONIC_CVTSD2SS:
+    case ZYDIS_MNEMONIC_VCVTSD2SS:
+    case ZYDIS_MNEMONIC_CVTPS2PD:
+    case ZYDIS_MNEMONIC_VCVTPS2PD:
+    case ZYDIS_MNEMONIC_CVTPD2PS:
+    case ZYDIS_MNEMONIC_VCVTPD2PS:
+    case ZYDIS_MNEMONIC_VCVTPH2PS:
+    case ZYDIS_MNEMONIC_VCVTPS2PH: // narrowing (doc 4.5a conversions group)
+    case ZYDIS_MNEMONIC_CVTTSD2SI:
+    case ZYDIS_MNEMONIC_VCVTTSD2SI:
+    case ZYDIS_MNEMONIC_CVTTSS2SI:
+    case ZYDIS_MNEMONIC_VCVTTSS2SI:
+    case ZYDIS_MNEMONIC_CVTPS2DQ:
+    case ZYDIS_MNEMONIC_VCVTPS2DQ:
+    case ZYDIS_MNEMONIC_CVTTPS2DQ:
+    case ZYDIS_MNEMONIC_VCVTTPS2DQ: // the FP->int CVT* forms (doc 4.5a
+                                    // "FP->int CVT*/CVTT*": subnormal
+                                    // source)
+    // ---- §4.5b FP divide and square root ----------------------------------
+    case ZYDIS_MNEMONIC_DIVSS:
+    case ZYDIS_MNEMONIC_VDIVSS:
+    case ZYDIS_MNEMONIC_DIVSD:
+    case ZYDIS_MNEMONIC_VDIVSD:
+    case ZYDIS_MNEMONIC_DIVPS:
+    case ZYDIS_MNEMONIC_VDIVPS:
+    case ZYDIS_MNEMONIC_DIVPD:
+    case ZYDIS_MNEMONIC_VDIVPD:
+    case ZYDIS_MNEMONIC_SQRTSS:
+    case ZYDIS_MNEMONIC_VSQRTSS:
+    case ZYDIS_MNEMONIC_SQRTSD:
+    case ZYDIS_MNEMONIC_VSQRTSD:
+    case ZYDIS_MNEMONIC_SQRTPS:
+    case ZYDIS_MNEMONIC_VSQRTPS:
+    case ZYDIS_MNEMONIC_SQRTPD:
+    case ZYDIS_MNEMONIC_VSQRTPD:
+    // ---- §4.6 MCDT SIMD integer multiplies --------------------------------
+    case ZYDIS_MNEMONIC_PMADDUBSW:
+    case ZYDIS_MNEMONIC_VPMADDUBSW:
+    case ZYDIS_MNEMONIC_PMADDWD:
+    case ZYDIS_MNEMONIC_VPMADDWD:
+    case ZYDIS_MNEMONIC_PMULDQ:
+    case ZYDIS_MNEMONIC_VPMULDQ:
+    case ZYDIS_MNEMONIC_PMULHUW:
+    case ZYDIS_MNEMONIC_VPMULHUW:
+    case ZYDIS_MNEMONIC_PMULHW:
+    case ZYDIS_MNEMONIC_VPMULHW:
+    case ZYDIS_MNEMONIC_PMULLD:
+    case ZYDIS_MNEMONIC_VPMULLD:
+    case ZYDIS_MNEMONIC_PMULLW:
+    case ZYDIS_MNEMONIC_VPMULLW:
+    case ZYDIS_MNEMONIC_PMULUDQ:
+    case ZYDIS_MNEMONIC_VPMULUDQ:
+    case ZYDIS_MNEMONIC_VPMULLQ:
+    case ZYDIS_MNEMONIC_VPLZCNTD:
+    case ZYDIS_MNEMONIC_VPLZCNTQ:
+    // ---- §4.7 masked memory ops / gathers / scatters ----------------------
+    case ZYDIS_MNEMONIC_VMASKMOVPS:
+    case ZYDIS_MNEMONIC_VMASKMOVPD:
+    case ZYDIS_MNEMONIC_VPMASKMOVD:
+    case ZYDIS_MNEMONIC_VPMASKMOVQ:
+    case ZYDIS_MNEMONIC_VGATHERDPS:
+    case ZYDIS_MNEMONIC_VGATHERDPD:
+    case ZYDIS_MNEMONIC_VGATHERQPS:
+    case ZYDIS_MNEMONIC_VGATHERQPD:
+    case ZYDIS_MNEMONIC_VPGATHERDD:
+    case ZYDIS_MNEMONIC_VPGATHERDQ:
+    case ZYDIS_MNEMONIC_VPGATHERQD:
+    case ZYDIS_MNEMONIC_VPGATHERQQ:
+    case ZYDIS_MNEMONIC_VPSCATTERDD: // (the VSCATTERDPS-family FP scatter
+    case ZYDIS_MNEMONIC_VPSCATTERDQ: //  forms are unimplemented)
+    case ZYDIS_MNEMONIC_VPSCATTERQD:
+    case ZYDIS_MNEMONIC_VPSCATTERQQ:
+    // ---- §4.8 x87 arithmetic ----------------------------------------------
+    case ZYDIS_MNEMONIC_FADD:
+    case ZYDIS_MNEMONIC_FADDP:
+    case ZYDIS_MNEMONIC_FIADD:
+    case ZYDIS_MNEMONIC_FSUB:
+    case ZYDIS_MNEMONIC_FSUBP:
+    case ZYDIS_MNEMONIC_FSUBR:
+    case ZYDIS_MNEMONIC_FSUBRP:
+    case ZYDIS_MNEMONIC_FISUB:
+    case ZYDIS_MNEMONIC_FIMUL:
+    case ZYDIS_MNEMONIC_FMUL:
+    case ZYDIS_MNEMONIC_FMULP:
+    case ZYDIS_MNEMONIC_FIDIV:
+    case ZYDIS_MNEMONIC_FDIV:
+    case ZYDIS_MNEMONIC_FDIVP:
+    case ZYDIS_MNEMONIC_FDIVR:
+    case ZYDIS_MNEMONIC_FDIVRP:
+    case ZYDIS_MNEMONIC_FSQRT:
+    case ZYDIS_MNEMONIC_FPREM:
+    case ZYDIS_MNEMONIC_FPREM1:
+    case ZYDIS_MNEMONIC_FSIN:
+    case ZYDIS_MNEMONIC_FCOS:
+    case ZYDIS_MNEMONIC_FSINCOS:
+    case ZYDIS_MNEMONIC_FPTAN:
+    case ZYDIS_MNEMONIC_FPATAN:
+    case ZYDIS_MNEMONIC_F2XM1:
+    case ZYDIS_MNEMONIC_FYL2X:
+    case ZYDIS_MNEMONIC_FSCALE:
+    case ZYDIS_MNEMONIC_FRNDINT:
+    case ZYDIS_MNEMONIC_FBLD:
+    case ZYDIS_MNEMONIC_FBSTP:
+        return VarTimeClass::KNOWN;
+
+    // ---- §5 RCL/RCR (microcoded; the only shifts missing from DOIT) -------
+    case ZYDIS_MNEMONIC_RCL:
+    case ZYDIS_MNEMONIC_RCR:
+    // ---- §5 ROUND* (special-value handling) -------------------------------
+    case ZYDIS_MNEMONIC_ROUNDPS:
+    case ZYDIS_MNEMONIC_VROUNDPS:
+    case ZYDIS_MNEMONIC_ROUNDPD:
+    case ZYDIS_MNEMONIC_VROUNDPD:
+    case ZYDIS_MNEMONIC_ROUNDSS:
+    case ZYDIS_MNEMONIC_VROUNDSS:
+    case ZYDIS_MNEMONIC_ROUNDSD:
+    case ZYDIS_MNEMONIC_VROUNDSD:
+    // ---- §5 MIN/MAX/COMIS with DAZ clear ----------------------------------
+    case ZYDIS_MNEMONIC_MINSS:
+    case ZYDIS_MNEMONIC_VMINSS:
+    case ZYDIS_MNEMONIC_MINSD:
+    case ZYDIS_MNEMONIC_VMINSD:
+    case ZYDIS_MNEMONIC_MINPS:
+    case ZYDIS_MNEMONIC_VMINPS:
+    case ZYDIS_MNEMONIC_MINPD:
+    case ZYDIS_MNEMONIC_VMINPD:
+    case ZYDIS_MNEMONIC_MAXSS:
+    case ZYDIS_MNEMONIC_VMAXSS:
+    case ZYDIS_MNEMONIC_MAXSD:
+    case ZYDIS_MNEMONIC_VMAXSD:
+    case ZYDIS_MNEMONIC_MAXPS:
+    case ZYDIS_MNEMONIC_VMAXPS:
+    case ZYDIS_MNEMONIC_MAXPD:
+    case ZYDIS_MNEMONIC_VMAXPD:
+    case ZYDIS_MNEMONIC_COMISS:
+    case ZYDIS_MNEMONIC_VCOMISS:
+    case ZYDIS_MNEMONIC_COMISD:
+    case ZYDIS_MNEMONIC_VCOMISD:
+    case ZYDIS_MNEMONIC_UCOMISS:
+    case ZYDIS_MNEMONIC_VUCOMISS:
+    case ZYDIS_MNEMONIC_UCOMISD:
+    case ZYDIS_MNEMONIC_VUCOMISD:
+    // ---- §5 scalar FP compares (the packed CMPPS/CMPPD forms are not
+    //      implemented; the scalar forms are) -------------------------------
+    case ZYDIS_MNEMONIC_CMPSS:
+    case ZYDIS_MNEMONIC_VCMPSS:
+    case ZYDIS_MNEMONIC_CMPSD:
+    case ZYDIS_MNEMONIC_VCMPSD:
+    // ---- §5 x87 compares / class tests ------------------------------------
+    case ZYDIS_MNEMONIC_FCOM:
+    case ZYDIS_MNEMONIC_FCOMP:
+    case ZYDIS_MNEMONIC_FUCOM:
+    case ZYDIS_MNEMONIC_FUCOMP:
+    case ZYDIS_MNEMONIC_FICOM:
+    case ZYDIS_MNEMONIC_FICOMP:
+    case ZYDIS_MNEMONIC_FCOMPP: // doc 5 "FCOM*"
+    case ZYDIS_MNEMONIC_FUCOMPP:
+    case ZYDIS_MNEMONIC_FCOMI:
+    case ZYDIS_MNEMONIC_FCOMIP:
+    case ZYDIS_MNEMONIC_FUCOMI:
+    case ZYDIS_MNEMONIC_FUCOMIP:
+    case ZYDIS_MNEMONIC_FTST:
+    case ZYDIS_MNEMONIC_FXAM:
+    // ---- §5 LDMXCSR (partially serializing; VLDMXCSR is unimplemented) ----
+    case ZYDIS_MNEMONIC_LDMXCSR:
+    // ---- §5 XGETBV (ECX selects the XCR) ----------------------------------
+    case ZYDIS_MNEMONIC_XGETBV:
+    // ---- §5 INCSSP (CET: the SDM says only the first/last entries are
+    //      touched, but the count is a suspect input) ------------------------
+    case ZYDIS_MNEMONIC_INCSSPD:
+    case ZYDIS_MNEMONIC_INCSSPQ:
+    // ---- §5 FLD from memory (a subnormal/SNaN load may need normalization
+    //      assists; the register form is doc-7.2 data movement and stays
+    //      guaranteed -- carved out in check_var_time) ----------------------
+    case ZYDIS_MNEMONIC_FLD:
+    // ---- §5 CMPXCHG (form-aware: memory form only, see check_var_time) ----
+    case ZYDIS_MNEMONIC_CMPXCHG:
+    // ---- §5 CMPXCHG8B/16B (implicit comparand) ----------------------------
+    case ZYDIS_MNEMONIC_CMPXCHG8B:
+    case ZYDIS_MNEMONIC_CMPXCHG16B:
+        return VarTimeClass::PLAUSIBLE;
+
+    // ---- §6+§7 guaranteed constant-time ------------------------------------
+    // Integer ALU / shifts / bit ops / data movement.
+    case ZYDIS_MNEMONIC_ADD:
+    case ZYDIS_MNEMONIC_ADC:
+    case ZYDIS_MNEMONIC_SUB:
+    case ZYDIS_MNEMONIC_SBB:
+    case ZYDIS_MNEMONIC_AND:
+    case ZYDIS_MNEMONIC_OR:
+    case ZYDIS_MNEMONIC_XOR:
+    case ZYDIS_MNEMONIC_CMP:
+    case ZYDIS_MNEMONIC_TEST:
+    case ZYDIS_MNEMONIC_INC:
+    case ZYDIS_MNEMONIC_DEC:
+    case ZYDIS_MNEMONIC_NEG:
+    case ZYDIS_MNEMONIC_NOT:
+    case ZYDIS_MNEMONIC_ADCX:
+    case ZYDIS_MNEMONIC_ADOX:
+    case ZYDIS_MNEMONIC_ANDN:
+    case ZYDIS_MNEMONIC_MUL:
+    case ZYDIS_MNEMONIC_IMUL:
+    case ZYDIS_MNEMONIC_MULX:
+    case ZYDIS_MNEMONIC_SHL:
+    case ZYDIS_MNEMONIC_SHR:
+    case ZYDIS_MNEMONIC_SAR:
+    case ZYDIS_MNEMONIC_ROL:
+    case ZYDIS_MNEMONIC_ROR:
+    case ZYDIS_MNEMONIC_SHLD:
+    case ZYDIS_MNEMONIC_SHRD:
+    case ZYDIS_MNEMONIC_SHLX:
+    case ZYDIS_MNEMONIC_SHRX:
+    case ZYDIS_MNEMONIC_SARX:
+    case ZYDIS_MNEMONIC_RORX:
+    case ZYDIS_MNEMONIC_BT:
+    case ZYDIS_MNEMONIC_BTS:
+    case ZYDIS_MNEMONIC_BTR:
+    case ZYDIS_MNEMONIC_BTC:
+    case ZYDIS_MNEMONIC_BSWAP:
+    case ZYDIS_MNEMONIC_CBW:
+    case ZYDIS_MNEMONIC_CWDE:
+    case ZYDIS_MNEMONIC_CDQE:
+    case ZYDIS_MNEMONIC_CWD:
+    case ZYDIS_MNEMONIC_CDQ:
+    case ZYDIS_MNEMONIC_CQO:
+    case ZYDIS_MNEMONIC_MOVBE:
+    case ZYDIS_MNEMONIC_CRC32:
+    case ZYDIS_MNEMONIC_LAHF:
+    case ZYDIS_MNEMONIC_SAHF:
+    case ZYDIS_MNEMONIC_CLC:
+    case ZYDIS_MNEMONIC_STC:
+    case ZYDIS_MNEMONIC_CMC:
+    case ZYDIS_MNEMONIC_CLD:
+    case ZYDIS_MNEMONIC_STD:
+    case ZYDIS_MNEMONIC_MOV:
+    case ZYDIS_MNEMONIC_MOVZX:
+    case ZYDIS_MNEMONIC_MOVSX:
+    case ZYDIS_MNEMONIC_MOVSXD:
+    case ZYDIS_MNEMONIC_LEA:
+    case ZYDIS_MNEMONIC_PUSH:
+    case ZYDIS_MNEMONIC_POP:
+    case ZYDIS_MNEMONIC_MOVSB:
+    case ZYDIS_MNEMONIC_MOVSW:
+    case ZYDIS_MNEMONIC_MOVSD: // string form and the SSE scalar move
+    case ZYDIS_MNEMONIC_MOVSQ:
+    case ZYDIS_MNEMONIC_XCHG: // register form guaranteed; memory form LOCKed
+    case ZYDIS_MNEMONIC_XADD: // (doc 6: LOCK-prefixed is not value-dependent)
+    // Bit counts / scans / BMI.
+    case ZYDIS_MNEMONIC_LZCNT:
+    case ZYDIS_MNEMONIC_TZCNT:
+    case ZYDIS_MNEMONIC_POPCNT:
+    case ZYDIS_MNEMONIC_BSF:
+    case ZYDIS_MNEMONIC_BSR:
+    case ZYDIS_MNEMONIC_BEXTR:
+    case ZYDIS_MNEMONIC_BLSI:
+    case ZYDIS_MNEMONIC_BLSMSK:
+    case ZYDIS_MNEMONIC_BLSR:
+    case ZYDIS_MNEMONIC_BZHI:
+    // Conditional.
+    // (SETcc/CMOVcc families handled via is_setcc/is_cmovcc below.)
+    // Crypto.
+    case ZYDIS_MNEMONIC_AESDEC:
+    case ZYDIS_MNEMONIC_AESDECLAST:
+    case ZYDIS_MNEMONIC_AESENC:
+    case ZYDIS_MNEMONIC_AESENCLAST:
+    case ZYDIS_MNEMONIC_AESIMC:
+    case ZYDIS_MNEMONIC_AESKEYGENASSIST:
+    case ZYDIS_MNEMONIC_VAESDEC:
+    case ZYDIS_MNEMONIC_VAESDECLAST:
+    case ZYDIS_MNEMONIC_VAESENC:
+    case ZYDIS_MNEMONIC_VAESENCLAST:
+    case ZYDIS_MNEMONIC_VAESIMC:
+    case ZYDIS_MNEMONIC_VAESKEYGENASSIST:
+    case ZYDIS_MNEMONIC_PCLMULQDQ:
+    case ZYDIS_MNEMONIC_VPCLMULQDQ:
+    case ZYDIS_MNEMONIC_GF2P8AFFINEQB:
+    case ZYDIS_MNEMONIC_GF2P8AFFINEINVQB:
+    case ZYDIS_MNEMONIC_GF2P8MULB:
+    case ZYDIS_MNEMONIC_VGF2P8AFFINEQB:
+    case ZYDIS_MNEMONIC_VGF2P8AFFINEINVQB:
+    case ZYDIS_MNEMONIC_VGF2P8MULB:
+    case ZYDIS_MNEMONIC_SHA1RNDS4:
+    case ZYDIS_MNEMONIC_SHA1NEXTE:
+    case ZYDIS_MNEMONIC_SHA1MSG1:
+    case ZYDIS_MNEMONIC_SHA1MSG2:
+    case ZYDIS_MNEMONIC_SHA256RNDS2:
+    case ZYDIS_MNEMONIC_SHA256MSG1:
+    case ZYDIS_MNEMONIC_SHA256MSG2:
+    // SIMD integer: add/sub (incl. saturating), compare, min/max, logic.
+    case ZYDIS_MNEMONIC_PADDB:
+    case ZYDIS_MNEMONIC_VPADDB:
+    case ZYDIS_MNEMONIC_PADDW:
+    case ZYDIS_MNEMONIC_VPADDW:
+    case ZYDIS_MNEMONIC_PADDD:
+    case ZYDIS_MNEMONIC_VPADDD:
+    case ZYDIS_MNEMONIC_PADDQ:
+    case ZYDIS_MNEMONIC_VPADDQ:
+    case ZYDIS_MNEMONIC_PSUBB:
+    case ZYDIS_MNEMONIC_VPSUBB:
+    case ZYDIS_MNEMONIC_PSUBW:
+    case ZYDIS_MNEMONIC_VPSUBW:
+    case ZYDIS_MNEMONIC_PSUBD:
+    case ZYDIS_MNEMONIC_VPSUBD:
+    case ZYDIS_MNEMONIC_PSUBQ:
+    case ZYDIS_MNEMONIC_VPSUBQ:
+    case ZYDIS_MNEMONIC_PADDSB:
+    case ZYDIS_MNEMONIC_VPADDSB:
+    case ZYDIS_MNEMONIC_PADDSW:
+    case ZYDIS_MNEMONIC_VPADDSW:
+    case ZYDIS_MNEMONIC_PADDUSB:
+    case ZYDIS_MNEMONIC_VPADDUSB:
+    case ZYDIS_MNEMONIC_PADDUSW:
+    case ZYDIS_MNEMONIC_VPADDUSW:
+    case ZYDIS_MNEMONIC_PSUBSB:
+    case ZYDIS_MNEMONIC_VPSUBSB:
+    case ZYDIS_MNEMONIC_PSUBSW:
+    case ZYDIS_MNEMONIC_VPSUBSW:
+    case ZYDIS_MNEMONIC_PSUBUSB:
+    case ZYDIS_MNEMONIC_VPSUBUSB:
+    case ZYDIS_MNEMONIC_PSUBUSW:
+    case ZYDIS_MNEMONIC_VPSUBUSW:
+    case ZYDIS_MNEMONIC_PCMPEQB:
+    case ZYDIS_MNEMONIC_VPCMPEQB:
+    case ZYDIS_MNEMONIC_PCMPEQW:
+    case ZYDIS_MNEMONIC_VPCMPEQW:
+    case ZYDIS_MNEMONIC_PCMPEQD:
+    case ZYDIS_MNEMONIC_VPCMPEQD:
+    case ZYDIS_MNEMONIC_PCMPEQQ:
+    case ZYDIS_MNEMONIC_VPCMPEQQ:
+    case ZYDIS_MNEMONIC_PCMPGTB:
+    case ZYDIS_MNEMONIC_VPCMPGTB:
+    case ZYDIS_MNEMONIC_PCMPGTW:
+    case ZYDIS_MNEMONIC_VPCMPGTW:
+    case ZYDIS_MNEMONIC_PCMPGTD:
+    case ZYDIS_MNEMONIC_VPCMPGTD:
+    case ZYDIS_MNEMONIC_PCMPGTQ:
+    case ZYDIS_MNEMONIC_VPCMPGTQ:
+    case ZYDIS_MNEMONIC_VPCMPB:
+    case ZYDIS_MNEMONIC_VPCMPW:
+    case ZYDIS_MNEMONIC_VPCMPD:
+    case ZYDIS_MNEMONIC_VPCMPQ:
+    case ZYDIS_MNEMONIC_VPCMPUB:
+    case ZYDIS_MNEMONIC_VPCMPUW:
+    case ZYDIS_MNEMONIC_VPCMPUD:
+    case ZYDIS_MNEMONIC_VPCMPUQ:
+    case ZYDIS_MNEMONIC_VPTESTMB:
+    case ZYDIS_MNEMONIC_VPTESTMW:
+    case ZYDIS_MNEMONIC_VPTESTMD:
+    case ZYDIS_MNEMONIC_VPTESTMQ:
+    case ZYDIS_MNEMONIC_VPTESTNMB:
+    case ZYDIS_MNEMONIC_VPTESTNMW:
+    case ZYDIS_MNEMONIC_VPTESTNMD:
+    case ZYDIS_MNEMONIC_VPTESTNMQ:
+    case ZYDIS_MNEMONIC_PMAXUB:
+    case ZYDIS_MNEMONIC_VPMAXUB:
+    case ZYDIS_MNEMONIC_PMAXSB:
+    case ZYDIS_MNEMONIC_VPMAXSB:
+    case ZYDIS_MNEMONIC_PMAXUW:
+    case ZYDIS_MNEMONIC_VPMAXUW:
+    case ZYDIS_MNEMONIC_PMAXSW:
+    case ZYDIS_MNEMONIC_VPMAXSW:
+    case ZYDIS_MNEMONIC_PMAXUD:
+    case ZYDIS_MNEMONIC_VPMAXUD:
+    case ZYDIS_MNEMONIC_PMAXSD:
+    case ZYDIS_MNEMONIC_VPMAXSD:
+    case ZYDIS_MNEMONIC_VPMAXUQ:
+    case ZYDIS_MNEMONIC_VPMAXSQ:
+    case ZYDIS_MNEMONIC_PMINUB:
+    case ZYDIS_MNEMONIC_VPMINUB:
+    case ZYDIS_MNEMONIC_PMINSB:
+    case ZYDIS_MNEMONIC_VPMINSB:
+    case ZYDIS_MNEMONIC_PMINUW:
+    case ZYDIS_MNEMONIC_VPMINUW:
+    case ZYDIS_MNEMONIC_PMINSW:
+    case ZYDIS_MNEMONIC_VPMINSW:
+    case ZYDIS_MNEMONIC_PMINUD:
+    case ZYDIS_MNEMONIC_VPMINUD:
+    case ZYDIS_MNEMONIC_PMINSD:
+    case ZYDIS_MNEMONIC_VPMINSD:
+    case ZYDIS_MNEMONIC_VPMINUQ:
+    case ZYDIS_MNEMONIC_VPMINSQ:
+    case ZYDIS_MNEMONIC_PXOR:
+    case ZYDIS_MNEMONIC_VPXOR:
+    case ZYDIS_MNEMONIC_VPXORD:
+    case ZYDIS_MNEMONIC_VPXORQ:
+    case ZYDIS_MNEMONIC_PAND:
+    case ZYDIS_MNEMONIC_VPAND:
+    case ZYDIS_MNEMONIC_VPANDD:
+    case ZYDIS_MNEMONIC_VPANDQ:
+    case ZYDIS_MNEMONIC_POR:
+    case ZYDIS_MNEMONIC_VPOR:
+    case ZYDIS_MNEMONIC_VPORD:
+    case ZYDIS_MNEMONIC_VPORQ:
+    case ZYDIS_MNEMONIC_PANDN:
+    case ZYDIS_MNEMONIC_VPANDN:
+    case ZYDIS_MNEMONIC_VPANDND:
+    case ZYDIS_MNEMONIC_VPANDNQ:
+    case ZYDIS_MNEMONIC_VPTERNLOGD:
+    case ZYDIS_MNEMONIC_VPTERNLOGQ:
+    case ZYDIS_MNEMONIC_PAVGB: // integer average: plain add+shift datapath
+    case ZYDIS_MNEMONIC_VPAVGB:
+    case ZYDIS_MNEMONIC_PAVGW:
+    case ZYDIS_MNEMONIC_VPAVGW:
+    case ZYDIS_MNEMONIC_PHADDW: // SSSE3 horizontal adds/subs (integer add)
+    case ZYDIS_MNEMONIC_VPHADDW:
+    case ZYDIS_MNEMONIC_PHADDD:
+    case ZYDIS_MNEMONIC_VPHADDD:
+    case ZYDIS_MNEMONIC_PHSUBW:
+    case ZYDIS_MNEMONIC_VPHSUBW:
+    case ZYDIS_MNEMONIC_PHSUBD:
+    case ZYDIS_MNEMONIC_VPHSUBD:
+    case ZYDIS_MNEMONIC_PHADDSW:
+    case ZYDIS_MNEMONIC_VPHADDSW:
+    case ZYDIS_MNEMONIC_PHSUBSW:
+    case ZYDIS_MNEMONIC_VPHSUBSW:
+    case ZYDIS_MNEMONIC_PSADBW:
+    case ZYDIS_MNEMONIC_VPSADBW:
+    case ZYDIS_MNEMONIC_MPSADBW:
+    case ZYDIS_MNEMONIC_VMPSADBW:
+    case ZYDIS_MNEMONIC_VPOPCNTB:
+    case ZYDIS_MNEMONIC_VPOPCNTW:
+    case ZYDIS_MNEMONIC_VPOPCNTD:
+    case ZYDIS_MNEMONIC_VPOPCNTQ:
+    case ZYDIS_MNEMONIC_VP2INTERSECTD: // compare -> mask regs (constant time)
+    case ZYDIS_MNEMONIC_VP2INTERSECTQ:
+    // SIMD integer: shifts (incl. variable).
+    case ZYDIS_MNEMONIC_PSLLW:
+    case ZYDIS_MNEMONIC_VPSLLW:
+    case ZYDIS_MNEMONIC_PSLLD:
+    case ZYDIS_MNEMONIC_VPSLLD:
+    case ZYDIS_MNEMONIC_PSLLQ:
+    case ZYDIS_MNEMONIC_VPSLLQ:
+    case ZYDIS_MNEMONIC_PSRLW:
+    case ZYDIS_MNEMONIC_VPSRLW:
+    case ZYDIS_MNEMONIC_PSRLD:
+    case ZYDIS_MNEMONIC_VPSRLD:
+    case ZYDIS_MNEMONIC_PSRLQ:
+    case ZYDIS_MNEMONIC_VPSRLQ:
+    case ZYDIS_MNEMONIC_PSRAW:
+    case ZYDIS_MNEMONIC_VPSRAW:
+    case ZYDIS_MNEMONIC_PSRAD:
+    case ZYDIS_MNEMONIC_VPSRAD:
+    case ZYDIS_MNEMONIC_VPSRAQ:
+    case ZYDIS_MNEMONIC_PSLLDQ:
+    case ZYDIS_MNEMONIC_VPSLLDQ:
+    case ZYDIS_MNEMONIC_PSRLDQ:
+    case ZYDIS_MNEMONIC_VPSRLDQ:
+    case ZYDIS_MNEMONIC_VPSLLVW:
+    case ZYDIS_MNEMONIC_VPSLLVD:
+    case ZYDIS_MNEMONIC_VPSLLVQ:
+    case ZYDIS_MNEMONIC_VPSRLVW:
+    case ZYDIS_MNEMONIC_VPSRLVD:
+    case ZYDIS_MNEMONIC_VPSRLVQ:
+    case ZYDIS_MNEMONIC_VPSRAVW:
+    case ZYDIS_MNEMONIC_VPSRAVD:
+    case ZYDIS_MNEMONIC_VPSRAVQ:
+    // SIMD integer: shuffles / permutes / blends / packs / unpacks /
+    // broadcasts / inserts+extracts / width converts.
+    case ZYDIS_MNEMONIC_PSHUFB:
+    case ZYDIS_MNEMONIC_VPSHUFB:
+    case ZYDIS_MNEMONIC_PSHUFD: // immediate-controlled shuffles
+    case ZYDIS_MNEMONIC_VPSHUFD:
+    case ZYDIS_MNEMONIC_PSHUFLW:
+    case ZYDIS_MNEMONIC_VPSHUFLW:
+    case ZYDIS_MNEMONIC_PSHUFHW:
+    case ZYDIS_MNEMONIC_VPSHUFHW:
+    case ZYDIS_MNEMONIC_SHUFPS:
+    case ZYDIS_MNEMONIC_VSHUFPS:
+    case ZYDIS_MNEMONIC_SHUFPD:
+    case ZYDIS_MNEMONIC_VSHUFPD:
+    case ZYDIS_MNEMONIC_VSHUFF32X4:
+    case ZYDIS_MNEMONIC_VSHUFF64X2:
+    case ZYDIS_MNEMONIC_VSHUFI32X4:
+    case ZYDIS_MNEMONIC_VSHUFI64X2:
+    case ZYDIS_MNEMONIC_VPERMB:
+    case ZYDIS_MNEMONIC_VPERMW:
+    case ZYDIS_MNEMONIC_VPERMD:
+    case ZYDIS_MNEMONIC_VPERMQ:
+    case ZYDIS_MNEMONIC_VPERMPD:
+    case ZYDIS_MNEMONIC_VPERM2F128:
+    case ZYDIS_MNEMONIC_VPERM2I128:
+    case ZYDIS_MNEMONIC_VALIGND:
+    case ZYDIS_MNEMONIC_VALIGNQ:
+    case ZYDIS_MNEMONIC_PALIGNR:
+    case ZYDIS_MNEMONIC_VPALIGNR:
+    case ZYDIS_MNEMONIC_PBLENDVB:
+    case ZYDIS_MNEMONIC_VPBLENDVB:
+    case ZYDIS_MNEMONIC_BLENDVPS:
+    case ZYDIS_MNEMONIC_VBLENDVPS:
+    case ZYDIS_MNEMONIC_BLENDVPD:
+    case ZYDIS_MNEMONIC_VBLENDVPD:
+    case ZYDIS_MNEMONIC_PBLENDW:
+    case ZYDIS_MNEMONIC_VPBLENDW:
+    case ZYDIS_MNEMONIC_BLENDPS:
+    case ZYDIS_MNEMONIC_VBLENDPS:
+    case ZYDIS_MNEMONIC_BLENDPD:
+    case ZYDIS_MNEMONIC_VBLENDPD:
+    case ZYDIS_MNEMONIC_VPBLENDD:
+    case ZYDIS_MNEMONIC_VPBLENDMB:
+    case ZYDIS_MNEMONIC_VPBLENDMW:
+    case ZYDIS_MNEMONIC_VPBLENDMD:
+    case ZYDIS_MNEMONIC_VPBLENDMQ:
+    case ZYDIS_MNEMONIC_VBLENDMPS:
+    case ZYDIS_MNEMONIC_VBLENDMPD:
+    case ZYDIS_MNEMONIC_PACKSSWB:
+    case ZYDIS_MNEMONIC_VPACKSSWB:
+    case ZYDIS_MNEMONIC_PACKSSDW:
+    case ZYDIS_MNEMONIC_VPACKSSDW:
+    case ZYDIS_MNEMONIC_PACKUSWB:
+    case ZYDIS_MNEMONIC_VPACKUSWB:
+    case ZYDIS_MNEMONIC_PACKUSDW:
+    case ZYDIS_MNEMONIC_VPACKUSDW:
+    case ZYDIS_MNEMONIC_PUNPCKLBW:
+    case ZYDIS_MNEMONIC_VPUNPCKLBW:
+    case ZYDIS_MNEMONIC_PUNPCKHBW:
+    case ZYDIS_MNEMONIC_VPUNPCKHBW:
+    case ZYDIS_MNEMONIC_PUNPCKLWD:
+    case ZYDIS_MNEMONIC_VPUNPCKLWD:
+    case ZYDIS_MNEMONIC_PUNPCKHWD:
+    case ZYDIS_MNEMONIC_VPUNPCKHWD:
+    case ZYDIS_MNEMONIC_PUNPCKLDQ:
+    case ZYDIS_MNEMONIC_VPUNPCKLDQ:
+    case ZYDIS_MNEMONIC_PUNPCKHDQ:
+    case ZYDIS_MNEMONIC_VPUNPCKHDQ:
+    case ZYDIS_MNEMONIC_PUNPCKLQDQ:
+    case ZYDIS_MNEMONIC_VPUNPCKLQDQ:
+    case ZYDIS_MNEMONIC_PUNPCKHQDQ:
+    case ZYDIS_MNEMONIC_VPUNPCKHQDQ:
+    case ZYDIS_MNEMONIC_UNPCKLPS:
+    case ZYDIS_MNEMONIC_VUNPCKLPS:
+    case ZYDIS_MNEMONIC_UNPCKHPS:
+    case ZYDIS_MNEMONIC_VUNPCKHPS:
+    case ZYDIS_MNEMONIC_UNPCKLPD:
+    case ZYDIS_MNEMONIC_VUNPCKLPD:
+    case ZYDIS_MNEMONIC_UNPCKHPD:
+    case ZYDIS_MNEMONIC_VUNPCKHPD:
+    case ZYDIS_MNEMONIC_VBROADCASTSS:
+    case ZYDIS_MNEMONIC_VBROADCASTSD:
+    case ZYDIS_MNEMONIC_VBROADCASTF128:
+    case ZYDIS_MNEMONIC_VBROADCASTF32X2:
+    case ZYDIS_MNEMONIC_VBROADCASTF32X4:
+    case ZYDIS_MNEMONIC_VBROADCASTF32X8:
+    case ZYDIS_MNEMONIC_VBROADCASTF64X2:
+    case ZYDIS_MNEMONIC_VBROADCASTF64X4:
+    case ZYDIS_MNEMONIC_VBROADCASTI128:
+    case ZYDIS_MNEMONIC_VPBROADCASTB:
+    case ZYDIS_MNEMONIC_VPBROADCASTW:
+    case ZYDIS_MNEMONIC_VPBROADCASTD:
+    case ZYDIS_MNEMONIC_VPBROADCASTQ:
+    case ZYDIS_MNEMONIC_VBROADCASTI32X2:
+    case ZYDIS_MNEMONIC_VBROADCASTI32X4:
+    case ZYDIS_MNEMONIC_VBROADCASTI32X8:
+    case ZYDIS_MNEMONIC_VBROADCASTI64X2:
+    case ZYDIS_MNEMONIC_VBROADCASTI64X4:
+    case ZYDIS_MNEMONIC_VPBROADCASTMW2D:
+    case ZYDIS_MNEMONIC_VPBROADCASTMB2Q:
+    case ZYDIS_MNEMONIC_PINSRB:
+    case ZYDIS_MNEMONIC_PINSRW:
+    case ZYDIS_MNEMONIC_PINSRD:
+    case ZYDIS_MNEMONIC_PINSRQ:
+    case ZYDIS_MNEMONIC_PEXTRB:
+    case ZYDIS_MNEMONIC_PEXTRW:
+    case ZYDIS_MNEMONIC_PEXTRD:
+    case ZYDIS_MNEMONIC_PEXTRQ:
+    case ZYDIS_MNEMONIC_INSERTPS:
+    case ZYDIS_MNEMONIC_VINSERTPS:
+    case ZYDIS_MNEMONIC_EXTRACTPS:
+    case ZYDIS_MNEMONIC_VEXTRACTPS:
+    case ZYDIS_MNEMONIC_VEXTRACTF128:
+    case ZYDIS_MNEMONIC_VEXTRACTI128:
+    case ZYDIS_MNEMONIC_VINSERTF128:
+    case ZYDIS_MNEMONIC_VINSERTI128:
+    case ZYDIS_MNEMONIC_VINSERTF32X4:
+    case ZYDIS_MNEMONIC_VINSERTF64X2:
+    case ZYDIS_MNEMONIC_VINSERTI32X4:
+    case ZYDIS_MNEMONIC_VINSERTI64X2:
+    case ZYDIS_MNEMONIC_VINSERTF32X8:
+    case ZYDIS_MNEMONIC_VINSERTF64X4:
+    case ZYDIS_MNEMONIC_VINSERTI32X8:
+    case ZYDIS_MNEMONIC_VINSERTI64X4:
+    case ZYDIS_MNEMONIC_VEXTRACTF32X4:
+    case ZYDIS_MNEMONIC_VEXTRACTF64X2:
+    case ZYDIS_MNEMONIC_VEXTRACTI32X4:
+    case ZYDIS_MNEMONIC_VEXTRACTI64X2:
+    case ZYDIS_MNEMONIC_VEXTRACTF32X8:
+    case ZYDIS_MNEMONIC_VEXTRACTF64X4:
+    case ZYDIS_MNEMONIC_VEXTRACTI32X8:
+    case ZYDIS_MNEMONIC_VEXTRACTI64X4:
+    case ZYDIS_MNEMONIC_PMOVSXBW:
+    case ZYDIS_MNEMONIC_VPMOVSXBW:
+    case ZYDIS_MNEMONIC_PMOVSXBD:
+    case ZYDIS_MNEMONIC_VPMOVSXBD:
+    case ZYDIS_MNEMONIC_PMOVSXBQ:
+    case ZYDIS_MNEMONIC_VPMOVSXBQ:
+    case ZYDIS_MNEMONIC_PMOVSXWD:
+    case ZYDIS_MNEMONIC_VPMOVSXWD:
+    case ZYDIS_MNEMONIC_PMOVSXWQ:
+    case ZYDIS_MNEMONIC_VPMOVSXWQ:
+    case ZYDIS_MNEMONIC_PMOVSXDQ:
+    case ZYDIS_MNEMONIC_VPMOVSXDQ:
+    case ZYDIS_MNEMONIC_PMOVZXBW:
+    case ZYDIS_MNEMONIC_VPMOVZXBW:
+    case ZYDIS_MNEMONIC_PMOVZXBD:
+    case ZYDIS_MNEMONIC_VPMOVZXBD:
+    case ZYDIS_MNEMONIC_PMOVZXBQ:
+    case ZYDIS_MNEMONIC_VPMOVZXBQ:
+    case ZYDIS_MNEMONIC_PMOVZXWD:
+    case ZYDIS_MNEMONIC_VPMOVZXWD:
+    case ZYDIS_MNEMONIC_PMOVZXWQ:
+    case ZYDIS_MNEMONIC_VPMOVZXWQ:
+    case ZYDIS_MNEMONIC_PMOVZXDQ:
+    case ZYDIS_MNEMONIC_VPMOVZXDQ:
+    case ZYDIS_MNEMONIC_VPMOVDB:
+    case ZYDIS_MNEMONIC_VPMOVDW:
+    case ZYDIS_MNEMONIC_VPMOVQB:
+    case ZYDIS_MNEMONIC_VPMOVQD:
+    case ZYDIS_MNEMONIC_VPMOVQW:
+    case ZYDIS_MNEMONIC_VPMOVWB:
+    case ZYDIS_MNEMONIC_VPMOVSDB:
+    case ZYDIS_MNEMONIC_VPMOVSDW:
+    case ZYDIS_MNEMONIC_VPMOVSQB:
+    case ZYDIS_MNEMONIC_VPMOVSQD:
+    case ZYDIS_MNEMONIC_VPMOVSQW:
+    case ZYDIS_MNEMONIC_VPMOVSWB:
+    case ZYDIS_MNEMONIC_VPMOVUSDB:
+    case ZYDIS_MNEMONIC_VPMOVUSDW:
+    case ZYDIS_MNEMONIC_VPMOVUSQB:
+    case ZYDIS_MNEMONIC_VPMOVUSQD:
+    case ZYDIS_MNEMONIC_VPMOVUSQW:
+    case ZYDIS_MNEMONIC_VPMOVUSWB:
+    case ZYDIS_MNEMONIC_VPMOVM2B:
+    case ZYDIS_MNEMONIC_VPMOVM2W:
+    case ZYDIS_MNEMONIC_VPMOVM2D:
+    case ZYDIS_MNEMONIC_VPMOVM2Q:
+    case ZYDIS_MNEMONIC_VPMOVB2M:
+    case ZYDIS_MNEMONIC_VPMOVW2M:
+    case ZYDIS_MNEMONIC_VPMOVD2M:
+    case ZYDIS_MNEMONIC_VPMOVQ2M:
+    case ZYDIS_MNEMONIC_VPABSB: // plain integer absolute value
+    case ZYDIS_MNEMONIC_VPABSW:
+    case ZYDIS_MNEMONIC_VPABSD:
+    case ZYDIS_MNEMONIC_VPABSQ:
+    case ZYDIS_MNEMONIC_PCMPESTRI: // SSE4.2 string compares (task list)
+    case ZYDIS_MNEMONIC_VPCMPESTRI:
+    case ZYDIS_MNEMONIC_PCMPESTRM:
+    case ZYDIS_MNEMONIC_VPCMPESTRM:
+    case ZYDIS_MNEMONIC_PCMPISTRI:
+    case ZYDIS_MNEMONIC_VPCMPISTRI:
+    case ZYDIS_MNEMONIC_PCMPISTRM:
+    case ZYDIS_MNEMONIC_VPCMPISTRM:
+    case ZYDIS_MNEMONIC_VMOVSD: // scalar FP data movement (VEX/EVEX)
+    case ZYDIS_MNEMONIC_PMOVMSKB: // mask move (integer MOVMSK analog)
+    case ZYDIS_MNEMONIC_VPMOVMSKB:
+    case ZYDIS_MNEMONIC_PTEST:
+    case ZYDIS_MNEMONIC_VPTEST:
+    case ZYDIS_MNEMONIC_VTESTPS: // sign-bit test -> flags (constant time)
+    case ZYDIS_MNEMONIC_VTESTPD:
+    case ZYDIS_MNEMONIC_PHMINPOSUW: // listed in the task's guaranteed set,
+                                    // but not implemented (never dispatches)
+    // VCOMPRESS*/VPEXPAND* classify GUARANTEED: the memory-form mask checks
+    // live in exec_evex_compress (compress=KNOWN, expand=PLAUSIBLE) and the
+    // generic scan must not double-fire.
+    case ZYDIS_MNEMONIC_VPCOMPRESSB:
+    case ZYDIS_MNEMONIC_VPCOMPRESSW:
+    case ZYDIS_MNEMONIC_VPCOMPRESSD:
+    case ZYDIS_MNEMONIC_VPCOMPRESSQ:
+    case ZYDIS_MNEMONIC_VPEXPANDB:
+    case ZYDIS_MNEMONIC_VPEXPANDW:
+    case ZYDIS_MNEMONIC_VPEXPANDD:
+    case ZYDIS_MNEMONIC_VPEXPANDQ:
+    // FP data movement / logic / misc.
+    case ZYDIS_MNEMONIC_MOVAPS:
+    case ZYDIS_MNEMONIC_MOVUPS:
+    case ZYDIS_MNEMONIC_MOVAPD:
+    case ZYDIS_MNEMONIC_MOVUPD:
+    case ZYDIS_MNEMONIC_MOVDQA:
+    case ZYDIS_MNEMONIC_MOVDQU:
+    case ZYDIS_MNEMONIC_VMOVAPS:
+    case ZYDIS_MNEMONIC_VMOVUPS:
+    case ZYDIS_MNEMONIC_VMOVAPD:
+    case ZYDIS_MNEMONIC_VMOVUPD:
+    case ZYDIS_MNEMONIC_VMOVDQA:
+    case ZYDIS_MNEMONIC_VMOVDQU:
+    case ZYDIS_MNEMONIC_VMOVDQA32:
+    case ZYDIS_MNEMONIC_VMOVDQA64:
+    case ZYDIS_MNEMONIC_VMOVDQU8:
+    case ZYDIS_MNEMONIC_VMOVDQU16:
+    case ZYDIS_MNEMONIC_VMOVDQU32:
+    case ZYDIS_MNEMONIC_VMOVDQU64:
+    case ZYDIS_MNEMONIC_MOVSS:
+    case ZYDIS_MNEMONIC_VMOVSS:
+    case ZYDIS_MNEMONIC_MOVLPS:
+    case ZYDIS_MNEMONIC_MOVLPD:
+    case ZYDIS_MNEMONIC_MOVHPS:
+    case ZYDIS_MNEMONIC_MOVHPD:
+    case ZYDIS_MNEMONIC_MOVHLPS:
+    case ZYDIS_MNEMONIC_MOVLHPS:
+    case ZYDIS_MNEMONIC_MOVSLDUP: // pure data movement
+    case ZYDIS_MNEMONIC_VMOVSLDUP:
+    case ZYDIS_MNEMONIC_MOVSHDUP:
+    case ZYDIS_MNEMONIC_VMOVSHDUP:
+    case ZYDIS_MNEMONIC_MOVD:
+    case ZYDIS_MNEMONIC_MOVQ:
+    case ZYDIS_MNEMONIC_VMOVD:
+    case ZYDIS_MNEMONIC_VMOVQ:
+    case ZYDIS_MNEMONIC_MOVNTI:
+    case ZYDIS_MNEMONIC_MOVNTPS:
+    case ZYDIS_MNEMONIC_MOVNTPD:
+    case ZYDIS_MNEMONIC_MOVNTDQ:
+    case ZYDIS_MNEMONIC_MOVNTDQA:
+    case ZYDIS_MNEMONIC_VMOVNTPS:
+    case ZYDIS_MNEMONIC_VMOVNTPD:
+    case ZYDIS_MNEMONIC_VMOVNTDQ:
+    case ZYDIS_MNEMONIC_VMOVNTDQA:
+    case ZYDIS_MNEMONIC_XORPS:
+    case ZYDIS_MNEMONIC_XORPD:
+    case ZYDIS_MNEMONIC_VXORPS:
+    case ZYDIS_MNEMONIC_VXORPD:
+    case ZYDIS_MNEMONIC_ANDPS:
+    case ZYDIS_MNEMONIC_VANDPS:
+    case ZYDIS_MNEMONIC_ANDPD:
+    case ZYDIS_MNEMONIC_VANDPD:
+    case ZYDIS_MNEMONIC_ORPS:
+    case ZYDIS_MNEMONIC_VORPS:
+    case ZYDIS_MNEMONIC_ORPD:
+    case ZYDIS_MNEMONIC_VORPD:
+    case ZYDIS_MNEMONIC_ANDNPS:
+    case ZYDIS_MNEMONIC_VANDNPS:
+    case ZYDIS_MNEMONIC_ANDNPD:
+    case ZYDIS_MNEMONIC_VANDNPD:
+    case ZYDIS_MNEMONIC_MOVMSKPS:
+    case ZYDIS_MNEMONIC_VMOVMSKPS:
+    case ZYDIS_MNEMONIC_MOVMSKPD:
+    case ZYDIS_MNEMONIC_VMOVMSKPD:
+    case ZYDIS_MNEMONIC_CVTDQ2PS: // int -> FP: ints cannot be subnormal
+    case ZYDIS_MNEMONIC_VCVTDQ2PS:
+    case ZYDIS_MNEMONIC_CVTSI2SS:
+    case ZYDIS_MNEMONIC_VCVTSI2SS:
+    case ZYDIS_MNEMONIC_CVTSI2SD:
+    case ZYDIS_MNEMONIC_VCVTSI2SD:
+    case ZYDIS_MNEMONIC_VCVTNE2PS2BF16: // BF16 flushes denormals
+    case ZYDIS_MNEMONIC_VCVTNEPS2BF16:
+    case ZYDIS_MNEMONIC_VZEROUPPER:
+    case ZYDIS_MNEMONIC_VZEROALL:
+    // Gather/scatter prefetch hints (implemented as architecturally-NOP).
+    // (Reached via exec_evex; classified GUARANTEED so they never trap.)
+    case ZYDIS_MNEMONIC_NOP:
+    case ZYDIS_MNEMONIC_PAUSE:
+    case ZYDIS_MNEMONIC_LFENCE:
+    case ZYDIS_MNEMONIC_MFENCE:
+    case ZYDIS_MNEMONIC_SFENCE:
+    case ZYDIS_MNEMONIC_SERIALIZE:
+    case ZYDIS_MNEMONIC_CLFLUSH:
+    case ZYDIS_MNEMONIC_CLFLUSHOPT:
+    case ZYDIS_MNEMONIC_CLWB:
+    case ZYDIS_MNEMONIC_PREFETCH:
+    case ZYDIS_MNEMONIC_PREFETCHW:
+    case ZYDIS_MNEMONIC_PREFETCHNTA:
+    case ZYDIS_MNEMONIC_PREFETCHT0:
+    case ZYDIS_MNEMONIC_PREFETCHT1:
+    case ZYDIS_MNEMONIC_PREFETCHT2:
+    case ZYDIS_MNEMONIC_CLAC: // no value inputs (AC-flag management)
+    case ZYDIS_MNEMONIC_STAC:
+    // System / no-value-input instructions.
+    case ZYDIS_MNEMONIC_SYSCALL: // explicitly exempt (kernel-side cost)
+    case ZYDIS_MNEMONIC_INT:
+    case ZYDIS_MNEMONIC_INT3:
+    case ZYDIS_MNEMONIC_UD2:
+    case ZYDIS_MNEMONIC_HLT:
+    case ZYDIS_MNEMONIC_RDTSC:
+    case ZYDIS_MNEMONIC_RDTSCP:
+    case ZYDIS_MNEMONIC_RDPID:
+    case ZYDIS_MNEMONIC_RDRAND:
+    case ZYDIS_MNEMONIC_RDSEED:
+    case ZYDIS_MNEMONIC_RDSSPD:
+    case ZYDIS_MNEMONIC_RDSSPQ:
+    case ZYDIS_MNEMONIC_ENDBR32:
+    case ZYDIS_MNEMONIC_ENDBR64:
+    case ZYDIS_MNEMONIC_STMXCSR:
+    // x87 non-arithmetic (doc 7.2) + state/control ops with no value inputs.
+    // (FLD is classified per form: the memory form is a doc-5 suspect and is
+    // carved out to PLAUSIBLE in check_var_time; only the register form --
+    // doc 7.2 -- remains here. FST/FSTP of any form stay guaranteed: a store
+    // performs no normalization.)
+    case ZYDIS_MNEMONIC_FST:
+    case ZYDIS_MNEMONIC_FSTP:
+    case ZYDIS_MNEMONIC_FILD:
+    case ZYDIS_MNEMONIC_FIST:
+    case ZYDIS_MNEMONIC_FISTP:
+    case ZYDIS_MNEMONIC_FISTTP:
+    case ZYDIS_MNEMONIC_FXCH:
+    case ZYDIS_MNEMONIC_FCHS:
+    case ZYDIS_MNEMONIC_FABS:
+    case ZYDIS_MNEMONIC_FLDZ:
+    case ZYDIS_MNEMONIC_FLD1:
+    case ZYDIS_MNEMONIC_FLDPI:
+    case ZYDIS_MNEMONIC_FLDL2T:
+    case ZYDIS_MNEMONIC_FLDL2E:
+    case ZYDIS_MNEMONIC_FLDLG2:
+    case ZYDIS_MNEMONIC_FLDLN2:
+    case ZYDIS_MNEMONIC_FLDCW:
+    case ZYDIS_MNEMONIC_FNSTSW:
+    case ZYDIS_MNEMONIC_FNSTCW:
+    case ZYDIS_MNEMONIC_FCMOVB: // conditional data movement (CMOVcc analog)
+    case ZYDIS_MNEMONIC_FCMOVE:
+    case ZYDIS_MNEMONIC_FCMOVBE:
+    case ZYDIS_MNEMONIC_FCMOVU:
+    case ZYDIS_MNEMONIC_FCMOVNB:
+    case ZYDIS_MNEMONIC_FCMOVNE:
+    case ZYDIS_MNEMONIC_FCMOVNBE:
+    case ZYDIS_MNEMONIC_FCMOVNU:
+    case ZYDIS_MNEMONIC_FFREE:
+    case ZYDIS_MNEMONIC_FNOP:
+    case ZYDIS_MNEMONIC_FWAIT:
+    case ZYDIS_MNEMONIC_FINCSTP:
+    case ZYDIS_MNEMONIC_FDECSTP:
+    case ZYDIS_MNEMONIC_FNINIT:
+    case ZYDIS_MNEMONIC_FNCLEX:
+        return VarTimeClass::GUARANTEED;
+
+    default: break;
+    }
+    // SETcc/CMOVcc families (16 mnemonics each).
+    if (is_setcc(m) || is_cmovcc(m))
+        return VarTimeClass::GUARANTEED;
+    return VarTimeClass::OTHER;
+}
+
+// Operand taint probe: true when the operand carries cannot_var_time_op.
+// Taint-only: no value loads (register sidecars / memory poison bits).
+bool var_time_operand_tainted(CPU* cpu, const Dec& d, int oi) {
+    const auto& op = d.ops[oi];
+    if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
+        int idx, size, shift;
+        if (reg_to_gpr(op.reg.value, idx, size, shift))
+            return cpu->gpr[idx].taint.cannot_var_time_op;
+        int vidx, width;
+        if (reg_to_vec(op.reg.value, vidx, width))
+            return cpu->xmm[vidx].taint.cannot_var_time_op;
+        int k;
+        if (reg_to_opmask(op.reg.value, k))
+            return cpu->opmask_taint[k].cannot_var_time_op;
+        if (op.reg.value >= ZYDIS_REGISTER_ST0 &&
+            op.reg.value <= ZYDIS_REGISTER_ST7) {
+            // Same index math as fpu_st(): the register denotes a TOP-relative
+            // slot.
+            return cpu->st_taint[(cpu->fpu_top +
+                                  (op.reg.value - ZYDIS_REGISTER_ST0)) & 7]
+                .cannot_var_time_op;
+        }
+        return false;
+    }
+    if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
+        // resolve_mem's existing cannot-index checks firing first is correct:
+        // INDEX wins for address issues.
+        uint64_t ea = resolve_mem(cpu, op, next_rip(cpu, d));
+        size_t bytes = op.size / 8;
+        Taint t;
+        mem_get_taint(ea, bytes ? bytes : 1, &t);
+        return t.cannot_var_time_op;
+    }
+    return false; // immediates are clean
+}
+
+void check_var_time(CPU* cpu, const Dec& d) {
+    ZydisMnemonic m = d.insn.mnemonic;
+    // 1. Branch family: CTRL dependencies are the existing cannot-branch
+    //    checks (flags_taint on Jcc/JCXZ/LOOP, branch_target on indirect
+    //    JMP/CALL/RET). This also keeps the magic 0x1410141014101410
+    //    client call (a CALL) exempt.
+    if (is_jcc(m) || m == ZYDIS_MNEMONIC_JMP || m == ZYDIS_MNEMONIC_CALL ||
+        m == ZYDIS_MNEMONIC_RET || m == ZYDIS_MNEMONIC_JCXZ ||
+        m == ZYDIS_MNEMONIC_JECXZ || m == ZYDIS_MNEMONIC_JRCXZ ||
+        m == ZYDIS_MNEMONIC_LOOP || m == ZYDIS_MNEMONIC_LOOPE ||
+        m == ZYDIS_MNEMONIC_LOOPNE)
+        return;
+    // 2. Classify (with form-aware carve-outs: the CMPXCHG register form is
+    //    guaranteed per doc 7.2, the memory form is a §5 suspect; likewise
+    //    FLD's register form is doc-7.2 data movement while FLD from memory
+    //    is a §5 suspect).
+    if (m == ZYDIS_MNEMONIC_CMPXCHG &&
+        d.ops[0].type != ZYDIS_OPERAND_TYPE_MEMORY)
+        return;
+    if (m == ZYDIS_MNEMONIC_FLD &&
+        d.ops[0].type != ZYDIS_OPERAND_TYPE_MEMORY)
+        return;
+    VarTimeClass cls = var_time_class(m);
+    if (cls == VarTimeClass::GUARANTEED)
+        return;
+    // 3. Mode gate: KNOWN traps in all modes; PLAUSIBLE needs >= plausible;
+    //    OTHER only in "everything" mode.
+    int mode = cpu->emu->var_time_op;
+    if (cls == VarTimeClass::PLAUSIBLE &&
+        mode < Emulator::ZG_VAR_TIME_PLAUSIBLE)
+        return;
+    if (cls == VarTimeClass::OTHER && mode < Emulator::ZG_VAR_TIME_EVERYTHING)
+        return;
+    // 4. Collect tainted operands.
+    bool tainted = false;
+    if (m == ZYDIS_MNEMONIC_PDEP || m == ZYDIS_MNEMONIC_PEXT) {
+        // §4.2: only the mask (operand 2) is timing-relevant; the value
+        // operand is not (doc 4.2).
+        if (d.insn.operand_count > 2 &&
+            d.ops[2].visibility != ZYDIS_OPERAND_VISIBILITY_HIDDEN)
+            tainted = var_time_operand_tainted(cpu, d, 2);
+    } else {
+        // Generic read-operand scan (same visibility filter the handlers
+        // use; write-only operands skipped; the VSIB memory operand of
+        // gathers/scatters skipped -- resolve_mem cannot handle a vector
+        // index, index/base are INDEX-checked in vsib_base, and masks are
+        // covered by the EVEX mask checks / explicit vector mask operand).
+        bool is_vsib = mn_starts_with(m, "VGATHER") ||
+                       mn_starts_with(m, "VPGATHER") ||
+                       mn_starts_with(m, "VSCATTER") ||
+                       mn_starts_with(m, "VPSCATTER");
+        // The XSAVE-side family (XSAVE/XSAVEOPT/XSAVEC/XSAVES) only WRITES
+        // its memory image: the 576-byte operand (legacy area + header) is
+        // an OUTPUT, and the doc scopes the memory-header VAL dependency
+        // "for XRSTOR" (the XSAVE address is ADDR, covered by the
+        // cannot-index checks). Zydis still tags the operand READ|WRITE, so
+        // skip it here or a poisoned image in guest memory would fault the
+        // clean save.
+        bool xsave_side =
+            (m == ZYDIS_MNEMONIC_XSAVE || m == ZYDIS_MNEMONIC_XSAVE64 ||
+             m == ZYDIS_MNEMONIC_XSAVEOPT || m == ZYDIS_MNEMONIC_XSAVEOPT64 ||
+             m == ZYDIS_MNEMONIC_XSAVEC || m == ZYDIS_MNEMONIC_XSAVEC64 ||
+             m == ZYDIS_MNEMONIC_XSAVES || m == ZYDIS_MNEMONIC_XSAVES64);
+        for (int i = 0; i < d.insn.operand_count && !tainted; i++) {
+            const auto& op = d.ops[i];
+            if (op.visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN)
+                continue;
+            if (!(op.actions & (ZYDIS_OPERAND_ACTION_READ |
+                                ZYDIS_OPERAND_ACTION_CONDREAD)))
+                continue; // write-only (no read of any kind)
+            if (is_vsib && op.type == ZYDIS_OPERAND_TYPE_MEMORY)
+                continue;
+            if (xsave_side && op.type == ZYDIS_OPERAND_TYPE_MEMORY)
+                continue;
+            tainted = var_time_operand_tainted(cpu, d, i);
+        }
+    }
+    // 4c. Implicit extra GPR operands not visible in the operand list.
+    if (!tainted) {
+        switch (m) {
+        case ZYDIS_MNEMONIC_DIV:
+        case ZYDIS_MNEMONIC_IDIV: // dividend in RDX:RAX (§4.1)
+            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
+                      cpu->gpr[ZG_RDX].taint.cannot_var_time_op;
+            break;
+        case ZYDIS_MNEMONIC_CPUID: // leaf/subleaf select the output (§4.9)
+            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
+                      cpu->gpr[ZG_RCX].taint.cannot_var_time_op;
+            break;
+        case ZYDIS_MNEMONIC_XGETBV: // XCR index in ECX (§5)
+            tainted = cpu->gpr[ZG_RCX].taint.cannot_var_time_op;
+            break;
+        case ZYDIS_MNEMONIC_XSAVE:
+        case ZYDIS_MNEMONIC_XSAVE64:
+        case ZYDIS_MNEMONIC_XSAVEOPT:
+        case ZYDIS_MNEMONIC_XSAVEOPT64:
+        case ZYDIS_MNEMONIC_XSAVEC:
+        case ZYDIS_MNEMONIC_XSAVEC64:
+        case ZYDIS_MNEMONIC_XSAVES:
+        case ZYDIS_MNEMONIC_XSAVES64:
+        case ZYDIS_MNEMONIC_XRSTOR:
+        case ZYDIS_MNEMONIC_XRSTOR64:
+        case ZYDIS_MNEMONIC_XRSTORS:
+        case ZYDIS_MNEMONIC_XRSTORS64: {
+            // Request bitmap in EDX:EAX (§4.9) -- read by the whole family
+            // (XSAVE consults it to decide which components to save).
+            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
+                      cpu->gpr[ZG_RDX].taint.cannot_var_time_op;
+            if (!tainted &&
+                (m == ZYDIS_MNEMONIC_XRSTOR || m == ZYDIS_MNEMONIC_XRSTOR64 ||
+                 m == ZYDIS_MNEMONIC_XRSTORS || m == ZYDIS_MNEMONIC_XRSTORS64)) {
+                // XRSTOR only: XSTATE_BV/XCOMP_BV in the memory header
+                // select which state components are restored (init
+                // optimization). For XSAVE the header is an OUTPUT, so a
+                // poisoned header must not fault (doc 4.9 scopes the
+                // header dependency "for XRSTOR").
+                uint64_t ea = resolve_mem(cpu, d.ops[0], next_rip(cpu, d));
+                Taint t;
+                mem_get_taint(ea + 512, 16, &t);
+                tainted = t.cannot_var_time_op;
+            }
+            break;
+        }
+        case ZYDIS_MNEMONIC_CMPXCHG: // implicit comparand RAX (§5; only the
+                                     // memory form reaches classification)
+            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op;
+            break;
+        case ZYDIS_MNEMONIC_CMPXCHG8B: // implicit comparand RDX:RAX (§5)
+            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
+                      cpu->gpr[ZG_RDX].taint.cannot_var_time_op;
+            break;
+        case ZYDIS_MNEMONIC_CMPXCHG16B: // comparand RCX:RBX vs RDX:RAX (§5)
+            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
+                      cpu->gpr[ZG_RDX].taint.cannot_var_time_op ||
+                      cpu->gpr[ZG_RCX].taint.cannot_var_time_op ||
+                      cpu->gpr[ZG_RBX].taint.cannot_var_time_op;
+            break;
+        default: break;
+        }
+    }
+    // 4d. x87: ST(0) is implicit (the scan only sees operands Zydis lists as
+    // EXPLICIT/IMPLICIT; HIDDEN ones -- including the stack operands of the
+    // no-operand encodings -- are invisible to it). KNOWN arithmetic always
+    // checks the hidden ST(0) (plus the hidden ST(1) of the forms that have
+    // no explicit-operand encoding at all, via the same index math as
+    // fpu_st()/fpu_st_taint()); the PLAUSIBLE compare set checks the hidden
+    // ST(0) (plus the hidden ST(1) of the compare-everything encodings) --
+    // it only reaches here under --var-time-op=plausible and above.
+    if (!tainted) {
+        bool st0 = cpu->st_taint[cpu->fpu_top].cannot_var_time_op;
+        bool st1 = cpu->st_taint[(cpu->fpu_top + 1) & 7].cannot_var_time_op;
+        switch (m) {
+        // KNOWN, only encodable as no-operand forms: FPREM/FPREM1/FSCALE/
+        // FPATAN/FYL2X always compute ST(0) (op) ST(1) and Zydis keeps both
+        // stack operands hidden, so read both sidecars here.
+        case ZYDIS_MNEMONIC_FPREM:
+        case ZYDIS_MNEMONIC_FPREM1:
+        case ZYDIS_MNEMONIC_FSCALE:
+        case ZYDIS_MNEMONIC_FPATAN:
+        case ZYDIS_MNEMONIC_FYL2X:
+            tainted = st0 || st1;
+            break;
+        // KNOWN, two-operand forms with mem/explicit-register encodings
+        // (FADDP's no-operand encoding names ST(1) explicitly): the value
+        // operand is visible to the scan; only ST(0) is hidden.
+        case ZYDIS_MNEMONIC_FADD:
+        case ZYDIS_MNEMONIC_FADDP:
+        case ZYDIS_MNEMONIC_FSUB:
+        case ZYDIS_MNEMONIC_FSUBP:
+        case ZYDIS_MNEMONIC_FSUBR:
+        case ZYDIS_MNEMONIC_FSUBRP:
+        case ZYDIS_MNEMONIC_FMUL:
+        case ZYDIS_MNEMONIC_FMULP:
+        case ZYDIS_MNEMONIC_FDIV:
+        case ZYDIS_MNEMONIC_FDIVP:
+        case ZYDIS_MNEMONIC_FDIVR:
+        case ZYDIS_MNEMONIC_FDIVRP:
+            tainted = st0;
+            break;
+        // KNOWN, single-operand forms (ST(0) only; FBLD's input is memory
+        // and is covered by the scan).
+        case ZYDIS_MNEMONIC_FIADD:
+        case ZYDIS_MNEMONIC_FISUB:
+        case ZYDIS_MNEMONIC_FIMUL:
+        case ZYDIS_MNEMONIC_FIDIV:
+        case ZYDIS_MNEMONIC_FSQRT:
+        case ZYDIS_MNEMONIC_FSIN:
+        case ZYDIS_MNEMONIC_FCOS:
+        case ZYDIS_MNEMONIC_FSINCOS:
+        case ZYDIS_MNEMONIC_FPTAN:
+        case ZYDIS_MNEMONIC_F2XM1:
+        case ZYDIS_MNEMONIC_FRNDINT:
+        case ZYDIS_MNEMONIC_FBSTP:
+            tainted = st0;
+            break;
+        // PLAUSIBLE compares / class tests (§5). FCOM/FCOMP/FUCOM/FUCOMP
+        // always name their compared operand explicitly (the assembler's
+        // no-operand form is fcom %st(1)); only ST(0) is hidden. The
+        // compare-both-and-pop encodings FCOMPP/FUCOMPP have BOTH stack
+        // operands hidden and always compare ST(0) with ST(1) (they are the
+        // only compares with no explicit operand). FTST/FXAM test ST(0)
+        // only -- they must not read ST(1).
+        case ZYDIS_MNEMONIC_FCOM:
+        case ZYDIS_MNEMONIC_FCOMP:
+        case ZYDIS_MNEMONIC_FUCOM:
+        case ZYDIS_MNEMONIC_FUCOMP:
+        case ZYDIS_MNEMONIC_FCOMPP:
+        case ZYDIS_MNEMONIC_FUCOMPP:
+            tainted = st0 || (explicit_ops(d) == 0 && st1);
+            break;
+        case ZYDIS_MNEMONIC_FICOM:
+        case ZYDIS_MNEMONIC_FICOMP: // memory operand is covered by the scan
+        case ZYDIS_MNEMONIC_FCOMI:
+        case ZYDIS_MNEMONIC_FCOMIP:
+        case ZYDIS_MNEMONIC_FUCOMI:
+        case ZYDIS_MNEMONIC_FUCOMIP:
+        case ZYDIS_MNEMONIC_FTST:
+        case ZYDIS_MNEMONIC_FXAM:
+            tainted = st0;
+            break;
+        default: break;
+        }
+    }
+    if (!tainted)
+        return;
+    // 5. Report.
+    static thread_local char msg[256];
+    const char* mn = ZydisMnemonicGetString(m);
+    snprintf(msg, sizeof(msg),
+             "tainted (cannot-var-time-op) value in variable-time operand of "
+             "%s (data-dependent timing)",
+             mn ? mn : "?");
+    guest_error(cpu, msg, cpu->rip);
+}
 
 } // namespace
 
@@ -8857,6 +10369,11 @@ void exec_one(CPU* cpu) {
     if (cpu->emu->trace_insn)
         trace_insn(cpu, d);
     dbg_check();
+    // CANNOT_VAR_TIME_OP: data-dependent-execution-time operand check for
+    // every encoding path (before the EVEX/MVEX diversion and LOCK handling).
+    // Branch (CTRL) and address (ADDR) dependencies stay on the existing
+    // cannot-branch / cannot-index checks.
+    check_var_time(cpu, d);
     bool dbg = false;
     if (dbg_lo) {
         uint64_t base = dbg_base ? dbg_base : cpu->emu->interp_base;

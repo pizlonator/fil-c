@@ -160,7 +160,8 @@ FaultScope::~FaultScope() {}
 //
 // Flag bitmask (see mem.h POISON_*):
 //   bit0 cannot-load, bit1 cannot-store, bit2 cannot-branch,
-//   bit3 cannot-index, bit4 clear-branch-on-store, bit5 clear-index-on-store.
+//   bit3 cannot-index, bit4 clear-branch-on-store, bit5 clear-index-on-store,
+//   bit6 cannot-var-time-op, bit7 clear-var-time-op-on-store.
 
 static std::mutex g_poison_mu;
 static std::map<uint64_t, uint8_t> g_poison; // key: byte address
@@ -168,7 +169,7 @@ static std::map<uint64_t, uint8_t> g_poison; // key: byte address
 void mem_poison_range(Emulator*, uint64_t addr, size_t size, unsigned kind) {
     if (!size)
         return;
-    kind &= 0x3f;
+    kind &= 0xff;
     if (!kind)
         return;
     std::lock_guard<std::mutex> l(g_poison_mu);
@@ -267,7 +268,7 @@ static unsigned poison_lookup(uint64_t addr, size_t size) {
     for (auto it = g_poison.lower_bound(addr);
          it != g_poison.end() && it->first < end; ++it) {
         bits |= it->second;
-        if (bits == 0x3f)
+        if (bits == 0xff)
             break;
     }
     return bits;
@@ -279,16 +280,18 @@ void mem_get_taint(uint64_t addr, size_t size, Taint* out) {
         return;
     out->cannot_branch = (bits & POISON_CANNOT_BRANCH) != 0;
     out->cannot_index = (bits & POISON_CANNOT_INDEX) != 0;
+    out->cannot_var_time_op = (bits & POISON_CANNOT_VAR_TIME_OP) != 0;
 }
 
 // Store taint semantics (see mem.h): the destination bytes gain the stored
-// value's cannot-branch/index bits plus the matching clear-on-store bit, so
+// value's taint bits plus the matching clear-on-store bit, so
 // a later store to a clear-on-store location sanitizes the value (and the
 // memory). Load/store poison bits and clear bits are sticky.
 void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t) {
     (void)cpu;
     bool cb = t.cannot_branch, ci = t.cannot_index;
-    if (!cb && !ci) {
+    bool cvt = t.cannot_var_time_op;
+    if (!cb && !ci && !cvt) {
         // Clean store still honors clear-on-store: it sanitizes locations
         // that carry clear bits.
         std::lock_guard<std::mutex> l(g_poison_mu);
@@ -305,6 +308,8 @@ void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t) {
                 nu &= ~(uint8_t)POISON_CANNOT_BRANCH;
             if (old & POISON_CLEAR_INDEX_ON_STORE)
                 nu &= ~(uint8_t)POISON_CANNOT_INDEX;
+            if (old & POISON_CLEAR_VAR_TIME_OP_ON_STORE)
+                nu &= ~(uint8_t)POISON_CANNOT_VAR_TIME_OP;
             if (nu != old) {
                 if (nu)
                     it->second = nu;
@@ -336,6 +341,13 @@ void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t) {
             else
                 nu |= (uint8_t)(POISON_CANNOT_INDEX |
                                 POISON_CLEAR_INDEX_ON_STORE);
+        }
+        if (cvt) {
+            if (old & POISON_CLEAR_VAR_TIME_OP_ON_STORE)
+                nu &= ~(uint8_t)POISON_CANNOT_VAR_TIME_OP;
+            else
+                nu |= (uint8_t)(POISON_CANNOT_VAR_TIME_OP |
+                                POISON_CLEAR_VAR_TIME_OP_ON_STORE);
         }
         if (nu)
             g_poison[a] = nu;

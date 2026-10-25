@@ -35,17 +35,29 @@ constexpr size_t MAX_VEC_BYTES = 64;
 // Abstract taint bits for poison tracking. cannot_branch: value must not
 // influence a branch target/condition. cannot_index: value must not be used
 // in any memory address computation (nor passed to syscalls).
+// cannot_var_time_op: value must not be used as an operand that makes an
+// instruction's execution time data-dependent (other than through branching
+// or indexing, which have their own bits).
 struct Taint {
     bool cannot_branch = false;
     bool cannot_index = false;
+    bool cannot_var_time_op = false;
     Taint() = default;
-    Taint(bool cb, bool ci) : cannot_branch(cb), cannot_index(ci) {}
-    bool any() const { return cannot_branch || cannot_index; }
+    Taint(bool cb, bool ci, bool cvt = false)
+        : cannot_branch(cb), cannot_index(ci), cannot_var_time_op(cvt) {}
+    bool any() const {
+        return cannot_branch || cannot_index || cannot_var_time_op;
+    }
     bool empty() const { return !any(); }
-    void clear() { cannot_branch = false; cannot_index = false; }
+    void clear() {
+        cannot_branch = false;
+        cannot_index = false;
+        cannot_var_time_op = false;
+    }
     void merge(const Taint& o) {
         cannot_branch = cannot_branch || o.cannot_branch;
         cannot_index = cannot_index || o.cannot_index;
+        cannot_var_time_op = cannot_var_time_op || o.cannot_var_time_op;
     }
     Taint operator|(const Taint& o) const {
         Taint r = *this;
@@ -57,7 +69,9 @@ struct Taint {
         return *this;
     }
     bool operator==(const Taint& o) const {
-        return cannot_branch == o.cannot_branch && cannot_index == o.cannot_index;
+        return cannot_branch == o.cannot_branch &&
+               cannot_index == o.cannot_index &&
+               cannot_var_time_op == o.cannot_var_time_op;
     }
     bool operator!=(const Taint& o) const { return !(*this == o); }
 };
@@ -106,6 +120,13 @@ enum : unsigned {
     POISON_CANNOT_INDEX = 1u << 3,
     POISON_CLEAR_BRANCH_ON_STORE = 1u << 4,
     POISON_CLEAR_INDEX_ON_STORE = 1u << 5,
+    // Tainting a value with this bit makes it unusable as an operand that
+    // makes an instruction's execution time data-dependent (other than
+    // through branching or indexing, which have their own bits).
+    POISON_CANNOT_VAR_TIME_OP = 1u << 6,
+    // A store to memory carrying this bit clears the CANNOT_VAR_TIME_OP bit
+    // (store sanitizes), mirroring the branch/index clear bits.
+    POISON_CLEAR_VAR_TIME_OP_ON_STORE = 1u << 7,
 };
 void mem_poison_range(Emulator* emu, uint64_t addr, size_t size, unsigned kind);
 // Debug: watch stores to [base, base+len) (enabled by ZEG_WATCH_TLS).
@@ -116,16 +137,17 @@ void mem_unpoison_range(Emulator* emu, uint64_t addr, size_t size);
 void mem_check_load(CPU* cpu, uint64_t addr, size_t size);
 void mem_check_store(CPU* cpu, uint64_t addr, size_t size);
 
-// Taint side of poisoning: OR the cannot-branch/index bits of [addr,size)
-// into *out (cleared if unpoisoned). Used to taint loaded register values.
+// Taint side of poisoning: OR the taint bits (cannot-branch, cannot-index,
+// cannot-var-time-op) of [addr,size) into *out (cleared if unpoisoned). Used
+// to taint loaded register values.
 void mem_get_taint(uint64_t addr, size_t size, Taint* out);
 inline void mem_get_taint(uint64_t addr, size_t size, Taint& out) {
     mem_get_taint(addr, size, &out);
 }
 
 // Called after a successful store of a value with taint t to
-// [addr,size): the destination bytes gain the value's cannot-branch/index
-// bits (plus the matching clear-on-store bit, so a later store clears the
+// [addr,size): the destination bytes gain the value's taint bits
+// (plus the matching clear-on-store bit, so a later store clears the
 // taint). If the destination already carries a clear-on-store bit for a
 // tainted value, that value bit is cleared instead (store sanitizes).
 // Load/store poison bits and clear bits are sticky.

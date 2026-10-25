@@ -6,7 +6,9 @@
 # Suites: basic guests (filc hello, static, threads, args), AVX512/AES
 # differentials (native vs emulated output), poisoning client requests
 # (faults + taint laundering + clear-on-store; faults expect core dumps),
-# core-dump gdb check, crash-time stack traces
+# var-time mode tests (--var-time-op=known/plausible/everything gating for
+# the CANNOT_VAR_TIME_OP dimension, incl. exemptions and the EVEX/opmask
+# sidecar), core-dump gdb check, crash-time stack traces
 # (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag.
 # Does not touch filc/tests or filc/run-tests.
 set -u
@@ -31,9 +33,19 @@ log "compiling guests..."
 gcc -O2 -o "$OUTDIR/args" tests/args.c || { log "guest compile failed: args"; exit 1; }
 gcc -O2 -o "$OUTDIR/threads" tests/threads.c -pthread || { log "guest compile failed: threads"; exit 1; }
 gcc -O2 -static -o "$OUTDIR/static_hi" tests/static_hi.c || { log "guest compile failed: static_hi"; exit 1; }
-for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall poison_launder_branch poison_launder_index poison_launder_clear; do
+for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall poison_launder_branch poison_launder_index poison_launder_clear \
+         poison_vt_div poison_vt_clear poison_vt_plausible poison_vt_cmps poison_vt_cpuid poison_vt_rep; do
     gcc -O2 -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null || { log "guest compile failed: $t"; exit 1; }
 done
+# Var-time special-flag guests: the VPERMILPS (mode-3) guest needs AVX, the
+# exemption chain needs RDRAND/RDSEED, and the EVEX masked-load guest needs
+# AVX512F (KMOVW + {k}-masked load).
+gcc -O2 -mavx -o "$OUTDIR/poison_vt_mode3" tests/poison_vt_mode3.c \
+    || { log "guest compile failed: poison_vt_mode3"; exit 1; }
+gcc -O2 -mavx -mrdrnd -mrdseed -o "$OUTDIR/poison_vt_exempt" tests/poison_vt_exempt.c \
+    || { log "guest compile failed: poison_vt_exempt"; exit 1; }
+gcc -O2 -mavx512f -o "$OUTDIR/poison_vt_kmask" tests/poison_vt_kmask.c \
+    || { log "guest compile failed: poison_vt_kmask"; exit 1; }
 # CPUID presence + header-only client library tests.
 gcc -O2 -o "$OUTDIR/cpuid_vendor" tests/cpuid_vendor.c || { log "guest compile failed: cpuid_vendor"; exit 1; }
 gcc -O2 -Iinclude -o "$OUTDIR/zegarmistrz_lib" tests/zegarmistrz_lib.c || { log "guest compile failed: zegarmistrz_lib"; exit 1; }
@@ -97,6 +109,15 @@ echo "poison-clear"
 echo "poison-launder-branch"
 echo "poison-launder-index"
 echo "poison-launder-clear"
+echo "poison-vt-div"
+echo "poison-vt-clear"
+echo "poison-vt-plausible"
+echo "poison-vt-mode3"
+echo "poison-vt-exempt"
+echo "poison-vt-kmask"
+echo "poison-vt-cmps"
+echo "poison-vt-cpuid"
+echo "poison-vt-rep"
 echo "cpuid-emulated"
 echo "cpuid-native"
 echo "zeglib-emulated"
@@ -236,6 +257,97 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     # sanitize, so the load is clean and the branch succeeds (exit 0).
     out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_launder_clear 2>/dev/null); ec=$?
     [ "$ec" = 0 ] && [ "$out" = "launder-clear-ok" ] && echo "PASS poison-launder-clear" || echo "FAIL poison-launder-clear: exit=$ec out=[$out]"
+    ;;
+  poison-vt-div|poison-vt-kmask|poison-vt-cpuid|poison-vt-rep)
+    # KNOWN var-time faults: DIV with a tainted operand (doc 4.1), a
+    # {k}-masked EVEX load with a tainted mask (doc 4.7), CPUID with a
+    # tainted leaf (doc 4.9) and `rep movsb` with a tainted count (doc 4.4:
+    # RCX is a VAL operand for REP MOVS/STOS/LODS) trap in EVERY mode (test
+    # default) with the var-time reason + core dump. Laundering through the
+    # poisoned slot without the CLEAR bit must keep the taint.
+    name="$t"
+    bin=$(echo "$t" | tr "-" "_")
+    rm -f "test-output/zegarmistrz.core.$bin."*
+    (cd test-output && timeout 120 ../zegarmistrz ./$bin >/dev/null 2>$bin.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$bin.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "var-time" "test-output/$bin.err.txt"; then
+      echo "PASS $name"
+    else
+      echo "FAIL $name: exit=$ec core=[$core]"
+      head -5 "test-output/$bin.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$bin."* "test-output/$bin.err.txt"
+    ;;
+  poison-vt-clear)
+    # With clear-var-time-op-on-store the clean store sanitizes, so the
+    # reloaded divisor is clean and the DIV succeeds (exit 0).
+    out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_vt_clear 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "vt-clear-ok" ] && echo "PASS poison-vt-clear" || echo "FAIL poison-vt-clear: exit=$ec out=[$out]"
+    ;;
+  poison-vt-plausible)
+    # Mode gating: RCR by CL is a doc-5 suspect, so the default (known)
+    # mode must NOT trap, while --var-time-op=plausible must fault with
+    # the var-time reason. Both must hold.
+    name=poison_vt_plausible
+    out=$(cd test-output && timeout 60 ../zegarmistrz ./$name 2>/dev/null); ec=$?
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz --var-time-op=plausible ./$name >/dev/null 2>$name.err.txt); ec2=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 0 ] && [ "$out" = "plausible-ok" ] && [ "$ec2" = 139 ] \
+       && grep -q "var-time" "test-output/$name.err.txt"; then
+      echo "PASS poison-vt-plausible"
+    else
+      echo "FAIL poison-vt-plausible: known-exit=$ec out=[$out] plausible-exit=$ec2 core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
+  poison-vt-mode3)
+    # Mode gating for the OTHER class: VPERMILPS with a tainted control
+    # operand is deliberately unclassified, so it must run cleanly (exit 0,
+    # mode3-ok) in the default and plausible modes and trap with the
+    # var-time reason only under --var-time-op=everything. All three must
+    # hold.
+    name=poison_vt_mode3
+    out=$(cd test-output && timeout 60 ../zegarmistrz ./$name 2>/dev/null); ec=$?
+    out2=$(cd test-output && timeout 60 ../zegarmistrz --var-time-op=plausible ./$name 2>/dev/null); ec2=$?
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz --var-time-op=everything ./$name >/dev/null 2>$name.err.txt); ec3=$?
+    if [ "$ec" = 0 ] && [ "$out" = "mode3-ok" ] && [ "$ec2" = 0 ] \
+       && [ "$out2" = "mode3-ok" ] && [ "$ec3" = 139 ] \
+       && grep -q "var-time" "test-output/$name.err.txt"; then
+      echo "PASS poison-vt-mode3"
+    else
+      echo "FAIL poison-vt-mode3: default-exit=$ec out=[$out] plausible-exit=$ec2 out2=[$out2] everything-exit=$ec3"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
+  poison-vt-exempt)
+    # Doc 6+7 exemptions: PAUSE/LFENCE/MFENCE/SFENCE, RDTSC, RDTSCP,
+    # RDRAND, RDSEED, RDPID, ADD and MOV with a cannot-var-time-op-tainted
+    # value live must all run clean even in --var-time-op=everything mode.
+    out=$(cd test-output && timeout 60 ../zegarmistrz --var-time-op=everything ./poison_vt_exempt 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "exempt-ok" ] && echo "PASS poison-vt-exempt" || echo "FAIL poison-vt-exempt: exit=$ec out=[$out]"
+    ;;
+  poison-vt-cmps)
+    # CTRL dependencies keep their own dimension: REPE CMPSB over two
+    # cannot-branch-poisoned buffers (store-laundered, no clear bit) must
+    # trip the per-iteration cannot-branch check -- the reason is
+    # cannot-branch, NOT var-time.
+    name=poison_vt_cmps
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-branch" "test-output/$name.err.txt"; then
+      echo "PASS poison-vt-cmps"
+    else
+      echo "FAIL poison-vt-cmps: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
     ;;
   cpuid-emulated)
     out=$(timeout 60 ./zegarmistrz test-output/cpuid_vendor 2>/dev/null); ec=$?

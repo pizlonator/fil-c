@@ -107,6 +107,12 @@ static void usage(const char* argv0) {
             "  --no-core, --passthrough-signals\n"
             "                    do not install host signal handlers and do not\n"
             "                    write core dumps (guest errors just print)\n"
+            "  --var-time-op=known|plausible|everything\n"
+            "                    cannot-var-time-op checking level: known traps\n"
+            "                    only on documented data-dependent instructions\n"
+            "                    (default), plausible also on §5 suspects, and\n"
+            "                    everything on anything not provably\n"
+            "                    constant-time\n"
             "  -h, --help        print this help\n"
             "\n"
             "Poisoning client requests (yolo C, not Fil-C): call the magic\n"
@@ -117,10 +123,18 @@ static void usage(const char* argv0) {
             "  op 1 = poison [ptr,size) with flags bitmask:\n"
             "         bit0 cannot-load, bit1 cannot-store, bit2 cannot-branch,\n"
             "         bit3 cannot-index, bit4 clear-branch-on-store,\n"
-            "         bit5 clear-index-on-store\n"
+            "         bit5 clear-index-on-store, bit6 cannot-var-time-op,\n"
+            "         bit7 clear-var-time-op-on-store\n"
             "         e.g. (1,ptr,size,1) poisons cannot-load only\n"
             "  op 2 = unpoison [ptr,size)\n"
             "\n"
+            "cannot-var-time-op taint marks values that must not reach an\n"
+            "instruction whose execution time depends on operand values.\n"
+            "--var-time-op=known checks only the documented data-dependent\n"
+            "instructions, plausible adds the undocumented suspects, and\n"
+            "everything traps on any instruction not in the guaranteed\n"
+            "constant-time list (branch and address dependencies keep their\n"
+            "own cannot-branch/cannot-index checks).\n"
             "Presence: CPUID.1:ECX bit 31 (hypervisor present) plus hypervisor\n"
             "leaf 0x40000000: EAX=0x40000000 (max hypervisor leaf), EBX:ECX:EDX\n"
             "= \"Zegarmistrz\\0\". Guest client library: include/zegarmistrz.h\n"
@@ -285,6 +299,21 @@ int main(int argc, char** argv) {
             emu.stack_trace = true;
         } else if (a == "--no-stack-trace") {
             emu.stack_trace = false;
+        } else if (a.rfind("--var-time-op=", 0) == 0) {
+            std::string v = a.substr(sizeof("--var-time-op=") - 1);
+            if (v == "known")
+                emu.var_time_op = Emulator::ZG_VAR_TIME_KNOWN;
+            else if (v == "plausible")
+                emu.var_time_op = Emulator::ZG_VAR_TIME_PLAUSIBLE;
+            else if (v == "everything")
+                emu.var_time_op = Emulator::ZG_VAR_TIME_EVERYTHING;
+            else {
+                fprintf(stderr,
+                        "zegarmistrz: bad --var-time-op value '%s' (expected "
+                        "known, plausible or everything)\n",
+                        v.c_str());
+                return 1;
+            }
         } else if (a == "-h" || a == "--help") {
             usage(argv[0]);
             return 0;

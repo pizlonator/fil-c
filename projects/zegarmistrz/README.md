@@ -40,7 +40,7 @@ conversion, CLI, parallel tests, `./build_zegarmistrz.sh`.
 sudo apt-get install -y libzydis-dev libzycore-dev   # Zydis decoder
 sudo apt-get install -y binutils-dev      # BFD (crash-time guest stack traces)
 make -j$(nproc)        # builds ./zegarmistrz
-./run-tests            # builds guests, runs 31 tests in parallel (xargs -P)
+./run-tests            # builds guests, runs 40 tests in parallel (xargs -P)
 ./check-isa.sh         # verify ISA coverage against binaries
 ./zegarmistrz <program> [args...]
 ./zegarmistrz -v ./hello                             # trace instructions
@@ -60,7 +60,23 @@ differentials, skipped if the host lacks the features),
 through a cannot-branch/cannot-index-poisoned slot without the CLEAR_*
 bit keeps the poison, so using the reloaded value faults with the
 matching reason) and `poison-launder-clear` (with CLEAR_BRANCH_ON_STORE
-the clean store sanitizes and the branch succeeds), `cpuid-emulated` +
+the clean store sanitizes and the branch succeeds), plus the
+`poison-vt-*` CANNOT_VAR_TIME_OP tests: `poison-vt-div` (tainted DIV
+operand, doc §4.1), `poison-vt-kmask` (tainted EVEX {k} write mask on a
+masked load, doc §4.7), `poison-vt-cpuid` (tainted CPUID leaf, doc §4.9)
+and `poison-vt-rep` (tainted `rep movsb` count, doc §4.4: RCX is a VAL
+operand for REP MOVS/STOS/LODS) must fault with the var-time reason in
+every mode;
+`poison-vt-clear` (with CLEAR_VAR_TIME_OP_ON_STORE the clean store
+sanitizes and the DIV succeeds), `poison-vt-plausible` (RCR by CL, a
+doc §5 suspect: clean in the default mode, var-time fault under
+`--var-time-op=plausible`), `poison-vt-mode3` (VPERMILPS with a tainted
+control operand: deliberately unclassified, so it only traps under
+`--var-time-op=everything`), `poison-vt-exempt` (PAUSE/fences/RDTSC/
+RDTSCP/RDRAND/RDSEED/RDPID/ADD/MOV with the taint live must run clean
+even in everything mode) and `poison-vt-cmps` (REPE CMPSB over
+cannot-branch-poisoned buffers keeps its own dimension and faults with
+the cannot-branch reason), `cpuid-emulated` +
 `cpuid-native` + `zeglib-emulated` + `zeglib-native` (CPUID presence and
 the `include/zegarmistrz.h` client library, each run under the emulator
 and natively), `poison-header` (header-library poison must fault under
@@ -256,9 +272,50 @@ Client request: `CALL` to `0x1410141014101410` with `RDI=op`,
 - op 1: poison each byte of `[ptr, ptr+size)` OR-ing the `flags`
   bitmask: bit0 `cannot-load`, bit1 `cannot-store`, bit2
   `cannot-branch`, bit3 `cannot-index`, bit4
-  `clear-branch-on-store`, bit5 `clear-index-on-store`. Example:
+  `clear-branch-on-store`, bit5 `clear-index-on-store`, bit6
+  `cannot-var-time-op`, bit7 `clear-var-time-op-on-store`. Example:
   `(1, ptr, size, 1)` poisons cannot-load only.
 - op 2: unpoison (erase entries in range).
+
+### Variable-time operand checks (CANNOT_VAR_TIME_OP)
+
+Tainting a value with cannot-var-time-op (bit 6) makes it unusable as an
+operand that makes an instruction's execution time data-dependent —
+other than through branching (cannot-branch) or addressing
+(cannot-index), which keep their own bits and win when both would
+apply. Classification follows x86_64_data_dependent_timing.md (repo
+root): doc §4 (DIV/IDIV, PDEP/PEXT masks, FP add/sub/mul/div/sqrt,
+denormal-sensitive conversions, the MCDT integer multiplies, gathers/
+scatters/masked-memory masks, x87 arithmetic, CPUID leaves, XSAVE
+bitmaps) is KNOWN; §5 suspects (RCL/RCR counts, ROUND*/MIN*/MAX*/CMP*,
+FCOM family, FLD from memory, CMPXCHG comparands, LDMXCSR, XGETBV,
+INCSSP, expand-from-memory
+masks) are PLAUSIBLE; §6+§7 are guaranteed constant-time and never
+trap (RDRAND/RDSEED/PAUSE/fences/SERIALIZE/RDTSC/RDTSCP/RDPID, LOCK
+ops, INT/UD, SYSCALL, all of the ALU/SIMD/crypto DOIT list). Three
+global modes, `--var-time-op=`:
+
+- `known` (default): trap only on §4 instructions.
+- `plausible`: also trap on §5.
+- `everything`: also trap on ANY instruction not in the §6+§7
+  guaranteed lists (mode 3 is deliberately aggressive; an
+  unimplemented instruction with a tainted operand reports var-time
+  before its unimplemented error).
+
+Stores launder the bit like the others (a clean store keeps it unless
+clear-var-time-op-on-store is set). ADDR timing dependencies from the
+doc are covered by the cannot-index checks (including the newly
+checked XLAT table index and BT bit-string offsets); CTRL
+dependencies are covered by cannot-branch (including the newly
+checked REPE/REPNE CMPS/SCAS compared values). For gather/scatter
+(this includes the VPGATHER/VSCATTER families and the `VMASKMOV`
+masked-memory ops) the doc tags the index vector "ADDR, VAL":
+zegarmistrz maps that onto the two dedicated dimensions -- the index
+vector is INDEX-checked (cannot-index, ADDR side) and the write mask
+is var-time-checked (cannot-var-time-op, VAL side). SYSCALL timing is the
+kernel's and is not checked. Limitations: x87 and opmask taint are
+per-register (not per-byte) and do not survive FXSAVE/XSAVE
+snapshots; SYSCALL is skipped.
 
 Enforcement: `cannot-load`/`cannot-store` fault on any access through
 the memory pipeline. `cannot-branch`/`cannot-index` taint loaded
@@ -338,7 +395,7 @@ chain and break libstdc++'s `#include_next <stdlib.h>`.)
 ## Status / phase 2
 
 Works: `./hello` → `Hello!` (exit 0), static/dynamic/threaded guests,
-full `run-tests` green (31 tests, parallel), zero compiler warnings.
+full `run-tests` green (40 tests, parallel), zero compiler warnings.
 Threads, futexes, TLS (`FS`), `rseq`, robust lists, `brk`, `mmap`,
 AVX/AVX2, BMI/BMI2 (incl. `BEXTR`), x87 (+`FLDENV`/`FNSTENV`), `XSAVE`,
 `RDPKRU`/`WRPKRU` — all exercised by the loader + libc + Fil-C runtime

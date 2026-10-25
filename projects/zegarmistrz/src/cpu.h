@@ -101,6 +101,11 @@ struct CPU {
     uint16_t fcw = 0x037f;
     uint16_t fsw = 0;
 
+    // Taint sidecars for x87 stack registers and AVX-512 opmask registers
+    // (indexed exactly like st[] / opmask[]; see fpu_st()/kstore()).
+    Taint st_taint[8];
+    Taint opmask_taint[8];
+
     // AVX512 opmask registers k0..k7. Only the low N bits are used where N
 
     // is the lane count of the masked operation. k0 is special: when used
