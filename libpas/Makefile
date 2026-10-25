@@ -179,13 +179,15 @@ all: \
 	$(FILC_LIB_DIR)/libpizlo.so $(FILC_LIB_TEST_DIR)/libpizlo.so \
 	$(FILC_LIB_GCVERIFY_DIR)/libpizlo.so $(FILC_LIB_TEST_GCVERIFY_DIR)/libpizlo.so \
 	$(FILC_LIB_DIR)/libpizlo.a \
-	$(FILC_LIB_DIR)/filc_crt.o $(FILC_LIB_DIR)/filc_mincrt.o
+	$(FILC_LIB_DIR)/filc_crt.o $(FILC_LIB_DIR)/filc_mincrt.o \
+	$(FILC_LIB_DIR)/filc_jit_crt.o $(FILC_LIB_DIR)/filc_jit_mincrt.o
 
 else
 
 all: \
 	$(FILC_LIB_DIR)/libpizlo.a \
-	$(FILC_LIB_DIR)/filc_crt.o $(FILC_LIB_DIR)/filc_mincrt.o
+	$(FILC_LIB_DIR)/filc_crt.o $(FILC_LIB_DIR)/filc_mincrt.o \
+	$(FILC_LIB_DIR)/filc_jit_crt.o $(FILC_LIB_DIR)/filc_jit_mincrt.o
 
 endif
 
@@ -198,6 +200,7 @@ MAINCFLAGS = -g -O3 -W -Werror -fno-strict-aliasing
 FILCFLAGS = -O3 -g -W -Werror -MD
 
 MAINSRC = ../filc/main/main.c
+MAINJITSRC = ../filc/main/main_jit.c
 FILSRCS = $(wildcard ../filc/src/*.c)
 
 PASPIZLODYNAMICOBJSBASE = \
@@ -267,6 +270,8 @@ clean:
 	rm -f src/libpas/filc_native.h
 	rm -f $(FILC_LIB_DIR)/filc_crt.o
 	rm -f $(FILC_LIB_DIR)/filc_mincrt.o
+	rm -f $(FILC_LIB_DIR)/filc_jit_crt.o
+	rm -f $(FILC_LIB_DIR)/filc_jit_mincrt.o
 	rm -f $(FILC_LIB_DIR)/libpizlo.so
 	rm -f $(FILC_LIB_TEST_DIR)/libpizlo.so
 	rm -f $(FILC_LIB_DIR)/libpizlo.a
@@ -308,6 +313,9 @@ $(BUILDDIR)/fil-pizlo-%.o: ../filc/src/%.c $(FILC_CLANG) | $(BUILDDIR)
 $(BUILDDIR)/pas-pizlo-release-%.o: src/libpas/%.S | $(BUILDDIR)
 	$(PASASM) $(PASASMFLAGS) -c -o $@ $<
 
+$(BUILDDIR)/pas-pizlo-release-filc_llvm_jit.o: src/libpas/filc_native.h
+$(BUILDDIR)/pas-pizlo-test-filc_llvm_jit.o: src/libpas/filc_native.h
+$(BUILDDIR)/pas-test-filc_llvm_jit.o: src/libpas/filc_native.h
 $(BUILDDIR)/pas-pizlo-release-filc_runtime.o: src/libpas/filc_native.h
 $(BUILDDIR)/pas-pizlo-test-filc_runtime.o: src/libpas/filc_native.h
 $(BUILDDIR)/pas-test-filc_runtime.o: src/libpas/filc_native.h
@@ -320,4 +328,10 @@ $(FILC_LIB_DIR)/filc_crt.o: $(MAINSRC) | $(FILC_LIB_DIR)
 
 $(FILC_LIB_DIR)/filc_mincrt.o: $(MAINSRC) | $(FILC_LIB_DIR)
 	$(PASCC) -c -o $@ $(MAINSRC) $(MAINCFLAGS) -DUSE_LIBC=0
+
+$(FILC_LIB_DIR)/filc_jit_crt.o: $(MAINJITSRC) | $(FILC_LIB_DIR)
+	$(PASCC) -c -o $@ $(MAINJITSRC) $(MAINCFLAGS) -DUSE_LIBC=1
+
+$(FILC_LIB_DIR)/filc_jit_mincrt.o: $(MAINJITSRC) | $(FILC_LIB_DIR)
+	$(PASCC) -c -o $@ $(MAINJITSRC) $(MAINCFLAGS) -DUSE_LIBC=0
 

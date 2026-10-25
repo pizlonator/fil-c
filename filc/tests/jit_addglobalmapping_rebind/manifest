@@ -1,0 +1,10 @@
+return:
+  success
+output-includes:
+  - "valid mapping ok"
+  - "dlsym ok"
+  - "rebind forged token ok"
+output-excludes:
+  - "filc panic"
+  - "filc safety error"
+extraLinkerArgs: "-enable-filc-jit"

@@ -1963,6 +1963,9 @@ void filc_special_type_dump(filc_special_type type, pas_stream* stream)
     case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
         pas_stream_printf(stream, "fiber_context");
         return;
+    case FILC_SPECIAL_TYPE_LLVM_JIT:
+        pas_stream_printf(stream, "llvm_jit");
+        return;
     default:
         pas_stream_printf(stream, "?%u", (unsigned)type);
         return;
@@ -2710,6 +2713,7 @@ filc_object* filc_allocate_special_early_with_heap(size_t size, size_t alignment
     case FILC_SPECIAL_TYPE_PTR_TABLE:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
     case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
+    case FILC_SPECIAL_TYPE_LLVM_JIT:
         PAS_ASSERT(heap == fugc_destructor_heap);
         break;
     case FILC_SPECIAL_TYPE_WEAK:
@@ -2775,6 +2779,7 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
     case FILC_SPECIAL_TYPE_PTR_TABLE:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
     case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
+    case FILC_SPECIAL_TYPE_LLVM_JIT:
         heap = fugc_destructor_heap;
         break;
     case FILC_SPECIAL_TYPE_WEAK:

@@ -134,6 +134,10 @@ def FreeNonHeapObject : DiagGroup<"free-nonheap-object">;
 // ToolChains/Gnu.cpp).  Defined explicitly, since more than one diagnostic
 // shares it and TableGen only tolerates one implicit group definition.
 def filc_ape : DiagGroup<"filc-ape">;
+// -enable-filc-jit is silently dropped when linking a shared library (the JIT
+// CRT is only linked into executables); the driver warns about it (see the
+// gnutools link job in ToolChains/Gnu.cpp).
+def filc_jit : DiagGroup<"filc-jit">;
 def DoublePromotion : DiagGroup<"double-promotion">;
 def EnumTooLarge : DiagGroup<"enum-too-large">;
 def UnsupportedNan : DiagGroup<"unsupported-nan">;

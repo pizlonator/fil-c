@@ -87,6 +87,16 @@ typedef struct filc_inverse_weak_map_entry filc_inverse_weak_map_entry;
 typedef struct filc_inverse_weak_map_key filc_inverse_weak_map_key;
 typedef struct filc_inverse_weak_map_map_entry filc_inverse_weak_map_map_entry;
 typedef struct filc_jmp_buf filc_jmp_buf;
+typedef struct filc_llvm_jit_builder_object filc_llvm_jit_builder_object;
+typedef struct filc_llvm_jit_context_object filc_llvm_jit_context_object;
+typedef struct filc_llvm_jit_context_state filc_llvm_jit_context_state;
+typedef struct filc_llvm_jit_entries_object filc_llvm_jit_entries_object;
+typedef struct filc_llvm_jit_generated_module_object filc_llvm_jit_generated_module_object;
+typedef struct filc_llvm_jit_module_object filc_llvm_jit_module_object;
+typedef struct filc_llvm_jit_module_state filc_llvm_jit_module_state;
+typedef struct filc_llvm_jit_object filc_llvm_jit_object;
+typedef struct filc_llvm_jit_session_object filc_llvm_jit_session_object;
+typedef struct filc_llvm_jit_value_object filc_llvm_jit_value_object;
 typedef struct filc_lower_or_box filc_lower_or_box;
 typedef struct filc_mark_stack filc_mark_stack;
 typedef struct filc_marker filc_marker;
@@ -156,6 +166,7 @@ typedef uintptr_t filc_word;
 #define FILC_SPECIAL_TYPE_WEAK_MAP        ((filc_special_type)10)
 #define FILC_SPECIAL_TYPE_FINALIZER_QUEUE ((filc_special_type)11)
 #define FILC_SPECIAL_TYPE_FIBER_CONTEXT   ((filc_special_type)12)
+#define FILC_SPECIAL_TYPE_LLVM_JIT        ((filc_special_type)13)
 #define FILC_SPECIAL_TYPE_MASK            ((filc_special_type)15)
 
 #define FILC_LOG_ALIGN_MASK               ((filc_log_align)31)
@@ -1095,6 +1106,269 @@ struct filc_exact_ptr_table {
 
 struct filc_weak {
     filc_ptr ptr;
+};
+
+/* Fil-C LLVM JIT API objects (FILC_SPECIAL_TYPE_LLVM_JIT).
+  
+   The Fil-C runtime (filc_llvm_jit.c) exposes the LLVM C API curated by
+   the generated user header as native wrappers. Every LLVM*Ref,
+   FilLLVMJITRef, and FilLLVMJITModuleRef value that crosses into Fil-C code
+   is wrapped in one of these payload structs, stored as the payload of a
+   FILC_SPECIAL_TYPE_LLVM_JIT special object. All such objects live in the
+   destructor heap (fugc_destructor_heap), so destruction order is governed by
+   the collector's destructor phase and every payload is torn down by
+   filc_llvm_jit_destruct().
+  
+   Handles are deliberately typed as void* rather than LLVM*Ref: the runtime
+   never links LLVM and only forwards the opaque values through the
+   FilLLVMJITApi function-pointer table served by libfilcllvmjit.so. The
+   mapping is:
+     CONTEXT          -> LLVMContextRef
+     MODULE           -> LLVMModuleRef
+     BUILDER          -> LLVMBuilderRef
+     TYPE             -> LLVMTypeRef
+     VALUE            -> LLVMValueRef
+     BASIC_BLOCK      -> LLVMBasicBlockRef
+     METADATA         -> LLVMMetadataRef
+     NAMED_METADATA   -> LLVMNamedMDNodeRef
+     USE              -> LLVMUseRef
+     DBG_RECORD       -> LLVMDbgRecordRef
+     ATTRIBUTE        -> LLVMAttributeRef
+     OPERAND_BUNDLE   -> LLVMOperandBundleRef (accepted as input only)
+     METADATA_ENTRIES -> LLVMValueMetadataEntry* array (from CopyAllMetadata)
+     MODULE_FLAG_ENTRIES -> LLVMModuleFlagEntry* array (no producer in API v1)
+     JIT_SESSION      -> FilLLVMJITRef
+     GENERATED_MODULE -> FilLLVMJITModuleRef
+  
+   Locking: every LLVM operation on an object that refers to a context grabs
+   that context state's lock for the duration of the underlying LLVM call,
+   because LLVM contexts are not thread-safe. JIT sessions have their own
+   lock; generated modules have their own lock plus a seqlock (see below).
+   A generated module deliberately holds no context pointer: once JIT
+   compilation is done, the LLVM IR objects are no longer needed.
+  
+   Lock order (total; no inversions anywhere in filc_llvm_jit.c):
+     filc_llvm_jit_api_lock -> session->lock -> context_state->lock ->
+     generated_module->lock.
+   In practice no path nests them: the api lock is always released before any
+   other JIT lock is taken; AddModule holds only the context lock across the
+   LLVM compile call and only the session lock across the publish step (never
+   both at once); the module lock is a leaf held only by the roots writer.
+   Crucially, the GC marker (filc_llvm_jit_mark_outgoing_ptrs) takes NO JIT
+   locks at all: flight refs are loaded with
+   filc_flight_ptr_load_with_manual_tracking and the module roots
+   pointer/count is read through the roots-generation seqlock. Hence a thread holding any JIT lock
+   across filc_exit (JIT compile), a dlopen, or a GC-triggering allocation
+   can never deadlock with or stall marking: marking never blocks on a JIT
+   lock. The only locks the marker takes are the pre-existing non-JIT ones
+   elsewhere in filc_runtime_inlines.h, which are unrelated to this order.
+  
+   Lifetime cooperation: a parented object holds both a raw pointer and a
+   GC-visible filc_ptr keep-alive to its context (and, when relevant, to its
+   module). Creation bumps the parent's ref_count with atomics (no lock
+   needed); destruction drops it. The context payload is therefore disposed
+   (via LLVMContextDispose) only after its last child is gone, and the
+   module payload (via LLVMDisposeModule) only after its last child is gone.
+   The builder additionally adopts the module it is positioned in, so
+   positioning a builder in a block keeps that block's module alive.
+  
+   Explicit contexts only: the user header exposes no global-context
+   creators (LLVMModuleCreateWithName, LLVMCreateBuilder, the non-InContext
+   type and constant constructors, ...). Every context-affiliated object
+   belongs to an explicit LLVMContextRef created with LLVMContextCreate,
+   whose lock serializes its operations. */
+
+typedef enum filc_llvm_jit_kind {
+    FILC_LLVM_JIT_KIND_CONTEXT = 0,
+    FILC_LLVM_JIT_KIND_MODULE = 1,
+    FILC_LLVM_JIT_KIND_BUILDER = 2,
+    FILC_LLVM_JIT_KIND_TYPE = 3,
+    FILC_LLVM_JIT_KIND_VALUE = 4,
+    FILC_LLVM_JIT_KIND_BASIC_BLOCK = 5,
+    FILC_LLVM_JIT_KIND_METADATA = 6,
+    FILC_LLVM_JIT_KIND_NAMED_METADATA = 7,
+    FILC_LLVM_JIT_KIND_USE = 8,
+    FILC_LLVM_JIT_KIND_DBG_RECORD = 9,
+    FILC_LLVM_JIT_KIND_ATTRIBUTE = 10,
+    FILC_LLVM_JIT_KIND_OPERAND_BUNDLE = 11,
+    FILC_LLVM_JIT_KIND_METADATA_ENTRIES = 12,
+    FILC_LLVM_JIT_KIND_MODULE_FLAG_ENTRIES = 13,
+    FILC_LLVM_JIT_KIND_JIT_SESSION = 14,
+    FILC_LLVM_JIT_KIND_GENERATED_MODULE = 15
+} filc_llvm_jit_kind;
+
+/* Refcounted, immortal control blocks for destruction-order cooperation.
+   The collector destroys dead objects in an arbitrary order, so an LLVM
+   module's Fil-C object may be destructed after its context's object (or
+   vice versa). Payload memory is reclaimed with the object and must never
+   be touched after its destructor runs. These malloc'd control blocks
+   outlive every payload that refers to them: creation bumps the refcount
+   (atomically; the creating wrapper always holds the relevant lock), and
+   the last dropper -- whichever destructor runs last -- performs the LLVM
+   disposal and frees the block. This guarantees the only legal teardown
+   order (children's LLVM handles, then modules, then contexts) regardless
+   of the order the collector visits the payloads. Control blocks are
+   invisible to the GC (they hold no filc_ptrs); destructor code touches
+   nothing but the block and the API table, and takes no locks. */
+struct filc_llvm_jit_context_state {
+    pas_lock lock; /* Serializes every LLVM operation in this context. */
+    void* handle; /* LLVMContextRef (always a live explicit context). */
+    unsigned ref_count; /* Live referrers; manipulated only with atomics. */
+};
+
+struct filc_llvm_jit_module_state {
+    filc_llvm_jit_context_state* context_state; /* Never NULL. */
+    void* handle; /* LLVMModuleRef. */
+    unsigned ref_count; /* Live referrers; manipulated only with atomics. */
+};
+
+struct filc_llvm_jit_context_object {
+    filc_llvm_jit_kind kind; /* Always FILC_LLVM_JIT_KIND_CONTEXT. */
+    filc_llvm_jit_context_state* state; /* Never NULL. */
+};
+
+/* Base payload for every LLVM JIT object that belongs to a context. The
+   handle (an opaque LLVM*Ref forwarded through the libfilcllvmjit.so
+   function table) lives here so every parented payload shares its layout.
+   The state pointers are immortal (see above); the *_ref fields are
+   GC-visible keep-alives with the usual meaning. An object never keeps
+   itself alive, so a module's module_ref is always null.
+  
+   context_ref is written once before the object is
+   published (invisible to the marker until then), so it needs no guard.
+   module_ref is additionally mutated by builder adoption on live objects
+   (under the context state's lock). The lock-free marker loads both fields
+   with filc_flight_ptr_load_with_manual_tracking and marks the resulting
+   local copy, never writing back to the shared field (a free-singleton CAS
+   on the shared field would race the writer's locked store). The adoption
+   writer publishes with a store plus a Steele barrier that marks the adopted
+   module itself, so a concurrent scan that missed the adoption still keeps
+   the target alive in the same cycle (barriering the already-marked builder
+   would be a no-op, not a re-grey). Marking only needs the lower
+   half (object identity) anyway, so even a hypothetical pairing mismatch
+   could only name an object, never fabricate an address. */
+struct filc_llvm_jit_object {
+    filc_llvm_jit_kind kind;
+    filc_llvm_jit_context_state* state; /* Never NULL. */
+    filc_ptr context_ref; /* GC keep-alive for the context object. */
+    filc_llvm_jit_module_state* module_state; /* May be NULL. */
+    filc_ptr module_ref; /* GC keep-alive for the module object, null if none. */
+    void* handle; /* The wrapped LLVM*Ref. */
+};
+
+struct filc_llvm_jit_module_object {
+    struct filc_llvm_jit_object base;
+};
+
+/* Payload for BUILDER wraps. The builder owns its LLVMBuilderRef (disposed
+   via LLVMDisposeBuilder); the module it is positioned in is kept alive
+   through the base's module keep-alive. */
+struct filc_llvm_jit_builder_object {
+    struct filc_llvm_jit_object base;
+};
+
+/* Payload for TYPE, VALUE, BASIC_BLOCK, METADATA, NAMED_METADATA, USE,
+   DBG_RECORD, ATTRIBUTE, and OPERAND_BUNDLE wraps. None of these own their
+   LLVM storage (it belongs to the module or context), so destruction only
+   drops parent refs. */
+struct filc_llvm_jit_value_object {
+    struct filc_llvm_jit_object base;
+};
+
+/* Payload for METADATA_ENTRIES and MODULE_FLAG_ENTRIES wraps. The array is
+   never freed: the API exposes no Dispose entry point for it (mirroring
+   the curated header, which deliberately omits LLVMDispose*). */
+struct filc_llvm_jit_entries_object {
+    struct filc_llvm_jit_object base;
+    size_t count;
+};
+
+struct filc_llvm_jit_session_object {
+    filc_llvm_jit_kind kind; /* Always FILC_LLVM_JIT_KIND_JIT_SESSION. */
+    pas_lock lock;
+    void* handle; /* FilLLVMJITRef. Never disposed (process-lifetime JIT). */
+    filc_llvm_jit_generated_module_object* current_module; /* May be NULL. Debug
+       mirror only: the lock-free marker never reads this raw pointer, it
+       snapshots current_module_ref below, so this field needs no generation
+       guard or atomicity of its own. Written under session->lock. */
+    filc_ptr current_module_ref; /* GC keep-alive, null if none. The field the
+       marker loads with filc_flight_ptr_load_with_manual_tracking (see
+       filc_llvm_jit_mark_outgoing_ptrs). Written under session->lock; the
+       marker reads it lock-free with the standard flight helper.
+      
+       The writer pins the module in the process-global
+       roots BEFORE this publish (pin first, then publish), so
+       the marker can never observe a live-but-unpinned module through this
+       load. Marking the loaded copy needs no write-back: the collector is
+       non-moving (mark_or_free_flight only sets mark bits, or CASes the
+       lower half to the free singleton when the target is already free), so
+       there is no relocated address to propagate. The loaded copy is local,
+       and a lost free-singleton repoint of that copy is benign: the
+       shared field still names the same (pinned, hence live) object, and
+       re-marking it on a later scan is idempotent. The session object itself
+       is immortal (pinned in the process-global roots), so a racing load can
+       only name an immortal module, never a freed one. */
+};
+
+struct filc_llvm_jit_generated_module_object {
+    filc_llvm_jit_kind kind; /* Always FILC_LLVM_JIT_KIND_GENERATED_MODULE. */
+    pas_lock lock;
+    void* handle; /* FilLLVMJITModuleRef. Never disposed. */
+    void* session_handle; /* Owning FilLLVMJITRef, unowned. */
+    /* GC roots for flight pointers handed out by filc_llvm_jit_resolve and
+       filc_llvm_jit_resolve_raw_pointer. JITed code keeps resolved addresses
+       in its own globals, which the collector cannot see, so the module
+       object pins them here. malloc'd buffer; freed by the destructor. */
+    filc_ptr* roots;
+    size_t num_roots;
+    size_t roots_capacity;
+    /* Seqlock generation guarding lock-free marker snapshots of roots and
+       num_roots (see filc_llvm_jit_mark_outgoing_ptrs). Even = stable, odd =
+       the writer (filc_llvm_jit_record_root, under lock) is inside. The
+       writer stores odd, then grows/appends, then even with release; the
+       marker copies pointer+count under acquire and retries on mismatch, then
+       iterates the snapshot with no lock held. Snapshots are always prefixes
+       of the true root set (the buffer only grows), and any root the marker
+       misses because it raced the writer is covered by the Steele insertion
+       barrier the writer issues after publishing (see
+       filc_llvm_jit_record_root), which marks the root itself so the same
+       cycle keeps it alive no matter when this object's scan ran. The counter
+       advances by 2 per append-batch, preserving evenness across 2^32 wrap;
+       a false before==after match would need 4G batches inside one snapshot.
+      
+       No write-back of the snapshot is needed. The
+       collector is non-moving, so mark_or_free_flight never relocates: it
+       only sets mark bits, or CASes a slot's lower half to the free
+       singleton when the target is already free. Module roots are marked in
+       place (the marker iterates the live slots directly, not a copy), so
+       free-singleton repoints DO propagate to roots[] whenever the buffer has
+       not grown under the snapshot. If growth did interleave, the snapshot
+       iterates the retired buffer while the live copy lives in the new
+       buffer; a repoint that lands in the retired copy is lost, but the live
+       copy already holds the same pointer and the next scan repoints it
+       there. At worst one extra cycle retains a pointer to an already-free
+       object, which is benign (free objects are never swept, and rescanning
+       them just repoints to the singleton). Stale rescan is therefore
+       idempotent marking of the same live roots, never a leak. */
+    unsigned roots_generation;
+    /* Retired roots buffers. Growth never frees the old buffer synchronously:
+       a concurrent lock-free marker snapshot may still be iterating it.
+       Instead the old buffer is stashed here (writer-only, under lock) and
+       all of them are freed by the destructor, which runs only for a dead
+       object that no marker can still reach. Safe reclamation with no epoch
+       or free queue needed.
+      
+       This is bounded, not a leak, even though sessions
+       (and hence generated modules) are immortal. Growth doubles the live
+       capacity, so the number of retired buffers equals the number of growths
+       (O(log N) in the final root count N), and the total retired bytes form
+       a halving geometric series bounded by ~2x the live buffer. Retired
+       memory is proportional to the live root set itself, which is inherent:
+       every recorded root must be retained as long as the immortal module
+       lives. The destructor frees all of it for completeness. */
+    filc_ptr** retired_roots;
+    size_t num_retired;
+    size_t retired_capacity;
 };
 
 struct filc_ptr_hash_map_entry {
@@ -2638,6 +2912,7 @@ static inline void filc_object_validate_special_with_payload(filc_object* object
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_WEAK ||
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_WEAK_MAP ||
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_FINALIZER_QUEUE ||
+               filc_object_special_type(object) == FILC_SPECIAL_TYPE_LLVM_JIT ||
                filc_object_special_type(object) == FILC_SPECIAL_TYPE_FIBER_CONTEXT ||
                (filc_object_special_type(object) == FILC_SPECIAL_TYPE_FUNCTION
                 && !(filc_object_get_flags(object) & FILC_OBJECT_FLAG_READONLY)));
@@ -3755,6 +4030,7 @@ static inline bool filc_special_type_is_valid(filc_special_type special_type)
     case FILC_SPECIAL_TYPE_WEAK_MAP:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
     case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
+    case FILC_SPECIAL_TYPE_LLVM_JIT:
         return true;
     default:
         return false;
@@ -3792,6 +4068,33 @@ filc_object* filc_allocate_special_early_with_heap(size_t size, size_t alignment
 
 filc_object* filc_allocate_special_with_existing_payload(
     filc_thread* my_thread, void* payload, filc_special_type special_type);
+
+/* Fil-C LLVM JIT API (implemented in filc_llvm_jit.c).
+
+   filc_allow_jit gates the whole JIT API: every native wrapper panics unless
+   this is true. It defaults to false. The owner of filc_start_program_with_jit
+   sets it to true for processes launched with JIT support (JIT must stay
+   unavailable to setuid processes; see llvm-jit.txt). */
+PAS_API extern bool filc_allow_jit;
+
+/* Destructor for FILC_SPECIAL_TYPE_LLVM_JIT payloads. Dispatched from the
+   destructor heap (see fugc.c); the payload's leading filc_llvm_jit_kind
+   selects the teardown (LLVMContextDispose/LLVMDisposeModule/LLVMDisposeBuilder
+   via the libfilcllvmjit.so function table, refcount drops, roots release). */
+PAS_API void filc_llvm_jit_destruct(void* payload);
+
+/* Raw-C entry points for lazy extern resolution from JITed code. These have
+   the exact blessed names that the shim pre-maps with AddGlobalMapping-style
+   rebinding (filc_llvm_jit_resolve, filc_llvm_jit_resolve_raw_pointer, and
+   zexternptr). The runtime re-maps them to these root-recording
+   implementations when a JIT session is created: the returned address is also
+   pinned as a GC root in the session's current generated module (falling back
+   to the global variable roots if there is no current module), because JITed
+   code keeps resolved addresses in its own globals, which the collector
+   cannot see. NULL is returned when the symbol cannot be resolved. */
+PAS_API void* filc_llvm_jit_resolve(const char* name);
+PAS_API void* filc_llvm_jit_resolve_raw_pointer(unsigned long long encoded);
+PAS_API void* zexternptr(unsigned long long encoded);
 
 /* Allocates an object with a payload of the given size and brings all words into the unset state. The
    object's lower/upper are set accordingly. */
@@ -4623,6 +4926,18 @@ PAS_API void filc_get_double_env(const char* name, double* default_value);
 void filc_start_program(int argc, char** argv,
                         pizlonated_getter pizlonated___libc_start_main,
                         pizlonated_getter pizlonated_main);
+
+/* JIT-gated twin of filc_start_program: identical startup,
+   except it sets filc_allow_jit (consumed by the filc_llvm_jit.c wrappers)
+   so the process may use the LLVM JIT API. Refuses to run
+   (message + abort) when the process is in secure-execution mode (setuid /
+   setgid: AT_SECURE via getauxval, falling back to uid != euid /
+   gid != egid), since JITed code must never run privileged. Reached via
+   filc_jit_crt.o / filc_jit_mincrt.o (see filc/main/main_jit.c), selected
+   by the clang -enable-filc-jit / --filc-enable-jit option. */
+void filc_start_program_with_jit(int argc, char** argv,
+                                 pizlonated_getter pizlonated___libc_start_main,
+                                 pizlonated_getter pizlonated_main);
 
 void filc_override_settings_if_appropriate(void);
 

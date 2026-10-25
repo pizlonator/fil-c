@@ -1207,23 +1207,59 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   bool NeedsXRayDeps = addXRayRuntime(ToolChain, Args, CmdArgs);
   addLinkerCompressDebugSectionsOption(ToolChain, Args, CmdArgs);
   
+  if (Args.hasArg(options::OPT_shared)) {
+    // -shared links never reach the Fil-C CRT selection below, so
+    // -enable-filc-jit (alias --filc-enable-jit) would be silently ignored
+    // there. Warn instead of silently dropping it. (-pie links still select
+    // a CRT object, so the flag keeps its meaning for them. -r links select
+    // a CRT object too, but embedding it in a relocatable object is wrong;
+    // that gets its own warning below.)
+    if (Arg *JitArg = Args.getLastArg(options::OPT_enable_filc_jit,
+                                      options::OPT_filc_enable_jit))
+      D.Diag(diag::warn_drv_filc_jit_ignored_with_shared)
+          << JitArg->getSpelling()
+          << D.getOpts().getOptionName(options::OPT_shared);
+  }
   if (!Args.hasArg(options::OPT_shared)) {
+    // -enable-filc-jit (alias --filc-enable-jit) selects the JIT-enabled
+    // CRT objects, whose entry point calls filc_start_program_with_jit
+    // (setting the filc_allow_jit gate consumed by the filc_llvm_jit.c
+    // wrappers) instead of filc_start_program. The jit CRT refuses to run
+    // setuid/setgid processes.
+    Arg *JitArg = Args.getLastArg(options::OPT_enable_filc_jit,
+                                  options::OPT_filc_enable_jit);
+    bool FilCJit = (JitArg != nullptr);
+    if (FilCJit) {
+      // -r (relocatable) links still select a CRT object below; embedding
+      // the JIT CRT in a .o is never right (the final executable link
+      // selects its own CRT), so warn instead of silently doing it.
+      if (Arg *RArg = Args.getLastArg(options::OPT_r))
+        D.Diag(diag::warn_drv_filc_jit_with_relocatable)
+            << JitArg->getSpelling()
+            << RArg->getSpelling();
+    }
     if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
                      options::OPT_r) ||
         Args.hasArg(options::OPT_normalcrt)) {
       if (ToolChain.getDriver().HasPizfix) {
-        CmdArgs.push_back(Args.MakeArgString(GetYoloLibPath("filc_crt.o")));
+        CmdArgs.push_back(Args.MakeArgString(
+            GetYoloLibPath(FilCJit ? "filc_jit_crt.o" : "filc_crt.o")));
       } else if (ToolChain.getDriver().HasOptfil)
-        CmdArgs.push_back("/opt/fil/lib/filc_crt.o");
+        CmdArgs.push_back(FilCJit ? "/opt/fil/lib/filc_jit_crt.o"
+                                  : "/opt/fil/lib/filc_crt.o");
       else
-        CmdArgs.push_back("/usr/lib/filc_crt.o");
+        CmdArgs.push_back(FilCJit ? "/usr/lib/filc_jit_crt.o"
+                                  : "/usr/lib/filc_crt.o");
     } else {
       if (ToolChain.getDriver().HasPizfix) {
-        CmdArgs.push_back(Args.MakeArgString(GetYoloLibPath("filc_mincrt.o")));
+        CmdArgs.push_back(Args.MakeArgString(
+            GetYoloLibPath(FilCJit ? "filc_jit_mincrt.o" : "filc_mincrt.o")));
       } else if (ToolChain.getDriver().HasOptfil)
-        CmdArgs.push_back("/opt/fil/lib/filc_mincrt.o");
+        CmdArgs.push_back(FilCJit ? "/opt/fil/lib/filc_jit_mincrt.o"
+                                  : "/opt/fil/lib/filc_mincrt.o");
       else
-        CmdArgs.push_back("/usr/lib/filc_mincrt.o");
+        CmdArgs.push_back(FilCJit ? "/usr/lib/filc_jit_mincrt.o"
+                                  : "/usr/lib/filc_mincrt.o");
     }
   }
 

@@ -864,6 +864,12 @@ def filc_fat_ape : Flag<["--"], "filc-fat-ape">, Flags<[NoXarchOption]>,
 def filc_no_ape : Flag<["--"], "filc-no-ape">, Flags<[NoXarchOption]>,
   Visibility<[ClangOption]>,
   HelpText<"Disable Fil-C cosmo APE behavior: link plain ELF executables instead of APEs (no fat x86_64+aarch64 builds) and compile single-architecture objects without .aarch64 shadow copies.  Use this when building the Fil-C cosmo runtime itself (libpizlo, libc, etc.)">;
+def enable_filc_jit : Flag<["-"], "enable-filc-jit">, Flags<[NoXarchOption]>,
+  Visibility<[ClangOption]>,
+  HelpText<"Enable Fil-C LLVM JIT support: link filc_jit_crt.o (or filc_jit_mincrt.o) so the program may use the JIT API. Refused at startup for setuid/setgid processes">;
+def filc_enable_jit : Flag<["--"], "filc-enable-jit">, Flags<[NoXarchOption]>,
+  Visibility<[ClangOption]>,
+  HelpText<"Alias for -enable-filc-jit">;
 def yolo_assembler : Flag<["-"], "yolo-assembler">, Flags<[NoXarchOption]>,
   Visibility<[ClangOption]>,
   HelpText<"Use the built-in YOLO assembler for .s inputs instead of sarcasm, and recognize the zunsafe_* unsafe call intrinsics">;

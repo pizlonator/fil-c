@@ -34,6 +34,7 @@ PASSRCS = \
 	src/libpas/filc_runtime.c \
 	src/libpas/filc_sampling_profiler.c \
 	src/libpas/filc_setproctitle.c \
+	src/libpas/filc_llvm_jit.c \
 	src/libpas/filc_start_program.c \
 	src/libpas/fugc.c \
 	src/libpas/hotbit_heap.c \

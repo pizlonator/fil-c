@@ -146,7 +146,13 @@
 #define PAS_ENABLE_PAGESIZE64K           0
 #define PAS_ENABLE_BMALLOC               1
 #define PAS_ENABLE_HOTBIT                0
-#define PAS_ENABLE_JIT                   0
+/* Fil-C enables the JIT heap so -enable-filc-jit processes have executable
+   heap memory available. The LLVM JIT shim's Initialize mmaps a 128MB RWX
+   range and hands it to jit_heap_add_fresh_memory (directly when that symbol
+   is visible from the shim, otherwise relayed by the runtime through
+   FilLLVMJIT_GetHeapMemory); the runtime's JIT init asserts this heap is
+   compiled in. */
+#define PAS_ENABLE_JIT                   1
 #define PAS_ENABLE_VERSE                 1
 #define PAS_ENABLE_INLINE_MEDIUM_PAGE_HEADER 0
 #define PAS_ENABLE_OUTLINE_MEDIUM_PAGE_HEADER 0

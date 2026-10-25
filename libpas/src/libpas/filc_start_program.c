@@ -37,12 +37,14 @@
 #include "filc_native.h"
 #include "filc_runtime.h"
 #include <elf.h>
+#include <errno.h>
 #include <pthread.h>
 #include <stdalign.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/auxv.h>
 #include <sys/resource.h>
+#include <unistd.h>
 
 extern char** environ;
 
@@ -262,6 +264,41 @@ void filc_start_program(int argc, char** argv,
 
     /* We have to keep the main thread alive because otherwise /proc/self stops working. */
     for (;;) pause();
+}
+
+void filc_start_program_with_jit(int argc, char** argv,
+                                   pizlonated_getter pizlonated___libc_start_main,
+                                   pizlonated_getter pizlonated_main)
+{
+    /* JIT support must never be enabled for a privileged (secure-execution)
+       process: JITed code is attacker-influenced by nature, so a setuid
+       program with the JIT API available would be a privilege-escalation
+       vector. This mirrors the secure_getenv precedent in filc_runtime.c. */
+    bool secure = false;
+#if defined(AT_SECURE)
+    errno = 0;
+    unsigned long at_secure = getauxval(AT_SECURE);
+    if (!errno)
+        secure = at_secure != 0;
+    else {
+        /* No AT_SECURE in the aux vector (should not happen on kernels that
+           provide it); fall through to the uid/gid check below. */
+        if (getuid() != geteuid() || getgid() != getegid())
+            secure = true;
+    }
+#else
+    if (getuid() != geteuid() || getgid() != getegid())
+        secure = true;
+#endif
+    if (secure) {
+        fprintf(stderr,
+                "filc_start_program_with_jit: refusing to enable JIT support "
+                "in a setuid/setgid process.\n");
+        abort();
+    }
+    filc_allow_jit = true;
+    filc_start_program(argc, argv,
+                       pizlonated___libc_start_main, pizlonated_main);
 }
 
 #endif /* LIBPAS_ENABLED && PAS_ENABLE_FILC */
