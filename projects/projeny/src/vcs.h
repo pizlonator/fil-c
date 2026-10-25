@@ -42,7 +42,10 @@
 // timestamp (1970-01-01 00:00:00 +0000) instead of /dev/null; such a
 // side reads as missing, so those blocks apply as creations/removals
 // exactly like GNU patch applies them (a file emptied by an epoch-marked
-// block is removed). A plain block whose two sides name different paths
+// block is removed). GNU diff renders that stamp in the local zone, so
+// west of UTC it carries the previous day's wall date (1969-12-31
+// 16:00:00 -0800); projeny accepts any spelling naming the epoch
+// instant. A plain block whose two sides name different paths
 // applies to the old-side name, like GNU patch ("patching file <old
 // name>"): plain diffs never rename — only explicit `rename from/to`
 // headers do.

@@ -1324,6 +1324,20 @@ bool plain_side_strippable(const std::string& body, const std::string& wid)
     return true;
 }
 
+// Days since 1970-01-01 for a proleptic-Gregorian civil date (Howard
+// Hinnant's days_from_civil). Needed because an epoch stamp rendered in a
+// zone west of UTC carries the previous day's wall date ("1969-12-31
+// 16:00:00 -0800").
+static long long days_from_civil(long long y, long long mo, long long d)
+{
+    y -= mo <= 2;
+    long long era = (y >= 0 ? y : y - 399) / 400;
+    long long yoe = y - era * 400;                                    // [0, 399]
+    long long doy = (153 * (mo + (mo > 2 ? -3 : 9)) + 2) / 5 + d - 1;  // [0, 365]
+    long long doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;            // [0, 146096]
+    return era * 146097 + doe - 719468;
+}
+
 // True for a GNU diff timestamp stamp naming the epoch: the convention
 // `diff -N` uses to mark the side of an add/delete block that does not
 // exist ("1970-01-01 00:00:00.000000000 +0000"; GNU patch reads the same
@@ -1331,13 +1345,15 @@ bool plain_side_strippable(const std::string& body, const std::string& wid)
 // that a patch whose old side names the epoch creates the file). The
 // stamp is what follows the tab of a ---/+++ label, e.g.
 // "1970-01-01 00:00:00.000000000 +0000" — split_label_stamp_raw keeps
-// that tab at the front. An optional numeric UTC offset may shift the
-// wall time onto the epoch (e.g. "1970-01-01 01:00:00 +0100"), so the
-// wall-clock time minus the offset must be midnight-zero itself. Any
-// parse failure (an asctime-style stamp, trailing junk, a missing field)
-// returns false: the side then reads as existing, which is what a stamp
-// we do not understand should mean. git and projeny patches never carry
-// timestamp stamps, so this only ever fires on GNU-style input.
+// that tab at the front. GNU diff renders that stamp in the LOCAL zone,
+// so on a host west of UTC the epoch carries the previous day's wall
+// date ("1969-12-31 16:00:00.000000000 -0800"); any spelling whose
+// instant — the wall time read in the zone the offset names, or UTC when
+// no offset is present — is the epoch is accepted, matching GNU patch.
+// Any parse failure (an asctime-style stamp, trailing junk, a missing
+// field) returns false: the side then reads as existing, which is what a
+// stamp we do not understand should mean. git and projeny patches never
+// carry timestamp stamps, so this only ever fires on GNU-style input.
 bool stamp_is_epoch(const std::string& stamp)
 {
     size_t b = stamp.find_first_not_of(" \t");
@@ -1360,6 +1376,7 @@ bool stamp_is_epoch(const std::string& stamp)
     }
     while (*p == ' ' || *p == '\t')
         ++p;
+    long long off = 0; // no offset means the wall time already reads as UTC
     if (*p == '+' || *p == '-') {
         char sign = *p;
         ++p;
@@ -1375,18 +1392,18 @@ bool stamp_is_epoch(const std::string& stamp)
         p += 2;
         if (*p != '\0' && *p != ' ' && *p != '\t')
             return false; // trailing junk: not a stamp we claim to read
-        // Wall-clock minutes minus the offset's minutes must land exactly
-        // on the epoch ("+0100" shifts the wall time to 01:00).
-        long long wall = (long long)h * 60 + mi;
-        long long off = (long long)oh * 60 + om;
+        off = (long long)oh * 3600 + (long long)om * 60;
         if (sign == '-')
             off = -off;
-        if (wall - off != 0)
-            return false;
     } else if (*p != '\0') {
         return false;
     }
-    return y == 1970 && mo == 1 && d == 1 && s == 0;
+    // The stamp names an instant: the wall time in the zone the offset
+    // names (no offset means UTC). Accept exactly the one instant that is
+    // the epoch; the wall date may roll over in either direction.
+    long long total = days_from_civil(y, mo, d) * 86400LL +
+        (long long)h * 3600 + (long long)mi * 60 + s - off;
+    return total == 0;
 }
 
 // True when every hunk of a block is shaped like a file creation (old side

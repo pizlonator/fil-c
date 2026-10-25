@@ -18538,7 +18538,10 @@ expect_file_contains "the re-setup checkout keeps the applied change" \
 # back to the patch's first decidable block and, when nothing is decidable,
 # to a first-component probe. `diff -N` also marks the NONEXISTENT side of
 # an add/delete block with the epoch timestamp 1970-01-01 00:00:00 +0000
-# (instead of /dev/null); GNU patch reads those stamps and removes a file a
+# (instead of /dev/null), rendered in the LOCAL zone — a host west of UTC
+# prints the previous day's wall date (e.g. 1969-12-31 16:00:00 -0800),
+# which still names the epoch instant; GNU patch reads those stamps and
+# removes a file a
 # patch empties when the plus side is epoch-marked, and creates the file a
 # patch adds when the minus side is. projeny reads the same stamps: an
 # epoch-marked side parses as missing, so the block applies as a creation
@@ -18555,6 +18558,9 @@ write_projeny "$T325" fake 1.0 fake
 T325_STAMP='2030-01-01 12:00:00.000000000 +0000'
 T325_STAMP2='2030-01-02 12:00:00.000000000 +0000'
 T325_EPOCH='1970-01-01 00:00:00.000000000 +0000'
+# The same epoch instant as GNU diff prints it on a host eight hours west
+# of UTC: the wall date rolls back to the previous day.
+T325_WEST_EPOCH='1969-12-31 16:00:00.000000000 -0800'
 
 # --- T1: a hand-written `diff -ruN` shape (modify + delete + add), labels
 #     without a/b prefixes, GNU `diff -ruN` command lines between blocks.
@@ -18674,11 +18680,16 @@ if command -v diff >/dev/null 2>&1; then
         fail "the generated diff -ruN carries prefix-free oldtree/newtree labels" \
             "$(head -6 "$T325/real.diff")"
     fi
-    if grep -q '1970-01-01 00:00:00' "$T325/real.diff"; then
+    # GNU diff stamps the nonexistent side with the epoch rendered in the
+    # local zone, so only a UTC host prints "1970-01-01 00:00:00". Compute
+    # the expected wall-clock spelling for this zone.
+    t325_epoch_local="$(date -d @0 '+%Y-%m-%d %H:%M:%S' 2>/dev/null)" || \
+        t325_epoch_local='1970-01-01 00:00:00'
+    if grep -qF -- "$t325_epoch_local" "$T325/real.diff"; then
         ok "the generated diff -ruN epoch-marks the nonexistent sides"
     else
         fail "the generated diff -ruN epoch-marks the nonexistent sides" \
-            "$(cat -A "$T325/real.diff" | head -6)"
+            "expected local epoch stamp '$t325_epoch_local'; got: $(cat -A "$T325/real.diff" | head -6)"
     fi
     mkdir -p "$T325/B"
     make_tarballs "$T325/B" fake
@@ -18723,6 +18734,150 @@ if command -v diff >/dev/null 2>&1; then
     fi
 else
     ok "real generated diff -ruN (skipped: no diff)"
+fi
+
+# --- T2b: west-of-UTC epoch stamps. GNU diff renders the epoch stamp of a
+#     NONEXISTENT side in the local zone, so on a host eight hours west of
+#     UTC the nonexistent sides read "1969-12-31 16:00:00.000000000 -0800"
+#     (the previous day's wall date). The stamp still names the epoch
+#     instant, so those blocks must apply as removals/creations.
+#     T1's hand-written shape with the west spelling, then T2's real-diff
+#     flow regenerated under a pinned west-of-UTC zone (POSIX TZ "XXX8" is
+#     UTC-8 and needs no tzdata).
+mkdir -p "$T325/N"
+make_tarballs "$T325/N" fake
+write_projeny "$T325/N" fake 1.0 fake
+run_in "$T325/N" expect_ok "325 fixture N setup" "$PROJENY" setup fake.projeny
+mkdir -p "$T325/N/fake/sub"
+printf 'alpha\nbeta\ngamma\n' > "$T325/N/fake/sub/m.txt"
+printf 'gone\n' > "$T325/N/fake/sub/gone.txt"
+printf '%b\n' \
+    'diff -ruN oldtree/sub/m.txt newtree/sub/m.txt' \
+    "--- oldtree/sub/m.txt\t$T325_STAMP" \
+    "+++ newtree/sub/m.txt\t$T325_STAMP2" \
+    '@@ -1,3 +1,3 @@' \
+    ' alpha' \
+    ' beta' \
+    '-gamma' \
+    '+GAMMA' \
+    'diff -ruN oldtree/sub/gone.txt newtree/sub/gone.txt' \
+    "--- oldtree/sub/gone.txt\t$T325_STAMP" \
+    "+++ newtree/sub/gone.txt\t$T325_WEST_EPOCH" \
+    '@@ -1 +0,0 @@' \
+    '-gone' \
+    'diff -ruN oldtree/sub/new.txt newtree/sub/new.txt' \
+    "--- oldtree/sub/new.txt\t$T325_WEST_EPOCH" \
+    "+++ newtree/sub/new.txt\t$T325_STAMP2" \
+    '@@ -0,0 +1 @@' \
+    '+fresh' \
+    > "$T325/west.diff"
+if grep -qF -- "$(printf -- "+++ newtree/sub/gone.txt\t$T325_WEST_EPOCH")" \
+    "$T325/west.diff" && \
+    grep -qF -- "$(printf -- "--- oldtree/sub/new.txt\t$T325_WEST_EPOCH")" \
+    "$T325/west.diff"; then
+    ok "the west-zone epoch labels carry tab-separated timestamps"
+else
+    fail "the west-zone epoch labels carry tab-separated timestamps" \
+        "$(cat -A "$T325/west.diff" | head -8)"
+fi
+# The GNU parity copy: a pristine pre-state snapshot, taken BEFORE projeny
+# touches the tree (the patch adds and removes files, so a post-state copy
+# would lie).
+mkdir -p "$T325/N-G"
+cp -a "$T325/N/fake" "$T325/N-G/fake"
+run_in "$T325/N" expect_ok "the west-zone epoch-stamped diff applies" \
+    "$PROJENY" apply fake.projeny "$T325/west.diff"
+expect_file_eq "the west-zone epoch-stamped modify lands in sub/m.txt" \
+    "$T325/N/fake/sub/m.txt" "$T325/want-m.txt"
+if [ ! -e "$T325/N/fake/sub/gone.txt" ]; then
+    ok "the west-zone epoch-stamped delete removes sub/gone.txt"
+else
+    fail "the west-zone epoch-stamped delete removes sub/gone.txt" \
+        "sub/gone.txt still exists"
+fi
+expect_file_eq "the west-zone epoch-stamped add creates sub/new.txt" \
+    "$T325/N/fake/sub/new.txt" "$T325/want-new.txt"
+expect_file_contains "the status file records the west-zone created path" \
+    "$T325/N/.fake.projeny.status" "Added: sub/new.txt"
+expect_file_contains "the status file records the west-zone removed path" \
+    "$T325/N/.fake.projeny.status" "Removed: sub/gone.txt"
+if command -v patch >/dev/null 2>&1; then
+    grc=0
+    ( cd "$T325/N-G/fake" && \
+        patch --no-backup-if-mismatch -p1 < "$T325/west.diff" >/dev/null 2>&1 ) || \
+        grc=$?
+    if [ $grc -eq 0 ]; then
+        ok "GNU patch -p1 applies the west-zone epoch-stamped diff"
+    else
+        fail "GNU patch -p1 applies the west-zone epoch-stamped diff" "exit=$grc"
+    fi
+    if diff -r "$T325/N/fake" "$T325/N-G/fake" >/dev/null; then
+        ok "projeny and GNU patch agree on the west-zone epoch-stamped diff"
+    else
+        fail "projeny and GNU patch agree on the west-zone epoch-stamped diff" \
+            "$(diff -r "$T325/N/fake" "$T325/N-G/fake" 2>&1 | head -5)"
+    fi
+else
+    ok "GNU patch west-zone epoch parity (skipped: no patch)"
+fi
+if command -v diff >/dev/null 2>&1; then
+    rm -rf "$T325/westgen"
+    mkdir -p "$T325/westgen/oldtree/sub" "$T325/westgen/newtree/sub"
+    printf 'alpha\nbeta\ngamma\n' > "$T325/westgen/oldtree/sub/m.txt"
+    printf 'gone\n' > "$T325/westgen/oldtree/sub/gone.txt"
+    printf 'alpha\nbeta\nGAMMA\n' > "$T325/westgen/newtree/sub/m.txt"
+    printf 'fresh\n' > "$T325/westgen/newtree/sub/new.txt"
+    ( cd "$T325/westgen" && \
+        TZ=XXX8 diff -ruN oldtree newtree > "$T325/west-real.diff" ) || true
+    if grep -q '1969-12-31 16:00:00' "$T325/west-real.diff"; then
+        ok "the west-zone real diff -ruN epoch-marks the nonexistent sides"
+    else
+        fail "the west-zone real diff -ruN epoch-marks the nonexistent sides" \
+            "$(cat -A "$T325/west-real.diff" | head -6)"
+    fi
+    mkdir -p "$T325/O"
+    make_tarballs "$T325/O" fake
+    write_projeny "$T325/O" fake 1.0 fake
+    run_in "$T325/O" expect_ok "325 fixture O setup" "$PROJENY" setup fake.projeny
+    mkdir -p "$T325/O/fake/sub"
+    printf 'alpha\nbeta\ngamma\n' > "$T325/O/fake/sub/m.txt"
+    printf 'gone\n' > "$T325/O/fake/sub/gone.txt"
+    if command -v patch >/dev/null 2>&1; then
+        mkdir -p "$T325/O-G"
+        cp -a "$T325/O/fake" "$T325/O-G/fake"
+    fi
+    run_in "$T325/O" expect_ok "the west-zone real diff -ruN applies" \
+        "$PROJENY" apply fake.projeny "$T325/west-real.diff"
+    expect_file_eq "the west-zone real diff -ruN modify lands" \
+        "$T325/O/fake/sub/m.txt" "$T325/want-m.txt"
+    expect_file_eq "the west-zone real diff -ruN add lands" \
+        "$T325/O/fake/sub/new.txt" "$T325/want-new.txt"
+    if [ ! -e "$T325/O/fake/sub/gone.txt" ]; then
+        ok "the west-zone real diff -ruN delete removes the file"
+    else
+        fail "the west-zone real diff -ruN delete removes the file" "still exists"
+    fi
+    if command -v patch >/dev/null 2>&1; then
+        grc=0
+        ( cd "$T325/O-G/fake" && \
+            patch --no-backup-if-mismatch -p1 < "$T325/west-real.diff" >/dev/null 2>&1 ) || \
+            grc=$?
+        if [ $grc -eq 0 ]; then
+            ok "GNU patch -p1 applies the west-zone real diff -ruN"
+        else
+            fail "GNU patch -p1 applies the west-zone real diff -ruN" "exit=$grc"
+        fi
+        if diff -r "$T325/O/fake" "$T325/O-G/fake" >/dev/null; then
+            ok "projeny and GNU patch agree on the west-zone real diff -ruN"
+        else
+            fail "projeny and GNU patch agree on the west-zone real diff -ruN" \
+                "$(diff -r "$T325/O/fake" "$T325/O-G/fake" 2>&1 | head -5)"
+        fi
+    else
+        ok "GNU patch west-zone real diff -ruN parity (skipped: no patch)"
+    fi
+else
+    ok "west-zone real diff -ruN (skipped: no diff)"
 fi
 
 # --- T3: the `diff -u w2/f.txt w/f.txt` shape with two hunks, hand-written.

@@ -277,7 +277,10 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   (`1970-01-01 00:00:00 +0000` after the tab) mark the nonexistent side
   of an add/delete block: such a side reads as `/dev/null`, so those
   blocks apply as creations and removals — including removing a file the
-  patch empties — exactly like GNU patch. A plain block whose two sides
+  patch empties — exactly like GNU patch. GNU diff renders the stamp in
+  the local zone, so west of UTC it reads `1969-12-31 16:00:00 -0800`;
+  projeny accepts any spelling naming the epoch instant. A plain block
+  whose two sides
   name different paths applies to the old-side name, like GNU patch
   (`patching file <old name>`): plain diffs never rename — only explicit
   `rename from/to` headers do. A `---`/`+++` pair
@@ -309,7 +312,10 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   `diff -N`'s epoch timestamps mark the nonexistent side of an
   add/delete block, which then applies as a creation or a removal (a
   file emptied by an epoch-marked block is removed, like GNU patch; one
-  emptied by an ordinary real-timestamp block stays on disk empty). A
+  emptied by an ordinary real-timestamp block stays on disk empty). GNU
+  diff renders the stamp in the local zone, so west of UTC the epoch
+  reads `1969-12-31 16:00:00 -0800`; projeny accepts any spelling naming
+  the epoch instant. A
   plain block whose two sides name different paths applies to the
   old-side name, like GNU patch: plain diffs never rename — only
   explicit `rename from/to` headers do. A
