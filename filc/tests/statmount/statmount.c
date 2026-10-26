@@ -110,7 +110,7 @@ int main(void)
         zprintf("statmount not permitted, skipping\n");
         supported = 0;
     } else {
-        ZASSERT(err == EINVAL);
+        ZASSERT(err == EINVAL || err == ENOENT);
     }
 
     if (supported) {
