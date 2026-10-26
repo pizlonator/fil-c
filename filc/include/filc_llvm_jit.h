@@ -818,9 +818,7 @@ LLVMTypeRef LLVMX86FP80TypeInContext(LLVMContextRef C);
      "filc-dse"                   "0"/"1"    (default "0")
 
    KillUB and the FilPizlonator pass are NOT optional: they always run,
-   regardless of options.  There is no key that disables them; legacy
-   spellings ("filc-killub", "killub", "filc-pizlonator", "pizlonator",
-   "enable-pizlonator") are rejected with an error.
+   regardless of options.
 
    Returns: FilLLVMJIT_* functions returning int yield 0 on success and
    nonzero on failure; CompileModule and the address lookups return NULL on
