@@ -25,6 +25,7 @@ int main()
     LLVMBasicBlockRef rootBlock = LLVMAppendBasicBlockInContext(context, function, "root");
     LLVMBuilderRef builder = LLVMCreateBuilderInContext(context);
     LLVMPositionBuilderAtEnd(builder, rootBlock);
+    /* FIXME: Add a variant of this test that passes NULL for the name argument. */
     LLVMBuildCall2(builder, voidFunctionType, foo, NULL, 0, "");
     LLVMBuildRetVoid(builder);
 
