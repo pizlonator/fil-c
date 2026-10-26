@@ -68,27 +68,24 @@ static cl::opt<bool> yoloAssembler(
 
 // JIT lazy-extern mode. When enabled (e.g. via -mllvm -filc-jit-mode when
 // compiling a module destined for the Fil-C LLVM JIT), FilPizlonator emits,
-// for each used extern function declaration, a lazily-resolved getter and
-// lowers the zexternptr(id) idiom via filc_llvm_jit_resolve_raw_pointer.
+// for each used extern function declaration, a lazily-resolved getter.
 // Normal static compilation leaves this off and is completely unaffected.
 // (The definition lives at the end of this file, outside the anonymous
 // namespace, so that clang's BackendUtil can read it; it is declared in
 // FilPizlonator.h.)
 //
 // Runtime contract (implemented by the runtime, used by the JIT wrappers):
-// - `ptr @filc_llvm_jit_resolve(ptr %name)` resolves a NUL-terminated symbol
-//   name (an address-space-0 raw pointer to a global string constant) to the
-//   raw address of that symbol. The JIT host registers a resolution callback
-//   (assumed API: FilLLVMJIT_SetResolutionCallback) and performs an
-//   LLVMAddGlobalMapping for the resolved function. The calling getter wraps
-//   the address into a flight pointer ({addr, addr}).
-// - `ptr @filc_llvm_jit_resolve_raw_pointer(i64 %id)` resolves a small-integer
-//   extern id to a raw address. The extern pointer table (`zexact_ptrtable`,
-//   if present) is supplied to the resolver out-of-band by the JIT host via
-//   another AddGlobalMapping (assumed API: FilLLVMJIT_SetPtrTable), not as a
-//   call argument.
-// - Non-constant ids to zexternptr cannot use a per-id cache slot; they fall
-//   back to resolving on every execution (still correct, just slower).
+// - `ptr @filc_llvm_jit_resolve(ptr %jit_module, ptr %name)` resolves a
+//   NUL-terminated symbol name (an address-space-0 raw pointer to a global
+//   string constant) to the raw address of that symbol. The `%jit_module`
+//   argument is the address of the extern global `filc_jit_module`, which
+//   the JIT binder resolves to the jit module object for the calling
+//   module; resolution runs against that module's resolver snapshot.
+//   The calling getter wraps the address into a flight pointer
+//   ({addr, addr}).
+// - `ptr @filc_llvm_jit_resolve_raw_pointer(ptr %jit_module, i64 %id)`
+//   resolves a small-integer extern id to a raw address against the calling
+//   module's zexact table snapshot.
 
 // This has to match the FilC runtime.
 
@@ -1713,8 +1710,6 @@ class Pizlonator {
   // during lowering). In JIT mode, emitJitLazyExterns() authors lazy getters
   // for exactly these.
   std::unordered_set<Function*> JitExternUsed;
-  // Per-id cache globals for the zexternptr idiom in JIT mode.
-  std::unordered_map<uint64_t, GlobalVariable*> JitZexternCaches;
   size_t SnapshottedArgsFrameIndex;
   Value* SnapshottedArgsPtrForVastart;
   Value* SnapshottedArgsPtrForZargs;
@@ -4872,7 +4867,6 @@ class Pizlonator {
       F->getName() == "zargs" ||
       F->getName() == "zget_jmp_buf_impl_frame" ||
       F->getName() == "zcallee" ||
-      (JitMode && F->getName() == "zexternptr") ||
       F->getName() == "zclosure_new" ||
       F->getName() == "zclosure_get_data" ||
       F->getName() == "zclosure_set_data" ||
@@ -8304,76 +8298,6 @@ class Pizlonator {
           LargeTerm = SplitBlockAndInsertIfElse(IsSmallEnough, CI, false);
           CallInst::Create(Enter, { MyThread }, "", LargeTerm)->setDebugLoc(CI->getDebugLoc());
           CI->replaceAllUsesWith(Result);
-          Erasify();
-          return true;
-        }
-
-        // JIT lazy-extern idiom (JitMode only): `ptr @zexternptr(i64 %id)`
-        // lowers to a lazily-resolved flight pointer. The integer argument is
-        // an extern id assigned by the JIT host; each distinct constant id
-        // gets a dedicated internal cache global
-        // (`__filc_jit_zextern_cache_<id>`, initially null). The first use
-        // calls `filc_llvm_jit_resolve_raw_pointer(id)` to resolve, wraps the
-        // raw address into a flight pointer, caches it, and returns it. Uses
-        // bitcast the result to the requested pointer type as usual.
-        // THREAD SAFETY NOTE: same benign-race argument as the
-        // __filc_jit_get_ getters above; resolution is idempotent, and the
-        // cache load/store below are tear-free atomics (see
-        // atomicLoadJitFlightCache/atomicStoreJitFlightCache), so a
-        // concurrent reader can never observe a torn half-old/half-new
-        // flight pointer.
-        if (JitMode && F->getName() == "zexternptr" &&
-            FT->getNumParams() == 1 &&
-            !FT->isVarArg() &&
-            FT->getParamType(0)->isIntegerTy() &&
-            FT->getReturnType() == RawPtrTy) {
-          lowerConstantOperand(CI->getArgOperandUse(0), CI);
-          Value* IdVal = CI->getArgOperand(0);
-          FunctionCallee ResolveRaw = getJitResolveRaw();
-          if (ConstantInt* IdC = dyn_cast<ConstantInt>(IdVal)) {
-            if (isa<InvokeInst>(CI)) {
-              // Invokes resolve inline without caching; the resolver is
-              // nounwind so it cannot take the unwind edge.
-              CallInst* Resolved = CallInst::Create(
-                ResolveRaw, { IdC }, "filc_zextern_resolved_raw", CI);
-              Resolved->setDebugLoc(CI->getDebugLoc());
-              CI->replaceAllUsesWith(createFlightPtr(Resolved, Resolved, CI));
-              Erasify();
-              return true;
-            }
-            GlobalVariable* Cache = getJitZexternCache(IdC->getZExtValue());
-            Value* Cached = atomicLoadJitFlightCache(Cache, "filc_zextern_cached", CI);
-            Instruction* CachedLower = ExtractValueInst::Create(
-              Cached, ArrayRef<unsigned>({ 1 }), "filc_zextern_cached_lower", CI);
-            CachedLower->setDebugLoc(CI->getDebugLoc());
-            ICmpInst* IsNull = new ICmpInst(
-              CI, ICmpInst::ICMP_EQ, CachedLower, RawNull, "filc_zextern_is_null");
-            IsNull->setDebugLoc(CI->getDebugLoc());
-            // Slow path (first use) resolves via the JIT host and caches.
-            Instruction* SlowTerm = SplitBlockAndInsertIfThen(
-              expectFalse(IsNull, CI), CI, false);
-            BasicBlock* SlowBB = SlowTerm->getParent();
-            CallInst* Resolved = CallInst::Create(
-              ResolveRaw, { IdC }, "filc_zextern_resolved", SlowTerm);
-            Resolved->setDebugLoc(CI->getDebugLoc());
-            Value* ResolvedFlight = createFlightPtr(Resolved, Resolved, SlowTerm);
-            StoreInst* CacheStore = atomicStoreJitFlightCache(Cache, ResolvedFlight, SlowTerm);
-            CacheStore->setDebugLoc(CI->getDebugLoc());
-            PHINode* Phi = PHINode::Create(FlightPtrTy, 2, "filc_zextern_phi", CI);
-            Phi->setDebugLoc(CI->getDebugLoc());
-            Phi->addIncoming(Cached, IsNull->getParent());
-            Phi->addIncoming(ResolvedFlight, SlowBB);
-            CI->replaceAllUsesWith(Phi);
-            Erasify();
-            return true;
-          }
-          // Non-constant id fallback (documented): with no compile-time id
-          // there is no per-id slot to cache into, so resolve on every
-          // execution instead of caching. Still correct, just slower.
-          CallInst* Resolved = CallInst::Create(
-            ResolveRaw, { IdVal }, "filc_zextern_resolved_raw", CI);
-          Resolved->setDebugLoc(CI->getDebugLoc());
-          CI->replaceAllUsesWith(createFlightPtr(Resolved, Resolved, CI));
           Erasify();
           return true;
         }
@@ -14602,8 +14526,7 @@ class Pizlonator {
 
   bool shouldPassThrough(Function* F) {
     if (JitMode &&
-        (F->getName() == "zexternptr" ||
-         F->getName() == "filc_llvm_jit_resolve" ||
+        (F->getName() == "filc_llvm_jit_resolve" ||
          F->getName() == "filc_llvm_jit_resolve_raw_pointer"))
       return true;
     return (F->getName() == "__divdc3" ||
@@ -14658,8 +14581,13 @@ class Pizlonator {
   // - `__filc_jit_get_<name>(thread, origin)`: internal function (NoUnwind,
   //   NoInline so it survives as an observable symbol for the JIT host and
   //   for -emit-llvm inspection) implementing: load cache; if the cached
-  //   lower is null, call `filc_llvm_jit_resolve(name)` to resolve, wrap the
-  //   raw address into a flight pointer, cache it, and return it.
+  //   lower is null, call `filc_llvm_jit_resolve(jit_module, name)` to
+  //   resolve, wrap the raw address into a flight pointer, cache it, and
+  //   return it. The first argument names the compiling module: FilPizlonator
+  //   declares the extern global `filc_jit_module` and passes its address,
+  //   which the JIT binder resolves to the jit module object for this
+  //   module, so resolutions run against per-module state (resolver
+  //   callback, zexact table, roots) rather than any session global.
   // - The pre-existing `pizlonated_<name>` getter declaration is given a body
   //   that tail-calls the worker, so every existing use (direct-call thunks,
   //   constant lowering, alias forwarders) resolves lazily with no other
@@ -14683,14 +14611,18 @@ class Pizlonator {
   //
   // Assumed runtime signatures (documented here so the
   // compiler and runtime agree):
-  // - `ptr @filc_llvm_jit_resolve(ptr %name)`
-  // - `ptr @filc_llvm_jit_resolve_raw_pointer(i64 %id)`
-  // Assumed host APIs (filc/include/filc_llvm_jit.h, implemented by the
-  // runtime in libpas/src/libpas/filc_llvm_jit.c over the shim in
+  // - `ptr @filc_llvm_jit_resolve(ptr %jit_module, ptr %name)`
+  // - `ptr @filc_llvm_jit_resolve_raw_pointer(ptr %jit_module, i64 %id)`
+  // The `%jit_module` argument is the address of the extern global
+  // `filc_jit_module`, which the JIT binder resolves to the jit module
+  // object owning this module. Assumed host APIs
+  // (filc/include/filc_llvm_jit.h, implemented by the runtime in
+  // libpas/src/libpas/filc_llvm_jit.c over the shim in
   // filc/llvmjit/filc_llvm_jit_shim.cpp): FilLLVMJIT_SetResolveCallback
   // (registers the host resolver consulted by both functions) and
   // FilLLVMJIT_SetZExactPointerTable (maps the `zexact_ptrtable` global
-  // out-of-band via AddGlobalMapping).
+  // out-of-band via AddGlobalMapping). Both are snapshotted into the jit
+  // module at CompileModule time, so the session may be forgotten after.
   // Assumed C prototypes (filc/include/filc_llvm_jit.h owns these):
   //   typedef void *(*FilLLVMJITResolveFunction)(const char *name, void *context);
   //   void FilLLVMJIT_SetResolveCallback(FilLLVMJITRef jit,
@@ -14698,9 +14630,17 @@ class Pizlonator {
   //                                       void *context);
   //   int FilLLVMJIT_SetZExactPointerTable(FilLLVMJITRef jit, void *table);
 
+  GlobalVariable* getJitModuleGlobal() {
+    if (GlobalVariable* Found = M.getGlobalVariable("filc_jit_module"))
+      return Found;
+    return new GlobalVariable(M, Int8Ty, false, GlobalValue::ExternalLinkage,
+                              nullptr, "filc_jit_module");
+  }
+
   FunctionCallee getJitResolve() {
     FunctionCallee RC = M.getOrInsertFunction(
-      "filc_llvm_jit_resolve", FunctionType::get(RawPtrTy, { RawPtrTy }, false));
+      "filc_llvm_jit_resolve",
+      FunctionType::get(RawPtrTy, { RawPtrTy, RawPtrTy }, false));
     if (Function* RF = dyn_cast<Function>(RC.getCallee()))
       RF->addFnAttr(Attribute::NoUnwind);
     return RC;
@@ -14709,7 +14649,7 @@ class Pizlonator {
   FunctionCallee getJitResolveRaw() {
     FunctionCallee RC = M.getOrInsertFunction(
       "filc_llvm_jit_resolve_raw_pointer",
-      FunctionType::get(RawPtrTy, { IntPtrTy }, false));
+      FunctionType::get(RawPtrTy, { RawPtrTy, IntPtrTy }, false));
     if (Function* RF = dyn_cast<Function>(RC.getCallee()))
       RF->addFnAttr(Attribute::NoUnwind);
     return RC;
@@ -14717,7 +14657,7 @@ class Pizlonator {
 
   // -- Atomic JIT flight cache access (target-gated) --------------------------
   //
-  // The `__filc_jit_cache_<name>` and `__filc_jit_zextern_cache_<id>` globals
+  // The `__filc_jit_cache_<name>` globals
   // hold a 16-byte flight pointer (`{ptr, ptr}`), initially null. A plain
   // load racing a concurrent first-use store could tear (e.g. null upper
   // half with a fresh lower half), forging a corrupt flight pointer out of
@@ -14745,7 +14685,7 @@ class Pizlonator {
   //   This is possible because every value ever stored into these caches
   //   is symmetric: either null/null (the initializer) or {addr, addr}
   //   (both cache writers wrap one resolved raw address into both lanes;
-  //   see emitJitLazyExterns and the zexternptr lowering).
+  //   see emitJitLazyExterns).
   //   assertJitCacheFlightSymmetric (called by the narrow store below)
   //   enforces this structurally at compile time and fails loudly
   //   (report_fatal_error) on any asymmetric flight, so a future writer
@@ -14982,19 +14922,6 @@ class Pizlonator {
     return atomicStoreJitFlightCacheNarrow(Cache, Flight, InsertBefore);
   }
 
-  GlobalVariable* getJitZexternCache(uint64_t Id) {
-    auto Iter = JitZexternCaches.find(Id);
-    if (Iter != JitZexternCaches.end())
-      return Iter->second;
-    std::ostringstream Buf;
-    Buf << "__filc_jit_zextern_cache_" << Id;
-    GlobalVariable* Cache = new GlobalVariable(
-      M, FlightPtrTy, false, GlobalValue::InternalLinkage, FlightNull, Buf.str());
-    Cache->setAlignment(Align(FlightPtrAlign));
-    JitZexternCaches[Id] = Cache;
-    return Cache;
-  }
-
   void emitJitLazyExterns() {
     FunctionCallee Resolve = getJitResolve();
     for (Function* F : JitExternUsed) {
@@ -15048,7 +14975,8 @@ class Pizlonator {
         // pointer, cache, and fall through to Merge.
         BranchInst* SlowBr = BranchInst::Create(Merge, Slow);
         CallInst* ResolvedRaw = CallInst::Create(
-          Resolve, { getString(Name) }, "filc_jit_resolved_raw", SlowBr);
+          Resolve, { getJitModuleGlobal(), getString(Name) },
+          "filc_jit_resolved_raw", SlowBr);
         Value* ResolvedFlight = createFlightPtr(ResolvedRaw, ResolvedRaw, SlowBr);
         atomicStoreJitFlightCache(Cache, ResolvedFlight, SlowBr);
 

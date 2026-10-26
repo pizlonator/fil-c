@@ -16,8 +16,8 @@ namespace llvm {
 
 // Command-line switch enabling the Fil-C JIT lazy-extern mode. Defined in
 // FilPizlonator.cpp. When true, FilPizlonatorPass emits lazily-resolved
-// getters for extern functions (via filc_llvm_jit_resolve) and lowers the
-// zexternptr idiom (via filc_llvm_jit_resolve_raw_pointer). Normal static
+// getters for extern functions (via filc_llvm_jit_resolve and
+// filc_llvm_jit_resolve_raw_pointer). Normal static
 // compilation leaves this false and is completely unaffected. The
 // lazily-resolved cache slots are accessed with target-gated atomics (a
 // single 16-byte Acquire/Release i128 access on x86-64, a single 8-byte

@@ -129,6 +129,16 @@ static PAS_ALWAYS_INLINE fugc_mark_fast_result fugc_mark_fast(filc_object* objec
     if (filc_aux_get_ptr(aux) || (flags & (FILC_OBJECT_FLAGS_SPECIAL_MASK |
                                            FILC_OBJECT_FLAG_WEAK_KEY)))
         return fugc_mark_fast_marked_and_need_slow_path;
+    /* Alignment headers may carry an extra pointer (a finalizer queue or a
+       JIT module; see FILC_EXTRA_POINTER_STATE_* in filc_runtime.h), which
+       only the slow path (filc_object_mark_outgoing_ptrs) interprets. Any
+       aligned object must therefore take the slow path: claiming one as a
+       leaf here would drop the queue/module edge. In particular, this is
+       what guarantees JIT_MODULE-tagged objects are always scanned by the
+       exhaustive mark switch and never reach the finalizer revive/census
+       switches, whose JIT_MODULE cases are defensive-only. */
+    if (filc_object_flags_log_align(flags))
+        return fugc_mark_fast_marked_and_need_slow_path;
     return fugc_mark_fast_marked_leaf;
 }
 

@@ -1,7 +1,7 @@
 /* Lock-free JIT marker stress: flight loads via
    filc_flight_ptr_load_with_manual_tracking plus roots-seqlock snapshots,
    seqlock-publish record_root with retired buffers + store
-   barrier, destructor reclamation, narrowed AddModule publish.
+   barrier, destructor reclamation, narrowed CompileModule publish.
    Resolver threads record thousands of roots while churn threads force
    collections (marker snapshots race writers); adder threads publish modules
    concurrently. All IR uses explicit contexts.
@@ -47,7 +47,7 @@ static void *resolver_thread(void *arg)
             abort();
         }
         if ((i & 7) == 0) {
-            void *r2 = FilLLVMJIT_Resolve((void *)0, (void *)name);
+            void *r2 = FilLLVMJIT_Resolve(g_module, (void *)name);
             if (!r2) {
                 fprintf(stderr, "global resolve returned null\n");
                 abort();
@@ -117,9 +117,14 @@ static void *adder_thread(void *arg)
         snprintf(mname, sizeof(mname), "addermod_%ld_%d", id, i);
         snprintf(fname, sizeof(fname), "adder_%ld_%d", id, i);
         void *mod = build_tiny(mname, fname);
-        FilLLVMJITModuleRef gen = 0;
-        if (FilLLVMJIT_AddModule(g_jit, mod, (void *)mname, &gen) || !gen) {
-            fprintf(stderr, "AddModule failed\n");
+        void *jit = FilLLVMJIT_Create();
+        if (!jit) {
+            fprintf(stderr, "adder session create failed\n");
+            abort();
+        }
+        FilLLVMJITModuleRef gen = FilLLVMJIT_CompileModule(jit, mod, (void *)mname);
+        if (!gen) {
+            fprintf(stderr, "CompileModule failed\n");
             abort();
         }
     }
@@ -143,8 +148,8 @@ static void make_and_drop_context_types(void)
 
 int main(void)
 {
-    /* No explicit init: first Create lazily boots the shim (API v4). */
-    g_jit = FilLLVMJIT_Create((void *)0);
+    /* No explicit init: first Create lazily boots the shim (no init). */
+    g_jit = FilLLVMJIT_Create();
     if (!g_jit) {
         fprintf(stderr, "create failed\n");
         return 1;
@@ -152,9 +157,9 @@ int main(void)
     FilLLVMJIT_SetResolveCallback(g_jit, (void *)&my_resolver, (void *)0);
     void *mod = build_tiny("base", "base_fn");
     {
-        FilLLVMJITModuleRef basemod = 0;
-        if (FilLLVMJIT_AddModule(g_jit, mod, (void *)"basemod", &basemod) || !basemod) {
-            fprintf(stderr, "base AddModule failed\n");
+        FilLLVMJITModuleRef basemod = FilLLVMJIT_CompileModule(g_jit, mod, (void *)"basemod");
+        if (!basemod) {
+            fprintf(stderr, "base CompileModule failed\n");
             return 1;
         }
         g_module = basemod;

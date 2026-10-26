@@ -17,8 +17,8 @@ static int mydata = 7;
 
 int main(void)
 {
-    /* No explicit init: first Create lazily boots the shim (API v4). */
-    void *jit = FilLLVMJIT_Create((void *)0);
+    /* No explicit init: first Create lazily boots the shim (no init). */
+    void *jit = FilLLVMJIT_Create();
     if (!jit) {
         printf("create failed\n");
         return 1;

@@ -319,26 +319,40 @@ static PAS_ALWAYS_INLINE void filc_finalizable_object_revive(filc_object* object
     if (verbose)
         pas_log("filc_finalizable_object_revive(%p)\n", object);
     filc_alignment_header* alignment_header = filc_object_get_alignment_header(object);
-    uintptr_t encoded_finalizer = alignment_header->encoded_finalizer;
-    switch (encoded_finalizer & FILC_FINALIZER_STATE_MASK) {
-    case FILC_FINALIZER_STATE_NONE: /* The object had been revived, got finalized, and is now dead. */
-    case FILC_FINALIZER_STATE_ENQUEUED: /* The object was enqueued and its finalizer queue died. */
+    uintptr_t extra_pointer = alignment_header->extra_pointer;
+    switch (extra_pointer & FILC_EXTRA_POINTER_STATE_MASK) {
+    case FILC_EXTRA_POINTER_STATE_NONE: /* The object had been revived, got finalized, and is now dead. */
+    case FILC_EXTRA_POINTER_STATE_ENQUEUED: /* The object was enqueued and its finalizer queue died. */
         break;
-    case FILC_FINALIZER_STATE_LIVE:
+    case FILC_EXTRA_POINTER_STATE_LIVE_FINALIZER:
         if (verbose)
             pas_log("reviving unmarked live object %p\n", object);
         PAS_ASSERT(fugc_mark(stack, object));
         if (verbose)
             pas_log("stack size: %zu\n", filc_mark_stack_num_objects(stack));
-        alignment_header->encoded_finalizer =
-            (encoded_finalizer & ~FILC_FINALIZER_STATE_MASK) | FILC_FINALIZER_STATE_REVIVED;
+        alignment_header->extra_pointer =
+            (extra_pointer & ~FILC_EXTRA_POINTER_STATE_MASK) | FILC_EXTRA_POINTER_STATE_REVIVED;
         break;
-    case FILC_FINALIZER_STATE_REVIVED:
+    case FILC_EXTRA_POINTER_STATE_REVIVED:
         pas_log("Unexpected revived object during revive: %p\n", object);
         PAS_ASSERT(!"Unexpected revived object");
         break;
+    case FILC_EXTRA_POINTER_STATE_JIT_MODULE: {
+        /* GC-section objects for a JIT module carry this state (see
+           finalize_object_cb in filc_llvm_jit.c). They live in the default
+           heap and are never finalizable, so they never reach revive;
+           handle defensively by keeping the referenced module alive. */
+        filc_object* jit_module_object =
+            (filc_object*)(extra_pointer & ~FILC_EXTRA_POINTER_STATE_MASK);
+        if (jit_module_object)
+            fugc_mark(stack, jit_module_object);
+        break;
+    }
     default:
-        PAS_ASSERT(!"Invalid finalizer state");
+        pas_log("Invalid extra-pointer state %lu during revive: %p\n",
+                (unsigned long)(extra_pointer & FILC_EXTRA_POINTER_STATE_MASK),
+                object);
+        PAS_ASSERT(!"Invalid extra-pointer state: reserved values 5, 6, 7 are unhandled");
         break;
     }
 }
@@ -350,24 +364,24 @@ static PAS_ALWAYS_INLINE void filc_finalizable_object_census(filc_object* object
     if (verbose)
         pas_log("filc_finalizable_object_census(%p)\n", object);
     filc_alignment_header* alignment_header = filc_object_get_alignment_header(object);
-    uintptr_t encoded_finalizer = alignment_header->encoded_finalizer;
-    switch (encoded_finalizer & FILC_FINALIZER_STATE_MASK) {
-    case FILC_FINALIZER_STATE_NONE:
-    case FILC_FINALIZER_STATE_ENQUEUED:
+    uintptr_t extra_pointer = alignment_header->extra_pointer;
+    switch (extra_pointer & FILC_EXTRA_POINTER_STATE_MASK) {
+    case FILC_EXTRA_POINTER_STATE_NONE:
+    case FILC_EXTRA_POINTER_STATE_ENQUEUED:
         break;
-    case FILC_FINALIZER_STATE_LIVE:
+    case FILC_EXTRA_POINTER_STATE_LIVE_FINALIZER:
         if (!filc_object_is_live_for_weak(
                 filc_object_for_special_payload(
-                    (filc_finalizer_queue*)(encoded_finalizer & ~FILC_FINALIZER_STATE_MASK)),
+                    (filc_finalizer_queue*)(extra_pointer & ~FILC_EXTRA_POINTER_STATE_MASK)),
                 FUGC_MARKER))
-            alignment_header->encoded_finalizer = FILC_FINALIZER_STATE_NONE;
+            alignment_header->extra_pointer = FILC_EXTRA_POINTER_STATE_NONE;
         break;
-    case FILC_FINALIZER_STATE_REVIVED: {
+    case FILC_EXTRA_POINTER_STATE_REVIVED: {
         filc_finalizer_queue* finalizer_queue =
-            (filc_finalizer_queue*)(encoded_finalizer & ~FILC_FINALIZER_STATE_MASK);
+            (filc_finalizer_queue*)(extra_pointer & ~FILC_EXTRA_POINTER_STATE_MASK);
         if (!filc_object_is_live_for_weak(filc_object_for_special_payload(finalizer_queue),
                                           FUGC_MARKER))
-            alignment_header->encoded_finalizer = FILC_FINALIZER_STATE_NONE;
+            alignment_header->extra_pointer = FILC_EXTRA_POINTER_STATE_NONE;
         else {
             pas_system_mutex_lock(&finalizer_queue->lock);
             PAS_ASSERT(!!finalizer_queue->head == !!finalizer_queue->tail);
@@ -377,18 +391,28 @@ static PAS_ALWAYS_INLINE void filc_finalizable_object_census(filc_object* object
             } else {
                 filc_alignment_header* tail_alignment_header =
                     filc_object_get_alignment_header(finalizer_queue->tail);
-                PAS_ASSERT(tail_alignment_header->encoded_finalizer == FILC_FINALIZER_STATE_ENQUEUED);
-                tail_alignment_header->encoded_finalizer =
-                    (uintptr_t)object | FILC_FINALIZER_STATE_ENQUEUED;
+                PAS_ASSERT(tail_alignment_header->extra_pointer == FILC_EXTRA_POINTER_STATE_ENQUEUED);
+                tail_alignment_header->extra_pointer =
+                    (uintptr_t)object | FILC_EXTRA_POINTER_STATE_ENQUEUED;
             }
             finalizer_queue->tail = object;
-            alignment_header->encoded_finalizer = FILC_FINALIZER_STATE_ENQUEUED;
+            alignment_header->extra_pointer = FILC_EXTRA_POINTER_STATE_ENQUEUED;
             pas_system_mutex_unlock(&finalizer_queue->lock);
         }
         break;
     }
+    case FILC_EXTRA_POINTER_STATE_JIT_MODULE:
+        /* GC-section objects for a JIT module carry this state (see
+           finalize_object_cb in filc_llvm_jit.c). They live in the default
+           heap and are never finalizable, so they never reach census; there
+           is nothing to census here (census takes no mark stack). The module
+           edge itself is marked by filc_object_mark_outgoing_ptrs. */
+        break;
     default:
-        PAS_ASSERT(!"Invalid finalizer state");
+        pas_log("Invalid extra-pointer state %lu during census: %p\n",
+                (unsigned long)(extra_pointer & FILC_EXTRA_POINTER_STATE_MASK),
+                object);
+        PAS_ASSERT(!"Invalid extra-pointer state: reserved values 5, 6, 7 are unhandled");
         break;
     }
 }
@@ -402,89 +426,10 @@ static PAS_ALWAYS_INLINE void filc_jmp_buf_mark_outgoing_ptrs(filc_jmp_buf* jmp_
         marker.mark(stack, filc_object_for_lower(jmp_buf->lowers[index]));
 }
 
-/* Lock-free marker helper for the LLVM JIT marker below. The only seqlock
-   left is roots_generation on generated modules, which guards the
-   roots pointer+count pair (two words that must be read consistently). All
-   flight refs (session current_module_ref, parent context_ref/module_ref)
-   are loaded with filc_flight_ptr_load_with_manual_tracking and marked from
-   the local copy. */
-
 static PAS_ALWAYS_INLINE void filc_llvm_jit_mark_outgoing_ptrs(void* raw_payload,
                                                               const filc_marker marker,
                                                               filc_mark_stack* stack)
 {
-    /* Every LLVM JIT payload starts with a filc_llvm_jit_kind. Parented
-       objects (everything except CONTEXT, JIT_SESSION, and GENERATED_MODULE)
-       keep their parents alive with GC-visible filc_ptr fields; the session
-       keeps its current module alive the same way; generated modules pin the
-       flight pointers handed out by the resolve functions. Raw LLVM handles
-       and locks are invisible to the collector.
-      
-       The session and generated-module cases MUST NOT take session->lock or
-       object->lock here. The writers hold those locks across filc_exit (full
-       JIT compile), dlopen-adjacent work, and GC-triggering allocation:
-       taking them in the marker would stall every mark for the duration of a
-       compile and self-deadlock when an allocation under the lock triggers a
-       collection (the collector would block on the lock the mutator holds
-       while the mutator waits for the collector). Instead the marker reads
-       lock-free: flight refs via filc_flight_ptr_load_with_manual_tracking,
-       and the roots pointer+count via the roots_generation seqlock (the
-       writer publishes pointer+count with release, the marker copies them
-       with acquire and retries on a generation mismatch), then marks with no
-       lock held. This is safe because:
-       - roots snapshots are always consistent (generation check) prefixes of
-         the true set (buffers only grow; the session ref only moves forward
-         to a newer module), so the marker never reads out-of-bounds data;
-         flight loads use the standard helper (see filc_runtime.h), whose
-         half-loads are individually atomic; any benign half-old/half-new
-         pairing can only name a live pinned object (see below);
-       - the session load marks a local copy, which needs no write-back:
-         the collector is non-moving (mark_or_free_flight only sets mark bits
-         or CASes a free target's lower half to the free singleton; it never
-         relocates, so there is no moved address to propagate), every
-         published module is pinned in the process-global roots before publish,
-         so the shared field keeps naming a marked
-         object, and rescanning a stale-but-live copy is idempotent;
-         module roots, in contrast, are marked in place in the live slots, so
-         free-singleton repoints propagate to roots[] whenever the buffer has
-         not grown (a growth race can only strand a repoint in a retired copy
-         while the live copy still holds the pointer, converging on the next
-         scan -- at most one extra cycle retaining an already-free object);
-       - superseded roots buffers are never freed while the object is alive
-         (they are stashed in retired_roots and freed only by the destructor
-         of a dead object no marker can reach), so a snapshot buffer cannot
-         be unmapped under the marker; retired growth is bounded (O(log N)
-         buffers, <2x the live bytes -- see filc_runtime.h), not a leak, even
-         for immortal modules;
-       - every named object the session load can name is immortal (pinned
-         in the process-global roots before publish), so a stale session
-         copy is benign;
-       - parent keep-alives (context_ref/module_ref) are loaded with
-         filc_flight_ptr_load_with_manual_tracking and marked from the copy
-         (see below), never read or CASed in place, so a concurrent builder
-         adoption under the context lock cannot race the mark; marking only
-         consumes the lower half (object identity) in any case, so even a
-         hypothetical pairing mismatch could only name an object, never
-         fabricate an address;
-       - every global pin lands in filc_global_variable_root_ptrs, which
-         filc_mark_global_roots marks with WHATEVER marker is driving the
-         collection: the concurrent FUGC_MARKER path (fugc.c,
-         mark_and_start_marking), the STW path (identical marking code with
-         the world stopped via FUGC_STW=1), and the VERIFY_MARKER path
-         (verify_marking, enabled by FUGC_VERIFY=1, including the
-         verify-early variant). Scribbling (FUGC_SCRIBBLE=1) only scribbles
-         objects left unmarked after that same marking, so pinned objects are
-         never scribbled in any configuration. The raw session current_module
-         pointer is deliberately never read by the marker (only the ref is
-         loaded with the helper), so it needs no guard;
-       - any module root the marker misses because it raced the writer is
-         covered by the Steele insertion barrier the writer issues after
-         publishing, which marks the root itself so the same cycle keeps it
-         alive no matter when the module's scan ran; and any session publish
-         the marker misses is covered the same way, by barriering the newly
-         published module (barriering an already-marked container would be a
-         no-op, not a re-grey, since barrier_impl does not re-push marked
-         objects). */
     filc_llvm_jit_kind kind = *(filc_llvm_jit_kind*)raw_payload;
     switch (kind) {
     case FILC_LLVM_JIT_KIND_CONTEXT:
@@ -492,58 +437,52 @@ static PAS_ALWAYS_INLINE void filc_llvm_jit_mark_outgoing_ptrs(void* raw_payload
     case FILC_LLVM_JIT_KIND_JIT_SESSION: {
         filc_llvm_jit_session_object* session =
             (filc_llvm_jit_session_object*)raw_payload;
-        /* Standard flight load: lock-free, no JIT locks taken. The writer
-           pins the module in the process-global roots before publishing, so
-           any value observed here names a pinned (immortal) module. Mark the
-           local copy, not the shared field, so a free-singleton repoint
-           cannot race the writer's locked publish. */
-        filc_ptr snapshot =
-            filc_flight_ptr_load_with_manual_tracking(&session->current_module_ref);
-        marker.mark_or_free_flight(stack, &snapshot);
+        marker.mark_or_free_flight(stack, &session->resolver);
+        marker.mark_or_free_flight(stack, &session->resolver_context);
+        marker.mark_or_free_flight(stack, &session->zexact_table);
         break;
     }
-    case FILC_LLVM_JIT_KIND_GENERATED_MODULE: {
-        filc_llvm_jit_generated_module_object* object =
-            (filc_llvm_jit_generated_module_object*)raw_payload;
-        filc_ptr* snapshot_roots = NULL;
-        size_t snapshot_num_roots = 0;
-        for (;;) {
-            unsigned before =
-                __atomic_load_n(&object->roots_generation, __ATOMIC_ACQUIRE);
-            if (before & 1u)
-                continue;
-            __atomic_thread_fence(__ATOMIC_ACQUIRE);
-            snapshot_roots = object->roots;
-            snapshot_num_roots = object->num_roots;
-            __atomic_thread_fence(__ATOMIC_ACQUIRE);
-            unsigned after =
-                __atomic_load_n(&object->roots_generation, __ATOMIC_ACQUIRE);
-            if (before == after)
-                break;
-        }
-        /* The snapshot buffer is ours to read without a lock: growth stashes
-           superseded buffers in retired_roots instead of freeing them, and
-           the destructor (the only freer) runs only for a dead object. The
-           writer only ever appends at indices >= any earlier count while
-           holding the module lock, and growth copies indices this snapshot
-           may read; a growth copy racing our repoint of a free slot can at
-           worst copy the pre-repoint value, which the next scan of the new
-           buffer repoints. Indices are disjoint otherwise (we only touch
-           [0, snapshot_num_roots), the writer only touches newer slots). */
+    case FILC_LLVM_JIT_KIND_JIT_MODULE: {
+        filc_llvm_jit_jit_module_object* object =
+            (filc_llvm_jit_jit_module_object*)raw_payload;
         size_t index;
-        for (index = snapshot_num_roots; index--;)
-            marker.mark_or_free_flight(stack, &snapshot_roots[index]);
+        for (index = object->num_objects; index--;)
+            marker.mark_or_free_flight(stack, &object->object_refs[index]);
+        for (index = object->num_roots; index--;)
+            marker.mark_or_free_flight(stack, &object->roots[index]);
+        marker.mark_or_free_flight(stack, &object->resolver);
+        marker.mark_or_free_flight(stack, &object->resolver_context);
+        marker.mark_or_free_flight(stack, &object->zexact_table);
+        if (object->combined_aux_size) {
+            char* base = object->tail;
+            size_t offset = 0;
+            while (offset + sizeof(filc_lower_or_box) <= object->combined_aux_used) {
+                filc_lower_or_box* slot =
+                    (filc_lower_or_box*)(base + offset);
+                marker.mark_or_free_lower_or_box(stack, slot);
+                offset += sizeof(filc_lower_or_box);
+            }
+        }
+        break;
+    }
+    case FILC_LLVM_JIT_KIND_BUILDER: {
+        filc_llvm_jit_builder_object* builder =
+            (filc_llvm_jit_builder_object*)raw_payload;
+        filc_llvm_jit_object* base = &builder->base;
+        filc_ptr context_snapshot =
+            filc_flight_ptr_load_with_manual_tracking(&base->context_ref);
+        filc_ptr module_snapshot =
+            filc_flight_ptr_load_with_manual_tracking(&base->module_ref);
+        marker.mark_or_free_flight(stack, &context_snapshot);
+        marker.mark_or_free_flight(stack, &module_snapshot);
+        filc_llvm_jit_object* adopted =
+            __atomic_load_n(&builder->adopted, __ATOMIC_ACQUIRE);
+        if (adopted)
+            marker.mark(stack, filc_object_for_special_payload(adopted));
         break;
     }
     default: {
         filc_llvm_jit_object* object = (filc_llvm_jit_object*)raw_payload;
-        /* Standard flight loads, never in-place reads. module_ref can be
-           mutated by builder adoption under the context lock while this
-           marker runs lock-free; loading with the standard helper and
-           marking the local copy keeps a free-singleton CAS from racing the
-           writer's locked store. Marking only consumes the lower half
-           (object identity) in any case, so even a hypothetical pairing
-           mismatch could only name an object, never fabricate an address. */
         filc_ptr context_snapshot =
             filc_flight_ptr_load_with_manual_tracking(&object->context_ref);
         filc_ptr module_snapshot =
@@ -920,6 +859,37 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object
     if (PAS_UNLIKELY(filc_object_flags_is_special(flags))) {
         filc_object_mark_outgoing_special_ptrs(object, aux, marker, stack);
         return;
+    }
+
+    if (PAS_UNLIKELY(filc_object_flags_log_align(flags))) {
+        filc_alignment_header* header = filc_object_get_alignment_header(object);
+        uintptr_t extra = header->extra_pointer;
+        switch (extra & FILC_EXTRA_POINTER_STATE_MASK) {
+        case FILC_EXTRA_POINTER_STATE_NONE:
+        case FILC_EXTRA_POINTER_STATE_ENQUEUED:
+        case FILC_EXTRA_POINTER_STATE_REVIVED:
+            break;
+        case FILC_EXTRA_POINTER_STATE_LIVE_FINALIZER: {
+            filc_finalizer_queue* queue =
+                (filc_finalizer_queue*)(extra & ~FILC_EXTRA_POINTER_STATE_MASK);
+            if (queue)
+                marker.mark(stack, filc_object_for_special_payload(queue));
+            break;
+        }
+        case FILC_EXTRA_POINTER_STATE_JIT_MODULE: {
+            filc_object* jit_module_object =
+                (filc_object*)(extra & ~FILC_EXTRA_POINTER_STATE_MASK);
+            if (jit_module_object)
+                marker.mark(stack, jit_module_object);
+            break;
+        }
+        default:
+            pas_log("Invalid extra-pointer state %lu while marking: %p\n",
+                    (unsigned long)(extra & FILC_EXTRA_POINTER_STATE_MASK),
+                    object);
+            PAS_ASSERT(!"Invalid extra-pointer state: reserved values 5, 6, 7 are unhandled");
+            break;
+        }
     }
 
     /* It's unusual for an object without an aux ptr to be placed on the mark stack, but we forgive

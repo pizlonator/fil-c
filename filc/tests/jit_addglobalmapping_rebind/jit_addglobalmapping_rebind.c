@@ -21,8 +21,8 @@ static int host_add(int a, int b)
 
 int main(void)
 {
-    /* No explicit init: first Create lazily boots the shim (API v4). */
-    void *jit = FilLLVMJIT_Create((void *)0);
+    /* No explicit init: first Create lazily boots the shim (no init). */
+    void *jit = FilLLVMJIT_Create();
     if (!jit) {
         printf("create failed\n");
         return 1;
@@ -42,7 +42,7 @@ int main(void)
     fflush(stdout);
     unsigned long address_bits = (unsigned long)real;
     void *token = (void *)address_bits;
-    void *jit2 = FilLLVMJIT_Create((void *)0);
+    void *jit2 = FilLLVMJIT_Create();
     if (!jit2) {
         printf("create2 failed\n");
         return 1;

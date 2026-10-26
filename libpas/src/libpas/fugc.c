@@ -473,7 +473,48 @@ static void destruct_object_callback(void* allocation, void* arg)
         pas_log("destruct_object: allocation = %p, starts with = %p\n",
                 allocation, *(void**)allocation);
     }
-    filc_object* object = filc_allocation_get_object(allocation);
+    // Guard: under RAGE the destructor pass can race a concurrent allocation
+    // that has claimed a cell but not finished constructing the object, so a
+    // visited cell does not always decode as an object. Validate with plain
+    // reads and skip anything implausible. Sweep still reclaims the verse
+    // memory, and anything still live is handled by a later cycle. This keeps
+    // one torn cell from aborting the whole teardown.
+    uintptr_t first_word = *(uintptr_t volatile*)allocation;
+    filc_object* object;
+    if (first_word & PAS_ADDRESS_MASK) {
+        object = (filc_object*)allocation;
+    } else {
+        unsigned shift = (unsigned)(first_word >> (uintptr_t)PAS_ADDRESS_BITS);
+        if (shift < 5 || shift > 24)
+            return;
+        uintptr_t object_address = (uintptr_t)allocation
+            + ((uintptr_t)1 << shift) - sizeof(filc_object);
+        if ((object_address & ~(uintptr_t)(VERSE_HEAP_CHUNK_SIZE - 1))
+            != ((uintptr_t)allocation & ~(uintptr_t)(VERSE_HEAP_CHUNK_SIZE - 1)))
+            return;
+        object = (filc_object*)object_address;
+    }
+    if (filc_object_is_special(object)) {
+        // Special objects always have upper == lower; anything else is a
+        // torn header (for example aux written before upper became visible).
+        if (filc_object_upper(object) != filc_object_lower(object))
+            return;
+        switch (filc_object_special_type(object)) {
+        case FILC_SPECIAL_TYPE_THREAD:
+        case FILC_SPECIAL_TYPE_PTR_TABLE:
+        case FILC_SPECIAL_TYPE_EXACT_PTR_TABLE:
+        case FILC_SPECIAL_TYPE_WEAK_MAP:
+        case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
+#if FILC_HAS_FIBER_CONTEXT
+        case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
+#endif /* FILC_HAS_FIBER_CONTEXT */
+        case FILC_SPECIAL_TYPE_LLVM_JIT:
+            break;
+        default:
+            return;
+        }
+    } else if (!(filc_object_get_flags(object) & FILC_OBJECT_FLAG_MMAP))
+        return;
     if (filc_object_get_flags(object) & FILC_OBJECT_FLAG_MMAP) {
         if (verbose)
             pas_log("Deleting mmap at %p\n", filc_object_lower(object));

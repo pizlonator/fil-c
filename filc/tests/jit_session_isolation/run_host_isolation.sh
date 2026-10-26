@@ -2,13 +2,15 @@
 # Host proof: two shim sessions with different resolve
 # callbacks for the SAME extern name must each resolve through their own
 # callback.  The harness drives libfilcllvmjit.so purely through its public
-# FilLLVMJITApi table (no LLVM headers/libs needed): it builds two one-call
-# modules via the table's LLVM C API function pointers, sets per-session
-# callbacks returning different addresses, and calls each session's
-# pizlonated getter (which tail-calls the lazy worker, routed through the
-# session-carrying wrapper AddModule authors).  Pre-fix, the shim's
-# scan-for-max-Seq shared resolver handed BOTH sessions the newest
-# callback, so session 1's flight would carry session 2's address.
+# filc_llvm_jit_api table (no LLVM headers/libs needed): it builds two one-call
+# modules via the table's LLVM C API function pointers, installs per-session
+# memory callbacks whose resolve entry points return different addresses,
+# and calls each module's pizlonated getter (which tail-calls the lazy
+# worker, routed through the module-private wrapper CompileModule authors
+# around that compile's callbacks).  Each module passes its own
+# filc_jit_module token, and the resolve entry points check it, so a
+# cross-module mixup fails loudly.  Sessions are then destroyed while the
+# modules stay callable, proving resolution state lives in the module.
 #
 # Usage: sh filc/tests/jit_session_isolation/run_host_isolation.sh
 # (from the repository root).  Also invoked by jit_session_isolation.c
@@ -22,11 +24,13 @@ cat > "$HARNESS_C" <<'HARNESS_EOF'
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <dlfcn.h>
+#include <sys/mman.h>
 
 #include "filc_llvm_jit_api.h"
 
-static const struct FilLLVMJITApi *api;
+static const struct filc_llvm_jit_api *api;
 static int val1 = 111, val2 = 222;
 
 static void *cb1(const char *name, void *ctx)
@@ -43,6 +47,93 @@ static void *cb2(const char *name, void *ctx)
     if (!strcmp(name, "shared_ext"))
         return &val2;
     return NULL;
+}
+
+struct SessionState {
+    void *(*resolver)(const char *name, void *ctx);
+    void *resolverCtx;
+    void *expectedModule;
+    int resolveCalls;
+};
+
+static void *harness_allocate_jit_module(void *context,
+                                         unsigned long long aux,
+                                         unsigned long long other)
+{
+    (void)aux;
+    (void)other;
+    return ((struct SessionState *)context)->expectedModule;
+}
+
+static void *harness_allocate_executable(void *context, void *jit_module,
+                                         unsigned long long size,
+                                         unsigned long long alignment,
+                                         const char *section_name)
+{
+    (void)context;
+    (void)jit_module;
+    (void)section_name;
+    size_t align = (size_t)alignment < 16 ? 16 : (size_t)alignment;
+    size_t total = (size_t)size + align;
+    void *mem = mmap(NULL, total, PROT_READ | PROT_WRITE | PROT_EXEC,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (mem == MAP_FAILED)
+        return NULL;
+    uintptr_t addr = ((uintptr_t)mem + align - 1) & ~(uintptr_t)(align - 1);
+    return (void *)addr;
+}
+
+static void *harness_allocate_object(void *context, void *jit_module,
+                                     const char *section_name,
+                                     unsigned long long size,
+                                     unsigned long long alignment)
+{
+    (void)context;
+    (void)jit_module;
+    (void)section_name;
+    (void)alignment;
+    return malloc(size ? (size_t)size : 1);
+}
+
+static void *harness_allocate_module_data(void *context, void *jit_module,
+                                          const char *section_name,
+                                          unsigned long long size,
+                                          unsigned long long alignment)
+{
+    (void)context;
+    (void)jit_module;
+    (void)section_name;
+    (void)alignment;
+    return malloc(size ? (size_t)size : 1);
+}
+
+static void harness_finalize_object(void *context, void *jit_module,
+                                    void *object, unsigned long long size)
+{
+    (void)context;
+    (void)jit_module;
+    (void)object;
+    (void)size;
+}
+
+static void *harness_resolve_symbol(void *context, void *jit_module,
+                                    const char *name)
+{
+    struct SessionState *st = (struct SessionState *)context;
+    if (jit_module != st->expectedModule) {
+        printf("resolve saw wrong module token\n");
+        exit(1);
+    }
+    st->resolveCalls++;
+    return st->resolver(name, st->resolverCtx);
+}
+
+static void *harness_resolve_raw_pointer(void *context, void *jit_module,
+                                         unsigned long long encoded)
+{
+    (void)context;
+    (void)jit_module;
+    return (void *)(uintptr_t)encoded;
 }
 
 typedef struct {
@@ -88,35 +179,60 @@ int main(int argc, char **argv)
         printf("dlopen failed: %s\n", dlerror());
         return 1;
     }
-    const struct FilLLVMJITApi *(*getapi)(void) =
-        (const struct FilLLVMJITApi *(*)(void))dlsym(h, "FilLLVMJIT_GetApi");
+    const struct filc_llvm_jit_api *(*getapi)(void) =
+        (const struct filc_llvm_jit_api *(*)(void))dlsym(h, "FilLLVMJIT_GetApi");
     if (!getapi) {
         printf("no FilLLVMJIT_GetApi\n");
         return 1;
     }
     api = getapi();
     printf("shim API version == %llu\n", api->version);
-    if (api->version != 4) {
-        printf("want API version 4\n");
+    if (api->version != 7) {
+        printf("want API version 7\n");
         return 1;
     }
-    /* No explicit init: first Create lazily boots the shim (API v4). */
-    FilLLVMJITRef s1 = api->Create(NULL);
-    FilLLVMJITRef s2 = api->Create(NULL);
+    /* No explicit init: first Create lazily boots the shim. */
+    ShimJit s1 = api->Create();
+    ShimJit s2 = api->Create();
     if (!s1 || !s2) {
         printf("create failed\n");
         return 1;
     }
-    api->SetResolveCallback(s1, cb1, NULL);
-    api->SetResolveCallback(s2, cb2, NULL);
+    /* Each session installs its own memory callbacks; the resolve entry
+       points return different addresses and check the module token. */
+    static char token1, token2;
+    struct SessionState st1 = { cb1, NULL, &token1, 0 };
+    struct SessionState st2 = { cb2, NULL, &token2, 0 };
+    struct filc_llvm_jit_memory_callbacks cbs1 = {
+        &st1,
+        harness_allocate_jit_module,
+        harness_allocate_executable,
+        harness_allocate_object,
+        harness_allocate_module_data,
+        harness_finalize_object,
+        harness_resolve_symbol,
+        harness_resolve_raw_pointer,
+    };
+    struct filc_llvm_jit_memory_callbacks cbs2 = cbs1;
+    cbs2.context = &st2;
+    if (api->SetMemoryCallbacks(s1, &cbs1)) {
+        printf("callbacks1 failed: %s\n", api->GetLastError());
+        return 1;
+    }
+    if (api->SetMemoryCallbacks(s2, &cbs2)) {
+        printf("callbacks2 failed: %s\n", api->GetLastError());
+        return 1;
+    }
     LLVMModuleRef m1 = build_module("run_iso1");
     LLVMModuleRef m2 = build_module("run_iso2");
-    FilLLVMJITModuleRef o1 = 0, o2 = 0;
-    if (api->AddModule(s1, m1, "m1", &o1)) {
+    ShimJitModule o1 = 0, o2 = 0;
+    o1 = api->CompileModule(s1, m1, "m1", &token1);
+    if (!o1) {
         printf("add1 failed: %s\n", api->GetLastError());
         return 1;
     }
-    if (api->AddModule(s2, m2, "m2", &o2)) {
+    o2 = api->CompileModule(s2, m2, "m2", &token2);
+    if (!o2) {
         printf("add2 failed: %s\n", api->GetLastError());
         return 1;
     }
@@ -127,9 +243,9 @@ int main(int argc, char **argv)
     /* The lazy worker (__filc_jit_get_*) is internal linkage; resolve the
        public pizlonated getter instead (exact name misses, the documented
        pizlonated_ retry hits).  It tail-calls the worker, which routes
-       through this session's callback via the bound wrapper. */
-    WorkerFn w1 = (WorkerFn)api->GetFunctionAddress(s1, "shared_ext");
-    WorkerFn w2 = (WorkerFn)api->GetFunctionAddress(s2, "shared_ext");
+       through this module's callbacks via the bound wrapper. */
+    WorkerFn w1 = (WorkerFn)api->GetFunctionAddress(o1, "shared_ext");
+    WorkerFn w2 = (WorkerFn)api->GetFunctionAddress(o2, "shared_ext");
     if (!w1 || !w2) {
         printf("getter lookup failed: %s\n", api->GetLastError());
         return 1;
@@ -148,10 +264,28 @@ int main(int argc, char **argv)
         printf("session2 misrouted\n");
         return 1;
     }
-    /* Informational: the legacy shared helper keeps last-wins scan semantics
-       for ABI stability; only module-bound resolution is session-routed. */
-    printf("legacy ResolveByName == %p (last-wins, informational)\n",
-           api->ResolveByName("shared_ext"));
+    if (!st1.resolveCalls || !st2.resolveCalls) {
+        printf("resolve callbacks never ran\n");
+        return 1;
+    }
+    /* Sessions are mortal: destroy both, then keep calling through the
+       modules.  Lookups and calls must keep working on module state alone. */
+    api->DestroySession(s1);
+    api->DestroySession(s2);
+    WorkerFn w1b = (WorkerFn)api->GetFunctionAddress(o1, "shared_ext");
+    WorkerFn w2b = (WorkerFn)api->GetFunctionAddress(o2, "shared_ext");
+    if (!w1b || !w2b) {
+        printf("post-session lookup failed: %s\n", api->GetLastError());
+        return 1;
+    }
+    Flight f1b = w1b(NULL, NULL);
+    Flight f2b = w2b(NULL, NULL);
+    if (f1b.ptr != (void *)&val1 || f2b.ptr != (void *)&val2) {
+        printf("post-session call misrouted\n");
+        return 1;
+    }
+    api->DestroyModule(o1);
+    api->DestroyModule(o2);
     printf("session isolation harness OK\n");
     return 0;
 }
