@@ -1604,6 +1604,13 @@ static const struct filc_llvm_jit_api g_api = {
 // -fvisibility=hidden (a version script alone cannot re-export a hidden
 // symbol).
 extern "C" __attribute__((visibility("default")))
-const struct filc_llvm_jit_api *FilLLVMJIT_GetApi(void) {
+const struct filc_llvm_jit_api *FilLLVMJIT_GetApi(void)
+{
     return &g_api;
+}
+
+extern "C" __attribute__((visibility("hidden")))
+int __cxa_atexit(void (*f)(void *), void *arg, void *dso)
+{
+    return 0;
 }
