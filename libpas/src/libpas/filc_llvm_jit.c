@@ -813,7 +813,7 @@ static const struct filc_llvm_jit_api* ensure_api_slow(filc_thread* my_thread)
         PAS_ASSERT(api);
         return api;
     }
-    const char* env = getenv("FILC_LLVMJIT_SO");
+    const char* env = secure_getenv("FILC_LLVMJIT_SO");
     if (env && env[0])
         try_load_one(env);
     if (!cached_api) {
@@ -825,23 +825,18 @@ static const struct filc_llvm_jit_api* ensure_api_slow(filc_thread* my_thread)
             if (slash) {
                 *slash = '\0';
                 char candidate[4096];
-                snprintf(candidate, sizeof(candidate), "%s/../libexec/libfilcllvmjit.so", dir);
+                snprintf(candidate, sizeof(candidate),
+                         "%s/../libexec/libfilcllvmjit.so", dir);
                 if (!try_load_one(candidate)) {
-                    snprintf(candidate, sizeof(candidate),
-                             "%s/libexec/libfilcllvmjit.so", dir);
-                    try_load_one(candidate);
+                    const char* error = dlerror();
+                    pas_lock_unlock(&api_mutex);
+                    filc_safety_panic(NULL, "could not dlopen libfilcllvmjit.so: %s.",
+                                      error ? error : "<unknown>");
                 }
             }
         }
     }
-    if (!cached_api)
-        try_load_one("/opt/filc/libexec/libfilcllvmjit.so");
-    if (!cached_api) {
-        const char* error = dlerror();
-        pas_lock_unlock(&api_mutex);
-        filc_safety_panic(NULL, "could not dlopen libfilcllvmjit.so: %s.",
-                          error ? error : "<unknown>");
-    }
+    PAS_ASSERT(cached_api);
     const struct filc_llvm_jit_api* api = cached_api;
     did_init = true;
     pas_lock_unlock(&api_mutex);
