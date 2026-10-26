@@ -132,85 +132,6 @@ static pas_lock api_mutex = PAS_LOCK_INITIALIZER;
 static bool did_init = false;
 static void* so_handle = NULL;
 
-// Teardown coordination with process exit, without ever holding a lock
-// across an LLVM call.
-//
-// GC destructor workers call back into libfilcllvmjit.so (DestroySession,
-// DestroyModule, DisposeBuilder, DisposeModule, ContextDispose). Those calls
-// touch function-local static registries that the C++ runtime destroys while
-// exit() runs. A worker inside such a call, or making one, while exit() runs
-// those static destructors uses the registries during destruction and the
-// heap corrupts. The flag plus in-flight counter close that race from the
-// runtime side: every link-phase shim call made while compiling
-// (SetMemoryCallbacks, CompileModule, the eager address lookups) and every
-// shim call made from teardown (DestroySession, DestroyModule,
-// DisposeBuilder, DisposeModule, ContextDispose) bails out once exit has
-// begun, and the exit hook flips the flag and then waits (bounded; it
-// never hangs exit) until no in-flight call is inside the shim anymore.
-// Skipping the calls at exit only leaks; the OS
-// reclaims everything. Plain C statics are used on purpose: they need no
-// destruction themselves, so they stay usable until the process is gone.
-//
-// The check deliberately holds no lock across the LLVM call. An earlier
-// revision held a global mutex from the liveness check until after the shim
-// returned; but shim teardown calls can re-enter Fil-C through the
-// allocate/resolve callbacks (which allocate, take other locks, and may
-// trigger a collection whose destructors re-enter this very path), so one
-// global mutex held across the call deadlocks, including same-thread
-// self-deadlock on this non-recursive lock. Instead entry only bumps an
-// atomic in-flight counter after verifying (twice, to close the race with
-// exit) that exit has not begun, the LLVM call itself runs unlocked, and
-// leave just drops the counter. Entry is therefore lock-free and never
-// blocks, which is what destructor workers on collector threads require.
-static bool jit_teardown_exiting = false;
-static unsigned jit_teardown_inflight = 0;
-
-static void jit_note_exit(void)
-{
-    __atomic_store_n(&jit_teardown_exiting, true, __ATOMIC_SEQ_CST);
-    // Wait (yielding, without holding anything) for in-flight teardown
-    // calls to leave the shim. Entry above never blocks and every
-    // in-flight call is normally bounded, so this spin usually terminates
-    // immediately; teardown itself never waits on the exiting thread.
-    //
-    // The wait is bounded: an in-flight call that blocks (for example on a
-    // lock held by the exiting thread, or a long link that never yields)
-    // must never hang exit. On timeout break out and leak instead; the OS
-    // reclaims everything. Never spin forever here.
-    for (unsigned spin = 0; spin < 2000u; ++spin) {
-        if (!__atomic_load_n(&jit_teardown_inflight, __ATOMIC_SEQ_CST))
-            break;
-        usleep(1000);
-    }
-}
-
-static void jit_register_teardown_hook(void)
-{
-    // Registered after every entry point that can construct one of the
-    // shim's static registries, so LIFO atexit order runs this hook before
-    // any of those static destructors. Repeated registration is harmless:
-    // the hook body is idempotent.
-    atexit(jit_note_exit);
-}
-
-static bool jit_teardown_try_enter(void)
-{
-    if (__atomic_load_n(&jit_teardown_exiting, __ATOMIC_SEQ_CST))
-        return false;
-    __atomic_fetch_add(&jit_teardown_inflight, 1u, __ATOMIC_SEQ_CST);
-    if (__atomic_load_n(&jit_teardown_exiting, __ATOMIC_SEQ_CST)) {
-        __atomic_fetch_sub(&jit_teardown_inflight, 1u, __ATOMIC_SEQ_CST);
-        return false;
-    }
-    return true;
-}
-
-static void jit_teardown_leave(void)
-{
-    unsigned prev = __atomic_fetch_sub(&jit_teardown_inflight, 1u, __ATOMIC_SEQ_CST);
-    PAS_ASSERT(prev > 0);
-}
-
 /* Runtime-side sticky last-error for CompileModule failures.
 //
 // The shim reports failures through its own thread-local GetLastError, but
@@ -853,12 +774,8 @@ static void drop_context_state(filc_llvm_jit_context_state* state)
         return;
     /* no log */
     const struct filc_llvm_jit_api* api = cached_api;
-    if (state->handle && api && api->ContextDispose) {
-        if (jit_teardown_try_enter()) {
-            api->ContextDispose((LLVMContextRef)state->handle);
-            jit_teardown_leave();
-        }
-    }
+    if (state->handle && api && api->ContextDispose)
+        api->ContextDispose((LLVMContextRef)state->handle);
     free(state);
 }
 
@@ -871,12 +788,8 @@ static void drop_module_state(filc_llvm_jit_module_state* module_state)
         return;
     /* no log */
     const struct filc_llvm_jit_api* api = cached_api;
-    if (module_state->handle && api && api->DisposeModule) {
-        if (jit_teardown_try_enter()) {
-            api->DisposeModule((LLVMModuleRef)module_state->handle);
-            jit_teardown_leave();
-        }
-    }
+    if (module_state->handle && api && api->DisposeModule)
+        api->DisposeModule((LLVMModuleRef)module_state->handle);
     drop_context_state(module_state->context_state);
     free(module_state);
 }
@@ -1160,12 +1073,8 @@ void filc_llvm_jit_destruct(void* raw_payload)
         filc_llvm_jit_object* object = (filc_llvm_jit_object*)raw_payload;
         void* handle = __atomic_exchange_n(
             &object->handle, (void*)NULL, __ATOMIC_ACQ_REL);
-        if (kind == FILC_LLVM_JIT_KIND_BUILDER && handle && api && api->DisposeBuilder) {
-            if (jit_teardown_try_enter()) {
-                api->DisposeBuilder((LLVMBuilderRef)handle);
-                jit_teardown_leave();
-            }
-        }
+        if (kind == FILC_LLVM_JIT_KIND_BUILDER && handle && api && api->DisposeBuilder)
+            api->DisposeBuilder((LLVMBuilderRef)handle);
         if (kind == FILC_LLVM_JIT_KIND_BUILDER) {
             (void)__atomic_exchange_n(
                 &((filc_llvm_jit_builder_object*)object)->adopted,
@@ -1189,12 +1098,8 @@ void filc_llvm_jit_destruct(void* raw_payload)
         const struct filc_llvm_jit_api* api = cached_api;
         void* handle = __atomic_exchange_n(
             &object->handle, (void*)NULL, __ATOMIC_ACQ_REL);
-        if (handle && api && api->DestroySession) {
-            if (jit_teardown_try_enter()) {
-                api->DestroySession((ShimJit)handle);
-                jit_teardown_leave();
-            }
-        }
+        if (handle && api && api->DestroySession)
+            api->DestroySession((ShimJit)handle);
         return;
     }
     case FILC_LLVM_JIT_KIND_JIT_MODULE: {
@@ -1203,12 +1108,8 @@ void filc_llvm_jit_destruct(void* raw_payload)
         const struct filc_llvm_jit_api* api = cached_api;
         void* handle = __atomic_exchange_n(
             &object->handle, (void*)NULL, __ATOMIC_ACQ_REL);
-        if (handle && api && api->DestroyModule) {
-            if (jit_teardown_try_enter()) {
-                api->DestroyModule((ShimJitModule)handle);
-                jit_teardown_leave();
-            }
-        }
+        if (handle && api && api->DestroyModule)
+            api->DestroyModule((ShimJitModule)handle);
         size_t num_jit_bases = __atomic_exchange_n(
             &object->num_jit_bases, (size_t)0, __ATOMIC_ACQ_REL);
         void** jit_bases = __atomic_exchange_n(
@@ -1365,12 +1266,8 @@ static filc_ptr jit_compile_fail(filc_thread* my_thread, filc_object* jit_object
                                  struct eager_symbol* eager, size_t num_eager)
 {
     const struct filc_llvm_jit_api* api = cached_api;
-    if (shim_module && api && api->DestroyModule) {
-        if (jit_teardown_try_enter()) {
-            api->DestroyModule((ShimJitModule)shim_module);
-            jit_teardown_leave();
-        }
-    }
+    if (shim_module && api && api->DestroyModule)
+        api->DestroyModule((ShimJitModule)shim_module);
     if (token) {
         jit_compile_record_drain(token);
         jit_compile_record_remove(token);
@@ -1820,7 +1717,6 @@ filc_ptr filc_native_FilLLVMJIT_Create(filc_thread* my_thread)
 {
     const struct filc_llvm_jit_api* api = ensure_api(my_thread);
     ShimJit handle = api->Create();
-    jit_register_teardown_hook();
     if (!handle)
         return filc_ptr_forge_null();
     filc_object* object = filc_allocate_special_with_heap(
@@ -2144,24 +2040,13 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
        fails cleanly instead of entering the shim during static
        destruction. */
     bool cbs_installed = false;
-    bool cbs_skipped_at_exit = false;
-    if (jit_teardown_try_enter()) {
-        cbs_installed = !api->SetMemoryCallbacks((ShimJit)session_handle, &cbs);
-        jit_teardown_leave();
-    } else {
-        cbs_skipped_at_exit = true;
-    }
+    cbs_installed = !api->SetMemoryCallbacks((ShimJit)session_handle, &cbs);
     if (!cbs_installed) {
-        if (cbs_skipped_at_exit) {
-            jit_set_last_error("FilLLVMJIT_CompileModule: SetMemoryCallbacks skipped: "
-                               "process is exiting.");
-        } else {
-            const char* shim_err = api->GetLastError ? api->GetLastError() : NULL;
-            if (!shim_err || !shim_err[0])
-                shim_err = "unknown error";
-            jit_set_last_error("FilLLVMJIT_CompileModule: SetMemoryCallbacks failed: %s.",
-                               shim_err);
-        }
+        const char* shim_err = api->GetLastError ? api->GetLastError() : NULL;
+        if (!shim_err || !shim_err[0])
+            shim_err = "unknown error";
+        jit_set_last_error("FilLLVMJIT_CompileModule: SetMemoryCallbacks failed: %s.",
+                           shim_err);
         return jit_compile_fail(my_thread, jit_object, token, NULL, NULL, 0);
     }
     struct eager_symbol* eager = NULL;
@@ -2242,28 +2127,16 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
        process exit fails cleanly instead of entering the shim during
        static destruction. */
     ShimJitModule out = NULL;
-    bool link_skipped_at_exit = false;
-    if (jit_teardown_try_enter()) {
-        out = api->CompileModule((ShimJit)session_handle,
-                                 (LLVMModuleRef)module_handle,
-                                 name ? name : "jit-module",
-                                 token);
-        jit_teardown_leave();
-    } else {
-        link_skipped_at_exit = true;
-    }
-    jit_register_teardown_hook();
+    out = api->CompileModule((ShimJit)session_handle,
+                             (LLVMModuleRef)module_handle,
+                             name ? name : "jit-module",
+                             token);
     if (!out) {
-        if (link_skipped_at_exit) {
-            jit_set_last_error("FilLLVMJIT_CompileModule: CompileModule skipped: "
-                               "process is exiting.");
-        } else {
-            const char* shim_err = api->GetLastError ? api->GetLastError() : NULL;
-            if (!shim_err || !shim_err[0])
-                shim_err = "unknown error";
-            jit_set_last_error("FilLLVMJIT_CompileModule: CompileModule failed: %s.",
-                               shim_err);
-        }
+        const char* shim_err = api->GetLastError ? api->GetLastError() : NULL;
+        if (!shim_err || !shim_err[0])
+            shim_err = "unknown error";
+        jit_set_last_error("FilLLVMJIT_CompileModule: CompileModule failed: %s.",
+                           shim_err);
         return jit_compile_fail(my_thread, jit_object, token, NULL, eager, num_eager);
     }
     /* Bug #9: nothing is published yet (created->handle stays NULL and the
@@ -2300,27 +2173,17 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
         bool eager_failed = false;
         for (index = 0; index < num_eager; ++index) {
             void* address = NULL;
-            bool lookup_skipped_at_exit = false;
-            if (jit_teardown_try_enter()) {
-                if (eager[index].is_function)
-                    address = api->GetFunctionAddress(out, eager[index].name);
-                else
-                    address = api->GetGlobalValueAddress(out, eager[index].name);
-                jit_teardown_leave();
-            } else {
-                lookup_skipped_at_exit = true;
-            }
+            if (eager[index].is_function)
+                address = api->GetFunctionAddress(out, eager[index].name);
+            else
+                address = api->GetGlobalValueAddress(out, eager[index].name);
             // A callback that failed on another thread recorded its cause
             // in the token's locked slot; surface it before the generic
             // shim string so the real cause wins over "unknown error".
             if (!address)
                 jit_compile_record_drain(token);
             if (!address) {
-                if (lookup_skipped_at_exit) {
-                    jit_set_last_error("FilLLVMJIT_CompileModule: eager linking skipped "
-                                       "for '%s': process is exiting.",
-                                       eager[index].name);
-                } else if (!jit_sticky_error_get()) {
+                if (!jit_sticky_error_get()) {
                     const char* shim_err = api->GetLastError ? api->GetLastError() : NULL;
                     if (!shim_err || !shim_err[0])
                         shim_err = "unknown error";
