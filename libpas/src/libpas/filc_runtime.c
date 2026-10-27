@@ -2713,8 +2713,10 @@ filc_object* filc_allocate_special_early_with_heap(size_t size, size_t alignment
     case FILC_SPECIAL_TYPE_PTR_TABLE:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
     case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
-    case FILC_SPECIAL_TYPE_LLVM_JIT:
         PAS_ASSERT(heap == fugc_destructor_heap);
+        break;
+    case FILC_SPECIAL_TYPE_LLVM_JIT:
+        PAS_ASSERT(heap == fugc_default_heap || heap == fugc_destructor_heap);
         break;
     case FILC_SPECIAL_TYPE_WEAK:
         PAS_ASSERT(heap == fugc_census_heap);
@@ -2779,7 +2781,6 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
     case FILC_SPECIAL_TYPE_PTR_TABLE:
     case FILC_SPECIAL_TYPE_FINALIZER_QUEUE:
     case FILC_SPECIAL_TYPE_FIBER_CONTEXT:
-    case FILC_SPECIAL_TYPE_LLVM_JIT:
         heap = fugc_destructor_heap;
         break;
     case FILC_SPECIAL_TYPE_WEAK:
@@ -2790,6 +2791,9 @@ filc_object* filc_allocate_special_early(size_t size, size_t alignment,
         break;
     case FILC_SPECIAL_TYPE_EXACT_PTR_TABLE:
         PAS_ASSERT(!"Exact ptr table needs to explicitly select a heap");
+        break;
+    case FILC_SPECIAL_TYPE_LLVM_JIT:
+        PAS_ASSERT(!"LLVM JIT types need to explicitly select a heap");
         break;
     default:
         PAS_ASSERT(!"Not a special type");

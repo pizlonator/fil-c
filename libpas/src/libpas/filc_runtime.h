@@ -89,11 +89,9 @@ typedef struct filc_inverse_weak_map_map_entry filc_inverse_weak_map_map_entry;
 typedef struct filc_jmp_buf filc_jmp_buf;
 typedef struct filc_llvm_jit_builder_object filc_llvm_jit_builder_object;
 typedef struct filc_llvm_jit_context_object filc_llvm_jit_context_object;
-typedef struct filc_llvm_jit_context_state filc_llvm_jit_context_state;
 typedef struct filc_llvm_jit_entries_object filc_llvm_jit_entries_object;
-typedef struct filc_llvm_jit_jit_module_object filc_llvm_jit_jit_module_object;
+typedef struct filc_llvm_jit_compiled_module filc_llvm_jit_compiled_module;
 typedef struct filc_llvm_jit_module_object filc_llvm_jit_module_object;
-typedef struct filc_llvm_jit_module_state filc_llvm_jit_module_state;
 typedef struct filc_llvm_jit_object filc_llvm_jit_object;
 typedef struct filc_llvm_jit_session_object filc_llvm_jit_session_object;
 typedef struct filc_llvm_jit_value_object filc_llvm_jit_value_object;
@@ -1178,32 +1176,10 @@ typedef enum filc_llvm_jit_kind {
     FILC_LLVM_JIT_KIND_JIT_MODULE = 15
 } filc_llvm_jit_kind;
 
-/* Refcounted control blocks for destruction order. The collector may
-   destroy dead objects in any order, so an LLVM module wrapper may die
-   after its context wrapper. Payload memory must never be touched after
-   its destructor runs. These malloc blocks outlive every payload that
-   refers to them: creation bumps the refcount with atomics and the last
-   dropper performs the LLVM disposal and frees the block. Control blocks
-   hold no filc_ptrs and destructor code takes no locks.
-   Locking: context_state.lock serializes LLVM context use. CompileModule
-   holds it only to scan the module (copying names/linkage out); linking
-   (CompileModule, eager resolves, handshake) runs unlocked and the lock
-   is re-acquired only to publish the handle. */
-struct filc_llvm_jit_context_state {
-    pas_lock lock;
-    void* handle;
-    unsigned ref_count;
-};
-
-struct filc_llvm_jit_module_state {
-    filc_llvm_jit_context_state* context_state;
-    void* handle;
-    unsigned ref_count;
-};
-
 struct filc_llvm_jit_context_object {
     filc_llvm_jit_kind kind;
-    filc_llvm_jit_context_state* state;
+    pas_lock lock;
+    unsigned ref_count;
 };
 
 /* Base payload for every context affiliated JIT object. The handle is the
@@ -1215,10 +1191,8 @@ struct filc_llvm_jit_context_object {
    with the standard helper and marks the local copy. */
 struct filc_llvm_jit_object {
     filc_llvm_jit_kind kind;
-    filc_llvm_jit_context_state* state;
-    filc_ptr context_ref;
-    filc_llvm_jit_module_state* module_state;
-    filc_ptr module_ref;
+    filc_llvm_jit_context_object* context;
+    filc_llvm_jit_module_object* module;
     void* handle;
 };
 
@@ -1231,7 +1205,6 @@ struct filc_llvm_jit_module_object {
    marks the naked pointer directly. */
 struct filc_llvm_jit_builder_object {
     struct filc_llvm_jit_object base;
-    filc_llvm_jit_object* adopted;
 };
 
 /* Wrappers for TYPE, VALUE, BASIC_BLOCK, METADATA, NAMED_METADATA, USE,
@@ -1272,31 +1245,13 @@ struct filc_llvm_jit_session_object {
    Linking is eager: CompileModule resolves every externally visible
    definition before returning, so the single LinkGraph allocate for this
    module happens synchronously inside CompileModule. link_did_allocate
-   records that the allocate ran; a second allocate for the same module
-   means something linked lazily after return, which must never happen.
-   ORC may invoke the allocate callback on any thread, so this flag is
-   accessed only with __atomic builtins (exchange to claim, load/store
-   elsewhere): never with a plain load or store. A second allocate fails
-   the compile cleanly with a sticky error (returning NULL to the shim)
-   instead of asserting or aborting.
-
-   The shim never holds a raw pointer to this object: callbacks receive a
-   small integer token validated by the runtime (see filc_llvm_jit.c), so
-   a stale token fails cleanly once the module is gone. */
-struct filc_llvm_jit_jit_module_object {
+   records that the allocate ran. */
+struct filc_llvm_jit_compiled_module {
     filc_llvm_jit_kind kind;
     pas_lock lock;
-    void* handle;
-    bool link_did_allocate; /* __atomic-only: see above. */
-    void** jit_bases;
-    size_t num_jit_bases;
-    size_t jit_bases_capacity;
-    filc_ptr* object_refs;
-    size_t num_objects;
-    size_t objects_capacity;
-    filc_ptr* roots;
-    size_t num_roots;
-    size_t roots_capacity;
+    bool link_did_allocate;
+    filc_raw_ptr_array jit_bases;
+    filc_object_array objects;
     filc_ptr resolver;
     filc_ptr resolver_context;
     filc_ptr zexact_table;
@@ -1304,7 +1259,6 @@ struct filc_llvm_jit_jit_module_object {
     size_t combined_aux_used;
     size_t other_size;
     size_t other_used;
-    char* tail;
 };
 
 struct filc_ptr_hash_map_entry {
