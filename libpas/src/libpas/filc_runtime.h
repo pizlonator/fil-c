@@ -90,7 +90,7 @@ typedef struct filc_jmp_buf filc_jmp_buf;
 typedef struct filc_llvm_jit_builder_object filc_llvm_jit_builder_object;
 typedef struct filc_llvm_jit_context_object filc_llvm_jit_context_object;
 typedef struct filc_llvm_jit_entries_object filc_llvm_jit_entries_object;
-typedef struct filc_llvm_jit_compiled_module filc_llvm_jit_compiled_module;
+typedef struct filc_llvm_jit_executable_module filc_llvm_jit_executable_module;
 typedef struct filc_llvm_jit_module_object filc_llvm_jit_module_object;
 typedef struct filc_llvm_jit_object filc_llvm_jit_object;
 typedef struct filc_llvm_jit_session_object filc_llvm_jit_session_object;
@@ -1134,7 +1134,7 @@ struct filc_weak {
      METADATA_ENTRIES -> LLVMValueMetadataEntry array
      MODULE_FLAG_ENTRIES -> LLVMModuleFlagEntry array
      JIT_SESSION -> ShimJit
-     JIT_MODULE -> ShimJitModule
+     EXECUTABLE_MODULE -> our own thing
 
    Locking: every LLVM operation on a context affiliated object grabs that
    context state lock for the call, because LLVM contexts are not
@@ -1142,16 +1142,9 @@ struct filc_weak {
    holds no context pointer: once compilation finishes the IR objects are
    no longer needed.
 
-   The marker takes no JIT locks. Flight refs are loaded with the standard
-   helper and roots are read under the module lock with release acquire
-   ordering. A thread holding a JIT lock never blocks marking.
-
    Lifetime: a parented object holds a GC visible keep alive to its context
-   and, when relevant, to its module. Creation bumps the parent refcount
-   with atomics; destruction drops it. The context payload is disposed only
-   after its last child is gone, and likewise for modules. The builder
-   adopts the module it is positioned in through a naked pointer plus a
-   store barrier.
+   and, when relevant, to its module. Reference counting is used to ensure
+   that the context is disposed after modules and builders.
 
    Explicit contexts only: the user header has no global context creators.
    Every context affiliated object belongs to an explicit LLVMContextRef
@@ -1173,7 +1166,7 @@ typedef enum filc_llvm_jit_kind {
     FILC_LLVM_JIT_KIND_METADATA_ENTRIES = 12,
     FILC_LLVM_JIT_KIND_MODULE_FLAG_ENTRIES = 13,
     FILC_LLVM_JIT_KIND_JIT_SESSION = 14,
-    FILC_LLVM_JIT_KIND_JIT_MODULE = 15
+    FILC_LLVM_JIT_KIND_EXECUTABLE_MODULE = 15
 } filc_llvm_jit_kind;
 
 struct filc_llvm_jit_context_object {
@@ -1246,7 +1239,7 @@ struct filc_llvm_jit_session_object {
    definition before returning, so the single LinkGraph allocate for this
    module happens synchronously inside CompileModule. link_did_allocate
    records that the allocate ran. */
-struct filc_llvm_jit_compiled_module {
+struct filc_llvm_jit_executable_module {
     filc_llvm_jit_kind kind;
     pas_lock lock;
     bool link_did_allocate;

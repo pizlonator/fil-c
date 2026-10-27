@@ -131,18 +131,6 @@ static void drop_context_state(filc_llvm_jit_context_object* object)
         api->ContextDispose((LLVMContextRef)object->base.handle);
 }
 
-static void drop_module_state(filc_llvm_jit_module_object* module)
-{
-    if (!module)
-        return;
-    unsigned prev = __atomic_fetch_sub(&module_state->ref_count, 1u, __ATOMIC_SEQ_CST);
-    if (prev != 1)
-        return;
-    /* no log */
-    if (module_state->handle)
-        api->DisposeModule((LLVMModuleRef)module->base.handle);
-}
-
 static filc_ptr wrap_handle(filc_thread* my_thread,
                             filc_llvm_jit_context_object* context_obj,
                             filc_llvm_jit_object* module_obj,
@@ -219,6 +207,12 @@ static void builder_adopt_module(filc_thread* my_thread, filc_llvm_jit_object* b
     PAS_ASSERT(builder->kind == FILC_LLVM_JIT_KIND_BUILDER);
     filc_llvm_jit_builder_object* b = (filc_llvm_jit_builder_object*)builder;
 
+    if (b->base.module) {
+        FILC_CHECK(b->base.module == module_obj, NULL,
+                   "Fil-C LLVM JIT API: cannot move builder between modules");
+        return;
+    }
+
     filc_store_barrier(my_thread, filc_object_for_special_payload(module_obj));
     b->base.module = module_obj;
 }
@@ -229,8 +223,6 @@ static filc_llvm_jit_object* unwrap_obj(filc_thread* my_thread, filc_ptr ptr,
                                         filc_llvm_jit_object** module_inout)
 {
     PAS_UNUSED_PARAM(my_thread);
-    if (filc_ptr_is_totally_null(ptr))
-        return NULL;
     filc_check_access_special(ptr, FILC_SPECIAL_TYPE_LLVM_JIT);
     filc_llvm_jit_object* payload = (filc_llvm_jit_object*)filc_ptr_ptr(ptr);
     FILC_CHECK(payload->kind == expected, NULL,
@@ -252,10 +244,20 @@ static filc_llvm_jit_object* unwrap_obj(filc_thread* my_thread, filc_ptr ptr,
     return payload;
 }
 
+static filc_llvm_jit_object* unwrap_obj_or_null(filc_thread* my_thread, filc_ptr ptr,
+                                                filc_llvm_jit_kind expected,
+                                                filc_llvm_jit_context_object** context_inout,
+                                                filc_llvm_jit_object** module_inout)
+{
+    if (!filc_ptr_ptr(ptr))
+        return NULL;
+    return unwrap_obj(my_thread, ptr, expected, context_inout, module_inout);
+}
+
 static filc_llvm_jit_context_object* unwrap_context(filc_thread* my_thread, filc_ptr ptr)
 {
     PAS_UNUSED_PARAM(my_thread);
-    FILC_CHECK(!filc_ptr_is_totally_null(ptr), NULL,
+    FILC_CHECK(filc_ptr_ptr(ptr), NULL,
                "Fil-C LLVM JIT API: null LLVM context.");
     filc_check_access_special(ptr, FILC_SPECIAL_TYPE_LLVM_JIT);
     filc_llvm_jit_context_object* payload = (filc_llvm_jit_context_object*)filc_ptr_ptr(ptr);
@@ -267,7 +269,7 @@ static filc_llvm_jit_context_object* unwrap_context(filc_thread* my_thread, filc
 static filc_llvm_jit_session_object* unwrap_session(filc_thread* my_thread, filc_ptr ptr)
 {
     PAS_UNUSED_PARAM(my_thread);
-    FILC_CHECK(!filc_ptr_is_totally_null(ptr), NULL,
+    FILC_CHECK(filc_ptr_ptr(ptr), NULL,
                "Fil-C LLVM JIT API: null JIT session.");
     filc_check_access_special(ptr, FILC_SPECIAL_TYPE_LLVM_JIT);
     filc_llvm_jit_session_object* payload = (filc_llvm_jit_session_object*)filc_ptr_ptr(ptr);
@@ -279,13 +281,13 @@ static filc_llvm_jit_session_object* unwrap_session(filc_thread* my_thread, filc
 static filc_llvm_jit_jit_module_object* unwrap_jit_module(filc_thread* my_thread, filc_ptr ptr)
 {
     PAS_UNUSED_PARAM(my_thread);
-    if (filc_ptr_is_totally_null(ptr))
+    if (!filc_ptr_ptr(ptr))
         return NULL;
     filc_check_access_special(ptr, FILC_SPECIAL_TYPE_LLVM_JIT);
     filc_llvm_jit_jit_module_object* payload =
         (filc_llvm_jit_jit_module_object*)filc_ptr_ptr(ptr);
-    FILC_CHECK(payload->kind == FILC_LLVM_JIT_KIND_JIT_MODULE, NULL,
-               "Fil-C LLVM JIT API: expected a JIT module object.");
+    FILC_CHECK(payload->kind == FILC_LLVM_JIT_KIND_EXECUTABLE_MODULE, NULL,
+               "Fil-C LLVM JIT API: expected a JIT executable module object.");
     return payload;
 }
 
@@ -301,7 +303,7 @@ static void** decode_handle_array(filc_thread* my_thread, filc_ptr array_ptr, si
 {
     size_t index;
     void** result;
-    if (filc_ptr_is_totally_null(array_ptr)) {
+    if (!filc_ptr_ptr(array_ptr)) {
         FILC_CHECK(!count, NULL,
                    "Fil-C LLVM JIT API: null array with nonzero count.");
         return NULL;
@@ -311,7 +313,7 @@ static void** decode_handle_array(filc_thread* my_thread, filc_ptr array_ptr, si
     for (index = 0; index < count; ++index) {
         filc_ptr element = filc_load_ptr(my_thread, array_ptr,
                                          (ptrdiff_t)filc_mul_size(index, sizeof(void*)));
-        filc_llvm_jit_object* payload = unwrap_obj(
+        filc_llvm_jit_object* payload = unwrap_obj_or_null(
             my_thread, element, expected, context_inout, module_inout);
         result[index] = handle_of(payload);
     }
@@ -841,14 +843,14 @@ static void* resolve_impl(filc_thread* my_thread,
     resolver = mod->resolver;
     resolver_context = mod->resolver_context;
     pas_lock_unlock(&mod->lock);
-    if (filc_ptr_is_totally_null(resolver))
+    if (!filc_ptr_ptr(resolver))
         return NULL;
     filc_ptr name_string = filc_strdup(my_thread, name);
     extern filc_ptr filc_call_user_ptr_ptr_ptr(filc_thread* my_thread, filc_ptr target,
                                                filc_ptr arg0, filc_ptr arg1);
     filc_ptr resolved = filc_call_user_ptr_ptr_ptr(my_thread, resolver, name_string,
                                                    resolver_context);
-    if (filc_ptr_is_totally_null(resolved))
+    if (!filc_ptr_ptr(resolved))
         return NULL;
     void* address = filc_ptr_ptr(resolved);
     push_root_locked(my_thread, mod, resolved);
@@ -875,13 +877,13 @@ static void* resolve_raw_impl(filc_thread* my_thread,
         pas_lock_lock(&mod->lock);
         table_ref = mod->zexact_table;
         pas_lock_unlock(&mod->lock);
-        if (filc_ptr_is_totally_null(table_ref))
+        if (!filc_ptr_ptr(table_ref))
             return (void*)(uintptr_t)encoded;
         filc_check_access_special(table_ref, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE);
         table = (filc_exact_ptr_table*)filc_ptr_ptr(table_ref);
         resolved = filc_exact_ptr_table_decode(my_thread, table, (uintptr_t)encoded);
     }
-    if (filc_ptr_is_totally_null(resolved))
+    if (!filc_ptr_ptr(resolved))
         return NULL;
     void* address = filc_ptr_ptr(resolved);
     if (mod)
@@ -1018,7 +1020,7 @@ void filc_native_FilLLVMJIT_SetResolveCallback(filc_thread* my_thread, filc_ptr 
 {
     ensure_api(my_thread);
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
-    FILC_CHECK(!filc_ptr_is_totally_null(resolver_ptr), NULL,
+    FILC_CHECK(filc_ptr_ptr(resolver_ptr), NULL,
                "FilLLVMJIT_SetResolveCallback: null resolver.");
     filc_check_function_call(resolver_ptr);
     pas_lock_lock(&session->lock);
@@ -1035,7 +1037,7 @@ int filc_native_FilLLVMJIT_SetZExactPointerTable(filc_thread* my_thread, filc_pt
 {
     ensure_api(my_thread);
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
-    FILC_CHECK(!filc_ptr_is_totally_null(table_ptr), NULL,
+    FILC_CHECK(filc_ptr_ptr(table_ptr), NULL,
                "FilLLVMJIT_SetZExactPointerTable: null table.");
     filc_check_access_special(table_ptr, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE);
     pas_lock_lock(&session->lock);
@@ -1142,7 +1144,7 @@ static filc_ptr lookup_address(filc_thread* my_thread, filc_ptr module_ptr,
     // native thunk frames as for other runtime getters. Pollchecks bracket
     // the call with the non-null origin above.
     filc_ptr result = getter(my_thread, origin);
-    if (filc_ptr_is_totally_null(result)) {
+    if (!filc_ptr_ptr(result)) {
         jit_set_last_error("JIT lookup: getter returned null for '%s'.", name);
         return filc_ptr_forge_null();
     }
@@ -1224,8 +1226,7 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
     filc_llvm_jit_object* module_obj =
         unwrap_obj(my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE,
                    &context, &module_as_donor);
-    FILC_CHECK(module_obj, NULL, "FilLLVMJIT_CompileModule: null module.");
-    char* name = filc_check_and_get_tmp_str_or_null(my_thread, name_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     void* session_handle;
     void* module_handle = module_obj->handle;
     filc_llvm_jit_context_state* context_state = context->state;
@@ -1501,7 +1502,7 @@ filc_ptr filc_native_FilLLVMJIT_Resolve(filc_thread* my_thread, filc_ptr module_
     ensure_api(my_thread);
     filc_llvm_jit_jit_module_object* mod = unwrap_jit_module(my_thread, module_ptr);
     FILC_CHECK(mod, NULL, "FilLLVMJIT_Resolve: null module.");
-    char* name = filc_check_and_get_tmp_str_or_null(my_thread, name_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     filc_ptr resolved = filc_ptr_forge_null();
     resolve_impl(my_thread, mod, name, &resolved);
     return resolved;
@@ -1515,7 +1516,7 @@ filc_ptr filc_native_FilLLVMJIT_ResolveRawPointer(filc_thread* my_thread, filc_p
     filc_llvm_jit_jit_module_object* mod = unwrap_jit_module(my_thread, module_ptr);
     FILC_CHECK(mod, NULL, "FilLLVMJIT_ResolveRawPointer: null module.");
     filc_exact_ptr_table* table = NULL;
-    if (!filc_ptr_is_totally_null(table_ptr)) {
+    if (filc_ptr_ptr(table_ptr)) {
         filc_check_access_special(table_ptr, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE);
         table = (filc_exact_ptr_table*)filc_ptr_ptr(table_ptr);
     }
@@ -1552,8 +1553,7 @@ double filc_native_LLVMConstRealGetDouble(filc_thread* my_thread, filc_ptr value
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* value =
         unwrap_obj(my_thread, value_ptr, FILC_LLVM_JIT_KIND_VALUE,
-                                 &context, &module);
-    FILC_CHECK(value, NULL, "LLVMConstRealGetDouble: null value.");
+                   &context, &module);
     int loses_info = 0;
     double result;
     filc_check_write(loses_info_ptr, sizeof(int));
@@ -1573,7 +1573,6 @@ filc_ptr filc_native_LLVMGlobalCopyAllMetadata(filc_thread* my_thread, filc_ptr 
     filc_llvm_jit_object* value =
         unwrap_obj(my_thread, value_ptr, FILC_LLVM_JIT_KIND_VALUE,
                                  &context, &module);
-    FILC_CHECK(value, NULL, "LLVMGlobalCopyAllMetadata: null value.");
     size_t num_entries = 0;
     LLVMValueMetadataEntry* entries = NULL;
     filc_check_write(num_entries_ptr, sizeof(size_t));
@@ -1582,9 +1581,9 @@ filc_ptr filc_native_LLVMGlobalCopyAllMetadata(filc_thread* my_thread, filc_ptr 
     /* The entries array is never freed (the curated API has no Dispose for it); the
        wrapper records the count so the getters can bounds-check. */
     filc_ptr result = wrap_handle(my_thread, context, module,
-                                         FILC_LLVM_JIT_KIND_METADATA_ENTRIES,
-                                         (void*)entries);
-    if (!filc_ptr_is_totally_null(result)) {
+                                  FILC_LLVM_JIT_KIND_METADATA_ENTRIES,
+                                  (void*)entries);
+    if (filc_ptr_ptr(result)) {
         ((filc_llvm_jit_entries_object*)filc_ptr_ptr(result))->count = num_entries;
     }
     pas_lock_unlock(&context->lock);
@@ -1600,9 +1599,8 @@ filc_ptr filc_native_LLVMModuleFlagEntriesGetKey(filc_thread* my_thread,
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* entries =
         unwrap_obj(my_thread, entries_ptr,
-                                 FILC_LLVM_JIT_KIND_MODULE_FLAG_ENTRIES,
-                                 &context, &module);
-    FILC_CHECK(entries, NULL, "LLVMModuleFlagEntriesGetKey: null entries.");
+                   FILC_LLVM_JIT_KIND_MODULE_FLAG_ENTRIES,
+                   &context, &module);
     FILC_CHECK(context, NULL, "LLVMModuleFlagEntriesGetKey: entries without context.");
     const char* key;
     pas_lock_lock(&context->lock);
@@ -1625,7 +1623,7 @@ filc_ptr filc_native_LLVMTargetExtTypeInContext(
     char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     LLVMTypeRef* type_params = NULL;
     unsigned* int_params = NULL;
-    if (!filc_ptr_is_totally_null(type_params_ptr)) {
+    if (filc_ptr_ptr(type_params_ptr)) {
         void** decoded = decode_handle_array(
             my_thread, type_params_ptr, type_param_count, FILC_LLVM_JIT_KIND_TYPE,
             &context, &module);
@@ -1634,7 +1632,7 @@ filc_ptr filc_native_LLVMTargetExtTypeInContext(
         FILC_CHECK(!type_param_count, NULL,
                    "LLVMTargetExtTypeInContext: null type params with nonzero count.");
     }
-    if (!filc_ptr_is_totally_null(int_params_ptr)) {
+    if (filc_ptr_ptr(int_params_ptr)) {
         filc_check_read(int_params_ptr, filc_mul_size(int_param_count, sizeof(unsigned)));
         int_params = (unsigned*)filc_ptr_ptr(int_params_ptr);
     } else {
@@ -1661,9 +1659,8 @@ filc_ptr filc_native_LLVMConstIntOfArbitraryPrecision(
     filc_llvm_jit_object* int_ty =
         unwrap_obj(my_thread, int_ty_ptr, FILC_LLVM_JIT_KIND_TYPE,
                                  &context, &module);
-    FILC_CHECK(int_ty, NULL, "LLVMConstIntOfArbitraryPrecision: null type.");
     const uint64_t* words = NULL;
-    if (!filc_ptr_is_totally_null(words_ptr)) {
+    if (filc_ptr_ptr(words_ptr)) {
         filc_check_read(words_ptr, filc_mul_size(num_words, sizeof(uint64_t)));
         words = (const uint64_t*)filc_ptr_ptr(words_ptr);
     } else {
@@ -1690,14 +1687,14 @@ filc_ptr filc_native_LLVMCreateConstantRangeAttribute(
     unsigned num_words = (num_bits + 63u) / 64u;
     const uint64_t* lower_words = NULL;
     const uint64_t* upper_words = NULL;
-    if (!filc_ptr_is_totally_null(lower_words_ptr)) {
+    if (filc_ptr_ptr(lower_words_ptr)) {
         filc_check_read(lower_words_ptr, filc_mul_size(num_words, sizeof(uint64_t)));
         lower_words = (const uint64_t*)filc_ptr_ptr(lower_words_ptr);
     } else {
         FILC_CHECK(!num_words, NULL,
                    "LLVMCreateConstantRangeAttribute: null lower words with nonzero count.");
     }
-    if (!filc_ptr_is_totally_null(upper_words_ptr)) {
+    if (filc_ptr_ptr(upper_words_ptr)) {
         filc_check_read(upper_words_ptr, filc_mul_size(num_words, sizeof(uint64_t)));
         upper_words = (const uint64_t*)filc_ptr_ptr(upper_words_ptr);
     } else {
@@ -1724,7 +1721,7 @@ filc_ptr filc_native_LLVMBuildCallBr(
     ensure_api(my_thread);
     /* Operand bundles have no constructors in the curated API, so only null is
        accepted today (the count must be zero with it). */
-    FILC_CHECK(filc_ptr_is_totally_null(bundles_ptr), NULL,
+    FILC_CHECK(!filc_ptr_ptr(bundles_ptr), NULL,
                "LLVMBuildCallBr: operand bundles are not supported in the curated API (pass null).");
     FILC_CHECK(!num_bundles, NULL,
                "LLVMBuildCallBr: nonzero bundle count with null bundles.");
@@ -1732,23 +1729,22 @@ filc_ptr filc_native_LLVMBuildCallBr(
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* builder =
         unwrap_obj(my_thread, builder_ptr, FILC_LLVM_JIT_KIND_BUILDER,
-                                 &context, &module);
-    FILC_CHECK(builder, NULL, "LLVMBuildCallBr: null builder.");
+                   &context, &module);
     filc_llvm_jit_object* ty =
         unwrap_obj(my_thread, ty_ptr, FILC_LLVM_JIT_KIND_TYPE,
-                                 &context, &module);
+                   &context, &module);
     filc_llvm_jit_object* fn =
         unwrap_obj(my_thread, fn_ptr, FILC_LLVM_JIT_KIND_VALUE,
-                                 &context, &module);
+                   &context, &module);
     filc_llvm_jit_object* default_dest =
         unwrap_obj(my_thread, default_dest_ptr, FILC_LLVM_JIT_KIND_BASIC_BLOCK,
-                                 &context, &module);
+                   &context, &module);
     LLVMBasicBlockRef* indirect_dests = (LLVMBasicBlockRef*)decode_handle_array(
         my_thread, indirect_dests_ptr, num_indirect_dests, FILC_LLVM_JIT_KIND_BASIC_BLOCK,
         &context, &module);
     LLVMValueRef* args = (LLVMValueRef*)decode_handle_array(
         my_thread, args_ptr, num_args, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* name = filc_check_and_get_tmp_str_or_null(my_thread, name_ptr);
+    const char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->lock);
     result_raw = api->LLVMBuildCallBr((LLVMBuilderRef)builder->handle,
@@ -1794,7 +1790,6 @@ void filc_native_LLVMGetAttributesAtIndex(filc_thread* my_thread, filc_ptr fn_pt
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* fn = unwrap_obj(
         my_thread, fn_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    FILC_CHECK(fn, NULL, "LLVMGetAttributesAtIndex: null function.");
     LLVMAttributeRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -1821,7 +1816,6 @@ void filc_native_LLVMGetCallSiteAttributes(filc_thread* my_thread, filc_ptr call
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* call = unwrap_obj(
         my_thread, call_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    FILC_CHECK(call, NULL, "LLVMGetCallSiteAttributes: null call.");
     LLVMAttributeRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -1848,7 +1842,6 @@ void filc_native_LLVMGetBasicBlocks(filc_thread* my_thread, filc_ptr fn_ptr,
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* fn = unwrap_obj(
         my_thread, fn_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    FILC_CHECK(fn, NULL, "LLVMGetBasicBlocks: null function.");
     LLVMBasicBlockRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -1875,7 +1868,6 @@ void filc_native_LLVMGetHandlers(filc_thread* my_thread, filc_ptr catch_switch_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* catch_switch = unwrap_obj(
         my_thread, catch_switch_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    FILC_CHECK(catch_switch, NULL, "LLVMGetHandlers: null catchswitch.");
     LLVMBasicBlockRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -1902,7 +1894,6 @@ void filc_native_LLVMGetMDNodeOperands(filc_thread* my_thread, filc_ptr value_pt
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* value = unwrap_obj(
         my_thread, value_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    FILC_CHECK(value, NULL, "LLVMGetMDNodeOperands: null value.");
     LLVMValueRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -1929,7 +1920,6 @@ void filc_native_LLVMGetNamedMetadataOperands(filc_thread* my_thread, filc_ptr m
     filc_llvm_jit_object* module_donor = NULL;
     filc_llvm_jit_object* module_obj = unwrap_obj(
         my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE, &context, &module_donor);
-    FILC_CHECK(module_obj, NULL, "LLVMGetNamedMetadataOperands: null module.");
     char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     LLVMValueRef* tmp = NULL;
     unsigned count = 0;
@@ -1957,7 +1947,6 @@ void filc_native_LLVMGetParamTypes(filc_thread* my_thread, filc_ptr function_ty_
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* function_ty = unwrap_obj(
         my_thread, function_ty_ptr, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    FILC_CHECK(function_ty, NULL, "LLVMGetParamTypes: null type.");
     LLVMTypeRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -1983,7 +1972,6 @@ void filc_native_LLVMGetParams(filc_thread* my_thread, filc_ptr fn_ptr, filc_ptr
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* fn = unwrap_obj(
         my_thread, fn_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    FILC_CHECK(fn, NULL, "LLVMGetParams: null function.");
     LLVMValueRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -2010,7 +1998,6 @@ void filc_native_LLVMGetStructElementTypes(filc_thread* my_thread, filc_ptr stru
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* struct_ty = unwrap_obj(
         my_thread, struct_ty_ptr, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    FILC_CHECK(struct_ty, NULL, "LLVMGetStructElementTypes: null type.");
     LLVMTypeRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -2036,7 +2023,6 @@ void filc_native_LLVMGetSubtypes(filc_thread* my_thread, filc_ptr ty_ptr, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* ty = unwrap_obj(
         my_thread, ty_ptr, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    FILC_CHECK(ty, NULL, "LLVMGetSubtypes: null type.");
     LLVMTypeRef* tmp = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
@@ -2112,7 +2098,6 @@ static filc_ptr new_sized_string(filc_thread* my_thread, const char* str,
         filc_llvm_jit_object* parent = unwrap_obj( \
             my_thread, parent_ptr, kind, &context, &module); \
         const char* raw; \
-        FILC_CHECK(parent, NULL, #c_name ": null parent."); \
         pas_lock_lock(&context->lock); \
         raw = api->c_name((void*)parent->handle); \
         filc_ptr result = filc_strdup(my_thread, raw); \
@@ -2130,7 +2115,6 @@ static filc_ptr new_sized_string(filc_thread* my_thread, const char* str,
             my_thread, parent_ptr, kind, &context, &module); \
         len_type length = 0; \
         const char* raw; \
-        FILC_CHECK(parent, NULL, #c_name ": null parent."); \
         pas_lock_lock(&context->lock); \
         raw = api->c_name((void*)parent->handle, &length); \
         filc_ptr result = \
@@ -2190,7 +2174,6 @@ filc_ptr filc_native_LLVMGetIndices(filc_thread* my_thread, filc_ptr inst_ptr)
         my_thread, inst_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     unsigned count = 0;
     const unsigned* indices = NULL;
-    FILC_CHECK(inst, NULL, "LLVMGetIndices: null instruction.");
     pas_lock_lock(&context->lock);
     count = api->LLVMGetNumIndices((LLVMValueRef)inst->handle);
     indices = api->LLVMGetIndices((LLVMValueRef)inst->handle);
@@ -2211,7 +2194,6 @@ filc_ptr filc_native_LLVMInstructionGetAllMetadataOtherThanDebugLoc(
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* inst = unwrap_obj(
         my_thread, inst_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    FILC_CHECK(inst, NULL, "LLVMInstructionGetAllMetadataOtherThanDebugLoc: null value.");
     size_t num_entries = 0;
     LLVMValueMetadataEntry* entries = NULL;
     filc_check_write(num_entries_ptr, sizeof(size_t));
@@ -2221,7 +2203,7 @@ filc_ptr filc_native_LLVMInstructionGetAllMetadataOtherThanDebugLoc(
     filc_ptr result = wrap_handle(my_thread, context, module,
                                          FILC_LLVM_JIT_KIND_METADATA_ENTRIES,
                                          (void*)entries);
-    if (!filc_ptr_is_totally_null(result)) {
+    if (filc_ptr_ptr(result)) {
         ((filc_llvm_jit_entries_object*)filc_ptr_ptr(result))->count = num_entries;
     }
     pas_lock_unlock(&context->lock);
@@ -2263,10 +2245,7 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
         &context, &module_donor);
     size_t name_length = 0;
     char* raw;
-    FILC_CHECK(module_obj, NULL, "LLVMIntrinsicCopyOverloadedName2: null module.");
     pas_lock_lock(&context->lock);
-    /* Owned by LLVM (would need LLVMDisposeMessage in the full C API, which
-       the curated API omits): the original leaks by design, only the copy escapes. */
     raw = api->LLVMIntrinsicCopyOverloadedName2((LLVMModuleRef)module_obj->handle, id,
                                                 param_types, param_count, &name_length);
     filc_ptr result = new_sized_string(my_thread, raw, name_length);
@@ -2286,7 +2265,7 @@ filc_ptr filc_native_LLVMAddAlias2(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMAddAlias2((LLVMModuleRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), p2, (LLVMValueRef)handle_of(a3), a4);
@@ -2362,7 +2341,7 @@ filc_ptr filc_native_LLVMAddFunction(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
@@ -2379,7 +2358,7 @@ filc_ptr filc_native_LLVMAddGlobal(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMAddGlobal((LLVMModuleRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2);
@@ -2395,7 +2374,7 @@ filc_ptr filc_native_LLVMAddGlobalIFunc(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMAddGlobalIFunc: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -2419,7 +2398,7 @@ filc_ptr filc_native_LLVMAddGlobalInAddressSpace(filc_thread* my_thread, filc_pt
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMAddGlobalInAddressSpace((LLVMModuleRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2, p3);
@@ -2472,7 +2451,7 @@ void filc_native_LLVMAddModuleFlag(filc_thread* my_thread, filc_ptr p0, unsigned
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a2;
-    if (filc_ptr_is_totally_null(p2)) {
+    if (!filc_ptr_ptr(p2)) {
         FILC_CHECK(p3 == 0, NULL, "LLVMAddModuleFlag: null string with nonzero length.");
         a2 = NULL;
     } else {
@@ -2491,7 +2470,7 @@ void filc_native_LLVMAddNamedMetadataOperand(filc_thread* my_thread, filc_ptr p0
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     pas_lock_lock(&context->lock);
     api->LLVMAddNamedMetadataOperand((LLVMModuleRef)handle_of(a0), a1, (LLVMValueRef)handle_of(a2));
@@ -2504,8 +2483,8 @@ void filc_native_LLVMAddTargetDependentFunctionAttr(filc_thread* my_thread, filc
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     pas_lock_lock(&context->lock);
     api->LLVMAddTargetDependentFunctionAttr((LLVMValueRef)handle_of(a0), a1, a2);
     pas_lock_unlock(&context->state);
@@ -2560,7 +2539,7 @@ filc_ptr filc_native_LLVMAppendBasicBlockInContext(filc_thread* my_thread, filc_
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMBasicBlockRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMAppendBasicBlockInContext((LLVMContextRef)a0->state->handle, (LLVMValueRef)handle_of(a1), a2);
@@ -2588,7 +2567,7 @@ void filc_native_LLVMAppendModuleInlineAsm(filc_thread* my_thread, filc_ptr p0, 
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMAppendModuleInlineAsm: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -2681,7 +2660,7 @@ filc_ptr filc_native_LLVMBuildAShr(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildAShr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -2698,7 +2677,7 @@ filc_ptr filc_native_LLVMBuildAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildAdd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -2715,7 +2694,7 @@ filc_ptr filc_native_LLVMBuildAddrSpaceCast(filc_thread* my_thread, filc_ptr p0,
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildAddrSpaceCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -2746,7 +2725,7 @@ filc_ptr filc_native_LLVMBuildAlloca(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildAlloca((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2);
@@ -2763,7 +2742,7 @@ filc_ptr filc_native_LLVMBuildAnd(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildAnd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -2780,7 +2759,7 @@ filc_ptr filc_native_LLVMBuildArrayAlloca(filc_thread* my_thread, filc_ptr p0, f
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildArrayAlloca((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -2797,7 +2776,7 @@ filc_ptr filc_native_LLVMBuildArrayMalloc(filc_thread* my_thread, filc_ptr p0, f
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildArrayMalloc((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -2880,7 +2859,7 @@ filc_ptr filc_native_LLVMBuildBinOp(filc_thread* my_thread, filc_ptr p0, unsigne
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildBinOp((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
@@ -2897,7 +2876,7 @@ filc_ptr filc_native_LLVMBuildBitCast(filc_thread* my_thread, filc_ptr p0, filc_
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildBitCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -2930,7 +2909,7 @@ filc_ptr filc_native_LLVMBuildCall2(filc_thread* my_thread, filc_ptr p0, filc_pt
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a5 = filc_check_and_get_tmp_str_or_null(my_thread, p5);
+    const char* a5 = filc_check_and_get_tmp_str(my_thread, p5);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildCall2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, a5);
@@ -2947,7 +2926,7 @@ filc_ptr filc_native_LLVMBuildCast(filc_thread* my_thread, filc_ptr p0, unsigned
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildCast((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMTypeRef)handle_of(a3), a4);
@@ -2964,7 +2943,7 @@ filc_ptr filc_native_LLVMBuildCatchPad(filc_thread* my_thread, filc_ptr p0, filc
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     LLVMValueRef* a2 = (LLVMValueRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildCatchPad((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2, p3, a4);
@@ -2997,7 +2976,7 @@ filc_ptr filc_native_LLVMBuildCatchSwitch(filc_thread* my_thread, filc_ptr p0, f
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildCatchSwitch((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMBasicBlockRef)handle_of(a2), p3, a4);
@@ -3014,7 +2993,7 @@ filc_ptr filc_native_LLVMBuildCleanupPad(filc_thread* my_thread, filc_ptr p0, fi
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     LLVMValueRef* a2 = (LLVMValueRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildCleanupPad((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2, p3, a4);
@@ -3064,7 +3043,7 @@ filc_ptr filc_native_LLVMBuildExactSDiv(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildExactSDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3081,7 +3060,7 @@ filc_ptr filc_native_LLVMBuildExactUDiv(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildExactUDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3098,7 +3077,7 @@ filc_ptr filc_native_LLVMBuildExtractElement(filc_thread* my_thread, filc_ptr p0
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildExtractElement((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3114,7 +3093,7 @@ filc_ptr filc_native_LLVMBuildExtractValue(filc_thread* my_thread, filc_ptr p0, 
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildExtractValue((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), p2, a3);
@@ -3131,7 +3110,7 @@ filc_ptr filc_native_LLVMBuildFAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFAdd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3148,7 +3127,7 @@ filc_ptr filc_native_LLVMBuildFCmp(filc_thread* my_thread, filc_ptr p0, unsigned
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFCmp((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
@@ -3165,7 +3144,7 @@ filc_ptr filc_native_LLVMBuildFDiv(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3182,7 +3161,7 @@ filc_ptr filc_native_LLVMBuildFMul(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFMul((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3198,7 +3177,7 @@ filc_ptr filc_native_LLVMBuildFNeg(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFNeg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
@@ -3215,7 +3194,7 @@ filc_ptr filc_native_LLVMBuildFPCast(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFPCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -3232,7 +3211,7 @@ filc_ptr filc_native_LLVMBuildFPExt(filc_thread* my_thread, filc_ptr p0, filc_pt
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFPExt((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -3249,7 +3228,7 @@ filc_ptr filc_native_LLVMBuildFPToSI(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFPToSI((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -3266,7 +3245,7 @@ filc_ptr filc_native_LLVMBuildFPToUI(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFPToUI((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -3283,7 +3262,7 @@ filc_ptr filc_native_LLVMBuildFPTrunc(filc_thread* my_thread, filc_ptr p0, filc_
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFPTrunc((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -3300,7 +3279,7 @@ filc_ptr filc_native_LLVMBuildFRem(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFRem((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3317,7 +3296,7 @@ filc_ptr filc_native_LLVMBuildFSub(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFSub((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3332,7 +3311,7 @@ filc_ptr filc_native_LLVMBuildFence(filc_thread* my_thread, filc_ptr p0, unsigne
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFence((LLVMBuilderRef)handle_of(a0), p1, p2, a3);
@@ -3347,7 +3326,7 @@ filc_ptr filc_native_LLVMBuildFenceSyncScope(filc_thread* my_thread, filc_ptr p0
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFenceSyncScope((LLVMBuilderRef)handle_of(a0), p1, p2, a3);
@@ -3378,7 +3357,7 @@ filc_ptr filc_native_LLVMBuildFreeze(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildFreeze((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
@@ -3396,7 +3375,7 @@ filc_ptr filc_native_LLVMBuildGEP2(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a5 = filc_check_and_get_tmp_str_or_null(my_thread, p5);
+    const char* a5 = filc_check_and_get_tmp_str(my_thread, p5);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildGEP2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, a5);
@@ -3414,7 +3393,7 @@ filc_ptr filc_native_LLVMBuildGEPWithNoWrapFlags(filc_thread* my_thread, filc_pt
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a5 = filc_check_and_get_tmp_str_or_null(my_thread, p5);
+    const char* a5 = filc_check_and_get_tmp_str(my_thread, p5);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildGEPWithNoWrapFlags((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, a5, p6);
@@ -3429,8 +3408,8 @@ filc_ptr filc_native_LLVMBuildGlobalString(filc_thread* my_thread, filc_ptr p0, 
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildGlobalString((LLVMBuilderRef)handle_of(a0), a1, a2);
@@ -3445,8 +3424,8 @@ filc_ptr filc_native_LLVMBuildGlobalStringPtr(filc_thread* my_thread, filc_ptr p
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildGlobalStringPtr((LLVMBuilderRef)handle_of(a0), a1, a2);
@@ -3463,7 +3442,7 @@ filc_ptr filc_native_LLVMBuildICmp(filc_thread* my_thread, filc_ptr p0, unsigned
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildICmp((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
@@ -3481,7 +3460,7 @@ filc_ptr filc_native_LLVMBuildInBoundsGEP2(filc_thread* my_thread, filc_ptr p0, 
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a5 = filc_check_and_get_tmp_str_or_null(my_thread, p5);
+    const char* a5 = filc_check_and_get_tmp_str(my_thread, p5);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildInBoundsGEP2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, a5);
@@ -3514,7 +3493,7 @@ filc_ptr filc_native_LLVMBuildInsertElement(filc_thread* my_thread, filc_ptr p0,
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildInsertElement((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
@@ -3531,7 +3510,7 @@ filc_ptr filc_native_LLVMBuildInsertValue(filc_thread* my_thread, filc_ptr p0, f
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildInsertValue((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), p3, a4);
@@ -3548,7 +3527,7 @@ filc_ptr filc_native_LLVMBuildIntCast(filc_thread* my_thread, filc_ptr p0, filc_
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildIntCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -3565,7 +3544,7 @@ filc_ptr filc_native_LLVMBuildIntCast2(filc_thread* my_thread, filc_ptr p0, filc
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildIntCast2((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), p3, a4);
@@ -3582,7 +3561,7 @@ filc_ptr filc_native_LLVMBuildIntToPtr(filc_thread* my_thread, filc_ptr p0, filc
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildIntToPtr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -3602,7 +3581,7 @@ filc_ptr filc_native_LLVMBuildInvoke2(filc_thread* my_thread, filc_ptr p0, filc_
     LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a5 = unwrap_obj(my_thread, p5, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
     filc_llvm_jit_object* a6 = unwrap_obj(my_thread, p6, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    const char* a7 = filc_check_and_get_tmp_str_or_null(my_thread, p7);
+    const char* a7 = filc_check_and_get_tmp_str(my_thread, p7);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildInvoke2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, (LLVMBasicBlockRef)handle_of(a5), (LLVMBasicBlockRef)handle_of(a6), a7);
@@ -3618,7 +3597,7 @@ filc_ptr filc_native_LLVMBuildIsNotNull(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildIsNotNull((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
@@ -3634,7 +3613,7 @@ filc_ptr filc_native_LLVMBuildIsNull(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildIsNull((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
@@ -3651,7 +3630,7 @@ filc_ptr filc_native_LLVMBuildLShr(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildLShr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3668,7 +3647,7 @@ filc_ptr filc_native_LLVMBuildLandingPad(filc_thread* my_thread, filc_ptr p0, fi
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildLandingPad((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), p3, a4);
@@ -3685,7 +3664,7 @@ filc_ptr filc_native_LLVMBuildLoad2(filc_thread* my_thread, filc_ptr p0, filc_pt
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildLoad2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3701,7 +3680,7 @@ filc_ptr filc_native_LLVMBuildMalloc(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildMalloc((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2);
@@ -3769,7 +3748,7 @@ filc_ptr filc_native_LLVMBuildMul(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildMul((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3786,7 +3765,7 @@ filc_ptr filc_native_LLVMBuildNSWAdd(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNSWAdd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3803,7 +3782,7 @@ filc_ptr filc_native_LLVMBuildNSWMul(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNSWMul((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3819,7 +3798,7 @@ filc_ptr filc_native_LLVMBuildNSWNeg(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNSWNeg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
@@ -3836,7 +3815,7 @@ filc_ptr filc_native_LLVMBuildNSWSub(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNSWSub((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3853,7 +3832,7 @@ filc_ptr filc_native_LLVMBuildNUWAdd(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNUWAdd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3870,7 +3849,7 @@ filc_ptr filc_native_LLVMBuildNUWMul(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNUWMul((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3887,7 +3866,7 @@ filc_ptr filc_native_LLVMBuildNUWSub(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNUWSub((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3903,7 +3882,7 @@ filc_ptr filc_native_LLVMBuildNeg(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNeg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
@@ -3919,7 +3898,7 @@ filc_ptr filc_native_LLVMBuildNot(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildNot((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
@@ -3936,7 +3915,7 @@ filc_ptr filc_native_LLVMBuildOr(filc_thread* my_thread, filc_ptr p0, filc_ptr p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildOr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -3952,7 +3931,7 @@ filc_ptr filc_native_LLVMBuildPhi(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildPhi((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2);
@@ -3969,7 +3948,7 @@ filc_ptr filc_native_LLVMBuildPointerCast(filc_thread* my_thread, filc_ptr p0, f
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildPointerCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -3987,7 +3966,7 @@ filc_ptr filc_native_LLVMBuildPtrDiff2(filc_thread* my_thread, filc_ptr p0, filc
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildPtrDiff2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
@@ -4004,7 +3983,7 @@ filc_ptr filc_native_LLVMBuildPtrToInt(filc_thread* my_thread, filc_ptr p0, filc
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildPtrToInt((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4065,7 +4044,7 @@ filc_ptr filc_native_LLVMBuildSDiv(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildSDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -4082,7 +4061,7 @@ filc_ptr filc_native_LLVMBuildSExt(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildSExt((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4099,7 +4078,7 @@ filc_ptr filc_native_LLVMBuildSExtOrBitCast(filc_thread* my_thread, filc_ptr p0,
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildSExtOrBitCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4116,7 +4095,7 @@ filc_ptr filc_native_LLVMBuildSIToFP(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildSIToFP((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4133,7 +4112,7 @@ filc_ptr filc_native_LLVMBuildSRem(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildSRem((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -4151,7 +4130,7 @@ filc_ptr filc_native_LLVMBuildSelect(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildSelect((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
@@ -4168,7 +4147,7 @@ filc_ptr filc_native_LLVMBuildShl(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildShl((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -4186,7 +4165,7 @@ filc_ptr filc_native_LLVMBuildShuffleVector(filc_thread* my_thread, filc_ptr p0,
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildShuffleVector((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
@@ -4219,7 +4198,7 @@ filc_ptr filc_native_LLVMBuildStructGEP2(filc_thread* my_thread, filc_ptr p0, fi
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str_or_null(my_thread, p4);
+    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildStructGEP2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), p3, a4);
@@ -4236,7 +4215,7 @@ filc_ptr filc_native_LLVMBuildSub(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildSub((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -4269,7 +4248,7 @@ filc_ptr filc_native_LLVMBuildTrunc(filc_thread* my_thread, filc_ptr p0, filc_pt
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildTrunc((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4286,7 +4265,7 @@ filc_ptr filc_native_LLVMBuildTruncOrBitCast(filc_thread* my_thread, filc_ptr p0
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildTruncOrBitCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4303,7 +4282,7 @@ filc_ptr filc_native_LLVMBuildUDiv(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildUDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -4320,7 +4299,7 @@ filc_ptr filc_native_LLVMBuildUIToFP(filc_thread* my_thread, filc_ptr p0, filc_p
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildUIToFP((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4337,7 +4316,7 @@ filc_ptr filc_native_LLVMBuildURem(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildURem((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -4368,7 +4347,7 @@ filc_ptr filc_native_LLVMBuildVAArg(filc_thread* my_thread, filc_ptr p0, filc_pt
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildVAArg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4385,7 +4364,7 @@ filc_ptr filc_native_LLVMBuildXor(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildXor((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
@@ -4402,7 +4381,7 @@ filc_ptr filc_native_LLVMBuildZExt(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildZExt((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4419,7 +4398,7 @@ filc_ptr filc_native_LLVMBuildZExtOrBitCast(filc_thread* my_thread, filc_ptr p0,
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
     filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str_or_null(my_thread, p3);
+    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMBuildZExtOrBitCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
@@ -4651,8 +4630,8 @@ filc_ptr filc_native_LLVMConstInlineAsm(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
-    const char* a2 = filc_check_and_get_tmp_str_or_null(my_thread, p2);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
+    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMConstInlineAsm((LLVMTypeRef)handle_of(a0), a1, a2, p3, p4);
@@ -4725,7 +4704,7 @@ filc_ptr filc_native_LLVMConstIntOfString(filc_thread* my_thread, filc_ptr p0, f
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMConstIntOfString((LLVMTypeRef)handle_of(a0), a1, p2);
@@ -4741,7 +4720,7 @@ filc_ptr filc_native_LLVMConstIntOfStringAndSize(filc_thread* my_thread, filc_pt
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMConstIntOfStringAndSize: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -5011,7 +4990,7 @@ filc_ptr filc_native_LLVMConstRealOfString(filc_thread* my_thread, filc_ptr p0, 
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMConstRealOfString((LLVMTypeRef)handle_of(a0), a1);
@@ -5027,7 +5006,7 @@ filc_ptr filc_native_LLVMConstRealOfStringAndSize(filc_thread* my_thread, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMConstRealOfStringAndSize: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -5067,7 +5046,7 @@ filc_ptr filc_native_LLVMConstStringInContext(filc_thread* my_thread, filc_ptr p
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMConstStringInContext: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -5090,7 +5069,7 @@ filc_ptr filc_native_LLVMConstStringInContext2(filc_thread* my_thread, filc_ptr 
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMConstStringInContext2: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -5317,7 +5296,7 @@ filc_ptr filc_native_LLVMCreateBasicBlockInContext(filc_thread* my_thread, filc_
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     LLVMBasicBlockRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMCreateBasicBlockInContext((LLVMContextRef)a0->state->handle, a1);
@@ -5365,7 +5344,7 @@ filc_ptr filc_native_LLVMCreateStringAttribute(filc_thread* my_thread, filc_ptr 
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMCreateStringAttribute: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -5373,7 +5352,7 @@ filc_ptr filc_native_LLVMCreateStringAttribute(filc_thread* my_thread, filc_ptr 
         a1 = (const char*)filc_ptr_ptr(p1);
     }
     const char* a3;
-    if (filc_ptr_is_totally_null(p3)) {
+    if (!filc_ptr_ptr(p3)) {
         FILC_CHECK(p4 == 0, NULL, "LLVMCreateStringAttribute: null string with nonzero length.");
         a3 = NULL;
     } else {
@@ -5798,7 +5777,7 @@ filc_ptr filc_native_LLVMGetCallSiteStringAttribute(filc_thread* my_thread, filc
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     const char* a2;
-    if (filc_ptr_is_totally_null(p2)) {
+    if (!filc_ptr_ptr(p2)) {
         FILC_CHECK(p3 == 0, NULL, "LLVMGetCallSiteStringAttribute: null string with nonzero length.");
         a2 = NULL;
     } else {
@@ -6114,7 +6093,7 @@ unsigned filc_native_LLVMGetEnumAttributeKindForName(filc_thread* my_thread, fil
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     const char* a0;
-    if (filc_ptr_is_totally_null(p0)) {
+    if (!filc_ptr_ptr(p0)) {
         FILC_CHECK(p1 == 0, NULL, "LLVMGetEnumAttributeKindForName: null string with nonzero length.");
         a0 = NULL;
     } else {
@@ -6439,7 +6418,7 @@ filc_ptr filc_native_LLVMGetInlineAsm(filc_thread* my_thread, filc_ptr p0, filc_
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetInlineAsm: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -6447,7 +6426,7 @@ filc_ptr filc_native_LLVMGetInlineAsm(filc_thread* my_thread, filc_ptr p0, filc_
         a1 = (const char*)filc_ptr_ptr(p1);
     }
     const char* a3;
-    if (filc_ptr_is_totally_null(p3)) {
+    if (!filc_ptr_ptr(p3)) {
         FILC_CHECK(p4 == 0, NULL, "LLVMGetInlineAsm: null string with nonzero length.");
         a3 = NULL;
     } else {
@@ -6800,7 +6779,7 @@ unsigned filc_native_LLVMGetMDKindIDInContext(filc_thread* my_thread, filc_ptr p
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetMDKindIDInContext: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -6878,7 +6857,7 @@ filc_ptr filc_native_LLVMGetModuleFlag(filc_thread* my_thread, filc_ptr p0, filc
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetModuleFlag: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -6941,7 +6920,7 @@ filc_ptr filc_native_LLVMGetNamedFunction(filc_thread* my_thread, filc_ptr p0, f
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMGetNamedFunction((LLVMModuleRef)handle_of(a0), a1);
@@ -6957,7 +6936,7 @@ filc_ptr filc_native_LLVMGetNamedFunctionWithLength(filc_thread* my_thread, filc
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedFunctionWithLength: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -6978,7 +6957,7 @@ filc_ptr filc_native_LLVMGetNamedGlobal(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMGetNamedGlobal((LLVMModuleRef)handle_of(a0), a1);
@@ -6994,7 +6973,7 @@ filc_ptr filc_native_LLVMGetNamedGlobalAlias(filc_thread* my_thread, filc_ptr p0
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedGlobalAlias: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -7016,7 +6995,7 @@ filc_ptr filc_native_LLVMGetNamedGlobalIFunc(filc_thread* my_thread, filc_ptr p0
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedGlobalIFunc: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -7038,7 +7017,7 @@ filc_ptr filc_native_LLVMGetNamedGlobalWithLength(filc_thread* my_thread, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedGlobalWithLength: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -7060,7 +7039,7 @@ filc_ptr filc_native_LLVMGetNamedMetadata(filc_thread* my_thread, filc_ptr p0, f
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedMetadata: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -7081,7 +7060,7 @@ unsigned filc_native_LLVMGetNamedMetadataNumOperands(filc_thread* my_thread, fil
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     unsigned result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMGetNamedMetadataNumOperands((LLVMModuleRef)handle_of(a0), a1);
@@ -7391,7 +7370,7 @@ filc_ptr filc_native_LLVMGetOrInsertNamedMetadata(filc_thread* my_thread, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetOrInsertNamedMetadata: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -7679,7 +7658,7 @@ filc_ptr filc_native_LLVMGetStringAttributeAtIndex(filc_thread* my_thread, filc_
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     const char* a2;
-    if (filc_ptr_is_totally_null(p2)) {
+    if (!filc_ptr_ptr(p2)) {
         FILC_CHECK(p3 == 0, NULL, "LLVMGetStringAttributeAtIndex: null string with nonzero length.");
         a2 = NULL;
     } else {
@@ -7730,7 +7709,7 @@ unsigned filc_native_LLVMGetSyncScopeID(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMGetSyncScopeID: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -7849,7 +7828,7 @@ filc_ptr filc_native_LLVMGetTypeByName(filc_thread* my_thread, filc_ptr p0, filc
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     LLVMTypeRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMGetTypeByName((LLVMModuleRef)handle_of(a0), a1);
@@ -7865,7 +7844,7 @@ filc_ptr filc_native_LLVMGetTypeByName2(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     LLVMTypeRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMGetTypeByName2((LLVMContextRef)a0->state->handle, a1);
@@ -9970,7 +9949,7 @@ unsigned filc_native_LLVMLookupIntrinsicID(filc_thread* my_thread, filc_ptr p0, 
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     const char* a0;
-    if (filc_ptr_is_totally_null(p0)) {
+    if (!filc_ptr_ptr(p0)) {
         FILC_CHECK(p1 == 0, NULL, "LLVMLookupIntrinsicID: null string with nonzero length.");
         a0 = NULL;
     } else {
@@ -10027,7 +10006,7 @@ filc_ptr filc_native_LLVMMDStringInContext(filc_thread* my_thread, filc_ptr p0, 
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMMDStringInContext: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -10050,7 +10029,7 @@ filc_ptr filc_native_LLVMMDStringInContext2(filc_thread* my_thread, filc_ptr p0,
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMMDStringInContext2: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -10102,7 +10081,7 @@ filc_ptr filc_native_LLVMModuleCreateWithNameInContext(filc_thread* my_thread, f
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
-    const char* a0 = filc_check_and_get_tmp_str_or_null(my_thread, p0);
+    const char* a0 = filc_check_and_get_tmp_str(my_thread, p0);
     filc_llvm_jit_context_object* a1 = unwrap_context(my_thread, p1);
     context = a1;
     LLVMModuleRef result_raw;
@@ -10314,7 +10293,7 @@ void filc_native_LLVMRemoveCallSiteStringAttribute(filc_thread* my_thread, filc_
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     const char* a2;
-    if (filc_ptr_is_totally_null(p2)) {
+    if (!filc_ptr_ptr(p2)) {
         FILC_CHECK(p3 == 0, NULL, "LLVMRemoveCallSiteStringAttribute: null string with nonzero length.");
         a2 = NULL;
     } else {
@@ -10344,7 +10323,7 @@ void filc_native_LLVMRemoveStringAttributeAtIndex(filc_thread* my_thread, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     const char* a2;
-    if (filc_ptr_is_totally_null(p2)) {
+    if (!filc_ptr_ptr(p2)) {
         FILC_CHECK(p3 == 0, NULL, "LLVMRemoveStringAttributeAtIndex: null string with nonzero length.");
         a2 = NULL;
     } else {
@@ -10536,7 +10515,7 @@ void filc_native_LLVMSetDataLayout(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     pas_lock_lock(&context->lock);
     api->LLVMSetDataLayout((LLVMModuleRef)handle_of(a0), a1);
     pas_lock_unlock(&context->state);
@@ -10592,7 +10571,7 @@ void filc_native_LLVMSetGC(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     pas_lock_lock(&context->lock);
     api->LLVMSetGC((LLVMValueRef)handle_of(a0), a1);
     pas_lock_unlock(&context->state);
@@ -10730,7 +10709,7 @@ void filc_native_LLVMSetModuleIdentifier(filc_thread* my_thread, filc_ptr p0, fi
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMSetModuleIdentifier: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -10748,7 +10727,7 @@ void filc_native_LLVMSetModuleInlineAsm(filc_thread* my_thread, filc_ptr p0, fil
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     pas_lock_lock(&context->lock);
     api->LLVMSetModuleInlineAsm((LLVMModuleRef)handle_of(a0), a1);
     pas_lock_unlock(&context->state);
@@ -10761,7 +10740,7 @@ void filc_native_LLVMSetModuleInlineAsm2(filc_thread* my_thread, filc_ptr p0, fi
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMSetModuleInlineAsm2: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -10906,7 +10885,7 @@ void filc_native_LLVMSetSection(filc_thread* my_thread, filc_ptr p0, filc_ptr p1
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     pas_lock_lock(&context->lock);
     api->LLVMSetSection((LLVMValueRef)handle_of(a0), a1);
     pas_lock_unlock(&context->state);
@@ -10919,7 +10898,7 @@ void filc_native_LLVMSetSourceFileName(filc_thread* my_thread, filc_ptr p0, filc
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMSetSourceFileName: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -10971,7 +10950,7 @@ void filc_native_LLVMSetTarget(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     pas_lock_lock(&context->lock);
     api->LLVMSetTarget((LLVMModuleRef)handle_of(a0), a1);
     pas_lock_unlock(&context->state);
@@ -11039,7 +11018,7 @@ void filc_native_LLVMSetValueName(filc_thread* my_thread, filc_ptr p0, filc_ptr 
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     pas_lock_lock(&context->lock);
     api->LLVMSetValueName((LLVMValueRef)handle_of(a0), a1);
     pas_lock_unlock(&context->state);
@@ -11052,7 +11031,7 @@ void filc_native_LLVMSetValueName2(filc_thread* my_thread, filc_ptr p0, filc_ptr
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
     const char* a1;
-    if (filc_ptr_is_totally_null(p1)) {
+    if (!filc_ptr_ptr(p1)) {
         FILC_CHECK(p2 == 0, NULL, "LLVMSetValueName2: null string with nonzero length.");
         a1 = NULL;
     } else {
@@ -11118,7 +11097,7 @@ filc_ptr filc_native_LLVMStructCreateNamed(filc_thread* my_thread, filc_ptr p0, 
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
     context = a0;
-    const char* a1 = filc_check_and_get_tmp_str_or_null(my_thread, p1);
+    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
     LLVMTypeRef result_raw;
     pas_lock_lock(&context->state);
     result_raw = api->LLVMStructCreateNamed((LLVMContextRef)a0->state->handle, a1);
