@@ -848,8 +848,15 @@ void FilLLVMJIT_SetGlobalMapping(FilLLVMJITRef jit,
                                  const char* key,
                                  const void* destination);
 
-/* Install the zexact_ptrtable used by raw-pointer resolution. */
-int FilLLVMJIT_SetPointerTable(FilLLVMJITRef jit, zexact_ptrtable *table);
+/* Provide a blessed pointer that LLVM IR can refer to using:
+   
+   void* zblessedptr(uintptr_t)
+
+   This Fil-C intrinsic is only available in JIT mode. The compiler will crash
+   unless the pointer passed to it is a compile-time constant integer that was
+   added via this call. What's returned is the version of that pointer that has
+   the full capability that you provided to BlessPointer. */
+void FilLLVMJIT_BlessPointer(FilLLVMJITRef jit, void* ptr);
 
 /* Run the Fil-C pass pipeline over mod, add it to the JIT under the given
    name, and return the compiled module.  This consumes the module (not the
@@ -874,9 +881,6 @@ FilLLVMJITModuleRef FilLLVMJIT_CompileModule(FilLLVMJITRef jit,
 
 /* Address lookup. */
 void *FilLLVMJIT_GetPointerToGlobal(FilLLVMJITModuleRef mod, const char *name);
-
-/* Human-readable description of the most recent failure on this thread. */
-const char *FilLLVMJIT_GetLastError(void);
 
 #if 0
 { /* tell emacs what is up */
