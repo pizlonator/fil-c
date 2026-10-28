@@ -34,7 +34,6 @@
 #include "filc_native.h"
 #include "filc_runtime_inlines.h"
 #include "fugc.h"
-#include "../../../filc/llvmjit/filc_llvm_jit_api.h"
 #include "jit_heap.h"
 #include <dlfcn.h>
 #include <sched.h>
@@ -43,6 +42,8 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+#include "../../../filc/llvmjit/filc_llvm_jit_api.h"
 
 bool filc_allow_jit = false;
 
@@ -233,7 +234,7 @@ static filc_llvm_jit_object* unwrap_obj(filc_thread* my_thread, filc_ptr ptr,
         FILC_CHECK((*context_inout) == payload->context, NULL,
                    "Fil-C LLVM JIT API: mixing objects from different LLVM contexts.");
     }
-    if (payload->module) {
+    if (payload->module && module_inout) {
         if (!*module_inout)
             *module_inout = payload->module;
         else {
@@ -341,35 +342,35 @@ void filc_llvm_jit_destruct(void* raw_payload)
     }
     case FILC_LLVM_JIT_KIND_MODULE: {
         filc_llvm_jit_module_object* object = (filc_llvm_jit_module_object*)raw_payload;
-        api->DisposeModule(object->base.handle);
+        api->LLVMDisposeModule(object->base.handle);
         drop_context_state(object->base.context);
         return;
     }
     case FILC_LLVM_JIT_KIND_BUILDER: {
         filc_llvm_jit_builder_object* object = (filc_llvm_jit_builder_object*)raw_payload;
-        api->DisposeBuilder(object->base.handle);
+        api->LLVMDisposeBuilder(object->base.handle);
         drop_context_state(object->base.context);
         return;
     }
     case FILC_LLVM_JIT_KIND_OPERAND_BUNDLE: {
         filc_llvm_jit_object* object = (filc_llvm_jit_object*)raw_payload;
-        api->DisposeOperandBundle(object->handle);
+        api->LLVMDisposeOperandBundle(object->handle);
         return;
     }
     case FILC_LLVM_JIT_KIND_METADATA_ENTRIES: {
         filc_llvm_jit_entries_object* object = (filc_llvm_jit_entries_object*)raw_payload;
-        api->DisposeValueMetadataEntries(object->base.handle);
+        api->LLVMDisposeValueMetadataEntries(object->base.handle);
         return;
     }
     case FILC_LLVM_JIT_KIND_MODULE_FLAG_ENTRIES: {
         filc_llvm_jit_entries_object* object = (filc_llvm_jit_entries_object*)raw_payload;
-        api->DisposeModuleFlagsMetadata(object->base.handle);
+        api->LLVMDisposeModuleFlagsMetadata(object->base.handle);
         return;
     }
     case FILC_LLVM_JIT_KIND_JIT_SESSION: {
         filc_llvm_jit_session_object* object =
             (filc_llvm_jit_session_object*)raw_payload;
-        api->DestroySession((ShimJit)object->handle);
+        api->ShimDestroySession((ShimJit)object->handle);
         return;
     }
     case FILC_LLVM_JIT_KIND_JIT_MODULE: {
@@ -601,8 +602,8 @@ static void push_root_locked(filc_thread* my_thread,
 }
 
 static void* allocate_jit_module_cb(void* context,
-                                     unsigned long long combined_aux_size,
-                                     unsigned long long other_sections_size)
+                                    unsigned long long combined_aux_size,
+                                    unsigned long long other_sections_size)
 {
     /* context is a callback token, not a pointer: decode and validate it.
        A dead or unknown token means the module is gone; refuse the
@@ -1047,173 +1048,10 @@ int filc_native_FilLLVMJIT_SetZExactPointerTable(filc_thread* my_thread, filc_pt
     return 0;
 }
 
-int filc_native_FilLLVMJIT_AddGlobalMapping(filc_thread* my_thread, filc_ptr jit_ptr,
-                                            filc_ptr name_ptr, filc_ptr address_ptr)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
-    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
-    void* address;
-    if (filc_ptr_is_boxed_int(address_ptr)) {
-        address = filc_ptr_ptr(address_ptr);
-        FILC_CHECK((uintptr_t)address >= 4096, NULL,
-                   "FilLLVMJIT_AddGlobalMapping: refusing to map implausible host address.");
-    } else {
-        void* lower = filc_ptr_lower(address_ptr);
-        void* upper = filc_ptr_upper(address_ptr);
-        address = filc_ptr_ptr(address_ptr);
-        bool in_bounds = (address >= lower && address <= upper);
-        if (!in_bounds) {
-            filc_object* object = filc_ptr_object(address_ptr);
-            in_bounds = (filc_object_is_special(object) &&
-                         filc_object_special_type(object) == FILC_SPECIAL_TYPE_FUNCTION &&
-                         address == (void*)filc_object_aux_ptr(object));
-        }
-        FILC_CHECK(in_bounds, NULL,
-                   "FilLLVMJIT_AddGlobalMapping: address outside capability.");
-    }
-    void* session_handle;
-    pas_lock_lock(&session->lock);
-    session_handle = session->handle;
-    pas_lock_unlock(&session->lock);
-    return api->AddGlobalMapping((ShimJit)session_handle, name, address);
-}
-
-// Current Fil-C origin for getter calls is the calling frame origin.
-// Native thunks push a frame before reaching here, so top_frame names the
-// call site. A missing origin is a clean lookup failure (NULL + sticky
-// error, which FilLLVMJIT_GetLastError surfaces), never a panic: the
-// runtime has no shim-side SetLastError, so the sticky buffer is the
-// error channel here, exactly as for CompileModule's runtime-side
-// failures.
-static const filc_origin* lookup_origin(filc_thread* my_thread)
-{
-    if (my_thread && my_thread->top_frame && my_thread->top_frame->origin)
-        return my_thread->top_frame->origin;
-    jit_set_last_error("JIT lookup: no caller origin available; refusing to invoke "
-                       "pizlonated getter with a null origin.");
-    return NULL;
-}
-
-static filc_ptr lookup_address(filc_thread* my_thread, filc_ptr module_ptr,
-                               filc_ptr name_ptr,
-                               void* (*lookup)(ShimJitModule, const char*))
-{
-    jit_clear_last_error();
-    filc_llvm_jit_jit_module_object* mod = unwrap_jit_module(my_thread, module_ptr);
-    FILC_CHECK(mod, NULL, "JIT lookup: null module.");
-    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
-    void* mod_handle;
-    pas_lock_lock(&mod->lock);
-    mod_handle = mod->handle;
-    pas_lock_unlock(&mod->lock);
-    // Lock covers only the handle load. The shim lookup below may link and
-    // run the allocate callbacks, which need the thread entered and must not
-    // block on mod->lock; holding no lock here proves no deadlock and no
-    // alloc runs while the lock is held. Staying entered is required because
-    // the allocate path calls filc_allocate.
-    //
-    // A missing origin fails cleanly (sticky set above) before any
-    // pollcheck or getter call, so the getter below never sees NULL and no
-    // safepoint is skipped.
-    const filc_origin* origin = lookup_origin(my_thread);
-    if (!origin)
-        return filc_ptr_forge_null();
-    filc_pollcheck(my_thread, origin);
-    void* address = lookup((ShimJitModule)mod_handle, name);
-    if (!address) {
-        // Report the cause instead of swallowing it: the caller cannot
-        // otherwise distinguish "unknown symbol" from a link failure, and
-        // FilLLVMJIT_GetLastError prefers this sticky over the shim string.
-        // The shim lookup runs synchronously on this thread, so reading
-        // the shim's thread-local error here is sound.
-        const char* shim_err = (api && api->GetLastError) ? api->GetLastError() : NULL;
-        if (!shim_err || !shim_err[0])
-            shim_err = "unknown error";
-        jit_set_last_error("JIT lookup: failed to resolve '%s': %s.", name, shim_err);
-        return filc_ptr_forge_null();
-    }
-    pizlonated_getter getter = (pizlonated_getter)address;
-    // Pass the real caller origin so any panic inside the getter reports the
-    // JIT lookup call site. The getter needs no catching frame: getters
-    // materialize an already-linked global and run no user resolver (user
-    // resolvers execute only inside resolve_impl, reached from JITed code
-    // or the FilLLVMJIT_Resolve probe, never from an address-lookup
-    // getter), so there is no user path that could throw a catchable
-    // exception here; any unwind propagates to the Fil-C caller through the
-    // native thunk frames as for other runtime getters. Pollchecks bracket
-    // the call with the non-null origin above.
-    filc_ptr result = getter(my_thread, origin);
-    if (!filc_ptr_ptr(result)) {
-        jit_set_last_error("JIT lookup: getter returned null for '%s'.", name);
-        return filc_ptr_forge_null();
-    }
-    filc_pollcheck(my_thread, origin);
-    return result;
-}
-
-filc_ptr filc_native_FilLLVMJIT_GetFunctionAddress(filc_thread* my_thread, filc_ptr module_ptr,
-                                                   filc_ptr name_ptr)
-{
-    ensure_api(my_thread);
-    // All three lookups invoke the pizlonated getter so data globals keep
-    // their capability token; returning the raw shim address would bypass it.
-    return lookup_address(my_thread, module_ptr, name_ptr, api->GetFunctionAddress);
-}
-
-filc_ptr filc_native_FilLLVMJIT_GetGlobalValueAddress(filc_thread* my_thread,
-                                                      filc_ptr module_ptr, filc_ptr name_ptr)
-{
-    ensure_api(my_thread);
-    return lookup_address(my_thread, module_ptr, name_ptr, api->GetGlobalValueAddress);
-}
-
 filc_ptr filc_native_FilLLVMJIT_GetPointerToGlobal(filc_thread* my_thread, filc_ptr module_ptr,
                                                    filc_ptr name_ptr)
 {
     return lookup_address(my_thread, module_ptr, name_ptr, api->GetPointerToGlobal);
-}
-
-/* Classify one module-level definition for eager linking: 1 means link
-   it, 0 means skip it, -1 means fail the compile (sticky error is set).
-   Declarations and available-externally definitions emit no code and are
-   skipped: resolving them would fail the compile spuriously. Weak and
-   linkonce linkages have merging semantics the eager single-allocate model
-   cannot support; leaving them for lazy linking would allocate outside
-   CompileModule and fail the link on the link_did_allocate guard, so they fail the
-   compile with a clean error instead. Aliases and ifuncs are linkable
-   definitions exactly like functions and globals. */
-static int eager_classify(const struct filc_llvm_jit_api* api, LLVMValueRef value)
-{
-    LLVMLinkage linkage;
-    if (api->LLVMIsDeclaration(value))
-        return 0;
-    linkage = api->LLVMGetLinkage(value);
-    if (linkage == LLVMAvailableExternallyLinkage)
-        return 0;
-    switch (linkage) {
-    case LLVMExternalLinkage:
-    case LLVMDLLExportLinkage:
-    case LLVMCommonLinkage:
-        return 1;
-    case LLVMLinkOnceAnyLinkage:
-    case LLVMLinkOnceODRLinkage:
-    case LLVMLinkOnceODRAutoHideLinkage:
-    case LLVMWeakAnyLinkage:
-    case LLVMWeakODRLinkage:
-    case LLVMExternalWeakLinkage:
-    case LLVMLinkerPrivateWeakLinkage: {
-        const char* sym_name = api->LLVMGetValueName(value);
-        if (!sym_name || !sym_name[0])
-            sym_name = "<unnamed>";
-        jit_set_last_error("FilLLVMJIT_CompileModule: unsupported weak/linkonce linkage "
-                           "for '%s'.",
-                           sym_name);
-        return -1;
-    }
-    default:
-        return 0;
-    }
 }
 
 filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr jit_ptr,
@@ -1222,14 +1060,13 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
     const struct filc_llvm_jit_api* api = ensure_api(my_thread);
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
     filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module_as_donor = NULL;
     filc_llvm_jit_object* module_obj =
         unwrap_obj(my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE,
-                   &context, &module_as_donor);
+                   &context, NULL);
+    PAS_ASSERT(context);
     char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     void* session_handle;
     void* module_handle = module_obj->handle;
-    filc_llvm_jit_context_state* context_state = context->state;
     pas_lock_lock(&session->lock);
     session_handle = session->handle;
     pas_lock_unlock(&session->lock);
@@ -1482,7 +1319,6 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
     module_obj->handle = NULL;
     if (module_obj->module_state)
         module_obj->module_state->handle = NULL;
-    module_as_donor = NULL;
     context_state->handle = NULL;
     pas_lock_unlock(&context_state->lock);
     jit_anchor_fill_shim(token, (void*)out);
@@ -1917,9 +1753,8 @@ void filc_native_LLVMGetNamedMetadataOperands(filc_thread* my_thread, filc_ptr m
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module_donor = NULL;
     filc_llvm_jit_object* module_obj = unwrap_obj(
-        my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE, &context, &module_donor);
+        my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE, &context, NULL);
     char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     LLVMValueRef* tmp = NULL;
     unsigned count = 0;
@@ -2237,12 +2072,11 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module_donor = NULL;
     filc_llvm_jit_object* module_obj = unwrap_obj(
-        my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE, &context, &module_donor);
+        my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE, &context, NULL);
     LLVMTypeRef* param_types = (LLVMTypeRef*)decode_handle_array(
         my_thread, param_types_ptr, param_count, FILC_LLVM_JIT_KIND_TYPE,
-        &context, &module_donor);
+        &context, &module_obj);
     size_t name_length = 0;
     char* raw;
     pas_lock_lock(&context->lock);

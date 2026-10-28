@@ -23,6 +23,8 @@
    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdfil.h>
+
 /* Fil-C LLVM JIT API.
 
    This header exposes a curated subset of the LLVM C API (IR building plus
@@ -781,7 +783,6 @@ LLVMTypeRef LLVMX86FP80TypeInContext(LLVMContextRef C);
    automatically):
      FilLLVMJITRef jit = FilLLVMJIT_Create();
      FilLLVMJIT_SetOption(jit, "opt-level", "2");      // optional tuning
-     FilLLVMJIT_SetResolveCallback(jit, my_resolve, ctx);
      FilLLVMJIT_SetZExactPointerTable(jit, table);
      FilLLVMJITModuleRef modref =
          FilLLVMJIT_CompileModule(jit, module, "mymod");
@@ -828,32 +829,27 @@ LLVMTypeRef LLVMX86FP80TypeInContext(LLVMContextRef C);
 typedef struct FilLLVMOpaqueJIT *FilLLVMJITRef;
 typedef struct FilLLVMOpaqueJITModule *FilLLVMJITModuleRef;
 
-/* User-provided lazy resolver.  Called as resolve(name, context) and must
-   return the address the symbol resolves to, or NULL if unknown. */
-typedef void *(*FilLLVMJITResolveFunction)(const char *name, void *context);
+/* Create a JIT.
+ 
+   This object's job is to hold configuration parameters consumed by
+   CompileModule. It has no other role or state.
 
-/* Create a JIT session.  Compilation always targets the running process;
-   there is no triple selection. */
+   Hence, it's valid to create one of these, set some parameters, and then
+   use it whenever you want to compile something with those parameters.
+
+   On caveat: */
 FilLLVMJITRef FilLLVMJIT_Create(void);
 
 /* Set a key/value compile option (see list above).  Unknown keys fail. */
 int FilLLVMJIT_SetOption(FilLLVMJITRef jit, const char *key, const char *value);
 
-/* Install the lazy-resolution callback invoked by the host-side
-   filc_llvm_jit_resolve whenever JITed code references an extern symbol.
-   Snapshotted into each module at CompileModule time; each compiled module
-   resolves through its own snapshot (never another module's).  The session
-   may be forgotten once compilation finishes. */
-void FilLLVMJIT_SetResolveCallback(FilLLVMJITRef jit,
-                                   FilLLVMJITResolveFunction callback,
-                                   void *context);
+/* Set a mapping to use for resolving extern symbols. */
+void FilLLVMJIT_SetGlobalMapping(FilLLVMJITRef jit,
+                                 const char* key,
+                                 const void* destination);
 
-/* Install the zexact_ptrtable used by raw-pointer resolution.
-   The table pointer is a (struct zexact_ptrtable *) from the Fil-C runtime,
-   kept opaque here.  Snapshotted into each module at CompileModule time;
-   each compiled module decodes through its own snapshot (never another
-   module's). */
-int FilLLVMJIT_SetZExactPointerTable(FilLLVMJITRef jit, void *table);
+/* Install the zexact_ptrtable used by raw-pointer resolution. */
+int FilLLVMJIT_SetPointerTable(FilLLVMJITRef jit, zexact_ptrtable *table);
 
 /* Run the Fil-C pass pipeline over mod, add it to the JIT under the given
    name, and return the compiled module.  This consumes the module (not the
@@ -873,41 +869,14 @@ int FilLLVMJIT_SetZExactPointerTable(FilLLVMJITRef jit, void *table);
    (a raw ptr constant would be a type mismatch against the flight-pointer
    ABI the call sites lower to). */
 FilLLVMJITModuleRef FilLLVMJIT_CompileModule(FilLLVMJITRef jit,
-                                              LLVMModuleRef mod,
-                                              const char *name);
+                                             LLVMModuleRef mod,
+                                             const char *name);
 
-/* Bind an extern symbol name to a host address for subsequently compiled
-   modules (AddGlobalMapping-style hook).  For function names the address
-   must be the function's payload (upper); JITed callers reach it through
-   the stubbed lazy-extern worker as the flight {addr,addr}. */
-int FilLLVMJIT_AddGlobalMapping(FilLLVMJITRef jit, const char *name, void *address);
-
-/* Address lookup.  All three return NULL when the name is not found; names
-   are unmangled IR names.  Because the Fil-C pass pipeline (FilPizlonator)
-   renames functions to their pizlonated ABI form, each lookup transparently
-   retries with a "pizlonated_" prefix when the exact name misses, and
-   returns the JITed (pizlonated-ABI) address.  The returned code follows
-   the pizlonated calling convention: cast it to the matching function type
-   and call it from any thread. */
-void *FilLLVMJIT_GetFunctionAddress(FilLLVMJITModuleRef mod, const char *name);
-void *FilLLVMJIT_GetGlobalValueAddress(FilLLVMJITModuleRef mod, const char *name);
+/* Address lookup. */
 void *FilLLVMJIT_GetPointerToGlobal(FilLLVMJITModuleRef mod, const char *name);
 
 /* Human-readable description of the most recent failure on this thread. */
 const char *FilLLVMJIT_GetLastError(void);
-
-/* Resolution probes.
-
-   These synchronous helpers resolve an extern name (or a raw encoded
-   pointer) exactly as JITed code would through the lazy-resolution path,
-   recording the resolved flight as a GC root in the given generated module
-   (pass NULL to use the current session/module).  They exist for the
-   root-stress tests; ordinary programs should use CompileModule and
-   GetFunctionAddress with real JITed callers instead.
- */
-void *FilLLVMJIT_Resolve(void *module, const char *name);
-void *FilLLVMJIT_ResolveRawPointer(void *module, void *table,
-                                   unsigned long long encoded);
 
 #if 0
 { /* tell emacs what is up */

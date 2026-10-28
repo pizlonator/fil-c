@@ -61,98 +61,36 @@ CORE_H = os.path.join(REPO, "llvm", "include", "llvm-c", "Core.h")
 TYPES_H = os.path.join(REPO, "llvm", "include", "llvm-c", "Types.h")
 OUT_API = os.path.join(REPO, "filc", "llvmjit", "filc_llvm_jit_api.h")
 OUT_INC = os.path.join(REPO, "filc", "llvmjit", "shim_api_init.inc")
+OUT_RUNTIME_INC = os.path.join(REPO, "filc", "llvmjit", "runtime_api_init.inc")
+OUT_MAPPING_INC = os.path.join(REPO, "filc", "llvmjit", "mapping_init.inc")
 
 # Shim entry points, kept in sync with the hand-curated user header
 # filc/include/filc_llvm_jit.h by hand. Each entry is (table field,
 # shim implementation). Signatures live in API_STRUCT_TEMPLATE below;
 # the user header carries the matching declarations for Fil-C programs.
 JIT_OWN = [
-    ("Create", "shim_Create"),
-    ("SetOption", "shim_SetOption"),
-    ("DestroySession", "shim_DestroySession"),
-    ("SetMemoryCallbacks", "shim_SetMemoryCallbacks"),
-    ("CompileModule", "shim_CompileModule"),
-    ("DestroyModule", "shim_DestroyModule"),
-    ("AddGlobalMapping", "shim_AddGlobalMapping"),
-    ("GetFunctionAddress", "shim_GetFunctionAddress"),
-    ("GetGlobalValueAddress", "shim_GetGlobalValueAddress"),
-    ("GetPointerToGlobal", "shim_GetPointerToGlobal"),
-    ("GetLastError", "shim_GetLastError"),
+    ("ShimJIT*", "ShimJITCreate", "(void)"),
+    ("void", "ShimJITSetOption", "(ShimJIT* jit, const char* key, const char* value)"),
+    ("void", "ShimJITSetGlobalMapping", "(ShimJIT* jit, const char* key, void* lower, void* ptr)"),
+    ("void", "ShimJITSetPointerMapping", "(ShimJIT* jit, void* lower, void* ptr)"),
+    ("void*", "ShimJITCompile", "(ShimJIT* jit, LLVMModuleRef mod, const char* name)"),
+    ("void", "ShimJITDestroy", "(ShimJIT* jit)"),
+    ("void*", "ShimExportMappingLookup", "(ShimExportMapping* mapping, const char* name)"),
+    ("void", "ShimExportMappingDestroy", "(ShimExportMapping* mapping)")
 ]
 
-JIT_INTERNAL = [
-    ("ContextDispose", "LLVMContextDispose"),
-    ("DisposeModule", "LLVMDisposeModule"),
-    ("DisposeBuilder", "LLVMDisposeBuilder"),
+RUNTIME_COMPILETIME_API = [
+    ("void*", "shim_allocate_executable_module", "(void* my_thread)"),
+    ("void*", "shim_executable_module_allocate_object", "(void* my_thread, void* executable_module, size_t size, size_t alignment)"),
+    ("void*", "shim_executable_module_allocate_data", "(void* my_thread, void* executable_module, size_t size, size_t alignment)"),
+    ("void*", "shim_executable_module_allocate_executable", "(void* my_thread, void* executable_module, size_t size, size_t alignemnt)"),
+    ("void*", "shim_executable_module_finalize_objects", "(void* my_thread, void* executable_module)"),
+    ("void", "shim_executable_module_set_export_mapping", "(void* my_thread, void* executable_module, ShimExportMapping* mapping)")
 ]
 
-DENY = set("""
-LLVMShutdown
-LLVMCreateMessage LLVMDisposeMessage
-LLVMGetGlobalContext
-LLVMContextSetDiagnosticHandler LLVMContextGetDiagnosticHandler LLVMContextGetDiagnosticContext
-LLVMContextSetYieldCallback
-LLVMGetDiagInfoDescription LLVMGetDiagInfoSeverity
-LLVMContextDispose LLVMDisposeModule LLVMDisposeModuleFlagsMetadata LLVMDisposeBuilder
-LLVMDisposeMemoryBuffer LLVMDisposeModuleProvider LLVMDisposePassManager LLVMDisposeOperandBundle
-LLVMDisposeValueMetadataEntries
-LLVMCreateMemoryBufferWithContentsOfFile LLVMCreateMemoryBufferWithMemoryRange
-LLVMCreateMemoryBufferWithMemoryRangeCopy LLVMCreateMemoryBufferWithSTDIN
-LLVMGetBufferStart LLVMGetBufferSize
-LLVMPrintModuleToFile
-LLVMDeleteFunction LLVMDeleteGlobal LLVMDeleteBasicBlock LLVMDeleteInstruction
-LLVMInstructionEraseFromParent LLVMInstructionRemoveFromParent
-LLVMRemoveBasicBlockFromParent LLVMRemoveGlobalIFunc LLVMEraseGlobalIFunc
-LLVMGlobalClearMetadata LLVMGlobalEraseMetadata
-LLVMCreatePassManager LLVMCreateFunctionPassManager LLVMCreateFunctionPassManagerForModule
-LLVMRunPassManager LLVMRunFunctionPassManager LLVMInitializeFunctionPassManager
-LLVMFinalizeFunctionPassManager
-LLVMStartMultithreaded LLVMStopMultithreaded
-LLVMCreateModuleProviderForExistingModule
-LLVMPrintModuleToString LLVMPrintValueToString LLVMPrintTypeToString LLVMPrintDbgRecordToString
-LLVMGetAsString
-LLVMCopyModuleFlagsMetadata
-LLVMCreateOperandBundle LLVMDisposeOperandBundle LLVMGetOperandBundleTag
-LLVMGetOperandBundleArgAtIndex LLVMGetOperandBundleAtIndex LLVMGetNumOperandBundles
-LLVMGetNumOperandBundleArgs
-LLVMBuildCallWithOperandBundles LLVMBuildInvokeWithOperandBundles
-LLVMBuildNUWNeg LLVMConstNUWNeg LLVMGetElementAsConstant
-LLVMModuleCreateWithName LLVMCreateBuilder
-LLVMAppendBasicBlock LLVMInsertBasicBlock
-LLVMGetMDKindID
-LLVMMDString LLVMMDNode
-LLVMConstString LLVMConstStruct LLVMStructType
-LLVMInt1Type LLVMInt8Type LLVMInt16Type LLVMInt32Type LLVMInt64Type
-LLVMInt128Type LLVMIntType
-LLVMHalfType LLVMBFloatType LLVMFloatType LLVMDoubleType
-LLVMX86FP80Type LLVMFP128Type LLVMPPCFP128Type LLVMX86AMXType
-LLVMVoidType LLVMLabelType
-""".split())
-
-# Substring assertions applied to the final list.  Each entry is
-# (pattern, {allowed exceptions}).
-BAD_PATTERNS = [
-    ("Dispose", set()),
-    ("Delete", set()),
-    ("Erase", set()),
-    ("RemoveFromParent", set()),
-    ("Shutdown", set()),
-    ("GlobalContext", set()),
-    ("Diagnostic", set()),
-    ("DiagInfo", set()),
-    ("Yield", set()),
-    ("PassManager", set()),
-    ("ModuleProvider", set()),
-    ("OperandBundle", set()),
-    ("Multithreaded", {"LLVMIsMultithreaded"}),
-    ("PrintModuleToString", set()),
-    ("PrintValueToString", set()),
-    ("PrintTypeToString", set()),
-    ("PrintDbgRecord", set()),
-    ("GetAsString", set()),
-    ("CopyModuleFlags", set()),
+RUNTIME_RUNTIME_API = [
+    "filc_allocate"
 ]
-
 
 def strip_comments(text):
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
@@ -273,13 +211,7 @@ def main():
         is_a_decls.append(
             "LLVMValueRef LLVMIsA%s(LLVMValueRef Val);" % name)
 
-    # Filter the denylist.
-    found = {name for name, _ in functions}
-    for banned in sorted(DENY):
-        if banned not in found:
-            print("warning: denylisted %s not present in Core.h" % banned,
-                  file=sys.stderr)
-    kept = [(n, s) for (n, s) in functions if n not in DENY]
+    kept = [(n, s) for (n, s) in functions]
 
     # Drop the LLVMIsA* declarations generated by the macro in Core.h; we
     # re-emit them from the subclass list so the set is explicit.
@@ -289,12 +221,6 @@ def main():
     kept = kept + [("LLVMIsA%s" % n,
                     "LLVMValueRef LLVMIsA%s(LLVMValueRef Val);" % n)
                    for n in sorted(seen)]
-
-    for pattern, allowed in BAD_PATTERNS:
-        for name, _ in kept:
-            if pattern in name and name not in allowed:
-                raise SystemExit(
-                    "error: excluded pattern %r matched %s" % (pattern, name))
 
     kept.sort(key=lambda pair: pair[0])
     print("keeping %d functions, %d enums, %d typedefs" %
@@ -322,6 +248,8 @@ def main():
             api_out.write(t + "\n")
         api_out.write("#endif // LLVM_C_CORE_H\n")
         llvm_fields = ""
+        for return_type, name, params in JIT_OWN:
+            llvm_fields += "    %s(*%s)%s;\n" % (return_type, name, params)
         for proto_name, proto in kept:
             m = re.match(r"^(.+?[\s\*])(\w+)\s*\((.*)\)\s*;$", proto,
                          re.DOTALL)
@@ -329,18 +257,39 @@ def main():
                 "cannot make field from: %s" % proto
             llvm_fields += "    %s(*%s)(%s);\n" % (m.group(1).strip(),
                                                    proto_name, m.group(3).strip())
+        runtime_api = ""
+        for return_type, name, params in RUNTIME_COMPILETIME_API:
+            runtime_api += "    %s(*%s)%s;\n" % (return_type, name, params)
+        for name in RUNTIME_RUNTIME_API:
+            runtime_api += "    void* %s;\n" % (name)
         api_out.write(API_STRUCT_TEMPLATE.replace(
-            "@LLVM_FIELDS@", llvm_fields))
+            "@LLVM_FIELDS@", llvm_fields).replace(
+            "@RUNTIME_API@", runtime_api))
     print("wrote %s" % OUT_API)
 
     with open(OUT_INC, "w") as inc:
         inc.write("// Generated by gen_filc_llvm_jit_header.py; do not edit.\n")
         inc.write("    .version = FILC_LLVM_JIT_API_VERSION,\n")
-        for field, impl in JIT_OWN + JIT_INTERNAL:
-            inc.write("    .%s = %s,\n" % (field, impl))
+        for _, name, _ in JIT_OWN:
+            inc.write("    .%s = %s,\n" % (name, name))
         for name, _ in kept:
             inc.write("    .%s = %s,\n" % (name, name))
     print("wrote %s" % OUT_INC)
+
+    with open(OUT_RUNTIME_INC, "w") as inc:
+        inc.write("// Generated by gen_filc_llvm_jit_header.py; do not edit.\n")
+        inc.write("    .version = FILC_LLVM_JIT_API_VERSION,\n")
+        for _, name, _ in RUNTIME_COMPILETIME_API:
+            inc.write("    .%s = %s,\n" % (name, name))
+        for name in RUNTIME_RUNTIME_API:
+            inc.write("    .%s = %s,\n" % (name, name))
+    print("wrote %s" % OUT_RUNTIME_INC)
+
+    with open(OUT_MAPPING_INC, "w") as inc:
+        inc.write("// Generated by gen_filc_llvm_jit_header.py; do not edit.\n")
+        for name in RUNTIME_RUNTIME_API:
+            inc.write("    map[\"%s\"] = %s;\n" % (name, name))
+    print("wrote %s" % OUT_MAPPING_INC)
 
 
 API_PREAMBLE = """// Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
@@ -370,11 +319,7 @@ API_PREAMBLE = """// Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
 // is NEVER installed into stdfil-include and must NEVER be included by
 // Fil-C user code or by Yolo-compiled libpas files other than the runtime
 // itself: only libpas/src/libpas/filc_llvm_jit.c and
-// filc/llvmjit/filc_llvm_jit_shim.cpp include it.  It carries the one
-// definition of struct filc_llvm_jit_api plus the memory-callback struct the
-// runtime installs with SetMemoryCallbacks.  The user header
-// filc/include/filc_llvm_jit.h is hand-curated and carries only opaque refs
-// and function declarations for Fil-C programs.
+// filc/llvmjit/filc_llvm_jit_shim.cpp include it.
 
 #ifndef FILC_LLVM_JIT_API_H
 #define FILC_LLVM_JIT_API_H
@@ -390,19 +335,8 @@ extern "C" {
 } // tell emacs what is up
 #endif
 
-typedef struct FilLLVMOpaqueJIT *FilLLVMJITRef;
-typedef struct FilLLVMOpaqueJITModule *FilLLVMJITModuleRef;
-
-// User-provided lazy resolver.  Called as resolve(name, context) and must
-// return the address the symbol resolves to, or NULL if unknown.
-typedef void *(*FilLLVMJITResolveFunction)(const char *name, void *context);
-
-// Shim-owned handles.  These name the same pointers the user sees through
-// the opaque FilLLVMJITRef/FilLLVMJITModuleRef types, but the shim spells
-// them with its own names so the manually managed session/module records
-// are never confused with the user-facing opaque refs.
-typedef struct ShimJitSession *ShimJit;
-typedef struct ShimJitModuleRec *ShimJitModule;
+typedef struct ShimJIT ShimJIT;
+typedef struct ShimExportMapping ShimExportMapping;
 """
 
 API_STRUCT_TEMPLATE = """
@@ -424,8 +358,10 @@ API_STRUCT_TEMPLATE = """
 // section is a default section (executable ones go to the JIT heap, the rest
 // into the module tail).  The shim only ever compares section-name prefixes;
 // it never interprets object, header, or range shapes.
-#define FILC_LLVM_JIT_GC_SECTION_PREFIX "__filc_gc_obj"
-#define FILC_LLVM_JIT_AUX_SECTION_PREFIX "__filc_jit_aux"
+#define FILC_LLVM_JIT_GC_SECTION_PREFIX "filc_gc_obj"
+#define FILC_LLVM_JIT_AUX_SECTION_PREFIX "filc_jit_aux"
+
+#define FILC_LLVM_JIT_API_VERSION 7
 
 // Runtime-provided memory callbacks, installed with SetMemoryCallbacks
 // before the first CompileModule.  The shim routes every LinkGraph section
@@ -434,90 +370,21 @@ API_STRUCT_TEMPLATE = """
 // header shapes).  Every address is an opaque pointer and every size is a
 // byte count; the runtime appends executable and object allocations to the
 // owning jit_module so the module keeps them alive.
-struct filc_llvm_jit_memory_callbacks {
-    void *context;
-    // Allocate the jit_module for one LinkGraph, reserving room for
-    // combined_aux_size bytes of aux plus other_sections_size bytes of
-    // default (non-object, non-executable) section data.  Sizes are upper
-    // bounds covering per-section alignment slack.  Returns the opaque
-    // jit_module pointer, or NULL on failure.
-    void *(*allocate_jit_module)(void *context,
-                                 unsigned long long combined_aux_size,
-                                 unsigned long long other_sections_size);
-    // Allocate executable memory for one executable section.  The runtime
-    // appends the allocation to the module's executable array.  Returns the
-    // base address, or NULL on failure.
-    void *(*allocate_executable)(void *context, void *jit_module,
-                                 unsigned long long size,
-                                 unsigned long long alignment,
-                                 const char *section_name);
-    // Allocate one GC-managed object backing a GC section.  The returned
-    // pointer names the payload area the section bytes are copied into; the
-    // runtime accounts for its own alignment header outside the reported
-    // size.  The runtime appends the object to the module's object array.
-    // Returns the payload address, or NULL on failure.
-    void *(*allocate_object)(void *context, void *jit_module,
-                             const char *section_name,
-                             unsigned long long size,
-                             unsigned long long alignment);
-    // Allocate room for one default section (aux sections land in the
-    // combined-aux part of the module tail, the rest in the other part).
-    // Returns the base address, or NULL on failure.
-    void *(*allocate_module_data)(void *context, void *jit_module,
-                                  const char *section_name,
-                                  unsigned long long size,
-                                  unsigned long long alignment);
-    // Runs at link finalize after a GC section's bytes are in place: marks
-    // the payload aligned (sets the alignment bits) and points the alignment
-    // header's extra pointer at the jit_module, so any reference to the
-    // object keeps the whole module alive.
-    void (*finalize_object)(void *context, void *jit_module, void *object,
-                            unsigned long long size);
-    // Resolve an extern symbol name against one compiled module. The shim
-    // calls this from JITed code (which passes its own jit_module, taken
-    // from the filc_jit_module global) with the NUL-terminated name. The
-    // runtime consults that module's resolver snapshot, records the result
-    // as a module root, and returns the address, or NULL if unknown.
-    void *(*resolve_symbol)(void *context, void *jit_module,
-                            const char *name);
-    // Resolve a zexact-encoded pointer against one compiled module. The
-    // runtime consults that module's zexact table snapshot, records the
-    // result as a module root, and returns the address, or NULL if unknown.
-    void *(*resolve_raw_pointer)(void *context, void *jit_module,
-                                 unsigned long long encoded);
+typedef struct filc_runtime_api filc_runtime_api;
+struct filc_runtime_api {
+    unsigned version;
+@RUNTIME_API@
 };
 
+typedef struct filc_llvm_jit_api filc_llvm_jit_api;
 struct filc_llvm_jit_api {
-    unsigned long long version;
-#define FILC_LLVM_JIT_API_VERSION 7ULL
-    // JIT entry points (lazy auto-init: the first Create boots LLVM targets,
-    // so no user-visible init entry exists).
-    ShimJit (*Create)(void);
-    int (*SetOption)(ShimJit jit, const char *key, const char *value);
-    void (*DestroySession)(ShimJit jit);
-    int (*SetMemoryCallbacks)(ShimJit jit,
-                              const struct filc_llvm_jit_memory_callbacks *callbacks);
-    ShimJitModule (*CompileModule)(ShimJit jit, LLVMModuleRef mod,
-                                   const char *name, void *jit_module);
-    void (*DestroyModule)(ShimJitModule mod);
-    int (*AddGlobalMapping)(ShimJit jit, const char *name, void *address);
-    void *(*GetFunctionAddress)(ShimJitModule mod, const char *name);
-    void *(*GetGlobalValueAddress)(ShimJitModule mod, const char *name);
-    void *(*GetPointerToGlobal)(ShimJitModule mod, const char *name);
-    const char *(*GetLastError)(void);
-    // Internal: disposal primitives for runtime object destructors.
-    void (*ContextDispose)(LLVMContextRef C);
-    void (*DisposeModule)(LLVMModuleRef M);
-    void (*DisposeBuilder)(LLVMBuilderRef B);
-    // Curated LLVM Core C API subset (same declarations as in
-    // filc_llvm_jit.h, as function pointers for the
-    // libpizlo -> libfilcllvmjit.so ABI).
+    unsigned version;
 @LLVM_FIELDS@
 };
 
 
 // The single exported entry point of libfilcllvmjit.so.
-const struct filc_llvm_jit_api *FilLLVMJIT_GetApi(void);
+const struct filc_llvm_jit_api *FilLLVMJIT_GetApi(filc_runtime_api* runtimeAPI);
 
 #if 0
 { // tell emacs what is up
