@@ -47,7 +47,7 @@
 
 bool filc_allow_jit = false;
 
-static const struct filc_llvm_jit_api* api = NULL;
+static const struct shim_api* api = NULL;
 static pas_lock api_mutex = PAS_LOCK_INITIALIZER;
 
 static const struct void ensure_api_slow(filc_thread* my_thread);
@@ -60,65 +60,6 @@ static const struct void ensure_api(filc_thread* my_thread)
         return;
     }
     ensure_api_slow(my_thread);
-}
-
-static bool try_load_one(const char* path)
-{
-    if (!path || !path[0])
-        return false;
-    void* handle = dlopen(path, RTLD_NOW | RTLD_LOCAL);
-    if (!handle)
-        return false;
-    const struct filc_llvm_jit_api* (*get_api)(void) =
-        (const struct filc_llvm_jit_api* (*)(void))dlsym(handle, "FilLLVMJIT_GetApi");
-    if (!get_api) {
-        dlclose(handle);
-        return false;
-    }
-    const struct filc_llvm_jit_api* my_api = get_api();
-    if (!my_api || my_api->version != FILC_LLVM_JIT_API_VERSION) {
-        dlclose(handle);
-        return false;
-    }
-    pas_store_store_fence();
-    api = my_api;
-    return true;
-}
-
-static const struct void ensure_api_slow(filc_thread* my_thread)
-{
-    pas_lock_lock(&api_mutex);
-    if (api) {
-        pas_lock_unlock(&api_mutex);
-        PAS_ASSERT(api);
-        return api;
-    }
-    const char* env = secure_getenv("FILC_LLVMJIT_SO");
-    if (env && env[0])
-        try_load_one(env);
-    if (!api) {
-        Dl_info info;
-        if (dladdr((void*)ensure_api_slow, &info) && info.dli_fname) {
-            char dir[4096];
-            snprintf(dir, sizeof(dir), "%s", info.dli_fname);
-            char* slash = strrchr(dir, '/');
-            if (slash) {
-                *slash = '\0';
-                char candidate[4096];
-                snprintf(candidate, sizeof(candidate),
-                         "%s/../libexec/libfilcllvmjit.so", dir);
-                if (!try_load_one(candidate)) {
-                    const char* error = dlerror();
-                    pas_lock_unlock(&api_mutex);
-                    filc_safety_panic(NULL, "could not dlopen libfilcllvmjit.so: %s.",
-                                      error ? error : "<unknown>");
-                }
-            }
-        }
-    }
-    PAS_ASSERT(api);
-    pas_lock_unlock(&api_mutex);
-    PAS_UNUSED_PARAM(my_thread);
 }
 
 static void drop_context_state(filc_llvm_jit_context_object* object)
@@ -370,586 +311,31 @@ void filc_llvm_jit_destruct(void* raw_payload)
     case FILC_LLVM_JIT_KIND_JIT_SESSION: {
         filc_llvm_jit_session_object* object =
             (filc_llvm_jit_session_object*)raw_payload;
-        api->ShimDestroySession((ShimJit)object->handle);
+        api->ShimJITDestroy((ShimJIT*)object->handle);
+        filc_object_array_destroy(&object->objects);
         return;
     }
-    case FILC_LLVM_JIT_KIND_JIT_MODULE: {
-        filc_llvm_jit_jit_module_object* object =
+    case FILC_LLVM_JIT_KIND_EXECUTABLE_MODULE: {
+        filc_llvm_jit_executable_module* object =
             (filc_llvm_jit_jit_module_object*)raw_payload;
-        void* handle = __atomic_exchange_n(
-            &object->handle, (void*)NULL, __ATOMIC_ACQ_REL);
-        if (handle && api && api->DestroyModule)
-            api->DestroyModule((ShimJitModule)handle);
-        size_t num_jit_bases = __atomic_exchange_n(
-            &object->num_jit_bases, (size_t)0, __ATOMIC_ACQ_REL);
-        void** jit_bases = __atomic_exchange_n(
-            &object->jit_bases, (void**)NULL, __ATOMIC_ACQ_REL);
-        size_t num_objects = __atomic_exchange_n(
-            &object->num_objects, (size_t)0, __ATOMIC_ACQ_REL);
-        filc_ptr* object_refs = __atomic_exchange_n(
-            &object->object_refs, (filc_ptr*)NULL, __ATOMIC_ACQ_REL);
-        size_t num_roots = __atomic_exchange_n(
-            &object->num_roots, (size_t)0, __ATOMIC_ACQ_REL);
-        filc_ptr* roots = __atomic_exchange_n(
-            &object->roots, (filc_ptr*)NULL, __ATOMIC_ACQ_REL);
-        char* tail = __atomic_exchange_n(
-            &object->tail, (char*)NULL, __ATOMIC_ACQ_REL);
-        object->jit_bases_capacity = 0;
-        object->objects_capacity = 0;
-        object->roots_capacity = 0;
-        PAS_UNUSED_PARAM(num_objects);
-        PAS_UNUSED_PARAM(num_roots);
-        /* Invalidate the callback token first, lock-free and
-           unconditionally: after this store, decoding the baked token fails
-           instead of dereferencing this payload. The store must not depend
-           on any lock (teardown runs on collector workers and must not
-           block on locks that may belong to dead threads). Disposition of
-           the exchanged arrays still needs the table lock, so it is
-           attempted with try-lock only: on failure the arrays leak (safe)
-           rather than risk deadlock. When callbacks are in flight their
-           allocation roots (pushed at decode time) keep this payload's
-           verse alive; only the malloc'd arrays below are at risk, so an
-           in-flight callback stashes them in the anchor and the last one
-           out frees them. */
-        filc_object* self_obj = filc_object_for_special_payload(object);
-        struct jit_anchor* anchor = jit_anchor_find_lockfree(self_obj, handle);
-        if (anchor)
-            __atomic_store_n(&anchor->alive, false, __ATOMIC_RELEASE);
-        bool disposed = false;
-        bool lock_acquired = false;
-        if (anchor && pas_lock_try_lock(&jit_anchor_lock)) {
-            lock_acquired = true;
-            struct jit_anchor* locked = NULL;
-            struct jit_anchor_table* table = jit_anchor_table_published;
-            size_t scan;
-            for (scan = 0; table && scan < table->capacity; ++scan) {
-                struct jit_anchor* candidate = table->slots[scan];
-                if (candidate == anchor) {
-                    locked = candidate;
-                    break;
-                }
-            }
-            if (locked && locked->obj == self_obj && locked->shim_handle == handle) {
-                if (__atomic_load_n(&locked->inflight, __ATOMIC_ACQUIRE) == 0u) {
-                    size_t i;
-                    for (i = 0; i < num_jit_bases; ++i) {
-                        if (jit_bases && jit_bases[i])
-                            jit_heap_deallocate(jit_bases[i]);
-                    }
-                    free(jit_bases);
-                    free(object_refs);
-                    free(roots);
-                    free(tail);
-                    disposed = true;
-                } else {
-                    locked->has_stash = true;
-                    locked->stash_jit_bases = jit_bases;
-                    locked->stash_num_jit_bases = num_jit_bases;
-                    locked->stash_object_refs = object_refs;
-                    locked->stash_num_objects = num_objects;
-                    locked->stash_roots = roots;
-                    locked->stash_num_roots = num_roots;
-                    locked->stash_tail = tail;
-                    disposed = true;
-                }
-            }
-            pas_lock_unlock(&jit_anchor_lock);
-        }
-        if (!disposed && (!anchor || lock_acquired)) {
-            /* Either there is no token to worry about, or we hold the
-               table lock and know no callback is in flight (it stashed
-               otherwise). Only when the try-lock itself failed do we leak
-               the arrays rather than risk freeing them under a live
-               callback. */
-            size_t i;
-            for (i = 0; i < num_jit_bases; ++i) {
-                if (jit_bases && jit_bases[i])
-                    jit_heap_deallocate(jit_bases[i]);
-            }
-            free(jit_bases);
-            free(object_refs);
-            free(roots);
-            free(tail);
-        }
+        size_t index;
+        for (index = object->jit_bases.size; index--;)
+            jit_heap_deallocate(object->jit_bases.array[index]);
+        filc_raw_ptr_array_destruct(&object->jit_bases);
+        filc_object_array_destruct(&object->objects);
+        for (index = object->sections.size; index--;)
+            bmalloc_deallocate(object->sections[index]);
+        filc_raw_ptr_array_destruct(&object->sections);
+        for (index = object->auxes.size; index--;)
+            bmalloc_deallocate(object->auxes[index]);
+        filc_raw_ptr_array_destruct(&object->auxes);
+        api->ShimExportMappingDestroy(object->mapping);
         return;
     }
     default:
-        // Unrecognized kind: not a fully constructed wrapper (or not one at
-        // all). There is nothing safe to release, so bail out quietly and
-        // let sweep reclaim the verse memory.
+        PAS_ASSERT(!"Bad kind");
         return;
     }
-}
-
-struct eager_symbol {
-    char* name;
-    bool is_function;
-};
-
-static void push_eager_symbol(struct eager_symbol** names, size_t* num, size_t* cap,
-                              const char* name, bool is_function)
-{
-    if (!name || !name[0])
-        return;
-    if (*num == *cap) {
-        size_t next = *cap ? *cap * 2 : 8;
-        struct eager_symbol* next_names =
-            (struct eager_symbol*)realloc(*names, next * sizeof(struct eager_symbol));
-        if (!next_names)
-            filc_safety_panic(NULL, "out of memory collecting JIT eager symbols.");
-        *names = next_names;
-        *cap = next;
-    }
-    char* copy = strdup(name);
-    if (!copy)
-        filc_safety_panic(NULL, "out of memory collecting JIT eager symbols.");
-    (*names)[*num].name = copy;
-    (*names)[*num].is_function = is_function;
-    (*num)++;
-}
-
-static void free_eager_symbols(struct eager_symbol* names, size_t num)
-{
-    size_t index;
-    for (index = 0; index < num; ++index)
-        free(names[index].name);
-    free(names);
-}
-
-/* Fail CompileModule cleanly: the sticky error must already be set by the
-   caller. A callback that failed on another thread may additionally have
-   recorded a more specific cause in the token's locked slot; drain it so
-   the callback-thread error lands on this (CompileModule) thread, then
-   drop the registry entry. Destroys the half-linked shim module when one
-   exists (through the teardown gate, holding no lock), abandons the
-   callback token (no callback can be in flight: linking is synchronous
-   and no code escaped), frees the eager list, drops the allocation root,
-   and returns null. The payload itself is left for the collector; its
-   destructor will find the abandoned anchor and skip the shim call.
-   Publish happens only after eager linking and the handshake succeed, so
-   on every failure path the module handle is still NULL here: there is no
-   double destroy, and the link payload appended to the module before the
-   failure (jit heap bases, GC object refs, roots, tail) stays owned by
-   the module object for the destructor to reclaim. No leak or orphan. */
-static filc_ptr jit_compile_fail(filc_thread* my_thread, filc_object* jit_object,
-                                 void* token, void* shim_module,
-                                 struct eager_symbol* eager, size_t num_eager)
-{
-    if (shim_module && api && api->DestroyModule)
-        api->DestroyModule((ShimJitModule)shim_module);
-    if (token) {
-        jit_compile_record_drain(token);
-        jit_compile_record_remove(token);
-        jit_anchor_abandon(token);
-    }
-    free_eager_symbols(eager, num_eager);
-    filc_pop_allocation_root(my_thread, jit_object);
-    return filc_ptr_forge_null();
-}
-
-static void push_jit_base(filc_llvm_jit_jit_module_object* mod, void* base)
-{
-    if (mod->num_jit_bases == mod->jit_bases_capacity) {
-        size_t next = mod->jit_bases_capacity ? mod->jit_bases_capacity * 2 : 8;
-        void** next_bases = (void**)realloc(mod->jit_bases, next * sizeof(void*));
-        if (!next_bases)
-            filc_safety_panic(NULL, "out of memory tracking JIT executable.");
-        mod->jit_bases = next_bases;
-        mod->jit_bases_capacity = next;
-    }
-    mod->jit_bases[mod->num_jit_bases++] = base;
-}
-
-static void push_object_ref(filc_thread* my_thread,
-                             filc_llvm_jit_jit_module_object* mod, filc_ptr ref)
-{
-    if (mod->num_objects == mod->objects_capacity) {
-        size_t next = mod->objects_capacity ? mod->objects_capacity * 2 : 8;
-        filc_ptr* next_refs = (filc_ptr*)realloc(mod->object_refs, next * sizeof(filc_ptr));
-        if (!next_refs)
-            filc_safety_panic(NULL, "out of memory tracking JIT objects.");
-        mod->object_refs = next_refs;
-        mod->objects_capacity = next;
-    }
-    mod->object_refs[mod->num_objects++] = ref;
-    /* The marker reads this array without holding mod->lock, so publish the
-       reference with a barrier just like push_root_locked does. Otherwise a
-       concurrent marking that already scanned this module would miss the new
-       edge and sweep a live GC section object. */
-    if (filc_ptr_is_markable(ref))
-        filc_store_barrier(my_thread, filc_ptr_object(ref));
-}
-
-static void push_root_locked(filc_thread* my_thread,
-                             filc_llvm_jit_jit_module_object* mod, filc_ptr ref)
-{
-    PAS_UNUSED_PARAM(my_thread);
-    pas_lock_lock(&mod->lock);
-    if (mod->num_roots == mod->roots_capacity) {
-        size_t next = mod->roots_capacity ? mod->roots_capacity * 2 : 4;
-        filc_ptr* next_roots = (filc_ptr*)realloc(mod->roots, next * sizeof(filc_ptr));
-        if (!next_roots) {
-            pas_lock_unlock(&mod->lock);
-            filc_safety_panic(NULL, "out of memory recording JIT resolve root.");
-        }
-        mod->roots = next_roots;
-        mod->roots_capacity = next;
-    }
-    mod->roots[mod->num_roots++] = ref;
-    pas_lock_unlock(&mod->lock);
-    if (filc_ptr_is_markable(ref))
-        filc_store_barrier(my_thread, filc_ptr_object(ref));
-}
-
-static void* allocate_jit_module_cb(void* context,
-                                    unsigned long long combined_aux_size,
-                                    unsigned long long other_sections_size)
-{
-    /* context is a callback token, not a pointer: decode and validate it.
-       A dead or unknown token means the module is gone; refuse the
-       allocation so the link fails cleanly instead of touching freed
-       memory. The decoded module is rooted for the duration of the call.
-       The thread gate comes first: anchor decode roots the module (GC
-       state), which is only legal on the compiling entered Fil-C thread. */
-    filc_thread* my_thread =
-        jit_callback_check_thread(context, true, "allocate_jit_module");
-    if (!my_thread)
-        return NULL;
-    filc_llvm_jit_jit_module_object* mod = jit_anchor_acquire(my_thread, context);
-    if (!mod)
-        return NULL;
-    /* Claim the single allowed allocate with an atomic exchange. ORC may
-       run this callback on any thread, so a plain bool load/store would
-       race; the exchange claims exactly once. A second allocate means
-       something linked lazily after CompileModule returned: record the
-       error for the CompileModule thread (which may be a different thread
-       than this one) and fail the link cleanly (NULL) so CompileModule
-       fails instead of asserting or aborting. */
-    if (__atomic_exchange_n(&mod->link_did_allocate, true, __ATOMIC_ACQ_REL)) {
-        jit_callback_error(context,
-                           "FilLLVMJIT_CompileModule: unexpected second JITLink "
-                           "allocate for module; lazy linking after return is not supported.");
-        jit_anchor_release(my_thread, context);
-        return NULL;
-    }
-    size_t combined = (size_t)combined_aux_size;
-    size_t other = (size_t)other_sections_size;
-    size_t tail_size = combined + other;
-    if (tail_size) {
-        mod->tail = (char*)malloc(tail_size);
-        if (!mod->tail) {
-            jit_anchor_release(my_thread, context);
-            return NULL;
-        }
-        memset(mod->tail, 0, tail_size);
-    } else {
-        mod->tail = NULL;
-    }
-    mod->combined_aux_size = combined;
-    mod->combined_aux_used = 0;
-    mod->other_size = other;
-    mod->other_used = 0;
-    /* The LinkGraph keeps this token opaquely and passes it back to every
-       later callback, so it stays valid only while the anchor is alive;
-       teardown marks the anchor dead first, turning any later use into a
-       clean NULL. */
-    void* token = context;
-    jit_anchor_release(my_thread, context);
-    return token;
-}
-
-static void* jit_alloc_with_backing(size_t total)
-{
-    void* result = jit_heap_try_allocate(total);
-    if (result)
-        return result;
-    size_t chunk = (size_t)(64u << 20);
-    if (total > chunk) {
-        size_t unit = (size_t)(16u << 20);
-        chunk = (total + unit - 1) & ~(unit - 1);
-    }
-    void* mem = mmap(NULL, chunk, PROT_READ | PROT_WRITE | PROT_EXEC,
-                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (mem == MAP_FAILED)
-        return NULL;
-    jit_heap_add_fresh_memory(pas_range_create((uintptr_t)mem, (uintptr_t)mem + chunk));
-    return jit_heap_try_allocate(total);
-}
-
-static void* allocate_executable_cb(void* context, void* jit_module,
-                                     unsigned long long size,
-                                     unsigned long long alignment,
-                                     const char* section_name)
-{
-    PAS_UNUSED_PARAM(context);
-    PAS_UNUSED_PARAM(section_name);
-    if (!size)
-        return NULL;
-    /* jit_module is a callback token: decode it. A dead token refuses the
-       allocation so the link fails cleanly. The thread gate comes first:
-       the GC allocation below is only legal on the compiling entered
-       Fil-C thread. */
-    filc_thread* my_thread =
-        jit_callback_check_thread(jit_module, true, "allocate_executable");
-    if (!my_thread)
-        return NULL;
-    filc_llvm_jit_jit_module_object* mod = jit_anchor_acquire(my_thread, jit_module);
-    if (!mod)
-        return NULL;
-    size_t request = (size_t)size;
-    size_t align = (size_t)alignment;
-    if (align < 16)
-        align = 16;
-    size_t total = request + align;
-    if (total < request) {
-        jit_anchor_release(my_thread, jit_module);
-        return NULL;
-    }
-    void* raw = jit_alloc_with_backing(total);
-    if (!raw) {
-        jit_anchor_release(my_thread, jit_module);
-        return NULL;
-    }
-    uintptr_t raw_addr = (uintptr_t)raw;
-    uintptr_t aligned = (raw_addr + (align - 1)) & ~(uintptr_t)(align - 1);
-    push_jit_base(mod, raw);
-    jit_anchor_release(my_thread, jit_module);
-    return (void*)aligned;
-}
-
-static void* allocate_object_cb(void* context, void* jit_module,
-                                 const char* section_name,
-                                 unsigned long long size,
-                                 unsigned long long alignment)
-{
-    PAS_UNUSED_PARAM(context);
-    PAS_UNUSED_PARAM(section_name);
-    if (!size)
-        return NULL;
-    filc_thread* my_thread =
-        jit_callback_check_thread(jit_module, true, "allocate_object");
-    if (!my_thread)
-        return NULL;
-    filc_llvm_jit_jit_module_object* mod = jit_anchor_acquire(my_thread, jit_module);
-    if (!mod)
-        return NULL;
-    size_t request = (size_t)size;
-    size_t align = (size_t)alignment;
-    if (align < 32)
-        align = 32;
-    filc_object* object = filc_allocate_with_alignment(my_thread, request, align);
-    if (!object) {
-        jit_anchor_release(my_thread, jit_module);
-        return NULL;
-    }
-    filc_ptr ref = filc_ptr_create_with_object(my_thread, object);
-    push_object_ref(my_thread, mod, ref);
-    void* result = filc_object_lower(object);
-    jit_anchor_release(my_thread, jit_module);
-    return result;
-}
-
-static void* allocate_module_data_cb(void* context, void* jit_module,
-                                      const char* section_name,
-                                      unsigned long long size,
-                                      unsigned long long alignment)
-{
-    PAS_UNUSED_PARAM(context);
-    if (!size)
-        return NULL;
-    filc_thread* my_thread =
-        jit_callback_check_thread(jit_module, true, "allocate_module_data");
-    if (!my_thread)
-        return NULL;
-    filc_llvm_jit_jit_module_object* mod = jit_anchor_acquire(my_thread, jit_module);
-    if (!mod)
-        return NULL;
-    size_t request = (size_t)size;
-    size_t align = (size_t)alignment;
-    if (align < 1)
-        align = 1;
-    bool is_aux = section_name
-        && !strncmp(section_name, FILC_LLVM_JIT_AUX_SECTION_PREFIX,
-                    strlen(FILC_LLVM_JIT_AUX_SECTION_PREFIX));
-    char* tail = mod->tail;
-    void* result = NULL;
-    if (is_aux) {
-        size_t off = (mod->combined_aux_used + (align - 1)) & ~(align - 1);
-        if (off + request > mod->combined_aux_size) {
-            jit_anchor_release(my_thread, jit_module);
-            return NULL;
-        }
-        result = tail + off;
-        mod->combined_aux_used = off + request;
-    } else {
-        size_t base = mod->combined_aux_size;
-        size_t off = (mod->other_used + (align - 1)) & ~(align - 1);
-        if (off + request > mod->other_size) {
-            jit_anchor_release(my_thread, jit_module);
-            return NULL;
-        }
-        result = tail + base + off;
-        mod->other_used = off + request;
-    }
-    jit_anchor_release(my_thread, jit_module);
-    return result;
-}
-
-static void finalize_object_cb(void* context, void* jit_module, void* object,
-                                unsigned long long size)
-{
-    PAS_UNUSED_PARAM(context);
-    PAS_UNUSED_PARAM(size);
-    if (!jit_module || !object)
-        return;
-    /* Thread gate first: stamping the header touches GC state and is only
-       legal on the compiling entered Fil-C thread. On failure just return;
-       the link already failed (or never started) without this finalize. */
-    filc_thread* my_thread =
-        jit_callback_check_thread(jit_module, true, "finalize_object");
-    if (!my_thread)
-        return;
-    filc_llvm_jit_jit_module_object* mod = jit_anchor_acquire(my_thread, jit_module);
-    if (!mod)
-        return;
-    filc_object* owner = filc_object_for_lower(object);
-    if (!owner) {
-        jit_anchor_release(my_thread, jit_module);
-        return;
-    }
-    if (!filc_object_is_aligned(owner)) {
-        jit_anchor_release(my_thread, jit_module);
-        return;
-    }
-    filc_alignment_header* header = filc_object_get_alignment_header(owner);
-    filc_object* jit_object = filc_object_for_special_payload(mod);
-    header->extra_pointer =
-        ((uintptr_t)jit_object & ~FILC_EXTRA_POINTER_STATE_MASK)
-        | FILC_EXTRA_POINTER_STATE_JIT_MODULE;
-    jit_anchor_release(my_thread, jit_module);
-}
-
-static void* resolve_impl(filc_thread* my_thread,
-                          filc_llvm_jit_jit_module_object* mod,
-                          const char* name,
-                          filc_ptr* resolved_out)
-{
-    if (resolved_out)
-        *resolved_out = filc_ptr_forge_null();
-    if (!name || !mod)
-        return NULL;
-    filc_ptr resolver;
-    filc_ptr resolver_context;
-    pas_lock_lock(&mod->lock);
-    resolver = mod->resolver;
-    resolver_context = mod->resolver_context;
-    pas_lock_unlock(&mod->lock);
-    if (!filc_ptr_ptr(resolver))
-        return NULL;
-    filc_ptr name_string = filc_strdup(my_thread, name);
-    extern filc_ptr filc_call_user_ptr_ptr_ptr(filc_thread* my_thread, filc_ptr target,
-                                               filc_ptr arg0, filc_ptr arg1);
-    filc_ptr resolved = filc_call_user_ptr_ptr_ptr(my_thread, resolver, name_string,
-                                                   resolver_context);
-    if (!filc_ptr_ptr(resolved))
-        return NULL;
-    void* address = filc_ptr_ptr(resolved);
-    push_root_locked(my_thread, mod, resolved);
-    if (resolved_out)
-        *resolved_out = resolved;
-    return address;
-}
-
-static void* resolve_raw_impl(filc_thread* my_thread,
-                              filc_llvm_jit_jit_module_object* mod,
-                              filc_exact_ptr_table* table,
-                              unsigned long long encoded,
-                              filc_ptr* resolved_out)
-{
-    if (resolved_out)
-        *resolved_out = filc_ptr_forge_null();
-    filc_ptr resolved;
-    if (table) {
-        resolved = filc_exact_ptr_table_decode(my_thread, table, (uintptr_t)encoded);
-    } else {
-        if (!mod)
-            return NULL;
-        filc_ptr table_ref;
-        pas_lock_lock(&mod->lock);
-        table_ref = mod->zexact_table;
-        pas_lock_unlock(&mod->lock);
-        if (!filc_ptr_ptr(table_ref))
-            return (void*)(uintptr_t)encoded;
-        filc_check_access_special(table_ref, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE);
-        table = (filc_exact_ptr_table*)filc_ptr_ptr(table_ref);
-        resolved = filc_exact_ptr_table_decode(my_thread, table, (uintptr_t)encoded);
-    }
-    if (!filc_ptr_ptr(resolved))
-        return NULL;
-    void* address = filc_ptr_ptr(resolved);
-    if (mod)
-        push_root_locked(my_thread, mod, resolved);
-    if (resolved_out)
-        *resolved_out = resolved;
-    return address;
-}
-
-static void* resolve_symbol_cb(void* context, void* jit_module,
-                                 const char* name)
-{
-    PAS_UNUSED_PARAM(context);
-    if (!jit_module || !name)
-        return NULL;
-    /* Unlike the allocate path, this callback is baked into JITed code and
-       may fire on any thread running that code, long after CompileModule
-       returned — so any entered Fil-C thread is acceptable, not just the
-       compiling one. Unknown symbols are a normal NULL (not an error). */
-    filc_thread* my_thread =
-        jit_callback_check_thread(jit_module, false, "resolve_symbol");
-    if (!my_thread)
-        return NULL;
-    filc_llvm_jit_jit_module_object* mod = jit_anchor_acquire(my_thread, jit_module);
-    if (!mod)
-        return NULL;
-    void* result = resolve_impl(my_thread, mod, name, NULL);
-    jit_anchor_release(my_thread, jit_module);
-    return result;
-}
-
-static void* resolve_raw_pointer_cb(void* context, void* jit_module,
-                                     unsigned long long encoded)
-{
-    PAS_UNUSED_PARAM(context);
-    if (!jit_module)
-        return (void*)(uintptr_t)encoded;
-    /* Same threading contract as resolve_symbol_cb: any entered Fil-C
-       thread may run JITed code. On a thread violation return NULL (fail
-       cleanly) rather than the raw encoding, which must only be handed out
-       with the root that resolve_raw_impl records. */
-    filc_thread* my_thread =
-        jit_callback_check_thread(jit_module, false, "resolve_raw_pointer");
-    if (!my_thread)
-        return NULL;
-    filc_llvm_jit_jit_module_object* mod = jit_anchor_acquire(my_thread, jit_module);
-    if (!mod)
-        return NULL;
-    void* result = resolve_raw_impl(my_thread, mod, NULL, encoded, NULL);
-    jit_anchor_release(my_thread, jit_module);
-    return result;
-}
-
-void* filc_llvm_jit_resolve(void* jit_module, const char* name)
-{
-    PAS_UNUSED_PARAM(jit_module);
-    PAS_UNUSED_PARAM(name);
-    return NULL;
-}
-
-void* filc_llvm_jit_resolve_raw_pointer(void* jit_module, unsigned long long encoded)
-{
-    PAS_UNUSED_PARAM(jit_module);
-    PAS_UNUSED_PARAM(encoded);
-    return NULL;
 }
 
 static void code_fence(filc_thread* my_thread, void* arg)
@@ -966,39 +352,20 @@ static void code_fence(filc_thread* my_thread, void* arg)
 #endif
 }
 
-filc_ptr filc_native_FilLLVMJIT_GetLastError(filc_thread* my_thread)
-{
-    ensure_api(my_thread);
-    /* Prefer the runtime-side sticky error: it covers failures that
-       originate on the runtime side of CompileModule (no linkable
-       definitions, unsupported linkage, eager-link failures after the
-       shim already reported), for which the shim set nothing. */
-    const char* sticky = jit_sticky_error_get();
-    if (sticky)
-        return filc_strdup(my_thread, sticky);
-    const char* error = api->GetLastError ? api->GetLastError() : "";
-    if (!error)
-        error = "";
-    return filc_strdup(my_thread, error);
-}
-
 filc_ptr filc_native_FilLLVMJIT_Create(filc_thread* my_thread)
 {
     ensure_api(my_thread);
-    ShimJit handle = api->Create();
-    if (!handle)
-        return filc_ptr_forge_null();
+    ShimJIT* handle = api->ShimJITCreate();
+    PAS_ASSERT(handle);
     filc_object* object = filc_allocate_special_with_heap(
-        my_thread, sizeof(filc_llvm_jit_session_object), 16,
+        my_thread, sizeof(filc_llvm_jit_session_object), 1,
         FILC_SPECIAL_TYPE_LLVM_JIT, fugc_destructor_heap);
     filc_llvm_jit_session_object* session =
         (filc_llvm_jit_session_object*)filc_object_lower(object);
     session->kind = FILC_LLVM_JIT_KIND_JIT_SESSION;
     pas_lock_construct(&session->lock);
     session->handle = (void*)handle;
-    session->resolver = filc_ptr_forge_null();
-    session->resolver_context = filc_ptr_forge_null();
-    session->zexact_table = filc_ptr_forge_null();
+    filc_object_array_construct(&session->objects);
     return filc_ptr_create_with_special_object(my_thread, object);
 }
 
@@ -1009,11 +376,30 @@ int filc_native_FilLLVMJIT_SetOption(filc_thread* my_thread, filc_ptr jit_ptr,
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
     char* key = filc_check_and_get_tmp_str(my_thread, key_ptr);
     char* value = filc_check_and_get_tmp_str(my_thread, value_ptr);
-    void* session_handle;
     pas_lock_lock(&session->lock);
-    session_handle = session->handle;
+    int result = api->ShimJITSetOption(session->handle, key, value);
     pas_lock_unlock(&session->lock);
-    return api->SetOption((ShimJit)session_handle, key, value);
+    return result;
+}
+
+static shim_ptr to_shim_ptr(filc_ptr ptr)
+{
+    filc_runtime_ptr result;
+    result.ptr = ptr.ptr;
+    result.lower = ptr.lower;
+    return result;
+}
+
+void filc_native_FilLLVMJIT_SetGlobalMapping(filc_thread* my_thread, filc_ptr jit_ptr,
+                                             filc_ptr key_ptr, filc_ptr destination_ptr)
+{
+    ensure_api(my_thread);
+    filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
+    char* key = filc_check_and_get_tmp_str(my_thread, key_ptr);
+    pas_lock_lock(&session->lock);
+    filc_object_array_push(&session->objects, filc_ptr_object(destination_ptr));
+    api->ShimJITSetGlobalMapping(session->handle, key, to_shim_ptr(destination_ptr));
+    pas_lock_unlock(&session->lock);
 }
 
 void filc_native_FilLLVMJIT_SetResolveCallback(filc_thread* my_thread, filc_ptr jit_ptr,
@@ -1057,7 +443,7 @@ filc_ptr filc_native_FilLLVMJIT_GetPointerToGlobal(filc_thread* my_thread, filc_
 filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr jit_ptr,
                                               filc_ptr module_ptr, filc_ptr name_ptr)
 {
-    const struct filc_llvm_jit_api* api = ensure_api(my_thread);
+    const struct shim_api* api = ensure_api(my_thread);
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module_obj =
@@ -11156,6 +10542,70 @@ filc_ptr filc_native_LLVMX86FP80TypeInContext(filc_thread* my_thread, filc_ptr p
     filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
     pas_lock_unlock(&context->state);
     return result;
+}
+
+static const shim_runtime_api runtime_api = {
+#include "../../../filc/llvmjit/runtime_api_init.inc"
+};
+
+static bool try_load_one(const char* path)
+{
+    if (!path || !path[0])
+        return false;
+    void* handle = dlopen(path, RTLD_NOW | RTLD_LOCAL);
+    if (!handle)
+        return false;
+    const struct shim_api* (*get_api)(const shim_runtime_api*) =
+        (const struct shim_api* (*)(const shim_runtime_api*))
+        dlsym(handle, "FilLLVMJIT_GetApi");
+    if (!get_api) {
+        dlclose(handle);
+        return false;
+    }
+    const struct shim_api* my_api = get_api(&runtime_api);
+    if (!my_api || my_api->version != SHIM_API_VERSION) {
+        dlclose(handle);
+        return false;
+    }
+    pas_store_store_fence();
+    api = my_api;
+    return true;
+}
+
+static const struct void ensure_api_slow(filc_thread* my_thread)
+{
+    pas_lock_lock(&api_mutex);
+    if (api) {
+        pas_lock_unlock(&api_mutex);
+        PAS_ASSERT(api);
+        return api;
+    }
+    const char* env = secure_getenv("FILC_LLVMJIT_SO");
+    if (env && env[0])
+        try_load_one(env);
+    if (!api) {
+        Dl_info info;
+        if (dladdr((void*)ensure_api_slow, &info) && info.dli_fname) {
+            char dir[4096];
+            snprintf(dir, sizeof(dir), "%s", info.dli_fname);
+            char* slash = strrchr(dir, '/');
+            if (slash) {
+                *slash = '\0';
+                char candidate[4096];
+                snprintf(candidate, sizeof(candidate),
+                         "%s/../libexec/libfilcllvmjit.so", dir);
+                if (!try_load_one(candidate)) {
+                    const char* error = dlerror();
+                    pas_lock_unlock(&api_mutex);
+                    filc_safety_panic(NULL, "could not dlopen libfilcllvmjit.so: %s.",
+                                      error ? error : "<unknown>");
+                }
+            }
+        }
+    }
+    PAS_ASSERT(api);
+    pas_lock_unlock(&api_mutex);
+    PAS_UNUSED_PARAM(my_thread);
 }
 
 #endif /* PAS_ENABLE_FILC */

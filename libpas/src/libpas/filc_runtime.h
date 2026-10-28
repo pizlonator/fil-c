@@ -90,6 +90,7 @@ typedef struct filc_jmp_buf filc_jmp_buf;
 typedef struct filc_llvm_jit_builder_object filc_llvm_jit_builder_object;
 typedef struct filc_llvm_jit_context_object filc_llvm_jit_context_object;
 typedef struct filc_llvm_jit_entries_object filc_llvm_jit_entries_object;
+typedef struct filc_llvm_jit_aux_allocation filc_llvm_jit_aux_allocation;
 typedef struct filc_llvm_jit_executable_module filc_llvm_jit_executable_module;
 typedef struct filc_llvm_jit_module_object filc_llvm_jit_module_object;
 typedef struct filc_llvm_jit_object filc_llvm_jit_object;
@@ -1218,9 +1219,12 @@ struct filc_llvm_jit_session_object {
     filc_llvm_jit_kind kind;
     pas_lock lock;
     void* handle;
-    filc_ptr resolver;
-    filc_ptr resolver_context;
-    filc_ptr zexact_table;
+    filc_object_array objects;
+};
+
+struct filc_llvm_jit_aux_allocation {
+    size_t size;
+    void* array[1];
 };
 
 /* Compiled JIT module. Owns every allocation the JIT memory manager made
@@ -1242,16 +1246,11 @@ struct filc_llvm_jit_session_object {
 struct filc_llvm_jit_executable_module {
     filc_llvm_jit_kind kind;
     pas_lock lock;
-    bool link_did_allocate;
     filc_raw_ptr_array jit_bases;
     filc_object_array objects;
-    filc_ptr resolver;
-    filc_ptr resolver_context;
-    filc_ptr zexact_table;
-    size_t combined_aux_size;
-    size_t combined_aux_used;
-    size_t other_size;
-    size_t other_used;
+    filc_raw_ptr_array sections;
+    filc_raw_ptr_array auxes;
+    void* mapping;
 };
 
 struct filc_ptr_hash_map_entry {

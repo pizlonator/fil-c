@@ -337,22 +337,11 @@ static PAS_ALWAYS_INLINE void filc_finalizable_object_revive(filc_object* object
         pas_log("Unexpected revived object during revive: %p\n", object);
         PAS_ASSERT(!"Unexpected revived object");
         break;
-    case FILC_EXTRA_POINTER_STATE_JIT_MODULE: {
-        /* GC-section objects for a JIT module carry this state (see
-           finalize_object_cb in filc_llvm_jit.c). They live in the default
-           heap and are never finalizable, so they never reach revive;
-           handle defensively by keeping the referenced module alive. */
-        filc_object* jit_module_object =
-            (filc_object*)(extra_pointer & ~FILC_EXTRA_POINTER_STATE_MASK);
-        if (jit_module_object)
-            fugc_mark(stack, jit_module_object);
-        break;
-    }
     default:
         pas_log("Invalid extra-pointer state %lu during revive: %p\n",
                 (unsigned long)(extra_pointer & FILC_EXTRA_POINTER_STATE_MASK),
                 object);
-        PAS_ASSERT(!"Invalid extra-pointer state: reserved values 5, 6, 7 are unhandled");
+        PAS_ASSERT(!"Invalid extra-pointer state");
         break;
     }
 }
@@ -401,18 +390,11 @@ static PAS_ALWAYS_INLINE void filc_finalizable_object_census(filc_object* object
         }
         break;
     }
-    case FILC_EXTRA_POINTER_STATE_JIT_MODULE:
-        /* GC-section objects for a JIT module carry this state (see
-           finalize_object_cb in filc_llvm_jit.c). They live in the default
-           heap and are never finalizable, so they never reach census; there
-           is nothing to census here (census takes no mark stack). The module
-           edge itself is marked by filc_object_mark_outgoing_ptrs. */
-        break;
     default:
         pas_log("Invalid extra-pointer state %lu during census: %p\n",
                 (unsigned long)(extra_pointer & FILC_EXTRA_POINTER_STATE_MASK),
                 object);
-        PAS_ASSERT(!"Invalid extra-pointer state: reserved values 5, 6, 7 are unhandled");
+        PAS_ASSERT(!"Invalid extra-pointer state");
         break;
     }
 }
@@ -868,14 +850,8 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object
         case FILC_EXTRA_POINTER_STATE_NONE:
         case FILC_EXTRA_POINTER_STATE_ENQUEUED:
         case FILC_EXTRA_POINTER_STATE_REVIVED:
+        case FILC_EXTRA_POINTER_STATE_LIVE_FINALIZER:
             break;
-        case FILC_EXTRA_POINTER_STATE_LIVE_FINALIZER: {
-            filc_finalizer_queue* queue =
-                (filc_finalizer_queue*)(extra & ~FILC_EXTRA_POINTER_STATE_MASK);
-            if (queue)
-                marker.mark(stack, filc_object_for_special_payload(queue));
-            break;
-        }
         case FILC_EXTRA_POINTER_STATE_JIT_MODULE: {
             filc_object* jit_module_object =
                 (filc_object*)(extra & ~FILC_EXTRA_POINTER_STATE_MASK);
@@ -887,7 +863,7 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object
             pas_log("Invalid extra-pointer state %lu while marking: %p\n",
                     (unsigned long)(extra & FILC_EXTRA_POINTER_STATE_MASK),
                     object);
-            PAS_ASSERT(!"Invalid extra-pointer state: reserved values 5, 6, 7 are unhandled");
+            PAS_ASSERT(!"Invalid extra-pointer state");
             break;
         }
     }

@@ -71,8 +71,8 @@ OUT_MAPPING_INC = os.path.join(REPO, "filc", "llvmjit", "mapping_init.inc")
 JIT_OWN = [
     ("ShimJIT*", "ShimJITCreate", "(void)"),
     ("void", "ShimJITSetOption", "(ShimJIT* jit, const char* key, const char* value)"),
-    ("void", "ShimJITSetGlobalMapping", "(ShimJIT* jit, const char* key, void* lower, void* ptr)"),
-    ("void", "ShimJITSetPointerMapping", "(ShimJIT* jit, void* lower, void* ptr)"),
+    ("void", "ShimJITSetGlobalMapping", "(ShimJIT* jit, const char* key, shim_ptr ptr)"),
+    ("void", "ShimJITSetPointerMapping", "(ShimJIT* jit, shim_ptr ptr)"),
     ("void*", "ShimJITCompile", "(ShimJIT* jit, LLVMModuleRef mod, const char* name)"),
     ("void", "ShimJITDestroy", "(ShimJIT* jit)"),
     ("void*", "ShimExportMappingLookup", "(ShimExportMapping* mapping, const char* name)"),
@@ -361,7 +361,13 @@ API_STRUCT_TEMPLATE = """
 #define FILC_LLVM_JIT_GC_SECTION_PREFIX "filc_gc_obj"
 #define FILC_LLVM_JIT_AUX_SECTION_PREFIX "filc_jit_aux"
 
-#define FILC_LLVM_JIT_API_VERSION 7
+#define SHIM_API_VERSION 7
+
+typedef struct shim_ptr shim_ptr;
+struct shim_ptr {
+    void* ptr;
+    void* lower;
+};
 
 // Runtime-provided memory callbacks, installed with SetMemoryCallbacks
 // before the first CompileModule.  The shim routes every LinkGraph section
@@ -370,21 +376,21 @@ API_STRUCT_TEMPLATE = """
 // header shapes).  Every address is an opaque pointer and every size is a
 // byte count; the runtime appends executable and object allocations to the
 // owning jit_module so the module keeps them alive.
-typedef struct filc_runtime_api filc_runtime_api;
-struct filc_runtime_api {
+typedef struct shim_runtime_api shim_runtime_api;
+struct shim_runtime_api {
     unsigned version;
 @RUNTIME_API@
 };
 
-typedef struct filc_llvm_jit_api filc_llvm_jit_api;
-struct filc_llvm_jit_api {
+typedef struct shim_api shim_api;
+struct shim_api {
     unsigned version;
 @LLVM_FIELDS@
 };
 
 
 // The single exported entry point of libfilcllvmjit.so.
-const struct filc_llvm_jit_api *FilLLVMJIT_GetApi(filc_runtime_api* runtimeAPI);
+const struct shim_api *FilLLVMJIT_GetApi(const shim_runtime_api* runtimeAPI);
 
 #if 0
 { // tell emacs what is up
