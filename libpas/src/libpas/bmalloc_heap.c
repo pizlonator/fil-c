@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2019-2022 Apple Inc. All rights reserved.
  * Copyright (c) 2023 Epic Games, Inc. All Rights Reserved.
+ * Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -11,10 +12,10 @@
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -73,6 +74,12 @@ PAS_NEVER_INLINE void* bmalloc_try_allocate_with_nontrivial_alignment(size_t siz
 PAS_NEVER_INLINE void* bmalloc_allocate_with_nontrivial_alignment(size_t size, size_t alignment)
 {
     return (void*)bmalloc_allocate_with_alignment_impl(size, alignment).begin;
+}
+
+PAS_NEVER_INLINE void* bmalloc_allocate_zeroed_with_nontrivial_alignment(size_t size, size_t alignment)
+{
+    return (void*)pas_allocation_result_zero(
+        bmalloc_allocate_with_alignment_impl(size, alignment)).begin;
 }
 
 PAS_NEVER_INLINE void* bmalloc_try_reallocate_with_nontrivial_alignment(void* old_ptr, size_t new_size, size_t alignment,
@@ -146,6 +153,11 @@ void* bmalloc_try_allocate_with_alignment(size_t size, size_t alignment)
 void* bmalloc_try_allocate_zeroed(size_t size)
 {
     return bmalloc_try_allocate_zeroed_inline(size);
+}
+
+void* bmalloc_try_allocate_zeroed_with_alignment(size_t size, size_t alignment)
+{
+    return bmalloc_try_allocate_zeroed_with_alignment_inline(size, alignment);
 }
 
 void* bmalloc_allocate(size_t size)

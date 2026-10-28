@@ -2822,18 +2822,9 @@ filc_object* filc_allocate_special_with_heap(filc_thread* my_thread, size_t size
     return result;
 }
 
-static PAS_NEVER_INLINE PAS_NO_RETURN void size_too_big(size_t size)
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_size_too_big(size_t size)
 {
     filc_safety_panic(NULL, "attempt to allocate object that is too big (size = %zu).", size);
-}
-
-static PAS_ALWAYS_INLINE void prepare_allocate_object(size_t* size)
-{
-    if (PAS_UNLIKELY(*size > FILC_MAX_ALLOCATION_SIZE))
-        size_too_big(*size);
-    size_t original_size = *size;
-    *size = pas_round_up_to_power_of_2(*size, FILC_MINALIGN);
-    PAS_TESTING_ASSERT(*size >= original_size);
 }
 
 filc_object* filc_allocate_special_with_existing_payload(
@@ -2851,24 +2842,6 @@ filc_object* filc_allocate_special_with_existing_payload(
         (char*)payload);
     pas_store_store_fence();
     return result;
-}
-
-static PAS_ALWAYS_INLINE void prepare_allocate(
-    size_t* size, size_t alignment, size_t* offset_to_payload, size_t* total_size)
-{
-    size_t max_alignment =
-        pas_min_uintptr(VERSE_HEAP_CHUNK_SIZE / 2, filc_log_align_alignment(FILC_LOG_ALIGN_MASK));
-    FILC_CHECK(
-        alignment <= max_alignment,
-        NULL,
-        "alignment %zu too big (max alignment is %zu).",
-        alignment, max_alignment);
-
-    PAS_ASSERT(sizeof(filc_object) == FILC_MINALIGN);
-    prepare_allocate_object(size);
-    *offset_to_payload = pas_max_uintptr(alignment, sizeof(filc_object));
-    *total_size = *size + *offset_to_payload;
-    PAS_TESTING_ASSERT(*total_size > *size);
 }
 
 static PAS_ALWAYS_INLINE filc_object* initialize_object_header(
@@ -2980,7 +2953,7 @@ static PAS_ALWAYS_INLINE filc_object* allocate_impl(
     size_t num_words;
     size_t offset_to_payload;
     size_t total_size;
-    prepare_allocate(&size, FILC_WORD_SIZE, &offset_to_payload, &total_size);
+    filc_prepare_allocate(&size, FILC_WORD_SIZE, &offset_to_payload, &total_size);
     return finish_allocate(
         my_thread, filc_thread_allocate(my_thread, total_size),
         size, FILC_WORD_SIZE, offset_to_payload, object_flags, exit_allowed_mode, NULL);
@@ -3024,7 +2997,7 @@ static PAS_ALWAYS_INLINE filc_object* allocate_aligned_impl(
     size_t num_words;
     size_t offset_to_payload;
     size_t total_size;
-    prepare_allocate(&size, alignment, &offset_to_payload, &total_size);
+    filc_prepare_allocate(&size, alignment, &offset_to_payload, &total_size);
     return finish_allocate(
         my_thread, verse_heap_allocate_with_alignment(heap, total_size, alignment),
         size, alignment, offset_to_payload, object_flags, exit_allowed_mode, finalizer_queue);
@@ -3041,14 +3014,20 @@ filc_object* filc_allocate_with_alignment_without_exiting(filc_thread* my_thread
     return allocate_aligned_impl(my_thread, size, alignment, 0, filc_exit_not_allowed, NULL);
 }
 
+size_t filc_finalizable_alignment(size_t alignment)
+{
+    size_t finalizable_alignment = sizeof(filc_object) + sizeof(filc_alignment_header);
+    PAS_ASSERT(pas_is_power_of_2(finalizable_alignment));
+    return pas_max_uintptr(finalizable_alignment, alignment);
+}
+
 filc_object* filc_allocate_finalizable_with_alignment(filc_thread* my_thread,
                                                       size_t size, size_t alignment,
                                                       filc_finalizer_queue* finalizer_queue)
 {
-    size_t finalizable_alignment = sizeof(filc_object) + sizeof(filc_alignment_header);
-    PAS_ASSERT(pas_is_power_of_2(finalizable_alignment));
-    alignment = pas_max_uintptr(finalizable_alignment, alignment);
-    return allocate_aligned_impl(my_thread, size, alignment, 0, filc_exit_allowed, finalizer_queue);
+    return allocate_aligned_impl(
+        my_thread, size, filc_finalizable_alignment(alignment), 0, filc_exit_allowed,
+        finalizer_queue);
 }
 
 static filc_object* finish_reallocate(
@@ -3143,7 +3122,7 @@ filc_object* filc_reallocate(filc_thread* my_thread, filc_object* object, size_t
 
     size_t offset_to_payload;
     size_t total_size;
-    prepare_allocate(&new_size, FILC_WORD_SIZE, &offset_to_payload, &total_size);
+    filc_prepare_allocate(&new_size, FILC_WORD_SIZE, &offset_to_payload, &total_size);
     return finish_reallocate(
         my_thread, filc_thread_allocate(my_thread, total_size),
         object, new_size, FILC_WORD_SIZE, offset_to_payload);
@@ -3158,7 +3137,7 @@ filc_object* filc_reallocate_with_alignment(filc_thread* my_thread, filc_object*
     alignment = pas_max_uintptr(alignment, FILC_WORD_SIZE);
     size_t offset_to_payload;
     size_t total_size;
-    prepare_allocate(&new_size, alignment, &offset_to_payload, &total_size);
+    filc_prepare_allocate(&new_size, alignment, &offset_to_payload, &total_size);
     return finish_reallocate(
         my_thread, verse_heap_allocate_with_alignment(fugc_default_heap, total_size, alignment),
         object, new_size, alignment, offset_to_payload);

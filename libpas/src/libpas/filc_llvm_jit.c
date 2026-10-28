@@ -220,7 +220,7 @@ static filc_llvm_jit_session_object* unwrap_session(filc_thread* my_thread, filc
     return payload;
 }
 
-static filc_llvm_jit_jit_module_object* unwrap_jit_module(filc_thread* my_thread, filc_ptr ptr)
+static filc_llvm_jit_jit_module_object* unwrap_exectable_module(filc_thread* my_thread, filc_ptr ptr)
 {
     PAS_UNUSED_PARAM(my_thread);
     if (!filc_ptr_ptr(ptr))
@@ -397,47 +397,34 @@ void filc_native_FilLLVMJIT_SetGlobalMapping(filc_thread* my_thread, filc_ptr ji
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
     char* key = filc_check_and_get_tmp_str(my_thread, key_ptr);
     pas_lock_lock(&session->lock);
+    filc_store_barrier(my_thread, filc_ptr_object(destination_ptr));
     filc_object_array_push(&session->objects, filc_ptr_object(destination_ptr));
     api->ShimJITSetGlobalMapping(session->handle, key, to_shim_ptr(destination_ptr));
     pas_lock_unlock(&session->lock);
 }
 
-void filc_native_FilLLVMJIT_SetResolveCallback(filc_thread* my_thread, filc_ptr jit_ptr,
-                                               filc_ptr resolver_ptr, filc_ptr context_ptr)
+void filc_native_FilLLVMJIT_BlessPointer(filc_thread* my_thread, filc_ptr jit_ptr,
+                                         filc_ptr destination_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
-    FILC_CHECK(filc_ptr_ptr(resolver_ptr), NULL,
-               "FilLLVMJIT_SetResolveCallback: null resolver.");
-    filc_check_function_call(resolver_ptr);
     pas_lock_lock(&session->lock);
-    session->resolver = resolver_ptr;
-    session->resolver_context = context_ptr;
+    filc_store_barrier(my_thread, filc_ptr_object(destination_ptr));
+    filc_object_array_push(&session->objects, filc_ptr_object(destination_ptr));
+    api->ShimJITSetPointerMapping(session->handle, to_shim_ptr(destination_ptr));
     pas_lock_unlock(&session->lock);
-    filc_store_barrier(my_thread, filc_ptr_object(resolver_ptr));
-    if (filc_ptr_is_markable(context_ptr))
-        filc_store_barrier(my_thread, filc_ptr_object(context_ptr));
-}
-
-int filc_native_FilLLVMJIT_SetZExactPointerTable(filc_thread* my_thread, filc_ptr jit_ptr,
-                                                 filc_ptr table_ptr)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
-    FILC_CHECK(filc_ptr_ptr(table_ptr), NULL,
-               "FilLLVMJIT_SetZExactPointerTable: null table.");
-    filc_check_access_special(table_ptr, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE);
-    pas_lock_lock(&session->lock);
-    session->zexact_table = table_ptr;
-    pas_lock_unlock(&session->lock);
-    filc_store_barrier(my_thread, filc_ptr_object(table_ptr));
-    return 0;
 }
 
 filc_ptr filc_native_FilLLVMJIT_GetPointerToGlobal(filc_thread* my_thread, filc_ptr module_ptr,
                                                    filc_ptr name_ptr)
 {
-    return lookup_address(my_thread, module_ptr, name_ptr, api->GetPointerToGlobal);
+    ensure_api(my_thread);
+    filc_llvm_jit_executable_module* module = unwrap_executable_module(my_thread, module_ptr);
+    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
+    pas_lock_lock(&module->lock);
+    pizlonated_getter getter = api->ShimExportMappingLookup(module->mapping, name);
+    pas_lock_unlock(&module->lock);
+    return getter(my_thread, NULL);
 }
 
 filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr jit_ptr,
@@ -451,300 +438,137 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
                    &context, NULL);
     PAS_ASSERT(context);
     char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
-    void* session_handle;
-    void* module_handle = module_obj->handle;
+    /* FIXME: Would be cool if we exited around the compile. */
     pas_lock_lock(&session->lock);
-    session_handle = session->handle;
+    filc_llvm_jit_executable_module* module = api->ShimJITCompile(
+        session->handle, module_obj->handle, name);
     pas_lock_unlock(&session->lock);
-    filc_object* jit_object = filc_allocate_special_with_heap(
-        my_thread, sizeof(filc_llvm_jit_jit_module_object), 16,
-        FILC_SPECIAL_TYPE_LLVM_JIT, fugc_destructor_heap);
-    filc_llvm_jit_jit_module_object* created =
-        (filc_llvm_jit_jit_module_object*)filc_object_lower(jit_object);
-    created->kind = FILC_LLVM_JIT_KIND_JIT_MODULE;
-    pas_lock_construct(&created->lock);
-    created->handle = NULL;
-    created->jit_bases = NULL;
-    created->num_jit_bases = 0;
-    created->jit_bases_capacity = 0;
-    created->object_refs = NULL;
-    created->num_objects = 0;
-    created->objects_capacity = 0;
-    created->roots = NULL;
-    created->num_roots = 0;
-    created->roots_capacity = 0;
-    pas_lock_lock(&session->lock);
-    created->resolver = session->resolver;
-    created->resolver_context = session->resolver_context;
-    created->zexact_table = session->zexact_table;
-    pas_lock_unlock(&session->lock);
-    created->combined_aux_size = 0;
-    created->combined_aux_used = 0;
-    created->other_size = 0;
-    created->other_used = 0;
-    created->tail = NULL;
-    /* __atomic access only (see filc_runtime.h): the allocate callback may
-       run on any ORC thread. */
-    __atomic_store_n(&created->link_did_allocate, false, __ATOMIC_RELAXED);
-    filc_ptr jit_keep = filc_ptr_create_with_special_object(my_thread, jit_object);
-    /* Root the new module object for the duration of the compile. Until we
-       return jit_keep to the caller, the only references are this C local
-       and the shim's snapshots, neither of which the collector scans. The
-       thread exits below (handshake) and the shim links lazily on lookup,
-       so without this root a concurrent collection could sweep the module
-       out from under us mid-compile. Popped before each return, once the
-       flight is published to the caller (or on failure paths). */
-    filc_push_allocation_root(my_thread, jit_object);
-    jit_clear_last_error();
-    /* Allocate the callback token before installing the callbacks. The shim
-       only ever sees this token, never the raw payload pointer: it is baked
-       into the dylib snapshot, the filc_jit_module absolute symbol, and the
-       module-private resolve wrappers. Decoding validates liveness, so a
-       stale token fails cleanly instead of dangling. */
-    void* token = jit_anchor_alloc(jit_object);
-    if (!token) {
-        jit_set_last_error("FilLLVMJIT_CompileModule: out of memory allocating callback token.");
-        filc_pop_allocation_root(my_thread, jit_object);
-        return filc_ptr_forge_null();
-    }
-    /* Register the compiling thread for this token before any shim call
-       can run a callback: the allocate-path callbacks verify they run on
-       this thread, and report cross-thread failures into the token's
-       locked slot for the drains below to pick up. */
-    jit_compile_record_add(token, my_thread);
-    struct filc_llvm_jit_memory_callbacks cbs;
-    cbs.context = token;
-    cbs.allocate_jit_module = allocate_jit_module_cb;
-    cbs.allocate_executable = allocate_executable_cb;
-    cbs.allocate_object = allocate_object_cb;
-    cbs.allocate_module_data = allocate_module_data_cb;
-    cbs.finalize_object = finalize_object_cb;
-    cbs.resolve_symbol = resolve_symbol_cb;
-    cbs.resolve_raw_pointer = resolve_raw_pointer_cb;
-    /* SetMemoryCallbacks is a link-phase shim call like CompileModule
-       below: run it through the teardown gate (lock-free try-enter/leave,
-       never holding any lock across it) so a compile racing process exit
-       fails cleanly instead of entering the shim during static
-       destruction. */
-    bool cbs_installed = false;
-    cbs_installed = !api->SetMemoryCallbacks((ShimJit)session_handle, &cbs);
-    if (!cbs_installed) {
-        const char* shim_err = api->GetLastError ? api->GetLastError() : NULL;
-        if (!shim_err || !shim_err[0])
-            shim_err = "unknown error";
-        jit_set_last_error("FilLLVMJIT_CompileModule: SetMemoryCallbacks failed: %s.",
-                           shim_err);
-        return jit_compile_fail(my_thread, jit_object, token, NULL, NULL, 0);
-    }
-    struct eager_symbol* eager = NULL;
-    size_t num_eager = 0;
-    size_t cap_eager = 0;
-    bool scan_failed = false;
-    pas_lock_lock(&context_state->lock);
-    {
-        LLVMValueRef value;
-        for (value = api->LLVMGetFirstFunction((LLVMModuleRef)module_handle);
-             value && !scan_failed;
-             value = api->LLVMGetNextFunction(value)) {
-            int verdict = eager_classify(api, value);
-            if (verdict < 0)
-                scan_failed = true;
-            else if (verdict > 0) {
-                const char* sym_name = api->LLVMGetValueName(value);
-                if (sym_name && sym_name[0])
-                    push_eager_symbol(&eager, &num_eager, &cap_eager,
-                                      sym_name, true);
-            }
-        }
-        for (value = api->LLVMGetFirstGlobal((LLVMModuleRef)module_handle);
-             value && !scan_failed;
-             value = api->LLVMGetNextGlobal(value)) {
-            int verdict = eager_classify(api, value);
-            if (verdict < 0)
-                scan_failed = true;
-            else if (verdict > 0) {
-                const char* sym_name = api->LLVMGetValueName(value);
-                if (sym_name && sym_name[0])
-                    push_eager_symbol(&eager, &num_eager, &cap_eager,
-                                      sym_name, false);
-            }
-        }
-        for (value = api->LLVMGetFirstGlobalAlias((LLVMModuleRef)module_handle);
-             value && !scan_failed;
-             value = api->LLVMGetNextGlobalAlias(value)) {
-            int verdict = eager_classify(api, value);
-            if (verdict < 0)
-                scan_failed = true;
-            else if (verdict > 0) {
-                const char* sym_name = api->LLVMGetValueName(value);
-                if (sym_name && sym_name[0])
-                    push_eager_symbol(&eager, &num_eager, &cap_eager,
-                                      sym_name, false);
-            }
-        }
-        for (value = api->LLVMGetFirstGlobalIFunc((LLVMModuleRef)module_handle);
-             value && !scan_failed;
-             value = api->LLVMGetNextGlobalIFunc(value)) {
-            int verdict = eager_classify(api, value);
-            if (verdict < 0)
-                scan_failed = true;
-            else if (verdict > 0) {
-                const char* sym_name = api->LLVMGetValueName(value);
-                if (sym_name && sym_name[0])
-                    push_eager_symbol(&eager, &num_eager, &cap_eager,
-                                      sym_name, true);
-            }
-        }
-    }
-    if (scan_failed) {
-        pas_lock_unlock(&context_state->lock);
-        return jit_compile_fail(my_thread, jit_object, token, NULL, eager, num_eager);
-    }
-    /* Bug #3: the context lock covers only the scan above, which copies
-       every link decision out into the malloc'd eager list (names plus
-       function/global flag). It is released before any linking: holding it
-       across CompileModule would hold it across the allocate callbacks
-       (which run synchronously inside CompileModule and call
-       filc_allocate, take other locks, and may trigger a collection), as
-       well as across the eager lookups and the GC allocation below. Link
-       unlocked; re-lock only to publish the handle on success. */
-    pas_lock_unlock(&context_state->lock);
-    /* CompileModule itself runs through the teardown gate (lock-free
-       try-enter/leave, no lock held across it) so a compile racing
-       process exit fails cleanly instead of entering the shim during
-       static destruction. */
-    ShimJitModule out = NULL;
-    out = api->CompileModule((ShimJit)session_handle,
-                             (LLVMModuleRef)module_handle,
-                             name ? name : "jit-module",
-                             token);
-    if (!out) {
-        const char* shim_err = api->GetLastError ? api->GetLastError() : NULL;
-        if (!shim_err || !shim_err[0])
-            shim_err = "unknown error";
-        jit_set_last_error("FilLLVMJIT_CompileModule: CompileModule failed: %s.",
-                           shim_err);
-        return jit_compile_fail(my_thread, jit_object, token, NULL, eager, num_eager);
-    }
-    /* Bug #9: nothing is published yet (created->handle stays NULL and the
-       donor still owns its LLVM handles), so every failure below lands in
-       jit_compile_fail with the half-linked shim module to destroy while
-       the malloc'd link payload (jit heap bases, GC object refs, roots,
-       tail) stays owned by the unpublished module object. The collector
-       reclaims it through the destructor, which frees those arrays and
-       — finding the abandoned anchor — skips the already-destroyed shim
-       handle instead of destroying it twice. */
-    if (!num_eager) {
-        /* Nothing linkable was collected: returning the module would leave
-           it permanently unlinked, and any later lookup would allocate
-           outside CompileModule. Fail the compile with a clean error
-           instead. */
-        jit_set_last_error("FilLLVMJIT_CompileModule: module defines no linkable symbols.");
-        return jit_compile_fail(my_thread, jit_object, token, (void*)out, eager, num_eager);
-    }
-    filc_ptr result = jit_keep;
-    {
-        // Eager link: resolve every externally visible definition collected
-        // above (functions, globals, aliases, ifuncs) to force the single
-        // LinkGraph allocate synchronously inside CompileModule, so nothing
-        // remains to trigger a lazy allocate later (which would fail the
-        // link on the link_did_allocate guard). These are raw LLJIT-level requests
-        // only; getters run later in address lookups with the caller origin.
-        // Every result is checked: a failure fails the compile cleanly
-        // instead of limping on toward a later abort, and the handshake
-        // below stays after this linking, so linked code is fenced before
-        // any address can be called. Each lookup runs through the teardown
-        // gate (lock-free try-enter/leave, no lock held across it) for the
-        // same exit-race reason as CompileModule above.
-        size_t index;
-        bool eager_failed = false;
-        for (index = 0; index < num_eager; ++index) {
-            void* address = NULL;
-            if (eager[index].is_function)
-                address = api->GetFunctionAddress(out, eager[index].name);
-            else
-                address = api->GetGlobalValueAddress(out, eager[index].name);
-            // A callback that failed on another thread recorded its cause
-            // in the token's locked slot; surface it before the generic
-            // shim string so the real cause wins over "unknown error".
-            if (!address)
-                jit_compile_record_drain(token);
-            if (!address) {
-                if (!jit_sticky_error_get()) {
-                    const char* shim_err = api->GetLastError ? api->GetLastError() : NULL;
-                    if (!shim_err || !shim_err[0])
-                        shim_err = "unknown error";
-                    jit_set_last_error("FilLLVMJIT_CompileModule: eager linking failed "
-                                       "for '%s': %s.",
-                                       eager[index].name, shim_err);
-                }
-                eager_failed = true;
-                break;
-            }
-        }
-        free_eager_symbols(eager, num_eager);
-        eager = NULL;
-        num_eager = 0;
-        if (eager_failed)
-            return jit_compile_fail(my_thread, jit_object, token, (void*)out, eager, num_eager);
-    }
     filc_exit(my_thread);
     filc_soft_handshake(code_fence, NULL);
     filc_enter(my_thread);
-    /* Publish the handle: take over the module and its dedicated context
-       as is; no copy is made. The context object comes from the caller's
-       LLVMContextCreate and is exclusively owned by this module, so unique
-       ownership moves to the JIT here. This is the only locked section
-       after the scan: linking (CompileModule, eager lookups) and the
-       handshake all ran unlocked, so no callback ever ran while this lock
-       was held. */
-    pas_lock_lock(&context_state->lock);
-    pas_lock_lock(&created->lock);
-    created->handle = (void*)out;
-    pas_lock_unlock(&created->lock);
-    module_obj->handle = NULL;
-    if (module_obj->module_state)
-        module_obj->module_state->handle = NULL;
-    context_state->handle = NULL;
-    pas_lock_unlock(&context_state->lock);
-    jit_anchor_fill_shim(token, (void*)out);
-    /* The result flight now roots the module from the caller's frame.
-       Linking is done, so no callback can still need this thread check or
-       error slot: drop the registry entry. Resolve callbacks baked into
-       the JITed code keep working afterwards on any entered Fil-C thread
-       via the anchor alone. */
-    jit_compile_record_remove(token);
-    filc_pop_allocation_root(my_thread, jit_object);
+    return filc_ptr_for_speical_payload_with_manual_tracking(module);
+}
+
+static void* shim_allocate_executable_module(void* raw_my_thread)
+{
+    filc_thread* my_thread = raw_my_thread;
+    filc_llvm_jit_executable_module* module = filc_object_special_payload(
+        my_thread, filc_allocate_special_with_heap(
+            my_thread, sizeof(filc_llvm_jit_executable_module), 1,
+            FILC_SPECIAL_TYPE_LLVM_JIT, filc_destructor_heap));
+    module->kind = FILC_LLVM_JIT_KIND_EXECUTABLE_MODULE;
+    pas_lock_lock(&module->lock);
+    filc_raw_ptr_array_construct(&module->jit_bases);
+    filc_object_array_construct(&module->objects);
+    filc_raw_ptr_array_construct(&module->sections);
+    filc_raw_ptr_array_construct(&module->auxes);
+    module->mapping = NULL;
+    return module;
+}
+
+static void* shim_executable_module_allocate_object(void* raw_my_thread, void* raw_module,
+                                                    size_t size, size_t alignment)
+{
+    filc_thread* my_thread = raw_my_thread;
+    filc_llvm_jit_executable_module* module = raw_module;
+    alignment = filc_finalizable_alignment(alignment);
+    size_t offset_to_payload;
+    size_t total_size;
+    filc_prepare_allocate(&size, alignment, &offset_to_payload, &total_size);
+    void* result = verse_heap_allocate_with_alignment(fugc_default_heap, total_size, alignment);
+    memset(result, 0, total_size);
+    filc_alignment_header_construct(my_thread, result, alignment, NULL);
+    void* lower = (char*)result + offset_to_payload;
+    filc_object* object = filc_object_for_lower(lower);
+    filc_store_barrier(my_thread, object);
+    filc_raw_ptr_array_add(&module->object_bases, result);
+    return object;
+}
+
+static void* shim_executable_module_allocate_data(void* raw_my_thread, void* raw_module,
+                                                  size_t size, size_t alignment)
+{
+    PAS_UNUSED_PARAM(raw_my_thread);
+    filc_llvm_jit_executable_module* module = raw_module;
+    void* result = bmalloc_allocate_zeroed_with_alignment(size, alignment);
+    filc_raw_ptr_array_add(&module->sections, result);
     return result;
 }
 
-filc_ptr filc_native_FilLLVMJIT_Resolve(filc_thread* my_thread, filc_ptr module_ptr,
-                                        filc_ptr name_ptr)
+static void* shim_executable_module_allocate_executable(void* raw_my_thread, void* raw_module,
+                                                        size_t size)
 {
-    ensure_api(my_thread);
-    filc_llvm_jit_jit_module_object* mod = unwrap_jit_module(my_thread, module_ptr);
-    FILC_CHECK(mod, NULL, "FilLLVMJIT_Resolve: null module.");
-    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
-    filc_ptr resolved = filc_ptr_forge_null();
-    resolve_impl(my_thread, mod, name, &resolved);
-    return resolved;
+    PAS_UNUSED_PARAM(raw_my_thread);
+    filc_llvm_jit_executable_module* module = raw_module;
+    void* result = jit_heap_try_allocate(size);
+    PAS_ASSERT(result);
+    filc_raw_ptr_array_add(&module->jit_bases, result);
+    return result;
 }
 
-filc_ptr filc_native_FilLLVMJIT_ResolveRawPointer(filc_thread* my_thread, filc_ptr module_ptr,
-                                                  filc_ptr table_ptr,
-                                                  unsigned long long encoded)
+static void* shim_executable_module_allocate_aux(void* raw_my_thread, void* raw_module, size_t size)
 {
-    ensure_api(my_thread);
-    filc_llvm_jit_jit_module_object* mod = unwrap_jit_module(my_thread, module_ptr);
-    FILC_CHECK(mod, NULL, "FilLLVMJIT_ResolveRawPointer: null module.");
-    filc_exact_ptr_table* table = NULL;
-    if (filc_ptr_ptr(table_ptr)) {
-        filc_check_access_special(table_ptr, FILC_SPECIAL_TYPE_EXACT_PTR_TABLE);
-        table = (filc_exact_ptr_table*)filc_ptr_ptr(table_ptr);
+    PAS_UNUSED_PARAM(raw_my_thread);
+    filc_llvm_jit_executable_module* module = raw_module;
+    filc_llvm_jit_aux_allocation* result =
+        bmalloc_allocate_zeroed(PAS_OFFSETOF(filc_llvm_jit_aux_allocation, array) + size);
+    filc_raw_ptr_array_add(&module->auxes, result);
+    result->size = size;
+    return &result->array;
+}
+
+static void shim_executable_module_finalize_objects(void* raw_my_thread, void* raw_module)
+{
+    PAS_UNUSED_PARAM(raw_my_thread);
+    filc_llvm_jit_executable_module* module = raw_module;
+    size_t index;
+    for (index = module->object_bases.size; index--;) {
+        filc_alignment_header* header = module->object_bases.array[index];
+        filc_object* object = filc_alignment_header_get_object(header);
+        filc_object_flags flags = filc_aux_get_flags(object->aux);
+        object->aux = filc_aux_create(
+            filc_object_flags_create(
+                flags & FILC_OBJECT_FLAGS_MASK,
+                filc_object_flags_special_type(flags),
+                pas_log2(filc_alignment_header_get_alignment(header))),
+            filc_aux_get_ptr(objrct->aux));
     }
-    filc_ptr resolved = filc_ptr_forge_null();
-    resolve_raw_impl(my_thread, mod, table, encoded, &resolved);
-    return resolved;
+
+#if PAS_ARM64
+    uintptr_t ctr;
+    
+    asm volatile("mrs %0, ctr_el0" : "=r"(ctr));
+
+    for (index = module->jit_bases.size; index--;) {
+        uintptr_t start = (uintptr_t)module->jit_bases[index];
+        size_t size = jit_heap_get_size((void*)start);
+        uintptr_t end = start + size;
+        
+        /* IDC (bit 28): D-cache clean to PoU not required for I/D coherence. */
+        if (!(ctr & (1ull << 28))) {
+            uintptr_t dline = 4ull << ((ctr >> 16) & 0xf);   /* DminLine: log2 words */
+            for (uintptr_t p = start & ~(dline - 1); p < end; p += dline)
+                asm volatile("dc cvau, %0" :: "r"(p) : "memory");
+        }
+        asm volatile("dsb ish" ::: "memory");   /* stores/cleans visible before IC */
+        
+        /* DIC (bit 29): I-cache invalidation to PoU not required. */
+        if (!(ctr & (1ull << 29))) {
+            uintptr_t iline = 4ull << (ctr & 0xf);           /* IminLine: log2 words */
+            for (uintptr_t p = start & ~(iline - 1); p < end; p += iline)
+                asm volatile("ic ivau, %0" :: "r"(p) : "memory");
+            asm volatile("dsb ish" ::: "memory");
+        }
+    }
+#endif
+}
+
+static void shim_executable_module_set_export_mapping(void* raw_my_thread, void* raw_module,
+                                                      ShimExportMapping* mapping)
+{
+    PAS_UNUSED_PARAM(raw_my_thread);
+    filc_llvm_jit_executable_module* module = raw_module;
+    module->mapping = mapping;
 }
 
 /* Hand-written natives for functions that the mechanical generator
