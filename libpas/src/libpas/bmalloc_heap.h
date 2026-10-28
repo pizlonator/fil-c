@@ -62,6 +62,8 @@ PAS_API void* bmalloc_allocate_zeroed(size_t size);
 
 PAS_API void* bmalloc_allocate_with_alignment(size_t size, size_t alignment);
 
+PAS_API void* bmalloc_allocate_zeroed_with_alignment(size_t size, size_t alignment);
+
 PAS_API void* bmalloc_try_reallocate(void* old_ptr, size_t new_size,
                                      pas_reallocate_free_mode free_mode);
 

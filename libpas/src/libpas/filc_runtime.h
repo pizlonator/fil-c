@@ -206,6 +206,7 @@ typedef uintptr_t filc_word;
 /* We have flag bit value 64 available. */
 #define FILC_OBJECT_FLAGS_SPECIAL_SHIFT   ((filc_object_flags)7)  /* The shift amount to get to the
                                                                      special type. */
+#define FILC_OBJECT_FLAGS_MASK            ((1 << FILC_OBJECT_FLAGS_SPECIAL_SHIFT) - 1)
 #define FILC_OBJECT_FLAGS_SPECIAL_MASK    ((filc_object_flags)FILC_SPECIAL_TYPE_MASK \
                                            << FILC_OBJECT_FLAGS_SPECIAL_SHIFT)
 #define FILC_OBJECT_FLAGS_ALIGN_SHIFT     ((filc_object_flags)11) /* The shift amount to get the log
@@ -1247,7 +1248,7 @@ struct filc_llvm_jit_executable_module {
     filc_llvm_jit_kind kind;
     pas_lock lock;
     filc_raw_ptr_array jit_bases;
-    filc_object_array objects;
+    filc_raw_ptr_array object_bases;
     filc_raw_ptr_array sections;
     filc_raw_ptr_array auxes;
     void* mapping;
@@ -2909,6 +2910,11 @@ static inline filc_alignment_header* filc_allocation_get_alignment_header(void* 
     return (filc_alignment_header*)allocation;
 }
 
+static inline filc_object* filc_alignment_header_get_object(filc_alignment_header* header)
+{
+    return (filc_object*)((char*)header + filc_alignment_header_get_alignment(header)) - 1;
+}
+
 static inline filc_object* filc_allocation_get_object(void* allocation)
 {
     if (filc_allocation_starts_with_object(allocation)) {
@@ -2922,8 +2928,7 @@ static inline filc_object* filc_allocation_get_object(void* allocation)
         return allocation;
 #endif
     }
-    return (filc_object*)((char*)allocation + filc_alignment_header_get_alignment(
-                              filc_allocation_get_alignment_header(allocation))) - 1;
+    return filc_alignment_header_get_object(filc_allocation_get_alignment_header(allocation));
 }
 
 static inline void* filc_ptr_lower(filc_ptr ptr)
@@ -3972,6 +3977,35 @@ PAS_API void* filc_llvm_jit_resolve(void* jit_module, const char* name);
 PAS_API void* filc_llvm_jit_resolve_raw_pointer(void* jit_module,
                                                 unsigned long long encoded);
 
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_size_too_big(size_t size);
+
+static PAS_ALWAYS_INLINE void filc_prepare_allocate_object(size_t* size)
+{
+    if (PAS_UNLIKELY(*size > FILC_MAX_ALLOCATION_SIZE))
+        filc_size_too_big(*size);
+    size_t original_size = *size;
+    *size = pas_round_up_to_power_of_2(*size, FILC_MINALIGN);
+    PAS_TESTING_ASSERT(*size >= original_size);
+}
+
+static PAS_ALWAYS_INLINE void filc_prepare_allocate(
+    size_t* size, size_t alignment, size_t* offset_to_payload, size_t* total_size)
+{
+    size_t max_alignment =
+        pas_min_uintptr(VERSE_HEAP_CHUNK_SIZE / 2, filc_log_align_alignment(FILC_LOG_ALIGN_MASK));
+    FILC_CHECK(
+        alignment <= max_alignment,
+        NULL,
+        "alignment %zu too big (max alignment is %zu).",
+        alignment, max_alignment);
+
+    PAS_ASSERT(sizeof(filc_object) == FILC_MINALIGN);
+    filc_prepare_allocate_object(size);
+    *offset_to_payload = pas_max_uintptr(alignment, sizeof(filc_object));
+    *total_size = *size + *offset_to_payload;
+    PAS_TESTING_ASSERT(*total_size > *size);
+}
+
 /* Allocates an object with a payload of the given size and brings all words into the unset state. The
    object's lower/upper are set accordingly. */
 filc_object* filc_allocate(filc_thread* my_thread, size_t size);
@@ -3984,6 +4018,8 @@ filc_object* filc_allocate_with_alignment(filc_thread* my_thread, size_t size, s
 
 filc_object* filc_allocate_with_alignment_without_exit(filc_thread* my_thread,
                                                        size_t size, size_t alignment);
+
+PAS_API size_t filc_finalizable_alignment(size_t alignment);
 
 filc_object* filc_allocate_finalizable_with_alignment(filc_thread* my_thread,
                                                       size_t size, size_t alignment,
