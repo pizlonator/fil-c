@@ -41,10 +41,8 @@ using namespace llvm;
 
 namespace {
 
-// Notes for JIT:
-// - Error on global ctor/dtor
-// - Error on ifunc
-// - Error on TLS
+// TODO for JIT:
+// - Support the zblessedptr intrinsic in JIT mode
 
 static cl::opt<bool> lightVerbose(
   "filc-light-verbose", cl::desc("Make FilC slightly verbose"),
@@ -1489,6 +1487,8 @@ enum class ExitAllowedMode {
 
 class Pizlonator {
   static constexpr unsigned TargetAS = 0;
+
+  FilJITConfiguration* FJITC;
   
   LLVMContext& C;
   Module &M;
@@ -1697,6 +1697,8 @@ class Pizlonator {
   size_t FrameSize { SIZE_MAX };
   size_t NumStackAuxes { SIZE_MAX };
   Value* Frame;
+
+  uintptr_t ObjectCount { 0 };
 
   std::vector<Instruction*> ToErase;
 
@@ -16165,8 +16167,9 @@ class Pizlonator {
   }
 
 public:
-  Pizlonator(Module &M)
-    : C(M.getContext()), M(M), DLBefore(M.getDataLayout()), DL(M.getDataLayoutAfterFilC()) {
+  Pizlonator(Module &M, FilJITConfiguration& FJITC)
+    : FJITC(FJITC), C(M.getContext()), M(M), DLBefore(M.getDataLayout()),
+      DL(M.getDataLayoutAfterFilC()) {
   }
 
   void run() {
@@ -16310,26 +16313,28 @@ public:
       DSO->eraseFromParent();
     }
 
-    for (GlobalObject& G : M.global_objects()) {
-      if (Comdat* OldComdat = G.getComdat()) {
-        assert(G.getLinkage() == GlobalValue::LinkOnceAnyLinkage ||
-               G.getLinkage() == GlobalValue::WeakAnyLinkage ||
-               G.getLinkage() == GlobalValue::InternalLinkage);
-        Comdat* NewComdat;
-        if (ComdatMap.count(OldComdat))
-          NewComdat = ComdatMap[OldComdat];
-        else {
-          std::string str = ("pizlonatedC_" + OldComdat->getName()).str();
-          NewComdat = M.getOrInsertComdat(str);
-          ComdatMap[OldComdat] = NewComdat;
+    if (!FJITC) {
+      for (GlobalObject& G : M.global_objects()) {
+        if (Comdat* OldComdat = G.getComdat()) {
+          assert(G.getLinkage() == GlobalValue::LinkOnceAnyLinkage ||
+                 G.getLinkage() == GlobalValue::WeakAnyLinkage ||
+                 G.getLinkage() == GlobalValue::InternalLinkage);
+          Comdat* NewComdat;
+          if (ComdatMap.count(OldComdat))
+            NewComdat = ComdatMap[OldComdat];
+          else {
+            std::string str = ("pizlonatedC_" + OldComdat->getName()).str();
+            NewComdat = M.getOrInsertComdat(str);
+            ComdatMap[OldComdat] = NewComdat;
+          }
+          NewComdat->setSelectionKind(OldComdat->getSelectionKind());
+          GlobalToComdat[&G] = NewComdat;
+        } else if (G.hasLinkOnceLinkage()) {
+          std::string str = ("pizlonatedMC_" + G.getName()).str();
+          Comdat* NewComdat = M.getOrInsertComdat(str);
+          NewComdat->setSelectionKind(Comdat::Any);
+          GlobalToComdat[&G] = NewComdat;
         }
-        NewComdat->setSelectionKind(OldComdat->getSelectionKind());
-        GlobalToComdat[&G] = NewComdat;
-      } else if (G.hasLinkOnceLinkage()) {
-        std::string str = ("pizlonatedMC_" + G.getName()).str();
-        Comdat* NewComdat = M.getOrInsertComdat(str);
-        NewComdat->setSelectionKind(Comdat::Any);
-        GlobalToComdat[&G] = NewComdat;
       }
     }
     
@@ -16623,6 +16628,8 @@ public:
       if (!GlobalToComdat.count(OrigG))
         return;
 
+      assert(!FJITC);
+
       NewG->setLinkage(OrigG->getLinkage());
       NewG->setVisibility(OrigG->getVisibility());
       NewG->setDSOLocal(OrigG->isDSOLocal());
@@ -16741,6 +16748,7 @@ public:
     };
     
     if (GlobalVariable* GlobalCtors = M.getGlobalVariable("llvm.global_ctors")) {
+      assert(!FJITC);
       ConstantArray* Array = cast<ConstantArray>(GlobalCtors->getInitializer());
       std::vector<Constant*> Args;
       for (size_t Index = 0; Index < Array->getNumOperands(); ++Index) {
@@ -16766,6 +16774,7 @@ public:
     // NOTE: This *might* be dead code, since modern C/C++ says that the compiler has to do
     // __cxa_atexit from a global constructor instead of registering a global destructor.
     if (GlobalVariable* GlobalDtors = M.getGlobalVariable("llvm.global_dtors")) {
+      assert(!FJITC);
       ConstantArray* Array = cast<ConstantArray>(GlobalDtors->getInitializer());
       std::vector<Constant*> Args;
       for (size_t Index = 0; Index < Array->getNumOperands(); ++Index) {
@@ -16803,6 +16812,24 @@ public:
     if (GlobalVariable* Used = M.getGlobalVariable("llvm.compiler.used"))
       HandleUsed(Used);
 
+    auto HandleDeclaration = [&] (GlobalValue* G) {
+      assert(G->isDeclaration());
+      if (!FJITC)
+        return;
+      assert(FJITC->GlobalMapping.count(G->getName()));
+      FilPtrLiteral PL = FJITC->GlobalMapping[G->getName()];
+      assert(PL.ptr);
+      assert(PL.lower);
+      Function* NewF = GlobalToGetter[G];
+      BasicBlock* RootB = BasicBlock::Create(C, "filc_jit_getter_root", NewF);
+      ReturnInst* Return = ReturnInst::Create(C, UndefValue::get(FlightPtrTy), RootB);
+      Return->getOperandUse(0) = createFlightPtr(
+        ConstantExpr::getIntToPtr(ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(PL.lower))),
+        ConstantExpr::getIntToPtr(ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(Pl.ptr))));
+      assert(!NewF->hasComdat());
+      NewF->setLinkage(GlobalValue::InternalLinkage);
+    };
+
     for (GlobalVariable* G : Globals) {
       size_t Alignment = 0;
       if (!G->isDeclaration())
@@ -16815,12 +16842,15 @@ public:
       if (verbose)
         errs() << "Dealing with global: " << *G << "\n";
 
-      if (G->isDeclaration())
+      if (G->isDeclaration()) {
+        HandleDeclaration(G);
         continue;
+      }
 
       assert(Alignment);
       
       if (G->isThreadLocal()) {
+        assert(!FJITC);
         Function* SlowF = Function::Create(ThreadLocalEnsureTy, GlobalValue::PrivateLinkage,
                                            G->getAddressSpace(), "pizlonatedGS_" + G->getName(), &M);
         SlowF->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
@@ -16904,6 +16934,8 @@ public:
           M, AuxTy, IsConstant, GlobalValue::InternalLinkage, ConstantAggregateZero::get(AuxTy),
           "pizlonatedDA_" + G->getName());
         PutImplIntoComdat(G, AuxG);
+        if (FJITC)
+          AuxG->setSection("filc_jit_aux_section");
         AuxPtr = AuxG;
       } else {
         AuxG = nullptr;
@@ -16927,8 +16959,15 @@ public:
       GlobalVariable* NewDataG = new GlobalVariable(
         M, ObjectGTy, IsConstant, GlobalValue::InternalLinkage, nullptr, "pizlonatedDO_" + G->getName());
       PutImplIntoComdat(G, NewDataG);
+      if (FJITC) {
+        std::ostringstream buf;
+        buf << "filc_jit_object_section_" << ObjectCount++;
+        NewDataG->setSection(buf.str());
+      }
 
-      uint16_t ObjectFlags = ObjectFlagGlobal;
+      uint16_t ObjectFlags = 0;
+      if (!FJITC)
+        ObjectFlags |= ObjectFlagGlobal;
       if (AuxG)
         ObjectFlags |= ObjectFlagGlobalAux;
       if (G->isConstant())
@@ -17405,13 +17444,15 @@ public:
 
         FrameSize = SIZE_MAX;
         NumStackAuxes = SIZE_MAX;
-      }
+      } else
+        HandleDeclaration(F);
       
       FunctionName = "<internal>";
       OldF = nullptr;
       NewF = nullptr;
     }
     for (GlobalAlias* G : Aliases) {
+      assert(!G->isDeclaration());
       Constant* C = G->getAliasee();
       GlobalValue* Aliasee;
       int64_t Offset = 0;
@@ -17438,6 +17479,7 @@ public:
         ConstantInt::get(IntPtrTy, Offset), Return);
     }
     for (GlobalIFunc* G : IFuncs) {
+      assert(!FJITC);
       assert(!G->isThreadLocal());
       Function* ResolveF = cast<Function>(G->getResolver());
       assert(ResolveF);
@@ -17526,7 +17568,7 @@ public:
 } // anonymous namespace
 
 PreservedAnalyses FilPizlonatorPass::run(Module &M, ModuleAnalysisManager&) {
-  Pizlonator P(M);
+  Pizlonator P(M, FJITC);
   P.run();
   return PreservedAnalyses::none();
 }

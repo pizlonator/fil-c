@@ -29,6 +29,7 @@ struct FilJITConfiguration {
 };
 
 class FilPizlonatorPass : public PassInfoMixin<FilPizlonatorPass> {
+  FilJITConfiguration* FJITC;
 public:
   FilPizlonatorPass(FilJITConfiguration *FJITC = nullptr);
   PreservedAnalyses run(Module &M, ModuleAnalysisManager &MAM);
