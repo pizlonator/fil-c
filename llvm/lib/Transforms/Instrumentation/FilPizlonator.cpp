@@ -6,8 +6,6 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2026 Filip Pizlo.
-//
 // This file is a part of Fil-C. https://fil-c.org/
 //
 //===----------------------------------------------------------------------===//
@@ -65,27 +63,6 @@ static cl::opt<bool> yoloAssembler(
   "yolo-assembler",
   cl::desc("Recognize the zunsafe_call, zunsafe_fast_call, and zunsafe_buf_call intrinsics"),
   cl::Hidden, cl::init(false));
-
-// JIT lazy-extern mode. When enabled (e.g. via -mllvm -filc-jit-mode when
-// compiling a module destined for the Fil-C LLVM JIT), FilPizlonator emits,
-// for each used extern function declaration, a lazily-resolved getter.
-// Normal static compilation leaves this off and is completely unaffected.
-// (The definition lives at the end of this file, outside the anonymous
-// namespace, so that clang's BackendUtil can read it; it is declared in
-// FilPizlonator.h.)
-//
-// Runtime contract (implemented by the runtime, used by the JIT wrappers):
-// - `ptr @filc_llvm_jit_resolve(ptr %jit_module, ptr %name)` resolves a
-//   NUL-terminated symbol name (an address-space-0 raw pointer to a global
-//   string constant) to the raw address of that symbol. The `%jit_module`
-//   argument is the address of the extern global `filc_jit_module`, which
-//   the JIT binder resolves to the jit module object for the calling
-//   module; resolution runs against that module's resolver snapshot.
-//   The calling getter wraps the address into a flight pointer
-//   ({addr, addr}).
-// - `ptr @filc_llvm_jit_resolve_raw_pointer(ptr %jit_module, i64 %id)`
-//   resolves a small-integer extern id to a raw address against the calling
-//   module's zexact table snapshot.
 
 // This has to match the FilC runtime.
 
@@ -1703,13 +1680,6 @@ class Pizlonator {
 
   bool UsesVastartOrZargs;
   bool UsesVariadicCC;
-  // JIT lazy-extern mode flag for this pass invocation. When false, all JIT
-  // logic below is disabled and compilation behaves exactly as before.
-  bool JitMode = false;
-  // Extern function declarations actually referenced by the module (populated
-  // during lowering). In JIT mode, emitJitLazyExterns() authors lazy getters
-  // for exactly these.
-  std::unordered_set<Function*> JitExternUsed;
   size_t SnapshottedArgsFrameIndex;
   Value* SnapshottedArgsPtrForVastart;
   Value* SnapshottedArgsPtrForZargs;
@@ -6811,12 +6781,6 @@ class Pizlonator {
       assert(!Getters.count(G));
       assert(GlobalToGetter.count(G));
       Function* Getter = GlobalToGetter[G];
-      if (JitMode) {
-        if (Function* GF = dyn_cast<Function>(G)) {
-          if (GF->isDeclaration() && !GF->isIntrinsic())
-            JitExternUsed.insert(GF);
-        }
-      }
       return ConstantTarget(ConstantKind::Global, Getter);
     }
 
@@ -6926,14 +6890,6 @@ class Pizlonator {
       assert(MyThread);
       Function* Getter = GlobalToGetter[G];
       assert(Getter);
-      if (JitMode) {
-        // Track extern function declarations referenced as values so that
-        // emitJitLazyExterns() can author lazy getters for them.
-        if (Function* GF = dyn_cast<Function>(G)) {
-          if (GF->isDeclaration() && !GF->isIntrinsic())
-            JitExternUsed.insert(GF);
-        }
-      }
       if (((Getter->hasWeakLinkage() || Getter->hasLinkOnceLinkage()) &&
            GlobalToComdat.count(G)) ||
           Getter->hasExternalWeakLinkage()) {
@@ -13815,9 +13771,6 @@ class Pizlonator {
                                   Type* NormalizedRetType, Instruction* Before) {
     assert(computeSignature(AIs, NormalizedRetType) == Signature);
 
-    if (JitMode && F->isDeclaration() && !F->isIntrinsic() && !shouldPassThrough(F))
-      JitExternUsed.insert(F);
-
     // In the case of linkonce, which is used for C++ inline functions, we will have a definition in
     // the local module.
     if (FunctionToSignature.count(F)) {
@@ -14525,10 +14478,6 @@ class Pizlonator {
   }
 
   bool shouldPassThrough(Function* F) {
-    if (JitMode &&
-        (F->getName() == "filc_llvm_jit_resolve" ||
-         F->getName() == "filc_llvm_jit_resolve_raw_pointer"))
-      return true;
     return (F->getName() == "__divdc3" ||
             F->getName() == "__muldc3" ||
             F->getName() == "__divsc3" ||
@@ -14539,8 +14488,6 @@ class Pizlonator {
   }
 
   bool shouldPassThrough(GlobalVariable* G) {
-    if (JitMode && G->getName() == "zexact_ptrtable")
-      return true;
     return (G->getName() == "llvm.global_ctors" ||
             G->getName() == "llvm.global_dtors" ||
             G->getName() == "llvm.used" ||
@@ -14567,437 +14514,6 @@ class Pizlonator {
     Constant* Lower = FunctionToLower[F];
     assert(Lower);
     return createFlightPtr(Lower, Lower, InsertBefore);
-  }
-
-  // -- JIT lazy-extern support (JitMode only) --------------------------------
-  //
-  // In JIT mode the module is linked at run time by the Fil-C LLVM JIT rather
-  // than by the static linker, so extern function declarations have no
-  // defining TU to provide their `pizlonated_<name>` getters. Instead we
-  // author, for each used extern function declaration, a lazy resolver:
-  //
-  // - `__filc_jit_cache_<name>`: internal global of type FlightPtrTy holding
-  //   the cached flight pointer, initially null.
-  // - `__filc_jit_get_<name>(thread, origin)`: internal function (NoUnwind,
-  //   NoInline so it survives as an observable symbol for the JIT host and
-  //   for -emit-llvm inspection) implementing: load cache; if the cached
-  //   lower is null, call `filc_llvm_jit_resolve(jit_module, name)` to
-  //   resolve, wrap the raw address into a flight pointer, cache it, and
-  //   return it. The first argument names the compiling module: FilPizlonator
-  //   declares the extern global `filc_jit_module` and passes its address,
-  //   which the JIT binder resolves to the jit module object for this
-  //   module, so resolutions run against per-module state (resolver
-  //   callback, zexact table, roots) rather than any session global.
-  // - The pre-existing `pizlonated_<name>` getter declaration is given a body
-  //   that tail-calls the worker, so every existing use (direct-call thunks,
-  //   constant lowering, alias forwarders) resolves lazily with no other
-  //   changes to the pipeline.
-  //
-  // THREAD SAFETY NOTE: the null-check-then-resolve sequence is a benign
-  // race. Concurrent first calls may both resolve and both store; resolution
-  // is idempotent (the host maps the symbol exactly once via
-  // LLVMAddGlobalMapping and returns the same address), so any interleaving
-  // converges to the same cached flight pointer (last-writer-wins is fine).
-  // The cache access itself, however, must be atomic: the slot holds a
-  // 16-byte flight pointer, and a plain load racing a plain store could tear
-  // (half old null bytes, half new address bytes), forging a corrupt flight
-  // pointer out of thin air. Hence atomicLoadJitFlightCache /
-  // atomicStoreJitFlightCache below provide tear-free access with
-  // Acquire/Release ordering (a single 16-byte atomic on x86-64, a single
-  // 8-byte atomic lane plus reconstruction elsewhere; see the helper
-  // comment). This mirrors the strategy
-  // of the existing lazily-initialized global getters (which likewise check
-  // for null lowers and initialize on demand).
-  //
-  // Assumed runtime signatures (documented here so the
-  // compiler and runtime agree):
-  // - `ptr @filc_llvm_jit_resolve(ptr %jit_module, ptr %name)`
-  // - `ptr @filc_llvm_jit_resolve_raw_pointer(ptr %jit_module, i64 %id)`
-  // The `%jit_module` argument is the address of the extern global
-  // `filc_jit_module`, which the JIT binder resolves to the jit module
-  // object owning this module. Assumed host APIs
-  // (filc/include/filc_llvm_jit.h, implemented by the runtime in
-  // libpas/src/libpas/filc_llvm_jit.c over the shim in
-  // filc/llvmjit/filc_llvm_jit_shim.cpp): FilLLVMJIT_SetResolveCallback
-  // (registers the host resolver consulted by both functions) and
-  // FilLLVMJIT_SetZExactPointerTable (maps the `zexact_ptrtable` global
-  // out-of-band via AddGlobalMapping). Both are snapshotted into the jit
-  // module at CompileModule time, so the session may be forgotten after.
-  // Assumed C prototypes (filc/include/filc_llvm_jit.h owns these):
-  //   typedef void *(*FilLLVMJITResolveFunction)(const char *name, void *context);
-  //   void FilLLVMJIT_SetResolveCallback(FilLLVMJITRef jit,
-  //                                       FilLLVMJITResolveFunction callback,
-  //                                       void *context);
-  //   int FilLLVMJIT_SetZExactPointerTable(FilLLVMJITRef jit, void *table);
-
-  GlobalVariable* getJitModuleGlobal() {
-    if (GlobalVariable* Found = M.getGlobalVariable("filc_jit_module"))
-      return Found;
-    return new GlobalVariable(M, Int8Ty, false, GlobalValue::ExternalLinkage,
-                              nullptr, "filc_jit_module");
-  }
-
-  FunctionCallee getJitResolve() {
-    FunctionCallee RC = M.getOrInsertFunction(
-      "filc_llvm_jit_resolve",
-      FunctionType::get(RawPtrTy, { RawPtrTy, RawPtrTy }, false));
-    if (Function* RF = dyn_cast<Function>(RC.getCallee()))
-      RF->addFnAttr(Attribute::NoUnwind);
-    return RC;
-  }
-
-  FunctionCallee getJitResolveRaw() {
-    FunctionCallee RC = M.getOrInsertFunction(
-      "filc_llvm_jit_resolve_raw_pointer",
-      FunctionType::get(RawPtrTy, { RawPtrTy, IntPtrTy }, false));
-    if (Function* RF = dyn_cast<Function>(RC.getCallee()))
-      RF->addFnAttr(Attribute::NoUnwind);
-    return RC;
-  }
-
-  // -- Atomic JIT flight cache access (target-gated) --------------------------
-  //
-  // The `__filc_jit_cache_<name>` globals
-  // hold a 16-byte flight pointer (`{ptr, ptr}`), initially null. A plain
-  // load racing a concurrent first-use store could tear (e.g. null upper
-  // half with a fresh lower half), forging a corrupt flight pointer out of
-  // thin air, so every access goes through these helpers, which guarantee
-  // that a reader never observes a half-old/half-new slot. Load uses
-  // Acquire and store uses Release so the resolving store publishes to
-  // acquiring readers. The check-then-resolve race itself stays benign:
-  // resolution is idempotent (the host maps the symbol exactly once and
-  // returns the same address), so concurrent first-uses converge to the
-  // same cached flight pointer and last-writer-wins is fine.
-  //
-  // Two implementations, chosen by jitCacheUsesWideAtomics():
-  //
-  // - Wide (x86-64 only): a single 16-byte atomic access with 16-byte
-  //   alignment. LLVM's verifier only permits atomic loads/stores of
-  //   integer, pointer, or floating-point types, so the `{ptr, ptr}` struct
-  //   cannot be accessed atomically directly. The cache slots are 16-byte
-  //   aligned globals, so we access the same slot as an i128 word (same
-  //   16-byte size/layout: upper pointer in the low 64 bits, lower pointer
-  //   in the high 64 bits, matching wordForFlightPtr/flightPtrForWord) and
-  //   convert. On x86-64 this lowers to lock cmpxchg16b inline.
-  //
-  // - Narrow (everywhere else, in particular AArch64): a single 8-byte
-  //   atomic access to lane 0 (the raw-pointer lane) plus reconstruction.
-  //   This is possible because every value ever stored into these caches
-  //   is symmetric: either null/null (the initializer) or {addr, addr}
-  //   (both cache writers wrap one resolved raw address into both lanes;
-  //   see emitJitLazyExterns).
-  //   assertJitCacheFlightSymmetric (called by the narrow store below)
-  //   enforces this structurally at compile time and fails loudly
-  //   (report_fatal_error) on any asymmetric flight, so a future writer
-  //   cannot silently corrupt the cache. The writer stores lane 1 with a
-  //   relaxed-atomic (Monotonic) store first -- plainly storing it would be
-  //   a write-write data race between concurrent first-use writers, which
-  //   is UB even though no reader ever loads lane 1 -- and then publishes
-  //   with an 8-byte Release store to lane 0; the reader does a single
-  //   8-byte Acquire load of lane 0 and rebuilds {addr, addr} from it,
-  //   never touching lane 1. The lane-1 store is sequenced before the
-  //   Release store, so any reader that acquires lane 0 also observes it,
-  //   keeping the full 16-byte slot coherent for non-atomic observers
-  //   (debuggers, IR inspection) as well. Since the reader observes
-  //   exactly one atomic lane, no tear is possible, and Acquire/Release
-  //   still orders the resolver's work before the reader's use. An 8-byte
-  //   aligned atomic is single-copy-atomic on every 64-bit Fil-C target
-  //   (ldar/stlr on AArch64), so this can never degrade into a
-  //   __atomic_*_16 (or __aarch64_*) libcall that the Fil-C LLVM JIT could
-  //   not resolve at run time. If a future writer ever needs to cache a
-  //   non-symmetric flight pointer, this fallback must be revisited
-  //   (e.g. seqlock or spinlock), since deriving lane 1 from lane 0 would
-  //   then be wrong.
-  //
-  // Only x86-64 uses the wide form: on AArch64 the i128 atomic IR expands
-  // to LL/SC or CAS retry loops (slow, and the load expansion even performs
-  // a writeback store on the fast path), and under LSE-gated or
-  // outline-atomics configurations 16-byte atomics can additionally lower
-  // to __atomic_*_16 / __aarch64_* libcalls, which LLJIT has no runtime to
-  // satisfy. The narrow form is both portable and faster there.
-
-  // True when the module target lowers 16-byte acquire-load/release-store
-  // to inline instructions. Deliberately a whitelist (x86-64, via lock
-  // cmpxchg16b) rather than a blacklist: any target not known-good takes
-  // the portable 8-byte fallback, so a new port can never silently grow a
-  // 16-byte libcall dependency in JITed code.
-  bool jitCacheUsesWideAtomics() const {
-    return Arch == Triple::x86_64;
-  }
-
-  // Narrow (8-byte) load: single Acquire load of lane 0, rebuild the
-  // symmetric flight {addr, addr} from it. Insert-before form.
-  Value* atomicLoadJitFlightCacheNarrow(
-      GlobalVariable* Cache, const Twine& Name, Instruction* InsertBefore) {
-    Instruction* LanePtr = GetElementPtrInst::Create(
-      FlightPtrTy, Cache,
-      { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(Int32Ty, 0) },
-      "filc_jit_cache_lane_ptr", InsertBefore);
-    LanePtr->setDebugLoc(InsertBefore->getDebugLoc());
-    LoadInst* Lane = new LoadInst(
-      RawPtrTy, LanePtr, Name, false, Align(8),
-      AtomicOrdering::Acquire, SyncScope::System, InsertBefore);
-    Lane->setDebugLoc(InsertBefore->getDebugLoc());
-    return createFlightPtr(Lane, Lane, InsertBefore);
-  }
-
-  // Narrow (8-byte) load: append-at-end form for building the
-  // initially-empty check block of a `__filc_jit_get_` worker (no
-  // instruction anchor exists yet). Same single Acquire load of lane 0 as
-  // above; the lane->flight reconstruction is spelled out with
-  // insert-at-end forms since createFlightPtr inserts before an
-  // instruction.
-  Value* atomicLoadJitFlightCacheNarrow(
-      GlobalVariable* Cache, const Twine& Name, BasicBlock* BB) {
-    GetElementPtrInst* LanePtr = GetElementPtrInst::Create(
-      FlightPtrTy, Cache,
-      { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(Int32Ty, 0) },
-      "filc_jit_cache_lane_ptr", BB);
-    LoadInst* Lane = new LoadInst(
-      RawPtrTy, LanePtr, Name, false, Align(8),
-      AtomicOrdering::Acquire, SyncScope::System, BB);
-    Instruction* Result = InsertValueInst::Create(
-      UndefValue::get(FlightPtrTy), Lane, { 0 }, "filc_insert_ptr", BB);
-    Result = InsertValueInst::Create(
-      Result, Lane, { 1 }, "filc_insert_lower", BB);
-    return Result;
-  }
-
-  // Compile-time guard for the narrow fallback's symmetric-flight
-  // invariant. The narrow store/load pair rebuilds the flight from lane 0
-  // alone, so every stored flight must be {v, v}. Both cache writers pass
-  // createFlightPtr(X, X) (an InsertValue chain inserting the same value
-  // at indices 0 and 1, or the null constant), which this checks
-  // structurally. Anything else fails loudly at compile time: silently
-  // storing an asymmetric flight would corrupt the cache for every
-  // subsequent reader on narrow targets.
-  void assertJitCacheFlightSymmetric(Value* Flight) {
-    if (isa<ConstantAggregateZero>(Flight))
-      return; // null/null: symmetric by construction.
-    const Value* LaneValues[2] = { nullptr, nullptr };
-    const Value* V = Flight;
-    while (const InsertValueInst* IV = dyn_cast<InsertValueInst>(V)) {
-      if (IV->getNumIndices() == 1) {
-        unsigned Idx = IV->getIndices()[0];
-        if (Idx < 2 && !LaneValues[Idx])
-          LaneValues[Idx] = IV->getInsertedValueOperand();
-      }
-      V = IV->getAggregateOperand();
-    }
-    if (LaneValues[0] && LaneValues[1] && LaneValues[0] == LaneValues[1])
-      return; // {v, v}: the only shape the narrow fallback can store.
-    report_fatal_error(
-      "Fil-C JIT cache (narrow 8-byte fallback) requires a symmetric flight "
-      "pointer {v, v}; refusing to store an asymmetric flight whose lane 1 "
-      "could not be reconstructed by readers");
-  }
-
-  // Narrow (8-byte) store: relaxed-atomic store of lane 1 first, then
-  // Release store of lane 0. Requires the symmetric-flight invariant
-  // asserted above.
-  StoreInst* atomicStoreJitFlightCacheNarrow(
-      GlobalVariable* Cache, Value* Flight, Instruction* InsertBefore) {
-    assertJitCacheFlightSymmetric(Flight);
-    Value* Ptr = flightPtrPtr(Flight, InsertBefore);
-    Value* Lower = flightPtrLower(Flight, InsertBefore);
-    Instruction* LowerLanePtr = GetElementPtrInst::Create(
-      FlightPtrTy, Cache,
-      { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(Int32Ty, 1) },
-      "filc_jit_cache_lower_lane_ptr", InsertBefore);
-    LowerLanePtr->setDebugLoc(InsertBefore->getDebugLoc());
-    // Relaxed-atomic (Monotonic) coherence store: readers never read this
-    // lane, but concurrent first-use writers both store it, so a plain
-    // store would be a write-write data race (UB). Sequenced before the
-    // Release store below, so any reader that acquires lane 0 also
-    // observes this write, keeping the 16-byte slot whole for debuggers
-    // and IR inspection. No extra fence is needed: the Release store
-    // already orders all sequenced-before writes.
-    StoreInst* LowerStore = new StoreInst(
-      Lower, LowerLanePtr, false, Align(8),
-      AtomicOrdering::Monotonic, SyncScope::System, InsertBefore);
-    LowerStore->setDebugLoc(InsertBefore->getDebugLoc());
-    Instruction* PtrLanePtr = GetElementPtrInst::Create(
-      FlightPtrTy, Cache,
-      { ConstantInt::get(IntPtrTy, 0), ConstantInt::get(Int32Ty, 0) },
-      "filc_jit_cache_lane_ptr", InsertBefore);
-    PtrLanePtr->setDebugLoc(InsertBefore->getDebugLoc());
-    StoreInst* Store = new StoreInst(
-      Ptr, PtrLanePtr, false, Align(8),
-      AtomicOrdering::Release, SyncScope::System, InsertBefore);
-    Store->setDebugLoc(InsertBefore->getDebugLoc());
-    return Store;
-  }
-
-  // Wide (16-byte) load: single Acquire i128 load of the whole slot, then
-  // word->flight expansion. The slot pointer is explicitly bitcast (a
-  // no-op under opaque pointers, but it makes the `{ptr, ptr}`-as-i128
-  // reinterpretation visible in the IR) rather than relying on an implicit
-  // type pun at the load. The cast preserves the cache's own address space
-  // (a BitCast must never change address spaces -- that would need an
-  // AddrSpaceCast and would fail verification); with opaque pointers the
-  // element type is carried by the load, not the pointer.
-  Value* atomicLoadJitFlightCacheWide(
-      GlobalVariable* Cache, const Twine& Name, Instruction* InsertBefore) {
-    BitCastInst* WordPtr = new BitCastInst(
-      Cache, PointerType::get(C, Cache->getAddressSpace()),
-      "filc_jit_cache_word_ptr", InsertBefore);
-    WordPtr->setDebugLoc(InsertBefore->getDebugLoc());
-    LoadInst* Word = new LoadInst(
-      Int128Ty, WordPtr, Name, false, Align(FlightPtrAlign),
-      AtomicOrdering::Acquire, SyncScope::System, InsertBefore);
-    Word->setDebugLoc(InsertBefore->getDebugLoc());
-    return flightPtrForWord(Word, InsertBefore);
-  }
-
-  // Wide (16-byte) load: append-at-end form, same as above with the
-  // word->flight expansion spelled out with insert-at-end forms since
-  // flightPtrForWord inserts before an instruction.
-  Value* atomicLoadJitFlightCacheWide(
-      GlobalVariable* Cache, const Twine& Name, BasicBlock* BB) {
-    BitCastInst* WordPtr = new BitCastInst(
-      Cache, PointerType::get(C, Cache->getAddressSpace()),
-      "filc_jit_cache_word_ptr", BB);
-    LoadInst* Word = new LoadInst(
-      Int128Ty, WordPtr, Name, false, Align(FlightPtrAlign),
-      AtomicOrdering::Acquire, SyncScope::System, BB);
-    Instruction* IntRawPtr = new TruncInst(
-      Word, IntPtrTy, "filc_flight_word_raw_ptr_int", BB);
-    Instruction* RawPtr = new IntToPtrInst(
-      IntRawPtr, RawPtrTy, "filc_flight_ptr_ptr", BB);
-    Instruction* Shifted = BinaryOperator::Create(
-      Instruction::LShr, Word, ConstantInt::get(Int128Ty, 64),
-      "filc_flight_word_lower_shift", BB);
-    Instruction* IntLower = new TruncInst(
-      Shifted, IntPtrTy, "filc_flight_word_lower_int", BB);
-    Instruction* Lower = new IntToPtrInst(
-      IntLower, RawPtrTy, "filc_flight_ptr_lower", BB);
-    Instruction* Result = InsertValueInst::Create(
-      UndefValue::get(FlightPtrTy), RawPtr, { 0 }, "filc_insert_ptr", BB);
-    Result = InsertValueInst::Create(
-      Result, Lower, { 1 }, "filc_insert_lower", BB);
-    return Result;
-  }
-
-  // Wide (16-byte) store: single Release i128 store of the whole slot. The
-  // flight->word conversion (wordForFlightPtr) is already explicit
-  // (ptrtoint/shift/or); the slot pointer bitcast below makes the
-  // i128-as-`{ptr, ptr}` store pun explicit as well. Like the wide loads,
-  // the cast preserves the cache's own address space (never TargetAS
-  // blindly: a BitCast must not change address spaces).
-  StoreInst* atomicStoreJitFlightCacheWide(
-      GlobalVariable* Cache, Value* Flight, Instruction* InsertBefore) {
-    Value* Word = wordForFlightPtr(Flight, InsertBefore);
-    BitCastInst* WordPtr = new BitCastInst(
-      Cache, PointerType::get(C, Cache->getAddressSpace()),
-      "filc_jit_cache_word_ptr", InsertBefore);
-    WordPtr->setDebugLoc(InsertBefore->getDebugLoc());
-    StoreInst* Store = new StoreInst(
-      Word, WordPtr, false, Align(FlightPtrAlign),
-      AtomicOrdering::Release, SyncScope::System, InsertBefore);
-    Store->setDebugLoc(InsertBefore->getDebugLoc());
-    return Store;
-  }
-
-  Value* atomicLoadJitFlightCache(
-      GlobalVariable* Cache, const Twine& Name, Instruction* InsertBefore) {
-    if (jitCacheUsesWideAtomics())
-      return atomicLoadJitFlightCacheWide(Cache, Name, InsertBefore);
-    return atomicLoadJitFlightCacheNarrow(Cache, Name, InsertBefore);
-  }
-
-  // Append-at-end form for building the initially-empty check block of a
-  // `__filc_jit_get_` worker (no instruction anchor exists yet).
-  // Target-gated exactly like the insert-before form above.
-  Value* atomicLoadJitFlightCache(
-      GlobalVariable* Cache, const Twine& Name, BasicBlock* BB) {
-    if (jitCacheUsesWideAtomics())
-      return atomicLoadJitFlightCacheWide(Cache, Name, BB);
-    return atomicLoadJitFlightCacheNarrow(Cache, Name, BB);
-  }
-
-  StoreInst* atomicStoreJitFlightCache(
-      GlobalVariable* Cache, Value* Flight, Instruction* InsertBefore) {
-    if (jitCacheUsesWideAtomics())
-      return atomicStoreJitFlightCacheWide(Cache, Flight, InsertBefore);
-    return atomicStoreJitFlightCacheNarrow(Cache, Flight, InsertBefore);
-  }
-
-  void emitJitLazyExterns() {
-    FunctionCallee Resolve = getJitResolve();
-    for (Function* F : JitExternUsed) {
-      assert(F->isDeclaration());
-      assert(!F->isIntrinsic());
-      assert(!shouldPassThrough(F));
-      assert(GlobalToGetter.count(F));
-      Function* Getter = GlobalToGetter[F];
-      assert(Getter);
-      if (!Getter->isDeclaration()) {
-        // Already has a body (e.g. emitted for a duplicate reference); the
-        // existing body already resolves through the same worker.
-        continue;
-      }
-      std::string Name = std::string(F->getName());
-
-      GlobalVariable* Cache = M.getGlobalVariable("__filc_jit_cache_" + Name);
-      if (!Cache) {
-        Cache = new GlobalVariable(
-          M, FlightPtrTy, false, GlobalValue::InternalLinkage, FlightNull,
-          "__filc_jit_cache_" + Name);
-        Cache->setAlignment(Align(FlightPtrAlign));
-      } else {
-        assert(Cache->getValueType() == FlightPtrTy);
-      }
-
-      Function* Worker = M.getFunction("__filc_jit_get_" + Name);
-      if (!Worker) {
-        Worker = Function::Create(
-          PizlonatedGetterTy, GlobalValue::InternalLinkage, 0,
-          "__filc_jit_get_" + Name, &M);
-        Worker->addFnAttr(Attribute::NoUnwind);
-        // NoInline keeps the resolver an observable symbol for the JIT host
-        // and prevents the cache protocol from being optimized away before
-        // downstream passes (e.g. DeleteRedundantPollchecks) run.
-        Worker->addFnAttr(Attribute::NoInline);
-        Worker->setUnnamedAddr(GlobalValue::UnnamedAddr::Global);
-
-        BasicBlock* Entry = BasicBlock::Create(C, "filc_jit_check", Worker);
-        BasicBlock* Slow = BasicBlock::Create(C, "filc_jit_resolve", Worker);
-        BasicBlock* Merge = BasicBlock::Create(C, "filc_jit_done", Worker);
-
-        Value* Cached = atomicLoadJitFlightCache(Cache, "filc_jit_cached", Entry);
-        Instruction* CachedLower = ExtractValueInst::Create(
-          Cached, ArrayRef<unsigned>({ 1 }), "filc_jit_cached_lower", Entry);
-        ICmpInst* IsNull = new ICmpInst(
-          Entry, ICmpInst::ICMP_EQ, CachedLower, RawNull, "filc_jit_is_null");
-        BranchInst::Create(Slow, Merge, IsNull, Entry);
-
-        // Slow path runs only on first use: resolve, wrap into a flight
-        // pointer, cache, and fall through to Merge.
-        BranchInst* SlowBr = BranchInst::Create(Merge, Slow);
-        CallInst* ResolvedRaw = CallInst::Create(
-          Resolve, { getJitModuleGlobal(), getString(Name) },
-          "filc_jit_resolved_raw", SlowBr);
-        Value* ResolvedFlight = createFlightPtr(ResolvedRaw, ResolvedRaw, SlowBr);
-        atomicStoreJitFlightCache(Cache, ResolvedFlight, SlowBr);
-
-        PHINode* Phi = PHINode::Create(FlightPtrTy, 2, "filc_jit_phi", Merge);
-        Phi->addIncoming(Cached, Entry);
-        Phi->addIncoming(ResolvedFlight, Slow);
-        ReturnInst::Create(C, Phi, Merge);
-      } else {
-        assert(Worker->getFunctionType() == PizlonatedGetterTy);
-      }
-
-      // Give the pizlonated getter a body that forwards to the worker, so all
-      // existing call sites (thunks, constant lowering, alias stubs) lazily
-      // resolve with no further changes.
-      BasicBlock* Fwd = BasicBlock::Create(C, "filc_jit_forward", Getter);
-      CallInst* FwdCall = CallInst::Create(
-        PizlonatedGetterTy, Worker, { Getter->getArg(0), Getter->getArg(1) },
-        "filc_jit_forward_call", Fwd);
-      FwdCall->setTailCallKind(CallInst::TCK_Tail);
-      ReturnInst::Create(C, FwdCall, Fwd);
-    }
   }
 
   void lowerIndirectBrForFunction(Function& F) {
@@ -16644,9 +16160,8 @@ class Pizlonator {
   }
 
 public:
-  Pizlonator(Module &M, bool JitMode = false)
-    : C(M.getContext()), M(M), DLBefore(M.getDataLayout()), DL(M.getDataLayoutAfterFilC()),
-      JitMode(JitMode) {
+  Pizlonator(Module &M)
+    : C(M.getContext()), M(M), DLBefore(M.getDataLayout()), DL(M.getDataLayoutAfterFilC()) {
   }
 
   void run() {
@@ -17272,14 +16787,7 @@ public:
       std::vector<Constant*> Args;
       for (size_t Index = 0; Index < Array->getNumOperands(); ++Index) {
         // NOTE: This could have a GEP, supposedly. Pretend it can't for now.
-        GlobalValue* GV = cast<GlobalValue>(Array->getOperand(Index));
-        if (JitMode) {
-          if (Function* GF = dyn_cast<Function>(GV)) {
-            if (GF->isDeclaration() && !GF->isIntrinsic() && !shouldPassThrough(GF))
-              JitExternUsed.insert(GF);
-          }
-        }
-        Function* GetterF = GlobalToGetter[GV];
+        Function* GetterF = GlobalToGetter[cast<GlobalValue>(Array->getOperand(Index))];
         assert(GetterF);
         Args.push_back(GetterF);
       }
@@ -17917,12 +17425,6 @@ public:
       Function* TargetF = GlobalToGetter[Aliasee];
       assert(NewF);
       assert(TargetF);
-      if (JitMode) {
-        if (Function* AF = dyn_cast<Function>(Aliasee)) {
-          if (AF->isDeclaration() && !AF->isIntrinsic() && !shouldPassThrough(AF))
-            JitExternUsed.insert(AF);
-        }
-      }
       BasicBlock* BB = BasicBlock::Create(this->C, "filc_alias_global", NewF);
       ReturnInst* Return = ReturnInst::Create(this->C, UndefValue::get(FlightPtrTy), BB);
       Return->getOperandUse(0) = flightPtrWithOffset(
@@ -17978,9 +17480,6 @@ public:
     if (lightVerbose || verbose)
       errs() << "Here's the pizlonated module before the final replace/delete pass:\n" << M << "\n";
 
-    if (JitMode)
-      emitJitLazyExterns();
-
     Dummy->deleteValue();
 
     if (verbose)
@@ -18021,18 +17520,8 @@ public:
 
 } // anonymous namespace
 
-// Definition of the JIT-mode flag declared in FilPizlonator.h. Kept outside
-// the anonymous namespace so it has external linkage (clang's BackendUtil
-// reads it to parameterize FilPizlonatorPass).
-namespace llvm {
-cl::opt<bool> FilCJitMode(
-  "filc-jit-mode",
-  cl::desc("Enable Fil-C JIT lazy-extern mode: lazily resolve externs at run time"),
-  cl::Hidden, cl::init(false));
-} // namespace llvm
-
 PreservedAnalyses FilPizlonatorPass::run(Module &M, ModuleAnalysisManager&) {
-  Pizlonator P(M, JitMode);
+  Pizlonator P(M);
   P.run();
   return PreservedAnalyses::none();
 }

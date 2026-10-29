@@ -265,16 +265,6 @@ static void** decode_handle_array(filc_thread* my_thread, filc_ptr array_ptr, si
 void filc_llvm_jit_destruct(void* raw_payload)
 {
     filc_llvm_jit_kind kind = *(filc_llvm_jit_kind*)raw_payload;
-    // no log
-    //
-    // Every path below must tolerate running twice on the same payload.
-    // The collector tears down destructor-heap objects on parallel workers
-    // and teardown order is arbitrary, so a second pass over an already
-    // torn down payload must be a no-op. Each owned resource is claimed
-    // with an atomic exchange before it is released, so exactly one caller
-    // observes the non-null value and performs the release. Lock free
-    // claiming is deliberate: post-main teardown must not depend on locks
-    // that may belong to dead threads.
     switch (kind) {
     case FILC_LLVM_JIT_KIND_CONTEXT: {
         filc_llvm_jit_context_object* object = (filc_llvm_jit_context_object*)raw_payload;
@@ -436,12 +426,19 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
     filc_llvm_jit_object* module_obj =
         unwrap_obj(my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE,
                    &context, NULL);
+    size_t index;
+    for (index = filc_object_array_num_objects(&session->objects); index--;) {
+        filc_store_barrier(my_thread, filc_object_array_at(&session->objects, index));
+        filc_object_array_push(&module_obj->objects, filc_object_array_at(&session->objects, index));
+    }
     PAS_ASSERT(context);
     char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     /* FIXME: Would be cool if we exited around the compile. */
     pas_lock_lock(&session->lock);
+    pas_lock_lock(&context->lock);
     filc_llvm_jit_executable_module* module = api->ShimJITCompile(
         session->handle, module_obj->handle, name);
+    pas_lock_unlock(&context->lock);
     pas_lock_unlock(&session->lock);
     filc_exit(my_thread);
     filc_soft_handshake(code_fence, NULL);

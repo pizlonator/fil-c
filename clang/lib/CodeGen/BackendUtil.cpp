@@ -1,8 +1,6 @@
 
 //===--- BackendUtil.cpp - LLVM Backend Utilities -------------------------===//
 //
-// Copyright (c) 2026 Filip Pizlo.
-//
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
@@ -1132,7 +1130,7 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
           CoroPM.addPass(GlobalDCEPass());
           MPM.addPass(CoroConditionalWrapper(std::move(CoroPM)));
 
-          MPM.addPass(FilPizlonatorPass(FilCJitMode));
+          MPM.addPass(FilPizlonatorPass());
         });
 
     PB.registerOptimizerLastEPCallback([](ModulePassManager &MPM,

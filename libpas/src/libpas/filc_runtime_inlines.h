@@ -409,71 +409,36 @@ static PAS_ALWAYS_INLINE void filc_jmp_buf_mark_outgoing_ptrs(filc_jmp_buf* jmp_
 }
 
 static PAS_ALWAYS_INLINE void filc_llvm_jit_mark_outgoing_ptrs(void* raw_payload,
-                                                              const filc_marker marker,
-                                                              filc_mark_stack* stack)
+                                                               const filc_marker marker,
+                                                               filc_mark_stack* stack)
 {
     filc_llvm_jit_kind kind = *(filc_llvm_jit_kind*)raw_payload;
+    size_t index;
     switch (kind) {
     case FILC_LLVM_JIT_KIND_CONTEXT:
         break;
     case FILC_LLVM_JIT_KIND_JIT_SESSION: {
         filc_llvm_jit_session_object* session =
             (filc_llvm_jit_session_object*)raw_payload;
-        marker.mark_or_free_flight(stack, &session->resolver);
-        marker.mark_or_free_flight(stack, &session->resolver_context);
-        marker.mark_or_free_flight(stack, &session->zexact_table);
+        for (index = filc_object_array_num_objects(&session->objects); index--;)
+            marker.mark(stack, filc_object_array_at(&session->objects, index);
         break;
     }
-    case FILC_LLVM_JIT_KIND_JIT_MODULE: {
-        filc_llvm_jit_jit_module_object* object =
-            (filc_llvm_jit_jit_module_object*)raw_payload;
-        size_t index;
-        for (index = object->num_objects; index--;)
-            marker.mark_or_free_flight(stack, &object->object_refs[index]);
-        for (index = object->num_roots; index--;)
-            marker.mark_or_free_flight(stack, &object->roots[index]);
-        marker.mark_or_free_flight(stack, &object->resolver);
-        marker.mark_or_free_flight(stack, &object->resolver_context);
-        marker.mark_or_free_flight(stack, &object->zexact_table);
-        if (object->combined_aux_size) {
-            char* base = object->tail;
-            size_t offset = 0;
-            while (offset + sizeof(filc_lower_or_box) <= object->combined_aux_used) {
-                filc_lower_or_box* slot =
-                    (filc_lower_or_box*)(base + offset);
-                marker.mark_or_free_lower_or_box(stack, slot);
-                offset += sizeof(filc_lower_or_box);
-            }
-        }
-        break;
-    }
-    case FILC_LLVM_JIT_KIND_BUILDER: {
-        filc_llvm_jit_builder_object* builder =
-            (filc_llvm_jit_builder_object*)raw_payload;
-        filc_llvm_jit_object* base = &builder->base;
-        filc_ptr context_snapshot =
-            filc_flight_ptr_load_with_manual_tracking(&base->context_ref);
-        filc_ptr module_snapshot =
-            filc_flight_ptr_load_with_manual_tracking(&base->module_ref);
-        marker.mark_or_free_flight(stack, &context_snapshot);
-        marker.mark_or_free_flight(stack, &module_snapshot);
-        filc_llvm_jit_object* adopted =
-            __atomic_load_n(&builder->adopted, __ATOMIC_ACQUIRE);
-        if (adopted)
-            marker.mark(stack, filc_object_for_special_payload(adopted));
+    case FILC_LLVM_JIT_KIND_EXECUTABLE_MODULE: {
+        filc_llvm_jit_executable_module* object =
+            (filc_llvm_jit_executable_module*)raw_payload;
+        for (index = filc_object_array_num_objects(&object->objects); index--;)
+            marker.mark(stack, filc_object_array_at(&object->objects, index));
+        for (index = object->object_bases.size; index--;)
+            marker.mark(stack, filc_allocation_get_object(object->object_bases.array[index]));
         break;
     }
     default: {
         filc_llvm_jit_object* object = (filc_llvm_jit_object*)raw_payload;
-        filc_ptr context_snapshot =
-            filc_flight_ptr_load_with_manual_tracking(&object->context_ref);
-        filc_ptr module_snapshot =
-            filc_flight_ptr_load_with_manual_tracking(&object->module_ref);
-        marker.mark_or_free_flight(stack, &context_snapshot);
-        marker.mark_or_free_flight(stack, &module_snapshot);
+        marker.mark(stack, filc_object_for_special_payload(object->context));
+        marker.mark(stack, filc_object_for_special_payload(object->module));
         break;
-    }
-    }
+    } }
 }
 
 static PAS_ALWAYS_INLINE void filc_closure_mark_outgoing_ptrs(filc_closure* closure,

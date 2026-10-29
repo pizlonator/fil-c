@@ -1135,8 +1135,8 @@ struct filc_weak {
      OPERAND_BUNDLE -> LLVMOperandBundleRef
      METADATA_ENTRIES -> LLVMValueMetadataEntry array
      MODULE_FLAG_ENTRIES -> LLVMModuleFlagEntry array
-     JIT_SESSION -> ShimJit
-     EXECUTABLE_MODULE -> our own thing
+     JIT_SESSION -> ShimJIT
+     EXECUTABLE_MODULE -> ShimExportMapping
 
    Locking: every LLVM operation on a context affiliated object grabs that
    context state lock for the call, because LLVM contexts are not
@@ -1249,6 +1249,7 @@ struct filc_llvm_jit_executable_module {
     pas_lock lock;
     filc_raw_ptr_array jit_bases;
     filc_raw_ptr_array object_bases;
+    filc_object_array objects;
     filc_raw_ptr_array sections;
     filc_raw_ptr_array auxes;
     void* mapping;
