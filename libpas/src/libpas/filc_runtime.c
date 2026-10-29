@@ -6606,9 +6606,13 @@ bool filc_global_initialization_start(filc_thread* my_thread, const filc_origin*
     if (verbose)
         pas_log("going to initialize object = %s\n", filc_object_to_new_string(object));
 
-    filc_global_variable_roots_lock_lock();
-    filc_object_array_push(&filc_global_variable_roots, object);
-    filc_global_variable_roots_lock_unlock();
+    /* In JIT mode, we have globals that are not really global and they are in a SCC with the
+       executable module object. */
+    if (filc_object_get_flags(object) & FILC_OBJECT_FLAG_GLOBAL) {
+        filc_global_variable_roots_lock_lock();
+        filc_object_array_push(&filc_global_variable_roots, object);
+        filc_global_variable_roots_lock_unlock();
+    }
 
     add_result.entry->pizlonated_gptr = pizlonated_gptr;
     add_result.entry->generation = filc_global_initialization_stack_of_stacks.size;

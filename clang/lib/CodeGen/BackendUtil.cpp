@@ -21,7 +21,6 @@
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Analysis/GlobalsModRef.h"
-#include "llvm/Analysis/ProfileSummaryInfo.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Analysis/TargetTransformInfo.h"
 #include "llvm/Bitcode/BitcodeReader.h"
@@ -42,6 +41,7 @@
 #include "llvm/Object/OffloadBinary.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
+#include "llvm/Passes/RegisterFilPasses.h"
 #include "llvm/Passes/StandardInstrumentations.h"
 #include "llvm/ProfileData/InstrProfCorrelator.h"
 #include "llvm/Support/BuryPointer.h"
@@ -58,12 +58,7 @@
 #include "llvm/Target/TargetOptions.h"
 #include "llvm/TargetParser/SubtargetFeature.h"
 #include "llvm/TargetParser/Triple.h"
-#include "llvm/Transforms/Coroutines/CoroCleanup.h"
-#include "llvm/Transforms/Coroutines/CoroConditionalWrapper.h"
-#include "llvm/Transforms/Coroutines/CoroEarly.h"
-#include "llvm/Transforms/Coroutines/CoroSplit.h"
 #include "llvm/Transforms/HipStdPar/HipStdPar.h"
-#include "llvm/Transforms/IPO/GlobalDCE.h"
 #include "llvm/Transforms/IPO/EmbedBitcodePass.h"
 #include "llvm/Transforms/IPO/LowerTypeTests.h"
 #include "llvm/Transforms/IPO/ThinLTOBitcodeWriter.h"
@@ -72,13 +67,10 @@
 #include "llvm/Transforms/Instrumentation/AddressSanitizerOptions.h"
 #include "llvm/Transforms/Instrumentation/BoundsChecking.h"
 #include "llvm/Transforms/Instrumentation/DataFlowSanitizer.h"
-#include "llvm/Transforms/Instrumentation/DeleteRedundantPollchecks.h"
-#include "llvm/Transforms/Instrumentation/FilPizlonator.h"
 #include "llvm/Transforms/Instrumentation/GCOVProfiler.h"
 #include "llvm/Transforms/Instrumentation/HWAddressSanitizer.h"
 #include "llvm/Transforms/Instrumentation/InstrProfiling.h"
 #include "llvm/Transforms/Instrumentation/KCFI.h"
-#include "llvm/Transforms/Instrumentation/KillUB.h"
 #include "llvm/Transforms/Instrumentation/LowerAllowCheckPass.h"
 #include "llvm/Transforms/Instrumentation/MemProfiler.h"
 #include "llvm/Transforms/Instrumentation/MemorySanitizer.h"
@@ -90,16 +82,9 @@
 #include "llvm/Transforms/Instrumentation/ThreadSanitizer.h"
 #include "llvm/Transforms/Instrumentation/TypeSanitizer.h"
 #include "llvm/Transforms/ObjCARC.h"
-#include "llvm/Transforms/Scalar/ADCE.h"
-#include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
-#include "llvm/Transforms/Scalar/DeadStoreElimination.h"
 #include "llvm/Transforms/Scalar/EarlyCSE.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Scalar/JumpThreading.h"
-#include "llvm/Transforms/Scalar/LowerExpectIntrinsic.h"
-#include "llvm/Transforms/Scalar/SCCP.h"
-#include "llvm/Transforms/Scalar/SROA.h"
-#include "llvm/Transforms/Scalar/SimplifyCFG.h"
 #include "llvm/Transforms/Utils/Debugify.h"
 #include "llvm/Transforms/Utils/ModuleUtils.h"
 #include <limits>
@@ -140,48 +125,6 @@ extern cl::opt<InstrProfCorrelator::ProfCorrelatorKind> ProfileCorrelate;
 namespace clang {
 extern llvm::cl::opt<bool> ClSanitizeGuardChecks;
 }
-
-static cl::opt<bool> FilCKillUB(
-  "filc-killub", cl::desc("Run the KillUB pass"), cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCOptimize(
-  "filc-optimize", cl::desc("Run Fil-C optimization pipeline"), cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCInline(
-  "filc-inline", cl::desc("Run Fil-C inlining pipeline"), cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCInlineSROA(
-  "filc-inline-sroa", cl::desc("Run SROA during Fil-C inlining pipeline"), cl::Hidden,
-  cl::init(true));
-static cl::opt<bool> FilCInlineEarlyCSE(
-  "filc-inline-early-cse", cl::desc("Run EarlyCSE during Fil-C inlining pipeline"), cl::Hidden,
-  cl::init(true));
-static cl::opt<bool> FilCInlineJumpThreading(
-  "filc-inline-jump-threading", cl::desc("Run JumpThreading during Fil-C inlining pipeline"),
-  cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCInlineCVP(
-  "filc-inline-cvp", cl::desc("Run CorrelatedValuePropagation during Fil-C inlining pipeline"),
-  cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCInlineSimplifyCFG(
-  "filc-inline-simplify-cfg", cl::desc("Run SimplifyCFG during Fil-C inlining pipeline"),
-  cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCInlineInstCombineEarly(
-  "filc-inline-inst-combine-early",
-  cl::desc("Run InstCombine during Fil-C inlining pipeline (early)"),
-  cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCInlineInstCombineLate(
-  "filc-inline-inst-combine-late",
-  cl::desc("Run InstCombine during Fil-C inlining pipeline (late)"),
-  cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCInlineGVN(
-  "filc-inline-gvn", cl::desc("Run GVN during Fil-C inlining pipeline"), cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCInlineSCCP(
-  "filc-inline-sccp", cl::desc("Run SCCP during Fil-C inlining pipeline"), cl::Hidden,
-  cl::init(true));
-static cl::opt<bool> FilCInlineADCE(
-  "filc-inline-adce", cl::desc("Run ADCE during Fil-C inlining pipeline"), cl::Hidden,
-  cl::init(true));
-static cl::opt<bool> FilCInlineDSE(
-  "filc-inline-dse", cl::desc("Run DSE during Fil-C inlining pipeline"), cl::Hidden, cl::init(true));
-static cl::opt<bool> FilCDSE(
-  "filc-dse", cl::desc("Run DSE during Fil-C pipeline"), cl::Hidden, cl::init(false));
 
 namespace {
 
@@ -1047,97 +990,7 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
     const bool PrepareForThinLTO = CodeGenOpts.PrepareForThinLTO;
     const bool PrepareForLTO = CodeGenOpts.PrepareForLTO;
 
-    PB.registerPipelineStartEPCallback(
-        [](ModulePassManager &MPM, OptimizationLevel Level) {
-          if (FilCKillUB)
-            MPM.addPass(KillUBPass());
-          if (Level != OptimizationLevel::O0 && FilCOptimize) {
-            FunctionPassManager EarlyFPM;
-            EarlyFPM.addPass(LowerExpectIntrinsicPass());
-            EarlyFPM.addPass(SimplifyCFGPass());
-            EarlyFPM.addPass(SROAPass(SROAOptions::ModifyCFG));
-            EarlyFPM.addPass(EarlyCSEPass());
-            if (FilCDSE)
-              EarlyFPM.addPass(DSEPass());
-            MPM.addPass(createModuleToFunctionPassAdaptor(
-                          std::move(EarlyFPM), /*EagerlyInvalidate =*/ true));
-
-            if (FilCInline) {
-              InlineParams IP = getInlineParams(Level.getSpeedupLevel(), Level.getSizeLevel());
-              ModuleInlinerWrapperPass MIWP(IP, /*MandatoryFirst=*/true,
-                                            InlineContext{
-                                              ThinOrFullLTOPhase::None,
-                                              InlinePass::CGSCCInliner},
-                                            InliningAdvisorMode::Default,
-                                            /*MaxDevirtIterations=*/4);
-              MIWP.addModulePass(RequireAnalysisPass<GlobalsAA, llvm::Module>());
-              MIWP.addModulePass(
-                createModuleToFunctionPassAdaptor(InvalidateAnalysisPass<AAManager>()));
-              MIWP.addModulePass(RequireAnalysisPass<ProfileSummaryAnalysis, llvm::Module>());
-              CGSCCPassManager &MainCGPipeline = MIWP.getPM();
-              MainCGPipeline.addPass(PostOrderFunctionAttrsPass(/*SkipNonRecursive*/ true));
-              FunctionPassManager InlinerFPM;
-              if (FilCInlineSROA)
-                InlinerFPM.addPass(SROAPass(SROAOptions::ModifyCFG));
-              if (FilCInlineEarlyCSE)
-                InlinerFPM.addPass(EarlyCSEPass(true /* Enable mem-ssa. */));
-              if (FilCInlineJumpThreading)
-                InlinerFPM.addPass(JumpThreadingPass());
-              if (FilCInlineCVP)
-                InlinerFPM.addPass(CorrelatedValuePropagationPass());
-              if (FilCInlineSimplifyCFG) {
-                InlinerFPM.addPass(
-                  SimplifyCFGPass(SimplifyCFGOptions().convertSwitchRangeToICmp(true)));
-              }
-              if (FilCInlineInstCombineEarly)
-                InlinerFPM.addPass(InstCombinePass());
-              if (FilCInlineGVN)
-                InlinerFPM.addPass(GVNPass());
-              if (FilCInlineSCCP)
-                InlinerFPM.addPass(SCCPPass());
-              if (FilCInlineADCE)
-                InlinerFPM.addPass(ADCEPass());
-              if (FilCInlineDSE && FilCDSE)
-                InlinerFPM.addPass(DSEPass());
-              if (FilCInlineInstCombineLate)
-                InlinerFPM.addPass(InstCombinePass());
-              MainCGPipeline.addPass(
-                createCGSCCToFunctionPassAdaptor(
-                  std::move(InlinerFPM),
-                  /*EagerlyInvalidateAnalyses=*/true, /*NoRerun=*/true));
-              MainCGPipeline.addPass(PostOrderFunctionAttrsPass());
-              MainCGPipeline.addPass(
-                createCGSCCToFunctionPassAdaptor(
-                  RequireAnalysisPass<ShouldNotRunFunctionPassesAnalysis, Function>()));
-              MIWP.addLateModulePass(
-                createModuleToFunctionPassAdaptor(
-                  InvalidateAnalysisPass<ShouldNotRunFunctionPassesAnalysis>()));
-              MPM.addPass(std::move(MIWP));
-            }
-          }
-          // Lower C++20 coroutines before pizlonating. CoroSplit turns each
-          // coroutine into ordinary ramp/resume/destroy functions whose frame
-          // is a normal heap allocation, so FilPizlonator never sees the
-          // llvm.coro.* intrinsics. The coroutine passes in the regular
-          // pipeline later become no-ops.
-          ModulePassManager CoroPM;
-          CoroPM.addPass(CoroEarlyPass());
-          CGSCCPassManager CoroCGPM;
-          CoroCGPM.addPass(CoroSplitPass(Level != OptimizationLevel::O0));
-          CoroPM.addPass(
-            createModuleToPostOrderCGSCCPassAdaptor(std::move(CoroCGPM)));
-          CoroPM.addPass(CoroCleanupPass());
-          CoroPM.addPass(GlobalDCEPass());
-          MPM.addPass(CoroConditionalWrapper(std::move(CoroPM)));
-
-          MPM.addPass(FilPizlonatorPass());
-        });
-
-    PB.registerOptimizerLastEPCallback([](ModulePassManager &MPM,
-                                          OptimizationLevel Level,
-                                          ThinOrFullLTOPhase) {
-      MPM.addPass(DeleteRedundantPollchecksPass());
-    });
+    RegisterFilPasses(PB);
 
     if (LangOpts.ObjCAutoRefCount) {
       PB.registerPipelineStartEPCallback(
