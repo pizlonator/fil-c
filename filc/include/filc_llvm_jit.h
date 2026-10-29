@@ -840,8 +840,17 @@ typedef struct FilLLVMOpaqueJITModule *FilLLVMJITModuleRef;
    On caveat: */
 FilLLVMJITRef FilLLVMJIT_Create(void);
 
-/* Set a key/value compile option (see list above).  Unknown keys fail. */
-int FilLLVMJIT_SetOption(FilLLVMJITRef jit, const char *key, const char *value);
+/* Set a key/value compile option (see list above). Unknown keys are ignored.
+ 
+   Currently recognized keys:
+   
+   +---------------------+--------------------------------------------------+
+   | Key name            | Possible values                                  |
+   +---------------------+--------------------------------------------------+
+   | opt-level           | 0, 1, 2, 3. 2 is the default; any other value    |
+   |                     | treated as if it was 2.                          |
+   +------------------------------------------------------------------------+ */
+void FilLLVMJIT_SetOption(FilLLVMJITRef jit, const char *key, const char *value);
 
 /* Set a mapping to use for resolving extern symbols. */
 void FilLLVMJIT_SetGlobalMapping(FilLLVMJITRef jit,
@@ -876,8 +885,7 @@ void FilLLVMJIT_BlessPointer(FilLLVMJITRef jit, void* ptr);
    (a raw ptr constant would be a type mismatch against the flight-pointer
    ABI the call sites lower to). */
 FilLLVMJITModuleRef FilLLVMJIT_CompileModule(FilLLVMJITRef jit,
-                                             LLVMModuleRef mod,
-                                             const char *name);
+                                             LLVMModuleRef mod);
 
 /* Address lookup. */
 void *FilLLVMJIT_GetPointerToGlobal(FilLLVMJITModuleRef mod, const char *name);

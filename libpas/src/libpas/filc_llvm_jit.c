@@ -359,17 +359,16 @@ filc_ptr filc_native_FilLLVMJIT_Create(filc_thread* my_thread)
     return filc_ptr_create_with_special_object(my_thread, object);
 }
 
-int filc_native_FilLLVMJIT_SetOption(filc_thread* my_thread, filc_ptr jit_ptr,
-                                     filc_ptr key_ptr, filc_ptr value_ptr)
+void filc_native_FilLLVMJIT_SetOption(filc_thread* my_thread, filc_ptr jit_ptr,
+                                      filc_ptr key_ptr, filc_ptr value_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
     char* key = filc_check_and_get_tmp_str(my_thread, key_ptr);
     char* value = filc_check_and_get_tmp_str(my_thread, value_ptr);
     pas_lock_lock(&session->lock);
-    int result = api->ShimJITSetOption(session->handle, key, value);
+    api->ShimJITSetOption(session->handle, key, value);
     pas_lock_unlock(&session->lock);
-    return result;
 }
 
 static shim_ptr to_shim_ptr(filc_ptr ptr)
@@ -418,7 +417,7 @@ filc_ptr filc_native_FilLLVMJIT_GetPointerToGlobal(filc_thread* my_thread, filc_
 }
 
 filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr jit_ptr,
-                                              filc_ptr module_ptr, filc_ptr name_ptr)
+                                              filc_ptr module_ptr)
 {
     const struct shim_api* api = ensure_api(my_thread);
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
@@ -432,12 +431,11 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
         filc_object_array_push(&module_obj->objects, filc_object_array_at(&session->objects, index));
     }
     PAS_ASSERT(context);
-    char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     /* FIXME: Would be cool if we exited around the compile. */
     pas_lock_lock(&session->lock);
     pas_lock_lock(&context->lock);
     filc_llvm_jit_executable_module* module = api->ShimJITCompile(
-        session->handle, module_obj->handle, name);
+        my_thread, session->handle, module_obj->handle);
     pas_lock_unlock(&context->lock);
     pas_lock_unlock(&session->lock);
     filc_exit(my_thread);
@@ -10388,6 +10386,17 @@ static bool try_load_one(const char* path)
         dlclose(handle);
         return false;
     }
+
+    PAS_ASSERT(jit_heap_fresh_memory_should_be_committed());
+
+    size_t size = 128 * 1024 * 1024;
+    void* jit_memory = mmap(
+        NULL, size, PROT_WRITE | PROT_READ | PROT_EXEC,
+        MAP_PRIVATE | MAP_ANON | MAP_NORESERVE, -1, 0);
+    PAS_ASSERT(jit_memory);
+    PAS_ASSERT(jit_memory != (void*)(intptr_t)-1);
+    jit_heap_add_fresh_memory(pas_range((uintptr_t)jit_memory, (uintptr_t)jit_memory + size));
+    
     pas_store_store_fence();
     api = my_api;
     return true;

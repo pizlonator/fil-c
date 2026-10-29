@@ -101,6 +101,10 @@ struct ShimJIT {
     FilJITConfiguration filConfig;
 };
 
+struct ShimExportMapping {
+    std::unordered_map<std::string, void*> mapping;
+};
+
 namespace {
 
 const shim_runtime_api* runtime;
@@ -119,12 +123,15 @@ Error makeErr(const Twine &Msg) {
     return make_error<StringError>(Msg, inconvertibleErrorCode());
 }
 
-void initNativeTargetOnce() {
+std::unordered_map<std::string, void*> RuntimeMapping;
+
+void initOnce() {
     // TargetRegistry is process-global and registration isn't race-safe.
     static std::once_flag Flag;
     std::call_once(Flag, [] {
         InitializeNativeTarget();
         InitializeNativeTargetAsmPrinter();
+#include "mapping_init.inc"
     });
 }
 
@@ -158,6 +165,14 @@ void* AllocateSection(void* my_thread, void* executable_module,
 
     return runtime->shim_executable_module_allocate_data(
         my_thread, executable_module, size, alignment);
+}
+
+void* ResolveSymbol(const std::string& name)
+{
+    auto iter = RuntimeMapping.find(name);
+    ASSERT(iter != RuntimeMapping.end());
+    ASSERT(iter->second);
+    return iter->second;
 }
 
 // ---------------------------------------------------------------------------
@@ -450,17 +465,29 @@ void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level) {
     MPM.run(M, MAM);
 }
 
-Expected<std::unordered_map<std::string, void *>>
-compileAndLink(LLVMModuleRef CMod, unsigned OptLevel) {
-    initNativeTargetOnce();
+} // anonymous namespace
 
-    OptimizationLevel OL;
-    CodeGenOptLevel CGL;
-    switch (OptLevel) {
-    case 0:  OL = OptimizationLevel::O0; CGL = CodeGenOptLevel::None;       break;
-    case 1:  OL = OptimizationLevel::O1; CGL = CodeGenOptLevel::Less;       break;
-    case 2:  OL = OptimizationLevel::O2; CGL = CodeGenOptLevel::Default;    break;
-    default: OL = OptimizationLevel::O3; CGL = CodeGenOptLevel::Aggressive; break;
+Expected<std::unordered_map<std::string, void *>>
+compileAndLink(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod) {
+    initOnce();
+
+    void* executable_module = runtime->shim_allocate_executable_module(my_thread);
+
+    OptimizationLevel OL = OptimizationLevel::O2;
+    CodeGenOptLevel CGL = CodeGenOptLevel::Default;
+
+    auto iter = session->options.find("opt-level");
+    if (iter != session->options.end(I)) {
+        if (iter->second == "0") {
+            OL = OptimizationLevel::O0;
+            CGL = CodeGenOptLevel::None;
+        } else if (iter->second == "1") {
+            OL = OptimizationLevel::O1;
+            CGL = CodeGenOptLevel::Less;
+        } else if (iter->second == "3") {
+            OL = OptimizationLevel::O3;
+            CGL = CodeGenOptLevel::Aggressive;
+        }
     }
 
     // Host triple/CPU/features, in this process's address space.
@@ -504,7 +531,7 @@ compileAndLink(LLVMModuleRef CMod, unsigned OptLevel) {
             MemoryBufferRef(StringRef(Obj.data(), Obj.size()), "jit-object"), SSP);
         if (!G)
             return G.takeError();
-        HostSectionAllocator MemMgr;
+        HostSectionAllocator MemMgr(my_thread, executable_module);
         jitLink(std::move(*G), std::make_unique<LinkContext>(MemMgr, Out));
     } // graph, context, and all SymbolStringPtrs gone before SSP
 
