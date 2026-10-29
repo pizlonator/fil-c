@@ -86,7 +86,9 @@ RUNTIME_COMPILETIME_API = [
     ("void*", "shim_executable_module_allocate_executable", "(void* my_thread, void* executable_module, size_t size)"),
     ("void*", "shim_executable_module_allocate_aux", "(void* my_thread, void* executable_module, size_t size)"),
     ("void", "shim_executable_module_finalize_objects", "(void* my_thread, void* executable_module)"),
-    ("void", "shim_executable_module_set_export_mapping", "(void* my_thread, void* executable_module, ShimExportMapping* mapping)")
+    ("void", "shim_executable_module_set_export_mapping", "(void* my_thread, void* executable_module, ShimExportMapping* mapping)"),
+    ("void", "pas_panic", "(const char* format, ...)"),
+    ("void", "pas_log", "(const char* format, ...)")
 ]
 
 RUNTIME_RUNTIME_API = [
