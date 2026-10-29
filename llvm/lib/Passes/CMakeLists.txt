@@ -6,6 +6,7 @@ add_llvm_component_library(LLVMPasses
   PassBuilderBindings.cpp
   PassBuilderPipelines.cpp
   PassPlugin.cpp
+  RegisterFilPasses.cpp
   StandardInstrumentations.cpp
 
   ADDITIONAL_HEADER_DIRS

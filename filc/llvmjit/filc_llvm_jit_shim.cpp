@@ -66,6 +66,7 @@
 #include "llvm/TargetParser/Triple.h"
 #include "llvm/Passes/OptimizationLevel.h"
 #include "llvm/Passes/PassBuilder.h"
+#include "llvm/Passes/RegisterFilPasses.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/MemoryBufferRef.h"
@@ -443,7 +444,7 @@ public:
 // ---------------------------------------------------------------------------
 // Pipeline.
 // ---------------------------------------------------------------------------
-void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level) {
+void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level, FilJITConfiguration& filConfig) {
     LoopAnalysisManager LAM;
     FunctionAnalysisManager FAM;
     CGSCCAnalysisManager CGAM;
@@ -459,6 +460,8 @@ void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level) {
     PB.registerLoopAnalyses(LAM);
     PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
 
+    RegisterFilPasses(PB, &filConfig);
+
     ModulePassManager MPM = Level == OptimizationLevel::O0
         ? PB.buildO0DefaultPipeline(Level)
         : PB.buildPerModuleDefaultPipeline(Level);
@@ -467,8 +470,23 @@ void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level) {
 
 } // anonymous namespace
 
-Expected<std::unordered_map<std::string, void *>>
-compileAndLink(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod) {
+ShimJIT* ShimJITCreate() {
+    return new ShimJIT;
+}
+
+void ShimJITSetOption(ShimJIT* jit, const char* key, const char* value) {
+    jit->options[key] = value;
+}
+
+void ShimJITSetGlobalMapping(ShimJIT* jit, const char& key, shim_ptr ptr) {
+    jit->filConfig.GlobalMapping[key] = ptr;
+}
+
+void ShimJITSetPointerMapping(ShimJIT* jit, shim_ptr ptr) {
+    jit->filConfig.PointerMapping[ptr.ptr] = ptr.lower;
+}
+
+void* ShimJITCompile(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod) {
     initOnce();
 
     void* executable_module = runtime->shim_allocate_executable_module(my_thread);
@@ -492,19 +510,16 @@ compileAndLink(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod) {
 
     // Host triple/CPU/features, in this process's address space.
     auto JTMB = orc::JITTargetMachineBuilder::detectHost();
-    if (!JTMB)
-        return JTMB.takeError();
+    ASSERT(JTMB);
     const Triple &TT = JTMB->getTargetTriple();
-    if (!TT.isOSBinFormatELF() ||
-        (TT.getArch() != Triple::aarch64 && TT.getArch() != Triple::x86_64))
-        return makeErr("unsupported host target: " + TT.str());
+    ASSERT(TT.isOSBinFormatELF());
+    ASSERT(TT.getArch() == Triple::aarch64 || TT.getArch() == Triple::x86_64);
 
     JTMB->setCodeModel(CodeModel::Large)
         .setRelocationModel(Reloc::Static)
         .setCodeGenOptLevel(CGL);
     auto TM = JTMB->createTargetMachine();
-    if (!TM)
-        return TM.takeError();
+    ASSERT(TM);
 
     // Clone, optimize, codegen. The caller's module is never touched.
     SmallVector<char, 0> Obj;
@@ -513,13 +528,12 @@ compileAndLink(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod) {
         M->setTargetTriple((*TM)->getTargetTriple().str());
         M->setDataLayout((*TM)->createDataLayout());
 
-        optimize(*M, **TM, OL);
+        optimize(*M, **TM, OL, *session->filConfig);
 
         raw_svector_ostream OS(Obj);
         legacy::PassManager CG;
-        if ((*TM)->addPassesToEmitFile(CG, OS, nullptr,
-                                       CodeGenFileType::ObjectFile))
-            return makeErr("target cannot emit object files");
+        ASSERT(!(*TM)->addPassesToEmitFile(CG, OS, nullptr,
+                                           CodeGenFileType::ObjectFile));
         CG.run(*M);
     } // clone destroyed; nothing below touches the LLVMContext
 
@@ -529,17 +543,36 @@ compileAndLink(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod) {
     {
         auto G = createLinkGraphFromObject(
             MemoryBufferRef(StringRef(Obj.data(), Obj.size()), "jit-object"), SSP);
-        if (!G)
-            return G.takeError();
+        ASSERT(G);
         HostSectionAllocator MemMgr(my_thread, executable_module);
         jitLink(std::move(*G), std::make_unique<LinkContext>(MemMgr, Out));
     } // graph, context, and all SymbolStringPtrs gone before SSP
 
-    if (Out.Err)
-        return std::move(Out.Err);
-    if (!Out.Finalized)
-        return makeErr("link did not complete synchronously");
-    return std::move(Out.Exports);
+    ASSERT(!Out.Err);
+    ASSERT(Out.Finalized);
+
+    ShimExportMapping* mapping = new ShimExportMapping();
+    mapping->mapping = std::move(Out.Exports);
+
+    runtime->shim_executable_module_finalize_objects(my_thread, executable_module);
+    runtime->shim_executable_module_set_export_mapping(my_thread, executable_module, mapping);
+
+    return executable_module;
+}
+
+void ShimJITDestroy(ShimJIT* jit) {
+    delete jit;
+}
+
+void* ShimExportMappingLookup(ShimExportMapping* mapping, const char* name) {
+    auto iter = mapping->mapping.find(name);
+    if (iter == mapping->mapping.end())
+        return nullptr;
+    return iter->second;
+}
+
+void ShimExportMappingDestroy(ShimExportMapping* mapping) {
+    delete mapping;
 }
 
 static const struct shim_api my_api = {

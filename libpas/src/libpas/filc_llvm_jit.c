@@ -413,6 +413,8 @@ filc_ptr filc_native_FilLLVMJIT_GetPointerToGlobal(filc_thread* my_thread, filc_
     pas_lock_lock(&module->lock);
     pizlonated_getter getter = api->ShimExportMappingLookup(module->mapping, name);
     pas_lock_unlock(&module->lock);
+    if (!getter)
+        return filc_ptr_forge_null();
     return getter(my_thread, NULL);
 }
 
@@ -521,6 +523,7 @@ static void shim_executable_module_finalize_objects(void* raw_my_thread, void* r
         filc_alignment_header* header = module->object_bases.array[index];
         filc_object* object = filc_alignment_header_get_object(header);
         filc_object_flags flags = filc_aux_get_flags(object->aux);
+        PAS_ASSERT(!(flags & FILC_OBJECT_FLAG_GLOBAL));
         object->aux = filc_aux_create(
             filc_object_flags_create(
                 flags & FILC_OBJECT_FLAGS_MASK,

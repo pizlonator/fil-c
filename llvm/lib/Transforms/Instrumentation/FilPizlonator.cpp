@@ -41,6 +41,11 @@ using namespace llvm;
 
 namespace {
 
+// Notes for JIT:
+// - Error on global ctor/dtor
+// - Error on ifunc
+// - Error on TLS
+
 static cl::opt<bool> lightVerbose(
   "filc-light-verbose", cl::desc("Make FilC slightly verbose"),
   cl::Hidden, cl::init(false));
