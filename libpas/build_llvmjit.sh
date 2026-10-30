@@ -57,15 +57,18 @@ mkdir -p ../pizfix/libexec
 
 CXX="${CXX:-/usr/bin/c++}"
 
-SHIM_OBJ="$(mktemp /tmp/filc_llvm_jit_shim.XXXXXX.o)"
+mkdir -p build
+
+SHIM_OBJ=build/filc_llvm_jit_shim.o
 
 # NOTE: the in-tree LLVM build has RTTI and C++ exceptions disabled
 # (LLVM_ENABLE_RTTI=OFF, LLVM_ENABLE_EH=OFF), so the shim must match with
 # -fno-rtti -fno-exceptions; otherwise the TU emits references to LLVM
 # typeinfo/vtable symbols that the static archives do not provide.
 "$CXX" -g -O2 -fPIC -fvisibility=hidden -fno-rtti -fno-exceptions -std=c++20 \
-    -I ../llvm/include -I ../build/include -I ../filc/include \
-    -c ../filc/llvmjit/filc_llvm_jit_shim.cpp -o "$SHIM_OBJ"
+    -I ../llvm/include -I ../build/include \
+    -c ../filc/llvmjit/filc_llvm_jit_shim.cpp -o "$SHIM_OBJ" \
+    -Wno-deprecated-declarations
 
 # The shim is dlopened from inside Fil-C processes, whose loader only
 # resolves libraries shipped in pizfix (plus process-global symbols from the
@@ -86,8 +89,6 @@ LIBGCC_EH_A="$("$CXX" -print-file-name=libgcc_eh.a)"
     -Wl,--exclude-libs,ALL \
     -Wl,--start-group ../build/lib/libLLVM*.a -Wl,--end-group \
     "$STDCXX_A" "$LIBGCC_EH_A" "$LIBGCC_A"
-
-rm -f "$SHIM_OBJ"
 
 # Split off LLVM's (huge) debug info into a separate file so the installed
 # .so stays lean while remaining fully debuggable via the debug link.

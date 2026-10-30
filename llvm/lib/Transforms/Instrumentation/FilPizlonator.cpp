@@ -16167,7 +16167,7 @@ class Pizlonator {
   }
 
 public:
-  Pizlonator(Module &M, FilJITConfiguration& FJITC)
+  Pizlonator(Module &M, FilJITConfiguration* FJITC)
     : FJITC(FJITC), C(M.getContext()), M(M), DLBefore(M.getDataLayout()),
       DL(M.getDataLayoutAfterFilC()) {
   }
@@ -16708,9 +16708,10 @@ public:
         Constant* LowerAndUpper =
           ConstantExpr::getGetElementPtr(ObjectTy, NewObjectG, ConstantInt::get(IntPtrTy, 1));
         uint16_t ObjectFlags =
-          ObjectFlagGlobal |
           ObjectFlagReadonly |
           (SpecialTypeFunction << ObjectFlagsSpecialShift);
+        if (!FJITC)
+          ObjectFlags |= ObjectFlagGlobal;
         Constant* NewObjC = ConstantStruct::get(
           FunctionObjectTy,
           { ConstantStruct::get(
@@ -16727,6 +16728,11 @@ public:
                   Signature, AIs, NormalizedRetType),
                 ConstantInt::get(Int64Ty, Signature) }) });
         NewObjectG->setInitializer(NewObjC);
+        if (FJITC) {
+          std::ostringstream buf;
+          buf << "filc_jit_object_section_" << ObjectCount++;
+          NewObjectG->setSection(buf.str());
+        }
         FunctionToLower[F] = LowerAndUpper;
       }
     }
@@ -16816,16 +16822,21 @@ public:
       assert(G->isDeclaration());
       if (!FJITC)
         return;
-      assert(FJITC->GlobalMapping.count(G->getName()));
-      FilPtrLiteral PL = FJITC->GlobalMapping[G->getName()];
+      if (!FJITC->GlobalMapping.count(G->getName().str()))
+        llvm::errs() << "Cannot find " << G->getName() << " in global mapping\n";
+      assert(FJITC->GlobalMapping.count(G->getName().str()));
+      FilPtrLiteral PL = FJITC->GlobalMapping[G->getName().str()];
       assert(PL.ptr);
       assert(PL.lower);
       Function* NewF = GlobalToGetter[G];
       BasicBlock* RootB = BasicBlock::Create(C, "filc_jit_getter_root", NewF);
       ReturnInst* Return = ReturnInst::Create(C, UndefValue::get(FlightPtrTy), RootB);
       Return->getOperandUse(0) = createFlightPtr(
-        ConstantExpr::getIntToPtr(ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(PL.lower))),
-        ConstantExpr::getIntToPtr(ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(Pl.ptr))));
+        ConstantExpr::getIntToPtr(ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(PL.lower)),
+                                  RawPtrTy),
+        ConstantExpr::getIntToPtr(ConstantInt::get(IntPtrTy, reinterpret_cast<uintptr_t>(PL.ptr)),
+                                  RawPtrTy),
+        Return);
       assert(!NewF->hasComdat());
       NewF->setLinkage(GlobalValue::InternalLinkage);
     };

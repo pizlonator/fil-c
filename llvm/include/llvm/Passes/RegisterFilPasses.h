@@ -6,7 +6,7 @@ namespace llvm {
 class PassBuilder;
 struct FilJITConfiguration;
 
-void RegisterFilPasses(PasssBuilder&, FilJITConfiguration* = nullptr);
+void RegisterFilPasses(PassBuilder&, FilJITConfiguration* = nullptr);
 
 } // namespace llvm
 

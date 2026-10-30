@@ -1,11 +1,16 @@
 #include "llvm/Passes/RegisterFilPasses.h"
 
+#include "llvm/Analysis/GlobalsModRef.h"
 #include "llvm/Analysis/ProfileSummaryInfo.h"
+#include "llvm/Passes/PassBuilder.h"
 #include "llvm/Transforms/Coroutines/CoroCleanup.h"
 #include "llvm/Transforms/Coroutines/CoroConditionalWrapper.h"
 #include "llvm/Transforms/Coroutines/CoroEarly.h"
 #include "llvm/Transforms/Coroutines/CoroSplit.h"
+#include "llvm/Transforms/IPO/FunctionAttrs.h"
 #include "llvm/Transforms/IPO/GlobalDCE.h"
+#include "llvm/Transforms/IPO/Inliner.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Instrumentation/DeleteRedundantPollchecks.h"
 #include "llvm/Transforms/Instrumentation/FilPizlonator.h"
 #include "llvm/Transforms/Instrumentation/KillUB.h"
@@ -64,9 +69,9 @@ static cl::opt<bool> FilCInlineDSE(
 static cl::opt<bool> FilCDSE(
   "filc-dse", cl::desc("Run DSE during Fil-C pipeline"), cl::Hidden, cl::init(false));
 
-void RegisterFilPasses(PassBuilder& PB, FilJITConfiguration* jitConfig) {
+void llvm::RegisterFilPasses(PassBuilder& PB, FilJITConfiguration* jitConfig) {
   PB.registerPipelineStartEPCallback(
-    [](ModulePassManager &MPM, OptimizationLevel Level) {
+    [jitConfig](ModulePassManager &MPM, OptimizationLevel Level) {
       if (FilCKillUB)
         MPM.addPass(KillUBPass());
       if (Level != OptimizationLevel::O0 && FilCOptimize) {

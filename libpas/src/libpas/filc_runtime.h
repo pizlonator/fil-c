@@ -1175,6 +1175,7 @@ struct filc_llvm_jit_context_object {
     filc_llvm_jit_kind kind;
     pas_lock lock;
     unsigned ref_count;
+    void* handle;
 };
 
 /* Base payload for every context affiliated JIT object. The handle is the
@@ -3968,15 +3969,6 @@ PAS_API extern bool filc_allow_jit;
 /* Destructor for FILC_SPECIAL_TYPE_LLVM_JIT payloads. Runs on the
    destructor heap. The leading kind selects the teardown. */
 PAS_API void filc_llvm_jit_destruct(void* payload);
-
-/* Raw entry points for lazy resolution from JITed code. These carry the
-   blessed names the shim rebinds. The first argument is the calling jit
-   module, taken from its filc_jit_module global. Resolved addresses are
-   recorded as roots in the calling jit module. Returns NULL when the
-   symbol cannot be resolved. */
-PAS_API void* filc_llvm_jit_resolve(void* jit_module, const char* name);
-PAS_API void* filc_llvm_jit_resolve_raw_pointer(void* jit_module,
-                                                unsigned long long encoded);
 
 PAS_NEVER_INLINE PAS_NO_RETURN void filc_size_too_big(size_t size);
 

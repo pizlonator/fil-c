@@ -421,7 +421,7 @@ static PAS_ALWAYS_INLINE void filc_llvm_jit_mark_outgoing_ptrs(void* raw_payload
         filc_llvm_jit_session_object* session =
             (filc_llvm_jit_session_object*)raw_payload;
         for (index = filc_object_array_num_objects(&session->objects); index--;)
-            marker.mark(stack, filc_object_array_at(&session->objects, index);
+            marker.mark(stack, filc_object_array_at(&session->objects, index));
         break;
     }
     case FILC_LLVM_JIT_KIND_EXECUTABLE_MODULE: {

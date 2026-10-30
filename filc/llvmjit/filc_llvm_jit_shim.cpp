@@ -49,6 +49,8 @@
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/ExecutionEngine/JITLink/JITLink.h"
 #include "llvm/ExecutionEngine/JITLink/JITLinkMemoryManager.h"
+#include <llvm/ExecutionEngine/JITLink/aarch64.h>
+#include <llvm/ExecutionEngine/JITLink/x86_64.h>
 #include "llvm/ExecutionEngine/Orc/AbsoluteSymbols.h"
 #include "llvm/ExecutionEngine/Orc/ExecutionUtils.h"
 #include "llvm/ExecutionEngine/Orc/JITTargetMachineBuilder.h"
@@ -61,6 +63,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
+#include <llvm/IR/LegacyPassManager.h>
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/TargetParser/Triple.h"
@@ -93,9 +96,13 @@
 #include "llvm/Transforms/Scalar/SCCP.h"
 #include "llvm/Transforms/Scalar/SROA.h"
 #include "llvm/Transforms/Scalar/SimplifyCFG.h"
+#include <llvm/Transforms/Utils/Cloning.h>
 #include "llvm-c/Core.h"
 
 #include "filc_llvm_jit_api.h"
+
+using namespace llvm;
+using namespace llvm::jitlink;
 
 struct ShimJIT {
     std::unordered_map<std::string, std::string> options;
@@ -110,15 +117,13 @@ namespace {
 
 const shim_runtime_api* runtime;
 
+// This is an always-on assert. The code below strongly expects it to be always on.
 #define ASSERT(exp) do { \
     if ((exp)) \
         break; \
     runtime->pas_panic("%s:%d: %s: assertion %s failed.\n", \
-                       __FILE__, __LINE__, __PRETTY_FUNCTION__, #esp); \
+                       __FILE__, __LINE__, __PRETTY_FUNCTION__, #exp); \
 } while (0)
-
-using namespace llvm;
-using namespace llvm::orc;
 
 Error makeErr(const Twine &Msg) {
     return make_error<StringError>(Msg, inconvertibleErrorCode());
@@ -132,13 +137,20 @@ void initOnce() {
     std::call_once(Flag, [] {
         InitializeNativeTarget();
         InitializeNativeTargetAsmPrinter();
+        InitializeNativeTargetAsmParser();
 #include "mapping_init.inc"
     });
 }
 
 void* AllocateSection(void* my_thread, void* executable_module,
-                      size_t size, size_t alignment, bool executable, const std::string& name)
+                      uint64_t size64, uint64_t alignment64, bool executable,
+                      const std::string& name)
 {
+    size_t size = (size_t)size64;
+    size_t alignment = (size_t)alignment64;
+    ASSERT(size == size64);
+    ASSERT(alignment == alignment64);
+    
     bool isObject = name.starts_with("filc_jit_object_section");
     bool isAux = name.starts_with("filc_jit_aux_section");
 
@@ -171,9 +183,24 @@ void* AllocateSection(void* my_thread, void* executable_module,
 void* ResolveSymbol(const std::string& name)
 {
     auto iter = RuntimeMapping.find(name);
-    ASSERT(iter != RuntimeMapping.end());
+    if (iter == RuntimeMapping.end())
+        return nullptr;
     ASSERT(iter->second);
     return iter->second;
+}
+
+// JITLink's default GOT/PLT builder (aarch64 and x86_64 both) puts its GOT in
+// this section. Its PLT stubs reach their GOT slot with a short PC-relative
+// reference (ADRP+LDR, +-4GB / jmp *x(%rip), +-2GB), so the GOT must live in the
+// 128MB executable pool alongside the stubs. Everything else non-executable can
+// live anywhere: under the large code model, code reaches data via 64-bit
+// absolute materialization.
+constexpr StringLiteral GOTSectionName = "$__GOT";
+
+// True for sections that get allocated in the 128MB executable pool.
+bool isPoolSection(const Section &Sec) {
+    return (Sec.getMemProt() & orc::MemProt::Exec) != orc::MemProt::None ||
+        Sec.getName() == GOTSectionName;
 }
 
 // ---------------------------------------------------------------------------
@@ -182,11 +209,9 @@ void* ResolveSymbol(const std::string& name)
 class HostSectionAllocator final : public JITLinkMemoryManager {
     class InFlight final : public InFlightAlloc {
         LinkGraph &G;
-        std::vector<std::pair<void *, size_t>> Code;
 
     public:
-        InFlight(LinkGraph &G, std::vector<std::pair<void *, size_t>> Code)
-            : G(G), Code(std::move(Code)) {}
+        InFlight(LinkGraph &G) : G(G) {}
 
         void finalize(OnFinalizedFunction OnFinalized) override {
             // No ORC platform, so nothing should have registered alloc actions.
@@ -210,8 +235,6 @@ public:
     
     void allocate(const JITLinkDylib *, LinkGraph &G,
                   OnAllocatedFunction OnAllocated) override {
-        std::vector<std::pair<void *, size_t>> Code;
-
         for (auto &Sec : G.sections()) {
             if (Sec.blocks().empty())
                 continue;
@@ -238,9 +261,10 @@ public:
             }
             Size = std::max<uint64_t>(Size, 1);
 
-            bool Exec = (Sec.getMemProt() & orc::MemProt::Exec) != orc::MemProt::None;
             auto *Base = static_cast<char *>(
-                AllocateSection(Size, Align, Exec, Sec.getName().str()));
+                AllocateSection(my_thread, executable_module, Size, Align,
+                                /*executable=*/isPoolSection(Sec),
+                                Sec.getName().str()));
             if (!Base)
                 return OnAllocated(
                     makeErr("AllocateSection failed for " + Sec.getName()));
@@ -255,11 +279,9 @@ public:
                     B->setMutableContent({P, static_cast<size_t>(B->getSize())});
                 }
             }
-            if (Exec)
-                Code.push_back({Base, static_cast<size_t>(Size)});
         }
 
-        OnAllocated(std::make_unique<InFlight>(G, std::move(Code)));
+        OnAllocated(std::make_unique<InFlight>(G));
     }
 
     void deallocate(std::vector<FinalizedAlloc> Allocs,
@@ -299,50 +321,10 @@ Error removeUnwindSections(LinkGraph &G) {
     return Error::success();
 }
 
-// AArch64: BL/B are +-128MB in every code model. Route every branch whose
-// target is outside the caller's section (external, or another JITed section)
-// through an in-section stub with an inline 64-bit literal. No GOT involved.
-Error buildAArch64FarStubs(LinkGraph &G) {
-    // ldr x16, #8 ; br x16 ; .quad <target>
-    static const char StubContent[16] = {
-        '\x50', '\x00', '\x00', '\x58', '\x00', '\x02', '\x1f', '\xd6',
-        0,      0,      0,      0,      0,      0,      0,      0};
-
-    SmallVector<std::pair<Block *, Edge *>, 16> Work;
-    for (auto *B : G.blocks()) {
-        if ((B->getSection().getMemProt() & orc::MemProt::Exec) ==
-            orc::MemProt::None)
-            continue;
-        for (auto &E : B->edges()) {
-            if (E.getKind() != aarch64::Branch26PCRel)
-                continue;
-            auto &T = E.getTarget();
-            if (T.isDefined() && &T.getBlock().getSection() == &B->getSection())
-                continue;
-            Work.push_back({B, &E});
-        }
-    }
-
-    DenseMap<std::tuple<Section *, Symbol *, int64_t>, Symbol *> Stubs;
-    for (auto [B, E] : Work) {
-        Section &Sec = B->getSection();
-        Symbol *&Stub = Stubs[{&Sec, &E->getTarget(), E->getAddend()}];
-        if (!Stub) {
-            auto &SB = G.createContentBlock(Sec, ArrayRef<char>(StubContent, 16),
-                                            orc::ExecutorAddr(), 8, 0);
-            SB.addEdge(aarch64::Pointer64, 8, E->getTarget(), E->getAddend());
-            Stub = &G.addAnonymousSymbol(SB, 0, 16, /*IsCallable=*/true,
-                                         /*IsLive=*/true);
-        }
-        E->setTarget(*Stub);
-        E->setAddend(0);
-    }
-    return Error::success();
-}
-
-// Deterministic check: any relocation leaving its own section must be one that
-// reaches the full 64-bit address space. Otherwise failures would depend on
-// where AllocateSection happened to put things.
+// Deterministic check: every relocation that leaves its own section must either
+// stay within the 128MB executable pool (code, JITLink's stubs, and its GOT), or
+// reach the full 64-bit address space. Otherwise failures would depend on where
+// AllocateSection happened to put things.
 Error verifyFarReach(LinkGraph &G) {
     auto Arch = G.getTargetTriple().getArch();
     auto FarSafe = [Arch](Edge::Kind K) {
@@ -356,14 +338,27 @@ Error verifyFarReach(LinkGraph &G) {
             return false;
         }
     };
+    // PC-relative kinds whose range is below 128MB. These must never cross
+    // sections, even within the pool.
+    auto TooShortForPool = [Arch](Edge::Kind K) {
+        return Arch == Triple::aarch64 &&
+            (K == aarch64::CondBranch19PCRel || K == aarch64::TestAndBranch14PCRel ||
+             K == aarch64::LDRLiteral19 || K == aarch64::ADRLiteral21);
+    };
 
     for (auto *B : G.blocks())
         for (auto &E : B->edges()) {
             if (!E.isRelocation())
                 continue;
             auto &T = E.getTarget();
-            if (T.isDefined() && &T.getBlock().getSection() == &B->getSection())
-                continue;
+            if (T.isDefined()) {
+                const Section &TS = T.getBlock().getSection();
+                if (&TS == &B->getSection())
+                    continue;
+                if (isPoolSection(B->getSection()) && isPoolSection(TS) &&
+                    !TooShortForPool(E.getKind()))
+                    continue;
+            }
             if (FarSafe(E.getKind()))
                 continue;
             return makeErr(Twine("edge ") + G.getEdgeKindName(E.getKind()) +
@@ -432,10 +427,7 @@ public:
     Error modifyPassConfig(LinkGraph &G, PassConfiguration &Config) override {
         Config.PrePrunePasses.insert(Config.PrePrunePasses.begin(),
                                      removeUnwindSections);
-        if (G.getTargetTriple().getArch() == Triple::aarch64)
-            // Must run before the default GOT/PLT builder in PostPrunePasses.
-            Config.PostPrunePasses.insert(Config.PostPrunePasses.begin(),
-                                          buildAArch64FarStubs);
+        // After the default GOT/PLT builder, so it sees the final edges.
         Config.PostPrunePasses.push_back(verifyFarReach);
         return Error::success();
     }
@@ -478,7 +470,7 @@ void ShimJITSetOption(ShimJIT* jit, const char* key, const char* value) {
     jit->options[key] = value;
 }
 
-void ShimJITSetGlobalMapping(ShimJIT* jit, const char& key, shim_ptr ptr) {
+void ShimJITSetGlobalMapping(ShimJIT* jit, const char* key, shim_ptr ptr) {
     jit->filConfig.GlobalMapping[key] = ptr;
 }
 
@@ -486,16 +478,39 @@ void ShimJITSetPointerMapping(ShimJIT* jit, shim_ptr ptr) {
     jit->filConfig.PointerMapping[ptr.ptr] = ptr.lower;
 }
 
-void* ShimJITCompile(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod) {
+struct FilCLayouts {
+    const char *Before;
+    const char *After;
+};
+
+bool filCLayoutsFor(const Triple &T, FilCLayouts &Out) {
+    if (T.getArch() == Triple::x86_64) {
+        Out.Before = "e-m:e-ni:0-p270:32:32-p271:32:32-p272:64:64-i64:"
+                     "64-i128:128-f80:128-n8:16:32:64-S128";
+        Out.After = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:"
+                    "64-i128:128-f80:128-n8:16:32:64-S128";
+        return true;
+    }
+    if (T.getArch() == Triple::aarch64) {
+        Out.Before = "e-m:e-ni:0-p270:32:32-p271:32:32-p272:64:64-i8:8:32-"
+                     "i16:16:32-i64:64-i128:128-n32:64-S128-Fn32";
+        Out.After = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i8:8:32-"
+                    "i16:16:32-i64:64-i128:128-n32:64-S128-Fn32";
+        return true;
+    }
+    return false;
+}
+
+void* ShimJITCompile(void* my_thread, void* jit_session, ShimJIT* session, LLVMModuleRef CMod) {
     initOnce();
 
-    void* executable_module = runtime->shim_allocate_executable_module(my_thread);
+    void* executable_module = runtime->shim_allocate_executable_module(my_thread, jit_session);
 
     OptimizationLevel OL = OptimizationLevel::O2;
     CodeGenOptLevel CGL = CodeGenOptLevel::Default;
 
     auto iter = session->options.find("opt-level");
-    if (iter != session->options.end(I)) {
+    if (iter != session->options.end()) {
         if (iter->second == "0") {
             OL = OptimizationLevel::O0;
             CGL = CodeGenOptLevel::None;
@@ -526,9 +541,20 @@ void* ShimJITCompile(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod
     {
         std::unique_ptr<Module> M = CloneModule(*unwrap(CMod));
         M->setTargetTriple((*TM)->getTargetTriple().str());
-        M->setDataLayout((*TM)->createDataLayout());
+        if (TT.getArch() == Triple::x86_64) {
+            M->setDataLayout("e-m:e-ni:0-p270:32:32-p271:32:32-p272:64:64-i64:"
+                             "64-i128:128-f80:128-n8:16:32:64-S128");
+            M->setDataLayoutAfterFilC("e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:"
+                                      "64-i128:128-f80:128-n8:16:32:64-S128");
+        } else {
+            ASSERT(TT.getArch() == Triple::aarch64);
+            M->setDataLayout("e-m:e-ni:0-p270:32:32-p271:32:32-p272:64:64-i8:8:32-"
+                             "i16:16:32-i64:64-i128:128-n32:64-S128-Fn32");
+            M->setDataLayoutAfterFilC("e-m:e-p270:32:32-p271:32:32-p272:64:64-i8:8:32-"
+                                      "i16:16:32-i64:64-i128:128-n32:64-S128-Fn32");
+        }
 
-        optimize(*M, **TM, OL, *session->filConfig);
+        optimize(*M, **TM, OL, session->filConfig);
 
         raw_svector_ostream OS(Obj);
         legacy::PassManager CG;
@@ -545,9 +571,13 @@ void* ShimJITCompile(void* my_thread, ShimJIT* session, void* LLVMModuleRef CMod
             MemoryBufferRef(StringRef(Obj.data(), Obj.size()), "jit-object"), SSP);
         ASSERT(G);
         HostSectionAllocator MemMgr(my_thread, executable_module);
-        jitLink(std::move(*G), std::make_unique<LinkContext>(MemMgr, Out));
+        link(std::move(*G), std::make_unique<LinkContext>(MemMgr, Out));
     } // graph, context, and all SymbolStringPtrs gone before SSP
 
+    if (Out.Err) {
+        std::string Msg = toString(std::move(Out.Err));
+        errs() << "JIT link failed: " << Msg << "\n";
+    }
     ASSERT(!Out.Err);
     ASSERT(Out.Finalized);
 
@@ -565,7 +595,8 @@ void ShimJITDestroy(ShimJIT* jit) {
 }
 
 void* ShimExportMappingLookup(ShimExportMapping* mapping, const char* name) {
-    auto iter = mapping->mapping.find(name);
+    std::string mangledName = std::string("pizlonated_") + name;
+    auto iter = mapping->mapping.find(mangledName);
     if (iter == mapping->mapping.end())
         return nullptr;
     return iter->second;
@@ -584,10 +615,28 @@ static const struct shim_api my_api = {
 // -fvisibility=hidden (a version script alone cannot re-export a hidden
 // symbol).
 extern "C" __attribute__((visibility("default")))
-const struct shim_api *FilLLVMJIT_GetApi(const shim_runtime_api* runtime_api)
+const struct shim_api *FilLLVMJIT_GetApi(const shim_runtime_api* runtime_api,
+                                         const char* options)
 {
+    if (options) {
+        BumpPtrAllocator Alloc;
+        StringSaver Saver(Alloc);
+        SmallVector<const char *, 16> Argv{"llvm"};  // argv[0]; the parser skips it
+        cl::TokenizeGNUCommandLine(options, Saver, Argv);
+        
+        cl::ParseCommandLineOptions(Argv.size(), Argv.data(),
+                                    /*Overview=*/"", /*Errs=*/nullptr);
+    }
+    
     runtime = runtime_api;
+    ASSERT(runtime->version == SHIM_API_VERSION);
     return &my_api;
+}
+
+extern "C" __attribute__((visibility("hidden")))
+int atexit(void (*f)(void))
+{
+    return 0;
 }
 
 extern "C" __attribute__((visibility("hidden")))
