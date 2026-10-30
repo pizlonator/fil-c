@@ -79,7 +79,7 @@ PAS_NEVER_INLINE void* bmalloc_allocate_with_nontrivial_alignment(size_t size, s
 PAS_NEVER_INLINE void* bmalloc_allocate_zeroed_with_nontrivial_alignment(size_t size, size_t alignment)
 {
     return (void*)pas_allocation_result_zero(
-        bmalloc_allocate_with_alignment_impl(size, alignment)).begin;
+        bmalloc_allocate_with_alignment_impl(size, alignment), size).begin;
 }
 
 PAS_NEVER_INLINE void* bmalloc_try_reallocate_with_nontrivial_alignment(void* old_ptr, size_t new_size, size_t alignment,
@@ -155,9 +155,9 @@ void* bmalloc_try_allocate_zeroed(size_t size)
     return bmalloc_try_allocate_zeroed_inline(size);
 }
 
-void* bmalloc_try_allocate_zeroed_with_alignment(size_t size, size_t alignment)
+void* bmalloc_allocate_zeroed_with_alignment(size_t size, size_t alignment)
 {
-    return bmalloc_try_allocate_zeroed_with_alignment_inline(size, alignment);
+    return bmalloc_allocate_zeroed_with_alignment_inline(size, alignment);
 }
 
 void* bmalloc_allocate(size_t size)
