@@ -43,6 +43,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+bool filc_allow_jit = false;
+
 /* We only support the LLVM JIT in glibc, because otherwise, there's no way to load the LLVM so,
    which is built against glibc.
 
@@ -50,8 +52,6 @@
 #if PAS_GLIBC
 
 #include "../../../filc/llvmjit/filc_llvm_jit_api.h"
-
-bool filc_allow_jit = false;
 
 static const bool verbose = false;
 
