@@ -803,11 +803,6 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object
     if (PAS_UNLIKELY(flags & FILC_OBJECT_FLAG_WEAK_KEY))
         filc_object_mark_weak_map_values_based_on_key(object, marker, stack);
 
-    if (PAS_UNLIKELY(filc_object_flags_is_special(flags))) {
-        filc_object_mark_outgoing_special_ptrs(object, aux, marker, stack);
-        return;
-    }
-
     if (PAS_UNLIKELY(filc_object_flags_log_align(flags))) {
         filc_alignment_header* header = filc_object_get_alignment_header(object);
         uintptr_t extra = header->extra_pointer;
@@ -818,10 +813,12 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object
         case FILC_EXTRA_POINTER_STATE_LIVE_FINALIZER:
             break;
         case FILC_EXTRA_POINTER_STATE_JIT_MODULE: {
-            filc_object* jit_module_object =
-                (filc_object*)(extra & ~FILC_EXTRA_POINTER_STATE_MASK);
-            if (jit_module_object)
-                marker.mark(stack, jit_module_object);
+            filc_llvm_jit_executable_module* jit_module_object =
+                (filc_llvm_jit_executable_module*)(extra & ~FILC_EXTRA_POINTER_STATE_MASK);
+            if (verbose)
+                pas_log("Marking jit module %p\n", jit_module_object);
+            PAS_ASSERT(jit_module_object);
+            marker.mark(stack, filc_object_for_special_payload(jit_module_object));
             break;
         }
         default:
@@ -831,6 +828,11 @@ static PAS_ALWAYS_INLINE void filc_object_mark_outgoing_ptrs(filc_object* object
             PAS_ASSERT(!"Invalid extra-pointer state");
             break;
         }
+    }
+
+    if (PAS_UNLIKELY(filc_object_flags_is_special(flags))) {
+        filc_object_mark_outgoing_special_ptrs(object, aux, marker, stack);
+        return;
     }
 
     /* It's unusual for an object without an aux ptr to be placed on the mark stack, but we forgive

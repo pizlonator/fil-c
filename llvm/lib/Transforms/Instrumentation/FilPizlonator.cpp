@@ -17567,7 +17567,7 @@ public:
 
     if (lightVerbose || verbose)
       errs() << "Here's the pizlonated module:\n" << M << "\n";
-    verifyModule(M);
+    assert(!verifyModule(M));
   }
 };
 
