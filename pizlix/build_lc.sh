@@ -133,6 +133,10 @@ ln -s clang-20 $LFS/usr/bin/filcc
 ln -s clang-20 $LFS/usr/bin/fil++
 ln -s clang-20 $LFS/usr/bin/filcpp
 
+mkdir -v $LFS/usr/libexec
+ln -s $LFS/libexec /usr/libexec
+cp -rv $FILCSRC/pizfix/libexec/libfilcllvmjit.so $LFS/usr/libexec
+
 ./build_chroot.sh /sources/build_lc_sub3_user_chroot.sh
 
 # FIXME: It would be so much better if I build libc++/libc++abi in the chroot.

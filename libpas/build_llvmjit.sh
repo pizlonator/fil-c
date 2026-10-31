@@ -38,6 +38,11 @@ set -x
 
 cd "$(dirname "$0")"
 
+if [ ! -e ../pizfix/lib/libyolocimpl.so ]; then
+    echo "Not in GLIBC mode, not building LLVM JIT."
+    exit 0
+fi
+
 # Regenerate the public header, the internal runtime<->shim ABI header, and
 # the shim's initializer table from the in-tree LLVM C API (keeps
 # declarations and struct fields in sync).

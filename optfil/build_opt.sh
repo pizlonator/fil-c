@@ -163,6 +163,9 @@ ln -s filcc-clang-20 bin/filcc
 ln -s filcc-clang-20 bin/fil++
 ln -s filcc-clang-20 bin/filcpp
 
+mkdir -v libexec
+cp -rv $FILCSRC/pizfix/libexec/libfilcllvmjit.so libexec
+
 cp -v $FILCSRC/pizfix/bin/minilute bin/minilute
 strip bin/minilute
 patchelf --set-interpreter /opt/fil/lib/ld-fil1-$ARCH.so bin/minilute
