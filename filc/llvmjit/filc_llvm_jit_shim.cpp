@@ -125,6 +125,15 @@ const shim_runtime_api* runtime;
                        __FILE__, __LINE__, __PRETTY_FUNCTION__, #exp); \
 } while (0)
 
+// This is an always-on assert that is used as a safety check - i.e. it's guarding against something
+// that an adversarial user might do. The code below strongly expects it to be always on.
+#define CHECK(exp) do { \
+    if ((exp)) \
+        break; \
+    runtime->shim_panic("%s:%d: %s: safety assertion %s failed.", \
+                        __FILE__, __LINE__, __PRETTY_FUNCTION__, #exp); \
+} while (0)
+
 Error makeErr(const Twine &Msg) {
     return make_error<StringError>(Msg, inconvertibleErrorCode());
 }
@@ -437,7 +446,7 @@ public:
 // Pipeline.
 // ---------------------------------------------------------------------------
 void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level, FilJITConfiguration& filConfig) {
-    ASSERT(!verifyModule(M, &errs()));
+    CHECK(!verifyModule(M, &errs()));
     
     LoopAnalysisManager LAM;
     FunctionAnalysisManager FAM;
