@@ -73,20 +73,17 @@ JIT_OWN = [
     ("void", "ShimJITSetOption", "(ShimJIT* jit, const char* key, const char* value)"),
     ("void", "ShimJITSetGlobalMapping", "(ShimJIT* jit, const char* key, shim_ptr ptr)"),
     ("void", "ShimJITSetPointerMapping", "(ShimJIT* jit, shim_ptr ptr)"),
-    ("void*", "ShimJITCompile", "(void*, void* jit_session, ShimJIT* jit, LLVMModuleRef mod)"),
+    ("ShimExportMapping*", "ShimJITCompile", "(void*, void* executable_module, ShimJIT* jit, LLVMModuleRef mod)"),
     ("void", "ShimJITDestroy", "(ShimJIT* jit)"),
     ("void*", "ShimExportMappingLookup", "(ShimExportMapping* mapping, const char* name)"),
     ("void", "ShimExportMappingDestroy", "(ShimExportMapping* mapping)")
 ]
 
 RUNTIME_COMPILETIME_API = [
-    ("void*", "shim_allocate_executable_module", "(void* my_thread, void* jit_session)"),
     ("void*", "shim_executable_module_allocate_object", "(void* my_thread, void* executable_module, size_t size, size_t alignment)"),
     ("void*", "shim_executable_module_allocate_data", "(void* my_thread, void* executable_module, size_t size, size_t alignment)"),
     ("void*", "shim_executable_module_allocate_executable", "(void* my_thread, void* executable_module, size_t size)"),
     ("void*", "shim_executable_module_allocate_aux", "(void* my_thread, void* executable_module, size_t size)"),
-    ("void", "shim_executable_module_finalize_objects", "(void* my_thread, void* executable_module)"),
-    ("void", "shim_executable_module_set_export_mapping", "(void* my_thread, void* executable_module, ShimExportMapping* mapping)"),
     ("void", "pas_panic", "(const char* format, ...)"),
     ("void", "pas_log", "(const char* format, ...)"),
     ("void", "shim_panic", "(const char* format, ...)")

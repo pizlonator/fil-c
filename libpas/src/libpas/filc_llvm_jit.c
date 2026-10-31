@@ -461,6 +461,7 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
 {
     ensure_api(my_thread);
     filc_llvm_jit_session_object* session = unwrap_session(my_thread, jit_ptr);
+    PAS_ASSERT(session->kind == FILC_LLVM_JIT_KIND_JIT_SESSION);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module_obj =
         unwrap_obj(my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE,
@@ -469,42 +470,90 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
     /* FIXME: Would be cool if we exited around the compile. */
     pas_lock_lock(&session->lock);
     pas_lock_lock(&context->lock);
-    filc_llvm_jit_executable_module* module = api->ShimJITCompile(
-        my_thread, session, session->handle, module_obj->handle);
-    pas_lock_unlock(&context->lock);
-    pas_lock_unlock(&session->lock);
-    filc_exit(my_thread);
-    filc_soft_handshake(code_fence, NULL);
-    filc_enter(my_thread);
-    return filc_ptr_for_special_payload_with_manual_tracking(module);
-}
 
-static void* shim_allocate_executable_module(void* raw_my_thread, void* raw_jit_session)
-{
-    filc_thread* my_thread = raw_my_thread;
     filc_llvm_jit_executable_module* module = filc_object_special_payload(
         my_thread, filc_allocate_special_with_heap(
             my_thread, sizeof(filc_llvm_jit_executable_module), 1,
             FILC_SPECIAL_TYPE_LLVM_JIT, fugc_destructor_heap));
     module->kind = FILC_LLVM_JIT_KIND_EXECUTABLE_MODULE;
     pas_lock_construct(&module->lock);
+    pas_lock_lock(&module->lock);
     filc_raw_ptr_array_construct(&module->jit_bases);
     filc_object_array_construct(&module->objects);
     filc_raw_ptr_array_construct(&module->sections);
     filc_raw_ptr_array_construct(&module->auxes);
     module->mapping = NULL;
 
-    filc_llvm_jit_session_object* session = (filc_llvm_jit_session_object*)raw_jit_session;
-    PAS_ASSERT(session->kind == FILC_LLVM_JIT_KIND_JIT_SESSION);
     size_t index;
     for (index = filc_object_array_num_objects(&session->objects); index--;) {
         filc_store_barrier(my_thread, filc_object_array_at(&session->objects, index));
         filc_object_array_push(&module->objects, filc_object_array_at(&session->objects, index));
     }
 
+    module->mapping = api->ShimJITCompile(my_thread, module, session->handle, module_obj->handle);
+
+    pas_lock_unlock(&context->lock);
+    pas_lock_unlock(&session->lock);
+
     if (verbose)
-        pas_log("Allocated module = %p\n", module);
-    return module;
+        pas_log("Finalizing objects:\n");
+    for (index = module->object_bases.size; index--;) {
+        filc_alignment_header* header = module->object_bases.array[index];
+        filc_object* object = filc_alignment_header_get_object(header);
+        if (verbose) {
+            pas_log("    before: ");
+            filc_object_dump(object, pas_log_stream);
+            pas_log("\n");
+        }
+        filc_object_flags flags = filc_aux_get_flags(object->aux);
+        PAS_ASSERT(!(flags & FILC_OBJECT_FLAG_GLOBAL));
+        object->aux = filc_aux_create(
+            filc_object_flags_create(
+                flags & FILC_OBJECT_FLAGS_MASK,
+                filc_object_flags_special_type(flags),
+                pas_log2(filc_alignment_header_get_alignment(header))),
+            filc_aux_get_ptr(object->aux));
+        if (verbose) {
+            pas_log("    after: ");
+            filc_object_dump(object, pas_log_stream);
+            pas_log("\n");
+        }
+    }
+
+#if PAS_ARM64
+    uintptr_t ctr;
+    
+    asm volatile("mrs %0, ctr_el0" : "=r"(ctr));
+
+    for (index = module->jit_bases.size; index--;) {
+        uintptr_t start = (uintptr_t)module->jit_bases[index];
+        size_t size = jit_heap_get_size((void*)start);
+        uintptr_t end = start + size;
+        
+        /* IDC (bit 28): D-cache clean to PoU not required for I/D coherence. */
+        if (!(ctr & (1ull << 28))) {
+            uintptr_t dline = 4ull << ((ctr >> 16) & 0xf);   /* DminLine: log2 words */
+            for (uintptr_t p = start & ~(dline - 1); p < end; p += dline)
+                asm volatile("dc cvau, %0" :: "r"(p) : "memory");
+        }
+        asm volatile("dsb ish" ::: "memory");   /* stores/cleans visible before IC */
+        
+        /* DIC (bit 29): I-cache invalidation to PoU not required. */
+        if (!(ctr & (1ull << 29))) {
+            uintptr_t iline = 4ull << (ctr & 0xf);           /* IminLine: log2 words */
+            for (uintptr_t p = start & ~(iline - 1); p < end; p += iline)
+                asm volatile("ic ivau, %0" :: "r"(p) : "memory");
+            asm volatile("dsb ish" ::: "memory");
+        }
+    }
+#endif
+
+    pas_lock_unlock(&module->lock);
+
+    filc_exit(my_thread);
+    filc_soft_handshake(code_fence, NULL);
+    filc_enter(my_thread);
+    return filc_ptr_for_special_payload_with_manual_tracking(module);
 }
 
 static void* shim_executable_module_allocate_object(void* raw_my_thread, void* raw_module,
@@ -565,73 +614,6 @@ static void* shim_executable_module_allocate_aux(void* raw_my_thread, void* raw_
     if (verbose)
         pas_log("Allocated aux = %p\n", &result->array);
     return &result->array;
-}
-
-static void shim_executable_module_finalize_objects(void* raw_my_thread, void* raw_module)
-{
-    PAS_UNUSED_PARAM(raw_my_thread);
-    filc_llvm_jit_executable_module* module = raw_module;
-    size_t index;
-    if (verbose)
-        pas_log("Finalizing objects:\n");
-    for (index = module->object_bases.size; index--;) {
-        filc_alignment_header* header = module->object_bases.array[index];
-        filc_object* object = filc_alignment_header_get_object(header);
-        if (verbose) {
-            pas_log("    before: ");
-            filc_object_dump(object, pas_log_stream);
-            pas_log("\n");
-        }
-        filc_object_flags flags = filc_aux_get_flags(object->aux);
-        PAS_ASSERT(!(flags & FILC_OBJECT_FLAG_GLOBAL));
-        object->aux = filc_aux_create(
-            filc_object_flags_create(
-                flags & FILC_OBJECT_FLAGS_MASK,
-                filc_object_flags_special_type(flags),
-                pas_log2(filc_alignment_header_get_alignment(header))),
-            filc_aux_get_ptr(object->aux));
-        if (verbose) {
-            pas_log("    after: ");
-            filc_object_dump(object, pas_log_stream);
-            pas_log("\n");
-        }
-    }
-
-#if PAS_ARM64
-    uintptr_t ctr;
-    
-    asm volatile("mrs %0, ctr_el0" : "=r"(ctr));
-
-    for (index = module->jit_bases.size; index--;) {
-        uintptr_t start = (uintptr_t)module->jit_bases[index];
-        size_t size = jit_heap_get_size((void*)start);
-        uintptr_t end = start + size;
-        
-        /* IDC (bit 28): D-cache clean to PoU not required for I/D coherence. */
-        if (!(ctr & (1ull << 28))) {
-            uintptr_t dline = 4ull << ((ctr >> 16) & 0xf);   /* DminLine: log2 words */
-            for (uintptr_t p = start & ~(dline - 1); p < end; p += dline)
-                asm volatile("dc cvau, %0" :: "r"(p) : "memory");
-        }
-        asm volatile("dsb ish" ::: "memory");   /* stores/cleans visible before IC */
-        
-        /* DIC (bit 29): I-cache invalidation to PoU not required. */
-        if (!(ctr & (1ull << 29))) {
-            uintptr_t iline = 4ull << (ctr & 0xf);           /* IminLine: log2 words */
-            for (uintptr_t p = start & ~(iline - 1); p < end; p += iline)
-                asm volatile("ic ivau, %0" :: "r"(p) : "memory");
-            asm volatile("dsb ish" ::: "memory");
-        }
-    }
-#endif
-}
-
-static void shim_executable_module_set_export_mapping(void* raw_my_thread, void* raw_module,
-                                                      ShimExportMapping* mapping)
-{
-    PAS_UNUSED_PARAM(raw_my_thread);
-    filc_llvm_jit_executable_module* module = raw_module;
-    module->mapping = mapping;
 }
 
 static void shim_panic(const char* format, ...)

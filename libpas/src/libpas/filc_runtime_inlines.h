@@ -420,17 +420,21 @@ static PAS_ALWAYS_INLINE void filc_llvm_jit_mark_outgoing_ptrs(void* raw_payload
     case FILC_LLVM_JIT_KIND_JIT_SESSION: {
         filc_llvm_jit_session_object* session =
             (filc_llvm_jit_session_object*)raw_payload;
+        pas_lock_lock(&session->lock);
         for (index = filc_object_array_num_objects(&session->objects); index--;)
             marker.mark(stack, filc_object_array_at(&session->objects, index));
+        pas_lock_unlock(&session->lock);
         break;
     }
     case FILC_LLVM_JIT_KIND_EXECUTABLE_MODULE: {
         filc_llvm_jit_executable_module* object =
             (filc_llvm_jit_executable_module*)raw_payload;
+        pas_lock_lock(&object->lock);
         for (index = filc_object_array_num_objects(&object->objects); index--;)
             marker.mark(stack, filc_object_array_at(&object->objects, index));
         for (index = object->object_bases.size; index--;)
             marker.mark(stack, filc_allocation_get_object(object->object_bases.array[index]));
+        pas_lock_unlock(&object->lock);
         break;
     }
     default: {

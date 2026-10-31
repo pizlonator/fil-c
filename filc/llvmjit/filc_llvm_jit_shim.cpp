@@ -512,10 +512,9 @@ bool filCLayoutsFor(const Triple &T, FilCLayouts &Out) {
     return false;
 }
 
-void* ShimJITCompile(void* my_thread, void* jit_session, ShimJIT* session, LLVMModuleRef CMod) {
+ShimExportMapping* ShimJITCompile(
+    void* my_thread, void* executable_module, ShimJIT* session, LLVMModuleRef CMod) {
     initOnce();
-
-    void* executable_module = runtime->shim_allocate_executable_module(my_thread, jit_session);
 
     OptimizationLevel OL = OptimizationLevel::O2;
     CodeGenOptLevel CGL = CodeGenOptLevel::Default;
@@ -595,10 +594,7 @@ void* ShimJITCompile(void* my_thread, void* jit_session, ShimJIT* session, LLVMM
     ShimExportMapping* mapping = new ShimExportMapping();
     mapping->mapping = std::move(Out.Exports);
 
-    runtime->shim_executable_module_finalize_objects(my_thread, executable_module);
-    runtime->shim_executable_module_set_export_mapping(my_thread, executable_module, mapping);
-
-    return executable_module;
+    return mapping;
 }
 
 void ShimJITDestroy(ShimJIT* jit) {
