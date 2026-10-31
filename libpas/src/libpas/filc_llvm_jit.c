@@ -634,6 +634,15 @@ static void shim_executable_module_set_export_mapping(void* raw_my_thread, void*
     module->mapping = mapping;
 }
 
+static void shim_panic(const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    filc_panic_impl(
+        NULL, "filc llvm jit error", "thwarted a futile attempt to misuse the LLVM JIT API.",
+        format, args);
+}
+
 /* Hand-written natives for functions that the mechanical generator
    cannot express: out-arrays (with companion count queries), out-scalars,
    raw-word arrays, and multi-array calls. */

@@ -1738,6 +1738,10 @@ static inline void filc_panic_context_vprintf(filc_panic_context* context, const
 PAS_NO_RETURN PAS_API void filc_finish_panicking(filc_panic_context* context,
                                                  const char* kind_string);
 
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_panic_impl(
+    const filc_origin* origin, const char* prefix, const char* kind_string, const char* format,
+    va_list args);
+
 /* Anything that takes origin for checking has the following meaning:
    
    - If the origin is NULL, we just use the origin that's at the top of the stack already.

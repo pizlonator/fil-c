@@ -7003,7 +7003,7 @@ void filc_thread_dump_stack(filc_thread* thread, pas_stream* stream)
         filc_origin_dump_all_inline_default(frame->origin, stream);
 }
 
-PAS_NEVER_INLINE PAS_NO_RETURN static void panic_impl(
+PAS_NEVER_INLINE PAS_NO_RETURN void filc_panic_impl(
     const filc_origin* origin, const char* prefix, const char* kind_string, const char* format,
     va_list args)
 {
@@ -7021,7 +7021,7 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_safety_panic(
 {
     va_list args;
     va_start(args, format);
-    panic_impl(
+    filc_panic_impl(
         origin, "filc safety error", "thwarted a futile attempt to violate memory safety.",
         format, args);
 }
@@ -7031,7 +7031,7 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_internal_panic(
 {
     va_list args;
     va_start(args, format);
-    panic_impl(
+    filc_panic_impl(
         origin, "filc internal error", "internal Fil-C error (it's probably a bug).",
         format, args);
 }
@@ -7041,7 +7041,7 @@ PAS_NEVER_INLINE PAS_NO_RETURN void filc_user_panic(
 {
     va_list args;
     va_start(args, format);
-    panic_impl(origin, "filc user error", "user thwarted themselves.", format, args);
+    filc_panic_impl(origin, "filc user error", "user thwarted themselves.", format, args);
 }
 
 void filc_error(const char* reason, const filc_origin* origin)
