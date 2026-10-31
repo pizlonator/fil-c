@@ -70,13 +70,15 @@ rm -rf pizfix
 ./configure_llvm.sh
 ./build_clang.sh
 
-# Build the Fil-C compiler itself against the build host's kernel headers, using the
-# same mechanism as build_os_include.sh (used by build_base.sh, i.e. by build_all.sh).
-# We used to point os-include at the optfil/kernel-include-<arch> snapshots here, but
-# those snapshots lag the build host and may not define the syscall numbers that
-# filc_runtime.c needs (e.g. SYS_statmount and SYS_listmount, added in Linux 6.8).
-# The snapshots are still shipped to /opt/fil/include; see build_opt.sh.
-./build_os_include.sh
+KERNELINCLUDE=kernel-include-`uname -m`
+
+rm -rf pizfix/os-include
+mkdir -p pizfix/os-include
+pushd pizfix/os-include
+ln -s ../../optfil/$KERNELINCLUDE/linux .
+ln -s ../../optfil/$KERNELINCLUDE/asm .
+ln -s ../../optfil/$KERNELINCLUDE/asm-generic .
+popd
 
 ./build_yolo_glibc.sh
 ./build_runtime.sh
