@@ -2859,18 +2859,38 @@ static inline void filc_store_barrier_for_lower(filc_thread* my_thread, void* lo
         filc_store_barrier_for_lower_slow(my_thread, lower);
 }
 
+static inline void filc_alignment_header_construct_impl(filc_thread* my_thread,
+                                                        filc_alignment_header* header,
+                                                        size_t alignment,
+                                                        uintptr_t extra_pointer_tag,
+                                                        void* lower)
+{
+    PAS_TESTING_ASSERT(alignment > PAS_MIN_ALIGN);
+    header->encoded_alignment = (uintptr_t)pas_log2(alignment) << (uintptr_t)PAS_ADDRESS_BITS;
+    if (lower) {
+        filc_store_barrier_for_lower(my_thread, lower);
+        header->extra_pointer = extra_pointer_tag | (uintptr_t)lower;
+    } else
+        header->extra_pointer = FILC_EXTRA_POINTER_STATE_NONE;
+}
+
 static inline void filc_alignment_header_construct(filc_thread* my_thread,
                                                    filc_alignment_header* header,
                                                    size_t alignment,
                                                    filc_finalizer_queue* finalizer_queue)
 {
-    PAS_TESTING_ASSERT(alignment > PAS_MIN_ALIGN);
-    header->encoded_alignment = (uintptr_t)pas_log2(alignment) << (uintptr_t)PAS_ADDRESS_BITS;
-    if (finalizer_queue) {
-        filc_store_barrier_for_lower(my_thread, finalizer_queue);
-        header->extra_pointer = FILC_EXTRA_POINTER_STATE_LIVE_FINALIZER | (uintptr_t)finalizer_queue;
-    } else
-        header->extra_pointer = FILC_EXTRA_POINTER_STATE_NONE;
+    filc_alignment_header_construct_impl(
+        my_thread, header, alignment, FILC_EXTRA_POINTER_STATE_LIVE_FINALIZER, finalizer_queue);
+}
+
+static inline void filc_alignment_header_construct_with_jit_module(
+    filc_thread* my_thread,
+    filc_alignment_header* header,
+    size_t alignment,
+    filc_llvm_jit_executable_module* module)
+{
+    filc_alignment_header_construct_impl(
+        my_thread, header, alignment, FILC_EXTRA_POINTER_STATE_JIT_MODULE, module);
 }
 
 static inline size_t filc_alignment_header_get_alignment(filc_alignment_header* header)
@@ -4009,8 +4029,8 @@ filc_object* filc_allocate_without_exiting(filc_thread* my_thread, size_t size);
    have that alignment. Word types start out unset and the object's lower/upper are set accordingly. */
 filc_object* filc_allocate_with_alignment(filc_thread* my_thread, size_t size, size_t alignment);
 
-filc_object* filc_allocate_with_alignment_without_exit(filc_thread* my_thread,
-                                                       size_t size, size_t alignment);
+filc_object* filc_allocate_with_alignment_without_exiting(filc_thread* my_thread,
+                                                          size_t size, size_t alignment);
 
 PAS_API size_t filc_finalizable_alignment(size_t alignment);
 
@@ -4220,6 +4240,7 @@ void filc_check_function_call(filc_ptr ptr);
 PAS_NO_RETURN void filc_check_function_call_fail(filc_ptr ptr);
 
 PAS_NO_RETURN void filc_comdat_link_fail(const char* name, uint64_t signature);
+PAS_NO_RETURN void filc_check_closure_fail(void* lower, const filc_origin* origin);
 
 void filc_check_access_special(filc_ptr ptr, filc_special_type expected_type);
 

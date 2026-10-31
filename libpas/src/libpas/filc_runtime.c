@@ -6557,7 +6557,6 @@ bool filc_global_initialization_start(filc_thread* my_thread, const filc_origin*
     lock_global_initialization(my_thread);
 
     filc_testing_validate_object(object, NULL);
-    PAS_ASSERT(filc_object_get_flags(object) & FILC_OBJECT_FLAG_GLOBAL);
 
     pas_allocation_config allocation_config;
     filc_global_initialization_work_item_hash_map_add_result add_result;

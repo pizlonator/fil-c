@@ -437,6 +437,8 @@ public:
 // Pipeline.
 // ---------------------------------------------------------------------------
 void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level, FilJITConfiguration& filConfig) {
+    ASSERT(!verifyModule(M, &errs()));
+    
     LoopAnalysisManager LAM;
     FunctionAnalysisManager FAM;
     CGSCCAnalysisManager CGAM;
