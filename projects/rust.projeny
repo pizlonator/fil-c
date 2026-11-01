@@ -1,0 +1,1686 @@
+URL: https://static.rust-lang.org/dist/rustc-1.90.0-src.tar.xz b231648ca4d910cea49b62c7c323ce8a42eb1ceba07f2178f286ef65b72e6432
+Origname: rustc-1.90.0-src
+Name: rust
+
+    Rust 1.90.0 (source distribution incl. src/llvm-project); Fil-C patches swap in the Fil-C LLVM and force the Fil-C pipeline
+diff --git a/rust/compiler/rustc_codegen_llvm/src/context.rs b/rust/compiler/rustc_codegen_llvm/src/context.rs
+--- a/rust/compiler/rustc_codegen_llvm/src/context.rs
++++ b/rust/compiler/rustc_codegen_llvm/src/context.rs
+@@ -226,7 +226,15 @@
+             str::from_utf8(unsafe { CStr::from_ptr(llvm_data_layout) }.to_bytes())
+                 .expect("got a non-UTF8 data-layout from LLVM");
+
+-        if target_data_layout != llvm_data_layout {
++        // Fil-C: the target spec's data_layout is the "before Fil-C" layout
++        // (non-integral address space 0), while LLVM's TargetMachine default
++        // is the same string minus "-ni:0" -- which is also what modules look
++        // like after the FilPizlonator runs and switches their DataLayout.
++        // Accept that difference here so that the Fil-C "before Fil-C" layout
++        // can be used for compilation.
++        if target_data_layout != llvm_data_layout
++            && target_data_layout.replace("-ni:0", "") != llvm_data_layout
++        {
+             tcx.dcx().emit_err(crate::errors::MismatchedDataLayout {
+                 rustc_target: sess.opts.target_triple.to_string().as_str(),
+                 rustc_layout: target_data_layout.as_str(),
+diff --git a/rust/compiler/rustc_codegen_ssa/src/back/link.rs b/rust/compiler/rustc_codegen_ssa/src/back/link.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/back/link.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/back/link.rs
+@@ -1963,6 +1963,41 @@
+         return;
+     }
+
++    // Fil-C: the FilPizlonator renames every symbol to pizlonated variants
++    // (`pizlonatedFI<sig>_<name>`, `pizlonatedFIP<sig>_<name>`, ...) and
++    // additionally defines a `pizlonated_<name>` getter for every function
++    // and global.  The undefined references created by this synthetic object
++    // (whose purpose is to pull rlib archive members that define
++    // `#[no_mangle]`/`#[used]`/exported symbols, and to wire up the
++    // weak-lang-item circular dependency between core and std) must therefore
++    // use names that actually exist after pizlonation: the original names no
++    // longer exist, so with the original names these references can never be
++    // resolved -- they silently turn into phantom undefined imports in the
++    // dynamic symbol table of every dylib, which then fails any executable
++    // that links the dylib (`--no-allow-shlib-undefined` is the default for
++    // executables).  Reference the getters instead: a getter lives in the
++    // same object file as the renamed definition it exposes, so archive
++    // member pull-in keeps working exactly as before, and the references
++    // resolve both at dylib link time (the getters are exported by the
++    // version script, see the `pizlonated*` wildcard in linker.rs) and at
++    // final-link time for symbols provided by the allocator shim or the
++    // panic runtime.  The getters are always plain functions (even the getter
++    // of a thread-local global), so every entry becomes Text.  Exception:
++    // `rust_metadata_<crate>` symbols live in the raw metadata object, which
++    // is not compiled through LLVM and is therefore never pizlonated (no
++    // getter exists), so those keep their original names -- which resolve
++    // against the local definition in the same link.
++    let symbols: Vec<(String, SymbolExportKind)> = symbols
++        .iter()
++        .map(|(sym, _kind)| {
++            if sym.starts_with("rust_metadata_") {
++                (sym.clone(), SymbolExportKind::Text)
++            } else {
++                (format!("pizlonated_{sym}"), SymbolExportKind::Text)
++            }
++        })
++        .collect();
++
+     let Some(mut file) = super::metadata::create_object_file(sess) else {
+         return;
+     };
+diff --git a/rust/compiler/rustc_codegen_ssa/src/back/linker.rs b/rust/compiler/rustc_codegen_ssa/src/back/linker.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/back/linker.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/back/linker.rs
+@@ -851,9 +851,34 @@
+                     writeln!(f, "  global:")?;
+                     for (sym, _) in symbols {
+                         debug!("    {sym};");
+-                        writeln!(f, "    {sym};")?;
++                        // Fil-C: the FilPizlonator renames every symbol to
++                        // pizlonated variants (`pizlonatedFI<sig>_<name>`,
++                        // `pizlonatedFIP<sig>_<name>`, etc.), so the version
++                        // script must list the pizlonated names instead of the
++                        // original ones (`--no-undefined-version` would fail
++                        // the link on the original names, since they no longer
++                        // exist after pizlonation).  We use wildcard patterns
++                        // because the numeric signature embedded in the names
++                        // isn't known here.
++                        writeln!(f, "    pizlonatedFI*_{sym};")?;
++                        writeln!(f, "    pizlonatedFIP*_{sym};")?;
+                     }
+                 }
++                // Fil-C: the FilPizlonator also emits a `pizlonated_<name>`
++                // getter for every exported function and global (cross-DSO
++                // callers reference those getters to obtain the Fil-C frame
++                // pointer), and generates per-signature weak entry thunks
++                // (pizlonated1ET*/pizlonated2ET*) that function-pointer calls
++                // may reference.  Export all pizlonated names with a single
++                // wildcard: it covers the getters, the pizlonatedFI*/
++                // pizlonatedFIP* patterns above, and the entry thunks in one
++                // line (this mirrors Fil-C's own convention, e.g. the
++                // `pizlonated*;` wildcard in projects/dbus.projeny's version
++                // script).  The explicit patterns are kept for readability;
++                // wildcards that match nothing are harmless.
++                writeln!(f, "    pizlonated*;")?;
++                writeln!(f, "    pizlonated1ET*;")?;
++                writeln!(f, "    pizlonated2ET*;")?;
+                 writeln!(f, "\n  local:\n    *;\n}};")?;
+             };
+             if let Err(error) = res {
+diff --git a/rust/compiler/rustc_codegen_ssa/src/back/write.rs b/rust/compiler/rustc_codegen_ssa/src/back/write.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/back/write.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/back/write.rs
+@@ -131,7 +131,13 @@
+         }
+
+         let sess = tcx.sess;
+-        let opt_level_and_size = if_regular!(Some(sess.opts.optimize), None);
++        // Fil-C: allocator shim modules used to get `None` here, which made
++        // rustc skip LLVMRustOptimize for them entirely.  Under Fil-C every
++        // module must go through the pipeline so that the FilPizlonator runs
++        // (the pizlonator also switches the module to its "after Fil-C"
++        // DataLayout, which the backend requires), so allocator modules get
++        // optimized like regular ones.
++        let opt_level_and_size = Some(sess.opts.optimize);
+
+         let save_temps = sess.opts.cg.save_temps;
+
+diff --git a/rust/compiler/rustc_driver_impl/src/lib.rs b/rust/compiler/rustc_driver_impl/src/lib.rs
+--- a/rust/compiler/rustc_driver_impl/src/lib.rs
++++ b/rust/compiler/rustc_driver_impl/src/lib.rs
+@@ -882,7 +882,23 @@
+         release = &tmp;
+     }
+
+-    safe_println!("{binary} {version}");
++    // Fil-C: identify the Fil-C toolchain in the version output, exactly like
++    // clang does (clang/lib/Basic/Version.cpp's getClangFullRepositoryVersion()
++    // appends " (Fil-C 0.687 git@github.com:pizlonator/fil-c.git <hash>)" to
++    // "clang version ...").  build_rustc.sh composes the full
++    // "Fil-C <version> <repo-url> <commit-hash>" string -- the version number
++    // comes from clang's FILC_VERSION #define, the single source of truth for
++    // the Fil-C version (see versioning-checklist.md) -- exports it as the
++    // FILC_VERSION environment variable, and we bake it into the compiler here
++    // at compile time with option_env!.  When this tree is built without
++    // FILC_VERSION set (a vanilla, non-Fil-C build) nothing is appended and the
++    // output matches upstream rustc.
++    let filc_suffix = match option_env!("FILC_VERSION") {
++        Some(filc_version) => format!(" ({filc_version})"),
++        None => String::new(),
++    };
++
++    safe_println!("{binary} {version}{filc_suffix}");
+
+     if verbose {
+         safe_println!("binary: {binary}");
+diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+--- a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
++++ b/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+@@ -4,7 +4,12 @@
+ #include "llvm/ADT/ArrayRef.h"
+ #include "llvm/ADT/DenseSet.h"
+ #include "llvm/ADT/SmallVector.h"
++#include "llvm/Analysis/CGSCCPassManager.h"
++#include "llvm/Analysis/GlobalsModRef.h"
++#include "llvm/Analysis/InlineAdvisor.h"
++#include "llvm/Analysis/InlineCost.h"
+ #include "llvm/Analysis/Lint.h"
++#include "llvm/Analysis/ProfileSummaryInfo.h"
+ #include "llvm/Analysis/TargetLibraryInfo.h"
+ #include "llvm/Bitcode/BitcodeWriter.h"
+ #include "llvm/Bitcode/BitcodeWriterPass.h"
+@@ -29,20 +34,41 @@
+ #include "llvm/Support/VirtualFileSystem.h"
+ #include "llvm/Target/TargetMachine.h"
+ #include "llvm/TargetParser/Host.h"
++#include "llvm/Transforms/Coroutines/CoroCleanup.h"
++#include "llvm/Transforms/Coroutines/CoroConditionalWrapper.h"
++#include "llvm/Transforms/Coroutines/CoroEarly.h"
++#include "llvm/Transforms/Coroutines/CoroSplit.h"
++#include "llvm/Transforms/IPO/FunctionAttrs.h"
+ #include "llvm/Transforms/IPO/FunctionImport.h"
++#include "llvm/Transforms/IPO/GlobalDCE.h"
+ #include "llvm/Transforms/IPO/Internalize.h"
+ #include "llvm/Transforms/IPO/LowerTypeTests.h"
+ #include "llvm/Transforms/IPO/ThinLTOBitcodeWriter.h"
++#include "llvm/Transforms/InstCombine/InstCombine.h"
+ #include "llvm/Transforms/Instrumentation/AddressSanitizer.h"
+ #include "llvm/Transforms/Instrumentation/DataFlowSanitizer.h"
++#include "llvm/Transforms/Instrumentation/DeleteRedundantPollchecks.h"
++#include "llvm/Transforms/Instrumentation/FilPizlonator.h"
+ #include "llvm/Transforms/Instrumentation/HWAddressSanitizer.h"
+ #include "llvm/Transforms/Instrumentation/InstrProfiling.h"
++#include "llvm/Transforms/Instrumentation/KillUB.h"
+ #include "llvm/Transforms/Instrumentation/MemorySanitizer.h"
+ #include "llvm/Transforms/Instrumentation/ThreadSanitizer.h"
++#include "llvm/Transforms/Scalar/ADCE.h"
+ #include "llvm/Transforms/Scalar/AnnotationRemarks.h"
++#include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
++#include "llvm/Transforms/Scalar/EarlyCSE.h"
++#include "llvm/Transforms/Scalar/GVN.h"
++#include "llvm/Transforms/Scalar/JumpThreading.h"
++#include "llvm/Transforms/Scalar/LowerExpectIntrinsic.h"
++#include "llvm/Transforms/Scalar/SCCP.h"
++#include "llvm/Transforms/Scalar/SROA.h"
++#include "llvm/Transforms/Scalar/SimplifyCFG.h"
+ #include "llvm/Transforms/Utils/CanonicalizeAliases.h"
+ #include "llvm/Transforms/Utils/FunctionImportUtils.h"
+ #include "llvm/Transforms/Utils/NameAnonGlobals.h"
++
++#include <cstdlib>
+ #include <set>
+ #include <string>
+ #include <vector>
+@@ -730,6 +756,18 @@
+   TargetMachine *TM = unwrap(TMRef);
+   OptimizationLevel OptLevel = fromRust(OptLevelRust);
+
++  // Fil-C: the module is created with the non-integral-pointer ("before
++  // Fil-C") DataLayout.  Tell the module what the DataLayout will look like
++  // after pizlonation, exactly like clang does.  The FilPizlonator pass
++  // switches the module to this DataLayout as it runs.
++  if (TheModule->getDataLayout().isFilC()) {
++    std::string DLAfterFilC = TheModule->getDataLayout().getStringRepresentation();
++    size_t NIPos = DLAfterFilC.find("-ni:0");
++    if (NIPos != std::string::npos)
++      DLAfterFilC.erase(NIPos, 5);
++    TheModule->setDataLayoutAfterFilC(DLAfterFilC);
++  }
++
+   PipelineTuningOptions PTO;
+   PTO.LoopUnrolling = UnrollLoops;
+   PTO.LoopInterleaving = UnrollLoops;
+@@ -819,6 +857,128 @@
+ #else
+   std::vector<std::function<void(ModulePassManager &, OptimizationLevel)>>
+       OptimizerLastEPCallbacks;
++#endif
++
++  // Fil-C: pizlonate everything.  This is a port of the Fil-C hooks that
++  // clang/lib/CodeGen/BackendUtil.cpp registers on the PassBuilder for every
++  // compilation (see the registerPipelineStartEPCallback and
++  // registerOptimizerLastEPCallback calls there), with the Fil-C "-mllvm"
++  // knobs hardcoded to their clang defaults (FilCKillUB=true,
++  // FilCOptimize=true, FilCInline=true and all FilCInline* sub-knobs=true,
++  // FilCDSE=false so no DSEPass anywhere).  Because these callbacks are kept
++  // in vectors that are registered with the PassBuilder (or, for
++  // NoPrepopulatePasses, applied directly to the fresh pipeline) on every
++  // path through this function -- O0 via buildO0DefaultPipeline, the
++  // prepopulated per-module/ThinLTO/fat-LTO pipelines, and the
++  // NoPrepopulatePasses pipeline -- every module that rustc compiles gets
++  // pizlonated, at every optimization level, exactly like Fil-C clang does.
++  //
++  // At the start of the pipeline: KillUB, then (above O0) the Fil-C early
++  // simplification and inlining pipeline, then C++20 coroutine lowering (so
++  // that FilPizlonator never sees llvm.coro.* intrinsics), and finally the
++  // FilPizlonator itself.
++  PipelineStartEPCallbacks.push_back(
++      [](ModulePassManager &MPM, OptimizationLevel Level) {
++        MPM.addPass(KillUBPass());
++        // Fil-C: above O0 clang also runs its "Fil-C inline" pipeline here
++        // (an early SimplifyCFG/SROA/EarlyCSE, then a full inliner invocation
++        // whose per-CGSCC pipeline is SROA/EarlyCSE/JumpThreading/CVP/
++        // SimplifyCFG/InstCombine/GVN/SCCP/ADCE/InstCombine), to create
++        // inlining opportunities before pizlonation.  Under rustc that
++        // pipeline makes the FilPizlonator miscompile ordinary code: e.g. a
++        // std::thread::spawn + join compiled at -O1 hands pthread_join a
++        // thread handle whose flight-pointer capability was reconstructed as
++        // null ("filc safety error: cannot read pointer with null object" in
++        // __pthread_clockjoin_ex).  This happens even with
++        // -C no-prepopulate-passes, i.e. with no regular LLVM optimization
++        // running at all, so the pre-pizlonation simplification itself is
++        // what reshapes rustc's IR into something the FilPizlonator cannot
++        // handle (plain Fil-C clang code runs this same pipeline and is
++        // unaffected).  The regular optimization pipeline still runs after
++        // the FilPizlonator on the pizlonated IR -- exactly as it does for
++        // every Fil-C clang compilation -- so codegen is still fully
++        // optimized without it.  The pipeline is therefore disabled by
++        // default under rustc; set FILCRUST_FILCINLINE=1 to turn it back on
++        // (useful for debugging the pizlonator interaction).
++        if (Level != OptimizationLevel::O0 && getenv("FILCRUST_FILCINLINE")) {
++          FunctionPassManager EarlyFPM;
++          EarlyFPM.addPass(LowerExpectIntrinsicPass());
++          EarlyFPM.addPass(SimplifyCFGPass());
++          EarlyFPM.addPass(SROAPass(SROAOptions::ModifyCFG));
++          EarlyFPM.addPass(EarlyCSEPass());
++          MPM.addPass(createModuleToFunctionPassAdaptor(
++              std::move(EarlyFPM), /*EagerlyInvalidate=*/true));
++
++          InlineParams IP = getInlineParams(Level.getSpeedupLevel(),
++                                            Level.getSizeLevel());
++          ModuleInlinerWrapperPass MIWP(
++              IP, /*MandatoryFirst=*/true,
++              InlineContext{ThinOrFullLTOPhase::None,
++                            InlinePass::CGSCCInliner},
++              InliningAdvisorMode::Default,
++              /*MaxDevirtIterations=*/4);
++          MIWP.addModulePass(RequireAnalysisPass<GlobalsAA, llvm::Module>());
++          MIWP.addModulePass(createModuleToFunctionPassAdaptor(
++              InvalidateAnalysisPass<AAManager>()));
++          MIWP.addModulePass(
++              RequireAnalysisPass<ProfileSummaryAnalysis, llvm::Module>());
++          CGSCCPassManager &MainCGPipeline = MIWP.getPM();
++          MainCGPipeline.addPass(
++              PostOrderFunctionAttrsPass(/*SkipNonRecursive=*/true));
++          FunctionPassManager InlinerFPM;
++          InlinerFPM.addPass(SROAPass(SROAOptions::ModifyCFG));
++          InlinerFPM.addPass(EarlyCSEPass(/*UseMemorySSA=*/true));
++          InlinerFPM.addPass(JumpThreadingPass());
++          InlinerFPM.addPass(CorrelatedValuePropagationPass());
++          InlinerFPM.addPass(SimplifyCFGPass(
++              SimplifyCFGOptions().convertSwitchRangeToICmp(true)));
++          InlinerFPM.addPass(InstCombinePass());
++          InlinerFPM.addPass(GVNPass());
++          InlinerFPM.addPass(SCCPPass());
++          InlinerFPM.addPass(ADCEPass());
++          InlinerFPM.addPass(InstCombinePass());
++          MainCGPipeline.addPass(createCGSCCToFunctionPassAdaptor(
++              std::move(InlinerFPM), /*EagerlyInvalidateAnalyses=*/true,
++              /*NoRerun=*/true));
++          MainCGPipeline.addPass(PostOrderFunctionAttrsPass());
++          MainCGPipeline.addPass(createCGSCCToFunctionPassAdaptor(
++              RequireAnalysisPass<ShouldNotRunFunctionPassesAnalysis,
++                                  Function>()));
++          MIWP.addLateModulePass(createModuleToFunctionPassAdaptor(
++              InvalidateAnalysisPass<ShouldNotRunFunctionPassesAnalysis>()));
++          MPM.addPass(std::move(MIWP));
++        }
++        // Lower C++20 coroutines before pizlonating.  CoroSplit turns each
++        // coroutine into ordinary ramp/resume/destroy functions whose frame
++        // is a normal heap allocation, so FilPizlonator never sees the
++        // llvm.coro.* intrinsics.  The coroutine passes in the regular
++        // pipeline later become no-ops.
++        ModulePassManager CoroPM;
++        CoroPM.addPass(CoroEarlyPass());
++        CGSCCPassManager CoroCGPM;
++        CoroCGPM.addPass(CoroSplitPass(Level != OptimizationLevel::O0));
++        CoroPM.addPass(
++            createModuleToPostOrderCGSCCPassAdaptor(std::move(CoroCGPM)));
++        CoroPM.addPass(CoroCleanupPass());
++        CoroPM.addPass(GlobalDCEPass());
++        MPM.addPass(CoroConditionalWrapper(std::move(CoroPM)));
++
++        MPM.addPass(FilPizlonatorPass());
++      });
++  // At the very end of the optimizer: remove the redundant pollchecks that
++  // pizlonation introduced once the pipeline has had its chance to merge
++  // them, just like clang does.
++#if LLVM_VERSION_GE(20, 0)
++  OptimizerLastEPCallbacks.push_back(
++      [](ModulePassManager &MPM, OptimizationLevel Level,
++         ThinOrFullLTOPhase) {
++        MPM.addPass(DeleteRedundantPollchecksPass());
++      });
++#else
++  OptimizerLastEPCallbacks.push_back(
++      [](ModulePassManager &MPM, OptimizationLevel Level) {
++        MPM.addPass(DeleteRedundantPollchecksPass());
++      });
+ #endif
+
+   if (!IsLinkerPluginLTO && SanitizerOptions && SanitizerOptions->SanitizeCFI &&
+diff --git a/rust/compiler/rustc_session/src/session.rs b/rust/compiler/rustc_session/src/session.rs
+--- a/rust/compiler/rustc_session/src/session.rs
++++ b/rust/compiler/rustc_session/src/session.rs
+@@ -689,12 +689,20 @@
+             return config::Lto::No;
+         }
+
+-        // Now we're in "defaults" territory. By default we enable ThinLTO for
+-        // optimized compiles (anything greater than O0).
+-        match self.opts.optimize {
+-            config::OptLevel::No => config::Lto::No,
+-            _ => config::Lto::ThinLocal,
+-        }
++        // Fil-C: upstream would enable "auto" ThinLTO here for optimized
++        // compiles (anything greater than O0), but ThinLTO is incompatible
++        // with the Fil-Pizlonator: the ThinLTO pre-link (bitcode writer) +
++        // post-link round-trip happens across the pizlonation boundary, and
++        // rustc's export-symbol lists handed to the LTO internalizer still
++        // use pre-pizlonation names, while the FilPizlonator has renamed every
++        // symbol in the module (`pizlonated*`).  The post-link internalizer
++        // then strips the wrong (pizlonated) entry points and codegen units
++        // come out hollow (`.text 0x0` objects, "undefined reference to
++        // `pizlonated_main'").  Default to no LTO; the Fil-Pizlonator already
++        // runs a full inliner inside every pipeline, so no-LTO codegen is
++        // still fully optimized.  An explicit `-C lto=...` still overrides
++        // this (and produces the broken link described above).
++        config::Lto::No
+     }
+
+     /// Returns the panic strategy for this compile session. If the user explicitly selected one
+diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
+--- a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
++++ b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
+@@ -1,5 +1,6 @@
+ use crate::spec::{
+-    Cc, LinkerFlavor, Lld, SanitizerSet, StackProbeType, Target, TargetMetadata, base,
++    Cc, LinkerFlavor, Lld, PanicStrategy, SanitizerSet, StackProbeType, Target, TargetMetadata,
++    base,
+ };
+
+ pub(crate) fn target() -> Target {
+@@ -7,26 +8,45 @@
+     base.cpu = "x86-64".into();
+     base.plt_by_default = false;
+     base.max_atomic_width = Some(64);
+-    base.add_pre_link_args(LinkerFlavor::Gnu(Cc::Yes, Lld::No), &["-m64"]);
+-    base.stack_probes = StackProbeType::Inline;
++    // Fil-C: rustc always links with -nodefaultlibs, which makes Fil-C's
++    // driver (filcc) pick filc_mincrt.o, whose `main` starts the program
++    // without running glibc's __libc_start_main.  Without __libc_start_main
++    // the main thread's Fil-C thread state (the thread-descriptor flight
++    // pointer that every filc frame carries) is never initialized, so
++    // pthread_self() returns null and everything touching pthreads breaks
++    // (e.g. std's startup calls pthread_getattr_np, which then trips a filc
++    // safety check).  -normalcrt tells filcc to use the full filc_crt.o (which
++    // runs pizlonated __libc_start_main) even under -nodefaultlibs.
++    base.add_pre_link_args(LinkerFlavor::Gnu(Cc::Yes, Lld::No), &["-m64", "-normalcrt"]);
++    // Fil-C's pizlonator cannot accept the inline-asm stack probes and Fil-C
++    // clang does not probe stacks, so stack probing must stay off for Fil-C
++    // Rust.
++    base.stack_probes = StackProbeType::None;
+     base.static_position_independent_executables = true;
+-    base.supported_sanitizers = SanitizerSet::ADDRESS
+-        | SanitizerSet::CFI
+-        | SanitizerSet::KCFI
+-        | SanitizerSet::DATAFLOW
+-        | SanitizerSet::LEAK
+-        | SanitizerSet::MEMORY
+-        | SanitizerSet::SAFESTACK
+-        | SanitizerSet::THREAD;
+-    base.supports_xray = true;
++    // Fil-C provides its own safety, so the sanitizer runtimes (which don't
++    // exist under Fil-C) must not be used.
++    base.supported_sanitizers = SanitizerSet::empty();
++    base.supports_xray = false;
++    // Delegate linking to the Fil-C clang driver (`filcc`), which performs the
++    // full Fil-C link: pizfix CRT (Scrt1.o/crti.o/crtbegin.o/crtend.o/crtn.o)
++    // + filc_crt.o before user objects + -L/-rpath pizfix/lib + the ld-fil1
++    // dynamic linker + -lc -lpizlo -lyolort -lyoloc -lyolom -lyolounwind.
++    // `build_rustc.sh` puts Fil-C's `build/bin` on PATH so that `filcc` is
++    // found.
++    base.linker = Some("filcc".into());
++    // Fil-C: Rust-level unwinding cannot work under Fil-C.  libpizlo (the
++    // Fil-C runtime that filcc links into every binary) only implements a
++    // subset of the libgcc _Unwind_* API, and LLVM's libunwind cannot be
++    // built under Fil-C (Fil-C's assembler rejects its assembly files), so an
++    // unwinding panic dies inside the unimplemented `_Unwind_GetIP` after
++    // printing its message.  Make abort the panic strategy for this target:
++    // std and user code are compiled with panic=abort by default, so a
++    // panicking Rust program prints its message and then terminates cleanly
++    // via abort.  An explicit -C panic=unwind still overrides the strategy,
++    // but then fails at link-metadata time (std was compiled with abort),
++    // which is the clean, documented failure mode.
++    base.panic_strategy = PanicStrategy::Abort;
+
+-    // When we're asked to use the `rust-lld` linker by default, set the appropriate lld-using
+-    // linker flavor, and self-contained linker component.
+-    if option_env!("CFG_USE_SELF_CONTAINED_LINKER").is_some() {
+-        base.linker_flavor = LinkerFlavor::Gnu(Cc::Yes, Lld::Yes);
+-        base.link_self_contained = crate::spec::LinkSelfContainedDefault::with_linker();
+-    }
+-
+     Target {
+         llvm_target: "x86_64-unknown-linux-gnu".into(),
+         metadata: TargetMetadata {
+@@ -37,7 +57,8 @@
+         },
+         pointer_width: 64,
+         data_layout:
+-            "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128".into(),
++            "e-m:e-ni:0-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
++                .into(),
+         arch: "x86_64".into(),
+         options: base,
+     }
+diff --git a/rust/library/backtrace/src/backtrace/libunwind.rs b/rust/library/backtrace/src/backtrace/libunwind.rs
+--- a/rust/library/backtrace/src/backtrace/libunwind.rs
++++ b/rust/library/backtrace/src/backtrace/libunwind.rs
+@@ -190,7 +190,6 @@
+         ))] {
+             unsafe extern "C" {
+                 pub fn _Unwind_GetIP(ctx: *mut _Unwind_Context) -> libc::uintptr_t;
+-                pub fn _Unwind_FindEnclosingFunction(pc: *mut c_void) -> *mut c_void;
+
+                 #[cfg(not(all(target_os = "linux", target_arch = "s390x")))]
+                 // This function is a misnomer: rather than getting this frame's
+@@ -201,6 +200,16 @@
+                 #[link_name = "_Unwind_GetCFA"]
+                 pub fn get_sp(ctx: *mut _Unwind_Context) -> libc::uintptr_t;
+
++            }
++
++            // Fil-C: libpizlo (the Fil-C runtime) does not provide
++            // `_Unwind_FindEnclosingFunction` at all, so declare it here as a
++            // Rust-side helper instead of an extern: it returns the passed-in
++            // instruction pointer, which mirrors the macOS workaround in
++            // `Frame::symbol_address` above (the ip is still inside the
++            // enclosing function, so symbol lookup keeps working).
++            pub unsafe fn _Unwind_FindEnclosingFunction(pc: *mut c_void) -> *mut c_void {
++                pc
+             }
+
+             // s390x uses a biased CFA value, therefore we need to use
+diff --git a/rust/library/backtrace/src/symbolize/gimli/libs_dl_iterate_phdr.rs b/rust/library/backtrace/src/symbolize/gimli/libs_dl_iterate_phdr.rs
+--- a/rust/library/backtrace/src/symbolize/gimli/libs_dl_iterate_phdr.rs
++++ b/rust/library/backtrace/src/symbolize/gimli/libs_dl_iterate_phdr.rs
+@@ -1,122 +1,49 @@
+-// Other Unix (e.g. Linux) platforms use ELF as an object file format
+-// and typically implement an API called `dl_iterate_phdr` to load
+-// native libraries.
++// Fil-C: this is a modified copy of libs_dl_iterate_phdr.rs that enumerates
++// the loaded libraries purely from /proc/self/maps.  The pizfix runtime used
++// by Fil-C does not provide `dl_iterate_phdr`, so the callback-based
++// enumeration cannot be used.
+
+-use super::mystd::env;
+-use super::mystd::ffi::{OsStr, OsString};
+-use super::mystd::os::unix::prelude::*;
++use super::mystd::ffi::OsString;
+ use super::{parse_running_mmaps, Library, LibrarySegment};
+-use alloc::borrow::ToOwned;
+ use alloc::vec::Vec;
+-use core::ffi::CStr;
+-use core::slice;
+
+-struct CallbackData {
+-    libs: Vec<Library>,
+-    maps: Option<Vec<parse_running_mmaps::MapsEntry>>,
+-}
+ pub(super) fn native_libraries() -> Vec<Library> {
+-    let mut cb_data = CallbackData {
+-        libs: Vec::new(),
+-        #[cfg(not(target_os = "hurd"))]
+-        maps: parse_running_mmaps::parse_maps().ok(),
+-        #[cfg(target_os = "hurd")]
+-        maps: None,
++    let mut libs: Vec<Library> = Vec::new();
++    let Ok(entries) = parse_running_mmaps::parse_maps() else {
++        return libs;
+     };
+-    unsafe {
+-        libc::dl_iterate_phdr(Some(callback), core::ptr::addr_of_mut!(cb_data).cast());
+-    }
+-    cb_data.libs
+-}
+-
+-fn infer_current_exe(
+-    maps: &Option<Vec<parse_running_mmaps::MapsEntry>>,
+-    base_addr: usize,
+-) -> OsString {
+-    #[cfg(not(target_os = "hurd"))]
+-    if let Some(entries) = maps {
+-        let opt_path = entries
+-            .iter()
+-            .find(|e| e.ip_matches(base_addr) && e.pathname().len() > 0)
+-            .map(|e| e.pathname())
+-            .cloned();
+-        if let Some(path) = opt_path {
+-            return path;
++    for entry in &entries {
++        // Only executable, file-backed mappings can hold code to symbolize.
++        if !entry.is_executable() {
++            continue;
+         }
+-    }
+-
+-    env::current_exe().map(|e| e.into()).unwrap_or_default()
+-}
+-
+-/// # Safety
+-/// `info` must be a valid pointer.
+-/// `data` must be a valid pointer to `CallbackData`.
+-#[forbid(unsafe_op_in_unsafe_fn)]
+-unsafe extern "C" fn callback(
+-    info: *mut libc::dl_phdr_info,
+-    _size: libc::size_t,
+-    data: *mut libc::c_void,
+-) -> libc::c_int {
+-    // SAFETY: We are guaranteed these fields:
+-    let dlpi_addr = unsafe { (*info).dlpi_addr };
+-    let dlpi_name = unsafe { (*info).dlpi_name };
+-    let dlpi_phdr = unsafe { (*info).dlpi_phdr };
+-    let dlpi_phnum = unsafe { (*info).dlpi_phnum };
+-    // SAFETY: We assured this.
+-    let CallbackData { libs, maps } = unsafe { &mut *data.cast::<CallbackData>() };
+-    // most implementations give us the main program first
+-    let is_main = libs.is_empty();
+-    // we may be statically linked, which means we are main and mostly one big blob of code
+-    let is_static = dlpi_addr == 0;
+-    // sometimes we get a null or 0-len CStr, based on libc's whims, but these mean the same thing
+-    let no_given_name = dlpi_name.is_null()
+-        // SAFETY: we just checked for null
+-        || unsafe { *dlpi_name == 0 };
+-    let name = if is_static {
+-        // don't try to look up our name from /proc/self/maps, it'll get silly
+-        env::current_exe().unwrap_or_default().into_os_string()
+-    } else if is_main && no_given_name {
+-        infer_current_exe(&maps, dlpi_addr as usize)
+-    } else {
+-        // this fallback works even if we are main, because some platforms give the name anyways
+-        if dlpi_name.is_null() {
+-            OsString::new()
+-        } else {
+-            // SAFETY: we just checked for nullness
+-            OsStr::from_bytes(unsafe { CStr::from_ptr(dlpi_name) }.to_bytes()).to_owned()
++        let name = entry.pathname();
++        if name.is_empty() {
++            continue;
+         }
+-    };
+-    #[cfg(target_os = "android")]
+-    let zip_offset: Option<u64> = {
+-        // only check for ZIP-embedded file if we have data from /proc/self/maps
+-        maps.as_ref().and_then(|maps| {
+-            // check if file is embedded within a ZIP archive by searching for `!/`
+-            super::extract_zip_path_android(&name).and_then(|_| {
+-                // find MapsEntry matching library's base address and get its file offset
+-                maps.iter()
+-                    .find(|m| m.ip_matches(dlpi_addr as usize))
+-                    .map(|m| m.offset())
+-            })
+-        })
+-    };
+-    let headers = if dlpi_phdr.is_null() || dlpi_phnum == 0 {
+-        &[]
+-    } else {
+-        // SAFETY: We just checked for nullness or 0-len slices
+-        unsafe { slice::from_raw_parts(dlpi_phdr, dlpi_phnum as usize) }
+-    };
+-    libs.push(Library {
+-        name,
+-        #[cfg(target_os = "android")]
+-        zip_offset,
+-        segments: headers
+-            .iter()
+-            .map(|header| LibrarySegment {
+-                len: header.p_memsz as usize,
+-                stated_virtual_memory_address: header.p_vaddr as usize,
+-            })
+-            .collect(),
+-        bias: dlpi_addr as usize,
+-    });
+-    0
++        // Keep one Library per distinct path.
++        if libs.iter().any(|l| l.name == *name) {
++            continue;
++        }
++        let mut bias = usize::MAX;
++        for e in &entries {
++            if e.pathname() == name {
++                bias = bias.min(e.address().0);
++            }
++        }
++        if bias == usize::MAX {
++            continue;
++        }
++        let mut segments = Vec::new();
++        for e in &entries {
++            if e.pathname() == name {
++                segments.push(LibrarySegment {
++                    len: e.address().1 - e.address().0,
++                    stated_virtual_memory_address: e.address().0 - bias,
++                });
++            }
++        }
++        libs.push(Library { name: name.clone(), segments, bias });
++    }
++    libs
+ }
+diff --git a/rust/library/backtrace/src/symbolize/gimli/parse_running_mmaps_unix.rs b/rust/library/backtrace/src/symbolize/gimli/parse_running_mmaps_unix.rs
+--- a/rust/library/backtrace/src/symbolize/gimli/parse_running_mmaps_unix.rs
++++ b/rust/library/backtrace/src/symbolize/gimli/parse_running_mmaps_unix.rs
+@@ -79,7 +79,21 @@
+         self.address.0 <= ip && ip < self.address.1
+     }
+
+-    #[cfg(target_os = "android")]
++    // Fil-C: expose the raw address range, permissions and file offset so the
++    // maps-only library enumeration can build `Library`s without
++    // `dl_iterate_phdr`.
++    pub(super) fn address(&self) -> (usize, usize) {
++        self.address
++    }
++
++    pub(super) fn perms(&self) -> [char; 4] {
++        self.perms
++    }
++
++    pub(super) fn is_executable(&self) -> bool {
++        self.perms[2] == 'x'
++    }
++
+     pub(super) fn offset(&self) -> u64 {
+         self.offset
+     }
+diff --git a/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs b/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs
+--- a/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs
++++ b/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs
+@@ -43,7 +43,17 @@
+
+ #![cfg(not(feature = "mangled-names"))]
+ // Windows and Cygwin already has builtins to do this.
+-#![cfg(not(any(windows, target_os = "cygwin")))]
++// Fil-C requires pizlonating all code and rejects the naked-asm stack-probe
++// helper (the Fil-Pizlonator only allows module-level asm of specific
++// .filc_* forms), and Fil-C clang never probes stacks.  The inner cfg must
++// mirror the Fil-C x86_64-unknown-linux-gnu target spec exactly (the only
++// Fil-C target, which sets StackProbeType::None), so that the exclusion
++// matches the set of targets rustc actually configures without stack probes.
++#![cfg(not(any(
++    windows,
++    target_os = "cygwin",
++    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")
++)))]
+ // All these builtins require assembly
+ #![cfg(not(feature = "no-asm"))]
+ // We only define stack probing for these architectures today.
+diff --git a/rust/library/compiler-builtins/libm/src/math/arch/x86.rs b/rust/library/compiler-builtins/libm/src/math/arch/x86.rs
+--- a/rust/library/compiler-builtins/libm/src/math/arch/x86.rs
++++ b/rust/library/compiler-builtins/libm/src/math/arch/x86.rs
+@@ -10,9 +10,13 @@
+     // access or side effects.
+     unsafe {
+         core::arch::asm!(
++            // Fil-C: `asm!` defaults to Intel dialect, which the Fil-Pizlonator
++            // rejects at run time ("only AT&T dialect inline assembly is
++            // supported"); switch to AT&T.  The template only uses `{x}`
++            // placeholders, which are dialect-neutral.
+             "sqrtss {x}, {x}",
+             x = inout(xmm_reg) x,
+-            options(nostack, nomem, pure),
++            options(nostack, nomem, pure, att_syntax),
+         )
+     };
+     x
+@@ -23,9 +27,10 @@
+     // access or side effects.
+     unsafe {
+         core::arch::asm!(
++            // Fil-C: see `sqrtf` above.
+             "sqrtsd {x}, {x}",
+             x = inout(xmm_reg) x,
+-            options(nostack, nomem, pure),
++            options(nostack, nomem, pure, att_syntax),
+         )
+     };
+     x
+diff --git a/rust/library/compiler-builtins/libm/src/math/arch/x86/detect.rs b/rust/library/compiler-builtins/libm/src/math/arch/x86/detect.rs
+--- a/rust/library/compiler-builtins/libm/src/math/arch/x86/detect.rs
++++ b/rust/library/compiler-builtins/libm/src/math/arch/x86/detect.rs
+@@ -1,11 +1,6 @@
+ // Using runtime feature detection requires atomics. Currently there are no x86 targets
+ // that support sse but not `AtomicPtr`.
+
+-#[cfg(target_arch = "x86")]
+-use core::arch::x86::{__cpuid, __cpuid_count, _xgetbv, CpuidResult};
+-#[cfg(target_arch = "x86_64")]
+-use core::arch::x86_64::{__cpuid, __cpuid_count, _xgetbv, CpuidResult};
+-
+ use crate::support::feature_detect::{Flags, get_or_init_flags_cache, unique_masks};
+
+ /// CPU features that get cached (doesn't correlate to anything on the CPU).
+@@ -34,199 +29,27 @@
+     get_or_init_flags_cache(&CACHE, load_x86_features)
+ }
+
+-/// Read from cpuid and translate to a `Flags` instance, using `cpu_flags`.
++/// Fil-C: report no CPU features.
+ ///
+-/// Implementation is taken from [std-detect][std-detect].
++/// Upstream reads the CPU feature bits with the `cpuid` instruction (plus
++/// `xgetbv` for the OS XSAVE state), which rustc emits as *Intel-dialect*
++/// inline assembly.  The Fil-Pizlonator only accepts AT&T dialect inline
++/// assembly, and the pizlonator's `cpuid` whitelist additionally requires
++/// every register `cpuid` writes (EAX/EBX/ECX/EDX) to be declared as an
++/// output or clobber -- which cannot be satisfied from Rust, because rustc
++/// refuses to name `ebx` as an inline-asm operand or clobber on x86_64
++/// ("rbx is used internally by LLVM and cannot be used as an operand for
++/// inline asm"), and the upstream mov/xchg scratch-register trick (which
++/// saves and restores `ebx` without declaring it) is rejected for the same
++/// reason.  libm is a `no_std` crate with no libc dependency, so unlike
++/// std_detect (which parses /proc/cpuinfo for the same reason) it also has
++/// no file-IO fallback.
+ ///
+-/// [std-detect]: https://github.com/rust-lang/stdarch/blob/690b3a6334d482874163bd6fcef408e0518febe9/crates/std_detect/src/detect/os/x86.rs#L142
++/// Reporting no features is always safe: the dispatch in `fma.rs` then
++/// selects the portable software implementations, which are correct on
++/// every CPU (they are merely slower than the hardware-FMA ones).  Note
++/// that the `vfmadd*` inline-assembly bodies in `fma.rs` are therefore
++/// unreachable under Fil-C.
+ fn load_x86_features() -> Flags {
+-    let mut value = Flags::empty();
+-
+-    if cfg!(target_env = "sgx") {
+-        // doesn't support this because it is untrusted data
+-        return Flags::empty();
+-    }
+-
+-    // Calling `__cpuid`/`__cpuid_count` from here on is safe because the CPU
+-    // has `cpuid` support.
+-
+-    // 0. EAX = 0: Basic Information:
+-    // - EAX returns the "Highest Function Parameter", that is, the maximum leaf
+-    //   value for subsequent calls of `cpuinfo` in range [0, 0x8000_0000].
+-    // - The vendor ID is stored in 12 u8 ascii chars, returned in EBX, EDX, and ECX
+-    //   (in that order)
+-    let mut vendor_id = [0u8; 12];
+-    let max_basic_leaf;
+-    unsafe {
+-        let CpuidResult { eax, ebx, ecx, edx } = __cpuid(0);
+-        max_basic_leaf = eax;
+-        vendor_id[0..4].copy_from_slice(&ebx.to_ne_bytes());
+-        vendor_id[4..8].copy_from_slice(&edx.to_ne_bytes());
+-        vendor_id[8..12].copy_from_slice(&ecx.to_ne_bytes());
+-    }
+-
+-    if max_basic_leaf < 1 {
+-        // Earlier Intel 486, CPUID not implemented
+-        return value;
+-    }
+-
+-    // EAX = 1, ECX = 0: Queries "Processor Info and Feature Bits";
+-    // Contains information about most x86 features.
+-    let CpuidResult { ecx, edx, .. } = unsafe { __cpuid(0x0000_0001_u32) };
+-    let proc_info_ecx = Flags::from_bits(ecx);
+-    let proc_info_edx = Flags::from_bits(edx);
+-
+-    // EAX = 7: Queries "Extended Features";
+-    // Contains information about bmi,bmi2, and avx2 support.
+-    let mut extended_features_ebx = Flags::empty();
+-    let mut extended_features_edx = Flags::empty();
+-    let mut extended_features_eax_leaf_1 = Flags::empty();
+-    if max_basic_leaf >= 7 {
+-        let CpuidResult { ebx, edx, .. } = unsafe { __cpuid(0x0000_0007_u32) };
+-        extended_features_ebx = Flags::from_bits(ebx);
+-        extended_features_edx = Flags::from_bits(edx);
+-
+-        let CpuidResult { eax, .. } = unsafe { __cpuid_count(0x0000_0007_u32, 0x0000_0001_u32) };
+-        extended_features_eax_leaf_1 = Flags::from_bits(eax)
+-    }
+-
+-    // EAX = 0x8000_0000, ECX = 0: Get Highest Extended Function Supported
+-    // - EAX returns the max leaf value for extended information, that is,
+-    //   `cpuid` calls in range [0x8000_0000; u32::MAX]:
+-    let extended_max_basic_leaf = unsafe { __cpuid(0x8000_0000_u32) }.eax;
+-
+-    // EAX = 0x8000_0001, ECX=0: Queries "Extended Processor Info and Feature Bits"
+-    let mut extended_proc_info_ecx = Flags::empty();
+-    if extended_max_basic_leaf >= 1 {
+-        let CpuidResult { ecx, .. } = unsafe { __cpuid(0x8000_0001_u32) };
+-        extended_proc_info_ecx = Flags::from_bits(ecx);
+-    }
+-
+-    let mut enable = |regflags: Flags, regbit, flag| {
+-        if regflags.test_nth(regbit) {
+-            value.insert(flag);
+-        }
+-    };
+-
+-    enable(proc_info_ecx, 0, cpu_flags::SSE3);
+-    enable(proc_info_ecx, 29, cpu_flags::F16C);
+-    enable(proc_info_edx, 25, cpu_flags::SSE);
+-    enable(proc_info_edx, 26, cpu_flags::SSE2);
+-    enable(extended_features_ebx, 9, cpu_flags::ERMSB);
+-    enable(extended_features_eax_leaf_1, 31, cpu_flags::MOVRS);
+-
+-    // `XSAVE` and `AVX` support:
+-    let cpu_xsave = proc_info_ecx.test_nth(26);
+-    if cpu_xsave {
+-        // 0. Here the CPU supports `XSAVE`.
+-
+-        // 1. Detect `OSXSAVE`, that is, whether the OS is AVX enabled and
+-        //    supports saving the state of the AVX/AVX2 vector registers on
+-        //    context-switches, see:
+-        //
+-        // - [intel: is avx enabled?][is_avx_enabled],
+-        // - [mozilla: sse.cpp][mozilla_sse_cpp].
+-        //
+-        // [is_avx_enabled]: https://software.intel.com/en-us/blogs/2011/04/14/is-avx-enabled
+-        // [mozilla_sse_cpp]: https://hg.mozilla.org/mozilla-central/file/64bab5cbb9b6/mozglue/build/SSE.cpp#l190
+-        let cpu_osxsave = proc_info_ecx.test_nth(27);
+-
+-        if cpu_osxsave {
+-            // 2. The OS must have signaled the CPU that it supports saving and
+-            // restoring the:
+-            //
+-            // * SSE -> `XCR0.SSE[1]`
+-            // * AVX -> `XCR0.AVX[2]`
+-            // * AVX-512 -> `XCR0.AVX-512[7:5]`.
+-            // * AMX -> `XCR0.AMX[18:17]`
+-            //
+-            // by setting the corresponding bits of `XCR0` to `1`.
+-            //
+-            // This is safe because the CPU supports `xsave` and the OS has set `osxsave`.
+-            let xcr0 = unsafe { _xgetbv(0) };
+-            // Test `XCR0.SSE[1]` and `XCR0.AVX[2]` with the mask `0b110 == 6`:
+-            let os_avx_support = xcr0 & 6 == 6;
+-            // Test `XCR0.AVX-512[7:5]` with the mask `0b1110_0000 == 0xe0`:
+-            let os_avx512_support = xcr0 & 0xe0 == 0xe0;
+-
+-            // Only if the OS and the CPU support saving/restoring the AVX
+-            // registers we enable `xsave` support:
+-            if os_avx_support {
+-                // See "13.3 ENABLING THE XSAVE FEATURE SET AND XSAVE-ENABLED
+-                // FEATURES" in the "Intel® 64 and IA-32 Architectures Software
+-                // Developer’s Manual, Volume 1: Basic Architecture":
+-                //
+-                // "Software enables the XSAVE feature set by setting
+-                // CR4.OSXSAVE[bit 18] to 1 (e.g., with the MOV to CR4
+-                // instruction). If this bit is 0, execution of any of XGETBV,
+-                // XRSTOR, XRSTORS, XSAVE, XSAVEC, XSAVEOPT, XSAVES, and XSETBV
+-                // causes an invalid-opcode exception (#UD)"
+-
+-                // FMA (uses 256-bit wide registers):
+-                enable(proc_info_ecx, 12, cpu_flags::FMA);
+-
+-                // For AVX-512 the OS also needs to support saving/restoring
+-                // the extended state, only then we enable AVX-512 support:
+-                if os_avx512_support {
+-                    enable(extended_features_edx, 23, cpu_flags::AVX512FP16);
+-                    enable(extended_features_eax_leaf_1, 5, cpu_flags::AVX512BF16);
+-                }
+-            }
+-        }
+-    }
+-
+-    // As Hygon Dhyana originates from AMD technology and shares most of the architecture with
+-    // AMD's family 17h, but with different CPU Vendor ID("HygonGenuine")/Family series number
+-    // (Family 18h).
+-    //
+-    // For CPUID feature bits, Hygon Dhyana(family 18h) share the same definition with AMD
+-    // family 17h.
+-    //
+-    // Related AMD CPUID specification is https://www.amd.com/system/files/TechDocs/25481.pdf
+-    // (AMD64 Architecture Programmer's Manual, Appendix E).
+-    // Related Hygon kernel patch can be found on
+-    // http://lkml.kernel.org/r/5ce86123a7b9dad925ac583d88d2f921040e859b.1538583282.git.puwen@hygon.cn
+-    if vendor_id == *b"AuthenticAMD" || vendor_id == *b"HygonGenuine" {
+-        // These features are available on AMD arch CPUs:
+-        enable(extended_proc_info_ecx, 16, cpu_flags::FMA4);
+-    }
+-
+-    value
+-}
+-
+-#[cfg(test)]
+-mod tests {
+-    extern crate std;
+-    use std::is_x86_feature_detected;
+-
+-    use super::*;
+-
+-    #[test]
+-    fn check_matches_std() {
+-        let features = get_cpu_features();
+-        for i in 0..cpu_flags::ALL.len() {
+-            let flag = cpu_flags::ALL[i];
+-            let name = cpu_flags::NAMES[i];
+-
+-            let std_detected = match flag {
+-                cpu_flags::SSE3 => is_x86_feature_detected!("sse3"),
+-                cpu_flags::F16C => is_x86_feature_detected!("f16c"),
+-                cpu_flags::SSE => is_x86_feature_detected!("sse"),
+-                cpu_flags::SSE2 => is_x86_feature_detected!("sse2"),
+-                cpu_flags::ERMSB => is_x86_feature_detected!("ermsb"),
+-                cpu_flags::MOVRS => continue, // only very recent support in std
+-                cpu_flags::FMA => is_x86_feature_detected!("fma"),
+-                cpu_flags::FMA4 => continue, // not yet supported in std
+-                cpu_flags::AVX512FP16 => is_x86_feature_detected!("avx512fp16"),
+-                cpu_flags::AVX512BF16 => is_x86_feature_detected!("avx512bf16"),
+-                _ => panic!("untested CPU flag {name}"),
+-            };
+-
+-            assert_eq!(
+-                std_detected,
+-                features.contains(flag),
+-                "different flag {name}. flags: {features:?}"
+-            );
+-        }
+-    }
++    Flags::empty()
+ }
+diff --git a/rust/library/std/src/sys/pal/unix/stack_overflow.rs b/rust/library/std/src/sys/pal/unix/stack_overflow.rs
+--- a/rust/library/std/src/sys/pal/unix/stack_overflow.rs
++++ b/rust/library/std/src/sys/pal/unix/stack_overflow.rs
+@@ -37,6 +37,10 @@
+         target_os = "solaris",
+         target_os = "illumos",
+     ),
++    // Fil-C: the guard-page bookkeeping below is only used by the SIGSEGV
++    // handler machinery, which is disabled under Fil-C (see the other imp
++    // module below).
++    not(all(target_os = "linux", target_env = "gnu"))
+ ))]
+ mod thread_info;
+
+@@ -54,7 +58,15 @@
+         target_os = "openbsd",
+         target_os = "solaris",
+         target_os = "illumos",
+-    )
++    ),
++    // Fil-C: Fil-C checks every memory access (and every stack access against
++    // the thread's stack bounds) itself and reports violations through its own
++    // runtime, so a guard page at the end of the stack is never touched and
++    // this SIGSEGV-based stack-overflow machinery is dead weight.  It also
++    // cannot work under Fil-C: pizfix does not support sigaltstack (calling it
++    // is a filc internal error), and the pthread_getattr_np-based guard
++    // computation is unnecessary.  Use the no-op imp module instead.
++    not(all(target_os = "linux", target_env = "gnu"))
+ ))]
+ mod imp {
+     use libc::{
+@@ -614,6 +626,7 @@
+ // <https://github.com/apple/swift/blob/swift-5.10-RELEASE/stdlib/public/runtime/CrashHandlerMacOS.cpp>
+ #[cfg(any(
+     miri,
++    all(target_os = "linux", target_env = "gnu"),
+     not(any(
+         target_os = "linux",
+         target_os = "freebsd",
+diff --git a/rust/library/std_detect/src/detect/os/x86.rs b/rust/library/std_detect/src/detect/os/x86.rs
+--- a/rust/library/std_detect/src/detect/os/x86.rs
++++ b/rust/library/std_detect/src/detect/os/x86.rs
+@@ -1,316 +1,240 @@
+ //! x86 run-time feature detection is OS independent.
++//!
++//! Fil-C: upstream detects x86 features with the `cpuid` instruction (plus
++//! `xgetbv` for the OS XSAVE state), which rustc emits as *Intel-dialect*
++//! inline assembly (`asm!` defaults to Intel; LLVM records it as
++//! `asm sideeffect inteldialect`).  The Fil-Pizlonator only accepts AT&T
++//! dialect inline assembly, so the upstream code aborted at run time under
++//! Fil-C with "cannot handle inline asm (only AT&T dialect inline assembly
++//! is supported)".  A pure AT&T rewrite is not possible from Rust either:
++//!
++//! * rustc refuses to name `ebx` as an inline-asm operand or clobber on
++//!   x86_64 ("rbx is used internally by LLVM and cannot be used as an
++//!   operand for inline asm"; the register is reserved as LLVM's potential
++//!   base pointer), so `cpuid`'s EBX output can never be declared the way
++//!   the pizlonator's `cpuid` whitelist requires ("cpuid output ebx not
++//!   covered by output constraint or clobber").
++//! * the upstream mov/xchg scratch-register trick (which saves and restores
++//!   `ebx` without declaring it) is rejected for the same reason ("literal
++//!   register %ebx not covered by output constraint or clobber").
++//!
++//! Therefore this implementation detects features by parsing
++//! /proc/cpuinfo instead of executing `cpuid` inline asm.  The Linux kernel
++//! has already merged CPUID, the OS-enabled XCR0 state (via xgetbv at boot)
++//! and CR4.OSXSAVE into the `flags` line, so the result is what the
++//! CPUID-based code computes; for the AVX-512/AMX OS-support checks it is
++//! even more accurate, because the kernel clears the flags when the OS does
++//! not enable the corresponding XCR0 state.  Only the first processor's
++//! `flags` are used: Fil-C builds target x86_64, where the features
++//! `is_x86_feature_detected!` knows about are homogeneous across logical
++//! CPUs; on heterogeneous (hybrid) CPUs this may under-report, which is the
++//! safe direction ("it's safe for us to under-report CPU features, but not
++//! to over-report them").  When /proc/cpuinfo cannot be read, or on targets
++//! without the file-IO feature, no features are reported.
++//!
++//! Consequence: `core::arch::x86::__cpuid`/`__cpuid_count` themselves still
++//! abort at run time under Fil-C (same inline-asm limitation); only
++//! `is_x86_feature_detected!` (and anything built on std_detect) is fixed
++//! by this module.
+
+-#[cfg(target_arch = "x86")]
+-use core::arch::x86::*;
+-#[cfg(target_arch = "x86_64")]
+-use core::arch::x86_64::*;
+-use core::mem;
++use crate::detect::cache;
++#[cfg(all(target_os = "linux", feature = "std_detect_file_io"))]
++use crate::detect::Feature;
+
+-use crate::detect::{Feature, bit, cache};
++/// Maps /proc/cpuinfo flag names (Linux's `x86_feature_names`, see
++/// arch/x86/kernel/cpu/common.c and arch/x86/include/asm/cpufeatures.h) to
++/// the std_detect features that `is_x86_feature_detected!` can query.
++/// Flags the kernel spells differently from the Rust feature names carry a
++/// comment.  Flag names that exist only on CPUs this table cannot recognize
++/// are simply never reported (safe: under-reporting).
++#[cfg(all(target_os = "linux", feature = "std_detect_file_io"))]
++const FLAG_TO_FEATURE: &[(&str, Feature)] = &[
++    ("pni", Feature::sse3), // kernel name for sse3 (Prescott New Instructions)
++    ("pclmulqdq", Feature::pclmulqdq),
++    ("ssse3", Feature::ssse3),
++    ("cx16", Feature::cmpxchg16b), // kernel name for cmpxchg16b
++    ("sse4_1", Feature::sse4_1),
++    ("sse4_2", Feature::sse4_2),
++    ("movbe", Feature::movbe),
++    ("popcnt", Feature::popcnt),
++    ("aes", Feature::aes),
++    ("xsave", Feature::xsave),
++    ("xsaveopt", Feature::xsaveopt),
++    ("xsavec", Feature::xsavec),
++    ("xsaves", Feature::xsaves),
++    ("f16c", Feature::f16c),
++    ("rdrand", Feature::rdrand),
++    ("fma", Feature::fma),
++    ("avx", Feature::avx),
++    ("avx2", Feature::avx2),
++    ("gfni", Feature::gfni),
++    ("vaes", Feature::vaes),
++    ("vpclmulqdq", Feature::vpclmulqdq),
++    ("bmi1", Feature::bmi1),
++    ("bmi2", Feature::bmi2),
++    ("erms", Feature::ermsb), // kernel name for ermsb
++    ("rdseed", Feature::rdseed),
++    ("tsc", Feature::tsc),
++    ("adx", Feature::adx),
++    ("rtm", Feature::rtm),
++    ("sha_ni", Feature::sha), // kernel name for sha
++    ("sha512", Feature::sha512),
++    ("sm3", Feature::sm3),
++    ("sm4", Feature::sm4),
++    ("avx_vnni", Feature::avxvnni),
++    ("avx_ifma", Feature::avxifma),
++    ("avx_ne_convert", Feature::avxneconvert),
++    ("avx_vnni_int8", Feature::avxvnniint8),
++    ("avx_vnni_int16", Feature::avxvnniint16),
++    ("movrs", Feature::movrs),
++    ("avx512f", Feature::avx512f),
++    ("avx512cd", Feature::avx512cd),
++    ("avx512er", Feature::avx512er),
++    ("avx512pf", Feature::avx512pf),
++    ("avx512bw", Feature::avx512bw),
++    ("avx512dq", Feature::avx512dq),
++    ("avx512vl", Feature::avx512vl),
++    ("avx512ifma", Feature::avx512ifma),
++    ("avx512vbmi", Feature::avx512vbmi),
++    ("avx512_vbmi2", Feature::avx512vbmi2),
++    ("avx512_vnni", Feature::avx512vnni),
++    ("avx512_bitalg", Feature::avx512bitalg),
++    ("avx512_vpopcntdq", Feature::avx512vpopcntdq),
++    ("avx512_vp2intersect", Feature::avx512vp2intersect),
++    ("avx512_fp16", Feature::avx512fp16),
++    ("avx512_bf16", Feature::avx512bf16),
++    ("amx_tile", Feature::amx_tile),
++    ("amx_int8", Feature::amx_int8),
++    ("amx_bf16", Feature::amx_bf16),
++    ("amx_fp16", Feature::amx_fp16),
++    ("amx_complex", Feature::amx_complex),
++    ("amx_avx512", Feature::amx_avx512),
++    ("amx_fp8", Feature::amx_fp8),
++    ("amx_movrs", Feature::amx_movrs),
++    ("amx_tf32", Feature::amx_tf32),
++    ("amx_transpose", Feature::amx_transpose),
++    ("abm", Feature::lzcnt), // kernel name for the ABM/LZCNT bit
++    ("tbm", Feature::tbm),
++    ("fxsr", Feature::fxsr),
++    ("mmx", Feature::mmx),
++    ("sse", Feature::sse),
++    ("sse2", Feature::sse2),
++    ("sse4a", Feature::sse4a),
++    ("keylocker", Feature::kl),  // kernel name for kl
++    ("wide_kl", Feature::widekl), // kernel name for widekl
++    ("xop", Feature::xop),
++];
+
+-/// Run-time feature detection on x86 works by using the CPUID instruction.
+-///
+-/// The [CPUID Wikipedia page][wiki_cpuid] contains
+-/// all the information about which flags to set to query which values, and in
+-/// which registers these are reported.
+-///
+-/// The definitive references are:
+-/// - [Intel 64 and IA-32 Architectures Software Developer's Manual Volume 2:
+-///   Instruction Set Reference, A-Z][intel64_ref].
+-/// - [AMD64 Architecture Programmer's Manual, Volume 3: General-Purpose and
+-///   System Instructions][amd64_ref].
+-///
+-/// [wiki_cpuid]: https://en.wikipedia.org/wiki/CPUID
+-/// [intel64_ref]: http://www.intel.de/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.pdf
+-/// [amd64_ref]: http://support.amd.com/TechDocs/24594.pdf
+-#[allow(clippy::similar_names)]
+-pub(crate) fn detect_features() -> cache::Initializer {
+-    let mut value = cache::Initializer::default();
++/// Reads a file with libc::open/read/close (std_detect is `no_std` and has
++/// no `std::fs`); mirrors the `read_file` helper in detect/os/linux/mod.rs.
++#[cfg(all(target_os = "linux", feature = "std_detect_file_io"))]
++fn read_file(path: &str) -> Option<alloc::vec::Vec<u8>> {
++    use alloc::vec::Vec;
+
+-    if cfg!(target_env = "sgx") {
+-        // doesn't support this because it is untrusted data
+-        return value;
+-    }
++    let mut path_z = Vec::from(path.as_bytes());
++    path_z.push(0);
+
+-    // Calling `__cpuid`/`__cpuid_count` from here on is safe because the CPU
+-    // has `cpuid` support.
++    unsafe {
++        let fd = libc::open(path_z.as_ptr() as *const libc::c_char, libc::O_RDONLY);
++        if fd == -1 {
++            return None;
++        }
+
+-    // 0. EAX = 0: Basic Information:
+-    // - EAX returns the "Highest Function Parameter", that is, the maximum
+-    // leaf value for subsequent calls of `cpuinfo` in range [0,
+-    // 0x8000_0000]. - The vendor ID is stored in 12 u8 ascii chars,
+-    // returned in EBX, EDX, and   ECX (in that order):
+-    let (max_basic_leaf, vendor_id) = unsafe {
+-        let CpuidResult { eax: max_basic_leaf, ebx, ecx, edx } = __cpuid(0);
+-        let vendor_id: [[u8; 4]; 3] = [ebx.to_ne_bytes(), edx.to_ne_bytes(), ecx.to_ne_bytes()];
+-        let vendor_id: [u8; 12] = mem::transmute(vendor_id);
+-        (max_basic_leaf, vendor_id)
+-    };
+-
+-    if max_basic_leaf < 1 {
+-        // Earlier Intel 486, CPUID not implemented
+-        return value;
+-    }
+-
+-    // EAX = 1, ECX = 0: Queries "Processor Info and Feature Bits";
+-    // Contains information about most x86 features.
+-    let CpuidResult { ecx: proc_info_ecx, edx: proc_info_edx, .. } =
+-        unsafe { __cpuid(0x0000_0001_u32) };
+-
+-    // EAX = 7: Queries "Extended Features";
+-    // Contains information about bmi,bmi2, and avx2 support.
+-    let (
+-        extended_features_ebx,
+-        extended_features_ecx,
+-        extended_features_edx,
+-        extended_features_eax_leaf_1,
+-        extended_features_edx_leaf_1,
+-    ) = if max_basic_leaf >= 7 {
+-        let CpuidResult { ebx, ecx, edx, .. } = unsafe { __cpuid(0x0000_0007_u32) };
+-        let CpuidResult { eax: eax_1, edx: edx_1, .. } =
+-            unsafe { __cpuid_count(0x0000_0007_u32, 0x0000_0001_u32) };
+-        (ebx, ecx, edx, eax_1, edx_1)
+-    } else {
+-        (0, 0, 0, 0, 0) // CPUID does not support "Extended Features"
+-    };
+-
+-    // EAX = 0x8000_0000, ECX = 0: Get Highest Extended Function Supported
+-    // - EAX returns the max leaf value for extended information, that is,
+-    // `cpuid` calls in range [0x8000_0000; u32::MAX]:
+-    let CpuidResult { eax: extended_max_basic_leaf, .. } = unsafe { __cpuid(0x8000_0000_u32) };
+-
+-    // EAX = 0x8000_0001, ECX=0: Queries "Extended Processor Info and Feature
+-    // Bits"
+-    let extended_proc_info_ecx = if extended_max_basic_leaf >= 1 {
+-        let CpuidResult { ecx, .. } = unsafe { __cpuid(0x8000_0001_u32) };
+-        ecx
+-    } else {
+-        0
+-    };
+-
+-    {
+-        // borrows value till the end of this scope:
+-        let mut enable = |r, rb, f| {
+-            let present = bit::test(r as usize, rb);
+-            if present {
+-                value.set(f as u32);
++        let mut data = Vec::new();
++        loop {
++            data.reserve(4096);
++            let spare = data.spare_capacity_mut();
++            match libc::read(fd, spare.as_mut_ptr() as *mut _, spare.len()) {
++                -1 => {
++                    libc::close(fd);
++                    return None;
++                }
++                0 => break,
++                n => data.set_len(data.len() + n as usize),
+             }
+-            present
+-        };
+-
+-        enable(proc_info_ecx, 0, Feature::sse3);
+-        enable(proc_info_ecx, 1, Feature::pclmulqdq);
+-        enable(proc_info_ecx, 9, Feature::ssse3);
+-        enable(proc_info_ecx, 13, Feature::cmpxchg16b);
+-        enable(proc_info_ecx, 19, Feature::sse4_1);
+-        enable(proc_info_ecx, 20, Feature::sse4_2);
+-        enable(proc_info_ecx, 22, Feature::movbe);
+-        enable(proc_info_ecx, 23, Feature::popcnt);
+-        enable(proc_info_ecx, 25, Feature::aes);
+-        let f16c = enable(proc_info_ecx, 29, Feature::f16c);
+-        enable(proc_info_ecx, 30, Feature::rdrand);
+-        enable(extended_features_ebx, 18, Feature::rdseed);
+-        enable(extended_features_ebx, 19, Feature::adx);
+-        enable(extended_features_ebx, 11, Feature::rtm);
+-        enable(proc_info_edx, 4, Feature::tsc);
+-        enable(proc_info_edx, 23, Feature::mmx);
+-        enable(proc_info_edx, 24, Feature::fxsr);
+-        enable(proc_info_edx, 25, Feature::sse);
+-        enable(proc_info_edx, 26, Feature::sse2);
+-        enable(extended_features_ebx, 29, Feature::sha);
+-
+-        enable(extended_features_ecx, 8, Feature::gfni);
+-        enable(extended_features_ecx, 9, Feature::vaes);
+-        enable(extended_features_ecx, 10, Feature::vpclmulqdq);
+-
+-        enable(extended_features_ebx, 3, Feature::bmi1);
+-        enable(extended_features_ebx, 8, Feature::bmi2);
+-
+-        enable(extended_features_ebx, 9, Feature::ermsb);
+-
+-        enable(extended_features_eax_leaf_1, 31, Feature::movrs);
+-
+-        // Detect if CPUID.19h available
+-        if bit::test(extended_features_ecx as usize, 23) {
+-            let CpuidResult { ebx, .. } = unsafe { __cpuid(0x19) };
+-            enable(ebx, 0, Feature::kl);
+-            enable(ebx, 2, Feature::widekl);
+         }
+
+-        // `XSAVE` and `AVX` support:
+-        let cpu_xsave = bit::test(proc_info_ecx as usize, 26);
+-        if cpu_xsave {
+-            // 0. Here the CPU supports `XSAVE`.
++        libc::close(fd);
++        Some(data)
++    }
++}
+
+-            // 1. Detect `OSXSAVE`, that is, whether the OS is AVX enabled and
+-            // supports saving the state of the AVX/AVX2 vector registers on
+-            // context-switches, see:
+-            //
+-            // - [intel: is avx enabled?][is_avx_enabled],
+-            // - [mozilla: sse.cpp][mozilla_sse_cpp].
+-            //
+-            // [is_avx_enabled]: https://software.intel.com/en-us/blogs/2011/04/14/is-avx-enabled
+-            // [mozilla_sse_cpp]: https://hg.mozilla.org/mozilla-central/file/64bab5cbb9b6/mozglue/build/SSE.cpp#l190
+-            let cpu_osxsave = bit::test(proc_info_ecx as usize, 27);
+-
+-            if cpu_osxsave {
+-                // 2. The OS must have signaled the CPU that it supports saving and
+-                // restoring the:
+-                //
+-                // * SSE -> `XCR0.SSE[1]`
+-                // * AVX -> `XCR0.AVX[2]`
+-                // * AVX-512 -> `XCR0.AVX-512[7:5]`.
+-                // * AMX -> `XCR0.AMX[18:17]`
+-                //
+-                // by setting the corresponding bits of `XCR0` to `1`.
+-                //
+-                // This is safe because the CPU supports `xsave`
+-                // and the OS has set `osxsave`.
+-                let xcr0 = unsafe { _xgetbv(0) };
+-                // Test `XCR0.SSE[1]` and `XCR0.AVX[2]` with the mask `0b110 == 6`:
+-                let os_avx_support = xcr0 & 6 == 6;
+-                // Test `XCR0.AVX-512[7:5]` with the mask `0b1110_0000 == 0xe0`:
+-                let os_avx512_support = xcr0 & 0xe0 == 0xe0;
+-                // Test `XCR0.AMX[18:17]` with the mask `0b110_0000_0000_0000_0000 == 0x60000`
+-                let os_amx_support = xcr0 & 0x60000 == 0x60000;
+-
+-                // Only if the OS and the CPU support saving/restoring the AVX
+-                // registers we enable `xsave` support:
+-                if os_avx_support {
+-                    // See "13.3 ENABLING THE XSAVE FEATURE SET AND XSAVE-ENABLED
+-                    // FEATURES" in the "Intel® 64 and IA-32 Architectures Software
+-                    // Developer’s Manual, Volume 1: Basic Architecture":
+-                    //
+-                    // "Software enables the XSAVE feature set by setting
+-                    // CR4.OSXSAVE[bit 18] to 1 (e.g., with the MOV to CR4
+-                    // instruction). If this bit is 0, execution of any of XGETBV,
+-                    // XRSTOR, XRSTORS, XSAVE, XSAVEC, XSAVEOPT, XSAVES, and XSETBV
+-                    // causes an invalid-opcode exception (#UD)"
+-                    //
+-                    enable(proc_info_ecx, 26, Feature::xsave);
+-
+-                    // For `xsaveopt`, `xsavec`, and `xsaves` we need to query:
+-                    // Processor Extended State Enumeration Sub-leaf (EAX = 0DH,
+-                    // ECX = 1):
+-                    if max_basic_leaf >= 0xd {
+-                        let CpuidResult { eax: proc_extended_state1_eax, .. } =
+-                            unsafe { __cpuid_count(0xd_u32, 1) };
+-                        enable(proc_extended_state1_eax, 0, Feature::xsaveopt);
+-                        enable(proc_extended_state1_eax, 1, Feature::xsavec);
+-                        enable(proc_extended_state1_eax, 3, Feature::xsaves);
+-                    }
+-
+-                    // FMA (uses 256-bit wide registers):
+-                    let fma = enable(proc_info_ecx, 12, Feature::fma);
+-
+-                    // And AVX/AVX2:
+-                    enable(proc_info_ecx, 28, Feature::avx);
+-                    enable(extended_features_ebx, 5, Feature::avx2);
+-
+-                    // "Short" versions of AVX512 instructions
+-                    enable(extended_features_eax_leaf_1, 4, Feature::avxvnni);
+-                    enable(extended_features_eax_leaf_1, 23, Feature::avxifma);
+-                    enable(extended_features_edx_leaf_1, 4, Feature::avxvnniint8);
+-                    enable(extended_features_edx_leaf_1, 5, Feature::avxneconvert);
+-                    enable(extended_features_edx_leaf_1, 10, Feature::avxvnniint16);
+-
+-                    enable(extended_features_eax_leaf_1, 0, Feature::sha512);
+-                    enable(extended_features_eax_leaf_1, 1, Feature::sm3);
+-                    enable(extended_features_eax_leaf_1, 2, Feature::sm4);
+-
+-                    // For AVX-512 the OS also needs to support saving/restoring
+-                    // the extended state, only then we enable AVX-512 support:
+-                    // Also, Rust makes `avx512f` imply `fma` and `f16c`, because
+-                    // otherwise the assembler is broken. But Intel doesn't guarantee
+-                    // that `fma` and `f16c` are available with `avx512f`, so we
+-                    // need to check for them separately.
+-                    if os_avx512_support && f16c && fma {
+-                        enable(extended_features_ebx, 16, Feature::avx512f);
+-                        enable(extended_features_ebx, 17, Feature::avx512dq);
+-                        enable(extended_features_ebx, 21, Feature::avx512ifma);
+-                        enable(extended_features_ebx, 26, Feature::avx512pf);
+-                        enable(extended_features_ebx, 27, Feature::avx512er);
+-                        enable(extended_features_ebx, 28, Feature::avx512cd);
+-                        enable(extended_features_ebx, 30, Feature::avx512bw);
+-                        enable(extended_features_ebx, 31, Feature::avx512vl);
+-                        enable(extended_features_ecx, 1, Feature::avx512vbmi);
+-                        enable(extended_features_ecx, 6, Feature::avx512vbmi2);
+-                        enable(extended_features_ecx, 11, Feature::avx512vnni);
+-                        enable(extended_features_ecx, 12, Feature::avx512bitalg);
+-                        enable(extended_features_ecx, 14, Feature::avx512vpopcntdq);
+-                        enable(extended_features_edx, 8, Feature::avx512vp2intersect);
+-                        enable(extended_features_edx, 23, Feature::avx512fp16);
+-                        enable(extended_features_eax_leaf_1, 5, Feature::avx512bf16);
+-                    }
++/// Returns the value part of the first line in `data` that starts with
++/// `key`, i.e. the text after the `':'` in a `"<key>\t: <value>"` line
++/// (the /proc/cpuinfo format), with leading whitespace stripped.
++#[cfg(all(target_os = "linux", feature = "std_detect_file_io"))]
++fn first_line_value<'a>(data: &'a [u8], key: &[u8]) -> Option<&'a [u8]> {
++    let mut rest = data;
++    loop {
++        let end = rest.iter().position(|&b| b == b'\n').unwrap_or(rest.len());
++        let line = &rest[..end];
++        if line.starts_with(key) {
++            let mut i = key.len();
++            while i < line.len() && (line[i] == b'\t' || line[i] == b' ') {
++                i += 1;
++            }
++            if i < line.len() && line[i] == b':' {
++                i += 1;
++                while i < line.len() && (line[i] == b'\t' || line[i] == b' ') {
++                    i += 1;
+                 }
+-
+-                if os_amx_support {
+-                    enable(extended_features_edx, 24, Feature::amx_tile);
+-                    enable(extended_features_edx, 25, Feature::amx_int8);
+-                    enable(extended_features_edx, 22, Feature::amx_bf16);
+-                    enable(extended_features_eax_leaf_1, 21, Feature::amx_fp16);
+-                    enable(extended_features_edx_leaf_1, 8, Feature::amx_complex);
+-
+-                    if max_basic_leaf >= 0x1e {
+-                        let CpuidResult { eax: amx_feature_flags_eax, .. } =
+-                            unsafe { __cpuid_count(0x1e_u32, 1) };
+-
+-                        enable(amx_feature_flags_eax, 4, Feature::amx_fp8);
+-                        enable(amx_feature_flags_eax, 5, Feature::amx_transpose);
+-                        enable(amx_feature_flags_eax, 6, Feature::amx_tf32);
+-                        enable(amx_feature_flags_eax, 7, Feature::amx_avx512);
+-                        enable(amx_feature_flags_eax, 8, Feature::amx_movrs);
+-                    }
+-                }
++                return Some(&line[i..]);
+             }
+         }
++        if end == rest.len() {
++            return None;
++        }
++        rest = &rest[end + 1..];
++    }
++}
+
+-        // This detects ABM on AMD CPUs and LZCNT on Intel CPUs.
+-        // On intel CPUs with popcnt, lzcnt implements the
+-        // "missing part" of ABM, so we map both to the same
+-        // internal feature.
+-        //
+-        // The `is_x86_feature_detected!("lzcnt")` macro then
+-        // internally maps to Feature::abm.
+-        enable(extended_proc_info_ecx, 5, Feature::lzcnt);
++#[cfg(all(target_os = "linux", feature = "std_detect_file_io"))]
++fn detect_features_from_cpuinfo(value: &mut cache::Initializer) {
++    let data = match read_file("/proc/cpuinfo") {
++        Some(data) => data,
++        None => return,
++    };
++    let flags = match first_line_value(&data, b"flags") {
++        Some(flags) => flags,
++        None => return,
++    };
+
+-        // As Hygon Dhyana originates from AMD technology and shares most of the architecture with
+-        // AMD's family 17h, but with different CPU Vendor ID("HygonGenuine")/Family series
+-        // number(Family 18h).
+-        //
+-        // For CPUID feature bits, Hygon Dhyana(family 18h) share the same definition with AMD
+-        // family 17h.
+-        //
+-        // Related AMD CPUID specification is https://www.amd.com/system/files/TechDocs/25481.pdf.
+-        // Related Hygon kernel patch can be found on
+-        // http://lkml.kernel.org/r/5ce86123a7b9dad925ac583d88d2f921040e859b.1538583282.git.puwen@hygon.cn
+-        if vendor_id == *b"AuthenticAMD" || vendor_id == *b"HygonGenuine" {
+-            // These features are available on AMD arch CPUs:
+-            enable(extended_proc_info_ecx, 6, Feature::sse4a);
+-            enable(extended_proc_info_ecx, 21, Feature::tbm);
+-            enable(extended_proc_info_ecx, 11, Feature::xop);
++    for token in flags.split(|&b| b == b' ') {
++        if token.is_empty() {
++            continue;
+         }
++        for (name, feature) in FLAG_TO_FEATURE {
++            if token == name.as_bytes() {
++                value.set(*feature as u32);
++            }
++        }
+     }
+
+-    // Unfortunately, some Skylake chips erroneously report support for BMI1 and
+-    // BMI2 without actual support. These chips don't support AVX, and it seems
+-    // that all Intel chips with non-erroneous support BMI do (I didn't check
+-    // other vendors), so we can disable these flags for chips that don't also
+-    // report support for AVX.
++    // Unfortunately, some Skylake chips erroneously report support for BMI1
++    // and BMI2 without actual support. These chips don't support AVX, and it
++    // seems that all Intel chips with non-erroneous support BMI do (I didn't
++    // check other vendors), so we can disable these flags for chips that
++    // don't also report support for AVX.  (Mirrors the upstream CPUID-based
++    // workaround for the SKL052 erratum.)
+     //
+-    // It's possible this will pessimize future chips that do support BMI and
+-    // not AVX, but this seems minor compared to a hard crash you get when
+-    // executing an unsupported instruction (to put it another way, it's safe
+-    // for us to under-report CPU features, but not to over-report them). Still,
+-    // to limit any impact this may have in the future, we only do this for
+-    // Intel chips, as it's a bug only present in their chips.
+-    //
+-    // This bug is documented as `SKL052` in the errata section of this document:
+     // http://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/desktop-6th-gen-core-family-spec-update.pdf
+-    if vendor_id == *b"GenuineIntel" && !value.test(Feature::avx as u32) {
++    let is_intel = first_line_value(&data, b"vendor_id")
++        .map(|vendor| vendor == &b"GenuineIntel"[..])
++        .unwrap_or(false);
++    if is_intel && !value.test(Feature::avx as u32) {
+         value.unset(Feature::bmi1 as u32);
+         value.unset(Feature::bmi2 as u32);
+     }
++}
++
++#[allow(clippy::similar_names)]
++pub(crate) fn detect_features() -> cache::Initializer {
++    let mut value = cache::Initializer::default();
++
++    // Fil-C: fill the cache from /proc/cpuinfo (see the module documentation
++    // for why the upstream CPUID/xgetbv inline assembly cannot be used).
++    #[cfg(all(target_os = "linux", feature = "std_detect_file_io"))]
++    detect_features_from_cpuinfo(&mut value);
+
+     value
+ }
+diff --git a/rust/library/unwind/src/lib.rs b/rust/library/unwind/src/lib.rs
+--- a/rust/library/unwind/src/lib.rs
++++ b/rust/library/unwind/src/lib.rs
+@@ -104,13 +104,20 @@
+ // When building with crt-static, we get `gcc_eh` from the `libc` crate, since
+ // glibc needs it, and needs it listed later on the linker command line. We
+ // don't want to duplicate it here.
++//
++// Fil-C: link nothing here.  Fil-C's driver (filcc) links the pizfix runtime
++// into every binary: libpizlo exports the full _Unwind_* API under the
++// pizlonator's renamed symbol names (e.g. pizlonated__Unwind_RaiseException),
++// which is exactly what pizlonated Rust code references, and libyolounwind
++// provides the personality-side glue.  Neither libgcc_s (absent from pizfix)
++// nor LLVM libunwind (its assembly files are rejected by Fil-C's assembler)
++// can be used.
+ #[cfg(all(
+     target_os = "linux",
+     any(target_env = "gnu", target_env = "uclibc"),
+     not(feature = "llvm-libunwind"),
+     not(feature = "system-llvm-libunwind")
+ ))]
+-#[link(name = "gcc_s", cfg(not(target_feature = "crt-static")))]
+ unsafe extern "C" {}
+
+ #[cfg(all(
+diff --git a/rust/library/unwind/src/libunwind.rs b/rust/library/unwind/src/libunwind.rs
+--- a/rust/library/unwind/src/libunwind.rs
++++ b/rust/library/unwind/src/libunwind.rs
+@@ -118,10 +118,19 @@
+     pub fn _Unwind_DeleteException(exception: *mut _Unwind_Exception);
+     pub fn _Unwind_GetLanguageSpecificData(ctx: *mut _Unwind_Context) -> *mut c_void;
+     pub fn _Unwind_GetRegionStart(ctx: *mut _Unwind_Context) -> _Unwind_Ptr;
+-    pub fn _Unwind_GetTextRelBase(ctx: *mut _Unwind_Context) -> _Unwind_Ptr;
+-    pub fn _Unwind_GetDataRelBase(ctx: *mut _Unwind_Context) -> _Unwind_Ptr;
+ }
+
++// Fil-C: libpizlo (the Fil-C runtime) does not provide these deprecated
++// libgcc APIs.  Provide the same trivial stubs that LLVM's libunwind has.
++pub unsafe fn _Unwind_GetTextRelBase(ctx: *mut _Unwind_Context) -> _Unwind_Ptr {
++    let _ = ctx;
++    core::ptr::null()
++}
++pub unsafe fn _Unwind_GetDataRelBase(ctx: *mut _Unwind_Context) -> _Unwind_Ptr {
++    let _ = ctx;
++    core::ptr::null()
++}
++
+ cfg_if::cfg_if! {
+ if #[cfg(any(target_vendor = "apple", target_os = "netbsd", not(target_arch = "arm")))] {
+     // Not ARM EHABI
+@@ -145,9 +154,30 @@
+         pub fn _Unwind_SetGR(ctx: *mut _Unwind_Context, reg_index: c_int, value: _Unwind_Word);
+         pub fn _Unwind_GetIP(ctx: *mut _Unwind_Context) -> _Unwind_Word;
+         pub fn _Unwind_SetIP(ctx: *mut _Unwind_Context, value: _Unwind_Word);
+-        pub fn _Unwind_GetIPInfo(ctx: *mut _Unwind_Context, ip_before_insn: *mut c_int)
+-                                 -> _Unwind_Word;
+-        pub fn _Unwind_FindEnclosingFunction(pc: *mut c_void) -> *mut c_void;
++    }
++
++    // Fil-C: `_Unwind_GetIPInfo` is not provided by libpizlo, so it is
++    // implemented below as a wrapper around `_Unwind_GetIP` (the same way
++    // LLVM's libunwind does when the precise information is unavailable).
++    //
++    // Fil-C: `_Unwind_FindEnclosingFunction` is not provided by libpizlo
++    // either, so it is stubbed out like the ARM EHABI branch below (nothing
++    // calls it under panic=abort).
++
++    // Fil-C: derive _Unwind_GetIPInfo from _Unwind_GetIP.
++    pub unsafe fn _Unwind_GetIPInfo(
++        ctx: *mut _Unwind_Context,
++        ip_before_insn: *mut c_int,
++    ) -> _Unwind_Word {
++        unsafe { *ip_before_insn = 0 };
++        unsafe { _Unwind_GetIP(ctx) }
++    }
++
++    // Fil-C: no-op for the same reason as in the ARM EHABI branch; libpizlo
++    // does not provide `_Unwind_FindEnclosingFunction`.
++    pub unsafe fn _Unwind_FindEnclosingFunction(pc: *mut c_void) -> *mut c_void {
++        let _ = pc;
++        core::ptr::null_mut()
+     }
+
+ } else {
+diff --git a/rust/src/bootstrap/src/core/build_steps/llvm.rs b/rust/src/bootstrap/src/core/build_steps/llvm.rs
+--- a/rust/src/bootstrap/src/core/build_steps/llvm.rs
++++ b/rust/src/bootstrap/src/core/build_steps/llvm.rs
+@@ -1473,12 +1473,13 @@
+             }
+         }
+
+-        cc_cfg.compiler(builder.cc(self.target));
+-        if let Ok(cxx) = builder.cxx(self.target) {
+-            cpp_cfg.compiler(cxx);
+-        } else {
+-            cc_cfg.compiler(builder.cc(self.target));
+-        }
++        // Fil-C: build libunwind with the Fil-C compilers so that it is
++        // pizlonated like all the other code that goes into Fil-C binaries
++        // (pizlonated code calls unwinding routines through pizlonated symbol
++        // names and with the Fil-C ABI).  filcc/fil++ are found on PATH (see
++        // build_rustc.sh).
++        cc_cfg.compiler(std::path::PathBuf::from("filcc"));
++        cpp_cfg.compiler(std::path::PathBuf::from("fil++"));
+
+         // Don't set this for clang
+         // By default, Clang builds C code in GNU C17 mode.
+diff --git a/rust/vendor/libc-0.2.174/.cargo-checksum.json b/rust/vendor/libc-0.2.174/.cargo-checksum.json
+--- a/rust/vendor/libc-0.2.174/.cargo-checksum.json
++++ b/rust/vendor/libc-0.2.174/.cargo-checksum.json
+@@ -1,1 +1,1 @@
+-{"files":{".cargo_vcs_info.json":"9e3f383a0671ce544ba60129f113826026bfd39d6f9a2f7323198c88a462be44",".git-blame-ignore-revs":"761aa385c661241fa77c15b502c361398cf500bbb9f8c3a4579b412c4c6249d7",".release-plz.toml":"fcf2d382c4a2abd96caf9cc391b63e0c94d5832f5c48e9ab9eb4b2c847c0887c","CHANGELOG.md":"d4d202929497332d94acf48737a5cf4a2c5f53d25c93f6734df535b8b56bc30b","CONTRIBUTING.md":"155e7f4e96fafe9ee5c8adb5068be27a22de89a95ca9bfc7baf517b9850d20d6","Cargo.lock":"a3b7f6b5d63de50ad386146d4ab8126e4ce71b91f086861aaf3d7c2cd3a1426e","Cargo.toml":"08c008bd409b6862f7723b927d7cb50e83e093b336b306687f5b0356230cead2","Cargo.toml.orig":"647a491d157e1afbeea48f635be858ab1b1c9c2064c24d15a1e30808c6d7bd35","LICENSE-APACHE":"62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a","LICENSE-MIT":"a8d47ff51ca256f56a8932dba07660672dbfe3004257ca8de708aac1415937a1","README.md":"a198be444453fe0b24d4fb6a8b732eb9e6dc77ebcfd119fca95b97b45c77c77a","build.rs":"b3115efae7f0487ed04d36bfaa0d6449db6448356a9cbeb3e10821d79008720d","rustfmt.toml":"e9321ff995242e8cb0a4984254f0748ef11a89ca4618cab8f047ee59a88768e7","src/fuchsia/aarch64.rs":"9cd032304a54321a8926cf3157194c5d79a2491b1b974a05fe71729fa43b5738","src/fuchsia/mod.rs":"d783900ea7e696ed25bb2f04c8714b0afdff0877d46418a29025c61e535254cd","src/fuchsia/riscv64.rs":"f2aba92cb88480bd72a9eb7a41aafc63c5db293b93113fa973fe5ab1fd819e29","src/fuchsia/x86_64.rs":"a6de0a3c9a45e7af2f0bac96d73da6a7cfb8c003335183016b08a25e2acab65b","src/hermit.rs":"f150c2882a4d8e510259697ff7685899e74bfabf84e5d37103c54b4387093775","src/lib.rs":"4d32db18cf39bf8b36fa0688bf2a7d2c9b3bb4c9664a1583fc203f008f8045a2","src/macros.rs":"9697bfcb664007468f7e5a4bdb754ab554a5c12273d7576d2d78392f61d19e15","src/primitives.rs":"0096ec3f32454a630fd1e78fa5aaaa033f107c1394a0d7b8dfe92594339a547b","src/psp.rs":"6ab902bad5bd5c97a6e300b354820602703f1f802071a8b7a935c42444c587ca","src/sgx.rs":"964d6af358f5c85f948275090e5a7854e0169c43b5c338070b6a4cd156ebc9e6","src/solid/aarch64.rs":"4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e","src/solid/arm.rs":"4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e","src/solid/mod.rs":"a2045b6089af91bd533a666773d3b99fcfaf03da7a06869382969eed059b0e4c","src/switch.rs":"bfdcaf0268d79652ee52c1a2837959b8253e6a4124fd94dda82727ecc442a758","src/teeos/mod.rs":"2cca695904dacb13c063fb6463a6e0b2bb47ed86be0fdc9476938297441d7795","src/trusty.rs":"c5012aeefc4307c11374f062ad1d530e2ec556e7069e375de326a49c77f65e22","src/unix/aix/mod.rs":"abe29e873d9492f46bef8a7596469ad4698af087ab29619c059221b0f7c0fa91","src/unix/aix/powerpc64.rs":"6e1d1f50a58a8cb15f7a11cabfa8d7d2c0c5078d328d53c5fcf46bc706cf1a4d","src/unix/bsd/apple/b32/mod.rs":"76a5dce8b65aeb51626bb7316ab200015021dd87bddde86185cb424118c78528","src/unix/bsd/apple/b64/aarch64/mod.rs":"3ce904e72d78e6465ca52fd3905208fbb8cbc49a1695a708b12dff2ee01f4d36","src/unix/bsd/apple/b64/mod.rs":"75a313514fd3b9f21391ddb77f965386c36e99bbf4a4c952445e4e8d50bb16b5","src/unix/bsd/apple/b64/x86_64/mod.rs":"996ae7cd5a730ec595fde9a02add78f9417086204538abb80f6d24c80a0b649b","src/unix/bsd/apple/mod.rs":"109b57bb1db39a37c1ca90eeaadcc9637c4bf31d0df0bb53aab0778eb903750b","src/unix/bsd/freebsdlike/dragonfly/errno.rs":"07b19390b9ae8f541ac35fd4e14685d639b95152d6d7a33814bb749b8b927298","src/unix/bsd/freebsdlike/dragonfly/mod.rs":"c542f3f05e161fb77f50d718fa7e52ce9f2dcc9dcb3a615d8d604a0a520febfe","src/unix/bsd/freebsdlike/freebsd/aarch64.rs":"f796f19f04336225de81151897387ce5e975a67510f400cdcc8f0048d5d484bb","src/unix/bsd/freebsdlike/freebsd/arm.rs":"f3e3410bbca7c6aa591f06b7215645da4ccceab82b9c478277eeffdf9310f92a","src/unix/bsd/freebsdlike/freebsd/freebsd11/b32.rs":"8d9bef35f3e490d04755a59a99ad054ef20498beff979ae8b14acbec1097318a","src/unix/bsd/freebsdlike/freebsd/freebsd11/b64.rs":"45f718f556a8368f282944d9a14afae7261827ec4838d26719290466efc4f023","src/unix/bsd/freebsdlike/freebsd/freebsd11/mod.rs":"b1ddf661a8a331184e6b1134307ea25454547472a21c05752200b07002110171","src/unix/bsd/freebsdlike/freebsd/freebsd12/mod.rs":"ed37853a6c281746424f7c2109122312faf2b81f862280918955a94906b79189","src/unix/bsd/freebsdlike/freebsd/freebsd12/x86_64.rs":"64c4bd82eaf30a2681417f982fce28de7d1b0743bfaa14004692a56cee44be21","src/unix/bsd/freebsdlike/freebsd/freebsd13/mod.rs":"ac75d9267ab2f0c3432d4d173d417dd05306a8c63af6c050c67ed35a9c68dd6f","src/unix/bsd/freebsdlike/freebsd/freebsd13/x86_64.rs":"64c4bd82eaf30a2681417f982fce28de7d1b0743bfaa14004692a56cee44be21","src/unix/bsd/freebsdlike/freebsd/freebsd14/mod.rs":"7cac2e91eb6afde7babbfd5dd593e038a1b711929c7d48110f3b430f921c478a","src/unix/bsd/freebsdlike/freebsd/freebsd14/x86_64.rs":"d6e66809e109dc779efe5584b79d34fcd6fdba91973a415d64ae66f481f45940","src/unix/bsd/freebsdlike/freebsd/freebsd15/mod.rs":"23f496d5e30ed99449efac7d2d28e6b72faee7ba6445a0ea92a0f9b44cc80fe1","src/unix/bsd/freebsdlike/freebsd/freebsd15/x86_64.rs":"d6e66809e109dc779efe5584b79d34fcd6fdba91973a415d64ae66f481f45940","src/unix/bsd/freebsdlike/freebsd/mod.rs":"90ef01d22cbb53af4f7fe88dae51fc04db01826d4dca4be5915c6a2c7a50c328","src/unix/bsd/freebsdlike/freebsd/powerpc.rs":"bfc3ac2f4e1d2136589181db2297c6f9d279fd160f00fe2c42bc0820978d7934","src/unix/bsd/freebsdlike/freebsd/powerpc64.rs":"4843e5303d6c29756c5b62f2ceb4134e0d72a5f99c8a0b10892b3bb916e6dae3","src/unix/bsd/freebsdlike/freebsd/riscv64.rs":"94538d52efac5c8fea0c3ed30c1c9451820dd396f028b4159b908c1898987bc3","src/unix/bsd/freebsdlike/freebsd/x86.rs":"3a2c28e6cbfa27a4a663a85a2cd2bc3307613670f815c99650850629ab05150d","src/unix/bsd/freebsdlike/freebsd/x86_64/mod.rs":"f0af70c5b623224b3348ae9832272cb4940a45124e55fd2d0b0202930e4cf244","src/unix/bsd/freebsdlike/mod.rs":"2e7188c40dcbf437da93184184108d1f840b82bb04457d8002bf1a49f7f9f81c","src/unix/bsd/mod.rs":"c7322c39fadbd78cc957ea51a7c6490d07a630a6ae07ca397bd1e611adc5095a","src/unix/bsd/netbsdlike/mod.rs":"345a3aca0dd0349c88ccb4b89857304e7523661f2dbf7761182123596d5e3eb9","src/unix/bsd/netbsdlike/netbsd/aarch64.rs":"bd36c92099db501350fb8617414d1fea89a6bb12867498e1821167813ab70a02","src/unix/bsd/netbsdlike/netbsd/arm.rs":"237beaefcb12e7be9ccd4fef6e3be7db79ee63d4fc714e5eaf6084d4826d6fa2","src/unix/bsd/netbsdlike/netbsd/mips.rs":"d1ff114b268358e5d35e7b83d85f414d16b81ef39eeb1802682ff4424b102bc7","src/unix/bsd/netbsdlike/netbsd/mod.rs":"851007845bd8743cea35ce91a850d28c6aa2a0d543ac6946476c1d13ed4a2684","src/unix/bsd/netbsdlike/netbsd/powerpc.rs":"94494f348f011c6135d301944696c5b5a09979f5892abee4c8fdee1056388b94","src/unix/bsd/netbsdlike/netbsd/riscv64.rs":"f3778a9bd2ba923220537d167cfb10b91580ffbf583100789a46d2807f7a1e3e","src/unix/bsd/netbsdlike/netbsd/sparc64.rs":"d50816e830225779ac9e9a55a7e3e097882153d72987061d76a96ee736c8af9c","src/unix/bsd/netbsdlike/netbsd/x86.rs":"307a9aba68071b0589e459269ef10845c302599b0fd2b0ee7b5c480177904e89","src/unix/bsd/netbsdlike/netbsd/x86_64.rs":"4ced76b3640d465f6dead8beb5e947b3ce8297884260fb943d5f417d985dbafc","src/unix/bsd/netbsdlike/openbsd/aarch64.rs":"8be46bc5151ec1081feaf7685c18507f766f2501a2b5d35107db3babb896395a","src/unix/bsd/netbsdlike/openbsd/arm.rs":"f81c71e1cfe436b8f32cfe064991019cce0c83627f0d9c3a30d68691d71c7449","src/unix/bsd/netbsdlike/openbsd/mips64.rs":"bee7664d88f8451ae22552fc0721b6b6a6dee2493cc42bcb9829c1e47e4b05f5","src/unix/bsd/netbsdlike/openbsd/mod.rs":"b3b6c85aa7dba31aa80c4668b2758a03feb43ea18f7a6f2dec183e00986e3709","src/unix/bsd/netbsdlike/openbsd/powerpc.rs":"f81c71e1cfe436b8f32cfe064991019cce0c83627f0d9c3a30d68691d71c7449","src/unix/bsd/netbsdlike/openbsd/powerpc64.rs":"9bd3813fe2fd7ca66ee8d70d13887b4595fb8c9e819691a657ddf108ed9cafbf","src/unix/bsd/netbsdlike/openbsd/riscv64.rs":"7fb322e9f5425456dd53eb07de9fc84097ef35295802e8f50a7fb3c7e1f89ac6","src/unix/bsd/netbsdlike/openbsd/sparc64.rs":"8d4c5a4cae63e09e1c156164ddc82e0fc77926841d4d4e419dd2e7a7b7145f58","src/unix/bsd/netbsdlike/openbsd/x86.rs":"26c1b7e7f7799c5e434126c6c0ddd45f40939cae4151f8ce0a7a1836f83ac56a","src/unix/bsd/netbsdlike/openbsd/x86_64.rs":"caaf5a547299500d8a7b0a17214215916a53819e19cbc6ac392bef30f5982906","src/unix/cygwin/mod.rs":"70a44e600a59a2003088ac517076183068b5ec84159f43c1bf05ba880aa1cfe4","src/unix/haiku/b32.rs":"c3f8678ceee65a3094d8133b0d1a94470860e0b1867977f0569c52c5a20e039f","src/unix/haiku/b64.rs":"f97ce9225f4710893dab03ab3e13bc62152cc84f90c597ec88f6dc1f4c27d242","src/unix/haiku/mod.rs":"211b4b9239a3f73f94c94ac30c96f01838d776f2df4e42e887e167b06c45446f","src/unix/haiku/native.rs":"4f52d13ba164c6c4d138de445541d2358ca5c4f69898efd6c15c506c2f341a6f","src/unix/haiku/x86_64.rs":"09f2384474b2fcb7d0febb0e9e802610a627cadca29dc0e60eb4cfe15552f978","src/unix/hurd/b32.rs":"501f426f7aeb60acf4119064100dd94bbdfebff2cec785428708059d853dc123","src/unix/hurd/b64.rs":"b9b2082e721a5ec89ba55fd5a16bbffcc8a05ca7cef6dbfbd78aff0806cb931f","src/unix/hurd/mod.rs":"e3dbad685a3d29dae510b438d29f692f6a8fdf37a422924915a36a3e854b1219","src/unix/linux_like/android/b32/arm.rs":"e68f6a15870a22e0383770ed1a5bd443d4c2ed237d16fea338c5da1ab9bf1fe3","src/unix/linux_like/android/b32/mod.rs":"5b10ebe56435d868846ae720bb9081cf814486722b5c13520fd4ef50a7ecfb58","src/unix/linux_like/android/b32/x86/mod.rs":"d21913dab5d6b482106087297fbb643fd7cd3f83c01d56c1a1f8203dc57d8c16","src/unix/linux_like/android/b64/aarch64/mod.rs":"5ae558c8af8187155fa0ae8b8776459a60c08ce152f25d137f845d8371673b7e","src/unix/linux_like/android/b64/mod.rs":"ddc2932b78be316904019cd6209baccb1ce0732ad4332fecd99a7db0b5bf963a","src/unix/linux_like/android/b64/riscv64/mod.rs":"d826b0e4f078b8ea228f2244659fc700b95aa8a7ba87caef0bc34f54c9defd2c","src/unix/linux_like/android/b64/x86_64/mod.rs":"7449054f5815b6d9f734867d97d60a4eff13c809fbf32272a40826137bd6469c","src/unix/linux_like/android/mod.rs":"983d08c419c3489bf83c283d2cd0c1f6312c8d0ff8bbc31b8c40259bbf3e1772","src/unix/linux_like/emscripten/lfs64.rs":"3a1d1779bcf16525a578a68237f9854090eae4c9819e18ffb5a288f39be4afbe","src/unix/linux_like/emscripten/mod.rs":"5baf8617a99b77897c1f226adf4e96a9582f356e3dd389a39fc4f1a75f052046","src/unix/linux_like/linux/arch/generic/mod.rs":"c8f4d88ba7ffe044c47fc84ca1e21751bfd2446806ccabbe8729958cbb5d1ccc","src/unix/linux_like/linux/arch/mips/mod.rs":"058ebf07f8b10358af9a7f66bd96ba14df1cc6a942203da9abe8d1abab00fcbb","src/unix/linux_like/linux/arch/mod.rs":"8bc5898b03760a95dd4f124ac76ad92e5ae36b2d0644203d752ef2b37e487c3a","src/unix/linux_like/linux/arch/powerpc/mod.rs":"0e20b7e63fe39a200cb4813eeb934bc25d91a2427cd1b1d81bc2cfa4e2368ed5","src/unix/linux_like/linux/arch/sparc/mod.rs":"96ed29a86c629657c521a5e12dece22e570ef7ceee9e8f4a58c2e0782d74e01d","src/unix/linux_like/linux/gnu/b32/arm/mod.rs":"33e971a4c2b20aada29a84fcae8b374664548f6d17462c03b031086d2c7bcb04","src/unix/linux_like/linux/gnu/b32/csky/mod.rs":"34e3a077861bb12baf7c97f7e4e8e1d52d58384337039361e09887b29c4f1ffe","src/unix/linux_like/linux/gnu/b32/m68k/mod.rs":"07b89d105c91654079ed27cc373cc800aa4182f740dd5aa7a14ab756eb2968e6","src/unix/linux_like/linux/gnu/b32/mips/mod.rs":"1b0262dd90ba38e66c14404e8e07be11b9f1cc18fac1cd62db11e2b7e29dc673","src/unix/linux_like/linux/gnu/b32/mod.rs":"050fa9856b151b3e33214b570cf7527eca11eaa9145d40a1524824b5232b2500","src/unix/linux_like/linux/gnu/b32/powerpc.rs":"7c3b9aad8856408517e056bdcfde877ca9d4529b9c39ffada70b56cdf244c403","src/unix/linux_like/linux/gnu/b32/riscv32/mod.rs":"5fa3d4b5f3c32251f5aa8c1130f3b7ccf37d66091734f43245ad3678cd216e9b","src/unix/linux_like/linux/gnu/b32/sparc/mod.rs":"045c69c191b162532dd4e2a911542c31ce4fea5b800ff34834eecebd51c16565","src/unix/linux_like/linux/gnu/b32/x86/mod.rs":"6ae9d44a8eac65d537f3d173d70846d6a31a962868a8c416e59ddc6c4e3b9bdb","src/unix/linux_like/linux/gnu/b64/aarch64/ilp32.rs":"638b2d717dcf5b59a0058c3dabab43edd84de9d1d7da6e16ad0c58e863000417","src/unix/linux_like/linux/gnu/b64/aarch64/lp64.rs":"28c11e70467b2f00735d3a04c369e96e04fd44d0587ee33359f38328b0677ee6","src/unix/linux_like/linux/gnu/b64/aarch64/mod.rs":"6295789556ca344693fe9e2f7a0319429f2d579c2b912734767f2a0e15a8f5f5","src/unix/linux_like/linux/gnu/b64/loongarch64/mod.rs":"713c94cb544ddddde3076fa3f27747507ecb6becc8e89a50adaea78f8abab64c","src/unix/linux_like/linux/gnu/b64/mips64/mod.rs":"457279848453764fba944be6123c7fadd6ec9ccdfaa9e2c98d482f729a29acd5","src/unix/linux_like/linux/gnu/b64/mod.rs":"30d1286c6b53a8c1cc090921a4192d5c05c7dbe0a7ff1aa4577774f9db934515","src/unix/linux_like/linux/gnu/b64/powerpc64/mod.rs":"578fee223a62f2788352169b403d1547ae31d3e4be2806ab363b35239ed0aee2","src/unix/linux_like/linux/gnu/b64/riscv64/mod.rs":"1f6d2655bfdaf7e3c1030ede9cfd2608eaa29401e039c6a416e9a96bbccbe390","src/unix/linux_like/linux/gnu/b64/s390x.rs":"64fba1b75736ef6e22c11751c9daa3abd61af47b27da641d655e9ebb04b0f507","src/unix/linux_like/linux/gnu/b64/sparc64/mod.rs":"8c3760938b956ea8944bc9d59defe02901427e343b140f3a94f00338daa13d36","src/unix/linux_like/linux/gnu/b64/x86_64/mod.rs":"5c815f9a2b85266b4be9999fb58037ead6388f360d07241fbdc4b054e584d5ba","src/unix/linux_like/linux/gnu/b64/x86_64/not_x32.rs":"07240332eaf44996d86e37b12d71b519b499c9c9b57898441c58ac2e8c0cb6f7","src/unix/linux_like/linux/gnu/b64/x86_64/x32.rs":"914898b781dfe6b2f755730d6000223d1beea177731e180ccbfdd84a0b8b3bd9","src/unix/linux_like/linux/gnu/mod.rs":"fb6808e027f28dfb51a402f3bda4f8fca1a1e0513e19bc2ffa6278d5050ea9aa","src/unix/linux_like/linux/mod.rs":"e5bcfb00348a63f767f3cd37e8a3670f0228ca7a7cf26b5a3c5dcd996b5ad8ae","src/unix/linux_like/linux/musl/b32/arm/mod.rs":"8bb6d0da8ac855120783a09d2ae07ea84696a4c657309b2d0895d05d92be5e7b","src/unix/linux_like/linux/musl/b32/hexagon.rs":"1b0c68839dc46d00010d99e946f356d50dc4ad1c7468f99a8afe839f9542ebd0","src/unix/linux_like/linux/musl/b32/mips/mod.rs":"46e9507a4a19b3f79206cea1ff14126f27bc67740bbae7e8c2c59634d733434f","src/unix/linux_like/linux/musl/b32/mod.rs":"e0f53df7ca1dbe9b0b25ccecf1adf664227995e58d67a222a8d046d2a879dfc8","src/unix/linux_like/linux/musl/b32/powerpc.rs":"03fa0663ca77029ebd5cf99b1a8c7fab0fbbb51087dd44b939dd1b03ffae17c8","src/unix/linux_like/linux/musl/b32/riscv32/mod.rs":"07e92b7bcd186241d728305bd522110a4f30c508c15e1be02bc29ddc75665f1f","src/unix/linux_like/linux/musl/b32/x86/mod.rs":"dc90270beefe8090d2a87f926302affb0656ef0f847b6c10d332758359675a59","src/unix/linux_like/linux/musl/b64/aarch64/mod.rs":"835c57754ccacd0a8630ec14661a98b3b0bb06f13cb1586eb36d3fde3da1fd29","src/unix/linux_like/linux/musl/b64/loongarch64/mod.rs":"0be190a6aee332b19ff6f005f7ebc1ee3da61c7e0cc64aa049c4cf491027c250","src/unix/linux_like/linux/musl/b64/mips64.rs":"9ccd2d9ed31459b33435c09fa47e2cdef386149d2df013f6810e7499cbdf634a","src/unix/linux_like/linux/musl/b64/mod.rs":"be9250db1c01bc412b3e13a0d41102e58a3de28d0f59786c6cc6c2da8849bbea","src/unix/linux_like/linux/musl/b64/powerpc64.rs":"5ae8c86a5939c021ee8f298ca0c141b5f323c4e7df3b0b8d0e59d493207ed4b5","src/unix/linux_like/linux/musl/b64/riscv64/mod.rs":"f3893250f00da52e6895a39ca20947748340cab0c2176f2fbcc44f8a3d1df696","src/unix/linux_like/linux/musl/b64/s390x.rs":"9174e156d17f09de2c4975e974af40eaa3726f11d44e17077eb2e9efaf91d0a9","src/unix/linux_like/linux/musl/b64/wasm32/mod.rs":"503278ab86dfdbdd1f59188333162602744f413c937dcf132f97bc16ec03b943","src/unix/linux_like/linux/musl/b64/wasm32/wali.rs":"69e0d06289f1c86898ef3ab505e397af2acce146accb62efff654fe458b6af02","src/unix/linux_like/linux/musl/b64/x86_64/mod.rs":"32b422900fc8831c718620dcd102fd91f4c819946a2b7cdab1df9ed7db5b8577","src/unix/linux_like/linux/musl/lfs64.rs":"308c5b5c9b2f4b1ad17e5c2d02946f84ae83e8f5cb0e789d8d3e76c1923a5d31","src/unix/linux_like/linux/musl/mod.rs":"17543653f63f7c0acb96857b42ebcf5591e225322c7e3fc2de7b750712642c11","src/unix/linux_like/linux/uclibc/arm/mod.rs":"a90c7811623714e168b676aa50b162931e66ce86f8c59b0acac131afde474b2c","src/unix/linux_like/linux/uclibc/mips/mips32/mod.rs":"59493f1ab84ddbcf9dc5881c9cfc26e28d4fb5322d63f60eb7de5f9e8e329580","src/unix/linux_like/linux/uclibc/mips/mips64/mod.rs":"a35532d5ae376f403873aa566f37bff99c6c323d334f3201667e5f7200b04643","src/unix/linux_like/linux/uclibc/mips/mod.rs":"af6323cebdeeeb4f0e86ddfddb9cf21cf251f27a98a8c02feb4f80e81d7a996a","src/unix/linux_like/linux/uclibc/mod.rs":"128d586702c6aa6f1d1c56342f855d62550063ea7df97c6c16abdb01fd6bf94e","src/unix/linux_like/linux/uclibc/x86_64/l4re.rs":"059d1f15bf84e2226be6b842dc9466fc5f5bf55cdeed7a8742658ff25f05361c","src/unix/linux_like/linux/uclibc/x86_64/mod.rs":"061ca21386ad438be46e6c74f187240636c3ae351b81ca61daae56681c7f6c35","src/unix/linux_like/linux/uclibc/x86_64/other.rs":"12f8d4049862fc0c4d94b770f2d0341c1c7bf3da0619436169c12cadc4093def","src/unix/linux_like/mod.rs":"23fb0653259a860b97abec8391d8f8766d1d6a3f77908112958bc4eda60af4cd","src/unix/mod.rs":"260101219eb92ed352920fad95b46362dec95e5206a4af4ee452327d3c20e629","src/unix/newlib/aarch64/mod.rs":"ec594c54dc0e7784668d02ef737fd194dcc3f1e6ee23328d810fd2453bcb6f20","src/unix/newlib/arm/mod.rs":"a1fb6caa077c2ed69adf12da07c814ffab4c1311579f23bae2b26a40cf180665","src/unix/newlib/espidf/mod.rs":"77e8ad5b7db027b8b0b5aa5126f15bc0e35b6f3deb2339acf403c961f13df26f","src/unix/newlib/generic.rs":"182e584f14e0984934130425dd2be0781ca2c131449b3ae1734a07c72c3d43cd","src/unix/newlib/horizon/mod.rs":"ae4e76ef8c04fa8580578e33037bcf1888a8e4d688aa6f115713f644b8a11313","src/unix/newlib/mod.rs":"6400cd5566e457fcfff211216ac86a49127f190b4b863703e1e5096cc3f9c125","src/unix/newlib/powerpc/mod.rs":"4e5f804a13e907e17ebb66dcbf3b0fe6e1a611f91876aad8d8a0a69c7df0a7e8","src/unix/newlib/rtems/mod.rs":"239c90d1daf783ff95168a3fcbc5a0c3d1f9c4b5a0ef32a0e4a22b861f82713a","src/unix/newlib/vita/mod.rs":"66765c20482f03c3fcb57d57dd3f31eeeab9729e1bb188191ad53a8fc124fc5f","src/unix/nto/aarch64.rs":"73ad54ebca13454a75c7b0815e853175070a8ac2eefa338012a03e8b59f01e0c","src/unix/nto/mod.rs":"fd7d2ea12b221cde0655878ede3e983e0df514fc721e99f11d847c81803a0acd","src/unix/nto/neutrino.rs":"2cef6af9943eec590b2b0af96a63bc3169e9d2af5c7713e3360eb09a807f248a","src/unix/nto/x86_64.rs":"8da99138e210516a95d49c8c0265eada4c5f7b93d59be86224844410f5e7929b","src/unix/nuttx/mod.rs":"353dd905bddd5d7bbfa21c4367fc4a6f562a214a632e8dfd3fbdb330615342ae","src/unix/redox/mod.rs":"e6a2852f2366001ffaa4a60ff217db6f44dfad9118c64919b59da4d6bcceb93a","src/unix/solarish/compat.rs":"4346fbe9f8640868ac20b63bf3b52f883a37587e1df15ffe54fa0393a48a5588","src/unix/solarish/illumos.rs":"c6305f2555bc542dd63ac0edbc8e517f65a7a870ef9c406d0809d25c6c32276c","src/unix/solarish/mod.rs":"3d85a3033275983a0ad1386af9ca37c2611187958a5dbaa0a1b4851fbb764a92","src/unix/solarish/solaris.rs":"59466eb385fefddac9a097ee3dab919df9043d2ac4061e31fe404c2c3ff5a23f","src/unix/solarish/x86.rs":"44261c1f1b300dac9fa0dab93ec85d0c3b3c48b15bc4515b9820c9421cff7427","src/unix/solarish/x86_64.rs":"d888cd12da647f543df8cce7ae04e4a67f8647f71fd14cf7b4f968dbafcd4f5e","src/unix/solarish/x86_common.rs":"4ae02d88622f7f080f5e8cd328f13187edbc5e124fb3e05e4cf212597f6cce48","src/vxworks/aarch64.rs":"4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e","src/vxworks/arm.rs":"4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e","src/vxworks/mod.rs":"cf1adb4b57e016298a58af602f408a1f16ff639be994331e57cff94285470b82","src/vxworks/powerpc.rs":"4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e","src/vxworks/powerpc64.rs":"4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e","src/vxworks/riscv32.rs":"b1f933205800f0da00f975d53b18fe0035e075cc4613acf110a09a277dc3302a","src/vxworks/riscv64.rs":"b1f933205800f0da00f975d53b18fe0035e075cc4613acf110a09a277dc3302a","src/vxworks/x86.rs":"b1f933205800f0da00f975d53b18fe0035e075cc4613acf110a09a277dc3302a","src/vxworks/x86_64.rs":"b1f933205800f0da00f975d53b18fe0035e075cc4613acf110a09a277dc3302a","src/wasi/mod.rs":"fefb225e135277652868e8065849e4d8c6bfe4a4961614b4f34645282e1ebb95","src/wasi/p2.rs":"feecc0485eabd2c32bc5d800df6ad1b9b4d282741342fb08792f2635204e1e08","src/windows/gnu/mod.rs":"320ddf761f731c24a27e061438ddbacb0630e3ad6f3bb39f6514c28dffd8ac9f","src/windows/mod.rs":"d69f6aea427500cdf47898b87e0a5425382d46b5ef3f2f843818a62372fa72f5","src/windows/msvc/mod.rs":"7bc0f1e7e73815296cd6b63b2700e12624e9f47b5c4113a1a87fae8e64549c00","src/xous.rs":"1a83621c40248ad4d0c08e1fd4c1107d5efcbc2f4f0169538b7b4a885abedbfa","tests/const_fn.rs":"8ac3171d7bced3576a4e93f48570b3e00c553d7510ab85a7473ae3b716a812dc"},"package":"1171693293099992e19cddea4e8b849964e9846f4acee11b3948bcc337be8776"}
+\ No newline at end of file
++{"files": {".cargo_vcs_info.json": "9e3f383a0671ce544ba60129f113826026bfd39d6f9a2f7323198c88a462be44", ".git-blame-ignore-revs": "761aa385c661241fa77c15b502c361398cf500bbb9f8c3a4579b412c4c6249d7", ".release-plz.toml": "fcf2d382c4a2abd96caf9cc391b63e0c94d5832f5c48e9ab9eb4b2c847c0887c", "CHANGELOG.md": "d4d202929497332d94acf48737a5cf4a2c5f53d25c93f6734df535b8b56bc30b", "CONTRIBUTING.md": "155e7f4e96fafe9ee5c8adb5068be27a22de89a95ca9bfc7baf517b9850d20d6", "Cargo.lock": "a3b7f6b5d63de50ad386146d4ab8126e4ce71b91f086861aaf3d7c2cd3a1426e", "Cargo.toml": "08c008bd409b6862f7723b927d7cb50e83e093b336b306687f5b0356230cead2", "Cargo.toml.orig": "647a491d157e1afbeea48f635be858ab1b1c9c2064c24d15a1e30808c6d7bd35", "LICENSE-APACHE": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a", "LICENSE-MIT": "a8d47ff51ca256f56a8932dba07660672dbfe3004257ca8de708aac1415937a1", "README.md": "a198be444453fe0b24d4fb6a8b732eb9e6dc77ebcfd119fca95b97b45c77c77a", "build.rs": "b3115efae7f0487ed04d36bfaa0d6449db6448356a9cbeb3e10821d79008720d", "rustfmt.toml": "e9321ff995242e8cb0a4984254f0748ef11a89ca4618cab8f047ee59a88768e7", "src/fuchsia/aarch64.rs": "9cd032304a54321a8926cf3157194c5d79a2491b1b974a05fe71729fa43b5738", "src/fuchsia/mod.rs": "d783900ea7e696ed25bb2f04c8714b0afdff0877d46418a29025c61e535254cd", "src/fuchsia/riscv64.rs": "f2aba92cb88480bd72a9eb7a41aafc63c5db293b93113fa973fe5ab1fd819e29", "src/fuchsia/x86_64.rs": "a6de0a3c9a45e7af2f0bac96d73da6a7cfb8c003335183016b08a25e2acab65b", "src/hermit.rs": "f150c2882a4d8e510259697ff7685899e74bfabf84e5d37103c54b4387093775", "src/lib.rs": "4d32db18cf39bf8b36fa0688bf2a7d2c9b3bb4c9664a1583fc203f008f8045a2", "src/macros.rs": "9697bfcb664007468f7e5a4bdb754ab554a5c12273d7576d2d78392f61d19e15", "src/primitives.rs": "0096ec3f32454a630fd1e78fa5aaaa033f107c1394a0d7b8dfe92594339a547b", "src/psp.rs": "6ab902bad5bd5c97a6e300b354820602703f1f802071a8b7a935c42444c587ca", "src/sgx.rs": "964d6af358f5c85f948275090e5a7854e0169c43b5c338070b6a4cd156ebc9e6", "src/solid/aarch64.rs": "4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e", "src/solid/arm.rs": "4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e", "src/solid/mod.rs": "a2045b6089af91bd533a666773d3b99fcfaf03da7a06869382969eed059b0e4c", "src/switch.rs": "bfdcaf0268d79652ee52c1a2837959b8253e6a4124fd94dda82727ecc442a758", "src/teeos/mod.rs": "2cca695904dacb13c063fb6463a6e0b2bb47ed86be0fdc9476938297441d7795", "src/trusty.rs": "c5012aeefc4307c11374f062ad1d530e2ec556e7069e375de326a49c77f65e22", "src/unix/aix/mod.rs": "abe29e873d9492f46bef8a7596469ad4698af087ab29619c059221b0f7c0fa91", "src/unix/aix/powerpc64.rs": "6e1d1f50a58a8cb15f7a11cabfa8d7d2c0c5078d328d53c5fcf46bc706cf1a4d", "src/unix/bsd/apple/b32/mod.rs": "76a5dce8b65aeb51626bb7316ab200015021dd87bddde86185cb424118c78528", "src/unix/bsd/apple/b64/aarch64/mod.rs": "3ce904e72d78e6465ca52fd3905208fbb8cbc49a1695a708b12dff2ee01f4d36", "src/unix/bsd/apple/b64/mod.rs": "75a313514fd3b9f21391ddb77f965386c36e99bbf4a4c952445e4e8d50bb16b5", "src/unix/bsd/apple/b64/x86_64/mod.rs": "996ae7cd5a730ec595fde9a02add78f9417086204538abb80f6d24c80a0b649b", "src/unix/bsd/apple/mod.rs": "109b57bb1db39a37c1ca90eeaadcc9637c4bf31d0df0bb53aab0778eb903750b", "src/unix/bsd/freebsdlike/dragonfly/errno.rs": "07b19390b9ae8f541ac35fd4e14685d639b95152d6d7a33814bb749b8b927298", "src/unix/bsd/freebsdlike/dragonfly/mod.rs": "c542f3f05e161fb77f50d718fa7e52ce9f2dcc9dcb3a615d8d604a0a520febfe", "src/unix/bsd/freebsdlike/freebsd/aarch64.rs": "f796f19f04336225de81151897387ce5e975a67510f400cdcc8f0048d5d484bb", "src/unix/bsd/freebsdlike/freebsd/arm.rs": "f3e3410bbca7c6aa591f06b7215645da4ccceab82b9c478277eeffdf9310f92a", "src/unix/bsd/freebsdlike/freebsd/freebsd11/b32.rs": "8d9bef35f3e490d04755a59a99ad054ef20498beff979ae8b14acbec1097318a", "src/unix/bsd/freebsdlike/freebsd/freebsd11/b64.rs": "45f718f556a8368f282944d9a14afae7261827ec4838d26719290466efc4f023", "src/unix/bsd/freebsdlike/freebsd/freebsd11/mod.rs": "b1ddf661a8a331184e6b1134307ea25454547472a21c05752200b07002110171", "src/unix/bsd/freebsdlike/freebsd/freebsd12/mod.rs": "ed37853a6c281746424f7c2109122312faf2b81f862280918955a94906b79189", "src/unix/bsd/freebsdlike/freebsd/freebsd12/x86_64.rs": "64c4bd82eaf30a2681417f982fce28de7d1b0743bfaa14004692a56cee44be21", "src/unix/bsd/freebsdlike/freebsd/freebsd13/mod.rs": "ac75d9267ab2f0c3432d4d173d417dd05306a8c63af6c050c67ed35a9c68dd6f", "src/unix/bsd/freebsdlike/freebsd/freebsd13/x86_64.rs": "64c4bd82eaf30a2681417f982fce28de7d1b0743bfaa14004692a56cee44be21", "src/unix/bsd/freebsdlike/freebsd/freebsd14/mod.rs": "7cac2e91eb6afde7babbfd5dd593e038a1b711929c7d48110f3b430f921c478a", "src/unix/bsd/freebsdlike/freebsd/freebsd14/x86_64.rs": "d6e66809e109dc779efe5584b79d34fcd6fdba91973a415d64ae66f481f45940", "src/unix/bsd/freebsdlike/freebsd/freebsd15/mod.rs": "23f496d5e30ed99449efac7d2d28e6b72faee7ba6445a0ea92a0f9b44cc80fe1", "src/unix/bsd/freebsdlike/freebsd/freebsd15/x86_64.rs": "d6e66809e109dc779efe5584b79d34fcd6fdba91973a415d64ae66f481f45940", "src/unix/bsd/freebsdlike/freebsd/mod.rs": "90ef01d22cbb53af4f7fe88dae51fc04db01826d4dca4be5915c6a2c7a50c328", "src/unix/bsd/freebsdlike/freebsd/powerpc.rs": "bfc3ac2f4e1d2136589181db2297c6f9d279fd160f00fe2c42bc0820978d7934", "src/unix/bsd/freebsdlike/freebsd/powerpc64.rs": "4843e5303d6c29756c5b62f2ceb4134e0d72a5f99c8a0b10892b3bb916e6dae3", "src/unix/bsd/freebsdlike/freebsd/riscv64.rs": "94538d52efac5c8fea0c3ed30c1c9451820dd396f028b4159b908c1898987bc3", "src/unix/bsd/freebsdlike/freebsd/x86.rs": "3a2c28e6cbfa27a4a663a85a2cd2bc3307613670f815c99650850629ab05150d", "src/unix/bsd/freebsdlike/freebsd/x86_64/mod.rs": "f0af70c5b623224b3348ae9832272cb4940a45124e55fd2d0b0202930e4cf244", "src/unix/bsd/freebsdlike/mod.rs": "2e7188c40dcbf437da93184184108d1f840b82bb04457d8002bf1a49f7f9f81c", "src/unix/bsd/mod.rs": "c7322c39fadbd78cc957ea51a7c6490d07a630a6ae07ca397bd1e611adc5095a", "src/unix/bsd/netbsdlike/mod.rs": "345a3aca0dd0349c88ccb4b89857304e7523661f2dbf7761182123596d5e3eb9", "src/unix/bsd/netbsdlike/netbsd/aarch64.rs": "bd36c92099db501350fb8617414d1fea89a6bb12867498e1821167813ab70a02", "src/unix/bsd/netbsdlike/netbsd/arm.rs": "237beaefcb12e7be9ccd4fef6e3be7db79ee63d4fc714e5eaf6084d4826d6fa2", "src/unix/bsd/netbsdlike/netbsd/mips.rs": "d1ff114b268358e5d35e7b83d85f414d16b81ef39eeb1802682ff4424b102bc7", "src/unix/bsd/netbsdlike/netbsd/mod.rs": "851007845bd8743cea35ce91a850d28c6aa2a0d543ac6946476c1d13ed4a2684", "src/unix/bsd/netbsdlike/netbsd/powerpc.rs": "94494f348f011c6135d301944696c5b5a09979f5892abee4c8fdee1056388b94", "src/unix/bsd/netbsdlike/netbsd/riscv64.rs": "f3778a9bd2ba923220537d167cfb10b91580ffbf583100789a46d2807f7a1e3e", "src/unix/bsd/netbsdlike/netbsd/sparc64.rs": "d50816e830225779ac9e9a55a7e3e097882153d72987061d76a96ee736c8af9c", "src/unix/bsd/netbsdlike/netbsd/x86.rs": "307a9aba68071b0589e459269ef10845c302599b0fd2b0ee7b5c480177904e89", "src/unix/bsd/netbsdlike/netbsd/x86_64.rs": "4ced76b3640d465f6dead8beb5e947b3ce8297884260fb943d5f417d985dbafc", "src/unix/bsd/netbsdlike/openbsd/aarch64.rs": "8be46bc5151ec1081feaf7685c18507f766f2501a2b5d35107db3babb896395a", "src/unix/bsd/netbsdlike/openbsd/arm.rs": "f81c71e1cfe436b8f32cfe064991019cce0c83627f0d9c3a30d68691d71c7449", "src/unix/bsd/netbsdlike/openbsd/mips64.rs": "bee7664d88f8451ae22552fc0721b6b6a6dee2493cc42bcb9829c1e47e4b05f5", "src/unix/bsd/netbsdlike/openbsd/mod.rs": "b3b6c85aa7dba31aa80c4668b2758a03feb43ea18f7a6f2dec183e00986e3709", "src/unix/bsd/netbsdlike/openbsd/powerpc.rs": "f81c71e1cfe436b8f32cfe064991019cce0c83627f0d9c3a30d68691d71c7449", "src/unix/bsd/netbsdlike/openbsd/powerpc64.rs": "9bd3813fe2fd7ca66ee8d70d13887b4595fb8c9e819691a657ddf108ed9cafbf", "src/unix/bsd/netbsdlike/openbsd/riscv64.rs": "7fb322e9f5425456dd53eb07de9fc84097ef35295802e8f50a7fb3c7e1f89ac6", "src/unix/bsd/netbsdlike/openbsd/sparc64.rs": "8d4c5a4cae63e09e1c156164ddc82e0fc77926841d4d4e419dd2e7a7b7145f58", "src/unix/bsd/netbsdlike/openbsd/x86.rs": "26c1b7e7f7799c5e434126c6c0ddd45f40939cae4151f8ce0a7a1836f83ac56a", "src/unix/bsd/netbsdlike/openbsd/x86_64.rs": "caaf5a547299500d8a7b0a17214215916a53819e19cbc6ac392bef30f5982906", "src/unix/cygwin/mod.rs": "70a44e600a59a2003088ac517076183068b5ec84159f43c1bf05ba880aa1cfe4", "src/unix/haiku/b32.rs": "c3f8678ceee65a3094d8133b0d1a94470860e0b1867977f0569c52c5a20e039f", "src/unix/haiku/b64.rs": "f97ce9225f4710893dab03ab3e13bc62152cc84f90c597ec88f6dc1f4c27d242", "src/unix/haiku/mod.rs": "211b4b9239a3f73f94c94ac30c96f01838d776f2df4e42e887e167b06c45446f", "src/unix/haiku/native.rs": "4f52d13ba164c6c4d138de445541d2358ca5c4f69898efd6c15c506c2f341a6f", "src/unix/haiku/x86_64.rs": "09f2384474b2fcb7d0febb0e9e802610a627cadca29dc0e60eb4cfe15552f978", "src/unix/hurd/b32.rs": "501f426f7aeb60acf4119064100dd94bbdfebff2cec785428708059d853dc123", "src/unix/hurd/b64.rs": "b9b2082e721a5ec89ba55fd5a16bbffcc8a05ca7cef6dbfbd78aff0806cb931f", "src/unix/hurd/mod.rs": "e3dbad685a3d29dae510b438d29f692f6a8fdf37a422924915a36a3e854b1219", "src/unix/linux_like/android/b32/arm.rs": "e68f6a15870a22e0383770ed1a5bd443d4c2ed237d16fea338c5da1ab9bf1fe3", "src/unix/linux_like/android/b32/mod.rs": "5b10ebe56435d868846ae720bb9081cf814486722b5c13520fd4ef50a7ecfb58", "src/unix/linux_like/android/b32/x86/mod.rs": "d21913dab5d6b482106087297fbb643fd7cd3f83c01d56c1a1f8203dc57d8c16", "src/unix/linux_like/android/b64/aarch64/mod.rs": "5ae558c8af8187155fa0ae8b8776459a60c08ce152f25d137f845d8371673b7e", "src/unix/linux_like/android/b64/mod.rs": "ddc2932b78be316904019cd6209baccb1ce0732ad4332fecd99a7db0b5bf963a", "src/unix/linux_like/android/b64/riscv64/mod.rs": "d826b0e4f078b8ea228f2244659fc700b95aa8a7ba87caef0bc34f54c9defd2c", "src/unix/linux_like/android/b64/x86_64/mod.rs": "7449054f5815b6d9f734867d97d60a4eff13c809fbf32272a40826137bd6469c", "src/unix/linux_like/android/mod.rs": "983d08c419c3489bf83c283d2cd0c1f6312c8d0ff8bbc31b8c40259bbf3e1772", "src/unix/linux_like/emscripten/lfs64.rs": "3a1d1779bcf16525a578a68237f9854090eae4c9819e18ffb5a288f39be4afbe", "src/unix/linux_like/emscripten/mod.rs": "5baf8617a99b77897c1f226adf4e96a9582f356e3dd389a39fc4f1a75f052046", "src/unix/linux_like/linux/arch/generic/mod.rs": "c8f4d88ba7ffe044c47fc84ca1e21751bfd2446806ccabbe8729958cbb5d1ccc", "src/unix/linux_like/linux/arch/mips/mod.rs": "058ebf07f8b10358af9a7f66bd96ba14df1cc6a942203da9abe8d1abab00fcbb", "src/unix/linux_like/linux/arch/mod.rs": "8bc5898b03760a95dd4f124ac76ad92e5ae36b2d0644203d752ef2b37e487c3a", "src/unix/linux_like/linux/arch/powerpc/mod.rs": "0e20b7e63fe39a200cb4813eeb934bc25d91a2427cd1b1d81bc2cfa4e2368ed5", "src/unix/linux_like/linux/arch/sparc/mod.rs": "96ed29a86c629657c521a5e12dece22e570ef7ceee9e8f4a58c2e0782d74e01d", "src/unix/linux_like/linux/gnu/b32/arm/mod.rs": "33e971a4c2b20aada29a84fcae8b374664548f6d17462c03b031086d2c7bcb04", "src/unix/linux_like/linux/gnu/b32/csky/mod.rs": "34e3a077861bb12baf7c97f7e4e8e1d52d58384337039361e09887b29c4f1ffe", "src/unix/linux_like/linux/gnu/b32/m68k/mod.rs": "07b89d105c91654079ed27cc373cc800aa4182f740dd5aa7a14ab756eb2968e6", "src/unix/linux_like/linux/gnu/b32/mips/mod.rs": "1b0262dd90ba38e66c14404e8e07be11b9f1cc18fac1cd62db11e2b7e29dc673", "src/unix/linux_like/linux/gnu/b32/mod.rs": "050fa9856b151b3e33214b570cf7527eca11eaa9145d40a1524824b5232b2500", "src/unix/linux_like/linux/gnu/b32/powerpc.rs": "7c3b9aad8856408517e056bdcfde877ca9d4529b9c39ffada70b56cdf244c403", "src/unix/linux_like/linux/gnu/b32/riscv32/mod.rs": "5fa3d4b5f3c32251f5aa8c1130f3b7ccf37d66091734f43245ad3678cd216e9b", "src/unix/linux_like/linux/gnu/b32/sparc/mod.rs": "045c69c191b162532dd4e2a911542c31ce4fea5b800ff34834eecebd51c16565", "src/unix/linux_like/linux/gnu/b32/x86/mod.rs": "6ae9d44a8eac65d537f3d173d70846d6a31a962868a8c416e59ddc6c4e3b9bdb", "src/unix/linux_like/linux/gnu/b64/aarch64/ilp32.rs": "638b2d717dcf5b59a0058c3dabab43edd84de9d1d7da6e16ad0c58e863000417", "src/unix/linux_like/linux/gnu/b64/aarch64/lp64.rs": "28c11e70467b2f00735d3a04c369e96e04fd44d0587ee33359f38328b0677ee6", "src/unix/linux_like/linux/gnu/b64/aarch64/mod.rs": "6295789556ca344693fe9e2f7a0319429f2d579c2b912734767f2a0e15a8f5f5", "src/unix/linux_like/linux/gnu/b64/loongarch64/mod.rs": "713c94cb544ddddde3076fa3f27747507ecb6becc8e89a50adaea78f8abab64c", "src/unix/linux_like/linux/gnu/b64/mips64/mod.rs": "457279848453764fba944be6123c7fadd6ec9ccdfaa9e2c98d482f729a29acd5", "src/unix/linux_like/linux/gnu/b64/mod.rs": "30d1286c6b53a8c1cc090921a4192d5c05c7dbe0a7ff1aa4577774f9db934515", "src/unix/linux_like/linux/gnu/b64/powerpc64/mod.rs": "578fee223a62f2788352169b403d1547ae31d3e4be2806ab363b35239ed0aee2", "src/unix/linux_like/linux/gnu/b64/riscv64/mod.rs": "1f6d2655bfdaf7e3c1030ede9cfd2608eaa29401e039c6a416e9a96bbccbe390", "src/unix/linux_like/linux/gnu/b64/s390x.rs": "64fba1b75736ef6e22c11751c9daa3abd61af47b27da641d655e9ebb04b0f507", "src/unix/linux_like/linux/gnu/b64/sparc64/mod.rs": "8c3760938b956ea8944bc9d59defe02901427e343b140f3a94f00338daa13d36", "src/unix/linux_like/linux/gnu/b64/x86_64/mod.rs": "5c815f9a2b85266b4be9999fb58037ead6388f360d07241fbdc4b054e584d5ba", "src/unix/linux_like/linux/gnu/b64/x86_64/not_x32.rs": "07240332eaf44996d86e37b12d71b519b499c9c9b57898441c58ac2e8c0cb6f7", "src/unix/linux_like/linux/gnu/b64/x86_64/x32.rs": "914898b781dfe6b2f755730d6000223d1beea177731e180ccbfdd84a0b8b3bd9", "src/unix/linux_like/linux/gnu/mod.rs": "0e7752c016da8160ee62a8f756870aaae9d903ff62e476455fb9e1af01eee262", "src/unix/linux_like/linux/mod.rs": "e5bcfb00348a63f767f3cd37e8a3670f0228ca7a7cf26b5a3c5dcd996b5ad8ae", "src/unix/linux_like/linux/musl/b32/arm/mod.rs": "8bb6d0da8ac855120783a09d2ae07ea84696a4c657309b2d0895d05d92be5e7b", "src/unix/linux_like/linux/musl/b32/hexagon.rs": "1b0c68839dc46d00010d99e946f356d50dc4ad1c7468f99a8afe839f9542ebd0", "src/unix/linux_like/linux/musl/b32/mips/mod.rs": "46e9507a4a19b3f79206cea1ff14126f27bc67740bbae7e8c2c59634d733434f", "src/unix/linux_like/linux/musl/b32/mod.rs": "e0f53df7ca1dbe9b0b25ccecf1adf664227995e58d67a222a8d046d2a879dfc8", "src/unix/linux_like/linux/musl/b32/powerpc.rs": "03fa0663ca77029ebd5cf99b1a8c7fab0fbbb51087dd44b939dd1b03ffae17c8", "src/unix/linux_like/linux/musl/b32/riscv32/mod.rs": "07e92b7bcd186241d728305bd522110a4f30c508c15e1be02bc29ddc75665f1f", "src/unix/linux_like/linux/musl/b32/x86/mod.rs": "dc90270beefe8090d2a87f926302affb0656ef0f847b6c10d332758359675a59", "src/unix/linux_like/linux/musl/b64/aarch64/mod.rs": "835c57754ccacd0a8630ec14661a98b3b0bb06f13cb1586eb36d3fde3da1fd29", "src/unix/linux_like/linux/musl/b64/loongarch64/mod.rs": "0be190a6aee332b19ff6f005f7ebc1ee3da61c7e0cc64aa049c4cf491027c250", "src/unix/linux_like/linux/musl/b64/mips64.rs": "9ccd2d9ed31459b33435c09fa47e2cdef386149d2df013f6810e7499cbdf634a", "src/unix/linux_like/linux/musl/b64/mod.rs": "be9250db1c01bc412b3e13a0d41102e58a3de28d0f59786c6cc6c2da8849bbea", "src/unix/linux_like/linux/musl/b64/powerpc64.rs": "5ae8c86a5939c021ee8f298ca0c141b5f323c4e7df3b0b8d0e59d493207ed4b5", "src/unix/linux_like/linux/musl/b64/riscv64/mod.rs": "f3893250f00da52e6895a39ca20947748340cab0c2176f2fbcc44f8a3d1df696", "src/unix/linux_like/linux/musl/b64/s390x.rs": "9174e156d17f09de2c4975e974af40eaa3726f11d44e17077eb2e9efaf91d0a9", "src/unix/linux_like/linux/musl/b64/wasm32/mod.rs": "503278ab86dfdbdd1f59188333162602744f413c937dcf132f97bc16ec03b943", "src/unix/linux_like/linux/musl/b64/wasm32/wali.rs": "69e0d06289f1c86898ef3ab505e397af2acce146accb62efff654fe458b6af02", "src/unix/linux_like/linux/musl/b64/x86_64/mod.rs": "32b422900fc8831c718620dcd102fd91f4c819946a2b7cdab1df9ed7db5b8577", "src/unix/linux_like/linux/musl/lfs64.rs": "308c5b5c9b2f4b1ad17e5c2d02946f84ae83e8f5cb0e789d8d3e76c1923a5d31", "src/unix/linux_like/linux/musl/mod.rs": "17543653f63f7c0acb96857b42ebcf5591e225322c7e3fc2de7b750712642c11", "src/unix/linux_like/linux/uclibc/arm/mod.rs": "a90c7811623714e168b676aa50b162931e66ce86f8c59b0acac131afde474b2c", "src/unix/linux_like/linux/uclibc/mips/mips32/mod.rs": "59493f1ab84ddbcf9dc5881c9cfc26e28d4fb5322d63f60eb7de5f9e8e329580", "src/unix/linux_like/linux/uclibc/mips/mips64/mod.rs": "a35532d5ae376f403873aa566f37bff99c6c323d334f3201667e5f7200b04643", "src/unix/linux_like/linux/uclibc/mips/mod.rs": "af6323cebdeeeb4f0e86ddfddb9cf21cf251f27a98a8c02feb4f80e81d7a996a", "src/unix/linux_like/linux/uclibc/mod.rs": "128d586702c6aa6f1d1c56342f855d62550063ea7df97c6c16abdb01fd6bf94e", "src/unix/linux_like/linux/uclibc/x86_64/l4re.rs": "059d1f15bf84e2226be6b842dc9466fc5f5bf55cdeed7a8742658ff25f05361c", "src/unix/linux_like/linux/uclibc/x86_64/mod.rs": "061ca21386ad438be46e6c74f187240636c3ae351b81ca61daae56681c7f6c35", "src/unix/linux_like/linux/uclibc/x86_64/other.rs": "12f8d4049862fc0c4d94b770f2d0341c1c7bf3da0619436169c12cadc4093def", "src/unix/linux_like/mod.rs": "23fb0653259a860b97abec8391d8f8766d1d6a3f77908112958bc4eda60af4cd", "src/unix/mod.rs": "260101219eb92ed352920fad95b46362dec95e5206a4af4ee452327d3c20e629", "src/unix/newlib/aarch64/mod.rs": "ec594c54dc0e7784668d02ef737fd194dcc3f1e6ee23328d810fd2453bcb6f20", "src/unix/newlib/arm/mod.rs": "a1fb6caa077c2ed69adf12da07c814ffab4c1311579f23bae2b26a40cf180665", "src/unix/newlib/espidf/mod.rs": "77e8ad5b7db027b8b0b5aa5126f15bc0e35b6f3deb2339acf403c961f13df26f", "src/unix/newlib/generic.rs": "182e584f14e0984934130425dd2be0781ca2c131449b3ae1734a07c72c3d43cd", "src/unix/newlib/horizon/mod.rs": "ae4e76ef8c04fa8580578e33037bcf1888a8e4d688aa6f115713f644b8a11313", "src/unix/newlib/mod.rs": "6400cd5566e457fcfff211216ac86a49127f190b4b863703e1e5096cc3f9c125", "src/unix/newlib/powerpc/mod.rs": "4e5f804a13e907e17ebb66dcbf3b0fe6e1a611f91876aad8d8a0a69c7df0a7e8", "src/unix/newlib/rtems/mod.rs": "239c90d1daf783ff95168a3fcbc5a0c3d1f9c4b5a0ef32a0e4a22b861f82713a", "src/unix/newlib/vita/mod.rs": "66765c20482f03c3fcb57d57dd3f31eeeab9729e1bb188191ad53a8fc124fc5f", "src/unix/nto/aarch64.rs": "73ad54ebca13454a75c7b0815e853175070a8ac2eefa338012a03e8b59f01e0c", "src/unix/nto/mod.rs": "fd7d2ea12b221cde0655878ede3e983e0df514fc721e99f11d847c81803a0acd", "src/unix/nto/neutrino.rs": "2cef6af9943eec590b2b0af96a63bc3169e9d2af5c7713e3360eb09a807f248a", "src/unix/nto/x86_64.rs": "8da99138e210516a95d49c8c0265eada4c5f7b93d59be86224844410f5e7929b", "src/unix/nuttx/mod.rs": "353dd905bddd5d7bbfa21c4367fc4a6f562a214a632e8dfd3fbdb330615342ae", "src/unix/redox/mod.rs": "e6a2852f2366001ffaa4a60ff217db6f44dfad9118c64919b59da4d6bcceb93a", "src/unix/solarish/compat.rs": "4346fbe9f8640868ac20b63bf3b52f883a37587e1df15ffe54fa0393a48a5588", "src/unix/solarish/illumos.rs": "c6305f2555bc542dd63ac0edbc8e517f65a7a870ef9c406d0809d25c6c32276c", "src/unix/solarish/mod.rs": "3d85a3033275983a0ad1386af9ca37c2611187958a5dbaa0a1b4851fbb764a92", "src/unix/solarish/solaris.rs": "59466eb385fefddac9a097ee3dab919df9043d2ac4061e31fe404c2c3ff5a23f", "src/unix/solarish/x86.rs": "44261c1f1b300dac9fa0dab93ec85d0c3b3c48b15bc4515b9820c9421cff7427", "src/unix/solarish/x86_64.rs": "d888cd12da647f543df8cce7ae04e4a67f8647f71fd14cf7b4f968dbafcd4f5e", "src/unix/solarish/x86_common.rs": "4ae02d88622f7f080f5e8cd328f13187edbc5e124fb3e05e4cf212597f6cce48", "src/vxworks/aarch64.rs": "4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e", "src/vxworks/arm.rs": "4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e", "src/vxworks/mod.rs": "cf1adb4b57e016298a58af602f408a1f16ff639be994331e57cff94285470b82", "src/vxworks/powerpc.rs": "4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e", "src/vxworks/powerpc64.rs": "4d4236500f98858fc249f3b6858af5009851c8c582031926b8195b2646f7da5e", "src/vxworks/riscv32.rs": "b1f933205800f0da00f975d53b18fe0035e075cc4613acf110a09a277dc3302a", "src/vxworks/riscv64.rs": "b1f933205800f0da00f975d53b18fe0035e075cc4613acf110a09a277dc3302a", "src/vxworks/x86.rs": "b1f933205800f0da00f975d53b18fe0035e075cc4613acf110a09a277dc3302a", "src/vxworks/x86_64.rs": "b1f933205800f0da00f975d53b18fe0035e075cc4613acf110a09a277dc3302a", "src/wasi/mod.rs": "fefb225e135277652868e8065849e4d8c6bfe4a4961614b4f34645282e1ebb95", "src/wasi/p2.rs": "feecc0485eabd2c32bc5d800df6ad1b9b4d282741342fb08792f2635204e1e08", "src/windows/gnu/mod.rs": "320ddf761f731c24a27e061438ddbacb0630e3ad6f3bb39f6514c28dffd8ac9f", "src/windows/mod.rs": "d69f6aea427500cdf47898b87e0a5425382d46b5ef3f2f843818a62372fa72f5", "src/windows/msvc/mod.rs": "7bc0f1e7e73815296cd6b63b2700e12624e9f47b5c4113a1a87fae8e64549c00", "src/xous.rs": "1a83621c40248ad4d0c08e1fd4c1107d5efcbc2f4f0169538b7b4a885abedbfa", "tests/const_fn.rs": "8ac3171d7bced3576a4e93f48570b3e00c553d7510ab85a7473ae3b716a812dc"}, "package": "1171693293099992e19cddea4e8b849964e9846f4acee11b3948bcc337be8776"}
+\ No newline at end of file
+diff --git a/rust/vendor/libc-0.2.174/src/unix/linux_like/linux/gnu/mod.rs b/rust/vendor/libc-0.2.174/src/unix/linux_like/linux/gnu/mod.rs
+--- a/rust/vendor/libc-0.2.174/src/unix/linux_like/linux/gnu/mod.rs
++++ b/rust/vendor/libc-0.2.174/src/unix/linux_like/linux/gnu/mod.rs
+@@ -1,7 +1,11 @@
+ use crate::off64_t;
+ use crate::prelude::*;
+
+-pub type pthread_t = c_ulong;
++// Fil-C: pizfix's headers define `pthread_t` as `void *`, and under the
++// Fil-C ABI pointer-typed values cross FFI boundaries as flight-pointer
++// pairs, so the integer typedef from upstream would corrupt the thread
++// handle at every pthread_* call site.
++pub type pthread_t = *mut crate::c_void;
+ pub type __priority_which_t = c_uint;
+ pub type __rlimit_resource_t = c_uint;
+ pub type Lmid_t = c_long;
