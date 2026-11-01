@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021-2022 Apple Inc. All rights reserved.
+ * Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,16 +41,16 @@ PAS_BEGIN_EXTERN_C;
 #define JIT_SMALL_SEGREGATED_MIN_ALIGN (1u << JIT_SMALL_SEGREGATED_MIN_ALIGN_SHIFT)
 #define JIT_SMALL_BITFIT_MIN_ALIGN_SHIFT 2u
 #define JIT_SMALL_BITFIT_MIN_ALIGN (1u << JIT_SMALL_BITFIT_MIN_ALIGN_SHIFT)
-#define JIT_SMALL_PAGE_SIZE 16384u
-#define JIT_SMALL_GRANULE_SIZE 16384u
+/* Page and granule sizes have to be at least the system page size, since page
+   boundaries are aligned to pas_page_malloc_alignment() and libpas asserts that
+   the page size is a multiple of that alignment.  This mirrors
+   VERSE_HEAP_SMALL_SEGREGATED_PAGE_SIZE. */
+#define JIT_SMALL_PAGE_SIZE PAS_MAX_CONST(16384u, PAS_SYSTEM_PAGE_SIZE)
+#define JIT_SMALL_GRANULE_SIZE PAS_MAX_CONST(16384u, PAS_SYSTEM_PAGE_SIZE)
 #define JIT_MEDIUM_BITFIT_MIN_ALIGN_SHIFT 8u
 #define JIT_MEDIUM_BITFIT_MIN_ALIGN (1u << JIT_MEDIUM_BITFIT_MIN_ALIGN_SHIFT)
-#define JIT_MEDIUM_PAGE_SIZE 131072u
-#if PAS_ARM64
-#define JIT_MEDIUM_GRANULE_SIZE 16384u
-#else
-#define JIT_MEDIUM_GRANULE_SIZE 4096u
-#endif
+#define JIT_MEDIUM_PAGE_SIZE PAS_MAX_CONST(131072u, PAS_SYSTEM_PAGE_SIZE)
+#define JIT_MEDIUM_GRANULE_SIZE PAS_MAX_CONST(4096u, PAS_SYSTEM_PAGE_SIZE)
 
 PAS_API void jit_heap_config_activate(void);
 

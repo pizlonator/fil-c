@@ -526,7 +526,7 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
     asm volatile("mrs %0, ctr_el0" : "=r"(ctr));
 
     for (index = module->jit_bases.size; index--;) {
-        uintptr_t start = (uintptr_t)module->jit_bases[index];
+        uintptr_t start = (uintptr_t)module->jit_bases.array[index];
         size_t size = jit_heap_get_size((void*)start);
         uintptr_t end = start + size;
         
