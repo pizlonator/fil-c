@@ -6992,13 +6992,9 @@ filc_ptr filc_native_LLVMGetUndef(filc_thread* my_thread, filc_ptr p0)
 int filc_native_LLVMGetUndefMaskElem(filc_thread* my_thread)
 {
     ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
     int result_raw;
-    pas_lock_lock(&context->lock);
     result_raw = api->LLVMGetUndefMaskElem();
     int result = (int)result_raw;
-    pas_lock_unlock(&context->lock);
     return result;
 }
 
@@ -7458,13 +7454,9 @@ filc_ptr filc_native_LLVMIntrinsicGetType(filc_thread* my_thread, filc_ptr p0, u
 bool filc_native_LLVMIntrinsicIsOverloaded(filc_thread* my_thread, unsigned p0)
 {
     ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
     LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
     result_raw = api->LLVMIntrinsicIsOverloaded(p0);
     bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
     return result;
 }
 
@@ -8871,13 +8863,9 @@ bool filc_native_LLVMIsLiteralStruct(filc_thread* my_thread, filc_ptr p0)
 bool filc_native_LLVMIsMultithreaded(filc_thread* my_thread)
 {
     ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
     LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
     result_raw = api->LLVMIsMultithreaded();
     bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
     return result;
 }
 
@@ -9040,8 +9028,6 @@ filc_ptr filc_native_LLVMLabelTypeInContext(filc_thread* my_thread, filc_ptr p0)
 unsigned filc_native_LLVMLookupIntrinsicID(filc_thread* my_thread, filc_ptr p0, size_t p1)
 {
     ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
     const char* a0;
     if (!filc_ptr_ptr(p0)) {
         FILC_CHECK(p1 == 0, NULL, "LLVMLookupIntrinsicID: null string with nonzero length.");
@@ -9051,10 +9037,8 @@ unsigned filc_native_LLVMLookupIntrinsicID(filc_thread* my_thread, filc_ptr p0, 
         a0 = (const char*)filc_ptr_ptr(p0);
     }
     unsigned result_raw;
-    pas_lock_lock(&context->lock);
     result_raw = api->LLVMLookupIntrinsicID(a0, p1);
     unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
     return result;
 }
 
