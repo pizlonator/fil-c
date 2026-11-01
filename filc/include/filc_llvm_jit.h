@@ -552,7 +552,6 @@ LLVMTypeRef LLVMInt32TypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMInt64TypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMInt8TypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMIntTypeInContext(LLVMContextRef C, unsigned NumBits);
-char *LLVMIntrinsicCopyOverloadedName(unsigned ID, LLVMTypeRef *ParamTypes, __SIZE_TYPE__ ParamCount, __SIZE_TYPE__ *NameLength);
 char *LLVMIntrinsicCopyOverloadedName2(LLVMModuleRef Mod, unsigned ID, LLVMTypeRef *ParamTypes, __SIZE_TYPE__ ParamCount, __SIZE_TYPE__ *NameLength);
 const char *LLVMIntrinsicGetName(unsigned ID, __SIZE_TYPE__ *NameLength);
 LLVMTypeRef LLVMIntrinsicGetType(LLVMContextRef Ctx, unsigned ID, LLVMTypeRef *ParamTypes, __SIZE_TYPE__ ParamCount);

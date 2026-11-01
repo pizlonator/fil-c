@@ -159,16 +159,16 @@ static void builder_adopt_module(filc_thread* my_thread, filc_llvm_jit_object* b
     PAS_ASSERT(module_obj);
     PAS_ASSERT(builder->kind == FILC_LLVM_JIT_KIND_BUILDER);
     PAS_ASSERT(module_obj->kind == FILC_LLVM_JIT_KIND_MODULE);
-    filc_llvm_jit_builder_object* b = (filc_llvm_jit_builder_object*)builder;
+    filc_llvm_jit_builder_object* builder_obj = (filc_llvm_jit_builder_object*)builder;
 
-    if (b->base.module) {
-        FILC_CHECK(&b->base.module->base == module_obj, NULL,
+    if (builder_obj->base.module) {
+        FILC_CHECK(&builder_obj->base.module->base == module_obj, NULL,
                    "Fil-C LLVM JIT API: cannot move builder between modules");
         return;
     }
 
     filc_store_barrier(my_thread, filc_object_for_special_payload(module_obj));
-    b->base.module = (filc_llvm_jit_module_object*)module_obj;
+    builder_obj->base.module = (filc_llvm_jit_module_object*)module_obj;
 }
 
 static filc_llvm_jit_object* unwrap_obj(filc_thread* my_thread, filc_ptr ptr,
@@ -862,20 +862,20 @@ filc_ptr filc_native_LLVMBuildCallBr(
 }
 
 /* Out-array pattern shared by the LLVMGet* family: the caller queries the
-   companion count and the getter into a host tmp buffer (under the context
+   companion count and the getter into a host scratch buffer (under the context
    lock, exited), then this emits wrappers into the caller's preallocated
    Fil-C pointer array with checked stores (entered). Under-allocation
    panics cleanly instead of corrupting memory. */
 static void emit_out_array(filc_thread* my_thread,
-                                         filc_llvm_jit_context_object* context,
-                                         filc_llvm_jit_object* module,
-                                         void** raws, unsigned count,
-                                         filc_ptr array_ptr, filc_llvm_jit_kind kind)
+                           filc_llvm_jit_context_object* context,
+                           filc_llvm_jit_object* module,
+                           void** raws, unsigned count,
+                           filc_ptr array_ptr, filc_llvm_jit_kind kind)
 {
     unsigned index;
     for (index = 0; index < count; ++index) {
         filc_ptr wrapped = wrap_handle(my_thread, context, module, kind,
-                                              raws[index]);
+                                       raws[index]);
         filc_store_ptr(my_thread, array_ptr,
                        (ptrdiff_t)filc_mul_size(index, sizeof(void*)), wrapped);
     }
@@ -883,184 +883,177 @@ static void emit_out_array(filc_thread* my_thread,
 
 
 void filc_native_LLVMGetAttributesAtIndex(filc_thread* my_thread, filc_ptr fn_ptr,
-                                                unsigned index, filc_ptr attrs_ptr)
+                                          unsigned index, filc_ptr attrs_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* fn = unwrap_obj(
         my_thread, fn_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMAttributeRef* tmp = NULL;
+    LLVMAttributeRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMGetAttributeCountAtIndex((LLVMValueRef)fn->handle, index);
     if (count)
-        tmp = (LLVMAttributeRef*)malloc((size_t)count * sizeof(LLVMAttributeRef));
-    if (!count || tmp)
-        api->LLVMGetAttributesAtIndex((LLVMValueRef)fn->handle, index, tmp);
-    if (count && !tmp) {
+        raws = (LLVMAttributeRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMAttributeRef));
+    if (!count || raws)
+        api->LLVMGetAttributesAtIndex((LLVMValueRef)fn->handle, index, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetAttributesAtIndex.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, attrs_ptr,
-                                 FILC_LLVM_JIT_KIND_ATTRIBUTE);
-    free(tmp);
+    emit_out_array(my_thread, context, module, (void**)raws, count, attrs_ptr,
+                   FILC_LLVM_JIT_KIND_ATTRIBUTE);
     pas_lock_unlock(&context->lock);
 }
 
 void filc_native_LLVMGetCallSiteAttributes(filc_thread* my_thread, filc_ptr call_ptr,
-                                                 unsigned index, filc_ptr attrs_ptr)
+                                           unsigned index, filc_ptr attrs_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* call = unwrap_obj(
         my_thread, call_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMAttributeRef* tmp = NULL;
+    LLVMAttributeRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMGetCallSiteAttributeCount((LLVMValueRef)call->handle, index);
     if (count)
-        tmp = (LLVMAttributeRef*)malloc((size_t)count * sizeof(LLVMAttributeRef));
-    if (!count || tmp)
-        api->LLVMGetCallSiteAttributes((LLVMValueRef)call->handle, index, tmp);
-    if (count && !tmp) {
+        raws = (LLVMAttributeRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMAttributeRef));
+    if (!count || raws)
+        api->LLVMGetCallSiteAttributes((LLVMValueRef)call->handle, index, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetCallSiteAttributes.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, attrs_ptr,
-                                 FILC_LLVM_JIT_KIND_ATTRIBUTE);
-    free(tmp);
+    emit_out_array(my_thread, context, module, (void**)raws, count, attrs_ptr,
+                   FILC_LLVM_JIT_KIND_ATTRIBUTE);
     pas_lock_unlock(&context->lock);
 }
 
 void filc_native_LLVMGetBasicBlocks(filc_thread* my_thread, filc_ptr fn_ptr,
-                                          filc_ptr blocks_ptr)
+                                    filc_ptr blocks_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* fn = unwrap_obj(
         my_thread, fn_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef* tmp = NULL;
+    LLVMBasicBlockRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMCountBasicBlocks((LLVMValueRef)fn->handle);
     if (count)
-        tmp = (LLVMBasicBlockRef*)malloc((size_t)count * sizeof(LLVMBasicBlockRef));
-    if (!count || tmp)
-        api->LLVMGetBasicBlocks((LLVMValueRef)fn->handle, tmp);
-    if (count && !tmp) {
+        raws = (LLVMBasicBlockRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMBasicBlockRef));
+    if (!count || raws)
+        api->LLVMGetBasicBlocks((LLVMValueRef)fn->handle, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetBasicBlocks.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, blocks_ptr,
-                                 FILC_LLVM_JIT_KIND_BASIC_BLOCK);
-    free(tmp);
+    emit_out_array(my_thread, context, module, (void**)raws, count, blocks_ptr,
+                   FILC_LLVM_JIT_KIND_BASIC_BLOCK);
     pas_lock_unlock(&context->lock);
 }
 
 void filc_native_LLVMGetHandlers(filc_thread* my_thread, filc_ptr catch_switch_ptr,
-                                       filc_ptr handlers_ptr)
+                                 filc_ptr handlers_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* catch_switch = unwrap_obj(
         my_thread, catch_switch_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef* tmp = NULL;
+    LLVMBasicBlockRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMGetNumHandlers((LLVMValueRef)catch_switch->handle);
     if (count)
-        tmp = (LLVMBasicBlockRef*)malloc((size_t)count * sizeof(LLVMBasicBlockRef));
-    if (!count || tmp)
-        api->LLVMGetHandlers((LLVMValueRef)catch_switch->handle, tmp);
-    if (count && !tmp) {
+        raws = (LLVMBasicBlockRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMBasicBlockRef));
+    if (!count || raws)
+        api->LLVMGetHandlers((LLVMValueRef)catch_switch->handle, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetHandlers.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, handlers_ptr,
-                                 FILC_LLVM_JIT_KIND_BASIC_BLOCK);
-    free(tmp);
+    emit_out_array(my_thread, context, module, (void**)raws, count, handlers_ptr,
+                   FILC_LLVM_JIT_KIND_BASIC_BLOCK);
     pas_lock_unlock(&context->lock);
 }
 
 void filc_native_LLVMGetMDNodeOperands(filc_thread* my_thread, filc_ptr value_ptr,
-                                             filc_ptr dest_ptr)
+                                       filc_ptr dest_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* value = unwrap_obj(
         my_thread, value_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* tmp = NULL;
+    LLVMValueRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMGetMDNodeNumOperands((LLVMValueRef)value->handle);
     if (count)
-        tmp = (LLVMValueRef*)malloc((size_t)count * sizeof(LLVMValueRef));
-    if (!count || tmp)
-        api->LLVMGetMDNodeOperands((LLVMValueRef)value->handle, tmp);
-    if (count && !tmp) {
+        raws = (LLVMValueRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMValueRef));
+    if (!count || raws)
+        api->LLVMGetMDNodeOperands((LLVMValueRef)value->handle, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetMDNodeOperands.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, dest_ptr,
-                                 FILC_LLVM_JIT_KIND_VALUE);
-    free(tmp);
+    emit_out_array(my_thread, context, module, (void**)raws, count, dest_ptr,
+                   FILC_LLVM_JIT_KIND_VALUE);
     pas_lock_unlock(&context->lock);
 }
 
 void filc_native_LLVMGetNamedMetadataOperands(filc_thread* my_thread, filc_ptr module_ptr,
-                                                    filc_ptr name_ptr, filc_ptr dest_ptr)
+                                              filc_ptr name_ptr, filc_ptr dest_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module_obj = unwrap_obj(
         my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE, &context, NULL);
     char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
-    LLVMValueRef* tmp = NULL;
+    LLVMValueRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMGetNamedMetadataNumOperands((LLVMModuleRef)module_obj->handle, name);
     if (count)
-        tmp = (LLVMValueRef*)malloc((size_t)count * sizeof(LLVMValueRef));
-    if (!count || tmp)
-        api->LLVMGetNamedMetadataOperands((LLVMModuleRef)module_obj->handle, name, tmp);
-    if (count && !tmp) {
+        raws = (LLVMValueRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMValueRef));
+    if (!count || raws)
+        api->LLVMGetNamedMetadataOperands((LLVMModuleRef)module_obj->handle, name, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetNamedMetadataOperands.");
     }
-    emit_out_array(my_thread, context, module_obj, (void**)tmp, count,
+    emit_out_array(my_thread, context, module_obj, (void**)raws, count,
                                  dest_ptr, FILC_LLVM_JIT_KIND_VALUE);
-    free(tmp);
     pas_lock_unlock(&context->lock);
 }
 
 void filc_native_LLVMGetParamTypes(filc_thread* my_thread, filc_ptr function_ty_ptr,
-                                         filc_ptr dest_ptr)
+                                   filc_ptr dest_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* function_ty = unwrap_obj(
         my_thread, function_ty_ptr, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef* tmp = NULL;
+    LLVMTypeRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMCountParamTypes((LLVMTypeRef)function_ty->handle);
     if (count)
-        tmp = (LLVMTypeRef*)malloc((size_t)count * sizeof(LLVMTypeRef));
-    if (!count || tmp)
-        api->LLVMGetParamTypes((LLVMTypeRef)function_ty->handle, tmp);
-    if (count && !tmp) {
+        raws = (LLVMTypeRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMTypeRef));
+    if (!count || raws)
+        api->LLVMGetParamTypes((LLVMTypeRef)function_ty->handle, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetParamTypes.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, dest_ptr,
+    emit_out_array(my_thread, context, module, (void**)raws, count, dest_ptr,
                                  FILC_LLVM_JIT_KIND_TYPE);
-    free(tmp);
     pas_lock_unlock(&context->lock);
 }
 
@@ -1071,47 +1064,45 @@ void filc_native_LLVMGetParams(filc_thread* my_thread, filc_ptr fn_ptr, filc_ptr
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* fn = unwrap_obj(
         my_thread, fn_ptr, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* tmp = NULL;
+    LLVMValueRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMCountParams((LLVMValueRef)fn->handle);
     if (count)
-        tmp = (LLVMValueRef*)malloc((size_t)count * sizeof(LLVMValueRef));
-    if (!count || tmp)
-        api->LLVMGetParams((LLVMValueRef)fn->handle, tmp);
-    if (count && !tmp) {
+        raws = (LLVMValueRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMValueRef));
+    if (!count || raws)
+        api->LLVMGetParams((LLVMValueRef)fn->handle, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetParams.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, dest_ptr,
+    emit_out_array(my_thread, context, module, (void**)raws, count, dest_ptr,
                                  FILC_LLVM_JIT_KIND_VALUE);
-    free(tmp);
     pas_lock_unlock(&context->lock);
 }
 
 void filc_native_LLVMGetStructElementTypes(filc_thread* my_thread, filc_ptr struct_ty_ptr,
-                                                 filc_ptr dest_ptr)
+                                           filc_ptr dest_ptr)
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = NULL;
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* struct_ty = unwrap_obj(
         my_thread, struct_ty_ptr, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef* tmp = NULL;
+    LLVMTypeRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMCountStructElementTypes((LLVMTypeRef)struct_ty->handle);
     if (count)
-        tmp = (LLVMTypeRef*)malloc((size_t)count * sizeof(LLVMTypeRef));
-    if (!count || tmp)
-        api->LLVMGetStructElementTypes((LLVMTypeRef)struct_ty->handle, tmp);
-    if (count && !tmp) {
+        raws = (LLVMTypeRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMTypeRef));
+    if (!count || raws)
+        api->LLVMGetStructElementTypes((LLVMTypeRef)struct_ty->handle, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetStructElementTypes.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, dest_ptr,
-                                 FILC_LLVM_JIT_KIND_TYPE);
-    free(tmp);
+    emit_out_array(my_thread, context, module, (void**)raws, count, dest_ptr,
+                   FILC_LLVM_JIT_KIND_TYPE);
     pas_lock_unlock(&context->lock);
 }
 
@@ -1122,21 +1113,20 @@ void filc_native_LLVMGetSubtypes(filc_thread* my_thread, filc_ptr ty_ptr, filc_p
     filc_llvm_jit_object* module = NULL;
     filc_llvm_jit_object* ty = unwrap_obj(
         my_thread, ty_ptr, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef* tmp = NULL;
+    LLVMTypeRef* raws = NULL;
     unsigned count = 0;
     pas_lock_lock(&context->lock);
     count = api->LLVMGetNumContainedTypes((LLVMTypeRef)ty->handle);
     if (count)
-        tmp = (LLVMTypeRef*)malloc((size_t)count * sizeof(LLVMTypeRef));
-    if (!count || tmp)
-        api->LLVMGetSubtypes((LLVMTypeRef)ty->handle, tmp);
-    if (count && !tmp) {
+        raws = (LLVMTypeRef*)filc_bmalloc_allocate_tmp(my_thread, (size_t)count * sizeof(LLVMTypeRef));
+    if (!count || raws)
+        api->LLVMGetSubtypes((LLVMTypeRef)ty->handle, raws);
+    if (count && !raws) {
         pas_lock_unlock(&context->lock);
         filc_safety_panic(NULL, "out of memory in LLVMGetSubtypes.");
     }
-    emit_out_array(my_thread, context, module, (void**)tmp, count, dest_ptr,
-                                 FILC_LLVM_JIT_KIND_TYPE);
-    free(tmp);
+    emit_out_array(my_thread, context, module, (void**)raws, count, dest_ptr,
+                   FILC_LLVM_JIT_KIND_TYPE);
     pas_lock_unlock(&context->lock);
 }
 
@@ -1172,7 +1162,7 @@ filc_ptr filc_native_LLVMContextCreate(filc_thread* my_thread)
    and only the copy is returned. */
 
 static filc_ptr new_sized_string(filc_thread* my_thread, const char* str,
-                                              size_t length)
+                                 size_t length)
 {
     filc_ptr result;
     if (!str)
@@ -1306,26 +1296,6 @@ filc_ptr filc_native_LLVMInstructionGetAllMetadataOtherThanDebugLoc(
     return result;
 }
 
-filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName(
-    filc_thread* my_thread, unsigned id, filc_ptr param_types_ptr, size_t param_count)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    LLVMTypeRef* param_types = (LLVMTypeRef*)decode_handle_array(
-        my_thread, param_types_ptr, param_count, FILC_LLVM_JIT_KIND_TYPE,
-        &context, &module);
-    size_t name_length = 0;
-    char* raw;
-    pas_lock_lock(&context->lock);
-    /* Owned by LLVM (would need LLVMDisposeMessage in the full C API, which
-       the curated API omits): the original leaks by design, only the copy escapes. */
-    raw = api->LLVMIntrinsicCopyOverloadedName(id, param_types, param_count, &name_length);
-    filc_ptr result = new_sized_string(my_thread, raw, name_length);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
 filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
     filc_thread* my_thread, filc_ptr module_ptr, unsigned id,
     filc_ptr param_types_ptr, size_t param_count)
@@ -1348,9075 +1318,1100 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
 }
 
 /* ------------------------------------------------------------------ */
-/* Mechanically generated thin wrappers for the curated LLVM C API.
-   Thin wrappers mechanically emitted for the curated LLVM C API;
-   do not edit by hand. */
-filc_ptr filc_native_LLVMAddAlias2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMAddAlias2((LLVMModuleRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), p2, (LLVMValueRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
+/* Thin wrappers for the curated LLVM C API, defined by the row table below.
+ *
+ * Every wrapper in this section is defined by exactly one row of the table.
+ * A row names the LLVM C API entry point (the wrapper itself is always
+ * filc_native_<entry point>, per filc_native.h), selects the locking
+ * discipline, and describes every parameter with a descriptor:
+ *
+ *   (CTX, name)
+ *       A filc_ptr parameter holding a JIT context object, unwrapped with
+ *       unwrap_context(); it establishes the LLVM context that all other
+ *       objects in the call must agree on.
+ *   (REF, name, KIND, LLVMXxxRef)
+ *       A filc_ptr parameter holding a JIT object of kind
+ *       FILC_LLVM_JIT_KIND_KIND, unwrapped with unwrap_obj().  It is passed
+ *       to the LLVM C API as (LLVMXxxRef)handle_of(name_obj).
+ *   (CSTR, name)
+ *       A filc_ptr parameter converted to a borrowed NUL-terminated string
+ *       with filc_check_and_get_tmp_str().
+ *   (OPTSTR, name, len_name)
+ *       A borrowed string that may be null, as long as the separately
+ *       passed length len_name is zero; len_name must name a (SCAL, ...)
+ *       descriptor elsewhere in the row.
+ *   (ARR, name, count_name, KIND, LLVMXxxRef)
+ *       A filc_ptr parameter holding an array of JIT objects of kind
+ *       FILC_LLVM_JIT_KIND_KIND, decoded into a temporary array of raw
+ *       handles with decode_handle_array(); count_name must name a (SCAL,
+ *       ...) descriptor elsewhere in the row.
+ *   (SCAL, name, type)
+ *       A plain C parameter of the given type, passed through unchanged.
+ *   (ADOPT, name)
+ *       Trailing row marker: after the api-> call, have the builder named
+ *       by a (REF, name, BUILDER, LLVMBuilderRef) descriptor adopt the
+ *       module it is building into, if any.
+ *
+ * The defining macro is FILC_LLVM_JIT_DEFINE_<shape>_<arity>, where shape
+ * is VOID, REF (returns a fresh filc_ptr via wrap_handle(); the row carries
+ * the wrap kind), or SCALAR (returns a plain C value; the row carries the
+ * return type).  The second row argument selects the locking discipline:
+ *
+ *   LOCKED           Lock the LLVM context established by the unwraps.
+ *   LOCK_IF_CONTEXT  Lock the context only if one was established.  Used
+ *                    when a null or empty array input means there is no
+ *                    context at all.
+ *   NO_LOCK          No context can exist; run lock-free.
+ *
+ * Descriptor locals are named name##_obj; the context and module that the
+ * unwraps thread through are llvm_context and llvm_module.  All helper
+ * macros here expand to whole statements, so invocations are written
+ * without trailing semicolons.
+ *
+ * This table is the source of truth for these wrappers and is meant to be
+ * edited by hand; no generator regenerates this section.  When adding a
+ * wrapper for a new LLVM C API entry point, add a row here, a declaration
+ * to filc/include/filc_llvm_jit.h, and an addSig entry to
+ * libpas/src/libpas/generate_pizlonated_forwarders.rb.
+ */
 
-void filc_native_LLVMAddAttributeAtIndex(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_ATTRIBUTE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddAttributeAtIndex((LLVMValueRef)handle_of(a0), p1, (LLVMAttributeRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
+/* Descriptor expansion: turn (KIND, args...) into a parameter declaration,
+ * an unwrap statement, or a call argument, depending on the mode. */
+#define FILC_LLVM_JIT_PARAM(d) FILC_LLVM_JIT_PARAM_I d
+#define FILC_LLVM_JIT_PARAM_I(kind, ...) FILC_LLVM_JIT_PARAM_##kind(__VA_ARGS__)
+#define FILC_LLVM_JIT_PARAM_CTX(name) filc_ptr name
+#define FILC_LLVM_JIT_PARAM_REF(name, kind, ref_ty) filc_ptr name
+#define FILC_LLVM_JIT_PARAM_CSTR(name) filc_ptr name
+#define FILC_LLVM_JIT_PARAM_OPTSTR(name, len_name) filc_ptr name
+#define FILC_LLVM_JIT_PARAM_ARR(name, count_name, kind, elem_ty) filc_ptr name
+#define FILC_LLVM_JIT_PARAM_SCAL(name, type) type name
 
-void filc_native_LLVMAddCallSiteAttribute(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_ATTRIBUTE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddCallSiteAttribute((LLVMValueRef)handle_of(a0), p1, (LLVMAttributeRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
+#define FILC_LLVM_JIT_ARG(d) FILC_LLVM_JIT_ARG_I d
+#define FILC_LLVM_JIT_ARG_I(kind, ...) FILC_LLVM_JIT_ARG_##kind(__VA_ARGS__)
+#define FILC_LLVM_JIT_ARG_CTX(name) (LLVMContextRef)name##_obj->handle
+#define FILC_LLVM_JIT_ARG_REF(name, kind, ref_ty) (ref_ty)handle_of(name##_obj)
+#define FILC_LLVM_JIT_ARG_CSTR(name) name##_obj
+#define FILC_LLVM_JIT_ARG_OPTSTR(name, len_name) name##_obj
+#define FILC_LLVM_JIT_ARG_ARR(name, count_name, kind, elem_ty) name##_obj
+#define FILC_LLVM_JIT_ARG_SCAL(name, type) name
 
-void filc_native_LLVMAddCase(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddCase((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMBasicBlockRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMAddClause(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddClause((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMAddDestination(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddDestination((LLVMValueRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMAddFunction(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMAddFunction((LLVMModuleRef)handle_of(a0), a1, (LLVMTypeRef)handle_of(a2));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMAddGlobal(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMAddGlobal((LLVMModuleRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMAddGlobalIFunc(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2, filc_ptr p3, unsigned p4, filc_ptr p5)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMAddGlobalIFunc: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
+/* The function name rides along so that OPTSTR can stringify it into its
+ * FILC_CHECK message.  STRIP flattens the descriptor tuple so that the kind
+ * can be pasted onto the per-kind helper macro name. */
+#define FILC_LLVM_JIT_UNWRAP(fname, d) \
+    FILC_LLVM_JIT_UNWRAP_2(fname, FILC_LLVM_JIT_STRIP d)
+#define FILC_LLVM_JIT_STRIP(kind, ...) kind, __VA_ARGS__
+#define FILC_LLVM_JIT_UNWRAP_2(fname, kind, ...) \
+    FILC_LLVM_JIT_UNWRAP_3(fname, kind, ##__VA_ARGS__)
+#define FILC_LLVM_JIT_UNWRAP_3(fname, kind, ...) \
+    FILC_LLVM_JIT_UNWRAP_##kind(fname, ##__VA_ARGS__)
+#define FILC_LLVM_JIT_UNWRAP_CTX(fname, name) \
+    filc_llvm_jit_context_object* name##_obj = unwrap_context(my_thread, name); \
+    llvm_context = name##_obj;
+#define FILC_LLVM_JIT_UNWRAP_REF(fname, name, kind, ref_ty) \
+    filc_llvm_jit_object* name##_obj = unwrap_obj( \
+        my_thread, name, FILC_LLVM_JIT_KIND_##kind, &llvm_context, &llvm_module);
+#define FILC_LLVM_JIT_UNWRAP_CSTR(fname, name) \
+    const char* name##_obj = filc_check_and_get_tmp_str(my_thread, name);
+#define FILC_LLVM_JIT_UNWRAP_OPTSTR(fname, name, len_name) \
+    const char* name##_obj; \
+    if (!filc_ptr_ptr(name)) { \
+        FILC_CHECK(len_name == 0, NULL, #fname ": null string with nonzero length."); \
+        name##_obj = NULL; \
+    } else { \
+        filc_check_read(name, (size_t)len_name); \
+        name##_obj = (const char*)filc_ptr_ptr(name); \
     }
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a5 = unwrap_obj(my_thread, p5, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMAddGlobalIFunc((LLVMModuleRef)handle_of(a0), a1, p2, (LLVMTypeRef)handle_of(a3), p4, (LLVMValueRef)handle_of(a5));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
+/* SCAL parameters are passed through unchanged; they unwrap to nothing. */
+#define FILC_LLVM_JIT_UNWRAP_SCAL(fname, name, type)
+#define FILC_LLVM_JIT_UNWRAP_ARR(fname, name, count_name, kind, elem_ty) \
+    elem_ty* name##_obj = (elem_ty*)decode_handle_array( \
+        my_thread, name, count_name, FILC_LLVM_JIT_KIND_##kind, \
+        &llvm_context, &llvm_module);
 
-filc_ptr filc_native_LLVMAddGlobalInAddressSpace(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMAddGlobalInAddressSpace((LLVMModuleRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
+#define FILC_LLVM_JIT_ADOPT(d) FILC_LLVM_JIT_ADOPT_I d
+#define FILC_LLVM_JIT_ADOPT_I(kind, builder) \
+    if (llvm_module) \
+        builder_adopt_module(my_thread, builder##_obj, llvm_module);
 
-void filc_native_LLVMAddHandler(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddHandler((LLVMValueRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
+/* Locking discipline.  Context-less wrappers run lock-free: there is no
+ * context to lock, and historically some wrappers locked &context->lock
+ * even when context was provably NULL. */
+#define FILC_LLVM_JIT_DECLS_LOCKED \
+    filc_llvm_jit_context_object* llvm_context = NULL; \
+    filc_llvm_jit_object* llvm_module = NULL;
+#define FILC_LLVM_JIT_DECLS_LOCK_IF_CONTEXT FILC_LLVM_JIT_DECLS_LOCKED
+#define FILC_LLVM_JIT_DECLS_NO_LOCK
+#define FILC_LLVM_JIT_DECLS(lock) FILC_LLVM_JIT_DECLS_##lock
 
-void filc_native_LLVMAddIncoming(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a1 = (LLVMValueRef*)decode_handle_array(my_thread, p1, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef* a2 = (LLVMBasicBlockRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddIncoming((LLVMValueRef)handle_of(a0), a1, a2, p3);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMAddMetadataToInst(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddMetadataToInst((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMAddModuleFlag(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, size_t p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a2;
-    if (!filc_ptr_ptr(p2)) {
-        FILC_CHECK(p3 == 0, NULL, "LLVMAddModuleFlag: null string with nonzero length.");
-        a2 = NULL;
-    } else {
-        filc_check_read(p2, (size_t)p3);
-        a2 = (const char*)filc_ptr_ptr(p2);
+#define FILC_LLVM_JIT_LOCK_LOCKED \
+    pas_lock_lock(&llvm_context->lock);
+#define FILC_LLVM_JIT_LOCK_LOCK_IF_CONTEXT \
+    if (llvm_context) { \
+        pas_lock_lock(&llvm_context->lock); \
     }
-    filc_llvm_jit_object* a4 = unwrap_obj(my_thread, p4, FILC_LLVM_JIT_KIND_METADATA, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddModuleFlag((LLVMModuleRef)handle_of(a0), p1, a2, p3, (LLVMMetadataRef)handle_of(a4));
-    pas_lock_unlock(&context->lock);
-}
+#define FILC_LLVM_JIT_LOCK_NO_LOCK
+#define FILC_LLVM_JIT_LOCK(lock) FILC_LLVM_JIT_LOCK_##lock
 
-void filc_native_LLVMAddNamedMetadataOperand(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddNamedMetadataOperand((LLVMModuleRef)handle_of(a0), a1, (LLVMValueRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMAddTargetDependentFunctionAttr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    pas_lock_lock(&context->lock);
-    api->LLVMAddTargetDependentFunctionAttr((LLVMValueRef)handle_of(a0), a1, a2);
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMAliasGetAliasee(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMAliasGetAliasee((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMAliasSetAliasee(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAliasSetAliasee((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMAlignOf(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMAlignOf((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMAppendBasicBlockInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMAppendBasicBlockInContext((LLVMContextRef)a0->handle, (LLVMValueRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMAppendExistingBasicBlock(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMAppendExistingBasicBlock((LLVMValueRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMAppendModuleInlineAsm(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMAppendModuleInlineAsm: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
+#define FILC_LLVM_JIT_UNLOCK_LOCKED \
+    pas_lock_unlock(&llvm_context->lock);
+#define FILC_LLVM_JIT_UNLOCK_LOCK_IF_CONTEXT \
+    if (llvm_context) { \
+        pas_lock_unlock(&llvm_context->lock); \
     }
-    pas_lock_lock(&context->lock);
-    api->LLVMAppendModuleInlineAsm((LLVMModuleRef)handle_of(a0), a1, p2);
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMArrayType(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMArrayType((LLVMTypeRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMArrayType2(filc_thread* my_thread, filc_ptr p0, unsigned long long p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMArrayType2((LLVMTypeRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMBFloatTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBFloatTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBasicBlockAsValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBasicBlockAsValue((LLVMBasicBlockRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBlockAddress(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBlockAddress((LLVMValueRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAShr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAShr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAdd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAddrSpaceCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAddrSpaceCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAggregateRet(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    LLVMValueRef* a1 = (LLVMValueRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAggregateRet((LLVMBuilderRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAlloca(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAlloca((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAnd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAnd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildArrayAlloca(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildArrayAlloca((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildArrayMalloc(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildArrayMalloc((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAtomicCmpXchg(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, unsigned p4, unsigned p5, bool p6)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAtomicCmpXchg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), p4, p5, p6);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAtomicCmpXchgSyncScope(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, unsigned p4, unsigned p5, unsigned p6)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAtomicCmpXchgSyncScope((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), p4, p5, p6);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAtomicRMW(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, filc_ptr p3, unsigned p4, bool p5)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAtomicRMW((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), p4, p5);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildAtomicRMWSyncScope(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, filc_ptr p3, unsigned p4, unsigned p5)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildAtomicRMWSyncScope((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), p4, p5);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildBinOp(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildBinOp((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildBitCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildBitCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildBr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildBr((LLVMBuilderRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildCall2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, unsigned p4, filc_ptr p5)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a5 = filc_check_and_get_tmp_str(my_thread, p5);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildCall2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, a5);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildCast(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildCast((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMTypeRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildCatchPad(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a2 = (LLVMValueRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildCatchPad((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2, p3, a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildCatchRet(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildCatchRet((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMBasicBlockRef)handle_of(a2));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildCatchSwitch(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildCatchSwitch((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMBasicBlockRef)handle_of(a2), p3, a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildCleanupPad(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a2 = (LLVMValueRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildCleanupPad((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2, p3, a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildCleanupRet(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildCleanupRet((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMBasicBlockRef)handle_of(a2));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildCondBr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildCondBr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMBasicBlockRef)handle_of(a2), (LLVMBasicBlockRef)handle_of(a3));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildExactSDiv(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildExactSDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildExactUDiv(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildExactUDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildExtractElement(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildExtractElement((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildExtractValue(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildExtractValue((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), p2, a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFAdd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFCmp(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFCmp((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFDiv(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFMul(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFMul((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFNeg(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFNeg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFPCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFPCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFPExt(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFPExt((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFPToSI(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFPToSI((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFPToUI(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFPToUI((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFPTrunc(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFPTrunc((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFRem(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFRem((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFSub(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFSub((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFence(filc_thread* my_thread, filc_ptr p0, unsigned p1, bool p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFence((LLVMBuilderRef)handle_of(a0), p1, p2, a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFenceSyncScope(filc_thread* my_thread, filc_ptr p0, unsigned p1, unsigned p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFenceSyncScope((LLVMBuilderRef)handle_of(a0), p1, p2, a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFree(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFree((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildFreeze(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildFreeze((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildGEP2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, unsigned p4, filc_ptr p5)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a5 = filc_check_and_get_tmp_str(my_thread, p5);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildGEP2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, a5);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildGEPWithNoWrapFlags(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, unsigned p4, filc_ptr p5, unsigned p6)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a5 = filc_check_and_get_tmp_str(my_thread, p5);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildGEPWithNoWrapFlags((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, a5, p6);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildGlobalString(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildGlobalString((LLVMBuilderRef)handle_of(a0), a1, a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildGlobalStringPtr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildGlobalStringPtr((LLVMBuilderRef)handle_of(a0), a1, a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildICmp(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildICmp((LLVMBuilderRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildInBoundsGEP2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, unsigned p4, filc_ptr p5)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a5 = filc_check_and_get_tmp_str(my_thread, p5);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildInBoundsGEP2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, a5);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildIndirectBr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildIndirectBr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildInsertElement(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildInsertElement((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildInsertValue(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildInsertValue((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), p3, a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildIntCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildIntCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildIntCast2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, bool p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildIntCast2((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), p3, a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildIntToPtr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildIntToPtr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildInvoke2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, unsigned p4, filc_ptr p5, filc_ptr p6, filc_ptr p7)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a3 = (LLVMValueRef*)decode_handle_array(my_thread, p3, p4, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a5 = unwrap_obj(my_thread, p5, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    filc_llvm_jit_object* a6 = unwrap_obj(my_thread, p6, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    const char* a7 = filc_check_and_get_tmp_str(my_thread, p7);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildInvoke2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3, p4, (LLVMBasicBlockRef)handle_of(a5), (LLVMBasicBlockRef)handle_of(a6), a7);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildIsNotNull(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildIsNotNull((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildIsNull(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildIsNull((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildLShr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildLShr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildLandingPad(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildLandingPad((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), p3, a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildLoad2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildLoad2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildMalloc(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildMalloc((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildMemCpy(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, filc_ptr p3, unsigned p4, filc_ptr p5)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a5 = unwrap_obj(my_thread, p5, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildMemCpy((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), p2, (LLVMValueRef)handle_of(a3), p4, (LLVMValueRef)handle_of(a5));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildMemMove(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, filc_ptr p3, unsigned p4, filc_ptr p5)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a5 = unwrap_obj(my_thread, p5, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildMemMove((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), p2, (LLVMValueRef)handle_of(a3), p4, (LLVMValueRef)handle_of(a5));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildMemSet(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, unsigned p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildMemSet((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), p4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildMul(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildMul((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNSWAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNSWAdd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNSWMul(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNSWMul((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNSWNeg(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNSWNeg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNSWSub(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNSWSub((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNUWAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNUWAdd((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNUWMul(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNUWMul((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNUWSub(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNUWSub((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNeg(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNeg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildNot(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildNot((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildOr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildOr((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildPhi(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildPhi((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildPointerCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildPointerCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildPtrDiff2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildPtrDiff2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildPtrToInt(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildPtrToInt((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildResume(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildResume((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildRet(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildRet((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildRetVoid(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildRetVoid((LLVMBuilderRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildSDiv(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildSDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildSExt(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildSExt((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildSExtOrBitCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildSExtOrBitCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildSIToFP(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildSIToFP((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildSRem(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildSRem((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildSelect(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildSelect((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildShl(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildShl((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildShuffleVector(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildShuffleVector((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3), a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildStore(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildStore((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildStructGEP2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3, filc_ptr p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a4 = filc_check_and_get_tmp_str(my_thread, p4);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildStructGEP2((LLVMBuilderRef)handle_of(a0), (LLVMTypeRef)handle_of(a1), (LLVMValueRef)handle_of(a2), p3, a4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildSub(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildSub((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildSwitch(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildSwitch((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMBasicBlockRef)handle_of(a2), p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildTrunc(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildTrunc((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildTruncOrBitCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildTruncOrBitCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildUDiv(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildUDiv((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildUIToFP(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildUIToFP((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildURem(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildURem((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildUnreachable(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildUnreachable((LLVMBuilderRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildVAArg(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildVAArg((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildXor(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildXor((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildZExt(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildZExt((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuildZExtOrBitCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a3 = filc_check_and_get_tmp_str(my_thread, p3);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuildZExtOrBitCast((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMTypeRef)handle_of(a2), a3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMBuilderGetDefaultFPMathTag(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    LLVMMetadataRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMBuilderGetDefaultFPMathTag((LLVMBuilderRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMBuilderSetDefaultFPMathTag(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_METADATA, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMBuilderSetDefaultFPMathTag((LLVMBuilderRef)handle_of(a0), (LLVMMetadataRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-bool filc_native_LLVMCanValueUseFastMathFlags(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCanValueUseFastMathFlags((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMClearInsertionPosition(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMClearInsertionPosition((LLVMBuilderRef)handle_of(a0));
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMCloneModule(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMModuleRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCloneModule((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_MODULE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstAdd((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstAddrSpaceCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstAddrSpaceCast((LLVMValueRef)handle_of(a0), (LLVMTypeRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstAllOnes(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstAllOnes((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstArray(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef* a1 = (LLVMValueRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstArray((LLVMTypeRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstArray2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned long long p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef* a1 = (LLVMValueRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstArray2((LLVMTypeRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstBitCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstBitCast((LLVMValueRef)handle_of(a0), (LLVMTypeRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstExtractElement(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstExtractElement((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstGEP2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a2 = (LLVMValueRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstGEP2((LLVMTypeRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstGEPWithNoWrapFlags(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3, unsigned p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a2 = (LLVMValueRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstGEPWithNoWrapFlags((LLVMTypeRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2, p3, p4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstInBoundsGEP2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef* a2 = (LLVMValueRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstInBoundsGEP2((LLVMTypeRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstInlineAsm(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, bool p3, bool p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstInlineAsm((LLVMTypeRef)handle_of(a0), a1, a2, p3, p4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstInsertElement(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstInsertElement((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstInt(filc_thread* my_thread, filc_ptr p0, unsigned long long p1, bool p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstInt((LLVMTypeRef)handle_of(a0), p1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-long long filc_native_LLVMConstIntGetSExtValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    long long result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstIntGetSExtValue((LLVMValueRef)handle_of(a0));
-    long long result = (long long)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned long long filc_native_LLVMConstIntGetZExtValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned long long result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstIntGetZExtValue((LLVMValueRef)handle_of(a0));
-    unsigned long long result = (unsigned long long)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstIntOfString(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstIntOfString((LLVMTypeRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstIntOfStringAndSize(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMConstIntOfStringAndSize: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstIntOfStringAndSize((LLVMTypeRef)handle_of(a0), a1, p2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstIntToPtr(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstIntToPtr((LLVMValueRef)handle_of(a0), (LLVMTypeRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstMul(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstMul((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNSWAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNSWAdd((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNSWMul(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNSWMul((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNSWNeg(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNSWNeg((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNSWSub(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNSWSub((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNUWAdd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNUWAdd((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNUWMul(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNUWMul((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNUWSub(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNUWSub((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNamedStruct(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef* a1 = (LLVMValueRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNamedStruct((LLVMTypeRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNeg(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNeg((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNot(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNot((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstNull(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstNull((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstPointerCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstPointerCast((LLVMValueRef)handle_of(a0), (LLVMTypeRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstPointerNull(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstPointerNull((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstPtrToInt(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstPtrToInt((LLVMValueRef)handle_of(a0), (LLVMTypeRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstReal(filc_thread* my_thread, filc_ptr p0, double p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstReal((LLVMTypeRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstRealOfString(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstRealOfString((LLVMTypeRef)handle_of(a0), a1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstRealOfStringAndSize(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMConstRealOfStringAndSize: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstRealOfStringAndSize((LLVMTypeRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstShuffleVector(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstShuffleVector((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMConstStringInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, bool p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMConstStringInContext: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstStringInContext((LLVMContextRef)a0->handle, a1, p2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstStringInContext2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2, bool p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMConstStringInContext2: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstStringInContext2((LLVMContextRef)a0->handle, a1, p2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMConstStructInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, bool p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMValueRef* a1 = (LLVMValueRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstStructInContext((LLVMContextRef)a0->handle, a1, p2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstSub(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstSub((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstTrunc(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstTrunc((LLVMValueRef)handle_of(a0), (LLVMTypeRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstTruncOrBitCast(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstTruncOrBitCast((LLVMValueRef)handle_of(a0), (LLVMTypeRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstVector(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    LLVMValueRef* a0 = (LLVMValueRef*)decode_handle_array(my_thread, p0, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstVector(a0, p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstXor(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstXor((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMConstantPtrAuth(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2, filc_ptr p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a3 = unwrap_obj(my_thread, p3, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMConstantPtrAuth((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1), (LLVMValueRef)handle_of(a2), (LLVMValueRef)handle_of(a3));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMContextSetDiscardValueNames(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    pas_lock_lock(&context->lock);
-    api->LLVMContextSetDiscardValueNames((LLVMContextRef)a0->handle, p1);
-    pas_lock_unlock(&context->lock);
-}
-
-bool filc_native_LLVMContextShouldDiscardValueNames(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMContextShouldDiscardValueNames((LLVMContextRef)a0->handle);
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMCountBasicBlocks(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCountBasicBlocks((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMCountIncoming(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCountIncoming((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMCountParamTypes(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCountParamTypes((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMCountParams(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCountParams((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMCountStructElementTypes(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCountStructElementTypes((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMCreateBasicBlockInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCreateBasicBlockInContext((LLVMContextRef)a0->handle, a1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMCreateBuilderInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMBuilderRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCreateBuilderInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BUILDER, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMCreateEnumAttribute(filc_thread* my_thread, filc_ptr p0, unsigned p1, unsigned long long p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMAttributeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCreateEnumAttribute((LLVMContextRef)a0->handle, p1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_ATTRIBUTE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMCreateStringAttribute(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, filc_ptr p3, unsigned p4)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMCreateStringAttribute: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    const char* a3;
-    if (!filc_ptr_ptr(p3)) {
-        FILC_CHECK(p4 == 0, NULL, "LLVMCreateStringAttribute: null string with nonzero length.");
-        a3 = NULL;
-    } else {
-        filc_check_read(p3, (size_t)p4);
-        a3 = (const char*)filc_ptr_ptr(p3);
-    }
-    LLVMAttributeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCreateStringAttribute((LLVMContextRef)a0->handle, a1, p2, a3, p4);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_ATTRIBUTE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMCreateTypeAttribute(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMAttributeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMCreateTypeAttribute((LLVMContextRef)a0->handle, p1, (LLVMTypeRef)handle_of(a2));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_ATTRIBUTE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMDoubleTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMDoubleTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMDumpModule(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMDumpModule((LLVMModuleRef)handle_of(a0));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMDumpType(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMDumpType((LLVMTypeRef)handle_of(a0));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMDumpValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMDumpValue((LLVMValueRef)handle_of(a0));
-    pas_lock_unlock(&context->lock);
-}
-
-
-filc_ptr filc_native_LLVMFP128TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMFP128TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMFloatTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMFloatTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMFunctionType(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, bool p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef* a1 = (LLVMTypeRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMFunctionType((LLVMTypeRef)handle_of(a0), a1, p2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGEPGetNoWrapFlags(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMGEPNoWrapFlags result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGEPGetNoWrapFlags((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMGEPSetNoWrapFlags(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMGEPSetNoWrapFlags((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMGetAggregateElement(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetAggregateElement((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetAlignment(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetAlignment((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetAllocatedType(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetAllocatedType((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetArgOperand(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetArgOperand((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetArrayLength(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetArrayLength((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned long long filc_native_LLVMGetArrayLength2(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    uint64_t result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetArrayLength2((LLVMTypeRef)handle_of(a0));
-    unsigned long long result = (unsigned long long)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetAtomicRMWBinOp(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMAtomicRMWBinOp result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetAtomicRMWBinOp((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetAtomicSyncScopeID(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetAtomicSyncScopeID((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetAttributeCountAtIndex(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetAttributeCountAtIndex((LLVMValueRef)handle_of(a0), p1);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetBasicBlockParent(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetBasicBlockParent((LLVMBasicBlockRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetBasicBlockTerminator(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetBasicBlockTerminator((LLVMBasicBlockRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetBlockAddressBasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetBlockAddressBasicBlock((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetBlockAddressFunction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetBlockAddressFunction((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetBuilderContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    LLVMContextRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetBuilderContext((LLVMBuilderRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_CONTEXT, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCallBrDefaultDest(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCallBrDefaultDest((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCallBrIndirectDest(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCallBrIndirectDest((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetCallBrNumIndirectDests(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCallBrNumIndirectDests((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetCallSiteAttributeCount(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCallSiteAttributeCount((LLVMValueRef)handle_of(a0), p1);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCallSiteEnumAttribute(filc_thread* my_thread, filc_ptr p0, unsigned p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMAttributeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCallSiteEnumAttribute((LLVMValueRef)handle_of(a0), p1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_ATTRIBUTE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCallSiteStringAttribute(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2;
-    if (!filc_ptr_ptr(p2)) {
-        FILC_CHECK(p3 == 0, NULL, "LLVMGetCallSiteStringAttribute: null string with nonzero length.");
-        a2 = NULL;
-    } else {
-        filc_check_read(p2, (size_t)p3);
-        a2 = (const char*)filc_ptr_ptr(p2);
-    }
-    LLVMAttributeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCallSiteStringAttribute((LLVMValueRef)handle_of(a0), p1, a2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_ATTRIBUTE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCalledFunctionType(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCalledFunctionType((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCalledValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCalledValue((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetCastOpcode(filc_thread* my_thread, filc_ptr p0, bool p1, filc_ptr p2, bool p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMOpcode result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCastOpcode((LLVMValueRef)handle_of(a0), p1, (LLVMTypeRef)handle_of(a2), p3);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetClause(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetClause((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetCmpXchgFailureOrdering(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMAtomicOrdering result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCmpXchgFailureOrdering((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetCmpXchgSuccessOrdering(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMAtomicOrdering result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCmpXchgSuccessOrdering((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCondition(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCondition((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetConstOpcode(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMOpcode result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetConstOpcode((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetConstantPtrAuthAddrDiscriminator(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetConstantPtrAuthAddrDiscriminator((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetConstantPtrAuthDiscriminator(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetConstantPtrAuthDiscriminator((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetConstantPtrAuthKey(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetConstantPtrAuthKey((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetConstantPtrAuthPointer(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetConstantPtrAuthPointer((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCurrentDebugLocation(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCurrentDebugLocation((LLVMBuilderRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetCurrentDebugLocation2(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    LLVMMetadataRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetCurrentDebugLocation2((LLVMBuilderRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetDLLStorageClass(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMDLLStorageClass result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetDLLStorageClass((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetDebugLocColumn(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetDebugLocColumn((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetDebugLocLine(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetDebugLocLine((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetElementType(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetElementType((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetEntryBasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetEntryBasicBlock((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetEnumAttributeAtIndex(filc_thread* my_thread, filc_ptr p0, unsigned p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMAttributeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetEnumAttributeAtIndex((LLVMValueRef)handle_of(a0), p1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_ATTRIBUTE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetEnumAttributeKind(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_ATTRIBUTE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetEnumAttributeKind((LLVMAttributeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetEnumAttributeKindForName(filc_thread* my_thread, filc_ptr p0, size_t p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    const char* a0;
-    if (!filc_ptr_ptr(p0)) {
-        FILC_CHECK(p1 == 0, NULL, "LLVMGetEnumAttributeKindForName: null string with nonzero length.");
-        a0 = NULL;
-    } else {
-        filc_check_read(p0, (size_t)p1);
-        a0 = (const char*)filc_ptr_ptr(p0);
-    }
-    return api->LLVMGetEnumAttributeKindForName(a0, p1);
-}
-
-unsigned long long filc_native_LLVMGetEnumAttributeValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_ATTRIBUTE, &context, &module);
-    uint64_t result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetEnumAttributeValue((LLVMAttributeRef)handle_of(a0));
-    unsigned long long result = (unsigned long long)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetExact(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetExact((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetFCmpPredicate(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMRealPredicate result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFCmpPredicate((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetFastMathFlags(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMFastMathFlags result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFastMathFlags((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstBasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstBasicBlock((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstDbgRecord(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMDbgRecordRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstDbgRecord((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_DBG_RECORD, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstFunction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstFunction((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstGlobal(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstGlobal((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstGlobalAlias(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstGlobalAlias((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstGlobalIFunc(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstGlobalIFunc((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstInstruction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstInstruction((LLVMBasicBlockRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstNamedMetadata(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMNamedMDNodeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstNamedMetadata((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_NAMED_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstParam(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstParam((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetFirstUse(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMUseRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFirstUse((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_USE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetFunctionCallConv(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetFunctionCallConv((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetGEPSourceElementType(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetGEPSourceElementType((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetGlobalIFuncResolver(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetGlobalIFuncResolver((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetGlobalParent(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMModuleRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetGlobalParent((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_MODULE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetICmpPredicate(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMIntPredicate result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetICmpPredicate((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetIncomingBlock(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetIncomingBlock((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetIncomingValue(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetIncomingValue((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetInitializer(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInitializer((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetInlineAsm(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2, filc_ptr p3, size_t p4, bool p5, bool p6, unsigned p7, bool p8)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetInlineAsm: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    const char* a3;
-    if (!filc_ptr_ptr(p3)) {
-        FILC_CHECK(p4 == 0, NULL, "LLVMGetInlineAsm: null string with nonzero length.");
-        a3 = NULL;
-    } else {
-        filc_check_read(p3, (size_t)p4);
-        a3 = (const char*)filc_ptr_ptr(p3);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInlineAsm((LLVMTypeRef)handle_of(a0), a1, p2, a3, p4, p5, p6, p7, p8);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetInlineAsmCanUnwind(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInlineAsmCanUnwind((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetInlineAsmDialect(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMInlineAsmDialect result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInlineAsmDialect((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetInlineAsmFunctionType(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInlineAsmFunctionType((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetInlineAsmHasSideEffects(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInlineAsmHasSideEffects((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetInlineAsmNeedsAlignedStack(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInlineAsmNeedsAlignedStack((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetInsertBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInsertBlock((LLVMBuilderRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetInstructionCallConv(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInstructionCallConv((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetInstructionOpcode(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMOpcode result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInstructionOpcode((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetInstructionParent(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetInstructionParent((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetIntTypeWidth(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetIntTypeWidth((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetIntrinsicDeclaration(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, size_t p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMTypeRef* a2 = (LLVMTypeRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetIntrinsicDeclaration((LLVMModuleRef)handle_of(a0), p1, a2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetIntrinsicID(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetIntrinsicID((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetIsDisjoint(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetIsDisjoint((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetLastBasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastBasicBlock((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetLastDbgRecord(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMDbgRecordRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastDbgRecord((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_DBG_RECORD, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetLastEnumAttributeKind(filc_thread* my_thread)
-{
-    ensure_api(my_thread);
-    return api->LLVMGetLastEnumAttributeKind();
-}
-
-filc_ptr filc_native_LLVMGetLastFunction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastFunction((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetLastGlobal(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastGlobal((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetLastGlobalAlias(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastGlobalAlias((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetLastGlobalIFunc(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastGlobalIFunc((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetLastInstruction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastInstruction((LLVMBasicBlockRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetLastNamedMetadata(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMNamedMDNodeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastNamedMetadata((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_NAMED_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetLastParam(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLastParam((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetLinkage(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMLinkage result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetLinkage((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-unsigned filc_native_LLVMGetMDKindIDInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetMDKindIDInContext: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetMDKindIDInContext((LLVMContextRef)a0->handle, a1, p2);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetMDNodeNumOperands(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetMDNodeNumOperands((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-int filc_native_LLVMGetMaskValue(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    int result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetMaskValue((LLVMValueRef)handle_of(a0), p1);
-    int result = (int)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetMetadata(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetMetadata((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetModuleContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMContextRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetModuleContext((LLVMModuleRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_CONTEXT, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetModuleFlag(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetModuleFlag: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMMetadataRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetModuleFlag((LLVMModuleRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetNNeg(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNNeg((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetNSW(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNSW((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetNUW(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNUW((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNamedFunction(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNamedFunction((LLVMModuleRef)handle_of(a0), a1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNamedFunctionWithLength(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedFunctionWithLength: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNamedFunctionWithLength((LLVMModuleRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNamedGlobal(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNamedGlobal((LLVMModuleRef)handle_of(a0), a1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNamedGlobalAlias(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedGlobalAlias: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNamedGlobalAlias((LLVMModuleRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNamedGlobalIFunc(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedGlobalIFunc: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNamedGlobalIFunc((LLVMModuleRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNamedGlobalWithLength(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedGlobalWithLength: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNamedGlobalWithLength((LLVMModuleRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNamedMetadata(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetNamedMetadata: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMNamedMDNodeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNamedMetadata((LLVMModuleRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_NAMED_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetNamedMetadataNumOperands(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNamedMetadataNumOperands((LLVMModuleRef)handle_of(a0), a1);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextBasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextBasicBlock((LLVMBasicBlockRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextDbgRecord(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_DBG_RECORD, &context, &module);
-    LLVMDbgRecordRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextDbgRecord((LLVMDbgRecordRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_DBG_RECORD, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextFunction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextFunction((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextGlobal(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextGlobal((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextGlobalAlias(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextGlobalAlias((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextGlobalIFunc(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextGlobalIFunc((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextInstruction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextInstruction((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextNamedMetadata(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_NAMED_METADATA, &context, &module);
-    LLVMNamedMDNodeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextNamedMetadata((LLVMNamedMDNodeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_NAMED_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextParam(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextParam((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNextUse(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_USE, &context, &module);
-    LLVMUseRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNextUse((LLVMUseRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_USE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetNormalDest(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNormalDest((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetNumArgOperands(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNumArgOperands((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetNumClauses(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNumClauses((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetNumContainedTypes(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNumContainedTypes((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetNumHandlers(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNumHandlers((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetNumIndices(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNumIndices((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetNumMaskElements(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNumMaskElements((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-int filc_native_LLVMGetNumOperands(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    int result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNumOperands((LLVMValueRef)handle_of(a0));
-    int result = (int)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetNumSuccessors(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetNumSuccessors((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetOperand(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetOperand((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetOperandUse(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMUseRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetOperandUse((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_USE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetOrInsertNamedMetadata(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetOrInsertNamedMetadata: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMNamedMDNodeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetOrInsertNamedMetadata((LLVMModuleRef)handle_of(a0), a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_NAMED_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetOrdering(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMAtomicOrdering result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetOrdering((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetParam(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetParam((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetParamParent(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetParamParent((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetParentCatchSwitch(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetParentCatchSwitch((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPersonalityFn(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPersonalityFn((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetPointerAddressSpace(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPointerAddressSpace((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPoison(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPoison((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPrefixData(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPrefixData((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousBasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousBasicBlock((LLVMBasicBlockRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousDbgRecord(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_DBG_RECORD, &context, &module);
-    LLVMDbgRecordRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousDbgRecord((LLVMDbgRecordRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_DBG_RECORD, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousFunction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousFunction((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousGlobal(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousGlobal((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousGlobalAlias(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousGlobalAlias((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousGlobalIFunc(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousGlobalIFunc((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousInstruction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousInstruction((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousNamedMetadata(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_NAMED_METADATA, &context, &module);
-    LLVMNamedMDNodeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousNamedMetadata((LLVMNamedMDNodeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_NAMED_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPreviousParam(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPreviousParam((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetPrologueData(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetPrologueData((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetReturnType(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetReturnType((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetStringAttributeAtIndex(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2;
-    if (!filc_ptr_ptr(p2)) {
-        FILC_CHECK(p3 == 0, NULL, "LLVMGetStringAttributeAtIndex: null string with nonzero length.");
-        a2 = NULL;
-    } else {
-        filc_check_read(p2, (size_t)p3);
-        a2 = (const char*)filc_ptr_ptr(p2);
-    }
-    LLVMAttributeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetStringAttributeAtIndex((LLVMValueRef)handle_of(a0), p1, a2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_ATTRIBUTE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetSuccessor(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetSuccessor((LLVMValueRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetSwitchDefaultDest(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetSwitchDefaultDest((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetSyncScopeID(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMGetSyncScopeID: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetSyncScopeID((LLVMContextRef)a0->handle, a1, p2);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetTailCallKind(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMTailCallKind result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTailCallKind((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetTargetExtTypeIntParam(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTargetExtTypeIntParam((LLVMTypeRef)handle_of(a0), p1);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetTargetExtTypeNumIntParams(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTargetExtTypeNumIntParams((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetTargetExtTypeNumTypeParams(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTargetExtTypeNumTypeParams((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetTargetExtTypeTypeParam(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTargetExtTypeTypeParam((LLVMTypeRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetThreadLocalMode(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMThreadLocalMode result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetThreadLocalMode((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetTypeAttributeValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_ATTRIBUTE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTypeAttributeValue((LLVMAttributeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetTypeByName(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTypeByName((LLVMModuleRef)handle_of(a0), a1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetTypeByName2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTypeByName2((LLVMContextRef)a0->handle, a1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetTypeContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMContextRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTypeContext((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_CONTEXT, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetTypeKind(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeKind result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetTypeKind((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetUndef(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetUndef((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-int filc_native_LLVMGetUndefMaskElem(filc_thread* my_thread)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    int result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetUndefMaskElem();
-    int result = (int)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetUnnamedAddress(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMUnnamedAddr result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetUnnamedAddress((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetUnwindDest(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetUnwindDest((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetUsedValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_USE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetUsedValue((LLVMUseRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetUser(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_USE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetUser((LLVMUseRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGetValueContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMContextRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetValueContext((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_CONTEXT, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetValueKind(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueKind result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetValueKind((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetVectorSize(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetVectorSize((LLVMTypeRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMGetVisibility(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMVisibility result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetVisibility((LLVMValueRef)handle_of(a0));
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetVolatile(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetVolatile((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMGetWeak(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGetWeak((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMGlobalGetValueType(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMGlobalGetValueType((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMGlobalSetMetadata(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_METADATA, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMGlobalSetMetadata((LLVMValueRef)handle_of(a0), p1, (LLVMMetadataRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
-
-
-filc_ptr filc_native_LLVMHalfTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMHalfTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-int filc_native_LLVMHasMetadata(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    int result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMHasMetadata((LLVMValueRef)handle_of(a0));
-    int result = (int)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMHasPersonalityFn(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMHasPersonalityFn((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMHasPrefixData(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMHasPrefixData((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMHasPrologueData(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMHasPrologueData((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMHasUnnamedAddr(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMHasUnnamedAddr((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMInsertBasicBlockInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMInsertBasicBlockInContext((LLVMContextRef)a0->handle, (LLVMBasicBlockRef)handle_of(a1), a2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMInsertExistingBasicBlockAfterInsertBlock(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMInsertExistingBasicBlockAfterInsertBlock((LLVMBuilderRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMInsertIntoBuilder(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMInsertIntoBuilder((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    if (module)
-        builder_adopt_module(my_thread, a0, module);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMInsertIntoBuilderWithName(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2 = filc_check_and_get_tmp_str(my_thread, p2);
-    pas_lock_lock(&context->lock);
-    api->LLVMInsertIntoBuilderWithName((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1), a2);
-    if (module)
-        builder_adopt_module(my_thread, a0, module);
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMInstructionClone(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMInstructionClone((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMInt128TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMInt128TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMInt16TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMInt16TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMInt1TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMInt1TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMInt32TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMInt32TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMInt64TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMInt64TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMInt8TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMInt8TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMIntTypeInContext(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIntTypeInContext((LLVMContextRef)a0->handle, p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIntrinsicGetType(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, size_t p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef* a2 = (LLVMTypeRef*)decode_handle_array(my_thread, p2, p3, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIntrinsicGetType((LLVMContextRef)a0->handle, p1, a2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIntrinsicIsOverloaded(filc_thread* my_thread, unsigned p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIntrinsicIsOverloaded(p0);
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAAddrSpaceCastInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAAddrSpaceCastInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAAllocaInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAAllocaInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAArgument(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAArgument((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAAtomicCmpXchgInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAAtomicCmpXchgInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAAtomicRMWInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAAtomicRMWInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsABasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsABasicBlock((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsABinaryOperator(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsABinaryOperator((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsABitCastInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsABitCastInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsABlockAddress(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsABlockAddress((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsABranchInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsABranchInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACallBrInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACallBrInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACallInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACallInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACastInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACastInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACatchPadInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACatchPadInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACatchReturnInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACatchReturnInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACatchSwitchInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACatchSwitchInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACleanupPadInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACleanupPadInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACleanupReturnInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACleanupReturnInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsACmpInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsACmpInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstant(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstant((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantAggregateZero(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantAggregateZero((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantArray(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantArray((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantDataArray(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantDataArray((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantDataSequential(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantDataSequential((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantDataVector(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantDataVector((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantExpr(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantExpr((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantFP(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantFP((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantInt(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantInt((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantPointerNull(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantPointerNull((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantPtrAuth(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantPtrAuth((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantStruct(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantStruct((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantTokenNone(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantTokenNone((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAConstantVector(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAConstantVector((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsADbgDeclareInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsADbgDeclareInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsADbgInfoIntrinsic(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsADbgInfoIntrinsic((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsADbgLabelInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsADbgLabelInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsADbgVariableIntrinsic(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsADbgVariableIntrinsic((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAExtractElementInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAExtractElementInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAExtractValueInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAExtractValueInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFCmpInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFCmpInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFPExtInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFPExtInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFPToSIInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFPToSIInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFPToUIInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFPToUIInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFPTruncInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFPTruncInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFenceInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFenceInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFreezeInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFreezeInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFuncletPadInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFuncletPadInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAFunction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAFunction((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAGetElementPtrInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAGetElementPtrInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAGlobalAlias(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAGlobalAlias((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAGlobalIFunc(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAGlobalIFunc((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAGlobalObject(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAGlobalObject((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAGlobalValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAGlobalValue((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAGlobalVariable(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAGlobalVariable((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAICmpInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAICmpInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAIndirectBrInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAIndirectBrInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAInlineAsm(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAInlineAsm((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAInsertElementInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAInsertElementInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAInsertValueInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAInsertValueInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAInstruction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAInstruction((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAIntToPtrInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAIntToPtrInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAIntrinsicInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAIntrinsicInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAInvokeInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAInvokeInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsALandingPadInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsALandingPadInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsALoadInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsALoadInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAMemCpyInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAMemCpyInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAMemIntrinsic(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAMemIntrinsic((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAMemMoveInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAMemMoveInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAMemSetInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAMemSetInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAPHINode(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAPHINode((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAPoisonValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAPoisonValue((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAPtrToIntInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAPtrToIntInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAResumeInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAResumeInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAReturnInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAReturnInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsASExtInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsASExtInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsASIToFPInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsASIToFPInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsASelectInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsASelectInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAShuffleVectorInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAShuffleVectorInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAStoreInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAStoreInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsASwitchInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsASwitchInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsATruncInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsATruncInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAUIToFPInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAUIToFPInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAUnaryInstruction(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAUnaryInstruction((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAUnaryOperator(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAUnaryOperator((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAUndefValue(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAUndefValue((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAUnreachableInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAUnreachableInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAUser(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAUser((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAVAArgInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAVAArgInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMIsAZExtInst(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsAZExtInst((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsCleanup(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsCleanup((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsConditional(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsConditional((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsConstant(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsConstant((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsConstantString(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsConstantString((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsDeclaration(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsDeclaration((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsEnumAttribute(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_ATTRIBUTE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsEnumAttribute((LLVMAttributeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsExternallyInitialized(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsExternallyInitialized((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsFunctionVarArg(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsFunctionVarArg((LLVMTypeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsGlobalConstant(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsGlobalConstant((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsInBounds(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsInBounds((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsLiteralStruct(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsLiteralStruct((LLVMTypeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsMultithreaded(filc_thread* my_thread)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsMultithreaded();
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsNewDbgInfoFormat(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsNewDbgInfoFormat((LLVMModuleRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsNull(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsNull((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsOpaqueStruct(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsOpaqueStruct((LLVMTypeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsPackedStruct(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsPackedStruct((LLVMTypeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsPoison(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsPoison((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsStringAttribute(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_ATTRIBUTE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsStringAttribute((LLVMAttributeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsTailCall(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsTailCall((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsThreadLocal(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsThreadLocal((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsTypeAttribute(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_ATTRIBUTE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsTypeAttribute((LLVMAttributeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMIsUndef(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMIsUndef((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMLabelTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMLabelTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMLookupIntrinsicID(filc_thread* my_thread, filc_ptr p0, size_t p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    const char* a0;
-    if (!filc_ptr_ptr(p0)) {
-        FILC_CHECK(p1 == 0, NULL, "LLVMLookupIntrinsicID: null string with nonzero length.");
-        a0 = NULL;
-    } else {
-        filc_check_read(p0, (size_t)p1);
-        a0 = (const char*)filc_ptr_ptr(p0);
-    }
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMLookupIntrinsicID(a0, p1);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMMDNodeInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMValueRef* a1 = (LLVMValueRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMMDNodeInContext((LLVMContextRef)a0->handle, a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMMDNodeInContext2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMMetadataRef* a1 = (LLVMMetadataRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_METADATA, &context, &module);
-    LLVMMetadataRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMMDNodeInContext2((LLVMContextRef)a0->handle, a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMMDStringInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMMDStringInContext: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMMDStringInContext((LLVMContextRef)a0->handle, a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMMDStringInContext2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMMDStringInContext2: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    LLVMMetadataRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMMDStringInContext2((LLVMContextRef)a0->handle, a1, p2);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMMetadataAsValue(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_METADATA, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMMetadataAsValue((LLVMContextRef)a0->handle, (LLVMMetadataRef)handle_of(a1));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMMetadataTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMMetadataTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMModuleCreateWithNameInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    const char* a0 = filc_check_and_get_tmp_str(my_thread, p0);
-    filc_llvm_jit_context_object* a1 = unwrap_context(my_thread, p1);
-    context = a1;
-    LLVMModuleRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMModuleCreateWithNameInContext(a0, (LLVMContextRef)a1->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_MODULE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMModuleFlagEntriesGetFlagBehavior(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE_FLAG_ENTRIES, &context, &module);
-    LLVMModuleFlagBehavior result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMModuleFlagEntriesGetFlagBehavior((LLVMModuleFlagEntry*)handle_of(a0), p1);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMModuleFlagEntriesGetMetadata(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE_FLAG_ENTRIES, &context, &module);
-    LLVMMetadataRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMModuleFlagEntriesGetMetadata((LLVMModuleFlagEntry*)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMMoveBasicBlockAfter(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMMoveBasicBlockAfter((LLVMBasicBlockRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMMoveBasicBlockBefore(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMMoveBasicBlockBefore((LLVMBasicBlockRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-
-filc_ptr filc_native_LLVMPPCFP128TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMPPCFP128TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMPointerType(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMPointerType((LLVMTypeRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMPointerTypeInContext(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMPointerTypeInContext((LLVMContextRef)a0->handle, p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMPointerTypeIsOpaque(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMPointerTypeIsOpaque((LLVMTypeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMPositionBuilder(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMPositionBuilder((LLVMBuilderRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1), (LLVMValueRef)handle_of(a2));
-    if (module)
-        builder_adopt_module(my_thread, a0, module);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMPositionBuilderAtEnd(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMPositionBuilderAtEnd((LLVMBuilderRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    if (module)
-        builder_adopt_module(my_thread, a0, module);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMPositionBuilderBefore(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMPositionBuilderBefore((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    if (module)
-        builder_adopt_module(my_thread, a0, module);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMPositionBuilderBeforeDbgRecords(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMPositionBuilderBeforeDbgRecords((LLVMBuilderRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1), (LLVMValueRef)handle_of(a2));
-    if (module)
-        builder_adopt_module(my_thread, a0, module);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMPositionBuilderBeforeInstrAndDbgRecords(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMPositionBuilderBeforeInstrAndDbgRecords((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    if (module)
-        builder_adopt_module(my_thread, a0, module);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMRemoveCallSiteEnumAttribute(filc_thread* my_thread, filc_ptr p0, unsigned p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMRemoveCallSiteEnumAttribute((LLVMValueRef)handle_of(a0), p1, p2);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMRemoveCallSiteStringAttribute(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2;
-    if (!filc_ptr_ptr(p2)) {
-        FILC_CHECK(p3 == 0, NULL, "LLVMRemoveCallSiteStringAttribute: null string with nonzero length.");
-        a2 = NULL;
-    } else {
-        filc_check_read(p2, (size_t)p3);
-        a2 = (const char*)filc_ptr_ptr(p2);
-    }
-    pas_lock_lock(&context->lock);
-    api->LLVMRemoveCallSiteStringAttribute((LLVMValueRef)handle_of(a0), p1, a2, p3);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMRemoveEnumAttributeAtIndex(filc_thread* my_thread, filc_ptr p0, unsigned p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMRemoveEnumAttributeAtIndex((LLVMValueRef)handle_of(a0), p1, p2);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMRemoveStringAttributeAtIndex(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2, unsigned p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a2;
-    if (!filc_ptr_ptr(p2)) {
-        FILC_CHECK(p3 == 0, NULL, "LLVMRemoveStringAttributeAtIndex: null string with nonzero length.");
-        a2 = NULL;
-    } else {
-        filc_check_read(p2, (size_t)p3);
-        a2 = (const char*)filc_ptr_ptr(p2);
-    }
-    pas_lock_lock(&context->lock);
-    api->LLVMRemoveStringAttributeAtIndex((LLVMValueRef)handle_of(a0), p1, a2, p3);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMReplaceAllUsesWith(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMReplaceAllUsesWith((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMReplaceMDNodeOperandWith(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_METADATA, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMReplaceMDNodeOperandWith((LLVMValueRef)handle_of(a0), p1, (LLVMMetadataRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMScalableVectorType(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMScalableVectorType((LLVMTypeRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMSetAlignment(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetAlignment((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetArgOperand(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetArgOperand((LLVMValueRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetAtomicRMWBinOp(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetAtomicRMWBinOp((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetAtomicSingleThread(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetAtomicSingleThread((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetAtomicSyncScopeID(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetAtomicSyncScopeID((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetCleanup(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetCleanup((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetCmpXchgFailureOrdering(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetCmpXchgFailureOrdering((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetCmpXchgSuccessOrdering(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetCmpXchgSuccessOrdering((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetCondition(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetCondition((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetCurrentDebugLocation(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetCurrentDebugLocation((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetCurrentDebugLocation2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_METADATA, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetCurrentDebugLocation2((LLVMBuilderRef)handle_of(a0), (LLVMMetadataRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetDLLStorageClass(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetDLLStorageClass((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetDataLayout(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetDataLayout((LLVMModuleRef)handle_of(a0), a1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetExact(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetExact((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetExternallyInitialized(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetExternallyInitialized((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetFastMathFlags(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetFastMathFlags((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetFunctionCallConv(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetFunctionCallConv((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetGC(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetGC((LLVMValueRef)handle_of(a0), a1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetGlobalConstant(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetGlobalConstant((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetGlobalIFuncResolver(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetGlobalIFuncResolver((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetInitializer(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetInitializer((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetInstDebugLocation(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_BUILDER, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetInstDebugLocation((LLVMBuilderRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetInstrParamAlignment(filc_thread* my_thread, filc_ptr p0, unsigned p1, unsigned p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetInstrParamAlignment((LLVMValueRef)handle_of(a0), p1, p2);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetInstructionCallConv(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetInstructionCallConv((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetIsDisjoint(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetIsDisjoint((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetIsInBounds(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetIsInBounds((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetIsNewDbgInfoFormat(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetIsNewDbgInfoFormat((LLVMModuleRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetLinkage(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetLinkage((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetMetadata(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetMetadata((LLVMValueRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetModuleIdentifier(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMSetModuleIdentifier: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    pas_lock_lock(&context->lock);
-    api->LLVMSetModuleIdentifier((LLVMModuleRef)handle_of(a0), a1, p2);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetModuleInlineAsm(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetModuleInlineAsm((LLVMModuleRef)handle_of(a0), a1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetModuleInlineAsm2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMSetModuleInlineAsm2: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    pas_lock_lock(&context->lock);
-    api->LLVMSetModuleInlineAsm2((LLVMModuleRef)handle_of(a0), a1, p2);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetNNeg(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetNNeg((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetNSW(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetNSW((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetNUW(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetNUW((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetNormalDest(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetNormalDest((LLVMValueRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetOperand(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetOperand((LLVMValueRef)handle_of(a0), p1, (LLVMValueRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetOrdering(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetOrdering((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetParamAlignment(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetParamAlignment((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetParentCatchSwitch(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetParentCatchSwitch((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetPersonalityFn(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetPersonalityFn((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetPrefixData(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetPrefixData((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetPrologueData(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetPrologueData((LLVMValueRef)handle_of(a0), (LLVMValueRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetSection(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetSection((LLVMValueRef)handle_of(a0), a1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetSourceFileName(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMSetSourceFileName: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    pas_lock_lock(&context->lock);
-    api->LLVMSetSourceFileName((LLVMModuleRef)handle_of(a0), a1, p2);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetSuccessor(filc_thread* my_thread, filc_ptr p0, unsigned p1, filc_ptr p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a2 = unwrap_obj(my_thread, p2, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetSuccessor((LLVMValueRef)handle_of(a0), p1, (LLVMBasicBlockRef)handle_of(a2));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetTailCall(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetTailCall((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetTailCallKind(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetTailCallKind((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetTarget(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_MODULE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetTarget((LLVMModuleRef)handle_of(a0), a1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetThreadLocal(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetThreadLocal((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetThreadLocalMode(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetThreadLocalMode((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetUnnamedAddr(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetUnnamedAddr((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetUnnamedAddress(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetUnnamedAddress((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetUnwindDest(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    filc_llvm_jit_object* a1 = unwrap_obj(my_thread, p1, FILC_LLVM_JIT_KIND_BASIC_BLOCK, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetUnwindDest((LLVMValueRef)handle_of(a0), (LLVMBasicBlockRef)handle_of(a1));
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetValueName(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetValueName((LLVMValueRef)handle_of(a0), a1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetValueName2(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, size_t p2)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    const char* a1;
-    if (!filc_ptr_ptr(p1)) {
-        FILC_CHECK(p2 == 0, NULL, "LLVMSetValueName2: null string with nonzero length.");
-        a1 = NULL;
-    } else {
-        filc_check_read(p1, (size_t)p2);
-        a1 = (const char*)filc_ptr_ptr(p1);
-    }
-    pas_lock_lock(&context->lock);
-    api->LLVMSetValueName2((LLVMValueRef)handle_of(a0), a1, p2);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetVisibility(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetVisibility((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetVolatile(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetVolatile((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-void filc_native_LLVMSetWeak(filc_thread* my_thread, filc_ptr p0, bool p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMSetWeak((LLVMValueRef)handle_of(a0), p1);
-    pas_lock_unlock(&context->lock);
-}
-
-filc_ptr filc_native_LLVMSizeOf(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMValueRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMSizeOf((LLVMTypeRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_VALUE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMStructCreateNamed(filc_thread* my_thread, filc_ptr p0, filc_ptr p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    const char* a1 = filc_check_and_get_tmp_str(my_thread, p1);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMStructCreateNamed((LLVMContextRef)a0->handle, a1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMStructGetTypeAtIndex(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMStructGetTypeAtIndex((LLVMTypeRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-void filc_native_LLVMStructSetBody(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, bool p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef* a1 = (LLVMTypeRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    pas_lock_lock(&context->lock);
-    api->LLVMStructSetBody((LLVMTypeRef)handle_of(a0), a1, p2, p3);
-    pas_lock_unlock(&context->lock);
-}
-
-
-filc_ptr filc_native_LLVMStructTypeInContext(filc_thread* my_thread, filc_ptr p0, filc_ptr p1, unsigned p2, bool p3)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef* a1 = (LLVMTypeRef*)decode_handle_array(my_thread, p1, p2, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMStructTypeInContext((LLVMContextRef)a0->handle, a1, p2, p3);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMTokenTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMTokenTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMTypeIsSized(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMTypeIsSized((LLVMTypeRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMTypeOf(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMTypeOf((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMValueAsBasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBasicBlockRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMValueAsBasicBlock((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_BASIC_BLOCK, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMValueAsMetadata(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMMetadataRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMValueAsMetadata((LLVMValueRef)handle_of(a0));
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-bool filc_native_LLVMValueIsBasicBlock(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_VALUE, &context, &module);
-    LLVMBool result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMValueIsBasicBlock((LLVMValueRef)handle_of(a0));
-    bool result = (bool)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-unsigned filc_native_LLVMValueMetadataEntriesGetKind(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_METADATA_ENTRIES, &context, &module);
-    unsigned result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMValueMetadataEntriesGetKind((LLVMValueMetadataEntry*)handle_of(a0), p1);
-    unsigned result = (unsigned)result_raw;
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMValueMetadataEntriesGetMetadata(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_METADATA_ENTRIES, &context, &module);
-    LLVMMetadataRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMValueMetadataEntriesGetMetadata((LLVMValueMetadataEntry*)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_METADATA, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-filc_ptr filc_native_LLVMVectorType(filc_thread* my_thread, filc_ptr p0, unsigned p1)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_object* a0 = unwrap_obj(my_thread, p0, FILC_LLVM_JIT_KIND_TYPE, &context, &module);
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMVectorType((LLVMTypeRef)handle_of(a0), p1);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMVoidTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMVoidTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMX86AMXTypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMX86AMXTypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
-
-
-filc_ptr filc_native_LLVMX86FP80TypeInContext(filc_thread* my_thread, filc_ptr p0)
-{
-    ensure_api(my_thread);
-    filc_llvm_jit_context_object* context = NULL;
-    filc_llvm_jit_object* module = NULL;
-    filc_llvm_jit_context_object* a0 = unwrap_context(my_thread, p0);
-    context = a0;
-    LLVMTypeRef result_raw;
-    pas_lock_lock(&context->lock);
-    result_raw = api->LLVMX86FP80TypeInContext((LLVMContextRef)a0->handle);
-    filc_ptr result = wrap_handle(my_thread, context, module, FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
-    pas_lock_unlock(&context->lock);
-    return result;
-}
+#define FILC_LLVM_JIT_UNLOCK_NO_LOCK
+#define FILC_LLVM_JIT_UNLOCK(lock) FILC_LLVM_JIT_UNLOCK_##lock
+
+/* Scalar return, split by locking discipline. */
+#define FILC_LLVM_JIT_SCALAR_RETURN_LOCKED(name, ret_ty, args) \
+    pas_lock_lock(&llvm_context->lock); \
+    ret_ty result = (ret_ty)api->name args; \
+    pas_lock_unlock(&llvm_context->lock); \
+    return result;
+#define FILC_LLVM_JIT_SCALAR_RETURN_NO_LOCK(name, ret_ty, args) \
+    return (ret_ty)api->name args;
+
+#define FILC_LLVM_JIT_DEFINE_VOID_1(name, lock, d0) \
+void filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_LOCK(lock) \
+    api->name(FILC_LLVM_JIT_ARG(d0)); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_VOID_2(name, lock, d0, d1) \
+void filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_LOCK(lock) \
+    api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1)); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_VOID_3(name, lock, d0, d1, d2) \
+void filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_LOCK(lock) \
+    api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2)); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_VOID_4(name, lock, d0, d1, d2, d3) \
+void filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    FILC_LLVM_JIT_LOCK(lock) \
+    api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2), FILC_LLVM_JIT_ARG(d3)); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_VOID_5(name, lock, d0, d1, d2, d3, d4) \
+void filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3), FILC_LLVM_JIT_PARAM(d4)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    FILC_LLVM_JIT_UNWRAP(name, d4) \
+    FILC_LLVM_JIT_LOCK(lock) \
+    api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2), FILC_LLVM_JIT_ARG(d3), FILC_LLVM_JIT_ARG(d4)); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_VOID_2_ADOPT(name, lock, d0, d1, adopt) \
+void filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_LOCK(lock) \
+    api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1)); \
+    FILC_LLVM_JIT_ADOPT(adopt) \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_VOID_3_ADOPT(name, lock, d0, d1, d2, adopt) \
+void filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_LOCK(lock) \
+    api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2)); \
+    FILC_LLVM_JIT_ADOPT(adopt) \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_1(name, lock, kind, d0) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_2(name, lock, kind, d0, d1) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_3(name, lock, kind, d0, d1, d2) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_4(name, lock, kind, d0, d1, d2, d3) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2), FILC_LLVM_JIT_ARG(d3)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_5(name, lock, kind, d0, d1, d2, d3, d4) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3), FILC_LLVM_JIT_PARAM(d4)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    FILC_LLVM_JIT_UNWRAP(name, d4) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2), FILC_LLVM_JIT_ARG(d3), FILC_LLVM_JIT_ARG(d4)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_6(name, lock, kind, d0, d1, d2, d3, d4, d5) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3), FILC_LLVM_JIT_PARAM(d4), FILC_LLVM_JIT_PARAM(d5)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    FILC_LLVM_JIT_UNWRAP(name, d4) \
+    FILC_LLVM_JIT_UNWRAP(name, d5) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2), FILC_LLVM_JIT_ARG(d3), FILC_LLVM_JIT_ARG(d4), FILC_LLVM_JIT_ARG(d5)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_7(name, lock, kind, d0, d1, d2, d3, d4, d5, d6) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3), FILC_LLVM_JIT_PARAM(d4), FILC_LLVM_JIT_PARAM(d5), FILC_LLVM_JIT_PARAM(d6)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    FILC_LLVM_JIT_UNWRAP(name, d4) \
+    FILC_LLVM_JIT_UNWRAP(name, d5) \
+    FILC_LLVM_JIT_UNWRAP(name, d6) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2), FILC_LLVM_JIT_ARG(d3), FILC_LLVM_JIT_ARG(d4), FILC_LLVM_JIT_ARG(d5), FILC_LLVM_JIT_ARG(d6)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_8(name, lock, kind, d0, d1, d2, d3, d4, d5, d6, d7) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3), FILC_LLVM_JIT_PARAM(d4), FILC_LLVM_JIT_PARAM(d5), FILC_LLVM_JIT_PARAM(d6), FILC_LLVM_JIT_PARAM(d7)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    FILC_LLVM_JIT_UNWRAP(name, d4) \
+    FILC_LLVM_JIT_UNWRAP(name, d5) \
+    FILC_LLVM_JIT_UNWRAP(name, d6) \
+    FILC_LLVM_JIT_UNWRAP(name, d7) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2), FILC_LLVM_JIT_ARG(d3), FILC_LLVM_JIT_ARG(d4), FILC_LLVM_JIT_ARG(d5), FILC_LLVM_JIT_ARG(d6), FILC_LLVM_JIT_ARG(d7)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_REF_9(name, lock, kind, d0, d1, d2, d3, d4, d5, d6, d7, d8) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3), FILC_LLVM_JIT_PARAM(d4), FILC_LLVM_JIT_PARAM(d5), FILC_LLVM_JIT_PARAM(d6), FILC_LLVM_JIT_PARAM(d7), FILC_LLVM_JIT_PARAM(d8)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    FILC_LLVM_JIT_UNWRAP(name, d4) \
+    FILC_LLVM_JIT_UNWRAP(name, d5) \
+    FILC_LLVM_JIT_UNWRAP(name, d6) \
+    FILC_LLVM_JIT_UNWRAP(name, d7) \
+    FILC_LLVM_JIT_UNWRAP(name, d8) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0), FILC_LLVM_JIT_ARG(d1), FILC_LLVM_JIT_ARG(d2), FILC_LLVM_JIT_ARG(d3), FILC_LLVM_JIT_ARG(d4), FILC_LLVM_JIT_ARG(d5), FILC_LLVM_JIT_ARG(d6), FILC_LLVM_JIT_ARG(d7), FILC_LLVM_JIT_ARG(d8)); \
+    filc_ptr result = wrap_handle( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+#define FILC_LLVM_JIT_DEFINE_SCALAR_0(name, lock, ret_ty) \
+ret_ty filc_native_##name(filc_thread* my_thread) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_SCALAR_RETURN_##lock(name, ret_ty, ()) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_SCALAR_1(name, lock, ret_ty, d0) \
+ret_ty filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_SCALAR_RETURN_##lock(name, ret_ty, (FILC_LLVM_JIT_ARG(d0))) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_SCALAR_2(name, lock, ret_ty, d0, d1) \
+ret_ty filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_SCALAR_RETURN_##lock(name, ret_ty, (FILC_LLVM_JIT_ARG(d0),FILC_LLVM_JIT_ARG(d1))) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_SCALAR_3(name, lock, ret_ty, d0, d1, d2) \
+ret_ty filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_SCALAR_RETURN_##lock(name, ret_ty, (FILC_LLVM_JIT_ARG(d0),FILC_LLVM_JIT_ARG(d1),FILC_LLVM_JIT_ARG(d2))) \
+}
+
+#define FILC_LLVM_JIT_DEFINE_SCALAR_4(name, lock, ret_ty, d0, d1, d2, d3) \
+ret_ty filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1), FILC_LLVM_JIT_PARAM(d2), FILC_LLVM_JIT_PARAM(d3)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    FILC_LLVM_JIT_UNWRAP(name, d1) \
+    FILC_LLVM_JIT_UNWRAP(name, d2) \
+    FILC_LLVM_JIT_UNWRAP(name, d3) \
+    FILC_LLVM_JIT_SCALAR_RETURN_##lock(name, ret_ty, (FILC_LLVM_JIT_ARG(d0),FILC_LLVM_JIT_ARG(d1),FILC_LLVM_JIT_ARG(d2),FILC_LLVM_JIT_ARG(d3))) \
+}
+
+
+/* The wrapper table, one row per wrapper, in alphabetical order. */
+
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMAddAlias2, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (REF, value_ty, TYPE, LLVMTypeRef), (SCAL, addr_space, unsigned), (REF, aliasee, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddAttributeAtIndex, LOCKED, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddCallSiteAttribute, LOCKED, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddCase, LOCKED, (REF, switch_inst, VALUE, LLVMValueRef), (REF, on_val, VALUE, LLVMValueRef), (REF, dest, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddClause, LOCKED, (REF, landing_pad, VALUE, LLVMValueRef), (REF, clause_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddDestination, LOCKED, (REF, indirect_br, VALUE, LLVMValueRef), (REF, dest, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMAddFunction, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (CSTR, name), (REF, function_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMAddGlobal, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMAddGlobalIFunc, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t), (REF, type, TYPE, LLVMTypeRef), (SCAL, addr_space, unsigned), (REF, resolver, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMAddGlobalInAddressSpace, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name), (SCAL, address_space, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddHandler, LOCKED, (REF, catch_switch, VALUE, LLVMValueRef), (REF, dest, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_VOID_4(LLVMAddIncoming, LOCKED, (REF, phi_node, VALUE, LLVMValueRef), (ARR, incoming_values, count, VALUE, LLVMValueRef), (ARR, incoming_blocks, count, BASIC_BLOCK, LLVMBasicBlockRef), (SCAL, count, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddMetadataToInst, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_5(LLVMAddModuleFlag, LOCKED, (REF, module, MODULE, LLVMModuleRef), (SCAL, behavior, unsigned), (OPTSTR, key, key_len), (SCAL, key_len, size_t), (REF, val, METADATA, LLVMMetadataRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddNamedMetadataOperand, LOCKED, (REF, module, MODULE, LLVMModuleRef), (CSTR, name), (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddTargetDependentFunctionAttr, LOCKED, (REF, function, VALUE, LLVMValueRef), (CSTR, name), (CSTR, value))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMAliasGetAliasee, LOCKED, VALUE, (REF, alias, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAliasSetAliasee, LOCKED, (REF, alias, VALUE, LLVMValueRef), (REF, aliasee, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMAlignOf, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMAppendBasicBlockInContext, LOCKED, BASIC_BLOCK, (CTX, context), (REF, function, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAppendExistingBasicBlock, LOCKED, (REF, function, VALUE, LLVMValueRef), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAppendModuleInlineAsm, LOCKED, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, asm_string, len), (SCAL, len, size_t))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMArrayType, LOCKED, TYPE, (REF, element_type, TYPE, LLVMTypeRef), (SCAL, element_count, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMArrayType2, LOCKED, TYPE, (REF, element_type, TYPE, LLVMTypeRef), (SCAL, element_count, unsigned long long))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMBFloatTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMBasicBlockAsValue, LOCKED, VALUE, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMBlockAddress, LOCKED, VALUE, (REF, value, VALUE, LLVMValueRef), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildAShr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildAdd, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildAddrSpaceCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildAggregateRet, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (ARR, ret_vals, num_elements, VALUE, LLVMValueRef), (SCAL, num_elements, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildAlloca, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildAnd, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildArrayAlloca, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, val, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildArrayMalloc, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, val, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_7(LLVMBuildAtomicCmpXchg, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, ptr, VALUE, LLVMValueRef), (REF, cmp, VALUE, LLVMValueRef), (REF, new, VALUE, LLVMValueRef), (SCAL, success_ordering, unsigned), (SCAL, failure_ordering, unsigned), (SCAL, single_thread, bool))
+FILC_LLVM_JIT_DEFINE_REF_7(LLVMBuildAtomicCmpXchgSyncScope, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, ptr, VALUE, LLVMValueRef), (REF, cmp, VALUE, LLVMValueRef), (REF, new, VALUE, LLVMValueRef), (SCAL, success_ordering, unsigned), (SCAL, failure_ordering, unsigned), (SCAL, ssid, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildAtomicRMW, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, bin_op, unsigned), (REF, ptr, VALUE, LLVMValueRef), (REF, val, VALUE, LLVMValueRef), (SCAL, ordering, unsigned), (SCAL, single_thread, bool))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildAtomicRMWSyncScope, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, bin_op, unsigned), (REF, ptr, VALUE, LLVMValueRef), (REF, val, VALUE, LLVMValueRef), (SCAL, ordering, unsigned), (SCAL, ssid, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildBinOp, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, opcode, unsigned), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildBitCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMBuildBr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, dest, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildCall2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, function, VALUE, LLVMValueRef), (ARR, args, num_args, VALUE, LLVMValueRef), (SCAL, num_args, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, opcode, unsigned), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildCatchPad, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, parent_pad, VALUE, LLVMValueRef), (ARR, args, num_args, VALUE, LLVMValueRef), (SCAL, num_args, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildCatchRet, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, catch_pad, VALUE, LLVMValueRef), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildCatchSwitch, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, parent_pad, VALUE, LLVMValueRef), (REF, unwind_bb, BASIC_BLOCK, LLVMBasicBlockRef), (SCAL, num_handlers, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildCleanupPad, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, parent_pad, VALUE, LLVMValueRef), (ARR, args, num_args, VALUE, LLVMValueRef), (SCAL, num_args, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildCleanupRet, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, catch_pad, VALUE, LLVMValueRef), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildCondBr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, if_val, VALUE, LLVMValueRef), (REF, then, BASIC_BLOCK, LLVMBasicBlockRef), (REF, else_val, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildExactSDiv, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildExactUDiv, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildExtractElement, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, vec_val, VALUE, LLVMValueRef), (REF, index, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildExtractValue, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, agg_val, VALUE, LLVMValueRef), (SCAL, index, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFAdd, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildFCmp, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, predicate, unsigned), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFDiv, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFMul, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildFNeg, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFPCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFPExt, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFPToSI, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFPToUI, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFPTrunc, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFRem, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFSub, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFence, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, ordering, unsigned), (SCAL, single_thread, bool), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFenceSyncScope, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, ordering, unsigned), (SCAL, ssid, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMBuildFree, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, pointer_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildFreeze, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_7(LLVMBuildGEPWithNoWrapFlags, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name), (SCAL, no_wrap_flags, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildGlobalString, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (CSTR, str), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildGlobalStringPtr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (CSTR, str), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildICmp, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, predicate, unsigned), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildInBoundsGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildIndirectBr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, addr, VALUE, LLVMValueRef), (SCAL, num_dests, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildInsertElement, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, vec_val, VALUE, LLVMValueRef), (REF, elt_val, VALUE, LLVMValueRef), (REF, index, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildInsertValue, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, agg_val, VALUE, LLVMValueRef), (REF, elt_val, VALUE, LLVMValueRef), (SCAL, index, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildIntCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildIntCast2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (SCAL, is_signed, bool), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildIntToPtr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_8(LLVMBuildInvoke2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, function, VALUE, LLVMValueRef), (ARR, args, num_args, VALUE, LLVMValueRef), (SCAL, num_args, unsigned), (REF, then, BASIC_BLOCK, LLVMBasicBlockRef), (REF, catch, BASIC_BLOCK, LLVMBasicBlockRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildIsNotNull, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildIsNull, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildLShr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildLandingPad, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pers_fn, VALUE, LLVMValueRef), (SCAL, num_clauses, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildLoad2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer_val, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildMalloc, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildMemCpy, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, dst, VALUE, LLVMValueRef), (SCAL, dst_align, unsigned), (REF, src, VALUE, LLVMValueRef), (SCAL, src_align, unsigned), (REF, size, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildMemMove, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, dst, VALUE, LLVMValueRef), (SCAL, dst_align, unsigned), (REF, src, VALUE, LLVMValueRef), (SCAL, src_align, unsigned), (REF, size, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildMemSet, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, ptr, VALUE, LLVMValueRef), (REF, val, VALUE, LLVMValueRef), (REF, len, VALUE, LLVMValueRef), (SCAL, align, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildMul, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildNSWAdd, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildNSWMul, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildNSWNeg, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildNSWSub, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildNUWAdd, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildNUWMul, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildNUWSub, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildNeg, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildNot, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildOr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildPhi, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildPointerCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildPtrDiff2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, elem_ty, TYPE, LLVMTypeRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildPtrToInt, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMBuildResume, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, exn, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMBuildRet, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMBuildRetVoid, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSDiv, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSExt, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSExtOrBitCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSIToFP, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSRem, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildSelect, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, if_val, VALUE, LLVMValueRef), (REF, then, VALUE, LLVMValueRef), (REF, else_val, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildShl, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildShuffleVector, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, v1, VALUE, LLVMValueRef), (REF, v2, VALUE, LLVMValueRef), (REF, mask, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildStore, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, ptr, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildStructGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSub, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSwitch, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef), (REF, else_val, BASIC_BLOCK, LLVMBasicBlockRef), (SCAL, num_cases, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildTrunc, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildTruncOrBitCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildUDiv, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildUIToFP, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildURem, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMBuildUnreachable, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildVAArg, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, list, VALUE, LLVMValueRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildXor, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildZExt, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildZExtOrBitCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMBuilderGetDefaultFPMathTag, LOCKED, METADATA, (REF, builder, BUILDER, LLVMBuilderRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMBuilderSetDefaultFPMathTag, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, fp_math_tag, METADATA, LLVMMetadataRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMCanValueUseFastMathFlags, LOCKED, bool, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_1(LLVMClearInsertionPosition, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMCloneModule, LOCKED, MODULE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstAdd, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstAddrSpaceCast, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef), (REF, to_type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMConstAllOnes, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstArray, LOCKED, VALUE, (REF, element_ty, TYPE, LLVMTypeRef), (ARR, constant_vals, length, VALUE, LLVMValueRef), (SCAL, length, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstArray2, LOCKED, VALUE, (REF, element_ty, TYPE, LLVMTypeRef), (ARR, constant_vals, length, VALUE, LLVMValueRef), (SCAL, length, unsigned long long))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstBitCast, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef), (REF, to_type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstExtractElement, LOCKED, VALUE, (REF, vector_constant, VALUE, LLVMValueRef), (REF, index_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMConstGEP2, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef), (REF, constant_val, VALUE, LLVMValueRef), (ARR, constant_indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMConstGEPWithNoWrapFlags, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef), (REF, constant_val, VALUE, LLVMValueRef), (ARR, constant_indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (SCAL, no_wrap_flags, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMConstInBoundsGEP2, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef), (REF, constant_val, VALUE, LLVMValueRef), (ARR, constant_indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMConstInlineAsm, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef), (CSTR, asm_string), (CSTR, constraints), (SCAL, has_side_effects, bool), (SCAL, is_align_stack, bool))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstInsertElement, LOCKED, VALUE, (REF, vector_constant, VALUE, LLVMValueRef), (REF, element_value_constant, VALUE, LLVMValueRef), (REF, index_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstInt, LOCKED, VALUE, (REF, int_ty, TYPE, LLVMTypeRef), (SCAL, value, unsigned long long), (SCAL, sign_extend, bool))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMConstIntGetSExtValue, LOCKED, long long, (REF, constant_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMConstIntGetZExtValue, LOCKED, unsigned long long, (REF, constant_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstIntOfString, LOCKED, VALUE, (REF, int_ty, TYPE, LLVMTypeRef), (CSTR, text), (SCAL, radix, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMConstIntOfStringAndSize, LOCKED, VALUE, (REF, int_ty, TYPE, LLVMTypeRef), (OPTSTR, text, s_len), (SCAL, s_len, unsigned), (SCAL, radix, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstIntToPtr, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef), (REF, to_type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstMul, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstNSWAdd, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstNSWMul, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMConstNSWNeg, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstNSWSub, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstNUWAdd, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstNUWMul, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstNUWSub, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstNamedStruct, LOCKED, VALUE, (REF, struct_ty, TYPE, LLVMTypeRef), (ARR, constant_vals, count, VALUE, LLVMValueRef), (SCAL, count, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMConstNeg, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMConstNot, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMConstNull, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstPointerCast, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef), (REF, to_type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMConstPointerNull, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstPtrToInt, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef), (REF, to_type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstReal, LOCKED, VALUE, (REF, real_ty, TYPE, LLVMTypeRef), (SCAL, real_value, double))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstRealOfString, LOCKED, VALUE, (REF, real_ty, TYPE, LLVMTypeRef), (CSTR, text))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstRealOfStringAndSize, LOCKED, VALUE, (REF, real_ty, TYPE, LLVMTypeRef), (OPTSTR, text, s_len), (SCAL, s_len, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstShuffleVector, LOCKED, VALUE, (REF, vector_a_constant, VALUE, LLVMValueRef), (REF, vector_b_constant, VALUE, LLVMValueRef), (REF, mask_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMConstStringInContext, LOCKED, VALUE, (CTX, context), (OPTSTR, str, length), (SCAL, length, unsigned), (SCAL, dont_null_terminate, bool))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMConstStringInContext2, LOCKED, VALUE, (CTX, context), (OPTSTR, str, length), (SCAL, length, size_t), (SCAL, dont_null_terminate, bool))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMConstStructInContext, LOCKED, VALUE, (CTX, context), (ARR, constant_vals, count, VALUE, LLVMValueRef), (SCAL, count, unsigned), (SCAL, packed, bool))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstSub, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstTrunc, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef), (REF, to_type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstTruncOrBitCast, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef), (REF, to_type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstVector, LOCK_IF_CONTEXT, VALUE, (ARR, scalar_constant_vals, size, VALUE, LLVMValueRef), (SCAL, size, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstXor, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef), (REF, rhs_constant, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMConstantPtrAuth, LOCKED, VALUE, (REF, ptr, VALUE, LLVMValueRef), (REF, key, VALUE, LLVMValueRef), (REF, disc, VALUE, LLVMValueRef), (REF, addr_disc, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMContextSetDiscardValueNames, LOCKED, (CTX, context), (SCAL, discard, bool))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMContextShouldDiscardValueNames, LOCKED, bool, (CTX, context))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMCountBasicBlocks, LOCKED, unsigned, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMCountIncoming, LOCKED, unsigned, (REF, phi_node, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMCountParamTypes, LOCKED, unsigned, (REF, function_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMCountParams, LOCKED, unsigned, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMCountStructElementTypes, LOCKED, unsigned, (REF, struct_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMCreateBasicBlockInContext, LOCKED, BASIC_BLOCK, (CTX, context), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMCreateBuilderInContext, LOCKED, BUILDER, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMCreateEnumAttribute, LOCKED, ATTRIBUTE, (CTX, context), (SCAL, kind_id, unsigned), (SCAL, val, unsigned long long))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMCreateStringAttribute, LOCKED, ATTRIBUTE, (CTX, context), (OPTSTR, key, k_length), (SCAL, k_length, unsigned), (OPTSTR, value, v_length), (SCAL, v_length, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMCreateTypeAttribute, LOCKED, ATTRIBUTE, (CTX, context), (SCAL, kind_id, unsigned), (REF, type_ref, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMDoubleTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_VOID_1(LLVMDumpModule, LOCKED, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_VOID_1(LLVMDumpType, LOCKED, (REF, val, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_VOID_1(LLVMDumpValue, LOCKED, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMFP128TypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMFloatTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMFunctionType, LOCKED, TYPE, (REF, return_type, TYPE, LLVMTypeRef), (ARR, param_types, param_count, TYPE, LLVMTypeRef), (SCAL, param_count, unsigned), (SCAL, is_var_arg, bool))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGEPGetNoWrapFlags, LOCKED, unsigned, (REF, gep, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMGEPSetNoWrapFlags, LOCKED, (REF, gep, VALUE, LLVMValueRef), (SCAL, no_wrap_flags, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetAggregateElement, LOCKED, VALUE, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetAlignment, LOCKED, unsigned, (REF, value, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetAllocatedType, LOCKED, TYPE, (REF, alloca, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetArgOperand, LOCKED, VALUE, (REF, funclet, VALUE, LLVMValueRef), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetArrayLength, LOCKED, unsigned, (REF, array_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetArrayLength2, LOCKED, unsigned long long, (REF, array_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetAtomicRMWBinOp, LOCKED, unsigned, (REF, atomic_rmw_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetAtomicSyncScopeID, LOCKED, unsigned, (REF, atomic_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMGetAttributeCountAtIndex, LOCKED, unsigned, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetBasicBlockParent, LOCKED, VALUE, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetBasicBlockTerminator, LOCKED, VALUE, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetBlockAddressBasicBlock, LOCKED, BASIC_BLOCK, (REF, block_addr, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetBlockAddressFunction, LOCKED, VALUE, (REF, block_addr, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetBuilderContext, LOCKED, CONTEXT, (REF, builder, BUILDER, LLVMBuilderRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetCallBrDefaultDest, LOCKED, BASIC_BLOCK, (REF, call_br, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetCallBrIndirectDest, LOCKED, BASIC_BLOCK, (REF, call_br, VALUE, LLVMValueRef), (SCAL, idx, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetCallBrNumIndirectDests, LOCKED, unsigned, (REF, call_br, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMGetCallSiteAttributeCount, LOCKED, unsigned, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetCallSiteEnumAttribute, LOCKED, ATTRIBUTE, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (SCAL, kind_id, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMGetCallSiteStringAttribute, LOCKED, ATTRIBUTE, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (OPTSTR, key, k_len), (SCAL, k_len, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetCalledFunctionType, LOCKED, TYPE, (REF, value, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetCalledValue, LOCKED, VALUE, (REF, instr, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_4(LLVMGetCastOpcode, LOCKED, unsigned, (REF, src, VALUE, LLVMValueRef), (SCAL, src_is_signed, bool), (REF, dest_ty, TYPE, LLVMTypeRef), (SCAL, dest_is_signed, bool))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetClause, LOCKED, VALUE, (REF, landing_pad, VALUE, LLVMValueRef), (SCAL, idx, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetCmpXchgFailureOrdering, LOCKED, unsigned, (REF, cmp_xchg_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetCmpXchgSuccessOrdering, LOCKED, unsigned, (REF, cmp_xchg_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetCondition, LOCKED, VALUE, (REF, branch, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetConstOpcode, LOCKED, unsigned, (REF, constant_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetConstantPtrAuthAddrDiscriminator, LOCKED, VALUE, (REF, ptr_auth, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetConstantPtrAuthDiscriminator, LOCKED, VALUE, (REF, ptr_auth, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetConstantPtrAuthKey, LOCKED, VALUE, (REF, ptr_auth, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetConstantPtrAuthPointer, LOCKED, VALUE, (REF, ptr_auth, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetCurrentDebugLocation, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetCurrentDebugLocation2, LOCKED, METADATA, (REF, builder, BUILDER, LLVMBuilderRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetDLLStorageClass, LOCKED, unsigned, (REF, global, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetDebugLocColumn, LOCKED, unsigned, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetDebugLocLine, LOCKED, unsigned, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetElementType, LOCKED, TYPE, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetEntryBasicBlock, LOCKED, BASIC_BLOCK, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetEnumAttributeAtIndex, LOCKED, ATTRIBUTE, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (SCAL, kind_id, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetEnumAttributeKind, LOCKED, unsigned, (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMGetEnumAttributeKindForName, NO_LOCK, unsigned, (OPTSTR, name, s_len), (SCAL, s_len, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetEnumAttributeValue, LOCKED, unsigned long long, (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetExact, LOCKED, bool, (REF, div_or_shr_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetFCmpPredicate, LOCKED, unsigned, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetFastMathFlags, LOCKED, unsigned, (REF, fp_math_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstBasicBlock, LOCKED, BASIC_BLOCK, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstDbgRecord, LOCKED, DBG_RECORD, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstFunction, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstGlobal, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstGlobalAlias, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstGlobalIFunc, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstInstruction, LOCKED, VALUE, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstNamedMetadata, LOCKED, NAMED_METADATA, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstParam, LOCKED, VALUE, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstUse, LOCKED, USE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetFunctionCallConv, LOCKED, unsigned, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetGEPSourceElementType, LOCKED, TYPE, (REF, gep, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetGlobalIFuncResolver, LOCKED, VALUE, (REF, i_func, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetGlobalParent, LOCKED, MODULE, (REF, global, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetICmpPredicate, LOCKED, unsigned, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetIncomingBlock, LOCKED, BASIC_BLOCK, (REF, phi_node, VALUE, LLVMValueRef), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetIncomingValue, LOCKED, VALUE, (REF, phi_node, VALUE, LLVMValueRef), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetInitializer, LOCKED, VALUE, (REF, global_var, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_9(LLVMGetInlineAsm, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef), (OPTSTR, asm_string, asm_string_size), (SCAL, asm_string_size, size_t), (OPTSTR, constraints, constraints_size), (SCAL, constraints_size, size_t), (SCAL, has_side_effects, bool), (SCAL, is_align_stack, bool), (SCAL, dialect, unsigned), (SCAL, can_throw, bool))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetInlineAsmCanUnwind, LOCKED, bool, (REF, inline_asm_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetInlineAsmDialect, LOCKED, unsigned, (REF, inline_asm_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetInlineAsmFunctionType, LOCKED, TYPE, (REF, inline_asm_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetInlineAsmHasSideEffects, LOCKED, bool, (REF, inline_asm_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetInlineAsmNeedsAlignedStack, LOCKED, bool, (REF, inline_asm_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetInsertBlock, LOCKED, BASIC_BLOCK, (REF, builder, BUILDER, LLVMBuilderRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetInstructionCallConv, LOCKED, unsigned, (REF, instr, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetInstructionOpcode, LOCKED, unsigned, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetInstructionParent, LOCKED, BASIC_BLOCK, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetIntTypeWidth, LOCKED, unsigned, (REF, integer_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMGetIntrinsicDeclaration, LOCKED, VALUE, (REF, mod, MODULE, LLVMModuleRef), (SCAL, intrinsic_id, unsigned), (ARR, param_types, param_count, TYPE, LLVMTypeRef), (SCAL, param_count, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetIntrinsicID, LOCKED, unsigned, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetIsDisjoint, LOCKED, bool, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastBasicBlock, LOCKED, BASIC_BLOCK, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastDbgRecord, LOCKED, DBG_RECORD, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_0(LLVMGetLastEnumAttributeKind, NO_LOCK, unsigned)
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastFunction, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastGlobal, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastGlobalAlias, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastGlobalIFunc, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastInstruction, LOCKED, VALUE, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastNamedMetadata, LOCKED, NAMED_METADATA, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetLastParam, LOCKED, VALUE, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetLinkage, LOCKED, unsigned, (REF, global, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_3(LLVMGetMDKindIDInContext, LOCKED, unsigned, (CTX, context), (OPTSTR, name, s_len), (SCAL, s_len, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetMDNodeNumOperands, LOCKED, unsigned, (REF, value, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMGetMaskValue, LOCKED, int, (REF, shuffle_vector_inst, VALUE, LLVMValueRef), (SCAL, elt, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetMetadata, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef), (SCAL, kind_id, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetModuleContext, LOCKED, CONTEXT, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetModuleFlag, LOCKED, METADATA, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, key, key_len), (SCAL, key_len, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNNeg, LOCKED, bool, (REF, non_neg_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNSW, LOCKED, bool, (REF, arith_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNUW, LOCKED, bool, (REF, arith_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetNamedFunction, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetNamedFunctionWithLength, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, length), (SCAL, length, size_t))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetNamedGlobal, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetNamedGlobalAlias, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetNamedGlobalIFunc, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetNamedGlobalWithLength, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, length), (SCAL, length, size_t))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetNamedMetadata, LOCKED, NAMED_METADATA, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMGetNamedMetadataNumOperands, LOCKED, unsigned, (REF, module, MODULE, LLVMModuleRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextBasicBlock, LOCKED, BASIC_BLOCK, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextDbgRecord, LOCKED, DBG_RECORD, (REF, dbg_record, DBG_RECORD, LLVMDbgRecordRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextFunction, LOCKED, VALUE, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextGlobal, LOCKED, VALUE, (REF, global_var, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextGlobalAlias, LOCKED, VALUE, (REF, alias, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextGlobalIFunc, LOCKED, VALUE, (REF, i_func, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextInstruction, LOCKED, VALUE, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextNamedMetadata, LOCKED, NAMED_METADATA, (REF, named_md_node, NAMED_METADATA, LLVMNamedMDNodeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextParam, LOCKED, VALUE, (REF, arg, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNextUse, LOCKED, USE, (REF, use, USE, LLVMUseRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetNormalDest, LOCKED, BASIC_BLOCK, (REF, invoke_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNumArgOperands, LOCKED, unsigned, (REF, instr, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNumClauses, LOCKED, unsigned, (REF, landing_pad, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNumContainedTypes, LOCKED, unsigned, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNumHandlers, LOCKED, unsigned, (REF, catch_switch, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNumIndices, LOCKED, unsigned, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNumMaskElements, LOCKED, unsigned, (REF, shuffle_vector_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNumOperands, LOCKED, int, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetNumSuccessors, LOCKED, unsigned, (REF, term, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetOperand, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetOperandUse, LOCKED, USE, (REF, val, VALUE, LLVMValueRef), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMGetOrInsertNamedMetadata, LOCKED, NAMED_METADATA, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetOrdering, LOCKED, unsigned, (REF, memory_access_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetParam, LOCKED, VALUE, (REF, function, VALUE, LLVMValueRef), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetParamParent, LOCKED, VALUE, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetParentCatchSwitch, LOCKED, VALUE, (REF, catch_pad, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPersonalityFn, LOCKED, VALUE, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetPointerAddressSpace, LOCKED, unsigned, (REF, pointer_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPoison, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPrefixData, LOCKED, VALUE, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousBasicBlock, LOCKED, BASIC_BLOCK, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousDbgRecord, LOCKED, DBG_RECORD, (REF, dbg_record, DBG_RECORD, LLVMDbgRecordRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousFunction, LOCKED, VALUE, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousGlobal, LOCKED, VALUE, (REF, global_var, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousGlobalAlias, LOCKED, VALUE, (REF, alias, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousGlobalIFunc, LOCKED, VALUE, (REF, i_func, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousInstruction, LOCKED, VALUE, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousNamedMetadata, LOCKED, NAMED_METADATA, (REF, named_md_node, NAMED_METADATA, LLVMNamedMDNodeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPreviousParam, LOCKED, VALUE, (REF, arg, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetPrologueData, LOCKED, VALUE, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetReturnType, LOCKED, TYPE, (REF, function_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMGetStringAttributeAtIndex, LOCKED, ATTRIBUTE, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (OPTSTR, key, k_len), (SCAL, k_len, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetSuccessor, LOCKED, BASIC_BLOCK, (REF, term, VALUE, LLVMValueRef), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetSwitchDefaultDest, LOCKED, BASIC_BLOCK, (REF, switch_instr, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_3(LLVMGetSyncScopeID, LOCKED, unsigned, (CTX, context), (OPTSTR, name, s_len), (SCAL, s_len, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetTailCallKind, LOCKED, unsigned, (REF, call_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMGetTargetExtTypeIntParam, LOCKED, unsigned, (REF, target_ext_ty, TYPE, LLVMTypeRef), (SCAL, idx, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetTargetExtTypeNumIntParams, LOCKED, unsigned, (REF, target_ext_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetTargetExtTypeNumTypeParams, LOCKED, unsigned, (REF, target_ext_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetTargetExtTypeTypeParam, LOCKED, TYPE, (REF, target_ext_ty, TYPE, LLVMTypeRef), (SCAL, idx, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetThreadLocalMode, LOCKED, unsigned, (REF, global_var, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetTypeAttributeValue, LOCKED, TYPE, (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetTypeByName, LOCKED, TYPE, (REF, module, MODULE, LLVMModuleRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetTypeByName2, LOCKED, TYPE, (CTX, context), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetTypeContext, LOCKED, CONTEXT, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetTypeKind, LOCKED, unsigned, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetUndef, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_0(LLVMGetUndefMaskElem, NO_LOCK, int)
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetUnnamedAddress, LOCKED, unsigned, (REF, global, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetUnwindDest, LOCKED, BASIC_BLOCK, (REF, invoke_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetUsedValue, LOCKED, VALUE, (REF, use, USE, LLVMUseRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetUser, LOCKED, VALUE, (REF, use, USE, LLVMUseRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetValueContext, LOCKED, CONTEXT, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetValueKind, LOCKED, unsigned, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetVectorSize, LOCKED, unsigned, (REF, vector_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetVisibility, LOCKED, unsigned, (REF, global, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetVolatile, LOCKED, bool, (REF, memory_access_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetWeak, LOCKED, bool, (REF, cmp_xchg_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMGlobalGetValueType, LOCKED, TYPE, (REF, global, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMGlobalSetMetadata, LOCKED, (REF, global, VALUE, LLVMValueRef), (SCAL, kind, unsigned), (REF, metadata, METADATA, LLVMMetadataRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMHalfTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMHasMetadata, LOCKED, int, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMHasPersonalityFn, LOCKED, bool, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMHasPrefixData, LOCKED, bool, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMHasPrologueData, LOCKED, bool, (REF, function, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMHasUnnamedAddr, LOCKED, bool, (REF, global, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMInsertBasicBlockInContext, LOCKED, BASIC_BLOCK, (CTX, context), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMInsertExistingBasicBlockAfterInsertBlock, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_VOID_2_ADOPT(LLVMInsertIntoBuilder, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, instr, VALUE, LLVMValueRef), (ADOPT, builder))
+FILC_LLVM_JIT_DEFINE_VOID_3_ADOPT(LLVMInsertIntoBuilderWithName, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, instr, VALUE, LLVMValueRef), (CSTR, name), (ADOPT, builder))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMInstructionClone, LOCKED, VALUE, (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMInt128TypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMInt16TypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMInt1TypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMInt32TypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMInt64TypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMInt8TypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMIntTypeInContext, LOCKED, TYPE, (CTX, context), (SCAL, num_bits, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMIntrinsicGetType, LOCKED, TYPE, (CTX, ctx), (SCAL, intrinsic_id, unsigned), (ARR, param_types, param_count, TYPE, LLVMTypeRef), (SCAL, param_count, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIntrinsicIsOverloaded, NO_LOCK, bool, (SCAL, intrinsic_id, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAAddrSpaceCastInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAAllocaInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAArgument, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAAtomicCmpXchgInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAAtomicRMWInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsABasicBlock, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsABinaryOperator, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsABitCastInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsABlockAddress, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsABranchInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACallBrInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACallInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACastInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACatchPadInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACatchReturnInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACatchSwitchInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACleanupPadInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACleanupReturnInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsACmpInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstant, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantAggregateZero, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantArray, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantDataArray, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantDataSequential, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantDataVector, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantExpr, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantFP, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantInt, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantPointerNull, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantPtrAuth, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantStruct, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantTokenNone, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAConstantVector, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsADbgDeclareInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsADbgInfoIntrinsic, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsADbgLabelInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsADbgVariableIntrinsic, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAExtractElementInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAExtractValueInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFCmpInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFPExtInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFPToSIInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFPToUIInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFPTruncInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFenceInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFreezeInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFuncletPadInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAFunction, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAGetElementPtrInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAGlobalAlias, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAGlobalIFunc, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAGlobalObject, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAGlobalValue, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAGlobalVariable, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAICmpInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAIndirectBrInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAInlineAsm, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAInsertElementInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAInsertValueInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAInstruction, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAIntToPtrInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAIntrinsicInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAInvokeInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsALandingPadInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsALoadInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAMemCpyInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAMemIntrinsic, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAMemMoveInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAMemSetInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAPHINode, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAPoisonValue, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAPtrToIntInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAResumeInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAReturnInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsASExtInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsASIToFPInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsASelectInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAShuffleVectorInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAStoreInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsASwitchInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsATruncInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAUIToFPInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAUnaryInstruction, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAUnaryOperator, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAUndefValue, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAUnreachableInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAUser, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAVAArgInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMIsAZExtInst, LOCKED, VALUE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsCleanup, LOCKED, bool, (REF, landing_pad, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsConditional, LOCKED, bool, (REF, branch, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsConstant, LOCKED, bool, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsConstantString, LOCKED, bool, (REF, string, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsDeclaration, LOCKED, bool, (REF, global, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsEnumAttribute, LOCKED, bool, (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsExternallyInitialized, LOCKED, bool, (REF, global_var, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsFunctionVarArg, LOCKED, bool, (REF, function_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsGlobalConstant, LOCKED, bool, (REF, global_var, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsInBounds, LOCKED, bool, (REF, gep, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsLiteralStruct, LOCKED, bool, (REF, struct_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_0(LLVMIsMultithreaded, NO_LOCK, bool)
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsNewDbgInfoFormat, LOCKED, bool, (REF, module, MODULE, LLVMModuleRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsNull, LOCKED, bool, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsOpaqueStruct, LOCKED, bool, (REF, struct_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsPackedStruct, LOCKED, bool, (REF, struct_ty, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsPoison, LOCKED, bool, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsStringAttribute, LOCKED, bool, (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsTailCall, LOCKED, bool, (REF, call_inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsThreadLocal, LOCKED, bool, (REF, global_var, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsTypeAttribute, LOCKED, bool, (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsUndef, LOCKED, bool, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMLabelTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMLookupIntrinsicID, NO_LOCK, unsigned, (OPTSTR, name, name_len), (SCAL, name_len, size_t))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMMDNodeInContext, LOCKED, VALUE, (CTX, context), (ARR, vals, count, VALUE, LLVMValueRef), (SCAL, count, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMMDNodeInContext2, LOCKED, METADATA, (CTX, context), (ARR, m_ds, count, METADATA, LLVMMetadataRef), (SCAL, count, size_t))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMMDStringInContext, LOCKED, VALUE, (CTX, context), (OPTSTR, str, s_len), (SCAL, s_len, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMMDStringInContext2, LOCKED, METADATA, (CTX, context), (OPTSTR, str, s_len), (SCAL, s_len, size_t))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMMetadataAsValue, LOCKED, VALUE, (CTX, context), (REF, metadata, METADATA, LLVMMetadataRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMMetadataTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMModuleCreateWithNameInContext, LOCKED, MODULE, (CSTR, module_id), (CTX, context))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMModuleFlagEntriesGetFlagBehavior, LOCKED, unsigned, (REF, entries, MODULE_FLAG_ENTRIES, LLVMModuleFlagEntry*), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMModuleFlagEntriesGetMetadata, LOCKED, METADATA, (REF, entries, MODULE_FLAG_ENTRIES, LLVMModuleFlagEntry*), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMMoveBasicBlockAfter, LOCKED, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef), (REF, move_pos, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMMoveBasicBlockBefore, LOCKED, (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef), (REF, move_pos, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMPPCFP128TypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMPointerType, LOCKED, TYPE, (REF, element_type, TYPE, LLVMTypeRef), (SCAL, address_space, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMPointerTypeInContext, LOCKED, TYPE, (CTX, context), (SCAL, address_space, unsigned))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMPointerTypeIsOpaque, LOCKED, bool, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_VOID_3_ADOPT(LLVMPositionBuilder, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, block, BASIC_BLOCK, LLVMBasicBlockRef), (REF, instr, VALUE, LLVMValueRef), (ADOPT, builder))
+FILC_LLVM_JIT_DEFINE_VOID_2_ADOPT(LLVMPositionBuilderAtEnd, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, block, BASIC_BLOCK, LLVMBasicBlockRef), (ADOPT, builder))
+FILC_LLVM_JIT_DEFINE_VOID_2_ADOPT(LLVMPositionBuilderBefore, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, instr, VALUE, LLVMValueRef), (ADOPT, builder))
+FILC_LLVM_JIT_DEFINE_VOID_3_ADOPT(LLVMPositionBuilderBeforeDbgRecords, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, block, BASIC_BLOCK, LLVMBasicBlockRef), (REF, inst, VALUE, LLVMValueRef), (ADOPT, builder))
+FILC_LLVM_JIT_DEFINE_VOID_2_ADOPT(LLVMPositionBuilderBeforeInstrAndDbgRecords, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, instr, VALUE, LLVMValueRef), (ADOPT, builder))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMRemoveCallSiteEnumAttribute, LOCKED, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (SCAL, kind_id, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_4(LLVMRemoveCallSiteStringAttribute, LOCKED, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (OPTSTR, key, k_len), (SCAL, k_len, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMRemoveEnumAttributeAtIndex, LOCKED, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (SCAL, kind_id, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_4(LLVMRemoveStringAttributeAtIndex, LOCKED, (REF, value, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (OPTSTR, string, k_len), (SCAL, k_len, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMReplaceAllUsesWith, LOCKED, (REF, old_val, VALUE, LLVMValueRef), (REF, new_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMReplaceMDNodeOperandWith, LOCKED, (REF, value, VALUE, LLVMValueRef), (SCAL, index, unsigned), (REF, replacement, METADATA, LLVMMetadataRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMScalableVectorType, LOCKED, TYPE, (REF, element_type, TYPE, LLVMTypeRef), (SCAL, element_count, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetAlignment, LOCKED, (REF, value, VALUE, LLVMValueRef), (SCAL, bytes, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetArgOperand, LOCKED, (REF, funclet, VALUE, LLVMValueRef), (SCAL, index, unsigned), (REF, value, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetAtomicRMWBinOp, LOCKED, (REF, atomic_rmw_inst, VALUE, LLVMValueRef), (SCAL, bin_op, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetAtomicSingleThread, LOCKED, (REF, atomic_inst, VALUE, LLVMValueRef), (SCAL, single_thread, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetAtomicSyncScopeID, LOCKED, (REF, atomic_inst, VALUE, LLVMValueRef), (SCAL, ssid, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetCleanup, LOCKED, (REF, landing_pad, VALUE, LLVMValueRef), (SCAL, val, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetCmpXchgFailureOrdering, LOCKED, (REF, cmp_xchg_inst, VALUE, LLVMValueRef), (SCAL, ordering, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetCmpXchgSuccessOrdering, LOCKED, (REF, cmp_xchg_inst, VALUE, LLVMValueRef), (SCAL, ordering, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetCondition, LOCKED, (REF, branch, VALUE, LLVMValueRef), (REF, cond, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetCurrentDebugLocation, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetCurrentDebugLocation2, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, loc, METADATA, LLVMMetadataRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetDLLStorageClass, LOCKED, (REF, global, VALUE, LLVMValueRef), (SCAL, class, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetDataLayout, LOCKED, (REF, module, MODULE, LLVMModuleRef), (CSTR, data_layout_str))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetExact, LOCKED, (REF, div_or_shr_inst, VALUE, LLVMValueRef), (SCAL, is_exact, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetExternallyInitialized, LOCKED, (REF, global_var, VALUE, LLVMValueRef), (SCAL, is_ext_init, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetFastMathFlags, LOCKED, (REF, fp_math_inst, VALUE, LLVMValueRef), (SCAL, fmf, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetFunctionCallConv, LOCKED, (REF, function, VALUE, LLVMValueRef), (SCAL, call_conv, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetGC, LOCKED, (REF, function, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetGlobalConstant, LOCKED, (REF, global_var, VALUE, LLVMValueRef), (SCAL, is_constant, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetGlobalIFuncResolver, LOCKED, (REF, i_func, VALUE, LLVMValueRef), (REF, resolver, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetInitializer, LOCKED, (REF, global_var, VALUE, LLVMValueRef), (REF, constant_val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetInstDebugLocation, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, inst, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetInstrParamAlignment, LOCKED, (REF, instr, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (SCAL, align, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetInstructionCallConv, LOCKED, (REF, instr, VALUE, LLVMValueRef), (SCAL, call_conv, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetIsDisjoint, LOCKED, (REF, inst, VALUE, LLVMValueRef), (SCAL, is_disjoint, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetIsInBounds, LOCKED, (REF, gep, VALUE, LLVMValueRef), (SCAL, in_bounds, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetIsNewDbgInfoFormat, LOCKED, (REF, module, MODULE, LLVMModuleRef), (SCAL, use_new_format, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetLinkage, LOCKED, (REF, global, VALUE, LLVMValueRef), (SCAL, linkage, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetMetadata, LOCKED, (REF, val, VALUE, LLVMValueRef), (SCAL, kind_id, unsigned), (REF, node, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetModuleIdentifier, LOCKED, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, ident, len), (SCAL, len, size_t))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetModuleInlineAsm, LOCKED, (REF, module, MODULE, LLVMModuleRef), (CSTR, asm_string))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetModuleInlineAsm2, LOCKED, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, asm_string, len), (SCAL, len, size_t))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetNNeg, LOCKED, (REF, non_neg_inst, VALUE, LLVMValueRef), (SCAL, is_non_neg, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetNSW, LOCKED, (REF, arith_inst, VALUE, LLVMValueRef), (SCAL, has_nsw, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetNUW, LOCKED, (REF, arith_inst, VALUE, LLVMValueRef), (SCAL, has_nuw, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetNormalDest, LOCKED, (REF, invoke_inst, VALUE, LLVMValueRef), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetOperand, LOCKED, (REF, user, VALUE, LLVMValueRef), (SCAL, index, unsigned), (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetOrdering, LOCKED, (REF, memory_access_inst, VALUE, LLVMValueRef), (SCAL, ordering, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetParamAlignment, LOCKED, (REF, arg, VALUE, LLVMValueRef), (SCAL, align, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetParentCatchSwitch, LOCKED, (REF, catch_pad, VALUE, LLVMValueRef), (REF, catch_switch, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetPersonalityFn, LOCKED, (REF, function, VALUE, LLVMValueRef), (REF, personality_fn, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetPrefixData, LOCKED, (REF, function, VALUE, LLVMValueRef), (REF, prefix_data, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetPrologueData, LOCKED, (REF, function, VALUE, LLVMValueRef), (REF, prologue_data, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetSection, LOCKED, (REF, global, VALUE, LLVMValueRef), (CSTR, section))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetSourceFileName, LOCKED, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, len), (SCAL, len, size_t))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetSuccessor, LOCKED, (REF, term, VALUE, LLVMValueRef), (SCAL, index, unsigned), (REF, block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetTailCall, LOCKED, (REF, call_inst, VALUE, LLVMValueRef), (SCAL, is_tail_call, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetTailCallKind, LOCKED, (REF, call_inst, VALUE, LLVMValueRef), (SCAL, kind, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetTarget, LOCKED, (REF, module, MODULE, LLVMModuleRef), (CSTR, triple))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetThreadLocal, LOCKED, (REF, global_var, VALUE, LLVMValueRef), (SCAL, is_thread_local, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetThreadLocalMode, LOCKED, (REF, global_var, VALUE, LLVMValueRef), (SCAL, mode, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetUnnamedAddr, LOCKED, (REF, global, VALUE, LLVMValueRef), (SCAL, has_unnamed_addr, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetUnnamedAddress, LOCKED, (REF, global, VALUE, LLVMValueRef), (SCAL, unnamed_addr, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetUnwindDest, LOCKED, (REF, invoke_inst, VALUE, LLVMValueRef), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetValueName, LOCKED, (REF, val, VALUE, LLVMValueRef), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetValueName2, LOCKED, (REF, val, VALUE, LLVMValueRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetVisibility, LOCKED, (REF, global, VALUE, LLVMValueRef), (SCAL, viz, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetVolatile, LOCKED, (REF, memory_access_inst, VALUE, LLVMValueRef), (SCAL, is_volatile, bool))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetWeak, LOCKED, (REF, cmp_xchg_inst, VALUE, LLVMValueRef), (SCAL, is_weak, bool))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMSizeOf, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMStructCreateNamed, LOCKED, TYPE, (CTX, context), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMStructGetTypeAtIndex, LOCKED, TYPE, (REF, struct_ty, TYPE, LLVMTypeRef), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_4(LLVMStructSetBody, LOCKED, (REF, struct_ty, TYPE, LLVMTypeRef), (ARR, element_types, element_count, TYPE, LLVMTypeRef), (SCAL, element_count, unsigned), (SCAL, packed, bool))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMStructTypeInContext, LOCKED, TYPE, (CTX, context), (ARR, element_types, element_count, TYPE, LLVMTypeRef), (SCAL, element_count, unsigned), (SCAL, packed, bool))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMTokenTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMTypeIsSized, LOCKED, bool, (REF, type, TYPE, LLVMTypeRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMTypeOf, LOCKED, TYPE, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMValueAsBasicBlock, LOCKED, BASIC_BLOCK, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMValueAsMetadata, LOCKED, METADATA, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMValueIsBasicBlock, LOCKED, bool, (REF, val, VALUE, LLVMValueRef))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMValueMetadataEntriesGetKind, LOCKED, unsigned, (REF, entries, METADATA_ENTRIES, LLVMValueMetadataEntry*), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMValueMetadataEntriesGetMetadata, LOCKED, METADATA, (REF, entries, METADATA_ENTRIES, LLVMValueMetadataEntry*), (SCAL, index, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_2(LLVMVectorType, LOCKED, TYPE, (REF, element_type, TYPE, LLVMTypeRef), (SCAL, element_count, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMVoidTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMX86AMXTypeInContext, LOCKED, TYPE, (CTX, context))
+FILC_LLVM_JIT_DEFINE_REF_1(LLVMX86FP80TypeInContext, LOCKED, TYPE, (CTX, context))
 
 void filc_stack_overflow_failure(void); /* Not a real function, but we link it like one. */
 
