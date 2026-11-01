@@ -9036,6 +9036,9 @@ unsigned filc_native_LLVMLookupIntrinsicID(filc_thread* my_thread, filc_ptr p0, 
         filc_check_read(p0, (size_t)p1);
         a0 = (const char*)filc_ptr_ptr(p0);
     }
+    /* LLVM requires the prefix and, without assertions, skips five bytes regardless. */
+    FILC_CHECK(p1 >= 5 && !memcmp(a0, "llvm.", 5), NULL,
+               "LLVMLookupIntrinsicID: name does not start with \"llvm.\".");
     unsigned result_raw;
     result_raw = api->LLVMLookupIntrinsicID(a0, p1);
     unsigned result = (unsigned)result_raw;

@@ -11,7 +11,7 @@ int main()
     unsigned id = LLVMLookupIntrinsicID(name, strlen(name));
     ZASSERT(id);
     ZASSERT(LLVMIntrinsicIsOverloaded(id));
-    ZASSERT(!LLVMLookupIntrinsicID("not.an.intrinsic", 16));
+    ZASSERT(!LLVMLookupIntrinsicID("llvm.not.an.intrinsic", 21));
     ZASSERT(LLVMGetUndefMaskElem() == -1);
     LLVMIsMultithreaded();
     printf("ok\n");
