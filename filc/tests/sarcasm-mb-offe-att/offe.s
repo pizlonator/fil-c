@@ -1,6 +1,6 @@
 	.text
 # Runtime proof for the enc8x offload window annotations
-# (projects/openssl-3.6.4/crypto/aes/asm/aesni-mb-x86_64.pl,
+# (projects/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl,
 # aesni_multi_cbc_encrypt_avx): the ($offload) accesses carry
 # `#! stack buffer (offe, %rsp + 128, %rsp + 192)`, a 64-byte window the
 # base (`lea 128(%rsp)`) addresses directly with no ping-pong. The enc8x

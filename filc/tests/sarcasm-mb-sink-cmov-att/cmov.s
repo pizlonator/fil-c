@@ -1,6 +1,6 @@
 	.text
 # Unit proof for the aesni-mb 4x/8x input/output sink-cancel conditions
-# (projects/openssl-3.6.4/crypto/aes/asm/aesni-mb-x86_64.pl), in the exact
+# (projects/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl), in the exact
 # AT&T operand order the .pl emits (`cmpl counter,one` computes one-counter,
 # so cmovge fires for counter<=1 and cmovg for counter==0 on non-negative
 # counts):

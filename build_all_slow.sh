@@ -57,10 +57,11 @@ test ! -d projects/pizfix
 ./build_openjpeg.sh
 ./build_ncurses.sh
 ./build_libedit.sh
-./build_openssl.sh
+./build_zunsafe_openssl.sh
 
-# This is broken right now.
-# ./build_openssl364.sh
+# This is omitted from the default corpus because the sarcastic openssl test
+# suite only passes on glibc (see build_sarcastic_openssl.sh).
+# ./build_sarcastic_openssl.sh
 
 ./build_nghttp2.sh
 ./build_curl.sh

@@ -83,11 +83,11 @@ AVOID EDITING THE CONTENTS OF SOURCE DISTRIBUTION TARBALLS. Do not unpack them, 
 
 AVOID SOURCE DISTRIBUTION TARBALLS THAT ARE RAW REPOSITORY SNAPSHOTS - ESPECIALLY for projects that use autoconf. If a project is autoconf based, make sure that it comes with a configure script, rather than being a repository snapshot, which doesn't!
 
-Note that OpenSSL is especially special: there are two versions:
-- projects/openssl-3.6.4, which is a work-in-progress port of OpenSSL to sarcasm (see projects/sarcasm).
-- projects/openssl.projeny and its checkout, projects/openssl. This is also OpenSSL 3.6.5, but it's using zunsafe crypto (see https://fil-c.org/constant_time_crypto).
+Note that OpenSSL is especially special: there are two versions, both projeny-managed:
+- projects/sarcastic-openssl.projeny and its checkout, projects/sarcastic-openssl. This is OpenSSL 3.6.5 (rebased from a 3.6.4 base), and it's a work-in-progress port of OpenSSL to sarcasm (see projects/sarcasm).
+- projects/zunsafe-openssl.projeny and its checkout, projects/zunsafe-openssl. This is also OpenSSL 3.6.5, but it's using zunsafe crypto (see https://fil-c.org/constant_time_crypto).
 
-IF you decide to rebase OpenSSL, then it's only meaningful to rebase the zunsafe version (projects/openssl aka projects/openssl.projeny). DO NOT update OpenSSL to the 4-series yet; stick to the latest release in the 3-series.
+IF you decide to rebase OpenSSL, then it's only meaningful to rebase the zunsafe version (projects/zunsafe-openssl aka projects/zunsafe-openssl.projeny). DO NOT update OpenSSL to the 4-series yet; stick to the latest release in the 3-series.
 
 What success looks like:
     - There's a commit of the projects/projectname.projeny file. There is not commit of any tarball, because the projeny file points at a URL where the tarball can be fetched.

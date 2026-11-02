@@ -1,6 +1,6 @@
 	.text
 # Sharing/disjointness proof for the single aesni-mb sink object
-# (projects/openssl-3.6.4/crypto/aes/asm/aesni-mb-x86_64.pl): two streams
+# (projects/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl): two streams
 # share one 32-byte `.comm` while one of them is fully sunk. The loop head
 # rebuilds sink=base+16-offset every iteration, so sunk loads always read
 # [base+16,base+32) and sunk stores always write [base,base+16) -- the

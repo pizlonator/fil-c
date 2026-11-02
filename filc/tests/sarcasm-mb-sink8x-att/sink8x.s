@@ -1,6 +1,6 @@
 	.text
 # Runtime proof for the aesni-mb 8x constant-address re-sink
-# (projects/openssl-3.6.4/crypto/aes/asm/aesni-mb-x86_64.pl, enc8x/dec8x):
+# (projects/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl, enc8x/dec8x):
 # output positions live in frame slots as real capabilities
 # (`;! store ptr` / `;! load ptr`), input pointers advance with plain
 # `lea 16(inptr),inptr`, and each iteration re-sinks through branches --

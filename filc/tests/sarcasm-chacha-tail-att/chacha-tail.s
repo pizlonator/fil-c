@@ -1,7 +1,7 @@
 	.file	"chacha-tail.c"
 	.text
 	# Runtime proof for the SARCASM-only byte tails in
-	# projects/openssl-3.6.4/crypto/chacha/asm/chacha-x86_64.pl
+	# projects/sarcastic-openssl/crypto/chacha/asm/chacha-x86_64.pl
 	# (chacha_tail_sarcasm): a 64-byte keystream block is staged on the
 	# frame with the REAL store mix the tails see — twelve 4-byte GPR
 	# stores over bytes 0..32 and 48..64 (exactly the ctr32 `.Ltail`
@@ -550,7 +550,7 @@ chacha_tail_edx:                ;! void(ptr, ptr, ptr, size_t)
 # zeroed uppers (0x11223344>>8 = 0x00112233, not 0x9E3779XX_00112233) and
 # every sentinel copy kept live across the scratch must come back intact.
 # The real-site half ("no 64-bit value is live at any actual tail") is
-# proven in projects/openssl-3.6.4/crypto/chacha/asm/chacha-x86_64.pl's
+# proven in projects/sarcastic-openssl/crypto/chacha/asm/chacha-x86_64.pl's
 # chacha_tail_sarcasm comment: the scratch is exactly the register the
 # pristine tail already clobbers (movzb to a 32-bit dest zeroes the upper
 # 32 in both versions — a full 64-bit kill in both), %rcx's key pointer is

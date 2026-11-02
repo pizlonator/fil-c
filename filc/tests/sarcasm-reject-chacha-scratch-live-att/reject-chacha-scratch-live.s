@@ -1,5 +1,5 @@
 # Scratch-liveness enforcement for the SARCASM-only ChaCha byte tails
-# (projects/openssl-3.6.4/crypto/chacha/asm/chacha-x86_64.pl,
+# (projects/sarcastic-openssl/crypto/chacha/asm/chacha-x86_64.pl,
 # chacha_tail_sarcasm): %rcx enters holding a LIVE 64-bit value — the
 # function-pointer argument, whose upper 32 may be nonzero — exactly the
 # shape a tail entry with a live scratch would have. The tail-shaped

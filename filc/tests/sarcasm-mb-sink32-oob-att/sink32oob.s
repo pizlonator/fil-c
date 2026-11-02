@@ -1,6 +1,6 @@
 	.text
 # Negative proof that a 32-byte sink REQUIRES the fixed constant-address
-# form (projects/openssl-3.6.4/crypto/aes/asm/aesni-mb-x86_64.pl): the
+# form (projects/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl): the
 # same sliding shape as sarcasm-mb-sink-slide-oob-att, but against a
 # 32-byte object and in the store direction. Iteration 0 (offset 16)
 # stores at base+0, in bounds; iteration 2 (offset 48) stores at

@@ -68,7 +68,7 @@ filc/projeny package \
     projects/xz.projeny projects/xz/pizlonated-xz.tar.gz \
     projects/pkgconf.projeny projects/pkgconf/pizlonated-pkgconf.tar.gz \
     projects/coreutils.projeny projects/coreutils/pizlonated-coreutils.tar.gz \
-    projects/openssl.projeny projects/openssl/pizlonated-openssl.tar.gz \
+    projects/zunsafe-openssl.projeny projects/zunsafe-openssl/pizlonated-openssl.tar.gz \
     projects/libffi.projeny projects/libffi/pizlonated-libffi.tar.gz \
     projects/icu.projeny projects/icu/pizlonated-icu.tar.gz \
     projects/tmux.projeny projects/tmux/pizlonated-tmux.tar.gz \

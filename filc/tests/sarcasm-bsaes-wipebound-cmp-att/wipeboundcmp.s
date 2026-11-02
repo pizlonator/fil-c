@@ -1,6 +1,6 @@
 	.text
 # Bound-spelling proof for the bsaes wipe loops
-# (projects/openssl-3.6.4/crypto/aes/asm/bsaes-x86_64.pl): the gas form
+# (projects/sarcastic-openssl/crypto/aes/asm/bsaes-x86_64.pl): the gas form
 # compares the wipe pointer against the frame-top register
 # (`cmp %rax,%rbp; jb`), while the SARCASM form compares against the
 # recomputed end=base+size (`cmp %rax,%r11; ja`). With the .pl's

@@ -493,7 +493,7 @@ cd ..
 rm -rf pizlonated-zsh
 hash -r
 
-tar -xf $FILCSRC/projects/openssl/pizlonated-openssl.tar.gz
+tar -xf $FILCSRC/projects/zunsafe-openssl/pizlonated-openssl.tar.gz
 cd pizlonated-openssl
 CC='/opt/fil/bin/filcc -yolo-assembler' CXX=/opt/fil/bin/fil++ ./config --prefix=/opt/fil \
     --openssldir=/etc/ssl \

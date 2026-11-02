@@ -189,11 +189,12 @@ libcrypto that also lives in `pizfix/lib` is therefore shadowed at runtime.
 ### As-built recipe for the yolo OpenSSL 3.6.5
 
 Source: **pristine** OpenSSL 3.6.5 — either `projects/.openssl-3.6.5.tar.gz.snapshot`
-or the extracted tree `projects/openssl`.  **Do not** Configure out-of-tree
+or the extracted tree `projects/zunsafe-openssl`.  **Do not** Configure out-of-tree
 from `projects/openssl-build/extracted-source`: that tree carries ~6000
 stale in-tree build artifacts (`Makefile`, `configdata.pm`, `.o`/`.d`
 files) from the pizfix build, which break a fresh out-of-tree Configure.
-(The Fil-C port's differences vs pristine 3.6.5 — 48 files, all
+(The Fil-C port's differences vs pristine 3.6.5 — 78 files as of this
+writing, all
 `__FILC__`-gated assembly disablers and build-system tweaks — are
 pizlonation machinery only and irrelevant to a gcc build.)
 

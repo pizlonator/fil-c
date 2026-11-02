@@ -1,6 +1,6 @@
 	.text
 # Runtime proof for the bsaes key-schedule wipe-bound recomputation
-# (projects/openssl-3.6.4/crypto/aes/asm/bsaes-x86_64.pl, ECB encrypt and
+# (projects/sarcastic-openssl/crypto/aes/asm/bsaes-x86_64.pl, ECB encrypt and
 # decrypt done-paths): gas compares the wipe pointer against %rbp (the
 # fixed frame top) as the end pointer, but under SARCASM %rbp never
 # covered the GC `.alloca`, so the bound is rebuilt as end=base+size in

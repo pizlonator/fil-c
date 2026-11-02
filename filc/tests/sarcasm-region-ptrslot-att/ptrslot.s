@@ -1,4 +1,4 @@
-# The Whirlpool parameter-block shape (projects/openssl-3.6.4's
+# The Whirlpool parameter-block shape (projects/sarcastic-openssl's
 # wp-x86_64.pl): a mid-function `and $-64, %rsp` alignment makes the frame
 # depth dynamic, so the `leaq 128(%rsp), %r10` carrier is a frame escape --
 # D9 materializes the whole frame as a GC region (REAL heap memory, allocated

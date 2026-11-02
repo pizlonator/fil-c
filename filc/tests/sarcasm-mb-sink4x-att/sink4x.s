@@ -1,6 +1,6 @@
 	.text
 # Runtime proof for the fixed aesni-mb 4x sink slide
-# (projects/openssl-3.6.4/crypto/aes/asm/aesni-mb-x86_64.pl, enc4x/dec4x):
+# (projects/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl, enc4x/dec4x):
 #
 #   leaq sink+16(%rip),sink-reg; sub offset,sink-reg     (loop head)
 #   cmpl counter,one; cmovge sink,inptr; cmovg sink,outptr (per stream)

@@ -1,6 +1,6 @@
 	.text
 # Negative proof for the old aesni-mb 4x sliding sink
-# (projects/openssl-3.6.4/crypto/aes/asm/aesni-mb-x86_64.pl before the
+# (projects/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl before the
 # fix): `leaq sink(%rip),sink-reg` with NO `sub offset` while the tail
 # keeps offset-indexed accesses, so a sunk load reads base+offset with an
 # unbounded offset. A 4096-byte sink covers only 256 blocks; this 300-iter

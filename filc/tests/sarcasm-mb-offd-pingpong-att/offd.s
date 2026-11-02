@@ -1,6 +1,6 @@
 	.text
 # Runtime proof for the dec8x offload ping-pong annotations
-# (projects/openssl-3.6.4/crypto/aes/asm/aesni-mb-x86_64.pl,
+# (projects/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl,
 # aesni_multi_cbc_decrypt_avx): the ($offload) accesses carry
 # `#! stack buffer (offd, %rsp + 192, %rsp + 448)` while $offload flips
 # between the IV half (%rsp+192) and the ciphertext half (%rsp+320) via
