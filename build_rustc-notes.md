@@ -1,20 +1,32 @@
 # Fil-C rustc — build state & known issues
 
 `build_rustc.sh` (repo root) builds a stage-1 rustc that pizlonates everything
-it compiles, using the Fil-C LLVM and linking binaries with `filcc`.  Output:
-`rust-build/rustc` (the compiler, a symlink to the stage-1 rustc binary) and
-`rust-build/filrustc` (a symlink to the same rustc; both spellings work and
-are equivalent -- the Fil-C behavior is baked into the compiler).  Keep Fil-C's
-`build/bin` on PATH when using it (`filcc` is the linker).  `filrustc --version`
-prints `rustc 1.90.0 (1159e78c4 2025-09-14) (built from a source tarball)`
+it compiles, using the Fil-C LLVM and linking binaries with `filcc`.  It is a
+thin entry point that calls `do_build_rustc clean` in `build_rustc_impl.sh`:
+a clean build + test by default (it nukes `rust-build/` and rebuilds from
+scratch; see "Build scripts" below).  `build_rustc_incremental.sh` is the
+same thing without the nuke.  Output: `rust-build/rustc` (the compiler, a
+symlink to the stage-1 rustc binary) and `rust-build/filrustc` (a symlink to
+the same rustc; both spellings work and are equivalent -- the Fil-C behavior
+is baked into the compiler).  Keep Fil-C's `build/bin` on PATH when using it
+(`filcc` is the linker).  `filrustc --version` prints
+`rustc 1.90.0 (1159e78c4 2025-09-14) (built from a source tarball)`
 followed by the Fil-C parenthetical ` (Fil-C 0.687
 git@github.com:pizlonator/fil-c.git <fil-c HEAD hash>)` -- mirroring what clang
 appends to `clang --version` (see "Fil-C version identification" below).
 
-Prerequisite: building requires a HOST rustup rustc/cargo (x.py's bootstrap
-downloads its pinned stage0 compiler from static.rust-lang.org).  The
-container has rustup 1.99.1 installed, with PATH persisted in
-/etc/profile.d/zz-rust.sh.
+The build is wired into the Fil-C flavor build scripts as
+`./build_rustc.sh` in `build_glibc_extras.sh` (glibc flavor only; see
+"Flavor check" below for why it is not in `build_all_slow.sh`).
+
+Prerequisite: no host Rust toolchain is needed.  x.py's bootstrap downloads
+its pinned stage0 compiler (and cargo) from static.rust-lang.org and builds
+everything with those, so a fresh container only needs python3, curl,
+gcc/g++/make, cmake, ninja, ruby (for the test suite) and the usual Fil-C
+build prerequisites -- all of which the enter_container.sh image installs
+(see "Container audit" below).  (An earlier revision of this note claimed a
+host rustup was required; that was wrong -- the container has no
+rustc/cargo/rustup at all and the build works.)
 
 This file is the tracked (git-added) copy of `rust-build/NOTES.md`; the
 rust-build copy is kept in sync for the disposable build dir.
@@ -465,3 +477,241 @@ ld-fil1 does not search rustc's sysroot by default).
   cleanly (exit 133, Fil-C's normal abort path; see "Panics" above).
 * Cross-DSO: `--crate-type dylib` + client with `--extern`/`-C prefer-dynamic`
   links and runs (see "Cross-DSO" above).
+
+
+## Build scripts (build_rustc.sh / build_rustc_incremental.sh / build_rustc_impl.sh)
+
+The build is split into a shared library plus two thin entry points:
+
+* `build_rustc_impl.sh` -- the shared library (not meant to be executed
+  directly).  It resolves the repo root from its own `$BASH_SOURCE` (so
+  sourcing it works regardless of the caller's CWD), defines the
+  `check_grep` helper and `do_build_rustc <clean|incremental>`, and carries
+  ALL of the build logic: the extraction of the patched Rust sources from the
+  projeny checkout, the Fil-C LLVM swap (with its `.filc-llvm-stamp`), the
+  ~24 `check_grep` fail-fast verifications of the projeny patch, the
+  `FILC_VERSION` composition (plus the `.filc-version-stamp` handling), the
+  config.toml generation, the `x.py build --stage 1` run, and the creation of
+  the `rust-build/rustc` and `rust-build/filrustc` symlinks.
+* `build_rustc.sh` -- thin entry: license header, `set -e -o pipefail -x`,
+  source the impl, call `do_build_rustc clean`.  This is the default: it
+  nukes `rust-build/` first and does the whole build from scratch.
+* `build_rustc_incremental.sh` -- thin entry calling
+  `do_build_rustc incremental`: identical, except it does NOT nuke
+  `rust-build/`.  Extraction, the LLVM swap and the version stamp only redo
+  work when what they produce is missing or changed, and x.py/cargo/ninja
+  resume incrementally, so a re-run is usually a fast no-op; a missing
+  `rust-build/` is bootstrapped from scratch, so the incremental script also
+  doubles as a first build.
+
+Both entry points end identically: after the symlinks are created, the
+Fil-Rust test suite (`./filrustc/run-tests`) runs, tee'd to
+`rust-build/tests.log`.  A test failure fails the build script (the entries
+run under `set -e -o pipefail`, and the runner exits nonzero unless every
+test passed).  Export `SKIP_RUST_TESTS=1` to skip the suite (e.g.
+`SKIP_RUST_TESTS=1 ./build_rustc_incremental.sh`).
+
+## Flavor check: musl vs. glibc (why build_glibc_extras.sh, not build_all_slow.sh)
+
+`build_rustc.sh` was checked against the default (musl) flavor of Fil-C --
+the `build_all.sh` configuration, i.e. what `./build_base.sh` builds with no
+`setup_glibc.sh` -- to decide where the build belongs (item: "if it works in
+the musl version put it in build_all_slow.sh, else put it in
+build_glibc_extras.sh").  Result: **the build succeeds under musl but the
+rustc it produces cannot link std-using Rust programs there, so the build
+was placed in `build_glibc_extras.sh`** (appended after `./build_php.sh`
+with a comment summarizing the LFS64 situation).  It is deliberately NOT in
+`build_all_slow.sh` (the musl flavor's slow-build list).
+
+Evidence (musl pizfix built from scratch by `./build_base.sh` -- which wipes
+and rebuilds `pizfix/` for the default flavor -- then `./build_rustc.sh`
+clean; ~10.5 min wall on a 32-core container, of which `x.py` itself took
+7:49):
+
+* The clean build succeeds end to end under musl: the projeny extraction,
+  the Fil-C LLVM swap, the `check_grep` verification and
+  `x.py build --stage 1` ("Build completed successfully in 0:07:49") all
+  pass, and the resulting compiler runs (`rustc --version` prints the same
+  Fil-C parenthetical as the glibc build).  Expected: the compiler binary
+  itself is a host-toolchain program in BOTH flavors (bootstrap's CMake
+  builds the swapped-in LLVM with the host `cc`/`c++`, the stage0-downloaded
+  beta rustc builds the compiler, and the host linker links it against the
+  host glibc -- its interpreter is `/lib64/ld-linux-x86-64.so.2` either way).
+  The Fil-C-ness lives in the modules rustc *emits* and in `filcc` linking
+  them against pizfix.  std is likewise flavor-independent: both flavors
+  produce the identically-named stage1 rlib
+  `libstd-a04c0eb3de138d45.rlib` (same cargo metadata hash).
+* Every std-using program then fails to LINK, in the test suite (0/8 pass at
+  the time of the check -- the suite has since grown from 8 to 10 tests, and
+  under musl the result would be 0/10, since every test uses std and every
+  std-using link fails there; each "FAIL: couldn't compile <name>" being a
+  link failure) and by hand
+  (`filrustc -o hello hello.rs`):
+  `undefined reference to 'pizlonated_fstat64'`, and the same for
+  `pizlonated_stat64`, `pizlonated_lseek64`, `pizlonated_mmap64` and
+  `pizlonated_open64`, referenced from libstd's `std.*.rcgu.o`.  The vendored
+  libc crate (`vendor/libc-0.2.174`, linux-gnu backend) imports glibc's
+  LFS64 symbol names, and the musl user libc exports none of them
+  (`nm -D pizfix/lib/libc.so` has zero `pizlonated_*64` entries; it does
+  export the plain musl spellings `pizlonated_fstat`, `pizlonated_stat`,
+  `pizlonated_lseek`, `pizlonated_mmap`, `pizlonated_open`, ...).  The glibc
+  flavor's libc.so.6666 does export the LFS64 names, which is why the same
+  rlibs link and the whole suite passes there.  (Soname observation: the two
+  flavors install differently-named user libcs into pizfix -- the glibc
+  flavor's `pizfix/lib/libc.so.6666` (~24 MB, "GNU C Library" banner) vs.
+  the musl flavor's `pizfix/lib/libc.so` (~7 MB, musl strings, no glibc
+  banner) -- with the same `ld-fil1-x86_64.so` interpreter either way.  A
+  script that greps pizfix for the libc banner (as this flavor check did)
+  must look at the flavor-appropriate name; `libc.so.6666` simply does not
+  exist under musl.)
+* What still works under musl: `rustc --version` (the compiler binary), and
+  even a `#![no_std]` program links, producing a 16 KB binary -- the
+  rustc -> filcc -> pizfix link pipeline per se is flavor-agnostic; only
+  libstd's FFI symbol set is glibc-specific.  (A raw `-nostartfiles` no_std
+  binary is not a supported runtime configuration and its run behavior is
+  not evidence either way.)
+* A real musl-flavor fix would need either a musl variant of the target spec
+  (wiring e.g. x86_64-unknown-linux-musl up to filcc plus a Fil-C-patched
+  vendored-libc backend) or teaching Fil-C's musl libc to also export the
+  LFS64 names glibc exports.  Neither is attempted here; if one lands, move
+  the `./build_rustc.sh` invocation to `build_all_slow.sh` per the
+  build_glibc_extras.sh header convention.
+
+## Fil-Rust test suite (filrustc/run-tests)
+
+`filrustc/run-tests` is the Fil-Rust analog of `filc/run-tests` -- same
+structure, same capabilities, same output protocol:
+
+* Tests live in `filrustc/tests/` as flat `<name>.rs` files, each with an
+  optional companion `<name>.manifest` YAML file.  Manifests use the same
+  vocabulary as a `filc/tests/<name>/manifest`: `return` (one of `success`,
+  `failure`, `crash`, `dontCrash`, `exit13`, `compileFailure`,
+  `compileOnly`, `linkFailure` -- the last is the same as `compileFailure`
+  since rustc compiles and links in one step), `output-includes` /
+  `output-excludes` (fixed strings that must / must not appear in the
+  output; `grep -F` semantics), `optFlags` (extra rustc flags; default is
+  the debug build, e.g. declare `-O` to test the optimized pipeline),
+  `extraArgs` (extra rustc arguments), `extra-env` (extra run-time
+  environment), `skip`, `slow` (run first, like filc), and
+  `only-on-platform` (regexp against RUBY_PLATFORM).  A missing manifest
+  means `return: success` with no output assertions.
+* For each test the runner generates shell scripts under
+  `filrustc/test-output/<name>/` -- `compile.sh` (rustc invocation, compiler
+  output captured to `compilerOutput.txt`), `justRun.sh` (the binary with
+  `LD_LIBRARY_PATH=pizfix/lib_test`, mirroring filc's test library flavor),
+  `subRun.sh` (runs the binary with the FILC harness environment, checks the
+  exit code, then checks the output inclusions/exclusions), and `run.sh`
+  (compile + run) -- and drives them with
+  `make -k -f filrustc/test-output/testmakefile -j <nproc>`.  That is
+  exactly filc/run-tests' concurrency approach: each test is one make
+  target, so compiles and runs of different tests happen in parallel (up to
+  nproc at a time) while each test's own compile-then-run stays serialized.
+* Output protocol: one '.' per passing test (or `<script>: success` with
+  `-v`), `FAIL: ...` spew plus the failing program's complete output on
+  failure, `SUCCESS` at the end, and exit code 0 iff all tests passed.
+  Options: `-t <name>` runs exactly one test (supplying `-t` multiple times
+  means only the last test runs), `-f <regexp>` filters test names, `-n`
+  generates the scripts without running anything, `-v` is verbose.  Unlike
+  filc/run-tests, a `-t`/`-f` that selects zero tests is an error (so a
+  typo'd test name cannot masquerade as a pass), and the runner works from
+  any CWD (it cds to the repo root it derives from its own path).
+* The compiler is `rust-build/filrustc`; if it (or Fil-C's `build/bin/filcc`,
+  which the x86_64-unknown-linux-gnu target uses as the linker) is missing,
+  the runner exits with "Run ./build_rustc.sh first" / "Build Fil-C first"
+  instead of failing every compile.
+
+### The FILC environment mechanism
+
+Every program runs under `FILC_EXIT_ON_PANIC=1 FILC_DUMP_SETUP=1`, exactly
+like filc/run-tests' sub-run scripts.  The Fil-C runtime reads
+`FILC_EXIT_ON_PANIC` in `libpas/src/libpas/filc_runtime.c`
+(`filc_get_bool_env("FILC_EXIT_ON_PANIC", &filc_exit_on_panic)`), and
+`filc_finish_panicking()` (same file) then prints
+`[<pid>] filc panic: <kind>` and `_exit(42)` -- the distinctive panic exit
+code -- instead of raising the SIGTRAP that the core dump machinery would
+turn into a core file.  ALL filc panics funnel through
+`filc_finish_panicking`: safety panics ("filc safety error: ..." ->
+"thwarted a futile attempt to violate memory safety."), internal errors, and
+user errors ("filc user error: ..." -> "user thwarted themselves.", which is
+the path Rust's `abort()` takes, e.g. after a safe-Rust panic message).
+`FILC_DUMP_SETUP=1` makes every run print the filc setup dump (harmless for
+the output checks, and invaluable spew on failure).
+
+So a `return: failure` test asserts exit code 42, which proves both that the
+memory-safety violation was caught AND that it went through the panic
+machinery rather than crashing the process.  Without the harness environment
+the same programs exit 133 (SIGTRAP, core dumped) -- Fil-C's normal
+trap-based panic, same as C.
+
+### The current tests (all verified empirically with/without the env)
+
+| test | exercises | manifest | without FILC env | under the harness |
+|---|---|---|---|---|
+| hello | println! | success, output-includes "hello filc rust" | exit 0 | exit 0 |
+| oob_read | unsafe `*p.add(1000000000)` past a `black_box`ed 3-element `Vec<i32>` | failure; "filc safety error", "cannot read pointer with ptr >= upper.", "filc panic: thwarted..." | 133 (SIGTRAP, core) | 42 |
+| oob_write | unsafe OOB `*p.add(1000000000) = 666` | failure; "...cannot write pointer with ptr >= upper."; output-excludes "Should not get here." | 133 | 42 |
+| null_deref | volatile read of a `#[inline(never)]`-hidden null | failure; "...cannot read pointer with null object" | 133 | 42 |
+| use_after_free | read through a raw pointer to a dropped `Box` | failure; "...cannot read pointer to free object" | 133 | 42 |
+| safe_panic | safe-Rust `v[10]` index panic | failure; Rust "panicked at" + "index out of bounds", "filc panic: user thwarted themselves."; output-excludes "Not implemented" | 133 (message, then clean abort) | 42 |
+| threads | 8 threads x 1000 `Arc<Mutex<u64>>` increments | success, "sum = 8000" | exit 0 | exit 0 |
+| vec_string | Vec/String/HashMap/iter/collect/format!/sort | success, three expected lines | exit 0 | exit 0 |
+| hello-opt | the `hello` program compiled with `optFlags: -O` | success, output-includes "hello filc rust" | exit 0 | exit 0 |
+| oob_read-opt | the `oob_read` unsafe OOB read compiled with `optFlags: -O` | failure; "filc safety error", "cannot read pointer with ptr >= upper.", "filc panic: thwarted..." | 133 (SIGTRAP, core) | 42 |
+
+The two `-opt` tests are byte-for-byte copies of `hello`/`oob_read` whose
+manifests add `optFlags: -O` (plain rustc's spelling of `-C opt-level=2`;
+the runner interpolates the flag verbatim into the rustc command line), so
+the same programs are compiled and run through the optimized pipeline with
+the same expectations.  This is what guards the "the Fil-Pizlonator runs in
+every pipeline, at every optimization level" claim at the suite level: the
+optimized codegen must still catch the OOB read (the safety checks survive
+optimization) and still produce correct output, and since the regular
+optimization pipeline runs after the pizlonator (known-issues #1), `-O`
+codegen is fully optimized rather than debug-only.  The harness's
+`output-includes` checks are enforced for `return: failure` tests too (the
+generated `subRun.sh` greps the captured output after the exit-code check),
+so `oob_read-opt` proves the "filc safety error" spew specifically, not just
+the exit code.
+
+Notes on two tests that needed care:
+
+* `null_deref.rs` must hide the null from rustc's own null-pointer check
+  (`#[inline(never)]` helper returning `std::ptr::null()`, and
+  `<*const i32>::read_volatile` for the load).  A plain `*p` on a null raw
+  pointer panics in Rust ("null pointer dereference occurred") before the
+  load ever reaches Fil-C; the volatile read through the opaque pointer
+  reaches the pizlonated code and Fil-C reports "cannot read pointer with
+  null object".
+* `use_after_free.rs` reads through a raw pointer obtained before
+  `drop(b)`: Fil-C's runtime recognizes the pointer as pointing to a freed
+  object ("cannot read pointer to free object").  (`std::mem::forget` would
+  leak, keeping the allocation live -- that would NOT panic.)
+
+## Container audit (enter_container.sh vs. what a Fil-Rust build needs)
+
+Audited: the generated container already installs everything a Fil-Rust
+build needs -- enter_container.sh was NOT changed.  The Dockerfile heredoc
+that `enter_container.sh -n` generates (ubuntu:22.04) was checked against
+every external command that build_rustc_impl.sh, x.py/bootstrap.py, the
+cmake/ninja LLVM build, and filrustc/run-tests invoke, and against the
+actual running container (`command -v` sweep; everything found):
+
+| needed by | commands | provided by (Dockerfile heredoc) |
+|---|---|---|
+| build_rustc_impl.sh | bash, coreutils (cd/rm/cp/mkdir/ln/tee/cat/sed/awk/grep/touch), uname, nproc | ubuntu base + build-essential + gawk |
+| projeny extract | `filc/projeny` (repo binary; needs libcurl.so.4 + libstdc++), rsync | libcurl4-openssl-dev (pulls libcurl4), rsync |
+| LLVM swap | cp -a, git rev-parse | coreutils, git |
+| patch verification | grep, awk, python3 (sha256) | grep/gawk, python3 |
+| version composition | sed, git (remote get-url / rev-parse) | sed, git |
+| x.py / bootstrap.py | python3 (>= 3.6; 22.04 has 3.10), curl (downloads stage0 from static.rust-lang.org), tar, gzip, xz, uname, sha256sum | python3, curl, tar, gzip, xz-utils |
+| stage0 bootstrap build | the downloaded stage0 rustc/cargo (no host toolchain needed) | -- (downloaded) |
+| LLVM build | cmake, ninja, g++/gcc, make, ar/ld/as/objcopy/strip/ranlib (binutils), pkg-config, python3, zlib1g-dev (optional system zlib), perl | cmake, ninja-build, gcc-12/g++-12 (default gcc/g++), build-essential + binutils 2.47 in /usr/local, make, pkg-config, python3, zlib1g-dev, perl |
+| libunwind step | filcc/fil++ (repo binaries in build/bin) | -- (repo) |
+| linking rust programs | filcc -> pizfix runtime (repo artifacts) | -- (repo) |
+| filrustc/run-tests | ruby (yaml/pathname/etc are stdlib), make (the -j nproc driver), nproc, sh, grep, cat, coreutils | ruby, make/build-essential |
+| rust test binaries at run time | pizfix/lib/ld-fil1-x86_64.so + pizfix libs (baked-in absolute interpreter path; repo artifacts) | -- (repo) |
+
+No missing package was found, so no change was made to enter_container.sh.
+(Run `./enter_container.sh -n` if your container predates any image change;
+the image tag hashes the generated Dockerfile, so stale containers are
+flagged with a warning on attach.)

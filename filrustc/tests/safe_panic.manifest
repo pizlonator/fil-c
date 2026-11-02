@@ -1,0 +1,12 @@
+# A safe Rust panic: the message is printed and then the abort runs through
+# Fil-C's normal user-error abort path ("filc user error: abort(3) called" +
+# "filc panic: user thwarted themselves."), which is the same "failure" exit
+# code (42 under the harness's FILC_EXIT_ON_PANIC=1) as a Fil-C safety panic.
+return:
+  failure
+output-includes:
+  - "panicked at"
+  - "index out of bounds: the len is 3 but the index is 10"
+  - "filc panic: user thwarted themselves."
+output-excludes:
+  - "Not implemented"

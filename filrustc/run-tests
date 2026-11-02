@@ -1,0 +1,350 @@
+#!/usr/bin/env ruby
+#
+# Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+#
+# Run the Fil-Rust tests: compile and run Rust programs with Fil-C's rustc
+# (rust-build/filrustc) and assert on their behavior.  This mirrors
+# filc/run-tests in structure and capabilities:
+#
+# - Tests live in filrustc/tests/ as <name>.rs files, each with an optional
+#   companion <name>.manifest YAML file declaring expectations with the same
+#   vocabulary as a filc/tests/<name>/manifest: `return` (success, failure,
+#   crash, dontCrash, exit13, compileFailure, compileOnly, or linkFailure --
+#   the last being the same as compileFailure since rustc compiles and links
+#   in one step), `output-includes` / `output-excludes` (fixed strings that
+#   must / must not appear in the output, grep -F style), `optFlags` (extra
+#   rustc optimization flags; default is the debug build), `extraArgs` (extra
+#   rustc arguments), `extra-env` (extra environment variables for the run),
+#   `skip`, `slow`, and `only-on-platform`.  A missing manifest means
+#   `return: success` with no output assertions.
+# - Compiling and running happen in parallel across tests, via generated
+#   shell scripts and `make -k -j <nproc>` -- the same concurrency approach
+#   as filc/run-tests.
+# - Every program runs with FILC_EXIT_ON_PANIC=1 FILC_DUMP_SETUP=1 in the
+#   environment (exactly like filc/run-tests): the Fil-C runtime then _exit()s
+#   with the distinctive code 42 on any filc panic -- safety panics, internal
+#   errors, and user aborts alike -- instead of raising the SIGTRAP that the
+#   core dump machinery would turn into a core file.  A `return: failure`
+#   test asserts that code, so a passing failure test proves both that the
+#   program's memory-safety violation was caught *and* that it was reported
+#   through the panic machinery rather than crashing the process.
+# - Output protocol: one '.' per passing test ("FAIL: ..." spew plus the
+#   failing program's output interleaved for failures), "SUCCESS" at the end,
+#   exit code 0 iff all tests passed.  Use -t <testname> to run exactly one
+#   test (supplying -t multiple times means only the last test runs) and
+#   -f <filter> to run only tests whose names match a regexp.
+require 'etc'
+require 'pathname'
+require 'shellwords'
+require 'yaml'
+require 'fileutils'
+require 'getoptlong'
+
+# Everything below uses repo-root-relative paths (tests, the compiler,
+# pizfix), so run from the repo root no matter where we were invoked from.
+$root = Pathname.new(File.expand_path(__FILE__)).dirname.dirname
+Dir.chdir($root)
+$runTests = true
+$verbose = false
+$filter = /./
+$specificTest = nil
+$rustc = "rust-build/filrustc"
+$make = "make"
+$libraryPathEnv = "LD_LIBRARY_PATH"
+$testDirectory = Pathname.new("filrustc/tests")
+$testOutputDirectory = Pathname.new("filrustc/test-output")
+GetoptLong.new(
+    [ '--no-run', '-n', GetoptLong::NO_ARGUMENT ],
+    [ '--verbose', '-v', GetoptLong::NO_ARGUMENT ],
+    [ '--filter', '-f', GetoptLong::REQUIRED_ARGUMENT ],
+    [ '--test', '-t', GetoptLong::REQUIRED_ARGUMENT ],
+).each {
+    | opt, arg |
+    case opt
+    when '--no-run'
+        $runTests = false
+    when '--verbose'
+        $verbose = true
+    when '--filter'
+        $filter = Regexp.new(arg)
+    when '--test'
+        $specificTest = arg
+    else
+        raise
+    end
+}
+raise unless ARGV.empty?
+
+# The compiler must exist; say how to build it if it doesn't.
+unless Pathname.new($rustc).exist?
+    puts "ERROR: #{$rustc} does not exist (or is a dangling symlink)."
+    puts "Run ./build_rustc.sh first."
+    exit 1
+end
+
+# Fil-C's `filcc` is the linker for the x86_64-unknown-linux-gnu target (the
+# target spec links with it), so it must be on PATH for every compile.
+filcc = Pathname.new("build/bin/filcc")
+unless filcc.exist?
+    puts "ERROR: #{filcc} does not exist.  Build Fil-C first (./build_base.sh)."
+    exit 1
+end
+ENV['PATH'] = "#{Pathname.new('build/bin').realpath}:#{ENV['PATH']}"
+$tests = []
+def handleArray(thing)
+    return [] unless thing
+    return thing if thing.is_a? Array
+    [thing]
+end
+def isTestEntry(entry)
+    return (entry.file? and entry.extname == ".rs")
+end
+FileUtils.rm_rf($testOutputDirectory)
+$testOutputDirectory.mkpath
+$testDirectory.each_entry {
+    | entry |
+    fullPath = $testDirectory + entry
+    next unless isTestEntry(fullPath)
+    testName = entry.sub_ext("").to_s
+    next unless testName =~ $filter
+    if $specificTest
+        next unless testName == $specificTest
+    end
+    outputPath = $testOutputDirectory + testName
+    FileUtils.rm_rf(outputPath)
+    outputPath.mkpath
+    manifestPath = fullPath.sub_ext(".manifest")
+    if manifestPath.exist?
+        manifest = YAML.load_file(manifestPath)
+    else
+        manifest = {}
+    end
+    onlyOnPlatform = manifest["only-on-platform"]
+    if onlyOnPlatform and RUBY_PLATFORM !~ Regexp.new(onlyOnPlatform)
+        if $verbose
+            puts "Skipping #{testName}, requires #{onlyOnPlatform}"
+        end
+        next
+    end
+    if manifest["skip"] and not $specificTest
+        puts "Skipping #{testName}"
+        next
+    end
+    expectedReturn = manifest["return"]
+    unless expectedReturn
+        expectedReturn = "success"
+    end
+    raise unless expectedReturn == "success" or expectedReturn == "failure" or
+        expectedReturn == "crash" or expectedReturn == "compileFailure" or
+        expectedReturn == "dontCrash" or expectedReturn == "exit13" or
+        expectedReturn == "compileOnly" or expectedReturn == "linkFailure"
+    expectedOutputs = handleArray(manifest["output-includes"])
+    forbiddenOutputs = handleArray(manifest["output-excludes"])
+    optFlags = manifest["optFlags"]
+    unless optFlags
+
+        # Default to the debug build; declare `optFlags: "-O"` in the manifest
+        # to test the optimized pipeline instead.
+        optFlags = ""
+    end
+    extraArgs = handleArray(manifest["extraArgs"]).map {
+        | arg |
+        Shellwords.shellescape(arg)
+    }.join(" ")
+    compilerOutput = outputPath + "compilerOutput.txt"
+    binary = outputPath + testName
+    output = outputPath + "output.txt"
+    compileScript = outputPath + "compile.sh"
+    justRunScript = outputPath + "justRun.sh"
+    subRunScript = outputPath + "subRun.sh"
+    runScript = outputPath + "run.sh"
+    File.open(compileScript, "w") {
+        | outp |
+        outp.puts "#!/bin/sh"
+        outp.puts "rm -f #{Shellwords.shellescape(compilerOutput)}"
+        outp.puts "touch #{Shellwords.shellescape(compilerOutput)}"
+        outp.puts "#{$rustc} -o #{Shellwords.shellescape(binary)} #{Shellwords.shellescape(fullPath)} #{optFlags} #{extraArgs} >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
+        if expectedReturn == "compileFailure" or expectedReturn == "linkFailure"
+            outp.puts "if [ $? -eq 0 ]"
+            outp.puts "then"
+            outp.puts("    echo " + Shellwords.shellescape(compileScript.to_s + ": FAIL: compiled #{testName} but shouldn't have"))
+            outp.puts "    cat #{Shellwords.shellescape(compilerOutput)}"
+            outp.puts "    exit 1"
+            outp.puts "fi"
+            expectedOutputs.each {
+                | expectedOutput |
+                outp.puts "grep -F -- #{Shellwords.shellescape(expectedOutput)} #{Shellwords.shellescape(compilerOutput)} > /dev/null || {"
+                outp.puts("    echo " + Shellwords.shellescape(compileScript.to_s + ": FAIL: expected compiler output to contain #{expectedOutput}"))
+                outp.puts "    cat #{Shellwords.shellescape(compilerOutput)}"
+                outp.puts "    exit 1"
+                outp.puts "}"
+            }
+            forbiddenOutputs.each {
+                | forbiddenOutput |
+                outp.puts "grep -F -- #{Shellwords.shellescape(forbiddenOutput)} #{Shellwords.shellescape(compilerOutput)} > /dev/null && {"
+                outp.puts("    echo " + Shellwords.shellescape(compileScript.to_s + ": FAIL: expected compiler output to NOT contain #{forbiddenOutput}"))
+                outp.puts "    cat #{Shellwords.shellescape(compilerOutput)}"
+                outp.puts "    exit 1"
+                outp.puts "}"
+            }
+            outp.puts ":"
+        else
+            outp.puts "if [ $? -ne 0 ]"
+            outp.puts "then"
+            outp.puts("    echo " + Shellwords.shellescape(compileScript.to_s + ": FAIL: couldn't compile #{testName}"))
+            outp.puts "    cat #{Shellwords.shellescape(compilerOutput)}"
+            outp.puts "    exit 1"
+            outp.puts "fi"
+        end
+    }
+    if expectedReturn != "compileFailure" and expectedReturn != "linkFailure" and
+      expectedReturn != "compileOnly"
+        File.open(justRunScript, "w") {
+            | outp |
+            outp.puts "#!/bin/sh"
+            outp.puts "set -e"
+            outp.print "#{$libraryPathEnv}=pizfix/lib_test"
+            if manifest["extraLDPath"]
+                outp.print ":#{manifest["extraLDPath"]}"
+            end
+            outp.print " "
+            handleArray(manifest["extra-env"]).each {
+                | envEntry |
+                outp.print "#{envEntry} "
+            }
+            outp.puts Shellwords.shellescape(binary)
+        }
+        File.open(subRunScript, "w") {
+            | outp |
+            outp.puts "#!/bin/sh"
+            if expectedReturn == "crash"
+                outp.puts "ulimit -c 0"
+            end
+            outp.puts "FILC_EXIT_ON_PANIC=1 FILC_DUMP_SETUP=1 #{Shellwords.shellescape(justRunScript)} > #{Shellwords.shellescape(output)} 2>&1"
+            case expectedReturn
+            when "failure"
+                outp.puts "if [ $? -ne 42 ]"
+            when "crash"
+                outp.puts "if [ $? -eq 0 ]"
+            when "success"
+                outp.puts "if [ $? -ne 0 ]"
+            when "exit13"
+                outp.puts "if [ $? -ne 13 ]"
+            when "dontCrash"
+                outp.puts "if [ $? -ne 0 -a $? -ne 42 ]"
+            else
+                raise
+            end
+            outp.puts "then"
+            case expectedReturn
+            when "failure"
+                outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to return failure (the filc panic exit code 42)"))
+            when "crash"
+                outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to crash"))
+            when "success"
+                outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to return success"))
+            when "exit13"
+                outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to return 13"))
+            when "dontCrash"
+                outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to return success or failure, but not crash"))
+            else
+                raise
+            end
+            outp.puts "    cat #{Shellwords.shellescape(output)}"
+            outp.puts "    exit 1"
+            outp.puts "fi"
+            expectedOutputs.each {
+                | expectedOutput |
+                outp.puts "grep -F -- #{Shellwords.shellescape(expectedOutput)} #{Shellwords.shellescape(output)} > /dev/null || {"
+                outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected output to contain #{expectedOutput}"))
+                outp.puts "    cat #{Shellwords.shellescape(output)}"
+                outp.puts "    exit 1"
+                outp.puts "}"
+            }
+            forbiddenOutputs.each {
+                | forbiddenOutput |
+                outp.puts "grep -F -- #{Shellwords.shellescape(forbiddenOutput)} #{Shellwords.shellescape(output)} > /dev/null && {"
+                outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected output to NOT contain #{forbiddenOutput}"))
+                outp.puts "    cat #{Shellwords.shellescape(output)}"
+                outp.puts "    exit 1"
+                outp.puts "}"
+            }
+            outp.puts ":"
+        }
+    end
+    File.open(runScript, "w") {
+        | outp |
+        outp.puts "#!/bin/sh"
+        outp.puts "set -e"
+        outp.puts Shellwords.shellescape(compileScript)
+        if expectedReturn != "compileFailure" and expectedReturn != "linkFailure" and
+          expectedReturn != "compileOnly"
+            outp.puts Shellwords.shellescape(subRunScript)
+        end
+    }
+    compileScript.chmod(0755)
+    if expectedReturn != "compileFailure" and expectedReturn != "linkFailure" and
+      expectedReturn != "compileOnly"
+        justRunScript.chmod(0755)
+        subRunScript.chmod(0755)
+    end
+    runScript.chmod(0755)
+    if manifest["slow"]
+        $tests.unshift runScript
+    else
+        $tests << runScript
+    end
+}
+if $tests.empty?
+    if $specificTest
+        puts "ERROR: no test named '#{$specificTest}' found in #{$testDirectory}."
+    else
+        puts "ERROR: no tests found in #{$testDirectory} (filter: #{$filter})."
+    end
+    exit 1
+end
+File.open($testOutputDirectory + "testmakefile", "w") {
+    | outp |
+    outp.print "all:"
+    $tests.each_with_index {
+        | test, index |
+        outp.print " .t#{index}"
+    }
+    outp.puts
+    $tests.each_with_index {
+        | test, index |
+        outp.puts ".t#{index}:"
+        if $verbose
+            outp.puts "\t@#{Shellwords.shellescape(test)}"
+            outp.puts "\t@echo #{test}: success"
+        else
+            outp.puts "\t@#{Shellwords.shellescape(test)}"
+            outp.puts "\t@echo -n ."
+        end
+    }
+}
+if $runTests
+    raise unless system("#{$make} -k -f #{Shellwords.shellescape(($testOutputDirectory + 'testmakefile').to_s)} -j #{Etc.nprocessors}")
+    puts "SUCCESS"
+end
