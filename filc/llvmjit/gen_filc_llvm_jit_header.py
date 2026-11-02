@@ -76,7 +76,18 @@ JIT_OWN = [
     ("ShimExportMapping*", "ShimJITCompile", "(void*, void* executable_module, ShimJIT* jit, LLVMModuleRef mod)"),
     ("void", "ShimJITDestroy", "(ShimJIT* jit)"),
     ("void*", "ShimExportMappingLookup", "(ShimExportMapping* mapping, const char* name)"),
-    ("void", "ShimExportMappingDestroy", "(ShimExportMapping* mapping)")
+    ("void", "ShimExportMappingDestroy", "(ShimExportMapping* mapping)"),
+    # Predicates used by the runtime's subclass checks (see
+    # libpas/src/libpas/filc_llvm_jit.c).  The C API's LLVMIsAMDNode and
+    # LLVMIsAValueAsMetadata are not here because they cannot see through an
+    # LLVMMetadataRef and do not cover every MetadataAsValue shape the
+    # wrappers need, so the shim provides exact predicates instead.  All of
+    # them are graceful: they never assert on an odd input.
+    ("LLVMBool", "ShimMetadataIsAMDNode", "(LLVMMetadataRef MD)"),
+    ("LLVMBool", "ShimValueIsMDNodeValue", "(LLVMValueRef Val)"),
+    ("LLVMBool", "ShimValueExtractMDNodeOK", "(LLVMValueRef Val)"),
+    ("LLVMBool", "ShimValueIsMDNodeOrValueAsMetadata", "(LLVMValueRef Val)"),
+    ("LLVMBool", "ShimValueIsLocalAsMetadataValue", "(LLVMValueRef Val)")
 ]
 
 RUNTIME_COMPILETIME_API = [
@@ -421,7 +432,7 @@ API_STRUCT_TEMPLATE = """
 #define FILC_LLVM_JIT_GC_SECTION_PREFIX "filc_gc_obj"
 #define FILC_LLVM_JIT_AUX_SECTION_PREFIX "filc_jit_aux"
 
-#define SHIM_API_VERSION 7
+#define SHIM_API_VERSION 9
 
 typedef struct shim_ptr shim_ptr;
 struct shim_ptr {

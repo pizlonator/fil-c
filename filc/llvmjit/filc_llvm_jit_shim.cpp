@@ -63,6 +63,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Metadata.h"
 #include <llvm/IR/LegacyPassManager.h>
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
@@ -611,6 +612,39 @@ void* ShimExportMappingLookup(ShimExportMapping* mapping, const char* name) {
 
 void ShimExportMappingDestroy(ShimExportMapping* mapping) {
     delete mapping;
+}
+
+// Subclass predicates used by the runtime's wrapper checks.  These mirror the
+// shapes that the LLVM C API's own implementations demand (see Core.cpp): a
+// metadata ref may only be an MDNode where MDNode is required, and a value
+// may only be a MetadataAsValue with a specific kind of inner metadata.  All
+// of them are graceful (dyn_cast, never cast), so they are safe to call on
+// any handle that the runtime has already established to be a Value or a
+// Metadata.
+LLVMBool ShimMetadataIsAMDNode(LLVMMetadataRef MD) {
+    return MD && isa<MDNode>(reinterpret_cast<Metadata*>(MD));
+}
+
+LLVMBool ShimValueIsMDNodeValue(LLVMValueRef Val) {
+    auto* MAV = dyn_cast_or_null<MetadataAsValue>(reinterpret_cast<Value*>(Val));
+    return MAV && isa<MDNode>(MAV->getMetadata());
+}
+
+LLVMBool ShimValueExtractMDNodeOK(LLVMValueRef Val) {
+    auto* MAV = dyn_cast_or_null<MetadataAsValue>(reinterpret_cast<Value*>(Val));
+    return MAV && (isa<MDNode>(MAV->getMetadata()) ||
+                   isa<ConstantAsMetadata>(MAV->getMetadata()));
+}
+
+LLVMBool ShimValueIsMDNodeOrValueAsMetadata(LLVMValueRef Val) {
+    auto* MAV = dyn_cast_or_null<MetadataAsValue>(reinterpret_cast<Value*>(Val));
+    return MAV && (isa<MDNode>(MAV->getMetadata()) ||
+                   isa<ValueAsMetadata>(MAV->getMetadata()));
+}
+
+LLVMBool ShimValueIsLocalAsMetadataValue(LLVMValueRef Val) {
+    auto* MAV = dyn_cast_or_null<MetadataAsValue>(reinterpret_cast<Value*>(Val));
+    return MAV && isa<LocalAsMetadata>(MAV->getMetadata());
 }
 
 static const struct shim_api my_api = {

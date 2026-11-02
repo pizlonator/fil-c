@@ -1,0 +1,9 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "wrong LLVM value subclass for LLVMMDNodeInContext"
+  - "only one raw value operand"
+output-excludes:
+  "filc llvm jit error"

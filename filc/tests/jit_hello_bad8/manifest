@@ -1,0 +1,8 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  "wrong LLVM value subclass for LLVMGetNumIndices"
+output-excludes:
+  "filc llvm jit error"
