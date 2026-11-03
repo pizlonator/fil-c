@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "null element in args argument of LLVMBuildCall2."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

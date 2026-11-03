@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "wrong LLVM value subclass for LLVMSetOrdering: expected a llvm::AtomicRMWInst, llvm::FenceInst, llvm::LoadInst, or llvm::StoreInst."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

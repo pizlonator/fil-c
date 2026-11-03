@@ -1,0 +1,8 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "Fil-C LLVM JIT API: object kind mismatch."
+output-excludes:
+  - "filc llvm jit error"

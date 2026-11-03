@@ -1,0 +1,8 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "filc safety error: cannot access pointer with null object (ptr = (nil),<null>)."
+output-excludes:
+  - "filc llvm jit error"

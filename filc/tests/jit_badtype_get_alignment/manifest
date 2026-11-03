@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "wrong LLVM value subclass for LLVMGetAlignment: expected a llvm::GlobalObject, llvm::AllocaInst, llvm::LoadInst, llvm::StoreInst, llvm::AtomicRMWInst, or llvm::AtomicCmpXchgInst."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

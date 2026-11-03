@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "wrong LLVM value subclass for LLVMGetOperand: expected a llvm::User or a metadata-as-value holding an llvm::MDNode or llvm::ValueAsMetadata."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

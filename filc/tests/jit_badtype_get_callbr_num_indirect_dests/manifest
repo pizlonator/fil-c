@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "wrong LLVM value subclass for LLVMGetCallBrNumIndirectDests: expected a llvm::CallBrInst."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

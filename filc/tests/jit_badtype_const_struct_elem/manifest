@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "wrong LLVM element subclass for LLVMConstStructInContext: expected a llvm::Constant."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

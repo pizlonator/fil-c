@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "wrong LLVM value subclass for LLVMGetUnwindDest: expected a llvm::CleanupReturnInst, llvm::CatchSwitchInst, or llvm::InvokeInst."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

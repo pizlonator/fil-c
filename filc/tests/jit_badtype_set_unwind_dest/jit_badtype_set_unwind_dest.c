@@ -1,0 +1,21 @@
+#include <filc_llvm_jit.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
+int main()
+{
+    LLVMContextRef ctx = LLVMContextCreate();
+    LLVMModuleRef mod = LLVMModuleCreateWithNameInContext("test", ctx);
+    LLVMTypeRef i32 = LLVMInt32TypeInContext(ctx);
+    LLVMTypeRef fnT = LLVMFunctionType(i32, NULL, 0, false);
+    LLVMValueRef fn = LLVMAddFunction(mod, "test", fnT);
+    LLVMBasicBlockRef bb2 = LLVMAppendBasicBlockInContext(ctx, fn, "other");
+    LLVMValueRef ci32 = LLVMConstInt(i32, 42, false);
+
+    /* LLVMSetUnwindDest requires a cleanupreturn, catchswitch, or invoke
+       (UnwindOwner); the ConstantInt ci32 is not one.  This must panic in the
+       wrapper instead of tripping an LLVM assertion. */
+    LLVMSetUnwindDest(ci32, bb2);
+
+    return 0;
+}

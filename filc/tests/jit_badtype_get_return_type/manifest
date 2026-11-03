@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "wrong LLVM type subclass for LLVMGetReturnType: expected a llvm::FunctionType."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

@@ -1,0 +1,8 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "Fil-C LLVM JIT API: expected a JIT session object."
+output-excludes:
+  - "filc llvm jit error"

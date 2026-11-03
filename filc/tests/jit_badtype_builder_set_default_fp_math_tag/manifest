@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "wrong LLVM metadata subclass for LLVMBuilderSetDefaultFPMathTag: expected a llvm::MDNode."
+output-excludes:
+  - "filc llvm jit error"
+  - "UNREACHABLE"
+  - "Assertion"
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"

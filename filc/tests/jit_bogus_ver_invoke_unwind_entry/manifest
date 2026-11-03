@@ -1,0 +1,7 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "filc llvm jit error"
+  - "Entry block to function must not have predecessors!"
