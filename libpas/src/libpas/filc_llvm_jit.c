@@ -571,35 +571,18 @@ static void* shim_executable_module_allocate_object(void* raw_my_thread, void* r
     filc_alignment_header_construct_with_jit_module(my_thread, result, alignment, module);
     void* lower = (char*)result + offset_to_payload;
     filc_object* object = filc_object_for_lower(lower);
-    /* GC invariant: this allocation's mark base is `result` (the alignment
-     * header), because the post-compile fixup in CompileModule sets the
-     * object's log_align, and filc_object_mark_base_with_flags rounds the
-     * object down to that alignment.  But the aux only carries log_align
-     * after the whole JIT link finishes, so the store barrier below -- and
-     * any other barrier that runs before the fixup -- marks the object's
-     * own address instead, which the sweep (which intersects alloc bits
-     * with mark bits per allocation) does not honor: the object would be
-     * swept out from under the JIT while the module still references it.
-     *
-     * Normally the collector discovers these objects by walking the
-     * executable module's object_bases, but that walk is not guaranteed to
-     * happen in the birth cycle: the module itself is usually allocated
-     * while marking is in progress, so it is black (its mark bit is set
-     * without being pushed onto a mark stack), and a black object is never
-     * walked.  Nothing else scans object_bases.  So when a GC cycle's
-     * marking phase overlaps FilLLVMJIT_CompileModule, somebody must mark
-     * each object at its final mark base right here, or the object dies.
-     *
-     * Marking an object without pushing it is exactly the black-allocation
-     * contract: everything the object will point at is installed later,
-     * either by barriered pizlonated stores (the closure payload) or by
-     * the module's own barriered bookkeeping, and from the next cycle on
-     * the module<->object cycle is found by walking the module, which is
-     * reachable from the objects' alignment-header extra pointers and from
-     * whatever filc_ptr the user obtained from the module. */
+    /* We can't use the normal barrier because the normal barrier expects the object to have its
+       header set up correctly; in particular, it expects that if the mark base is not the bottom of
+       the object then the object header has the alignment set up.
+
+       It would be silly to set up the alignment here just for the mark barrier. The actual header is
+       built up by the LLVM linker and then the end of CompileModule.
+
+       If we did have the header set up, then what the barrier would do is mark and enqueue it. We
+       skip enqueueing it because we know that objects allocated by the JIT have an aux that is traced
+       by the module, and though the object points at the module, we have already marked the module. */
     if (filc_current_marking_state)
         verse_heap_set_is_marked_relaxed(result, true);
-    filc_store_barrier(my_thread, object);
     filc_raw_ptr_array_add(&module->object_bases, result);
     if (verbose)
         pas_log("Allocated object = %p\n", object);
