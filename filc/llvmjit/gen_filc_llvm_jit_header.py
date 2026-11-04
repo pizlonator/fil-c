@@ -157,7 +157,8 @@ RUNTIME_RUNTIME_API = [
     "filc_prepare_to_return_with_data",
     "filc_cc_args_check_failure",
     "filc_cc_rets_check_failure",
-    "_setjmp"
+    "_setjmp",
+    "filc_pollcheck_slow"
 ]
 
 def strip_comments(text):

@@ -235,8 +235,6 @@ static filc_llvm_jit_session_object* unwrap_session(filc_thread* my_thread, filc
 static filc_llvm_jit_executable_module* unwrap_executable_module(filc_thread* my_thread, filc_ptr ptr)
 {
     PAS_UNUSED_PARAM(my_thread);
-    if (!filc_ptr_ptr(ptr))
-        return NULL;
     filc_check_access_special(ptr, FILC_SPECIAL_TYPE_LLVM_JIT);
     filc_llvm_jit_executable_module* payload =
         (filc_llvm_jit_executable_module*)filc_ptr_ptr(ptr);
