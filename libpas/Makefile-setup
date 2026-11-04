@@ -24,7 +24,11 @@
 FILSRCHEADERS = $(wildcard ../filc/include/*.h)
 FILHEADERS = \
 	$(patsubst %.h,../pizfix/stdfil-include/%.h,$(notdir $(FILSRCHEADERS)))
-ALLHEADERS = $(FILHEADERS)
+
+ZEGARMISTRZ_HEADER = ../projects/zegarmistrz/include/zegarmistrz.h
+ZEGARMISTRZ_INSTALLED_HEADER = ../pizfix/stdfil-include/zegarmistrz.h
+
+ALLHEADERS = $(FILHEADERS) $(ZEGARMISTRZ_INSTALLED_HEADER)
 
 all: $(ALLHEADERS)
 
@@ -32,5 +36,8 @@ clean:
 	rm -f $(ALLHEADERS)
 
 ../pizfix/stdfil-include/%.h: ../filc/include/%.h
+	cp $< $@
+
+$(ZEGARMISTRZ_INSTALLED_HEADER): $(ZEGARMISTRZ_HEADER)
 	cp $< $@
 

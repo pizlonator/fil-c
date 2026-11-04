@@ -57,6 +57,21 @@ for t in poison_masked_load poison_masked_store poison_compress_expand; do
         -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null \
         || { log "guest compile failed: $t"; exit 1; }
 done
+# Instruction-semantics regression guests for the emulator fixes (BSR/BSF,
+# PUSHFQ/POPFQ, VEX VPSLL{W,D,Q}/VPSRL{W,D,Q} 3-operand forms, VPSLLDQ,
+# VPERMD/VPERMPS, VBROADCASTI128, VPINSR/VPEXTR, VINSERTPS, EVEX
+# VPSLLDQ/VPSRLDQ, VSHUFI64X2, VPXORQ k-masks, VPMADD52) and the decode-cache
+# (self-modifying code) guest.  They are self-checking against hardware-
+# verified expected values and gate every instruction group on runtime CPUID,
+# so they run everywhere (skipping groups the CPU lacks) both natively and
+# under the emulator.
+gcc -O2 -mavx2 -o "$OUTDIR/insn_fixes" tests/insn_fixes.c \
+    || { log "guest compile failed: insn_fixes"; exit 1; }
+gcc -O2 -mavx512f -mavx512dq -mavx512vl -mavx512ifma -o "$OUTDIR/insn_fixes_avx512" \
+    tests/insn_fixes_avx512.c \
+    || { log "guest compile failed: insn_fixes_avx512"; exit 1; }
+gcc -O2 -o "$OUTDIR/dec_cache" tests/dec_cache.c \
+    || { log "guest compile failed: dec_cache"; exit 1; }
 # Crash guest for core-dump tests.
 cat > "$OUTDIR/crash.c" <<'EOF'
 #include <stdio.h>
@@ -96,6 +111,9 @@ echo "args-exit"
 echo "avx512-smoke"
 echo "aes-smoke"
 echo "vex-smoke"
+echo "insn-fixes"
+echo "insn-fixes-avx512"
+echo "dec-cache"
 echo "poison-load"
 echo "poison-store"
 echo "poison-branch"
@@ -191,6 +209,37 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     else
       echo "FAIL aes-smoke: exit=$ec"
       diff test-output/aes.native test-output/aes.emu | head -5
+    fi
+    ;;
+  insn-fixes|insn-fixes-avx512)
+    # Self-checking instruction-semantics regression guests (see the comment
+    # at their compile lines).  Must pass natively AND under the emulator,
+    # with byte-identical output ending in the ok line.
+    bin=$(echo "$t" | tr "-" "_")
+    test-output/$bin > test-output/$bin.native 2>/dev/null; nec=$?
+    (cd test-output && timeout 300 ../zegarmistrz ./$bin > $bin.emu 2>/dev/null); ec=$?
+    if [ "$nec" = 0 ] && [ "$ec" = 0 ] \
+       && cmp -s test-output/$bin.native test-output/$bin.emu \
+       && grep -q "^$t-ok$" test-output/$bin.emu; then
+      echo "PASS $t"
+    else
+      echo "FAIL $t: native-exit=$nec emu-exit=$ec"
+      diff test-output/$bin.native test-output/$bin.emu | head -10
+    fi
+    ;;
+  dec-cache)
+    # The thread-local decode cache must not be instruction-visible: this
+    # guest rewrites code at a fixed RIP between calls and requires the new
+    # bytes to take effect.
+    test-output/dec_cache > test-output/dec_cache.native 2>/dev/null; nec=$?
+    (cd test-output && timeout 300 ../zegarmistrz ./dec_cache > dec_cache.emu 2>/dev/null); ec=$?
+    if [ "$nec" = 0 ] && [ "$ec" = 0 ] \
+       && cmp -s test-output/dec_cache.native test-output/dec_cache.emu \
+       && grep -q "^dec-cache-ok$" test-output/dec_cache.emu; then
+      echo "PASS dec-cache"
+    else
+      echo "FAIL dec-cache: native-exit=$nec emu-exit=$ec"
+      diff test-output/dec_cache.native test-output/dec_cache.emu | head -10
     fi
     ;;
   poison-load|poison-store|poison-branch|poison-index|poison-syscall|poison-masked-load|poison-masked-store|poison-compress-expand)

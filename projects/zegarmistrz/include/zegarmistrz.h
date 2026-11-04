@@ -53,8 +53,19 @@
 // zegarmistrz. They are also written compiler-defensively: inline asm
 // opaques the call target and arguments, so the compiler can never see
 // that we are (from its point of view) calling a bogus pointer, and can
-// neither reject, elide, nor optimize around the call. Note this library
-// is for yolo C guests, not Fil-C (the magic call is not a real function).
+// neither reject, elide, nor optimize around the call.
+//
+// Under Fil-C (i.e. when __FILC__ is defined), the magic call is not a real
+// function and pizlonated code must not execute it. Instead, the Fil-C
+// runtime (libpizlo) exposes is_in_zegarmistrz() and
+// zegarmistrz_client_request() as natives (see filc_native_is_in_zegarmistrz
+// and filc_native_zegarmistrz_client_request in
+// libpas/src/libpas/filc_runtime.c and the corresponding entries in
+// libpas/src/libpas/generate_pizlonated_forwarders.rb), and this header
+// declares them as extern functions. The runtime's client-request wrapper
+// checks read access on [ptr, ptr+size) before issuing the magic call, so
+// pizlonated code uses the exact same API as yolo code, safely: the Fil-C
+// memory safety checks wrap the poisoning service rather than bypassing it.
 
 #ifndef ZEGARMISTRZ_H
 #define ZEGARMISTRZ_H
@@ -93,6 +104,13 @@
 // on CPUID.1:ECX bit 31 ("hypervisor present"), then match the vendor
 // signature at CPUID.0x40000000. No caching: both CPUID instructions run
 // (volatile inline assembly) on every call; only the final AND decides.
+//
+// Under Fil-C this is provided by the runtime instead (see the comment at
+// the top of this header); raw CPUID inline assembly is not available to
+// pizlonated code.
+#ifdef __FILC__
+extern ZEGARMISTRZ_BOOL is_in_zegarmistrz(void);
+#else
 static inline ZEGARMISTRZ_BOOL is_in_zegarmistrz(void) {
 #if defined(__x86_64__) || defined(__amd64__)
     unsigned a, b, c, d;
@@ -111,10 +129,20 @@ static inline ZEGARMISTRZ_BOOL is_in_zegarmistrz(void) {
     return 0;
 #endif
 }
+#endif // !__FILC__
 
 // Raw client request (op 0 = query, 1 = poison, 2 = unpoison). Returns the
 // RAX result of the magic call, or 0 without doing anything when not
 // running under zegarmistrz.
+//
+// Under Fil-C this is provided by the runtime (which performs the magic
+// call from yolo code on behalf of the pizlonated caller, after checking
+// read access on [ptr, ptr+size)); see the comment at the top of this
+// header.
+#ifdef __FILC__
+extern uint64_t zegarmistrz_client_request(uint64_t op, void* ptr,
+                                           size_t size, uint64_t flags);
+#else
 static inline uint64_t zegarmistrz_client_request(uint64_t op, void* ptr,
                                                   size_t size,
                                                   uint64_t flags) {
@@ -139,6 +167,7 @@ static inline uint64_t zegarmistrz_client_request(uint64_t op, void* ptr,
     __asm__ __volatile__("" : "+r"(ret) : : "memory");
     return ret;
 }
+#endif // !__FILC__
 
 // op 0: no-op/query. Returns 0.
 static inline uint64_t zegarmistrz_query(void) {

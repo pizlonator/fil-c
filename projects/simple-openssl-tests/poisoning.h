@@ -14,9 +14,18 @@
  * malloc() returned.  Without the command line option, poison_range() is not
  * called for that buffer.
  *
- * poison_range() is a no-op.  It exists so that there is exactly one hook
- * where a real poisoning implementation (e.g. a Fil-C/GIMSO poisoning API)
- * can be installed later without touching any test program.
+ * poison_range() wires into the zegarmistrz poisoning API (<zegarmistrz.h>,
+ * header-only): when running under the zegarmistrz emulator, it poisons the
+ * buffer with the selected variant bits (--poison-variants=
+ * cannot-branch,cannot-index,cannot-var-time-op, or the POISON_VARIANTS
+ * environment variable; see poison_print_usage).  Outside the emulator --
+ * and whenever no variant is selected -- zegarmistrz's entry points are
+ * no-ops, so poison options never change what a program computes.  Only the
+ * CANNOT_BRANCH, CANNOT_INDEX, and CANNOT_VAR_TIME_OP variants are exposed
+ * here; zegarmistrz's CANNOT_LOAD/CANNOT_STORE, CLEAR_*_ON_STORE, and
+ * CLEAR_VAR_TIME_OP_ON_STORE bits are deliberately not offered (loads and
+ * stores must keep working, and clear-on-store would make the poisoning of
+ * long-lived key material evaporate on first use).
  *
  * All test programs start their main() with:
  *
@@ -31,6 +40,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <zegarmistrz.h>
 
 /* Buffer kinds.  One bit per kind; --poison-* options set bits in
  * g_poison_mask. */
@@ -50,11 +61,24 @@ enum {
 /* Which buffer kinds the user asked to poison (bitmask of POISON_*). */
 static unsigned g_poison_mask = POISON_NONE;
 
-/* The poisoning hook.  No-op by design; see the comment at the top. */
+/* Which zegarmistrz poisoning variants to taint poisoned ranges with
+ * (bitmask of ZEGARMISTRZ_POISON_*).  Zero means "do not poison at all" --
+ * poison options never change what a program computes unless the user both
+ * selects buffer kinds AND selects at least one variant. */
+static unsigned g_poison_variants = 0;
+
+/* The single poisoning hook.  When running under the zegarmistrz emulator,
+ * poisons [ptr, ptr+size) with the selected variant bits.  Outside the
+ * emulator (and when no variant is selected) this is a no-op, so poison
+ * options never change what a program computes.  Only CANNOT_BRANCH,
+ * CANNOT_INDEX, and CANNOT_VAR_TIME_OP are supported -- zegarmistrz's
+ * CANNOT_LOAD/CANNOT_STORE, CLEAR_*_ON_STORE, and CLEAR_VAR_TIME_* bits are
+ * deliberately not exposed. */
 static void poison_range(void *ptr, size_t size)
 {
-    (void)ptr;
-    (void)size;
+    if (!g_poison_variants)
+        return;
+    zegarmistrz_poison_range(ptr, size, g_poison_variants);
 }
 
 /* malloc() plus conditional poisoning.  Called only by the ALLOCATE_*
@@ -86,7 +110,19 @@ static void poison_print_usage(FILE *out)
             "  --poison-all      poison every buffer kind\n"
             "  --poison-none     poison nothing (the default)\n"
             "  --poison=a,b,...  poison the listed kinds\n"
-            "  --poison-help     show this help\n");
+            "  --poison-variants=s  poison with the listed zegarmistrz\n"
+            "                    variant(s): cannot-branch, cannot-index,\n"
+            "                    cannot-var-time-op, or all/none; replaces\n"
+            "                    the current variant selection\n"
+            "  --poison-help     show this help\n"
+            "environment:\n"
+            "  POISON_VARIANTS   default --poison-variants= spec (a\n"
+            "                    --poison-variants= option on the command\n"
+            "                    line overrides it)\n"
+            "notes:\n"
+            "  Poisoning only takes effect under the zegarmistrz emulator;\n"
+            "  elsewhere every poison option is a no-op, so poison options\n"
+            "  never change what a program computes.\n");
 }
 
 static unsigned poison_kind_from_name(const char *name)
@@ -106,6 +142,53 @@ static unsigned poison_kind_from_name(const char *name)
     return POISON_NONE;
 }
 
+/* Parses a comma-separated zegarmistrz variant spec into *mask (replacing
+ * whatever *mask held).  Accepted tokens: cannot-branch, cannot-index,
+ * cannot-var-time-op, all (the three of them OR'd), none (and the empty
+ * spec), which clear the selection.  Unknown tokens exit with status 2, matching the
+ * poison-kind error style. */
+static void poison_variants_from_spec(const char *spec, unsigned *mask)
+{
+    *mask = 0;
+    if (spec == NULL)
+        return;
+    const char *p = spec;
+    for (;;) {
+        const char *comma = strchr(p, ',');
+        char name[32];
+        size_t len = comma ? (size_t)(comma - p) : strlen(p);
+        if (len == 0) {
+            if (comma == NULL)
+                break;
+            p = comma + 1;
+            continue;
+        }
+        if (len >= sizeof(name)) {
+            fprintf(stderr, "bad poison variant in %s\n", spec);
+            exit(2);
+        }
+        memcpy(name, p, len);
+        name[len] = '\0';
+        if (strcmp(name, "cannot-branch") == 0)
+            *mask |= ZEGARMISTRZ_POISON_CANNOT_BRANCH;
+        else if (strcmp(name, "cannot-index") == 0)
+            *mask |= ZEGARMISTRZ_POISON_CANNOT_INDEX;
+        else if (strcmp(name, "cannot-var-time-op") == 0)
+            *mask |= ZEGARMISTRZ_POISON_CANNOT_VAR_TIME_OP;
+        else if (strcmp(name, "all") == 0)
+            *mask |= ZEGARMISTRZ_POISON_CANNOT_BRANCH
+                   | ZEGARMISTRZ_POISON_CANNOT_INDEX
+                   | ZEGARMISTRZ_POISON_CANNOT_VAR_TIME_OP;
+        else if (strcmp(name, "none") != 0) {
+            fprintf(stderr, "unknown poison variant: %s\n", name);
+            exit(2);
+        }
+        if (comma == NULL)
+            break;
+        p = comma + 1;
+    }
+}
+
 /* Handles one --poison-* argument.  Returns 1 if the argument was consumed. */
 static int poison_handle_arg(const char *arg)
 {
@@ -120,6 +203,10 @@ static int poison_handle_arg(const char *arg)
     if (strcmp(arg, "--poison-all") == 0)    { g_poison_mask |= POISON_ALL;    return 1; }
     if (strcmp(arg, "--poison-none") == 0)   { g_poison_mask  = POISON_NONE;   return 1; }
     if (strcmp(arg, "--poison-help") == 0)   { poison_print_usage(stdout);     exit(0); }
+    if (strncmp(arg, "--poison-variants=", 18) == 0) {
+        poison_variants_from_spec(arg + 18, &g_poison_variants);
+        return 1;
+    }
     if (strncmp(arg, "--poison=", 9) == 0) {
         const char *p = arg + 9;
         for (;;) {
@@ -151,6 +238,13 @@ static int poison_handle_arg(const char *arg)
 /* Every test program calls this first thing in main(). */
 static void poison_parse_args(int argc, char **argv)
 {
+    /* POISON_VARIANTS provides a default variant selection so that poison
+     * runs do not need per-test argument plumbing, e.g.
+     * `POISON_VARIANTS=cannot-branch ./test_x --poison-key`.  An explicit
+     * --poison-variants= on the command line (parsed below) overrides it. */
+    const char *env = getenv("POISON_VARIANTS");
+    if (env != NULL && env[0] != '\0')
+        poison_variants_from_spec(env, &g_poison_variants);
     int i;
     for (i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {

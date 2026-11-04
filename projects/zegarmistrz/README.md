@@ -265,6 +265,17 @@ zegarmistrz_unpoison_range() / zegarmistrz_query() from
 include/zegarmistrz.h (header-only, no-ops outside the emulator); the
 raw ABI below is what they emit.
 
+Under Fil-C (`__FILC__`), include/zegarmistrz.h does not emit the magic
+call itself; instead the two entry points (is_in_zegarmistrz() and
+zegarmistrz_client_request()) are declared `extern` and are provided by
+the Fil-C runtime (libpizlo) as natives
+(`filc_native_is_in_zegarmistrz` /
+`filc_native_zegarmistrz_client_request`, registered in
+libpas/src/libpas/generate_pizlonated_forwarders.rb and implemented in
+libpas/src/libpas/filc_runtime.c). The runtime's wrapper check-reads
+`[ptr, ptr+size)` before issuing the magic call from yolo code, so
+pizlonated guests use the same API safely.
+
 Client request: `CALL` to `0x1410141014101410` with `RDI=op`,
 `RSI=ptr`, `RDX=size`, `RCX=flags`; returns 0 in `RAX`:
 

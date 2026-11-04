@@ -1,0 +1,2280 @@
+simple-openssl-tests zegarmistrz poisoning variant sweep
+provenance: produced by projects/simple-openssl-tests/run_variants.sh from
+the Fil-C git checkout at HEAD 07d60ef4be42 (branch deluge), invoked with
+--flavor=both --poison-args='--poison-all' --jobs=16: the zunsafe flavor
+was swept at --timeout=3600, and the sarcastic flavor was re-run at
+--timeout=7200 (its dsa/slh_dsa tests need longer under emulation than
+3600s), after which the two sweeps were merged into this one report.
+date of the last underlying sweep run: 2026-11-03 02:30:08.
+
+run_variants.sh writes one report per invocation with a single --timeout
+and a single flavor selection, so this merged header and the NATIVE
+CONTROLS section at the end are hand-written.  Everything else is the
+script's own output: the per-run rows below (and in the companion .tsv)
+come straight from the script's TSV, and the per-flavor sections between
+the "=== flavor:" lines and the "=== VERDICT" line are the script's report
+text.  The only post-processing was (a) concatenating the zunsafe sweep
+and the sarcastic re-run and (b) appending the NATIVE CONTROLS section.
+emulator: /home/pizlo/Programs/fil-c-2/filc/zegarmistrz
+timeout per test: 3600s (zunsafe flavor) / 7200s (sarcastic flavor)
+jobs: 16   poison-args: '--poison-all'
+variants: none cannot-branch cannot-index cannot-var-time-op cannot-branch,cannot-index cannot-branch,cannot-var-time-op cannot-index,cannot-var-time-op cannot-branch,cannot-index,cannot-var-time-op
+raw results: zegarmistrz-variants-report.tsv (this directory; the same
+repository commit carries this report, force-added past the whitelist
+.gitignore)
+
+=== flavor: zunsafe
+libcrypto in use: libcrypto.so.3 => /home/pizlo/Programs/fil-c-2/build/bin/../../pizfix/lib/libcrypto.so.3
+control (variant none): 80/80 PASS -- CONTROL OK
+
+variant none                                : PASS 80  FAULT 0  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-branch                       : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-index                        : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-var-time-op                  : PASS 50  FAULT 30  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-branch,cannot-index          : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-branch,cannot-var-time-op    : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-index,cannot-var-time-op     : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-branch,cannot-index,cannot-var-time-op: PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+
+  cannot-branch: non-PASS tests:
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_chacha20_large (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_camellia (FAULT)
+    test_digest_md5 (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_mac_cmac (FAULT)
+    test_aes_xts_large (FAULT)
+    test_des3 (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_mac_hmac (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_digest_shake (FAULT)
+    test_aes_ofb (FAULT)
+    test_ecdsa (FAULT)
+    test_dh (FAULT)
+    test_aes_cbc (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_aes_wrap (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_mac_kmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_des3_wrap (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_aria (FAULT)
+    test_aes_siv (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_ecdh (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_digest_blake2 (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_rc4_small (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_des (FAULT)
+    test_rsa_raw (FAULT)
+    test_rsa_oaep (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_ml_kem (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_rc4_large (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_x25519_x448 (FAULT)
+    test_rand_drbg (FAULT)
+    test_aes_ecb (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_slh_dsa (FAULT)
+    test_mac_blake2 (FAULT)
+    test_aes_ctr (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_rsa_pss (FAULT)
+    test_chacha20_small (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_mac_siphash (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_dsa (FAULT)
+    test_ml_dsa (FAULT)
+    test_aes_xts_small (FAULT)
+    test_rsa_pkcs1 (FAULT)
+
+  cannot-index: non-PASS tests:
+    test_aes_xts_large (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_mac_kmac (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_ml_kem (FAULT)
+    test_des (FAULT)
+    test_des3 (FAULT)
+    test_rc4_small (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_digest_blake2 (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_mac_siphash (FAULT)
+    test_rsa_oaep (FAULT)
+    test_aria (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_ecdh (FAULT)
+    test_mac_blake2 (FAULT)
+    test_rc4_large (FAULT)
+    test_aes_ofb (FAULT)
+    test_rand_drbg (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_aes_cbc (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_chacha20_small (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_aes_siv (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_ml_dsa (FAULT)
+    test_dsa (FAULT)
+    test_chacha20_large (FAULT)
+    test_rsa_raw (FAULT)
+    test_ecdsa (FAULT)
+    test_digest_shake (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_digest_md5 (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_camellia (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_dh (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_aes_ecb (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_aes_xts_small (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_slh_dsa (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_aes_ctr (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_aes_wrap (FAULT)
+    test_mac_gmac (FAULT)
+    test_mac_cmac (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_des3_wrap (FAULT)
+    test_mac_hmac (FAULT)
+    test_rsa_pss (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_x25519_x448 (FAULT)
+
+  cannot-var-time-op: non-PASS tests:
+    test_ecdsa (FAULT)
+    test_x25519_x448 (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_dsa (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_slh_dsa (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_rsa_pss (FAULT)
+    test_ml_kem (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_rc4_small (FAULT)
+    test_chacha20_large (FAULT)
+    test_ecdh (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_rsa_oaep (FAULT)
+    test_ml_dsa (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_rsa_raw (FAULT)
+    test_dh (FAULT)
+
+  cannot-branch,cannot-index: non-PASS tests:
+    test_aes_wrap_pad (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_x25519_x448 (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_digest_blake2 (FAULT)
+    test_aes_ofb (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_aes_cbc (FAULT)
+    test_rc4_large (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_aes_siv (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_camellia (FAULT)
+    test_rand_drbg (FAULT)
+    test_mac_siphash (FAULT)
+    test_mac_blake2 (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_rsa_raw (FAULT)
+    test_des (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_ml_kem (FAULT)
+    test_aes_wrap (FAULT)
+    test_mac_gmac (FAULT)
+    test_mac_cmac (FAULT)
+    test_mac_kmac (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_ecdsa (FAULT)
+    test_mac_hmac (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_dh (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_chacha20_small (FAULT)
+    test_aes_ecb (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_aes_xts_small (FAULT)
+    test_slh_dsa (FAULT)
+    test_aes_ctr (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_digest_md5 (FAULT)
+    test_des3 (FAULT)
+    test_rsa_pss (FAULT)
+    test_chacha20_large (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_rsa_oaep (FAULT)
+    test_digest_shake (FAULT)
+    test_aes_xts_large (FAULT)
+    test_ml_dsa (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_des3_wrap (FAULT)
+    test_aria (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_dsa (FAULT)
+    test_ecdh (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_rc4_small (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_aes_gcm_small (FAULT)
+
+  cannot-branch,cannot-var-time-op: non-PASS tests:
+    test_ecdsa (FAULT)
+    test_aes_ctr (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_dsa (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_rsa_pss (FAULT)
+    test_rc4_large (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_rand_drbg (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_chacha20_large (FAULT)
+    test_aes_xts_small (FAULT)
+    test_mac_blake2 (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_sm2 (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_sm4 (FAULT)
+    test_x25519_x448 (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_camellia (FAULT)
+    test_aes_xts_large (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_dh (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_des3 (FAULT)
+    test_ml_kem (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_aria (FAULT)
+    test_aes_ofb (FAULT)
+    test_aes_wrap (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_mac_cmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_aes_cbc (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_mac_hmac (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_digest_md5 (FAULT)
+    test_mac_siphash (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_aes_siv (FAULT)
+    test_des (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_mac_kmac (FAULT)
+    test_ecdh (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_digest_blake2 (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_rsa_raw (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_des3_wrap (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_rsa_oaep (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_ml_dsa (FAULT)
+    test_rc4_small (FAULT)
+    test_aes_ecb (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_chacha20_small (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_slh_dsa (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_digest_shake (FAULT)
+
+  cannot-index,cannot-var-time-op: non-PASS tests:
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_rc4_large (FAULT)
+    test_ecdh (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_mac_kmac (FAULT)
+    test_rand_drbg (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_digest_shake (FAULT)
+    test_ml_dsa (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_aes_xts_small (FAULT)
+    test_rsa_oaep (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_des (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_aes_ofb (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_aes_cbc (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_aes_siv (FAULT)
+    test_aes_xts_large (FAULT)
+    test_x25519_x448 (FAULT)
+    test_mac_blake2 (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_rsa_raw (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_chacha20_small (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_dh (FAULT)
+    test_des3_wrap (FAULT)
+    test_mac_siphash (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_digest_blake2 (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_camellia (FAULT)
+    test_aes_ecb (FAULT)
+    test_ml_kem (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_rc4_small (FAULT)
+    test_dsa (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_digest_md5 (FAULT)
+    test_chacha20_large (FAULT)
+    test_des3 (FAULT)
+    test_slh_dsa (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_aes_ctr (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_aes_wrap (FAULT)
+    test_mac_gmac (FAULT)
+    test_mac_cmac (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_rsa_pss (FAULT)
+    test_mac_hmac (FAULT)
+    test_ecdsa (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_aria (FAULT)
+
+  cannot-branch,cannot-index,cannot-var-time-op: non-PASS tests:
+    test_aes_xts_large (FAULT)
+    test_ml_kem (FAULT)
+    test_rsa_pss (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_camellia (FAULT)
+    test_dh (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_mac_blake2 (FAULT)
+    test_mac_cmac (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_digest_blake2 (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_des3 (FAULT)
+    test_aes_wrap (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_mac_kmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_ecdsa (FAULT)
+    test_mac_hmac (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_dsa (FAULT)
+    test_x25519_x448 (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_ml_dsa (FAULT)
+    test_chacha20_small (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_aes_ofb (FAULT)
+    test_aria (FAULT)
+    test_aes_cbc (FAULT)
+    test_digest_shake (FAULT)
+    test_ecdh (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_aes_siv (FAULT)
+    test_rsa_oaep (FAULT)
+    test_sm2 (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_sm4 (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_des3_wrap (FAULT)
+    test_digest_md5 (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_chacha20_large (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_mac_siphash (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_rc4_small (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_rsa_raw (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_aes_xts_small (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_aes_ecb (FAULT)
+    test_rc4_large (FAULT)
+    test_des (FAULT)
+    test_rand_drbg (FAULT)
+    test_slh_dsa (FAULT)
+    test_aes_ctr (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+
+  fault matrix (rows: tests that FAULTed anywhere; columns: cannot-branch cannot-index cannot-var-time-op cannot-branch,cannot-index cannot-branch,cannot-var-time-op cannot-index,cannot-var-time-op cannot-branch,cannot-index,cannot-var-time-op):
+    test                   br        ix        vt        br+ix     br+vt     ix+vt     br+ix+vt 
+    test_aes_cbc           F         F         P         F         F         F         F        
+    test_aes_cbc_cts       F         F         P         F         F         F         F        
+    test_aes_cbc_hmac_sha1 F         F         F         F         F         F         F        
+    test_aes_cbc_hmac_sha256 F         F         F         F         F         F         F        
+    test_aes_ccm_large     F         F         F         F         F         F         F        
+    test_aes_ccm_small     F         F         F         F         F         F         F        
+    test_aes_cfb1          F         F         P         F         F         F         F        
+    test_aes_cfb128        F         F         P         F         F         F         F        
+    test_aes_cfb8          F         F         P         F         F         F         F        
+    test_aes_ctr           F         F         P         F         F         F         F        
+    test_aes_ecb           F         F         P         F         F         F         F        
+    test_aes_gcm_large     F         F         F         F         F         F         F        
+    test_aes_gcm_siv       F         F         P         F         F         F         F        
+    test_aes_gcm_small     F         F         P         F         F         F         F        
+    test_aes_ocb_large     F         F         P         F         F         F         F        
+    test_aes_ocb_small     F         F         P         F         F         F         F        
+    test_aes_ofb           F         F         P         F         F         F         F        
+    test_aes_siv           F         F         P         F         F         F         F        
+    test_aes_wrap          F         F         P         F         F         F         F        
+    test_aes_wrap_pad      F         F         F         F         F         F         F        
+    test_aes_xts_large     F         F         P         F         F         F         F        
+    test_aes_xts_small     F         F         P         F         F         F         F        
+    test_aria              F         F         P         F         F         F         F        
+    test_camellia          F         F         P         F         F         F         F        
+    test_chacha20_large    F         F         F         F         F         F         F        
+    test_chacha20_poly1305_large F         F         P         F         F         F         F        
+    test_chacha20_poly1305_small F         F         P         F         F         F         F        
+    test_chacha20_small    F         F         P         F         F         F         F        
+    test_des               F         F         P         F         F         F         F        
+    test_des3              F         F         P         F         F         F         F        
+    test_des3_wrap         F         F         P         F         F         F         F        
+    test_dh                F         F         F         F         F         F         F        
+    test_digest_blake2     F         F         P         F         F         F         F        
+    test_digest_md5        F         F         P         F         F         F         F        
+    test_digest_mdc2_whirlpool F         F         P         F         F         F         F        
+    test_digest_ripemd_sm3 F         F         P         F         F         F         F        
+    test_digest_sha1       F         F         P         F         F         F         F        
+    test_digest_sha2       F         F         F         F         F         F         F        
+    test_digest_sha3       F         F         P         F         F         F         F        
+    test_digest_shake      F         F         P         F         F         F         F        
+    test_dsa               F         F         F         F         F         F         F        
+    test_ecdh              F         F         F         F         F         F         F        
+    test_ecdsa             F         F         F         F         F         F         F        
+    test_ed25519_ed448     F         F         F         F         F         F         F        
+    test_kdf_hkdf          F         F         P         F         F         F         F        
+    test_kdf_kbkdf         F         F         F         F         F         F         F        
+    test_kdf_krb5kdf       F         F         P         F         F         F         F        
+    test_kdf_pbkdf2        F         F         P         F         F         F         F        
+    test_kdf_pkcs12kdf     F         F         F         F         F         F         F        
+    test_kdf_scrypt        F         F         P         F         F         F         F        
+    test_kdf_sshkdf        F         F         F         F         F         F         F        
+    test_kdf_sskdf         F         F         P         F         F         F         F        
+    test_kdf_tls13kdf      F         F         P         F         F         F         F        
+    test_kdf_tls1prf       F         F         F         F         F         F         F        
+    test_kdf_x942kdf       F         F         P         F         F         F         F        
+    test_kdf_x963kdf       F         F         F         F         F         F         F        
+    test_legacy_block_ciphers F         F         F         F         F         F         F        
+    test_mac_blake2        F         F         P         F         F         F         F        
+    test_mac_cmac          F         F         P         F         F         F         F        
+    test_mac_gmac          F         F         P         F         F         F         F        
+    test_mac_hmac          F         F         P         F         F         F         F        
+    test_mac_kmac          F         F         P         F         F         F         F        
+    test_mac_poly1305      F         F         P         F         F         F         F        
+    test_mac_siphash       F         F         P         F         F         F         F        
+    test_ml_dsa            F         F         F         F         F         F         F        
+    test_ml_kem            F         F         F         F         F         F         F        
+    test_null_cipher_digest F         F         P         F         F         F         F        
+    test_rand_drbg         F         F         P         F         F         F         F        
+    test_rc4_hmac_md5      F         F         P         F         F         F         F        
+    test_rc4_large         F         F         P         F         F         F         F        
+    test_rc4_small         F         F         F         F         F         F         F        
+    test_rsa_oaep          F         F         F         F         F         F         F        
+    test_rsa_pkcs1         F         F         F         F         F         F         F        
+    test_rsa_pss           F         F         F         F         F         F         F        
+    test_rsa_raw           F         F         F         F         F         F         F        
+    test_slh_dsa           F         F         F         F         F         F         F        
+    test_sm2               F         F         F         F         F         F         F        
+    test_sm4               F         F         F         F         F         F         F        
+    test_x25519_x448       F         F         F         F         F         F         F        
+
+=== flavor: sarcastic
+libcrypto in use: libcrypto.so.3 => /home/pizlo/Programs/fil-c-2/projects/sarcastic-openssl/libcrypto.so.3
+control (variant none): 80/80 PASS -- CONTROL OK
+
+variant none                                : PASS 80  FAULT 0  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-branch                       : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-index                        : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-var-time-op                  : PASS 46  FAULT 34  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-branch,cannot-index          : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-branch,cannot-var-time-op    : PASS 1  FAULT 78  TIMEOUT 1  FAIL 0  SKIP 0
+variant cannot-index,cannot-var-time-op     : PASS 1  FAULT 79  TIMEOUT 0  FAIL 0  SKIP 0
+variant cannot-branch,cannot-index,cannot-var-time-op: PASS 1  FAULT 78  TIMEOUT 1  FAIL 0  SKIP 0
+
+  cannot-branch: non-PASS tests:
+    test_ecdsa (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_mac_hmac (FAULT)
+    test_des3_wrap (FAULT)
+    test_digest_md5 (FAULT)
+    test_aria (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_digest_shake (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_ecdh (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_mac_kmac (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_dsa (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_rc4_small (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_ml_kem (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_aes_ofb (FAULT)
+    test_aes_cbc (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_aes_siv (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_rsa_oaep (FAULT)
+    test_rc4_large (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_x25519_x448 (FAULT)
+    test_rand_drbg (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_rsa_raw (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_aes_xts_small (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_ml_dsa (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_aes_ecb (FAULT)
+    test_des (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_mac_blake2 (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_aes_xts_large (FAULT)
+    test_mac_siphash (FAULT)
+    test_slh_dsa (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_aes_ctr (FAULT)
+    test_chacha20_small (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_rsa_pss (FAULT)
+    test_camellia (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_dh (FAULT)
+    test_des3 (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_chacha20_large (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_aes_wrap (FAULT)
+    test_mac_cmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_digest_blake2 (FAULT)
+
+  cannot-index: non-PASS tests:
+    test_aes_wrap (FAULT)
+    test_aes_siv (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_mac_cmac (FAULT)
+    test_mac_kmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_mac_hmac (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_rc4_large (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_digest_blake2 (FAULT)
+    test_chacha20_large (FAULT)
+    test_mac_blake2 (FAULT)
+    test_mac_siphash (FAULT)
+    test_rand_drbg (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_dsa (FAULT)
+    test_rsa_oaep (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_ml_dsa (FAULT)
+    test_rsa_raw (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_aes_ecb (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_ecdsa (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_des3 (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_aes_ctr (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_aria (FAULT)
+    test_digest_shake (FAULT)
+    test_ecdh (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_slh_dsa (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_digest_md5 (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_rsa_pss (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_aes_xts_small (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_des3_wrap (FAULT)
+    test_dh (FAULT)
+    test_des (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_aes_xts_large (FAULT)
+    test_camellia (FAULT)
+    test_rc4_small (FAULT)
+    test_ml_kem (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_aes_ofb (FAULT)
+    test_x25519_x448 (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_aes_cbc (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_chacha20_small (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+
+  cannot-var-time-op: non-PASS tests:
+    test_slh_dsa (FAULT)
+    test_aes_ctr (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_aes_xts_large (FAULT)
+    test_rsa_pss (FAULT)
+    test_ml_kem (FAULT)
+    test_sm2 (FAULT)
+    test_chacha20_large (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_aria (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_rsa_oaep (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_ecdh (FAULT)
+    test_rc4_small (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_x25519_x448 (FAULT)
+    test_ml_dsa (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_aes_siv (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_rsa_raw (FAULT)
+    test_camellia (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_dsa (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_dh (FAULT)
+    test_aes_wrap (FAULT)
+    test_ecdsa (FAULT)
+    test_mac_cmac (FAULT)
+
+  cannot-branch,cannot-index: non-PASS tests:
+    test_rc4_large (FAULT)
+    test_aes_siv (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_rand_drbg (FAULT)
+    test_chacha20_large (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_aes_wrap (FAULT)
+    test_mac_cmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_aes_xts_small (FAULT)
+    test_mac_hmac (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_rsa_raw (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_mac_kmac (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_ml_kem (FAULT)
+    test_mac_blake2 (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_aes_xts_large (FAULT)
+    test_dsa (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_aes_ecb (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_des3 (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_slh_dsa (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_rsa_oaep (FAULT)
+    test_aes_ctr (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_x25519_x448 (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_ecdsa (FAULT)
+    test_aria (FAULT)
+    test_rsa_pss (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_ecdh (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_digest_blake2 (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_digest_md5 (FAULT)
+    test_ml_dsa (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_des3_wrap (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_dh (FAULT)
+    test_mac_siphash (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_rc4_small (FAULT)
+    test_des (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_chacha20_small (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_aes_ofb (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_camellia (FAULT)
+    test_aes_cbc (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_digest_shake (FAULT)
+
+  cannot-branch,cannot-var-time-op: non-PASS tests:
+    test_kdf_pbkdf2 (FAULT)
+    test_chacha20_large (FAULT)
+    test_ml_dsa (FAULT)
+    test_aes_siv (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_rsa_oaep (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_dh (FAULT)
+    test_mac_siphash (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_rsa_raw (FAULT)
+    test_digest_md5 (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_des3 (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_aria (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_aes_ecb (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_aes_xts_small (FAULT)
+    test_des (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_ecdsa (FAULT)
+    test_slh_dsa (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_ecdh (FAULT)
+    test_aes_ctr (FAULT)
+    test_des3_wrap (FAULT)
+    test_ml_kem (FAULT)
+    test_rsa_pss (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_aes_xts_large (FAULT)
+    test_digest_sha1 (FAULT)
+    test_camellia (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_digest_shake (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_rc4_small (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_aes_wrap (FAULT)
+    test_mac_cmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_mac_hmac (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_chacha20_small (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_digest_blake2 (FAULT)
+    test_mac_kmac (FAULT)
+    test_x25519_x448 (FAULT)
+    test_dsa (TIMEOUT)
+    test_rc4_large (FAULT)
+    test_rand_drbg (FAULT)
+    test_aes_ofb (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_aes_cbc (FAULT)
+    test_mac_blake2 (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_kdf_krb5kdf (FAULT)
+
+  cannot-index,cannot-var-time-op: non-PASS tests:
+    test_des3_wrap (FAULT)
+    test_slh_dsa (FAULT)
+    test_aes_ctr (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_chacha20_large (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_aes_xts_large (FAULT)
+    test_rc4_small (FAULT)
+    test_rsa_pss (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_ml_kem (FAULT)
+    test_x25519_x448 (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_mac_blake2 (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_rc4_large (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_camellia (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_mac_cmac (FAULT)
+    test_digest_blake2 (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_mac_hmac (FAULT)
+    test_rand_drbg (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_dsa (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_dh (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_aes_wrap (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_mac_kmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_aes_ofb (FAULT)
+    test_mac_siphash (FAULT)
+    test_aes_cbc (FAULT)
+    test_des3 (FAULT)
+    test_aes_siv (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_digest_md5 (FAULT)
+    test_ml_dsa (FAULT)
+    test_digest_shake (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_aria (FAULT)
+    test_rsa_oaep (FAULT)
+    test_ecdh (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_rsa_raw (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_ecdsa (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_chacha20_small (FAULT)
+    test_aes_xts_small (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_aes_ecb (FAULT)
+    test_des (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+
+  cannot-branch,cannot-index,cannot-var-time-op: non-PASS tests:
+    test_chacha20_small (FAULT)
+    test_kdf_krb5kdf (FAULT)
+    test_aes_ctr (FAULT)
+    test_aes_ocb_large (FAULT)
+    test_digest_mdc2_whirlpool (FAULT)
+    test_aes_xts_small (FAULT)
+    test_chacha20_poly1305_small (FAULT)
+    test_aes_gcm_siv (FAULT)
+    test_slh_dsa (FAULT)
+    test_kdf_x963kdf (FAULT)
+    test_digest_shake (FAULT)
+    test_ml_dsa (FAULT)
+    test_aes_cfb128 (FAULT)
+    test_digest_md5 (FAULT)
+    test_mac_poly1305 (FAULT)
+    test_chacha20_large (FAULT)
+    test_mac_siphash (FAULT)
+    test_rsa_pss (FAULT)
+    test_aes_wrap_pad (FAULT)
+    test_des3_wrap (FAULT)
+    test_kdf_pkcs12kdf (FAULT)
+    test_des (FAULT)
+    test_aes_xts_large (FAULT)
+    test_chacha20_poly1305_large (FAULT)
+    test_kdf_kbkdf (FAULT)
+    test_aes_cbc_hmac_sha1 (FAULT)
+    test_rc4_small (FAULT)
+    test_aes_ccm_small (FAULT)
+    test_legacy_block_ciphers (FAULT)
+    test_digest_ripemd_sm3 (FAULT)
+    test_aes_cbc_cts (FAULT)
+    test_kdf_hkdf (FAULT)
+    test_kdf_sshkdf (FAULT)
+    test_kdf_sskdf (FAULT)
+    test_camellia (FAULT)
+    test_aes_gcm_small (FAULT)
+    test_aes_ofb (FAULT)
+    test_rc4_hmac_md5 (FAULT)
+    test_rc4_large (FAULT)
+    test_aes_cbc (FAULT)
+    test_aes_ccm_large (FAULT)
+    test_digest_blake2 (FAULT)
+    test_rand_drbg (FAULT)
+    test_aes_wrap (FAULT)
+    test_mac_kmac (FAULT)
+    test_mac_gmac (FAULT)
+    test_mac_cmac (FAULT)
+    test_aes_siv (FAULT)
+    test_mac_hmac (FAULT)
+    test_aes_gcm_large (FAULT)
+    test_kdf_scrypt (FAULT)
+    test_dh (FAULT)
+    test_null_cipher_digest (FAULT)
+    test_aes_cfb1 (FAULT)
+    test_des3 (FAULT)
+    test_aes_cfb8 (FAULT)
+    test_kdf_tls1prf (FAULT)
+    test_aria (FAULT)
+    test_dsa (TIMEOUT)
+    test_ml_kem (FAULT)
+    test_ecdh (FAULT)
+    test_digest_sha1 (FAULT)
+    test_digest_sha2 (FAULT)
+    test_digest_sha3 (FAULT)
+    test_ecdsa (FAULT)
+    test_aes_cbc_hmac_sha256 (FAULT)
+    test_mac_blake2 (FAULT)
+    test_kdf_tls13kdf (FAULT)
+    test_rsa_oaep (FAULT)
+    test_aes_ocb_small (FAULT)
+    test_rsa_raw (FAULT)
+    test_kdf_x942kdf (FAULT)
+    test_sm2 (FAULT)
+    test_sm4 (FAULT)
+    test_x25519_x448 (FAULT)
+    test_rsa_pkcs1 (FAULT)
+    test_ed25519_ed448 (FAULT)
+    test_aes_ecb (FAULT)
+    test_kdf_pbkdf2 (FAULT)
+
+  fault matrix (rows: tests that FAULTed anywhere; columns: cannot-branch cannot-index cannot-var-time-op cannot-branch,cannot-index cannot-branch,cannot-var-time-op cannot-index,cannot-var-time-op cannot-branch,cannot-index,cannot-var-time-op):
+    test                   br        ix        vt        br+ix     br+vt     ix+vt     br+ix+vt 
+    test_aes_cbc           F         F         P         F         F         F         F        
+    test_aes_cbc_cts       F         F         F         F         F         F         F        
+    test_aes_cbc_hmac_sha1 F         F         F         F         F         F         F        
+    test_aes_cbc_hmac_sha256 F         F         F         F         F         F         F        
+    test_aes_ccm_large     F         F         F         F         F         F         F        
+    test_aes_ccm_small     F         F         P         F         F         F         F        
+    test_aes_cfb1          F         F         P         F         F         F         F        
+    test_aes_cfb128        F         F         P         F         F         F         F        
+    test_aes_cfb8          F         F         P         F         F         F         F        
+    test_aes_ctr           F         F         F         F         F         F         F        
+    test_aes_ecb           F         F         P         F         F         F         F        
+    test_aes_gcm_large     F         F         F         F         F         F         F        
+    test_aes_gcm_siv       F         F         P         F         F         F         F        
+    test_aes_gcm_small     F         F         P         F         F         F         F        
+    test_aes_ocb_large     F         F         P         F         F         F         F        
+    test_aes_ocb_small     F         F         P         F         F         F         F        
+    test_aes_ofb           F         F         P         F         F         F         F        
+    test_aes_siv           F         F         F         F         F         F         F        
+    test_aes_wrap          F         F         F         F         F         F         F        
+    test_aes_wrap_pad      F         F         P         F         F         F         F        
+    test_aes_xts_large     F         F         F         F         F         F         F        
+    test_aes_xts_small     F         F         P         F         F         F         F        
+    test_aria              F         F         F         F         F         F         F        
+    test_camellia          F         F         F         F         F         F         F        
+    test_chacha20_large    F         F         F         F         F         F         F        
+    test_chacha20_poly1305_large F         F         F         F         F         F         F        
+    test_chacha20_poly1305_small F         F         P         F         F         F         F        
+    test_chacha20_small    F         F         P         F         F         F         F        
+    test_des               F         F         P         F         F         F         F        
+    test_des3              F         F         P         F         F         F         F        
+    test_des3_wrap         F         F         P         F         F         F         F        
+    test_dh                F         F         F         F         F         F         F        
+    test_digest_blake2     F         F         P         F         F         F         F        
+    test_digest_md5        F         F         P         F         F         F         F        
+    test_digest_mdc2_whirlpool F         F         P         F         F         F         F        
+    test_digest_ripemd_sm3 F         F         P         F         F         F         F        
+    test_digest_sha1       F         F         P         F         F         F         F        
+    test_digest_sha2       F         F         P         F         F         F         F        
+    test_digest_sha3       F         F         P         F         F         F         F        
+    test_digest_shake      F         F         P         F         F         F         F        
+    test_dsa               F         F         F         F         T         F         T        
+    test_ecdh              F         F         F         F         F         F         F        
+    test_ecdsa             F         F         F         F         F         F         F        
+    test_ed25519_ed448     F         F         F         F         F         F         F        
+    test_kdf_hkdf          F         F         P         F         F         F         F        
+    test_kdf_kbkdf         F         F         P         F         F         F         F        
+    test_kdf_krb5kdf       F         F         F         F         F         F         F        
+    test_kdf_pbkdf2        F         F         P         F         F         F         F        
+    test_kdf_pkcs12kdf     F         F         F         F         F         F         F        
+    test_kdf_scrypt        F         F         P         F         F         F         F        
+    test_kdf_sshkdf        F         F         P         F         F         F         F        
+    test_kdf_sskdf         F         F         F         F         F         F         F        
+    test_kdf_tls13kdf      F         F         P         F         F         F         F        
+    test_kdf_tls1prf       F         F         P         F         F         F         F        
+    test_kdf_x942kdf       F         F         P         F         F         F         F        
+    test_kdf_x963kdf       F         F         P         F         F         F         F        
+    test_legacy_block_ciphers F         F         F         F         F         F         F        
+    test_mac_blake2        F         F         P         F         F         F         F        
+    test_mac_cmac          F         F         F         F         F         F         F        
+    test_mac_gmac          F         F         P         F         F         F         F        
+    test_mac_hmac          F         F         P         F         F         F         F        
+    test_mac_kmac          F         F         P         F         F         F         F        
+    test_mac_poly1305      F         F         F         F         F         F         F        
+    test_mac_siphash       F         F         P         F         F         F         F        
+    test_ml_dsa            F         F         F         F         F         F         F        
+    test_ml_kem            F         F         F         F         F         F         F        
+    test_null_cipher_digest F         F         P         F         F         F         F        
+    test_rand_drbg         F         F         P         F         F         F         F        
+    test_rc4_hmac_md5      F         F         P         F         F         F         F        
+    test_rc4_large         F         F         P         F         F         F         F        
+    test_rc4_small         F         F         F         F         F         F         F        
+    test_rsa_oaep          F         F         F         F         F         F         F        
+    test_rsa_pkcs1         F         F         F         F         F         F         F        
+    test_rsa_pss           F         F         F         F         F         F         F        
+    test_rsa_raw           F         F         F         F         F         F         F        
+    test_slh_dsa           F         F         F         F         F         F         F        
+    test_sm2               F         F         F         F         F         F         F        
+    test_sm4               F         F         P         F         F         F         F        
+    test_x25519_x448       F         F         F         F         F         F         F        
+
+=== VERDICT
+Poisoning variants caused failures.  (flavor, variant, test, class) pairs:
+  sarcastic	cannot-branch	test_aes_cbc	FAULT
+  sarcastic	cannot-branch	test_aes_cbc_cts	FAULT
+  sarcastic	cannot-branch	test_aes_cbc_hmac_sha1	FAULT
+  sarcastic	cannot-branch	test_aes_cbc_hmac_sha256	FAULT
+  sarcastic	cannot-branch	test_aes_ccm_large	FAULT
+  sarcastic	cannot-branch	test_aes_ccm_small	FAULT
+  sarcastic	cannot-branch	test_aes_cfb1	FAULT
+  sarcastic	cannot-branch	test_aes_cfb128	FAULT
+  sarcastic	cannot-branch	test_aes_cfb8	FAULT
+  sarcastic	cannot-branch	test_aes_ctr	FAULT
+  sarcastic	cannot-branch	test_aes_ecb	FAULT
+  sarcastic	cannot-branch	test_aes_gcm_large	FAULT
+  sarcastic	cannot-branch	test_aes_gcm_siv	FAULT
+  sarcastic	cannot-branch	test_aes_gcm_small	FAULT
+  sarcastic	cannot-branch	test_aes_ocb_large	FAULT
+  sarcastic	cannot-branch	test_aes_ocb_small	FAULT
+  sarcastic	cannot-branch	test_aes_ofb	FAULT
+  sarcastic	cannot-branch	test_aes_siv	FAULT
+  sarcastic	cannot-branch	test_aes_wrap	FAULT
+  sarcastic	cannot-branch	test_aes_wrap_pad	FAULT
+  sarcastic	cannot-branch	test_aes_xts_large	FAULT
+  sarcastic	cannot-branch	test_aes_xts_small	FAULT
+  sarcastic	cannot-branch	test_aria	FAULT
+  sarcastic	cannot-branch	test_camellia	FAULT
+  sarcastic	cannot-branch	test_chacha20_large	FAULT
+  sarcastic	cannot-branch	test_chacha20_poly1305_large	FAULT
+  sarcastic	cannot-branch	test_chacha20_poly1305_small	FAULT
+  sarcastic	cannot-branch	test_chacha20_small	FAULT
+  sarcastic	cannot-branch	test_des	FAULT
+  sarcastic	cannot-branch	test_des3	FAULT
+  sarcastic	cannot-branch	test_des3_wrap	FAULT
+  sarcastic	cannot-branch	test_dh	FAULT
+  sarcastic	cannot-branch	test_digest_blake2	FAULT
+  sarcastic	cannot-branch	test_digest_md5	FAULT
+  sarcastic	cannot-branch	test_digest_mdc2_whirlpool	FAULT
+  sarcastic	cannot-branch	test_digest_ripemd_sm3	FAULT
+  sarcastic	cannot-branch	test_digest_sha1	FAULT
+  sarcastic	cannot-branch	test_digest_sha2	FAULT
+  sarcastic	cannot-branch	test_digest_sha3	FAULT
+  sarcastic	cannot-branch	test_digest_shake	FAULT
+  sarcastic	cannot-branch	test_dsa	FAULT
+  sarcastic	cannot-branch	test_ecdh	FAULT
+  sarcastic	cannot-branch	test_ecdsa	FAULT
+  sarcastic	cannot-branch	test_ed25519_ed448	FAULT
+  sarcastic	cannot-branch	test_kdf_hkdf	FAULT
+  sarcastic	cannot-branch	test_kdf_kbkdf	FAULT
+  sarcastic	cannot-branch	test_kdf_krb5kdf	FAULT
+  sarcastic	cannot-branch	test_kdf_pbkdf2	FAULT
+  sarcastic	cannot-branch	test_kdf_pkcs12kdf	FAULT
+  sarcastic	cannot-branch	test_kdf_scrypt	FAULT
+  sarcastic	cannot-branch	test_kdf_sshkdf	FAULT
+  sarcastic	cannot-branch	test_kdf_sskdf	FAULT
+  sarcastic	cannot-branch	test_kdf_tls13kdf	FAULT
+  sarcastic	cannot-branch	test_kdf_tls1prf	FAULT
+  sarcastic	cannot-branch	test_kdf_x942kdf	FAULT
+  sarcastic	cannot-branch	test_kdf_x963kdf	FAULT
+  sarcastic	cannot-branch	test_legacy_block_ciphers	FAULT
+  sarcastic	cannot-branch	test_mac_blake2	FAULT
+  sarcastic	cannot-branch	test_mac_cmac	FAULT
+  sarcastic	cannot-branch	test_mac_gmac	FAULT
+  sarcastic	cannot-branch	test_mac_hmac	FAULT
+  sarcastic	cannot-branch	test_mac_kmac	FAULT
+  sarcastic	cannot-branch	test_mac_poly1305	FAULT
+  sarcastic	cannot-branch	test_mac_siphash	FAULT
+  sarcastic	cannot-branch	test_ml_dsa	FAULT
+  sarcastic	cannot-branch	test_ml_kem	FAULT
+  sarcastic	cannot-branch	test_null_cipher_digest	FAULT
+  sarcastic	cannot-branch	test_rand_drbg	FAULT
+  sarcastic	cannot-branch	test_rc4_hmac_md5	FAULT
+  sarcastic	cannot-branch	test_rc4_large	FAULT
+  sarcastic	cannot-branch	test_rc4_small	FAULT
+  sarcastic	cannot-branch	test_rsa_oaep	FAULT
+  sarcastic	cannot-branch	test_rsa_pkcs1	FAULT
+  sarcastic	cannot-branch	test_rsa_pss	FAULT
+  sarcastic	cannot-branch	test_rsa_raw	FAULT
+  sarcastic	cannot-branch	test_slh_dsa	FAULT
+  sarcastic	cannot-branch	test_sm2	FAULT
+  sarcastic	cannot-branch	test_sm4	FAULT
+  sarcastic	cannot-branch	test_x25519_x448	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_cbc	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_cbc_cts	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_cbc_hmac_sha1	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_cbc_hmac_sha256	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_ccm_large	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_ccm_small	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_cfb1	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_cfb128	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_cfb8	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_ctr	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_ecb	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_gcm_large	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_gcm_siv	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_gcm_small	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_ocb_large	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_ocb_small	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_ofb	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_siv	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_wrap	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_wrap_pad	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_xts_large	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aes_xts_small	FAULT
+  sarcastic	cannot-branch,cannot-index	test_aria	FAULT
+  sarcastic	cannot-branch,cannot-index	test_camellia	FAULT
+  sarcastic	cannot-branch,cannot-index	test_chacha20_large	FAULT
+  sarcastic	cannot-branch,cannot-index	test_chacha20_poly1305_large	FAULT
+  sarcastic	cannot-branch,cannot-index	test_chacha20_poly1305_small	FAULT
+  sarcastic	cannot-branch,cannot-index	test_chacha20_small	FAULT
+  sarcastic	cannot-branch,cannot-index	test_des	FAULT
+  sarcastic	cannot-branch,cannot-index	test_des3	FAULT
+  sarcastic	cannot-branch,cannot-index	test_des3_wrap	FAULT
+  sarcastic	cannot-branch,cannot-index	test_dh	FAULT
+  sarcastic	cannot-branch,cannot-index	test_digest_blake2	FAULT
+  sarcastic	cannot-branch,cannot-index	test_digest_md5	FAULT
+  sarcastic	cannot-branch,cannot-index	test_digest_mdc2_whirlpool	FAULT
+  sarcastic	cannot-branch,cannot-index	test_digest_ripemd_sm3	FAULT
+  sarcastic	cannot-branch,cannot-index	test_digest_sha1	FAULT
+  sarcastic	cannot-branch,cannot-index	test_digest_sha2	FAULT
+  sarcastic	cannot-branch,cannot-index	test_digest_sha3	FAULT
+  sarcastic	cannot-branch,cannot-index	test_digest_shake	FAULT
+  sarcastic	cannot-branch,cannot-index	test_dsa	FAULT
+  sarcastic	cannot-branch,cannot-index	test_ecdh	FAULT
+  sarcastic	cannot-branch,cannot-index	test_ecdsa	FAULT
+  sarcastic	cannot-branch,cannot-index	test_ed25519_ed448	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_hkdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_kbkdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_krb5kdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_pbkdf2	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_pkcs12kdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_scrypt	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_sshkdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_sskdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_tls13kdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_tls1prf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_x942kdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_kdf_x963kdf	FAULT
+  sarcastic	cannot-branch,cannot-index	test_legacy_block_ciphers	FAULT
+  sarcastic	cannot-branch,cannot-index	test_mac_blake2	FAULT
+  sarcastic	cannot-branch,cannot-index	test_mac_cmac	FAULT
+  sarcastic	cannot-branch,cannot-index	test_mac_gmac	FAULT
+  sarcastic	cannot-branch,cannot-index	test_mac_hmac	FAULT
+  sarcastic	cannot-branch,cannot-index	test_mac_kmac	FAULT
+  sarcastic	cannot-branch,cannot-index	test_mac_poly1305	FAULT
+  sarcastic	cannot-branch,cannot-index	test_mac_siphash	FAULT
+  sarcastic	cannot-branch,cannot-index	test_ml_dsa	FAULT
+  sarcastic	cannot-branch,cannot-index	test_ml_kem	FAULT
+  sarcastic	cannot-branch,cannot-index	test_null_cipher_digest	FAULT
+  sarcastic	cannot-branch,cannot-index	test_rand_drbg	FAULT
+  sarcastic	cannot-branch,cannot-index	test_rc4_hmac_md5	FAULT
+  sarcastic	cannot-branch,cannot-index	test_rc4_large	FAULT
+  sarcastic	cannot-branch,cannot-index	test_rc4_small	FAULT
+  sarcastic	cannot-branch,cannot-index	test_rsa_oaep	FAULT
+  sarcastic	cannot-branch,cannot-index	test_rsa_pkcs1	FAULT
+  sarcastic	cannot-branch,cannot-index	test_rsa_pss	FAULT
+  sarcastic	cannot-branch,cannot-index	test_rsa_raw	FAULT
+  sarcastic	cannot-branch,cannot-index	test_slh_dsa	FAULT
+  sarcastic	cannot-branch,cannot-index	test_sm2	FAULT
+  sarcastic	cannot-branch,cannot-index	test_sm4	FAULT
+  sarcastic	cannot-branch,cannot-index	test_x25519_x448	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cbc	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cbc_cts	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cbc_hmac_sha1	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cbc_hmac_sha256	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ccm_large	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ccm_small	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cfb1	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cfb128	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cfb8	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ctr	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ecb	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_gcm_large	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_gcm_siv	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_gcm_small	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ocb_large	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ocb_small	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ofb	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_siv	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_wrap	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_wrap_pad	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_xts_large	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aes_xts_small	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_aria	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_camellia	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_chacha20_large	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_chacha20_poly1305_large	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_chacha20_poly1305_small	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_chacha20_small	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_des	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_des3	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_des3_wrap	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_dh	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_digest_blake2	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_digest_md5	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_digest_mdc2_whirlpool	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_digest_ripemd_sm3	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_digest_sha1	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_digest_sha2	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_digest_sha3	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_digest_shake	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_dsa	TIMEOUT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_ecdh	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_ecdsa	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_ed25519_ed448	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_hkdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_kbkdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_krb5kdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_pbkdf2	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_pkcs12kdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_scrypt	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_sshkdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_sskdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_tls13kdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_tls1prf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_x942kdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_x963kdf	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_legacy_block_ciphers	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_mac_blake2	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_mac_cmac	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_mac_gmac	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_mac_hmac	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_mac_kmac	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_mac_poly1305	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_mac_siphash	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_ml_dsa	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_ml_kem	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_null_cipher_digest	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_rand_drbg	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_rc4_hmac_md5	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_rc4_large	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_rc4_small	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_rsa_oaep	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_rsa_pkcs1	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_rsa_pss	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_rsa_raw	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_slh_dsa	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_sm2	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_sm4	FAULT
+  sarcastic	cannot-branch,cannot-index,cannot-var-time-op	test_x25519_x448	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_cbc	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_cbc_cts	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_cbc_hmac_sha1	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_cbc_hmac_sha256	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_ccm_large	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_ccm_small	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_cfb1	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_cfb128	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_cfb8	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_ctr	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_ecb	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_gcm_large	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_gcm_siv	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_gcm_small	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_ocb_large	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_ocb_small	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_ofb	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_siv	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_wrap	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_wrap_pad	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_xts_large	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aes_xts_small	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_aria	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_camellia	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_chacha20_large	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_chacha20_poly1305_large	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_chacha20_poly1305_small	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_chacha20_small	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_des	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_des3	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_des3_wrap	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_dh	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_digest_blake2	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_digest_md5	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_digest_mdc2_whirlpool	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_digest_ripemd_sm3	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_digest_sha1	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_digest_sha2	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_digest_sha3	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_digest_shake	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_dsa	TIMEOUT
+  sarcastic	cannot-branch,cannot-var-time-op	test_ecdh	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_ecdsa	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_ed25519_ed448	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_hkdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_kbkdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_krb5kdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_pbkdf2	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_pkcs12kdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_scrypt	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_sshkdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_sskdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_tls13kdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_tls1prf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_x942kdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_kdf_x963kdf	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_legacy_block_ciphers	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_mac_blake2	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_mac_cmac	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_mac_gmac	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_mac_hmac	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_mac_kmac	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_mac_poly1305	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_mac_siphash	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_ml_dsa	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_ml_kem	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_null_cipher_digest	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_rand_drbg	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_rc4_hmac_md5	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_rc4_large	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_rc4_small	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_rsa_oaep	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_rsa_pkcs1	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_rsa_pss	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_rsa_raw	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_slh_dsa	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_sm2	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_sm4	FAULT
+  sarcastic	cannot-branch,cannot-var-time-op	test_x25519_x448	FAULT
+  sarcastic	cannot-index	test_aes_cbc	FAULT
+  sarcastic	cannot-index	test_aes_cbc_cts	FAULT
+  sarcastic	cannot-index	test_aes_cbc_hmac_sha1	FAULT
+  sarcastic	cannot-index	test_aes_cbc_hmac_sha256	FAULT
+  sarcastic	cannot-index	test_aes_ccm_large	FAULT
+  sarcastic	cannot-index	test_aes_ccm_small	FAULT
+  sarcastic	cannot-index	test_aes_cfb1	FAULT
+  sarcastic	cannot-index	test_aes_cfb128	FAULT
+  sarcastic	cannot-index	test_aes_cfb8	FAULT
+  sarcastic	cannot-index	test_aes_ctr	FAULT
+  sarcastic	cannot-index	test_aes_ecb	FAULT
+  sarcastic	cannot-index	test_aes_gcm_large	FAULT
+  sarcastic	cannot-index	test_aes_gcm_siv	FAULT
+  sarcastic	cannot-index	test_aes_gcm_small	FAULT
+  sarcastic	cannot-index	test_aes_ocb_large	FAULT
+  sarcastic	cannot-index	test_aes_ocb_small	FAULT
+  sarcastic	cannot-index	test_aes_ofb	FAULT
+  sarcastic	cannot-index	test_aes_siv	FAULT
+  sarcastic	cannot-index	test_aes_wrap	FAULT
+  sarcastic	cannot-index	test_aes_wrap_pad	FAULT
+  sarcastic	cannot-index	test_aes_xts_large	FAULT
+  sarcastic	cannot-index	test_aes_xts_small	FAULT
+  sarcastic	cannot-index	test_aria	FAULT
+  sarcastic	cannot-index	test_camellia	FAULT
+  sarcastic	cannot-index	test_chacha20_large	FAULT
+  sarcastic	cannot-index	test_chacha20_poly1305_large	FAULT
+  sarcastic	cannot-index	test_chacha20_poly1305_small	FAULT
+  sarcastic	cannot-index	test_chacha20_small	FAULT
+  sarcastic	cannot-index	test_des	FAULT
+  sarcastic	cannot-index	test_des3	FAULT
+  sarcastic	cannot-index	test_des3_wrap	FAULT
+  sarcastic	cannot-index	test_dh	FAULT
+  sarcastic	cannot-index	test_digest_blake2	FAULT
+  sarcastic	cannot-index	test_digest_md5	FAULT
+  sarcastic	cannot-index	test_digest_mdc2_whirlpool	FAULT
+  sarcastic	cannot-index	test_digest_ripemd_sm3	FAULT
+  sarcastic	cannot-index	test_digest_sha1	FAULT
+  sarcastic	cannot-index	test_digest_sha2	FAULT
+  sarcastic	cannot-index	test_digest_sha3	FAULT
+  sarcastic	cannot-index	test_digest_shake	FAULT
+  sarcastic	cannot-index	test_dsa	FAULT
+  sarcastic	cannot-index	test_ecdh	FAULT
+  sarcastic	cannot-index	test_ecdsa	FAULT
+  sarcastic	cannot-index	test_ed25519_ed448	FAULT
+  sarcastic	cannot-index	test_kdf_hkdf	FAULT
+  sarcastic	cannot-index	test_kdf_kbkdf	FAULT
+  sarcastic	cannot-index	test_kdf_krb5kdf	FAULT
+  sarcastic	cannot-index	test_kdf_pbkdf2	FAULT
+  sarcastic	cannot-index	test_kdf_pkcs12kdf	FAULT
+  sarcastic	cannot-index	test_kdf_scrypt	FAULT
+  sarcastic	cannot-index	test_kdf_sshkdf	FAULT
+  sarcastic	cannot-index	test_kdf_sskdf	FAULT
+  sarcastic	cannot-index	test_kdf_tls13kdf	FAULT
+  sarcastic	cannot-index	test_kdf_tls1prf	FAULT
+  sarcastic	cannot-index	test_kdf_x942kdf	FAULT
+  sarcastic	cannot-index	test_kdf_x963kdf	FAULT
+  sarcastic	cannot-index	test_legacy_block_ciphers	FAULT
+  sarcastic	cannot-index	test_mac_blake2	FAULT
+  sarcastic	cannot-index	test_mac_cmac	FAULT
+  sarcastic	cannot-index	test_mac_gmac	FAULT
+  sarcastic	cannot-index	test_mac_hmac	FAULT
+  sarcastic	cannot-index	test_mac_kmac	FAULT
+  sarcastic	cannot-index	test_mac_poly1305	FAULT
+  sarcastic	cannot-index	test_mac_siphash	FAULT
+  sarcastic	cannot-index	test_ml_dsa	FAULT
+  sarcastic	cannot-index	test_ml_kem	FAULT
+  sarcastic	cannot-index	test_null_cipher_digest	FAULT
+  sarcastic	cannot-index	test_rand_drbg	FAULT
+  sarcastic	cannot-index	test_rc4_hmac_md5	FAULT
+  sarcastic	cannot-index	test_rc4_large	FAULT
+  sarcastic	cannot-index	test_rc4_small	FAULT
+  sarcastic	cannot-index	test_rsa_oaep	FAULT
+  sarcastic	cannot-index	test_rsa_pkcs1	FAULT
+  sarcastic	cannot-index	test_rsa_pss	FAULT
+  sarcastic	cannot-index	test_rsa_raw	FAULT
+  sarcastic	cannot-index	test_slh_dsa	FAULT
+  sarcastic	cannot-index	test_sm2	FAULT
+  sarcastic	cannot-index	test_sm4	FAULT
+  sarcastic	cannot-index	test_x25519_x448	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_cbc	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_cbc_cts	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_cbc_hmac_sha1	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_cbc_hmac_sha256	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_ccm_large	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_ccm_small	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_cfb1	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_cfb128	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_cfb8	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_ctr	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_ecb	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_gcm_large	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_gcm_siv	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_gcm_small	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_ocb_large	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_ocb_small	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_ofb	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_siv	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_wrap	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_wrap_pad	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_xts_large	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aes_xts_small	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_aria	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_camellia	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_chacha20_large	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_chacha20_poly1305_large	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_chacha20_poly1305_small	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_chacha20_small	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_des	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_des3	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_des3_wrap	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_dh	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_digest_blake2	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_digest_md5	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_digest_mdc2_whirlpool	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_digest_ripemd_sm3	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_digest_sha1	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_digest_sha2	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_digest_sha3	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_digest_shake	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_dsa	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_ecdh	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_ecdsa	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_ed25519_ed448	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_hkdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_kbkdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_krb5kdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_pbkdf2	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_pkcs12kdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_scrypt	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_sshkdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_sskdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_tls13kdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_tls1prf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_x942kdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_kdf_x963kdf	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_legacy_block_ciphers	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_mac_blake2	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_mac_cmac	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_mac_gmac	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_mac_hmac	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_mac_kmac	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_mac_poly1305	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_mac_siphash	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_ml_dsa	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_ml_kem	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_null_cipher_digest	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_rand_drbg	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_rc4_hmac_md5	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_rc4_large	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_rc4_small	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_rsa_oaep	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_rsa_pkcs1	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_rsa_pss	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_rsa_raw	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_slh_dsa	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_sm2	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_sm4	FAULT
+  sarcastic	cannot-index,cannot-var-time-op	test_x25519_x448	FAULT
+  sarcastic	cannot-var-time-op	test_aes_cbc_cts	FAULT
+  sarcastic	cannot-var-time-op	test_aes_cbc_hmac_sha1	FAULT
+  sarcastic	cannot-var-time-op	test_aes_cbc_hmac_sha256	FAULT
+  sarcastic	cannot-var-time-op	test_aes_ccm_large	FAULT
+  sarcastic	cannot-var-time-op	test_aes_ctr	FAULT
+  sarcastic	cannot-var-time-op	test_aes_gcm_large	FAULT
+  sarcastic	cannot-var-time-op	test_aes_siv	FAULT
+  sarcastic	cannot-var-time-op	test_aes_wrap	FAULT
+  sarcastic	cannot-var-time-op	test_aes_xts_large	FAULT
+  sarcastic	cannot-var-time-op	test_aria	FAULT
+  sarcastic	cannot-var-time-op	test_camellia	FAULT
+  sarcastic	cannot-var-time-op	test_chacha20_large	FAULT
+  sarcastic	cannot-var-time-op	test_chacha20_poly1305_large	FAULT
+  sarcastic	cannot-var-time-op	test_dh	FAULT
+  sarcastic	cannot-var-time-op	test_dsa	FAULT
+  sarcastic	cannot-var-time-op	test_ecdh	FAULT
+  sarcastic	cannot-var-time-op	test_ecdsa	FAULT
+  sarcastic	cannot-var-time-op	test_ed25519_ed448	FAULT
+  sarcastic	cannot-var-time-op	test_kdf_krb5kdf	FAULT
+  sarcastic	cannot-var-time-op	test_kdf_pkcs12kdf	FAULT
+  sarcastic	cannot-var-time-op	test_kdf_sskdf	FAULT
+  sarcastic	cannot-var-time-op	test_legacy_block_ciphers	FAULT
+  sarcastic	cannot-var-time-op	test_mac_cmac	FAULT
+  sarcastic	cannot-var-time-op	test_mac_poly1305	FAULT
+  sarcastic	cannot-var-time-op	test_ml_dsa	FAULT
+  sarcastic	cannot-var-time-op	test_ml_kem	FAULT
+  sarcastic	cannot-var-time-op	test_rc4_small	FAULT
+  sarcastic	cannot-var-time-op	test_rsa_oaep	FAULT
+  sarcastic	cannot-var-time-op	test_rsa_pkcs1	FAULT
+  sarcastic	cannot-var-time-op	test_rsa_pss	FAULT
+  sarcastic	cannot-var-time-op	test_rsa_raw	FAULT
+  sarcastic	cannot-var-time-op	test_slh_dsa	FAULT
+  sarcastic	cannot-var-time-op	test_sm2	FAULT
+  sarcastic	cannot-var-time-op	test_x25519_x448	FAULT
+  zunsafe	cannot-branch	test_aes_cbc	FAULT
+  zunsafe	cannot-branch	test_aes_cbc_cts	FAULT
+  zunsafe	cannot-branch	test_aes_cbc_hmac_sha1	FAULT
+  zunsafe	cannot-branch	test_aes_cbc_hmac_sha256	FAULT
+  zunsafe	cannot-branch	test_aes_ccm_large	FAULT
+  zunsafe	cannot-branch	test_aes_ccm_small	FAULT
+  zunsafe	cannot-branch	test_aes_cfb1	FAULT
+  zunsafe	cannot-branch	test_aes_cfb128	FAULT
+  zunsafe	cannot-branch	test_aes_cfb8	FAULT
+  zunsafe	cannot-branch	test_aes_ctr	FAULT
+  zunsafe	cannot-branch	test_aes_ecb	FAULT
+  zunsafe	cannot-branch	test_aes_gcm_large	FAULT
+  zunsafe	cannot-branch	test_aes_gcm_siv	FAULT
+  zunsafe	cannot-branch	test_aes_gcm_small	FAULT
+  zunsafe	cannot-branch	test_aes_ocb_large	FAULT
+  zunsafe	cannot-branch	test_aes_ocb_small	FAULT
+  zunsafe	cannot-branch	test_aes_ofb	FAULT
+  zunsafe	cannot-branch	test_aes_siv	FAULT
+  zunsafe	cannot-branch	test_aes_wrap	FAULT
+  zunsafe	cannot-branch	test_aes_wrap_pad	FAULT
+  zunsafe	cannot-branch	test_aes_xts_large	FAULT
+  zunsafe	cannot-branch	test_aes_xts_small	FAULT
+  zunsafe	cannot-branch	test_aria	FAULT
+  zunsafe	cannot-branch	test_camellia	FAULT
+  zunsafe	cannot-branch	test_chacha20_large	FAULT
+  zunsafe	cannot-branch	test_chacha20_poly1305_large	FAULT
+  zunsafe	cannot-branch	test_chacha20_poly1305_small	FAULT
+  zunsafe	cannot-branch	test_chacha20_small	FAULT
+  zunsafe	cannot-branch	test_des	FAULT
+  zunsafe	cannot-branch	test_des3	FAULT
+  zunsafe	cannot-branch	test_des3_wrap	FAULT
+  zunsafe	cannot-branch	test_dh	FAULT
+  zunsafe	cannot-branch	test_digest_blake2	FAULT
+  zunsafe	cannot-branch	test_digest_md5	FAULT
+  zunsafe	cannot-branch	test_digest_mdc2_whirlpool	FAULT
+  zunsafe	cannot-branch	test_digest_ripemd_sm3	FAULT
+  zunsafe	cannot-branch	test_digest_sha1	FAULT
+  zunsafe	cannot-branch	test_digest_sha2	FAULT
+  zunsafe	cannot-branch	test_digest_sha3	FAULT
+  zunsafe	cannot-branch	test_digest_shake	FAULT
+  zunsafe	cannot-branch	test_dsa	FAULT
+  zunsafe	cannot-branch	test_ecdh	FAULT
+  zunsafe	cannot-branch	test_ecdsa	FAULT
+  zunsafe	cannot-branch	test_ed25519_ed448	FAULT
+  zunsafe	cannot-branch	test_kdf_hkdf	FAULT
+  zunsafe	cannot-branch	test_kdf_kbkdf	FAULT
+  zunsafe	cannot-branch	test_kdf_krb5kdf	FAULT
+  zunsafe	cannot-branch	test_kdf_pbkdf2	FAULT
+  zunsafe	cannot-branch	test_kdf_pkcs12kdf	FAULT
+  zunsafe	cannot-branch	test_kdf_scrypt	FAULT
+  zunsafe	cannot-branch	test_kdf_sshkdf	FAULT
+  zunsafe	cannot-branch	test_kdf_sskdf	FAULT
+  zunsafe	cannot-branch	test_kdf_tls13kdf	FAULT
+  zunsafe	cannot-branch	test_kdf_tls1prf	FAULT
+  zunsafe	cannot-branch	test_kdf_x942kdf	FAULT
+  zunsafe	cannot-branch	test_kdf_x963kdf	FAULT
+  zunsafe	cannot-branch	test_legacy_block_ciphers	FAULT
+  zunsafe	cannot-branch	test_mac_blake2	FAULT
+  zunsafe	cannot-branch	test_mac_cmac	FAULT
+  zunsafe	cannot-branch	test_mac_gmac	FAULT
+  zunsafe	cannot-branch	test_mac_hmac	FAULT
+  zunsafe	cannot-branch	test_mac_kmac	FAULT
+  zunsafe	cannot-branch	test_mac_poly1305	FAULT
+  zunsafe	cannot-branch	test_mac_siphash	FAULT
+  zunsafe	cannot-branch	test_ml_dsa	FAULT
+  zunsafe	cannot-branch	test_ml_kem	FAULT
+  zunsafe	cannot-branch	test_null_cipher_digest	FAULT
+  zunsafe	cannot-branch	test_rand_drbg	FAULT
+  zunsafe	cannot-branch	test_rc4_hmac_md5	FAULT
+  zunsafe	cannot-branch	test_rc4_large	FAULT
+  zunsafe	cannot-branch	test_rc4_small	FAULT
+  zunsafe	cannot-branch	test_rsa_oaep	FAULT
+  zunsafe	cannot-branch	test_rsa_pkcs1	FAULT
+  zunsafe	cannot-branch	test_rsa_pss	FAULT
+  zunsafe	cannot-branch	test_rsa_raw	FAULT
+  zunsafe	cannot-branch	test_slh_dsa	FAULT
+  zunsafe	cannot-branch	test_sm2	FAULT
+  zunsafe	cannot-branch	test_sm4	FAULT
+  zunsafe	cannot-branch	test_x25519_x448	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_cbc	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_cbc_cts	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_cbc_hmac_sha1	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_cbc_hmac_sha256	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_ccm_large	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_ccm_small	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_cfb1	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_cfb128	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_cfb8	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_ctr	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_ecb	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_gcm_large	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_gcm_siv	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_gcm_small	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_ocb_large	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_ocb_small	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_ofb	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_siv	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_wrap	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_wrap_pad	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_xts_large	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aes_xts_small	FAULT
+  zunsafe	cannot-branch,cannot-index	test_aria	FAULT
+  zunsafe	cannot-branch,cannot-index	test_camellia	FAULT
+  zunsafe	cannot-branch,cannot-index	test_chacha20_large	FAULT
+  zunsafe	cannot-branch,cannot-index	test_chacha20_poly1305_large	FAULT
+  zunsafe	cannot-branch,cannot-index	test_chacha20_poly1305_small	FAULT
+  zunsafe	cannot-branch,cannot-index	test_chacha20_small	FAULT
+  zunsafe	cannot-branch,cannot-index	test_des	FAULT
+  zunsafe	cannot-branch,cannot-index	test_des3	FAULT
+  zunsafe	cannot-branch,cannot-index	test_des3_wrap	FAULT
+  zunsafe	cannot-branch,cannot-index	test_dh	FAULT
+  zunsafe	cannot-branch,cannot-index	test_digest_blake2	FAULT
+  zunsafe	cannot-branch,cannot-index	test_digest_md5	FAULT
+  zunsafe	cannot-branch,cannot-index	test_digest_mdc2_whirlpool	FAULT
+  zunsafe	cannot-branch,cannot-index	test_digest_ripemd_sm3	FAULT
+  zunsafe	cannot-branch,cannot-index	test_digest_sha1	FAULT
+  zunsafe	cannot-branch,cannot-index	test_digest_sha2	FAULT
+  zunsafe	cannot-branch,cannot-index	test_digest_sha3	FAULT
+  zunsafe	cannot-branch,cannot-index	test_digest_shake	FAULT
+  zunsafe	cannot-branch,cannot-index	test_dsa	FAULT
+  zunsafe	cannot-branch,cannot-index	test_ecdh	FAULT
+  zunsafe	cannot-branch,cannot-index	test_ecdsa	FAULT
+  zunsafe	cannot-branch,cannot-index	test_ed25519_ed448	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_hkdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_kbkdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_krb5kdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_pbkdf2	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_pkcs12kdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_scrypt	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_sshkdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_sskdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_tls13kdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_tls1prf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_x942kdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_kdf_x963kdf	FAULT
+  zunsafe	cannot-branch,cannot-index	test_legacy_block_ciphers	FAULT
+  zunsafe	cannot-branch,cannot-index	test_mac_blake2	FAULT
+  zunsafe	cannot-branch,cannot-index	test_mac_cmac	FAULT
+  zunsafe	cannot-branch,cannot-index	test_mac_gmac	FAULT
+  zunsafe	cannot-branch,cannot-index	test_mac_hmac	FAULT
+  zunsafe	cannot-branch,cannot-index	test_mac_kmac	FAULT
+  zunsafe	cannot-branch,cannot-index	test_mac_poly1305	FAULT
+  zunsafe	cannot-branch,cannot-index	test_mac_siphash	FAULT
+  zunsafe	cannot-branch,cannot-index	test_ml_dsa	FAULT
+  zunsafe	cannot-branch,cannot-index	test_ml_kem	FAULT
+  zunsafe	cannot-branch,cannot-index	test_null_cipher_digest	FAULT
+  zunsafe	cannot-branch,cannot-index	test_rand_drbg	FAULT
+  zunsafe	cannot-branch,cannot-index	test_rc4_hmac_md5	FAULT
+  zunsafe	cannot-branch,cannot-index	test_rc4_large	FAULT
+  zunsafe	cannot-branch,cannot-index	test_rc4_small	FAULT
+  zunsafe	cannot-branch,cannot-index	test_rsa_oaep	FAULT
+  zunsafe	cannot-branch,cannot-index	test_rsa_pkcs1	FAULT
+  zunsafe	cannot-branch,cannot-index	test_rsa_pss	FAULT
+  zunsafe	cannot-branch,cannot-index	test_rsa_raw	FAULT
+  zunsafe	cannot-branch,cannot-index	test_slh_dsa	FAULT
+  zunsafe	cannot-branch,cannot-index	test_sm2	FAULT
+  zunsafe	cannot-branch,cannot-index	test_sm4	FAULT
+  zunsafe	cannot-branch,cannot-index	test_x25519_x448	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cbc	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cbc_cts	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cbc_hmac_sha1	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cbc_hmac_sha256	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ccm_large	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ccm_small	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cfb1	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cfb128	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_cfb8	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ctr	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ecb	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_gcm_large	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_gcm_siv	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_gcm_small	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ocb_large	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ocb_small	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_ofb	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_siv	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_wrap	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_wrap_pad	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_xts_large	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aes_xts_small	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_aria	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_camellia	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_chacha20_large	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_chacha20_poly1305_large	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_chacha20_poly1305_small	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_chacha20_small	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_des	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_des3	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_des3_wrap	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_dh	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_digest_blake2	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_digest_md5	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_digest_mdc2_whirlpool	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_digest_ripemd_sm3	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_digest_sha1	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_digest_sha2	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_digest_sha3	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_digest_shake	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_dsa	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_ecdh	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_ecdsa	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_ed25519_ed448	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_hkdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_kbkdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_krb5kdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_pbkdf2	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_pkcs12kdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_scrypt	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_sshkdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_sskdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_tls13kdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_tls1prf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_x942kdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_kdf_x963kdf	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_legacy_block_ciphers	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_mac_blake2	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_mac_cmac	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_mac_gmac	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_mac_hmac	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_mac_kmac	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_mac_poly1305	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_mac_siphash	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_ml_dsa	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_ml_kem	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_null_cipher_digest	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_rand_drbg	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_rc4_hmac_md5	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_rc4_large	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_rc4_small	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_rsa_oaep	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_rsa_pkcs1	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_rsa_pss	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_rsa_raw	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_slh_dsa	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_sm2	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_sm4	FAULT
+  zunsafe	cannot-branch,cannot-index,cannot-var-time-op	test_x25519_x448	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_cbc	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_cbc_cts	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_cbc_hmac_sha1	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_cbc_hmac_sha256	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_ccm_large	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_ccm_small	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_cfb1	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_cfb128	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_cfb8	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_ctr	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_ecb	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_gcm_large	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_gcm_siv	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_gcm_small	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_ocb_large	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_ocb_small	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_ofb	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_siv	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_wrap	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_wrap_pad	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_xts_large	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aes_xts_small	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_aria	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_camellia	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_chacha20_large	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_chacha20_poly1305_large	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_chacha20_poly1305_small	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_chacha20_small	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_des	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_des3	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_des3_wrap	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_dh	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_digest_blake2	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_digest_md5	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_digest_mdc2_whirlpool	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_digest_ripemd_sm3	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_digest_sha1	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_digest_sha2	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_digest_sha3	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_digest_shake	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_dsa	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_ecdh	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_ecdsa	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_ed25519_ed448	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_hkdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_kbkdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_krb5kdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_pbkdf2	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_pkcs12kdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_scrypt	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_sshkdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_sskdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_tls13kdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_tls1prf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_x942kdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_kdf_x963kdf	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_legacy_block_ciphers	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_mac_blake2	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_mac_cmac	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_mac_gmac	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_mac_hmac	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_mac_kmac	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_mac_poly1305	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_mac_siphash	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_ml_dsa	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_ml_kem	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_null_cipher_digest	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_rand_drbg	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_rc4_hmac_md5	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_rc4_large	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_rc4_small	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_rsa_oaep	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_rsa_pkcs1	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_rsa_pss	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_rsa_raw	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_slh_dsa	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_sm2	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_sm4	FAULT
+  zunsafe	cannot-branch,cannot-var-time-op	test_x25519_x448	FAULT
+  zunsafe	cannot-index	test_aes_cbc	FAULT
+  zunsafe	cannot-index	test_aes_cbc_cts	FAULT
+  zunsafe	cannot-index	test_aes_cbc_hmac_sha1	FAULT
+  zunsafe	cannot-index	test_aes_cbc_hmac_sha256	FAULT
+  zunsafe	cannot-index	test_aes_ccm_large	FAULT
+  zunsafe	cannot-index	test_aes_ccm_small	FAULT
+  zunsafe	cannot-index	test_aes_cfb1	FAULT
+  zunsafe	cannot-index	test_aes_cfb128	FAULT
+  zunsafe	cannot-index	test_aes_cfb8	FAULT
+  zunsafe	cannot-index	test_aes_ctr	FAULT
+  zunsafe	cannot-index	test_aes_ecb	FAULT
+  zunsafe	cannot-index	test_aes_gcm_large	FAULT
+  zunsafe	cannot-index	test_aes_gcm_siv	FAULT
+  zunsafe	cannot-index	test_aes_gcm_small	FAULT
+  zunsafe	cannot-index	test_aes_ocb_large	FAULT
+  zunsafe	cannot-index	test_aes_ocb_small	FAULT
+  zunsafe	cannot-index	test_aes_ofb	FAULT
+  zunsafe	cannot-index	test_aes_siv	FAULT
+  zunsafe	cannot-index	test_aes_wrap	FAULT
+  zunsafe	cannot-index	test_aes_wrap_pad	FAULT
+  zunsafe	cannot-index	test_aes_xts_large	FAULT
+  zunsafe	cannot-index	test_aes_xts_small	FAULT
+  zunsafe	cannot-index	test_aria	FAULT
+  zunsafe	cannot-index	test_camellia	FAULT
+  zunsafe	cannot-index	test_chacha20_large	FAULT
+  zunsafe	cannot-index	test_chacha20_poly1305_large	FAULT
+  zunsafe	cannot-index	test_chacha20_poly1305_small	FAULT
+  zunsafe	cannot-index	test_chacha20_small	FAULT
+  zunsafe	cannot-index	test_des	FAULT
+  zunsafe	cannot-index	test_des3	FAULT
+  zunsafe	cannot-index	test_des3_wrap	FAULT
+  zunsafe	cannot-index	test_dh	FAULT
+  zunsafe	cannot-index	test_digest_blake2	FAULT
+  zunsafe	cannot-index	test_digest_md5	FAULT
+  zunsafe	cannot-index	test_digest_mdc2_whirlpool	FAULT
+  zunsafe	cannot-index	test_digest_ripemd_sm3	FAULT
+  zunsafe	cannot-index	test_digest_sha1	FAULT
+  zunsafe	cannot-index	test_digest_sha2	FAULT
+  zunsafe	cannot-index	test_digest_sha3	FAULT
+  zunsafe	cannot-index	test_digest_shake	FAULT
+  zunsafe	cannot-index	test_dsa	FAULT
+  zunsafe	cannot-index	test_ecdh	FAULT
+  zunsafe	cannot-index	test_ecdsa	FAULT
+  zunsafe	cannot-index	test_ed25519_ed448	FAULT
+  zunsafe	cannot-index	test_kdf_hkdf	FAULT
+  zunsafe	cannot-index	test_kdf_kbkdf	FAULT
+  zunsafe	cannot-index	test_kdf_krb5kdf	FAULT
+  zunsafe	cannot-index	test_kdf_pbkdf2	FAULT
+  zunsafe	cannot-index	test_kdf_pkcs12kdf	FAULT
+  zunsafe	cannot-index	test_kdf_scrypt	FAULT
+  zunsafe	cannot-index	test_kdf_sshkdf	FAULT
+  zunsafe	cannot-index	test_kdf_sskdf	FAULT
+  zunsafe	cannot-index	test_kdf_tls13kdf	FAULT
+  zunsafe	cannot-index	test_kdf_tls1prf	FAULT
+  zunsafe	cannot-index	test_kdf_x942kdf	FAULT
+  zunsafe	cannot-index	test_kdf_x963kdf	FAULT
+  zunsafe	cannot-index	test_legacy_block_ciphers	FAULT
+  zunsafe	cannot-index	test_mac_blake2	FAULT
+  zunsafe	cannot-index	test_mac_cmac	FAULT
+  zunsafe	cannot-index	test_mac_gmac	FAULT
+  zunsafe	cannot-index	test_mac_hmac	FAULT
+  zunsafe	cannot-index	test_mac_kmac	FAULT
+  zunsafe	cannot-index	test_mac_poly1305	FAULT
+  zunsafe	cannot-index	test_mac_siphash	FAULT
+  zunsafe	cannot-index	test_ml_dsa	FAULT
+  zunsafe	cannot-index	test_ml_kem	FAULT
+  zunsafe	cannot-index	test_null_cipher_digest	FAULT
+  zunsafe	cannot-index	test_rand_drbg	FAULT
+  zunsafe	cannot-index	test_rc4_hmac_md5	FAULT
+  zunsafe	cannot-index	test_rc4_large	FAULT
+  zunsafe	cannot-index	test_rc4_small	FAULT
+  zunsafe	cannot-index	test_rsa_oaep	FAULT
+  zunsafe	cannot-index	test_rsa_pkcs1	FAULT
+  zunsafe	cannot-index	test_rsa_pss	FAULT
+  zunsafe	cannot-index	test_rsa_raw	FAULT
+  zunsafe	cannot-index	test_slh_dsa	FAULT
+  zunsafe	cannot-index	test_sm2	FAULT
+  zunsafe	cannot-index	test_sm4	FAULT
+  zunsafe	cannot-index	test_x25519_x448	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_cbc	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_cbc_cts	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_cbc_hmac_sha1	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_cbc_hmac_sha256	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_ccm_large	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_ccm_small	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_cfb1	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_cfb128	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_cfb8	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_ctr	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_ecb	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_gcm_large	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_gcm_siv	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_gcm_small	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_ocb_large	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_ocb_small	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_ofb	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_siv	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_wrap	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_wrap_pad	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_xts_large	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aes_xts_small	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_aria	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_camellia	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_chacha20_large	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_chacha20_poly1305_large	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_chacha20_poly1305_small	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_chacha20_small	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_des	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_des3	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_des3_wrap	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_dh	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_digest_blake2	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_digest_md5	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_digest_mdc2_whirlpool	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_digest_ripemd_sm3	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_digest_sha1	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_digest_sha2	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_digest_sha3	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_digest_shake	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_dsa	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_ecdh	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_ecdsa	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_ed25519_ed448	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_hkdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_kbkdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_krb5kdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_pbkdf2	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_pkcs12kdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_scrypt	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_sshkdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_sskdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_tls13kdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_tls1prf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_x942kdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_kdf_x963kdf	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_legacy_block_ciphers	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_mac_blake2	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_mac_cmac	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_mac_gmac	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_mac_hmac	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_mac_kmac	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_mac_poly1305	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_mac_siphash	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_ml_dsa	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_ml_kem	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_null_cipher_digest	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_rand_drbg	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_rc4_hmac_md5	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_rc4_large	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_rc4_small	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_rsa_oaep	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_rsa_pkcs1	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_rsa_pss	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_rsa_raw	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_slh_dsa	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_sm2	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_sm4	FAULT
+  zunsafe	cannot-index,cannot-var-time-op	test_x25519_x448	FAULT
+  zunsafe	cannot-var-time-op	test_aes_cbc_hmac_sha1	FAULT
+  zunsafe	cannot-var-time-op	test_aes_cbc_hmac_sha256	FAULT
+  zunsafe	cannot-var-time-op	test_aes_ccm_large	FAULT
+  zunsafe	cannot-var-time-op	test_aes_ccm_small	FAULT
+  zunsafe	cannot-var-time-op	test_aes_gcm_large	FAULT
+  zunsafe	cannot-var-time-op	test_aes_wrap_pad	FAULT
+  zunsafe	cannot-var-time-op	test_chacha20_large	FAULT
+  zunsafe	cannot-var-time-op	test_dh	FAULT
+  zunsafe	cannot-var-time-op	test_digest_sha2	FAULT
+  zunsafe	cannot-var-time-op	test_dsa	FAULT
+  zunsafe	cannot-var-time-op	test_ecdh	FAULT
+  zunsafe	cannot-var-time-op	test_ecdsa	FAULT
+  zunsafe	cannot-var-time-op	test_ed25519_ed448	FAULT
+  zunsafe	cannot-var-time-op	test_kdf_kbkdf	FAULT
+  zunsafe	cannot-var-time-op	test_kdf_pkcs12kdf	FAULT
+  zunsafe	cannot-var-time-op	test_kdf_sshkdf	FAULT
+  zunsafe	cannot-var-time-op	test_kdf_tls1prf	FAULT
+  zunsafe	cannot-var-time-op	test_kdf_x963kdf	FAULT
+  zunsafe	cannot-var-time-op	test_legacy_block_ciphers	FAULT
+  zunsafe	cannot-var-time-op	test_ml_dsa	FAULT
+  zunsafe	cannot-var-time-op	test_ml_kem	FAULT
+  zunsafe	cannot-var-time-op	test_rc4_small	FAULT
+  zunsafe	cannot-var-time-op	test_rsa_oaep	FAULT
+  zunsafe	cannot-var-time-op	test_rsa_pkcs1	FAULT
+  zunsafe	cannot-var-time-op	test_rsa_pss	FAULT
+  zunsafe	cannot-var-time-op	test_rsa_raw	FAULT
+  zunsafe	cannot-var-time-op	test_slh_dsa	FAULT
+  zunsafe	cannot-var-time-op	test_sm2	FAULT
+  zunsafe	cannot-var-time-op	test_sm4	FAULT
+  zunsafe	cannot-var-time-op	test_x25519_x448	FAULT
+=== NATIVE CONTROLS
+
+Native runs with no emulator involved, one per flavor, via
+./run_all.sh --poison-all --poison-variants=all:
+
+  zunsafe flavor:   80/80 PASS
+  sarcastic flavor: 80/80 PASS
+
+Outside the zegarmistrz emulator the poisoning service calls are no-ops,
+so poison options never change program behavior: every (poison option,
+variant) combination must pass natively, and both flavors do.

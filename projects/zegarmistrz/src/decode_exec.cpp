@@ -75,18 +75,54 @@ struct Dec {
     uint8_t code[15];
 };
 
-// Decode one instruction at cpu->rip.
-Dec fetch_decode(CPU* cpu) {
+// Decode one instruction at cpu->rip.  A thread-local direct-mapped cache
+// keyed by guest RIP and validated against the actual instruction bytes
+// makes fetch+decode cheap for compute-bound loops: Dec is a pure function
+// of (RIP, bytes), so a byte-validated hit is exact, and self-modifying or
+// rewritten code (byte mismatch, unmapped page) falls back to a full Zydis
+// decode automatically.
+namespace {
+struct DecCacheEntry {
+    uint64_t rip = 0;
+    size_t len = 0;
+    uint8_t code[15] = {0};
+    bool filled = false;
+    Dec dec;
+};
+constexpr unsigned kDecCacheBits = 12;
+constexpr size_t kDecCacheSize = 1u << kDecCacheBits;
+// Heap-allocated (lazily, per thread): the cache is 4K entries of 1176
+// bytes each (~4.6MB per guest thread; a thread_local TLS block that size
+// would blow the emulator's per-thread TLS budget and break guest thread
+// creation).  4K slots are enough: the working set of even a hot loop over
+// hundreds of functions fits, and misses only cost a full Zydis decode.
+thread_local DecCacheEntry* t_dec_cache = nullptr;
+} // namespace
+
+const Dec& fetch_decode(CPU* cpu) {
     ensure_decoder();
+    uint8_t raw[15];
+    size_t n = mem_read_code(cpu, cpu->rip, raw);
+    if (!t_dec_cache)
+        t_dec_cache = new DecCacheEntry[kDecCacheSize];
+    DecCacheEntry& e = t_dec_cache[(cpu->rip >> 2) & (kDecCacheSize - 1)];
+    if (e.filled && e.rip == cpu->rip && e.len == n &&
+        memcmp(e.code, raw, n) == 0)
+        return e.dec;
     Dec d;
     memset(&d, 0, sizeof(d));
-    size_t n = mem_read_code(cpu, cpu->rip, d.code);
+    memcpy(d.code, raw, n);
     if (!ZYAN_SUCCESS(
             ZydisDecoderDecodeFull(&t_decoder, d.code, n, &d.insn, d.ops)))
         guest_error(cpu, "bad instruction encoding (decode failed)", cpu->rip);
     if (d.insn.length == 0 || d.insn.length > (ZyanU8)n)
         guest_error(cpu, "bad instruction length", cpu->rip);
-    return d;
+    e.rip = cpu->rip;
+    e.len = n;
+    memcpy(e.code, raw, n);
+    e.dec = d;
+    e.filled = true;
+    return e.dec;
 }
 // Number of addressable operands: explicit + implicit, in decoded order,
 // skipping hidden ones (RFLAGS, implicit RSP/RIP snapshots, ...). All
@@ -1464,7 +1500,17 @@ void exec_bsfbsr(CPU* cpu, const Dec& d, bool is_bsr) {
         // dest undefined on zero; leave it.
     } else {
         cpu->set_flag(FLAG_ZF, false);
-        out.v = is_bsr ? (63 - __builtin_clzll(v) - (64 - w * 8)) : __builtin_ctzll(v);
+        /* BSR: index of the most significant set bit of the w*8-bit source.
+           v is zero-extended into a 64-bit value, so clzll(v) counts the
+           (64 - w*8) missing high bits too: 63 - clzll(v) already yields the
+           correct w-bit bit index for every operand width (e.g. 32-bit
+           BSR(0x3f) = 5).  Subtracting (64 - w*8) again would report
+           index - (64 - w*8), which for 32-bit operands is a garbage negative
+           (BSR(0x3f) = 0xffffffe5).  libpas's count-leading-zeroes bit scans
+           (used by the page-sharing scavenger) turned that into wild indices
+           that corrupted pas_segregated_directory last_empty_plus_one and
+           crashed the guest. */
+        out.v = is_bsr ? (63 - __builtin_clzll(v)) : __builtin_ctzll(v);
         op_store(cpu, d, 0, out);
     }
     cpu->rip = next_rip(cpu, d);
@@ -2066,7 +2112,11 @@ void exec_pushf(CPU* cpu, const Dec& d) {
     if (w == 2)
         push64(cpu, v & 0xffff);
     else
-        push64(cpu, v & 0x00fcfffe); // mask reserved bits
+        // Push the user-visible flags: CF, PF, AF, ZF, SF, DF, OF (plus the
+        // always-one bit 1).  The old mask (0x00fcfffe) dropped CF, which
+        // broke flag save/restore via pushfq/popfq in guests that use it
+        // (e.g. the SARCASM-annotated OpenSSL assembly).
+        push64(cpu, v & 0x00fcffff); // mask reserved bits
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -2335,7 +2385,9 @@ void exec_pshift_dq(CPU* cpu, const Dec& d, bool left) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     VecVal a, o;
-    vec_load_bytes(cpu, d, 0, a, w);
+    // Legacy PSLLDQ/PSRLDQ shift their dst operand in place (dst == src1);
+    // the VEX form (VPSLLDQ ymm1, ymm2, imm8) shifts op1 and only writes op0.
+    vec_load_bytes(cpu, d, is_vex(d) && n >= 3 ? 1 : 0, a, w);
     Val imm = op_load(cpu, d, n - 1);
     unsigned cnt = (unsigned)imm.v;
     // PSLLDQ/SRLDQ shift each 128-bit lane (Zydis: VEX128 single lane).
@@ -2362,7 +2414,11 @@ void exec_pshift_bits(CPU* cpu, const Dec& d, unsigned lane, int kind) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     VecVal a, o, c;
-    vec_load_bytes(cpu, d, 0, a, w);
+    // Legacy PSLLW/D/Q shift their dst operand in place (dst == src1, and
+    // the last operand is the count); the VEX 3-operand form (VPSLLQ ymm1,
+    // ymm2, imm8) shifts op1 and only writes op0.  (Zydis: op0 = dst/W,
+    // op1 = src/R, op2 = count/R.)
+    vec_load_bytes(cpu, d, is_vex(d) && n >= 3 ? 1 : 0, a, w);
     unsigned cnt;
     if (d.ops[n - 1].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) {
         cnt = (unsigned)op_load(cpu, d, n - 1).v;
@@ -3097,7 +3153,8 @@ void exec_vbroadcast(CPU* cpu, const Dec& d) {
     case ZYDIS_MNEMONIC_VPBROADCASTQ: elem = 8; break;
     case ZYDIS_MNEMONIC_VPBROADCASTB: elem = 1; break;
     case ZYDIS_MNEMONIC_VPBROADCASTW: elem = 2; break;
-    case ZYDIS_MNEMONIC_VBROADCASTF128: elem = 16; break;
+    case ZYDIS_MNEMONIC_VBROADCASTF128:
+    case ZYDIS_MNEMONIC_VBROADCASTI128: elem = 16; break;
     default: guest_error(cpu, "bad broadcast");
     }
     {
@@ -3224,6 +3281,26 @@ void exec_vpermq(CPU* cpu, const Dec& d) {
         memcpy(o + i * 8, a + sel * 8, 8);
     }
     o.taint = a.taint;
+    vec_store_bytes(cpu, d, 0, o, 32, true, 32);
+    cpu->rip = next_rip(cpu, d);
+}
+
+void exec_vpermd(CPU* cpu, const Dec& d, unsigned elem) {
+    // VPERMD/VPERMPS ymm1, ymm2, ymm3/m256: dst[i] = src3[idx[i]], where the
+    // index vector is the FIRST source (op1) and the data is op2.  Indices
+    // are taken modulo the lane count (hw ignores high bits).
+    int n = explicit_ops(d);
+    VecVal a, b, o;
+    vec_load_bytes(cpu, d, 1, a, 32);
+    vec_load_bytes(cpu, d, 2, b, 32);
+    unsigned lanes = 32 / elem;
+    for (unsigned i = 0; i < lanes; i++) {
+        uint64_t ix = 0;
+        memcpy(&ix, a + i * elem, elem);
+        unsigned sel = (unsigned)(ix % lanes);
+        memcpy(o + i * elem, b + sel * elem, elem);
+    }
+    o.taint = a.taint | b.taint;
     vec_store_bytes(cpu, d, 0, o, 32, true, 32);
     cpu->rip = next_rip(cpu, d);
 }
@@ -4091,19 +4168,29 @@ void exec_pinsr(CPU* cpu, const Dec& d, bool insert) {
     unsigned lane = 1;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_PINSRB:
-    case ZYDIS_MNEMONIC_PEXTRB: lane = 1; break;
+    case ZYDIS_MNEMONIC_VPINSRB:
+    case ZYDIS_MNEMONIC_PEXTRB:
+    case ZYDIS_MNEMONIC_VPEXTRB: lane = 1; break;
     case ZYDIS_MNEMONIC_PINSRW:
+    case ZYDIS_MNEMONIC_VPINSRW:
     case ZYDIS_MNEMONIC_PEXTRW:
+    case ZYDIS_MNEMONIC_VPEXTRW:
         lane = 2;
         break;
     case ZYDIS_MNEMONIC_PINSRD:
-    case ZYDIS_MNEMONIC_PEXTRD: lane = 4; break;
+    case ZYDIS_MNEMONIC_VPINSRD:
+    case ZYDIS_MNEMONIC_PEXTRD:
+    case ZYDIS_MNEMONIC_VPEXTRD: lane = 4; break;
     case ZYDIS_MNEMONIC_PINSRQ:
-    case ZYDIS_MNEMONIC_PEXTRQ: lane = 8; break;
+    case ZYDIS_MNEMONIC_VPINSRQ:
+    case ZYDIS_MNEMONIC_PEXTRQ:
+    case ZYDIS_MNEMONIC_VPEXTRQ: lane = 8; break;
     default: guest_error(cpu, "bad pinsr op");
     }
     unsigned count = (d.insn.mnemonic == ZYDIS_MNEMONIC_PINSRW ||
-                      d.insn.mnemonic == ZYDIS_MNEMONIC_PEXTRW)
+                      d.insn.mnemonic == ZYDIS_MNEMONIC_VPINSRW ||
+                      d.insn.mnemonic == ZYDIS_MNEMONIC_PEXTRW ||
+                      d.insn.mnemonic == ZYDIS_MNEMONIC_VPEXTRW)
                          ? 8
                          : 16 / lane;
     Val sel = op_load(cpu, d, n - 1);
@@ -4111,8 +4198,19 @@ void exec_pinsr(CPU* cpu, const Dec& d, bool insert) {
     int dsti = -1, dstw = 0;
     if (insert) {
         reg_to_vec(d.ops[0].reg.value, dsti, dstw);
-        Val s = op_load(cpu, d, 1);
-        memcpy(cpu->xmm[dsti].bytes + k * lane, &s.v, lane);
+        if (is_vex(d) && n >= 4) {
+            // VPINSR{B,W,D,Q} xmm1, xmm2, r32/m*, imm8: the unchanged lanes
+            // come from op1 (not the old dst) and the inserted value is op2.
+            VecVal base;
+            vec_load_bytes(cpu, d, 1, base, 16);
+            Val s = op_load(cpu, d, 2);
+            memcpy(cpu->xmm[dsti].bytes, base, 16);
+            cpu->xmm[dsti].taint = base.taint | s.taint;
+            memcpy(cpu->xmm[dsti].bytes + k * lane, &s.v, lane);
+        } else {
+            Val s = op_load(cpu, d, 1);
+            memcpy(cpu->xmm[dsti].bytes + k * lane, &s.v, lane);
+        }
     } else {
         Val out;
         if (d.ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER) {
@@ -5200,9 +5298,23 @@ void exec_evex_move(CPU* cpu, const Dec& d) {
 
 void exec_evex_logic(CPU* cpu, const Dec& d, int kind) {
     // kind: 0=AND 1=OR 2=XOR 3=ANDN. Covers VPANDD/Q, VPORD/Q, VPXORD/Q,
-    // VPANDND/Q and unsuffixed EVEX VPAND/VPOR/VPXOR/VPANDN (elem=4).
+    // VPANDND/Q and unsuffixed EVEX VPAND/VPOR/VPXOR/VPANDN.  The write-mask
+    // granularity is per ELEMENT: qword for the Q-suffixed forms (and for
+    // W1 unsuffixed/double forms), dword for the D-suffixed and W0
+    // unsuffixed forms.
     unsigned w = evex_width(cpu, d);
-    unsigned elem = 4;
+    unsigned elem;
+    switch (d.insn.mnemonic) {
+    case ZYDIS_MNEMONIC_VPANDQ:
+    case ZYDIS_MNEMONIC_VPORQ:
+    case ZYDIS_MNEMONIC_VPXORQ:
+    case ZYDIS_MNEMONIC_VPANDNQ:
+    case ZYDIS_MNEMONIC_VANDPD:
+    case ZYDIS_MNEMONIC_VORPD:
+    case ZYDIS_MNEMONIC_VXORPD:
+    case ZYDIS_MNEMONIC_VANDNPD: elem = 8; break;
+    default: elem = d.insn.raw.evex.W ? 8 : 4; break;
+    }
     int ex[5];
     int n = evex_explicit(d, ex);
     if (n < 3)
@@ -5666,12 +5778,13 @@ void exec_evex_shift(CPU* cpu, const Dec& d, unsigned elem, int kind,
         unsigned cnt = (unsigned)kload(cpu, d, ex[2], 8);
         bool left = (d.insn.mnemonic == ZYDIS_MNEMONIC_VPSLLDQ);
         memset(o, 0, w);
-        if (cnt < 64) {
-            for (unsigned lane = 0; lane < w; lane += 64) {
-                unsigned bl = (w - lane) < 64 ? (w - lane) : 64;
-                for (unsigned i = 0; i < bl; i++) {
+        if (cnt < 16) {
+            // Shift within each 128-bit lane (VPSLLDQ/VPSRLDQ are always
+            // lane-wise on 16-byte lanes, at every vector width).
+            for (unsigned lane = 0; lane < w; lane += 16) {
+                for (unsigned i = 0; i < 16; i++) {
                     int src = left ? (int)i - (int)cnt : (int)i + (int)cnt;
-                    if (src >= 0 && (unsigned)src < bl)
+                    if (src >= 0 && src < 16)
                         o[lane + i] = a[lane + src];
                 }
             }
@@ -7051,7 +7164,9 @@ __attribute__((target("sse4.1,pclmul,avx2"))) void exec_pclmul(CPU* cpu,
     int n = evex_explicit(d, ex);
     // imm8 selects halves: bit0 -> a-hi/lo? _mm_clmulepi64_si128(a,b,imm):
     // imm 0x00=a[63:0]*b[63:0] 0x01=a[63:0]*b[127:64] 0x10=a[127:64]*b[63:0]
-    // 0x11=a[127:64]*b[127:64].
+    // 0x11=a[127:64]*b[127:64].  The pseudo-instructions binutils prints as
+    // VPCLMULLQLQDQ etc. are plain VPCLMULQDQ with a fixed imm8, so Zydis
+    // decodes them here with the imm operand present.
     VecVal a, b, o, old;
     unsigned imm = 0;
     if (!is_v) {
@@ -7543,17 +7658,22 @@ void exec_extractps(CPU* cpu, const Dec& d, bool insert) {
         op_store(cpu, d, 0, out);
     } else {
         VecVal a, o, sb;
-        vec_load_bytes(cpu, d, 0, a, 16);
+        // Legacy INSERTPS xmm1, xmm2/m32, imm8 keeps dst's other lanes;
+        // VINSERTPS xmm1, xmm2, xmm3/m32, imm8 takes them from op1 instead
+        // (op0 is write-only) and inserts from op2.
+        bool vex4 = is_vex(d) && n >= 4;
+        vec_load_bytes(cpu, d, vex4 ? 1 : 0, a, 16);
         memcpy(o, a, 16);
         o.taint = a.taint;
         unsigned imm = (unsigned)op_load(cpu, d, n - 1).v;
         // INSERTPS imm8: COUNT_S=bits[7:6], COUNT_D=bits[5:4], ZMASK=bits[3:0].
         unsigned cnt_s = (imm >> 6) & 3, cnt_d = (imm >> 4) & 3, zmask = imm & 0xf;
-        if (d.ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER) {
-            vec_load_bytes(cpu, d, 1, sb, 16);
+        if (d.ops[vex4 ? 2 : 1].type == ZYDIS_OPERAND_TYPE_REGISTER) {
+            vec_load_bytes(cpu, d, vex4 ? 2 : 1, sb, 16);
             o.taint |= sb.taint;
         } else {
-            uint64_t addr = resolve_mem(cpu, d.ops[1], cpu->rip + d.insn.length);
+            uint64_t addr = resolve_mem(cpu, d.ops[vex4 ? 2 : 1],
+                                        cpu->rip + d.insn.length);
             mem_load_bytes(cpu, addr, sb, 4);
             Taint t;
             mem_get_taint(addr, 4, &t);
@@ -8412,13 +8532,63 @@ void exec_evex_ins_extract(CPU* cpu, const Dec& d, bool insert) {
     cpu->rip = next_rip(cpu, d);
 }
 
+// VPMADD52LUQ/VPMADD52HUQ (AVX512-IFMA): per 64-bit lane the low 52 bits of
+// the two source elements multiply; the low (LUQ) or high (HUQ) 52 bits of
+// the product add into the accumulator's low 52 bits; the result's bits
+// 63:52 are zero.  Scalar implementation: no host IFMA dependency.
+void exec_vpmadd52(CPU* cpu, const Dec& d, bool high) {
+    unsigned w = evex_width(cpu, d);
+    int ex[5];
+    int n = evex_explicit(d, ex);
+    if (n < 3)
+        guest_error(cpu, "vpmadd52 needs 3 operands");
+    VecVal a, b, o, old;
+    evex_load(cpu, d, ex[1], a, w, 8);
+    evex_load(cpu, d, ex[2], b, w, 8);
+    evex_old(cpu, d, ex[0], old, w);
+    const uint64_t m52 = (1ULL << 52) - 1;
+    static const bool dbg52 = getenv("ZEG_DEBUG_52") != nullptr;
+    for (unsigned lane = 0; lane < w; lane += 8) {
+        uint64_t acc, x, y;
+        memcpy(&acc, old + lane, 8);
+        memcpy(&x, a + lane, 8);
+        memcpy(&y, b + lane, 8);
+        unsigned __int128 prod = (unsigned __int128)(x & m52) * (y & m52);
+        // Hardware (verified): dst = acc + (the low (LUQ) or high (HUQ) 52
+        // bits of the product), as a full 64-bit add -- the accumulator's
+        // bits 63:52 pass through unmasked and are not zeroed.  (dst is its
+        // own accumulator: only three explicit operands.)
+        uint64_t add = high ? (uint64_t)(prod >> 52) : (uint64_t)prod & m52;
+        uint64_t r = acc + add;
+        if (dbg52)
+            fprintf(stderr, "[ifma] %s lane%u acc=%016llx x=%016llx y=%016llx r=%016llx\n",
+                    high ? "HUQ" : "LUQ", lane / 8, acc, x, y, r);
+        memcpy(o + lane, &r, 8);
+    }
+    bool zeroing = false;
+    uint64_t kbits = evex_mask(cpu, d, w / 8, zeroing);
+    o.taint = a.taint | b.taint;
+    evex_store(cpu, d, ex[0], o, old, w, 8, kbits, zeroing);
+    cpu->rip = next_rip(cpu, d);
+}
+
 // VSHUFF32X4/64X2/I32X4/I64X2 (EVEX lane shuffle by imm pairs).
 void exec_evex_shufx(CPU* cpu, const Dec& d) {
-    unsigned sub = 16;
+    // VSHUFF64X2/VSHUFI64X2/VSHUFF32X4/VSHUFI32X4 shuffle 128-bit lanes
+    // between the two sources (verified against hardware):
+    //   EVEX.512: dst[0:256]   lanes come from SRC1's four 128-bit lanes,
+    //             selected by imm8[1:0] (dst lane 0) and imm8[3:2] (lane 1);
+    //             dst[256:512] lanes come from SRC2's four lanes, selected
+    //             by imm8[5:4] (lane 2) and imm8[7:6] (lane 3).
+    //   EVEX.256: dst lane 0 comes from SRC1's lane selected by imm8[0]
+    //             and dst lane 1 from SRC2's lane selected by imm8[1]
+    //             (each source has only two lanes here).
+    // The write mask applies per element (qword for *64X2, dword for *32X4).
+    unsigned elem;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_VSHUFF64X2:
-    case ZYDIS_MNEMONIC_VSHUFI64X2: sub = 32; break;
-    default: sub = 16; break;
+    case ZYDIS_MNEMONIC_VSHUFI64X2: elem = 8; break;
+    default: elem = 4; break;
     }
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -8426,24 +8596,25 @@ void exec_evex_shufx(CPU* cpu, const Dec& d) {
     if (n < 4)
         guest_error(cpu, "vshufx needs 4 operands");
     VecVal a, b, o, old;
-    evex_load(cpu, d, ex[1], a, w, sub);
-    evex_load(cpu, d, ex[2], b, w, sub);
+    evex_load(cpu, d, ex[1], a, w, 16);
+    evex_load(cpu, d, ex[2], b, w, 16);
     unsigned order = (unsigned)kload(cpu, d, ex[3], 8);
-    unsigned nsub = w / sub;
-    for (unsigned i = 0; i < nsub; i++) {
-        unsigned sel = (order >> (i * 2)) & 3;
-        const uint8_t* src = (sel < 2) ? a : b;
-        unsigned s = (sel % 2) * sub;
-        // sel indexes the concatenated pair of sub-vectors per output lane
-        // pair; for w > 2*sub, wrap within halves.
-        unsigned lane_half = (i / 2) * 2 * sub;
-        memcpy(o + i * sub, src + lane_half + s, sub);
+    if (w == 64) {
+        static const unsigned lane_sel[4] = {0, 2, 4, 6};
+        for (unsigned j = 0; j < 4; j++) {
+            const uint8_t* src = (j < 2) ? a : b;
+            unsigned sel = (order >> lane_sel[j]) & 3;
+            memcpy(o + j * 16, src + sel * 16, 16);
+        }
+    } else {
+        memcpy(o, a + (order & 1) * 16, 16);
+        memcpy(o + 16, b + ((order >> 1) & 1) * 16, 16);
     }
     evex_old(cpu, d, ex[0], old, w);
     bool zeroing = false;
-    uint64_t kbits = evex_mask(cpu, d, nsub, zeroing);
+    uint64_t kbits = evex_mask(cpu, d, w / elem, zeroing);
     o.taint = a.taint | b.taint;
-    evex_store(cpu, d, ex[0], o, old, w, sub, kbits, zeroing);
+    evex_store(cpu, d, ex[0], o, old, w, elem, kbits, zeroing);
     cpu->rip = next_rip(cpu, d);
 }
 
@@ -8848,6 +9019,8 @@ void exec_evex(CPU* cpu, const Dec& d) {
     case ZYDIS_MNEMONIC_VSHUFF64X2:
     case ZYDIS_MNEMONIC_VSHUFI32X4:
     case ZYDIS_MNEMONIC_VSHUFI64X2: exec_evex_shufx(cpu, d); return;
+    case ZYDIS_MNEMONIC_VPMADD52LUQ: exec_vpmadd52(cpu, d, false); return;
+    case ZYDIS_MNEMONIC_VPMADD52HUQ: exec_vpmadd52(cpu, d, true); return;
     default: break;
     }
     // Gathers / scatters.
@@ -10365,7 +10538,7 @@ static void dbg_check() {
 }
 
 void exec_one(CPU* cpu) {
-    Dec d = fetch_decode(cpu);
+    const Dec& d = fetch_decode(cpu);
     if (cpu->emu->trace_insn)
         trace_insn(cpu, d);
     dbg_check();
@@ -10917,13 +11090,21 @@ void exec_one(CPU* cpu) {
     case ZYDIS_MNEMONIC_VPACKUSDW: exec_pack(cpu, d, false, 4); return;
 
     case ZYDIS_MNEMONIC_PINSRB:
+    case ZYDIS_MNEMONIC_VPINSRB:
     case ZYDIS_MNEMONIC_PINSRW:
+    case ZYDIS_MNEMONIC_VPINSRW:
     case ZYDIS_MNEMONIC_PINSRD:
-    case ZYDIS_MNEMONIC_PINSRQ: exec_pinsr(cpu, d, true); return;
+    case ZYDIS_MNEMONIC_VPINSRD:
+    case ZYDIS_MNEMONIC_PINSRQ:
+    case ZYDIS_MNEMONIC_VPINSRQ: exec_pinsr(cpu, d, true); return;
     case ZYDIS_MNEMONIC_PEXTRB:
+    case ZYDIS_MNEMONIC_VPEXTRB:
     case ZYDIS_MNEMONIC_PEXTRW:
+    case ZYDIS_MNEMONIC_VPEXTRW:
     case ZYDIS_MNEMONIC_PEXTRD:
-    case ZYDIS_MNEMONIC_PEXTRQ: exec_pinsr(cpu, d, false); return;
+    case ZYDIS_MNEMONIC_VPEXTRD:
+    case ZYDIS_MNEMONIC_PEXTRQ:
+    case ZYDIS_MNEMONIC_VPEXTRQ: exec_pinsr(cpu, d, false); return;
 
     case ZYDIS_MNEMONIC_PMOVSXBW:
     case ZYDIS_MNEMONIC_VPMOVSXBW: exec_pmovsx(cpu, d, 1, 2, true); return;
@@ -11099,6 +11280,7 @@ void exec_one(CPU* cpu) {
     case ZYDIS_MNEMONIC_VBROADCASTSS:
     case ZYDIS_MNEMONIC_VBROADCASTSD:
     case ZYDIS_MNEMONIC_VBROADCASTF128:
+    case ZYDIS_MNEMONIC_VBROADCASTI128:
     case ZYDIS_MNEMONIC_VPBROADCASTB:
     case ZYDIS_MNEMONIC_VPBROADCASTW:
     case ZYDIS_MNEMONIC_VPBROADCASTD:
@@ -11113,6 +11295,8 @@ void exec_one(CPU* cpu) {
     case ZYDIS_MNEMONIC_VPERMILPD: exec_vpermil(cpu, d, m == ZYDIS_MNEMONIC_VPERMILPD, false); return;
     case ZYDIS_MNEMONIC_VPERMPD: exec_vpermpd(cpu, d); return;
     case ZYDIS_MNEMONIC_VPERMQ: exec_vpermq(cpu, d); return;
+    case ZYDIS_MNEMONIC_VPERMD: exec_vpermd(cpu, d, 4); return;
+    case ZYDIS_MNEMONIC_VPERMPS: exec_vpermd(cpu, d, 4); return;
     case ZYDIS_MNEMONIC_VPTERNLOGD:
     case ZYDIS_MNEMONIC_VPTERNLOGQ: exec_vpternlog(cpu, d); return;
 

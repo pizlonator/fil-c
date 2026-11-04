@@ -203,6 +203,9 @@ addSig "defined(__x86_64__)", "void", "zcpuid", "unsigned", "filc_ptr", "filc_pt
 addSig "defined(__x86_64__)", "void", "zcpuid_count", "unsigned", "unsigned", "filc_ptr", "filc_ptr", "filc_ptr",
        "filc_ptr"
 addSig "defined(__x86_64__)", "unsigned long", "zxgetbv"
+addSig nil, "bool", "is_in_zegarmistrz"
+addSig nil, "unsigned long long", "zegarmistrz_client_request", "unsigned long long", "filc_ptr", "size_t",
+       "unsigned long long"
 addSig nil, "bool", "zis_unsafe_signal_for_kill", "int"
 addSig nil, "bool", "zis_unsafe_signal_for_handlers", "int"
 addSig nil, "void", "zregister_sys_errno_handler", "filc_ptr"

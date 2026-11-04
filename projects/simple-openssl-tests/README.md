@@ -220,11 +220,13 @@ top of each program (e.g. `ALLOCATE_KEY`, `ALLOCATE_INPUT`, `ALLOCATE_OUTPUT`,
 `ALLOCATE_OTHER`), and each wrapper funnels into `poison_alloc()` in
 `poisoning.h`.  When the user requests a poison kind on the command line, the
 `ALLOCATE_*` function calls `poison_range()` on what `malloc()` returned;
-otherwise it does not.  `poison_range()` is currently a **no-op**: it is the
-single hook where a real poisoning implementation (e.g. a Fil-C/GIMSO
-poisoning API) can be installed without touching any test program.  Passing
-a poison option must never change what a program computes — it only changes
-which buffers the hook is called on.
+otherwise it does not.  `poison_range()` forwards to the zegarmistrz
+poisoning API (`<zegarmistrz.h>`, header-only) when a *variant* selection
+is active (see the next section); without one it is a no-op — the single
+hook where a real poisoning implementation (e.g. a Fil-C/GIMSO poisoning
+API) can be installed without touching any test program.  Passing a poison
+option must never change what a program computes — it only changes which
+buffers the hook is called on.
 
 | Option             | Effect                                          |
 |--------------------|-------------------------------------------------|
@@ -239,6 +241,7 @@ which buffers the hook is called on.
 | `--poison-all`     | all of the above                                |
 | `--poison-none`    | none of the above (the default)                 |
 | `--poison=a,b,...` | the listed kinds (same names as above, plus `nonce` = `iv`, `seed`/`info` = `salt`, `all`) |
+| `--poison-variants=s` | taint the poisoned ranges with the listed zegarmistrz variant(s) (see below) |
 | `--poison-help`    | print the option list and exit 0                |
 
 Options may be repeated and combine as a bitmask (`--poison-key --poison-iv`
@@ -246,6 +249,81 @@ equals `--poison=key,iv`; `--poison-none` resets).  `poison_parse_args()`
 runs first in every `main()`, consumes `-h`/`--help` and only these
 `--poison-*` options, and rejects anything else with exit code 2 — the
 programs take no other input.
+
+### Poisoning variants (zegarmistrz)
+
+Under the zegarmistrz emulator, `poison_range()` taints every poisoned
+buffer with the selected *variant* bits:
+
+```sh
+POISON_VARIANTS=cannot-branch,cannot-index ./test_aes_cbc --poison-all
+./test_aes_cbc --poison-all --poison-variants=cannot-var-time-op
+```
+
+Accepted `--poison-variants=` tokens: `cannot-branch`, `cannot-index`,
+`cannot-var-time-op`, plus `all` (the three of them OR'd) and `none`/the
+empty spec (which clear the selection).  The spec *replaces* whatever was
+selected before, and an unknown token exits 2 like the other poison
+options.  Only these three `CANNOT_*` bits are exposed: zegarmistrz's
+`CANNOT_LOAD`/`CANNOT_STORE` and `CLEAR_*_ON_STORE` bits are deliberately
+not offered — loads and stores must keep working, and clear-on-store would
+make the poisoning of long-lived key material evaporate on first use.
+
+The `POISON_VARIANTS` environment variable provides the default
+`--poison-variants=` spec, so poison runs need no per-test argument
+plumbing; an explicit `--poison-variants=` on the command line overrides
+it.  Poisoning only takes effect under the emulator — outside it every
+poison option is a no-op, so poison options never change what a program
+computes.
+
+## Poisoning variant sweep
+
+`run_variants.sh` builds the suite with a Fil-C compiler (default
+`<repo>/build/bin/filcc`), then runs every test under the zegarmistrz
+emulator once per poisoning variant, and writes a TSV of raw results plus
+a human-readable report:
+
+```sh
+./run_variants.sh [--flavor=zunsafe|sarcastic|both] [--jobs=N]
+                  [--timeout=S] [--poison-args='--poison-all']
+                  [--allow-no-poison] [--emulator=PATH]
+                  [--output=PREFIX]
+```
+
+* `--flavor` (default `both`) picks the OpenSSL the tests bind: `zunsafe`
+  (the pizfix OpenSSL), `sarcastic` (projects/sarcastic-openssl), or both
+  sequentially (rebuilding and cleaning in between).
+* `--jobs` (default nproc/2 capped at 16) is the per-variant test
+  parallelism; `--timeout` (default 120s) is the per-test wall clock.
+* `--poison-args` (default `--poison-all`) selects which buffer kinds the
+  tests poison; the sweep itself decides which zegarmistrz variant each
+  run taints.  An explicitly empty `--poison-args=''` is refused (loudly,
+  unless `--allow-no-poison` is also passed), because with no poisoned
+  buffer no variant can ever fault and the sweep could only ever report
+  PASS.
+* `--output=PREFIX` writes `<PREFIX>.txt` (the report) and `<PREFIX>.tsv`
+  (one `flavor  variant  test  exit  class  note` row per run); the
+  default prefix is `/tmp/simple-openssl-variants-<timestamp>`.
+
+The 8 variants swept, in report order: `none` — the control, where
+poisoning is a no-op and every test must PASS — followed by the seven
+non-empty selections over `cannot-branch`, `cannot-index`, and
+`cannot-var-time-op`: `cannot-branch`, `cannot-index`,
+`cannot-var-time-op`, `cannot-branch,cannot-index`,
+`cannot-branch,cannot-var-time-op`, `cannot-index,cannot-var-time-op`, and
+`cannot-branch,cannot-index,cannot-var-time-op`.  A test faulting under a
+poisoning variant is a *result* (exit ≥ 128 → `FAULT`), not a script
+failure: only build errors and usage errors abort.  The report summarizes
+per-variant PASS/FAULT/TIMEOUT/FAIL/SKIP counts, lists the non-PASS tests
+per variant, prints a fault matrix over the non-empty variants, and ends
+with a VERDICT section.
+
+The committed sweep report lives in this directory:
+`zegarmistrz-variants-report.txt` (human-readable, with a native-controls
+section appended) and `zegarmistrz-variants-report.tsv` (the raw rows).
+Its header records the exact invocation, git HEAD, and post-processing
+that produced it.  (Both files are force-added with `git add -f` because
+this directory's `.gitignore` is a whitelist that does not list them.)
 
 ## Why some cryptosystems have small and large test programs
 

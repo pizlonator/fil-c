@@ -135,6 +135,8 @@ static inline bool filc_running_on_windows(void)
 #include <fenv.h>
 #include <dlfcn.h>
 
+#include "../../../projects/zegarmistrz/include/zegarmistrz.h"
+
 #if PAS_COSMO
 /* Cosmo's raw getdents thunk; cosmo's own libc/stdio/dirstream.c declares and
    calls exactly this.  Used by the zsys_getdents forwarder, which backs the
@@ -8493,7 +8495,32 @@ unsigned long filc_native_zxgetbv(filc_thread* my_thread)
     return (unsigned long)low | ((unsigned long)high << (unsigned long)32);
 }
 
-#endif
+#endif /* __x86_64__ */
+
+/* zegarmistrz support.  libpas is built with the plain host clang (see the
+   PASCC rule in libpas/Makefile), i.e. WITHOUT __FILC__, so the
+   <zegarmistrz.h> included above provides its yolo static inline
+   implementations of is_in_zegarmistrz() and zegarmistrz_client_request()
+   right here; the emulator intercepts CALL at the magic address from any
+   guest module, so executing them here is equivalent to a yolo guest
+   calling them directly.  (Under Fil-C the same header declares these
+   functions as externs instead, so pizlonated code reaches them through
+   the natives below -- see generate_pizlonated_forwarders.rb.) */
+
+bool filc_native_is_in_zegarmistrz(filc_thread* my_thread)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return is_in_zegarmistrz();
+}
+
+unsigned long long filc_native_zegarmistrz_client_request(
+    filc_thread* my_thread, unsigned long long op, filc_ptr ptr, size_t size,
+    unsigned long long flags)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_check_read(ptr, size);
+    return zegarmistrz_client_request(op, filc_ptr_ptr(ptr), size, flags);
+}
 
 filc_ptr filc_pizlonated_errno_handler;
 
