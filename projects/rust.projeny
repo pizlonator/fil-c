@@ -392,15 +392,7 @@ diff --git a/rust/compiler/rustc_session/src/session.rs b/rust/compiler/rustc_se
 diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 --- a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 +++ b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
-@@ -1,5 +1,6 @@
- use crate::spec::{
--    Cc, LinkerFlavor, Lld, SanitizerSet, StackProbeType, Target, TargetMetadata, base,
-+    Cc, LinkerFlavor, Lld, PanicStrategy, SanitizerSet, StackProbeType, Target, TargetMetadata,
-+    base,
- };
-
- pub(crate) fn target() -> Target {
-@@ -7,26 +8,45 @@
+@@ -7,26 +7,43 @@
      base.cpu = "x86-64".into();
      base.plt_by_default = false;
      base.max_atomic_width = Some(64);
@@ -430,6 +422,14 @@ diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gn
 -        | SanitizerSet::SAFESTACK
 -        | SanitizerSet::THREAD;
 -    base.supports_xray = true;
+-
+-    // When we're asked to use the `rust-lld` linker by default, set the appropriate lld-using
+-    // linker flavor, and self-contained linker component.
+-    if option_env!("CFG_USE_SELF_CONTAINED_LINKER").is_some() {
+-        base.linker_flavor = LinkerFlavor::Gnu(Cc::Yes, Lld::Yes);
+-        base.link_self_contained = crate::spec::LinkSelfContainedDefault::with_linker();
+-    }
+-
 +    // Fil-C provides its own safety, so the sanitizer runtimes (which don't
 +    // exist under Fil-C) must not be used.
 +    base.supported_sanitizers = SanitizerSet::empty();
@@ -441,30 +441,21 @@ diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gn
 +    // `build_rustc.sh` puts Fil-C's `build/bin` on PATH so that `filcc` is
 +    // found.
 +    base.linker = Some("filcc".into());
-+    // Fil-C: Rust-level unwinding cannot work under Fil-C.  libpizlo (the
-+    // Fil-C runtime that filcc links into every binary) only implements a
-+    // subset of the libgcc _Unwind_* API, and LLVM's libunwind cannot be
-+    // built under Fil-C (Fil-C's assembler rejects its assembly files), so an
-+    // unwinding panic dies inside the unimplemented `_Unwind_GetIP` after
-+    // printing its message.  Make abort the panic strategy for this target:
-+    // std and user code are compiled with panic=abort by default, so a
-+    // panicking Rust program prints its message and then terminates cleanly
-+    // via abort.  An explicit -C panic=unwind still overrides the strategy,
-+    // but then fails at link-metadata time (std was compiled with abort),
-+    // which is the clean, documented failure mode.
-+    base.panic_strategy = PanicStrategy::Abort;
-
--    // When we're asked to use the `rust-lld` linker by default, set the appropriate lld-using
--    // linker flavor, and self-contained linker component.
--    if option_env!("CFG_USE_SELF_CONTAINED_LINKER").is_some() {
--        base.linker_flavor = LinkerFlavor::Gnu(Cc::Yes, Lld::Yes);
--        base.link_self_contained = crate::spec::LinkSelfContainedDefault::with_linker();
--    }
--
++    // Fil-C: unwinding is implemented on the Fil-C runtime's unwinder.
++    // libpizlo (the Fil-C runtime that filcc links into every binary) provides
++    // _Unwind_RaiseException and a pizlonated landing-pad LSDA (see
++    // filc/include/pizlonated_eh_landing_pad.h), and the personality routine
++    // in library/std/src/sys/personality/gcc.rs is written against that API
++    // (it never touches _Unwind_GetIP/_Unwind_SetIP, which libpizlo does not
++    // implement).  So the panic strategy stays the default, unwind: panics
++    // print their message and unwind out of the panicking frame, catch_unwind
++    // catches them, Drop glue runs while unwinding, a panic out of main
++    // exits 101, and -C panic=abort is still available to force the abort
++    // strategy.
      Target {
          llvm_target: "x86_64-unknown-linux-gnu".into(),
          metadata: TargetMetadata {
-@@ -37,7 +57,8 @@
+@@ -37,7 +54,8 @@
          },
          pointer_width: 64,
          data_layout:
@@ -981,6 +972,64 @@ diff --git a/rust/library/compiler-builtins/libm/src/math/arch/x86/detect.rs b/r
 -    }
 +    Flags::empty()
  }
+diff --git a/rust/library/panic_abort/src/lib.rs b/rust/library/panic_abort/src/lib.rs
+--- a/rust/library/panic_abort/src/lib.rs
++++ b/rust/library/panic_abort/src/lib.rs
+@@ -22,9 +22,11 @@
+ use core::any::Any;
+ use core::panic::PanicPayload;
+
++// Fil-C: Rust ABI, to match std's declaration (see the comment in
++// library/std/src/panicking.rs): the fat-pointer return type cannot cross an
++// `extern "C"` boundary under Fil-C.
+ #[rustc_std_internal_symbol]
+-#[allow(improper_ctypes_definitions)]
+-pub unsafe extern "C" fn __rust_panic_cleanup(_: *mut u8) -> *mut (dyn Any + Send + 'static) {
++pub unsafe fn __rust_panic_cleanup(_: *mut u8) -> *mut (dyn Any + Send + 'static) {
+     unreachable!()
+ }
+
+diff --git a/rust/library/panic_unwind/src/lib.rs b/rust/library/panic_unwind/src/lib.rs
+--- a/rust/library/panic_unwind/src/lib.rs
++++ b/rust/library/panic_unwind/src/lib.rs
+@@ -87,9 +87,12 @@
+     fn __rust_foreign_exception() -> !;
+ }
+
++// Fil-C: this is declared with the Rust ABI in std (see the comment there):
++// its fat-pointer return type cannot cross an `extern "C"` boundary under
++// Fil-C, since the C-ABI lowering represents it as `{i64, i64}` and the
++// capability of the vtable half would be lost.
+ #[rustc_std_internal_symbol]
+-#[allow(improper_ctypes_definitions)]
+-pub unsafe extern "C" fn __rust_panic_cleanup(payload: *mut u8) -> *mut (dyn Any + Send + 'static) {
++pub unsafe fn __rust_panic_cleanup(payload: *mut u8) -> *mut (dyn Any + Send + 'static) {
+     unsafe { Box::into_raw(imp::cleanup(payload)) }
+ }
+
+diff --git a/rust/library/std/src/panicking.rs b/rust/library/std/src/panicking.rs
+--- a/rust/library/std/src/panicking.rs
++++ b/rust/library/std/src/panicking.rs
+@@ -53,8 +53,17 @@
+ //
+ // One day this may look a little less ad-hoc with the compiler helping out to
+ // hook up these functions, but it is not this day!
+-#[allow(improper_ctypes)]
+-unsafe extern "C" {
++//
++// Fil-C: `__rust_panic_cleanup` returns a fat pointer (`*mut dyn Any + Send`).
++// It must use the Rust ABI: rustc lowers improper types (like fat pointers) in
++// `extern "C"` signatures to their C-ABI representation (`{i64, i64}` for a
++// two-pointer fat pointer), and under Fil-C a capability is then lost at the
++// boundary -- the reconstructed vtable pointer has no object, so reading the
++// caught payload's type id trips a filc safety check ("cannot read pointer
++// with null object").  The Rust ABI keeps the real two-pointer type, which the
++// Fil-Pizlonator passes with capabilities intact.  This is an internal symbol
++// (std <-> panic_unwind/panic_abort), so nothing external depends on the ABI.
++unsafe extern "Rust" {
+     #[rustc_std_internal_symbol]
+     fn __rust_panic_cleanup(payload: *mut u8) -> *mut (dyn Any + Send + 'static);
+ }
 diff --git a/rust/library/std/src/sys/pal/unix/stack_overflow.rs b/rust/library/std/src/sys/pal/unix/stack_overflow.rs
 --- a/rust/library/std/src/sys/pal/unix/stack_overflow.rs
 +++ b/rust/library/std/src/sys/pal/unix/stack_overflow.rs
@@ -1020,6 +1069,249 @@ diff --git a/rust/library/std/src/sys/pal/unix/stack_overflow.rs b/rust/library/
      not(any(
          target_os = "linux",
          target_os = "freebsd",
+diff --git a/rust/library/std/src/sys/personality/gcc.rs b/rust/library/std/src/sys/personality/gcc.rs
+--- a/rust/library/std/src/sys/personality/gcc.rs
++++ b/rust/library/std/src/sys/personality/gcc.rs
+@@ -39,7 +39,12 @@
+
+ use unwind as uw;
+
+-use super::dwarf::eh::{self, EHAction, EHContext};
++// EHAction is shared by the Fil-C path and the DWARF paths.  The dwarf
++// module itself (`eh`/`EHContext`) is only used by the DWARF paths; under
++// Fil-C the language-specific data is not DWARF at all (see below).
++use super::dwarf::eh::EHAction;
++#[cfg(not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")))]
++use super::dwarf::eh::{self, EHContext};
+ use crate::ffi::c_int;
+
+ // Register ids were lifted from LLVM's TargetLowering::getExceptionPointerRegister()
+@@ -94,7 +99,213 @@
+ // https://github.com/gcc-mirror/gcc/blob/trunk/libgcc/unwind-c.c
+
+ cfg_if::cfg_if! {
+-    if #[cfg(all(
++    if #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))] {
++
++        // Fil-C.  This cfg selects the Fil-C flavor of the
++        // x86_64-unknown-linux-gnu target: this compiler only ever emits code
++        // for Fil-C (there is no musl flavor of Fil-C rustc -- see
++        // build_rustc-notes.md -- and this crate is only built for
++        // x86_64-unknown-linux-gnu), so the cfg is exactly as precise as the
++        // ones the Fil-C patches use in library/compiler-builtins and
++        // library/std/src/sys/pal/unix/stack_overflow.rs.
++        //
++        // Under Fil-C the unwinder lives in libpizlo, the Fil-C runtime: it
++        // walks the filc frames itself, and hands each frame's personality
++        // routine the frame's language-specific data as a
++        // `pizlonated_eh_landing_pad` (filc/include/pizlonated_eh_landing_pad.h)
++        // instead of DWARF LSDA bytes.  The Fil-Pizlonator lowers rustc's
++        // classic GNU EH IR (`invoke` / `landingpad { i8*, i32 }` /
++        // `resume`) into that form, preserving the clause kinds:
++        //
++        // - `landingpad catch ptr null` -- the catch-all pad that rustc puts
++        //   in `__rust_try` for `catch_unwind` -- becomes a catch action
++        //   whose caught type is NULL (a catch-all, like C++ `catch (...)`).
++        // - `landingpad cleanup` -- the Drop glue pads -- becomes the
++        //   cleanup action (0).
++        // - `landingpad filter [0 x { i8*, i32 }]` -- the terminate pad
++        //   rustc puts at `extern "C"` ABI boundaries -- becomes a filter
++        //   action with zero types (an empty filter matches everything).
++        //
++        // Typed catch clauses (a non-NULL caught type) only ever carry C++
++        // typeinfo pointers, which Rust can never match.
++        //
++        // Two properties of the Fil-C unwinder shape the flow below:
++        //
++        // 1. There is no `_Unwind_SetIP` (nor `_Unwind_GetIP`,
++        //    `_Unwind_GetRegionStart`, ...: libpizlo stubs them out with
++        //    aborts).  The runtime enters the landing pad itself, and the
++        //    pad's `landingpad` instruction then returns the two values
++        //    installed with `_Unwind_SetGR` (element 0 = the exception
++        //    object, element 1 = the selector).  Installing a pad therefore
++        //    only means setting the two GRs and returning
++        //    _URC_INSTALL_CONTEXT.
++        //
++        // 2. Phase-1 decisions are final: the runtime FILC_CHECK-fails if a
++        //    frame that the search phase found tries to `resume` instead of
++        //    installing in phase 2, and there is no way to rethrow from a
++        //    handler frame.  So a foreign exception -- one whose
++        //    exception_class is not ours, e.g. a C++ exception -- must never
++        //    claim a Rust catch-all in the search phase: it has to keep
++        //    unwinding so that a C++ handler further up the stack can catch
++        //    it.  (Upstream's `__rust_foreign_exception` path -- catch it in
++        //    the pad and rtabort there -- cannot work under Fil-C.)  For our
++        //    own panics the class check is a no-op, since every Rust
++        //    exception carries this class.
++        //
++        // This is the same exception class that panic_unwind's gcc.rs stamps
++        // on the exceptions it raises.
++        const FILC_RUST_EXCEPTION_CLASS: uw::_Unwind_Exception_Class =
++            u64::from_ne_bytes(*b"MOZ\0RUST");
++
++        // Find what this frame's landing pad wants to do with the exception
++        // being unwound.  The pizlonated landing pad carries a flat list of
++        // actions (one per `landingpad` clause, cleanup last, exactly like
++        // the DWARF action table); a frame can have several, so a catch-all
++        // or a filter claims the frame immediately while a cleanup is only
++        // remembered (an unmatched typed catch may still be followed by a
++        // cleanup that should run).
++        unsafe fn filc_find_eh_action(
++            exception_class: uw::_Unwind_Exception_Class,
++            context: *mut uw::_Unwind_Context,
++        ) -> Result<EHAction, ()> {
++            unsafe {
++                let lsda = uw::_Unwind_GetLanguageSpecificData(context)
++                    as *const uw::pizlonated_eh_landing_pad;
++                if lsda.is_null() {
++                    // This frame has no landing pad data, so it has no say.
++                    return Ok(EHAction::None);
++                }
++                let mut has_cleanup = false;
++                let num_actions = uw::pizlonated_eh_landing_pad_get_num_actions(lsda);
++                for action_index in 0..num_actions {
++                    let action =
++                        uw::pizlonated_eh_landing_pad_get_encoded_action(lsda, action_index);
++                    if action == 0 {
++                        // Cleanup (Drop glue).
++                        has_cleanup = true;
++                    } else if action > 0 {
++                        // A catch clause.  Rust cannot match C++ typeinfo
++                        // pointers, so only a catch-all (NULL caught type)
++                        // matters -- and only for our own exception class,
++                        // per the foreign-exception note above.
++                        let caught_type =
++                            uw::pizlonated_eh_landing_pad_get_caught_type_by_encoded_action(
++                                lsda, action,
++                            );
++                        if caught_type.is_null()
++                            && exception_class == FILC_RUST_EXCEPTION_CLASS
++                        {
++                            return Ok(EHAction::Catch(core::ptr::null()));
++                        }
++                    } else {
++                        // A filter.  rustc only emits the empty filter (the
++                        // terminate pad at `extern "C"` boundaries), which
++                        // matches every exception, including foreign ones:
++                        // a Rust panic must not unwind into C, and the pad
++                        // body aborts for exactly that reason.
++                        return Ok(EHAction::Filter(core::ptr::null()));
++                    }
++                }
++                if has_cleanup {
++                    Ok(EHAction::Cleanup(core::ptr::null()))
++                } else {
++                    Ok(EHAction::None)
++                }
++            }
++        }
++
++        #[lang = "eh_personality"]
++        unsafe extern "C" fn rust_eh_personality(
++            version: c_int,
++            actions: uw::_Unwind_Action,
++            exception_class: uw::_Unwind_Exception_Class,
++            exception_object: *mut uw::_Unwind_Exception,
++            context: *mut uw::_Unwind_Context,
++        ) -> uw::_Unwind_Reason_Code {
++            unsafe {
++                if version != 1 {
++                    return uw::_URC_FATAL_PHASE1_ERROR;
++                }
++                let eh_action = match filc_find_eh_action(exception_class, context) {
++                    Ok(action) => action,
++                    Err(_) => return uw::_URC_FATAL_PHASE1_ERROR,
++                };
++                if actions & uw::_UA_SEARCH_PHASE != 0 {
++                    // Search phase: say whether this frame stops the
++                    // unwinding.  Only a Rust catch (i.e. `catch_unwind`) or
++                    // an empty filter (an `extern "C"` terminate pad) may
++                    // claim the exception; cleanups never stop the search
++                    // phase.
++                    match eh_action {
++                        EHAction::None | EHAction::Cleanup(_) => uw::_URC_CONTINUE_UNWIND,
++                        EHAction::Catch(_) => {
++                            if exception_class == FILC_RUST_EXCEPTION_CLASS {
++                                uw::_URC_HANDLER_FOUND
++                            } else {
++                                // A foreign exception (say a C++ one) must
++                                // not land in a Rust catch_unwind pad: the
++                                // pad would hand it to panic_unwind, which
++                                // rtaborts on exceptions it doesn't own, and
++                                // Fil-C gives a handler frame no way to
++                                // rethrow.  Keep unwinding so a C++ handler
++                                // further up the stack can catch it.
++                                uw::_URC_CONTINUE_UNWIND
++                            }
++                        }
++                        // The empty filter matches everything, including
++                        // foreign exceptions; the pad body terminates.
++                        EHAction::Filter(_) => uw::_URC_HANDLER_FOUND,
++                        EHAction::Terminate => uw::_URC_FATAL_PHASE1_ERROR,
++                    }
++                } else {
++                    // Cleanup phase: the runtime re-runs this personality
++                    // routine at every frame whose landing pad it enters,
++                    // with _UA_CLEANUP_PHASE set, plus _UA_HANDLER_FRAME at
++                    // the frame the search phase found.
++                    match eh_action {
++                        EHAction::None => uw::_URC_CONTINUE_UNWIND,
++                        // Forced unwinding (e.g. from a drop guard during
++                        // thread teardown) runs cleanups but must not
++                        // terminate on filters.
++                        EHAction::Filter(_) if actions & uw::_UA_FORCE_UNWIND != 0 => {
++                            uw::_URC_CONTINUE_UNWIND
++                        }
++                        // A catch clause may only install at the frame the
++                        // search phase found (_UA_HANDLER_FRAME).  Installing
++                        // a catch pad for a foreign exception in any other
++                        // frame would run panic_unwind's cleanup on an
++                        // exception it doesn't own (rtabort); and for our own
++                        // panics a catch pad cannot be reached anywhere else,
++                        // since the innermost-first search phase determin-
++                        // istically picked this very pad as the handler.
++                        EHAction::Catch(_) if actions & uw::_UA_HANDLER_FRAME == 0 => {
++                            uw::_URC_CONTINUE_UNWIND
++                        }
++                        // Hand the landing pad the exception object (element
++                        // 0) and the selector (element 1).  This is where
++                        // Drop glue runs for the frames the exception passes
++                        // through (cleanups install at any frame, including
++                        // for foreign exceptions), where catch_unwind's pad
++                        // catches our own panics, and where the extern-"C"
++                        // terminate pads abort.  Fil-C has no
++                        // _Unwind_SetIP: the runtime enters the landing pad
++                        // itself, so installing is just setting the two GRs.
++                        EHAction::Cleanup(_) | EHAction::Catch(_) | EHAction::Filter(_) => {
++                            uw::_Unwind_SetGR(
++                                context,
++                                UNWIND_DATA_REG.0,
++                                exception_object.cast(),
++                            );
++                            uw::_Unwind_SetGR(context, UNWIND_DATA_REG.1, core::ptr::null());
++                            uw::_URC_INSTALL_CONTEXT
++                        }
++                        EHAction::Terminate => uw::_URC_FATAL_PHASE2_ERROR,
++                    }
++                }
++            }
++        }
++
++    } else if #[cfg(all(
+         target_arch = "arm",
+         not(target_vendor = "apple"),
+         not(target_os = "netbsd"),
+@@ -318,6 +529,10 @@
+     }
+ }
+
++// Fil-C does not use this: its language-specific data is a
++// `pizlonated_eh_landing_pad`, not DWARF bytes (see the Fil-C branch above),
++// and it needs no IP math since the runtime enters the landing pad itself.
++#[cfg(not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")))]
+ unsafe fn find_eh_action(context: *mut uw::_Unwind_Context) -> Result<EHAction, ()> {
+     unsafe {
+         let lsda = uw::_Unwind_GetLanguageSpecificData(context) as *const u8;
 diff --git a/rust/library/std_detect/src/detect/os/x86.rs b/rust/library/std_detect/src/detect/os/x86.rs
 --- a/rust/library/std_detect/src/detect/os/x86.rs
 +++ b/rust/library/std_detect/src/detect/os/x86.rs
@@ -1581,7 +1873,7 @@ diff --git a/rust/library/unwind/src/lib.rs b/rust/library/unwind/src/lib.rs
 diff --git a/rust/library/unwind/src/libunwind.rs b/rust/library/unwind/src/libunwind.rs
 --- a/rust/library/unwind/src/libunwind.rs
 +++ b/rust/library/unwind/src/libunwind.rs
-@@ -118,10 +118,19 @@
+@@ -118,10 +118,60 @@
      pub fn _Unwind_DeleteException(exception: *mut _Unwind_Exception);
      pub fn _Unwind_GetLanguageSpecificData(ctx: *mut _Unwind_Context) -> *mut c_void;
      pub fn _Unwind_GetRegionStart(ctx: *mut _Unwind_Context) -> _Unwind_Ptr;
@@ -1589,6 +1881,47 @@ diff --git a/rust/library/unwind/src/libunwind.rs b/rust/library/unwind/src/libu
 -    pub fn _Unwind_GetDataRelBase(ctx: *mut _Unwind_Context) -> _Unwind_Ptr;
  }
 
++// Fil-C: the pizlonated landing-pad data API, provided by libpizlo (the Fil-C
++// runtime).  See filc/include/pizlonated_eh_landing_pad.h.  The format is
++// private to the Fil-C compiler/runtime; only these accessors are public.
++// `_Unwind_GetLanguageSpecificData` (above) hands the personality routine a
++// `pizlonated_eh_landing_pad`; the Fil-C personality routine in
++// library/std/src/sys/personality/gcc.rs walks its action list through the
++// accessors below.  Both structs are opaque: the pizlonator emits the data,
++// libpizlo interprets it, and Rust only ever sees the accessors.  (The
++// accessor symbols are exported by libpizlo under the pizlonator's renamed
++// names -- `pizlonated_pizlonated_eh_*` -- which plain `extern "C"`
++// declarations resolve to after pizlonation, like every other `_Unwind_*`
++// declaration in this crate.)
++#[repr(C)]
++pub struct pizlonated_eh_landing_pad {
++    _private: [u8; 0],
++}
++#[repr(C)]
++pub struct pizlonated_eh_filter {
++    _private: [u8; 0],
++}
++unsafe extern "C" {
++    pub fn pizlonated_eh_landing_pad_get_num_actions(pad: *const pizlonated_eh_landing_pad) -> u32;
++    pub fn pizlonated_eh_landing_pad_get_encoded_action(
++        pad: *const pizlonated_eh_landing_pad,
++        action_index: u32,
++    ) -> i32;
++    pub fn pizlonated_eh_landing_pad_get_caught_type_by_encoded_action(
++        pad: *const pizlonated_eh_landing_pad,
++        encoded_action: i32,
++    ) -> *const c_void;
++    pub fn pizlonated_eh_landing_pad_get_filter_by_encoded_action(
++        pad: *const pizlonated_eh_landing_pad,
++        encoded_action: i32,
++    ) -> *const pizlonated_eh_filter;
++    pub fn pizlonated_eh_filter_get_num_types(filter: *const pizlonated_eh_filter) -> u32;
++    pub fn pizlonated_eh_filter_get_type(
++        filter: *const pizlonated_eh_filter,
++        index: u32,
++    ) -> *const c_void;
++}
++
 +// Fil-C: libpizlo (the Fil-C runtime) does not provide these deprecated
 +// libgcc APIs.  Provide the same trivial stubs that LLVM's libunwind has.
 +pub unsafe fn _Unwind_GetTextRelBase(ctx: *mut _Unwind_Context) -> _Unwind_Ptr {
@@ -1603,7 +1936,7 @@ diff --git a/rust/library/unwind/src/libunwind.rs b/rust/library/unwind/src/libu
  cfg_if::cfg_if! {
  if #[cfg(any(target_vendor = "apple", target_os = "netbsd", not(target_arch = "arm")))] {
      // Not ARM EHABI
-@@ -145,9 +154,30 @@
+@@ -145,9 +195,30 @@
          pub fn _Unwind_SetGR(ctx: *mut _Unwind_Context, reg_index: c_int, value: _Unwind_Word);
          pub fn _Unwind_GetIP(ctx: *mut _Unwind_Context) -> _Unwind_Word;
          pub fn _Unwind_SetIP(ctx: *mut _Unwind_Context, value: _Unwind_Word);

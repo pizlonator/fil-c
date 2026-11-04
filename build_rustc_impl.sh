@@ -162,14 +162,30 @@ do_build_rustc() {
 
     # compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs: the
     # "before Fil-C" data layout (-ni:0), filcc as the linker, -normalcrt, no
-    # stack probes, no sanitizers, and panic=abort (unwinding cannot work under
-    # Fil-C).
+    # stack probes, no sanitizers, and the default (unwind) panic strategy --
+    # unwinding is implemented on the Fil-C runtime's unwinder (see the
+    # personality in library/std/src/sys/personality/gcc.rs).
     check_grep "e-m:e-ni:0-p270:32:32" compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
     check_grep 'base.linker = Some("filcc".into());' compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
     check_grep '"-m64", "-normalcrt"' compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
     check_grep "StackProbeType::None" compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
     check_grep "SanitizerSet::empty()" compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
-    check_grep "base.panic_strategy = PanicStrategy::Abort;" compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
+    check_grep "unwinding is implemented on the Fil-C runtime's unwinder" compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
+
+    # ...and the spec must NOT force the abort panic strategy any more (that
+    # would break unwinding, which now works: see the personality routine).
+    # This is a block-scoped inverse check, like the unwind-crate one below.
+    if grep -q 'PanicStrategy' "$RUST_SRC/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs"; then
+        echo "ERROR: projeny patch missing filc change: PanicStrategy still" >&2
+        echo "       appears in compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs." >&2
+        echo "       The x86_64-unknown-linux-gnu target must keep the default (unwind)" >&2
+        echo "       panic strategy: Fil-C Rust unwinding is implemented on the Fil-C" >&2
+        echo "       runtime's unwinder (see library/std/src/sys/personality/gcc.rs)." >&2
+        echo "       projects/rust.projeny must carry ALL Fil-C changes to the Rust" >&2
+        echo "       sources; edit projects/rust/... and re-run" >&2
+        echo "       'filc/projeny commit projects/rust.projeny'." >&2
+        exit 1
+    fi
 
     # library/compiler-builtins/compiler-builtins/src/probestack.rs: the
     # naked-asm stack probe helper must be compiled out exactly for the Fil-C
@@ -220,6 +236,24 @@ do_build_rustc() {
     check_grep "pizlonated__Unwind_RaiseException" library/unwind/src/lib.rs
     check_grep "derive _Unwind_GetIPInfo from _Unwind_GetIP" library/unwind/src/libunwind.rs
     check_grep '_Unwind_FindEnclosingFunction` is not provided by libpizlo' library/unwind/src/libunwind.rs
+
+    # library/unwind/src/libunwind.rs: the pizlonated landing-pad LSDA API
+    # (filc/include/pizlonated_eh_landing_pad.h), which libpizlo exports as
+    # `pizlonated_pizlonated_eh_*`; the Fil-C personality routine walks the
+    # landing pad's action list through it.
+    check_grep "pizlonated_eh_landing_pad_get_num_actions" library/unwind/src/libunwind.rs
+
+    # library/std/src/sys/personality/gcc.rs: the Fil-C personality routine.
+    # It reads the pizlonated landing-pad data (not DWARF), only claims a
+    # catch-all for Rust's own exception class ("MOZ\0RUST" -- phase-1
+    # decisions are final under Fil-C, so foreign exceptions must keep
+    # unwinding), and only installs catch pads at the frame the search phase
+    # found (_UA_HANDLER_FRAME): there is no _Unwind_SetIP under Fil-C, and a
+    # catch pad entered for a foreign exception would rtabort in
+    # panic_unwind's cleanup.
+    check_grep "pizlonated_eh_landing_pad_get_num_actions" library/std/src/sys/personality/gcc.rs
+    check_grep '*b"MOZ\0RUST"' library/std/src/sys/personality/gcc.rs
+    check_grep "_UA_HANDLER_FRAME == 0" library/std/src/sys/personality/gcc.rs
 
     # ...and the linux-gnu/uclibc unwinding block in library/unwind/src/lib.rs
     # must actually link NOTHING: no `#[link(...)]` attribute may appear between

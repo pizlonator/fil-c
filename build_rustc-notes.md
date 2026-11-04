@@ -53,8 +53,9 @@ The patch consists of the following changes:
 2. `compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs` —
    data_layout with `-ni:0` (before-Fil-C), StackProbeType::None,
    linker = "filcc", `-normalcrt` pre-link arg (full Fil-C CRT under
-   -nodefaultlibs), sanitizers/xray off, and
-   `base.panic_strategy = PanicStrategy::Abort` (see panic handling below).
+   -nodefaultlibs), and sanitizers/xray off.  The panic strategy is the
+   default (unwind): Fil-C Rust unwinding is implemented on the Fil-C
+   runtime's unwinder (see "Panics" below).
 3. `library/compiler-builtins/compiler-builtins/src/probestack.rs` — the
    naked-asm stack-probe helper is compiled out exactly for
    `all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")`,
@@ -152,6 +153,12 @@ The patch consists of the following changes:
     it at all; the backtrace crate's helper returns the passed-in ip, which
     mirrors upstream's own macOS workaround).  Without the backtrace stub the
     symbol was a phantom undefined import in every libstd.so dylib.
+    `libunwind.rs` additionally declares the pizlonated landing-pad LSDA API
+    (`pizlonated_eh_landing_pad_get_num_actions`/`_get_encoded_action`/
+    `_get_caught_type_by_encoded_action`/`_get_filter_by_encoded_action` and
+    the two `pizlonated_eh_filter_*` accessors, all exported by libpizlo as
+    `pizlonated_pizlonated_eh_*`), which the Fil-C personality routine walks
+    instead of DWARF; see "Panics" below.
 12. `library/backtrace/src/symbolize/gimli/libs_dl_iterate_phdr.rs` +
     `parse_running_mmaps_unix.rs` — enumerate loaded libraries from
     /proc/self/maps instead of dl_iterate_phdr (also absent from pizfix).
@@ -176,6 +183,29 @@ The patch consists of the following changes:
     parenthetical (see "Fil-C version identification" below).  When the
     variable is unset (a vanilla, non-Fil-C build of this tree) nothing is
     appended.
+17. `library/std/src/sys/personality/gcc.rs` — the Fil-C personality routine
+    (the `eh_personality` lang item).  Under
+    `all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")`
+    (the Fil-C target; the same cfg convention the patch uses in
+    compiler-builtins and stack_overflow.rs) it reads the pizlonated
+    landing-pad data through the accessors from #11 and implements the
+    Fil-C two-phase flow (search phase: catch-alls only claim Rust's own
+    exception class `*b"MOZ\0RUST"`, so foreign exceptions keep unwinding;
+    cleanup phase: Drop glue installs everywhere, catch pads only at the
+    frame the search phase found, no `_Unwind_SetIP`).  The upstream DWARF
+    path is kept unchanged for other targets (compiled out here).
+    See "Panics" below for the full model.
+18. `library/std/src/panicking.rs` — `__rust_panic_cleanup` is declared
+    `unsafe extern "Rust"` instead of `unsafe extern "C"` (see "Panics"
+    below: rustc's C-ABI lowering represents a fat-pointer return as
+    `{i64, i64}`, which loses the capability of the vtable half under
+    Fil-C).
+19. `library/panic_unwind/src/lib.rs` and
+    `library/panic_abort/src/lib.rs` — the matching Rust-ABI definitions of
+    `__rust_panic_cleanup`.  Nothing else in panic_unwind changes: its
+    exception object (`class = u64::from_ne_bytes(*b"MOZ\0RUST")` +
+    canary + payload Box) works unchanged, because the Fil-C runtime only
+    touches the first 16 bytes of the exception object.
 
 The projeny patch reproduces the build tree byte-identically: after
 `filc/projeny commit`, `filc/projeny extract projects/rust.projeny /tmp/pc`
@@ -230,16 +260,38 @@ The parenthetical mirrors clang/lib/Basic/Version.cpp, which appends
 * Safe panic (`v[10]`) and `unwrap()` on `Err` — both print the full Rust
   panic message ("thread 'main' panicked at ...: index out of bounds: the len
   is 3 but the index is 10" / "called `Result::unwrap()` on an `Err` value:
-  \"boom\"") and then terminate cleanly via abort: "filc user error: abort(3)
-  called" + "filc panic: user thwarted themselves.", exit 133 — exactly what a
-  plain C program calling `abort()` does under Fil-C (verified: the same C
-  program exits 133).  NO "filc user error: Not implemented" and no
-  `_Unwind_GetIP` anywhere.
-* `-C panic=abort` — links and runs (hello: exit 0; safepanic: message +
-  abort, exit 133).
-* `-C panic=unwind` — fails cleanly with:
-  `error: the crate `panic_unwind` does not have the panic strategy `unwind``
-  (exit 1, no crash).
+  \"boom\"") and then unwind out of `main` on the Fil-C runtime's unwinder;
+  `lang_start_internal`'s `catch_unwind` catches it and std exits with the
+  Rust panic exit code **101**.  NO abort spew, NO "filc user error: Not
+  implemented", and no `_Unwind_GetIP` anywhere.
+* `-C panic=abort` — links and runs against the unwind std (the sysroot
+  carries both `libpanic_unwind-*.rlib` and `libpanic_abort-*.rlib`; rustc
+  injects panic_abort for `-C panic=abort`): hello exits 0; a safe panic
+  prints its message and aborts through Fil-C's normal user-error path
+  ("filc user error: abort(3) called" + "filc panic: user thwarted
+  themselves.", exit 133).
+* `-C panic=unwind` — this is now the DEFAULT (the target spec no longer
+  forces abort); an explicit `-C panic=unwind` flag compiles and runs like
+  the default.
+* `catch_unwind` works (debug and `-O`): a panicking closure is caught and
+  its payload downcasts back to the original `&'static str` message; Drop
+  glue runs for every frame the panic unwinds through (innermost guard
+  first); a panicking spawned thread is joined as `Err` with the payload
+  intact; a panic out of `main` exits 101.  See "Panics" below and the
+  filrustc test suite (catch_unwind, catch_unwind-opt, drop_unwind,
+  thread_panic_join, safe_panic, safe_panic_abort).
+* Mixed-stack exceptions (spot checks, from /tmp with a Rust `staticlib` +
+  `clang++`): a Rust panic declared `extern "C-unwind"` unwinds into C++ and
+  a C++ `catch (...)` catches it (execution reaches `__cxa_end_catch`); the
+  program then aborts with upstream Rust's documented
+  "fatal runtime error: Rust panics must be rethrown, aborting" — exactly
+  what upstream Rust does when FFI catches a Rust panic without rethrowing.
+  Conversely, a C++ exception thrown through a Rust frame is NOT caught by
+  Rust's `catch_unwind` (Fil-C phase-1 decisions are final, so foreign
+  exceptions keep unwinding — see "Panics" below); it propagates to the C++
+  handler above the Rust frame, which catches it and execution continues
+  normally.  Plain `extern "C"` (not `C-unwind`) Rust functions abort a
+  panic at the boundary with `panic_cannot_unwind`, as upstream does.
 * Cross-DSO: `filrustc --crate-type dylib --edition 2021 lib.rs --crate-name
   mylib -o libmylib.so -C prefer-dynamic` links; `nm -D libmylib.so | grep -c
   pizlonated_` = 4: `pizlonated__ZN5mylib3add17h052cc356082cdec9E` and
@@ -283,29 +335,85 @@ assertions = true.
 Note: dev/nightly channel defaults also enable experimental LLVM targets
 (M68k/CSKY/Xtensa); `[llvm] experimental-targets = ""` would speed rebuilds.
 
-## Panics: abort, not unwind
+## Panics: unwinding on the Fil-C runtime's unwinder
 
-The target spec sets `panic_strategy = PanicStrategy::Abort`, and std is built
-accordingly.  Rust-level unwinding cannot work under Fil-C (libpizlo only
-implements a subset of the libgcc `_Unwind_*` API, and LLVM libunwind cannot
-be built under Fil-C), so a panicking Rust program now prints its full panic
-message and then terminates cleanly via `abort()` -- i.e. through Fil-C's
-normal abort path ("filc user error: abort(3) called" + "filc panic: user
-thwarted themselves", exit 133, same as a plain C program calling `abort()`).
-The previous behavior died inside the unimplemented `_Unwind_GetIP`
-("filc user error: Not implemented") after printing the message; that garbage
-is gone.  Details:
+The target spec keeps the default (unwind) panic strategy: **Rust panics
+unwind on the Fil-C runtime's unwinder**.  libpizlo, the Fil-C runtime that
+`filcc` links into every binary, implements `_Unwind_RaiseException` itself:
+it walks the filc frames, runs each frame's personality routine in a search
+phase to find the handler, then re-runs it at each frame's landing pad in a
+cleanup phase.  The personality routine is `rust_eh_personality`
+(`library/std/src/sys/personality/gcc.rs`), implemented against libpizlo's
+pizlonated landing-pad LSDA API (`filc/include/pizlonated_eh_landing_pad.h`):
+the Fil-Pizlonator lowers rustc's classic GNU EH IR (`invoke`,
+`landingpad { i8*, i32 }` with clauses, `resume`) into that form, so the
+personality walks a flat action list (`pizlonated_eh_landing_pad_get_*`)
+instead of parsing DWARF bytes and doing IP math.  Details:
 
-* Plain panics (`v[10]`, `unwrap()` on Err, explicit `panic!`) print the
-  message and abort (exit 133).
-* `-C panic=abort` links and runs (std is an abort build).
-* `-C panic=unwind` fails at link time with:
-  `error: the crate `panic_unwind` does not have the panic strategy `unwind``
-  (the sysroot's panic_unwind was itself built with the abort strategy; this is
-  a clean error, not a crash).
-* `catch_unwind` cannot catch panics (they abort); the test harness crates
-  (`libtest`) are built with abort as well, so `cargo test`-style unwinding
-  tests would abort on first panic.
+* **No `_Unwind_SetIP`.**  The runtime enters the landing pad itself; the
+  pad's `landingpad` instruction returns the two values the personality
+  installed with `_Unwind_SetGR` (element 0 = exception object, element 1 =
+  selector).  Installing a pad = set the two GRs + `_URC_INSTALL_CONTEXT`.
+  The stubs for `_Unwind_GetIP`/`_Unwind_SetIP`/`_Unwind_GetRegionStart`/
+  `_Unwind_Backtrace` in libpizlo abort with `zerror`, and the personality
+  never touches them (the DWARF path in the same file is kept for other
+  targets but is compiled out here).
+* **Phase-1 decisions are final.**  libpizlo FILC_CHECK-fails if a frame that
+  the search phase found tries to `resume` instead of installing in phase 2,
+  and there is no rethrow-from-a-handler path.  Two consequences:
+  - `catch_unwind`'s catch-all pad (`landingpad catch ptr null`, in
+    `__rust_try`) only claims exceptions whose `exception_class` is Rust's
+    own (`u64::from_ne_bytes(*b"MOZ\0RUST")`, the same class panic_unwind
+    stamps).  A **foreign exception (e.g. a C++ one) keeps unwinding past
+    Rust catch-alls**, so a C++ handler further up the stack catches it.
+    Documented deviation: `catch_unwind` does not catch foreign exceptions
+    (upstream cannot honor them either — its `__rust_foreign_exception`
+    path rtaborts, which under Fil-C could not even be reached from a
+    handler frame, since a phase-1-found frame must install).
+  - In the cleanup phase, catch clauses only install at the frame the search
+    phase found (`_UA_HANDLER_FRAME`); cleanups (Drop glue) install at every
+    frame, for foreign exceptions too; filters (the empty-filter terminate
+    pads rustc emits at `extern "C"` boundaries) install except during forced
+    unwinding.
+* **Panic exit codes.**  A panic unwinding out of `main` is caught by
+  `lang_start_internal`'s `catch_unwind` and std exits **101**.  With
+  `-C panic=abort` the message is printed and the abort goes through Fil-C's
+  normal user-error path ("filc user error: abort(3) called" + "filc panic:
+  user thwarted themselves.", exit 133, 42 under the test harness).  A panic
+  with no handler anywhere still reaches `rtabort!("failed to initiate
+  panic, error 5")` (the `_URC_END_OF_STACK` path), but normal programs never
+  hit it since `main` is always wrapped.
+* **`RUST_BACKTRACE=1` is still unsupported**: std's backtrace machinery
+  calls `_Unwind_Backtrace`, which libpizlo stubs with
+  `zerror("Not implemented.")` (`filc/src/unwind.c`) — the program prints
+  "filc user error: Not implemented." and dies (133).  Panics still print
+  Fil-C's own semantic-origin backtrace, which is better anyway.  (Also
+  documented in known-issues #4/#6 below.)
+* **`__rust_panic_cleanup` uses the Rust ABI.**  Upstream declares it
+  `extern "C"` with a fat-pointer return (`*mut (dyn Any + Send)`, behind
+  `#[allow(improper_ctypes)]`).  Under Fil-C that cannot work: rustc lowers
+  improper types in `extern "C"` signatures to their C-ABI representation
+  (`{i64, i64}` for a two-pointer fat pointer), so the vtable half of the
+  caught payload loses its capability and reading the payload's type id trips
+  a filc safety check ("cannot read pointer with null object").  The projeny
+  patch changes `__rust_panic_cleanup` to the Rust ABI on all three sides
+  (std's declaration, panic_unwind's and panic_abort's definitions); the Rust
+  ABI keeps the real two-pointer type, which the Fil-Pizlonator passes with
+  capabilities intact.  This is an internal `rustc_std_internal_symbol`
+  (std <-> panic runtime), so nothing external depends on the ABI.  Note the
+  general rule this implies: **fat pointers cannot cross `extern "C"`
+  boundaries under Fil-C** — that is true of any Rust/C FFI code, not just
+  the panic machinery (C never has fat pointers, so only
+  `#[allow(improper_ctypes)]` code is affected).
+* `-C panic=abort` still links and runs (the panic_abort rlib is in the
+  sysroot; rustc injects it for the abort strategy) — covered by the
+  `safe_panic_abort` test.
+* Mixed-stack exception interop was spot-checked by hand (see the
+  verification matrix): a Rust panic → C++ `catch (...)` works through the
+  unwinder and then hits upstream's "Rust panics must be rethrown" abort when
+  C++ fails to rethrow, and a C++ exception passing through Rust frames is
+  not claimed by any Rust pad.  Plain `extern "C"` Rust functions abort a
+  panic at the boundary (`panic_cannot_unwind`), as upstream does.
 
 ## Startup: how Fil-C Rust binaries start
 
@@ -373,9 +481,17 @@ ld-fil1 does not search rustc's sysroot by default).
    the expected, documented failure, not a crash.  A real fix would translate
    the export list (and/or make the allocator module join the LTO unit) -- or
    make the pizlonator ThinLTO-round-trip stable.
-3. **`-C panic=unwind` and `catch_unwind` are unsupported** (see "Panics" above
-   for the exact behavior).  This does not matter for the Fil-C safety story
-   (Fil-C safety violations abort directly, before any unwinding).
+3. **Fat pointers cannot cross `extern "C"` boundaries** (rustc lowers
+   improper types in C-ABI signatures to `{i64, i64}`-style representations,
+   and the capability halves are lost).  The one place std itself did this
+   (`__rust_panic_cleanup`) was switched to the Rust ABI in the projeny patch
+   (see "Panics" above).  User FFI code with `#[allow(improper_ctypes)]`
+   fat-pointer signatures would hit the same wall.  Unwinding itself —
+   `-C panic=unwind` (the default), `catch_unwind`, Drop glue during
+   unwinding, and thread-panic join — all work (see "Panics" above), with
+   the documented deviation that `catch_unwind` does not catch foreign
+   exceptions (they keep unwinding, which is what makes Rust/C++ mixed-stack
+   exception handling work at all).
 4. **dl_iterate_phdr / backtrace**: std's backtrace crate enumerates loaded
    libraries from /proc/self/maps (pizfix has no dl_iterate_phdr).  Panics
    print Fil-C's own semantic-origin backtrace, which is better anyway.
@@ -400,7 +516,15 @@ ld-fil1 does not search rustc's sysroot by default).
    real fix.
 6. **libpizlo is missing** `_Unwind_GetIPInfo`, `_Unwind_GetDataRelBase`,
    `_Unwind_GetTextRelBase`, `_Unwind_FindEnclosingFunction`,
-   `dl_iterate_phdr` (all worked around above).
+   `dl_iterate_phdr`, and it stubs `_Unwind_GetIP`, `_Unwind_SetIP`,
+   `_Unwind_GetRegionStart` and `_Unwind_Backtrace` with aborting
+   `zerror("Not implemented.")` calls.  The unwinder-related gaps are all
+   worked around above: the Fil-C personality routine is written against the
+   pizlonated landing-pad API and never needs IP math (the runtime enters
+   landing pads itself), and `RUST_BACKTRACE=1` still fails inside the
+   `_Unwind_Backtrace` stub (known issue #4).  The remaining
+   `libunwind.rs`/backtrace stubs exist so other (non-Fil-C) target paths
+   still compile.
 7. **`is_x86_feature_detected!` / std_detect**: WORKS under Fil-C.  It was
    previously broken: the upstream CPUID/xgetbv inline asm is Intel
    dialect, which the pizlonator rejects, so every feature query aborted at
@@ -473,8 +597,10 @@ ld-fil1 does not search rustc's sysroot by default).
   `avx512vaes`/`avx512vpclmulqdq` aliases) and reports every feature the
   CPU + kernel actually support and "no" for the rest, all cross-checked
   against `/proc/cpuinfo` (see the verification matrix and known-issues #7).
-* `panic!`/`unwrap` on failure prints the Rust panic message and aborts
-  cleanly (exit 133, Fil-C's normal abort path; see "Panics" above).
+* `panic!`/`unwrap` on failure prints the Rust panic message and unwinds out
+  of `main` (exit 101, the Rust panic exit code; see "Panics" above).
+  `catch_unwind`, Drop glue during unwinding, thread-panic join and
+  `-C panic=abort` (message + abort, exit 133) all work too.
 * Cross-DSO: `--crate-type dylib` + client with `--extern`/`-C prefer-dynamic`
   links and runs (see "Cross-DSO" above).
 
@@ -585,9 +711,10 @@ structure, same capabilities, same output protocol:
 * Tests live in `filrustc/tests/` as flat `<name>.rs` files, each with an
   optional companion `<name>.manifest` YAML file.  Manifests use the same
   vocabulary as a `filc/tests/<name>/manifest`: `return` (one of `success`,
-  `failure`, `crash`, `dontCrash`, `exit13`, `compileFailure`,
+  `failure`, `crash`, `dontCrash`, `exit13`, `exit101`, `compileFailure`,
   `compileOnly`, `linkFailure` -- the last is the same as `compileFailure`
-  since rustc compiles and links in one step), `output-includes` /
+  since rustc compiles and links in one step; `exit101` asserts the Rust
+  panic exit code for a panic unwinding out of `main`), `output-includes` /
   `output-excludes` (fixed strings that must / must not appear in the
   output; `grep -F` semantics), `optFlags` (extra rustc flags; default is
   the debug build, e.g. declare `-O` to test the optimized pipeline),
@@ -633,7 +760,8 @@ turn into a core file.  ALL filc panics funnel through
 `filc_finish_panicking`: safety panics ("filc safety error: ..." ->
 "thwarted a futile attempt to violate memory safety."), internal errors, and
 user errors ("filc user error: ..." -> "user thwarted themselves.", which is
-the path Rust's `abort()` takes, e.g. after a safe-Rust panic message).
+the path Rust's `abort()` takes, e.g. with `-C panic=abort` -- a default
+panic instead unwinds and exits 101, which is not a filc panic at all).
 `FILC_DUMP_SETUP=1` makes every run print the filc setup dump (harmless for
 the output checks, and invaluable spew on failure).
 
@@ -652,11 +780,29 @@ trap-based panic, same as C.
 | oob_write | unsafe OOB `*p.add(1000000000) = 666` | failure; "...cannot write pointer with ptr >= upper."; output-excludes "Should not get here." | 133 | 42 |
 | null_deref | volatile read of a `#[inline(never)]`-hidden null | failure; "...cannot read pointer with null object" | 133 | 42 |
 | use_after_free | read through a raw pointer to a dropped `Box` | failure; "...cannot read pointer to free object" | 133 | 42 |
-| safe_panic | safe-Rust `v[10]` index panic | failure; Rust "panicked at" + "index out of bounds", "filc panic: user thwarted themselves."; output-excludes "Not implemented" | 133 (message, then clean abort) | 42 |
+| safe_panic | safe-Rust `v[10]` index panic unwinding out of `main` | exit101; Rust "panicked at" + "index out of bounds"; output-excludes "Not implemented" and "user thwarted" | exit 101 (message, then clean unwinding) | exit 101 |
+| safe_panic_abort | the `safe_panic` program with `extraArgs: -C panic=abort` | failure; "panicked at" + "index out of bounds" + "filc panic: user thwarted themselves."; output-excludes "Not implemented" | 133 (message, then clean abort) | 42 |
+| catch_unwind | `panic::catch_unwind` catches `panic!("boom")`, payload downcasts to the message; non-panicking closure returns Ok | success; "panicked at", "boom", "caught: boom", "ok path"; excludes "Not implemented" | exit 0 | exit 0 |
+| catch_unwind-opt | the `catch_unwind` program compiled with `optFlags: -O` | success; same output assertions | exit 0 | exit 0 |
+| drop_unwind | Drop glue runs while a panic unwinds through two `#[inline(never)]` frames (innermost first), caught by `catch_unwind` | success; "panicked at", "deep panic", "drops: drop inner; drop outer", "drop ok" | exit 0 | exit 0 |
+| thread_panic_join | a spawned thread panics; `join()` returns `Err` carrying the payload; a healthy thread joins `Ok` | success; "thread panicked as expected: thread boom", "healthy thread ok" | exit 0 | exit 0 |
 | threads | 8 threads x 1000 `Arc<Mutex<u64>>` increments | success, "sum = 8000" | exit 0 | exit 0 |
 | vec_string | Vec/String/HashMap/iter/collect/format!/sort | success, three expected lines | exit 0 | exit 0 |
 | hello-opt | the `hello` program compiled with `optFlags: -O` | success, output-includes "hello filc rust" | exit 0 | exit 0 |
 | oob_read-opt | the `oob_read` unsafe OOB read compiled with `optFlags: -O` | failure; "filc safety error", "cannot read pointer with ptr >= upper.", "filc panic: thwarted..." | 133 (SIGTRAP, core) | 42 |
+
+That is 15 tests.  The `exit101` return kind is new (added to
+`filrustc/run-tests` alongside `exit13`): the generated `subRun.sh` asserts
+that the exit code is exactly 101 -- the code std exits with when a panic
+unwinds out of `main` and `lang_start_internal`'s `catch_unwind` catches it.
+The unwinding tests are the suite-level guard for Fil-C Rust unwinding: the
+panic must print its message, unwind through the pizlonated landing pads on
+libpizlo's unwinder, run Drop glue in the right order, deliver a downcastable
+payload to `catch_unwind`, and observe the standard Rust exit codes -- at
+both optimization levels.  `oob_read`/`oob_write`/`null_deref`/
+`use_after_free` are Fil-C safety panics (not Rust panics): they never
+unwind, so their manifests stay `return: failure` (exit 42 under the
+harness's `FILC_EXIT_ON_PANIC=1`).
 
 The two `-opt` tests are byte-for-byte copies of `hello`/`oob_read` whose
 manifests add `optFlags: -O` (plain rustc's spelling of `-C opt-level=2`;

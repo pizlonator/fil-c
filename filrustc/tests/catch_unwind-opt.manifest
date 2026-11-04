@@ -1,0 +1,13 @@
+# The catch_unwind program compiled with -O: the optimized pipeline must
+# unwind and catch exactly like the debug build.
+return:
+  success
+output-includes:
+  - "panicked at"
+  - "boom"
+  - "caught: boom"
+  - "ok path"
+output-excludes:
+  - "Not implemented"
+optFlags:
+  -O

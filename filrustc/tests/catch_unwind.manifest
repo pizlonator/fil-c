@@ -1,0 +1,11 @@
+# Rust unwinding under Fil-C: catch_unwind catches a panic, and the payload
+# downcasts to the original &'static str message.
+return:
+  success
+output-includes:
+  - "panicked at"
+  - "boom"
+  - "caught: boom"
+  - "ok path"
+output-excludes:
+  - "Not implemented"

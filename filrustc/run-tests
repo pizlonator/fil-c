@@ -30,14 +30,14 @@
 # - Tests live in filrustc/tests/ as <name>.rs files, each with an optional
 #   companion <name>.manifest YAML file declaring expectations with the same
 #   vocabulary as a filc/tests/<name>/manifest: `return` (success, failure,
-#   crash, dontCrash, exit13, compileFailure, compileOnly, or linkFailure --
-#   the last being the same as compileFailure since rustc compiles and links
-#   in one step), `output-includes` / `output-excludes` (fixed strings that
-#   must / must not appear in the output, grep -F style), `optFlags` (extra
-#   rustc optimization flags; default is the debug build), `extraArgs` (extra
-#   rustc arguments), `extra-env` (extra environment variables for the run),
-#   `skip`, `slow`, and `only-on-platform`.  A missing manifest means
-#   `return: success` with no output assertions.
+#   crash, dontCrash, exit13, exit101, compileFailure, compileOnly, or
+#   linkFailure -- the last being the same as compileFailure since rustc
+#   compiles and links in one step), `output-includes` / `output-excludes`
+#   (fixed strings that must / must not appear in the output, grep -F style),
+#   `optFlags` (extra rustc optimization flags; default is the debug build),
+#   `extraArgs` (extra rustc arguments), `extra-env` (extra environment
+#   variables for the run), `skip`, `slow`, and `only-on-platform`.  A missing
+#   manifest means `return: success` with no output assertions.
 # - Compiling and running happen in parallel across tests, via generated
 #   shell scripts and `make -k -j <nproc>` -- the same concurrency approach
 #   as filc/run-tests.
@@ -158,7 +158,8 @@ $testDirectory.each_entry {
     raise unless expectedReturn == "success" or expectedReturn == "failure" or
         expectedReturn == "crash" or expectedReturn == "compileFailure" or
         expectedReturn == "dontCrash" or expectedReturn == "exit13" or
-        expectedReturn == "compileOnly" or expectedReturn == "linkFailure"
+        expectedReturn == "exit101" or expectedReturn == "compileOnly" or
+        expectedReturn == "linkFailure"
     expectedOutputs = handleArray(manifest["output-includes"])
     forbiddenOutputs = handleArray(manifest["output-excludes"])
     optFlags = manifest["optFlags"]
@@ -251,6 +252,8 @@ $testDirectory.each_entry {
                 outp.puts "if [ $? -ne 0 ]"
             when "exit13"
                 outp.puts "if [ $? -ne 13 ]"
+            when "exit101"
+                outp.puts "if [ $? -ne 101 ]"
             when "dontCrash"
                 outp.puts "if [ $? -ne 0 -a $? -ne 42 ]"
             else
@@ -266,6 +269,8 @@ $testDirectory.each_entry {
                 outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to return success"))
             when "exit13"
                 outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to return 13"))
+            when "exit101"
+                outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to return 101 (the Rust panic exit code)"))
             when "dontCrash"
                 outp.puts("    echo " + Shellwords.shellescape(subRunScript.to_s + ": FAIL: expected program to return success or failure, but not crash"))
             else

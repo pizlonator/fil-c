@@ -1,0 +1,11 @@
+# Drop glue runs while a panic unwinds through two frames, innermost first,
+# and catch_unwind at the top still catches the payload.
+return:
+  success
+output-includes:
+  - "panicked at"
+  - "deep panic"
+  - "drops: drop inner; drop outer"
+  - "drop ok"
+output-excludes:
+  - "Not implemented"

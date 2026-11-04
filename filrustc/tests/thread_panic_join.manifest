@@ -1,0 +1,11 @@
+# A panic in a spawned thread unwinds through the thread wrapper, join()
+# returns Err carrying the payload, and a healthy thread still joins Ok.
+return:
+  success
+output-includes:
+  - "panicked at"
+  - "thread boom"
+  - "thread panicked as expected: thread boom"
+  - "healthy thread ok"
+output-excludes:
+  - "Not implemented"
