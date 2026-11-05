@@ -1,0 +1,10 @@
+return:
+  success
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "fpcast f64 f32 ok"
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

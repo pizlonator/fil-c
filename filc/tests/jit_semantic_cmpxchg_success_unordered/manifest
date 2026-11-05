@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "wrong ordering for LLVMBuildAtomicCmpXchg: the success ordering must be atomic and cannot be unordered."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

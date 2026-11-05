@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "wrong operands for LLVMReplaceAllUsesWith: the two values must be different."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "wrong constraints for LLVMConstInlineAsm: the constraint string is not a valid inline-asm constraint list for the function type."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

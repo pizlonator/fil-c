@@ -1,0 +1,11 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "fence instructions may only have acquire, release, acq_rel, or seq_cst ordering."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "wrong name"
+  - "wrong ordering"

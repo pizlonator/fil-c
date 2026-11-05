@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "wrong element count for LLVMConstVector: the vector must have at least one element."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

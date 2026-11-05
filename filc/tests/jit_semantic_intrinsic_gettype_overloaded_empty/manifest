@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "wrong argument types for LLVMIntrinsicGetType: the parameter types must be passed for overloaded intrinsics."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

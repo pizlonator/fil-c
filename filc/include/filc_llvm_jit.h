@@ -303,6 +303,7 @@ LLVMValueRef LLVMConstantPtrAuth(LLVMValueRef Ptr, LLVMValueRef Key, LLVMValueRe
 LLVMContextRef LLVMContextCreate(void);
 void LLVMContextSetDiscardValueNames(LLVMContextRef C, LLVMBool Discard);
 LLVMBool LLVMContextShouldDiscardValueNames(LLVMContextRef C);
+LLVMModuleFlagEntry *LLVMCopyModuleFlagsMetadata(LLVMModuleRef M, __SIZE_TYPE__ *Len);
 unsigned LLVMCountBasicBlocks(LLVMValueRef Fn);
 unsigned LLVMCountIncoming(LLVMValueRef PhiNode);
 unsigned LLVMCountParamTypes(LLVMTypeRef FunctionTy);

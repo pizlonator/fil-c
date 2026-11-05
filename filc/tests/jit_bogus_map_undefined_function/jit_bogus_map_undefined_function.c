@@ -4,9 +4,10 @@
 #include <stdlib.h>
 
 /* The module calls an external function "never_defined" that is neither
-   defined in the module nor in the session's global mapping.  CompileModule
-   aborts (SIGABRT) in the FilPizlonator pass:
-   "Cannot find never_defined in global mapping". */
+   defined in the module nor in the session's global mapping.  CompileModule's
+   mapping pre-check rejects it before the FilPizlonator pass can run, so this
+   is a Fil-C panic (exit 42) instead of the pass's "Cannot find never_defined
+   in global mapping" assertion abort. */
 
 int main()
 {

@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "wrong dialect for LLVMGetInlineAsm: the dialect must be LLVMInlineAsmDialectATT or LLVMInlineAsmDialectIntel."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

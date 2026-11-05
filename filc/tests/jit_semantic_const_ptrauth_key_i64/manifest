@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "wrong operand types for LLVMConstantPtrAuth: the pointer and the address discriminator must be pointers, the key must be a 32-bit integer, and the discriminator must be a 64-bit integer."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

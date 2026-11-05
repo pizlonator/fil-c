@@ -1,6 +1,7 @@
 return:
-  crash
+  failure
 needsGLIBC: true
 extraLinkerArgs: "-enable-filc-jit"
 output-includes:
+  - "filc llvm jit error"
   - "Cannot find never_defined in global mapping"

@@ -4,8 +4,9 @@
 #include <stdlib.h>
 
 /* The module reads an external global "never_defined_global" that is neither
-   defined in the module nor in the session's global mapping.  CompileModule
-   aborts (SIGABRT): "Cannot find never_defined_global in global mapping". */
+   defined in the module nor in the session's global mapping.  CompileModule's
+   mapping pre-check rejects it before the FilPizlonator pass can run, so this
+   is a Fil-C panic (exit 42) instead of the pass's assertion abort. */
 
 int main()
 {

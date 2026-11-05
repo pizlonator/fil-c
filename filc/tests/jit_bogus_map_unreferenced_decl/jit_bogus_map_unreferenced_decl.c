@@ -5,9 +5,9 @@
 
 /* Even an external function declaration that the module never references
    must be present in the session's global mapping: the FilPizlonator pass
-   visits every global value.  CompileModule aborts (SIGABRT):
-   "Cannot find unused_decl in global mapping".  (The plan expected this
-   construction to compile; the observed behavior is pinned instead.) */
+   visits every global value.  CompileModule's mapping pre-check rejects it
+   before the pass can run, so this is a Fil-C panic (exit 42) instead of the
+   pass's assertion abort. */
 
 int main()
 {

@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "filc llvm jit error"
+  - "does not have terminator!"
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"

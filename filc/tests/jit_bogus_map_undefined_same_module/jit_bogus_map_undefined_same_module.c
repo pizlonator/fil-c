@@ -5,8 +5,9 @@
 
 /* Two defined functions and one declared-but-undefined callee, all in the
    same module: "test" calls "aFunc", which calls "helper" (declared, never
-   defined, not mapped).  CompileModule aborts (SIGABRT):
-   "Cannot find helper in global mapping". */
+   defined, not mapped).  CompileModule's mapping pre-check rejects it before
+   the FilPizlonator pass can run, so this is a Fil-C panic (exit 42) instead
+   of the pass's assertion abort. */
 
 int main()
 {
