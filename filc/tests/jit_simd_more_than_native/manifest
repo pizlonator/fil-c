@@ -1,0 +1,20 @@
+return:
+  crash
+only-on-platform:
+  x86_64
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "about to overshoot"
+
+# Documents the "more than native" overshoot failure mode: a JITed function
+# asks for "target-features" "+avx512fp16" and calls
+# llvm.x86.avx512fp16.add.ph.512 (VADDPH zmm). On hosts WITHOUT AVX512-FP16
+# (like any current AMD part) this must not silently work: with this
+# toolchain the JIT refuses at compile time (LLVM ERROR: Cannot select ->
+# abort, i.e. SIGABRT); on toolchains that can select the instruction it
+# SIGILLs when executed. Either way the process dies nonzero, which is what
+# return: crash demands. Kept out of the default run with skip: true because
+# it only makes sense to run deliberately (pass --test to override the skip).
+
+skip: true

@@ -70,12 +70,26 @@ GetoptLong.new(
 
 raise unless ARGV.empty?
 
+# Check if we have AVX2
+raise unless system("clang -O3 -g -o filc/tests/has_avx2 filc/tests/has_avx2.c")
+system("filc/tests/has_avx2 > filc/tests/has_avx2.log 2>&1")
+raise unless $?.exited?
+raise unless $?.exitstatus == 0 or $?.exitstatus == 1
+$hasAVX2 = $?.exitstatus == 0
+
 # Check if we have avx512
 raise unless system("clang -O3 -g -o filc/tests/has_avx512 filc/tests/has_avx512.c")
 system("filc/tests/has_avx512 > filc/tests/has_avx512.log 2>&1")
 raise unless $?.exited?
 raise unless $?.exitstatus == 0 or $?.exitstatus == 1
 $hasAVX512 = $?.exitstatus == 0
+
+# Check if we have AVX512 BF16
+raise unless system("clang -O3 -g -o filc/tests/has_avx512bf16 filc/tests/has_avx512bf16.c")
+system("filc/tests/has_avx512bf16 > filc/tests/has_avx512bf16.log 2>&1")
+raise unless $?.exited?
+raise unless $?.exitstatus == 0 or $?.exitstatus == 1
+$hasAVX512BF16 = $?.exitstatus == 0
 
 # Check if we have Intel SHA extensions (SHA-NI)
 raise unless system("clang -O3 -g -o filc/tests/has_shani filc/tests/has_shani.c")
@@ -269,6 +283,18 @@ $testDirectory.each_entry {
     if manifest["needsAVX512"] and not $hasAVX512
         if $verbose
             puts "Skipping #{testName}, requires AVX512"
+        end
+        next
+    end
+    if manifest["needsAVX2"] and not $hasAVX2
+        if $verbose
+            puts "Skipping #{testName}, requires AVX2"
+        end
+        next
+    end
+    if manifest["needsAVX512BF16"] and not $hasAVX512BF16
+        if $verbose
+            puts "Skipping #{testName}, requires AVX512BF16"
         end
         next
     end

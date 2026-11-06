@@ -1,0 +1,7 @@
+return:
+  success
+needsAVX512BF16: true
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "jit simd avx512bf16 ok"
