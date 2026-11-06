@@ -1,53 +1,77 @@
-URL: https://www.php.net/distributions/php-8.4.25.tar.xz c39c9e1323c8231a041e7e7166dbb0e5a8cf88d7e22813a754350083b286079f
-Origname: php-8.4.25
+URL: https://www.php.net/distributions/php-8.5.12.tar.xz 3707c0836a2e4c711c382814c2116c41ea7bb97f89c780da4b79a228ab45cfa9
+Origname: php-8.5.12
 Name: php
 
-    PHP 8.4.25 with the Fil-C port.  (1) Capabilities: Fil-C drops a
+    PHP 8.5.12 with the Fil-C port.  (1) Capabilities: Fil-C drops a
     pointer's capability when it becomes an integer.  Weak references tag
     their payload pointers through uintptr_t, and WeakMap keys are object
     addresses shifted into integers; tag with pointer arithmetic and recover
     key objects from a weak zexact_ptrtable, which keeps the integer
     values.  Typed-property references tag their source list through the
-    integer member of a union; make that member a pointer.  ext/dom's
-    bundled lexbor gives tag, attribute, namespace and prefix names IDs that
-    are small integers for built-in names and the address of the name's
-    data otherwise; convert those addresses through a weak zexact_ptrtable
-    so Dom\HTMLDocument can read parsed names.  The C14N and schema
-    namespace fixups key a HashTable by node address; register those nodes
-    the same way.  (2) Inline assembly: take Zend's portable paths for
-    string comparison and zend_safe_address, use the overflow builtins
-    instead of the asm goto fast_long_* arithmetic (configure's asm goto
-    probe passes, but FilPizlonatorPass crashes on that callbr), spell
-    xgetbv as the instruction instead of raw opcode bytes, and drop the
-    .debug_gdb_scripts section.  (3) Fibers: build_php.sh passes
-    --disable-fiber-asm, so fibers use ucontext, which Fil-C runs on a
-    native stack its runtime allocates; Zend's fiber stack limit is
-    measured from the fiber's first frame instead of from the memory PHP
-    allocated.  Fil-C's ucontext is in user glibc only, so this needs the
-    glibc build.  (4) opcache: Fil-C keeps capabilities per process, so a
-    pointer one FPM worker stores in the MAP_SHARED cache has none in
-    another; map the cache privately (workers inherit what the parent
-    cached before forking; opcache_reset()/opcache_invalidate() become
-    per-process).  Also skip the MAP_32BIT huge-page remap, which unmaps a
-    region and maps it again at the same address, which Fil-C refuses.
-    (5) Allocator: Zend's allocator carves request memory out of 2 MiB
-    chunks, so Fil-C bounds a PHP value only by its chunk and reuses freed
-    values' memory inside it, and use after free between values goes
-    unnoticed (the var_destroy use after free in unserialize() runs to
-    completion).  Default to the tracked system allocator, as PHP's ASan
-    CI uses, so each value has its own capability and memory_limit still
-    works; USE_ZEND_ALLOC=1 restores Zend's.  Its end-of-request free
-    recovers addresses from integer hash keys, which have no capability, so
-    leave that memory to the collector, and it never recorded peaks, so
-    record them for memory_get_peak_usage().  zend_str_tolower_dup_ex() and
+    integer member of a union; make that member a pointer.  Lexbor, which
+    PHP 8.5 builds into ext/lexbor for ext/dom and ext/uri, gives tag,
+    attribute, namespace and prefix names IDs that are small integers for
+    built-in names and the address of the name's data otherwise; convert
+    those addresses through a weak zexact_ptrtable so Dom\HTMLDocument can
+    read parsed names.  The C14N and schema namespace fixups key a
+    HashTable by node address; register those nodes the same way.
+    OPcache's deferred class-cache slots are keyed by interned-string
+    address and cast back at commit; register those strings the same way.
+    (2) Inline assembly: take Zend's portable paths for string comparison
+    and zend_safe_address, use the overflow builtins instead of the asm
+    goto fast_long_* arithmetic (configure's asm goto probe passes, but
+    FilPizlonatorPass crashes on that callbr), use the x87 control-word asm
+    in zend_float.h only on i386, spell xgetbv as the instruction instead
+    of raw opcode bytes, and drop the .debug_gdb_scripts section.
+    (3) Fibers: build_php.sh passes --disable-fiber-asm, so fibers use
+    ucontext, which Fil-C runs on a native stack its runtime allocates; the
+    fiber trampoline records where that stack starts, and
+    zend_fiber_stack_base() and zend_fiber_stack_limit() measure from there
+    instead of from the memory PHP allocated, for Fiber and for
+    zend_test's custom fibers alike.  Fil-C's ucontext is in user glibc
+    only, so this needs the glibc build.  (4) OPcache, which PHP 8.5 always
+    builds in: Fil-C keeps capabilities per process, so a pointer one FPM
+    worker stores in the MAP_SHARED cache has none in another; map the
+    cache privately (workers inherit what the parent cached before forking;
+    opcache_reset()/opcache_invalidate() become per-process).  Also skip
+    the MAP_32BIT huge-page remap, which unmaps a region and maps it again
+    at the same address, which Fil-C refuses.  (5) Allocator: Zend's
+    allocator carves request memory out of 2 MiB chunks, so Fil-C bounds a
+    PHP value only by its chunk and reuses freed values' memory inside it,
+    and use after free between values goes unnoticed (the var_destroy use
+    after free in unserialize() runs to completion).  Default to the
+    tracked system allocator, as PHP's ASan CI uses, so each value has its
+    own capability and memory_limit still works; USE_ZEND_ALLOC=1 restores
+    Zend's.  Its end-of-request free recovers addresses from integer hash
+    keys, which have no capability, so leave that memory to the collector,
+    and it never recorded peaks, so record them for
+    memory_get_peak_usage().  zend_str_tolower_dup_ex() and
     zend_str_toupper_dup_ex() wrote the copy through the source string's
     capability (source + (copy - source)), which per-value bounds catch;
-    offset the copy instead.
+    offset the copy instead.  (6) realloc: Fil-C's realloc() always
+    allocates a new object and copies, and zend_string_extend() asks for
+    the exact new length, so each `$s .= ...` copied the whole string and
+    building a string took quadratic time (Zend/tests/concat_003.phpt ran
+    for minutes).  __zend_realloc() now grows past 1 KiB by half again and
+    reuses the capacity that zgetupper() reports, as Zend's allocator and
+    glibc's in-place realloc do.  (7) shmop: when shmop_open() fails before
+    or at shmat(), the free handler passed a NULL or (char *) -1 address to
+    shmdt(), which Fil-C's wrapper rejects; skip shmdt() for those.
 diff --git a/php/Zend/zend_alloc.c b/php/Zend/zend_alloc.c
 --- a/php/Zend/zend_alloc.c
 +++ b/php/Zend/zend_alloc.c
-@@ -2965,6 +2965,17 @@
- #endif
+@@ -64,6 +64,9 @@
+ #include "zend_string.h"
+ #include "zend_exceptions.h"
+ #include <signal.h>
++#ifdef __FILC__
++# include <stdfil.h>
++#endif
+
+ #ifdef HAVE_UNISTD_H
+ # include <unistd.h>
+@@ -3332,6 +3335,17 @@
+ 	return SUCCESS;
  }
 
 +#if defined(__FILC__) && ZEND_MM_STAT
@@ -64,7 +88,7 @@ diff --git a/php/Zend/zend_alloc.c b/php/Zend/zend_alloc.c
  static void *tracked_malloc(size_t size ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC)
  {
  	zend_mm_heap *heap = AG(mm_heap);
-@@ -2980,6 +2991,7 @@
+@@ -3353,6 +3367,7 @@
  	heap->size += size;
  	heap->real_size = heap->size;
  #endif
@@ -72,7 +96,7 @@ diff --git a/php/Zend/zend_alloc.c b/php/Zend/zend_alloc.c
  	return ptr;
  }
 
-@@ -3022,10 +3034,18 @@
+@@ -3401,10 +3416,18 @@
  	heap->size += new_size - old_size;
  	heap->real_size = heap->size;
  #endif
@@ -91,7 +115,7 @@ diff --git a/php/Zend/zend_alloc.c b/php/Zend/zend_alloc.c
  	HashTable *tracked_allocs = heap->tracked_allocs;
  	zend_ulong h;
  	ZEND_HASH_FOREACH_NUM_KEY(tracked_allocs, h) {
-@@ -3041,8 +3061,20 @@
+@@ -3614,8 +3637,20 @@
 
  #if ZEND_MM_CUSTOM
  	tmp = getenv("USE_ZEND_ALLOC");
@@ -112,6 +136,31 @@ diff --git a/php/Zend/zend_alloc.c b/php/Zend/zend_alloc.c
  		zend_mm_heap *mm_heap = alloc_globals->mm_heap = malloc(sizeof(zend_mm_heap));
  		memset(mm_heap, 0, sizeof(zend_mm_heap));
  		mm_heap->use_custom_heap = ZEND_MM_CUSTOM_HEAP_STD;
+@@ -3964,6 +3999,24 @@
+
+ ZEND_API void * __zend_realloc(void *p, size_t len ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC)
+ {
++#ifdef __FILC__
++	/* Fil-C's realloc() always moves the object, so growing a string one
++	 * append at a time (zend_string_extend() asks for the exact length)
++	 * copied the whole string each time: building an n-byte string took
++	 * O(n^2). Grow by half again past 1 KiB and reuse the slack, as Zend's
++	 * allocator and glibc's in-place realloc do. The capability then spans
++	 * the slack, which is zeroed, or after a shrink to no less than half the
++	 * capacity, the old contents. */
++	if (p && len) {
++		size_t cap = (char *) zgetupper(p) - (char *) p;
++		if (len <= cap && len >= cap / 2) {
++			return p;
++		}
++		if (len > cap && len > 1024 && len < cap + cap / 2) {
++			len = cap + cap / 2;
++		}
++	}
++#endif
+ 	p = realloc(p, len);
+ 	if (EXPECTED(p || !len)) {
+ 		return p;
 diff --git a/php/Zend/zend_cpuinfo.c b/php/Zend/zend_cpuinfo.c
 --- a/php/Zend/zend_cpuinfo.c
 +++ b/php/Zend/zend_cpuinfo.c
@@ -127,22 +176,53 @@ diff --git a/php/Zend/zend_cpuinfo.c b/php/Zend/zend_cpuinfo.c
 diff --git a/php/Zend/zend_fibers.c b/php/Zend/zend_fibers.c
 --- a/php/Zend/zend_fibers.c
 +++ b/php/Zend/zend_fibers.c
-@@ -600,8 +600,15 @@
- 		EG(error_reporting) = error_reporting;
+@@ -84,6 +84,13 @@
+ 	void *pointer;
+ 	size_t size;
 
- #ifdef ZEND_CHECK_STACK_LIMIT
-+# ifdef __FILC__
-+		/* Fil-C runs the fiber on a native stack of the requested size that
-+		 * its runtime allocates, not on stack->pointer; measure from here. */
-+		EG(stack_base) = __builtin_frame_address(0);
-+		EG(stack_limit) = (int8_t*)EG(stack_base) - fiber->context.stack->size + EG(reserved_stack_size);
-+# else
- 		EG(stack_base) = zend_fiber_stack_base(fiber->context.stack);
- 		EG(stack_limit) = zend_fiber_stack_limit(fiber->context.stack);
-+# endif
++#ifdef __FILC__
++	/* Fil-C runs a ucontext on a native stack of the requested size that its
++	 * runtime allocates, not on pointer. The trampoline records where that
++	 * stack starts. */
++	void *filc_base;
++#endif
++
+ #ifdef HAVE_VALGRIND
+ 	unsigned int valgrind_stack_id;
+ #endif
+@@ -348,13 +355,21 @@
+ 	reserve = reserve * 2;
  #endif
 
- 		fiber->fci.retval = &fiber->result;
++#ifdef __FILC__
++	return (int8_t*)stack->filc_base - stack->size + reserve;
++#else
+ 	/* stack->pointer is the end of the stack */
+ 	return (int8_t*)stack->pointer + reserve;
++#endif
+ }
+
+ ZEND_API void* zend_fiber_stack_base(zend_fiber_stack *stack)
+ {
++#ifdef __FILC__
++	return stack->filc_base;
++#else
+ 	return (void*)((uintptr_t)stack->pointer + stack->size);
++#endif
+ }
+ #endif
+
+@@ -388,6 +403,10 @@
+ 	}
+
+ 	zend_fiber_context *context = EG(current_fiber_context);
++
++#ifdef __FILC__
++	context->stack->filc_base = __builtin_frame_address(0);
++#endif
+
+ 	context->function(&transfer);
+ 	context->status = ZEND_FIBER_STATUS_DEAD;
 diff --git a/php/Zend/zend_float.h b/php/Zend/zend_float.h
 --- a/php/Zend/zend_float.h
 +++ b/php/Zend/zend_float.h
@@ -158,7 +238,7 @@ diff --git a/php/Zend/zend_float.h b/php/Zend/zend_float.h
 diff --git a/php/Zend/zend_multiply.h b/php/Zend/zend_multiply.h
 --- a/php/Zend/zend_multiply.h
 +++ b/php/Zend/zend_multiply.h
-@@ -195,7 +195,7 @@
+@@ -174,7 +174,7 @@
  	return res;
  }
 
@@ -170,7 +250,7 @@ diff --git a/php/Zend/zend_multiply.h b/php/Zend/zend_multiply.h
 diff --git a/php/Zend/zend_operators.c b/php/Zend/zend_operators.c
 --- a/php/Zend/zend_operators.c
 +++ b/php/Zend/zend_operators.c
-@@ -3035,7 +3035,7 @@
+@@ -3107,7 +3107,7 @@
  			if (p != (const unsigned char*)source) {
  				memcpy(res, source, p - (const unsigned char*)source);
  			}
@@ -179,7 +259,7 @@ diff --git a/php/Zend/zend_operators.c b/php/Zend/zend_operators.c
  			zend_str_tolower_impl((char *)r, (const char*)p, end - p);
  			res[length] = '\0';
  			return res;
-@@ -3059,7 +3059,7 @@
+@@ -3131,7 +3131,7 @@
  			if (p != (const unsigned char*)source) {
  				memcpy(res, source, p - (const unsigned char*)source);
  			}
@@ -191,7 +271,7 @@ diff --git a/php/Zend/zend_operators.c b/php/Zend/zend_operators.c
 diff --git a/php/Zend/zend_operators.h b/php/Zend/zend_operators.h
 --- a/php/Zend/zend_operators.h
 +++ b/php/Zend/zend_operators.h
-@@ -520,7 +520,10 @@
+@@ -544,7 +544,10 @@
  #define ZVAL_OFFSETOF_TYPE	\
  	(offsetof(zval, u1.type_info) - offsetof(zval, value))
 
@@ -206,7 +286,7 @@ diff --git a/php/Zend/zend_operators.h b/php/Zend/zend_operators.h
 diff --git a/php/Zend/zend_string.c b/php/Zend/zend_string.c
 --- a/php/Zend/zend_string.c
 +++ b/php/Zend/zend_string.c
-@@ -378,7 +378,7 @@
+@@ -391,7 +391,7 @@
  	}
  }
 
@@ -215,7 +295,7 @@ diff --git a/php/Zend/zend_string.c b/php/Zend/zend_string.c
  /* Even if we don't build with valgrind support, include the symbol so that valgrind available
   * only at runtime will not result in false positives. */
  #ifndef I_REPLACE_SONAME_FNNAME_ZU
-@@ -436,7 +436,7 @@
+@@ -449,7 +449,7 @@
  	return ret;
  }
 
@@ -227,7 +307,7 @@ diff --git a/php/Zend/zend_string.c b/php/Zend/zend_string.c
 diff --git a/php/Zend/zend_string.h b/php/Zend/zend_string.h
 --- a/php/Zend/zend_string.h
 +++ b/php/Zend/zend_string.h
-@@ -370,7 +370,7 @@
+@@ -441,7 +441,7 @@
  	return ZSTR_LEN(s1) == s2_length && !memcmp(ZSTR_VAL(s1), s2, s2_length);
  }
 
@@ -239,7 +319,7 @@ diff --git a/php/Zend/zend_string.h b/php/Zend/zend_string.h
 diff --git a/php/Zend/zend_types.h b/php/Zend/zend_types.h
 --- a/php/Zend/zend_types.h
 +++ b/php/Zend/zend_types.h
-@@ -576,14 +576,28 @@
+@@ -608,14 +608,28 @@
  	struct _zend_property_info *ptr[1];
  } zend_property_info_list;
 
@@ -298,7 +378,7 @@ diff --git a/php/Zend/zend_weakrefs.c b/php/Zend/zend_weakrefs.c
 diff --git a/php/Zend/zend_weakrefs.h b/php/Zend/zend_weakrefs.h
 --- a/php/Zend/zend_weakrefs.h
 +++ b/php/Zend/zend_weakrefs.h
-@@ -51,9 +51,27 @@
+@@ -57,9 +57,27 @@
   * It is not used for the HashTable instances associated with ZEND_WEAKREF_TAG_HT tags (created in zend_weakref_register, which uses ZEND_WEAKREF_ENCODE instead).
   * The ZEND_WEAKREF_TAG_HT instances are used to disambiguate between multiple weak references to the same zend_object.
   */
@@ -326,7 +406,7 @@ diff --git a/php/Zend/zend_weakrefs.h b/php/Zend/zend_weakrefs.h
  	return ((uintptr_t) object) >> ZEND_MM_ALIGNMENT_LOG2;
  }
 
-@@ -61,6 +79,7 @@
+@@ -67,6 +85,7 @@
  {
  	return (zend_object *) (((uintptr_t) key) << ZEND_MM_ALIGNMENT_LOG2);
  }
@@ -334,9 +414,85 @@ diff --git a/php/Zend/zend_weakrefs.h b/php/Zend/zend_weakrefs.h
 
  HashTable *zend_weakmap_get_gc(zend_object *object, zval **table, int *n);
  HashTable *zend_weakmap_get_key_entry_gc(zend_object *object, zval **table, int *n);
-diff --git a/php/ext/dom/lexbor/lexbor/core/hash.c b/php/ext/dom/lexbor/lexbor/core/hash.c
---- a/php/ext/dom/lexbor/lexbor/core/hash.c
-+++ b/php/ext/dom/lexbor/lexbor/core/hash.c
+diff --git a/php/ext/dom/namespace_compat.c b/php/ext/dom/namespace_compat.c
+--- a/php/ext/dom/namespace_compat.c
++++ b/php/ext/dom/namespace_compat.c
+@@ -25,6 +25,41 @@
+ #include "private_data.h"
+ #include "internal_helpers.h"
+
++/* The links table below is keyed by node address and turns its keys back into
++ * nodes. Fil-C drops a pointer's capability when it becomes an integer, so it
++ * records each node and looks it up again. */
++#ifdef __FILC__
++#include <stdfil.h>
++
++static zexact_ptrtable *dom_ns_decl_nodes;
++
++__attribute__((constructor)) static void dom_ns_decl_nodes_init(void)
++{
++	/* Weak: the document keeps its nodes alive. */
++	dom_ns_decl_nodes = zexact_ptrtable_new_weak();
++}
++
++static zend_ulong dom_ns_decl_node_key(xmlNodePtr node)
++{
++	return zexact_ptrtable_encode(dom_ns_decl_nodes, node);
++}
++
++static xmlNodePtr dom_ns_decl_node_from_key(zend_ulong key)
++{
++	return zexact_ptrtable_decode(dom_ns_decl_nodes, key);
++}
++#else
++static zend_ulong dom_ns_decl_node_key(xmlNodePtr node)
++{
++	return (zend_ulong) node;
++}
++
++static xmlNodePtr dom_ns_decl_node_from_key(zend_ulong key)
++{
++	return (xmlNodePtr) key;
++}
++#endif
++
+ /* The actual value of these doesn't matter as long as they serve as a unique ID.
+  * They need to be pointers because the `_private` field is a pointer, however we can choose the contents ourselves.
+  * We need keep these at least 4-byte aligned because the pointer may be tagged (although for now 2 byte alignment works too).
+@@ -501,7 +536,7 @@
+ 		return NULL;
+ 	}
+
+-	zval *zv = zend_hash_index_lookup(links, (zend_ulong) node);
++	zval *zv = zend_hash_index_lookup(links, dom_ns_decl_node_key(node));
+ 	if (Z_ISNULL_P(zv)) {
+ 		ZVAL_LONG(zv, 1);
+ 	} else {
+@@ -575,7 +610,7 @@
+ 		if (node->ns && !node->ns->prefix) {
+ 			/* Workaround for the behaviour where the xmlSearchNs() call inside c14n.c
+ 			 * can return the current namespace. */
+-			zend_hash_index_add_new_ptr(links, (zend_ulong) node | 1, node->ns);
++			zend_hash_index_add_new_ptr(links, dom_ns_decl_node_key(node) | 1, node->ns);
+ 			node->ns = xmlSearchNs(node->doc, node, NULL);
+ 		} else if (node->ns) {
+ 			dom_add_synthetic_ns_decl(links, node, node->ns);
+@@ -605,10 +640,10 @@
+ {
+ 	ZEND_HASH_MAP_FOREACH_NUM_KEY_VAL(links, zend_ulong h, zval *data) {
+ 		if (h & 1) {
+-			xmlNodePtr node = (xmlNodePtr) (h ^ 1);
++			xmlNodePtr node = dom_ns_decl_node_from_key(h ^ 1);
+ 			node->ns = Z_PTR_P(data);
+ 		} else {
+-			xmlNodePtr node = (xmlNodePtr) h;
++			xmlNodePtr node = dom_ns_decl_node_from_key(h);
+ 			while (Z_LVAL_P(data)-- > 0) {
+ 				xmlNsPtr ns = node->nsDef;
+ 				node->nsDef = ns->next;
+diff --git a/php/ext/lexbor/lexbor/core/hash.c b/php/ext/lexbor/lexbor/core/hash.c
+--- a/php/ext/lexbor/lexbor/core/hash.c
++++ b/php/ext/lexbor/lexbor/core/hash.c
 @@ -10,6 +10,31 @@
 
  #include "lexbor/core/str.h"
@@ -369,9 +525,9 @@ diff --git a/php/ext/dom/lexbor/lexbor/core/hash.c b/php/ext/dom/lexbor/lexbor/c
  #ifndef LEXBOR_DISABLE_INTERNAL_EXTERN
      LXB_EXTERN const lxb_char_t lexbor_str_res_map_lowercase[256];
      LXB_EXTERN const lxb_char_t lexbor_str_res_map_uppercase[256];
-diff --git a/php/ext/dom/lexbor/lexbor/core/hash.h b/php/ext/dom/lexbor/lexbor/core/hash.h
---- a/php/ext/dom/lexbor/lexbor/core/hash.h
-+++ b/php/ext/dom/lexbor/lexbor/core/hash.h
+diff --git a/php/ext/lexbor/lexbor/core/hash.h b/php/ext/lexbor/lexbor/core/hash.h
+--- a/php/ext/lexbor/lexbor/core/hash.h
++++ b/php/ext/lexbor/lexbor/core/hash.h
 @@ -210,6 +210,31 @@
      return lexbor_dobject_allocated(hash->entries);
  }
@@ -404,9 +560,9 @@ diff --git a/php/ext/dom/lexbor/lexbor/core/hash.h b/php/ext/dom/lexbor/lexbor/c
 
  #ifdef __cplusplus
  } /* extern "C" */
-diff --git a/php/ext/dom/lexbor/lexbor/dom/interfaces/attr.c b/php/ext/dom/lexbor/lexbor/dom/interfaces/attr.c
---- a/php/ext/dom/lexbor/lexbor/dom/interfaces/attr.c
-+++ b/php/ext/dom/lexbor/lexbor/dom/interfaces/attr.c
+diff --git a/php/ext/lexbor/lexbor/dom/interfaces/attr.c b/php/ext/lexbor/lexbor/dom/interfaces/attr.c
+--- a/php/ext/lexbor/lexbor/dom/interfaces/attr.c
++++ b/php/ext/lexbor/lexbor/dom/interfaces/attr.c
 @@ -75,7 +75,7 @@
                  goto failed;
              }
@@ -475,9 +631,9 @@ diff --git a/php/ext/dom/lexbor/lexbor/dom/interfaces/attr.c b/php/ext/dom/lexbo
      }
 
      return &lxb_dom_attr_res_data_default[attr_id];
-diff --git a/php/ext/dom/lexbor/lexbor/dom/interfaces/document_type.c b/php/ext/dom/lexbor/lexbor/dom/interfaces/document_type.c
---- a/php/ext/dom/lexbor/lexbor/dom/interfaces/document_type.c
-+++ b/php/ext/dom/lexbor/lexbor/dom/interfaces/document_type.c
+diff --git a/php/ext/lexbor/lexbor/dom/interfaces/document_type.c b/php/ext/lexbor/lexbor/dom/interfaces/document_type.c
+--- a/php/ext/lexbor/lexbor/dom/interfaces/document_type.c
++++ b/php/ext/lexbor/lexbor/dom/interfaces/document_type.c
 @@ -73,7 +73,7 @@
              return lxb_dom_document_type_interface_destroy(new);
          }
@@ -487,9 +643,9 @@ diff --git a/php/ext/dom/lexbor/lexbor/dom/interfaces/document_type.c b/php/ext/
      }
 
      if (lexbor_str_copy(&new->public_id,
-diff --git a/php/ext/dom/lexbor/lexbor/dom/interfaces/element.c b/php/ext/dom/lexbor/lexbor/dom/interfaces/element.c
---- a/php/ext/dom/lexbor/lexbor/dom/interfaces/element.c
-+++ b/php/ext/dom/lexbor/lexbor/dom/interfaces/element.c
+diff --git a/php/ext/lexbor/lexbor/dom/interfaces/element.c b/php/ext/lexbor/lexbor/dom/interfaces/element.c
+--- a/php/ext/lexbor/lexbor/dom/interfaces/element.c
++++ b/php/ext/lexbor/lexbor/dom/interfaces/element.c
 @@ -149,7 +149,7 @@
          return LXB_STATUS_ERROR;
      }
@@ -517,9 +673,9 @@ diff --git a/php/ext/dom/lexbor/lexbor/dom/interfaces/element.c b/php/ext/dom/le
 
      return lexbor_hash_entry_str(&data->entry);
  }
-diff --git a/php/ext/dom/lexbor/lexbor/dom/interfaces/node.c b/php/ext/dom/lexbor/lexbor/dom/interfaces/node.c
---- a/php/ext/dom/lexbor/lexbor/dom/interfaces/node.c
-+++ b/php/ext/dom/lexbor/lexbor/dom/interfaces/node.c
+diff --git a/php/ext/lexbor/lexbor/dom/interfaces/node.c b/php/ext/lexbor/lexbor/dom/interfaces/node.c
+--- a/php/ext/lexbor/lexbor/dom/interfaces/node.c
++++ b/php/ext/lexbor/lexbor/dom/interfaces/node.c
 @@ -187,7 +187,7 @@
                  return LXB_STATUS_ERROR_MEMORY_ALLOCATION;
              }
@@ -556,9 +712,9 @@ diff --git a/php/ext/dom/lexbor/lexbor/dom/interfaces/node.c b/php/ext/dom/lexbo
      }
 
      return LXB_STATUS_OK;
-diff --git a/php/ext/dom/lexbor/lexbor/ns/ns.c b/php/ext/dom/lexbor/lexbor/ns/ns.c
---- a/php/ext/dom/lexbor/lexbor/ns/ns.c
-+++ b/php/ext/dom/lexbor/lexbor/ns/ns.c
+diff --git a/php/ext/lexbor/lexbor/ns/ns.c b/php/ext/lexbor/lexbor/ns/ns.c
+--- a/php/ext/lexbor/lexbor/ns/ns.c
++++ b/php/ext/lexbor/lexbor/ns/ns.c
 @@ -35,7 +35,7 @@
          return NULL;
      }
@@ -595,9 +751,9 @@ diff --git a/php/ext/dom/lexbor/lexbor/ns/ns.c b/php/ext/dom/lexbor/lexbor/ns/ns
      }
 
      return &lxb_ns_prefix_res_data[prefix_id];
-diff --git a/php/ext/dom/lexbor/lexbor/tag/tag.c b/php/ext/dom/lexbor/lexbor/tag/tag.c
---- a/php/ext/dom/lexbor/lexbor/tag/tag.c
-+++ b/php/ext/dom/lexbor/lexbor/tag/tag.c
+diff --git a/php/ext/lexbor/lexbor/tag/tag.c b/php/ext/lexbor/lexbor/tag/tag.c
+--- a/php/ext/lexbor/lexbor/tag/tag.c
++++ b/php/ext/lexbor/lexbor/tag/tag.c
 @@ -28,7 +28,7 @@
      }
 
@@ -625,82 +781,6 @@ diff --git a/php/ext/dom/lexbor/lexbor/tag/tag.c b/php/ext/dom/lexbor/lexbor/tag
      }
 
      return &lxb_tag_res_data_default[tag_id];
-diff --git a/php/ext/dom/namespace_compat.c b/php/ext/dom/namespace_compat.c
---- a/php/ext/dom/namespace_compat.c
-+++ b/php/ext/dom/namespace_compat.c
-@@ -25,6 +25,41 @@
- #include "private_data.h"
- #include "internal_helpers.h"
-
-+/* The links table below is keyed by node address and turns its keys back into
-+ * nodes. Fil-C drops a pointer's capability when it becomes an integer, so it
-+ * records each node and looks it up again. */
-+#ifdef __FILC__
-+#include <stdfil.h>
-+
-+static zexact_ptrtable *dom_ns_decl_nodes;
-+
-+__attribute__((constructor)) static void dom_ns_decl_nodes_init(void)
-+{
-+	/* Weak: the document keeps its nodes alive. */
-+	dom_ns_decl_nodes = zexact_ptrtable_new_weak();
-+}
-+
-+static zend_ulong dom_ns_decl_node_key(xmlNodePtr node)
-+{
-+	return zexact_ptrtable_encode(dom_ns_decl_nodes, node);
-+}
-+
-+static xmlNodePtr dom_ns_decl_node_from_key(zend_ulong key)
-+{
-+	return zexact_ptrtable_decode(dom_ns_decl_nodes, key);
-+}
-+#else
-+static zend_ulong dom_ns_decl_node_key(xmlNodePtr node)
-+{
-+	return (zend_ulong) node;
-+}
-+
-+static xmlNodePtr dom_ns_decl_node_from_key(zend_ulong key)
-+{
-+	return (xmlNodePtr) key;
-+}
-+#endif
-+
- /* The actual value of these doesn't matter as long as they serve as a unique ID.
-  * They need to be pointers because the `_private` field is a pointer, however we can choose the contents ourselves.
-  * We need keep these at least 4-byte aligned because the pointer may be tagged (although for now 2 byte alignment works too).
-@@ -508,7 +543,7 @@
- 		return NULL;
- 	}
-
--	zval *zv = zend_hash_index_lookup(links, (zend_ulong) node);
-+	zval *zv = zend_hash_index_lookup(links, dom_ns_decl_node_key(node));
- 	if (Z_ISNULL_P(zv)) {
- 		ZVAL_LONG(zv, 1);
- 	} else {
-@@ -582,7 +617,7 @@
- 		if (node->ns && !node->ns->prefix) {
- 			/* Workaround for the behaviour where the xmlSearchNs() call inside c14n.c
- 			 * can return the current namespace. */
--			zend_hash_index_add_new_ptr(links, (zend_ulong) node | 1, node->ns);
-+			zend_hash_index_add_new_ptr(links, dom_ns_decl_node_key(node) | 1, node->ns);
- 			node->ns = xmlSearchNs(node->doc, node, NULL);
- 		} else if (node->ns) {
- 			dom_add_synthetic_ns_decl(links, node, node->ns);
-@@ -612,10 +647,10 @@
- {
- 	ZEND_HASH_MAP_FOREACH_NUM_KEY_VAL(links, zend_ulong h, zval *data) {
- 		if (h & 1) {
--			xmlNodePtr node = (xmlNodePtr) (h ^ 1);
-+			xmlNodePtr node = dom_ns_decl_node_from_key(h ^ 1);
- 			node->ns = Z_PTR_P(data);
- 		} else {
--			xmlNodePtr node = (xmlNodePtr) h;
-+			xmlNodePtr node = dom_ns_decl_node_from_key(h);
- 			while (Z_LVAL_P(data)-- > 0) {
- 				xmlNsPtr ns = node->nsDef;
- 				node->nsDef = ns->next;
 diff --git a/php/ext/opcache/shared_alloc_mmap.c b/php/ext/opcache/shared_alloc_mmap.c
 --- a/php/ext/opcache/shared_alloc_mmap.c
 +++ b/php/ext/opcache/shared_alloc_mmap.c
@@ -728,6 +808,68 @@ diff --git a/php/ext/opcache/shared_alloc_mmap.c b/php/ext/opcache/shared_alloc_
  		/* to got HUGE PAGES in low 32-bit address we have to reserve address
  		   space and then remap it using MAP_HUGETLB */
 
+diff --git a/php/ext/opcache/zend_persist.c b/php/ext/opcache/zend_persist.c
+--- a/php/ext/opcache/zend_persist.c
++++ b/php/ext/opcache/zend_persist.c
+@@ -30,6 +30,18 @@
+ #include "zend_interfaces.h"
+ #include "zend_attributes.h"
+
++#ifdef __FILC__
++#include <stdfil.h>
++
++/* The permanent interned-string arena owns the pending class names. */
++static zexact_ptrtable *pending_ce_cache_names;
++
++__attribute__((constructor)) static void pending_ce_cache_names_init(void)
++{
++	pending_ce_cache_names = zexact_ptrtable_new_weak();
++}
++#endif
++
+ #ifdef HAVE_JIT
+ # include "Optimizer/zend_func_info.h"
+ # include "jit/zend_jit.h"
+@@ -360,7 +372,11 @@
+ 	ZEND_ASSERT(ZCSG(map_ptr_last) == CG(map_ptr_last));
+
+ 	ZEND_HASH_FOREACH_NUM_KEY_VAL(ZCG(pending_ce_cache), zend_ulong h, zval *zv) {
++#ifdef __FILC__
++		zend_string *type_name = zexact_ptrtable_decode(pending_ce_cache_names, h);
++#else
+ 		zend_string *type_name = (zend_string*)(uintptr_t)h;
++#endif
+
+ 		ZEND_ASSERT(!ZSTR_HAS_CE_CACHE(type_name));
+ 		GC_SET_REFCOUNT(type_name, (uint32_t)Z_LVAL_P(zv));
+@@ -397,7 +413,11 @@
+ 	if ((GC_FLAGS(type_name) & GC_IMMUTABLE)
+ 	 && (GC_FLAGS(type_name) & IS_STR_PERMANENT)) {
+ 		ZEND_ASSERT(ZCG(pending_ce_cache) && "Must be called inside a persist window");
++#ifdef __FILC__
++		slot = zend_hash_index_lookup(ZCG(pending_ce_cache), zexact_ptrtable_encode(pending_ce_cache_names, type_name));
++#else
+ 		slot = zend_hash_index_lookup(ZCG(pending_ce_cache), (zend_ulong)(uintptr_t)type_name);
++#endif
+ 		if (Z_TYPE_P(slot) != IS_NULL) {
+ 			/* Already allocated earlier in this window */
+ 			return;
+diff --git a/php/ext/shmop/shmop.c b/php/ext/shmop/shmop.c
+--- a/php/ext/shmop/shmop.c
++++ b/php/ext/shmop/shmop.c
+@@ -99,7 +99,11 @@
+ {
+ 	php_shmop *shmop = shmop_from_obj(object);
+
+-	shmdt(shmop->addr);
++	/* shmop_open() releases the object when it fails before or at shmat(),
++	 * leaving addr NULL or (char *) -1. */
++	if (shmop->addr && shmop->addr != (char *) -1) {
++		shmdt(shmop->addr);
++	}
+
+ 	zend_object_std_dtor(&shmop->std);
+ }
 diff --git a/php/main/debug_gdb_scripts.c b/php/main/debug_gdb_scripts.c
 --- a/php/main/debug_gdb_scripts.c
 +++ b/php/main/debug_gdb_scripts.c
@@ -736,7 +878,7 @@ diff --git a/php/main/debug_gdb_scripts.c b/php/main/debug_gdb_scripts.c
  /*
   * Generated by debug_gdb_scripts_gen.php.
   *
-@@ -1017,3 +1018,4 @@
+@@ -1688,3 +1689,4 @@
      ".byte 0\n"
      ".popsection\n"
  );
