@@ -26,10 +26,109 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/context.rs b/rust/compiler/rus
 diff --git a/rust/compiler/rustc_codegen_ssa/src/back/link.rs b/rust/compiler/rustc_codegen_ssa/src/back/link.rs
 --- a/rust/compiler/rustc_codegen_ssa/src/back/link.rs
 +++ b/rust/compiler/rustc_codegen_ssa/src/back/link.rs
-@@ -1963,6 +1963,41 @@
+@@ -681,6 +681,13 @@
+ ) {
+     info!("preparing {:?} to {:?}", crate_type, out_filename);
+     let (linker_path, flavor) = linker_and_flavor(sess);
++    // Fil-C: resolve the bare linker name "filcc" (set by the Fil-C
++    // x86_64-unknown-linux-gnu target) to an absolute path, so that the
++    // compiler finds the Fil-C driver without relying on PATH.  This runs
++    // before every use of linker_path below (the flavor check, the command
++    // construction -- and hence `--print link-args` -- and the error
++    // reporting all see the resolved path).  See filc_resolve_linker.
++    let linker_path = filc_resolve_linker(&linker_path).unwrap_or(linker_path);
+     let self_contained_components = self_contained_components(sess, crate_type, &linker_path);
+
+     // On AIX, we ship all libraries as .a big_af archive
+@@ -1298,6 +1305,83 @@
+         && (info.compiler_builtins == Some(cnum) || info.is_no_builtins.contains(&cnum))
+ }
+
++/// Fil-C: when the linker is the bare name "filcc" (the Fil-C clang driver,
++/// set by the Fil-C x86_64-unknown-linux-gnu target), resolve it to an
++/// absolute path ourselves instead of relying on PATH, trying in order:
++///
++///   1. The directory baked into the compiler at build time as
++///      FILC_LINKER_DIR (composed and exported by build_rustc_impl.sh).  In
++///      pizfix mode -- the normal Fil-C checkout -- that is
++///      <fil-c-checkout>/build/bin; in optfil mode it is /opt/fil/bin; in
++///      pizlix mode it is wherever the chroot had filcc when the compiler
++///      was built.
++///   2. Walking up from the running rustc binary looking for a sibling
++///      build/bin/filcc -- the Fil-C checkout layout (filcc lives in
++///      <checkout>/build/bin, next to the <checkout>/pizfix it drives; this
++///      is the "../build/bin relative to pizfix" rule).  This finds filcc
++///      even when the checkout is moved or reinstalled after this compiler
++///      was built.
++///   3. /opt/fil/bin/filcc, the optfil install location.
++///
++/// If none of those exist, return None and let the bare name fall through to
++/// rustc's normal PATH lookup: that is pizlix mode (filcc provided only via
++/// PATH), or -- if there is no filcc anywhere -- rustc's usual
++/// "linker `filcc` not found" error.
++///
++/// Only the EXACT bare name "filcc" is resolved (no parent component, no
++/// other file name, so `-C linker=...` and absolute paths are untouched).
++/// An existing-but-not-executable candidate is still returned: the spawn
++/// error rustc then reports for it is more informative than silently
++/// falling through to some other filcc.
++///
++/// Note the precedence when multiple filcc candidates exist: a baked or
++/// discovered filcc wins over whatever is on PATH.  That is correct by
++/// construction -- the baked filcc is the one from the checkout that built
++/// this rustc and the std it links against -- but it means that a compiler
++/// built in pizfix or optfil mode ignores a pizlix-style PATH-provided
++/// filcc (use -C linker=/path/to/filcc to override explicitly).
++fn filc_resolve_linker(linker_path: &Path) -> Option<PathBuf> {
++    if linker_path != Path::new("filcc") {
++        return None;
++    }
++
++    // 1. The directory baked at build time.  option_env! expands to None
++    //    when the compiler is built without FILC_LINKER_DIR in the
++    //    environment (e.g. a vanilla rustc build), so this arm is then
++    //    simply absent.
++    if let Some(dir) = option_env!("FILC_LINKER_DIR") {
++        let candidate = Path::new(dir).join("filcc");
++        if candidate.exists() {
++            return Some(candidate);
++        }
++    }
++
++    // 2. The Fil-C checkout layout, found by walking up from the running
++    //    rustc binary.  current_exe() canonicalizes rust-build/rustc to the
++    //    real stage1 binary under rust-build/rust/build/...; walking up from
++    //    there passes through rust-build/rust and then the checkout root,
++    //    whose build/bin/filcc we take -- wherever the checkout now lives.
++    if let Ok(exe) = env::current_exe() {
++        if let Some(exe_dir) = exe.parent() {
++            for ancestor in exe_dir.ancestors() {
++                let candidate = ancestor.join("build").join("bin").join("filcc");
++                if candidate.exists() {
++                    return Some(candidate);
++                }
++            }
++        }
++    }
++
++    // 3. The optfil install location.
++    let candidate = Path::new("/opt/fil/bin/filcc");
++    if candidate.exists() {
++        return Some(candidate.to_path_buf());
++    }
++
++    // 4. Nothing found: fall through with the bare name (PATH semantics).
++    None
++}
++
+ /// This functions tries to determine the appropriate linker (and corresponding LinkerFlavor) to use
+ pub fn linker_and_flavor(sess: &Session) -> (PathBuf, LinkerFlavor) {
+     fn infer_from(
+@@ -1962,6 +2046,41 @@
+     if symbols.is_empty() {
          return;
      }
-
++
 +    // Fil-C: the FilPizlonator renames every symbol to pizlonated variants
 +    // (`pizlonatedFI<sig>_<name>`, `pizlonatedFIP<sig>_<name>`, ...) and
 +    // additionally defines a `pizlonated_<name>` getter for every function
@@ -64,10 +163,9 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/back/link.rs b/rust/compiler/ru
 +            }
 +        })
 +        .collect();
-+
+
      let Some(mut file) = super::metadata::create_object_file(sess) else {
          return;
-     };
 diff --git a/rust/compiler/rustc_codegen_ssa/src/back/linker.rs b/rust/compiler/rustc_codegen_ssa/src/back/linker.rs
 --- a/rust/compiler/rustc_codegen_ssa/src/back/linker.rs
 +++ b/rust/compiler/rustc_codegen_ssa/src/back/linker.rs
@@ -392,7 +490,7 @@ diff --git a/rust/compiler/rustc_session/src/session.rs b/rust/compiler/rustc_se
 diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 --- a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 +++ b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
-@@ -7,26 +7,43 @@
+@@ -7,26 +7,48 @@
      base.cpu = "x86-64".into();
      base.plt_by_default = false;
      base.max_atomic_width = Some(64);
@@ -438,8 +536,13 @@ diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gn
 +    // full Fil-C link: pizfix CRT (Scrt1.o/crti.o/crtbegin.o/crtend.o/crtn.o)
 +    // + filc_crt.o before user objects + -L/-rpath pizfix/lib + the ld-fil1
 +    // dynamic linker + -lc -lpizlo -lyolort -lyoloc -lyolom -lyolounwind.
-+    // `build_rustc.sh` puts Fil-C's `build/bin` on PATH so that `filcc` is
-+    // found.
++    // rustc resolves the bare name `filcc` itself (see filc_resolve_linker in
++    // rustc_codegen_ssa): from the directory baked in at build time
++    // (FILC_LINKER_DIR -- <fil-c-checkout>/build/bin in pizfix mode,
++    // /opt/fil/bin in optfil mode), else by walking up from the rustc binary
++    // for <checkout>/build/bin/filcc, else /opt/fil/bin/filcc, and only then
++    // falls back to the PATH (pizlix mode).  Putting Fil-C's build/bin on
++    // PATH still works too, it just no longer has to be the mechanism.
 +    base.linker = Some("filcc".into());
 +    // Fil-C: unwinding is implemented on the Fil-C runtime's unwinder.
 +    // libpizlo (the Fil-C runtime that filcc links into every binary) provides
@@ -455,7 +558,7 @@ diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gn
      Target {
          llvm_target: "x86_64-unknown-linux-gnu".into(),
          metadata: TargetMetadata {
-@@ -37,7 +54,8 @@
+@@ -37,7 +59,8 @@
          },
          pointer_width: 64,
          data_layout:

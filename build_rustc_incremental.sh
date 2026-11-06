@@ -39,8 +39,15 @@
 #        export SKIP_RUST_TESTS=1 to skip the test suite.
 #
 # The result is rust-build/rustc (symlink, also as rust-build/filrustc).
-# NOTE: $FILC_ROOT/build/bin must be on PATH whenever the built rustc is
-# used, because linking goes through Fil-C's `filcc`.
+# NOTE: the built rustc resolves its `filcc` linker itself, so nothing extra
+# has to be on PATH: it tries the directory baked in at build time
+# ($FILC_LINKER_DIR, captured from `command -v filcc` when the compiler was
+# built), then walks up from the rustc binary for <ancestor>/build/bin/filcc,
+# then /opt/fil/bin/filcc, and only then falls through to the PATH.  A baked
+# or discovered filcc wins over the PATH by design (an explicit
+# `-C linker=/path/to/filcc` overrides it).  Putting $FILC_ROOT/build/bin on
+# PATH when using the built rustc is still the supported flow (and is how
+# this script itself finds filcc to bake in), but it is no longer required.
 set -e
 set -o pipefail
 set -x

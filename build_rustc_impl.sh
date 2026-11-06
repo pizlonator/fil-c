@@ -65,12 +65,26 @@
 # projeny patch) bakes it into the compiler, mirroring
 # clang/lib/Basic/Version.cpp.
 #
+# The script also bakes the directory containing `filcc` into the compiler as
+# $FILC_LINKER_DIR (resolved after $FILC_ROOT/build/bin is put on PATH below,
+# so in the normal pizfix-mode checkout that is <checkout>/build/bin; /opt/fil/
+# bin in optfil mode; wherever the chroot has filcc in pizlix mode).  An
+# option_env!("FILC_LINKER_DIR") in compiler/rustc_codegen_ssa/src/back/link.rs
+# (in the projeny patch) uses it at run time to resolve the target spec's
+# bare-name linker "filcc" to an absolute path, with further fallbacks (walk up
+# from the rustc binary for <checkout>/build/bin/filcc, then /opt/fil/bin/filcc,
+# then the PATH), so the built rustc links without anything extra on PATH and
+# keeps working after the checkout is moved.  A stamp file
+# (rust-build/.filc-linker-dir-stamp) forces rustc_codegen_ssa to recompile
+# when the baked value changes, exactly like the FILC_VERSION stamp above.
+#
 # The script is idempotent: in incremental mode, if rust-build/rust already
 # exists, extraction is skipped and bootstrap resumes incrementally.
 #
 # The result is rust-build/rustc (symlink, also as rust-build/filrustc).
-# NOTE: $FILC_ROOT/build/bin must be on PATH whenever the built rustc is used,
-# because linking goes through Fil-C's `filcc`.
+# NOTE: the built rustc finds `filcc` on its own (see above), but putting
+# $FILC_ROOT/build/bin on PATH when using it is still the supported flow (and
+# is how this script itself finds filcc to bake in).
 
 # Resolve the repo root (the directory containing this file) from the script
 # location itself, so that sourcing this file works regardless of the
@@ -312,6 +326,15 @@ do_build_rustc() {
     # "clang version ...").  The variable itself is composed and exported below.
     check_grep 'option_env!("FILC_VERSION")' compiler/rustc_driver_impl/src/lib.rs
 
+    # compiler/rustc_codegen_ssa/src/back/link.rs: resolve the target spec's
+    # bare-name linker "filcc" to an absolute path at run time: the directory
+    # baked in below as FILC_LINKER_DIR, then the Fil-C checkout layout found
+    # by walking up from the rustc binary (<checkout>/build/bin/filcc), then
+    # /opt/fil/bin (the optfil install location), and only then the PATH
+    # (pizlix mode).
+    check_grep "fn filc_resolve_linker" compiler/rustc_codegen_ssa/src/back/link.rs
+    check_grep 'option_env!("FILC_LINKER_DIR")' compiler/rustc_codegen_ssa/src/back/link.rs
+
     echo "All Fil-C source changes verified in the extracted tree."
 
     # Compose the Fil-C version string that the compiler bakes into its
@@ -408,6 +431,39 @@ EOF
     # Fil-C's clang/filcc (the target spec links with `filcc`) live in build/bin.
     export PATH="$FILC_ROOT/build/bin:$PATH"
 
+    # Fil-C: bake the directory containing filcc into the compiler (consumed via
+    # option_env!("FILC_LINKER_DIR") in rustc_codegen_ssa).  In pizfix mode this
+    # is <checkout>/build/bin; in optfil mode /opt/fil/bin; in pizlix mode
+    # whatever the chroot has on PATH.  Runtime fallbacks (see codegen_ssa) cover
+    # relocated checkouts, so this only has to be right for the build itself.
+    # If filcc is not on PATH at all, leave FILC_LINKER_DIR unset: the built
+    # rustc still discovers filcc at run time (checkout walk, /opt/fil/bin, PATH).
+    if command -v filcc >/dev/null 2>&1; then
+        # PATH entries can be relative, and the baked candidate is exists()-checked against rustc's CWD at link time, so bake an absolute path.
+        FILC_LINKER_DIR="$(cd -- "$(dirname -- "$(command -v filcc)")" && pwd -P)"
+        export FILC_LINKER_DIR
+    fi
+
+    # option_env! is expanded when the rustc_codegen_ssa crate compiles, and
+    # cargo does not notice when the *value* of an environment variable changes,
+    # so keep a stamp recording the value the tree was last built with (same
+    # mechanism as the FILC_VERSION stamp above): when it differs (or is
+    # missing), touch a source file in that crate, forcing cargo to recompile
+    # rustc_codegen_ssa and relink rustc with the new value.  An unchanged value
+    # makes this a fast no-op.  If filcc is not on PATH, drop any previously
+    # baked value the same way (recompile without FILC_LINKER_DIR).
+    if [ -n "${FILC_LINKER_DIR:-}" ]; then
+        FILC_LINKER_STAMP=$RUST_BUILD/.filc-linker-dir-stamp
+        if [ ! -f $FILC_LINKER_STAMP ] || [ "`cat $FILC_LINKER_STAMP`" != "$FILC_LINKER_DIR" ]; then
+            touch $RUST_SRC/compiler/rustc_codegen_ssa/src/back/link.rs
+            echo "$FILC_LINKER_DIR" > $FILC_LINKER_STAMP
+        fi
+        echo "Baked-in filcc directory: $FILC_LINKER_DIR"
+    elif [ -f $RUST_BUILD/.filc-linker-dir-stamp ]; then
+        rm -f $RUST_BUILD/.filc-linker-dir-stamp
+        touch $RUST_SRC/compiler/rustc_codegen_ssa/src/back/link.rs
+    fi
+
     cd $RUST_SRC
     python3 x.py build --stage 1 2>&1 | tee $RUST_BUILD/build.log
 
@@ -432,8 +488,14 @@ EOF
     echo "Fil-C rustc build succeeded."
     echo "  rustc:    $RUST_BUILD/rustc"
     echo "  filrustc: $RUST_BUILD/filrustc"
-    echo "NOTE: put $FILC_ROOT/build/bin on PATH when using this rustc; the"
-    echo "x86_64-unknown-linux-gnu target links with Fil-C's \`filcc\`."
+    if [ -n "${FILC_LINKER_DIR:-}" ]; then
+        FILC_LINKER_RESOLUTION="baked directory $FILC_LINKER_DIR, checkout discovery, /opt/fil/bin, then PATH"
+    else
+        FILC_LINKER_RESOLUTION="checkout discovery, /opt/fil/bin, or PATH"
+    fi
+    echo "NOTE: this rustc resolves its \`filcc\` linker itself ($FILC_LINKER_RESOLUTION),"
+    echo "so nothing extra has to be on PATH; putting $FILC_ROOT/build/bin on"
+    echo "PATH is still supported."
 
     # Run the Fil-Rust test suite (filrustc/run-tests).  This is the default:
     # a build isn't done until its compiler is known to work.  The suite

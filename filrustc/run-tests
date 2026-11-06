@@ -103,8 +103,12 @@ unless Pathname.new($rustc).exist?
     exit 1
 end
 
-# Fil-C's `filcc` is the linker for the x86_64-unknown-linux-gnu target (the
-# target spec links with it), so it must be on PATH for every compile.
+# The built rustc resolves `filcc` itself: it tries the directory baked in at
+# build time (`FILC_LINKER_DIR`), then walks up from the running rustc binary
+# looking for `<ancestor>/build/bin/filcc`, then `/opt/fil/bin/filcc`, and
+# only then falls through to PATH.  Prepending the Fil-C `build/bin` dir to
+# PATH below is just the supported flow: it keeps this harness working even
+# for a rustc with no baked or otherwise discoverable filcc.
 filcc = Pathname.new("build/bin/filcc")
 unless filcc.exist?
     puts "ERROR: #{filcc} does not exist.  Build Fil-C first (./build_base.sh)."

@@ -8,8 +8,11 @@ scratch; see "Build scripts" below).  `build_rustc_incremental.sh` is the
 same thing without the nuke.  Output: `rust-build/rustc` (the compiler, a
 symlink to the stage-1 rustc binary) and `rust-build/filrustc` (a symlink to
 the same rustc; both spellings work and are equivalent -- the Fil-C behavior
-is baked into the compiler).  Keep Fil-C's `build/bin` on PATH when using it
-(`filcc` is the linker).  `filrustc --version` prints
+is baked into the compiler).  The compiler finds its `filcc` linker on its
+own (baked directory, checkout discovery, /opt/fil/bin, then PATH -- see
+"How the built rustc finds filcc" below), so nothing extra has to be on
+PATH, though keeping Fil-C's `build/bin` on PATH still works.
+`filrustc --version` prints
 `rustc 1.90.0 (1159e78c4 2025-09-14) (built from a source tarball)`
 followed by the Fil-C parenthetical ` (Fil-C 0.687
 git@github.com:pizlonator/fil-c.git <fil-c HEAD hash>)` -- mirroring what clang
@@ -206,6 +209,14 @@ The patch consists of the following changes:
     exception object (`class = u64::from_ne_bytes(*b"MOZ\0RUST")` +
     canary + payload Box) works unchanged, because the Fil-C runtime only
     touches the first 16 bytes of the exception object.
+20. `compiler/rustc_codegen_ssa/src/back/link.rs` — `filc_resolve_linker`:
+    when the linker is the bare name `filcc` (what the target spec sets, see
+    #2), resolve it to an absolute path at run time instead of relying on
+    PATH; see "How the built rustc finds filcc" below for the resolution
+    order.  Only the exact bare name `filcc` is resolved, so `-C linker=...`
+    and absolute paths are untouched.  Consumes the `FILC_LINKER_DIR`
+    directory that build_rustc_impl.sh bakes in via `option_env!` (unset --
+    the arm simply absent -- in a vanilla build of the tree).
 
 The projeny patch reproduces the build tree byte-identically: after
 `filc/projeny commit`, `filc/projeny extract projects/rust.projeny /tmp/pc`
@@ -244,7 +255,76 @@ The parenthetical mirrors clang/lib/Basic/Version.cpp, which appends
   crate and relink rustc, then records the new value.  An unchanged value is a
   fast no-op.
 
-## Verification matrix (all from /tmp, `filrustc` + Fil-C build/bin on PATH)
+## How the built rustc finds filcc
+
+The x86_64-unknown-linux-gnu target spec sets the linker to the bare name
+`filcc` (the Fil-C clang driver).  Upstream rustc resolves a bare-name linker
+through the PATH, which used to mean every `filrustc` invocation needed
+Fil-C's `build/bin` on PATH.  The built rustc now resolves `filcc` itself (see
+change #20, `filc_resolve_linker` in
+`compiler/rustc_codegen_ssa/src/back/link.rs`), trying in order:
+
+1. **The directory baked in at build time** — `option_env!("FILC_LINKER_DIR")`.
+   build_rustc_impl.sh composes it right after putting
+   `$FILC_ROOT/build/bin` on PATH, so in the normal **pizfix mode** checkout
+   it is `<fil-c-checkout>/build/bin`; in **optfil mode** (filcc installed at
+   `/opt/fil/bin`) it is `/opt/fil/bin`; in **pizlix mode** (filcc only on
+   PATH in the chroot) it is wherever the chroot had filcc when the compiler
+   was built.  `<dir>/filcc` is used if it exists (plain `.exists()`: an
+   existing-but-not-executable candidate is still returned, because the spawn
+   error rustc then reports is more informative than silently falling through
+   to another filcc).  The variable is unset in a vanilla build of the tree,
+   in which case this arm is simply absent.
+2. **Checkout discovery** — walk up from the running rustc binary
+   (`std::env::current_exe()`, which canonicalizes the `rust-build/rustc`
+   symlink to the real stage1 binary) and at each ancestor directory `D` use
+   `D/build/bin/filcc` if it exists.  This is the Fil-C checkout layout
+   (filcc lives in `<checkout>/build/bin`, next to the `<checkout>/pizfix` it
+   drives -- the "../build/bin relative to pizfix" rule), so a moved or
+   reinstalled checkout is found regardless of where `rust-build` lives under
+   it and without rebuilding the compiler.
+3. **`/opt/fil/bin/filcc`** — the optfil install location.
+4. **PATH** — if nothing above matched, the bare name `filcc` falls through to
+   rustc's normal PATH lookup: that is **pizlix mode**, or rustc's usual
+   `error: linker `filcc` not found` if there is no filcc anywhere.
+
+The resolution happens in `link_natively` right after the linker path is
+determined, so everything downstream sees the absolute path: the actual
+spawn, `--print link-args`, and the linker error messages.
+
+Mode table:
+
+| Mode    | filcc lives at                    | How rustc finds it                          |
+| ------- | --------------------------------- | ------------------------------------------- |
+| pizfix  | `<checkout>/build/bin`            | baked `FILC_LINKER_DIR` (or the walk in #2) |
+| optfil  | `/opt/fil/bin`                    | baked `FILC_LINKER_DIR` (or #3)             |
+| pizlix  | wherever PATH says                | fall-through to PATH (#4)                   |
+
+**Precedence when several filcc candidates exist:** a baked or discovered
+filcc wins over whatever is on PATH.  That is correct by construction -- the
+baked filcc is the one from the checkout that built this rustc and the std it
+links against -- but it means a compiler built in pizfix or optfil mode
+ignores a pizlix-style PATH-provided filcc (verified: with
+`/tmp/path-filc/filcc` on PATH and the baked dir present, `--print link-args`
+shows the baked `<checkout>/build/bin/filcc`).  Use
+`-C linker=/path/to/filcc` to override explicitly; any `-C linker=` value
+other than the exact bare name `filcc` is never rewritten.  A compiler built
+without `FILC_LINKER_DIR` (or after its baked filcc disappeared) discovers
+the checkout via the walk in #2, then `/opt/fil/bin`, then PATH.
+
+The same stamping caveat as for `FILC_VERSION` applies (option_env! is
+expanded when the rustc_codegen_ssa crate compiles and cargo does not notice
+value changes), so build_rustc_impl.sh keeps a parallel stamp
+(rust-build/.filc-linker-dir-stamp): when the value differs from the last
+build (or the stamp is missing) it touches
+`compiler/rustc_codegen_ssa/src/back/link.rs` to force a recompile and
+relink, and when filcc is not on PATH at all it drops any previously baked
+value the same way.
+
+## Verification matrix (all from /tmp; `filrustc` alone suffices)
+
+Though Fil-C build/bin on PATH still works -- see "How the built rustc finds
+filcc" above.
 
 * `filrustc --version` → `rustc 1.90.0 (1159e78c4 2025-09-14) (built from a
   source tarball) (Fil-C 0.687 git@github.com:pizlonator/fil-c.git <fil-c HEAD
@@ -294,11 +374,12 @@ The parenthetical mirrors clang/lib/Basic/Version.cpp, which appends
   panic at the boundary with `panic_cannot_unwind`, as upstream does.
 * Cross-DSO: `filrustc --crate-type dylib --edition 2021 lib.rs --crate-name
   mylib -o libmylib.so -C prefer-dynamic` links; `nm -D libmylib.so | grep -c
-  pizlonated_` = 4: `pizlonated__ZN5mylib3add17h052cc356082cdec9E` and
+  pizlonated_` = 5: `pizlonated__ZN5mylib3add17h052cc356082cdec9E` and
   `pizlonated__ZN5mylib10get_answer17h43de340481e07935E` are DEFINED (T),
-  and the two remaining pizlonated_ entries are undefined references to
+  and the three remaining pizlonated_ entries are undefined references to
   libstd getter symbols (`pizlonated__RNvCsugZpHxZGsu_7___rustc17rust_begin_unwind`,
-  `pizlonated__ZN4core9panicking11panic_const24panic_const_add_overflow...`)
+  `pizlonated__ZN4core9panicking11panic_const24panic_const_add_overflow...`,
+  and `pizlonated_rust_eh_personality`)
   that resolve at load time from the exported getters of `libstd-*.so` —
   there are no phantom undefined imports (references to symbols that exist
   nowhere).  The client
@@ -578,7 +659,9 @@ ld-fil1 does not search rustc's sysroot by default).
    program.  (Where the missing `.rustc` section comes from has not been
    investigated.)
 
-## Verified demos (from /tmp, with Fil-C build/bin on PATH)
+## Verified demos (from /tmp; `filrustc` alone suffices)
+
+See "How the built rustc finds filcc" above.
 
 * `fn main() { println!("hello filc rust"); }` -- debug and `-O`, exit 0,
   prints "hello filc rust".
@@ -615,10 +698,12 @@ The build is split into a shared library plus two thin entry points:
   `check_grep` helper and `do_build_rustc <clean|incremental>`, and carries
   ALL of the build logic: the extraction of the patched Rust sources from the
   projeny checkout, the Fil-C LLVM swap (with its `.filc-llvm-stamp`), the
-  ~24 `check_grep` fail-fast verifications of the projeny patch, the
+  ~26 `check_grep` fail-fast verifications of the projeny patch, the
   `FILC_VERSION` composition (plus the `.filc-version-stamp` handling), the
-  config.toml generation, the `x.py build --stage 1` run, and the creation of
-  the `rust-build/rustc` and `rust-build/filrustc` symlinks.
+  `FILC_LINKER_DIR` resolution + export (plus the parallel
+  `.filc-linker-dir-stamp` handling; see "How the built rustc finds filcc"),
+  the config.toml generation, the `x.py build --stage 1` run, and the
+  creation of the `rust-build/rustc` and `rust-build/filrustc` symlinks.
 * `build_rustc.sh` -- thin entry: license header, `set -e -o pipefail -x`,
   source the impl, call `do_build_rustc clean`.  This is the default: it
   nukes `rust-build/` first and does the whole build from scratch.
