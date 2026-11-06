@@ -816,6 +816,9 @@ struct PAS_ALIGNED(FILC_CC_ALIGNMENT) filc_thread {
     bool is_allocating_black; /* only for assertions. set to true if we can be sure that objects
                                  allocated by this thread have to be black. this may be conservatively
                                  set to false. */
+    bool is_attached; /* set to true if this thread was not created by the runtime but adopted by
+                         filc_thread_attach_current(). Such a thread leaves the runtime with
+                         filc_thread_detach_current() instead of exiting. */
     pthread_t thread; /* the underlying thread is always detached and this stays non-NULL so long
                          as the thread is running.
                          
@@ -1800,6 +1803,29 @@ PAS_API size_t filc_add_size(size_t a, size_t b);
 PAS_API size_t filc_mul_size(size_t a, size_t b);
 
 PAS_API filc_thread* filc_thread_create_with_manual_tracking(filc_thread* my_thread);
+
+/* Makes the calling native thread, which the runtime did not create, a Fil-C thread, for programs that
+   embed Fil-C in a native host (whose threads Fil-C code then runs on). Returns the thread in the
+   exited state; filc_enter() it to run Fil-C code. The thread participates in handshakes, and keeps
+   its Fil-C thread object alive, until it calls filc_thread_detach_current().
+
+   This sets up only the runtime's per-thread state. The user libc has per-thread state of its own,
+   which it sets up for the threads it creates. An attached thread must also attach to the user libc
+   (pthread_attach_current_np() in the musl flavor) before running code that uses it.
+
+   It's a panic to call this from a thread that is a Fil-C thread, before the runtime has run the
+   program's global constructors, or from a thread that has already detached: a thread can be
+   attached at most once. */
+PAS_API filc_thread* filc_thread_attach_current(void);
+
+/* Undoes filc_thread_attach_current(). Must be called on an attached thread with no Fil-C frames or
+   native frames on its stack, after it has detached from the user libc (pthread_detach_current_np()
+   in the musl flavor; this clears the thread's cookie, which the user libc leaves in place so that
+   signal handlers that run in between still find its per-thread state). The thread may be entered or
+   exited; it returns as a native thread again (filc_get_my_thread() returns NULL) and may keep
+   running, but it can't attach again. It must not hold any Fil-C pointers afterwards: the GC no
+   longer sees its roots. */
+PAS_API void filc_thread_detach_current(void);
 
 PAS_API void filc_thread_destruct(filc_thread* thread);
 

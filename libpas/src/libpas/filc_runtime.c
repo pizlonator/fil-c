@@ -313,7 +313,11 @@ filc_thread* filc_thread_create_with_manual_tracking(filc_thread* my_thread)
 
     /* The rest of the fields are initialized to zero already. */
 
-    filc_store_barrier(my_thread, filc_object_for_special_payload(thread));
+    /* With no thread to run the barrier on (the primordial thread, which is created before the GC
+       runs, and attached threads, which run the barrier themselves once they participate in
+       handshakes), the caller is responsible for it. */
+    if (my_thread)
+        filc_store_barrier(my_thread, filc_object_for_special_payload(thread));
     filc_thread_list_lock_lock();
     thread->next_thread = filc_first_thread;
     thread->prev_thread = NULL;
@@ -15162,6 +15166,160 @@ bool filc_native_zthread_join(filc_thread* my_thread, filc_ptr thread_ptr, filc_
                        filc_flight_ptr_load(my_thread, &thread->result_ptr));
     }
     return true;
+}
+
+filc_thread* filc_thread_attach_current(void)
+{
+    static const bool verbose = false;
+
+    if (!is_initialized)
+        pas_panic("filc_thread_attach_current: the Fil-C runtime is not initialized.\n");
+    if (filc_get_my_thread())
+        pas_panic("filc_thread_attach_current: this thread is already a Fil-C thread.\n");
+    if (!filc_did_run_deferred_global_ctors) {
+        pas_panic("filc_thread_attach_current: cannot attach threads before global constructors "
+                  "have started being run.\n");
+    }
+    /* filc_thread_detach_current() permanently retires the thread's libpas TLC (see there). */
+    if (!pas_thread_local_cache_can_set() && !pas_thread_local_cache_try_get())
+        pas_panic("filc_thread_attach_current: this thread has detached and cannot attach again.\n");
+
+    filc_stack_limit stack_limit = filc_try_compute_stack_limit();
+    if (!filc_stack_limit_did_succeed(stack_limit))
+        pas_panic("filc_thread_attach_current: cannot determine this thread's stack.\n");
+
+    /* Signals stay blocked until the thread is consistent: the runtime's signal handler looks at
+       filc_get_my_thread(). */
+    sigset_t fullset;
+    sigset_t oldset;
+    pas_reasonably_fill_sigset(&fullset);
+    PAS_ASSERT(!pthread_sigmask(SIG_BLOCK, &fullset, &oldset));
+
+    /* Like filc_native_zthread_create2() and start_thread() rolled into one, with this thread as both
+       creator and created. Holding the handshake lock keeps handshakes from starting until this
+       thread fully participates in them, and so keeps marking from terminating before the barrier
+       below has made the new thread object reachable for this cycle. (Threads on the thread list are
+       roots, but only from the start of the next cycle.) */
+    filc_handshake_lock_lock();
+    filc_wait_for_world_resumption_holding_lock();
+
+    filc_thread* thread = filc_thread_create_with_manual_tracking(NULL);
+    set_stack_limit(thread, stack_limit);
+    PAS_ASSERT(!pthread_setspecific(filc_thread_key, thread));
+
+    pas_system_mutex_lock(&thread->lock);
+    PAS_ASSERT(!thread->thread);
+    thread->is_attached = true;
+    thread->tid = gettid();
+    thread->thread = pthread_self();
+    thread->has_started = true;
+    pas_system_mutex_unlock(&thread->lock);
+
+    /* No handshake or stop can be pending (we hold the handshake lock and the world is running), so
+       this doesn't wait. */
+    filc_enter(thread);
+    filc_store_barrier(thread, filc_object_for_special_payload(thread));
+    thread->tlc_node = verse_heap_get_thread_local_cache_node();
+    thread->tlc_node_version = pas_thread_local_cache_node_version(thread->tlc_node);
+
+    pas_system_mutex_lock(&thread->lock);
+    thread->has_initialized = true;
+    pas_system_condition_broadcast(&thread->cond);
+    pas_system_mutex_unlock(&thread->lock);
+
+    filc_exit(thread);
+    filc_handshake_lock_unlock();
+
+    PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
+
+    if (verbose)
+        pas_log("thread %u (%p) attached\n", thread->tid, thread);
+
+    return thread;
+}
+
+void filc_thread_detach_current(void)
+{
+    static const bool verbose = false;
+
+    filc_thread* thread = filc_get_my_thread();
+    if (!thread)
+        pas_panic("filc_thread_detach_current: this thread is not a Fil-C thread.\n");
+    if (!thread->is_attached) {
+        pas_panic("filc_thread_detach_current: this thread was not attached with "
+                  "filc_thread_attach_current().\n");
+    }
+    if (thread->top_frame || thread->top_native_frame)
+        pas_panic("filc_thread_detach_current: the thread still has Fil-C frames on its stack.\n");
+
+    unsigned tid = thread->tid;
+    PAS_ASSERT(tid == (unsigned)gettid());
+    PAS_ASSERT(thread->thread == pthread_self());
+
+    if (!filc_thread_is_entered(thread))
+        filc_enter(thread);
+
+    /* From here on, this follows filc_native_zthread_exit(), except that the native thread keeps
+       running, so we restore its signal mask and clear its thread key at the end. See there for
+       why each step is ordered as it is. */
+    sigset_t fullset;
+    sigset_t oldset;
+    pas_reasonably_fill_sigset(&fullset);
+    PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &fullset, &oldset));
+
+    handle_deferred_signals(thread);
+
+    /* The user libc leaves its (by now unlisted) per-thread state in the cookie, so that signal
+       handlers that ran above still found it. */
+    filc_flight_ptr_store(thread, &thread->cookie_ptr, filc_ptr_forge_null());
+
+    bmalloc_deallocate(thread->cc_outline_buffer);
+    bmalloc_deallocate(thread->cc_outline_aux_buffer);
+    thread->cc_outline_buffer = NULL;
+    thread->cc_outline_aux_buffer = NULL;
+
+    fugc_donate(&thread->mark_stack);
+    filc_thread_stop_allocators(thread);
+    thread->tid = 0;
+    thread->is_stopping = true;
+    filc_thread_undo_create(thread);
+    pas_thread_local_cache_destroy(pas_lock_is_not_held);
+
+    /* As in filc_native_zthread_exit(): once this thread is invisible to filc_stop_the_world(), it
+       must never create a TLC or take a pas lock again, and in particular its eventual native thread
+       exit must not run pas_fast_tls_destructor(). Marking the fast-TLS slot destroyed guarantees
+       that. It's also why a detached thread can't attach again. */
+    pas_thread_local_cache_set_impl((pas_thread_local_cache*)PAS_FAST_TLS_DESTROYED);
+    PAS_ASSERT(!pas_thread_local_cache_can_set());
+
+    filc_exit(thread);
+
+    pas_system_mutex_lock(&thread->lock);
+    PAS_ASSERT(!thread->has_stopped);
+    PAS_ASSERT(!(thread->state & FILC_THREAD_STATE_ENTERED));
+    PAS_ASSERT(!(thread->state & FILC_THREAD_STATE_DEFERRED_SIGNAL));
+    PAS_ASSERT(!thread->num_deferred_signals);
+    PAS_ASSERT(!thread->first_signal_queue_chunk);
+    PAS_ASSERT(!thread->last_signal_queue_chunk);
+    thread->thread = PAS_NULL_SYSTEM_THREAD_ID;
+    thread->has_stopped = true;
+    pas_system_condition_broadcast(&thread->cond);
+    pas_system_mutex_unlock(&thread->lock);
+
+    /* Signals are still blocked, so the runtime's signal handler can't see a half-detached thread. */
+    PAS_ASSERT(!pthread_setspecific(filc_thread_key, NULL));
+
+    if (verbose)
+        pas_log("thread %u (%p) detaching\n", tid, thread);
+
+    filc_thread_dispose(thread);
+
+    /* The GC may free the thread object from here on. */
+
+    PAS_ASSERT(!pas_thread_local_cache_try_get());
+    PAS_ASSERT(!pas_thread_local_cache_can_set());
+
+    PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
 }
 
 bool filc_native_zthread_kill(filc_thread* my_thread, filc_ptr thread_ptr, int sig)
