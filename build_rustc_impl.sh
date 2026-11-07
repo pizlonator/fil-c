@@ -30,8 +30,8 @@
 #     do_build_rustc <clean|incremental>
 #
 # `clean` removes rust-build/ entirely and rebuilds from scratch.
-# `incremental` reuses an existing rust-build/ (extraction, the LLVM swap and
-# the compiler build all resume incrementally; a missing rust-build/ is
+# `incremental` reuses an existing rust-build/ (extraction, the compiler build
+# and everything else resume incrementally; a missing rust-build/ is
 # bootstrapped gracefully, so the incremental mode doubles as a first build).
 # Both modes end by creating the rust-build/rustc and rust-build/filrustc
 # symlinks and then running the Fil-Rust test suite (filrustc/run-tests), so
@@ -41,10 +41,20 @@
 # Build Fil-C's rustc.
 #
 # This extracts the patched Rust 1.90.0 sources from the projeny checkout in
-# projects/rust into rust-build/rust, swaps Rust's bundled LLVM for the Fil-C
-# LLVM (both are LLVM 20.1.8, so rustc's LLVM C++ wrapper compiles against it
-# unchanged modulo our Fil-C pipeline patches), writes a bootstrap
-# config.toml, and then runs `x.py build --stage 1`.  The resulting stage 1
+# projects/rust into rust-build/rust, writes a bootstrap config.toml, and then
+# runs `x.py build --stage 1`.  Rust does NOT build its own LLVM: the config
+# points bootstrap's [target.x86_64-unknown-linux-gnu] llvm-config at the
+# Fil-C LLVM that build_clang.sh already built into build/ (bootstrap then
+# treats LLVM as prebuilt and never touches src/llvm-project), and
+# rustc_llvm's build script uses that llvm-config to link the Fil-C LLVM
+# statically into librustc_driver.so -- with no libz (the Fil-C LLVM build has
+# LLVM_ENABLE_ZLIB=OFF), with libstdc++ linked statically
+# ([llvm] static-libstdcpp = true) and with the -lgcc_s that stage0 std's
+# libunwind rlib metadata adds redirected to the static libgcc_eh archive via
+# a -B directory holding a libgcc_s.so linker script (see below), so
+# librustc_driver.so ends up needing only libm, libc and the dynamic loader.
+# build_clang.sh builds the llvm-config binary and the LLVMMCA archives that
+# rustc's LLVM component query needs, so run it first.  The resulting stage 1
 # rustc pizlonates every module it compiles (the Fil-Pizlonator runs in every
 # pipeline, at every optimization level) and the x86_64-unknown-linux-gnu
 # target spec makes `filcc` the linker, so what it produces links as Fil-C.
@@ -127,8 +137,8 @@ do_build_rustc() {
     set -x
     cd -- "$FILC_RUSTC_IMPL_ROOT"
     # A clean build starts from a wiped rust-build/.  The incremental build
-    # keeps it (extraction and the LLVM swap below only happen when what they
-    # produce is missing, so re-runs are fast no-ops).
+    # keeps it (source extraction below only happens when what it produces,
+    # rust-build/rust, is missing, so re-runs are fast no-ops).
     if [ "$mode" = clean ]; then
         rm -rf rust-build
     fi
@@ -153,24 +163,27 @@ do_build_rustc() {
         )
     fi
 
-    # Swap in the Fil-C LLVM for the LLVM that Rust bundles.  The essential
-    # directories are llvm/ (the LLVM sources), cmake/ (LLVM's common CMake
-    # modules incl. LLVMVersion.cmake), libunwind/ (bootstrap builds it in-tree
-    # because rust.llvm-libunwind = "in-tree"), runtimes/, and third-party/.
-    # We keep a stamp file recording the Fil-C git HEAD so that we know the LLVM
-    # in there is ours and don't redo this on re-runs.
-    if [ ! -d $RUST_SRC/src/llvm-project/llvm ] || [ ! -f $RUST_SRC/src/llvm-project/.filc-llvm-stamp ]; then
-        rm -rf $RUST_SRC/src/llvm-project
-        mkdir -p $RUST_SRC/src/llvm-project
-        cp -a llvm cmake third-party runtimes libunwind $RUST_SRC/src/llvm-project/
-        git rev-parse HEAD > $RUST_SRC/src/llvm-project/.filc-llvm-stamp
+    # Rustc links the Fil-C LLVM that build_clang.sh already built into
+    # build/, via llvm-config.  With [target.<triple>] llvm-config set,
+    # bootstrap's prebuilt_llvm_config() returns AlreadyBuilt and never
+    # configures or compiles src/llvm-project, so there is no second LLVM
+    # build.  Fail fast with a clear message if the Fil-C LLVM is missing.
+    if [ ! -x $FILC_ROOT/build/bin/llvm-config ]; then
+        echo "ERROR: $FILC_ROOT/build/bin/llvm-config not found.  The Fil-C" >&2
+        echo "       rustc links the Fil-C LLVM from build/ (this script does" >&2
+        echo "       not build LLVM); run ./build_clang.sh first." >&2
+        exit 1
     fi
 
     # compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp: the Fil-C pipeline
-    # (KillUB -> [Fil-C inline pipeline, disabled by default] -> coro lowering ->
-    # FilPizlonator on every path, OptimizerLast DeleteRedundantPollchecks) and
-    # the "after Fil-C" DataLayout setup.
-    check_grep "FilPizlonatorPass()" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+    # comes from LLVM's RegisterFilPasses -- registered on the PassBuilder
+    # with IsRust=true (which also registers the OptimizerLast
+    # DeleteRedundantPollchecks), and applied directly to the fresh pipeline
+    # in the NoPrepopulatePasses path (there is no PassBuilder-built pipeline
+    # there to run the extension-point callbacks) -- plus the "after Fil-C"
+    # DataLayout setup.
+    check_grep "RegisterFilPasses(PB, nullptr, true)" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+    check_grep "llvm::FilCAddPipelineStartPasses(MPM, OptLevel, /*IsRust=*/true);" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
     check_grep "setDataLayoutAfterFilC" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
     check_grep "DeleteRedundantPollchecksPass()" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
 
@@ -398,7 +411,23 @@ download-ci-llvm = false
 optimize = true
 assertions = true
 ninja = true
-targets = "X86"
+# Rustc links the Fil-C LLVM from build/ via llvm-config (see the [target]
+# section below), so bootstrap never builds LLVM and these [llvm] settings
+# are the ones that still matter: download-ci-llvm = false keeps bootstrap
+# from fetching a CI LLVM, and assertions = true matches the Fil-C LLVM's
+# LLVM_ENABLE_ASSERTIONS=ON (bootstrap then compiles the LLVM C++ wrappers
+# with assertions enabled, like the LLVM itself).
+#
+# Fil-C: link libstdc++ statically into librustc_driver.so.  The Fil-C LLVM
+# is built with LLVM_STATIC_LINK_CXX_STDLIB=ON, so without this the rustc
+# link would pull in the dynamic libstdc++.so.6, which is exactly what we
+# must not need.
+static-libstdcpp = true
+# NOTE: no `targets = "X86"` here.  That setting only feeds
+# LLVM_TARGETS_TO_BUILD when bootstrap builds LLVM itself, which it never
+# does with an external llvm-config; the backends rustc links are whatever
+# the Fil-C LLVM was configured with (X86 and AArch64), read out of
+# llvm-config at build time.
 
 [rust]
 # Fil-C: no in-tree or system libunwind.  pizfix has no libgcc_s, and LLVM
@@ -408,6 +437,8 @@ targets = "X86"
 # libyolounwind) into every binary, and libpizlo exports the full _Unwind_*
 # API under the pizlonator's renamed symbol names.
 llvm-libunwind = "no"
+# Fil-C: must stay false with an external llvm-config (bootstrap has no
+# in-tree lld to build, and rustc must not try to link one).
 lld = false
 jemalloc = false
 optimize = true
@@ -425,11 +456,78 @@ lto = "off"
 # needs; without it, is_x86_feature_detected! would report every feature as
 # absent.
 std-features = ["panic-unwind", "std_detect_file_io"]
+# Fil-C: rustc's own LLVM-IR codegen testsuite is not run here
+# (filrustc/run-tests is the Fil-C test suite for this compiler).  With an
+# externally configured LLVM this also lifts bootstrap's sanity-check
+# requirement that a FileCheck binary exist next to llvm-config.
+codegen-tests = false
+# Fil-C: do not install the LLVM tools (llvm-cov, llvm-objdump, ...) into the
+# stage sysroot (bootstrap's equivalent of rustup's llvm-tools-preview
+# component).  With an external llvm-config bootstrap would copy them out of
+# llvm-config's bindir -- build/bin, which holds the Fil-C clang, not the
+# LLVM tool suite.
+llvm-tools = false
+EOF
+
+    # The [target] section needs the absolute llvm-config path expanded by
+    # this script, so it is written separately (the heredoc above is quoted).
+    cat >> $RUST_SRC/config.toml <<EOF
+
+[target.x86_64-unknown-linux-gnu]
+# Use the Fil-C LLVM that build_clang.sh built into build/ instead of
+# building a second LLVM.  With this set, bootstrap treats LLVM as prebuilt
+# (prebuilt_llvm_config returns AlreadyBuilt; src/llvm-project is never
+# compiled) and hands the path to rustc_llvm's build script, which queries it
+# for cxxflags/libs/ldflags and links the Fil-C LLVM statically.  The path
+# MUST be absolute: bootstrap joins relative [target] paths onto the rust
+# source root.
+llvm-config = "$FILC_ROOT/build/bin/llvm-config"
+# The Fil-C LLVM is not a stock upstream LLVM (it carries the Fil-C passes,
+# e.g. FilPizlonator/KillUB), so tell bootstrap that this user-provided LLVM
+# is a patched one.  This only flips bootstrap's LLVM_RUSTLLVM knob for the
+# rustc LLVM wrappers, which do not key on it, so it is inert here -- but it
+# is the honest declaration.
+llvm-has-rust-patches = true
 EOF
     cat $RUST_SRC/config.toml
 
     # Fil-C's clang/filcc (the target spec links with `filcc`) live in build/bin.
     export PATH="$FILC_ROOT/build/bin:$PATH"
+
+    # Fil-C: redirect the explicit -lgcc_s (from stage0 std's libunwind rlib
+    # metadata, which lands in the -nodefaultlibs rustc link) to the static
+    # libgcc_eh archive, so librustc_driver.so does not NEED libgcc_s.
+    # -static-libgcc alone does NOT work here (proven): it only stops the
+    # compiler driver from adding its own -lgcc_s, while this -lgcc_s comes
+    # from the std rlibs' metadata.
+    #
+    # The redirect dir must be searched BEFORE /usr/lib/gcc/... (which holds
+    # the real libgcc_s.so linker script).  Two mechanisms are used, because
+    # neither alone is sufficient: the -L must come from RUSTFLAGS directly
+    # (a -Clink-arg is emitted at the very END of the linker command, after
+    # the -L/usr/lib/gcc/... that rustc_llvm's build script adds for the
+    # static libstdc++, and the gcc driver builds its search path in
+    # command-line order), while -B<dir> is searched for subprograms and
+    # libraries alike and is kept as belt-and-suspenders for links that do
+    # not echo the rustc -L args (e.g. tools linked with other drivers).
+    # The libgcc_s.so linker script GROUPs the static libgcc_eh archive,
+    # which is then linked statically into librustc_driver.so.  RUSTFLAGS
+    # propagates to every cargo invocation bootstrap makes, so this also
+    # statically satisfies -lgcc_s for the proc-macros and tools built along
+    # the way (it is inert for rlib-only compilations).  Note that changing
+    # RUSTFLAGS invalidates all cargo fingerprints -- a one-time churn on the
+    # first build with this script revision.
+    GCC_EH="$(cc --print-file-name=libgcc_eh.a)"
+    if [ ! -f "$GCC_EH" ]; then
+        echo "ERROR: cannot find libgcc_eh.a (cc --print-file-name=libgcc_eh.a" >&2
+        echo "       printed '$GCC_EH').  It is needed to statically satisfy the" >&2
+        echo "       -lgcc_s that stage0 std's libunwind rlib metadata adds to the" >&2
+        echo "       rustc link." >&2
+        exit 1
+    fi
+    mkdir -p "$RUST_BUILD/gcc-redirect"
+    printf 'GROUP ( %s )\n' "$GCC_EH" > "$RUST_BUILD/gcc-redirect/libgcc_s.so"
+    export RUSTFLAGS="-L$RUST_BUILD/gcc-redirect -Clink-arg=-B$RUST_BUILD/gcc-redirect"
 
     # Fil-C: bake the directory containing filcc into the compiler (consumed via
     # option_env!("FILC_LINKER_DIR") in rustc_codegen_ssa).  In pizfix mode this

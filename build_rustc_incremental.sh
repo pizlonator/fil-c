@@ -25,9 +25,9 @@
 #
 # Build Fil-C's rustc: incremental build + test.
 #
-# This reuses an existing rust-build/ -- extraction, the LLVM swap, the
-# Fil-C version stamp and the compiler build only redo work when what they
-# produce is missing or changed, so a re-run is usually a fast no-op (a
+# This reuses an existing rust-build/ -- extraction, the Fil-C version stamp
+# and the compiler build only redo work when what they produce is missing or
+# changed, so a re-run is usually a fast no-op (a
 # missing rust-build/ is bootstrapped from scratch, so this script doubles
 # as a first build) -- and then runs the Fil-Rust test suite
 # (filrustc/run-tests).  For a clean build use build_rustc.sh, which nukes
