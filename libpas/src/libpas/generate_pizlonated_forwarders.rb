@@ -603,9 +603,6 @@ addSig "PAS_GLIBC", "void", "FilLLVMJIT_BlessPointer", "filc_ptr", "filc_ptr"
 addSig "PAS_GLIBC", "filc_ptr", "FilLLVMJIT_CompileModule", "filc_ptr", "filc_ptr"
 addSig "PAS_GLIBC", "filc_ptr", "FilLLVMJIT_GetPointerToGlobal", "filc_ptr", "filc_ptr"
 addSig "PAS_GLIBC", "filc_ptr", "LLVMContextCreate"
-# Fil-C: added for mesa/llvmpipe (Sprint 2 of llvmpipe-on-JIT).  The
-# Print*ToString wrappers copy into Fil-C memory and leak the LLVM-side
-# original; there is deliberately no LLVMDisposeMessage.
 addSig "PAS_GLIBC", "filc_ptr", "LLVMPrintModuleToString", "filc_ptr"
 addSig "PAS_GLIBC", "filc_ptr", "LLVMPrintValueToString", "filc_ptr"
 addSig "PAS_GLIBC", "void", "LLVMGetVersion", "filc_ptr", "filc_ptr", "filc_ptr"
