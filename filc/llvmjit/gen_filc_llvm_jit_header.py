@@ -37,16 +37,18 @@ tracked in git. This script never writes it; curate that file by editing it
 directly. The JIT-entry declarations below are kept in sync with the user
 header by hand.
 
-Functions are deliberately excluded when they:
-  - destroy IR (anything bottoming out in eraseFromParent,
-    removeFromParent, or delete),
-  - dispose of LLVM objects (LLVMDispose*),
-  - shut down LLVM or fetch the global context,
-  - implicitly use the global LLVM context (creators without an
-    LLVMContextRef parameter: use the InContext sibling instead),
-  - install/observe diagnostics or yield callbacks,
-  - return owned strings that would require LLVMDisposeMessage to free,
-  - belong to the legacy pass-manager or module-provider C APIs.
+This generated table is NOT curated: it carries the full llvm-c/Core.h
+surface parsed out of the in-tree headers, LLVMDispose* and owned-string
+functions included (LLVMCreateMessage, LLVMDisposeMessage, ...). The runtime
+needs the disposes for its own object destructors and for releasing
+LLVM-allocated strings after copying them into Fil-C memory, and neither
+file that includes this header (filc_llvm_jit.c, filc_llvm_jit_shim.cpp) is
+user-visible, so nothing here is exposed to Fil-C programs. Selectivity --
+which functions Fil-C programs may call -- is exclusively a property of the
+hand-curated user header. The only things dropped on the generated side are
+non-function noise: the diagnostics severity enum, and the LLVMIsA*
+declarations, which are re-emitted explicitly from the subclass-macro
+expansion so that the set stays complete and sorted.
 
 Usage: python3 filc/llvmjit/gen_filc_llvm_jit_header.py
 Runs from the repository root.

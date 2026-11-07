@@ -14655,7 +14655,111 @@ class Pizlonator {
       BA->destroyConstant();
     }
   }
-  
+
+  /* The AVX2 VGATHER intrinsics (llvm.x86.avx2.gather.*) are one call that
+     loads N elements from N distinct addresses (base + idxs[i] * scale)
+     under per-lane masks.  The pizlonator's intrinsic handler cannot emit a
+     capability-checked access for a memory-accessing intrinsic that is
+     outside its load/store analysis ("Unhandled intrinsic" safety error), so
+     lower the whole family here, before any pizlonation happens, into what
+     the non-AVX2 codegen paths emit: one plain load per lane, predicated on
+     the lane's mask bit so that masked-off lanes never access memory
+     (matching the hardware, which suppresses faults for masked-off lanes).
+     The pizlonator then turns each plain load into a capability-checked
+     load, which is strictly safer than the raw hardware gather.  Doing this
+     as an early pass means both JIT'd modules and ahead-of-time-compiled
+     C/C++ that reaches for the AVX2 gather intrinsics get the same
+     treatment.
+
+       <N x T> @llvm.x86.avx2.gather.(d|q).{d,q,ps,pd}(.256)?(
+           <N x T> %src,      ; passthru for masked-off lanes
+           ptr     %base,     ; byte-granular base
+           <N x i32|i64> %idxs, ; SIGNED element indices
+           <N x T> %mask,     ; per-lane mask (same type as result)
+           i8      %scale)    ; bytes per index step
+
+     is lowered per lane i to:
+
+       cond_i = icmp slt (bitcast mask_i to iBW), 0   ; VGATHER tests the MSB
+       addr_i = gep i8, %base, sext(idxs_i) * sext(scale)
+       val_i  = cond_i ? load eltty, addr_i : passthru_i
+
+     Only calls with a constant scale and well-formed operand types are
+     rewritten; anything else is left alone so that the intrinsic handler's
+     "Unhandled intrinsic" error stays the safety net for shapes this
+     lowering does not understand.  The AVX512 gather intrinsics (different
+     names and mask types) are not handled; nothing in the current Fil-C
+     tree emits them. */
+  void lowerX86Avx2Gathers() {
+    SmallVector<CallBase*, 16> Gathers;
+    for (Function& F : M.functions()) {
+      if (!F.getName().starts_with("llvm.x86.avx2.gather."))
+        continue;
+      for (Use& U : F.uses()) {
+        auto* CB = dyn_cast<CallBase>(U.getUser());
+        if (CB && CB->getCalledFunction() == &F)
+          Gathers.push_back(CB);
+      }
+    }
+
+    for (CallBase* Gather : Gathers) {
+      auto* VecTy = dyn_cast<FixedVectorType>(Gather->getType());
+      if (!VecTy || Gather->arg_size() != 5)
+        continue;
+      Value* Passthru = Gather->getArgOperand(0);
+      Value* Base = Gather->getArgOperand(1);
+      Value* Idxs = Gather->getArgOperand(2);
+      Value* Mask = Gather->getArgOperand(3);
+      Value* Scale = Gather->getArgOperand(4);
+      auto* IdxVecTy = dyn_cast<FixedVectorType>(Idxs->getType());
+      if (!IdxVecTy || Mask->getType() != VecTy || !Base->getType()->isPointerTy())
+        continue;
+      Type* IdxTy = IdxVecTy->getElementType();
+      if (!IdxTy->isIntegerTy(32) && !IdxTy->isIntegerTy(64))
+        continue;
+      auto* ScaleC = dyn_cast<ConstantInt>(Scale);
+      if (!ScaleC)
+        continue;
+      const int64_t ScaleV = ScaleC->getSExtValue();
+
+      unsigned Lanes = VecTy->getNumElements();
+      Type* EltTy = VecTy->getElementType();
+      unsigned EltBits = EltTy->getPrimitiveSizeInBits();
+      Type* MaskIntTy = Type::getIntNTy(C, EltBits);
+
+      // Build the whole lowering straight-line, right before the call: no
+      // new blocks, no phis.  A masked-off lane loads base[0] (which the
+      // caller must be able to dereference anyway -- the same requirement
+      // every plain load in the guest has) and selects the passthru, so
+      // the load itself stays inside the object bounds no matter how wild
+      // the masked lane's index is.
+      IRBuilder<> B(Gather);
+      Value* Result = PoisonValue::get(VecTy);
+      for (unsigned I = 0; I < Lanes; ++I) {
+        Value* MaskElt = B.CreateExtractElement(Mask, I);
+        Value* PassElt = B.CreateExtractElement(Passthru, I);
+        Value* MaskInt = MaskElt->getType()->isIntegerTy()
+          ? MaskElt : B.CreateBitCast(MaskElt, MaskIntTy);
+        Value* Cond = B.CreateICmpSLT(
+          MaskInt, ConstantInt::get(MaskIntTy, 0), "gather.mask.set");
+        Value* IdxElt = B.CreateExtractElement(Idxs, I);
+        Value* Idx64 = IdxTy->isIntegerTy(64)
+          ? IdxElt : B.CreateSExt(IdxElt, Int64Ty);
+        Value* Off = B.CreateMul(
+          Idx64, ConstantInt::get(Int64Ty, ScaleV), "gather.off");
+        Value* SafeOff = B.CreateSelect(
+          Cond, Off, ConstantInt::get(Int64Ty, 0), "gather.safeoff");
+        Value* Addr = B.CreateGEP(Int8Ty, Base, SafeOff, "gather.addr");
+        Value* Val = B.CreateLoad(EltTy, Addr, Gather->getName() + ".val");
+        Value* Res = B.CreateSelect(Cond, Val, PassElt, "gather.lane");
+        Result = B.CreateInsertElement(Result, Res, I);
+      }
+
+      Gather->replaceAllUsesWith(Result);
+      Gather->eraseFromParent();
+    }
+  }
+
   void lockDownLinkage() {
     for (GlobalVariable& G : M.globals()) {
       if (G.getLinkage() == GlobalValue::AvailableExternallyLinkage) {
@@ -16196,7 +16300,16 @@ public:
 
     if (verbose)
       errs() << "Module with indirectbr lowered:\n" << M << "\n";
-    
+
+    /* Lower the AVX2 gather intrinsics before anything that would meet them:
+       the intrinsic handler cannot pizlonate a raw gather, and the plain
+       predicated loads we replace it with must already be in place when
+       pizlonation does its load/store analysis. */
+    lowerX86Avx2Gathers();
+
+    if (verbose)
+      errs() << "Module with gathers lowered:\n" << M << "\n";
+
     lockDownLinkage();
     convertMisalignedAtomicsToLibcalls();
     removeIrrelevantIntrinsics();

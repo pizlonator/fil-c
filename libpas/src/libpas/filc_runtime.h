@@ -1190,15 +1190,6 @@ struct filc_llvm_jit_object {
     filc_llvm_jit_context_object* context;
     filc_llvm_jit_module_object* module;
     void* handle;
-    /* Fil-C: for MODULE wrappers -- true if this wrapper owns the LLVM
-     * module (i.e. its fugc destructor runs LLVMDisposeModule).  Only the
-     * wrapper created by LLVMModuleCreateWithNameInContext /
-     * LLVMCloneModule owns it; wrappers handed out for RETURNS of an
-     * existing module (LLVMGetGlobalParent) must not dispose it: they can
-     * outlive the user's owning reference or be collected twice for one
-     * module (wrapper drift -- see wrap_handle), which would destroy a
-     * module that is still in use (first hit by llvmpipe's shader builds). */
-    bool owns_handle;
 };
 
 struct filc_llvm_jit_module_object {
@@ -1219,8 +1210,10 @@ struct filc_llvm_jit_value_object {
     struct filc_llvm_jit_object base;
 };
 
-/* Wrappers for METADATA_ENTRIES and MODULE_FLAG_ENTRIES. The array is
-   never freed: the curated header omits LLVMDispose. */
+/* Wrappers for METADATA_ENTRIES and MODULE_FLAG_ENTRIES. The LLVM-side
+   array is LLVM-allocated (safe_malloc in Core.cpp); it is released with
+   LLVMDisposeValueMetadataEntries / LLVMDisposeModuleFlagsMetadata -- both
+   in the generated api table -- when the wrapper's destructor runs. */
 struct filc_llvm_jit_entries_object {
     struct filc_llvm_jit_object base;
     size_t count;

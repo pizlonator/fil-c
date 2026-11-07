@@ -79,31 +79,11 @@ static void drop_context_state(filc_llvm_jit_context_object* object)
         api->LLVMContextDispose((LLVMContextRef)object->handle);
 }
 
-static filc_ptr wrap_handle_owning(filc_thread* my_thread,
-                                   filc_llvm_jit_context_object* context_obj,
-                                   filc_llvm_jit_object* module_obj,
-                                   filc_llvm_jit_kind kind,
-                                   void* handle,
-                                   bool owns_handle);
-
 static filc_ptr wrap_handle(filc_thread* my_thread,
                             filc_llvm_jit_context_object* context_obj,
                             filc_llvm_jit_object* module_obj,
                             filc_llvm_jit_kind kind,
                             void* handle)
-{
-    return wrap_handle_owning(my_thread, context_obj, module_obj, kind,
-                              handle, true);
-}
-
-/* Fil-C: owns_handle=false for wrappers of PRE-EXISTING modules returned
- * by value (LLVMGetGlobalParent) -- see filc_runtime.h. */
-static filc_ptr wrap_handle_owning(filc_thread* my_thread,
-                                   filc_llvm_jit_context_object* context_obj,
-                                   filc_llvm_jit_object* module_obj,
-                                   filc_llvm_jit_kind kind,
-                                   void* handle,
-                                   bool owns_handle)
 {
     if (context_obj)
         PAS_ASSERT(context_obj->kind == FILC_LLVM_JIT_KIND_CONTEXT);
@@ -181,7 +161,6 @@ static filc_ptr wrap_handle_owning(filc_thread* my_thread,
     payload->context = context_obj;
     payload->module = (filc_llvm_jit_module_object*)module_obj;
     payload->handle = handle;
-    payload->owns_handle = owns_handle;
     pas_store_store_fence();
     return filc_ptr_create_with_special_object(my_thread, object);
 }
@@ -327,11 +306,13 @@ void filc_llvm_jit_destruct(void* raw_payload)
     }
     case FILC_LLVM_JIT_KIND_MODULE: {
         filc_llvm_jit_module_object* object = (filc_llvm_jit_module_object*)raw_payload;
-        /* Fil-C: only the OWNING wrapper (the one that created / cloned the
-         * module) may dispose it; borrowed wrappers (LLVMGetGlobalParent
-         * returns) must not -- see filc_runtime.h owns_handle. */
-        if (object->base.owns_handle)
-            api->LLVMDisposeModule(object->base.handle);
+        /* Fil-C: every MODULE-kind wrapper owns its LLVM module -- the only
+         * wrappers that ever exist are the ones created by
+         * LLVMModuleCreateWithNameInContext / LLVMCloneModule, plus whatever
+         * LLVMGetGlobalParent hands back, which is the very same wrapper
+         * object (see filc_native_LLVMGetGlobalParent), never a fresh one.
+         * So exactly one wrapper per module dies exactly once. */
+        api->LLVMDisposeModule(object->base.handle);
         drop_context_state(object->base.context);
         return;
     }
@@ -4186,15 +4167,27 @@ filc_ptr filc_native_LLVMContextCreate(filc_thread* my_thread)
 }
 
 /* ------------------------------------------------------------------ */
-/* Borrowed strings and arrays. The C API below returns pointers owned by
-   the LLVM objects themselves (no Dispose needed, hence their place
-   in the curated header). Wrappers copy the data into fresh Fil-C
+/* Strings and arrays that the C API returns as a plain pointer.  Whatever
+   the LLVM side hands back, the wrapper copies the bytes into fresh Fil-C
    memory while entered; the length out-params of the C API are dropped
-   because Fil-C values carry their own bounds. The two
-   LLVMIntrinsicCopyOverloadedName* functions are the exception: they return
-   freshly allocated strings that the full LLVM C API would release with
-   LLVMDisposeMessage, which the curated API omits -- the originals leak by design
-   and only the copy is returned. */
+   because Fil-C values carry their own bounds.  The copies fall into two
+   classes:
+
+   - Strings owned by the LLVM objects themselves (names, sections, data
+     layout strings, inline asm text, ...): the pointer stays valid for the
+     parent object's lifetime, so there is nothing to free after copying.
+     These use FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0/LEN.
+
+   - Strings LLVM freshly allocated on the caller's behalf
+     (LLVMPrintModuleToString, LLVMPrintValueToString,
+     LLVMIntrinsicCopyOverloadedName2): the C API contract is that the
+     caller releases them with LLVMDisposeMessage.  LLVMDisposeMessage is
+     in the generated api table (filc/llvmjit/filc_llvm_jit_api.h -- the
+     generated headers carry the full llvm-c/Core.h surface, disposes
+     included; only the hand-curated USER header filc/include/filc_llvm_jit.h
+     is selective).  These use FILC_LLVM_JIT_DEFINE_OWNED_CSTR0 or dispose
+     inline: the LLVM-side original is released right after the copy, so
+     no LLVM-allocated memory leaks. */
 
 static filc_ptr new_sized_string(filc_thread* my_thread, const char* str,
                                  size_t length)
@@ -4245,6 +4238,30 @@ static filc_ptr new_sized_string(filc_thread* my_thread, const char* str,
         return result; \
     }
 
+/* Like BORROWED_CSTR0, but for the C APIs that return a freshly
+ * LLVM-allocated string (LLVMCreateMessage under the hood): after copying
+ * into Fil-C memory, the LLVM-side original is released with
+ * LLVMDisposeMessage (available in the generated api table), so nothing
+ * LLVM-allocated leaks. */
+#define FILC_LLVM_JIT_DEFINE_OWNED_CSTR0(c_name, kind, ...) \
+    filc_ptr filc_native_##c_name(filc_thread* my_thread, filc_ptr parent_ptr) \
+    { \
+        ensure_api(my_thread); \
+        filc_llvm_jit_context_object* context = NULL; \
+        filc_llvm_jit_object* module = NULL; \
+        filc_llvm_jit_object* parent = unwrap_obj( \
+            my_thread, parent_ptr, kind, &context, &module); \
+        char* raw; \
+        pas_lock_lock(&context->lock); \
+        FILC_LLVM_JIT_VALIDATE_BORROWED(c_name, parent, ##__VA_ARGS__) \
+        raw = api->c_name((void*)parent->handle); \
+        filc_ptr result = filc_strdup(my_thread, raw); \
+        if (raw) \
+            api->LLVMDisposeMessage(raw); \
+        pas_lock_unlock(&context->lock); \
+        return result; \
+    }
+
 /* The borrowed-string wrappers take the same check token as a row
  * descriptor, applied to the parent object's handle; pass no token when the
  * LLVM implementation is graceful for the filc kind. */
@@ -4264,13 +4281,13 @@ FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetTarget, FILC_LLVM_JIT_KIND_MODULE)
 FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetTargetExtTypeName, FILC_LLVM_JIT_KIND_TYPE,
                                     TargetExtTypeKind)
 FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetValueName, FILC_LLVM_JIT_KIND_VALUE)
-/* Fil-C: added for mesa/llvmpipe's debug dumps.  The C API returns a
- * malloc'd string that the caller would free with LLVMDisposeMessage; since
- * the curated header deliberately omits DisposeMessage, these wrappers copy
- * the bytes into fresh Fil-C memory (filc_strdup) and let the LLVM-side
- * original leak -- the same rule LLVMIntrinsicCopyOverloadedName follows. */
-FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMPrintModuleToString, FILC_LLVM_JIT_KIND_MODULE)
-FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMPrintValueToString, FILC_LLVM_JIT_KIND_VALUE)
+/* Fil-C: added for mesa/llvmpipe's debug dumps.  These C APIs return a
+ * malloc'd string that the caller would free with LLVMDisposeMessage; the
+ * wrappers copy the bytes into fresh Fil-C memory (filc_strdup) and then
+ * dispose the LLVM-side original -- the LLVM-allocated string does not
+ * leak. */
+FILC_LLVM_JIT_DEFINE_OWNED_CSTR0(LLVMPrintModuleToString, FILC_LLVM_JIT_KIND_MODULE)
+FILC_LLVM_JIT_DEFINE_OWNED_CSTR0(LLVMPrintValueToString, FILC_LLVM_JIT_KIND_VALUE)
 
 FILC_LLVM_JIT_DEFINE_BORROWED_CSTR_LEN(LLVMGetDebugLocDirectory, FILC_LLVM_JIT_KIND_VALUE,
                                        unsigned, DebugLocOwner)
@@ -4407,6 +4424,12 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
     raw = api->LLVMIntrinsicCopyOverloadedName2((LLVMModuleRef)module_obj->handle, id,
                                                 param_types, param_count, &name_length);
     filc_ptr result = new_sized_string(my_thread, raw, name_length);
+    /* LLVMIntrinsicCopyOverloadedName2 hands ownership of a freshly
+       allocated string to the caller (release it with LLVMDisposeMessage).
+       We copied it into Fil-C memory, so release the LLVM-side original:
+       LLVMDisposeMessage is in the generated api table. */
+    if (raw)
+        api->LLVMDisposeMessage(raw);
     pas_lock_unlock(&context->lock);
     *(size_t*)filc_ptr_ptr(name_length_ptr) = name_length;
     return result;
@@ -4746,26 +4769,10 @@ filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0)) \
     return result; \
 }
 
-/* Fil-C: borrowed-module variant -- the returned module wrapper does not
- * own the LLVM module (see wrap_handle_owning). */
-#define FILC_LLVM_JIT_DEFINE_REF_1_BORROWED(name, lock, kind, d0, ...) \
-filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0)) \
-{ \
-    ensure_api(my_thread); \
-    FILC_LLVM_JIT_DECLS(lock) \
-    FILC_LLVM_JIT_UNWRAP(name, d0) \
-    void* result_raw; \
-    FILC_LLVM_JIT_LOCK(lock) \
-    FILC_LLVM_JIT_VALIDATE(name, d0) \
-    FILC_LLVM_JIT_SEM(name, ##__VA_ARGS__) \
-    result_raw = api->name(FILC_LLVM_JIT_ARG(d0)); \
-    filc_ptr result = wrap_handle_owning( \
-        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
-        result_raw, false); \
-    FILC_LLVM_JIT_UNLOCK(lock) \
-    return result; \
-}
-
+/* Fil-C: LLVMGetGlobalParent is hand-written (see its definition next to the
+ * module rows below): the value's wrapper already points at the module object
+ * that is the parent, so the parent is returned as THAT wrapper rather than
+ * wrapped anew. */
 #define FILC_LLVM_JIT_DEFINE_REF_2(name, lock, kind, d0, d1, ...) \
 filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_LLVM_JIT_PARAM(d1)) \
 { \
@@ -5340,7 +5347,43 @@ FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstUse, LOCKED, USE, (REF, val, VALUE, LLVMV
 FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetFunctionCallConv, LOCKED, unsigned, (REF, function, VALUE, LLVMValueRef, Function))
 FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetGEPSourceElementType, LOCKED, TYPE, (REF, gep, VALUE, LLVMValueRef, GEPOperator))
 FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetGlobalIFuncResolver, LOCKED, VALUE, (REF, i_func, VALUE, LLVMValueRef, GlobalIFunc))
-FILC_LLVM_JIT_DEFINE_REF_1_BORROWED(LLVMGetGlobalParent, LOCKED, MODULE, (REF, global, VALUE, LLVMValueRef, GlobalValue))
+/* Fil-C: LLVMGetGlobalParent cannot go through FILC_LLVM_JIT_DEFINE_REF_1.
+ * The generic wrapper would wrap the returned module handle in a FRESH GC
+ * object -- a second wrapper for one LLVM module.  A fresh wrapper either
+ * disposes a module that is still in use (it owns the handle; the first
+ * of the two wrappers to die kills the module out from under the other) or,
+ * if taught not to dispose, dangles once the owning wrapper dies first.
+ * The wrapper we hand out for a global already points at the module object
+ * that is the parent (filc_llvm_jit_object.module, set at wrap time from the
+ * module the global was created/fetched through).  So assert that the LLVM
+ * parent really is that module's handle and return the very same wrapper:
+ * identity is preserved for callers that compare module refs, the GC object
+ * is shared rather than duplicated, and disposal stays one-to-one with the
+ * module. */
+filc_ptr filc_native_LLVMGetGlobalParent(filc_thread* my_thread, filc_ptr global)
+{
+    ensure_api(my_thread);
+    FILC_LLVM_JIT_DECLS(LOCKED)
+    FILC_LLVM_JIT_UNWRAP(LLVMGetGlobalParent,
+                         (REF, global, VALUE, LLVMValueRef, GlobalValue))
+    FILC_LLVM_JIT_LOCK(LOCKED)
+    FILC_LLVM_JIT_VALIDATE(LLVMGetGlobalParent,
+                           (REF, global, VALUE, LLVMValueRef, GlobalValue))
+    void* parent_raw =
+        api->LLVMGetGlobalParent((LLVMValueRef)global_obj->handle);
+    FILC_CHECK(global_obj->module, NULL,
+               "Fil-C LLVM JIT API: LLVMGetGlobalParent on a global whose "
+               "wrapper has no affiliated module object.");
+    /* The object the value points at IS the module that is the parent. */
+    FILC_CHECK(parent_raw == global_obj->module->base.handle, NULL,
+               "Fil-C LLVM JIT API: a global wrapper's affiliated module "
+               "object is not its LLVM global parent.");
+    filc_ptr result = filc_ptr_create_with_special_object(
+        my_thread, filc_object_for_special_payload(global_obj->module));
+    FILC_LLVM_JIT_UNLOCK(LOCKED)
+    return result;
+}
+
 FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetICmpPredicate, LOCKED, unsigned, (REF, inst, VALUE, LLVMValueRef))
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetIncomingBlock, LOCKED, BASIC_BLOCK, (REF, phi_node, VALUE, LLVMValueRef, PHINode), (SCAL, index, unsigned), sem_incoming_index(LLVMGetIncomingBlock, phi_node, index))
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetIncomingValue, LOCKED, VALUE, (REF, phi_node, VALUE, LLVMValueRef, PHINode), (SCAL, index, unsigned), sem_incoming_index(LLVMGetIncomingValue, phi_node, index))
