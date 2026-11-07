@@ -2572,6 +2572,13 @@ void exec_ptest(CPU* cpu, const Dec& d) {
 
 void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
     // MOVD/MOVQ between GPR and XMM.
+    // Legacy SSE MOVD/MOVQ clears the rest of the 128-bit XMM only; the
+    // VEX.128 (and EVEX.128) forms additionally clear the upper 128 bits of
+    // the corresponding YMM/ZMM (VEX zeroing rule).  Getting this wrong
+    // leaves stale lanes that poison downstream IFMA/shuffle code (observed
+    // with openssl's poly1305-x86_64.pl, which reloads key powers with VEX
+    // vmovq and then multiplies all four lanes).
+    size_t zbytes = (is_vex(d) || is_evex(d)) ? MAX_VEC_BYTES : 16;
     if (d.ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
         d.ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER) {
         int di, ds, dsh, si, ss, ssh;
@@ -2589,7 +2596,7 @@ void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
             int vi = -1, vw = 0;
             reg_to_vec(d.ops[0].reg.value, vi, vw);
             Val s = op_load(cpu, d, 1);
-            memset(cpu->xmm[vi].bytes, 0, 16);
+            memset(cpu->xmm[vi].bytes, 0, zbytes);
             memcpy(cpu->xmm[vi].bytes, &s.v, is_q ? 8 : 4);
             // Sidecar: the moved GPR value's taint follows into the vector.
             cpu->xmm[vi].taint = s.taint;
@@ -2614,7 +2621,7 @@ void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
         if (!reg_to_vec(d.ops[0].reg.value, vi, vw))
             guest_error(cpu, "bad movd operands");
         uint64_t addr = resolve_mem(cpu, d.ops[1], cpu->rip + d.insn.length);
-        memset(cpu->xmm[vi].bytes, 0, 16);
+        memset(cpu->xmm[vi].bytes, 0, zbytes);
         if (is_q)
             *(uint64_t*)cpu->xmm[vi].bytes = mem_load64(cpu, addr);
         else
@@ -4042,10 +4049,20 @@ void exec_bmi_simple(CPU* cpu, const Dec& d) {
     }
     case ZYDIS_MNEMONIC_BZHI: {
         Val idx = op_load(cpu, d, 2);
-        unsigned k = (unsigned)idx.v;
+        // Intel uses only SRC2[7:0] as the BZHI index.
+        unsigned k = (unsigned)(idx.v & 0xff);
         unsigned bits = w * 8;
+        // k < bits <= 64 here, so (1ULL << k) is well-defined for every k,
+        // including k == 0: the mask must be 0 (every bit of the source lies
+        // "above the index" and gets zeroed). The previous 64-bit form,
+        // ~0ULL >> (64 - k), shifted by 64 when k == 0 -- undefined behavior
+        // that x86 executes as a shift by 0, leaving the mask all-ones and
+        // turning BZHI into a no-op. glibc's __memset_avx512_unaligned_erms
+        // runs BZHI with index 0 for every length that is a multiple of 64,
+        // so the bogus all-ones mask made the following vmovdqu8 store a full
+        // 64 bytes past the end of the memset region.
         if (k < bits)
-            out.v = (s0.v & m) & (bits == 64 ? (~0ULL >> (64 - k)) : ((1ULL << k) - 1));
+            out.v = (s0.v & m) & ((1ULL << k) - 1);
         else {
             out.v = s0.v & m;
             cpu->set_flag(FLAG_CF, true);
@@ -5815,7 +5832,24 @@ void exec_evex_shift(CPU* cpu, const Dec& d, unsigned elem, int kind,
         memcpy(&v, a + i, elem);
         uint64_t cv = 0;
         memcpy(&cv, cntv + i, elem < 8 ? elem : 8);
-        unsigned c = (unsigned)(cv & (elem == 8 ? 63 : 255));
+        // Neither the variable forms (VPSLLVW/D/Q, VPSRLVW/D/Q, VPSRAVW/D/Q)
+        // nor the immediate forms (VPSLLW/D/Q, VPSRLW/D/Q, VPSRA* imm8) mask
+        // the shift count: a count >= the element width yields 0
+        // (sign-fill for the arithmetic forms), which the generic >=-width
+        // branch below implements.  Hardware-verified: vpsrlq/vpsllq $64 and
+        // $255 -> 0, vpsraq $64/$255 -> sign-fill, vpsrld $32/$33 -> 0,
+        // vpsrad $32 -> sign-fill, vpsrlw/vpsllw $16/$17 -> 0, vpsraw $16 ->
+        // sign-fill, and the byte-shift forms (handled above) zero the lane
+        // for counts >= 16.  Masking the variable count to 6 bits first made
+        // a count of exactly 64 a shift by 0, passing the source through
+        // unchanged -- silently corrupting glibc's vectorized poly1305 limb
+        // reduction (and anything else shifting by a full element width);
+        // masking the immediate qword count had the same effect (vpsrlq $64
+        // became a no-op, vpsrlq $255 a shift by 63).  The imm8 cut below
+        // only strips the replicated count byte out of cntv for the wide
+        // elements; it never reduces a count below what hardware uses
+        // (imm8 arrives as one byte, so counts span 0..255).
+        uint64_t c = variable ? cv : (uint64_t)(cv & 0xff);
         uint64_t r = 0;
         if (c >= elem * 8) {
             r = (kind == 2 && elem < 8 && (v >> (elem * 8 - 1))) ? ~0ULL : 0;
@@ -5958,7 +5992,13 @@ void exec_evex_perm(CPU* cpu, const Dec& d, int kind) {
                 }
         } else {
             for (unsigned i = 0; i < w; i += 8) {
-                unsigned sel = (order >> ((i / 8) * 2)) & 3;
+                // VPERMQ/VPERMPD (imm8): the four 2-bit selects index qwords
+                // WITHIN each 256-bit half, and the same selects apply to
+                // both halves: dest.q[4H + j] = src.q[4H + ((imm >> 2j) & 3)]
+                // (hardware-verified; on zmm the old code indexed imm by the
+                // global qword number, so the upper half read imm bits 8-15
+                // -- always zero -- instead of reusing the low selects).
+                unsigned sel = (order >> (((i % 32) / 8) * 2)) & 3;
                 unsigned lane = (i / 32) * 32;
                 memcpy(o + i, a + lane + sel * 8, 8);
             }
@@ -8572,6 +8612,39 @@ void exec_vpmadd52(CPU* cpu, const Dec& d, bool high) {
     cpu->rip = next_rip(cpu, d);
 }
 
+// VPROLD/VPRORD/VPROLQ/VPRORQ (AVX512F imm8 rotates): rotate each element
+// left/right by imm8 & (elem*8 - 1); masked-off lanes merge with the old
+// destination (or zero with {z}); embedded 32/64-bit broadcast sources are
+// handled by evex_load.
+void exec_evex_rol(CPU* cpu, const Dec& d, unsigned elem, bool left) {
+    unsigned w = evex_width(cpu, d);
+    int ex[5];
+    int n = evex_explicit(d, ex);
+    if (n < 3)
+        guest_error(cpu, "evex rotate needs 3 operands");
+    VecVal a, o, old;
+    evex_load(cpu, d, ex[1], a, w, elem);
+    unsigned cnt = (unsigned)kload(cpu, d, ex[2], 8) & (elem * 8 - 1);
+    for (unsigned i = 0; i < w; i += elem) {
+        uint64_t v = 0;
+        memcpy(&v, a + i, elem);
+        uint64_t r;
+        if (cnt == 0)
+            r = v;
+        else if (left)
+            r = (v << cnt) | (v >> (elem * 8 - cnt));
+        else
+            r = (v >> cnt) | (v << (elem * 8 - cnt));
+        memcpy(o + i, &r, elem);
+    }
+    evex_old(cpu, d, ex[0], old, w);
+    bool zeroing = false;
+    uint64_t kbits = evex_mask(cpu, d, w / elem, zeroing);
+    o.taint = a.taint;
+    evex_store(cpu, d, ex[0], o, old, w, elem, kbits, zeroing);
+    cpu->rip = next_rip(cpu, d);
+}
+
 // VSHUFF32X4/64X2/I32X4/I64X2 (EVEX lane shuffle by imm pairs).
 void exec_evex_shufx(CPU* cpu, const Dec& d) {
     // VSHUFF64X2/VSHUFI64X2/VSHUFF32X4/VSHUFI32X4 shuffle 128-bit lanes
@@ -9021,6 +9094,10 @@ void exec_evex(CPU* cpu, const Dec& d) {
     case ZYDIS_MNEMONIC_VSHUFI64X2: exec_evex_shufx(cpu, d); return;
     case ZYDIS_MNEMONIC_VPMADD52LUQ: exec_vpmadd52(cpu, d, false); return;
     case ZYDIS_MNEMONIC_VPMADD52HUQ: exec_vpmadd52(cpu, d, true); return;
+    case ZYDIS_MNEMONIC_VPROLD: exec_evex_rol(cpu, d, 4, true); return;
+    case ZYDIS_MNEMONIC_VPRORD: exec_evex_rol(cpu, d, 4, false); return;
+    case ZYDIS_MNEMONIC_VPROLQ: exec_evex_rol(cpu, d, 8, true); return;
+    case ZYDIS_MNEMONIC_VPRORQ: exec_evex_rol(cpu, d, 8, false); return;
     default: break;
     }
     // Gathers / scatters.
@@ -9844,6 +9921,10 @@ VarTimeClass var_time_class(ZydisMnemonic m) {
     case ZYDIS_MNEMONIC_VPSRAVW:
     case ZYDIS_MNEMONIC_VPSRAVD:
     case ZYDIS_MNEMONIC_VPSRAVQ:
+    case ZYDIS_MNEMONIC_VPROLD:
+    case ZYDIS_MNEMONIC_VPRORD:
+    case ZYDIS_MNEMONIC_VPROLQ:
+    case ZYDIS_MNEMONIC_VPRORQ:
     // SIMD integer: shuffles / permutes / blends / packs / unpacks /
     // broadcasts / inserts+extracts / width converts.
     case ZYDIS_MNEMONIC_PSHUFB:

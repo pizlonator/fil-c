@@ -60,7 +60,8 @@ done
 # Instruction-semantics regression guests for the emulator fixes (BSR/BSF,
 # PUSHFQ/POPFQ, VEX VPSLL{W,D,Q}/VPSRL{W,D,Q} 3-operand forms, VPSLLDQ,
 # VPERMD/VPERMPS, VBROADCASTI128, VPINSR/VPEXTR, VINSERTPS, EVEX
-# VPSLLDQ/VPSRLDQ, VSHUFI64X2, VPXORQ k-masks, VPMADD52) and the decode-cache
+# VPSLLDQ/VPSRLDQ, VSHUFI64X2, VPXORQ k-masks, VPMADD52, VEX VMOVQ/VMOVD
+# upper-YMM zeroing) and the decode-cache
 # (self-modifying code) guest.  They are self-checking against hardware-
 # verified expected values and gate every instruction group on runtime CPUID,
 # so they run everywhere (skipping groups the CPU lacks) both natively and
@@ -70,8 +71,29 @@ gcc -O2 -mavx2 -o "$OUTDIR/insn_fixes" tests/insn_fixes.c \
 gcc -O2 -mavx512f -mavx512dq -mavx512vl -mavx512ifma -o "$OUTDIR/insn_fixes_avx512" \
     tests/insn_fixes_avx512.c \
     || { log "guest compile failed: insn_fixes_avx512"; exit 1; }
+# Poly1305 chunked-update KAT ([12, 65536, 100] EVP_MAC via libcrypto, the
+# test_chacha20_poly1305_large trigger) + VEX VMOVQ/VMOVD upper-YMM zeroing
+# regression guest.  Needs AVX at runtime for the instruction groups (gated
+# inside the guest) and -mavx at compile time for the inline asm.  Unlike the
+# other guests it also needs the OpenSSL dev headers and libcrypto, so a
+# compile failure here is an environment gap rather than a regression: leave
+# the guest unbuilt and let the test register as SKIPPED below instead of
+# aborting the whole run (the compile log lands in $OUTDIR for diagnosis).
+HAVE_POLY1305_KAT=""
+if gcc -O2 -mavx -o "$OUTDIR/poly1305_kat" tests/poly1305_kat.c -lcrypto \
+        2>"$OUTDIR/poly1305_kat.compile.log"; then
+    HAVE_POLY1305_KAT=1
+else
+    log "poly1305_kat compile failed (SKIPPING poly1305-kat; see $OUTDIR/poly1305_kat.compile.log)"
+fi
 gcc -O2 -o "$OUTDIR/dec_cache" tests/dec_cache.c \
     || { log "guest compile failed: dec_cache"; exit 1; }
+# BZHI + glibc-memset-churn regression guest (64-multiple memsets hit
+# BZHI index 0 in glibc's evex memset; the old emulator's broken mask
+# destroyed glibc's heap top chunk).  Needs BMI2 at runtime (CPUID-gated
+# inside the guest) and at compile time for the intrinsics.
+gcc -O2 -mbmi2 -o "$OUTDIR/malloc_churn" tests/malloc_churn.c \
+    || { log "guest compile failed: malloc_churn"; exit 1; }
 # Crash guest for core-dump tests.
 cat > "$OUTDIR/crash.c" <<'EOF'
 #include <stdio.h>
@@ -100,7 +122,7 @@ if grep -qE '\baes\b' /proc/cpuinfo && gcc -O2 -maes -mpclmul -msha -mfma -o "$O
     HAVE_AES=1
 fi
 
-export HAVE_AVX512 HAVE_AES HAVE_VEX
+export HAVE_AVX512 HAVE_AES HAVE_VEX HAVE_POLY1305_KAT
 
 # Test list runs in parallel via xargs -P.
 {
@@ -113,7 +135,9 @@ echo "aes-smoke"
 echo "vex-smoke"
 echo "insn-fixes"
 echo "insn-fixes-avx512"
+echo "poly1305-kat"
 echo "dec-cache"
+echo "malloc-churn"
 echo "poison-load"
 echo "poison-store"
 echo "poison-branch"
@@ -227,6 +251,28 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
       diff test-output/$bin.native test-output/$bin.emu | head -10
     fi
     ;;
+  poly1305-kat)
+    # Poly1305 [12,65536,100] EVP_MAC KAT + VEX VMOVQ/VMOVD upper-YMM
+    # zeroing regression (the exec_movd fix).  Self-checking; must pass
+    # natively AND under the emulator with byte-identical output.  On the
+    # pre-fix emulator the VEX vmovq checks FAIL and the KAT tag diverges.
+    # The compile is best-effort (needs OpenSSL dev headers + libcrypto);
+    # when it failed, skip instead of failing on a missing binary.
+    if [ -z "${HAVE_POLY1305_KAT:-}" ]; then
+      echo "SKIP poly1305-kat (poly1305_kat compile failed: OpenSSL dev headers/libcrypto missing)"
+      exit 0
+    fi
+    test-output/poly1305_kat > test-output/poly1305_kat.native 2>/dev/null; nec=$?
+    (cd test-output && timeout 300 ../zegarmistrz ./poly1305_kat > poly1305_kat.emu 2>/dev/null); ec=$?
+    if [ "$nec" = 0 ] && [ "$ec" = 0 ] \
+       && cmp -s test-output/poly1305_kat.native test-output/poly1305_kat.emu \
+       && grep -q "^poly1305-kat-ok$" test-output/poly1305_kat.emu; then
+      echo "PASS poly1305-kat"
+    else
+      echo "FAIL poly1305-kat: native-exit=$nec emu-exit=$ec"
+      diff test-output/poly1305_kat.native test-output/poly1305_kat.emu | head -10
+    fi
+    ;;
   dec-cache)
     # The thread-local decode cache must not be instruction-visible: this
     # guest rewrites code at a fixed RIP between calls and requires the new
@@ -240,6 +286,22 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     else
       echo "FAIL dec-cache: native-exit=$nec emu-exit=$ec"
       diff test-output/dec_cache.native test-output/dec_cache.emu | head -10
+    fi
+    ;;
+  malloc-churn)
+    # BZHI (index 0) + glibc evex-memset malloc churn: self-checking, must
+    # pass natively AND under the emulator with byte-identical output.
+    # On the pre-fix emulator the BZHI checks FAIL and the churn aborts
+    # inside glibc (malloc.c sysmalloc assertion).
+    test-output/malloc_churn > test-output/malloc_churn.native 2>/dev/null; nec=$?
+    (cd test-output && timeout 300 ../zegarmistrz ./malloc_churn > malloc_churn.emu 2>/dev/null); ec=$?
+    if [ "$nec" = 0 ] && [ "$ec" = 0 ] \
+       && cmp -s test-output/malloc_churn.native test-output/malloc_churn.emu \
+       && grep -q "^malloc-churn-ok$" test-output/malloc_churn.emu; then
+      echo "PASS malloc-churn"
+    else
+      echo "FAIL malloc-churn: native-exit=$nec emu-exit=$ec"
+      diff test-output/malloc_churn.native test-output/malloc_churn.emu | head -10
     fi
     ;;
   poison-load|poison-store|poison-branch|poison-index|poison-syscall|poison-masked-load|poison-masked-store|poison-compress-expand)
