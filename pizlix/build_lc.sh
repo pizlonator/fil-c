@@ -109,6 +109,12 @@ rm -rf $LFS/yolo-glibc-prefix
 cp -v $FILCSRC/pizfix/$FILCLIB/libpizlo.so $LFS/usr/lib/
 cp -v $FILCSRC/pizfix/lib/filc_crt.o $LFS/usr/lib/
 cp -v $FILCSRC/pizfix/lib/filc_mincrt.o $LFS/usr/lib/
+# The LLVM JIT gate (-enable-filc-jit) links filc_jit_crt.o instead of
+# filc_crt.o (and filc_jit_mincrt.o instead of filc_mincrt.o when default
+# libs are suppressed).  The chroot clang driver looks for these at
+# /usr/lib/<name> (clang/lib/Driver/ToolChains/Gnu.cpp CRT selection).
+cp -v $FILCSRC/pizfix/lib/filc_jit_crt.o $LFS/usr/lib/
+cp -v $FILCSRC/pizfix/lib/filc_jit_mincrt.o $LFS/usr/lib/
 cp -v $FILCSRC/pizfix/lib/crtbegin.o $LFS/usr/lib/
 cp -v $FILCSRC/pizfix/lib/crtend.o $LFS/usr/lib/
 cp -v $FILCSRC/pizfix/lib/libyolort.a $LFS/usr/lib/
@@ -134,8 +140,14 @@ ln -s clang-20 $LFS/usr/bin/fil++
 ln -s clang-20 $LFS/usr/bin/filcpp
 
 mkdir -v $LFS/usr/libexec
-ln -s $LFS/libexec /usr/libexec
-cp -rv $FILCSRC/pizfix/libexec/libfilcllvmjit.so $LFS/usr/libexec
+# The Fil-C LLVM JIT shim .so must live at <dir-of-libpizlo>/../libexec i.e.
+# /usr/libexec when libpizlo.so is /usr/lib/libpizlo.so (see libpas/src/
+# libpas/filc_llvm_jit.c ensure_api_slow).  Keep a /libexec alias inside the
+# chroot for convenience, but never touch the host's /usr/libexec (the old
+# `ln -s $LFS/libexec /usr/libexec` created a dangling symlink on the host
+# and aborted re-runs under set -e).
+ln -sfn $LFS/usr/libexec $LFS/libexec
+cp -v $FILCSRC/pizfix/libexec/libfilcllvmjit.so $LFS/usr/libexec/
 
 ./build_chroot.sh /sources/build_lc_sub3_user_chroot.sh
 

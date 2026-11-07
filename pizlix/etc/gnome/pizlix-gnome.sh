@@ -11,7 +11,6 @@ export XDG_CURRENT_DESKTOP=GNOME
 # gnome-session autostarts (pizlix-shell.sh exports them too; these session
 # copies cover anything that initializes GL outside the shell wrapper).
 export GBM_ALWAYS_SOFTWARE=true
-export NIR_DEBUG=novalidate
 # No xdg-desktop-portal is built, and libadwaita only falls back to reading
 # the gsettings color-scheme (Dark Style) when the portal is disabled, so
 # force the gsettings path for everything in the session.

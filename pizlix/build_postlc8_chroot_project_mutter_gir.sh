@@ -29,11 +29,22 @@ set -x
 # -D docs=false is already the default (no man option exists in 46.9).
 # udev stays enabled (default): the native backend requires it; libudev
 # comes from elogind and libgudev is already installed.
+# NB: cd before rm: the chroot drops us in the caller's CWD, so the rm must
+# happen with an absolute CWD for the relative path to hit the stale tree
+# (same as the gjs/gnome-shell scripts).
+cd /sources
 rm -rf pizlonated-mutter
 tar -xf pizlonated-mutter.tar.gz
 cd pizlonated-mutter
 mkdir -v build
 cd build
+# llvmpipe-on-JIT (sprint 3): mutter itself is a process that loads
+# swrast_dri.so and runs llvmpipe shader compilation, so the mutter binary
+# (and every other executable this build links) must carry the JIT-enabled
+# Fil-C CRT: -enable-filc-jit at LINK time swaps filc_jit_crt.o in.  The flag
+# is ignored (with a warning) for -shared links, so exporting it here is safe
+# for the libmutter-14.so link steps too.  meson only reads LDFLAGS at setup.
+export LDFLAGS="-enable-filc-jit"
 meson setup ..                  \
       --prefix=/usr             \
       --buildtype=debugoptimized \

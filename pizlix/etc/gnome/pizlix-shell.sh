@@ -14,11 +14,12 @@
 #   hardware and EGL later dereferences a null
 #   queryCompatibleRenderOnlyDeviceFd pointer.
 #
-# - NIR_DEBUG=novalidate disables NIR's shader validator.  The validator
-#   bit-tags nir_src::_parent (packing a tag bit into what is now a real
-#   parent pointer) and trips over the provenance-carrying _parent_p field;
-#   a proper fix needs a validator-side refactor, so run with validation
-#   off.  Known limitation, see the postlc7 notes.
+# - NIR_DEBUG=novalidate used to be exported here (the NIR validator
+#   bit-tags nir_src::_parent and tripped over the provenance-carrying
+#   _parent_p field).  Sprint 3 verified the validator runs clean on the
+#   current runtime (llvmpipe FS compiles in the chroot and on the live
+#   desktop, hundreds of shader compiles, no validator panic), so the
+#   crutch is GONE: the validator runs by default now.
 #
 # - GI_TYPELIB_PATH/LD_LIBRARY_PATH: the shell's introspection data lives
 #   outside the default girepository dir (Shell-14/St-14/Gvc-1.0 in
@@ -50,7 +51,6 @@ export XDG_CURRENT_DESKTOP=GNOME
 export GI_TYPELIB_PATH=/usr/lib/gnome-shell:/usr/lib/mutter-14
 export LD_LIBRARY_PATH=/usr/lib/gnome-shell:/usr/lib/mutter-14${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 export GBM_ALWAYS_SOFTWARE=true
-export NIR_DEBUG=novalidate
 # The shell's Adw.StyleManager also needs this to pick up the gsettings
 # color-scheme (Dark Style) when no xdg-desktop-portal is running.
 export ADW_DISABLE_PORTAL=1

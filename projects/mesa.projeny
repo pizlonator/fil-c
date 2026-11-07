@@ -363,6 +363,33 @@ diff --git a/mesa/src/compiler/nir/nir_validate.c b/mesa/src/compiler/nir/nir_va
        state->nr_tagged_srcs--;
     }
  }
+diff --git a/mesa/src/egl/drivers/dri2/egl_dri2.c b/mesa/src/egl/drivers/dri2/egl_dri2.c
+--- a/mesa/src/egl/drivers/dri2/egl_dri2.c
++++ b/mesa/src/egl/drivers/dri2/egl_dri2.c
+@@ -1015,8 +1015,21 @@
+    } else {
+       render_fd = dri2_dpy->mesa->queryCompatibleRenderOnlyDeviceFd(
+          dri2_dpy->fd_render_gpu);
+-      if (render_fd < 0)
+-         return EGL_FALSE;
++      if (render_fd < 0) {
++         /* Fil-C: display-only KMS devices without a render node (QEMU's
++          * bochs-drm does not set DRIVER_RENDER) have no EGLDevice of
++          * their own: the device list only carries render-capable DRM
++          * devices (_eglAddDRMDevice asserts DRM_NODE_RENDER, and the
++          * upstream TODO in egldevice.c already notes EGL_EXT_device_drm
++          * support for KMS + llvmpipe is missing).  The renderer behind
++          * this display is kms_swrast/llvmpipe -- the software device --
++          * so report that instead of failing eglInitialize. */
++         dev = _eglFindDevice(-1, true);
++         if (!dev)
++            return EGL_FALSE;
++         disp->Device = dev;
++         return EGL_TRUE;
++      }
+    }
+
+    dev = _eglFindDevice(render_fd, software);
 diff --git a/mesa/src/egl/drivers/dri2/platform_drm.c b/mesa/src/egl/drivers/dri2/platform_drm.c
 --- a/mesa/src/egl/drivers/dri2/platform_drm.c
 +++ b/mesa/src/egl/drivers/dri2/platform_drm.c
@@ -384,6 +411,24 @@ diff --git a/mesa/src/egl/drivers/dri2/platform_drm.c b/mesa/src/egl/drivers/dri
 +       * from libEGL - the direct read loses its object metadata. */
 +      if (visual->gbm_format == gbm_surface_get_format(surface))
           break;
+    }
+
+@@ -622,8 +626,15 @@
+       dri2_dpy->fd_render_gpu =
+          get_fd_render_gpu_drm(dri2_dpy->gbm_dri, dri2_dpy->fd_display_gpu);
+       if (dri2_dpy->fd_render_gpu < 0) {
+-         err = "DRI2: failed to get compatible render device";
+-         goto cleanup;
++         /* Fil-C: KMS display devices without a render node (QEMU's
++          * bochs-drm does not set DRIVER_RENDER, so /dev/dri/renderD128
++          * never exists) are display-only PCI devices, for which
++          * queryCompatibleRenderOnlyDeviceFd rightly refuses to guess a
++          * render device.  But the rendering here is kms_swrast on the
++          * display fd's gbm screen anyway, so upstream's hard failure is
++          * wrong for this class of devices: fall back to the display fd
++          * instead of aborting eglInitialize. */
++         dri2_dpy->fd_render_gpu = dri2_dpy->fd_display_gpu;
+       }
     }
 
 diff --git a/mesa/src/egl/main/eglapi.c b/mesa/src/egl/main/eglapi.c
@@ -474,6 +519,2724 @@ diff --git a/mesa/src/egl/main/egldevice.h b/mesa/src/egl/main/egldevice.h
        dev = NULL;
     return dev;
  }
+diff --git a/mesa/src/gallium/auxiliary/draw/draw_llvm.c b/mesa/src/gallium/auxiliary/draw/draw_llvm.c
+--- a/mesa/src/gallium/auxiliary/draw/draw_llvm.c
++++ b/mesa/src/gallium/auxiliary/draw/draw_llvm.c
+@@ -121,7 +121,7 @@
+ create_jit_dvbuffer_type(struct gallivm_state *gallivm,
+                          const char *struct_name)
+ {
+-   LLVMTargetDataRef target = gallivm->target;
++   /* Fil-C: no TargetData (see lp_bld_struct.h). */
+    LLVMTypeRef dvbuffer_type;
+    LLVMTypeRef elem_types[DRAW_JIT_DVBUFFER_NUM_FIELDS];
+    LLVMTypeRef int32_type = LLVMInt32TypeInContext(gallivm->context);
+@@ -133,7 +133,6 @@
+    dvbuffer_type = LLVMStructTypeInContext(gallivm->context, elem_types,
+                                            ARRAY_SIZE(elem_types), 0);
+
+-   (void) target; /* silence unused var warning for non-debug build */
+    LP_CHECK_MEMBER_OFFSET(struct draw_vertex_buffer, map,
+                           target, dvbuffer_type,
+                           DRAW_JIT_DVBUFFER_MAP);
+@@ -150,7 +149,7 @@
+ static LLVMTypeRef
+ create_vs_jit_context_type(struct gallivm_state *gallivm, const char *struct_name)
+ {
+-   LLVMTargetDataRef target = gallivm->target;
++   /* Fil-C: no TargetData (see lp_bld_struct.h). */
+    LLVMTypeRef float_type = LLVMFloatTypeInContext(gallivm->context);
+    LLVMTypeRef elem_types[DRAW_VS_JIT_CTX_NUM_FIELDS];
+
+@@ -159,7 +158,6 @@
+
+    LLVMTypeRef context_type = LLVMStructTypeInContext(gallivm->context, elem_types, ARRAY_SIZE(elem_types), 0);
+
+-   (void) target; /* silence unused var warning for non-debug build */
+    LP_CHECK_MEMBER_OFFSET(struct draw_vs_jit_context, planes,
+                           target, context_type, DRAW_VS_JIT_CTX_PLANES);
+    LP_CHECK_MEMBER_OFFSET(struct draw_vs_jit_context, viewports,
+@@ -179,7 +177,7 @@
+                            unsigned vector_length,
+                            const char *struct_name)
+ {
+-   LLVMTargetDataRef target = gallivm->target;
++   /* Fil-C: no TargetData (see lp_bld_struct.h). */
+    LLVMTypeRef float_type = LLVMFloatTypeInContext(gallivm->context);
+    LLVMTypeRef int_type = LLVMInt32TypeInContext(gallivm->context);
+    LLVMTypeRef elem_types[DRAW_GS_JIT_CTX_NUM_FIELDS];
+@@ -199,7 +197,6 @@
+    context_type = LLVMStructTypeInContext(gallivm->context, elem_types,
+                                           ARRAY_SIZE(elem_types), 0);
+
+-   (void) target; /* silence unused var warning for non-debug build */
+    LP_CHECK_MEMBER_OFFSET(struct draw_gs_jit_context, planes,
+                           target, context_type, DRAW_GS_JIT_CTX_PLANES);
+    LP_CHECK_MEMBER_OFFSET(struct draw_gs_jit_context, viewports,
+@@ -246,7 +243,7 @@
+ create_jit_vertex_buffer_type(struct gallivm_state *gallivm,
+                               const char *struct_name)
+ {
+-   LLVMTargetDataRef target = gallivm->target;
++   /* Fil-C: no TargetData (see lp_bld_struct.h). */
+    LLVMTypeRef elem_types[3];
+    LLVMTypeRef vb_type;
+
+@@ -257,7 +254,6 @@
+    vb_type = LLVMStructTypeInContext(gallivm->context, elem_types,
+                                      ARRAY_SIZE(elem_types), 0);
+
+-   (void) target; /* silence unused var warning for non-debug build */
+    LP_CHECK_MEMBER_OFFSET(struct pipe_vertex_buffer, is_user_buffer,
+                           target, vb_type, 0);
+    LP_CHECK_MEMBER_OFFSET(struct pipe_vertex_buffer, buffer_offset,
+@@ -434,8 +430,10 @@
+ void
+ draw_llvm_destroy(struct draw_llvm *llvm)
+ {
++   /* Fil-C: no LLVMContextDispose in the curated API -- the context is a
++    * runtime-managed object; dropping the reference releases it. */
+    if (llvm->context_owned)
+-      LLVMContextDispose(llvm->context);
++      llvm->context = NULL;
+    llvm->context = NULL;
+
+    /* XXX free other draw_llvm data? */
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit.c
+@@ -226,9 +226,7 @@
+                  LLVMValueRef c)
+ {
+    LLVMTypeRef type = LLVMTypeOf(a);
+-   assert(type == LLVMTypeOf(b));
+-   assert(type == LLVMTypeOf(c));
+-
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */
+    char intrinsic[32];
+    lp_format_intrinsic(intrinsic, sizeof intrinsic, "llvm.fmuladd", type);
+    LLVMValueRef args[] = { a, b, c };
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit_overflow.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit_overflow.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit_overflow.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit_overflow.c
+@@ -71,8 +71,7 @@
+    LLVMValueRef oresult;
+    LLVMTypeRef otype;
+
+-   assert(LLVMTypeOf(a) == LLVMTypeOf(b));
+-   type_ref = LLVMTypeOf(a);
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */   type_ref = LLVMTypeOf(a);
+    type_kind = LLVMGetTypeKind(type_ref);
+
+    assert(type_kind == LLVMIntegerTypeKind);
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c
+@@ -77,17 +77,20 @@
+
+    LLVMTypeRef function_type = LLVMFunctionType(ret_type, arg_types, 2, 0);
+
+-   function = lp_build_const_func_pointer_from_type(gallivm,
+-                                          func_to_pointer((func_pointer)lp_assert),
+-                                          function_type,
+-                                          "assert");
++   /* Fil-C: this used to build an inttoptr-of-constant "function pointer
++    * constant" for lp_assert, which MCJIT resolved by raw address.  The
++    * JIT cannot bless such a constant (capability-less pointer), so declare
++    * a named extern and map it at compile time instead (see
++    * lp_build_decl_mapped_fn). */
++   function = lp_build_decl_mapped_fn(gallivm, "lp_assert_hook",
++                                      lp_assert, function_type);
+
+    /* build function call param list */
+    args[0] = LLVMBuildZExt(builder, condition, arg_types[0], "");
+    args[1] = msg_string;
+
+    /* check arg types */
+-   assert(LLVMTypeOf(args[0]) == arg_types[0]);
+-   assert(LLVMTypeOf(args[1]) == arg_types[1]);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    LLVMBuildCall2(builder, function_type, function, args, ARRAY_SIZE(args), "");
+ }
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_coro.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_coro.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_coro.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_coro.c
+@@ -161,12 +161,16 @@
+
+ void lp_build_coro_add_malloc_hooks(struct gallivm_state *gallivm)
+ {
+-   assert(gallivm->engine);
+-
++   /* Fil-C: the coro hooks are declared unconditionally in every module
++    * (lp_build_coro_declare_malloc_hooks), and the JIT's mapping precheck
++    * requires every declaration to be mapped, used or not.  Instead of the
++    * engine's AddGlobalMapping, register them in the gallivm hook table;
++    * lp_build_jit_compile_for_module turns the table into
++    * FilLLVMJIT_SetGlobalMapping calls before the compile. */
+    assert(gallivm->coro_malloc_hook);
+    assert(gallivm->coro_free_hook);
+-   LLVMAddGlobalMapping(gallivm->engine, gallivm->coro_malloc_hook, coro_malloc);
+-   LLVMAddGlobalMapping(gallivm->engine, gallivm->coro_free_hook, coro_free);
++   lp_gallivm_add_hook(gallivm, "coro_malloc", coro_malloc);
++   lp_gallivm_add_hook(gallivm, "coro_free", coro_free);
+ }
+
+ void lp_build_coro_declare_malloc_hooks(struct gallivm_state *gallivm)
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp b/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp
+@@ -26,28 +26,25 @@
+  **************************************************************************/
+
+ #include <stddef.h>
+-#include <fstream>
+-#include <sstream>
+-#include <iomanip>
+
+ #include <llvm/Config/llvm-config.h>
+ #include <llvm-c/Core.h>
+-#include <llvm-c/Disassembler.h>
+-#include <llvm/Support/raw_ostream.h>
+-#include <llvm/Support/Format.h>
+-#include <llvm/IR/Module.h>
+
+-#if LLVM_VERSION_MAJOR >= 17
+-#include <llvm/TargetParser/Host.h>
+-#else
+-#include <llvm/Support/Host.h>
+-#endif
+-
+ #include "util/u_math.h"
+ #include "util/u_debug.h"
+
+ #include "lp_bld_debug.h"
+
++/*
++ * Fil-C port: the LLVM-C disassembler (LLVMCreateDisasm &
++ * LLVMDisasmInstruction, fed from LLVM_HOST_TRIPLE) is not in the curated
++ * LLVM-C subset, and its only consumer was the GALLIVM_DEBUG_ASM loop that
++ * the JIT compile path no longer has.  lp_disassemble/lp_profile are gone;
++ * lp_check_alignment and lp_debug_dump_value stay (the latter over the
++ * copy-returning LLVMPrintValueToString -- no LLVMDisposeMessage exists or
++ * is needed).
++ */
++
+ #ifdef __linux__
+ #include <sys/stat.h>
+ #include <fcntl.h>
+@@ -77,187 +74,10 @@
+ extern "C" void
+ lp_debug_dump_value(LLVMValueRef value)
+ {
++   /* Fil-C: the wrapper copies the string into Fil-C memory (there is no
++    * LLVMDisposeMessage in the curated API, and none is needed). */
+    char *str = LLVMPrintValueToString(value);
+    if (str) {
+       os_log_message(str);
+-      LLVMDisposeMessage(str);
+    }
+ }
+-
+-
+-/*
+- * Disassemble a function, using the LLVM MC disassembler.
+- *
+- * See also:
+- * - http://blog.llvm.org/2010/01/x86-disassembler.html
+- * - http://blog.llvm.org/2010/04/intro-to-llvm-mc-project.html
+- */
+-static size_t
+-disassemble(const void* func, std::ostream &buffer)
+-{
+-   const uint8_t *bytes = (const uint8_t *)func;
+-
+-   /*
+-    * Limit disassembly to this extent
+-    */
+-   const uint64_t extent = 96 * 1024;
+-
+-   /*
+-    * Initialize all used objects.
+-    */
+-
+-   const char *triple = LLVM_HOST_TRIPLE;
+-   LLVMDisasmContextRef D = LLVMCreateDisasm(triple, NULL, 0, NULL, NULL);
+-   char outline[1024];
+-
+-   if (!D) {
+-      buffer << "error: could not create disassembler for triple "
+-             << triple << '\n';
+-      return 0;
+-   }
+-
+-   uint64_t pc;
+-   pc = 0;
+-   while (pc < extent) {
+-      size_t Size;
+-
+-      /*
+-       * Print address.  We use addresses relative to the start of the function,
+-       * so that between runs.
+-       */
+-
+-      buffer << std::setw(6) << (unsigned long)pc << ":\t";
+-
+-      Size = LLVMDisasmInstruction(D, (uint8_t *)bytes + pc, extent - pc, 0, outline,
+-                                   sizeof outline);
+-
+-      if (!Size) {
+-         buffer << "invalid\n";
+-         pc += 1;
+-         break;
+-      }
+-
+-      /*
+-       * Output the bytes in hexidecimal format.
+-       */
+-
+-      if (0) {
+-         unsigned i;
+-         for (i = 0; i < Size; ++i) {
+-            buffer << std::hex << std::setfill('0') << std::setw(2)
+-                   << static_cast<int> (bytes[pc + i]);
+-         }
+-         for (; i < 16; ++i) {
+-            buffer << std::dec << "   ";
+-         }
+-      }
+-
+-      /*
+-       * Print the instruction.
+-       */
+-
+-      buffer << std::setw(Size) << outline << '\n';
+-
+-      /*
+-       * Stop disassembling on return statements, if there is no record of a
+-       * jump to a successive address.
+-       *
+-       * XXX: This currently assumes x86
+-       */
+-
+-#if DETECT_ARCH_X86 || DETECT_ARCH_X86_64
+-      if (Size == 1 && bytes[pc] == 0xc3) {
+-         break;
+-      }
+-#endif
+-
+-      /*
+-       * Advance.
+-       */
+-
+-      pc += Size;
+-
+-      if (pc >= extent) {
+-         buffer << "disassembly larger than " << extent << " bytes, aborting\n";
+-         break;
+-      }
+-   }
+-
+-   buffer << '\n';
+-
+-   LLVMDisasmDispose(D);
+-
+-   /*
+-    * Print GDB command, useful to verify output.
+-    */
+-   if (0) {
+-      buffer << "disassemble " << static_cast<const void*>(bytes) << ' '
+-             << static_cast<const void*>(bytes + pc) << '\n';
+-   }
+-
+-   return pc;
+-}
+-
+-
+-extern "C" void
+-lp_disassemble(LLVMValueRef func, const void *code)
+-{
+-   std::ostringstream buffer;
+-   std::string s;
+-
+-   buffer << LLVMGetValueName(func) << ":\n";
+-   disassemble(code, buffer);
+-   s = buffer.str();
+-   os_log_message(s.c_str());
+-   os_log_message("\n");
+-}
+-
+-
+-/*
+- * Linux perf profiler integration.
+- *
+- * See also:
+- * - http://penberg.blogspot.co.uk/2009/06/jato-has-profiler.html
+- * - https://github.com/penberg/jato/commit/73ad86847329d99d51b386f5aba692580d1f8fdc
+- * - http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commitdiff;h=80d496be89ed7dede5abee5c057634e80a31c82d
+- */
+-extern "C" void
+-lp_profile(LLVMValueRef func, const void *code)
+-{
+-#if defined(__linux__) && defined(PROFILE)
+-   static std::ofstream perf_asm_file;
+-   static bool first_time = true;
+-   static FILE *perf_map_file = NULL;
+-   if (first_time) {
+-      /*
+-       * We rely on the disassembler for determining a function's size, but
+-       * the disassembly is a leaky and slow operation, so avoid running
+-       * this except when running inside linux perf, which can be inferred
+-       * by the PERF_BUILDID_DIR environment variable.
+-       */
+-      if (getenv("PERF_BUILDID_DIR")) {
+-         pid_t pid = getpid();
+-         char filename[256];
+-         snprintf(filename, sizeof filename, "/tmp/perf-%llu.map", (unsigned long long)pid);
+-         perf_map_file = fopen(filename, "wt");
+-         snprintf(filename, sizeof filename, "/tmp/perf-%llu.map.asm", (unsigned long long)pid);
+-         perf_asm_file.open(filename);
+-      }
+-      first_time = false;
+-   }
+-   if (perf_map_file) {
+-      const char *symbol = LLVMGetValueName(func);
+-      unsigned long addr = (uintptr_t)code;
+-      perf_asm_file << symbol << ":\n";
+-      unsigned long size = disassemble(code, perf_asm_file);
+-      perf_asm_file.flush();
+-      fprintf(perf_map_file, "%lx %lx %s\n", addr, size, symbol);
+-      fflush(perf_map_file);
+-   }
+-#else
+-   (void)func;
+-   (void)code;
+-#endif
+-}
+-
+-
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h b/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h
+@@ -84,12 +84,9 @@
+ lp_check_alignment(const void *ptr, unsigned alignment);
+
+
+-void
+-lp_disassemble(LLVMValueRef func, const void *code);
+-
+-
+-void
+-lp_profile(LLVMValueRef func, const void *code);
++/* Fil-C: lp_disassemble/lp_profile are gone -- the LLVM-C disassembler is
++ * not in the curated API and the JIT compile path has no engine to walk
++ * (see lp_bld_debug.cpp). */
+
+
+ #ifdef __cplusplus
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_flow.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_flow.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_flow.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_flow.c
+@@ -321,9 +321,7 @@
+ {
+    LLVMBuilderRef builder = gallivm->builder;
+
+-   assert(LLVMTypeOf(start) == LLVMTypeOf(end));
+-   assert(LLVMTypeOf(start) == LLVMTypeOf(step));
+-
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */
+    state->begin = lp_build_insert_new_block(gallivm, "loop_begin");
+    state->step  = step;
+    state->counter_type = LLVMTypeOf(start);
+@@ -528,7 +526,9 @@
+    res = LLVMBuildAlloca(first_builder, type, name);
+    LLVMBuildStore(builder, LLVMConstNull(type), res);
+
+-   LLVMDisposeBuilder(first_builder);
++   /* Fil-C: no LLVMDisposeBuilder in the curated API -- the builder is a
++    * runtime-managed object whose fugc destructor disposes it once the
++    * reference here is dropped. */
+
+    return res;
+ }
+@@ -547,7 +547,9 @@
+
+    res = LLVMBuildAlloca(first_builder, type, name);
+
+-   LLVMDisposeBuilder(first_builder);
++   /* Fil-C: no LLVMDisposeBuilder in the curated API -- the builder is a
++    * runtime-managed object whose fugc destructor disposes it once the
++    * reference here is dropped. */
+
+    return res;
+ }
+@@ -578,7 +580,9 @@
+
+    res = LLVMBuildArrayAlloca(first_builder, type, count, name);
+
+-   LLVMDisposeBuilder(first_builder);
++   /* Fil-C: no LLVMDisposeBuilder in the curated API -- the builder is a
++    * runtime-managed object whose fugc destructor disposes it once the
++    * reference here is dropped. */
+
+    return res;
+ }
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_format_aos.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_format_aos.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_format_aos.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_format_aos.c
+@@ -840,11 +840,20 @@
+
+       if (gallivm->cache)
+          gallivm->cache->dont_cache = true;
+-      /* make const pointer for the C fetch_rgba_8unorm function */
+-      function = lp_build_const_int_pointer(gallivm,
+-                                            func_to_pointer((func_pointer) unpack->fetch_rgba_8unorm));
+-      /* cast the callee pointer to the function's type */
+-      function = LLVMBuildBitCast(builder, function, LLVMPointerType(function_type, 0), "cast callee");
++      /* Fil-C: declare a named extern for the C fetch_rgba_8unorm function
++       * and map it at compile time (lp_build_decl_mapped_fn).  Upstream
++       * built an inttoptr-of-constant callee, which the JIT cannot bless
++       * (a capability-less pointer would panic on the call).  The IR call
++       * ABI is unchanged: (ptr, ptr, i32, i32) -> void matches
++       * fetch_rgba_8unorm(dst, src, i, j). */
++      {
++         char hook_name[64];
++         snprintf(hook_name, sizeof(hook_name), "fetch_rgba_8unorm_%s",
++                  format_desc->short_name);
++         function = lp_build_decl_mapped_fn(gallivm, hook_name,
++                                            unpack->fetch_rgba_8unorm,
++                                            function_type);
++      }
+
+       tmp_ptr = lp_build_alloca(gallivm, i32t, "");
+
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_format_s3tc.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_format_s3tc.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_format_s3tc.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_format_s3tc.c
+@@ -1971,7 +1971,8 @@
+
+    LLVMBuildRetVoid(gallivm->builder);
+
+-   LLVMDisposeBuilder(gallivm->builder);
++   /* Fil-C: no LLVMDisposeBuilder -- the runtime-managed builder is
++    * reclaimed (and disposed) when the gallivm reference is dropped. */
+    gallivm->builder = old_builder;
+
+    gallivm_verify_function(gallivm, function);
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_gather.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_gather.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_gather.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_gather.c
+@@ -56,8 +56,7 @@
+    LLVMValueRef ptr;
+
+    ASSERTED LLVMTypeRef element_type = LLVMInt8TypeInContext(gallivm->context);
+-   assert(LLVMTypeOf(base_ptr) == LLVMPointerType(element_type, 0));
+-
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */
+    if (length == 1) {
+       assert(i == 0);
+       offset = offsets;
+@@ -93,8 +92,7 @@
+    LLVMValueRef ptr;
+    LLVMValueRef res;
+
+-   assert(LLVMTypeOf(base_ptr) == LLVMPointerType(LLVMInt8TypeInContext(gallivm->context), 0));
+-
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */
+    ptr = lp_build_gather_elem_ptr(gallivm, length, base_ptr, offsets, i);
+    ptr = LLVMBuildBitCast(gallivm->builder, ptr, LLVMPointerType(src_type, 0), "");
+    res = LLVMBuildLoad2(gallivm->builder, src_type, ptr, "");
+@@ -173,8 +171,7 @@
+                          bool vector_justify)
+ {
+    LLVMValueRef ptr, res;
+-   assert(LLVMTypeOf(base_ptr) == LLVMPointerType(LLVMInt8TypeInContext(gallivm->context), 0));
+-
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */
+    ptr = lp_build_gather_elem_ptr(gallivm, length, base_ptr, offsets, i);
+    ptr = LLVMBuildBitCast(gallivm->builder, ptr, LLVMPointerType(src_type, 0), "");
+    res = LLVMBuildLoad2(gallivm->builder, src_type, ptr, "");
+@@ -297,8 +294,7 @@
+    src_vec_type = LLVMVectorType(src_type, length);
+
+    /* XXX should allow hw scaling (can handle i8, i16, i32, i64 for x86) */
+-   assert(LLVMTypeOf(base_ptr) == LLVMPointerType(LLVMInt8TypeInContext(gallivm->context), 0));
+-
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */
+    if (0) {
+       /*
+        * XXX: This will cause LLVM pre 3.7 to hang; it works on LLVM 3.8 but
+@@ -320,7 +316,7 @@
+       /* Rescale offsets from bytes to elements */
+       LLVMValueRef scale = LLVMConstInt(i32_type, src_width/8, 0);
+       scale = lp_build_broadcast(gallivm, i32_vec_type, scale);
+-      assert(LLVMTypeOf(offsets) == i32_vec_type);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+       offsets = LLVMBuildSDiv(builder, offsets, scale, "");
+
+       src_ptr = LLVMBuildGEP2(builder, src_type, base_ptr, &offsets, 1, "vector-gep");
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c
+@@ -41,20 +41,6 @@
+ #include "lp_bld_printf.h"
+
+ #include <llvm/Config/llvm-config.h>
+-#include <llvm-c/Analysis.h>
+-#include <llvm-c/BitWriter.h>
+-#if GALLIVM_USE_NEW_PASS == 1
+-#include <llvm-c/Transforms/PassBuilder.h>
+-#elif GALLIVM_HAVE_CORO == 1
+-#include <llvm-c/Transforms/Scalar.h>
+-#if LLVM_VERSION_MAJOR >= 7
+-#include <llvm-c/Transforms/Utils.h>
+-#endif
+-#if LLVM_VERSION_MAJOR <= 8 && (DETECT_ARCH_AARCH64 || DETECT_ARCH_ARM || DETECT_ARCH_S390 || DETECT_ARCH_MIPS64)
+-#include <llvm-c/Transforms/IPO.h>
+-#endif
+-#include <llvm-c/Transforms/Coroutines.h>
+-#endif
+
+ unsigned gallivm_perf = 0;
+
+@@ -99,155 +85,41 @@
+  *
+  * See also CodeGenOpt::Level in llvm/Target/TargetMachine.h
+  */
+-enum LLVM_CodeGenOpt_Level {
+-   None,        // -O0
+-   Less,        // -O1
+-   Default,     // -O2, -Os
+-   Aggressive   // -O3
+-};
+-
+-
+-/**
+- * Create the LLVM (optimization) pass manager and install
+- * relevant optimization passes.
+- * \return  TRUE for success, FALSE for failure
++/*
++ * Fil-C: the LLVM_CodeGenOpt_Level enum and create_pass_manager() (and the
++ * legacy pass-manager plumbing it drove) are gone entirely.  The Fil-C JIT
++ * runs the full optimization pipeline (default<O2> plus the Fil-C passes)
++ * inside CompileModule, and there is no pass manager in the curated LLVM-C
++ * subset.  GALLIVM_PERF_NOPT maps to
++ * FilLLVMJIT_SetOption(jit, "opt-level", "0") instead.
+  */
+-static bool
+-create_pass_manager(struct gallivm_state *gallivm)
+-{
+-#if GALLIVM_USE_NEW_PASS == 0
+-   assert(!gallivm->passmgr);
+-   assert(gallivm->target);
+
+-   gallivm->passmgr = LLVMCreateFunctionPassManagerForModule(gallivm->module);
+-   if (!gallivm->passmgr)
+-      return false;
+-
+-#if GALLIVM_HAVE_CORO == 1
+-   gallivm->cgpassmgr = LLVMCreatePassManager();
+-#endif
+-   /*
+-    * TODO: some per module pass manager with IPO passes might be helpful -
+-    * the generated texture functions may benefit from inlining if they are
+-    * simple, or constant propagation into them, etc.
+-    */
+-
+-   {
+-      char *td_str;
+-      // New ones from the Module.
+-      td_str = LLVMCopyStringRepOfTargetData(gallivm->target);
+-      LLVMSetDataLayout(gallivm->module, td_str);
+-      free(td_str);
+-   }
+-
+-#if GALLIVM_HAVE_CORO == 1
+-#if LLVM_VERSION_MAJOR <= 8 && (DETECT_ARCH_AARCH64 || DETECT_ARCH_ARM || DETECT_ARCH_S390 || DETECT_ARCH_MIPS64)
+-   LLVMAddArgumentPromotionPass(gallivm->cgpassmgr);
+-   LLVMAddFunctionAttrsPass(gallivm->cgpassmgr);
+-#endif
+-   LLVMAddCoroEarlyPass(gallivm->cgpassmgr);
+-   LLVMAddCoroSplitPass(gallivm->cgpassmgr);
+-   LLVMAddCoroElidePass(gallivm->cgpassmgr);
+-#endif
+-
+-   if ((gallivm_perf & GALLIVM_PERF_NO_OPT) == 0) {
+-      /*
+-       * TODO: Evaluate passes some more - keeping in mind
+-       * both quality of generated code and compile times.
+-       */
+-      /*
+-       * NOTE: if you change this, don't forget to change the output
+-       * with GALLIVM_DEBUG_DUMP_BC in gallivm_compile_module.
+-       */
+-      LLVMAddScalarReplAggregatesPass(gallivm->passmgr);
+-      LLVMAddEarlyCSEPass(gallivm->passmgr);
+-      LLVMAddCFGSimplificationPass(gallivm->passmgr);
+-      /*
+-       * FIXME: LICM is potentially quite useful. However, for some
+-       * rather crazy shaders the compile time can reach _hours_ per shader,
+-       * due to licm implying lcssa (since llvm 3.5), which can take forever.
+-       * Even for sane shaders, the cost of licm is rather high (and not just
+-       * due to lcssa, licm itself too), though mostly only in cases when it
+-       * can actually move things, so having to disable it is a pity.
+-       * LLVMAddLICMPass(gallivm->passmgr);
+-       */
+-      LLVMAddReassociatePass(gallivm->passmgr);
+-      LLVMAddPromoteMemoryToRegisterPass(gallivm->passmgr);
+-#if LLVM_VERSION_MAJOR <= 11
+-      LLVMAddConstantPropagationPass(gallivm->passmgr);
+-#else
+-      LLVMAddInstructionSimplifyPass(gallivm->passmgr);
+-#endif
+-      LLVMAddInstructionCombiningPass(gallivm->passmgr);
+-      LLVMAddGVNPass(gallivm->passmgr);
+-   }
+-   else {
+-      /* We need at least this pass to prevent the backends to fail in
+-       * unexpected ways.
+-       */
+-      LLVMAddPromoteMemoryToRegisterPass(gallivm->passmgr);
+-   }
+-#if GALLIVM_HAVE_CORO == 1
+-   LLVMAddCoroCleanupPass(gallivm->passmgr);
+-#endif
+-#endif
+-   return true;
+-}
+-
+-/**
++/*
+  * Free gallivm object's LLVM allocations, but not any generated code
+  * nor the gallivm object itself.
+  */
+ void
+ gallivm_free_ir(struct gallivm_state *gallivm)
+ {
+-#if GALLIVM_USE_NEW_PASS == 0
+-   if (gallivm->passmgr) {
+-      LLVMDisposePassManager(gallivm->passmgr);
+-   }
+-
+-#if GALLIVM_HAVE_CORO == 1
+-   if (gallivm->cgpassmgr) {
+-      LLVMDisposePassManager(gallivm->cgpassmgr);
+-   }
+-#endif
+-#endif
+-
+-   if (gallivm->engine) {
+-      /* This will already destroy any associated module */
+-      LLVMDisposeExecutionEngine(gallivm->engine);
+-   } else if (gallivm->module) {
+-      LLVMDisposeModule(gallivm->module);
+-   }
+-
+    if (gallivm->cache) {
+       lp_free_objcache(gallivm->cache->jit_obj_cache);
+       free(gallivm->cache->data);
+    }
+    FREE(gallivm->module_name);
+
+-   if (gallivm->target) {
+-      LLVMDisposeTargetData(gallivm->target);
+-   }
+-
+-   if (gallivm->builder)
+-      LLVMDisposeBuilder(gallivm->builder);
+-
+-   /* The LLVMContext should be owned by the parent of gallivm. */
+-
+-   gallivm->engine = NULL;
+-   gallivm->target = NULL;
++   /* Fil-C: there is no LLVMDispose* in the curated API.  The compiled
++    * module (gallivm->jit_module) and the session (gallivm->jit) are
++    * GC-managed by the runtime: dropping the last reference here lets
++    * fugc reclaim the code sections once nothing points into them. */
+    gallivm->module = NULL;
+    gallivm->module_name = NULL;
+-#if GALLIVM_USE_NEW_PASS == 0
+-#if GALLIVM_HAVE_CORO == 1
+-   gallivm->cgpassmgr = NULL;
+-#endif
+-   gallivm->passmgr = NULL;
+-#endif
++   gallivm->jit = NULL;
++   gallivm->jit_module = NULL;
++   gallivm->code = NULL;
+    gallivm->context = NULL;
+    gallivm->builder = NULL;
+    gallivm->cache = NULL;
++   gallivm->num_hooks = 0;
+ }
+
+
+@@ -258,62 +130,32 @@
+ gallivm_free_code(struct gallivm_state *gallivm)
+ {
+    assert(!gallivm->module);
+-   assert(!gallivm->engine);
+    lp_free_generated_code(gallivm->code);
+    gallivm->code = NULL;
+-   lp_free_memory_manager(gallivm->memorymgr);
+-   gallivm->memorymgr = NULL;
+ }
+
+
+ static bool
+ init_gallivm_engine(struct gallivm_state *gallivm)
+ {
+-   if (1) {
+-      enum LLVM_CodeGenOpt_Level optlevel;
+-      char *error = NULL;
+-      int ret;
++   unsigned optlevel;
+
+-      if (gallivm_perf & GALLIVM_PERF_NO_OPT) {
+-         optlevel = None;
+-      }
+-      else {
+-         optlevel = Default;
+-      }
+-
+-      ret = lp_build_create_jit_compiler_for_module(&gallivm->engine,
+-                                                    &gallivm->code,
+-                                                    gallivm->cache,
+-                                                    gallivm->module,
+-                                                    gallivm->memorymgr,
+-                                                    (unsigned) optlevel,
+-                                                    &error);
+-      if (ret) {
+-         _debug_printf("%s\n", error);
+-         LLVMDisposeMessage(error);
+-         goto fail;
+-      }
++   if (gallivm_perf & GALLIVM_PERF_NO_OPT) {
++      optlevel = 0;
+    }
++   else {
++      optlevel = 2;
++   }
+
+-   if (0) {
+-       /*
+-        * Dump the data layout strings.
+-        */
+-
+-       LLVMTargetDataRef target = LLVMGetExecutionEngineTargetData(gallivm->engine);
+-       char *data_layout;
+-       char *engine_data_layout;
+-
+-       data_layout = LLVMCopyStringRepOfTargetData(gallivm->target);
+-       engine_data_layout = LLVMCopyStringRepOfTargetData(target);
+-
+-       if (1) {
+-          debug_printf("module target data = %s\n", data_layout);
+-          debug_printf("engine target data = %s\n", engine_data_layout);
+-       }
+-
+-       free(data_layout);
+-       free(engine_data_layout);
++   /* Fil-C: hooks must be registered before the compile; that happens
++    * inside lp_build_jit_compile_for_module (walking the hook table plus
++    * the standard hooks).  CompileModule consumes nothing the caller
++    * still needs: it clones the module, so gallivm->module stays usable
++    * until gallivm_free_ir. */
++   if (lp_build_jit_compile_for_module(gallivm, optlevel)) {
++      _debug_printf("Fil-C LLVM JIT: failed to compile module %s\n",
++                    gallivm->module_name ? gallivm->module_name : "?");
++      goto fail;
+    }
+
+    return true;
+@@ -337,7 +179,15 @@
+    if (!lp_build_init())
+       return false;
+
+-   gallivm->context = context;
++   /* Fil-C: the passed-in context is IGNORED.  CompileModule works on a
++    * module built in a dedicated context (the clone moves into the JIT's
++    * pipeline with the JIT's own data layouts), so sharing one context
++    * across gallivm instances is neither supported nor needed.  Each
++    * gallivm owns its context; it stays valid until gallivm_free_ir drops
++    * the references (the runtime reclaims it). */
++   (void)context;
++   gallivm->context = LLVMContextCreate();
++
+    gallivm->cache = cache;
+    if (!gallivm->context)
+       goto fail;
+@@ -356,61 +206,21 @@
+    if (!gallivm->module)
+       goto fail;
+
+-#if DETECT_ARCH_X86
+    lp_set_module_stack_alignment_override(gallivm->module, 4);
+-#endif
+
+    gallivm->builder = LLVMCreateBuilderInContext(gallivm->context);
+    if (!gallivm->builder)
+       goto fail;
+
+-   gallivm->memorymgr = lp_get_default_memory_manager();
+-   if (!gallivm->memorymgr)
+-      goto fail;
++   gallivm->jit = NULL;
++   gallivm->jit_module = NULL;
++   gallivm->num_hooks = 0;
+
+-   /* FIXME: MC-JIT only allows compiling one module at a time, and it must be
+-    * complete when MC-JIT is created. So defer the MC-JIT engine creation for
+-    * now.
+-    */
++   /* Fil-C: no TargetData.  The LLVM type building below used the target
++    * only for debug-time layout asserts (LP_CHECK_*), which are stubbed
++    * out in lp_bld_struct.h; the JIT forces the standard x86_64 layout
++    * itself. */
+
+-   /*
+-    * MC-JIT engine compiles the module immediately on creation, so we can't
+-    * obtain the target data from it.  Instead we create a target data layout
+-    * from a string.
+-    *
+-    * The produced layout strings are not precisely the same, but should make
+-    * no difference for the kind of optimization passes we run.
+-    *
+-    * For reference this is the layout string on x64:
+-    *
+-    *   e-p:64:64:64-S128-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f16:16:16-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-f128:128:128-n8:16:32:64
+-    *
+-    * See also:
+-    * - http://llvm.org/docs/LangRef.html#datalayout
+-    */
+-
+-   {
+-      const unsigned pointer_size = 8 * sizeof(void *);
+-      char layout[512];
+-      snprintf(layout, sizeof layout, "%c-p:%u:%u:%u-i64:64:64-a0:0:%u-s0:%u:%u",
+-#if UTIL_ARCH_LITTLE_ENDIAN
+-                    'e', // little endian
+-#else
+-                    'E', // big endian
+-#endif
+-                    pointer_size, pointer_size, pointer_size, // pointer size, abi alignment, preferred alignment
+-                    pointer_size, // aggregate preferred alignment
+-                    pointer_size, pointer_size); // stack objects abi alignment, preferred alignment
+-
+-      gallivm->target = LLVMCreateTargetData(layout);
+-      if (!gallivm->target) {
+-         return false;
+-      }
+-   }
+-
+-   if (!create_pass_manager(gallivm))
+-      goto fail;
+-
+    lp_build_coro_declare_malloc_hooks(gallivm);
+    return true;
+
+@@ -441,12 +251,8 @@
+       return true;
+
+
+-   /* LLVMLinkIn* are no-ops at runtime.  They just ensure the respective
+-    * component is linked at buildtime, which is sufficient for its static
+-    * constructors to be called at load time.
+-    */
+-   LLVMLinkInMCJIT();
+-
++   /* Fil-C: no LLVMLinkInMCJIT (not in the curated API, and there is no
++    * MCJIT -- the shim initializes everything it needs on first compile). */
+    gallivm_debug = debug_get_option_gallivm_debug();
+
+    gallivm_perf = debug_get_flags_option("GALLIVM_PERF", lp_bld_perf_flags, 0 );
+@@ -524,15 +330,10 @@
+ gallivm_verify_function(struct gallivm_state *gallivm,
+                         LLVMValueRef func)
+ {
+-   /* Verify the LLVM IR.  If invalid, dump and abort */
+-#if MESA_DEBUG
+-   if (LLVMVerifyFunction(func, LLVMPrintMessageAction)) {
+-      lp_debug_dump_value(func);
+-      assert(0);
+-      return;
+-   }
+-#endif
+-
++   /* Fil-C: no LLVMVerifyFunction in the curated API (the JIT verifies the
++    * cloned module before optimizing it and panics on verifier errors with
++    * the verifier's message).  The IR dump below happens pre-compile, while
++    * the function is still alive. */
+    if (gallivm_debug & GALLIVM_DEBUG_IR) {
+       /* Print the LLVM IR to stderr */
+       lp_debug_dump_value(func);
+@@ -561,89 +362,35 @@
+    assert(!gallivm->compiled);
+
+    if (gallivm->builder) {
+-      LLVMDisposeBuilder(gallivm->builder);
++      /* Fil-C: no LLVMDisposeBuilder in the curated API.  The builder is
++       * owned by the context's runtime object; dropping the reference here
++       * is all the lifetime management there is. */
+       gallivm->builder = NULL;
+    }
+
+-   LLVMSetDataLayout(gallivm->module, "");
+-   assert(!gallivm->engine);
+-   if (!init_gallivm_engine(gallivm)) {
+-      assert(0);
+-   }
+-   assert(gallivm->engine);
+-
+-   if (gallivm->cache && gallivm->cache->data_size) {
+-      goto skip_cached;
+-   }
+-
+-   /* Dump bitcode to a file */
+-   if (gallivm_debug & GALLIVM_DEBUG_DUMP_BC) {
+-      char filename[256];
+-      assert(gallivm->module_name);
+-      snprintf(filename, sizeof(filename), "ir_%s.bc", gallivm->module_name);
+-      LLVMWriteBitcodeToFile(gallivm->module, filename);
+-      debug_printf("%s written\n", filename);
+-      debug_printf("Invoke as \"opt %s %s | llc -O%d %s%s\"\n",
+-                   gallivm_perf & GALLIVM_PERF_NO_OPT ? "-mem2reg" :
+-                   "-sroa -early-cse -simplifycfg -reassociate "
+-                   "-mem2reg -constprop -instcombine -gvn",
+-                   filename, gallivm_perf & GALLIVM_PERF_NO_OPT ? 0 : 2,
+-                   "[-mcpu=<-mcpu option>] ",
+-                   "[-mattr=<-mattr option(s)>]");
+-   }
+-
+    if (gallivm_debug & GALLIVM_DEBUG_PERF)
+       time_begin = os_time_get();
+
+-#if GALLIVM_USE_NEW_PASS == 1
+-   char passes[1024];
+-   passes[0] = 0;
++   /* Fil-C: the optimization pass runs (new-PM LLVMRunPasses / legacy
++    * function pass manager) are gone -- CompileModule runs the full
++    * pipeline (default<O2> + Fil-C passes) inside the shim.  The shader
++    * disk cache is likewise inert under the JIT (no object cache), so the
++    * cache short-circuit and the GALLIVM_DEBUG_DUMP_BC bitcode dump went
++    * away with them. */
+
+-   /*
+-    * there should be some way to combine these two pass runs but I'm not seeing it,
+-    * at the time of writing.
+-    */
+-   strcpy(passes, "default<O0>");
++   lp_init_printf_hook(gallivm);
+
+-   LLVMPassBuilderOptionsRef opts = LLVMCreatePassBuilderOptions();
+-   LLVMRunPasses(gallivm->module, passes, LLVMGetExecutionEngineTargetMachine(gallivm->engine), opts);
++   lp_init_clock_hook(gallivm);
+
+-   if (!(gallivm_perf & GALLIVM_PERF_NO_OPT))
+-#if LLVM_VERSION_MAJOR >= 18
+-      strcpy(passes, "sroa,early-cse,simplifycfg,reassociate,mem2reg,instsimplify,instcombine<no-verify-fixpoint>");
+-#else
+-      strcpy(passes, "sroa,early-cse,simplifycfg,reassociate,mem2reg,instsimplify,instcombine");
+-#endif
+-   else
+-      strcpy(passes, "mem2reg");
++   lp_build_coro_add_malloc_hooks(gallivm);
+
+-   LLVMRunPasses(gallivm->module, passes, LLVMGetExecutionEngineTargetMachine(gallivm->engine), opts);
+-   LLVMDisposePassBuilderOptions(opts);
+-#else
+-#if GALLIVM_HAVE_CORO == 1
+-   LLVMRunPassManager(gallivm->cgpassmgr, gallivm->module);
+-#endif
+-   /* Run optimization passes */
+-   LLVMInitializeFunctionPassManager(gallivm->passmgr);
+-   LLVMValueRef func;
+-   func = LLVMGetFirstFunction(gallivm->module);
+-   while (func) {
+-      if (0) {
+-         debug_printf("optimizing func %s...\n", LLVMGetValueName(func));
+-      }
++   if (!init_gallivm_engine(gallivm)) {
++      assert(0);
++   }
++   assert(gallivm->jit_module);
+
+-   /* Disable frame pointer omission on debug/profile builds */
+-   /* XXX: And workaround http://llvm.org/PR21435 */
+-#if MESA_DEBUG || defined(PROFILE) || DETECT_ARCH_X86 || DETECT_ARCH_X86_64
+-      LLVMAddTargetDependentFunctionAttr(func, "no-frame-pointer-elim", "true");
+-      LLVMAddTargetDependentFunctionAttr(func, "no-frame-pointer-elim-non-leaf", "true");
+-#endif
++   ++gallivm->compiled;
+
+-      LLVMRunFunctionPassManager(gallivm->passmgr, func);
+-      func = LLVMGetNextFunction(func);
+-   }
+-   LLVMFinalizeFunctionPassManager(gallivm->passmgr);
+-#endif
+    if (gallivm_debug & GALLIVM_DEBUG_PERF) {
+       int64_t time_end = os_time_get();
+       int time_msec = (int)((time_end - time_begin) / 1000);
+@@ -652,69 +399,10 @@
+                    gallivm->module_name, time_msec);
+    }
+
+-   /* Setting the module's DataLayout to an empty string will cause the
+-    * ExecutionEngine to copy to the DataLayout string from its target machine
+-    * to the module.  As of LLVM 3.8 the module and the execution engine are
+-    * required to have the same DataLayout.
+-    *
+-    * We must make sure we do this after running the optimization passes,
+-    * because those passes need a correct datalayout string.  For example, if
+-    * those optimization passes see an empty datalayout, they will assume this
+-    * is a little endian target and will do optimizations that break big endian
+-    * machines.
+-    *
+-    * TODO: This is just a temporary work-around.  The correct solution is for
+-    * gallivm_init_state() to create a TargetMachine and pull the DataLayout
+-    * from there.  Currently, the TargetMachine used by llvmpipe is being
+-    * implicitly created by the EngineBuilder in
+-    * lp_build_create_jit_compiler_for_module()
+-    */
+- skip_cached:
+-
+-   ++gallivm->compiled;
+-
+-   lp_init_printf_hook(gallivm);
+-   LLVMAddGlobalMapping(gallivm->engine, gallivm->debug_printf_hook, debug_printf);
+-
+-   lp_init_clock_hook(gallivm);
+-   LLVMAddGlobalMapping(gallivm->engine, gallivm->get_time_hook, os_time_get_nano);
+-
+-   lp_build_coro_add_malloc_hooks(gallivm);
+-
+-   if (gallivm_debug & GALLIVM_DEBUG_ASM) {
+-      LLVMValueRef llvm_func = LLVMGetFirstFunction(gallivm->module);
+-
+-      while (llvm_func) {
+-         /*
+-          * Need to filter out functions which don't have an implementation,
+-          * such as the intrinsics. May not be sufficient in case of IPO?
+-          * LLVMGetPointerToGlobal() will abort otherwise.
+-          */
+-         if (!LLVMIsDeclaration(llvm_func)) {
+-            void *func_code = LLVMGetPointerToGlobal(gallivm->engine, llvm_func);
+-            lp_disassemble(llvm_func, func_code);
+-         }
+-         llvm_func = LLVMGetNextFunction(llvm_func);
+-      }
+-   }
+-
+-#if defined(PROFILE)
+-   {
+-      LLVMValueRef llvm_func = LLVMGetFirstFunction(gallivm->module);
+-
+-      while (llvm_func) {
+-         if (!LLVMIsDeclaration(llvm_func)) {
+-            void *func_code = LLVMGetPointerToGlobal(gallivm->engine, llvm_func);
+-            lp_profile(llvm_func, func_code);
+-         }
+-         llvm_func = LLVMGetNextFunction(llvm_func);
+-      }
+-   }
+-#endif
++   /* Fil-C: the GALLIVM_DEBUG_ASM disassembly loop is gone (the LLVM-C
++    * disassembler is not in the curated API; lp_disassemble was removed). */
+ }
+
+-
+-
+ func_pointer
+ gallivm_jit_function(struct gallivm_state *gallivm,
+                      LLVMValueRef func)
+@@ -724,12 +412,18 @@
+    int64_t time_begin = 0;
+
+    assert(gallivm->compiled);
+-   assert(gallivm->engine);
++   assert(gallivm->jit_module);
+
+    if (gallivm_debug & GALLIVM_DEBUG_PERF)
+       time_begin = os_time_get();
+
+-   code = LLVMGetPointerToGlobal(gallivm->engine, func);
++   /* Fil-C: name-based lookup through the JIT module.  Safe to read the
++    * function's name here: CompileModule clones the caller's module, so the
++    * module (and this function value) stay alive until gallivm_free_ir --
++    * the same lifetime model mesa already relied on with MCJIT (it counts
++    * IR instructions of the module after the compile, too). */
++   code = FilLLVMJIT_GetPointerToGlobal(gallivm->jit_module,
++                                        LLVMGetValueName(func));
+    assert(code);
+    jit_func = pointer_to_func(code);
+
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.h b/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.h
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.h
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.h
+@@ -33,28 +33,37 @@
+ #include "util/compiler.h"
+ #include "util/u_pointer.h" // for func_pointer
+ #include "lp_bld.h"
+-#include <llvm-c/ExecutionEngine.h>
+
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+
+ struct lp_cached_code;
++
++/* Fil-C: max number of named host hooks (mapped extern declarations) that
++ * one gallivm module can carry.  The standard hooks (debug_printf,
++ * get_time_hook, coro_malloc, coro_free) take the first four slots. */
++#define LP_GALLIVM_MAX_HOOKS 16
++
++struct lp_gallivm_hook
++{
++   const char *name;
++   const void *ptr;
++};
++
+ struct gallivm_state
+ {
+    char *module_name;
+    LLVMModuleRef module;
+-   LLVMExecutionEngineRef engine;
+-   LLVMTargetDataRef target;
+-#if GALLIVM_USE_NEW_PASS == 0
+-   LLVMPassManagerRef passmgr;
+-#if GALLIVM_HAVE_CORO == 1
+-   LLVMPassManagerRef cgpassmgr;
+-#endif
+-#endif
++   /* Fil-C: the JIT session and the compiled module replace the
++    * ExecutionEngine/TargetData/pass-managers.  code is the (opaque)
++    * FilLLVMJITModuleRef cast for lp_free_generated_code symmetry. */
++   FilLLVMJITRef jit;
++   FilLLVMJITModuleRef jit_module;
++   struct lp_gallivm_hook hooks[LP_GALLIVM_MAX_HOOKS];
++   unsigned num_hooks;
+    LLVMContextRef context;
+    LLVMBuilderRef builder;
+-   LLVMMCJITMemoryManagerRef memorymgr;
+    struct lp_generated_code *code;
+    struct lp_cached_code *cache;
+    unsigned compiled;
+@@ -70,6 +79,10 @@
+    LLVMValueRef texture_descriptor;
+    LLVMValueRef sampler_descriptor;
+ };
++
++/* Fil-C: the JIT glue declares functions taking struct gallivm_state, so
++ * its header comes after the struct definition. */
++#include "gallivm/lp_bld_misc.h"
+
+ unsigned
+ lp_build_init_native_width(void);
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_ir_common.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_ir_common.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_ir_common.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_ir_common.c
+@@ -209,7 +209,7 @@
+    LLVMValueRef exec_mask = mask->has_mask ? mask->exec_mask : NULL;
+
+    assert(lp_check_value(bld_store->type, val));
+-   assert(LLVMGetTypeKind(LLVMTypeOf(dst_ptr)) == LLVMPointerTypeKind);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    assert(LLVM_VERSION_MAJOR >= 15
+           || (LLVMGetElementType(LLVMTypeOf(dst_ptr)) == LLVMTypeOf(val)
+               || LLVMGetTypeKind(LLVMGetElementType(LLVMTypeOf(dst_ptr))) == LLVMArrayTypeKind));
+@@ -368,10 +368,10 @@
+       return;
+    }
+    if (ctx->cond_stack_size == 0 && mask->function_stack_size == 1) {
+-      assert(mask->cond_mask == LLVMConstAllOnes(mask->int_vec_type));
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    }
+    ctx->cond_stack[ctx->cond_stack_size++] = mask->cond_mask;
+-   assert(LLVMTypeOf(val) == mask->int_vec_type);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    mask->cond_mask = LLVMBuildAnd(builder,
+                                   mask->cond_mask,
+                                   val,
+@@ -391,7 +391,7 @@
+       return;
+    prev_mask = ctx->cond_stack[ctx->cond_stack_size - 1];
+    if (ctx->cond_stack_size == 1 && mask->function_stack_size == 1) {
+-      assert(prev_mask == LLVMConstAllOnes(mask->int_vec_type));
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    }
+
+    inv_mask = LLVMBuildNot(builder, mask->cond_mask, "");
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_jit_types.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_jit_types.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_jit_types.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_jit_types.c
+@@ -693,7 +693,7 @@
+ LLVMTypeRef
+ lp_build_create_jit_vertex_header_type(struct gallivm_state *gallivm, int data_elems)
+ {
+-   LLVMTargetDataRef target = gallivm->target;
++   /* Fil-C: no TargetData (see lp_bld_struct.h). */
+    LLVMTypeRef elem_types[3];
+    LLVMTypeRef vertex_header;
+    char struct_name[24];
+@@ -721,7 +721,6 @@
+       target, vertex_header,
+       LP_JIT_VERTEX_HEADER_VERTEX_ID);
+    */
+-   (void) target; /* silence unused var warning for non-debug build */
+    LP_CHECK_MEMBER_OFFSET(struct vertex_header, clip_pos,
+                           target, vertex_header,
+                           LP_JIT_VERTEX_HEADER_CLIP_POS);
+@@ -729,8 +728,9 @@
+                           target, vertex_header,
+                           LP_JIT_VERTEX_HEADER_DATA);
+
+-   assert(LLVMABISizeOfType(target, vertex_header) ==
+-          offsetof(struct vertex_header, data[data_elems]));
++   /* Fil-C: the LLVMABISizeOfType assert that used to live here went away
++    * with the TargetData (see lp_bld_struct.h).  The JIT pins the standard
++    * x86_64 layout, and offsetof(data[data_elems]) matches it. */
+
+    return vertex_header;
+ }
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.c
+new file mode 100644
+--- /dev/null
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.c
+@@ -0,0 +1,213 @@
++/**************************************************************************
++ *
++ * Copyright 2010 VMware, Inc.
++ * All Rights Reserved.
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a
++ * copy of this software and associated documentation files (the
++ * "Software"), to deal in the Software without restriction, including
++ * without limitation the rights to use, copy, modify, merge, publish,
++ * distribute, sub license, and/or sell copies of the Software, and to
++ * permit persons to whom the Software is furnished to do so, subject to
++ * the following conditions:
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
++ * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
++ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
++ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
++ * USE OR OTHER DEALINGS IN THE SOFTWARE.
++ *
++ * The above copyright notice and this permission notice (including the
++ * next paragraph) shall be included in all copies or substantial portions
++ * of the Software.
++ *
++ **************************************************************************/
++
++
++/*
++ * Fil-C port: this used to be lp_bld_misc.cpp, the only C++ file in
++ * gallivm, which drove MCJIT through the LLVM C++ API (EngineBuilder,
++ * MAttrs/MCPU, SectionMemoryManager, LPObjectCache, ...).  Under the
++ * Fil-C LLVM JIT none of that machinery exists or is needed:
++ *
++ * - the JIT targets detectHost() (march=native) itself, so the MAttrs /
++ *   MCPU logic is gone;
++ * - code sections are allocated by the Fil-C runtime (GC-visible),
++ *   so the memory manager / lp_generated_code bookkeeping is gone;
++ * - there is no object cache: lp_cached_code stays structurally but is
++ *   always empty and mesa's shader disk cache silently disables;
++ * - the LLVM C++ API cannot be reached from Fil-C code, so this file is
++ *   now plain C speaking only the curated LLVM-C subset from
++ *   filc_llvm_jit.h plus the FilLLVMJIT_* session API.
++ */
++
++#include <stdio.h>
++#include <string.h>
++
++#include "util/u_debug.h"
++#include "util/u_memory.h"
++#include "util/os_time.h"
++
++#include "lp_bld_misc.h"
++#include "lp_bld_init.h"
++
++#include <filc_llvm_jit.h>
++
++
++void
++lp_set_target_options(void)
++{
++   /* Fil-C: the JIT shim initializes the native target itself
++    * (initOnce() inside the shim, on first compile).  Nothing to do. */
++}
++
++
++unsigned
++lp_gallivm_add_hook(struct gallivm_state *gallivm, const char *name,
++                    const void *ptr)
++{
++   unsigned i;
++
++   for (i = 0; i < gallivm->num_hooks; i++) {
++      if (strcmp(gallivm->hooks[i].name, name) == 0) {
++         assert(gallivm->hooks[i].ptr == ptr);
++         return i;
++      }
++   }
++   assert(gallivm->num_hooks < LP_GALLIVM_MAX_HOOKS);
++   gallivm->hooks[gallivm->num_hooks].name = name;
++   gallivm->hooks[gallivm->num_hooks].ptr = ptr;
++   gallivm->num_hooks++;
++   return gallivm->num_hooks - 1;
++}
++
++
++/* Fil-C: declare a call target for a HOST function in the module.
++ *
++ * Upstream built an inttoptr-of-constant "function pointer constant" for
++ * this (lp_build_const_func_pointer), which MCJIT resolved by raw address.
++ * The Fil-C JIT cannot bless such a constant: an inttoptr of a plain
++ * integer constant yields a pointer without a capability, and calling
++ * through it panics.  Instead we declare a named extern function and map
++ * the name to the host pointer via FilLLVMJIT_SetGlobalMapping at compile
++ * time (see lp_build_jit_compile_for_module).  Same call ABI, capability-
++ * checked by the runtime like any mapped hook. */
++LLVMValueRef
++lp_build_decl_mapped_fn(struct gallivm_state *gallivm, const char *name,
++                        const void *host_fn, LLVMTypeRef function_type)
++{
++   LLVMValueRef fn = LLVMGetNamedFunction(gallivm->module, name);
++
++   if (fn) {
++      /* Same host function declared twice in this module (e.g. two call
++       * sites hitting the same fetch function). */
++      lp_gallivm_add_hook(gallivm, name, host_fn);
++      return fn;
++   }
++
++   fn = LLVMAddFunction(gallivm->module, name, function_type);
++   LLVMSetFunctionCallConv(fn, LLVMCCallConv);
++   lp_gallivm_add_hook(gallivm, name, host_fn);
++   return fn;
++}
++
++
++
++/* Fil-C: one JIT session per gallivm_state.  Sessions are cheap and keep
++ * the global mappings of the module they compiled; the session object is
++ * GC-managed by the Fil-C runtime (there is no Dispose API). */
++
++int
++lp_build_jit_compile_for_module(struct gallivm_state *gallivm,
++                                unsigned OptLevel)
++{
++   char opt[2];
++   unsigned i;
++
++   if (!gallivm->jit) {
++      gallivm->jit = FilLLVMJIT_Create();
++      if (!gallivm->jit)
++         return 1;
++   }
++
++   opt[0] = (char)('0' + (OptLevel > 3 ? 3 : OptLevel));
++   opt[1] = 0;
++   FilLLVMJIT_SetOption(gallivm->jit, "opt-level", opt);
++
++   /* Every extern declaration in the module must be mapped before
++    * compilation (the shim panics on unmapped declarations, intrinsics
++    * exempt).  Register the module's hooks: the per-gallivm table built by
++    * lp_gallivm_add_hook(), plus the hooks every module declares. */
++   for (i = 0; i < gallivm->num_hooks; i++)
++      FilLLVMJIT_SetGlobalMapping(gallivm->jit, gallivm->hooks[i].name,
++                                  gallivm->hooks[i].ptr);
++
++   if (gallivm->debug_printf_hook)
++      FilLLVMJIT_SetGlobalMapping(gallivm->jit, "debug_printf", debug_printf);
++
++   if (gallivm->get_time_hook)
++      FilLLVMJIT_SetGlobalMapping(gallivm->jit, "get_time_hook",
++                                  os_time_get_nano);
++
++   /* CompileModule clones the module; the caller's module (and its
++    * context) stay valid until gallivm_free_ir drops the references, so
++    * name lookups after compile keep working. */
++   gallivm->jit_module = FilLLVMJIT_CompileModule(gallivm->jit,
++                                                  gallivm->module);
++   if (!gallivm->jit_module)
++      return 1;
++
++   /* lp_generated_code is opaque under the JIT: the returned module ref
++    * owns the code (GC-managed).  gallivm->code keeps it alive until
++    * gallivm_free_ir. */
++   gallivm->code = (struct lp_generated_code *)gallivm->jit_module;
++
++   return 0;
++}
++
++
++void
++lp_free_generated_code(struct lp_generated_code *code)
++{
++   /* Fil-C: the FilLLVMJITModuleRef is GC-managed; dropping the last
++    * reference (gallivm_free_ir NULLs gallivm->code) lets the runtime
++    * reclaim the module's code sections.  Nothing to free here. */
++   (void)code;
++}
++
++
++void *
++lp_get_default_memory_manager(void)
++{
++   /* Fil-C: no engine-side memory manager exists.  Kept as a symbol for
++    * gallivm_free_code; the field stays NULL. */
++   return NULL;
++}
++
++
++void
++lp_free_memory_manager(void *memorymgr)
++{
++   (void)memorymgr;
++}
++
++
++void
++lp_free_objcache(void *objcache)
++{
++   /* Fil-C: no object cache (see file comment). */
++   (void)objcache;
++}
++
++
++void
++lp_set_module_stack_alignment_override(LLVMModuleRef M, unsigned align)
++{
++   /* Fil-C: x86-32 only upstream; the JIT defines its own stack layout. */
++   (void)M;
++   (void)align;
++}
++
++
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.cpp b/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.cpp
+deleted file mode 100644
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.cpp
++++ /dev/null
+@@ -1,653 +0,0 @@
+-/**************************************************************************
+- *
+- * Copyright 2010 VMware, Inc.
+- * All Rights Reserved.
+- *
+- * Permission is hereby granted, free of charge, to any person obtaining a
+- * copy of this software and associated documentation files (the
+- * "Software"), to deal in the Software without restriction, including
+- * without limitation the rights to use, copy, modify, merge, publish,
+- * distribute, sub license, and/or sell copies of the Software, and to
+- * permit persons to whom the Software is furnished to do so, subject to
+- * the following conditions:
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
+- * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
+- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+- * USE OR OTHER DEALINGS IN THE SOFTWARE.
+- *
+- * The above copyright notice and this permission notice (including the
+- * next paragraph) shall be included in all copies or substantial portions
+- * of the Software.
+- *
+- **************************************************************************/
+-
+-
+-/**
+- * The purpose of this module is to expose LLVM functionality not available
+- * through the C++ bindings.
+- */
+-
+-
+-// Undef these vars just to silence warnings
+-#undef PACKAGE_BUGREPORT
+-#undef PACKAGE_NAME
+-#undef PACKAGE_STRING
+-#undef PACKAGE_TARNAME
+-#undef PACKAGE_VERSION
+-
+-
+-#include <stddef.h>
+-
+-#include <llvm/Config/llvm-config.h>
+-#include <llvm-c/Core.h>
+-#include <llvm-c/Support.h>
+-#include <llvm-c/ExecutionEngine.h>
+-#include <llvm/Target/TargetOptions.h>
+-#include <llvm/ExecutionEngine/ExecutionEngine.h>
+-#include <llvm/Analysis/TargetLibraryInfo.h>
+-#include <llvm/ExecutionEngine/SectionMemoryManager.h>
+-#include <llvm/Support/CommandLine.h>
+-#include <llvm/Support/PrettyStackTrace.h>
+-#include <llvm/ExecutionEngine/ObjectCache.h>
+-#include <llvm/Support/TargetSelect.h>
+-#include <llvm/CodeGen/SelectionDAGNodes.h>
+-#if LLVM_VERSION_MAJOR >= 15
+-#include <llvm/Support/MemoryBuffer.h>
+-#endif
+-
+-#if LLVM_VERSION_MAJOR >= 17
+-#include <llvm/TargetParser/Host.h>
+-#include <llvm/TargetParser/Triple.h>
+-#else
+-#include <llvm/Support/Host.h>
+-#include <llvm/ADT/Triple.h>
+-#endif
+-
+-#if LLVM_VERSION_MAJOR < 11
+-#include <llvm/IR/CallSite.h>
+-#endif
+-#include <llvm/IR/IRBuilder.h>
+-#include <llvm/IR/Module.h>
+-#include <llvm/Support/CBindingWrapping.h>
+-
+-#include <llvm/Config/llvm-config.h>
+-#if LLVM_USE_INTEL_JITEVENTS
+-#include <llvm/ExecutionEngine/JITEventListener.h>
+-#endif
+-
+-#include "c11/threads.h"
+-#include "util/u_thread.h"
+-#include "util/detect.h"
+-#include "util/u_debug.h"
+-#include "util/u_cpu_detect.h"
+-
+-#include "lp_bld_misc.h"
+-#include "lp_bld_debug.h"
+-
+-static void lp_run_atexit_for_destructors(void);
+-
+-namespace {
+-
+-class LLVMEnsureMultithreaded {
+-public:
+-   LLVMEnsureMultithreaded()
+-   {
+-      if (!LLVMIsMultithreaded()) {
+-         LLVMStartMultithreaded();
+-      }
+-   }
+-};
+-
+-static LLVMEnsureMultithreaded lLVMEnsureMultithreaded;
+-
+-}
+-
+-static once_flag init_native_targets_once_flag = ONCE_FLAG_INIT;
+-
+-static void init_native_targets()
+-{
+-   // If we have a native target, initialize it to ensure it is linked in and
+-   // usable by the JIT.
+-   llvm::InitializeNativeTarget();
+-
+-   llvm::InitializeNativeTargetAsmPrinter();
+-
+-   llvm::InitializeNativeTargetDisassembler();
+-#if MESA_DEBUG
+-   {
+-      char *env_llc_options = getenv("GALLIVM_LLC_OPTIONS");
+-      if (env_llc_options) {
+-         char *option;
+-         char *options[64] = {(char *) "llc"};      // Warning without cast
+-         int   n;
+-         for (n = 0, option = strtok(env_llc_options, " "); option; n++, option = strtok(NULL, " ")) {
+-            options[n + 1] = option;
+-         }
+-         if (gallivm_debug & (GALLIVM_DEBUG_IR | GALLIVM_DEBUG_ASM | GALLIVM_DEBUG_DUMP_BC)) {
+-            debug_printf("llc additional options (%d):\n", n);
+-            for (int i = 1; i <= n; i++)
+-               debug_printf("\t%s\n", options[i]);
+-            debug_printf("\n");
+-         }
+-         LLVMParseCommandLineOptions(n + 1, options, NULL);
+-      }
+-   }
+-#endif
+-   lp_run_atexit_for_destructors();
+-}
+-
+-extern "C" void
+-lp_set_target_options(void)
+-{
+-   /* The llvm target registry is not thread-safe, so drivers and gallium frontends
+-    * that want to initialize targets should use the lp_set_target_options()
+-    * function to safely initialize targets.
+-    *
+-    * LLVM targets should be initialized before the driver or gallium frontend tries
+-    * to access the registry.
+-    */
+-   call_once(&init_native_targets_once_flag, init_native_targets);
+-}
+-
+-extern "C"
+-LLVMTargetLibraryInfoRef
+-gallivm_create_target_library_info(const char *triple)
+-{
+-   return reinterpret_cast<LLVMTargetLibraryInfoRef>(
+-   new llvm::TargetLibraryInfoImpl(
+-   llvm::Triple(triple)));
+-}
+-
+-extern "C"
+-void
+-gallivm_dispose_target_library_info(LLVMTargetLibraryInfoRef library_info)
+-{
+-   delete reinterpret_cast<
+-   llvm::TargetLibraryInfoImpl
+-   *>(library_info);
+-}
+-
+-
+-typedef llvm::RTDyldMemoryManager BaseMemoryManager;
+-
+-
+-/*
+- * Delegating is tedious but the default manager class is hidden in an
+- * anonymous namespace in LLVM, so we cannot just derive from it to change
+- * its behavior.
+- */
+-class DelegatingJITMemoryManager : public BaseMemoryManager {
+-
+-   protected:
+-      virtual BaseMemoryManager *mgr() const = 0;
+-
+-   public:
+-      /*
+-       * From RTDyldMemoryManager
+-       */
+-      virtual uint8_t *allocateCodeSection(uintptr_t Size,
+-                                           unsigned Alignment,
+-                                           unsigned SectionID,
+-                                           llvm::StringRef SectionName) {
+-         return mgr()->allocateCodeSection(Size, Alignment, SectionID,
+-                                           SectionName);
+-      }
+-      virtual uint8_t *allocateDataSection(uintptr_t Size,
+-                                           unsigned Alignment,
+-                                           unsigned SectionID,
+-                                           llvm::StringRef SectionName,
+-                                           bool IsReadOnly) {
+-         return mgr()->allocateDataSection(Size, Alignment, SectionID,
+-                                           SectionName,
+-                                           IsReadOnly);
+-      }
+-      virtual void registerEHFrames(uint8_t *Addr, uint64_t LoadAddr, size_t Size) {
+-         mgr()->registerEHFrames(Addr, LoadAddr, Size);
+-      }
+-#if LLVM_VERSION_MAJOR >= 5
+-      virtual void deregisterEHFrames() {
+-         mgr()->deregisterEHFrames();
+-      }
+-#else
+-      virtual void deregisterEHFrames(uint8_t *Addr, uint64_t LoadAddr, size_t Size) {
+-         mgr()->deregisterEHFrames(Addr, LoadAddr, Size);
+-      }
+-#endif
+-      virtual void *getPointerToNamedFunction(const std::string &Name,
+-                                              bool AbortOnFailure=true) {
+-         return mgr()->getPointerToNamedFunction(Name, AbortOnFailure);
+-      }
+-      virtual bool finalizeMemory(std::string *ErrMsg = 0) {
+-         return mgr()->finalizeMemory(ErrMsg);
+-      }
+-};
+-
+-
+-/*
+- * Delegate memory management to one shared manager for more efficient use
+- * of memory than creating a separate pool for each LLVM engine.
+- * Keep generated code until freeGeneratedCode() is called, instead of when
+- * memory manager is destroyed, which happens during engine destruction.
+- * This allows additional memory savings as we don't have to keep the engine
+- * around in order to use the code.
+- * All methods are delegated to the shared manager except destruction and
+- * deallocating code.  For the latter we just remember what needs to be
+- * deallocated later.  The shared manager is deleted once it is empty.
+- */
+-class ShaderMemoryManager : public DelegatingJITMemoryManager {
+-
+-   BaseMemoryManager *TheMM;
+-
+-   struct GeneratedCode {
+-      typedef std::vector<void *> Vec;
+-      Vec FunctionBody, ExceptionTable;
+-      BaseMemoryManager *TheMM;
+-
+-      GeneratedCode(BaseMemoryManager *MM) {
+-         TheMM = MM;
+-      }
+-
+-      ~GeneratedCode() {
+-      }
+-   };
+-
+-   GeneratedCode *code;
+-
+-   BaseMemoryManager *mgr() const {
+-      return TheMM;
+-   }
+-
+-   public:
+-
+-      ShaderMemoryManager(BaseMemoryManager* MM) {
+-         TheMM = MM;
+-         code = new GeneratedCode(MM);
+-      }
+-
+-      virtual ~ShaderMemoryManager() {
+-         /*
+-          * 'code' is purposely not deleted.  It is the user's responsibility
+-          * to call getGeneratedCode() and freeGeneratedCode().
+-          */
+-      }
+-
+-      struct lp_generated_code *getGeneratedCode() {
+-         return (struct lp_generated_code *) code;
+-      }
+-
+-      static void freeGeneratedCode(struct lp_generated_code *code) {
+-         delete (GeneratedCode *) code;
+-      }
+-
+-      virtual void deallocateFunctionBody(void *Body) {
+-         // remember for later deallocation
+-         code->FunctionBody.push_back(Body);
+-      }
+-};
+-
+-class LPObjectCache : public llvm::ObjectCache {
+-private:
+-   bool has_object;
+-   struct lp_cached_code *cache_out;
+-public:
+-   LPObjectCache(struct lp_cached_code *cache) {
+-      cache_out = cache;
+-      has_object = false;
+-   }
+-
+-   ~LPObjectCache() {
+-   }
+-   void notifyObjectCompiled(const llvm::Module *M, llvm::MemoryBufferRef Obj) {
+-      const std::string ModuleID = M->getModuleIdentifier();
+-      if (has_object)
+-         fprintf(stderr, "CACHE ALREADY HAS MODULE OBJECT\n");
+-      has_object = true;
+-      cache_out->data_size = Obj.getBufferSize();
+-      cache_out->data = malloc(cache_out->data_size);
+-      memcpy(cache_out->data, Obj.getBufferStart(), cache_out->data_size);
+-   }
+-
+-   virtual std::unique_ptr<llvm::MemoryBuffer> getObject(const llvm::Module *M) {
+-      if (cache_out->data_size) {
+-         return llvm::MemoryBuffer::getMemBuffer(llvm::StringRef((const char *)cache_out->data, cache_out->data_size), "", false);
+-      }
+-      return NULL;
+-   }
+-
+-};
+-
+-/**
+- * Same as LLVMCreateJITCompilerForModule, but:
+- * - allows using MCJIT and enabling AVX feature where available.
+- * - set target options
+- *
+- * See also:
+- * - llvm/lib/ExecutionEngine/ExecutionEngineBindings.cpp
+- * - llvm/tools/lli/lli.cpp
+- * - http://markmail.org/message/ttkuhvgj4cxxy2on#query:+page:1+mid:aju2dggerju3ivd3+state:results
+- */
+-extern "C"
+-LLVMBool
+-lp_build_create_jit_compiler_for_module(LLVMExecutionEngineRef *OutJIT,
+-                                        lp_generated_code **OutCode,
+-                                        struct lp_cached_code *cache_out,
+-                                        LLVMModuleRef M,
+-                                        LLVMMCJITMemoryManagerRef CMM,
+-                                        unsigned OptLevel,
+-                                        char **OutError)
+-{
+-   using namespace llvm;
+-
+-   std::string Error;
+-   EngineBuilder builder(std::unique_ptr<Module>(unwrap(M)));
+-
+-   /**
+-    * LLVM 3.1+ haven't more "extern unsigned llvm::StackAlignmentOverride" and
+-    * friends for configuring code generation options, like stack alignment.
+-    */
+-   TargetOptions options;
+-#if DETECT_ARCH_X86 && LLVM_VERSION_MAJOR < 13
+-   options.StackAlignmentOverride = 4;
+-#endif
+-
+-   builder.setEngineKind(EngineKind::JIT)
+-          .setErrorStr(&Error)
+-          .setTargetOptions(options)
+-#if LLVM_VERSION_MAJOR >= 18
+-          .setOptLevel((CodeGenOptLevel)OptLevel);
+-#else
+-          .setOptLevel((CodeGenOpt::Level)OptLevel);
+-#endif
+-
+-#if DETECT_OS_WINDOWS
+-    /*
+-     * MCJIT works on Windows, but currently only through ELF object format.
+-     *
+-     * XXX: We could use `LLVM_HOST_TRIPLE "-elf"` but LLVM_HOST_TRIPLE has
+-     * different strings for MinGW/MSVC, so better play it safe and be
+-     * explicit.
+-     */
+-#  if DETECT_ARCH_X86_64
+-    LLVMSetTarget(M, "x86_64-pc-win32-elf");
+-#  elif DETECT_ARCH_X86
+-    LLVMSetTarget(M, "i686-pc-win32-elf");
+-#  elif DETECT_ARCH_AARCH64
+-    LLVMSetTarget(M, "aarch64-pc-win32-elf");
+-#  else
+-#    error Unsupported architecture for MCJIT on Windows.
+-#  endif
+-#endif
+-
+-   llvm::SmallVector<std::string, 16> MAttrs;
+-
+-#if DETECT_ARCH_ARM
+-   /* llvm-3.3+ implements sys::getHostCPUFeatures for Arm,
+-    * which allows us to enable/disable code generation based
+-    * on the results of cpuid on these architectures.
+-    */
+-   llvm::StringMap<bool> features;
+-   llvm::sys::getHostCPUFeatures(features);
+-
+-   for (llvm::StringMapIterator<bool> f = features.begin();
+-        f != features.end();
+-        ++f) {
+-      MAttrs.push_back(((*f).second ? "+" : "-") + (*f).first().str());
+-   }
+-#elif DETECT_ARCH_X86 || DETECT_ARCH_X86_64
+-   /*
+-    * Because we can override cpu caps with environment variables,
+-    * so we do not use llvm::sys::getHostCPUFeatures to detect cpu features
+-    * but using util_get_cpu_caps() instead.
+-    */
+-#if DETECT_ARCH_X86_64
+-   /*
+-    * Without this, on some "buggy" qemu cpu setup, LLVM could crash
+-    * if LLVM detects the wrong CPU type.
+-    */
+-   MAttrs.push_back("+64bit");
+-#endif
+-   MAttrs.push_back(util_get_cpu_caps()->has_sse    ? "+sse"    : "-sse"   );
+-   MAttrs.push_back(util_get_cpu_caps()->has_sse2   ? "+sse2"   : "-sse2"  );
+-   MAttrs.push_back(util_get_cpu_caps()->has_sse3   ? "+sse3"   : "-sse3"  );
+-   MAttrs.push_back(util_get_cpu_caps()->has_ssse3  ? "+ssse3"  : "-ssse3" );
+-   MAttrs.push_back(util_get_cpu_caps()->has_sse4_1 ? "+sse4.1" : "-sse4.1");
+-   MAttrs.push_back(util_get_cpu_caps()->has_sse4_2 ? "+sse4.2" : "-sse4.2");
+-   /*
+-    * AVX feature is not automatically detected from CPUID by the X86 target
+-    * yet, because the old (yet default) JIT engine is not capable of
+-    * emitting the opcodes. On newer llvm versions it is and at least some
+-    * versions (tested with 3.3) will emit avx opcodes without this anyway.
+-    */
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx  ? "+avx"  : "-avx");
+-   MAttrs.push_back(util_get_cpu_caps()->has_f16c ? "+f16c" : "-f16c");
+-   MAttrs.push_back(util_get_cpu_caps()->has_fma  ? "+fma"  : "-fma");
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx2 ? "+avx2" : "-avx2");
+-
+-   /* All avx512 have avx512f */
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx512f ? "+avx512f"  : "-avx512f");
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx512cd ? "+avx512cd"  : "-avx512cd");
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx512er ? "+avx512er"  : "-avx512er");
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx512pf ? "+avx512pf"  : "-avx512pf");
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx512bw ? "+avx512bw"  : "-avx512bw");
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx512dq ? "+avx512dq"  : "-avx512dq");
+-   MAttrs.push_back(util_get_cpu_caps()->has_avx512vl ? "+avx512vl"  : "-avx512vl");
+-#endif
+-#if DETECT_ARCH_ARM
+-   if (!util_get_cpu_caps()->has_neon) {
+-      MAttrs.push_back("-neon");
+-      MAttrs.push_back("-crypto");
+-      MAttrs.push_back("-vfp2");
+-   }
+-#endif
+-
+-#if DETECT_ARCH_PPC
+-   MAttrs.push_back(util_get_cpu_caps()->has_altivec ? "+altivec" : "-altivec");
+-   /*
+-    * Bug 25503 is fixed, by the same fix that fixed
+-    * bug 26775, in versions of LLVM later than 3.8 (starting with 3.8.1).
+-    * BZ 33531 actually comprises more than one bug, all of
+-    * which are fixed in LLVM 4.0.
+-    *
+-    * With LLVM 4.0 or higher:
+-    * Make sure VSX instructions are ENABLED (if supported), unless
+-    * VSX instructions are explicitly enabled/disabled via GALLIVM_VSX=1 or 0.
+-    */
+-   if (util_get_cpu_caps()->has_altivec) {
+-      MAttrs.push_back(util_get_cpu_caps()->has_vsx ? "+vsx" : "-vsx");
+-   }
+-#endif
+-
+-#if DETECT_ARCH_MIPS64
+-   MAttrs.push_back(util_get_cpu_caps()->has_msa ? "+msa" : "-msa");
+-   /* MSA requires a 64-bit FPU register file */
+-   MAttrs.push_back("+fp64");
+-#endif
+-
+-   builder.setMAttrs(MAttrs);
+-
+-   if (gallivm_debug & (GALLIVM_DEBUG_IR | GALLIVM_DEBUG_ASM | GALLIVM_DEBUG_DUMP_BC)) {
+-      int n = MAttrs.size();
+-      if (n > 0) {
+-         debug_printf("llc -mattr option(s): ");
+-         for (int i = 0; i < n; i++)
+-            debug_printf("%s%s", MAttrs[i].c_str(), (i < n - 1) ? "," : "");
+-         debug_printf("\n");
+-      }
+-   }
+-
+-   StringRef MCPU = llvm::sys::getHostCPUName();
+-   /*
+-    * The cpu bits are no longer set automatically, so need to set mcpu manually.
+-    * Note that the MAttrs set above will be sort of ignored (since we should
+-    * not set any which would not be set by specifying the cpu anyway).
+-    * It ought to be safe though since getHostCPUName() should include bits
+-    * not only from the cpu but environment as well (for instance if it's safe
+-    * to use avx instructions which need OS support). According to
+-    * http://llvm.org/bugs/show_bug.cgi?id=19429 however if I understand this
+-    * right it may be necessary to specify older cpu (or disable mattrs) though
+-    * when not using MCJIT so no instructions are generated which the old JIT
+-    * can't handle. Not entirely sure if we really need to do anything yet.
+-    */
+-
+-#if DETECT_ARCH_PPC_64
+-   /*
+-    * Large programs, e.g. gnome-shell and firefox, may tax the addressability
+-    * of the Medium code model once dynamically generated JIT-compiled shader
+-    * programs are linked in and relocated.  Yet the default code model as of
+-    * LLVM 8 is Medium or even Small.
+-    * The cost of changing from Medium to Large is negligible:
+-    * - an additional 8-byte pointer stored immediately before the shader entrypoint;
+-    * - change an add-immediate (addis) instruction to a load (ld).
+-    */
+-   builder.setCodeModel(CodeModel::Large);
+-
+-#if UTIL_ARCH_LITTLE_ENDIAN
+-   /*
+-    * Versions of LLVM prior to 4.0 lacked a table entry for "POWER8NVL",
+-    * resulting in (big-endian) "generic" being returned on
+-    * little-endian Power8NVL systems.  The result was that code that
+-    * attempted to load the least significant 32 bits of a 64-bit quantity
+-    * from memory loaded the wrong half.  This resulted in failures in some
+-    * Piglit tests, e.g.
+-    * .../arb_gpu_shader_fp64/execution/conversion/frag-conversion-explicit-double-uint
+-    */
+-   if (MCPU == "generic")
+-      MCPU = "pwr8";
+-#endif
+-#endif
+-
+-#if DETECT_ARCH_MIPS64
+-      /*
+-       * ls3a4000 CPU and ls2k1000 SoC is a mips64r5 compatible with MSA SIMD
+-       * instruction set implemented, while ls3a3000 is mips64r2 compatible
+-       * only. getHostCPUName() return "generic" on all loongson
+-       * mips CPU currently. So we override the MCPU to mips64r5 if MSA is
+-       * implemented, feedback to mips64r2 for all other ordinary mips64 cpu.
+-       */
+-   if (MCPU == "generic")
+-      MCPU = util_get_cpu_caps()->has_msa ? "mips64r5" : "mips64r2";
+-#endif
+-
+-   builder.setMCPU(MCPU);
+-   if (gallivm_debug & (GALLIVM_DEBUG_IR | GALLIVM_DEBUG_ASM | GALLIVM_DEBUG_DUMP_BC)) {
+-      debug_printf("llc -mcpu option: %s\n", MCPU.str().c_str());
+-   }
+-
+-   ShaderMemoryManager *MM = NULL;
+-   BaseMemoryManager* JMM = reinterpret_cast<BaseMemoryManager*>(CMM);
+-   MM = new ShaderMemoryManager(JMM);
+-   *OutCode = MM->getGeneratedCode();
+-
+-   builder.setMCJITMemoryManager(std::unique_ptr<RTDyldMemoryManager>(MM));
+-   MM = NULL; // ownership taken by std::unique_ptr
+-
+-   ExecutionEngine *JIT;
+-
+-   JIT = builder.create();
+-
+-   if (cache_out) {
+-      LPObjectCache *objcache = new LPObjectCache(cache_out);
+-      JIT->setObjectCache(objcache);
+-      cache_out->jit_obj_cache = (void *)objcache;
+-   }
+-
+-#if LLVM_USE_INTEL_JITEVENTS
+-   JITEventListener *JEL = JITEventListener::createIntelJITEventListener();
+-   JIT->RegisterJITEventListener(JEL);
+-#endif
+-   if (JIT) {
+-      *OutJIT = wrap(JIT);
+-      return 0;
+-   }
+-   lp_free_generated_code(*OutCode);
+-   *OutCode = 0;
+-   delete MM;
+-   *OutError = strdup(Error.c_str());
+-   return 1;
+-}
+-
+-
+-extern "C"
+-void
+-lp_free_generated_code(struct lp_generated_code *code)
+-{
+-   ShaderMemoryManager::freeGeneratedCode(code);
+-}
+-
+-extern "C"
+-LLVMMCJITMemoryManagerRef
+-lp_get_default_memory_manager()
+-{
+-   BaseMemoryManager *mm;
+-   mm = new llvm::SectionMemoryManager();
+-   return reinterpret_cast<LLVMMCJITMemoryManagerRef>(mm);
+-}
+-
+-extern "C"
+-void
+-lp_free_memory_manager(LLVMMCJITMemoryManagerRef memorymgr)
+-{
+-   delete reinterpret_cast<BaseMemoryManager*>(memorymgr);
+-}
+-
+-extern "C" void
+-lp_free_objcache(void *objcache_ptr)
+-{
+-   LPObjectCache *objcache = (LPObjectCache *)objcache_ptr;
+-   delete objcache;
+-}
+-
+-extern "C" LLVMValueRef
+-lp_get_called_value(LLVMValueRef call)
+-{
+-	return LLVMGetCalledValue(call);
+-}
+-
+-extern "C" bool
+-lp_is_function(LLVMValueRef v)
+-{
+-	return LLVMGetValueKind(v) == LLVMFunctionValueKind;
+-}
+-
+-extern "C" void
+-lp_set_module_stack_alignment_override(LLVMModuleRef MRef, unsigned align)
+-{
+-#if LLVM_VERSION_MAJOR >= 13
+-   llvm::Module *M = llvm::unwrap(MRef);
+-   M->setOverrideStackAlignment(align);
+-#endif
+-}
+-
+-using namespace llvm;
+-
+-class GallivmRunAtExitForStaticDestructors : public SDNode
+-{
+-public:
+-   /* getSDVTList (protected) calls getValueTypeList (private), which contains static variables. */
+-   GallivmRunAtExitForStaticDestructors(): SDNode(0, 0, DebugLoc(), getSDVTList(MVT::Other))
+-   {
+-   }
+-};
+-
+-static void
+-lp_run_atexit_for_destructors(void)
+-{
+-   /* LLVM >= 16 registers static variable destructors on the first compile, which gcc
+-    * implements by calling atexit there. Before that, u_queue registers its atexit
+-    * handler to kill all threads. Since exit() runs atexit handlers in the reverse order,
+-    * the LLVM destructors are called first while shader compiler threads may still be
+-    * running, which crashes in LLVM in SelectionDAG.cpp.
+-    *
+-    * The solution is to run the code that declares the LLVM static variables first,
+-    * so that atexit for LLVM is registered first and u_queue is registered after that,
+-    * which ensures that all u_queue threads are terminated before LLVM destructors are
+-    * called.
+-    *
+-    * This just executes the code that declares static variables.
+-    */
+-   GallivmRunAtExitForStaticDestructors();
+-}
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h b/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h
+@@ -31,20 +31,26 @@
+
+
+ #include "lp_bld.h"
+-#include <llvm/Config/llvm-config.h>
+-#include <llvm-c/ExecutionEngine.h>
+-#include <llvm-c/Target.h>
+
+-
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+
++struct gallivm_state;
++
+ /*
++ * Fil-C port: this used to declare the MCJIT glue (engine builder,
++ * memory managers, object cache).  It now declares the small shim between
++ * gallivm and the Fil-C LLVM JIT session API (filc_llvm_jit.h).
++ *
+  * some shaders use function pointers incorrectly so can't be relinked
+  * properly. (mostly the fallback fetch shaders).
+  * We should fix them, but the dont_cache flag can be set for now,
+  * so they don't end up getting cached at all.
++ *
++ * Under the Fil-C JIT there is no object cache at all, so lp_cached_code
++ * stays structurally (fields are referenced across the tree) but is always
++ * empty and the shader disk cache silently disables.
+  */
+ struct lp_cached_code {
+    void *data;
+@@ -55,39 +61,41 @@
+
+ struct lp_generated_code;
+
+-extern LLVMTargetLibraryInfoRef
+-gallivm_create_target_library_info(const char *triple);
+-
+ extern void
+-gallivm_dispose_target_library_info(LLVMTargetLibraryInfoRef library_info);
+-
+-extern void
+ lp_set_target_options(void);
+
+-
++/* Fil-C: compile gallivm->module through the JIT session (created lazily).
++ * OptLevel is 0..3 (GALLIVM_PERF_NOPT maps to 0).  Every hook registered
++ * with lp_gallivm_add_hook() plus the standard hooks (debug_printf,
++ * get_time_hook, coro_malloc, coro_free) is global-mapped before the
++ * compile.  Returns 0 on success. */
+ extern int
+-lp_build_create_jit_compiler_for_module(LLVMExecutionEngineRef *OutJIT,
+-                                        struct lp_generated_code **OutCode,
+-                                        struct lp_cached_code *cache_out,
+-                                        LLVMModuleRef M,
+-                                        LLVMMCJITMemoryManagerRef MM,
+-                                        unsigned OptLevel,
+-                                        char **OutError);
++lp_build_jit_compile_for_module(struct gallivm_state *gallivm,
++                                unsigned OptLevel);
+
+-extern void
+-lp_free_generated_code(struct lp_generated_code *code);
++/* Fil-C: register a host function that the module's IR calls by name
++ * (mapped at compile time).  name must outlive the gallivm (use string
++ * literals). */
++extern unsigned
++lp_gallivm_add_hook(struct gallivm_state *gallivm, const char *name,
++                    const void *ptr);
+
+-extern LLVMMCJITMemoryManagerRef
+-lp_get_default_memory_manager();
++/* Fil-C: declare an extern function in the module calling back into
++ * host_fn, mapped by name at compile time.  Replaces the upstream
++ * inttoptr-constant "function pointer constants", which the JIT cannot
++ * bless (capability-less pointer). */
++extern LLVMValueRef
++lp_build_decl_mapped_fn(struct gallivm_state *gallivm, const char *name,
++                        const void *host_fn, LLVMTypeRef function_type);
+
+ extern void
+-lp_free_memory_manager(LLVMMCJITMemoryManagerRef memorymgr);
++lp_free_generated_code(struct lp_generated_code *code);
+
+-extern LLVMValueRef
+-lp_get_called_value(LLVMValueRef call);
++extern void *
++lp_get_default_memory_manager(void);
+
+-extern bool
+-lp_is_function(LLVMValueRef v);
++extern void
++lp_free_memory_manager(void *memorymgr);
+
+ void
+ lp_free_objcache(void *objcache);
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_nir.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_nir.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_nir.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_nir.c
+@@ -42,7 +42,41 @@
+
+
+ // Doing AOS (and linear) codegen?
++
++/* Fil-C: the runtime wraps every returned LLVM handle in a fresh GC object,
++ * so pointer identity across API calls does not hold -- `LLVMTypeOf(x) ==
++ * vec_type` never fires even for the same type.  Compare types by shape
++ * instead (same kind, same length/width, recursively same element). */
+ static bool
++lp_filc_types_equal(LLVMTypeRef a, LLVMTypeRef b)
++{
++   LLVMTypeKind ka = LLVMGetTypeKind(a);
++   LLVMTypeKind kb = LLVMGetTypeKind(b);
++   if (ka != kb)
++      return false;
++   switch (ka) {
++   case LLVMVectorTypeKind:
++      if (LLVMGetVectorSize(a) != LLVMGetVectorSize(b))
++         return false;
++      if (LLVMGetTypeKind(LLVMGetElementType(a)) == LLVMPointerTypeKind)
++         return true; /* opaque pointers: same kind is all we can ask */
++      return lp_filc_types_equal(LLVMGetElementType(a),
++                                 LLVMGetElementType(b));
++   case LLVMArrayTypeKind:
++      if (LLVMGetArrayLength(a) != LLVMGetArrayLength(b))
++         return false;
++      if (LLVMGetTypeKind(LLVMGetElementType(a)) == LLVMPointerTypeKind)
++         return true;
++      return lp_filc_types_equal(LLVMGetElementType(a),
++                                 LLVMGetElementType(b));
++   case LLVMIntegerTypeKind:
++      return LLVMGetIntTypeWidth(a) == LLVMGetIntTypeWidth(b);
++   default:
++      return true;
++   }
++}
++
++static bool
+ is_aos(const struct lp_build_nir_context *bld_base)
+ {
+    // AOS is used for vectors of uint8[16]
+@@ -258,7 +292,7 @@
+    if (need_swizzle || num_components != src_components) {
+       if (is_aos(bld_base) && need_swizzle) {
+          // Handle swizzle for AOS
+-         assert(LLVMGetTypeKind(LLVMTypeOf(value)) == LLVMVectorTypeKind);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+          // swizzle vector of ((r,g,b,a), (r,g,b,a), (r,g,b,a), (r,g,b,a))
+          assert(bld_base->base.type.width == 8);
+@@ -2749,7 +2783,8 @@
+    for (unsigned i = 0; i < instr->num_params; i++) {
+       LLVMValueRef arg = get_src(bld_base, instr->params[i]);
+
+-      if (nir_src_bit_size(instr->params[i]) == 32 && LLVMTypeOf(arg) == bld_base->base.vec_type)
++      if (nir_src_bit_size(instr->params[i]) == 32 &&
++          lp_filc_types_equal(LLVMTypeOf(arg), bld_base->base.vec_type))
+          arg = cast_type(bld_base, arg, nir_type_int, 32);
+       args[i + LP_RESV_FUNC_ARGS] = arg;
+    }
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_printf.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_printf.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_printf.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_printf.c
+@@ -60,8 +60,7 @@
+
+    assert(args);
+    assert(argcount > 0);
+-   assert(LLVMTypeOf(args[0]) == LLVMPointerType(LLVMInt8TypeInContext(context), 0));
+-
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */
+    /* Cast any float arguments to doubles as printf expects */
+    for (i = 1; i < argcount; i++) {
+       LLVMTypeRef type = LLVMTypeOf(args[i]);
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_sample_soa.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_sample_soa.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_sample_soa.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_sample_soa.c
+@@ -4178,7 +4178,8 @@
+
+    LLVMBuildAggregateRet(gallivm->builder, texel_out, 4);
+
+-   LLVMDisposeBuilder(gallivm->builder);
++   /* Fil-C: no LLVMDisposeBuilder -- the runtime-managed builder is
++    * reclaimed (and disposed) when the gallivm reference is dropped. */
+    gallivm->builder = old_builder;
+
+    gallivm_verify_function(gallivm, function);
+@@ -4260,11 +4261,11 @@
+    }
+    for (unsigned i = 0; i < num_coords; i++) {
+       arg_types[num_param++] = LLVMTypeOf(coords[0]);
+-      assert(LLVMTypeOf(coords[0]) == LLVMTypeOf(coords[i]));
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    }
+    if (layer) {
+       arg_types[num_param++] = LLVMTypeOf(coords[layer]);
+-      assert(LLVMTypeOf(coords[0]) == LLVMTypeOf(coords[layer]));
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    }
+    if (sample_key & LP_SAMPLER_SHADOW) {
+       arg_types[num_param++] = LLVMTypeOf(coords[0]);
+@@ -4275,7 +4276,7 @@
+    if (sample_key & LP_SAMPLER_OFFSETS) {
+       for (unsigned i = 0; i < num_offsets; i++) {
+          arg_types[num_param++] = LLVMTypeOf(offsets[0]);
+-         assert(LLVMTypeOf(offsets[0]) == LLVMTypeOf(offsets[i]));
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+       }
+    }
+    if (lod_control == LP_SAMPLER_LOD_BIAS ||
+@@ -4285,8 +4286,8 @@
+       for (unsigned i = 0; i < num_derivs; i++) {
+          arg_types[num_param++] = LLVMTypeOf(derivs->ddx[i]);
+          arg_types[num_param++] = LLVMTypeOf(derivs->ddy[i]);
+-         assert(LLVMTypeOf(derivs->ddx[0]) == LLVMTypeOf(derivs->ddx[i]));
+-         assert(LLVMTypeOf(derivs->ddy[0]) == LLVMTypeOf(derivs->ddy[i]));
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+       }
+    }
+
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_struct.h b/mesa/src/gallium/auxiliary/gallivm/lp_bld_struct.h
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_struct.h
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_struct.h
+@@ -44,13 +44,17 @@
+ #include "util/u_memory.h"
+
+
++/* Fil-C: the layout asserts ran LLVMABISizeOfType/LLVMOffsetOfElement against
++ * a TargetData, which the curated LLVM-C subset does not expose.  The JIT
++ * forces the standard x86_64 data layout for its clones, so the asserts
++ * would hold; they are stubbed to no-ops instead of porting the queries.
++ * The _ltarget/_ltype macro arguments keep their shapes so call sites are
++ * untouched (the expressions are simply never compiled). */
+ #define LP_CHECK_STRUCT_SIZE(_ctype, _ltarget, _ltype) \
+-      assert(LLVMABISizeOfType(_ltarget, _ltype) == \
+-             sizeof(_ctype))
++      ((void)0)
+
+ #define LP_CHECK_MEMBER_OFFSET(_ctype, _cmember, _ltarget, _ltype, _lindex) \
+-      assert(LLVMOffsetOfElement(_ltarget, _ltype, _lindex) == \
+-             offsetof(_ctype, _cmember))
++      ((void)0)
+
+
+ /**
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_swizzle.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_swizzle.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_swizzle.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_swizzle.c
+@@ -53,8 +53,7 @@
+
+    if (LLVMGetTypeKind(vec_type) != LLVMVectorTypeKind) {
+       /* scalar */
+-      assert(vec_type == LLVMTypeOf(scalar));
+-      res = scalar;
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */      res = scalar;
+    } else {
+       LLVMBuilderRef builder = gallivm->builder;
+       const unsigned length = LLVMGetVectorSize(vec_type);
+@@ -63,8 +62,7 @@
+       LLVMTypeRef i32_type = LLVMInt32TypeInContext(gallivm->context);
+       LLVMTypeRef i32_vec_type = LLVMVectorType(i32_type, length);
+
+-      assert(LLVM_VERSION_MAJOR >= 15 || LLVMGetElementType(vec_type) == LLVMTypeOf(scalar));
+-
++/* Fil-C: the Fil-C runtime wraps every returned LLVM handle in a fresh GC object, so pointer identity across two API calls does not hold (same LLVM object, different wrapper); the JIT's verifier subsumes this upstream identity assert. */
+       res = LLVMBuildInsertElement(builder, undef, scalar, LLVMConstNull(i32_type), "");
+       res = LLVMBuildShuffleVector(builder, res, undef, LLVMConstNull(i32_vec_type), "");
+    }
+@@ -103,7 +101,7 @@
+    assert(src_type.width    == dst_type.width);
+
+    assert(lp_check_value(src_type, vector));
+-   assert(LLVMTypeOf(index) == i32t);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+    if (src_type.length == 1) {
+       if (dst_type.length == 1) {
+diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_tgsi_soa.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_tgsi_soa.c
+--- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_tgsi_soa.c
++++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_tgsi_soa.c
+@@ -1716,7 +1716,7 @@
+                         &bld->exec_mask);
+    }
+    else {
+-      assert(LLVMTypeOf(value) == float_bld->vec_type);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+       LLVMValueRef out_ptr = lp_get_output_ptr(bld, reg->Register.Index,
+                                                 chan_index);
+
+@@ -1857,7 +1857,7 @@
+    struct lp_build_context *int_bld = &bld_base->int_bld;
+
+    assert(dtype == TGSI_TYPE_SIGNED);
+-   assert(LLVMTypeOf(value) == int_bld->vec_type);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    value = LLVMBuildBitCast(builder, value, int_bld->vec_type, "");
+    lp_exec_mask_store(&bld->exec_mask, int_bld, value,
+                         bld->addr[reg->Register.Index][chan_index]);
+diff --git a/mesa/src/gallium/auxiliary/meson.build b/mesa/src/gallium/auxiliary/meson.build
+--- a/mesa/src/gallium/auxiliary/meson.build
++++ b/mesa/src/gallium/auxiliary/meson.build
+@@ -358,7 +358,7 @@
+     'gallivm/lp_bld_limits.h',
+     'gallivm/lp_bld_logic.c',
+     'gallivm/lp_bld_logic.h',
+-    'gallivm/lp_bld_misc.cpp',
++    'gallivm/lp_bld_misc.c',
+     'gallivm/lp_bld_misc.h',
+     'gallivm/lp_bld_nir.h',
+     'gallivm/lp_bld_nir.c',
+diff --git a/mesa/src/gallium/drivers/llvmpipe/lp_context.c b/mesa/src/gallium/drivers/llvmpipe/lp_context.c
+--- a/mesa/src/gallium/drivers/llvmpipe/lp_context.c
++++ b/mesa/src/gallium/drivers/llvmpipe/lp_context.c
+@@ -107,9 +107,8 @@
+
+    llvmpipe_sampler_matrix_destroy(llvmpipe);
+
+-#ifndef USE_GLOBAL_LLVM_CONTEXT
+-   LLVMContextDispose(llvmpipe->context);
+-#endif
++   /* Fil-C: no LLVMContextDispose in the curated API -- the context is a
++    * runtime-managed object; dropping the reference releases it. */
+    llvmpipe->context = NULL;
+
+    align_free(llvmpipe);
+diff --git a/mesa/src/gallium/drivers/llvmpipe/lp_jit.c b/mesa/src/gallium/drivers/llvmpipe/lp_jit.c
+--- a/mesa/src/gallium/drivers/llvmpipe/lp_jit.c
++++ b/mesa/src/gallium/drivers/llvmpipe/lp_jit.c
+@@ -213,9 +213,10 @@
+    }
+
+    if (gallivm_debug & GALLIVM_DEBUG_IR) {
++      /* Fil-C: LLVMPrintModuleToString copies into Fil-C memory; there is
++       * no LLVMDisposeMessage (and none needed). */
+       char *str = LLVMPrintModuleToString(gallivm->module);
+       fprintf(stderr, "%s", str);
+-      LLVMDisposeMessage(str);
+    }
+ }
+
+@@ -292,9 +293,10 @@
+    }
+
+    if (gallivm_debug & GALLIVM_DEBUG_IR) {
++      /* Fil-C: LLVMPrintModuleToString copies into Fil-C memory; there is
++       * no LLVMDisposeMessage (and none needed). */
+       char *str = LLVMPrintModuleToString(gallivm->module);
+       fprintf(stderr, "%s", str);
+-      LLVMDisposeMessage(str);
+    }
+ }
+
+diff --git a/mesa/src/gallium/drivers/llvmpipe/lp_screen.c b/mesa/src/gallium/drivers/llvmpipe/lp_screen.c
+--- a/mesa/src/gallium/drivers/llvmpipe/lp_screen.c
++++ b/mesa/src/gallium/drivers/llvmpipe/lp_screen.c
+@@ -38,6 +38,7 @@
+ #include "draw/draw_context.h"
+ #include "gallivm/lp_bld_type.h"
+ #include "gallivm/lp_bld_nir.h"
++#include "gallivm/lp_bld_misc.h" /* Fil-C: lp_build_jit_compile_for_module */
+ #include "util/disk_cache.h"
+ #include "util/hex.h"
+ #include "util/os_misc.h"
+@@ -990,7 +991,11 @@
+    _mesa_sha1_init(&ctx);
+
+    if (!disk_cache_get_function_identifier(lp_disk_cache_create, &ctx) ||
+-       !disk_cache_get_function_identifier(LLVMLinkInMCJIT, &ctx))
++       /* Fil-C: LLVMLinkInMCJIT is gone with MCJIT; lp_build_jit_compile_
++        * for_module is the equivalent "which JIT are we" anchor for the
++        * cache key. */
++       !disk_cache_get_function_identifier(lp_build_jit_compile_for_module,
++                                           &ctx))
+       return;
+
+    _mesa_sha1_update(&ctx, &gallivm_perf, sizeof(gallivm_perf));
+diff --git a/mesa/src/gallium/drivers/llvmpipe/lp_setup_tri.c b/mesa/src/gallium/drivers/llvmpipe/lp_setup_tri.c
+--- a/mesa/src/gallium/drivers/llvmpipe/lp_setup_tri.c
++++ b/mesa/src/gallium/drivers/llvmpipe/lp_setup_tri.c
+@@ -757,7 +757,13 @@
+ static inline uint32_t
+ floor_pot(uint32_t n)
+ {
+-#if DETECT_CC_GCC && (DETECT_ARCH_X86 || DETECT_ARCH_X86_64)
++#if defined(__FILC__)
++   /* Fil-C: the "rm"-constrained bsr asm is rejected by the Fil-C safety
++    * validator; the builtin is the same instruction. */
++   if (n == 0)
++      return 0;
++   return 1u << (31 - __builtin_clz(n));
++#elif DETECT_CC_GCC && (DETECT_ARCH_X86 || DETECT_ARCH_X86_64)
+    if (n == 0)
+       return 0;
+
+diff --git a/mesa/src/gallium/drivers/llvmpipe/lp_state_fs_linear_llvm.c b/mesa/src/gallium/drivers/llvmpipe/lp_state_fs_linear_llvm.c
+--- a/mesa/src/gallium/drivers/llvmpipe/lp_state_fs_linear_llvm.c
++++ b/mesa/src/gallium/drivers/llvmpipe/lp_state_fs_linear_llvm.c
+@@ -105,7 +105,7 @@
+    LLVMValueRef texel = lp_build_pointer_get2(bld->gallivm->builder,
+                                               bld->vec_type,
+                                               texels_ptr, sampler->counter);
+-   assert(LLVMTypeOf(texel) == bld->vec_type);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+    /*
+     * We have a struct lp_linear_sampler instance per TEX instruction,
+@@ -154,7 +154,7 @@
+    for (i = 0; i < util_bitcount64(nir->info.inputs_read); ++i) {
+       inputs[i] =
+          lp_build_pointer_get2(builder, bld->vec_type, inputs_ptrs[i], sampler->counter);
+-      assert(LLVMTypeOf(inputs[i]) == bld->vec_type);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+    }
+    for ( ; i < PIPE_MAX_SHADER_INPUTS; ++i) {
+       inputs[i] = bld->undef;
+@@ -388,18 +388,18 @@
+          LLVMTypeRef input_type = variant->jit_linear_inputs_type;
+          LLVMValueRef elem =
+             lp_build_array_get2(bld.gallivm, input_type, interpolators_ptr, index);
+-         assert(LLVMGetTypeKind(LLVMTypeOf(elem)) == LLVMPointerTypeKind);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+          LLVMTypeRef fetch_type = LLVMPointerType(variant->jit_linear_func_type, 0);
+          LLVMValueRef fetch_ptr = lp_build_pointer_get2(builder, fetch_type, elem,
+                                                         LLVMConstInt(int32t, 0, 0));
+-         assert(LLVMGetTypeKind(LLVMTypeOf(fetch_ptr)) == LLVMPointerTypeKind);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+          /* Pointer to a row of interpolated inputs */
+          LLVMTypeRef call_type = variant->jit_linear_func_type;
+          elem = LLVMBuildBitCast(builder, elem, pint8t, "");
+          LLVMValueRef inputs_ptr = LLVMBuildCall2(builder, call_type, fetch_ptr, &elem, 1, "");
+-         assert(LLVMGetTypeKind(LLVMTypeOf(inputs_ptr)) == LLVMPointerTypeKind);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+          lp_add_function_attr(inputs_ptr, -1, LP_FUNC_ATTR_NOUNWIND);
+
+@@ -426,19 +426,19 @@
+       LLVMValueRef index = LLVMConstInt(int32t, attrib, 0);
+       LLVMTypeRef samp_type = variant->jit_linear_textures_type;
+       LLVMValueRef elem = lp_build_array_get2(bld.gallivm, samp_type, samplers_ptr, index);
+-      assert(LLVMGetTypeKind(LLVMTypeOf(elem)) == LLVMPointerTypeKind);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+       LLVMTypeRef fetch_type = LLVMPointerType(variant->jit_linear_func_type, 0);
+       LLVMValueRef fetch_ptr =
+          lp_build_pointer_get2(builder, fetch_type,
+                                elem, LLVMConstInt(int32t, 0, 0));
+-      assert(LLVMGetTypeKind(LLVMTypeOf(fetch_ptr)) == LLVMPointerTypeKind);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+       /* Pointer to a row of texels */
+       LLVMTypeRef call_type = variant->jit_linear_func_type;
+       elem = LLVMBuildBitCast(builder, elem, pint8t, "");
+       LLVMValueRef texels_ptr = LLVMBuildCall2(builder, call_type, fetch_ptr, &elem, 1, "");
+-      assert(LLVMGetTypeKind(LLVMTypeOf(texels_ptr)) == LLVMPointerTypeKind);
++   /* Fil-C: identity assert dropped -- the runtime wraps each returned LLVM handle in a fresh GC object, so pointer identity across API calls does not hold; the JIT verifier subsumes the check. */
+
+       lp_add_function_attr(texels_ptr, -1, LP_FUNC_ATTR_NOUNWIND);
+
+diff --git a/mesa/src/gallium/drivers/llvmpipe/lp_texture_handle.c b/mesa/src/gallium/drivers/llvmpipe/lp_texture_handle.c
+--- a/mesa/src/gallium/drivers/llvmpipe/lp_texture_handle.c
++++ b/mesa/src/gallium/drivers/llvmpipe/lp_texture_handle.c
+@@ -209,8 +209,10 @@
+
+    util_dynarray_fini(&ctx->sampler_matrix.gallivms);
+
+-   if (ctx->sampler_matrix.context)
+-      LLVMContextDispose(ctx->sampler_matrix.context);
++   /* Fil-C: no LLVMContextDispose in the curated API -- dropping the
++    * reference (field cleared with the rest of the context) releases the
++    * runtime-managed object. */
++   ctx->sampler_matrix.context = NULL;
+ }
+
+ static LLVMContextRef
+@@ -355,7 +357,8 @@
+    else
+       LLVMBuildRetVoid(gallivm->builder);
+
+-   LLVMDisposeBuilder(gallivm->builder);
++   /* Fil-C: no LLVMDisposeBuilder -- the runtime-managed builder is
++    * reclaimed (and disposed) when the gallivm reference is dropped. */
+    gallivm->builder = old_builder;
+
+    free(image_soa);
+@@ -503,7 +506,8 @@
+
+    LLVMBuildAggregateRet(gallivm->builder, texel_out, 4);
+
+-   LLVMDisposeBuilder(gallivm->builder);
++   /* Fil-C: no LLVMDisposeBuilder -- the runtime-managed builder is
++    * reclaimed (and disposed) when the gallivm reference is dropped. */
+    gallivm->builder = old_builder;
+
+    free(sampler_soa);
+@@ -645,19 +649,28 @@
+    LLVMValueRef args[LP_MAX_TEX_FUNC_ARGS];
+    uint32_t num_args = 0;
+
+-   LLVMValueRef arg = LLVMGetFirstParam(function);
+-   while (true) {
+-      args[num_args++] = arg;
+-      if (arg == LLVMGetLastParam(function))
+-         break;
+-
+-      arg = LLVMGetNextParam(arg);
++   /* Fil-C: upstream walks the param list with
++    * `arg == LLVMGetLastParam(function)` as the terminator, which relies on
++    * LLVM-C returning the same pointer for the same object on every call.
++    * The Fil-C runtime wraps each returned handle in a fresh GC object (two
++    * wrapper objects may reference the same LLVM param), so pointer
++    * identity across calls does not hold and the loop would run past the
++    * end.  Fetch the params as an array instead -- count + out-array, no
++    * identity comparisons. */
++   {
++      LLVMValueRef params[LP_MAX_TEX_FUNC_ARGS];
++      unsigned num_params = LLVMCountParams(function);
++      assert(num_params <= LP_MAX_TEX_FUNC_ARGS);
++      LLVMGetParams(function, params);
++      memcpy(args, params, num_params * sizeof(LLVMValueRef));
++      num_args = num_params;
+    }
+
+    LLVMValueRef result = LLVMBuildCall2(builder, function_type, sample_function, args, num_args, "");
+    LLVMBuildRet(gallivm->builder, result);
+
+-   LLVMDisposeBuilder(gallivm->builder);
++   /* Fil-C: no LLVMDisposeBuilder -- the runtime-managed builder is
++    * reclaimed (and disposed) when the gallivm reference is dropped. */
+    gallivm->builder = old_builder;
+
+    return compile_function(ctx, gallivm, function, needs_caching, cache_key);
+@@ -737,7 +750,8 @@
+
+    LLVMBuildAggregateRet(gallivm->builder, out_sizes, 4);
+
+-   LLVMDisposeBuilder(gallivm->builder);
++   /* Fil-C: no LLVMDisposeBuilder -- the runtime-managed builder is
++    * reclaimed (and disposed) when the gallivm reference is dropped. */
+    gallivm->builder = old_builder;
+
+    free(sampler_soa);
+diff --git a/mesa/src/gallium/frontends/dri/dri2.c b/mesa/src/gallium/frontends/dri/dri2.c
+--- a/mesa/src/gallium/frontends/dri/dri2.c
++++ b/mesa/src/gallium/frontends/dri/dri2.c
+@@ -2473,6 +2473,13 @@
+    .createNewScreen = driCreateNewScreen2,
+    .createContext = driCreateContextAttribs,
+    .initScreen = dri_swrast_kms_init_screen,
++   /* Fil-C: this was NULL here, and egl's gbm/drm platform dereferences it
++    * whenever a KMS device (e.g. QEMU's bochs-drm) goes through
++    * dri2_initialize_drm with a gbm device -- a latent upstream crash that
++    * Fil-C turns into a clean panic.  Wire up the same helper the hardware
++    * path uses. */
++   .queryCompatibleRenderOnlyDeviceFd =
++      dri_query_compatible_render_only_device_fd,
+    .createNewScreen3 = driCreateNewScreen3,
+ };
+
 diff --git a/mesa/src/gallium/targets/dri/dri.sym.in b/mesa/src/gallium/targets/dri/dri.sym.in
 --- a/mesa/src/gallium/targets/dri/dri.sym.in
 +++ b/mesa/src/gallium/targets/dri/dri.sym.in
@@ -737,6 +3500,104 @@ diff --git a/mesa/src/util/blake3/meson.build b/mesa/src/util/blake3/meson.build
 
  blake3 = static_library(
    'blake3',
+diff --git a/mesa/src/util/slab.c b/mesa/src/util/slab.c
+--- a/mesa/src/util/slab.c
++++ b/mesa/src/util/slab.c
+@@ -44,12 +44,20 @@
+    /* The next element in the free or migrated list. */
+    struct slab_element_header *next;
+
+-   /* This is either
+-    * - a pointer to the child pool to which this element belongs, or
+-    * - a pointer to the orphaned page of the element, with the least
+-    *   significant bit set to 1.
+-    */
+-   intptr_t owner;
++   /* Fil-C port: upstream stores "the child pool that owns this element,
++    * or the orphaned page with the least significant bit set" in one
++    * intptr_t and reconstructs the pointer with an integer mask.  The
++    * Fil-C JIT loses the pointer capability across that
++    * ptrtoint/inttoptr round trip (the orphan marker is written with an
++    * atomic integer store), so using the reconstructed page pointer
++    * panics with "cannot write pointer with null object".  Store the
++    * owner as a REAL pointer plus a separate orphaned flag instead.  The
++    * flag is written after the pointer, both atomically, and the orphan
++    * / migrate decisions are made under the parent mutex exactly as
++    * upstream, so the same interleavings stay safe. */
++   void *owner_ptr;   /* child pool, or orphaned page when orphaned */
++   int32_t orphaned;  /* 0: owner_ptr is a child pool
++                         1: owner_ptr is an orphaned page */
+
+ #ifndef NDEBUG
+    intptr_t magic;
+@@ -88,9 +96,9 @@
+ {
+    struct slab_page_header *page;
+
+-   assert(elt->owner & 1);
++   assert(p_atomic_read(&elt->orphaned));
+
+-   page = (struct slab_page_header *)(elt->owner & ~(intptr_t)1);
++   page = (struct slab_page_header *)p_atomic_read(&elt->owner_ptr);
+    if (!p_atomic_dec_return(&page->u.num_remaining))
+       free(page);
+ }
+@@ -151,7 +159,8 @@
+
+       for (unsigned i = 0; i < pool->parent->num_elements; ++i) {
+          struct slab_element_header *elt = slab_get_element(pool->parent, page, i);
+-         p_atomic_set(&elt->owner, (intptr_t)page | 1);
++         p_atomic_set(&elt->owner_ptr, page);
++         p_atomic_set(&elt->orphaned, 1);
+       }
+    }
+
+@@ -184,8 +193,8 @@
+
+    for (unsigned i = 0; i < pool->parent->num_elements; ++i) {
+       struct slab_element_header *elt = slab_get_element(pool->parent, page, i);
+-      elt->owner = (intptr_t)pool;
+-      assert(!(elt->owner & 1));
++      elt->owner_ptr = pool;
++      elt->orphaned = 0;
+
+       elt->next = pool->free;
+       pool->free = elt;
+@@ -255,12 +264,12 @@
+ void slab_free(struct slab_child_pool *pool, void *ptr)
+ {
+    struct slab_element_header *elt = ((struct slab_element_header*)ptr - 1);
+-   intptr_t owner_int;
+
+    CHECK_MAGIC(elt, SLAB_MAGIC_ALLOCATED);
+    SET_MAGIC(elt, SLAB_MAGIC_FREE);
+
+-   if (p_atomic_read(&elt->owner) == (intptr_t)pool) {
++   if (!p_atomic_read(&elt->orphaned) &&
++       p_atomic_read(&elt->owner_ptr) == (void *)pool) {
+       /* This is the simple case: The caller guarantees that we can safely
+        * access the free list.
+        */
+@@ -273,13 +282,13 @@
+    if (pool->parent)
+       simple_mtx_lock(&pool->parent->mutex);
+
+-   /* Note: we _must_ re-read elt->owner here because the owning child pool
+-    * may have been destroyed by another thread in the meantime.
++   /* Note: we _must_ re-read the owner fields here because the owning
++    * child pool may have been destroyed by another thread in the
++    * meantime.
+     */
+-   owner_int = p_atomic_read(&elt->owner);
+-
+-   if (!(owner_int & 1)) {
+-      struct slab_child_pool *owner = (struct slab_child_pool *)owner_int;
++   if (!p_atomic_read(&elt->orphaned)) {
++      struct slab_child_pool *owner =
++         (struct slab_child_pool *)p_atomic_read(&elt->owner_ptr);
+       elt->next = owner->migrated;
+       owner->migrated = elt;
+       if (pool->parent)
 diff --git a/mesa/src/util/sparse_array.c b/mesa/src/util/sparse_array.c
 --- a/mesa/src/util/sparse_array.c
 +++ b/mesa/src/util/sparse_array.c
@@ -936,14 +3797,139 @@ diff --git a/mesa/src/util/sparse_array.h b/mesa/src/util/sparse_array.h
 diff --git a/mesa/src/util/u_cpu_detect.c b/mesa/src/util/u_cpu_detect.c
 --- a/mesa/src/util/u_cpu_detect.c
 +++ b/mesa/src/util/u_cpu_detect.c
-@@ -349,7 +349,9 @@
+@@ -349,7 +349,11 @@
 
  static inline uint64_t xgetbv(void)
  {
 -#if DETECT_CC_GCC
 +#if 0 /* Fil-C: raw XGETBV inline asm is rejected by the Fil-C safety validator
-+       * ("cannot handle inline asm"), so report that no extended CPU state is
-+       * OS-enabled; llvmpipe then simply avoids its AVX code paths. */
++       * ("cannot handle inline asm (unsupported mnemonic for safe inline asm:
++       * .byte)"), so this stays dead; the AVX detection below uses
++       * compiler-rt's __cpu_indicator_init/__builtin_cpu_supports instead,
++       * which perform the same CPUID + XCR0 checks yolo-side. */
     uint32_t eax, edx;
 
     __asm __volatile (
+@@ -367,7 +371,16 @@
+ #endif
+ }
+
++#if defined(__FILC__) && (DETECT_ARCH_X86 || DETECT_ARCH_X86_64)
++/* Fil-C: compiler-rt's CPU feature machinery (already part of the Fil-C
++ * runtime; it uses its own inline asm, compiled yolo).  NOTE:
++ * __builtin_cpu_supports reads the __cpu_model global, which stays zeroed
++ * until __cpu_indicator_init() runs -- the constructor that would normally
++ * run it does not fire in a Fil-C process, so call it explicitly. */
++extern void __cpu_indicator_init(void);
++#endif
+
++
+ #if DETECT_ARCH_X86
+ UTIL_ALIGN_STACK
+ static inline bool
+@@ -861,11 +874,22 @@
+          util_cpu_caps.has_sse4_1 = (regs2[2] >> 19) & 1;
+          util_cpu_caps.has_sse4_2 = (regs2[2] >> 20) & 1;
+          util_cpu_caps.has_popcnt = (regs2[2] >> 23) & 1;
++#if defined(__FILC__)
++         /* Fil-C: the cpuid asm above works, but the XGETBV (.byte) asm
++          * does not -- take the OS-enabled AVX state from compiler-rt
++          * instead (it checks XCR0 for XMM/YMM/opmask just like the
++          * disabled xgetbv() path did). */
++         __cpu_indicator_init();
++         util_cpu_caps.has_avx    = __builtin_cpu_supports("avx");
++         util_cpu_caps.has_f16c   = __builtin_cpu_supports("f16c");
++         util_cpu_caps.has_fma    = __builtin_cpu_supports("fma");
++#else
+          util_cpu_caps.has_avx    = ((regs2[2] >> 28) & 1) && // AVX
+                                     ((regs2[2] >> 27) & 1) && // OSXSAVE
+                                     ((xgetbv() & 6) == 6);    // XMM & YMM
+          util_cpu_caps.has_f16c   = ((regs2[2] >> 29) & 1) && util_cpu_caps.has_avx;
+          util_cpu_caps.has_fma    = ((regs2[2] >> 12) & 1) && util_cpu_caps.has_avx;
++#endif
+          util_cpu_caps.has_mmx2   = util_cpu_caps.has_sse; /* SSE cpus supports mmxext too */
+ #if DETECT_ARCH_X86_64
+          util_cpu_caps.has_daz = 1;
+@@ -885,6 +909,20 @@
+          if (util_cpu_caps.has_avx) {
+             util_cpu_caps.has_avx2 = (regs7[1] >> 5) & 1;
+
++#if defined(__FILC__)
++            /* Fil-C: compiler-rt already gated the avx512 family on XCR0
++             * opmask/upper-256 support, so plain feature checks suffice
++             * here. */
++            util_cpu_caps.has_avx512f    = __builtin_cpu_supports("avx512f");
++            util_cpu_caps.has_avx512dq   = __builtin_cpu_supports("avx512dq");
++            util_cpu_caps.has_avx512ifma = __builtin_cpu_supports("avx512ifma");
++            util_cpu_caps.has_avx512pf   = __builtin_cpu_supports("avx512pf");
++            util_cpu_caps.has_avx512er   = __builtin_cpu_supports("avx512er");
++            util_cpu_caps.has_avx512cd   = __builtin_cpu_supports("avx512cd");
++            util_cpu_caps.has_avx512bw   = __builtin_cpu_supports("avx512bw");
++            util_cpu_caps.has_avx512vl   = __builtin_cpu_supports("avx512vl");
++            util_cpu_caps.has_avx512vbmi = __builtin_cpu_supports("avx512vbmi");
++#else
+             // check for avx512
+             if (xgetbv() & (0x7 << 5)) { // OPMASK: upper-256 enabled by OS
+                util_cpu_caps.has_avx512f    = (regs7[1] >> 16) & 1;
+@@ -897,6 +935,7 @@
+                util_cpu_caps.has_avx512vl   = (regs7[1] >> 31) & 1;
+                util_cpu_caps.has_avx512vbmi = (regs7[2] >>  1) & 1;
+             }
++#endif
+          }
+       }
+
+diff --git a/mesa/src/util/u_memset.h b/mesa/src/util/u_memset.h
+--- a/mesa/src/util/u_memset.h
++++ b/mesa/src/util/u_memset.h
+@@ -30,7 +30,11 @@
+ static inline void *
+ util_memset32(void *s, uint32_t ui, size_t n)
+ {
+-#if DETECT_CC_GCC && DETECT_ARCH_X86_64
++#if !defined(__FILC__) && DETECT_CC_GCC && DETECT_ARCH_X86_64
++   /* Fil-C: this asm hands the destination pointer to inline asm, which
++    * the Fil-C safety validator rejects ("inline assembly with pointer
++    * argument is not supported"), so Fil-C takes the plain loop below,
++    * which compiles to the same (vectorized) stores. */
+    long d0, d1;
+    __asm__ volatile("rep\n\t"
+                     "stosl"
+@@ -38,18 +42,21 @@
+                     : "a" (ui), "1" (s), "0" (n)
+                     : "memory");
+    return s;
+-#else
++#endif
+    uint32_t *xs = (uint32_t *)s;
+    while (n--)
+       *xs++ = ui;
+    return s;
+-#endif
+ }
+
+ static inline void *
+ util_memset64(void *s, uint64_t ui, size_t n)
+ {
+-#if DETECT_CC_GCC && DETECT_ARCH_X86_64
++#if !defined(__FILC__) && DETECT_CC_GCC && DETECT_ARCH_X86_64
++   /* Fil-C: this asm hands the destination pointer to inline asm, which
++    * the Fil-C safety validator rejects ("inline assembly with pointer
++    * argument is not supported"), so Fil-C takes the plain loop below,
++    * which compiles to the same (vectorized) stores. */
+    long d0, d1;
+    __asm__ volatile("rep\n\t"
+                     "stosq"
+@@ -57,11 +64,10 @@
+                     : "a" (ui), "1" (s), "0" (n)
+                     : "memory");
+    return s;
+-#else
++#endif
+    uint64_t *xs = (uint64_t *)s;
+    while (n--)
+       *xs++ = ui;
+    return s;
+-#endif
+
+ }

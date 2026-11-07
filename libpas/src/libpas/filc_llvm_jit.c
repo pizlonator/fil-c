@@ -79,16 +79,49 @@ static void drop_context_state(filc_llvm_jit_context_object* object)
         api->LLVMContextDispose((LLVMContextRef)object->handle);
 }
 
+static filc_ptr wrap_handle_owning(filc_thread* my_thread,
+                                   filc_llvm_jit_context_object* context_obj,
+                                   filc_llvm_jit_object* module_obj,
+                                   filc_llvm_jit_kind kind,
+                                   void* handle,
+                                   bool owns_handle);
+
 static filc_ptr wrap_handle(filc_thread* my_thread,
                             filc_llvm_jit_context_object* context_obj,
                             filc_llvm_jit_object* module_obj,
                             filc_llvm_jit_kind kind,
                             void* handle)
 {
+    return wrap_handle_owning(my_thread, context_obj, module_obj, kind,
+                              handle, true);
+}
+
+/* Fil-C: owns_handle=false for wrappers of PRE-EXISTING modules returned
+ * by value (LLVMGetGlobalParent) -- see filc_runtime.h. */
+static filc_ptr wrap_handle_owning(filc_thread* my_thread,
+                                   filc_llvm_jit_context_object* context_obj,
+                                   filc_llvm_jit_object* module_obj,
+                                   filc_llvm_jit_kind kind,
+                                   void* handle,
+                                   bool owns_handle)
+{
     if (context_obj)
         PAS_ASSERT(context_obj->kind == FILC_LLVM_JIT_KIND_CONTEXT);
     if (module_obj)
         PAS_ASSERT(module_obj->kind == FILC_LLVM_JIT_KIND_MODULE);
+    if (kind == FILC_LLVM_JIT_KIND_CONTEXT) {
+        /* Fil-C: LLVMGetModuleContext / LLVMGetTypeContext /
+         * LLVMGetValueContext / LLVMGetBuilderContext return the context
+         * itself.  Handing back a FRESH wrapper object would break
+         * identity with the context wrapper the caller already holds
+         * (and the kind switch below never had a CONTEXT case -- latent
+         * since these were declared, first hit by llvmpipe).  Return the
+         * context's own object. */
+        FILC_CHECK(context_obj, NULL,
+                   "Fil-C LLVM JIT API: null LLVM context.");
+        return filc_ptr_create_with_special_object(
+            my_thread, filc_object_for_special_payload(context_obj));
+    }
     size_t size = SIZE_MAX;
     pas_heap* heap = NULL;
     switch (kind) {
@@ -148,6 +181,7 @@ static filc_ptr wrap_handle(filc_thread* my_thread,
     payload->context = context_obj;
     payload->module = (filc_llvm_jit_module_object*)module_obj;
     payload->handle = handle;
+    payload->owns_handle = owns_handle;
     pas_store_store_fence();
     return filc_ptr_create_with_special_object(my_thread, object);
 }
@@ -181,17 +215,27 @@ static filc_llvm_jit_object* unwrap_obj(filc_thread* my_thread, filc_ptr ptr,
     filc_llvm_jit_object* payload = (filc_llvm_jit_object*)filc_ptr_ptr(ptr);
     FILC_CHECK(payload->kind == expected, NULL,
                "Fil-C LLVM JIT API: object kind mismatch.");
+    /* Fil-C: compare contexts/modules by their RAW LLVM handles, not by
+     * wrapper-object identity.  The runtime wraps every returned handle in
+     * a fresh GC object (see wrap_handle), so two calls that return the
+     * same LLVM module (e.g. LLVMGetGlobalParent over and over in mesa's
+     * lp_build_intrinsic) yield different wrappers for one module; the
+     * wrapper-pointer comparison turned that into a spurious "mixing
+     * objects from different LLVM modules" panic (first hit by llvmpipe's
+     * first shader build).  Raw handles preserve the check's purpose:
+     * catching genuinely different modules/contexts in one call. */
     if (!*context_inout)
         *context_inout = payload->context;
     else {
-        FILC_CHECK(*context_inout == payload->context, NULL,
+        FILC_CHECK((*context_inout)->handle == payload->context->handle, NULL,
                    "Fil-C LLVM JIT API: mixing objects from different LLVM contexts.");
     }
     if (payload->module && module_inout) {
         if (!*module_inout)
             *module_inout = &payload->module->base;
         else {
-            FILC_CHECK(*module_inout == &payload->module->base, NULL,
+            FILC_CHECK(((filc_llvm_jit_object*)*module_inout)->handle
+                           == payload->module->base.handle, NULL,
                        "Fil-C LLVM JIT API: mixing objects from different LLVM modules.");
         }
     }
@@ -283,7 +327,11 @@ void filc_llvm_jit_destruct(void* raw_payload)
     }
     case FILC_LLVM_JIT_KIND_MODULE: {
         filc_llvm_jit_module_object* object = (filc_llvm_jit_module_object*)raw_payload;
-        api->LLVMDisposeModule(object->base.handle);
+        /* Fil-C: only the OWNING wrapper (the one that created / cloned the
+         * module) may dispose it; borrowed wrappers (LLVMGetGlobalParent
+         * returns) must not -- see filc_runtime.h owns_handle. */
+        if (object->base.owns_handle)
+            api->LLVMDisposeModule(object->base.handle);
         drop_context_state(object->base.context);
         return;
     }
@@ -4216,6 +4264,13 @@ FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetTarget, FILC_LLVM_JIT_KIND_MODULE)
 FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetTargetExtTypeName, FILC_LLVM_JIT_KIND_TYPE,
                                     TargetExtTypeKind)
 FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetValueName, FILC_LLVM_JIT_KIND_VALUE)
+/* Fil-C: added for mesa/llvmpipe's debug dumps.  The C API returns a
+ * malloc'd string that the caller would free with LLVMDisposeMessage; since
+ * the curated header deliberately omits DisposeMessage, these wrappers copy
+ * the bytes into fresh Fil-C memory (filc_strdup) and let the LLVM-side
+ * original leak -- the same rule LLVMIntrinsicCopyOverloadedName follows. */
+FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMPrintModuleToString, FILC_LLVM_JIT_KIND_MODULE)
+FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMPrintValueToString, FILC_LLVM_JIT_KIND_VALUE)
 
 FILC_LLVM_JIT_DEFINE_BORROWED_CSTR_LEN(LLVMGetDebugLocDirectory, FILC_LLVM_JIT_KIND_VALUE,
                                        unsigned, DebugLocOwner)
@@ -4687,6 +4742,26 @@ filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0)) \
     filc_ptr result = wrap_handle( \
         my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
         result_raw); \
+    FILC_LLVM_JIT_UNLOCK(lock) \
+    return result; \
+}
+
+/* Fil-C: borrowed-module variant -- the returned module wrapper does not
+ * own the LLVM module (see wrap_handle_owning). */
+#define FILC_LLVM_JIT_DEFINE_REF_1_BORROWED(name, lock, kind, d0, ...) \
+filc_ptr filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0)) \
+{ \
+    ensure_api(my_thread); \
+    FILC_LLVM_JIT_DECLS(lock) \
+    FILC_LLVM_JIT_UNWRAP(name, d0) \
+    void* result_raw; \
+    FILC_LLVM_JIT_LOCK(lock) \
+    FILC_LLVM_JIT_VALIDATE(name, d0) \
+    FILC_LLVM_JIT_SEM(name, ##__VA_ARGS__) \
+    result_raw = api->name(FILC_LLVM_JIT_ARG(d0)); \
+    filc_ptr result = wrap_handle_owning( \
+        my_thread, llvm_context, llvm_module, FILC_LLVM_JIT_KIND_##kind, \
+        result_raw, false); \
     FILC_LLVM_JIT_UNLOCK(lock) \
     return result; \
 }
@@ -5265,7 +5340,7 @@ FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetFirstUse, LOCKED, USE, (REF, val, VALUE, LLVMV
 FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetFunctionCallConv, LOCKED, unsigned, (REF, function, VALUE, LLVMValueRef, Function))
 FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetGEPSourceElementType, LOCKED, TYPE, (REF, gep, VALUE, LLVMValueRef, GEPOperator))
 FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetGlobalIFuncResolver, LOCKED, VALUE, (REF, i_func, VALUE, LLVMValueRef, GlobalIFunc))
-FILC_LLVM_JIT_DEFINE_REF_1(LLVMGetGlobalParent, LOCKED, MODULE, (REF, global, VALUE, LLVMValueRef, GlobalValue))
+FILC_LLVM_JIT_DEFINE_REF_1_BORROWED(LLVMGetGlobalParent, LOCKED, MODULE, (REF, global, VALUE, LLVMValueRef, GlobalValue))
 FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMGetICmpPredicate, LOCKED, unsigned, (REF, inst, VALUE, LLVMValueRef))
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetIncomingBlock, LOCKED, BASIC_BLOCK, (REF, phi_node, VALUE, LLVMValueRef, PHINode), (SCAL, index, unsigned), sem_incoming_index(LLVMGetIncomingBlock, phi_node, index))
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMGetIncomingValue, LOCKED, VALUE, (REF, phi_node, VALUE, LLVMValueRef, PHINode), (SCAL, index, unsigned), sem_incoming_index(LLVMGetIncomingValue, phi_node, index))

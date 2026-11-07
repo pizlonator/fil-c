@@ -55,6 +55,13 @@ tar -xf pizlonated-gnome-shell.tar.gz
 cd pizlonated-gnome-shell
 mkdir build
 cd build
+# llvmpipe-on-JIT (sprint 3): gnome-shell loads swrast_dri.so (via libmutter)
+# and runs llvmpipe shader compilation, so the executable must carry the
+# JIT-enabled Fil-C CRT: -enable-filc-jit at LINK time swaps filc_jit_crt.o
+# in.  The flag is ignored (with a warning) for -shared links, so exporting it
+# here is safe for the library link steps too.  meson only reads LDFLAGS at
+# setup.
+export LDFLAGS="-enable-filc-jit"
 meson setup --prefix=/usr --buildtype=debugoptimized \
   -Dnetworkmanager=false -Dcamera_monitor=false -Dsystemd=false \
   -Dtests=false -Dman=false -Dgtk_doc=false \

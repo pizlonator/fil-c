@@ -1,0 +1,105 @@
+#!/bin/bash
+# Fake llvm-config for Pizlix (Fil-C).
+#
+# mesa's meson looks for LLVM via `dependency('llvm', method:'config-tool')`
+# and queries llvm-config for --version, --components, --cppflags,
+# --shared-mode and `--libs --ldflags --link-shared <modules>` (plus
+# --has-rtti through get_variable(configtool:)).  Under Fil-C there is no
+# LLVM library to link: the LLVM-C subset that llvmpipe calls is exported
+# by libpizlo.so (the runtime), which the Fil-C driver links into every
+# binary implicitly, and the JIT itself lives in libfilcllvmjit.so which
+# libpizlo dlopens at runtime.  So this script:
+#   - reports LLVM 20.1.8 (the in-tree LLVM of the shim),
+#   - claims the components mesa asks about,
+#   - points --cppflags at the stub include dir (llvm/Config/llvm-config.h
+#     + llvm-c/*.h forwarders to filc_llvm_jit.h),
+#   - and answers every link query with -lpizlo (harmless belt-and-braces;
+#     the driver already adds it).
+#   - reports has-rtti NO, matching LLVM_ENABLE_RTTI=OFF of the shim's
+#     LLVM; mesa must therefore be configured with -Dcpp_rtti=false.
+#
+# Written by the mesa build script into /usr/bin/llvm-config in the
+# chroot (see build_postlc4_chroot_project_mesa.sh).
+
+mode=
+modules_seen=0
+link_mode=
+want_components=0
+want_cppflags=0
+want_libs=0
+want_ldflags=0
+want_system_libs=0
+want_version=0
+want_shared_mode=0
+want_has_rtti=0
+want_libdir=0
+want_includedir=0
+want_prefix=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --version) want_version=1 ;;
+    --components) want_components=1 ;;
+    --cppflags|--cflags) want_cppflags=1 ;;
+    --libs) want_libs=1 ;;
+    --ldflags) want_ldflags=1 ;;
+    --system-libs) want_system_libs=1 ;;
+    --shared-mode) want_shared_mode=1 ;;
+    --has-rtti) want_has_rtti=1 ;;
+    --libdir) want_libdir=1 ;;
+    --includedir) want_includedir=1 ;;
+    --prefix) want_prefix=1 ;;
+    --link-shared) link_mode=shared ;;
+    --link-static) link_mode=static ;;
+    --ignore-libllvm) ;;
+    -*mode*|-*flag*) ;;
+    --*) ;;
+    *) modules_seen=1 ;;
+  esac
+done
+
+# Order the output the way real llvm-config does: version / prefix dirs /
+# cppflags / ldflags / libs.
+if [ $want_version = 1 ]; then
+  echo "20.1.8"
+fi
+if [ $want_prefix = 1 ]; then
+  echo "/usr"
+fi
+if [ $want_includedir = 1 ]; then
+  echo "/usr/lib/filc-llvm-include"
+fi
+if [ $want_libdir = 1 ]; then
+  echo "/usr/lib"
+fi
+if [ $want_cppflags = 1 ]; then
+  echo "-I/usr/lib/filc-llvm-include"
+fi
+if [ $want_ldflags = 1 ]; then
+  # nothing: libpizlo.so is found via the default linker path
+  :
+fi
+if [ $want_libs = 1 ]; then
+  # Fil-C: the LLVM-C subset lives in libpizlo.so.  The driver already
+  # links -lpizlo for every Fil-C binary; saying it here too is harmless.
+  echo "-lpizlo"
+fi
+if [ $want_system_libs = 1 ]; then
+  :
+fi
+if [ $want_shared_mode = 1 ]; then
+  echo "shared"
+fi
+if [ $want_has_rtti = 1 ]; then
+  echo "NO"
+fi
+if [ $want_components = 1 ]; then
+  # The components mesa can ask for with -Dgallium-drivers=swrast
+  # (+ draw-use-llvm): core modules + the optional ones it may probe.
+  echo "core support executionengine engine scalaropts transformutils \
+instcombine bitwriter mcjit mcdisassembler native nativecodeview coroutines \
+lto linker ipo bitreader asmparser option objcarcopts profiledata coverage \
+all-targets windowsdriver frontendhlsl frontenddriver frontendopenmp libdriver \
+target amdgpu"
+fi
+exit 0

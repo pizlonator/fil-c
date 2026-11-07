@@ -494,6 +494,120 @@ void precheckGlobalMapping(Module &M, FilJITConfiguration &filConfig) {
 }
 
 // ---------------------------------------------------------------------------
+// x86 AVX2 gather lowering.
+//
+// The FilPizlonator rejects intrinsics that access memory but are not covered
+// by its load/store analysis ("Unhandled intrinsic"), because it cannot emit
+// a capability-checked access for them.  The AVX2 VGATHER intrinsics
+// (llvm.x86.avx2.gather.*) are exactly that shape: one call loads N elements
+// from N distinct addresses (base + idxs[i] * scale) under per-lane masks.
+// Mesa's gallivm emits them on any AVX2 host for vertex/index fetch
+// (lp_build_gather routes 32-bit fetches of length 4/8 through
+// lp_build_gather_avx2 regardless of alignment, so even an indexed draw from
+// a properly aligned index buffer hits it -- gnome-shell's first indexed draw
+// panics on this without the lowering below).
+//
+// Lower the whole family here, before the optimization pipeline, into what
+// the non-AVX2 codegen paths emit: one plain load per lane, predicated on
+// the lane's mask bit so that masked-off lanes never access memory (matching
+// the hardware, which suppresses faults for masked-off lanes).  The
+// pizlonator then turns each plain load into a capability-checked load,
+// which is strictly safer than the raw hardware gather.
+//
+//   <N x T> @llvm.x86.avx2.gather.(d|q).{d,q,ps,pd}(.256)?(
+//       <N x T> %src,      ; passthru for masked-off lanes
+//       ptr     %base,     ; byte-granular base
+//       <N x i32|i64> %idxs, ; SIGNED element indices
+//       <N x T> %mask,     ; per-lane mask (same type as result)
+//       i8      %scale)    ; bytes per index step
+//
+// is lowered per lane i to:
+//
+//   cond_i = icmp slt (bitcast mask_i to iBW), 0   ; VGATHER tests the MSB
+//   addr_i = gep i8, %base, sext(idxs_i) * sext(scale)
+//   val_i  = cond_i ? load eltty, addr_i : passthru_i   (via predicated CFG)
+//
+// Only calls with a constant scale and well-formed operand types are
+// rewritten; anything else is left alone so that the pizlonator's own
+// "Unhandled intrinsic" error stays the safety net for shapes this lowering
+// does not understand.  The AVX512 gather intrinsics (different names and
+// mask types) are not handled; nothing in the current Fil-C tree emits them.
+bool lowerX86Avx2Gathers(Module &M) {
+    SmallVector<CallBase *, 16> Gathers;
+    for (Function &F : M) {
+        if (!F.getName().starts_with("llvm.x86.avx2.gather."))
+            continue;
+        for (Use &U : F.uses()) {
+            auto *CB = dyn_cast<CallBase>(U.getUser());
+            if (CB && CB->getCalledFunction() == &F)
+                Gathers.push_back(CB);
+        }
+    }
+
+    bool Changed = false;
+    for (CallBase *Gather : Gathers) {
+        auto *VecTy = dyn_cast<FixedVectorType>(Gather->getType());
+        if (!VecTy || Gather->arg_size() != 5)
+            continue;
+        Value *Passthru = Gather->getArgOperand(0);
+        Value *Base = Gather->getArgOperand(1);
+        Value *Idxs = Gather->getArgOperand(2);
+        Value *Mask = Gather->getArgOperand(3);
+        Value *Scale = Gather->getArgOperand(4);
+        auto *IdxVecTy = dyn_cast<FixedVectorType>(Idxs->getType());
+        if (!IdxVecTy || Mask->getType() != VecTy || !Base->getType()->isPointerTy())
+            continue;
+        Type *IdxTy = IdxVecTy->getElementType();
+        if (!IdxTy->isIntegerTy(32) && !IdxTy->isIntegerTy(64))
+            continue;
+        auto *ScaleC = dyn_cast<ConstantInt>(Scale);
+        if (!ScaleC)
+            continue;
+        const int64_t ScaleV = ScaleC->getSExtValue();
+
+        unsigned Lanes = VecTy->getNumElements();
+        Type *EltTy = VecTy->getElementType();
+        unsigned EltBits = EltTy->getPrimitiveSizeInBits();
+        Type *MaskIntTy = Type::getIntNTy(M.getContext(), EltBits);
+        Type *I64Ty = Type::getInt64Ty(M.getContext());
+        Type *I8Ty = Type::getInt8Ty(M.getContext());
+
+        // Build the whole lowering straight-line, right before the call: no
+        // new blocks, no phis.  A masked-off lane loads base[0] (which the
+        // caller must be able to dereference anyway -- the same requirement
+        // every plain load in the guest has) and selects the passthru, so
+        // the load itself stays inside the object bounds no matter how wild
+        // the masked lane's index is.
+        IRBuilder<> B(Gather);
+        Value *Result = PoisonValue::get(VecTy);
+        for (unsigned I = 0; I < Lanes; ++I) {
+            Value *MaskElt = B.CreateExtractElement(Mask, I);
+            Value *PassElt = B.CreateExtractElement(Passthru, I);
+            Value *MaskInt = MaskElt->getType()->isIntegerTy()
+                ? MaskElt : B.CreateBitCast(MaskElt, MaskIntTy);
+            Value *Cond = B.CreateICmpSLT(
+                MaskInt, ConstantInt::get(MaskIntTy, 0), "gather.mask.set");
+            Value *IdxElt = B.CreateExtractElement(Idxs, I);
+            Value *Idx64 = IdxTy->isIntegerTy(64)
+                ? IdxElt : B.CreateSExt(IdxElt, I64Ty);
+            Value *Off = B.CreateMul(
+                Idx64, ConstantInt::get(I64Ty, ScaleV), "gather.off");
+            Value *SafeOff = B.CreateSelect(
+                Cond, Off, ConstantInt::get(I64Ty, 0), "gather.safeoff");
+            Value *Addr = B.CreateGEP(I8Ty, Base, SafeOff, "gather.addr");
+            Value *Val = B.CreateLoad(EltTy, Addr, Gather->getName() + ".val");
+            Value *Res = B.CreateSelect(Cond, Val, PassElt, "gather.lane");
+            Result = B.CreateInsertElement(Result, Res, I);
+        }
+
+        Gather->replaceAllUsesWith(Result);
+        Gather->eraseFromParent();
+        Changed = true;
+    }
+    return Changed;
+}
+
+// ---------------------------------------------------------------------------
 // Pipeline.
 // ---------------------------------------------------------------------------
 void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level, FilJITConfiguration& filConfig) {
@@ -636,7 +750,17 @@ ShimExportMapping* ShimJITCompile(
                                       "i16:16:32-i64:64-i128:128-n32:64-S128-Fn32");
         }
 
+        // Lower x86 AVX2 gathers into predicated plain loads before the
+        // pipeline runs: the pizlonator cannot handle the raw gather
+        // intrinsics (they access memory and are outside its load/store
+        // analysis), but it fully handles the plain loads this produces.
+        if (lowerX86Avx2Gathers(*M) && getenv("FILC_JIT_DUMP"))
+            errs() << *M << "\n";
+
         optimize(*M, **TM, OL, session->filConfig);
+
+        if (getenv("FILC_JIT_DUMP_PIZLONATED"))
+            errs() << *M << "\n";
 
         raw_svector_ostream OS(Obj);
         legacy::PassManager CG;

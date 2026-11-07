@@ -272,6 +272,7 @@ LLVMValueRef LLVMConstIntOfString(LLVMTypeRef IntTy, const char *Text, unsigned 
 LLVMValueRef LLVMConstIntOfStringAndSize(LLVMTypeRef IntTy, const char *Text, unsigned SLen, unsigned Radix);
 LLVMValueRef LLVMConstIntToPtr(LLVMValueRef ConstantVal, LLVMTypeRef ToType);
 LLVMValueRef LLVMConstMul(LLVMValueRef LHSConstant, LLVMValueRef RHSConstant);
+LLVMValueRef LLVMConstIntToPtr(LLVMValueRef ConstantVal, LLVMTypeRef ToType);
 LLVMValueRef LLVMConstNSWAdd(LLVMValueRef LHSConstant, LLVMValueRef RHSConstant);
 LLVMValueRef LLVMConstNSWMul(LLVMValueRef LHSConstant, LLVMValueRef RHSConstant);
 LLVMValueRef LLVMConstNSWNeg(LLVMValueRef ConstantVal);
@@ -319,6 +320,13 @@ LLVMTypeRef LLVMDoubleTypeInContext(LLVMContextRef C);
 void LLVMDumpModule(LLVMModuleRef M);
 void LLVMDumpType(LLVMTypeRef Val);
 void LLVMDumpValue(LLVMValueRef Val);
+/* Fil-C: added for mesa/llvmpipe's debug dumps (lp_bld_debug.cpp,
+ * lp_jit.c).  These return a COPY in Fil-C memory; the LLVM-side string
+ * that the C API would release with LLVMDisposeMessage is simply leaked
+ * (the same rule LLVMIntrinsicCopyOverloadedName follows), so there is
+ * deliberately no LLVMDisposeMessage here. */
+char *LLVMPrintModuleToString(LLVMModuleRef M);
+char *LLVMPrintValueToString(LLVMValueRef Val);
 LLVMTypeRef LLVMFP128TypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMFloatTypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMFunctionType(LLVMTypeRef ReturnType, LLVMTypeRef *ParamTypes, unsigned ParamCount, LLVMBool IsVarArg);
