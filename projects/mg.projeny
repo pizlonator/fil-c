@@ -1,16 +1,16 @@
-URL: https://github.com/troglobit/mg/releases/download/v4.5/mg-4.5.tar.gz dc2e8a007cc4c56c1e4a431b55334dec19d9b84f4458c77af2a9822d64d1ff6a
-Origname: mg-4.5
+URL: https://github.com/troglobit/mg/releases/download/v4.6/mg-4.6.tar.gz cf771188b246bd3ba4e99ec74e7f317cbbe0ac60fefc7e4b0836f3466eb473d0
+Origname: mg-4.6
 Name: mg
 
-    mg 4.5. The keyname() → keyseqname() build fix that mg 4.4 needed
+    mg 4.6. The keyname() → keyseqname() build fix that mg 4.4 needed
     (ncurses' curses.h already declares keyname(int), so the prototypes
     collided) was upstreamed before 4.5, in commit
     a62108264e05f4f41047f01fa1034f21ad562c08 ("Fix #47: build failure
     with ncurses curses.h"), so the old patch rebased away to empty.
 
-    Local patch: same disease, one release later. mg 4.5 newly declares
-    insstr() in def.h (for the comment and rectangle commands), and
-    ncurses' curses.h defines insstr(s) as a macro for
+    Local patch: same disease, one release later. mg 4.5 (and still
+    4.6) declares insstr() in def.h (for the comment and rectangle
+    commands), and ncurses' curses.h defines insstr(s) as a macro for
     winsstr(stdscr, (s)), so the declaration expands to
     "int winsstr(stdscr,(const char *));" and every file that includes
     both headers dies with "error: expected identifier". Rename mg's
@@ -38,7 +38,7 @@ diff --git a/mg/src/comment.c b/mg/src/comment.c
 diff --git a/mg/src/def.h b/mg/src/def.h
 --- a/mg/src/def.h
 +++ b/mg/src/def.h
-@@ -511,7 +511,7 @@
+@@ -515,7 +515,7 @@
  void		 lfree(struct line *);
  void		 lchange(int);
  int		 linsert(int, int);
