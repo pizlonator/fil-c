@@ -111,7 +111,6 @@ cp -v \
     wheel-0.44.0.tar.gz \
     XML-Parser-2.47.tar.gz \
     xz-5.8.4.tar.xz \
-    zlib-1.3.2.tar.gz \
     zstd-1.5.7.tar.gz \
     build_prelc_sub2_chroot_part1.sh \
     build_prelc_sub2_chroot_part2.sh \

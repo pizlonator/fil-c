@@ -217,14 +217,14 @@ cd build
 export PATH=/opt/fil/bin:$PATH
 hash -r
 
-tar -xf $FILCSRC/pizlix/zlib-1.3.2.tar.gz
-cd zlib-1.3.2
+tar -xf $FILCSRC/projects/zlib/pizlonated-zlib.tar.gz
+cd pizlonated-zlib
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
 rm -fv /opt/fil/lib/libz.a
 cd ..
-rm -rf zlib-1.3.2
+rm -rf pizlonated-zlib
 hash -r
 
 tar -xf $FILCSRC/projects/binutils-2.47/pizlonated-binutils.tar.gz

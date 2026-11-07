@@ -30,7 +30,8 @@ filc/projeny package \
     projects/coreutils.projeny projects/coreutils/pizlonated-coreutils.tar.gz \
     projects/mg.projeny projects/mg/pizlonated-mg.tar.gz \
     projects/gzip.projeny projects/gzip/pizlonated-gzip.tar.gz \
-    projects/patch.projeny projects/patch/pizlonated-patch.tar.gz
+    projects/patch.projeny projects/patch/pizlonated-patch.tar.gz \
+    projects/zlib.projeny projects/zlib/pizlonated-zlib.tar.gz
 
 ./package-source.sh projects/lfs-bootscripts-20240825 pizlonated-lfs-bootscripts
 ./package-source.sh projects/kbd-2.6.4 pizlonated-kbd

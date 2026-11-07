@@ -14,14 +14,14 @@ make prefix=/usr install
 cd ..
 rm -rf man-pages-6.9.1
 
-tar -xf zlib-1.3.2.tar.gz
-cd zlib-1.3.2
+tar -xf pizlonated-zlib.tar.gz
+cd pizlonated-zlib
 ./configure --prefix=/usr
 make
 make install
 rm -fv /usr/lib/libz.a
 cd ..
-rm -rf zlib-1.3.2
+rm -rf pizlonated-zlib
 hash -r
 
 tar -xf bzip2-1.0.8.tar.gz

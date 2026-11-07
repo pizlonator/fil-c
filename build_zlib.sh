@@ -28,9 +28,12 @@
 set -e
 set -x
 
-cd projects/zlib-1.3.2
-extract_source
-CC="$CCPREFIX$PWD/../../../build/bin/clang" CFLAGS="-O3 -g" ./configure \
-         --prefix=$PWD/../../../pizfix
-$MAKE -j $NCPU
-$MAKE install
+cd projects
+rm -rf zlib/extracted-source
+../filc/projeny extract zlib.projeny zlib/extracted-source
+cd zlib/extracted-source
+CC="$PWD/../../../build/bin/clang" CFLAGS="-O3 -g" ./configure --prefix=$PWD/../../../pizfix
+make -j $NCPU
+make install
+cd ..
+rm -rf extracted-source
