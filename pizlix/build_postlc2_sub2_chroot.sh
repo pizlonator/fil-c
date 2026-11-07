@@ -87,16 +87,16 @@ cd ..
 rm -rf make-ca-1.16.1
 hash -r
 
-tar -xf nghttp2-1.70.0.tar.xz
-cd nghttp2-1.70.0
+tar -xf pizlonated-nghttp2.tar.gz
+cd pizlonated-nghttp2
 ./configure --prefix=/usr     \
             --disable-static  \
             --enable-lib-only \
-            --docdir=/usr/share/doc/nghttp2-1.70.0
+            --docdir=/usr/share/doc/nghttp2-1.71.0
 make
 make install
 cd ..
-rm -rf nghttp2-1.70.0
+rm -rf pizlonated-nghttp2
 hash -r
 
 tar -xf pizlonated-curl.tar.gz

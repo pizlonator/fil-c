@@ -26,8 +26,12 @@
 set -e
 set -x
 
-cd projects/nghttp2-1.70.0
-extract_source
+cd projects
+rm -rf nghttp2/extracted-source
+../filc/projeny extract nghttp2.projeny nghttp2/extracted-source
+cd nghttp2/extracted-source
 PATH=$PWD/../../../pizfix/bin:$PATH CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ ./configure --with-openssl --with-zlib --prefix=$PWD/../../../pizfix
 make -j $NCPU
 make -j $NCPU install
+cd ..
+rm -rf extracted-source

@@ -89,6 +89,7 @@ filc/projeny package \
     projects/dash.projeny projects/dash/pizlonated-dash.tar.gz \
     projects/zlib.projeny projects/zlib/pizlonated-zlib.tar.gz \
     projects/lz4.projeny projects/lz4/pizlonated-lz4.tar.gz \
+    projects/nghttp2.projeny projects/nghttp2/pizlonated-nghttp2.tar.gz \
     projects/mg.projeny projects/mg/pizlonated-mg.tar.gz \
     projects/Linux-PAM.projeny projects/Linux-PAM/pizlonated-pam.tar.gz \
     projects/libuv.projeny projects/libuv/pizlonated-libuv.tar.gz \

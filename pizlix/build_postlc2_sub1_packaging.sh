@@ -28,6 +28,7 @@ filc/projeny package projects/pcre2.projeny projects/pcre2/pizlonated-pcre2.tar.
 filc/projeny package projects/libxml2.projeny projects/libxml2/pizlonated-libxml2.tar.gz
 filc/projeny package projects/icu.projeny projects/icu/pizlonated-icu.tar.gz
 filc/projeny package projects/brotli.projeny projects/brotli/pizlonated-brotli.tar.gz
+filc/projeny package projects/nghttp2.projeny projects/nghttp2/pizlonated-nghttp2.tar.gz
 ./package-source.sh projects/libarchive-3.7.4 pizlonated-libarchive
 ./package-source.sh projects/dhcpcd-10.0.8 pizlonated-dhcpcd
 filc/projeny package projects/openssh.projeny projects/openssh/pizlonated-openssh.tar.gz
