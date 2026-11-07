@@ -280,12 +280,12 @@ cd ..
 rm -rf pizlonated-xz
 hash -r
 
-tar -xf $FILCSRC/pizlix/lz4-1.10.0.tar.gz
-cd lz4-1.10.0
+tar -xf $FILCSRC/projects/lz4/pizlonated-lz4.tar.gz
+cd pizlonated-lz4
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ make -j `nproc` BUILD_STATIC=no PREFIX=/opt/fil
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ make -j `nproc` BUILD_STATIC=no PREFIX=/opt/fil install
 cd ..
-rm -rf lz4-1.10.0
+rm -rf pizlonated-lz4
 hash -r
 
 tar -xf $FILCSRC/projects/zstd-1.5.7/pizlonated-zstd.tar.gz

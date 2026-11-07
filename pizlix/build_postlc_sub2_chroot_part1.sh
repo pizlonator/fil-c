@@ -55,12 +55,12 @@ cd ..
 rm -rf pizlonated-xz
 hash -r
 
-tar -xf lz4-1.10.0.tar.gz
-cd lz4-1.10.0
+tar -xf pizlonated-lz4.tar.gz
+cd pizlonated-lz4
 make BUILD_STATIC=no PREFIX=/usr
 make BUILD_STATIC=no PREFIX=/usr install
 cd ..
-rm -rf lz4-1.10.0
+rm -rf pizlonated-lz4
 hash -r
 
 tar -xf pizlonated-zstd.tar.gz

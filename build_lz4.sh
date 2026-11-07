@@ -28,7 +28,11 @@
 set -e
 set -x
 
-cd projects/lz4-1.10.0
-extract_source
+cd projects
+rm -rf lz4/extracted-source
+../filc/projeny extract lz4.projeny lz4/extracted-source
+cd lz4/extracted-source
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ make install -j $NCPU prefix=$PWD/../../../pizfix
+cd ..
+rm -rf extracted-source
 
