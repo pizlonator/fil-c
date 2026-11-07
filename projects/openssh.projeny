@@ -1,14 +1,14 @@
-URL: https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p1.tar.gz 5b27910392630fe98eaef74e2ed72ad3416e108ee4234f1be7228c681e515137
-URL: https://ftp.usa.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p1.tar.gz 5b27910392630fe98eaef74e2ed72ad3416e108ee4234f1be7228c681e515137
-URL: https://ftp3.usa.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p1.tar.gz 5b27910392630fe98eaef74e2ed72ad3416e108ee4234f1be7228c681e515137
-URL: https://ftp5.usa.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p1.tar.gz 5b27910392630fe98eaef74e2ed72ad3416e108ee4234f1be7228c681e515137
-URL: https://ftp.jaist.ac.jp/pub/OpenBSD/OpenSSH/portable/openssh-10.6p1.tar.gz 5b27910392630fe98eaef74e2ed72ad3416e108ee4234f1be7228c681e515137
-URL: https://plug-mirror.rcac.purdue.edu/pub/OpenBSD/OpenSSH/portable/openssh-10.6p1.tar.gz 5b27910392630fe98eaef74e2ed72ad3416e108ee4234f1be7228c681e515137
-URL: https://ftp.fau.de/pub/OpenBSD/OpenSSH/portable/openssh-10.6p1.tar.gz 5b27910392630fe98eaef74e2ed72ad3416e108ee4234f1be7228c681e515137
-Origname: openssh-10.6p1
+URL: https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p2.tar.gz 5ac4ab37a02f6185f9cfb6373d29a8aac2dad021b16bfc810482780b2c105004
+URL: https://ftp.usa.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p2.tar.gz 5ac4ab37a02f6185f9cfb6373d29a8aac2dad021b16bfc810482780b2c105004
+URL: https://ftp3.usa.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p2.tar.gz 5ac4ab37a02f6185f9cfb6373d29a8aac2dad021b16bfc810482780b2c105004
+URL: https://ftp5.usa.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p2.tar.gz 5ac4ab37a02f6185f9cfb6373d29a8aac2dad021b16bfc810482780b2c105004
+URL: https://ftp.jaist.ac.jp/pub/OpenBSD/OpenSSH/portable/openssh-10.6p2.tar.gz 5ac4ab37a02f6185f9cfb6373d29a8aac2dad021b16bfc810482780b2c105004
+URL: https://plug-mirror.rcac.purdue.edu/pub/OpenBSD/OpenSSH/portable/openssh-10.6p2.tar.gz 5ac4ab37a02f6185f9cfb6373d29a8aac2dad021b16bfc810482780b2c105004
+URL: https://ftp.fau.de/pub/OpenBSD/OpenSSH/portable/openssh-10.6p2.tar.gz 5ac4ab37a02f6185f9cfb6373d29a8aac2dad021b16bfc810482780b2c105004
+Origname: openssh-10.6p2
 Name: openssh
 
-    OpenSSH for Fil-C, based on upstream 10.6p1. Patch provenance:
+    OpenSSH for Fil-C, based on upstream 10.6p2 (rebased from 10.6p1: the p2 delta — upstream's fix for the sshd password-authentication bypass when PAM is disabled in auth-passwd.c, the GatewayPorts diagnostic fix in servconf.c, the seccomp restart_syscall allowance, and the new ssh-mldsa44-ed25519 entries in myproposal.h — merges cleanly, and myproposal.h and sntrup761.c remain byte-identical to upstream). Patch provenance:
     (1) GSSAPI key exchange from openssh-gsskex (github.com/openssh-gsskex/openssh-gsskex, debian/master lineage), rebased onto 10.6p1 per Debian's src:ssh-team/openssh-gssapi gssapi.patch for 10.6p1, and carrying their CVE-2026-3497-lineage hardening: ssh_packet_disconnect() (which flushes and fatals) instead of sshpkt_disconnect() (which merely queues) at every protocol-violation site in kexgssc.c and kexgsss.c, GSS_C_EMPTY_BUFFER initialization of every gss_buffer_desc local that error paths release, the kex_gss_c25519_client() bounds fix against a 1-byte overread of an empty server_blob, and upstream 10.6's GSSAPI credential-store security fix (ssh_gssapi_storecreds() gated on gssapi_client.userok, new ssh_gssapi_cleanup_global_client() called from mm_answer_gss_setup_ctx() and from the failed-userok path, the userok field replacing used).
     (2) GSS_KEX_DEFAULT_KEX hardened to drop the deprecated SHA1 methods (gss-group14-sha1-, gss-gex-sha1-) per Debian/Ubuntu; they stay available when explicitly configured, and the GSSAPIKexAlgorithms default text in ssh_config.5/sshd_config.5 was updated to match.
     (3) mlkem1024nistp384-sha384 hybrid from Fedora's 0047-NIST-curves-hybrid-KEX, moderated per djb feedback: upstream PQ implementations are kept, there are no FIPS changes (we build no FIPS OpenSSL), and the mlkem+nistp kexes are NOT added to the default KEX proposal lists (myproposal.h stays byte-identical to upstream; they remain name-valid and configurable); Fedora's server_key NULL-check fix in kex_kem_mlkem_nist_enc() is kept, and our added default: case in kex_kem_mlkem_nist_dec() sets SSH_ERR_SIGNATURE_INVALID instead of returning an uninitialized r.
@@ -324,7 +324,7 @@ diff --git a/openssh/compat.h b/openssh/compat.h
 +int is_mlkem768_available(void);
  #endif
 diff --git a/openssh/config.h.in b/openssh/config.h.in
-frozen-mtime 1791276331
+frozen-mtime 1793836646
 --- a/openssh/config.h.in
 +++ b/openssh/config.h.in
 @@ -1977,6 +1977,9 @@
@@ -338,7 +338,7 @@ frozen-mtime 1791276331
  #undef SYS_RDOMAIN_LINUX
 
 diff --git a/openssh/configure b/openssh/configure
-frozen-mtime 1791276331
+frozen-mtime 1793836646
 --- a/openssh/configure
 +++ b/openssh/configure
 @@ -12645,6 +12645,9 @@
@@ -352,7 +352,7 @@ frozen-mtime 1791276331
  	case `uname -r` in
  	1.*|2.0.*)
 diff --git a/openssh/configure.ac b/openssh/configure.ac
-frozen-mtime 1791276331
+frozen-mtime 1793836646
 --- a/openssh/configure.ac
 +++ b/openssh/configure.ac
 @@ -999,6 +999,7 @@
@@ -4051,7 +4051,7 @@ diff --git a/openssh/sandbox-seccomp-filter.c b/openssh/sandbox-seccomp-filter.c
  #ifdef __NR_clock_gettime
  	SC_ALLOW(__NR_clock_gettime),
  #endif
-@@ -538,6 +543,10 @@
+@@ -541,6 +546,10 @@
  ssh_sandbox_child(struct ssh_sandbox *box)
  {
  	struct rlimit rl_zero, rl_one = {.rlim_cur = 1, .rlim_max = 1};

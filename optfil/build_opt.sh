@@ -645,9 +645,9 @@ make -j `nproc` sysconfdir=/opt/fil/share/examples/ssh install-sysconf
 install -v -m755    contrib/ssh-copy-id /opt/fil/bin
 install -v -m644    contrib/ssh-copy-id.1 \
                     /opt/fil/share/man/man1
-install -v -m755 -d /opt/fil/share/doc/openssh-10.6p1
+install -v -m755 -d /opt/fil/share/doc/openssh-10.6p2
 install -v -m644    INSTALL LICENCE OVERVIEW README* \
-                    /opt/fil/share/doc/openssh-10.6p1
+                    /opt/fil/share/doc/openssh-10.6p2
 cd ..
 rm -rf pizlonated-openssh
 hash -r
