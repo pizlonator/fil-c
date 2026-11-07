@@ -87,6 +87,11 @@
 # keeps working after the checkout is moved.  A stamp file
 # (rust-build/.filc-linker-dir-stamp) forces rustc_codegen_ssa to recompile
 # when the baked value changes, exactly like the FILC_VERSION stamp above.
+# The rustc driver also statically embeds the LLVM archives that build_clang.sh
+# built into build/lib, which cargo does not fingerprint at all; a stamp of the
+# LLVM input state (rust-build/.filc-llvm-libs-stamp) forces the rustc_llvm
+# recompile + relink when those archives or the LLVM headers change, so the
+# shipped rustc can never keep running stale LLVM code (see below).
 #
 # The script is idempotent: in incremental mode, if rust-build/rust already
 # exists, extraction is skipped and bootstrap resumes incrementally.
@@ -173,6 +178,55 @@ do_build_rustc() {
         echo "       rustc links the Fil-C LLVM from build/ (this script does" >&2
         echo "       not build LLVM); run ./build_clang.sh first." >&2
         exit 1
+    fi
+
+    # Fil-C: rustc statically embeds the LLVM archives from build/lib (the
+    # driver is linked against `llvm-config --link-static`'s library set), so
+    # the LLVM code inside librustc_driver.so is whatever was in build/lib at
+    # link time.  Cargo does not notice when those archives change: only
+    # build-script outputs and crate sources are fingerprinted, and the LLVM
+    # libraries are neither -- they are an external input resolved through
+    # llvm-config at build-script run time.  A rebuilt Fil-C LLVM (say, after
+    # editing llvm/lib/Transforms/Scalar/SROA.cpp and running build_clang.sh)
+    # would therefore leave the shipped rustc running stale LLVM code (this
+    # actually happened: a rebuilt SROA shipped in clang but not in rustc).
+    # Keep a stamp of the LLVM inputs the driver was last linked against --
+    # the newest archive mtime/size in build/lib plus the newest header mtime
+    # under llvm/include and build/include (header changes affect the LLVM
+    # C++ API the rustc wrappers compile against).  When it moves, touch the
+    # rustc_llvm wrapper source, forcing cargo to recompile rustc_llvm and
+    # relink librustc_driver.so against the updated archives.  An unchanged
+    # LLVM tree makes this a fast no-op (two find scans, well under 100ms).
+    # A missing stamp is treated as changed: the first run of this script
+    # revision relinks once, and later runs compare against what it recorded.
+    FILC_LLVM_STAMP=$RUST_BUILD/.filc-llvm-libs-stamp
+    FILC_LLVM_STATE=
+    # The newest (mtime:size) LLVM archive feeding the static link, from the
+    # same directory llvm-config points at.  Only libLLVM*.a counts: the
+    # driver links the LLVM component archives (llvm-config --link-static)
+    # plus the MCA ones, not clang's own static libraries -- whose routine
+    # churn on clang-side edits must not trigger rustc relinks.  (sed, not
+    # `head -1`: this script runs under `set -e -o pipefail`, and a reader
+    # that exits early SIGPIPEs the writer into a silent exit 141 -- sed
+    # drains the pipeline instead.)
+    if [ -d "$FILC_ROOT/build/lib" ]; then
+        FILC_LLVM_STATE=`find "$FILC_ROOT/build/lib" -maxdepth 1 \
+            -name 'libLLVM*.a' -printf '%T@:%s\n' \
+            2>/dev/null | sort -rn | sed -n '1p'`
+    fi
+    # Plus the newest header mtime in the LLVM include trees the wrappers'
+    # includes resolve to; a missing tree contributes nothing.
+    for FILC_LLVM_INC_DIR in "$FILC_ROOT/llvm/include" "$FILC_ROOT/build/include"; do
+        if [ -d "$FILC_LLVM_INC_DIR" ]; then
+            FILC_LLVM_STATE="$FILC_LLVM_STATE`find "$FILC_LLVM_INC_DIR" \
+                -name '*.h' -printf '%T@\n' 2>/dev/null | sort -rn | sed -n '1p'`"
+        fi
+    done
+    if [ ! -f $FILC_LLVM_STAMP ] || [ "`cat $FILC_LLVM_STAMP 2>/dev/null`" != "$FILC_LLVM_STATE" ]; then
+        touch $RUST_SRC/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+        echo "$FILC_LLVM_STATE" > $FILC_LLVM_STAMP
+        echo "Fil-C LLVM libraries changed: relinking the rustc driver against" >&2
+        echo "the updated LLVM archives (touched compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp)." >&2
     fi
 
     # compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp: the Fil-C pipeline

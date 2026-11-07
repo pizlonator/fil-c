@@ -307,12 +307,12 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
 +  // DeleteRedundantPollchecks) is owned by LLVM's RegisterFilPasses
 +  // (llvm/lib/Passes/RegisterFilPasses.cpp) and registered here with
 +  // IsRust=true, exactly like clang/lib/CodeGen/BackendUtil.cpp registers it
-+  // with IsRust=false -- so rustc pizlonates exactly like Fil-C clang does.
-+  // IsRust disables the whole pre-pizlonation simplification and inlining
-+  // pipeline by default because it miscompiles rustc-shaped IR (see
-+  // RegisterFilPasses.cpp; FILCRUST_FILCINLINE in the environment re-enables
-+  // it).  The callbacks run
-+  // on every path through this function -- O0 via buildO0DefaultPipeline,
++  // with IsRust=false -- so rustc pizlonates exactly like Fil-C clang does,
++  // running the same full pre-pizlonation simplification and inlining
++  // pipeline (IsRust no longer disables it; the miscompile it used to cause
++  // under rustc was fixed in SROA itself -- see the Fil-C pointer re-typing
++  // of untyped alloca partitions in SROA::rewritePartition).  The callbacks
++  // run on every path through this function -- O0 via buildO0DefaultPipeline,
 +  // the prepopulated per-module/ThinLTO/fat-LTO pipelines, and (via
 +  // FilCAddPipelineStartPasses in the NoPrepopulatePasses branch below) the
 +  // no-prepopulate pipeline -- so every module that rustc compiles gets

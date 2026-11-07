@@ -2728,6 +2728,19 @@ class AllocaSliceRewriter : public InstVisitor<AllocaSliceRewriter, bool> {
   uint64_t BeginOffset = 0;
   uint64_t EndOffset = 0;
 
+  // Fil-C (GIMSO): set when a memtransfer/memset use was kept whole (not
+  // widened into typed accesses).  Under Fil-C a memset use is always kept
+  // whole, and a memtransfer use is kept whole unless the slice's access type
+  // is a single pointer (the capability-preserving ptr-words path; see the
+  // guards in visitMemSetInst/visitMemTransferInst below for the rationale).
+  // Such a use intentionally returns false (it is not eliminated; it stays a
+  // memory intrinsic on the kept alloca), which is incompatible with the
+  // VecTy/IntTy "every use must be eliminable" invariant asserted in visit()
+  // below, so that invariant is relaxed once this is set.  The partition
+  // simply does not get promoted, which is exactly what GIMSO semantics
+  // require here.
+  bool FilCKeptMemIntrinsic = false;
+
   // The new offsets of the slice currently being rewritten relative to the
   // original alloca.
   uint64_t NewBeginOffset = 0, NewEndOffset = 0;
@@ -2827,7 +2840,7 @@ public:
                                     Twine(BeginOffset) + ".");
 
     CanSROA &= visit(cast<Instruction>(OldUse->getUser()));
-    if (VecTy || IntTy)
+    if ((VecTy || IntTy) && !FilCKeptMemIntrinsic)
       assert(CanSROA);
     return CanSROA;
   }
@@ -3256,6 +3269,37 @@ private:
     Type *ScalarTy = AllocaTy->getScalarType();
 
     const bool CanContinue = [&]() {
+      // Fil-C (GIMSO): a memset use is ALWAYS kept whole (never widened into a
+      // typed store), no matter what the slice's access type is.  This must
+      // run before the VecTy/IntTy fast-path return below, which bypasses the
+      // canConvertValue check.  Under GIMSO semantics a memset zeroes both the
+      // payload and the shadow: the pizlonator's filc_memset lowering writes
+      // the payload bytes and updates the shadow of the capability words in
+      // the same operation.  Widening it into a typed store loses half of
+      // that, whichever shape the slice type takes:
+      //  - an integer (or integer-vector) store writes only the payload and
+      //    leaves stale shadow behind, so capability words the memset was
+      //    supposed to null out stay live in the shadow;
+      //  - a pointer (or vector-of-pointer) store cannot represent the splat
+      //    a widened memset is built from at all: the integer splat does not
+      //    convert to a non-integral pointer under the -ni:0 datalayout, so
+      //    canConvertValue refuses the conversion -- and the fast-path return
+      //    below would otherwise skip that check and trip the "Value not
+      //    convertable to type" assertion in convertValue instead (a <2 x
+      //    ptr>-typed slice is legal IR that used to abort the compiler).
+      // Keeping the intrinsic is therefore the only uniformly correct choice
+      // for every access type, and it is also the fast one: the pizlonator's
+      // memset lowering is exactly the path Fil-C always intended memsets to
+      // take.  An alloca with a memset use is never promoted (isAllocaPromotable
+      // refuses memory intrinsics), so the alloca memory survives the rewrite
+      // and both its typed uses (real loads/stores) and this memset keep
+      // operating on it with the original GIMSO semantics.
+      if (DL.isFilC()) {
+        LLVM_DEBUG(dbgs() << "          Fil-C: keeping memset; the access type "
+                          << *AllocaTy << " is never widened\n");
+        FilCKeptMemIntrinsic = true;
+        return false;
+      }
       if (VecTy || IntTy)
         return true;
       if (BeginOffset > NewAllocaBeginOffset || EndOffset < NewAllocaEndOffset)
@@ -3425,6 +3469,38 @@ private:
              DL.getTypeStoreSize(NewAI.getAllocatedType()).getFixedValue() ||
          !DL.typeSizeEqualsStoreSize(NewAI.getAllocatedType()) ||
          !NewAI.getAllocatedType()->isSingleValueType());
+
+    // Fil-C (GIMSO): widening a memory transfer into typed load/store pairs is
+    // only proven GIMSO-correct when the emitted access type is a single
+    // pointer (the capability-preserving ptr-words path): the pizlonator
+    // lowers memcpy and memmove as payload+shadow moves, while integer (or any
+    // other non-pointer) typed accesses touch only the payload, so re-typing
+    // the copy drops any pointer capability the copied words carry in the
+    // shadow.  The ptr-words machinery in rewritePartition only ever re-types
+    // memcpy-only partitions as pointer words -- a plain ptr for a single-word
+    // partition, which this widening path handles -- and never as a vector, so
+    // a vector-of-pointer slice type has no proven capability-preserving copy
+    // story here either: keep its memtransfers whole just like the
+    // non-pointer ones.  When the slice type is not a single pointer, keep
+    // this intrinsic whole (on the adjusted pointer) instead: an alloca with a
+    // memtransfer use is never promoted (isAllocaPromotable refuses memory
+    // intrinsics), so the alloca memory survives the rewrite and both its
+    // typed uses (real loads/stores) and this intrinsic (a real memcpy/memmove)
+    // keep operating on it with the original GIMSO semantics.  This closes the
+    // whole class of mixed typed/memtransfer partitions -- including the
+    // memset-mixed ones, which the partition-level machinery deliberately does
+    // not re-type -- not just the memcpy-only ones it handles.  (The [N x ptr]
+    // array form of the ptr-words path is not a single value type, so it
+    // already takes the EmitMemCpy path above and is unaffected by this
+    // guard.)
+    if (DL.isFilC() && !EmitMemCpy &&
+        !NewAI.getAllocatedType()->isPointerTy()) {
+      LLVM_DEBUG(dbgs() << "          Fil-C: keeping memtransfer; the access "
+                        << "type " << *NewAI.getAllocatedType()
+                        << " is not a single pointer\n");
+      EmitMemCpy = true;
+      FilCKeptMemIntrinsic = true;
+    }
 
     // If we're just going to emit a memcpy, the alloca hasn't changed, and the
     // size hasn't been shrunk based on analysis of the viable range, this is
@@ -4914,6 +4990,129 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
   Type *SliceTy = nullptr;
   VectorType *SliceVecTy = nullptr;
   const DataLayout &DL = AI.getDataLayout();
+
+  // Fil-C (GIMSO): classify this partition's uses before picking a type.  If
+  // the partition has no typed (load/store) accesses then its bytes are only
+  // ever moved around by memory intrinsics.  Rewriting such a partition as an
+  // integer would turn the intrinsics into integer loads/stores, which under
+  // GIMSO semantics drops pointer capabilities that the Fil-Pizlonator would
+  // otherwise carry in the shadow of the copied words.  (This actually
+  // miscompiles: e.g. rustc's std::thread::spawn returns a handle holding a
+  // pthread_t through a chain of memcpys; SROA used to re-type the pthread_t
+  // word as i64, so reloading it as a pointer yielded a null capability and
+  // pthread_join tripped a filc safety error.)  For such partitions we prefer
+  // pointer-typed slices below: pointer-typed copies are bit-identical to
+  // integer ones, but they preserve capabilities.
+  //
+  // The memcpys only carry the pizlonator's capabilities through if either
+  // (a) the pieces we re-type as pointer accesses are Fil-C-word aligned, or
+  // (b) the memcpys are left whole.  Alignment annotations on the memcpys are
+  // optional in LLVM IR, so we cannot assume (a) holds: an unannotated memcpy
+  // could have any alignment.  Partitions that fail the alignment (or word
+  // size, or address space) gates below therefore fall back to an i8 array,
+  // which is not a single value type, so the rewriter leaves every use as a
+  // memcpy; the pizlonator's memcpy/memmove lowering preserves capabilities
+  // for all alignments.  What such a partition must never get is the integer
+  // fallback further down: integer loads/stores drop capabilities.
+  //
+  // This classification is defense in depth.  The primary soundness guard is
+  // at the rewriter level (visitMemTransferInst/visitMemSetInst below): under
+  // Fil-C a memset use is never widened into a typed access, and a memtransfer
+  // use is only ever widened into a typed access when the emitted access type
+  // is a single pointer, so even a partition that mixes typed accesses with
+  // memory intrinsics (and therefore does not get any of the special slice
+  // types below) keeps its intrinsics whole on the re-typed alloca, with
+  // original GIMSO semantics.
+  constexpr uint64_t FilCWordSize = 8;
+  // True if every use of the partition is a memory transfer intrinsic (aside
+  // from lifetime markers and other droppable intrinsics, which work with any
+  // slice type), so none of its bytes are ever accessed as a typed value.
+  // Only computed for Fil-C modules; everyone else gets upstream behavior.
+  bool FilCMemTransferOnly = false;
+  // True if a Fil-C memcpy-only partition can safely be re-typed as pointer
+  // words rather than being left to the i8-array/memcpy fallback.
+  bool FilCPtrTyped = false;
+  if (DL.isFilC()) {
+    // The gate below is a conjunction of monotone flags, so that its outcome
+    // is independent of the order in which the partition's slices happen to
+    // be classified (slices are sorted by offset -- with the spanning slice
+    // first -- and split slice tails are classified after the partition body,
+    // so a given use set can be visited in more than one order).  An earlier
+    // version used a last-writer-wins "MemTransferOnly" boolean that every
+    // memtransfer set true and every disqualifier set false; identical use
+    // sets then classified differently depending on visitation order, e.g. a
+    // partition whose slices visited {memset, memcpy, memcpy} looked
+    // memcpy-only while the same-shaped partition visiting {memcpy, memcpy,
+    // memset} did not -- a compile-order-dependent soundness outcome.
+    // NoTypedAccesses and MemTransferAligned are clear-only (monotone: once
+    // false, never set back to true), and SawMemTransfer and SawDisqualifier
+    // are set-only (monotone: once true, never cleared), so no flag can be
+    // overridden by a later slice.
+    bool NoTypedAccesses = true;
+    bool SawMemTransfer = false;
+    bool SawDisqualifier = false;
+    bool MemTransferAligned = true;
+    bool SawUse = false;
+    auto ClassifyFilCSlice = [&](const Slice &S) {
+      SawUse = true;
+      auto *User = dyn_cast<Instruction>(S.getUse()->getUser());
+      if (isa<LoadInst>(User) || isa<StoreInst>(User)) {
+        NoTypedAccesses = false;
+        SawDisqualifier = true;
+        return;
+      }
+      if (auto *MTI = dyn_cast<MemTransferInst>(User)) {
+        SawMemTransfer = true;
+        // A pointer-typed access will only be emitted for a piece that covers
+        // the whole partition; such a piece sits Delta bytes into the transfer,
+        // on both sides.  Both sides must be Fil-C-word aligned there, or the
+        // pizlonator's alignment check on pointer accesses would trap on data
+        // that memcpy would have handled just fine.  (Pieces that do not cover
+        // the whole partition stay memcpys, which are always safe.)
+        uint64_t Delta =
+            std::max(S.beginOffset(), P.beginOffset()) - S.beginOffset();
+        // commonAlignment returns the largest power-of-two byte alignment that
+        // satisfies both the transfer's alignment annotation and the piece
+        // offset; it must be at least a whole Fil-C word on both sides.
+        if (std::min(commonAlignment(MTI->getDestAlign().valueOrOne(), Delta),
+                     commonAlignment(MTI->getSourceAlign().valueOrOne(),
+                                     Delta)) < FilCWordSize)
+          MemTransferAligned = false;
+        return;
+      }
+      // Lifetime markers and droppable intrinsics get pointer-adjusted by the
+      // rewriter and work with any slice type.  Anything else (memsets, PHI/
+      // select speculation, calls) disqualifies the memtransfer-only gate.
+      // (Memsets additionally hit the rewriter-level guard in
+      // visitMemSetInst below, which keeps them whole for every access type,
+      // pointer-typed or not.)
+      auto *II = dyn_cast<IntrinsicInst>(User);
+      if (!(II && (II->isLifetimeStartOrEnd() || II->isDroppable())))
+        SawDisqualifier = true;
+    };
+    for (Slice &S : P)
+      ClassifyFilCSlice(S);
+    for (const Slice *S : P.splitSliceTails())
+      ClassifyFilCSlice(*S);
+    // Note that NoTypedAccesses is implied by !SawDisqualifier (a typed access
+    // is a disqualifier); both are kept in the conjunction so that the gate
+    // reads as its two separate concerns: the bytes must never have been
+    // accessed as a typed value, and some memtransfer must have moved them.
+    FilCMemTransferOnly =
+        SawUse && NoTypedAccesses && SawMemTransfer && !SawDisqualifier;
+    // Pointer words require the partition to be memcpy-only in the first
+    // place, plus every piece that would become a typed pointer access to be
+    // Fil-C-word aligned on both sides (checked above), the partition to be a
+    // whole number of words at a word-aligned offset, and the alloca to live
+    // in the generic address space (the pizlonator only models allocas
+    // there).  Otherwise the i8-array/memcpy fallback below keeps the
+    // memcpys whole, which is safe for any alignment.
+    FilCPtrTyped = FilCMemTransferOnly && MemTransferAligned &&
+                   P.beginOffset() % FilCWordSize == 0 &&
+                   P.size() % FilCWordSize == 0 &&
+                   AI.getAddressSpace() == 0;
+  }
+
   std::pair<Type *, IntegerType *> CommonUseTy =
       findCommonType(P.begin(), P.end(), P.endOffset());
   // Do all uses operate on the same type?
@@ -4934,10 +5133,50 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
       SliceTy = CommonUseTy.second;
       SliceVecTy = dyn_cast<VectorType>(SliceTy);
     }
+  // Fil-C (GIMSO): never re-type a memcpy-only partition as an integer; the
+  // integer loads/stores that would be emitted for it drop capabilities (see
+  // the classification above).  Such partitions get pointer words or an i8
+  // array below instead.  Note that FilCMemTransferOnly is only ever true for
+  // Fil-C modules, so this leaves the upstream integer fallback untouched
+  // everywhere else.
   if ((!SliceTy || (SliceTy->isArrayTy() &&
                     SliceTy->getArrayElementType()->isIntegerTy())) &&
-      DL.isLegalInteger(P.size() * 8)) {
+      !FilCMemTransferOnly && DL.isLegalInteger(P.size() * 8)) {
     SliceTy = Type::getIntNTy(*C, P.size() * 8);
+  }
+
+  // Fil-C (GIMSO): the partition's bytes are only ever read/written by memory
+  // intrinsics, so re-type it as pointer words.  A single-word partition gets
+  // typed accesses (a bit-identical but capability-preserving copy); a
+  // multi-word partition keeps its memcpys (the alloca type is an array, which
+  // is not a single value type, so the rewriter emits memcpys instead of typed
+  // accesses).  Both forms preserve capabilities; the integer re-typing we
+  // replace dropped them.  See the classification above.
+  if (FilCPtrTyped) {
+    LLVM_DEBUG(dbgs() << "  Fil-C: re-typing memcpy-only partition ["
+                      << P.beginOffset() << "," << P.endOffset()
+                      << ") as pointer words\n");
+    PointerType *PTy = PointerType::get(*C, AI.getAddressSpace());
+    if (P.size() == FilCWordSize)
+      SliceTy = PTy;
+    else
+      SliceTy = ArrayType::get(PTy, P.size() / FilCWordSize);
+  } else if (FilCMemTransferOnly) {
+    // Fil-C (GIMSO): this memcpy-only partition fails one of the pointer-word
+    // gates above -- the memcpys are unaligned (alignment annotations are
+    // optional), or the partition is not a whole number of Fil-C words, sits
+    // at an unaligned offset, or the alloca is in a non-generic address space.
+    // Typed pointer accesses would trip the pizlonator's alignment check, and
+    // integer accesses would drop capabilities, so fall back to an i8 array.
+    // An array is not a single value type, so the rewriter leaves every use of
+    // the partition as a memcpy, and the pizlonator's memcpy/memmove lowering
+    // preserves capabilities for all alignments.
+    LLVM_DEBUG(dbgs() << "  Fil-C: keeping memcpys for memcpy-only partition ["
+                      << P.beginOffset() << "," << P.endOffset() << ")\n");
+    SliceTy = ArrayType::get(Type::getInt8Ty(*C), P.size());
+    // The re-typing above is never a vector, so keep the vector promotion path
+    // below from overriding it.
+    SliceVecTy = nullptr;
   }
 
   // If the common use types are not viable for promotion then attempt to find
@@ -4962,6 +5201,9 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
   if (VecTy)
     SliceTy = VecTy;
 
+  // Note that this deliberately keeps the pre-existing NoType semantics (it
+  // does not consider split slice tails), so the Skew hack below behaves
+  // exactly as it did before.
   bool NoType = true;
   for (Slice& S : P) {
     if (isa<LoadInst>(S.getUse()->getUser()) || isa<StoreInst>(S.getUse()->getUser())) {
@@ -5011,7 +5253,6 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
   
   // Fil-C Hack!
   // FIXME: We can almost certainly get rid of this, once we have misaligned capability support.
-  constexpr uint64_t FilCWordSize = 8;
   uint64_t Skew = 0;
   if (DL.isFilC() && NoType && P.size() >= FilCWordSize)
     Skew = P.beginOffset() % FilCWordSize;

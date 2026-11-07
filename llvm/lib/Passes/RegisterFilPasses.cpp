@@ -14,7 +14,6 @@
 
 #include "llvm/Passes/RegisterFilPasses.h"
 
-#include <cstdlib>
 
 #include "llvm/Analysis/GlobalsModRef.h"
 #include "llvm/Analysis/ProfileSummaryInfo.h"
@@ -95,22 +94,21 @@ static cl::opt<bool> FilCDSE(
 // to a fresh ModulePassManager instead of building a default pipeline) call
 // this so that they pizlonate exactly like the PassBuilder-driven paths do.
 //
-// IsRust disables the whole pre-pizlonation simplification and inlining
-// pipeline by default because it miscompiles rustc-shaped IR: e.g. a
-// std::thread::spawn + join compiled at -O1 hands pthread_join a thread
-// handle whose flight-pointer capability was reconstructed as null ("filc
-// safety error: cannot read pointer with null object" in
-// __pthread_clockjoin_ex) -- and the early simplification alone (no inliner)
-// is enough to trigger it.  Plain Fil-C clang code runs this same pipeline
-// and is unaffected.  The regular optimization pipeline still runs after the
-// FilPizlonator on the pizlonated IR -- exactly as it does for every Fil-C
-// clang compilation -- so codegen is still fully optimized without the
-// pre-pizlonation pipeline.  FILCRUST_FILCINLINE in the environment
-// re-enables it under rustc for debugging the pizlonator interaction (any
-// set value).
+// IsRust is retained for API compatibility with the two callers (clang's
+// BackendUtil and Fil-C's rustc), which pass false and true respectively.  It
+// no longer changes the pipeline: the pre-pizlonation simplification and
+// inlining used to be disabled under rustc because it miscompiled rustc-shaped
+// IR (a std::thread::spawn + join compiled at -O handed pthread_join a thread
+// handle whose flight-pointer capability had been dropped), but the root cause
+// was SROA re-typing memcpy-only alloca partitions as integers, which under
+// GIMSO semantics drops the capabilities that memcpy carries in the shadow of
+// the copied bytes.  That is fixed in SROA itself (see the Fil-C pointer
+// re-typing of untyped alloca partitions in SROA::rewritePartition), so the
+// full pipeline now runs for every frontend.
+
 void llvm::FilCAddPipelineStartPasses(ModulePassManager &MPM,
                                       OptimizationLevel Level,
-                                      bool IsRust,
+                                      bool /*IsRust*/,
                                       FilJITConfiguration *jitConfig) {
   if (FilCKillUB)
     MPM.addPass(KillUBPass());
@@ -118,13 +116,13 @@ void llvm::FilCAddPipelineStartPasses(ModulePassManager &MPM,
   // (an early SimplifyCFG/SROA/EarlyCSE, then -- under FilCInline -- a full
   // inliner invocation whose per-CGSCC pipeline is SROA/EarlyCSE/
   // JumpThreading/CVP/SimplifyCFG/InstCombine/GVN/SCCP/ADCE/InstCombine), to
-  // create inlining opportunities before pizlonation.  IsRust (i.e. the
-  // Fil-C rustc) disables it by default because it miscompiles rustc-shaped
-  // IR -- see the FilCAddPipelineStartPasses comment above.
-  // FILCRUST_FILCINLINE in the environment turns it back on (useful for
-  // debugging the pizlonator interaction).
-  if (Level != OptimizationLevel::O0 && FilCOptimize &&
-      (!IsRust || getenv("FILCRUST_FILCINLINE"))) {
+  // create inlining opportunities before pizlonation.  This runs for every
+  // frontend, including the Fil-C rustc: it used to be disabled under rustc
+  // because it miscompiled rustc-shaped IR, but the root cause (SROA
+  // re-typing memcpy-only alloca partitions as integers, dropping GIMSO
+  // capabilities) is fixed in SROA itself -- see the Fil-C pointer re-typing
+  // of untyped alloca partitions in SROA::rewritePartition.
+  if (Level != OptimizationLevel::O0 && FilCOptimize) {
     FunctionPassManager EarlyFPM;
     EarlyFPM.addPass(LowerExpectIntrinsicPass());
     EarlyFPM.addPass(SimplifyCFGPass());

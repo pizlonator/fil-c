@@ -63,11 +63,12 @@ The patch consists of the following changes:
    must still pizlonate).  rustc's own callbacks (CFI, verify, lint, instr
    profiling, sanitizers) stay in rustc's callback vectors and apply around
    the Fil-C passes in the same order as on a PassBuilder-built pipeline.
-   The pipeline itself (KillUB -> [pre-pizlonation simplification and
-   inlining, disabled for IsRust by default, see known-issues #1] -> coro
+   The pipeline itself (KillUB -> pre-pizlonation simplification and
+   inlining -> coro
    lowering -> FilPizlonator, plus OptimizerLast DeleteRedundantPollchecks)
-   lives in LLVM now, and the FILCRUST_FILCINLINE environment knob moved
-   with it (see RegisterFilPasses.cpp).  Every pipeline path pizlonates.
+   lives in LLVM now, and runs in full for every frontend (see known-issues #1
+   for the SROA miscompile that used to force rustc to skip its
+   pre-pizlonation half, and its fix).  Every pipeline path pizlonates.
 2. `compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs` —
    data_layout with `-ni:0` (before-Fil-C), StackProbeType::None,
    linker = "filcc", `-normalcrt` pre-link arg (full Fil-C CRT under
@@ -443,6 +444,75 @@ build (or the stamp is missing) it touches
 relink, and when filcc is not on PATH at all it drops any previously baked
 value the same way.
 
+## The rustc driver statically embeds the Fil-C LLVM (version skew)
+
+`librustc_driver-<hash>.so` is linked against `llvm-config --link-static`:
+the LLVM code the shipped rustc runs is a **snapshot of `build/lib` taken at
+link time** -- the same archives `build/bin/clang` runs, but frozen into the
+driver (`stage1/bin/rustc` is a tiny launcher that dlopens
+`$ORIGIN/../lib/librustc_driver-*.so`).  Cargo does not fingerprint those
+archives: only crate sources and build-script outputs are fingerprinted, and
+the LLVM libraries are neither -- they reach the link through llvm-config at
+rustc_llvm's build-script run time.  So `./build_rustc_incremental.sh`
+happily relinks nothing after a rebuild of the Fil-C LLVM, and the shipped
+rustc keeps executing **stale LLVM code** -- including stale Fil-C
+miscompile fixes -- while `build/bin/clang-20` next to it runs the fresh
+one.
+
+That actually happened (found in review round three): the driver had been
+linked at 08:47, `build/lib/libLLVMScalarOpts.a` was rebuilt at 13:15 with
+the final SROA, and `./build_rustc_incremental.sh` did not relink.  The
+shipped driver still contained upstream SROA (`strings` finds
+"SROA function:") but NONE of the four Fil-C SROA LLVM_DEBUG literals
+("Fil-C: re-typing memcpy-only partition [", "Fil-C: keeping memcpys for
+memcpy-only partition [", "Fil-C: keeping memtransfer; the access ",
+"Fil-C: keeping memset; the access type ") that a fresh clang-20 carries
+(so the strings do compile into the driver; their absence means stale
+SROA), while it DID contain the RegisterFilPasses gate removal -- only the
+SROA side was stale.  Consequence: the shipped rustc force-enabled the full
+pre-pizlonation pipeline over round-one-era SROA -- no rewriter guards, no
+conjunction gate, no i8-array fallback, no addrspace-0 guard -- and rustc
+feeds memtransfer intrinsics into SROA, so real Rust code could drop
+capabilities at -O under the shipped binary even though the LLVM next to it
+was fixed.
+
+Two defenses now, both around build_rustc_impl.sh:
+
+* **The LLVM-freshness stamp (rust-build/.filc-llvm-libs-stamp).**  Right
+  after the llvm-config existence check, the script computes the LLVM input
+  state the driver was last linked against: the newest `libLLVM*.a` archive
+  in `build/lib` as `%T@:%s` (mtime:size; only `libLLVM*.a` counts -- the
+  driver links the LLVM component archives plus the MCA ones, while clang's
+  own static libraries churn on every clang-side edit and must not trigger
+  rustc relinks), plus the newest header mtime under `llvm/include` and
+  `build/include` (header changes change the LLVM API the rustc_llvm
+  wrappers compile against).  When the stamp is missing or its recorded
+  state differs, the script touches
+  `rust-build/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
+  (forcing cargo to recompile rustc_llvm and relink the driver), rewrites
+  the stamp, and prints
+  `Fil-C LLVM libraries changed: relinking the rustc driver against the updated LLVM archives ...`.
+  An unchanged LLVM tree makes this a fast no-op: the two `find` scans take
+  ~20ms.  A missing stamp counts as changed, so the first run of this
+  script revision relinks once; from then on the stamp tracks the tree.
+* **Manual verification recipe** (how the incident was detected and how the
+  relink is confirmed): after building, grep the driver for the four
+  literals above -- e.g.
+  `strings -a stage1/lib/librustc_driver-*.so | grep -c 'Fil-C: re-typing memcpy-only partition \['`
+  and its three siblings, all of which must be >= 1, while
+  `strings -a stage1/lib/librustc_driver-*.so | grep -c FILCRUST_FILCINLINE`
+  must be 0 (the IsRust/FILCRUST gate was removed from
+  RegisterFilPasses; see "With the fix, the whole pre-pizlonation pipeline
+  runs for every frontend" under known-issues #1).  The mixed_* .ll tests
+  in filrustc/run-tests do not guard this -- they compile with the fresh
+  `build/bin/clang`, so they pass even when the *driver* is stale.
+
+To force a relink by hand (e.g. when iterating on LLVM changes that touch
+neither headers nor archives the stamp sees): `touch
+rust-build/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp` and re-run
+`./build_rustc_incremental.sh` -- or delete the stamp and re-run, which the
+mechanism itself turns into the same relink.
+
 ## Verification matrix (all from /tmp; `filrustc` alone suffices)
 
 Though Fil-C build/bin on PATH still works -- see "How the built rustc finds
@@ -530,21 +600,20 @@ filcc" above.
   `pizlonated_*` symbols (including `pizlonated_rust_eh_personality`) and has
   zero phantom undefined imports.
 * Threads regression: 8 threads x 1000 increments via `Arc<Mutex<u64>>` prints
-  "sum = 8000", debug and `-O`, exit 0.  With FILCRUST_FILCINLINE=1 in the
-  environment at `-O` the pre-pizlonation pipeline runs again and the
-  documented miscompile reproduces ("cannot read pointer with null object" in
-  `__pthread_clockjoin_ex`, exit 133) — which is exactly why the pipeline is
-  disabled by default under rustc (known-issues #1); do NOT ship with the
-  env var set.
+  "sum = 8000", debug and `-O`, exit 0 — at `-O` this now runs the FULL
+  pre-pizlonation pipeline (early FPM + inliner), which used to miscompile it
+  (see known-issues #1 for the root cause and its fix in SROA).  Covered by
+  the `threads` and `threads-opt` tests.
 * `-C no-prepopulate-passes` still pizlonates: a hello-sum program compiled
   with it links, runs and prints the right answer, exit 0 — proving the
   `FilCAddPipelineStartPasses` direct-MPM path (the NoPrepopulatePasses
   branch of LLVMRustOptimize) applies the Fil-C passes including the
   FilPizlonator when no PassBuilder pipeline is built.
-* A normal build with FILCRUST_FILCINLINE=1 set (env honored inside LLVM's
-  RegisterFilPasses.cpp now) compiles and runs fine for pizlonator-friendly
-  code (hello at -O prints and exits 0) — the env only re-enables the
-  pre-pizlonation pipeline and does not break the compiler.
+* A normal build compiles and runs fine for pizlonator-friendly code (hello
+  at -O prints and exits 0) with the pre-pizlonation pipeline enabled for
+  every frontend.  The old FILCRUST_FILCINLINE environment knob is gone: the
+  gate it re-enabled was removed once the SROA miscompile was fixed (see
+  known-issues #1).
 * CPU feature detection (`is_x86_feature_detected!`) — debug and `-O`, exit 0,
   no filc safety error.  A sweep program queries ALL 74 `@FEATURE`-queryable
   names of `library/std_detect/src/detect/arch/x86.rs` (plus the 4
@@ -693,39 +762,197 @@ ld-fil1 does not search rustc's sysroot by default).
 
 ## Known issues / limitations
 
-1. **The pre-pizlonation simplification + inlining pipeline is disabled under
-   rustc.**  Fil-C clang runs an extra pre-pizlonation pipeline above O0
-   (early SimplifyCFG/SROA/EarlyCSE, then a full inliner with
+1. **FIXED: the pre-pizlonation simplification + inlining pipeline used to
+   miscompile rustc-shaped IR** (this was the reason the pipeline used to be
+   disabled under rustc, behind the now-removed FILCRUST_FILCINLINE env knob).
+
+   What it looked like: Fil-C clang runs an extra pre-pizlonation pipeline
+   above O0 (early SimplifyCFG/SROA/EarlyCSE, then a full inliner with
    SROA/EarlyCSE/JumpThreading/CVP/SimplifyCFG/InstCombine/GVN/SCCP/ADCE) to
-   create inlining opportunities for the pizlonator's check elimination.
-   Under rustc, that pipeline makes the FilPizlonator miscompile ordinary
-   code: `std::thread::spawn` + `join` at -O handed `pthread_join` a thread
-   handle whose flight-pointer capability was reconstructed as null ("filc
-   safety error: cannot read pointer with null object" inside
-   `__pthread_clockjoin_ex`).  This reproduced with
-   `-C no-prepopulate-passes`, i.e. with NO regular LLVM optimization
-   running, and disappeared when the pre-pizlonation simplification was
-   skipped, so the pre-pizlonation passes reshape rustc's IR into something
-   the FilPizlonator cannot handle (plain Fil-C clang code runs the same
-   pipeline and is unaffected -- it is an interaction specific to
-   rustc-shaped IR).  **Empirically (re-verified when the pipeline moved
-   into LLVM's RegisterFilPasses), the early simplification ALONE -- no
-   inliner -- is enough to trigger it**: a first refactor gated only the
-   inliner on FILCRUST_FILCINLINE (leaving the early SimplifyCFG/SROA/
-   EarlyCSE enabled by default) and `threads.rs` at -O miscompiled exactly
-   as above even with the env var unset, so the gate now covers the WHOLE
-   `Level != O0 && FilCOptimize` block (early FPM + inliner) when IsRust.
-   The pipeline therefore runs only KillUB -> coro lowering -> FilPizlonator
-   above O0 under rustc; the regular optimization pipeline still runs after
-   the FilPizlonator on the pizlonated IR, exactly as it does for every
-   Fil-C clang compilation, so codegen is still fully optimized.  Set
-   FILCRUST_FILCINLINE=1 (any set value; read inside
-   llvm/lib/Passes/RegisterFilPasses.cpp) to turn the pipeline back on (for
-   debugging the pizlonator interaction).  A real fix would find the IR
-   shape (suspects: rustc's noalias attributes, the inline verse-allocator
-   fast path, or the load/phi structure of moved-out boxes) that breaks the
-   pizlonator and fix the pizlonator
-   (llvm/lib/Transforms/Instrumentation/FilPizlonator.cpp).
+   create inlining opportunities for the pizlonator's check elimination.  A
+   plain `std::thread::spawn` + `join` compiled at -O handed `pthread_join` a
+   thread handle whose flight-pointer capability was null ("filc safety
+   error: cannot read pointer with null object" inside
+   `__pthread_clockjoin_ex`, exit 133), so rustc ran only
+   KillUB -> coro lowering -> FilPizlonator above O0.  Every one of the
+   pre-pizlonation passes reproduced it *independently* once the inliner's own
+   inner SROA was accounted for, because none of them is the culprit.
+
+   Root cause: **SROA re-typed memcpy-only alloca partitions as integers.**
+   rustc's `Builder::spawn_unchecked::<F, T>` (monomorphized into the crate's
+   CGU) returns `io::Result<JoinHandle<T>>` (24 bytes; the `pthread_t` sits at
+   offset 16) through a chain of five `llvm.memcpy`s, with ptr-typed accesses
+   only at offsets 0 and 8 (the `Option` niche check and the Err path).  SROA's
+   `rewritePartition` types a partition that has *no* typed load/store uses --
+   i.e. bytes only ever moved by memcpy/memmove + lifetime intrinsics -- with
+   the integer fallback `Type::getIntNTy(P.size() * 8)`, and rewrites the
+   memcpys into integer-typed load/store pairs (bit-preserving for LLVM).
+   Under GIMSO semantics that is NOT semantics-preserving: the Fil-Pizlonator
+   lowers memcpy/memmove as payload+shadow moves (a pointer at rest carries
+   its capability in the shadow), while integer loads/stores touch only the
+   payload.  The `pthread_t` word's capability was therefore dropped at the
+   copy, and `JoinInner::<T>::join`'s `load ptr` at offset 16 read
+   {payload, null capability} -- exactly the observed failure
+   (gimso_semantics.md:61, "Loading a pointer from a location that never had a
+   pointer stored to it yields a pointer with a null capability").  The
+   pizlonator itself is correct per the GIMSO spec and SROA is correct per
+   LLVM's own semantics: the bug is that the *composition* (running SROA
+   before pizlonation) changes GIMSO-observable behavior.  It is not
+   rustc-specific -- any frontend IR with partially-typed memcpy-copied
+   structs could hit it; clang-shaped IR just never tripped it in Fil-C's
+   test suite.
+
+   The fix (llvm/lib/Transforms/Scalar/SROA.cpp, `SROA::rewritePartition`):
+   under `DL.isFilC()`, a partition whose uses are *only*
+   memcpy/memmove/lifetime/droppable intrinsics (no typed accesses; memsets,
+   PHIs and selects disqualify; every memtransfer must be word-aligned at the
+   piece offset on both sides; the partition must be a whole number of aligned
+   words; the alloca must live in address space 0, which is all the
+   pizlonator models) is typed as `ptr` (one word) or `[N x ptr]`
+   (multi-word) instead of an integer.  A single-word partition then gets
+   ptr-typed copies -- bit-identical to the integer ones but
+   capability-preserving -- and a multi-word partition keeps its memcpys
+   (`EmitMemCpy` stays true because the array type is not a single value
+   type).  This composes with SROA's existing Fil-C machinery:
+   `canConvertValue` already refuses i64<->ptr conversions under the `-ni:0`
+   (non-integral-pointer) datalayout, and the pre-existing Fil-C "Skew" hack's
+   FIXME ("A better way of detecting that it's got no type. Probably, it
+   should be based on whether all uses are mem transfers.") describes exactly
+   this classification.
+
+   Round two (the reviewer found two more holes, both now closed by a
+   rewriter-level guard plus a conjunction rewrite of the classification
+   gate):
+
+   * **Mixed typed/memcpy (and memset/memcpy) partitions still miscompiled.**
+     A partition containing BOTH a typed access (`store i64 0`) and memcpys
+     that move pointer bytes was disqualified from the memcpy-only re-typing
+     (typed access ⇒ not memcpy-only), fell back to `alloca i64`, and the
+     rewriter then widened BOTH memcpys into integer load/store pairs --
+     dropping the capability.  The memset variant (a `llvm.memset` instead of
+     the typed store) died the same way: the memset also disqualifies the
+     memcpy-only predicate, the partition got the integer re-typing, and the
+     memcpys got widened.  The old "memset-mixed partitions keep the integer
+     path (benign)" claim was FALSE whenever pointer bytes flow through the
+     memcpys.  **The whole class is now closed at the rewriter level**
+     (llvm/lib/Transforms/Scalar/SROA.cpp, AllocaSliceRewriter::
+     visitMemTransferInst/visitMemSetInst): under `DL.isFilC()`, a
+     memtransfer/memset use is widened into typed accesses ONLY when the
+     emitted access type is pointer-typed (`Ty->isPtrOrPtrVectorTy()`, i.e.
+     the capability-preserving ptr-words path); otherwise the use stays a real
+     memory intrinsic on the re-typed alloca (adjusted pointer), exactly like
+     the original IR.  (Round three tightened both halves of this rule: the
+     memset is now ALWAYS kept, and "pointer-typed" became "a single pointer",
+     `isPointerTy()` -- see the round-three bullet below.)  An alloca with any memintrinsic use is never promoted
+     (`isAllocaPromotable` refuses memory intrinsics), so the alloca memory
+     survives the rewrite and the typed uses (real loads/stores) and the
+     intrinsics (real memcpys/memsets) operate on it with original GIMSO
+     semantics -- correct by construction for any mix of uses.  One upstream
+     invariant had to be relaxed for this: the rewriter asserts
+     `CanSROA` whenever integer/vector widening was planned (`VecTy || IntTy`)
+     and a use was not eliminated; a deliberately-kept memintrinsic now sets a
+     flag (`FilCKeptMemIntrinsic`) that relaxes exactly that assert, since the
+     partition intentionally does not get promoted.  The partition-level
+     machinery is kept as defense in depth: memcpy-only partitions whose
+     memcpys fail the alignment gates (unaligned, including merely sub-word
+     `align 4` annotations, which LLVM IR permits) get pointer words when
+     whole-word aligned and an i8 array otherwise -- an array is not a single
+     value type, so the rewriter leaves every use as a memcpy, and the
+     pizlonator's memcpy/memmove lowering preserves capabilities for all
+     alignments.
+   * **The memcpy-only predicate was order-dependent, not a conjunction.**
+     The old `MemTransferOnly` boolean was last-writer-wins (every memtransfer
+     set it true, every disqualifier set it false), so identical use sets
+     classified differently depending on slice visitation order: for the use
+     set {memset [0,8), memcpy [0,8), memcpy [0,16)} one partition logged
+     "keeping memcpys" (true despite a memset) while a same-shaped partition
+     took the non-memcpy-only path -- a compile-order-dependent soundness
+     outcome.  The gate is now a real conjunction of monotone flags:
+     `FilCMemTransferOnly = SawUse && NoTypedAccesses && SawMemTransfer &&
+     !SawDisqualifier`, where `NoTypedAccesses`/`MemTransferAligned` are
+     clear-only (once false, never set back to true) and `SawMemTransfer`/
+     `SawDisqualifier` are set-only (once true, never cleared), so no flag can
+     be overridden by a later slice and the outcome is independent of use
+     order and SROA iteration order.  Verified with the exact shape above as
+     two allocas in one function (`mixed_order.ll`): both partitions now take
+     the identical path in every SROA iteration (`-mllvm
+     -debug-only=sroa`).  Scope caveat on that test: at -O2 `stash` is inlined
+     into `main`, and the decisive SROA runs there see the memsets already
+     converted to `store i64 0` (the surviving uses take the typed-mixed
+     rewriter path, "Fil-C: keeping memtransfer; the access type i64"), so the
+     test's pass does NOT by itself discriminate the old last-writer-wins
+     predicate from the conjunction -- with the rewriter-level guard in place
+     both classifications produce correct code for that shape.  The
+     order-independence was verified from the debug traces (both IR orders
+     classify identically), and the memset-in-the-classifier variant of the
+     shape is covered by `mixed_memset_memcpy.ll`.
+
+   * **The round-two memset guard was incomplete for pointer-vector slices
+     (legal IR aborted the compiler), and vector-of-pointer slices could
+     still widen their memtransfers.**  Both round-two guards keyed on "not
+     pointer-typed" via `isPtrOrPtrVectorTy()`, so a `<2 x ptr>`-typed slice
+     slipped through both.  For a memset that was fatal in a second way: the
+     slice's `VecTy` widening path in `visitMemSetInst`'s `CanContinue`
+     returns true unconditionally (bypassing `canConvertValue`) and then
+     builds an integer splat for the pointer-vector slice --
+     `convertValue`'s `canConvertValue(DL, OldTy, NewTy) && "Value not
+     convertable to type"` assertion fired, because under the `-ni:0`
+     datalayout an integer does not convert to a non-integral pointer.  A
+     reviewer-reproduced ~35-line module (a partition covered by a
+     `llvm.memset` plus a `<2 x ptr>` load) aborted `clang -O2 -x ir` on
+     exactly that assert (`SROA.cpp:2058`); it is now
+     `filrustc/tests/sroa_memset_vector.ll` (the pre-fix abort and the
+     post-fix behavior are both recorded in its header).  The rules are now
+     (SROA.cpp, `visitMemSetInst`/`visitMemTransferInst`): under
+     `DL.isFilC()` a **memset use is ALWAYS kept whole** -- never widened
+     into a typed store, whatever the slice type -- because GIMSO semantics
+     make a memset zero both the payload and the shadow, and no typed store
+     can express that: an integer store leaves stale shadow behind (words the
+     memset was supposed to null out stay live in the shadow), while a
+     pointer/pointer-vector store cannot represent the integer splat under
+     `-ni:0` at all (`canConvertValue` refuses it -- and the fast-path return
+     above would otherwise skip that check and trip the assert).  Keeping the
+     intrinsic is the only uniformly correct choice for every access type,
+     and it is also the fast one: the pizlonator's `filc_memset` lowering
+     zeroes payload and shadow together, which is exactly the path Fil-C
+     always intended memsets to take.  And a **memtransfer use is widened
+     only when the emitted access type is a single pointer**
+     (`isPointerTy()`, the ptr-words path): the ptr-words machinery only ever
+     re-types memcpy-only partitions as `ptr` or `[N x ptr]` -- never as a
+     vector -- so a vector-of-pointer slice has no proven
+     capability-preserving widening story and keeps its memcpys whole too.
+     (The `[N x ptr]` array form already took the `EmitMemCpy` path, since an
+     array is not a single value type, so it was never affected.)
+
+   About which partitions reach the integer fallback at all: under the Fil-C
+   datalayout (both rustc's target and the .ll tests), the native-integer
+   spec is `n8:16:32:64`, and `DL.isLegalInteger` is governed by that spec --
+   the `i128:128` entry in the same string is only an alignment entry, not a
+   legality one.  So only partitions of at most 8 bytes reach the `getIntNTy`
+   fallback; a 16-byte partition (128 "bits", which are not a legal integer
+   here) keeps its original array type via getTypePartition instead, and its
+   uses stay memory ops either way (the rewriter-level guard above is what
+   actually keeps the intrinsics whole).  The shipped 8-byte
+   `sroa_memcpy_*` tests cover the iN-reachable case.
+
+   With the fix, the whole pre-pizlonation pipeline runs for every frontend:
+   the IsRust gate and the FILCRUST_FILCINLINE environment knob were removed
+   from llvm/lib/Passes/RegisterFilPasses.cpp (`IsRust` remains as an unused
+   parameter for API compatibility with the two callers).  Verified by the
+   filrustc suite (the `threads-opt` test is exactly the program that used to
+   miscompile, at `-O`) and by Fil-C's own test suite, which runs clang code
+   through the same pipeline.  The memcpy-only-partition fallback is guarded
+   by the `sroa_memcpy_noalign` and `sroa_memcpy_small` .ll tests, which feed
+   hand-written IR through clang's pipeline (Rust or C source cannot express
+   this shape: clang lowers memcpy intrinsics to pizlonated builtins before
+   the pipeline runs, and the shape needs memcpys with no -- or merely
+   sub-word -- alignment annotations carrying a pointer word through a
+   memcpy-only partition whose only escape is a memcpy to a global).  Those
+   tests were proven non-vacuous by temporarily disabling the fallback: with
+   the old integer fall-through restored, both fail at -O2 with "filc safety
+   error: cannot read pointer with null object" (exit 133), and both pass
+   with the fix.
+
 2. **ThinLTO is unsupported.**  The ThinLTO pre-link (bitcode writer) +
    post-link round-trip hollows out pizlonated codegen units because rustc's
    export-symbol lists handed to LTO still use pre-pizlonation names while the
@@ -852,7 +1079,8 @@ See "How the built rustc finds filcc" above.
 * `readelf -l` shows interpreter `pizfix/lib/ld-fil1-x86_64.so`; NEEDED =
   libc.so.6666, libpizlo.so, libyolocimpl.so, ld-fil1-x86_64.so.
 * `std::thread::spawn` + join works at every optimization level (O0-O3;
-  see known-issues #1 for the pre-fix bug); 8 threads with Arc<Mutex>,
+  known-issues #1 documents the SROA/GIMSO miscompile that used to break
+  `-O` and its fix); 8 threads with Arc<Mutex>,
   HashMap/Vec/String/sort/trait objects all work (debug and -O).
 * `is_x86_feature_detected!` works (debug and `-O`): a sweep queries every
   one of the 74 `@FEATURE`-queryable names (plus the `abm`/`avx512gfni`/
@@ -981,7 +1209,20 @@ clean; ~10.5 min wall on a 32-core container, of which `x.py` itself took
 structure, same capabilities, same output protocol:
 
 * Tests live in `filrustc/tests/` as flat `<name>.rs` files, each with an
-  optional companion `<name>.manifest` YAML file.  Manifests use the same
+  optional companion `<name>.manifest` YAML file.  `<name>.ll` files are also
+  supported: they are compiled with Fil-C's clang itself, always at -O2
+  (`build/bin/clang -O2 -x ir <src> -o <bin>`), because some regressions
+  cannot be expressed in Rust (or even C) source -- clang lowers memcpy
+  intrinsics to pizlonated builtins before its optimization pipeline runs, so
+  a test that must feed hand-written memcpys *through* that pipeline (e.g.
+  the SROA/GIMSO re-typing tests) has to arrive at the IR level.  The -O2 is
+  the point of a .ll test: it is what makes SROA and the rest of the
+  pre-pizlonation pipeline run over the hand-written IR.  A .ll test must
+  declare BOTH datalayouts: `target datalayout` must be the pre-FilC
+  datalayout including `-ni:0` (what the pipeline sees -- `canConvertValue`
+  and the ptr-words machinery depend on pointers being non-integral), and
+  `target datalayout_after_filc` is MANDATORY: clang asserts in
+  MachineFunction::init() without it.  Manifests use the same
   vocabulary as a `filc/tests/<name>/manifest`: `return` (one of `success`,
   `failure`, `crash`, `dontCrash`, `exit13`, `exit101`, `compileFailure`,
   `compileOnly`, `linkFailure` -- the last is the same as `compileFailure`
@@ -993,7 +1234,8 @@ structure, same capabilities, same output protocol:
   `extraArgs` (extra rustc arguments), `extra-env` (extra run-time
   environment), `skip`, `slow` (run first, like filc), and
   `only-on-platform` (regexp against RUBY_PLATFORM).  A missing manifest
-  means `return: success` with no output assertions.
+  means `return: success` with no output assertions.  (`optFlags` is a rustc
+  concept and is ignored for .ll tests, whose compile command is fixed.)
 * For each test the runner generates shell scripts under
   `filrustc/test-output/<name>/` -- `compile.sh` (rustc invocation, compiler
   output captured to `compilerOutput.txt`), `justRun.sh` (the binary with
@@ -1059,11 +1301,19 @@ trap-based panic, same as C.
 | drop_unwind | Drop glue runs while a panic unwinds through two `#[inline(never)]` frames (innermost first), caught by `catch_unwind` | success; "panicked at", "deep panic", "drops: drop inner; drop outer", "drop ok" | exit 0 | exit 0 |
 | thread_panic_join | a spawned thread panics; `join()` returns `Err` carrying the payload; a healthy thread joins `Ok` | success; "thread panicked as expected: thread boom", "healthy thread ok" | exit 0 | exit 0 |
 | threads | 8 threads x 1000 `Arc<Mutex<u64>>` increments | success, "sum = 8000" | exit 0 | exit 0 |
+| threads-opt | the `threads` program compiled with `optFlags: -O` (the exact shape that used to hit the SROA miscompile, see known-issues #1) | success, "sum = 8000" | exit 0 | exit 0 |
+| no_prepopulate | Vec::push sum compiled with `-C no-prepopulate-passes` (proves the direct-MPM pizlonation path) | success, "no-prepopulate sum = 42" | exit 0 | exit 0 |
 | vec_string | Vec/String/HashMap/iter/collect/format!/sort | success, three expected lines | exit 0 | exit 0 |
 | hello-opt | the `hello` program compiled with `optFlags: -O` | success, output-includes "hello filc rust" | exit 0 | exit 0 |
 | oob_read-opt | the `oob_read` unsafe OOB read compiled with `optFlags: -O` | failure; "filc safety error", "cannot read pointer with ptr >= upper.", "filc panic: thwarted..." | 133 (SIGTRAP, core) | 42 |
+| sroa_memcpy_noalign | hand-written .ll: a pointer word whose 8-byte SROA partition is memcpy-only with memcpys carrying no alignment annotations (SROA/GIMSO, see known-issues #1) | success, "ok 42" | exit 0 | exit 0 |
+| sroa_memcpy_small | hand-written .ll: the same shape, but the memcpys carry sub-word `align 4` annotations (SROA/GIMSO, see known-issues #1) | success, "ok 43" | exit 0 | exit 0 |
+| mixed_typed_memcpy | hand-written .ll: the mixed typed/memcpy shape -- a partition holding both a typed `store i64` and memcpys that move a pointer word (SROA/GIMSO, see known-issues #1 round two) | success, "ok 42" | exit 0 | exit 0 |
+| mixed_memset_memcpy | hand-written .ll: the memset variant -- the typed access is a `llvm.memset` instead of the typed store (SROA/GIMSO, see known-issues #1 round two) | success, "ok 44" | exit 0 | exit 0 |
+| mixed_order | hand-written .ll: the order-dependence shape -- two allocas with the identical use set {memset [0,8), memcpy [0,8), memcpy [0,16)} in opposite IR orders; both must take the same (non-widening) path deterministically (SROA/GIMSO, see known-issues #1 round two) | success, "ok 45 45" | exit 0 | exit 0 |
+| sroa_memset_vector | hand-written .ll: the memset + `<2 x ptr>` shape -- a memset partition whose slice type is a pointer vector, which pre-fix aborted `clang -O2` on `convertValue`'s canConvertValue assert (SROA/GIMSO, see known-issues #1 round three) | success, "ok 46" | pre-fix: compiler assert-abort (exit 1) | exit 0 |
 
-That is 15 tests.  The `exit101` return kind is new (added to
+That is 23 tests (the suite has since grown: `no_prepopulate` proves the NoPrepopulatePasses pizlonation path, `threads-opt` guards the SROA/GIMSO fix from known-issues #1, the two `sroa_memcpy_*` .ll tests guard the SROA/GIMSO fix's memcpy-only-partition fallback from known-issues #1, the three `mixed_*` .ll tests guard the rewriter-level guard and the order-independent conjunction gate from known-issues #1 round two, and `sroa_memset_vector` guards the round-three always-keep-memsets rule for pointer-vector slices from known-issues #1 round three).  The `exit101` return kind is new (added to
 `filrustc/run-tests` alongside `exit13`): the generated `subRun.sh` asserts
 that the exit code is exactly 101 -- the code std exits with when a panic
 unwinds out of `main` and `lang_start_internal`'s `catch_unwind` catches it.

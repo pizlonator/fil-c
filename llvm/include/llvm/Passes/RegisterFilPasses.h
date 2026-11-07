@@ -32,6 +32,9 @@ void RegisterFilPasses(PassBuilder&, FilJITConfiguration* = nullptr,
 // The pipeline-start passes as a directly-applicable entry point (needed by
 // frontends whose pass pipelines are not always built through a PassBuilder,
 // e.g. rustc's -C no-prepopulate-passes modules).
+//
+// IsRust is kept for API compatibility with the callers (clang passes false,
+// the Fil-C rustc passes true); it currently does not change the pipeline.
 void FilCAddPipelineStartPasses(ModulePassManager&, OptimizationLevel,
                                 bool IsRust, FilJITConfiguration* = nullptr);
 
