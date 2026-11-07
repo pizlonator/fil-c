@@ -254,62 +254,31 @@ diff --git a/rust/compiler/rustc_driver_impl/src/lib.rs b/rust/compiler/rustc_dr
 diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
 --- a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
 +++ b/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
-@@ -4,7 +4,12 @@
- #include "llvm/ADT/ArrayRef.h"
- #include "llvm/ADT/DenseSet.h"
- #include "llvm/ADT/SmallVector.h"
-+#include "llvm/Analysis/CGSCCPassManager.h"
-+#include "llvm/Analysis/GlobalsModRef.h"
-+#include "llvm/Analysis/InlineAdvisor.h"
-+#include "llvm/Analysis/InlineCost.h"
- #include "llvm/Analysis/Lint.h"
-+#include "llvm/Analysis/ProfileSummaryInfo.h"
- #include "llvm/Analysis/TargetLibraryInfo.h"
- #include "llvm/Bitcode/BitcodeWriter.h"
- #include "llvm/Bitcode/BitcodeWriterPass.h"
-@@ -29,20 +34,41 @@
- #include "llvm/Support/VirtualFileSystem.h"
- #include "llvm/Target/TargetMachine.h"
- #include "llvm/TargetParser/Host.h"
-+#include "llvm/Transforms/Coroutines/CoroCleanup.h"
-+#include "llvm/Transforms/Coroutines/CoroConditionalWrapper.h"
-+#include "llvm/Transforms/Coroutines/CoroEarly.h"
-+#include "llvm/Transforms/Coroutines/CoroSplit.h"
-+#include "llvm/Transforms/IPO/FunctionAttrs.h"
- #include "llvm/Transforms/IPO/FunctionImport.h"
-+#include "llvm/Transforms/IPO/GlobalDCE.h"
- #include "llvm/Transforms/IPO/Internalize.h"
- #include "llvm/Transforms/IPO/LowerTypeTests.h"
+@@ -21,6 +21,7 @@
+ #include "llvm/Object/ObjectFile.h"
+ #include "llvm/Passes/PassBuilder.h"
+ #include "llvm/Passes/PassPlugin.h"
++#include "llvm/Passes/RegisterFilPasses.h"
+ #include "llvm/Passes/StandardInstrumentations.h"
+ #include "llvm/Support/CBindingWrapping.h"
+ #include "llvm/Support/FileSystem.h"
+@@ -35,6 +36,7 @@
  #include "llvm/Transforms/IPO/ThinLTOBitcodeWriter.h"
-+#include "llvm/Transforms/InstCombine/InstCombine.h"
  #include "llvm/Transforms/Instrumentation/AddressSanitizer.h"
  #include "llvm/Transforms/Instrumentation/DataFlowSanitizer.h"
 +#include "llvm/Transforms/Instrumentation/DeleteRedundantPollchecks.h"
-+#include "llvm/Transforms/Instrumentation/FilPizlonator.h"
  #include "llvm/Transforms/Instrumentation/HWAddressSanitizer.h"
  #include "llvm/Transforms/Instrumentation/InstrProfiling.h"
-+#include "llvm/Transforms/Instrumentation/KillUB.h"
  #include "llvm/Transforms/Instrumentation/MemorySanitizer.h"
- #include "llvm/Transforms/Instrumentation/ThreadSanitizer.h"
-+#include "llvm/Transforms/Scalar/ADCE.h"
- #include "llvm/Transforms/Scalar/AnnotationRemarks.h"
-+#include "llvm/Transforms/Scalar/CorrelatedValuePropagation.h"
-+#include "llvm/Transforms/Scalar/EarlyCSE.h"
-+#include "llvm/Transforms/Scalar/GVN.h"
-+#include "llvm/Transforms/Scalar/JumpThreading.h"
-+#include "llvm/Transforms/Scalar/LowerExpectIntrinsic.h"
-+#include "llvm/Transforms/Scalar/SCCP.h"
-+#include "llvm/Transforms/Scalar/SROA.h"
-+#include "llvm/Transforms/Scalar/SimplifyCFG.h"
+@@ -43,6 +45,7 @@
  #include "llvm/Transforms/Utils/CanonicalizeAliases.h"
  #include "llvm/Transforms/Utils/FunctionImportUtils.h"
  #include "llvm/Transforms/Utils/NameAnonGlobals.h"
 +
-+#include <cstdlib>
  #include <set>
  #include <string>
  #include <vector>
-@@ -730,6 +756,18 @@
+@@ -730,6 +733,18 @@
    TargetMachine *TM = unwrap(TMRef);
    OptimizationLevel OptLevel = fromRust(OptLevelRust);
 
@@ -328,135 +297,52 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
    PipelineTuningOptions PTO;
    PTO.LoopUnrolling = UnrollLoops;
    PTO.LoopInterleaving = UnrollLoops;
-@@ -819,6 +857,128 @@
- #else
-   std::vector<std::function<void(ModulePassManager &, OptimizationLevel)>>
+@@ -821,6 +836,24 @@
        OptimizerLastEPCallbacks;
-+#endif
-+
-+  // Fil-C: pizlonate everything.  This is a port of the Fil-C hooks that
-+  // clang/lib/CodeGen/BackendUtil.cpp registers on the PassBuilder for every
-+  // compilation (see the registerPipelineStartEPCallback and
-+  // registerOptimizerLastEPCallback calls there), with the Fil-C "-mllvm"
-+  // knobs hardcoded to their clang defaults (FilCKillUB=true,
-+  // FilCOptimize=true, FilCInline=true and all FilCInline* sub-knobs=true,
-+  // FilCDSE=false so no DSEPass anywhere).  Because these callbacks are kept
-+  // in vectors that are registered with the PassBuilder (or, for
-+  // NoPrepopulatePasses, applied directly to the fresh pipeline) on every
-+  // path through this function -- O0 via buildO0DefaultPipeline, the
-+  // prepopulated per-module/ThinLTO/fat-LTO pipelines, and the
-+  // NoPrepopulatePasses pipeline -- every module that rustc compiles gets
-+  // pizlonated, at every optimization level, exactly like Fil-C clang does.
-+  //
-+  // At the start of the pipeline: KillUB, then (above O0) the Fil-C early
-+  // simplification and inlining pipeline, then C++20 coroutine lowering (so
-+  // that FilPizlonator never sees llvm.coro.* intrinsics), and finally the
-+  // FilPizlonator itself.
-+  PipelineStartEPCallbacks.push_back(
-+      [](ModulePassManager &MPM, OptimizationLevel Level) {
-+        MPM.addPass(KillUBPass());
-+        // Fil-C: above O0 clang also runs its "Fil-C inline" pipeline here
-+        // (an early SimplifyCFG/SROA/EarlyCSE, then a full inliner invocation
-+        // whose per-CGSCC pipeline is SROA/EarlyCSE/JumpThreading/CVP/
-+        // SimplifyCFG/InstCombine/GVN/SCCP/ADCE/InstCombine), to create
-+        // inlining opportunities before pizlonation.  Under rustc that
-+        // pipeline makes the FilPizlonator miscompile ordinary code: e.g. a
-+        // std::thread::spawn + join compiled at -O1 hands pthread_join a
-+        // thread handle whose flight-pointer capability was reconstructed as
-+        // null ("filc safety error: cannot read pointer with null object" in
-+        // __pthread_clockjoin_ex).  This happens even with
-+        // -C no-prepopulate-passes, i.e. with no regular LLVM optimization
-+        // running at all, so the pre-pizlonation simplification itself is
-+        // what reshapes rustc's IR into something the FilPizlonator cannot
-+        // handle (plain Fil-C clang code runs this same pipeline and is
-+        // unaffected).  The regular optimization pipeline still runs after
-+        // the FilPizlonator on the pizlonated IR -- exactly as it does for
-+        // every Fil-C clang compilation -- so codegen is still fully
-+        // optimized without it.  The pipeline is therefore disabled by
-+        // default under rustc; set FILCRUST_FILCINLINE=1 to turn it back on
-+        // (useful for debugging the pizlonator interaction).
-+        if (Level != OptimizationLevel::O0 && getenv("FILCRUST_FILCINLINE")) {
-+          FunctionPassManager EarlyFPM;
-+          EarlyFPM.addPass(LowerExpectIntrinsicPass());
-+          EarlyFPM.addPass(SimplifyCFGPass());
-+          EarlyFPM.addPass(SROAPass(SROAOptions::ModifyCFG));
-+          EarlyFPM.addPass(EarlyCSEPass());
-+          MPM.addPass(createModuleToFunctionPassAdaptor(
-+              std::move(EarlyFPM), /*EagerlyInvalidate=*/true));
-+
-+          InlineParams IP = getInlineParams(Level.getSpeedupLevel(),
-+                                            Level.getSizeLevel());
-+          ModuleInlinerWrapperPass MIWP(
-+              IP, /*MandatoryFirst=*/true,
-+              InlineContext{ThinOrFullLTOPhase::None,
-+                            InlinePass::CGSCCInliner},
-+              InliningAdvisorMode::Default,
-+              /*MaxDevirtIterations=*/4);
-+          MIWP.addModulePass(RequireAnalysisPass<GlobalsAA, llvm::Module>());
-+          MIWP.addModulePass(createModuleToFunctionPassAdaptor(
-+              InvalidateAnalysisPass<AAManager>()));
-+          MIWP.addModulePass(
-+              RequireAnalysisPass<ProfileSummaryAnalysis, llvm::Module>());
-+          CGSCCPassManager &MainCGPipeline = MIWP.getPM();
-+          MainCGPipeline.addPass(
-+              PostOrderFunctionAttrsPass(/*SkipNonRecursive=*/true));
-+          FunctionPassManager InlinerFPM;
-+          InlinerFPM.addPass(SROAPass(SROAOptions::ModifyCFG));
-+          InlinerFPM.addPass(EarlyCSEPass(/*UseMemorySSA=*/true));
-+          InlinerFPM.addPass(JumpThreadingPass());
-+          InlinerFPM.addPass(CorrelatedValuePropagationPass());
-+          InlinerFPM.addPass(SimplifyCFGPass(
-+              SimplifyCFGOptions().convertSwitchRangeToICmp(true)));
-+          InlinerFPM.addPass(InstCombinePass());
-+          InlinerFPM.addPass(GVNPass());
-+          InlinerFPM.addPass(SCCPPass());
-+          InlinerFPM.addPass(ADCEPass());
-+          InlinerFPM.addPass(InstCombinePass());
-+          MainCGPipeline.addPass(createCGSCCToFunctionPassAdaptor(
-+              std::move(InlinerFPM), /*EagerlyInvalidateAnalyses=*/true,
-+              /*NoRerun=*/true));
-+          MainCGPipeline.addPass(PostOrderFunctionAttrsPass());
-+          MainCGPipeline.addPass(createCGSCCToFunctionPassAdaptor(
-+              RequireAnalysisPass<ShouldNotRunFunctionPassesAnalysis,
-+                                  Function>()));
-+          MIWP.addLateModulePass(createModuleToFunctionPassAdaptor(
-+              InvalidateAnalysisPass<ShouldNotRunFunctionPassesAnalysis>()));
-+          MPM.addPass(std::move(MIWP));
-+        }
-+        // Lower C++20 coroutines before pizlonating.  CoroSplit turns each
-+        // coroutine into ordinary ramp/resume/destroy functions whose frame
-+        // is a normal heap allocation, so FilPizlonator never sees the
-+        // llvm.coro.* intrinsics.  The coroutine passes in the regular
-+        // pipeline later become no-ops.
-+        ModulePassManager CoroPM;
-+        CoroPM.addPass(CoroEarlyPass());
-+        CGSCCPassManager CoroCGPM;
-+        CoroCGPM.addPass(CoroSplitPass(Level != OptimizationLevel::O0));
-+        CoroPM.addPass(
-+            createModuleToPostOrderCGSCCPassAdaptor(std::move(CoroCGPM)));
-+        CoroPM.addPass(CoroCleanupPass());
-+        CoroPM.addPass(GlobalDCEPass());
-+        MPM.addPass(CoroConditionalWrapper(std::move(CoroPM)));
-+
-+        MPM.addPass(FilPizlonatorPass());
-+      });
-+  // At the very end of the optimizer: remove the redundant pollchecks that
-+  // pizlonation introduced once the pipeline has had its chance to merge
-+  // them, just like clang does.
-+#if LLVM_VERSION_GE(20, 0)
-+  OptimizerLastEPCallbacks.push_back(
-+      [](ModulePassManager &MPM, OptimizationLevel Level,
-+         ThinOrFullLTOPhase) {
-+        MPM.addPass(DeleteRedundantPollchecksPass());
-+      });
-+#else
-+  OptimizerLastEPCallbacks.push_back(
-+      [](ModulePassManager &MPM, OptimizationLevel Level) {
-+        MPM.addPass(DeleteRedundantPollchecksPass());
-+      });
  #endif
 
++  // Fil-C: pizlonate everything.  The Fil-C pipeline (KillUB, the Fil-C early
++  // simplification and inlining pipeline, C++20 coroutine lowering, the
++  // FilPizlonator on every path, and the OptimizerLast
++  // DeleteRedundantPollchecks) is owned by LLVM's RegisterFilPasses
++  // (llvm/lib/Passes/RegisterFilPasses.cpp) and registered here with
++  // IsRust=true, exactly like clang/lib/CodeGen/BackendUtil.cpp registers it
++  // with IsRust=false -- so rustc pizlonates exactly like Fil-C clang does.
++  // IsRust disables the whole pre-pizlonation simplification and inlining
++  // pipeline by default because it miscompiles rustc-shaped IR (see
++  // RegisterFilPasses.cpp; FILCRUST_FILCINLINE in the environment re-enables
++  // it).  The callbacks run
++  // on every path through this function -- O0 via buildO0DefaultPipeline,
++  // the prepopulated per-module/ThinLTO/fat-LTO pipelines, and (via
++  // FilCAddPipelineStartPasses in the NoPrepopulatePasses branch below) the
++  // no-prepopulate pipeline -- so every module that rustc compiles gets
++  // pizlonated, at every optimization level.
++  RegisterFilPasses(PB, nullptr, true);
++
    if (!IsLinkerPluginLTO && SanitizerOptions && SanitizerOptions->SanitizeCFI &&
+       !NoPrepopulatePasses) {
+     PipelineStartEPCallbacks.push_back(
+@@ -1025,8 +1058,20 @@
+   } else {
+     // We're not building any of the default pipelines but we still want to
+     // add the verifier, instrumentation, etc passes if they were requested
++    //
++    // Fil-C: no PassBuilder-built pipeline runs here, so the extension-point
++    // callbacks registered above never fire.  Apply the Fil-C pipeline-start
++    // passes (including the FilPizlonator) directly to the fresh pipeline --
++    // allocator-shim modules and the like must still pizlonate -- and then
++    // the optimizer-last pollcheck cleanup ("optimizer last" is the same
++    // place when the pipeline is otherwise empty).  rustc's own callbacks
++    // below then apply around them in the same order they would have on a
++    // PassBuilder-built pipeline (Fil-C pipeline start, rustc's pipeline
++    // start, the Fil-C optimizer-last, rustc's optimizer-last).
++    llvm::FilCAddPipelineStartPasses(MPM, OptLevel, /*IsRust=*/true);
+     for (const auto &C : PipelineStartEPCallbacks)
+       C(MPM, OptLevel);
++    MPM.addPass(DeleteRedundantPollchecksPass());
+     for (const auto &C : OptimizerLastEPCallbacks)
+ #if LLVM_VERSION_GE(20, 0)
+       C(MPM, OptLevel, ThinOrFullLTOPhase::None);
 diff --git a/rust/compiler/rustc_session/src/session.rs b/rust/compiler/rustc_session/src/session.rs
 --- a/rust/compiler/rustc_session/src/session.rs
 +++ b/rust/compiler/rustc_session/src/session.rs

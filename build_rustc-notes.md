@@ -25,9 +25,12 @@ The build is wired into the Fil-C flavor build scripts as
 Prerequisite: no host Rust toolchain is needed.  x.py's bootstrap downloads
 its pinned stage0 compiler (and cargo) from static.rust-lang.org and builds
 everything with those, so a fresh container only needs python3, curl,
-gcc/g++/make, cmake, ninja, ruby (for the test suite) and the usual Fil-C
-build prerequisites -- all of which the enter_container.sh image installs
-(see "Container audit" below).  (An earlier revision of this note claimed a
+gcc/g++/make, ruby (for the test suite) and the usual Fil-C build
+prerequisites -- all of which the enter_container.sh image installs (see
+"Container audit" below).  Since rustc links the Fil-C LLVM from build/ (no
+LLVM is built here), cmake/ninja are not needed by the rust build itself
+(they remain prerequisites of the Fil-C compiler build that produces
+llvm-config).  (An earlier revision of this note claimed a
 host rustup was required; that was wrong -- the container has no
 rustc/cargo/rustup at all and the build works.)
 
@@ -47,12 +50,24 @@ in `build_rustc.sh`) and fails fast with a clear
 
 The patch consists of the following changes:
 
-1. `compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp` — port of Fil-C clang's
-   BackendUtil hooks: DataLayout-after-FilC setup at the top of
-   LLVMRustOptimize; PipelineStartEPCallbacks (KillUB -> [Fil-C inline
-   pipeline, disabled by default, see known-issues #1] -> coro lowering ->
-   FilPizlonator) and OptimizerLastEPCallbacks
-   (DeleteRedundantPollchecks).  Every pipeline path pizlonates.
+1. `compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp` — DataLayout-after-FilC
+   setup at the top of LLVMRustOptimize (`setDataLayoutAfterFilC`), plus the
+   registration of LLVM's Fil-C pass pipeline via
+   `RegisterFilPasses(PB, nullptr, true)` (LLVM's
+   `llvm/lib/Passes/RegisterFilPasses.cpp` — the same entry point
+   `clang/lib/CodeGen/BackendUtil.cpp` calls with `IsRust=false`), and
+   `llvm::FilCAddPipelineStartPasses(MPM, OptLevel, /*IsRust=*/true)` +
+   `DeleteRedundantPollchecksPass()` applied directly to the fresh pipeline in
+   the NoPrepopulatePasses path (no PassBuilder-built pipeline runs there, so
+   the extension-point callbacks would never fire — allocator-shim modules
+   must still pizlonate).  rustc's own callbacks (CFI, verify, lint, instr
+   profiling, sanitizers) stay in rustc's callback vectors and apply around
+   the Fil-C passes in the same order as on a PassBuilder-built pipeline.
+   The pipeline itself (KillUB -> [pre-pizlonation simplification and
+   inlining, disabled for IsRust by default, see known-issues #1] -> coro
+   lowering -> FilPizlonator, plus OptimizerLast DeleteRedundantPollchecks)
+   lives in LLVM now, and the FILCRUST_FILCINLINE environment knob moved
+   with it (see RegisterFilPasses.cpp).  Every pipeline path pizlonates.
 2. `compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs` —
    data_layout with `-ni:0` (before-Fil-C), StackProbeType::None,
    linker = "filcc", `-normalcrt` pre-link arg (full Fil-C CRT under
@@ -221,8 +236,115 @@ The patch consists of the following changes:
 The projeny patch reproduces the build tree byte-identically: after
 `filc/projeny commit`, `filc/projeny extract projects/rust.projeny /tmp/pc`
 followed by `diff -rq /tmp/pc rust-build/rust` (excluding `src/llvm-project`
--- the swapped Fil-C LLVM -- and the generated `config.toml`, `build/`,
-`.cargo` cargo-lock state and `__pycache__`) reports zero differences.
+-- untouched: rustc no longer builds it, see "Rustc links the Fil-C LLVM from
+build/" below -- and the generated `config.toml`, `build/`, `.cargo`
+cargo-lock state and `__pycache__`) reports zero differences.
+
+## Rustc links the Fil-C LLVM from build/ (no second LLVM build)
+
+`build_rustc_impl.sh` does NOT swap Fil-C's LLVM into `src/llvm-project` (an
+earlier revision did; there is no `.filc-llvm-stamp` any more) and bootstrap
+does NOT build LLVM.  Instead the generated config.toml sets
+
+    [target.x86_64-unknown-linux-gnu]
+    llvm-config = "<absolute path to>/build/bin/llvm-config"
+    llvm-has-rust-patches = true
+
+With `llvm-config` configured for the host target, bootstrap's
+`prebuilt_llvm_config()` returns `AlreadyBuilt` and never configures or
+compiles `src/llvm-project` (which now stays exactly as the pristine tarball
+shipped it); it only checks the version (needs >= 19; the Fil-C LLVM is
+20.1.8) and hands the path to `rustc_llvm`'s build script, which queries
+`llvm-config --cxxflags/--link-static --libs/--system-libs/--ldflags` and
+links the Fil-C LLVM **statically** into `librustc_driver.so` from the 103
+archives in `build/lib`.  The component query resolves the full closure
+including the two MCA archives (`-lLLVMMCA -lLLVMX86TargetMCA`), which is why
+`build_clang.sh` now also runs
+`ninja bin/llvm-config lib/libLLVMMCA.a lib/libLLVMX86TargetMCA.a` after the
+clang build (verified target names via `ninja -C build -t targets`).  The
+exact query rustc_llvm makes,
+`build/bin/llvm-config --link-static --libs --system-libs ipo bitreader
+bitwriter linker asmparser lto coverage instrumentation x86 aarch64`,
+prints 65 `-lLLVM*` archives plus `-lrt -ldl -lm` and exits 0 — note there is
+no `-lz` (the Fil-C LLVM build has LLVM_ENABLE_ZLIB=OFF).  Dropping
+`[llvm] targets = "X86"` is safe: that key only feeds LLVM_TARGETS_TO_BUILD
+when bootstrap builds LLVM itself, which it no longer does.
+
+The hard requirement — `patchelf --print-needed` on the built compiler shows
+only libc-family libraries — is met:
+
+* `librustc_driver-*.so`: `libm.so.6`, `libc.so.6`, `ld-linux-x86-64.so.2`
+  (libz, libstdc++ and libgcc_s are GONE; the pre-external-LLVM build needed
+  libz.so.1, libstdc++.so.6 and libgcc_s.so.1 in addition).
+* `rust-build/rustc`: `librustc_driver-*.so`, `libc.so.6` (unchanged —
+  rustc dynamically linking its own driver .so is fine).
+
+How each offender was removed:
+
+* **libz** — the Fil-C LLVM build already has LLVM_ENABLE_ZLIB=OFF and
+  LLVM_ENABLE_ZSTD=OFF, so `llvm-config --system-libs` prints `-lrt -ldl
+  -lm` and no zlib ever enters the link (the old build pulled libz because
+  bootstrap built LLVM with its own defaults, LLVM_ENABLE_ZLIB=ON).
+* **libstdc++** — `[llvm] static-libstdcpp = true` in config.toml makes
+  bootstrap set LLVM_STATIC_STDCPP; `rustc_llvm`'s build script then emits
+  `cargo:rustc-link-lib=static=stdc++` (resolving to
+  `/usr/lib/gcc/x86_64-linux-gnu/13/libstdc++.a`), mirroring the Fil-C LLVM
+  build's LLVM_STATIC_LINK_CXX_STDLIB=ON.
+* **libgcc_s** — the stage0 std's libunwind rlib metadata carries an explicit
+  `-lgcc_s` that lands in the `-nodefaultlibs` rustc link; `-static-libgcc`
+  does NOT remove it (proven: it only suppresses the compiler driver's own
+  implicit -lgcc_s).  The working fix is a redirect directory,
+  `rust-build/gcc-redirect/`, containing a `libgcc_s.so` **linker script**
+  `GROUP ( <path from `cc --print-file-name=libgcc_eh.a`> )` — the `-lgcc_s`
+  then resolves against the static libgcc_eh archive, which is linked into
+  librustc_driver.so with no libgcc_s.so.1 NEEDED.  Getting the directory
+  searched *first* needs two flags, because neither alone is sufficient:
+  `RUSTFLAGS="-L<dir> -Clink-arg=-B<dir>"`.  The `-L` must come from
+  RUSTFLAGS directly (rustc emits `-Clink-arg`s at the very END of the linker
+  command — after the `-L/usr/lib/gcc/...` that rustc_llvm's build script
+  adds for the static libstdc++ — and the gcc driver builds its library
+  search path in command-line order, so a -B placed there was searched too
+  late; verified by strace'ing the actual `cc` link of librustc_driver.so).
+  The `-B` is kept as belt-and-suspenders for links that do not echo rustc's
+  -L args.  A missing libgcc_eh.a fails the build fast with a clear message.
+
+Other config.toml changes the external-LLVM path required (both are [rust]
+keys; without them bootstrap refuses to run):
+
+* `codegen-tests = false` — with an externally configured LLVM, bootstrap's
+  sanity check demands a FileCheck binary next to llvm-config
+  (`build/bin/FileCheck`), which the Fil-C build does not produce.  We do not
+  run rustc's LLVM-IR codegen testsuite (filrustc/run-tests is the Fil-C test
+  suite), so this turns the requirement off.
+* `llvm-tools = false` — bootstrap installs the LLVM tools (llvm-cov,
+  llvm-objdump, ...) into the stage sysroot by copying them out of
+  llvm-config's bindir; build/bin holds the Fil-C clang, not the LLVM tool
+  suite, so that copy panics.  We do not need the sysroot llvm-tools
+  component.
+
+`rust.lld = false` stays REQUIRED (bootstrap has no in-tree lld to build with
+an external llvm-config).  `llvm-has-rust-patches = true` declares that this
+user-provided LLVM is a patched one (it carries the Fil-C passes); it only
+flips bootstrap's LLVM_RUSTLLVM knob, which the rustc LLVM wrappers do not
+read, so it is inert here but honest.
+
+`libpas/build_llvmjit.sh` is unaffected by all of this: it globs
+`../build/lib/libLLVM*.a` with `--start-group`, so the two additive MCA
+archives are simply scanned and skipped (nothing references MCA symbols),
+its targeted ninja invocation builds only its own JIT archives, and the
+cmake configuration (RTTI/EH/zlib settings) is untouched.  The same LLVM
+build tree now serves clang, the LLVM JIT shim, and rustc.
+
+Consequence for build time: the old flow spent ~4.5 of its 8:21 clean build
+in a 2668-step bootstrap LLVM build.  With the external llvm-config there is
+no LLVM step at all (the build log has none): `x.py build --stage 1` alone
+went 8:21 → ~3:21-3:48, and the whole `./build_rustc.sh` clean run
+(extraction + stage0 download + build + test suite) is ~6 minutes wall on the
+32-core container.
+
+Size note: `librustc_driver-*.so` is ~236 MB (was ~225 MB), because the
+RelWithDebInfo Fil-C LLVM archives carry full debug info; the Fil-C compiler
+binaries are likewise unstripped.  Do not strip it.
 
 ## Fil-C version identification (--version)
 
@@ -330,6 +452,21 @@ filcc" above.
   source tarball) (Fil-C 0.687 git@github.com:pizlonator/fil-c.git <fil-c HEAD
   hash>)`; the first `-vV` line is the same and the `LLVM version: 20.1.8`
   line is still present.
+* Dynamic dependencies: `patchelf --print-needed
+  rust-build/rust/build/x86_64-unknown-linux-gnu/stage1/lib/librustc_driver-*.so`
+  → exactly `libm.so.6 libc.so.6 ld-linux-x86-64.so.2`; `patchelf
+  --print-needed rust-build/rustc` → `librustc_driver-*.so libc.so.6`.  See
+  "Rustc links the Fil-C LLVM from build/" above for how libz/libstdc++/
+  libgcc_s were removed.
+* `llvm-config` queries (the exact ones rustc_llvm's build script makes):
+  `build/bin/llvm-config --version` → 20.1.8; `--components` lists x86 and
+  aarch64 (plus the non-target components); `--link-static --libs
+  --system-libs ipo bitreader bitwriter linker asmparser lto coverage
+  instrumentation x86 aarch64` → 65 `-lLLVM*` archives (including
+  `-lLLVMMCA -lLLVMX86TargetMCA`) plus `-lrt -ldl -lm` (no -lz), and every
+  archive exists in build/lib; `--cxxflags` has no `stdlib=libc++` (so
+  LLVM_STATIC_STDCPP's assert holds) and `--host-target` is
+  x86_64-unknown-linux-gnu.
 * `hello.rs` (`println!`) — debug and `-O` (plain rustc spells --release as
   `-C opt-level=3`/`-O`): prints "hello filc rust", exit 0 both.
 * Unsafe OOB read (`*ptr.add(1000000000)` past a 3-element `Vec<i32>` wrapped
@@ -393,7 +530,21 @@ filcc" above.
   `pizlonated_*` symbols (including `pizlonated_rust_eh_personality`) and has
   zero phantom undefined imports.
 * Threads regression: 8 threads x 1000 increments via `Arc<Mutex<u64>>` prints
-  "sum = 8000", debug and `-O`, exit 0.
+  "sum = 8000", debug and `-O`, exit 0.  With FILCRUST_FILCINLINE=1 in the
+  environment at `-O` the pre-pizlonation pipeline runs again and the
+  documented miscompile reproduces ("cannot read pointer with null object" in
+  `__pthread_clockjoin_ex`, exit 133) — which is exactly why the pipeline is
+  disabled by default under rustc (known-issues #1); do NOT ship with the
+  env var set.
+* `-C no-prepopulate-passes` still pizlonates: a hello-sum program compiled
+  with it links, runs and prints the right answer, exit 0 — proving the
+  `FilCAddPipelineStartPasses` direct-MPM path (the NoPrepopulatePasses
+  branch of LLVMRustOptimize) applies the Fil-C passes including the
+  FilPizlonator when no PassBuilder pipeline is built.
+* A normal build with FILCRUST_FILCINLINE=1 set (env honored inside LLVM's
+  RegisterFilPasses.cpp now) compiles and runs fine for pizlonator-friendly
+  code (hello at -O prints and exits 0) — the env only re-enables the
+  pre-pizlonation pipeline and does not break the compiler.
 * CPU feature detection (`is_x86_feature_detected!`) — debug and `-O`, exit 0,
   no filc safety error.  A sweep program queries ALL 74 `@FEATURE`-queryable
   names of `library/std_detect/src/detect/arch/x86.rs` (plus the 4
@@ -405,16 +556,31 @@ filcc" above.
   tsc/gfni/vaes/vpclmulqdq: yes, and the negative avx512fp16: no, the
   machine has no `avx512_fp16`).  See known-issues #7 for the history.
 
-## config.toml (written by build_rustc.sh)
+## config.toml (written by build_rustc_impl.sh)
 
-change-id = 144675; [rust] llvm-libunwind = "no", lto = "off",
-std-features = ["panic-unwind", "std_detect_file_io"] (std_detect_file_io is
-what lets std_detect's x86 backend read /proc/cpuinfo — note that setting
+change-id = 144675; [build] target/extended/tools/optimized-compiler-builtins
+as before; [llvm] download-ci-llvm = false, optimize = true, assertions =
+true, ninja = true, **static-libstdcpp = true** (links libstdc++ statically —
+the dynamic libstdc++.so.6 must not appear in librustc_driver.so's NEEDED),
+and NO `targets` key (that only feeds LLVM_TARGETS_TO_BUILD when bootstrap
+builds LLVM itself, which it no longer does); [rust] llvm-libunwind = "no",
+lld = false (required with an external llvm-config), jemalloc = false,
+optimize = true, debug = false, lto = "off", std-features =
+["panic-unwind", "std_detect_file_io"] (std_detect_file_io is what lets
+std_detect's x86 backend read /proc/cpuinfo — note that setting
 std-features REPLACES bootstrap's default `["panic-unwind"]`, so panic-unwind
-is repeated); [llvm] targets = "X86", download-ci-llvm = false,
-assertions = true.
-Note: dev/nightly channel defaults also enable experimental LLVM targets
-(M68k/CSKY/Xtensa); `[llvm] experimental-targets = ""` would speed rebuilds.
+is repeated), **codegen-tests = false** and **llvm-tools = false** (both
+required by the external-LLVM path — see "Rustc links the Fil-C LLVM from
+build/" above); and the appended
+
+    [target.x86_64-unknown-linux-gnu]
+    llvm-config = "<FILC_ROOT>/build/bin/llvm-config"   (absolute)
+    llvm-has-rust-patches = true
+
+The impl script writes the [target] section separately because the heredoc
+for the rest is quoted and the llvm-config path must expand (and MUST be
+absolute: bootstrap joins relative [target] paths onto the rust source
+root).
 
 ## Panics: unwinding on the Fil-C runtime's unwinder
 
@@ -527,29 +693,39 @@ ld-fil1 does not search rustc's sysroot by default).
 
 ## Known issues / limitations
 
-1. **The Fil-C inline pipeline is disabled under rustc.**  Fil-C clang runs an
-   extra pre-pizlonation pipeline above O0 (early SimplifyCFG/SROA/EarlyCSE,
-   then a full inliner with SROA/EarlyCSE/JumpThreading/CVP/SimplifyCFG/
-   InstCombine/GVN/SCCP/ADCE) to create inlining opportunities for the
-   pizlonator's check elimination.  Under rustc, that pipeline makes the
-   FilPizlonator miscompile ordinary code: `std::thread::spawn` + `join` at
-   -O1 handed `pthread_join` a thread handle whose flight-pointer capability
-   was reconstructed as null ("filc safety error: cannot read pointer with
-   null object" inside `__pthread_clockjoin_ex`).  This reproduced with
-   `-C no-prepopulate-passes`, i.e. with NO regular LLVM optimization running,
-   and disappeared when the pre-pizlonation simplification was skipped, so
-   the pre-pizlonation passes reshape rustc's IR into something the
-   FilPizlonator cannot handle (plain Fil-C clang code runs the same pipeline
-   and is unaffected -- it is an interaction specific to rustc-shaped IR).
-   PassWrapper.cpp therefore runs only KillUB -> coro lowering ->
-   FilPizlonator above O0; the regular optimization pipeline still runs after
+1. **The pre-pizlonation simplification + inlining pipeline is disabled under
+   rustc.**  Fil-C clang runs an extra pre-pizlonation pipeline above O0
+   (early SimplifyCFG/SROA/EarlyCSE, then a full inliner with
+   SROA/EarlyCSE/JumpThreading/CVP/SimplifyCFG/InstCombine/GVN/SCCP/ADCE) to
+   create inlining opportunities for the pizlonator's check elimination.
+   Under rustc, that pipeline makes the FilPizlonator miscompile ordinary
+   code: `std::thread::spawn` + `join` at -O handed `pthread_join` a thread
+   handle whose flight-pointer capability was reconstructed as null ("filc
+   safety error: cannot read pointer with null object" inside
+   `__pthread_clockjoin_ex`).  This reproduced with
+   `-C no-prepopulate-passes`, i.e. with NO regular LLVM optimization
+   running, and disappeared when the pre-pizlonation simplification was
+   skipped, so the pre-pizlonation passes reshape rustc's IR into something
+   the FilPizlonator cannot handle (plain Fil-C clang code runs the same
+   pipeline and is unaffected -- it is an interaction specific to
+   rustc-shaped IR).  **Empirically (re-verified when the pipeline moved
+   into LLVM's RegisterFilPasses), the early simplification ALONE -- no
+   inliner -- is enough to trigger it**: a first refactor gated only the
+   inliner on FILCRUST_FILCINLINE (leaving the early SimplifyCFG/SROA/
+   EarlyCSE enabled by default) and `threads.rs` at -O miscompiled exactly
+   as above even with the env var unset, so the gate now covers the WHOLE
+   `Level != O0 && FilCOptimize` block (early FPM + inliner) when IsRust.
+   The pipeline therefore runs only KillUB -> coro lowering -> FilPizlonator
+   above O0 under rustc; the regular optimization pipeline still runs after
    the FilPizlonator on the pizlonated IR, exactly as it does for every
    Fil-C clang compilation, so codegen is still fully optimized.  Set
-   FILCRUST_FILCINLINE=1 to turn the pipeline back on (for debugging the
-   pizlonator interaction).  A real fix would find the IR shape (suspects:
-   rustc's noalias attributes, the inline verse-allocator fast path, or the
-   load/phi structure of moved-out boxes) that breaks the pizlonator and fix
-   the pizlonator (llvm/lib/Transforms/Instrumentation/FilPizlonator.cpp).
+   FILCRUST_FILCINLINE=1 (any set value; read inside
+   llvm/lib/Passes/RegisterFilPasses.cpp) to turn the pipeline back on (for
+   debugging the pizlonator interaction).  A real fix would find the IR
+   shape (suspects: rustc's noalias attributes, the inline verse-allocator
+   fast path, or the load/phi structure of moved-out boxes) that breaks the
+   pizlonator and fix the pizlonator
+   (llvm/lib/Transforms/Instrumentation/FilPizlonator.cpp).
 2. **ThinLTO is unsupported.**  The ThinLTO pre-link (bitcode writer) +
    post-link round-trip hollows out pizlonated codegen units because rustc's
    export-symbol lists handed to LTO still use pre-pizlonation names while the
@@ -641,9 +817,12 @@ ld-fil1 does not search rustc's sysroot by default).
    issues, the two useful hooks are: print at the top of `LLVMRustOptimize`
    (compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp) and
    `MachineFunction::init`'s isCompatibleDataLayout assert
-   (llvm/lib/CodeGen/MachineFunction.cpp).  Remember to
-   `rm rust-build/rust/build/x86_64-unknown-linux-gnu/llvm/.llvm-stamp` after
-   touching LLVM sources so bootstrap re-runs ninja.
+   (llvm/lib/CodeGen/MachineFunction.cpp).  After touching LLVM sources:
+   ./build_clang.sh rebuilds the Fil-C LLVM (llvm-config/MCA archives
+   included), then force the rustc relink with
+   `touch rust-build/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
+   (cargo does not track the LLVM archives) and re-run
+   ./build_rustc_incremental.sh.
 9. **proc-macro crates don't work.**  `--crate-type proc-macro` builds (with
    a warning that `panic=abort` is being overridden for the cdylib; in our
    minimal stage1 sysroot the `proc_macro` crate is not found implicitly —
@@ -697,11 +876,14 @@ The build is split into a shared library plus two thin entry points:
   sourcing it works regardless of the caller's CWD), defines the
   `check_grep` helper and `do_build_rustc <clean|incremental>`, and carries
   ALL of the build logic: the extraction of the patched Rust sources from the
-  projeny checkout, the Fil-C LLVM swap (with its `.filc-llvm-stamp`), the
-  ~26 `check_grep` fail-fast verifications of the projeny patch, the
-  `FILC_VERSION` composition (plus the `.filc-version-stamp` handling), the
-  `FILC_LINKER_DIR` resolution + export (plus the parallel
+  projeny checkout, the check that `$FILC_ROOT/build/bin/llvm-config` exists
+  (the Fil-C rustc links the LLVM build from build/ — no LLVM is built here;
+  run ./build_clang.sh first — see "Rustc links the Fil-C LLVM from build/"
+  above), the ~26 `check_grep` fail-fast verifications of the projeny patch,
+  the `FILC_VERSION` composition (plus the `.filc-version-stamp` handling),
+  the `FILC_LINKER_DIR` resolution + export (plus the parallel
   `.filc-linker-dir-stamp` handling; see "How the built rustc finds filcc"),
+  the libgcc_s redirect (gcc-redirect dir + RUSTFLAGS, see the LLVM section),
   the config.toml generation, the `x.py build --stage 1` run, and the
   creation of the `rust-build/rustc` and `rust-build/filrustc` symlinks.
 * `build_rustc.sh` -- thin entry: license header, `set -e -o pipefail -x`,
@@ -709,11 +891,16 @@ The build is split into a shared library plus two thin entry points:
   nukes `rust-build/` first and does the whole build from scratch.
 * `build_rustc_incremental.sh` -- thin entry calling
   `do_build_rustc incremental`: identical, except it does NOT nuke
-  `rust-build/`.  Extraction, the LLVM swap and the version stamp only redo
-  work when what they produce is missing or changed, and x.py/cargo/ninja
-  resume incrementally, so a re-run is usually a fast no-op; a missing
-  `rust-build/` is bootstrapped from scratch, so the incremental script also
-  doubles as a first build.
+  `rust-build/`.  Extraction, the llvm-config check and the version stamp
+  only redo work when what they produce is missing or changed, and
+  x.py/cargo resume incrementally, so a re-run is usually a fast no-op; a
+  missing `rust-build/` is bootstrapped from scratch, so the incremental
+  script also doubles as a first build.  NOTE: cargo does not notice changes
+  to the LLVM archives rustc_llvm links against (build/lib/*.a), so after
+  rebuilding clang's LLVM with a changed pipeline (e.g. after editing
+  RegisterFilPasses.cpp), force the relink with
+  `touch rust-build/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
+  before the incremental build.
 
 Both entry points end identically: after the symlinks are created, the
 Fil-Rust test suite (`./filrustc/run-tests`) runs, tee'd to
@@ -929,14 +1116,13 @@ actual running container (`command -v` sweep; everything found):
 
 | needed by | commands | provided by (Dockerfile heredoc) |
 |---|---|---|
-| build_rustc_impl.sh | bash, coreutils (cd/rm/cp/mkdir/ln/tee/cat/sed/awk/grep/touch), uname, nproc | ubuntu base + build-essential + gawk |
+| build_rustc_impl.sh | bash, coreutils (cd/rm/cp/mkdir/ln/tee/cat/sed/awk/grep/touch/printf), uname, nproc, `cc` (for `--print-file-name=libgcc_eh.a` in the gcc-redirect) | ubuntu base + build-essential + gawk |
 | projeny extract | `filc/projeny` (repo binary; needs libcurl.so.4 + libstdc++), rsync | libcurl4-openssl-dev (pulls libcurl4), rsync |
-| LLVM swap | cp -a, git rev-parse | coreutils, git |
+| LLVM for rustc | `build/bin/llvm-config` + `build/lib/libLLVM*.a` (incl. libLLVMMCA.a, libLLVMX86TargetMCA.a), produced by ./build_clang.sh — no LLVM is built by the rust build (the Fil-C LLVM build itself needs cmake/ninja/binutils and, on a build tree configured with valgrind detection, libvalgrind's headers — the `valgrind` package — or ninja mass-rebuilds LLVMSupport and fails on `valgrind/valgrind.h`; also: this build tree ships without most `.d` depfiles, so `touch` the sources whose headers changed to force recompiles) | -- (repo build tree) |
 | patch verification | grep, awk, python3 (sha256) | grep/gawk, python3 |
 | version composition | sed, git (remote get-url / rev-parse) | sed, git |
 | x.py / bootstrap.py | python3 (>= 3.6; 22.04 has 3.10), curl (downloads stage0 from static.rust-lang.org), tar, gzip, xz, uname, sha256sum | python3, curl, tar, gzip, xz-utils |
 | stage0 bootstrap build | the downloaded stage0 rustc/cargo (no host toolchain needed) | -- (downloaded) |
-| LLVM build | cmake, ninja, g++/gcc, make, ar/ld/as/objcopy/strip/ranlib (binutils), pkg-config, python3, zlib1g-dev (optional system zlib), perl | cmake, ninja-build, gcc-12/g++-12 (default gcc/g++), build-essential + binutils 2.47 in /usr/local, make, pkg-config, python3, zlib1g-dev, perl |
 | libunwind step | filcc/fil++ (repo binaries in build/bin) | -- (repo) |
 | linking rust programs | filcc -> pizfix runtime (repo artifacts) | -- (repo) |
 | filrustc/run-tests | ruby (yaml/pathname/etc are stdlib), make (the -j nproc driver), nproc, sh, grep, cat, coreutils | ruby, make/build-essential |

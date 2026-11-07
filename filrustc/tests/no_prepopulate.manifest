@@ -1,0 +1,11 @@
+# -C no-prepopulate-passes must still produce a pizlonated module: the
+# pipeline registration happens in the compiler even when the optimization
+# pipeline is disabled.  The heap ops (Vec::push) exercise the pizlonated
+# allocator path, so this would fail if the module were left unpizlonated.
+return:
+  success
+output-includes:
+  - "no-prepopulate sum = 42"
+extraArgs:
+  - "-C"
+  - "no-prepopulate-passes"

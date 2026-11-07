@@ -30,10 +30,9 @@
 # build_rustc_impl.sh (shared with build_rustc_incremental.sh, which reuses
 # rust-build/ instead of nuking it): the impl extracts the patched Rust
 # 1.90.0 sources from the projeny checkout in projects/rust into
-# rust-build/rust, swaps Rust's bundled LLVM for the Fil-C LLVM (both are
-# LLVM 20.1.8, so rustc's LLVM C++ wrapper compiles against it unchanged
-# modulo our Fil-C pipeline patches), writes a bootstrap config.toml, and
-# then runs `x.py build --stage 1`.  The resulting stage 1 rustc pizlonates
+# rust-build/rust, writes a bootstrap config.toml that links the Fil-C LLVM
+# from build/ via llvm-config (no LLVM build of its own), and then runs
+# `x.py build --stage 1`.  The resulting stage 1 rustc pizlonates
 # every module it compiles (the Fil-Pizlonator runs in every pipeline, at
 # every optimization level) and the x86_64-unknown-linux-gnu target spec
 # makes `filcc` the linker, so what it produces links as Fil-C.
