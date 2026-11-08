@@ -24,20 +24,53 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # ===================== BEGIN USAGE =====================
-# run_variants.sh -- build and run the simple-openssl-tests suite under the
-# zegarmistrz emulator, sweeping every supported poisoning variant, and
-# produce a TSV of raw results plus a human-readable failure report.
+# run_variants.sh -- run the simple-openssl-tests suite under the zegarmistrz
+# emulator, sweeping every supported poisoning variant, and produce a TSV of
+# raw results plus a human-readable failure report.  By default it runs the
+# test binaries that are already built, without building anything; --build
+# opts into building first.
 #
 # Usage:
-#   ./run_variants.sh [--flavor=zunsafe|sarcastic|both] [--jobs=N]
+#   ./run_variants.sh [--build=zunsafe|sarcastic|yolo|both|all] [--jobs=N]
 #                     [--timeout=S] [--poison-args='--poison-all']
 #                     [--allow-no-poison] [--emulator=PATH]
-#                     [--output=PREFIX]
+#                     [--yolo-openssl-prefix=PREFIX] [--output=PREFIX]
 #
-#   --flavor        which Fil-C OpenSSL to build/run against: zunsafe
-#                   (pizfix OpenSSL; default OPENSSL_HOME), sarcastic
-#                   (projects/sarcastic-openssl), or both (sequentially,
-#                   rebuilding and cleaning in between).
+#   (no --build)    run whatever top-level test_* executables already
+#                   exist, without building anything.  Each binary is
+#                   classified by the libcrypto ldd resolves it to:
+#                   a pizfix libcrypto -> zunsafe, a libcrypto under
+#                   projects/sarcastic-openssl -> sarcastic, a system
+#                   libcrypto -> yolo, and anything else -> an "other"
+#                   group keyed by that libcrypto's directory (those
+#                   binaries are run too, and the directory is called out
+#                   in the report).  Every non-empty group is swept; groups
+#                   with no binaries are absent from the report, whose
+#                   header records the per-group classification counts.
+#                   If no test binaries exist at all, the script aborts:
+#                   build some first with --build=yolo, --build=zunsafe,
+#                   or --build=sarcastic.
+#   --build         build before sweeping: zunsafe (Fil-C's filcc + the
+#                   pizfix OpenSSL), sarcastic (filcc + the in-tree
+#                   projects/sarcastic-openssl), yolo (the system compiler,
+#                   gcc, + the system OpenSSL), both (= zunsafe sarcastic),
+#                   or all (= zunsafe sarcastic yolo).  Multiple builds
+#                   rebuild and clean (exact binary names only) in between.
+#   --yolo-openssl-prefix=PREFIX
+#                   with --build=yolo or --build=all: build the yolo flavor
+#                   against the OpenSSL installed at PREFIX instead of the
+#                   system one, as `make CC=gcc OPENSSL_HOME=PREFIX
+#                   PIZFIX=`.  PREFIX must contain an include/ directory
+#                   and a libcrypto under lib/ or lib64/.  PREFIX is
+#                   normalized once up front (made absolute, trailing
+#                   slashes stripped; a relative PREFIX resolves against
+#                   the directory the script was invoked from), so the
+#                   build, the report, and the ldd provenance check all
+#                   see the same canonical path.  It is an error
+#                   without a --build that includes yolo, since it only
+#                   affects building.  The trailing PIZFIX= neutralizes
+#                   every pizfix-derived path in the Makefile, so no
+#                   pizfix -L/-rpath leaks into the yolo binaries.
 #   --jobs          parallelism for the per-variant test sweep (default:
 #                   nproc/2, capped at 16).
 #   --timeout       per-test wall-clock timeout in seconds (default 120).
@@ -61,10 +94,17 @@
 # a result, not a script failure.  Only build errors and usage errors abort.
 # ===================== END USAGE =====================
 set -u
+
+# The cwd this script was invoked from, captured BEFORE the cd below: a
+# RELATIVE --yolo-openssl-prefix must resolve against the user's invocation
+# cwd, not against this script's directory (which the cd makes the cwd).
+INVOCATION_CWD="$(pwd -P)"
+
 cd "$(dirname "$0")"
 REPO_ROOT="$(cd ../.. && pwd)"
 
-FLAVOR="both"
+BUILD=""                    # empty = prebuilt mode: run what's already built
+YOLO_OPENSSL_PREFIX=""
 JOBS="$(($(nproc) / 2))"
 [ "$JOBS" -gt 16 ] && JOBS=16
 [ "$JOBS" -lt 1 ] && JOBS=1
@@ -99,7 +139,30 @@ usage() {
 
 while [ $# -gt 0 ]; do
     case "$1" in
-    --flavor=*) FLAVOR="${1#*=}" ;;
+    --build=*) BUILD="${1#*=}" ;;
+    --flavor=*) echo "unknown option: $1 (it was renamed: use --build)" >&2; usage ;;
+    --yolo-openssl-prefix=*)
+        YOLO_OPENSSL_PREFIX="${1#*=}"
+        # Normalize ONCE, here, before the existence checks below and before
+        # any other use (the make invocation, the report's build: line, and
+        # the ldd provenance grep): strip trailing slashes and make the
+        # prefix absolute.  Otherwise a trailing slash makes the ldd grep
+        # anchor on "...//lib" while ldd may resolve ".../lib" (or vice
+        # versa: a correctly-bound build then prints a false "NOT <prefix>!"
+        # warning), and a relative prefix can never match at all, since ldd
+        # prints absolute paths.  Relative prefixes resolve against the
+        # invocation cwd captured above, not against this script's dir.
+        if [ -n "$YOLO_OPENSSL_PREFIX" ]; then
+            case "$YOLO_OPENSSL_PREFIX" in
+            /*) _yolo_norm="$(realpath -m -- "$YOLO_OPENSSL_PREFIX")" ;;
+            *)  _yolo_norm="$(realpath -m -- "$INVOCATION_CWD/$YOLO_OPENSSL_PREFIX")" ;;
+            esac
+            # If realpath somehow fails, keep the raw value: the validation
+            # below then reports it verbatim.
+            [ -n "${_yolo_norm:-}" ] && YOLO_OPENSSL_PREFIX="$_yolo_norm"
+            unset _yolo_norm
+        fi
+        ;;
     --jobs=*) JOBS="${1#*=}" ;;
     --timeout=*) TIMEOUT="${1#*=}" ;;
     --poison-args=*) POISON_ARGS="${1#*=}" ;;
@@ -112,10 +175,61 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-case "$FLAVOR" in
-zunsafe | sarcastic | both) ;;
-*) echo "bad --flavor: $FLAVOR" >&2; exit 2 ;;
+case "$BUILD" in
+"" | zunsafe | sarcastic | yolo | both | all) ;;
+*) echo "bad --build: $BUILD" >&2; usage ;;
 esac
+
+# Which flavors does --build ask us to build, in build order?
+case "$BUILD" in
+both) BUILD_LIST="zunsafe sarcastic" ;;
+all) BUILD_LIST="zunsafe sarcastic yolo" ;;
+"") BUILD_LIST="" ;;
+*) BUILD_LIST="$BUILD" ;;
+esac
+
+# --yolo-openssl-prefix only affects building, and only the yolo build.
+# Validate it up front: it must point at an installed OpenSSL prefix
+# (include/ plus a libcrypto under lib/ or lib64/).
+if [ -n "$YOLO_OPENSSL_PREFIX" ]; then
+    case " $BUILD_LIST " in
+    *" yolo "*) ;;
+    *)
+        echo "ERROR: --yolo-openssl-prefix only affects building, but this run will not build the yolo flavor (build mode: '${BUILD:-none}').  Pass --build=yolo or --build=all." >&2
+        exit 2
+        ;;
+    esac
+    yolo_prefix_err=""
+    [ -d "$YOLO_OPENSSL_PREFIX/include" ] || \
+        yolo_prefix_err="no include/ directory at $YOLO_OPENSSL_PREFIX"
+    yolo_prefix_libdir=""
+    if [ -z "$yolo_prefix_err" ]; then
+        for d in lib lib64; do
+            if [ -e "$YOLO_OPENSSL_PREFIX/$d/libcrypto.so.3" ] || \
+               [ -e "$YOLO_OPENSSL_PREFIX/$d/libcrypto.so" ]; then
+                yolo_prefix_libdir="$YOLO_OPENSSL_PREFIX/$d"
+                break
+            fi
+        done
+        # The Makefile also handles an in-tree OpenSSL whose libcrypto sits
+        # at the top of the prefix (that is how projects/sarcastic-openssl
+        # is laid out), so accept that too.
+        if [ -z "$yolo_prefix_libdir" ] && \
+           [ -e "$YOLO_OPENSSL_PREFIX/libcrypto.so.3" ]; then
+            yolo_prefix_libdir="$YOLO_OPENSSL_PREFIX"
+        fi
+        [ -n "$yolo_prefix_libdir" ] || \
+            yolo_prefix_err="no libcrypto in $YOLO_OPENSSL_PREFIX/lib or $YOLO_OPENSSL_PREFIX/lib64"
+    fi
+    if [ -n "$yolo_prefix_err" ]; then
+        echo "ERROR: bad --yolo-openssl-prefix=$YOLO_OPENSSL_PREFIX: $yolo_prefix_err" >&2
+        exit 2
+    fi
+    if [ "$yolo_prefix_libdir" = "$YOLO_OPENSSL_PREFIX/lib64" ] && \
+       [ ! -e "$YOLO_OPENSSL_PREFIX/lib/libcrypto.so.3" ]; then
+        echo "WARNING: $YOLO_OPENSSL_PREFIX has libcrypto only under lib64/: the Makefile links via $YOLO_OPENSSL_PREFIX/lib (or the prefix itself), so the built tests may bind the system libcrypto instead.  A lib/ directory (or a lib -> lib64 symlink) is recommended." >&2
+    fi
+fi
 
 # An empty poison-args means no buffer is ever poisoned, so no variant can
 # ever fault: the sweep could only ever report PASS (or TIMEOUT).  Refuse
@@ -175,31 +289,93 @@ clean_bins() {
     done
 }
 
-build_flavor() {
-    local flavor="$1" cc="$2" openssl_home="$3" log="$4"
-    local args=(make -B -j"$JOBS" "CC=$cc")
-    [ -n "$openssl_home" ] && args+=("OPENSSL_HOME=$openssl_home")
-    if ! "${args[@]}" >"$log" 2>&1; then
-        echo "ERROR: build failed for flavor $flavor (log: $log):" >&2
-        tail -25 "$log" >&2
-        return 1
+# The top-level test executables that exist right now (never the test_*.c
+# sources, which are not executable, and never anything below the top level).
+list_bins() {
+    local f
+    for f in test_*; do
+        [ -f "$f" ] || continue
+        [ -x "$f" ] || continue
+        printf '%s\n' "$f"
+    done
+}
+
+# The libcrypto a binary binds to, as resolved by ldd (empty if ldd resolves
+# no libcrypto at all).
+bin_libcrypto() {
+    ldd "./$1" 2>/dev/null | awk '$2 == "=>" && $3 ~ /libcrypto/ {print $3; exit}'
+}
+
+# Classify one binary by the libcrypto ldd resolves it to.  Prints
+# "<group><TAB><libcrypto directory>": zunsafe for a pizfix libcrypto,
+# sarcastic for projects/sarcastic-openssl, yolo for a system libcrypto,
+# and "other" for anything else (the directory then keys the group; such
+# binaries are still swept and reported, with the directory called out).
+classify_bin() {
+    local res dir group
+    res="$(bin_libcrypto "$1")"
+    if [ -z "$res" ]; then
+        printf 'other\t(unresolved)\n'
+        return
     fi
-    return 0
+    dir="$(dirname "$res")"
+    case "$res" in
+    */pizfix/lib/*) group=zunsafe ;;
+    */pizfix/lib64/*) group=zunsafe ;;
+    *projects/sarcastic-openssl*) group=sarcastic ;;
+    /lib/* | /usr/lib/* | /lib64/* | /usr/lib64/* | \
+    /usr/local/lib/* | /usr/local/lib64/*) group=yolo ;;
+    *) group=other ;;
+    esac
+    printf '%s\t%s\n' "$group" "$dir"
 }
 
-# Records which libcrypto the freshly built tests actually bind to.
+# Which libcrypto the tests currently bind to (the resolved path).
 crypto_probe() {
-    ldd ./test_aes_cbc 2>/dev/null | grep crypto | head -2 | tr '\n' ' ' | sed 's/  */ /g'
+    ldd ./test_aes_cbc 2>/dev/null | awk '$2 == "=>" && $3 ~ /libcrypto/ {print $3; exit}'
 }
 
-# One test under one (flavor, variant).  Runs via xargs -P; writes a result
+# The file-safe slug for a group display name: every character outside
+# [A-Za-z0-9._-] mapped to '_'.  Different names can map to the same slug
+# (other:/x/y vs other:/x_y, other:/a:b vs other:/a_b); since the slug keys
+# the group's bins file, result files, and report identity, such a collision
+# would silently merge two distinct "other:<dir>" groups and misattribute
+# the second group's binaries to the first group's libcrypto directory.  So
+# on a collision -- an existing group whose display file holds a DIFFERENT
+# name (the g.<slug>.display files double as the slug->name map) -- a short
+# hash of the name is folded into the slug, giving each group its own bins/
+# report identity.  Names that map to unique slugs (the clean flavors, and
+# non-colliding other:<dir>s) get exactly the old, un-hashed slug.
+slug_for() {
+    local name="$1" base slug salt hsrc
+    base="$(printf '%s' "$name" | tr -c 'A-Za-z0-9._-' '_')"
+    slug="$base"
+    salt=0
+    while [ -f "$SCRATCH/g.$slug.display" ] && \
+          [ "$(cat "$SCRATCH/g.$slug.display")" != "$name" ]; do
+        if [ "$salt" -eq 0 ]; then hsrc="$name"; else hsrc="$name#$salt"; fi
+        slug="$base-$(printf '%s' "$hsrc" | cksum | awk '{printf "%08x", $1}')"
+        salt=$((salt + 1))
+    done
+    printf '%s\n' "$slug"
+}
+
+# Does the dynamic-linker resolution mention any pizfix path?  Expected (and
+# fine) for the Fil-C flavors; a pizfix leak in a yolo build.
+ldd_mentions_pizfix() {
+    ldd ./test_aes_cbc 2>/dev/null | grep -q '/pizfix/'
+}
+
+# One test under one (group, variant).  Runs via xargs -P; writes a result
 # file into the scratch dir and leaves the TSV assembly to the parent.
+# <gslug> is the file-safe group id used for scratch/result file names;
+# <display> is the label written into the TSV row.
 run_one() {
-    local flavor="$1" variant="$2" test="$3" emu="$4" timeout_s="$5" \
-        poison_args="$6" scratch="$7"
-    local slug exit_code class note first last out
-    slug="$(printf '%s' "$variant" | tr ',+' '__')"
-    out="$scratch/result.$flavor.$slug.$test.tsv"
+    local gslug="$1" display="$2" variant="$3" test="$4" emu="$5" timeout_s="$6" \
+        poison_args="$7" scratch="$8"
+    local vslug exit_code class note first last out
+    vslug="$(printf '%s' "$variant" | tr ',+' '__')"
+    out="$scratch/result.$gslug.$vslug.$test.tsv"
     exit_code=0
     # --no-core: classification is by exit code, and the sweep must not litter
     # hundreds of zegarmistrz.core.<name>.<pid> files into the tree.  (For a
@@ -236,19 +412,24 @@ run_one() {
     note="$last"
     [ -z "$note" ] && note="(no output)"
     printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$flavor" "$variant" "$test" "$exit_code" "$class" "$note" >"$out"
+        "$display" "$variant" "$test" "$exit_code" "$class" "$note" >"$out"
 }
 
-# Assembles the per-flavor report section and the (test, variant) failure
-# pairs into $4 (a global pairs file).  Args: flavor, results-tsv, libcrypto
-# probe line, global pairs file, variant list, non-empty variant list,
-# short-name list.
-report_flavor() {
-    local flavor="$1" tsv="$2" crypto="$3" pairs="$4"
+# Assembles the per-group report section and the (test, variant) failure
+# pairs into $3, plus the version-gated-skip entries into $4 (both global
+# files).  Args: group slug, results-tsv, global pairs file, global skips
+# file.  Group metadata (display label, build provenance, libcrypto
+# directory, libcrypto probe) is read from the scratch files the group
+# registration wrote.
+report_group() {
+    local gslug="$1" tsv="$2" pairs="$3" skips="$4"
     awk -F'\t' \
-        -v flavor="$flavor" -v crypto="$crypto" \
+        -v flavor="$(cat "$SCRATCH/g.$gslug.display")" \
+        -v buildline="$(cat "$SCRATCH/g.$gslug.build")" \
+        -v grpdir="$(cat "$SCRATCH/g.$gslug.dir")" \
+        -v crypto="$(cat "$SCRATCH/g.$gslug.crypto")" \
         -v vlist="${VARIANTS[*]}" -v nlist="${NONEMPTY[*]}" \
-        -v slist="${VSHORT[*]}" -v pairsfile="$pairs" '
+        -v slist="${VSHORT[*]}" -v pairsfile="$pairs" -v skipsfile="$skips" '
     BEGIN {
         nv = split(vlist, VORD, " ")
         nn = split(nlist, NORD, " ")
@@ -267,22 +448,39 @@ report_flavor() {
             if (class == "FAULT")
                 faulted[t] = 1
         }
+        # Remember each CONTROL row class: a variant-row SKIP only means
+        # "poisoning caused a skip" if the control did not SKIP too (see the
+        # pairs loop in END).
+        if (v == "none")
+            ctrl[t] = class
         if (v == "none" && class != "PASS")
             control_bad[v "," class]++
     }
     END {
         printf "=== flavor: %s\n", flavor
+        printf "build: %s\n", buildline
+        if (grpdir != "")
+            printf "libcrypto directory: %s\n", grpdir
         printf "libcrypto in use: %s\n", (crypto == "" ? "(probe failed)" : crypto)
-        # Control verdict.
+        # Control verdict.  A version-gated SKIP is not a poisoning failure
+        # (it is decided by which OpenSSL the binary binds, before any
+        # poisoned buffer is used), so only FAULT/TIMEOUT/FAIL rows count
+        # against the control; SKIPs are reported alongside the PASS count.
         ctotal = total["none"] + 0
         cbad = 0
-        for (k in control_bad) cbad += control_bad[k]
+        cskip = 0
+        for (k in control_bad) {
+            if (k ~ /,SKIP$/) cskip += control_bad[k]
+            else cbad += control_bad[k]
+        }
         if (ctotal == 0)
             printf "CONTROL-FAILED: no results recorded for the control (variant none)!\n\n"
+        else if (cbad == 0 && cskip > 0)
+            printf "control (variant none): %d/%d PASS, %d/%d SKIP (version-gated) -- CONTROL OK\n\n", ctotal - cskip, ctotal, cskip, ctotal
         else if (cbad == 0)
             printf "control (variant none): %d/%d PASS -- CONTROL OK\n\n", ctotal, ctotal
         else
-            printf "CONTROL-FAILED: variant none had %d non-PASS of %d -- results below are meaningless!\n\n", cbad, ctotal
+            printf "CONTROL-FAILED: variant none had %d non-PASS of %d -- results below are meaningless!\n\n", cbad + cskip, ctotal
         # Per-variant summaries.
         for (i = 1; i <= nv; i++) {
             v = VORD[i]
@@ -343,11 +541,43 @@ report_flavor() {
         }
         printf "\n"
         # Emit the global (flavor, variant, test, class) pairs.  Append: the
-        # report_flavor invocation of the previous flavor already wrote its
+        # report_group invocation of the previous group already wrote its
         # pairs (a fresh awk process opening with ">" would truncate them).
+        # A variant-row SKIP whose CONTROL row was also SKIP is a version-
+        # gated skip, not a poisoning failure: the gate is decided by which
+        # OpenSSL the binary binds, before any poisoned buffer is used, so
+        # every variant just replicates that control SKIP.  Those go to the
+        # separate skips file (one line per test), not to the pairs file.
+        # A variant-row SKIP over a PASSing (or missing) control row stays a
+        # failure pair: poisoning must not be able to cause a skip.  FAULT,
+        # TIMEOUT and FAIL pairs are unaffected.
         for (key in pout) {
             split(key, kk, "\t")
-            print key "\t" pout[key] >> pairsfile
+            cls = pout[key]
+            if (cls == "SKIP" && ctrl[kk[3]] == "SKIP") {
+                t = kk[3]
+                if (!(t in seen)) {
+                    seen[t] = 1
+                    skipt[++nvskip] = t
+                }
+                skipset[t, kk[2]] = 1
+            } else {
+                print key "\t" cls >> pairsfile
+            }
+        }
+        for (i = 1; i <= nvskip; i++) {
+            t = skipt[i]
+            vstr = ""
+            vcount = 0
+            for (j = 1; j <= nn; j++) {
+                v = NORD[j]
+                if ((t SUBSEP v) in skipset) {
+                    vstr = vstr (vstr == "" ? "" : " ") v
+                    vcount++
+                }
+            }
+            printf "%s\t%s\t%d/%d\t%s\n", flavor, t, vcount, nn, vstr \
+                >> skipsfile
         }
     }' "$tsv"
 }
@@ -358,52 +588,171 @@ NONEMPTY=("${VARIANTS[@]:1}")
 
 : >"$OUT_TSV"
 : >"$SCRATCH/pairs.tsv"
+: >"$SCRATCH/vskips.tsv"
 
-FLAVOR_LIST=""
-case "$FLAVOR" in
-both) FLAVOR_LIST="zunsafe sarcastic" ;;
-*) FLAVOR_LIST="$FLAVOR" ;;
-esac
+# A "group" is a set of test binaries swept together under one flavor label:
+# in --build mode, the binaries of one build; in prebuilt mode, the binaries
+# whose ldd libcrypto resolution classifies them the same.  Group state
+# lives in $SCRATCH (g.<slug>.*), keyed by a file-safe slug; the display
+# label is what the report and the TSV rows show.
+#   g.<slug>.display  report/TSV label (e.g. yolo, other:/some/dir)
+#   g.<slug>.dir      the group's libcrypto directory ("" if uninteresting)
+#   g.<slug>.build    build provenance line for the report
+#   g.<slug>.crypto   libcrypto probe line for the report
+#   g.<slug>.bins     binary names, one per line
+GSLUGS=()
 
-first=1
-for flavor in $FLAVOR_LIST; do
-    if [ "$first" != 1 ]; then
-        echo "Cleaning built test executables (exact names only)..."
-        clean_bins
-    fi
-    first=0
+new_group() {
+    # new_group <slug> <display> <dir> <buildline> <crypto>
+    # Writes the group's metadata files.  Does NOT register the slug in
+    # $GSLUGS: callers control ordering (build order vs. canonical order).
+    local slug="$1"
+    printf '%s\n' "$2" >"$SCRATCH/g.$slug.display"
+    printf '%s\n' "$3" >"$SCRATCH/g.$slug.dir"
+    printf '%s\n' "$4" >"$SCRATCH/g.$slug.build"
+    printf '%s\n' "$5" >"$SCRATCH/g.$slug.crypto"
+    : >"$SCRATCH/g.$slug.bins"
+}
 
-    cc="$REPO_ROOT/build/bin/filcc"
-    openssl_home=""
-    if [ "$flavor" = "sarcastic" ]; then
-        openssl_home="$REPO_ROOT/projects/sarcastic-openssl"
-    fi
+add_bin() {
+    # add_bin <slug> <binary>
+    printf '%s\n' "$2" >>"$SCRATCH/g.$1.bins"
+}
 
-    echo "[$flavor] building all tests with CC=$cc${openssl_home:+ OPENSSL_HOME=$openssl_home} ..."
-    build_log="/tmp/simple-openssl-variants-build-$flavor.log"
-    if ! build_flavor "$flavor" "$cc" "$openssl_home" "$build_log"; then
-        echo "aborting: build failure" >&2
+if [ -z "$BUILD" ]; then
+    # Prebuilt mode: no build step.  Classify whatever test binaries exist
+    # by their ldd libcrypto resolution and sweep each non-empty group.
+    all_bins="$(list_bins)"
+    if [ -z "$all_bins" ]; then
+        echo "ERROR: no test binaries found; build with --build=yolo|zunsafe|sarcastic (or --build=both|all) first." >&2
         rm -rf "$SCRATCH"
         exit 1
     fi
+    echo "Prebuilt mode: not building; classifying existing test binaries via ldd..."
+    # Canonical group order: zunsafe, sarcastic, yolo, then the "other"
+    # groups (keyed by libcrypto directory) sorted by name.
+    known_order() {
+        case "$1" in
+        zunsafe) echo 0 ;;
+        sarcastic) echo 1 ;;
+        yolo) echo 2 ;;
+        *) echo 3 ;;
+        esac
+    }
+    : >"$SCRATCH/groups.unsorted"
+    for b in $all_bins; do
+        cls="$(classify_bin "$b")"
+        g="${cls%%$'\t'*}"
+        dir="${cls#*$'\t'}"
+        if [ "$g" = "other" ]; then name="other:$dir"; else name="$g"; fi
+        slug="$(slug_for "$name")"
+        if [ ! -f "$SCRATCH/g.$slug.display" ]; then
+            new_group "$slug" "$name" "$dir" \
+                "none (prebuilt binaries; classification via ldd)" \
+                "$(bin_libcrypto "$b")"
+            echo "$(known_order "$g") $slug" >>"$SCRATCH/groups.unsorted"
+        fi
+        add_bin "$slug" "$b"
+        echo "  $b -> $name ($(bin_libcrypto "$b"))"
+    done
+    # Slugs are file-safe (no whitespace), so unquoted word splitting is safe.
+    for slug in $(sort -n "$SCRATCH/groups.unsorted" | awk '{print $2}'); do
+        GSLUGS+=("$slug")
+    done
+    rm -f "$SCRATCH/groups.unsorted"
+else
+    # Build mode: build each requested flavor, then sweep what it produced.
+    first=1
+    for flavor in $BUILD_LIST; do
+        if [ "$first" != 1 ]; then
+            echo "Cleaning built test executables (exact names only)..."
+            clean_bins
+        fi
+        first=0
 
-    crypto_line="$(crypto_probe)"
-    echo "[$flavor] libcrypto probe: $crypto_line"
-    if [ "$flavor" = "sarcastic" ] && \
-       ! printf '%s' "$crypto_line" | grep -q "sarcastic-openssl/libcrypto.so.3"; then
-        echo "WARNING: sarcastic flavor did not bind sarcastic-openssl/libcrypto.so.3!" >&2
-        crypto_line="$crypto_line [WARNING: NOT sarcastic-openssl!]"
-    fi
+        cc=""
+        openssl_home=""
+        pizfix_empty=0
+        case "$flavor" in
+        zunsafe) cc="$REPO_ROOT/build/bin/filcc" ;;
+        sarcastic)
+            cc="$REPO_ROOT/build/bin/filcc"
+            openssl_home="$REPO_ROOT/projects/sarcastic-openssl"
+            ;;
+        yolo)
+            cc="gcc"
+            if [ -n "$YOLO_OPENSSL_PREFIX" ]; then
+                openssl_home="$YOLO_OPENSSL_PREFIX"
+                # PIZFIX= (a command-line variable) neutralizes every
+                # pizfix-derived path in the Makefile, so no pizfix
+                # -L/-rpath leaks into the yolo binaries.
+                pizfix_empty=1
+            fi
+            ;;
+        esac
 
-    test_list="$(for f in test_*.c; do echo "${f%.c}"; done)"
+        make_args=(make -B -j"$JOBS" "CC=$cc")
+        [ -n "$openssl_home" ] && make_args+=("OPENSSL_HOME=$openssl_home")
+        [ "$pizfix_empty" = 1 ] && make_args+=("PIZFIX=")
+        build_line="${make_args[*]}"
+
+        echo "[$flavor] building all tests: $build_line"
+        build_log="$SCRATCH/build-$flavor.log"
+        if ! "${make_args[@]}" >"$build_log" 2>&1; then
+            echo "ERROR: build failed for flavor $flavor (log: $build_log):" >&2
+            tail -25 "$build_log" >&2
+            rm -rf "$SCRATCH"
+            exit 1
+        fi
+
+        crypto_line="$(crypto_probe)"
+        echo "[$flavor] libcrypto probe: $crypto_line"
+        case "$flavor" in
+        zunsafe)
+            if ! printf '%s' "$crypto_line" | grep -q '/pizfix/'; then
+                echo "WARNING: zunsafe flavor did not bind a pizfix libcrypto!" >&2
+                crypto_line="$crypto_line [WARNING: NOT pizfix!]"
+            fi
+            ;;
+        sarcastic)
+            if ! printf '%s' "$crypto_line" | grep -q "sarcastic-openssl/libcrypto.so.3"; then
+                echo "WARNING: sarcastic flavor did not bind sarcastic-openssl/libcrypto.so.3!" >&2
+                crypto_line="$crypto_line [WARNING: NOT sarcastic-openssl!]"
+            fi
+            ;;
+        yolo)
+            if ldd_mentions_pizfix; then
+                echo "WARNING: yolo build binds pizfix paths!" >&2
+                crypto_line="$crypto_line [WARNING: pizfix leak!]"
+            elif [ -n "$openssl_home" ] && \
+                ! printf '%s' "$crypto_line" | grep -q "^$openssl_home/lib"; then
+                echo "WARNING: yolo build did not bind $openssl_home's libcrypto!" >&2
+                crypto_line="$crypto_line [WARNING: NOT $openssl_home!]"
+            elif [ -n "$openssl_home" ]; then
+                crypto_line="$crypto_line [OK: bound $openssl_home, no pizfix paths]"
+            fi
+            ;;
+        esac
+
+        new_group "$flavor" "$flavor" "" "$build_line" "$crypto_line"
+        GSLUGS+=("$flavor")
+        for b in $(list_bins); do
+            add_bin "$flavor" "$b"
+        done
+    done
+fi
+
+export -f run_one
+
+for gslug in "${GSLUGS[@]}"; do
+    display="$(cat "$SCRATCH/g.$gslug.display")"
+    test_list="$(cat "$SCRATCH/g.$gslug.bins")"
     ntests="$(printf '%s\n' "$test_list" | grep -c .)"
-    echo "[$flavor] sweeping $ntests tests x ${#VARIANTS[@]} variants (jobs=$JOBS timeout=${TIMEOUT}s poison-args='$POISON_ARGS')"
-    echo "[$flavor] scratch: $SCRATCH (progress: ls $SCRATCH/result.$flavor.*.tsv | wc -l)"
+    echo "[$display] sweeping $ntests tests x ${#VARIANTS[@]} variants (jobs=$JOBS timeout=${TIMEOUT}s poison-args='$POISON_ARGS')"
+    echo "[$display] scratch: $SCRATCH (progress: ls $SCRATCH/result.$gslug.*.tsv | wc -l)"
 
-    export -f run_one
-
-    flavor_tsv="$SCRATCH/results.$flavor.tsv"
-    : >"$flavor_tsv"
+    group_tsv="$SCRATCH/results.$gslug.tsv"
+    : >"$group_tsv"
     # One flat job pool over every (variant, test) pair: the suite contains a
     # few tests that take many minutes PER RUN under the emulator, so
     # scheduling all variants through a single -P pool (instead of per-variant
@@ -415,22 +764,21 @@ for flavor in $FLAVOR_LIST; do
       done
     } | xargs -P "$JOBS" -I JOB bash -c '
         job="$1"
-        run_one "$2" "${job%% *}" "${job#* }" "$3" "$4" "$5" "$6"
-    ' job JOB "$flavor" "$EMU" "$TIMEOUT" "$POISON_ARGS" "$SCRATCH"
-    # Deterministic per-(flavor,variant) chunks, ordered by variant then test.
+        run_one "$2" "$3" "${job%% *}" "${job#* }" "$4" "$5" "$6" "$7"
+    ' job JOB "$gslug" "$display" "$EMU" "$TIMEOUT" "$POISON_ARGS" "$SCRATCH"
+    # Deterministic per-(group,variant) chunks, ordered by variant then test.
     for variant in "${VARIANTS[@]}"; do
-        slug="$(printf '%s' "$variant" | tr ',+' '__')"
+        vslug="$(printf '%s' "$variant" | tr ',+' '__')"
         n=0
         for t in $test_list; do
-            if [ -f "$SCRATCH/result.$flavor.$slug.$t.tsv" ]; then
-                cat "$SCRATCH/result.$flavor.$slug.$t.tsv"
+            if [ -f "$SCRATCH/result.$gslug.$vslug.$t.tsv" ]; then
+                cat "$SCRATCH/result.$gslug.$vslug.$t.tsv"
                 n=$((n + 1))
             fi
-        done >>"$flavor_tsv"
-        echo "[$flavor] variant '$variant' done: $n/$ntests results"
+        done >>"$group_tsv"
+        echo "[$display] variant '$variant' done: $n/$ntests results"
     done
-    cat "$flavor_tsv" >>"$OUT_TSV"
-    echo "$crypto_line" >"$SCRATCH/crypto.$flavor"
+    cat "$group_tsv" >>"$OUT_TSV"
 done
 
 # ---- report ----
@@ -446,21 +794,41 @@ done
     fi
     echo "emulator: $EMU (mtime $(stat -c %y "$EMU" 2>/dev/null || echo unknown))"
     echo "timeout per test: ${TIMEOUT}s   jobs: $JOBS   poison-args: '$POISON_ARGS'"
+    if [ -z "$BUILD" ]; then
+        echo "build: none (prebuilt binaries; flavor classification via ldd)"
+        echo "classification (binaries per group):"
+        for gslug in "${GSLUGS[@]}"; do
+            printf '  %s: %d\n' \
+                "$(cat "$SCRATCH/g.$gslug.display")" \
+                "$(grep -c . "$SCRATCH/g.$gslug.bins")"
+        done
+    else
+        echo "build: $BUILD (per-group \"build:\" lines below record the exact make invocations)"
+    fi
     echo "variants: ${VARIANTS[*]}"
     echo "raw results: $OUT_TSV"
     echo
-    for flavor in $FLAVOR_LIST; do
-        report_flavor "$flavor" "$SCRATCH/results.$flavor.tsv" \
-            "$(cat "$SCRATCH/crypto.$flavor" 2>/dev/null)" "$SCRATCH/pairs.tsv"
+    for gslug in "${GSLUGS[@]}"; do
+        report_group "$gslug" "$SCRATCH/results.$gslug.tsv" "$SCRATCH/pairs.tsv" \
+            "$SCRATCH/vskips.tsv"
     done
 
     echo "=== VERDICT"
     total_pairs="$(grep -c . "$SCRATCH/pairs.tsv" 2>/dev/null || true)"
-    if [ "${total_pairs:-0}" -eq 0 ]; then
+    total_vskips="$(grep -c . "$SCRATCH/vskips.tsv" 2>/dev/null || true)"
+    if [ "${total_pairs:-0}" -eq 0 ] && [ "${total_vskips:-0}" -eq 0 ]; then
         echo "No poisoning variant caused any failure: every (test, non-empty variant) pair passed everywhere."
     else
-        echo "Poisoning variants caused failures.  (flavor, variant, test, class) pairs:"
-        sort "$SCRATCH/pairs.tsv" | sed 's/^/  /'
+        if [ "${total_pairs:-0}" -gt 0 ]; then
+            echo "Poisoning variants caused failures.  (flavor, variant, test, class) pairs:"
+            sort "$SCRATCH/pairs.tsv" | sed 's/^/  /'
+        fi
+        if [ "${total_vskips:-0}" -gt 0 ]; then
+            echo "Version-gated skips (not poisoning failures): the control variant SKIPped"
+            echo "these tests too, so the per-variant SKIPs replicate the version gate"
+            echo "rather than a poisoning effect.  (flavor, test, variants that SKIPped):"
+            sort "$SCRATCH/vskips.tsv" | sed 's/^/  /'
+        fi
     fi
 } >"$OUT_TXT"
 

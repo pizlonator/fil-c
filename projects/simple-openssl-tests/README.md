@@ -278,21 +278,45 @@ computes.
 
 ## Poisoning variant sweep
 
-`run_variants.sh` builds the suite with a Fil-C compiler (default
-`<repo>/build/bin/filcc`), then runs every test under the zegarmistrz
-emulator once per poisoning variant, and writes a TSV of raw results plus
-a human-readable report:
+`run_variants.sh` runs every test under the zegarmistrz emulator once per
+poisoning variant and writes a TSV of raw results plus a human-readable
+report.  By default it runs whatever top-level `test_*` executables are
+already built — it does not build anything; each binary is classified by the
+libcrypto `ldd` resolves it to.  `--build` opts into building first:
 
 ```sh
-./run_variants.sh [--flavor=zunsafe|sarcastic|both] [--jobs=N]
+./run_variants.sh [--build=zunsafe|sarcastic|yolo|both|all] [--jobs=N]
                   [--timeout=S] [--poison-args='--poison-all']
                   [--allow-no-poison] [--emulator=PATH]
-                  [--output=PREFIX]
+                  [--yolo-openssl-prefix=PREFIX] [--output=PREFIX]
 ```
 
-* `--flavor` (default `both`) picks the OpenSSL the tests bind: `zunsafe`
-  (the pizfix OpenSSL), `sarcastic` (projects/sarcastic-openssl), or both
-  sequentially (rebuilding and cleaning in between).
+* (no `--build`, the default) prebuilt mode: sweep the existing `test_*`
+  executables, classified via `ldd`: a pizfix libcrypto → `zunsafe`, a
+  libcrypto under projects/sarcastic-openssl → `sarcastic`, a system
+  libcrypto → `yolo`, and anything else → an `other` group keyed by that
+  libcrypto's directory (those binaries are run too, and the directory is
+  called out in the report).  Every non-empty group gets its own sweep
+  section and its own `build: none (prebuilt binaries; classification via
+  ldd)` provenance line; the report header records the per-group counts.
+  With no test binaries at all, the script aborts (build some first with
+  `--build`).
+* `--build` (default: none) builds before sweeping: `zunsafe` = Fil-C's
+  `build/bin/filcc` + the pizfix OpenSSL, `sarcastic` = filcc + the in-tree
+  projects/sarcastic-openssl, `yolo` = the system compiler (gcc) + the
+  system OpenSSL, `both` = `zunsafe sarcastic`, and `all` = `zunsafe
+  sarcastic yolo`.  Multiple builds rebuild and clean (exact binary names
+  only) in between.  Each group's report section records the exact make
+  invocation plus an `ldd` probe of the libcrypto the built tests actually
+  bind.
+* `--yolo-openssl-prefix=PREFIX` (only with `--build=yolo` or `--build=all`)
+  builds the yolo flavor against the OpenSSL installed at PREFIX instead of
+  the system one, as `make CC=gcc OPENSSL_HOME=PREFIX PIZFIX=`.  PREFIX
+  must contain an `include/` directory and a libcrypto under `lib/` or
+  `lib64/`.  The trailing `PIZFIX=` (a command-line make variable)
+  neutralizes every pizfix-derived path in the Makefile, so no pizfix
+  `-L`/`-rpath` leaks into the yolo binaries.  It is an error without a
+  `--build` that includes yolo, since it only affects building.
 * `--jobs` (default nproc/2 capped at 16) is the per-variant test
   parallelism; `--timeout` (default 120s) is the per-test wall clock.
 * `--poison-args` (default `--poison-all`) selects which buffer kinds the
