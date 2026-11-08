@@ -101,13 +101,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* Shared SP 800-38A material. */
@@ -367,8 +374,10 @@ static void test_byte_mode_zero_update(void)
     CHECK(len == 0, "CFB1 Final emitted unexpected bytes");
     EVP_CIPHER_CTX_free(ctx);
 
+    unpoison_all();
     CHECK(memcmp(one, many, 16) == 0,
           "5+0+11 updates diverged from a single 16-byte update");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
 }
@@ -409,9 +418,11 @@ static void test_bit_mode_consistency(void)
               "bit-mode EVP_EncryptUpdate failed");
         CHECK(len == (int)(8 * n),
               "bit-mode update did not report the bit count as its length");
+        unpoison_all();
         CHECK(memcmp(byte_ref, bit_out, n) == 0,
               "bit-mode encryption of 8n bits differs from byte-mode "
               "encryption of n bytes");
+        repoison_all();
         EVP_CIPHER_CTX_free(ctx);
     }
     EVP_CIPHER_free(cipher);
@@ -454,8 +465,10 @@ static void test_bit_mode_41_bits(void)
     CHECK(EVP_EncryptFinal_ex(ctx, ct, &len) == 1, "bit-mode Final failed");
     CHECK(len == 0, "bit-mode Final emitted unexpected bytes");
 
+    unpoison_all();
     CHECK(memcmp(ct, byte_ref, 5) == 0,
           "the first 40 ciphertext bits differ from the byte-mode reference");
+    repoison_all();
     CHECK((ct[5] & 0x7f) == 0,
           "bit mode did not leave the trailing 7 bits of the last byte alone "
           "(bit-length mode is not active)");
@@ -475,8 +488,10 @@ static void test_bit_mode_41_bits(void)
           "bit-mode decrypt disturbed bits beyond the 41st bit");
     CHECK((back[5] >> 7) == (in[5] >> 7),
           "the 41st plaintext bit did not round-trip");
+    unpoison_all();
     CHECK(memcmp(back, in, 5) == 0,
           "the first 40 plaintext bits did not round-trip");
+    repoison_all();
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
 }
@@ -531,8 +546,10 @@ static void test_bit_mode_split(void)
     CHECK(EVP_EncryptFinal_ex(ctx, split + 16, &len) == 1, "bit-mode Final failed");
     EVP_CIPHER_CTX_free(ctx);
 
+    unpoison_all();
     CHECK(memcmp(one, split, 16) == 0,
           "8+0+120 split bit updates diverged from a single 128-bit update");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
 }
@@ -547,6 +564,8 @@ int main(int argc, char **argv)
     test_bit_mode_consistency();
     test_bit_mode_41_bits();
     test_bit_mode_split();
+
+    free_poison_allocations();
 
     printf("test_aes_cfb1: all %u checks passed\n", g_checks);
     return 0;

@@ -72,13 +72,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* One PKCS12KDF derive with a fresh context.  pass or salt may be NULL to
@@ -195,10 +202,12 @@ static void test_ids_differ(void)
                             (int)(i + 1), dk[i], DK_CAP),
               "PKCS12KDF derive failed for one of the ids");
     }
+    unpoison_all();
     for (i = 0; i < 3; i++)
         for (j = i + 1; j < 3; j++)
             CHECK(memcmp(dk[i], dk[j], DK_CAP) != 0,
                   "two PKCS12KDF material ids produced identical output");
+    repoison_all();
 }
 
 /* (3) The pass and the salt are both mandatory: omitting either must fail. */
@@ -227,6 +236,8 @@ int main(int argc, char **argv)
     test_kats();
     test_ids_differ();
     test_missing_inputs();
+
+    free_poison_allocations();
 
     printf("test_kdf_pkcs12kdf: all %u checks passed\n", g_checks);
     return 0;

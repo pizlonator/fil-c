@@ -335,8 +335,10 @@ static void test_encrypt_decrypt(void)
         snprintf(mbuf, sizeof(mbuf), "SM2 decryption of %zu bytes failed",
                  sizes[s]);
         CHECK(sm2_decrypt(key, ct, ctlen, back, &backlen) == 1, mbuf);
+        unpoison_all();
         CHECK(backlen == sizes[s] && memcmp(back, msg, sizes[s]) == 0,
               "SM2 roundtrip did not recover the message");
+        repoison_all();
     }
 
     /* Documented: a 0-byte message fails to encrypt on both 3.0.13 and
@@ -380,17 +382,21 @@ static void test_cipher_digest_param(void)
 
     CHECK(sm2_encrypt(key, "SM3", msg, 32, ct, &ctlen) == 1,
           "SM2 encryption with the digest=SM3 param failed");
+    unpoison_all();
     CHECK(sm2_decrypt(key, ct, ctlen, back, &backlen) == 1 &&
           backlen == 32 && memcmp(back, msg, 32) == 0,
           "SM2 roundtrip with the digest=SM3 param failed");
+    repoison_all();
 
     /* Default and explicit-SM3 ciphertexts differ (the DER encoding embeds
      * the randomized ephemeral point), but both decrypt. */
     CHECK(sm2_encrypt(key, NULL, msg, 32, ct2, &ct2len) == 1 && ct2len > 0,
           "SM2 encryption with the default digest failed");
+    unpoison_all();
     CHECK(sm2_decrypt(key, ct2, ct2len, back, &backlen) == 1 &&
           backlen == 32 && memcmp(back, msg, 32) == 0,
           "SM2 default-digest roundtrip failed");
+    repoison_all();
     EVP_PKEY_free(key);
 }
 
@@ -402,6 +408,8 @@ int main(int argc, char **argv)
     test_sign_verify();
     test_encrypt_decrypt();
     test_cipher_digest_param();
+
+    free_poison_allocations();
 
     printf("test_sm2: all %u checks passed\n", g_checks);
     return 0;

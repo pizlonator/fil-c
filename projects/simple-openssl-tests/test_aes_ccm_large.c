@@ -206,14 +206,20 @@ static void test_kat_anchor(void)
     ccm_encrypt(cipher, key, nonce, 13, tag, 8, aad, aadlen, pt, ptlen,
                 ct, 32 + 16, &ctlen);
     CHECK(ctlen == ct_wantlen, "KAT ciphertext length mismatch");
+    unpoison_all();
     CHECK(memcmp(ct, ct_want, ct_wantlen) == 0,
           "ciphertext does not match RFC 3610 #1");
+    repoison_all();
+    unpoison_all();
     CHECK(memcmp(tag, tag_want, 8) == 0, "tag does not match RFC 3610 #1");
+    repoison_all();
 
     ccm_decrypt(cipher, key, nonce, 13, tag_want, 8, aad, aadlen,
                 ct_want, ct_wantlen, back, 32 + 16, &backlen);
+    unpoison_all();
     CHECK(backlen == ptlen && memcmp(back, pt, ptlen) == 0,
           "decrypting the KAT ciphertext did not give the plaintext");
+    repoison_all();
     EVP_CIPHER_free(cipher);
 }
 
@@ -253,8 +259,10 @@ static void test_large_roundtrip(void)
                     back, LARGE_LEN + 16, &backlen);
         CHECK(backlen == LARGE_LEN,
               "large decrypt did not return the payload length");
+        unpoison_all();
         CHECK(memcmp(back, pt, LARGE_LEN) == 0,
               "1MiB single-update roundtrip did not recover the plaintext");
+        repoison_all();
         EVP_CIPHER_free(cipher);
     }
 }
@@ -497,6 +505,8 @@ int main(int argc, char **argv)
     test_zero_length_payload();
     test_tamper();
     test_output_buffer_contract();
+
+    free_poison_allocations();
 
     printf("test_aes_ccm_large: all %u checks passed\n", g_checks);
     return 0;

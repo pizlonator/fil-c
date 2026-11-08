@@ -81,13 +81,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 static const char *const KEY_HEX =
@@ -237,8 +244,10 @@ static void test_two_megabytes_decrypt(void)
           "EVP_DecryptFinal_ex failed in the 2 MiB decrypt");
     CHECK(total == (int)ONE, "the 2 MiB decrypt output length is wrong");
     EVP_CIPHER_CTX_free(ctx);
+    unpoison_all();
     CHECK(memcmp(back, in, ONE) == 0,
           "the 2 MiB chunked decrypt did not recover the plaintext");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
 }
@@ -348,6 +357,8 @@ int main(int argc, char **argv)
     test_two_megabytes_decrypt();
     test_counter_wrap();
     test_grids_roundtrip();
+
+    free_poison_allocations();
 
     printf("test_chacha20_large: all %u checks passed\n", g_checks);
     return 0;

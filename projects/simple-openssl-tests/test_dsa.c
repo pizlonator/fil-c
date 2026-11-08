@@ -354,6 +354,8 @@ int main(int argc, char **argv)
     test_kat();
     test_negative();
 
+    free_poison_allocations();
+
     printf("test_dsa: all %u checks passed\n", g_checks);
     return 0;
 }

@@ -435,6 +435,8 @@ int main(int argc, char **argv)
     test_kat(key);
     EVP_PKEY_free(key);
 
+    free_poison_allocations();
+
     printf("test_rsa_pss: all %u checks passed\n", g_checks);
     return 0;
 }

@@ -148,7 +148,9 @@ static void test_ctr_drbg(void)
     EVP_RAND_CTX *ctx;
     unsigned char *out1024 = ALLOCATE_OUTPUT(1024);
     unsigned char *big = ALLOCATE_OUTPUT(65536 + 1);
-    unsigned char buf32[32], buf32b[32], buf1[1];
+    unsigned char *buf32 = ALLOCATE_OUTPUT(32);
+    unsigned char *buf32b = ALLOCATE_OUTPUT(32);
+    unsigned char *buf1 = ALLOCATE_OUTPUT(1);
     size_t max_request = 0;
     unsigned int state = 0xbeef, strength = 0xbeef, reseed_counter;
 
@@ -182,15 +184,19 @@ static void test_ctr_drbg(void)
     /* Successive outputs differ. */
     CHECK(EVP_RAND_generate(ctx, buf32b, 32, 256, 0, NULL, 0) == 1,
           "CTR-DRBG second generate failed");
+    unpoison_all();
     CHECK(memcmp(buf32, buf32b, 32) != 0,
           "CTR-DRBG generated the same 32 bytes twice");
+    repoison_all();
 
     /* A 0-length generate is a no-op. */
+    unpoison_all();
     memcpy(buf32b, buf32, 32);
     CHECK(EVP_RAND_generate(ctx, buf32b, 0, 256, 0, NULL, 0) == 1,
           "CTR-DRBG 0-length generate failed");
     CHECK(memcmp(buf32b, buf32, 32) == 0,
           "CTR-DRBG 0-length generate was not a no-op");
+    repoison_all();
 
     /* EVP_RAND_generate transparently chunks requests above max_request. */
     CHECK(EVP_RAND_generate(ctx, big, max_request + 1, 256, 0, NULL, 0) == 1,
@@ -220,8 +226,10 @@ static void test_ctr_drbg(void)
           "CTR-DRBG prediction-resistant generate #1 failed");
     CHECK(EVP_RAND_generate(ctx, buf32b, 32, 256, 1, NULL, 0) == 1,
           "CTR-DRBG prediction-resistant generate #2 failed");
+    unpoison_all();
     CHECK(memcmp(buf32, buf32b, 32) != 0,
           "CTR-DRBG prediction-resistant generates repeated output");
+    repoison_all();
 
     CHECK(EVP_RAND_uninstantiate(ctx) == 1, "EVP_RAND_uninstantiate failed");
     CHECK(get_uint_param(ctx, OSSL_RAND_PARAM_STATE, &state) == 1 &&
@@ -239,7 +247,9 @@ static void test_hash_drbg(void)
     EVP_RAND *rand = EVP_RAND_fetch(NULL, "HASH-DRBG", NULL);
     EVP_RAND_CTX *ctx;
     unsigned char *out1024 = ALLOCATE_OUTPUT(1024);
-    unsigned char buf32[32], buf32b[32], buf1[1];
+    unsigned char *buf32 = ALLOCATE_OUTPUT(32);
+    unsigned char *buf32b = ALLOCATE_OUTPUT(32);
+    unsigned char *buf1 = ALLOCATE_OUTPUT(1);
     unsigned int state = 0xbeef;
 
     CHECK(rand != NULL, "EVP_RAND_fetch(\"HASH-DRBG\") failed");
@@ -261,8 +271,10 @@ static void test_hash_drbg(void)
           "HASH-DRBG generate of 1024 bytes failed");
     CHECK(EVP_RAND_generate(ctx, buf32b, 32, 256, 0, NULL, 0) == 1,
           "HASH-DRBG second generate failed");
+    unpoison_all();
     CHECK(memcmp(buf32, buf32b, 32) != 0,
           "HASH-DRBG generated the same 32 bytes twice");
+    repoison_all();
 
     CHECK(EVP_RAND_uninstantiate(ctx) == 1, "EVP_RAND_uninstantiate failed");
     EVP_RAND_CTX_free(ctx);
@@ -292,7 +304,9 @@ static void test_hmac_drbg(void)
     char mac[] = "HMAC";
     char digest[] = "SHA2-256";
     unsigned char *out1024 = ALLOCATE_OUTPUT(1024);
-    unsigned char buf32[32], buf32b[32], buf1[1];
+    unsigned char *buf32 = ALLOCATE_OUTPUT(32);
+    unsigned char *buf32b = ALLOCATE_OUTPUT(32);
+    unsigned char *buf1 = ALLOCATE_OUTPUT(1);
     unsigned int state = 0xbeef, strength = 0xbeef;
 
     CHECK(rand != NULL, "EVP_RAND_fetch(\"HMAC-DRBG\") failed");
@@ -321,8 +335,10 @@ static void test_hmac_drbg(void)
           "HMAC-DRBG generate of 1024 bytes failed");
     CHECK(EVP_RAND_generate(ctx, buf32b, 32, 256, 0, NULL, 0) == 1,
           "HMAC-DRBG second generate failed");
+    unpoison_all();
     CHECK(memcmp(buf32, buf32b, 32) != 0,
           "HMAC-DRBG generated the same 32 bytes twice");
+    repoison_all();
 
     CHECK(EVP_RAND_uninstantiate(ctx) == 1, "EVP_RAND_uninstantiate failed");
     EVP_RAND_CTX_free(ctx);
@@ -378,17 +394,23 @@ static void test_test_rand_entropy_mode(void)
           "TEST-RAND generate failed (context 1)");
     CHECK(EVP_RAND_generate(c2, buf2, 32, 0, 0, NULL, 0) == 1,
           "TEST-RAND generate failed (context 2)");
+    unpoison_all();
     CHECK(memcmp(buf1, buf2, 32) == 0,
           "two fresh TEST-RAND contexts produced different output");
+    repoison_all();
+    unpoison_all();
     CHECK(memcmp(buf1, entropy, 32) == 0,
           "TEST-RAND entropy-mode output is not the test entropy");
+    repoison_all();
 
     /* A 0-length generate is a no-op. */
+    unpoison_all();
     memcpy(buf2, buf1, 32);
     CHECK(EVP_RAND_generate(c1, buf2, 0, 0, 0, NULL, 0) == 1,
           "TEST-RAND 0-length generate failed");
     CHECK(memcmp(buf2, buf1, 32) == 0,
           "TEST-RAND 0-length generate was not a no-op");
+    repoison_all();
 
     CHECK(EVP_RAND_uninstantiate(c1) == 1, "EVP_RAND_uninstantiate failed");
     CHECK(get_uint_param(c1, OSSL_RAND_PARAM_STATE, &state) == 1 &&
@@ -434,10 +456,14 @@ static void test_test_rand_generate_mode(void)
           "TEST-RAND generate-mode generate failed (context 1)");
     CHECK(EVP_RAND_generate(c2, buf2, 32, 0, 0, NULL, 0) == 1,
           "TEST-RAND generate-mode generate failed (context 2)");
+    unpoison_all();
     CHECK(memcmp(buf1, buf2, 32) == 0,
           "two fresh TEST-RAND generate-mode contexts produced different output");
+    repoison_all();
+    unpoison_all();
     CHECK(memcmp(buf1, want, 32) == 0,
           "TEST-RAND generate-mode output does not match the KAT");
+    repoison_all();
 
     EVP_RAND_CTX_free(c1);
     EVP_RAND_CTX_free(c2);
@@ -460,6 +486,8 @@ int main(int argc, char **argv)
 #if OPENSSL_VERSION_NUMBER >= 0x30600000L
     test_test_rand_generate_mode();
 #endif
+
+    free_poison_allocations();
 
     printf("test_rand_drbg: all %u checks passed\n", g_checks);
     return 0;

@@ -175,14 +175,18 @@ static void test_kats(void)
         gotlen = digest_one_shot(md, in, 3, got, 32);
         snprintf(msg, sizeof(msg), "%s(\"abc\") one-shot digest does not match the KAT",
                  kats[k].mdname);
+        unpoison_all();
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+        repoison_all();
 
         if (kats[k].emptyhex != NULL) {
             wantlen = from_hex(kats[k].emptyhex, want, 32);
             gotlen = digest_one_shot(md, in, 0, got, 32);
             snprintf(msg, sizeof(msg), "%s(\"\") one-shot digest does not match the KAT",
                      kats[k].mdname);
+            unpoison_all();
             CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+            repoison_all();
         }
         EVP_MD_free(md);
     }
@@ -204,16 +208,20 @@ static void test_byname_routes(void)
     wantlen = from_hex("8eb208f7e05d987a9b044a8e98c6b087f15a0bfc", want, 32);
     memset(got, 0, 32);
     gotlen = digest_chunked(byname_md, in, 3, got, 32);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname(\"ripemd160\") digest does not match the KAT");
+    repoison_all();
 
     byname_md = EVP_get_digestbyname("sm3");
     CHECK(byname_md != NULL, "EVP_get_digestbyname(\"sm3\") returned NULL");
     wantlen = from_hex("66c7f0f462eeedd9d1f2d46bdc10e4e24167c4875cf2f7a2297da02b8f4ba8e0", want, 32);
     memset(got, 0, 32);
     digest_chunked(byname_md, in, 3, got, 32);
+    unpoison_all();
     CHECK(memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname(\"sm3\") digest does not match the KAT");
+    repoison_all();
 }
 
 /* (3) Chunked-vs-one-shot equality around the 64-byte block boundary and
@@ -246,7 +254,9 @@ static void test_chunked_equality(void)
             snprintf(msg, sizeof(msg),
                      "%s chunked digest differs from one-shot at input length %zu",
                      names[m], n);
+            unpoison_all();
             CHECK(one_len == many_len && memcmp(one, many, one_len) == 0, msg);
+            repoison_all();
         }
         /* 256 bytes fed as exact 64-byte updates. */
         {
@@ -254,8 +264,10 @@ static void test_chunked_equality(void)
             size_t many_len = digest_chunked_block(md, in, 256, 64, many, 32);
             CHECK(one_len == mdsize && many_len == mdsize,
                   "block-chunked digest has the wrong length");
+            unpoison_all();
             CHECK(memcmp(one, many, mdsize) == 0,
                   "all-64-byte-chunk digest differs from one-shot");
+            repoison_all();
         }
         EVP_MD_free(md);
     }
@@ -268,6 +280,8 @@ int main(int argc, char **argv)
     test_kats();
     test_byname_routes();
     test_chunked_equality();
+
+    free_poison_allocations();
 
     printf("test_digest_ripemd_sm3: all %u checks passed\n", g_checks);
     return 0;

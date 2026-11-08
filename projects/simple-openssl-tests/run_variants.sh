@@ -80,7 +80,7 @@
 #                   with).  Which zegarmistrz variants get tainted is the
 #                   sweep's job.
 #   --allow-no-poison  permit an empty --poison-args= (see below).
-#   --emulator      zegarmistrz binary (default <repo>/filc/zegarmistrz).
+#   --emulator      zegarmistrz binary (default <repo>/projects/zegarmistrz/zegarmistrz).
 #   --output        output prefix; writes <PREFIX>.txt and <PREFIX>.tsv
 #                   (default /tmp/simple-openssl-variants-<timestamp>).
 #
@@ -111,7 +111,7 @@ JOBS="$(($(nproc) / 2))"
 TIMEOUT=120
 POISON_ARGS="--poison-all"
 ALLOW_NO_POISON=0
-EMU="$REPO_ROOT/filc/zegarmistrz"
+EMU="$REPO_ROOT/projects/zegarmistrz/zegarmistrz"
 OUTPUT_PREFIX=""
 
 # Provenance for the report header: how this script was invoked (path +

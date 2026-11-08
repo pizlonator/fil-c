@@ -234,11 +234,15 @@ static void test_group(const char *group, const char *dahex, const char *qaxhex,
              group, zlen, fieldlen);
     CHECK(zlen == fieldlen, mbuf);
     snprintf(mbuf, sizeof(mbuf), "%s: derive(dA, qB) != RFC Z", group);
+    unpoison_all();
     CHECK(memcmp(z, want, fieldlen) == 0, mbuf);
+    repoison_all();
 
     zlen = derive(B, A, z, fieldlen);
     snprintf(mbuf, sizeof(mbuf), "%s: derive(dB, qA) != RFC Z", group);
+    unpoison_all();
     CHECK(zlen == fieldlen && memcmp(z, want, fieldlen) == 0, mbuf);
+    repoison_all();
 
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
@@ -277,6 +281,8 @@ int main(int argc, char **argv)
     test_group("secp384r1", P384_DA_HEX, P384_QAX_HEX, P384_QAY_HEX,
                P384_DB_HEX, P384_QBX_HEX, P384_QBY_HEX, P384_Z_HEX, 48);
     test_cross_curve();
+
+    free_poison_allocations();
 
     printf("test_ecdh: all %u checks passed\n", g_checks);
     return 0;

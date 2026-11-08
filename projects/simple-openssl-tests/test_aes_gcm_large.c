@@ -79,13 +79,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* Total large payload: 2 MiB = 2 * 1024 * 1024 bytes. */
@@ -403,7 +410,9 @@ static void test_large_stream_equals_one_shot(void)
         snprintf(msg, sizeof(msg),
                  "%s: streaming decrypt of 2MiB did not recover the plaintext",
                  cases[m].name);
+        unpoison_all();
         CHECK(memcmp(back, pt, LARGE_LEN) == 0, msg);
+        repoison_all();
         EVP_CIPHER_free(cipher);
     }
 }
@@ -523,7 +532,9 @@ static void test_iv_lengths_large(void)
         snprintf(msg, sizeof(msg),
                  "IV length %zu roundtrip of 2MiB did not recover the plaintext",
                  ivlens[v]);
+        unpoison_all();
         CHECK(backlen == LARGE_LEN && memcmp(back, pt, LARGE_LEN) == 0, msg);
+        repoison_all();
     }
     EVP_CIPHER_free(cipher);
 }
@@ -603,6 +614,8 @@ int main(int argc, char **argv)
     test_aad_interleaved();
     test_iv_lengths_large();
     test_tampered_final_block();
+
+    free_poison_allocations();
 
     printf("test_aes_gcm_large: all %u checks passed\n", g_checks);
     return 0;

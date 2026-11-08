@@ -87,13 +87,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* One KMAC computation.  custom == NULL means: do not set the parameter
@@ -375,8 +382,10 @@ static void test_mac_size_param(void)
                                 msg, 4, got_short, 64);
     CHECK(gotlen == 40 && got_shortlen == 40,
           "KMAC-256 with size 40 did not produce 40 bytes");
+    unpoison_all();
     CHECK(memcmp(got, got_short, 40) == 0,
           "two identical KMAC computations disagree");
+    repoison_all();
     EVP_MAC_free(mac);
 }
 
@@ -388,6 +397,8 @@ int main(int argc, char **argv)
     test_custom_and_sizes();
     test_chunked();
     test_mac_size_param();
+
+    free_poison_allocations();
 
     printf("test_mac_kmac: all %u checks passed\n", g_checks);
     return 0;

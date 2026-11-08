@@ -92,13 +92,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* Shared KAT material (AES-128 and Camellia-128, key = IV = 00..0F). */
@@ -494,8 +501,10 @@ static void test_length_sweep(void)
 
             if (n % 16 != 0) {
                 /* Non-aligned: CS1 differs from CS3; CS2 == CS3. */
+                unpoison_all();
                 CHECK(cs1len == cs3len && memcmp(cs1, cs3, cs1len) != 0,
                       "CS1 equals CS3 for a non-aligned length");
+                repoison_all();
                 expect_equal("CS2 differs from CS3 for a non-aligned length",
                              cs2, cs2len, cs3, cs3len);
             } else {
@@ -525,8 +534,10 @@ static void test_length_sweep(void)
                 expect_equal("CS1 differs from plain CBC for an aligned length",
                              cs1, cs1len, cbcref, n);
                 if (n >= 32) {
+                    unpoison_all();
                     CHECK(memcmp(cs3, cs1, cs1len) != 0,
                           "CS3 equals CS1 for an aligned length >= 32");
+                    repoison_all();
                 } else {
                     expect_equal("CS3 differs from plain CBC for one block",
                                  cs3, cs3len, cbcref, n);
@@ -566,8 +577,10 @@ static void test_single_block(void)
         cs3len = cts_crypt(cipher, 1, "CS3", key, iv, pt, 16, cs3, 16 + 16);
         CHECK(cs1len == 16 && cs2len == 16 && cs3len == 16,
               "single-block CTS lengths are not 16");
+        unpoison_all();
         CHECK(memcmp(cs1, cs2, 16) == 0 && memcmp(cs1, cs3, 16) == 0,
               "the CTS variants disagree on a single-block message");
+        repoison_all();
         EVP_CIPHER_free(cipher);
     }
 }
@@ -638,6 +651,8 @@ int main(int argc, char **argv)
     test_length_sweep();
     test_single_block();
     test_update_rules();
+
+    free_poison_allocations();
 
     printf("test_aes_cbc_cts: all %u checks passed\n", g_checks);
     return 0;

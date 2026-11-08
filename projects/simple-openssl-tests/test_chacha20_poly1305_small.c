@@ -84,13 +84,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 static const char *const KEY_HEX =
@@ -579,7 +586,7 @@ static void test_contracts(void)
     /* 12-byte tag: GET_TAG's first 12 bytes and an authenticated decrypt
      * with the truncated tag. */
     {
-        unsigned char tag12[12];
+        unsigned char *tag12 = ALLOCATE_TAG(12);
 
         ctx = EVP_CIPHER_CTX_new();
         CHECK(ctx != NULL, "EVP_CIPHER_CTX_new failed");
@@ -595,8 +602,10 @@ static void test_contracts(void)
         ctlen += (size_t)flen;
         CHECK(EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG, 12, tag12) == 1,
               "EVP_CTRL_AEAD_GET_TAG for the 12-byte tag failed");
+        unpoison_all();
         CHECK(memcmp(tag12, tag, 12) == 0,
               "the 12-byte tag is not the prefix of the 16-byte tag");
+        repoison_all();
         EVP_CIPHER_CTX_free(ctx);
 
         backlen = cp_decrypt(cipher, key, nonce, aad, aadlen, out, ctlen,
@@ -616,6 +625,8 @@ int main(int argc, char **argv)
     test_aad_ordering();
     test_tamper();
     test_contracts();
+
+    free_poison_allocations();
 
     printf("test_chacha20_poly1305_small: all %u checks passed\n", g_checks);
     return 0;

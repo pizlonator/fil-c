@@ -93,13 +93,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 static const char *const KAT_SIG_44_HEX =
@@ -678,8 +685,10 @@ static void test_oneshot_kats(void)
                   "randomized EVP_DigestSign failed");
             EVP_MD_CTX_free(mctx);
             CHECK(sig2len == siglen, "randomized signature size changed");
+            unpoison_all();
             CHECK(memcmp(sig2, sig, siglen) != 0,
                   "randomized signing did not randomize");
+            repoison_all();
             CHECK(verify_one_shot(pkey, sig2, sig2len, msg, msglen) == 1,
                   "randomized signature does not verify");
         }
@@ -754,8 +763,10 @@ static void test_context_string(void)
         /* And it must differ from the no-context signature. */
         plainlen = ML_DSA_MAX_SIG;
         sign_one_shot(pkey, msg, msglen, plain, &plainlen);
+        unpoison_all();
         CHECK(siglen == plainlen && memcmp(sig, plain, plainlen) != 0,
               "context string did not change the signature");
+        repoison_all();
 
         EVP_PKEY_free(pkey);
     }
@@ -902,6 +913,8 @@ int main(int argc, char **argv)
 #if OPENSSL_VERSION_NUMBER >= 0x30600000L
     test_streaming();
 #endif
+
+    free_poison_allocations();
 
     printf("test_ml_dsa: all %u checks passed\n", g_checks);
     return 0;

@@ -262,6 +262,7 @@ static void test_streaming(void)
     unsigned char *one = ALLOCATE_OUTPUT(200);
     unsigned char *many = ALLOCATE_OUTPUT(200);
     size_t onelen, manylen;
+    int same;
 
     memcpy(msg, MESSAGE, msglen);
     onelen = ecdsa_sign(key, EVP_sha256(), msg, msglen, one, 200);
@@ -275,7 +276,10 @@ static void test_streaming(void)
     CHECK(ecdsa_verify(key, EVP_sha256(), 0, msg, msglen, one, onelen) == 1,
           "one-shot ECDSA signature failed to verify");
     /* Documented: with random k the two signatures differ. */
-    if (onelen == manylen && memcmp(one, many, onelen) == 0)
+    unpoison_all();
+    same = onelen == manylen && memcmp(one, many, onelen) == 0;
+    repoison_all();
+    if (same)
         CHECK(0, "expected randomized ECDSA signatures to differ");
     EVP_PKEY_free(key);
 }
@@ -390,9 +394,11 @@ static void test_rfc6979_deterministic(void)
           "deterministic ECDSA sign failed");
     wantlen = from_hex(RFC6979_SIG_HEX, want, 80);
     CHECK(siglen == wantlen, "deterministic ECDSA signature length mismatch");
+    unpoison_all();
     CHECK(memcmp(sig, want, wantlen) == 0,
           "deterministic ECDSA signature does not match the RFC 6979 A.2.5 "
           "vector");
+    repoison_all();
     EVP_MD_CTX_free(mctx);
     EVP_PKEY_free(key);
 }
@@ -406,6 +412,8 @@ int main(int argc, char **argv)
     test_streaming();
     test_negative();
     test_rfc6979_deterministic();
+
+    free_poison_allocations();
 
     printf("test_ecdsa: all %u checks passed\n", g_checks);
     return 0;

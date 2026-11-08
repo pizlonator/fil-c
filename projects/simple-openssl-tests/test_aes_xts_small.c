@@ -91,13 +91,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* The vectors.  keyhex is always 32 (AES-128-XTS) or 64 (AES-256-XTS) hex
@@ -316,18 +323,24 @@ static void test_stealing_roundtrip(void)
     /* One-shot 21-byte (stolen tail) roundtrip. */
     xts_crypt(cipher, key, iv, pt, 21, ct, 53, 1);
     xts_crypt(cipher, key, iv, ct, 21, buf, 53, 0);
+    unpoison_all();
     CHECK(memcmp(buf, pt, 21) == 0,
           "21-byte (stolen tail) roundtrip failed");
+    repoison_all();
     g_checks++;
 
     /* In-place 21-byte roundtrip. */
     memcpy(buf, pt, 21);
     xts_crypt(cipher, key, iv, buf, 21, buf, 53, 1);
+    unpoison_all();
     CHECK(memcmp(buf, ct, 21) == 0,
           "in-place XTS encryption differs from out-of-place");
+    repoison_all();
     g_checks++;
     xts_crypt(cipher, key, iv, buf, 21, buf, 53, 0);
+    unpoison_all();
     CHECK(memcmp(buf, pt, 21) == 0, "in-place XTS roundtrip failed");
+    repoison_all();
     g_checks++;
 
     /* Split updates: 32 bytes + 21 bytes.  Each update is an independent
@@ -362,8 +375,10 @@ static void test_stealing_roundtrip(void)
     CHECK(EVP_DecryptFinal_ex(ctx, ct + 53, &len) == 1,
           "XTS Final failed");
     EVP_CIPHER_CTX_free(ctx);
+    unpoison_all();
     CHECK(memcmp(ct, pt, 53) == 0,
           "32+21 split data units did not round-trip");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
 }
@@ -398,18 +413,24 @@ static void test_each_update_is_a_data_unit(void)
     CHECK(EVP_EncryptUpdate(ctx, twice + 16, &len, in, 16) == 1,
           "second 16-byte XTS update failed");
     EVP_CIPHER_CTX_free(ctx);
+    unpoison_all();
     CHECK(memcmp(twice, twice + 16, 16) == 0,
           "two equal 16-byte updates encrypted differently: the tweak "
           "advanced between updates");
+    repoison_all();
     g_checks++;
 
     xts_crypt(cipher, key, iv, in, 32, oneshot, 32, 1);
+    unpoison_all();
     CHECK(memcmp(oneshot, twice, 16) == 0,
           "the first block of a 32-byte one-shot data unit differs from a "
           "16-byte data unit with the same IV");
+    repoison_all();
+    unpoison_all();
     CHECK(memcmp(oneshot + 16, twice + 16, 16) != 0,
           "the second block of a 32-byte data unit did not use an advanced "
           "tweak");
+    repoison_all();
     EVP_CIPHER_free(cipher);
 }
 
@@ -461,8 +482,10 @@ static void test_weak_key(void)
           "second weak-key decrypt init failed");
     CHECK(EVP_DecryptUpdate(ctx, back, &len, in, 21) == 1,
           "second weak-key decryption update failed");
+    unpoison_all();
     CHECK(memcmp(back, out, 21) == 0,
           "weak-key XTS decryption is not deterministic");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
@@ -510,6 +533,8 @@ int main(int argc, char **argv)
     test_each_update_is_a_data_unit();
     test_weak_key();
     test_wrong_key_length();
+
+    free_poison_allocations();
 
     printf("test_aes_xts_small: all %u checks passed\n", g_checks);
     return 0;

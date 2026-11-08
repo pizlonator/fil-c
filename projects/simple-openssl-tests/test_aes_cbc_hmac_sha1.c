@@ -97,13 +97,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 static const char *const KEY128_HEX =
@@ -377,8 +384,10 @@ static void test_kat_and_composition(void)
 
     /* Decrypt the embedded record: the payload must come back at [16..21]. */
     stitch_decrypt_tls12(cipher, enckey, mackey, 16, iv, L, record, bodylen);
+    unpoison_all();
     CHECK(memcmp(record + 16, payload, L) == 0,
           "decrypting the KAT record did not recover the payload");
+    repoison_all();
     EVP_CIPHER_free(cipher);
 }
 
@@ -436,7 +445,9 @@ static void test_composition_and_roundtrip(void)
                      "%s: decrypting the record did not recover the payload "
                      "(L=%zu)",
                      ciphers[c].name, L);
+            unpoison_all();
             CHECK(memcmp(record + 16, payload, L) == 0, msg);
+            repoison_all();
         }
         EVP_CIPHER_free(cipher);
     }
@@ -587,8 +598,10 @@ static void test_aad_rules(void)
         unsigned char *tlsrec = ALLOCATE_OUTPUT(128);
         stitch_encrypt_tls12(cipher, enckey, mackey, 16, iv, expiv, payload,
                              L, tlsrec, 128);
+        unpoison_all();
         CHECK(memcmp(tlsrec, streamed, bodylen) != 0,
               "the streaming fallback equals the TLS-mode record");
+        repoison_all();
     }
     EVP_CIPHER_free(cipher);
     EVP_CIPHER_free(cbc);
@@ -676,8 +689,10 @@ static void test_tls10_style(void)
     CHECK(EVP_DecryptUpdate(ctx, record, &len, record, (int)bodylen) == 1,
           "TLS 1.0-style decrypt update failed");
     EVP_CIPHER_CTX_free(ctx);
+    unpoison_all();
     CHECK(memcmp(record, payload, L) == 0,
           "the TLS 1.0-style roundtrip did not recover the payload");
+    repoison_all();
     EVP_CIPHER_free(cipher);
     ERR_clear_error();
 }
@@ -717,6 +732,8 @@ int main(int argc, char **argv)
     test_tamper();
     test_aad_rules();
     test_tls10_style();
+
+    free_poison_allocations();
 
     printf("test_aes_cbc_hmac_sha1: all %u checks passed\n", g_checks);
     return 0;

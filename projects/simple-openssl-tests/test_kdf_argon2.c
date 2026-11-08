@@ -86,13 +86,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* The RFC 9106 section 5 vector inputs. */
@@ -185,6 +192,8 @@ static int argon2_derive(const char *algname, const unsigned char *pass,
 
 int main(int argc, char **argv)
 {
+    poison_parse_args(argc, argv);
+
     unsigned char *pass = ALLOCATE_KEY(PASS_CAP);
     unsigned char *salt = ALLOCATE_SALT(SALT_CAP);
     unsigned char *secret = ALLOCATE_KEY(SECRET_CAP);
@@ -192,8 +201,6 @@ int main(int argc, char **argv)
     unsigned char *out = ALLOCATE_OUTPUT(OUT_CAP);
     unsigned char *want = ALLOCATE_OUTPUT(OUT_CAP);
     size_t passlen, saltlen, secretlen, adlen, wantlen, k;
-
-    poison_parse_args(argc, argv);
 
     /* Argon2 arrived in OpenSSL 3.2: a failed fetch takes the SKIP path. */
     {
@@ -217,14 +224,18 @@ int main(int argc, char **argv)
                             saltlen, secret, secretlen, ad, adlen, 4, 1, 32,
                             3, -1, out, 32),
               "Argon2 RFC 9106 derive failed");
+        unpoison_all();
         CHECK(memcmp(out, want, 32) == 0,
               "an RFC 9106 section 5 tag does not match");
+        repoison_all();
     }
 
     /* (2) Without the secret and associated data the three variants still
      * produce three different tags. */
     {
-        unsigned char d[OUT_CAP], it[OUT_CAP], idt[OUT_CAP];
+        unsigned char *d = ALLOCATE_OUTPUT(OUT_CAP);
+        unsigned char *it = ALLOCATE_OUTPUT(OUT_CAP);
+        unsigned char *idt = ALLOCATE_OUTPUT(OUT_CAP);
         CHECK(argon2_derive("ARGON2D", pass, passlen, salt, saltlen, NULL, 0,
                             NULL, 0, 4, 1, 32, 3, -1, d, 32),
               "plain Argon2d derive failed");
@@ -234,9 +245,11 @@ int main(int argc, char **argv)
         CHECK(argon2_derive("ARGON2ID", pass, passlen, salt, saltlen, NULL, 0,
                             NULL, 0, 4, 1, 32, 3, -1, idt, 32),
               "plain Argon2id derive failed");
+        unpoison_all();
         CHECK(memcmp(d, it, 32) != 0 && memcmp(d, idt, 32) != 0 &&
               memcmp(it, idt, 32) != 0,
               "the three Argon2 variants produced identical output");
+        repoison_all();
     }
 
     /* (3) The draft-vector inputs from the task brief, and version 1.0. */
@@ -278,6 +291,8 @@ int main(int argc, char **argv)
     CHECK(!argon2_derive("ARGON2D", pass, passlen, salt, saltlen, NULL, 0,
                          NULL, 0, 4, 1, 32, 3, -1, out, 3),
           "Argon2 accepted a 3-byte output");
+
+    free_poison_allocations();
 
     printf("test_kdf_argon2: all %u checks passed\n", g_checks);
     return 0;

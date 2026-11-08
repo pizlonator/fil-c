@@ -82,13 +82,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* One SSKDF derive with a fresh context.  `keyparam` selects the parameter
@@ -236,6 +243,7 @@ static void test_multi_info(void)
     unsigned char *want = ALLOCATE_OUTPUT(OUT_CAP);
     static const size_t chunklen[5] = { 8, 8, 8, 8, 16 };
     size_t zlen, infolen, wantlen, i, off;
+    int multi_info_equal;
     EVP_KDF *kdf;
     EVP_KDF_CTX *ctx;
     OSSL_PARAM params[10];
@@ -271,7 +279,10 @@ static void test_multi_info(void)
     params[7] = OSSL_PARAM_construct_end();
     CHECK(EVP_KDF_derive(ctx, out, 32, params) > 0,
           "SSKDF derive with five info chunks failed");
-    if (wantlen == 32 && memcmp(out, want, 32) == 0) {
+    unpoison_all();
+    multi_info_equal = wantlen == 32 && memcmp(out, want, 32) == 0;
+    repoison_all();
+    if (multi_info_equal) {
         g_checks++; /* multi-chunk info equals the concatenated info */
     } else {
         printf("note test_kdf_sskdf: this OpenSSL does not concatenate "
@@ -324,6 +335,8 @@ int main(int argc, char **argv)
     test_key_secret_alias();
     test_multi_info();
     test_missing_key();
+
+    free_poison_allocations();
 
     printf("test_kdf_sskdf: all %u checks passed\n", g_checks);
     return 0;

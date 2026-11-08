@@ -181,7 +181,9 @@ static void test_kats(void)
         snprintf(msg, sizeof(msg), "%s(\"%s\") one-shot digest does not match the KAT",
                  kat->mdname, inlen == 3 ? "abc" : "...");
         CHECK(gotlen == wantlen, msg);
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, msg);
+        repoison_all();
         EVP_MD_free(md);
     }
 }
@@ -203,15 +205,19 @@ static void test_routes(void)
     static_md = EVP_sha256();
     CHECK(static_md != NULL, "EVP_sha256() returned NULL");
     gotlen = digest_one_shot(static_md, in, 3, got, 32);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_sha256() digest does not match the KAT");
+    repoison_all();
 
     byname_md = EVP_get_digestbyname("sha256");
     CHECK(byname_md != NULL, "EVP_get_digestbyname(\"sha256\") returned NULL");
     memset(got, 0, 32);
     gotlen = digest_chunked(byname_md, in, 3, got, 32);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname() digest does not match the KAT");
+    repoison_all();
 }
 
 /* (4) Chunked digesting must equal one-shot digesting for input lengths
@@ -241,7 +247,9 @@ static void test_chunked_equality(void)
             snprintf(msg, sizeof(msg),
                      "%s chunked digest differs from one-shot at input length %zu",
                      names[m], n);
+            unpoison_all();
             CHECK(one_len == many_len && memcmp(one, many, one_len) == 0, msg);
+            repoison_all();
         }
         EVP_MD_free(md);
     }
@@ -287,9 +295,11 @@ static void test_sha2_256_192(void)
           "SHA2-256/192 digest size is not 24 bytes");
     CHECK(digest_one_shot(md, in, 3, one, 64) == 24,
           "SHA2-256/192 one-shot digest has the wrong length");
+    unpoison_all();
     CHECK(digest_chunked(md, in, 3, many, 64) == 24 &&
           memcmp(one, many, 24) == 0,
           "SHA2-256/192 chunked digest differs from one-shot");
+    repoison_all();
     EVP_MD_free(md);
 }
 
@@ -302,6 +312,8 @@ int main(int argc, char **argv)
     test_chunked_equality();
     test_digest_sizes();
     test_sha2_256_192();
+
+    free_poison_allocations();
 
     printf("test_digest_sha2: all %u checks passed\n", g_checks);
     return 0;

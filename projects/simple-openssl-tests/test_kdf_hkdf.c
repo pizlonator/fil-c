@@ -92,13 +92,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* Fetches `kdfname`, derives `outlen` bytes with `params`.  Returns 1 on
@@ -347,6 +354,7 @@ static void test_multi_info(void)
     const char *salthex = hkdf_kats[1].salthex;
     const char *infohex = hkdf_kats[1].infohex;
     size_t ikmlen, saltlen, wantlen, off, i;
+    int multi_info_equal;
     OSSL_PARAM params[11];
 
     for (i = 0; i < 6; i++)
@@ -375,7 +383,10 @@ static void test_multi_info(void)
     params[8] = OSSL_PARAM_construct_end();
     CHECK(kdf_derive("HKDF", params, okm, 82),
           "derive with five info chunks failed");
-    if (wantlen == 82 && memcmp(okm, want, 82) == 0) {
+    unpoison_all();
+    multi_info_equal = wantlen == 82 && memcmp(okm, want, 82) == 0;
+    repoison_all();
+    if (multi_info_equal) {
         g_checks++; /* multi-chunk info equals the concatenated info */
     } else {
         printf("note test_kdf_hkdf: this OpenSSL does not concatenate "
@@ -536,7 +547,9 @@ static void test_concrete_names(void)
         snprintf(msg, sizeof(msg),
                  "%s (no digest param) differs from bare HKDF + digest:\"%s\"",
                  concrete->kdfname, concrete->digest);
+        unpoison_all();
         CHECK(memcmp(okm, bare_okm, 42) == 0, msg);
+        repoison_all();
 
         /* Both routes must also reproduce the CLI-verified KAT. */
         wantlen = from_hex(concrete->okmhex, want, 64);
@@ -578,6 +591,8 @@ int main(int argc, char **argv)
     test_multi_info();
     test_negative();
     test_concrete_names();
+
+    free_poison_allocations();
 
     printf("test_kdf_hkdf: all %u checks passed\n", g_checks);
     return 0;

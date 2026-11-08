@@ -146,14 +146,18 @@ static void test_kats(void)
         gotlen = digest_one_shot(md, in, 0, got, 64);
         snprintf(msg, sizeof(msg), "%s(\"\") one-shot digest does not match the KAT",
                  kat->mdname);
+        unpoison_all();
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+        repoison_all();
 
         memcpy(in, MSG_ABC, 3);
         wantlen = from_hex(kat->abchex, want, 64);
         gotlen = digest_one_shot(md, in, 3, got, 64);
         snprintf(msg, sizeof(msg), "%s(\"abc\") one-shot digest does not match the KAT",
                  kat->mdname);
+        unpoison_all();
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+        repoison_all();
         EVP_MD_free(md);
     }
 }
@@ -183,7 +187,9 @@ static void test_byname_routes(void)
     }
     snprintf(msg, sizeof(msg),
              "EVP_get_digestbyname(\"blake2b512\") digest does not match the KAT");
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+    repoison_all();
 
     byname_md = EVP_get_digestbyname("blake2s256");
     CHECK(byname_md != NULL, "EVP_get_digestbyname(\"blake2s256\") returned NULL");
@@ -195,7 +201,9 @@ static void test_byname_routes(void)
     }
     snprintf(msg, sizeof(msg),
              "EVP_get_digestbyname(\"blake2s256\") digest does not match the KAT");
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+    repoison_all();
 }
 
 /* (3) Chunked-vs-one-shot equality with splits that hit the block size
@@ -241,7 +249,9 @@ static void test_block_boundary_chunks(void)
             snprintf(msg, sizeof(msg),
                      "%s: all-%zu-byte-chunk digest differs from one-shot",
                      names[v], b);
+            unpoison_all();
             CHECK(many_len == one_len && memcmp(one, many, one_len) == 0, msg);
+            repoison_all();
         }
 
         /* block-1 then block then block+1 cycling */
@@ -254,7 +264,9 @@ static void test_block_boundary_chunks(void)
             snprintf(msg, sizeof(msg),
                      "%s: block-boundary chunk digest differs from one-shot",
                      names[v]);
+            unpoison_all();
             CHECK(many_len == one_len && memcmp(one, many, one_len) == 0, msg);
+            repoison_all();
         }
 
         /* mixed odd chunks */
@@ -267,7 +279,9 @@ static void test_block_boundary_chunks(void)
             size_t many_len = digest_chunked(md, in, 512, chunks, nchunks, many, 64);
             snprintf(msg, sizeof(msg),
                      "%s: mixed odd chunk digest differs from one-shot", names[v]);
+            unpoison_all();
             CHECK(many_len == one_len && memcmp(one, many, one_len) == 0, msg);
+            repoison_all();
         }
 
         /* byte-at-a-time */
@@ -275,8 +289,10 @@ static void test_block_boundary_chunks(void)
         nchunks = 1;
         {
             size_t many_len = digest_chunked(md, in, 512, chunks, nchunks, many, 64);
+            unpoison_all();
             CHECK(many_len == one_len && memcmp(one, many, one_len) == 0,
                   "byte-at-a-time BLAKE2 digest differs from one-shot");
+            repoison_all();
         }
         EVP_MD_free(md);
     }
@@ -289,6 +305,8 @@ int main(int argc, char **argv)
     test_kats();
     test_byname_routes();
     test_block_boundary_chunks();
+
+    free_poison_allocations();
 
     printf("test_digest_blake2: all %u checks passed\n", g_checks);
     return 0;

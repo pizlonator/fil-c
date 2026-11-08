@@ -215,13 +215,17 @@ static void test_kats(void)
         gotlen = digest_one_shot(md, in, 3, got, 64);
         snprintf(msg, sizeof(msg), "%s(\"abc\") one-shot digest does not match the KAT",
                  kat->mdname);
+        unpoison_all();
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+        repoison_all();
 
         wantlen = from_hex(kat->emptyhex, want, 64);
         gotlen = digest_one_shot(md, in, 0, got, 64);
         snprintf(msg, sizeof(msg), "%s(\"\") one-shot digest does not match the KAT",
                  kat->mdname);
+        unpoison_all();
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+        repoison_all();
         EVP_MD_free(md);
     }
 }
@@ -243,8 +247,10 @@ static void test_byname_route(void)
     memcpy(in, MSG_ABC, 3);
     wantlen = from_hex(sha3_kats[1].abchex, want, 32);
     gotlen = digest_chunked_bytes(byname_md, in, 3, got, 32);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname(\"sha3-256\") digest does not match the KAT");
+    repoison_all();
 }
 
 /* (3) Rate-boundary chunking: for every available variant, updates of
@@ -290,19 +296,25 @@ static void test_rate_boundaries(void)
             snprintf(msg, sizeof(msg),
                      "%s chunked digest (rate-1/rate split) differs from one-shot",
                      variants[v].mdname);
+            unpoison_all();
             CHECK(one_len == many_len && memcmp(one, many, one_len) == 0, msg);
+            repoison_all();
 
             many_len = digest_chunked_ab(md, in, 2 * r + 2, r, r + 1, many, 64);
             snprintf(msg, sizeof(msg),
                      "%s chunked digest (rate/rate+1 split) differs from one-shot",
                      variants[v].mdname);
+            unpoison_all();
             CHECK(one_len == many_len && memcmp(one, many, one_len) == 0, msg);
+            repoison_all();
 
             many_len = digest_chunked_bytes(md, in, 2 * r + 2, many, 64);
             snprintf(msg, sizeof(msg),
                      "%s byte-at-a-time digest differs from one-shot",
                      variants[v].mdname);
+            unpoison_all();
             CHECK(one_len == many_len && memcmp(one, many, one_len) == 0, msg);
+            repoison_all();
         }
         EVP_MD_free(md);
     }
@@ -320,6 +332,9 @@ int main(int argc, char **argv)
         printf("SKIP test_digest_sha3: %s is unavailable\n", g_skipmsg);
         return 0;
     }
+
+    free_poison_allocations();
+
     printf("test_digest_sha3: all %u checks passed\n", g_checks);
     return 0;
 }

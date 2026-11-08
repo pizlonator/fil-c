@@ -72,8 +72,13 @@ PROGRAMS := $(patsubst %.c,%,$(wildcard test_*.c))
 
 all: $(PROGRAMS)
 
-%: %.c poisoning.h
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $< $(LDLIBS)
+# Compile every translation unit -- including the shared poisoning.c -- to
+# an object file, then link each test binary against the common poisoning.o.
+%.o: %.c poisoning.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+
+$(PROGRAMS): %: %.o poisoning.o
+	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 ifneq ($(OPENSSL_FLAVOR_RPATH),)
 	patchelf --set-rpath '$(OPENSSL_FLAVOR_RPATH)' $@
 endif
@@ -82,6 +87,6 @@ check test: all
 	./run_all.sh
 
 clean:
-	rm -f $(PROGRAMS)
+	rm -f $(PROGRAMS) *.o
 
 .PHONY: all test check clean

@@ -207,7 +207,9 @@ static void test_kats(void)
         gotlen = digest_one_shot(md, in, inlen, got, 16);
         snprintf(msg, sizeof(msg), "%s one-shot digest does not match the KAT",
                  kat->mdname);
+        unpoison_all();
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+        repoison_all();
         EVP_MD_free(md);
     }
 }
@@ -233,22 +235,28 @@ static void test_routes(void)
     static_md = EVP_md5();
     CHECK(static_md != NULL, "EVP_md5() returned NULL");
     gotlen = digest_one_shot(static_md, in, 3, got, 16);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want_md5, wantlen) == 0,
           "EVP_md5() digest does not match the KAT");
+    repoison_all();
 
     byname_md = EVP_get_digestbyname("md5");
     CHECK(byname_md != NULL, "EVP_get_digestbyname(\"md5\") returned NULL");
     memset(got, 0, 16);
     gotlen = digest_chunked(byname_md, in, 3, got, 16);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want_md5, wantlen) == 0,
           "EVP_get_digestbyname(\"md5\") digest does not match the KAT");
+    repoison_all();
 
     byname_md = EVP_get_digestbyname("md4");
     CHECK(byname_md != NULL, "EVP_get_digestbyname(\"md4\") returned NULL");
     memset(got, 0, 16);
     gotlen = digest_chunked(byname_md, in, 3, got, 16);
+    unpoison_all();
     CHECK(gotlen == 16 && memcmp(got, want_md4, 16) == 0,
           "EVP_get_digestbyname(\"md4\") digest does not match the KAT");
+    repoison_all();
 }
 
 /* (3) Chunked-vs-one-shot equality for MD5 around the 64-byte block
@@ -274,7 +282,9 @@ static void test_md5_chunked_equality(void)
         size_t many_len = digest_chunked(md, in, n, many, 16);
         snprintf(msg, sizeof(msg),
                  "MD5 chunked digest differs from one-shot at input length %zu", n);
+        unpoison_all();
         CHECK(one_len == many_len && memcmp(one, many, one_len) == 0, msg);
+        repoison_all();
     }
     EVP_MD_free(md);
 }
@@ -308,21 +318,27 @@ static void test_md5_sha1(void)
     wantlen = from_hex("900150983cd24fb0d6963f7d28e17f72a9993e364706816aba3e25717850c26c9cd0d89d", want, 36);
 
     gotlen = digest_one_shot(md, in, 3, got, 36);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "MD5-SHA1(\"abc\") one-shot digest does not match the KAT");
+    repoison_all();
 
     memset(got, 0, 36);
     gotlen = digest_chunked_ab(md, in, 3, 2, 20, got, 36);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "MD5-SHA1 streaming updates ({2,20,rest}) do not match the KAT");
+    repoison_all();
 
     md5len = digest_one_shot(md5, in, 3, md5_out, 16);
     sha1len = digest_one_shot(sha1, in, 3, sha1_out, 20);
     CHECK(md5len == 16 && sha1len == 20, "component digest lengths are wrong");
+    unpoison_all();
     memcpy(halves, md5_out, 16);
     memcpy(halves + 16, sha1_out, 20);
     CHECK(memcmp(halves, want, 36) == 0,
           "MD5-SHA1 is not the concatenation MD5(\"abc\") || SHA1(\"abc\")");
+    repoison_all();
     EVP_MD_free(md);
     EVP_MD_free(md5);
     EVP_MD_free(sha1);
@@ -337,6 +353,8 @@ int main(int argc, char **argv)
     test_routes();
     test_md5_chunked_equality();
     test_md5_sha1();
+
+    free_poison_allocations();
 
     printf("test_digest_md5: all %u checks passed\n", g_checks);
     return 0;

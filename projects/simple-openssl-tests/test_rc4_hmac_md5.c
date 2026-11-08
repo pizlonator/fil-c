@@ -94,13 +94,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 #define MD5_MAC_LEN 16
@@ -254,8 +261,10 @@ static void test_tls_roundtrip(void)
                        1024 + MD5_MAC_LEN);
         build_aad(aad, s + 1, L + MD5_MAC_LEN); /* rewritten by the setter */
         stitch_decrypt(cipher, rckey, mackey, aad, record, L);
+        unpoison_all();
         CHECK(memcmp(record, payload, L) == 0,
               "the TLS record roundtrip did not recover the payload");
+        repoison_all();
         g_checks++;
     }
     EVP_CIPHER_free(cipher);
@@ -438,6 +447,8 @@ int main(int argc, char **argv)
     test_composition();
     test_tamper();
     test_nontls_is_rc4();
+
+    free_poison_allocations();
 
     printf("test_rc4_hmac_md5: all %u checks passed\n", g_checks);
     return 0;

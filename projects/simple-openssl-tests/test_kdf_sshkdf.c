@@ -77,13 +77,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* One SSHKDF derive with a fresh context.  Returns 1 on success, 0 on
@@ -176,7 +183,9 @@ static void test_types_sha1(void)
         from_hex(ssh_kats[k].outhex, want, OUT_CAP);
         snprintf(msg, sizeof(msg), "type %c output does not match the CAVS KAT",
                  ssh_kats[k].type);
+        unpoison_all();
         CHECK(memcmp(out, want, ssh_kats[k].outlen) == 0, msg);
+        repoison_all();
     }
 }
 
@@ -218,7 +227,7 @@ static void test_types_differ(void)
     unsigned char *key = ALLOCATE_KEY(K_CAP);
     unsigned char *h = ALLOCATE_SALT(HASH_CAP);
     unsigned char *sid = ALLOCATE_SALT(SID_CAP);
-    unsigned char out[6][OUT_CAP];
+    unsigned char *out[6];
     size_t keylen = from_hex(K1_HEX, key, K_CAP);
     size_t xlen = from_hex(H1_HEX, h, HASH_CAP);
     size_t sidlen = from_hex(SID1_HEX, sid, SID_CAP);
@@ -226,6 +235,8 @@ static void test_types_differ(void)
     char typebuf[2];
     char msg[128];
 
+    for (i = 0; i < 6; i++)
+        out[i] = ALLOCATE_OUTPUT(OUT_CAP);
     for (i = 0; i < 6; i++) {
         typebuf[0] = (char)('A' + (int)i);
         typebuf[1] = '\0';
@@ -238,7 +249,9 @@ static void test_types_differ(void)
             snprintf(msg, sizeof(msg),
                      "types %c and %c produced identical output",
                      (int)('A' + (int)i), (int)('A' + (int)j));
+            unpoison_all();
             CHECK(memcmp(out[i], out[j], 24) != 0, msg);
+            repoison_all();
         }
     }
 }
@@ -289,6 +302,8 @@ int main(int argc, char **argv)
     test_types_sha256();
     test_types_differ();
     test_negative();
+
+    free_poison_allocations();
 
     printf("test_kdf_sshkdf: all %u checks passed\n", g_checks);
     return 0;

@@ -94,13 +94,20 @@ static size_t from_str(const char *s, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* One TLS1-PRF derive with a fresh context; up to three seed chunks.
@@ -311,6 +318,8 @@ int main(int argc, char **argv)
     test_concat_seed();
     test_secret_shapes();
     test_missing_inputs();
+
+    free_poison_allocations();
 
     printf("test_kdf_tls1prf: all %u checks passed\n", g_checks);
     return 0;

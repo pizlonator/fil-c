@@ -82,13 +82,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* TRUE if the KDF's settable parameter list contains `name`. */
@@ -403,6 +410,7 @@ static void test_kmac_and_multi_info(void)
     size_t infolens[3];
     size_t keylen, labellen, infolen, wantlen, i, off;
     int has_r = kdf_has_param("KBKDF", "r");
+    int multi_info_equal;
 
     if (!has_kmac) {
         printf("note test_kdf_kbkdf: KBKDF does not support KMAC PRFs in "
@@ -451,7 +459,10 @@ static void test_kmac_and_multi_info(void)
                        NULL, 0, infos, infolens, 3, NULL, 0, 0, 0, 32,
                        out, 48),
           "KBKDF three-info-chunk derive failed");
-    if (wantlen == 48 && memcmp(out, want, 48) == 0) {
+    unpoison_all();
+    multi_info_equal = wantlen == 48 && memcmp(out, want, 48) == 0;
+    repoison_all();
+    if (multi_info_equal) {
         g_checks++; /* multi-chunk info equals the concatenated info */
     } else {
         printf("note test_kdf_kbkdf: this OpenSSL does not concatenate "
@@ -491,6 +502,8 @@ int main(int argc, char **argv)
     test_feedback();
     test_kmac_and_multi_info();
     test_negative();
+
+    free_poison_allocations();
 
     printf("test_kdf_kbkdf: all %u checks passed\n", g_checks);
     return 0;

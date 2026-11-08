@@ -95,13 +95,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 static const char *const KAT_PUB_512_HEX =
@@ -610,16 +617,20 @@ static void test_tampered_ciphertext(void)
         rc = decapsulate(pkey, bad_ct, kat_ctlen, ss, &sslen);
         CHECK(rc == 1, "decapsulation of a tampered ciphertext errored");
         CHECK(sslen == kat_sslen, "tampered-ciphertext shared secret size changed");
+        unpoison_all();
         CHECK(memcmp(ss, kat_ss, kat_sslen) != 0,
               "tampered ciphertext did not trigger implicit rejection");
+        repoison_all();
 
         memcpy(bad_ct, kat_ct, kat_ctlen);
         bad_ct[kat_ctlen - 1] ^= 0x80;
         sslen = ML_KEM_SS_LEN;
         rc = decapsulate(pkey, bad_ct, kat_ctlen, ss, &sslen);
         CHECK(rc == 1, "decapsulation of a tampered ciphertext errored");
+        unpoison_all();
         CHECK(memcmp(ss, kat_ss, kat_sslen) != 0,
               "tampered ciphertext did not trigger implicit rejection");
+        repoison_all();
         EVP_PKEY_free(pkey);
     }
 }
@@ -687,6 +698,8 @@ int main(int argc, char **argv)
     test_encap_kats();
     test_tampered_ciphertext();
     test_privkey_import();
+
+    free_poison_allocations();
 
     printf("test_ml_kem: all %u checks passed\n", g_checks);
     return 0;

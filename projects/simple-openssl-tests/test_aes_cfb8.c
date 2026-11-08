@@ -76,13 +76,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* Shared SP 800-38A material. */
@@ -270,8 +277,10 @@ static void test_byte_at_a_time(void)
               "CFB8 keeps no byte counter, so num must stay 0");
         EVP_CIPHER_CTX_free(ctx);
 
+        unpoison_all();
         CHECK(memcmp(one, many, KAT_PTLEN) == 0,
               "byte-at-a-time CFB8 encryption differs from one-shot encryption");
+        repoison_all();
         g_checks++;
 
         /* Same property on the decrypt route. */
@@ -285,8 +294,10 @@ static void test_byte_at_a_time(void)
         CHECK(EVP_DecryptFinal_ex(ctx, many + KAT_PTLEN, &len) == 1,
               "CFB8 decrypt Final failed");
         EVP_CIPHER_CTX_free(ctx);
+        unpoison_all();
         CHECK(memcmp(many, pt, KAT_PTLEN) == 0,
               "byte-at-a-time CFB8 decryption differs from one-shot decryption");
+        repoison_all();
         g_checks++;
 
         EVP_CIPHER_free(cipher);
@@ -367,8 +378,10 @@ static void test_zero_update_and_roundtrip(void)
     CHECK(EVP_EncryptFinal_ex(ctx, many + 16, &len) == 1, "CFB8 Final failed");
     CHECK(len == 0, "CFB8 Final emitted unexpected bytes");
     EVP_CIPHER_CTX_free(ctx);
+    unpoison_all();
     CHECK(memcmp(one, many, 16) == 0,
           "5+0+11 updates diverged from a single 16-byte update");
+    repoison_all();
     g_checks++;
 
     ctlen = cfb8_stream(cipher, key, iv, pt37, 37, ct37, 37 + 16, 1);
@@ -387,6 +400,8 @@ int main(int argc, char **argv)
     test_byte_at_a_time();
     test_streaming();
     test_zero_update_and_roundtrip();
+
+    free_poison_allocations();
 
     printf("test_aes_cfb8: all %u checks passed\n", g_checks);
     return 0;

@@ -167,13 +167,17 @@ static void test_kats(void)
         xof_digest_param(md, in, inlen, kat->xoflen, got_param);
         snprintf(msg, sizeof(msg), "%s xoflen=%zu digest does not match the KAT",
                  kat->mdname, kat->xoflen);
+        unpoison_all();
         CHECK(memcmp(got_param, want, wantlen) == 0, msg);
+        repoison_all();
 
         xof_digest_finalxof(md, in, inlen, kat->xoflen, got_xof);
         snprintf(msg, sizeof(msg),
                  "EVP_DigestFinalXOF disagrees with the xoflen route for %s",
                  kat->mdname);
+        unpoison_all();
         CHECK(memcmp(got_param, got_xof, wantlen) == 0, msg);
+        repoison_all();
         EVP_MD_free(md);
     }
 }
@@ -205,7 +209,9 @@ static void test_prefix_property(void)
         snprintf(msg, sizeof(msg),
                  "%s: longer squeeze changed the first %zu bytes", names[m],
                  short_len);
+        unpoison_all();
         CHECK(memcmp(short_out, long_out, short_len) == 0, msg);
+        repoison_all();
         EVP_MD_free(mds[m]);
     }
 }
@@ -244,8 +250,10 @@ static void test_squeeze(void)
     CHECK(EVP_DigestSqueeze(c2, onecall, 110) == 1,
           "EVP_DigestSqueeze (110 bytes) failed");
 
+    unpoison_all();
     CHECK(memcmp(twocall, onecall, 110) == 0,
           "two-call squeeze differs from the single 110-byte squeeze");
+    repoison_all();
     EVP_MD_CTX_free(c1);
     EVP_MD_CTX_free(c2);
     EVP_MD_free(md);
@@ -293,13 +301,17 @@ static void test_keccak_kmac(void)
                          got_param);
         snprintf(msg, sizeof(msg), "%s(\"abc\") digest does not match the KAT",
                  kat->mdname);
+        unpoison_all();
         CHECK(memcmp(got_param, want, wantlen) == 0, msg);
+        repoison_all();
 
         xof_digest_finalxof(md, (const unsigned char *)MSG_ABC, 3, kat->xoflen,
                             got_xof);
         snprintf(msg, sizeof(msg), "%s: FinalXOF route disagrees with xoflen route",
                  kat->mdname);
+        unpoison_all();
         CHECK(memcmp(got_param, got_xof, wantlen) == 0, msg);
+        repoison_all();
         EVP_MD_free(md);
     }
 }
@@ -322,6 +334,9 @@ int main(int argc, char **argv)
         printf("SKIP test_digest_shake: EVP_DigestSqueeze is unavailable\n");
         return 0;
     }
+
+    free_poison_allocations();
+
     printf("test_digest_shake: all %u checks passed\n", g_checks);
     return 0;
 }

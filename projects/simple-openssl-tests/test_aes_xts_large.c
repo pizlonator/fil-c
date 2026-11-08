@@ -149,12 +149,16 @@ static void test_max_data_unit_roundtrip(void)
     backlen = xts_crypt(cipher, key, iv, ct, ctlen, back, XTS_MAX_DATA_UNIT, 0);
     CHECK(backlen == XTS_MAX_DATA_UNIT,
           "the 16 MiB data unit did not decrypt to 16 MiB");
+    unpoison_all();
     CHECK(memcmp(back, in, XTS_MAX_DATA_UNIT) == 0,
           "the 16 MiB data unit roundtrip failed");
+    repoison_all();
 
     /* Spot-check that the ciphertext is not trivially the plaintext. */
+    unpoison_all();
     CHECK(memcmp(ct, in, 4096) != 0,
           "the 16 MiB ciphertext begins with the plaintext");
+    repoison_all();
     EVP_CIPHER_free(cipher);
 }
 
@@ -215,18 +219,26 @@ static void test_one_mebibyte_unit(void)
     CHECK(ctlen == MEBIBYTE, "the 1 MiB data unit did not encrypt to 1 MiB");
     backlen = xts_crypt(cipher, key, iv, ct, ctlen, back, MEBIBYTE, 0);
     CHECK(backlen == MEBIBYTE, "the 1 MiB data unit did not decrypt to 1 MiB");
+    unpoison_all();
     CHECK(memcmp(back, in, MEBIBYTE) == 0, "the 1 MiB data unit roundtrip failed");
+    repoison_all();
+    unpoison_all();
     CHECK(memcmp(ct, in, 4096) != 0,
           "the 1 MiB ciphertext begins with the plaintext");
+    repoison_all();
 
     /* In-place roundtrip of the same data unit. */
     memcpy(back, in, MEBIBYTE);
     xts_crypt(cipher, key, iv, back, MEBIBYTE, back, MEBIBYTE, 1);
+    unpoison_all();
     CHECK(memcmp(back, ct, MEBIBYTE) == 0,
           "in-place 1 MiB encryption differs from out-of-place");
+    repoison_all();
     g_checks++;
     xts_crypt(cipher, key, iv, back, MEBIBYTE, back, MEBIBYTE, 0);
+    unpoison_all();
     CHECK(memcmp(back, in, MEBIBYTE) == 0, "in-place 1 MiB roundtrip failed");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
 }
@@ -284,16 +296,20 @@ static void test_four_mebibyte_stream(void)
     CHECK(EVP_DecryptFinal_ex(ctx, back + 4 * MEBIBYTE, &len) == 1,
           "XTS Final failed");
     EVP_CIPHER_CTX_free(ctx);
+    unpoison_all();
     CHECK(memcmp(back, in, 4 * MEBIBYTE) == 0,
           "the 4 x 1 MiB stream roundtrip failed");
+    repoison_all();
     g_checks++;
 
     /* Each stream update is its own data unit: encrypting the first MiB
      * through a fresh context reproduces the first streamed MiB. */
     xts_crypt(cipher, key, iv, in, MEBIBYTE, unit, MEBIBYTE, 1);
+    unpoison_all();
     CHECK(memcmp(unit, ct, MEBIBYTE) == 0,
           "the first 1 MiB stream update is not an independent data unit "
           "with the given data-unit number");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
 }
@@ -306,6 +322,8 @@ int main(int argc, char **argv)
     test_data_unit_too_large();
     test_one_mebibyte_unit();
     test_four_mebibyte_stream();
+
+    free_poison_allocations();
 
     printf("test_aes_xts_large: all %u checks passed\n", g_checks);
     return 0;

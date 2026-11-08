@@ -68,13 +68,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* Shared SP 800-38A material. */
@@ -325,8 +332,10 @@ static void test_zero_byte_update_noop(void)
     CHECK(len == 0, "OFB Final emitted unexpected bytes");
     EVP_CIPHER_CTX_free(ctx);
 
+    unpoison_all();
     CHECK(memcmp(one, many, 16) == 0,
           "5+0+11 updates diverged from a single 16-byte update");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
 }
@@ -366,6 +375,8 @@ int main(int argc, char **argv)
     test_decrypt_is_encrypt();
     test_zero_byte_update_noop();
     test_partial_final_block();
+
+    free_poison_allocations();
 
     printf("test_aes_ofb: all %u checks passed\n", g_checks);
     return 0;

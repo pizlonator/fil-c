@@ -84,13 +84,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* One-shot GMAC: the cipher through the "cipher" parameter, the IV
@@ -298,8 +305,10 @@ static void test_tampered_aad(void)
     aad[0] ^= 0x01;
     got_badlen = gmac_oneshot(key, 16, iv, 12, aad, 20, got_bad, 16);
     CHECK(gotlen == 16 && got_badlen == 16, "GMAC tag lengths are wrong");
+    unpoison_all();
     CHECK(memcmp(got, got_bad, 16) != 0,
           "tampering with one AAD bit did not change the GMAC tag");
+    repoison_all();
 }
 
 /* (4) IV lengths: 0 must fail; 8 and 16 must agree with the GCM path. */
@@ -347,14 +356,18 @@ static void test_iv_lengths(void)
     gotlen = gmac_oneshot(key, 16, iv8, 8, aad, 20, got, 16);
     CHECK(gotlen == 16, "8-byte IV GMAC failed");
     gcm_aad_only_tag(key, 16, iv8, 8, aad, 20, gcm_tag, gcm_len);
+    unpoison_all();
     CHECK(memcmp(got, gcm_tag, 16) == 0,
           "8-byte IV GMAC differs from the GCM AAD-only tag");
+    repoison_all();
 
     gotlen = gmac_oneshot(key, 16, iv16, 16, aad, 20, got, 16);
     CHECK(gotlen == 16, "16-byte IV GMAC failed");
     gcm_aad_only_tag(key, 16, iv16, 16, aad, 20, gcm_tag, gcm_len);
+    unpoison_all();
     CHECK(memcmp(got, gcm_tag, 16) == 0,
           "16-byte IV GMAC differs from the GCM AAD-only tag");
+    repoison_all();
 
     EVP_MAC_free(mac);
 }
@@ -400,6 +413,8 @@ int main(int argc, char **argv)
     test_tampered_aad();
     test_iv_lengths();
     test_mac_size();
+
+    free_poison_allocations();
 
     printf("test_mac_gmac: all %u checks passed\n", g_checks);
     return 0;

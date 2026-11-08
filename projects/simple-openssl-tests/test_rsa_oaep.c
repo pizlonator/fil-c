@@ -371,12 +371,16 @@ static void test_mgf1_variation(EVP_PKEY *key)
           "OAEP-SHA1/MGF1-SHA256 encryption failed");
     CHECK(oaep_decrypt(key, "SHA1", "SHA256", NULL, 0, ct_a, a, back, &backlen) == 1,
           "OAEP-SHA1/MGF1-SHA256 decryption failed");
+    unpoison_all();
     CHECK(backlen == 64 && memcmp(back, msg, 64) == 0,
           "OAEP-SHA1/MGF1-SHA256 roundtrip did not recover the message");
+    repoison_all();
 
+    unpoison_all();
     CHECK(oaep_encrypt(key, "SHA1", NULL, NULL, 0, msg, 64, ct_b, &b) == 1 &&
           b == 256 && memcmp(ct_a, ct_b, 256) != 0,
           "MGF1-SHA256 ciphertext equals the MGF1-SHA1 ciphertext");
+    repoison_all();
 
     /* Decrypting the MGF1-SHA256 ciphertext as MGF1-SHA1 must fail. */
     CHECK(oaep_decrypt(key, "SHA1", NULL, NULL, 0, ct_a, a, back, &backlen) == 0,
@@ -410,8 +414,10 @@ static void test_labels_and_kat(EVP_PKEY *key)
           "OAEP encryption with a label failed");
     CHECK(oaep_decrypt(key, "SHA1", NULL, label, 6, ct, i, back, &backlen) == 1,
           "OAEP decryption with the same label failed");
+    unpoison_all();
     CHECK(backlen == 32 && memcmp(back, msg, 32) == 0,
           "labeled OAEP roundtrip did not recover the message");
+    repoison_all();
 
     /* Wrong label must fail. */
     CHECK(oaep_decrypt(key, "SHA1", NULL, NULL, 0, ct, i, back, &backlen) == 0,
@@ -423,8 +429,10 @@ static void test_labels_and_kat(EVP_PKEY *key)
           "OAEP encryption with an empty label failed");
     CHECK(oaep_decrypt(key, "SHA1", NULL, NULL, 0, ct, i, back, &backlen) == 1,
           "OAEP decryption with an empty label failed");
+    unpoison_all();
     CHECK(backlen == 32 && memcmp(back, msg, 32) == 0,
           "unlabeled OAEP roundtrip did not recover the message");
+    repoison_all();
 
     /* KAT: the CLI-produced ciphertext decrypts to the fixed message. */
     katmsglen = from_hex(KAT_MSG_HEX, katmsg, 16);
@@ -434,8 +442,10 @@ static void test_labels_and_kat(EVP_PKEY *key)
     CHECK(oaep_decrypt(key, "SHA256", "SHA256", NULL, 0,
                        katct, 256, katback, &katbacklen) == 1,
           "decrypting the CLI OAEP KAT ciphertext failed");
+    unpoison_all();
     CHECK(katbacklen == 16 && memcmp(katback, katmsg, 16) == 0,
           "OAEP KAT plaintext mismatch");
+    repoison_all();
 }
 
 
@@ -479,6 +489,8 @@ int main(int argc, char **argv)
     test_labels_and_kat(key);
     test_tamper(key);
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 
     printf("test_rsa_oaep: all %u checks passed\n", g_checks);
     return 0;

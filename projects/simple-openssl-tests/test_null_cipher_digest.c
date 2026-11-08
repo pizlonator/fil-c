@@ -119,13 +119,17 @@ static void test_null_cipher_fetch(void)
     fill_pattern(in, PATTERN_LEN);
     ctlen = null_cipher_pass(cipher, 1, in, PATTERN_LEN, ct, PATTERN_LEN + 1);
     CHECK(ctlen == PATTERN_LEN, "NULL cipher encryption changed the length");
+    unpoison_all();
     CHECK(memcmp(ct, in, PATTERN_LEN) == 0,
           "NULL cipher encryption did not pass the pattern through");
+    repoison_all();
 
     backlen = null_cipher_pass(cipher, 0, ct, ctlen, back, PATTERN_LEN + 1);
     CHECK(backlen == PATTERN_LEN, "NULL cipher decryption changed the length");
+    unpoison_all();
     CHECK(memcmp(back, in, PATTERN_LEN) == 0,
           "NULL cipher roundtrip did not recover the pattern");
+    repoison_all();
     EVP_CIPHER_free(cipher);
 }
 
@@ -143,8 +147,10 @@ static void test_null_cipher_static(void)
     fill_pattern(in, PATTERN_LEN);
     ctlen = null_cipher_pass(cipher, 1, in, PATTERN_LEN, ct, PATTERN_LEN + 1);
     backlen = null_cipher_pass(cipher, 0, ct, ctlen, back, PATTERN_LEN + 1);
+    unpoison_all();
     CHECK(backlen == PATTERN_LEN && memcmp(back, in, PATTERN_LEN) == 0,
           "EVP_enc_null() roundtrip did not recover the pattern");
+    repoison_all();
 }
 
 /* (3) The NULL digest through EVP_MD_fetch: size 0, empty one-shot
@@ -225,6 +231,9 @@ int main(int argc, char **argv)
         printf("SKIP test_null_cipher_digest: the NULL digest is unavailable\n");
         return 0;
     }
+
+    free_poison_allocations();
+
     printf("test_null_cipher_digest: all %u checks passed\n", g_checks);
     return 0;
 }

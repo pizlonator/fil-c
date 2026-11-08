@@ -268,7 +268,9 @@ static void test_ed25519_rfc_kats(void)
         CHECK(siglen == 64, "Ed25519 signature is not 64 bytes");
         snprintf(mbuf, sizeof(mbuf),
                  "RFC 8032 7.1 TEST %zu: our signature != RFC signature", t + 1);
+        unpoison_all();
         CHECK(memcmp(sig, want, 64) == 0, mbuf);
+        repoison_all();
         snprintf(mbuf, sizeof(mbuf),
                  "RFC 8032 7.1 TEST %zu: RFC signature does not verify", t + 1);
         CHECK(ed_verify(key, NULL, msg, msglen, want, wantlen) == 1, mbuf);
@@ -305,9 +307,11 @@ static void test_ed25519_sign_verify_negative(void)
     {
         unsigned char *sig2 = ALLOCATE_OUTPUT(128);
         size_t sig2len = 0;
+        unpoison_all();
         CHECK(ed_sign(key, NULL, msg, msglen, sig2, &sig2len) == 1 &&
               sig2len == siglen && memcmp(sig2, sig, siglen) == 0,
               "Ed25519 signing is not deterministic");
+        repoison_all();
     }
     for (i = 0; i < 64; i++)
         bad[i] = sig[i];
@@ -370,8 +374,10 @@ static void test_ed25519_instances(void)
         CHECK(wantlen == 64, "Ed25519ctx KAT signature length mismatch");
         CHECK(ed_sign(key, params, msg, msglen, sig, &siglen) == 1,
               "Ed25519ctx signing failed");
+        unpoison_all();
         CHECK(siglen == 64 && memcmp(sig, want, 64) == 0,
               "Ed25519ctx signature != RFC 8032 7.2 \"foo\" vector");
+        repoison_all();
         CHECK(ed_verify(key, params, msg, msglen, want, wantlen) == 1,
               "Ed25519ctx RFC signature does not verify");
         /* The context is bound: verifying with a different one fails. */
@@ -412,8 +418,10 @@ static void test_ed25519_instances(void)
         CHECK(wantlen == 64, "Ed25519ph KAT signature length mismatch");
         CHECK(ed_sign(key, params, msg, msglen, sig, &siglen) == 1,
               "Ed25519ph signing failed");
+        unpoison_all();
         CHECK(siglen == 64 && memcmp(sig, want, 64) == 0,
               "Ed25519ph signature != RFC 8032 7.3 vector");
+        repoison_all();
         CHECK(ed_verify(key, params, msg, msglen, want, wantlen) == 1,
               "Ed25519ph RFC signature does not verify");
     }
@@ -471,8 +479,10 @@ static void test_ed448(void)
     CHECK(wantlen == 114, "Ed448 Blank KAT signature length mismatch");
     CHECK(ed_sign(key, NULL, msg, 0, sig, &siglen) == 1,
           "Ed448 Blank signing failed");
+    unpoison_all();
     CHECK(siglen == 114 && memcmp(sig, want, 114) == 0,
           "Ed448 Blank signature != RFC 8032 7.4 vector");
+    repoison_all();
     CHECK(ed_verify(key, NULL, msg, 0, want, wantlen) == 1,
           "Ed448 Blank RFC signature does not verify");
     EVP_PKEY_free(key);
@@ -487,8 +497,10 @@ static void test_ed448(void)
     CHECK(wantlen == 114, "Ed448 1-octet KAT signature length mismatch");
     CHECK(ed_sign(key, NULL, msg, msglen, sig, &siglen) == 1,
           "Ed448 1-octet signing failed");
+    unpoison_all();
     CHECK(siglen == 114 && memcmp(sig, want, 114) == 0,
           "Ed448 1-octet signature != RFC 8032 7.4 vector");
+    repoison_all();
     EVP_PKEY_free(key);
 
     /* "1 octet (with context foo)" -- gated on context-string support. */
@@ -507,8 +519,10 @@ static void test_ed448(void)
         CHECK(wantlen == 114, "Ed448 context KAT signature length mismatch");
         CHECK(ed_sign(key, params, msg, msglen, sig, &siglen) == 1,
               "Ed448 context signing failed");
+        unpoison_all();
         CHECK(siglen == 114 && memcmp(sig, want, 114) == 0,
               "Ed448 context signature != RFC 8032 7.4 vector");
+        repoison_all();
         CHECK(ed_verify(key, params, msg, msglen, want, wantlen) == 1,
               "Ed448 context RFC signature does not verify");
     }
@@ -524,6 +538,8 @@ int main(int argc, char **argv)
     test_ed25519_sign_verify_negative();
     test_ed25519_instances();
     test_ed448();
+
+    free_poison_allocations();
 
     printf("test_ed25519_ed448: all %u checks passed\n", g_checks);
     return 0;

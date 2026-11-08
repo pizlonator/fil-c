@@ -23,7 +23,10 @@ Design points:
   `OSSL_PROVIDER_load`, ...).  No deprecated low-level APIs, no headers
   beyond the public ones.
 * **Self-contained**: no input files, no network, no threads/signals, no
-  VLAs, no `alloca`.  The only shared file is `poisoning.h`.  Every
+  VLAs, no `alloca`.  The only shared files are `poisoning.h` and
+  `poisoning.c` — the header declares the poisoning API, `poisoning.c`
+  implements it, and every test binary links the one shared `poisoning.o`
+  the Makefile builds from it.  Every
   expected value is a deterministic known-answer test (KAT) or a
   self-consistency check embedded in the source.
 * **Deterministic where the algorithm allows it**: randomized algorithms
@@ -33,7 +36,8 @@ Design points:
   `EVP_PKEY_fromdata`).
 * **Every malloc'd buffer that is handed to OpenSSL flows through a labeled
   `ALLOCATE_*` wrapper** at the top of the program, which funnels into
-  `poison_alloc()` in `poisoning.h` (see [Poison options](#poison-options)).
+  `poison_alloc()` in `poisoning.c` (declared in `poisoning.h`; see
+  [Poison options](#poison-options)).
 
 Program contract, identical for all 80 programs:
 
@@ -217,14 +221,21 @@ Both the pizfix build and the yolo build report `OpenSSL 3.6.5 29 Sep 2026`.
 Every working buffer is allocated by a labeled `ALLOCATE_*` function at the
 top of each program (e.g. `ALLOCATE_KEY`, `ALLOCATE_INPUT`, `ALLOCATE_OUTPUT`,
 `ALLOCATE_IV`, `ALLOCATE_AAD`, `ALLOCATE_TAG`, `ALLOCATE_SALT`,
-`ALLOCATE_OTHER`), and each wrapper funnels into `poison_alloc()` in
-`poisoning.h`.  When the user requests a poison kind on the command line, the
-`ALLOCATE_*` function calls `poison_range()` on what `malloc()` returned;
-otherwise it does not.  `poison_range()` forwards to the zegarmistrz
+`ALLOCATE_OTHER`), and each wrapper funnels into `poison_alloc()`, which is
+implemented in `poisoning.c` and declared in `poisoning.h`.  When the user
+requests a poison kind on the command line, `poison_alloc()` calls
+`poison_range()` on what `malloc()` returned; otherwise it does not.
+`poison_range()` is private to `poisoning.c` (tests poison buffers
+exclusively through `poison_alloc()`) and forwards to the zegarmistrz
 poisoning API (`<zegarmistrz.h>`, header-only) when a *variant* selection
 is active (see the next section); without one it is a no-op — the single
 hook where a real poisoning implementation (e.g. a Fil-C/GIMSO poisoning
-API) can be installed without touching any test program.  Passing a poison
+API) can be installed without touching any test program.  `poison_alloc()` also
+records every allocation it hands out — poisoned or not, along with
+whether the poison was actually applied — in a resizable table private
+to `poisoning.c`; that table is what powers `unpoison_all()`,
+`repoison_all()`, and `free_poison_allocations()` (see
+[Comparisons and freeing](#comparisons-and-freeing)).  Passing a poison
 option must never change what a program computes — it only changes which
 buffers the hook is called on.
 
@@ -252,8 +263,8 @@ programs take no other input.
 
 ### Poisoning variants (zegarmistrz)
 
-Under the zegarmistrz emulator, `poison_range()` taints every poisoned
-buffer with the selected *variant* bits:
+Under the zegarmistrz emulator, `poison_range()` (private to
+`poisoning.c`) taints every poisoned buffer with the selected *variant* bits:
 
 ```sh
 POISON_VARIANTS=cannot-branch,cannot-index ./test_aes_cbc --poison-all
@@ -275,6 +286,39 @@ plumbing; an explicit `--poison-variants=` on the command line overrides
 it.  Poisoning only takes effect under the emulator — outside it every
 poison option is a no-op, so poison options never change what a program
 computes.
+
+### Comparisons and freeing
+
+`memcmp()` branches on the bytes it compares, so a comparison must never
+run on poisoned data — under the emulator that fatally faults the program
+(and taint spreads downstream: a ciphertext derived from a poisoned key is
+tainted too, even though nobody poisoned it directly).  Every comparison
+block in every test therefore runs unpoisoned:
+
+```c
+
+unpoison_all();
+
+CHECK(memcmp(got, want, wantlen) == 0, what);
+
+repoison_all();
+
+```
+
+`unpoison_all()` clears the poison on every allocation `poison_alloc()`
+has recorded — including the downstream-tainted ones, which is what makes
+the comparison safe.  `repoison_all()` restores the poison on exactly
+those tracked allocations that were poisoned when they were made; it
+deliberately does not poison allocations that were never poisoned, since
+re-poisoning clean data would newly taint it.  Finally,
+`free_poison_allocations()` unpoisons every tracked allocation, frees
+them all, and forgets them; every test calls it in `main()` after the
+tests that allocated poison allocations.  Note that `unpoison_all()`
+only covers the heap allocations `poison_alloc()` has recorded: taint
+that lands in memory it does not track — stack buffers, or buffers
+allocated inside libcrypto itself — is invisible to it and still faults
+at the comparison.  Such a fault is a genuine finding about where a
+computation touched tainted data, not a bug in the tests.
 
 ## Poisoning variant sweep
 
@@ -625,13 +669,20 @@ picked up by the Makefile automatically.  House rules:
    constants may be `static const` strings (hex is convenient), but must be
    copied into `ALLOCATE_*` buffers before use.
 3. `main()` starts with `poison_parse_args(argc, argv);`.
-4. Each program is fully self-contained: only `poisoning.h` is shared; no new
-   shared headers, no helper `.c` files, no file I/O, no VLAs, no `alloca`,
+4. Bracket every `memcpy`/`memcmp` comparison block with
+   `unpoison_all()` before it and `repoison_all()` after it (see
+   [Comparisons and freeing](#comparisons-and-freeing)) — `memcmp` branches
+   on the compared bytes and must run on unpoisoned data.  `main()` also
+   calls `free_poison_allocations()` after the tests that allocated poison
+   allocations, just before the success `printf`.
+5. Each program is fully self-contained: only `poisoning.h` and
+   `poisoning.c` are shared; no new shared headers, no other helper `.c`
+   files, no file I/O, no VLAs, no `alloca`,
    no threads/signals.  C99.  Public OpenSSL 3 API only (`EVP_CIPHER_fetch`,
    `EVP_MD_fetch`, `EVP_MAC_fetch`, `EVP_KDF_fetch`, `EVP_PKEY_*`,
    `OSSL_PARAM`, `OSSL_PROVIDER_load`, ...); no deprecated low-level APIs.
    `EVP_get_cipherbyname`/`EVP_get_digestbyname` are fine.
-5. Failure handling: a `static void test_failed(const char *msg)` plus a
+6. Failure handling: a `static void test_failed(const char *msg)` plus a
    `CHECK(cond, msg)` macro; on failure print `FAIL <program>: <msg>` to
    stderr and exit(1).  Track passing checks in `g_checks` and, on success,
    print `<program>: all N checks passed` and exit(0).  If a genuinely
@@ -641,16 +692,16 @@ picked up by the Makefile automatically.  House rules:
    version-dependent *subtest* prints a `SKIP` line and keeps going, and a
    version-dependent behavior difference between two builds is asserted as
    "3.0.x does X, 3.6.x does Y" in a comment.
-6. Size output buffers per the EVP contract: each Encrypt/Decrypt update can
+7. Size output buffers per the EVP contract: each Encrypt/Decrypt update can
    emit up to `inl + block_size` bytes and Final up to `block_size` bytes,
    so allocate `ALLOCATE_OUTPUT` accordingly and CHECK the contract.
-7. For AEAD ciphers, set `ivlen`/`taglen` **before** the init call that
+8. For AEAD ciphers, set `ivlen`/`taglen` **before** the init call that
    passes the key and IV (CCM outright rejects a nonce whose length does
    not match the configured `ivlen`), and remember SIV/CCM-style rules:
    one payload per init (SIV), the length announcement update (CCM).
-8. OSSL_PARAM integer parameters are native-endian: byte-swap big-endian
+9. OSSL_PARAM integer parameters are native-endian: byte-swap big-endian
    constants (e.g. fixed RSA/DH keys) before `EVP_PKEY_fromdata`.
-9. Known-answer vectors must be verified against the authoritative build
+10. Known-answer vectors must be verified against the authoritative build
    before being embedded: use `pizfix/bin/openssl` (OpenSSL 3.6.5) in /tmp
    scratch, e.g. `printf 'abc' | pizfix/bin/openssl dgst -sha256` or
    `printf '<hex>' | xxd -r -p | pizfix/bin/openssl enc -aes-128-cbc -nopad

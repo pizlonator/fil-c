@@ -79,13 +79,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* One-shot HMAC via EVP_MAC: the digest comes through the "digest"
@@ -400,18 +407,24 @@ static void test_key_sizes(void)
     wantlen = from_hex(zerokats[0], want, 32);
 
     gotlen = hmac_oneshot("SHA256", empty, 0, NULL, 0, got, 32);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "HMAC-SHA256 with the empty key does not match the KAT");
+    repoison_all();
 
     memset(key32, 0, 32);
     gotlen = hmac_oneshot("SHA256", key32, 32, NULL, 0, got, 32);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "HMAC-SHA256 with a 32-zero-byte key differs from the empty-key KAT");
+    repoison_all();
 
     memset(key64, 0, 64);
     gotlen = hmac_oneshot("SHA256", key64, 64, NULL, 0, got, 32);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "HMAC-SHA256 with a 64-zero-byte key differs from the empty-key KAT");
+    repoison_all();
 }
 
 /* (5) A nonexistent digest name must fail cleanly: either the parameter
@@ -448,6 +461,8 @@ int main(int argc, char **argv)
     test_rfc2202();
     test_key_sizes();
     test_wrong_digest();
+
+    free_poison_allocations();
 
     printf("test_mac_hmac: all %u checks passed\n", g_checks);
     return 0;

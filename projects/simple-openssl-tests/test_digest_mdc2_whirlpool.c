@@ -159,19 +159,25 @@ static void test_mdc2(void)
     memcpy(in, "abc", 3);
     wantlen = from_hex("3ff42120ee863f5d910cf2ee5064f82f", want, 16);
     gotlen = digest_one_shot(md, in, 3, got, 16);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "MDC2(\"abc\") one-shot digest does not match the KAT");
+    repoison_all();
 
     memset(got, 0, 16);
     gotlen = digest_chunked(md, in, 3, got, 16);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "MDC2(\"abc\") chunked digest does not match the KAT");
+    repoison_all();
 
     memcpy(in, "message digest", 14);
     wantlen = from_hex("fa13444f04050d012f209890b1c235ab", want, 16);
     gotlen = digest_one_shot(md, in, 14, got, 16);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "MDC2(\"message digest\") one-shot digest does not match the KAT");
+    repoison_all();
     EVP_MD_free(md);
 }
 
@@ -195,24 +201,32 @@ static void test_whirlpool(void)
     memcpy(in, "abc", 3);
     wantlen = from_hex("4e2448a4c6f486bb16b6562c73b4020bf3043e3a731bce721ae1b303d97e6d4c7181eebdb6c57e277d0e34957114cbd6c797fc9d95d8b582d225292076d4eef5", want, 64);
     gotlen = digest_one_shot(md, in, 3, got, 64);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "WHIRLPOOL(\"abc\") one-shot digest does not match the KAT");
+    repoison_all();
 
     memset(got, 0, 64);
     gotlen = digest_chunked(md, in, 3, got, 64);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "WHIRLPOOL(\"abc\") chunked digest does not match the KAT");
+    repoison_all();
 
     memcpy(in, "message digest", 14);
     wantlen = from_hex("378c84a4126e2dc6e56dcc7458377aac838d00032230f53ce1f5700c0ffb4d3b8421557659ef55c106b4b52ac5a4aaa692ed920052838f3362e86dbd37a8903e", want, 64);
     gotlen = digest_one_shot(md, in, 14, got, 64);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "WHIRLPOOL(\"message digest\") one-shot digest does not match the KAT");
+    repoison_all();
 
     wantlen = from_hex("19fa61d75522a4669b44e39c1d2e1726c530232130d407f89afee0964997f7a73e83be698b288febcf88e3e03c4f0757ea8964e59b63d93708b138cc42a66eb3", want, 64);
     gotlen = digest_one_shot(md, in, 0, got, 64);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "WHIRLPOOL(\"\") one-shot digest does not match the KAT");
+    repoison_all();
 
     byname_md = EVP_get_digestbyname("whirlpool");
     CHECK(byname_md != NULL, "EVP_get_digestbyname(\"whirlpool\") returned NULL");
@@ -222,7 +236,9 @@ static void test_whirlpool(void)
     wantlen = from_hex("4e2448a4c6f486bb16b6562c73b4020bf3043e3a731bce721ae1b303d97e6d4c7181eebdb6c57e277d0e34957114cbd6c797fc9d95d8b582d225292076d4eef5", want, 64);
     snprintf(msg, sizeof(msg),
              "EVP_get_digestbyname(\"whirlpool\") digest does not match the KAT");
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+    repoison_all();
     EVP_MD_free(md);
 }
 
@@ -238,6 +254,9 @@ int main(int argc, char **argv)
         printf("SKIP test_digest_mdc2_whirlpool: %s is unavailable\n", g_skipmsg);
         return 0;
     }
+
+    free_poison_allocations();
+
     printf("test_digest_mdc2_whirlpool: all %u checks passed\n", g_checks);
     return 0;
 }

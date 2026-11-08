@@ -69,13 +69,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 /* Shared SP 800-38A material. */
@@ -404,8 +411,10 @@ static void test_keystream_and_num(void)
     EVP_CIPHER_CTX_free(ctx);
 
     CHECK(len == 48, "48-byte keystream extraction did not emit 48 bytes");
+    unpoison_all();
     CHECK(memcmp(ks1, ks2, 48) == 0,
           "two fresh contexts produced different keystreams");
+    repoison_all();
 
     /* Partial-block state: after a 5-byte update the context reports 5 bytes
      * of the current keystream block consumed; 11 more complete the block. */
@@ -425,9 +434,11 @@ static void test_keystream_and_num(void)
           "EVP_EncryptUpdate failed");
     CHECK(EVP_CIPHER_CTX_get_num(ctx) == 0,
           "counter position did not return to 0 after a full block");
+    unpoison_all();
     for (i = 0; i < 16; i++)
         if (ks1[i] != ks2[i])
             test_failed("5+0+11 updates diverged from the one-shot keystream");
+    repoison_all();
     g_checks++;
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
@@ -443,6 +454,8 @@ int main(int argc, char **argv)
     test_partial_final_block();
     test_in_place();
     test_keystream_and_num();
+
+    free_poison_allocations();
 
     printf("test_aes_ctr: all %u checks passed\n", g_checks);
     return 0;

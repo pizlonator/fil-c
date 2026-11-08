@@ -79,13 +79,20 @@ static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
     return n;
 }
 
-/* Length-and-content comparison of two working buffers. */
+/* Length-and-content comparison of two working buffers.  memcmp() cannot be
+ * run on poisoned data: it branches on the compared bytes, which fatally
+ * faults under the emulator when the data is tainted (directly or via
+ * downstream propagation).  Unpoison everything poison_alloc() handed out,
+ * compare, then restore the poison. */
 static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
                          const unsigned char *want, size_t wantlen)
 {
     CHECK(gotlen == wantlen, what);
-    if (wantlen > 0)
+    if (wantlen > 0) {
+        unpoison_all();
         CHECK(memcmp(got, want, wantlen) == 0, what);
+        repoison_all();
+    }
 }
 
 #define LARGE_LEN (1024u * 1024u)   /* 1 MiB payload */
@@ -331,8 +338,10 @@ static void test_large_stream_equals_one_shot(void)
         ocb_decrypt_streaming(cipher, key, nonce, NULL, 0, ct2, ct2len,
                               back, LARGE_LEN + 16, &backlen, tag2);
         CHECK(backlen == LARGE_LEN, "streaming decrypt length is not inlen");
+        unpoison_all();
         CHECK(memcmp(back, pt, LARGE_LEN) == 0,
               "streaming decrypt of 1MiB did not recover the plaintext");
+        repoison_all();
         EVP_CIPHER_free(cipher);
     }
 }
@@ -464,6 +473,8 @@ int main(int argc, char **argv)
     test_large_stream_equals_one_shot();
     test_large_aad();
     test_tampered_final_block();
+
+    free_poison_allocations();
 
     printf("test_aes_ocb_large: all %u checks passed\n", g_checks);
     return 0;

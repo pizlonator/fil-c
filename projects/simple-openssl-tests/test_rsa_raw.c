@@ -256,8 +256,10 @@ static void test_roundtrip_pad_mode_param(EVP_PKEY *key)
           "no-padding decryption failed");
     CHECK(backlen == 256, "no-padding decrypt did not return all 256 bytes "
                           "(leading zeros must be preserved)");
+    unpoison_all();
     CHECK(memcmp(back, pt, 256) == 0,
           "no-padding roundtrip did not recover the block byte-exactly");
+    repoison_all();
     EVP_PKEY_CTX_free(ectx);
     EVP_PKEY_CTX_free(dctx);
 }
@@ -288,8 +290,10 @@ static void test_roundtrip_set_rsa_padding(EVP_PKEY *key)
           "EVP_PKEY_CTX_set_rsa_padding(RSA_NO_PADDING) failed");
     CHECK(EVP_PKEY_decrypt(dctx, back, &backlen, ct, ctlen) == 1,
           "no-padding decryption (set_rsa_padding route) failed");
+    unpoison_all();
     CHECK(backlen == 256 && memcmp(back, pt, 256) == 0,
           "no-padding roundtrip (set_rsa_padding route) failed");
+    repoison_all();
     EVP_PKEY_CTX_free(ectx);
     EVP_PKEY_CTX_free(dctx);
 }
@@ -369,8 +373,10 @@ static void test_rsasve_kem(EVP_PKEY *key)
     ss2 = ALLOCATE_OUTPUT(ss2len);
     CHECK(EVP_PKEY_decapsulate(dctx, ss2, &ss2len, ct, ctlen) == 1,
           "RSASVE decapsulation failed");
+    unpoison_all();
     CHECK(ss2len == sslen && memcmp(ss2, ss, sslen) == 0,
           "RSASVE decapsulation did not recover the shared secret");
+    repoison_all();
     EVP_PKEY_CTX_free(dctx);
 }
 
@@ -387,6 +393,8 @@ int main(int argc, char **argv)
     test_bad_lengths(key);
     test_rsasve_kem(key);
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 
     printf("test_rsa_raw: all %u checks passed\n", g_checks);
     return 0;

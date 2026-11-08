@@ -342,8 +342,10 @@ static void test_kat(EVP_PKEY *key)
     CHECK(wantlen == 256, "KAT signature constant has the wrong length");
 
     siglen = sign_digest(key, msg, sizeof(KAT_MSG) - 1, sig, 256);
+    unpoison_all();
     CHECK(siglen == wantlen && memcmp(sig, want, wantlen) == 0,
           "PKCS#1 v1.5 SHA-256 signature does not match the CLI KAT");
+    repoison_all();
 
     /* And the KAT signature verifies through EVP_PKEY_verify. */
     {
@@ -474,9 +476,11 @@ static void test_type2_roundtrip(EVP_PKEY *key)
                  "type 2 roundtrip of %zu bytes returned %zu bytes",
                  sizes[s], backlen);
         CHECK(backlen == sizes[s], mbuf);
+        unpoison_all();
         if (sizes[s] > 0)
             CHECK(memcmp(back, msg, sizes[s]) == 0,
                   "type 2 roundtrip did not recover the message");
+        repoison_all();
         EVP_PKEY_CTX_free(ectx);
         EVP_PKEY_CTX_free(dctx);
     }
@@ -521,8 +525,10 @@ static void test_type2_tamper(EVP_PKEY *key)
     CHECK(EVP_PKEY_decrypt_init(dctx) == 1, "EVP_PKEY_decrypt_init failed");
     CHECK(EVP_PKEY_decrypt(dctx, back, &backlen, ct, ctlen) == 1,
           "implicitly-rejected decrypt of tampered ciphertext errored");
+    unpoison_all();
     CHECK(!(backlen == 16 && memcmp(back, msg, 16) == 0),
           "tampered type 2 ciphertext decrypted to the original message");
+    repoison_all();
     EVP_PKEY_CTX_free(ectx);
     EVP_PKEY_CTX_free(dctx);
 }
@@ -572,6 +578,8 @@ int main(int argc, char **argv)
     test_type2_tamper(key);
     test_wrong_digest(key);
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 
     printf("test_rsa_pkcs1: all %u checks passed\n", g_checks);
     return 0;

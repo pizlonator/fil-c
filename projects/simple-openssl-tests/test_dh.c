@@ -303,8 +303,10 @@ static void test_dh_kat(void)
     CHECK(derive(A, B, z, 256, &zlen) == 1,
           "DH derive with the ffdhe2048 peer failed");
     CHECK(zlen == 256, "the DH shared secret is not 256 bytes");
+    unpoison_all();
     CHECK(memcmp(z, want, 256) == 0,
           "DH shared secret != the CLI-cross-checked KAT");
+    repoison_all();
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
 }
@@ -325,8 +327,10 @@ static void test_dhx_kat(void)
     CHECK(derive(A, B, z, 256, &zlen) == 1,
           "DHX derive with the ffdhe2048 peer failed");
     CHECK(zlen == 256, "the DHX shared secret is not 256 bytes");
+    unpoison_all();
     CHECK(memcmp(z, want, wantlen) == 0,
           "DHX shared secret != the DH shared secret (KAT)");
+    repoison_all();
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
 }
@@ -389,6 +393,8 @@ int main(int argc, char **argv)
     test_dh_kat();
     test_dhx_kat();
     test_bad_peers();
+
+    free_poison_allocations();
 
     printf("test_dh: all %u checks passed\n", g_checks);
     return 0;

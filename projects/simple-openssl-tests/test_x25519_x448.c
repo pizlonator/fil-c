@@ -223,11 +223,15 @@ static void test_kats(const char *alg, size_t keylen,
     zlen = 0;
     CHECK(derive(A, B, z, keylen, &zlen) == 1, "X25519/X448 derive failed");
     snprintf(mbuf, sizeof(mbuf), "%s: derive(a, B_pub) != RFC K", alg);
+    unpoison_all();
     CHECK(zlen == keylen && memcmp(z, want, keylen) == 0, mbuf);
+    repoison_all();
 
     CHECK(derive(B, A, z, keylen, &zlen) == 1, "X25519/X448 derive failed");
     snprintf(mbuf, sizeof(mbuf), "%s: derive(b, A_pub) != RFC K", alg);
+    unpoison_all();
     CHECK(zlen == keylen && memcmp(z, want, keylen) == 0, mbuf);
+    repoison_all();
 
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
@@ -268,13 +272,17 @@ static void test_iterated(const char *alg, size_t keylen,
         memcpy(k, t, keylen);
         if (it == 0) {
             from_hex(iter1hex, want, keylen);
+            unpoison_all();
             CHECK(memcmp(k, want, keylen) == 0,
                   "iterated X25519/X448: 1-iteration value != RFC");
+            repoison_all();
         }
     }
     from_hex(iter1000hex, want, keylen);
+    unpoison_all();
     CHECK(memcmp(k, want, keylen) == 0,
           "iterated X25519/X448: 1000-iteration value != RFC");
+    repoison_all();
 }
 
 
@@ -342,8 +350,10 @@ static void test_x25519_kem(void)
     ss2 = ALLOCATE_OUTPUT(ss2len);
     CHECK(EVP_PKEY_decapsulate(dctx, ss2, &ss2len, ct, ctlen) == 1,
           "X25519 KEM decapsulation failed");
+    unpoison_all();
     CHECK(ss2len == sslen && memcmp(ss2, ss, sslen) == 0,
           "X25519 KEM decapsulation did not recover the shared secret");
+    repoison_all();
     EVP_PKEY_CTX_free(dctx);
     EVP_PKEY_free(key);
 }
@@ -374,6 +384,8 @@ int main(int argc, char **argv)
     test_low_order_peer("X25519", 32);
     test_low_order_peer("X448", 56);
     test_x25519_kem();
+
+    free_poison_allocations();
 
     printf("test_x25519_x448: all %u checks passed\n", g_checks);
     return 0;

@@ -176,7 +176,9 @@ static void test_kats(void)
         gotlen = digest_one_shot(md, in, inlen, got, 20);
         strncat(msg, " one-shot digest does not match the KAT",
                 sizeof(msg) - strlen(msg) - 1);
+        unpoison_all();
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
+        repoison_all();
         EVP_MD_free(md);
     }
 }
@@ -200,15 +202,19 @@ static void test_routes(void)
     static_md = EVP_sha1();
     CHECK(static_md != NULL, "EVP_sha1() returned NULL");
     gotlen = digest_one_shot(static_md, in, 3, got, 20);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_sha1() digest does not match the KAT");
+    repoison_all();
 
     byname_md = EVP_get_digestbyname("sha1");
     CHECK(byname_md != NULL, "EVP_get_digestbyname(\"sha1\") returned NULL");
     memset(got, 0, 20);
     gotlen = digest_chunked(byname_md, in, 3, got, 20);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname(\"sha1\") digest does not match the KAT");
+    repoison_all();
 }
 
 /* (4) Chunked digesting must equal one-shot digesting for input lengths
@@ -237,7 +243,9 @@ static void test_chunked_equality(void)
         snprintf(msg, sizeof(msg),
                  "SHA1 chunked digest differs from one-shot at input length %zu",
                  n);
+        unpoison_all();
         CHECK(one_len == many_len && memcmp(one, many, one_len) == 0, msg);
+        repoison_all();
     }
     EVP_MD_free(md);
 }
@@ -258,8 +266,10 @@ static void test_msg56_chunked(void)
     memcpy(in, MSG_56, 56);
     wantlen = from_hex(sha1_kats[2].mdhex, want, 20);
     gotlen = digest_chunked(md, in, 56, got, 20);
+    unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "chunked SHA1 of the 56-byte message does not match the KAT");
+    repoison_all();
     EVP_MD_free(md);
 }
 
@@ -271,6 +281,8 @@ int main(int argc, char **argv)
     test_routes();
     test_chunked_equality();
     test_msg56_chunked();
+
+    free_poison_allocations();
 
     printf("test_digest_sha1: all %u checks passed\n", g_checks);
     return 0;
