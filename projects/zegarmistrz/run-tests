@@ -8,9 +8,12 @@
 # (faults + taint laundering + clear-on-store; faults expect core dumps),
 # var-time mode tests (--var-time-op=known/plausible/everything gating for
 # the CANNOT_VAR_TIME_OP dimension, incl. exemptions and the EVEX/opmask
-# sidecar), the cannot-index check battery (one faulting subtest per check
-# site) plus the LEA / multi-byte-NOP cannot-index exemption guests and the
-# test.c/test2.c mirror combos, core-dump gdb check, crash-time stack traces
+# sidecar), the cannot-index check battery for memory-address sites
+# (poison-index-addr), the cannot-branch check battery for control-flow
+# sites (poison-branch-ctrl), the cannot-index/cannot-branch orthogonality
+# battery (poison-ortho; wrong-dimension uses must run clean), the LEA /
+# multi-byte-NOP cannot-index exemption guests and the test.c/test2.c
+# mirror combos, core-dump gdb check, crash-time stack traces
 # (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag.
 # Does not touch filc/tests or filc/run-tests.
 set -u
@@ -37,7 +40,8 @@ gcc -O2 -o "$OUTDIR/threads" tests/threads.c -pthread || { log "guest compile fa
 gcc -O2 -static -o "$OUTDIR/static_hi" tests/static_hi.c || { log "guest compile failed: static_hi"; exit 1; }
 for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall poison_launder_branch poison_launder_index poison_launder_clear \
          poison_vt_div poison_vt_clear poison_vt_plausible poison_vt_cmps poison_vt_cpuid poison_vt_rep \
-         poison_index_lea poison_index_nop poison_index_lea_prop poison_combo; do
+         poison_index_lea poison_index_nop poison_index_lea_prop poison_combo \
+         poison_branch_ctrl poison_ortho; do
     gcc -O2 -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null || { log "guest compile failed: $t"; exit 1; }
 done
 # LEA/NOP cannot-index exemption guests + the cannot-index address battery
@@ -172,6 +176,8 @@ echo "poison-index-lea"
 echo "poison-index-nop"
 echo "poison-index-lea-prop"
 echo "poison-index-addr"
+echo "poison-branch-ctrl"
+echo "poison-ortho"
 echo "poison-combo"
 echo "cpuid-emulated"
 echo "cpuid-native"
@@ -444,10 +450,9 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     for spec in load-base:cannot-index: store-base:cannot-index: load-index:cannot-index: \
                 store-index:cannot-index: alu-mem:cannot-index: movzx-mem:cannot-index: \
                 div-mem:cannot-index: vector-load:cannot-index: rsp-mem:cannot-index: \
-                push:RSP pop:RSP ret-rsp:RSP ret-addr:cannot-index: \
+                push:RSP pop:RSP ret-rsp:RSP \
                 enter-frame:RBP \
-                indirect-call:cannot-index: indirect-jmp:cannot-index: \
-                string-movs:cannot-index: string-stos:cannot-index: rep-movs:RCX loop:RCX jcxz:RCX \
+                string-movs:cannot-index: string-stos:cannot-index: \
                 bt-mem:cannot-index: xlat:cannot-index: prefetch:cannot-index: clflush:cannot-index: \
                 gather:cannot-index: scatter:cannot-index: \
                 gather-base:cannot-index: scatter-base:cannot-index:; do
@@ -464,6 +469,53 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
         head -5 "test-output/$name.$which.err.txt" 2>/dev/null
       fi
       rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.$which.err.txt"
+    done
+    ;;
+  poison-branch-ctrl)
+    # The cannot-branch control-flow battery: one faulting subtest per
+    # control-flow check site (branch conditions, jcxz/loop/rep RCX
+    # counters, indirect call/jmp branch targets, ret return addresses).
+    # Orthogonality: cannot-branch is the sole control-flow dimension --
+    # every subtest must fault with the cannot-branch reason (exit 139 +
+    # core), and tests/poison_ortho.c pins that cannot-index values run
+    # cleanly through all of these sites.
+    name=poison_branch_ctrl
+    for spec in jcc:cannot-branch: jcxz:cannot-branch: loop:cannot-branch: \
+                rep-movs:cannot-branch: indirect-call:cannot-branch: \
+                indirect-jmp:cannot-branch: ret-addr:cannot-branch:; do
+      IFS=':' read -r which reason ban <<<"$spec"
+      rm -f "test-output/zegarmistrz.core.$name."*
+      (cd test-output && timeout 60 ../zegarmistrz ./$name $which >/dev/null 2>$name.$which.err.txt); ec=$?
+      core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+      if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+         && grep -q "$reason" "test-output/$name.$which.err.txt" \
+         && { [ -z "$ban" ] || ! grep -q "$ban" "test-output/$name.$which.err.txt"; }; then
+        echo "PASS poison-branch-ctrl-$which"
+      else
+        echo "FAIL poison-branch-ctrl-$which: exit=$ec core=[$core] want=[$reason]"
+        head -5 "test-output/$name.$which.err.txt" 2>/dev/null
+      fi
+      rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.$which.err.txt"
+    done
+    ;;
+  poison-ortho)
+    # The cannot-index / cannot-branch orthogonality battery: a poisoned
+    # value used at a site of the WRONG dimension must run clean. Every
+    # subtest must exit 0 and print exactly ortho-ok (the jcc subtest is the
+    # reporter repro regression case: branching on a cannot-index value used
+    # to trap). The faulting sides live in poison-index-addr and
+    # poison-branch-ctrl.
+    name=poison_ortho
+    for which in jcc jcxz loop rep-movs indirect-call ret deref-cbranch index-cbranch; do
+      rm -f "test-output/$name.$which.err.txt"
+      out=$(cd test-output && timeout 60 ../zegarmistrz ./$name $which 2>$name.$which.err.txt); ec=$?
+      if [ "$ec" = 0 ] && [ "$out" = "ortho-ok" ]; then
+        echo "PASS poison-ortho-$which"
+      else
+        echo "FAIL poison-ortho-$which: exit=$ec out=[$out]"
+        head -5 "test-output/$name.$which.err.txt" 2>/dev/null
+      fi
+      rm -f "test-output/$name.$which.err.txt"
     done
     ;;
   poison-combo)

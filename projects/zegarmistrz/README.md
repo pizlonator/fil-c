@@ -169,11 +169,14 @@ sticky.
 
 cannot-index applies **only to instructions that actually touch memory**
 through the tainted value: loads/stores and any other memory operand
-(base or index), string ops via RSI/RDI, `rep` counts via RCX,
-push/pop/ret/call/leave/enter via RSP (and `enter`'s level >= 2 nesting
-copies read `[RBP - i*8]`), XLAT (`RBX`+`AL`), BT bit offsets,
-prefetch/`clflush`, gather/scatter VSIB index vectors (and their scalar
-base), indirect branch/call/ret targets, and syscall arguments. Two
+(base or index), string ops via RSI/RDI, push/pop/ret/call/leave/enter
+via RSP (and `enter`'s level >= 2 nesting copies read `[RBP - i*8]`),
+XLAT (`RBX`+`AL`), BT bit offsets, prefetch/`clflush`, gather/scatter
+VSIB index vectors (and their scalar base), and syscall arguments. The
+dimensions are orthogonal: cannot-index never fires at control-flow
+sites — branching, looping, jumping, or returning through an
+address-tainted value is the cannot-branch dimension instead, and
+syscall arguments are the one boundary where both bits are rejected. Two
 deliberate exemptions keep ordinary compiler arithmetic from
 false-positive:
 

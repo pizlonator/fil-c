@@ -86,14 +86,23 @@ How cases work:
   `-mavx512f` etc. for inline asm/intrinsics; instruction groups inside
   self-checking guests are gated on runtime CPUID so they run everywhere).
 - **Fault tests** (poison-load/store/branch/index/syscall, the masked
-  vector ones, the var-time KNOWN ones, the poison-index-addr battery,
-  poison-combo, poison-launder-branch/index) expect **all** of: exit
+  vector ones, the var-time KNOWN ones, the poison-index-addr battery
+  (cannot-index, memory-address sites), the poison-branch-ctrl battery
+  (cannot-branch, control-flow sites), poison-combo,
+  poison-launder-branch/index) expect **all** of: exit
   status 139 (guest errors surface as SIGSEGV), a core file
   `test-output/zegarmistrz.core.<stem>.<pid>`, and the expected reason
   substring (`cannot-index`, `var-time`, `cannot-branch`, ...) in the
-  captured stderr. `poison-index-addr` and `poison-combo` cases carry an
+  captured stderr. `poison-index-addr`, `poison-branch-ctrl`, and
+  `poison-combo` cases carry an
   optional third field that **bans** a substring — used to assert the LEA
   exemption keeps `cannot-index` out of a var-time fault's stderr.
+- **Clean-run poisoning tests** must exit 0 with their ok line:
+  `poison-unpoison`, `poison-clear`, `poison-launder-clear`,
+  `poison-index-lea`, `poison-index-nop`, and the poison-ortho
+  orthogonality battery (one subtest per wrong-dimension use — a
+  cannot-index value through the control-flow sites and a cannot-branch
+  value through memory sites must all print `ortho-ok`).
 - **Var-time mode gating tests**: `poison-vt-plausible` must be clean in
   the default mode and fault under `--var-time-op=plausible`;
   `poison-vt-mode3` (VPERMILPS, deliberately unclassified) must fault
@@ -186,7 +195,9 @@ else.
   ALU, vector ops, `op_load` from memory, moves. 32-bit writes zero the
   upper half but taint is a whole-register sidecar (not per-byte).
 - Flag-setting ops that consume tainted inputs set `cpu->flags_taint`;
-  `Jcc`/`JCXZ`/`LOOP` check it (`check_flags_taint`).
+  `Jcc` checks it via `check_flags_taint`. `JCXZ`/`LOOP`/`rep` check the
+  RCX counter's own taint directly (control flow = cannot-branch only;
+  see the orthogonality invariant below).
 - **Self-xor / self-sub clears**: `xor reg,reg` (and `sub reg,reg`, and
   the vector `vpxor xmm,xmm,xmm` family via `vec_self_op`) produce zero,
   so the result is untagged. This is load-bearing: compilers zero
@@ -250,6 +261,36 @@ cannot-branch and cannot-index taint ("tainted value passed to
 syscall") — including the syscall number itself. cannot-var-time-op is
 deliberately not checked there: syscall timing is the kernel's.
 
+## The cannot-index / cannot-branch orthogonality invariant
+
+**cannot-index and cannot-branch are ORTHOGONAL.** Each taint dimension has
+exactly one job, and the check sites must not mix them:
+
+- **cannot-index ⇔ memory addresses only**: `resolve_mem` base/index, RSP
+  in push/pop/ret/call/leave (`push64`/`pop64`/`exec_ret`), RBP in
+  `enter`'s level >= 2 nesting copies, RSI/RDI string ops (`check_si_di_taint`),
+  BT bit offset, XLAT, VSIB index + scalar base (`vsib_base`),
+  prefetch/clflush — plus syscall arguments (the documented boundary rule:
+  `mem.h` says "nor passed to syscalls", and `syscall.cpp` rejects BOTH
+  bits there).
+- **cannot-branch ⇔ control flow only**: Jcc/LOOPE/LOOPNE flag conditions
+  (`check_flags_taint`, "branch condition"), JCXZ/JECXZ/JRCXZ + LOOP
+  counters (RCX), indirect JMP/CALL targets (`branch_target`, "branch
+  target"), RET return address (`exec_ret`, "return address"), rep
+  iteration counts (RCX, `check_rep_taint` — a count is a loop counter)
+  and rep CMPS/SCAS compared data ("rep cmps" per-iteration check in
+  `exec_string`).
+
+Consequence: a cannot-index-poisoned value may be branched on, looped over,
+called/returned through — and a cannot-branch-poisoned value may still be
+dereferenced or used as an address. The regression case: glibc's
+`__memcmp_evex_movbe` kmovd's a compare mask from poisoned ciphertext and
+does `test %eax,%eax; jne` — before the orthogonality fix that trapped as
+"tainted (cannot-index) value used in branch condition" and broke
+`projects/simple-openssl-tests/test_aes_cbc --poison-variants=cannot-index`.
+`tests/poison_ortho.c` pins both directions; `tests/poison_index_addr.c`
+and `tests/poison_branch_ctrl.c` pin the faulting side of each dimension.
+
 ## The cannot-index enforcement map
 
 **The invariant**: any instruction that actually touches memory goes
@@ -296,10 +337,6 @@ Zydis memory operand each have their own check:
   level 0/1 ENTER does no RBP-relative access and never fires it).
 - **RSI/RDI** of string ops: `check_si_di_taint` ("tainted
   (cannot-index) RSI/RDI in string op").
-- **RCX**: `rep` counts (`check_rep_taint`, "tainted
-  (cannot-branch/index) RCX in rep string op") and `JCXZ`/`JECXZ`/
-  `JRCXZ`/`LOOP`/`LOOPE`/`LOOPNE` ("tainted (cannot-branch/index) RCX in
-  jcxz/loop" — RCX is both a branch condition and a loop counter).
 - **BT bit offset** (memory form; address = m + (r >> 3)): "tainted
   (cannot-index) value used as BT bit offset".
 - **XLAT** (`RBX` + zero-extended `AL`): "tainted (cannot-index) value
@@ -308,10 +345,15 @@ Zydis memory operand each have their own check:
   **vector** (XMM taint, "tainted (cannot-index) gather/scatter index")
   and the scalar base register ("tainted (cannot-index) gather/scatter
   base").
-- **Indirect branch/call targets** and **ret targets**: `branch_target`
-  and `exec_ret` check both cannot-branch ("branch target" / "return
-  address") and cannot-index.
-- **Syscall args**: see the ABI section above (in `syscall.cpp`).
+- **Syscall args**: see the ABI section above (in `syscall.cpp`); they
+  reject BOTH cannot-index and cannot-branch — the deliberate boundary
+  rule, not an orthogonality violation.
+
+(Control-flow sites — branch targets, jcxz/loop/rep RCX, ret return
+addresses — are NOT in this list: they belong to the cannot-branch
+dimension, see the orthogonality invariant above. RCX in rep counts is a
+loop counter, so `check_rep_taint` checks only cannot_branch there, then
+the doc-4.4 cannot-var-time-op count rule.)
 
 **Ordering invariant (INDEX wins for address issues)**: for an access
 that is both tainted-indexed and cannot-load/cannot-store-poisoned (or

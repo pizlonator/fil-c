@@ -668,10 +668,12 @@ void flags_clear(CPU* cpu) {
 }
 
 void check_flags_taint(CPU* cpu, const char* what) {
+    // Orthogonality invariant: branch conditions are the cannot-branch
+    // dimension. cannot-index NEVER fires here -- it only guards memory
+    // address computations, so branching on a cannot-index-poisoned value
+    // (e.g. a key byte compared inside libc) must run.
     if (cpu->flags_taint.cannot_branch)
         guest_error(cpu, "tainted (cannot-branch) value used in branch condition");
-    if (cpu->flags_taint.cannot_index)
-        guest_error(cpu, "tainted (cannot-index) value used in branch condition");
     (void)what;
 }
 
@@ -791,10 +793,11 @@ uint64_t branch_target(CPU* cpu, const Dec& d, int oi) {
         return op.imm.is_signed ? (uint64_t)op.imm.value.s : op.imm.value.u;
     }
     Val v = op_load(cpu, d, oi);
+    // Orthogonality invariant: the branch target is control flow, so only
+    // the cannot-branch dimension applies. It is not a memory address --
+    // cannot-index never fires here.
     if (v.taint.cannot_branch)
         guest_error(cpu, "tainted (cannot-branch) branch target");
-    if (v.taint.cannot_index)
-        guest_error(cpu, "tainted (cannot-index) branch target");
     return v.v;
 }
 
@@ -1744,10 +1747,11 @@ void exec_ret(CPU* cpu, const Dec& d) {
     uint64_t target = mem_load64(cpu, rsp);
     Taint t;
     mem_get_taint(rsp, 8, &t);
+    // Orthogonality invariant: the return address is control flow, so only
+    // the cannot-branch dimension applies. (The RSP check above stays: RSP
+    // IS a memory address.)
     if (t.cannot_branch)
         guest_error(cpu, "tainted (cannot-branch) return address");
-    if (t.cannot_index)
-        guest_error(cpu, "tainted (cannot-index) return address");
     cpu->gpr[ZG_RSP].val = rsp + 8;
     int n = explicit_ops(d);
     if (n >= 1) {
@@ -1777,8 +1781,10 @@ void exec_jcxz(CPU* cpu, const Dec& d) {
             : (d.insn.mnemonic == ZYDIS_MNEMONIC_JECXZ) ? 4
                                                        : 8;
     uint64_t m = mask_for(w);
-    if (cpu->gpr[ZG_RCX].taint.cannot_branch || cpu->gpr[ZG_RCX].taint.cannot_index)
-        guest_error(cpu, "tainted (cannot-branch/index) RCX in jcxz");
+    // Orthogonality invariant: RCX here is a branch condition (CTRL), not a
+    // memory address, so only the cannot-branch dimension applies.
+    if (cpu->gpr[ZG_RCX].taint.cannot_branch)
+        guest_error(cpu, "tainted (cannot-branch) RCX in jcxz");
     uint64_t cx = cpu->gpr[ZG_RCX].val & m;
     if (cx == 0)
         cpu->rip = branch_target(cpu, d, 0);
@@ -1788,8 +1794,10 @@ void exec_jcxz(CPU* cpu, const Dec& d) {
 
 void exec_loop(CPU* cpu, const Dec& d) {
     int w = (d.insn.attributes & ZYDIS_ATTRIB_HAS_ADDRESSSIZE) ? 4 : 8;
-    if (cpu->gpr[ZG_RCX].taint.cannot_branch || cpu->gpr[ZG_RCX].taint.cannot_index)
-        guest_error(cpu, "tainted (cannot-branch/index) RCX in loop");
+    // Orthogonality invariant: RCX here is a loop counter (control flow),
+    // not a memory address, so only the cannot-branch dimension applies.
+    if (cpu->gpr[ZG_RCX].taint.cannot_branch)
+        guest_error(cpu, "tainted (cannot-branch) RCX in loop");
     check_flags_taint(cpu, "loop");
     if (w != 8) {
         uint64_t m = mask_for(w);
@@ -1875,8 +1883,12 @@ void check_si_di_taint(CPU* cpu) {
 void check_rep_taint(CPU* cpu, const Dec& d) {
     if (!has_rep(d))
         return;
-    if (cpu->gpr[ZG_RCX].taint.cannot_branch || cpu->gpr[ZG_RCX].taint.cannot_index)
-        guest_error(cpu, "tainted (cannot-branch/index) RCX in rep string op");
+    // Orthogonality invariant: the rep count is a loop counter (control
+    // flow), not a memory address, so only the cannot-branch dimension
+    // applies to RCX here (compare data of CMPS/SCAS is checked in
+    // exec_string with cannot-branch too; addresses stay on check_si_di_taint).
+    if (cpu->gpr[ZG_RCX].taint.cannot_branch)
+        guest_error(cpu, "tainted (cannot-branch) RCX in rep string op");
     // Doc 4.4: for REP MOVS/STOS/LODS the RCX iteration count is a VAL
     // dependency (microcode picks among ERMSB/FSRM/fast paths by count), so
     // a cannot-var-time-op-poisoned count makes the instruction's execution

@@ -8,6 +8,14 @@
 // crash whose stderr lacks the expected reason -- in every case the
 // subtest fails.
 //
+// cannot-index and cannot-branch are ORTHOGONAL: cannot-index applies ONLY
+// to memory-address computations, so this battery keeps ONLY genuine
+// memory-address sites. The control-flow sites (branch targets, jcxz/loop/
+// rep RCX, return addresses) are covered by tests/poison_branch_ctrl.c
+// with the cannot-branch dimension, and by tests/poison_ortho.c for the
+// orthogonality itself (a cannot-index-poisoned value must NOT fault at
+// those control-flow sites, and vice versa).
+//
 // Subtests (see run-tests for the reason grep per subtest):
 //   load-base      tainted pointer as a mov-load base        (resolve_mem base)
 //   store-base     tainted pointer as a mov-store base       (resolve_mem base)
@@ -21,14 +29,8 @@
 //   push           push with a tainted (valid) RSP           ("used by push")
 //   pop            pop with a tainted (valid) RSP            ("used by pop")
 //   ret-rsp        ret with a tainted (valid) RSP            ("used by ret")
-//   ret-addr       push a tainted value, then ret            (return address)
-//   indirect-call  call through a tainted function pointer   (branch target)
-//   indirect-jmp   jmp through a tainted target              (branch target)
 //   string-movs    movsb with a tainted RSI                  (RSI/RDI in string op)
 //   string-stos    stosb with a tainted RDI                  (RSI/RDI in string op)
-//   rep-movs       rep movsb with a tainted RCX count        (RCX in rep string op)
-//   loop           loop with a tainted RCX                   (RCX in loop)
-//   jcxz           jrcxz with a tainted RCX                  (RCX in jcxz)
 //   bt-mem         bt with a tainted bit-offset register     (BT bit offset)
 //   xlat           xlatb with a tainted RBX table base       (XLAT table index/base)
 //   prefetch       prefetcht0 with a tainted base            (resolve_mem base)
@@ -59,8 +61,6 @@ static char fake_stack[4096];
 static char src_buf[64];
 static char dst_buf[64];
 static uint32_t div_word = 7; // nonzero: a regressed div must not #DE
-static void ok_fn(void) {} // real no-op function: a regressed call/jmp survives
-static void (*volatile fslot)(void) = ok_fn;
 static volatile uint64_t slot;
 
 static uint64_t tainted_u64(uint64_t v) {
@@ -162,12 +162,6 @@ int main(int argc, char** argv) {
         void* tsp = tainted_ptr(fake_stack + 2048); // mid-buffer: valid stack
         asm volatile("movq %0, %%rsp\n\tret" :: "r"(tsp) : "memory");
         out = 0;
-    } else if (strcmp(which, "ret-addr") == 0) {
-        // push propagates the value taint onto the stack slot; the ret then
-        // faults on the tainted return address (never actually returns).
-        uint64_t fp = tainted_u64((uint64_t)(uintptr_t)ok_fn);
-        asm volatile("pushq %0\n\tret" :: "r"(fp) : "memory");
-        out = 0;
     } else if (strcmp(which, "enter-frame") == 0) {
         // ENTER with nesting level >= 2 reads [RBP - i*8] to copy the
         // nesting frames: a real memory access keyed on RBP, so a
@@ -175,15 +169,6 @@ int main(int argc, char** argv) {
         // base keeps a regressed run in-bounds (level 2 reads RBP-8).
         uint64_t rs = (uint64_t)tainted_ptr(fake_stack + 2048);
         asm volatile("movq %0, %%rbp\n\tenter $16, $2" :: "r"(rs) : "memory");
-        out = 0;
-    } else if (strcmp(which, "indirect-call") == 0) {
-        magic(1, (void*)&fslot, sizeof(fslot), 8u); // cannot-index
-        void (*g)(void) = fslot; // volatile load: the pointer is tainted
-        g();
-        out = 0;
-    } else if (strcmp(which, "indirect-jmp") == 0) {
-        uint64_t jt = tainted_u64((uint64_t)(uintptr_t)ok_fn);
-        asm volatile("jmpq *%0" :: "r"(jt) : "memory");
         out = 0;
     } else if (strcmp(which, "string-movs") == 0) {
         const char* s = (const char*)tainted_ptr(src_buf);
@@ -194,25 +179,6 @@ int main(int argc, char** argv) {
         char* d = (char*)tainted_ptr(dst_buf);
         char al = 0;
         asm volatile("stosb" : "+D"(d), "+a"(al) : : "memory");
-        out = 0;
-    } else if (strcmp(which, "rep-movs") == 0) {
-        const char* s = src_buf; // clean
-        char* d = dst_buf;       // clean
-        size_t n = (size_t)tainted_u64(4);
-        asm volatile("rep movsb" : "+S"(s), "+D"(d), "+c"(n) : : "memory");
-        out = 0;
-    } else if (strcmp(which, "loop") == 0) {
-        // Tainted count 1: a regressed check decrements 1 -> 0 and falls
-        // through (safe).
-        uint64_t n = tainted_u64(1);
-        asm volatile("1: loop 1b" :: "c"(n) : "cc", "memory");
-        out = 0;
-    } else if (strcmp(which, "jcxz") == 0) {
-        // jcxz is not encodable in 64-bit mode; jrcxz is its 64-bit form and
-        // takes the same RCX taint path. Tainted count 1: a regressed check
-        // sees CX != 0 and falls through (safe).
-        uint64_t n = tainted_u64(1);
-        asm volatile("jrcxz 1f\n1:" :: "c"(n) : "cc", "memory");
         out = 0;
     } else if (strcmp(which, "bt-mem") == 0) {
         // AT&T: mem first operand in (%0), tainted reg %1 is the bit offset.

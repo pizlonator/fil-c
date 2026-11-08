@@ -32,9 +32,11 @@ struct Emulator;
 // vectors only require changing this constant (plus VecVal storage).
 constexpr size_t MAX_VEC_BYTES = 64;
 
-// Abstract taint bits for poison tracking. cannot_branch: value must not
-// influence a branch target/condition. cannot_index: value must not be used
-// in any memory address computation (nor passed to syscalls).
+// Abstract taint bits for poison tracking. The two enforcement dimensions
+// are orthogonal: cannot_branch: value must not influence control flow
+// (branch conditions, branch targets, loop/jcxz counters, return addresses).
+// cannot_index: value must not be used in any memory address computation
+// (nor passed to syscalls) -- and never at control-flow sites.
 // cannot_var_time_op: value must not be used as an operand that makes an
 // instruction's execution time data-dependent (other than through branching
 // or indexing, which have their own bits).
