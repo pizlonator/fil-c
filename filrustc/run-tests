@@ -38,6 +38,23 @@
 #   `extraArgs` (extra rustc arguments), `extra-env` (extra environment
 #   variables for the run), `skip`, `slow`, and `only-on-platform`.  A missing
 #   manifest means `return: success` with no output assertions.
+# - LLVM IR tests (<name>.ll) are also supported, for regressions whose shape
+#   cannot be expressed in Rust (or even C) source: clang lowers memcpy
+#   intrinsics to pizlonated builtins before its optimization pipeline runs,
+#   so a test that needs to feed hand-written memcpys *through* that pipeline
+#   (e.g. the SROA/GIMSO re-typing tests) has to come in at the IR level.
+#   They are compiled with Fil-C's clang itself, always at -O2
+#   (`$FILC_ROOT/build/bin/clang -O2 -x ir <src> -o <bin> [extraArgs...]`) --
+#   the -O2 is the point of these tests, since it is what puts SROA and the
+#   rest of the pre-pizlonation pipeline to work.  A .ll test must declare
+#   BOTH datalayouts: `target datalayout` must be the pre-FilC datalayout
+#   including `-ni:0` (what the pipeline sees -- canConvertValue and the
+#   ptr-words machinery depend on pointers being non-integral), and
+#   `target datalayout_after_filc` is MANDATORY: clang asserts in
+#   MachineFunction::init() without it.  Manifests work unchanged (`return`,
+#   `output-includes`/`output-excludes`, `extraArgs`, `extra-env`, etc.),
+#   except that `optFlags` is meaningless for a .ll test (the compile command
+#   is fixed); it is ignored.
 # - Compiling and running happen in parallel across tests, via generated
 #   shell scripts and `make -k -j <nproc>` -- the same concurrency approach
 #   as filc/run-tests.
@@ -70,6 +87,7 @@ $verbose = false
 $filter = /./
 $specificTest = nil
 $rustc = "rust-build/filrustc"
+$clang = "build/bin/clang"
 $make = "make"
 $libraryPathEnv = "LD_LIBRARY_PATH"
 $testDirectory = Pathname.new("filrustc/tests")
@@ -122,7 +140,7 @@ def handleArray(thing)
     [thing]
 end
 def isTestEntry(entry)
-    return (entry.file? and entry.extname == ".rs")
+    return (entry.file? and (entry.extname == ".rs" or entry.extname == ".ll"))
 end
 FileUtils.rm_rf($testOutputDirectory)
 $testOutputDirectory.mkpath
@@ -131,6 +149,7 @@ $testDirectory.each_entry {
     fullPath = $testDirectory + entry
     next unless isTestEntry(fullPath)
     testName = entry.sub_ext("").to_s
+    isLLVM = entry.extname == ".ll"
     next unless testName =~ $filter
     if $specificTest
         next unless testName == $specificTest
@@ -173,6 +192,13 @@ $testDirectory.each_entry {
         # to test the optimized pipeline instead.
         optFlags = ""
     end
+    if isLLVM and optFlags and not optFlags.empty?
+
+        # `optFlags` is a rustc concept; .ll tests always compile with the
+        # fixed `clang -O2 -x ir` command, so any declared optFlags are
+        # ignored.
+        optFlags = ""
+    end
     extraArgs = handleArray(manifest["extraArgs"]).map {
         | arg |
         Shellwords.shellescape(arg)
@@ -189,7 +215,11 @@ $testDirectory.each_entry {
         outp.puts "#!/bin/sh"
         outp.puts "rm -f #{Shellwords.shellescape(compilerOutput)}"
         outp.puts "touch #{Shellwords.shellescape(compilerOutput)}"
-        outp.puts "#{$rustc} -o #{Shellwords.shellescape(binary)} #{Shellwords.shellescape(fullPath)} #{optFlags} #{extraArgs} >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
+        if isLLVM
+            outp.puts "#{$clang} -O2 -x ir #{Shellwords.shellescape(fullPath)} -o #{Shellwords.shellescape(binary)} #{extraArgs} >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
+        else
+            outp.puts "#{$rustc} -o #{Shellwords.shellescape(binary)} #{Shellwords.shellescape(fullPath)} #{optFlags} #{extraArgs} >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
+        end
         if expectedReturn == "compileFailure" or expectedReturn == "linkFailure"
             outp.puts "if [ $? -eq 0 ]"
             outp.puts "then"

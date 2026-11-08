@@ -95,19 +95,48 @@ static cl::opt<bool> FilCDSE(
 // to a fresh ModulePassManager instead of building a default pipeline) call
 // this so that they pizlonate exactly like the PassBuilder-driven paths do.
 //
-// IsRust disables the whole pre-pizlonation simplification and inlining
-// pipeline by default because it miscompiles rustc-shaped IR: e.g. a
-// std::thread::spawn + join compiled at -O1 hands pthread_join a thread
-// handle whose flight-pointer capability was reconstructed as null ("filc
-// safety error: cannot read pointer with null object" in
-// __pthread_clockjoin_ex) -- and the early simplification alone (no inliner)
-// is enough to trigger it.  Plain Fil-C clang code runs this same pipeline
-// and is unaffected.  The regular optimization pipeline still runs after the
+// IsRust (i.e. the Fil-C rustc) disables the pre-pizlonation simplification
+// and inlining pipeline by default because it still miscompiles rustc-shaped
+// IR in the mem::swap class: std's swap_nonoverlapping_chunks
+// (library/core/src/ptr/mod.rs) moves the bytes of pointer-containing
+// elements through MaybeUninit<[u8; N]> block buffers (N =
+// size_of::<*const ()>()), which are NUMERIC-typed allocas, and upstream
+// SROA promotes those allocas, widening their typed byte copies into integer
+// (i64) load/store pairs.  Under GIMSO semantics that is NOT
+// semantics-preserving: the Fil-Pizlonator moves payload+shadow for
+// aggregate/byte copies (a pointer at rest carries its capability in the
+// shadow of the copied bytes), while integer loads/stores touch only the
+// payload, so the capabilities of the pointers inside the swapped element
+// are dropped at the swap.  The reviewer-shaped repro is a Vec of 40-byte
+// Node structs ({String, *mut u8, u32}) shuffled with std::mem::swap: at -O
+// the subsequent Vec::clone -> String::clone memmove then reads a source
+// pointer whose capability the swap destroyed ("filc safety error: cannot
+// read source pointer with ptr < lower", exit 133; -C opt-level=0 and
+// -C llvm-args=-filc-optimize=0 both run correctly).  Even a bare
+// mem::swap::<String> miscompiles the same way, so this is the mem::swap
+// class, not one element shape.
+//
+// The rustc-side typed-allocas fix (see the comment inside the function
+// below, and filc_ptr_struct_type in rustc_codegen_llvm/src/type_of.rs)
+// cannot cover this class: filc_may_contain_pointers correctly declines
+// NUMERIC types -- MaybeUninit<[u8; N]> is one -- so those block-buffer
+// allocas stay untyped byte arrays and SROA still integer-widens their
+// partitions.  The SROA-side guard that closes the class (in the rewriter:
+// never widen a memintrinsic use into a non-pointer-typed access) was
+// rejected for performance: it pointer-types the memcpy-only partitions of
+// NUMERIC aggregates too, and pointer-typed partitions make the pizlonator
+// emit pointer checks for data that is just bytes -- that cost ~1.4x on
+// simdutf.  That fix lives on the fil/fixed_sroa branch and is NOT in this
+// tree (llvm/lib/Transforms/Scalar/SROA.cpp is byte-identical to upstream).
+// The rustc-side fix DID close the earlier spawn+join shape (see below),
+// which is why rustc above O0 runs KillUB -> coro lowering -> FilPizlonator,
+// with the regular optimization pipeline still running after the
 // FilPizlonator on the pizlonated IR -- exactly as it does for every Fil-C
 // clang compilation -- so codegen is still fully optimized without the
 // pre-pizlonation pipeline.  FILCRUST_FILCINLINE in the environment
-// re-enables it under rustc for debugging the pizlonator interaction (any
-// set value).
+// re-enables the pre-pizlonation block under rustc (any set value), for
+// debugging the pizlonator interaction.
+
 void llvm::FilCAddPipelineStartPasses(ModulePassManager &MPM,
                                       OptimizationLevel Level,
                                       bool IsRust,
@@ -119,10 +148,14 @@ void llvm::FilCAddPipelineStartPasses(ModulePassManager &MPM,
   // inliner invocation whose per-CGSCC pipeline is SROA/EarlyCSE/
   // JumpThreading/CVP/SimplifyCFG/InstCombine/GVN/SCCP/ADCE/InstCombine), to
   // create inlining opportunities before pizlonation.  IsRust (i.e. the
-  // Fil-C rustc) disables it by default because it miscompiles rustc-shaped
-  // IR -- see the FilCAddPipelineStartPasses comment above.
-  // FILCRUST_FILCINLINE in the environment turns it back on (useful for
-  // debugging the pizlonator interaction).
+  // Fil-C rustc) disables it by default because it still miscompiles
+  // rustc-shaped IR in the mem::swap class -- see the FilCAddPipelineStartPasses
+  // comment above: std moves swapped element bytes through NUMERIC-typed
+  // MaybeUninit<[u8; N]> block buffers, whose partitions upstream SROA
+  // integer-widens, dropping GIMSO capabilities; the rustc-side typed-allocas
+  // fix (below) correctly declines numeric types and so cannot cover that
+  // class.  FILCRUST_FILCINLINE in the environment turns it back on (useful
+  // for debugging the pizlonator interaction).
   if (Level != OptimizationLevel::O0 && FilCOptimize &&
       (!IsRust || getenv("FILCRUST_FILCINLINE"))) {
     FunctionPassManager EarlyFPM;

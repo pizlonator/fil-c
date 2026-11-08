@@ -32,6 +32,12 @@ void RegisterFilPasses(PassBuilder&, FilJITConfiguration* = nullptr,
 // The pipeline-start passes as a directly-applicable entry point (needed by
 // frontends whose pass pipelines are not always built through a PassBuilder,
 // e.g. rustc's -C no-prepopulate-passes modules).
+//
+// IsRust (i.e. the Fil-C rustc) disables the pre-pizlonation simplification
+// and inlining block by default: it still miscompiles rustc-shaped IR in the
+// mem::swap class (see the FilCAddPipelineStartPasses comment in
+// RegisterFilPasses.cpp).  FILCRUST_FILCINLINE in the environment re-enables
+// it for debugging.
 void FilCAddPipelineStartPasses(ModulePassManager&, OptimizationLevel,
                                 bool IsRust, FilJITConfiguration* = nullptr);
 

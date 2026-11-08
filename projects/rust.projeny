@@ -3,10 +3,78 @@ Origname: rustc-1.90.0-src
 Name: rust
 
     Rust 1.90.0 (source distribution incl. src/llvm-project); Fil-C patches swap in the Fil-C LLVM and force the Fil-C pipeline
+diff --git a/rust/compiler/rustc_codegen_llvm/src/builder.rs b/rust/compiler/rustc_codegen_llvm/src/builder.rs
+--- a/rust/compiler/rustc_codegen_llvm/src/builder.rs
++++ b/rust/compiler/rustc_codegen_llvm/src/builder.rs
+@@ -38,7 +38,7 @@
+     self, AtomicOrdering, AtomicRmwBinOp, BasicBlock, False, GEPNoWrapFlags, Metadata, True,
+ };
+ use crate::type_::Type;
+-use crate::type_of::LayoutLlvmExt;
++use crate::type_of::{LayoutLlvmExt, filc_ptr_struct_type};
+ use crate::value::Value;
+
+ #[must_use]
+@@ -602,6 +602,41 @@
+             llvm::LLVMSetAlignment(alloca, align.bytes() as c_uint);
+             // Cast to default addrspace if necessary
+             llvm::LLVMBuildPointerCast(bx.llbuilder, alloca, self.cx().type_ptr(), UNNAMED)
++        }
++    }
++
++    /// Fil-C: aggregates that may contain pointers get typed allocas whose
++    /// LLVM type is an all-pointer struct (`{ ptr x N }`, packed,
++    /// size/alignment preserving) -- clang's union representation hack from
++    /// CGRecordLayoutBuilder.cpp (commit 4a54ae4076b4), applied to the stack
++    /// slots rustc allocates for MIR locals and scratch spaces, which are
++    /// otherwise untyped byte arrays (see PlaceValue::alloca).  The struct
++    /// has exactly one `ptr` field per 8 bytes and never a byte-array tail:
++    /// `filc_ptr_struct_type` only fires when the allocation is exactly the
++    /// value's size, a non-zero multiple of 8 bytes, and 8-byte ABI-aligned,
++    /// so a tail would always be empty anyway -- and any aggregate that
++    /// fails those guards or the may-contain-pointers test falls back to the
++    /// plain untyped byte-array alloca.  The alloca
++    /// type only feeds SROA's type-driven partitioning: field accesses are
++    /// byte-offset GEPs plus per-field typed loads/stores against the opaque
++    /// pointer, so they are unaffected, while memcpy-only partitions inherit
++    /// pointer types from the struct instead of being integer-widened (which
++    /// is what drops GIMSO memcpy-carried capabilities).  Numeric aggregates
++    /// fail the may-contain-pointers test and keep the byte-array alloca, so
++    /// -- unlike re-typing memcpy-only partitions inside SROA itself -- this
++    /// cannot add pointer checks to numeric code.
++    fn alloca_for_layout(&mut self, size: Size, align: Align, layout: TyAndLayout<'tcx>) -> &'ll Value {
++        if let Some(ty) = filc_ptr_struct_type(self.cx, layout, size) {
++            let mut bx = Builder::with_cx(self.cx);
++            bx.position_at_start(unsafe { llvm::LLVMGetFirstBasicBlock(self.llfn()) });
++            unsafe {
++                let alloca = llvm::LLVMBuildAlloca(bx.llbuilder, ty, UNNAMED);
++                llvm::LLVMSetAlignment(alloca, align.bytes() as c_uint);
++                // Cast to default addrspace if necessary
++                llvm::LLVMBuildPointerCast(bx.llbuilder, alloca, self.cx().type_ptr(), UNNAMED)
++            }
++        } else {
++            self.alloca(size, align)
+         }
+     }
+
 diff --git a/rust/compiler/rustc_codegen_llvm/src/context.rs b/rust/compiler/rustc_codegen_llvm/src/context.rs
 --- a/rust/compiler/rustc_codegen_llvm/src/context.rs
 +++ b/rust/compiler/rustc_codegen_llvm/src/context.rs
-@@ -226,7 +226,15 @@
+@@ -128,6 +128,13 @@
+     /// Mapping of scalar types to llvm types.
+     pub scalar_lltypes: RefCell<FxHashMap<Ty<'tcx>, &'ll Type>>,
+
++    /// Fil-C: cache of the transitive may-contain-pointers predicate over
++    /// layouts (see `filc_may_contain_pointers` in type_of.rs), keyed like
++    /// `type_lowering` by `Ty` plus variant index.  It decides whether an
++    /// alloca gets an all-pointer struct type (clang's union representation
++    /// hack) or stays an untyped byte array.
++    pub filc_ptr_maybe: RefCell<FxHashMap<(Ty<'tcx>, Option<VariantIdx>), bool>>,
++
+     /// Extra per-CGU codegen state needed when coverage instrumentation is enabled.
+     pub coverage_cx: Option<coverageinfo::CguCoverageContext<'ll, 'tcx>>,
+     pub dbg_cx: Option<debuginfo::CodegenUnitDebugContext<'ll, 'tcx>>,
+@@ -226,7 +233,15 @@
              str::from_utf8(unsafe { CStr::from_ptr(llvm_data_layout) }.to_bytes())
                  .expect("got a non-UTF8 data-layout from LLVM");
 
@@ -23,6 +91,196 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/context.rs b/rust/compiler/rus
              tcx.dcx().emit_err(crate::errors::MismatchedDataLayout {
                  rustc_target: sess.opts.target_triple.to_string().as_str(),
                  rustc_layout: target_data_layout.as_str(),
+@@ -620,6 +635,7 @@
+                 compiler_used_statics: Vec::new(),
+                 type_lowering: Default::default(),
+                 scalar_lltypes: Default::default(),
++                filc_ptr_maybe: Default::default(),
+                 coverage_cx,
+                 dbg_cx,
+                 eh_personality: Cell::new(None),
+diff --git a/rust/compiler/rustc_codegen_llvm/src/type_of.rs b/rust/compiler/rustc_codegen_llvm/src/type_of.rs
+--- a/rust/compiler/rustc_codegen_llvm/src/type_of.rs
++++ b/rust/compiler/rustc_codegen_llvm/src/type_of.rs
+@@ -1,6 +1,6 @@
+ use std::fmt::Write;
+
+-use rustc_abi::Primitive::{Float, Int, Pointer};
++use rustc_abi::Primitive::{self, Float, Int, Pointer};
+ use rustc_abi::{Align, BackendRepr, FieldsShape, Scalar, Size, Variants};
+ use rustc_codegen_ssa::traits::*;
+ use rustc_middle::bug;
+@@ -137,6 +137,170 @@
+         debug!("struct_llfields: offset: {:?} stride: {:?}", offset, layout.size);
+     }
+     (result, packed)
++}
++
++// Fil-C: Rust's aggregates (structs, enums, unions, tuples, closures,
++// coroutines) are moved around in MIR codegen exclusively with memcpys and
++// byte-offset GEPs, and their stack slots are untyped byte-array allocas.
++// Under GIMSO semantics an `llvm.memcpy` carries the pointer capabilities in
++// the shadow of the copied bytes, but an integer-typed load/store pair does
++// not: SROA widens memcpy-only alloca partitions into integer load/store
++// pairs when the alloca type gives it no better candidate, which silently
++// drops the capabilities of any pointer living in those bytes (this used to
++// miscompile `std::thread::spawn` + `join` at -O: the `pthread_t` inside
++// `std::thread::JoinHandle` was carried by memcpys only, and the capability
++// of the flight pointer handed to `pthread_join` came back null).  Clang
++// avoids this whole class of bugs because its allocas are *typed*: commit
++// 4a54ae4076b4 ("Have clang convert unions that have any pointers into
++// pointer structs") makes clang represent any union which may contain
++// pointers as an all-pointer struct, from which SROA derives pointer-typed
++// partitions for memcpy-only slices.  Since rustc's allocas are untyped,
++// there are no field types for SROA to inherit, so the Fil-C rustc must
++// create the opportunity itself: give the *alloca* an all-pointer struct
++// type (`{ ptr x N }`, packed, size- and alignment-preserving -- the clang
++// construction's byte-array tail is always empty here because size must be
++// a multiple of 8) whenever the Rust type may contain pointers.  This is
++// done at the alloca level only:
++// the aggregate's own LLVM IR type (LayoutLlvmExt::llvm_type below) is left
++// alone, since loads/stores/memcpys against the alloca are all done through
++// opaque pointers and per-field typed accesses, so the alloca type is only
++// consulted by SROA's type-driven partitioning -- exactly the clang hack's
++// mechanism.  Constants and statics keep their byte-based representation
++// (SROA only cares about allocas).
++//
++// The predicate deliberately covers *every* aggregate that may contain
++// pointers, not just unions: Rust's `union` is rare, but enums are unions in
++// all but name (each variant is a disjoint view of the same bytes, exactly
++// like a C union), and the `pthread_t` miscompile was carried by the *enum*
++// `io::Result<JoinHandle<()>>`'s payload, not by a union.
++
++/// Fil-C: does the memory representation of this layout possibly contain
++/// pointers?  This is a conservative transitive predicate over the layout's
++/// fields (and, for enums and coroutines, over every variant's fields): raw
++/// pointers, references, function pointers and `Box` make it true, and any
++/// aggregate containing such a field transitively makes it true.  Results are
++/// cached in the `CodegenCx` to bound the compile-time cost.
++pub(crate) fn filc_may_contain_pointers<'a, 'tcx>(
++    cx: &CodegenCx<'a, 'tcx>,
++    layout: TyAndLayout<'tcx>,
++) -> bool {
++    // The cache is keyed like `type_lowering`: by the `Ty` plus the variant
++    // index when the layout is a specific variant of that `Ty`.  This matters
++    // because a variant layout (from `for_variant`) still carries the *enum's*
++    // `Ty` -- keying by the `Ty` alone would let one variant's answer poison
++    // the cache for the enum itself and for the other variants.  Copy out of
++    // the RefCell before recursing so that re-entrant calls cannot conflict.
++    let key = (
++        layout.ty,
++        match layout.variants {
++            Variants::Single { index } => Some(index),
++            Variants::Multiple { .. } | Variants::Empty => None,
++        },
++    );
++    if let Some(&b) = cx.filc_ptr_maybe.borrow().get(&key) {
++        return b;
++    }
++    let b = filc_may_contain_pointers_uncached(cx, layout);
++    cx.filc_ptr_maybe.borrow_mut().insert(key, b);
++    b
++}
++
++fn filc_may_contain_pointers_uncached<'a, 'tcx>(
++    cx: &CodegenCx<'a, 'tcx>,
++    layout: TyAndLayout<'tcx>,
++) -> bool {
++    match layout.backend_repr {
++        // Scalars: pointers (including references, `Box` and function
++        // pointers) yes; integers and floats no.  SIMD vectors are always
++        // integer/float in Rust, so they never contain pointers.
++        BackendRepr::Scalar(scalar) => matches!(scalar.primitive(), Primitive::Pointer(_)),
++        BackendRepr::ScalarPair(a, b) => {
++            matches!(a.primitive(), Primitive::Pointer(_))
++                || matches!(b.primitive(), Primitive::Pointer(_))
++        }
++        BackendRepr::SimdVector { .. } => false,
++        // Memory-backed aggregates: recurse over the fields.
++        BackendRepr::Memory { .. } => {
++            // Unsized types cannot be alloca'd (and the trailing unsized
++            // field of a DST is not part of any sized aggregate), so there is
++            // no need to descend into them; note that TyAndLayout::field
++            // bugs out on some unsized type shapes, e.g. `dyn Trait`.
++            if !layout.is_sized() {
++                return false;
++            }
++            if layout.fields.index_by_increasing_offset().any(|i| {
++                filc_may_contain_pointers(cx, layout.field(cx, i))
++            }) {
++                return true;
++            }
++            // Enums (and coroutines) keep their variants' fields out of the
++            // top-level field list -- for a multi-variant enum the top-level
++            // fields contain only the tag (which `field()` reports as the
++            // discriminant scalar, possibly a pointer niche, as in
++            // `Option<&T>`); the payload fields live in the variant layouts.
++            match &layout.variants {
++                Variants::Multiple { variants, .. } => variants
++                    .indices()
++                    .any(|v| filc_may_contain_pointers(cx, layout.for_variant(cx, v))),
++                Variants::Single { .. } | Variants::Empty => false,
++            }
++        }
++    }
++}
++
++/// Fil-C: the LLVM type to use for an alloca that will hold a value of
++/// `layout`, where `size` is the size of the allocation being made (the
++/// caller may have rounded it up past `layout.size`, in which case there is
++/// no all-pointer struct of exactly that size and we keep the untyped
++/// byte-array alloca).  Returns `Some(all-pointer struct)` if and only if the
++/// type may contain pointers and it is word-multiples-of-8 sized and 8-byte
++/// aligned; otherwise the caller falls back to the untyped byte array (this
++/// is what keeps `repr(packed)` aggregates with pointers and every pure
++/// numeric aggregate on their current representation, and it is why this
++/// fix, unlike re-typing memcpy-only partitions inside SROA, cannot slow
++/// down numeric code like simdutf).
++pub(crate) fn filc_ptr_struct_type<'a, 'tcx>(
++    cx: &CodegenCx<'a, 'tcx>,
++    layout: TyAndLayout<'tcx>,
++    size: Size,
++) -> Option<&'a Type> {
++    // Guards, mirroring the constraints that make the clang hack safe:
++    //
++    // - The allocation must be exactly the value's size: a smaller typed
++    //   alloca would make SROA's out-of-type slices ill-defined, and a
++    //   larger one would lose the tail bytes.
++    // - Word multiples of the pointer size only: the all-pointer struct's
++    //   fields are `ptr`s, so a trailing remainder would have to be a byte
++    //   array tail -- which the clang hack handles, but which also means a
++    //   pointer could not live in the tail; requiring an exact word multiple
++    //   keeps every partition aligned with a `ptr` field (and is the shape
++    //   the pthread_t/slice cases actually need).
++    // - 8-byte ABI alignment or better: `repr(packed)` aggregates can have
++    //   pointers at non-8-byte-aligned offsets, for which the all-pointer
++    //   struct would produce nonsense partitions (SROA falls back to
++    //   integers for those anyway; skipping them here keeps their allocas
++    //   exactly as they were).
++    if size != layout.size
++        || size.bytes() == 0
++        || size.bytes() % 8 != 0
++        || layout.align.abi.bytes() < 8
++    {
++        return None;
++    }
++    if !filc_may_contain_pointers(cx, layout) {
++        return None;
++    }
++    // This is clang's construction from CGRecordLayoutBuilder.cpp, verbatim:
++    // `words` pointers followed by the byte-array tail, packed, with the
++    // total size asserted to equal the layout size.  The tail is always
++    // empty here because size is required to be a multiple of 8.
++    let words = size.bytes() / 8;
++    let fields: Vec<&'a Type> = (0..words).map(|_| cx.type_ptr()).collect();
++    let ty = cx.type_struct(&fields, /*Packed=*/ true);
++    // clang: assert(LayoutSize == getSize(NewStorageType)).  The struct is
++    // packed with exactly `words` pointers, so its size is words*8 == size.
++    assert_eq!(words * 8, size.bytes());
++    Some(ty)
+ }
+
+ impl<'a, 'tcx> CodegenCx<'a, 'tcx> {
 diff --git a/rust/compiler/rustc_codegen_ssa/src/back/link.rs b/rust/compiler/rustc_codegen_ssa/src/back/link.rs
 --- a/rust/compiler/rustc_codegen_ssa/src/back/link.rs
 +++ b/rust/compiler/rustc_codegen_ssa/src/back/link.rs
@@ -223,6 +481,112 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/back/write.rs b/rust/compiler/r
 
          let save_temps = sess.opts.cg.save_temps;
 
+diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/block.rs b/rust/compiler/rustc_codegen_ssa/src/mir/block.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/mir/block.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/mir/block.rs
+@@ -1524,7 +1524,13 @@
+                         Some(pointee_align) => cmp::max(pointee_align, arg.layout.align.abi),
+                         None => arg.layout.align.abi,
+                     };
+-                    let scratch = PlaceValue::alloca(bx, arg.layout.size, required_align);
++                    // Fil-C: pass arg.layout so pointer-maybe aggregates can
++                    // get a typed (all-pointer struct) alloca; see the Fil-C
++                    // comments in rustc_codegen_llvm/src/type_of.rs.
++                    let scratch = PlaceValue::new_sized(
++                        bx.alloca_for_layout(arg.layout.size, required_align, arg.layout),
++                        required_align,
++                    );
+                     bx.lifetime_start(scratch.llval, arg.layout.size);
+                     op.val.store(bx, scratch.with_type(arg.layout));
+                     lifetime_ends_after_call.push((scratch.llval, arg.layout.size));
+@@ -1547,7 +1553,14 @@
+                         // For `foo(packed.large_field)`, and types with <4 byte alignment on x86,
+                         // alignment requirements may be higher than the type's alignment, so copy
+                         // to a higher-aligned alloca.
+-                        let scratch = PlaceValue::alloca(bx, arg.layout.size, required_align);
++                        // Fil-C: pass arg.layout so pointer-maybe aggregates
++                        // can get a typed (all-pointer struct) alloca; see
++                        // the Fil-C comments in
++                        // rustc_codegen_llvm/src/type_of.rs.
++                        let scratch = PlaceValue::new_sized(
++                            bx.alloca_for_layout(arg.layout.size, required_align, arg.layout),
++                            required_align,
++                        );
+                         bx.lifetime_start(scratch.llval, arg.layout.size);
+                         bx.typed_place_copy(scratch, op_place_val, op.layout);
+                         lifetime_ends_after_call.push((scratch.llval, arg.layout.size));
+diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/place.rs b/rust/compiler/rustc_codegen_ssa/src/mir/place.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/mir/place.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/mir/place.rs
+@@ -118,7 +118,17 @@
+         layout: TyAndLayout<'tcx>,
+     ) -> Self {
+         assert!(layout.is_sized(), "tried to statically allocate unsized place");
+-        PlaceValue::alloca(bx, size, layout.align.abi).with_type(layout)
++        // Fil-C: aggregates that may contain pointers get a typed alloca
++        // whose LLVM type is an all-pointer struct (clang's union
++        // representation hack, CGRecordLayoutBuilder.cpp commit 4a54ae4076b4),
++        // so that SROA's type-driven partitioning keeps the capabilities that
++        // GIMSO memcpys carry in the shadow of the copied bytes instead of
++        // integer-widening memcpy-only partitions and dropping them.  See the
++        // Fil-C comments in rustc_codegen_llvm/src/type_of.rs.  Other
++        // backends (and anything the LLVM backend declines to type) get the
++        // untyped byte-array alloca via the default trait impl.
++        let llval = bx.alloca_for_layout(size, layout.align.abi, layout);
++        PlaceValue::new_sized(llval, layout.align.abi).with_type(layout)
+     }
+
+     /// Returns a place for an indirect reference to an unsized place.
+diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/rvalue.rs b/rust/compiler/rustc_codegen_ssa/src/mir/rvalue.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/mir/rvalue.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/mir/rvalue.rs
+@@ -308,7 +308,14 @@
+                 // about things like f32x8 ⇌ ptrx4 that would need multiple steps.
+                 let align = Ord::max(operand.layout.align.abi, cast.align.abi);
+                 let size = Ord::max(operand.layout.size, cast.size);
+-                let temp = PlaceValue::alloca(bx, size, align);
++                // Fil-C: the layout is passed so that pointer-maybe
++                // aggregates can get a typed (all-pointer struct) alloca;
++                // filc_ptr_struct_type declines to type the allocation when
++                // `size` isn't exactly `operand.layout.size` (i.e. when the
++                // cast is bigger than the operand), falling back to the
++                // untyped byte array.
++                let temp =
++                    PlaceValue::new_sized(bx.alloca_for_layout(size, align, operand.layout), align);
+                 bx.lifetime_start(temp.llval, size);
+                 operand.val.store(bx, temp.with_type(operand.layout));
+                 let val = bx.load_operand(temp.with_type(cast)).val;
+diff --git a/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs b/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs
+@@ -235,6 +235,27 @@
+
+     fn alloca(&mut self, size: Size, align: Align) -> Self::Value;
+
++    /// Fil-C: like `alloca`, but for a stack slot that will hold a value
++    /// with the given layout (whose size is `size`).  The default just does
++    /// the untyped byte-array alloca; the Fil-C LLVM backend overrides it to
++    /// emit a typed alloca with an all-pointer struct type for aggregates
++    /// that may contain pointers, mirroring clang's union representation
++    /// hack in CGRecordLayoutBuilder.cpp (commit 4a54ae4076b4).  That makes
++    /// SROA's type-driven partitioning type the memcpy-only partitions of
++    /// those allocas as pointers, so the capabilities that GIMSO memcpys
++    /// carry in the shadow of the copied bytes survive SROA's splitting
++    /// instead of being dropped by integer-widened load/store pairs.  See
++    /// the Fil-C comments in rustc_codegen_llvm/src/type_of.rs.
++    fn alloca_for_layout(
++        &mut self,
++        size: Size,
++        align: Align,
++        layout: TyAndLayout<'tcx>,
++    ) -> Self::Value {
++        let _ = layout;
++        self.alloca(size, align)
++    }
++
+     fn load(&mut self, ty: Self::Type, ptr: Self::Value, align: Align) -> Self::Value;
+     fn volatile_load(&mut self, ty: Self::Type, ptr: Self::Value) -> Self::Value;
+     fn atomic_load(
 diff --git a/rust/compiler/rustc_driver_impl/src/lib.rs b/rust/compiler/rustc_driver_impl/src/lib.rs
 --- a/rust/compiler/rustc_driver_impl/src/lib.rs
 +++ b/rust/compiler/rustc_driver_impl/src/lib.rs
@@ -297,7 +661,7 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
    PipelineTuningOptions PTO;
    PTO.LoopUnrolling = UnrollLoops;
    PTO.LoopInterleaving = UnrollLoops;
-@@ -821,6 +836,24 @@
+@@ -821,6 +836,43 @@
        OptimizerLastEPCallbacks;
  #endif
 
@@ -307,22 +671,41 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
 +  // DeleteRedundantPollchecks) is owned by LLVM's RegisterFilPasses
 +  // (llvm/lib/Passes/RegisterFilPasses.cpp) and registered here with
 +  // IsRust=true, exactly like clang/lib/CodeGen/BackendUtil.cpp registers it
-+  // with IsRust=false -- so rustc pizlonates exactly like Fil-C clang does.
-+  // IsRust disables the whole pre-pizlonation simplification and inlining
-+  // pipeline by default because it miscompiles rustc-shaped IR (see
-+  // RegisterFilPasses.cpp; FILCRUST_FILCINLINE in the environment re-enables
-+  // it).  The callbacks run
-+  // on every path through this function -- O0 via buildO0DefaultPipeline,
-+  // the prepopulated per-module/ThinLTO/fat-LTO pipelines, and (via
-+  // FilCAddPipelineStartPasses in the NoPrepopulatePasses branch below) the
-+  // no-prepopulate pipeline -- so every module that rustc compiles gets
-+  // pizlonated, at every optimization level.
++  // with IsRust=false.  IsRust=true disables the pre-pizlonation
++  // simplification and inlining BLOCK (KillUB -> coro lowering ->
++  // FilPizlonator always run): that block still miscompiles rustc-shaped IR
++  // in the mem::swap class.  std's swap_nonoverlapping_chunks moves the bytes
++  // of swapped pointer-containing elements through MaybeUninit<[u8; N]>
++  // block buffers -- NUMERIC-typed allocas -- and upstream SROA widens their
++  // typed byte copies into integer load/store pairs, which under GIMSO
++  // semantics drop the capabilities that copies carry in the shadow of the
++  // copied bytes (this class first surfaced as a std::thread::spawn + join
++  // compiled at -O handing pthread_join a thread handle whose
++  // flight-pointer capability had been dropped; today's reviewer-verified
++  // shape is std::mem::swap: a Vec of pointer-containing structs shuffled
++  // with mem::swap miscompiles at -O in Vec::clone -> String::clone, and
++  // even a bare mem::swap::<String> miscompiles).  The rustc-side typed
++  // allocas (below) fixed the spawn+join shape -- aggregates that may
++  // contain pointers get typed allocas with all-pointer struct types (see
++  // filc_ptr_struct_type in rustc_codegen_llvm/src/type_of.rs), so SROA's
++  // type-driven partitioning gives the memcpy-only partitions of those
++  // allocas pointer types and the copied capabilities survive -- but the fix
++  // correctly declines NUMERIC types, so it cannot cover the swap class (see
++  // RegisterFilPasses.cpp for why the SROA-side guard that would close it
++  // was rejected for performance -- ~1.4x on simdutf -- and where it lives:
++  // the fil/fixed_sroa branch).  FILCRUST_FILCINLINE in the environment
++  // re-enables the block for debugging (any set value).  The callbacks run
++  // on every path through this function -- O0 via
++  // buildO0DefaultPipeline, the prepopulated per-module/ThinLTO/fat-LTO
++  // pipelines, and (via FilCAddPipelineStartPasses in the NoPrepopulatePasses
++  // branch below) the no-prepopulate pipeline -- so every module that rustc
++  // compiles gets pizlonated, at every optimization level.
 +  RegisterFilPasses(PB, nullptr, true);
 +
    if (!IsLinkerPluginLTO && SanitizerOptions && SanitizerOptions->SanitizeCFI &&
        !NoPrepopulatePasses) {
      PipelineStartEPCallbacks.push_back(
-@@ -1025,8 +1058,20 @@
+@@ -1025,8 +1077,20 @@
    } else {
      // We're not building any of the default pipelines but we still want to
      // add the verifier, instrumentation, etc passes if they were requested

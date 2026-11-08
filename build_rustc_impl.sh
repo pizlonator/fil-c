@@ -87,6 +87,11 @@
 # keeps working after the checkout is moved.  A stamp file
 # (rust-build/.filc-linker-dir-stamp) forces rustc_codegen_ssa to recompile
 # when the baked value changes, exactly like the FILC_VERSION stamp above.
+# The rustc driver also statically embeds the LLVM archives that build_clang.sh
+# built into build/lib, which cargo does not fingerprint at all; a stamp of the
+# LLVM input state (rust-build/.filc-llvm-libs-stamp) forces the rustc_llvm
+# recompile + relink when those archives or the LLVM headers change, so the
+# shipped rustc can never keep running stale LLVM code (see below).
 #
 # The script is idempotent: in incremental mode, if rust-build/rust already
 # exists, extraction is skipped and bootstrap resumes incrementally.
@@ -175,6 +180,55 @@ do_build_rustc() {
         exit 1
     fi
 
+    # Fil-C: rustc statically embeds the LLVM archives from build/lib (the
+    # driver is linked against `llvm-config --link-static`'s library set), so
+    # the LLVM code inside librustc_driver.so is whatever was in build/lib at
+    # link time.  Cargo does not notice when those archives change: only
+    # build-script outputs and crate sources are fingerprinted, and the LLVM
+    # libraries are neither -- they are an external input resolved through
+    # llvm-config at build-script run time.  A rebuilt Fil-C LLVM (say, after
+    # editing llvm/lib/Transforms/Scalar/SROA.cpp and running build_clang.sh)
+    # would therefore leave the shipped rustc running stale LLVM code (this
+    # actually happened: a rebuilt SROA shipped in clang but not in rustc).
+    # Keep a stamp of the LLVM inputs the driver was last linked against --
+    # the newest archive mtime/size in build/lib plus the newest header mtime
+    # under llvm/include and build/include (header changes affect the LLVM
+    # C++ API the rustc wrappers compile against).  When it moves, touch the
+    # rustc_llvm wrapper source, forcing cargo to recompile rustc_llvm and
+    # relink librustc_driver.so against the updated archives.  An unchanged
+    # LLVM tree makes this a fast no-op (two find scans, well under 100ms).
+    # A missing stamp is treated as changed: the first run of this script
+    # revision relinks once, and later runs compare against what it recorded.
+    FILC_LLVM_STAMP=$RUST_BUILD/.filc-llvm-libs-stamp
+    FILC_LLVM_STATE=
+    # The newest (mtime:size) LLVM archive feeding the static link, from the
+    # same directory llvm-config points at.  Only libLLVM*.a counts: the
+    # driver links the LLVM component archives (llvm-config --link-static)
+    # plus the MCA ones, not clang's own static libraries -- whose routine
+    # churn on clang-side edits must not trigger rustc relinks.  (sed, not
+    # `head -1`: this script runs under `set -e -o pipefail`, and a reader
+    # that exits early SIGPIPEs the writer into a silent exit 141 -- sed
+    # drains the pipeline instead.)
+    if [ -d "$FILC_ROOT/build/lib" ]; then
+        FILC_LLVM_STATE=`find "$FILC_ROOT/build/lib" -maxdepth 1 \
+            -name 'libLLVM*.a' -printf '%T@:%s\n' \
+            2>/dev/null | sort -rn | sed -n '1p'`
+    fi
+    # Plus the newest header mtime in the LLVM include trees the wrappers'
+    # includes resolve to; a missing tree contributes nothing.
+    for FILC_LLVM_INC_DIR in "$FILC_ROOT/llvm/include" "$FILC_ROOT/build/include"; do
+        if [ -d "$FILC_LLVM_INC_DIR" ]; then
+            FILC_LLVM_STATE="$FILC_LLVM_STATE`find "$FILC_LLVM_INC_DIR" \
+                -name '*.h' -printf '%T@\n' 2>/dev/null | sort -rn | sed -n '1p'`"
+        fi
+    done
+    if [ ! -f $FILC_LLVM_STAMP ] || [ "`cat $FILC_LLVM_STAMP 2>/dev/null`" != "$FILC_LLVM_STATE" ]; then
+        touch $RUST_SRC/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+        echo "$FILC_LLVM_STATE" > $FILC_LLVM_STAMP
+        echo "Fil-C LLVM libraries changed: relinking the rustc driver against" >&2
+        echo "the updated LLVM archives (touched compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp)." >&2
+    fi
+
     # compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp: the Fil-C pipeline
     # comes from LLVM's RegisterFilPasses -- registered on the PassBuilder
     # with IsRust=true (which also registers the OptimizerLast
@@ -186,6 +240,38 @@ do_build_rustc() {
     check_grep "llvm::FilCAddPipelineStartPasses(MPM, OptLevel, /*IsRust=*/true);" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
     check_grep "setDataLayoutAfterFilC" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
     check_grep "DeleteRedundantPollchecksPass()" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+
+    # compiler/rustc_codegen_llvm/src/type_of.rs + context.rs + builder.rs, and
+    # compiler/rustc_codegen_ssa/src/{traits/builder,mir/place,mir/rvalue,mir/block}.rs:
+    # the Fil-C all-pointer struct representation of pointer-maybe aggregates
+    # for allocas (clang's union representation hack, CGRecordLayoutBuilder.cpp
+    # commit 4a54ae4076b4).  This rustc-side fix closes the spawn+join shape:
+    # rustc's allocas are untyped byte arrays, so unlike clang there are no
+    # field types for SROA to inherit; the Fil-C rustc emits typed allocas
+    # with all-pointer struct types for aggregates that may contain pointers,
+    # which types the memcpy-only partitions as pointers -- so the
+    # pre-pizlonation pipeline (whose pre-inliner SROA would otherwise
+    # integer-widen those partitions, dropping GIMSO capabilities) is safe
+    # for the spawn+join shape whenever the pipeline does run under rustc
+    # (e.g. with FILCRUST_FILCINLINE=1; the IsRust gate keeps the block off
+    # by default, see RegisterFilPasses.cpp).  The mem::swap class remains
+    # gated off for rustc pending a perf-acceptable SROA-side guard: its
+    # swapped bytes travel through NUMERIC-typed MaybeUninit<[u8; N]> block
+    # buffers that fail the may-contain-pointers test and keep the
+    # byte-array alloca, so SROA still integer-widens their partitions; that
+    # guard lives on the fil/fixed_sroa branch (the brute-force SROA-side
+    # fix, which ptr-typed ALL aligned memcpy-only partitions, cost ~1.4x on
+    # simdutf, so llvm/lib/Transforms/Scalar/SROA.cpp is left at upstream).
+    check_grep "fn filc_may_contain_pointers" compiler/rustc_codegen_llvm/src/type_of.rs
+    check_grep "fn filc_ptr_struct_type" compiler/rustc_codegen_llvm/src/type_of.rs
+    check_grep "Packed=*/ true" compiler/rustc_codegen_llvm/src/type_of.rs
+    check_grep "filc_ptr_maybe" compiler/rustc_codegen_llvm/src/context.rs
+    check_grep "fn alloca_for_layout" compiler/rustc_codegen_llvm/src/builder.rs
+    check_grep "filc_ptr_struct_type" compiler/rustc_codegen_llvm/src/builder.rs
+    check_grep "fn alloca_for_layout" compiler/rustc_codegen_ssa/src/traits/builder.rs
+    check_grep "alloca_for_layout(size, layout.align.abi, layout)" compiler/rustc_codegen_ssa/src/mir/place.rs
+    check_grep "alloca_for_layout(size, align, operand.layout)" compiler/rustc_codegen_ssa/src/mir/rvalue.rs
+    check_grep "alloca_for_layout(arg.layout.size, required_align, arg.layout)" compiler/rustc_codegen_ssa/src/mir/block.rs
 
     # compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs: the
     # "before Fil-C" data layout (-ni:0), filcc as the linker, -normalcrt, no
