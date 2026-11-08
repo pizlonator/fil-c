@@ -3,3 +3,16 @@ Origname: lz4-1.11.0
 Name: lz4
 
     lz4 1.11.0 with no Fil-C changes (converted from the deprecated pizlix tarball mode).
+diff --git a/lz4/lib/Makefile b/lz4/lib/Makefile
+--- a/lz4/lib/Makefile
++++ b/lz4/lib/Makefile
+@@ -151,7 +151,8 @@
+ lib-release: lib liblz4.pc
+
+ .PHONY: lib
+-lib: liblz4.a liblz4
++# liblz4.a is only defined when BUILD_STATIC=yes, so don't require it otherwise.
++lib: $(if $(filter yes,$(BUILD_STATIC)),liblz4.a) liblz4
+
+ .PHONY: lib-mt
+ lib-mt:
