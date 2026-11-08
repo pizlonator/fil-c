@@ -47,6 +47,8 @@ cp -v build_postlc4_chroot_project_gtk4.sh $LFS/sources
 cp -v build_postlc4_chroot_project_at-spi2-core.sh $LFS/sources
 cp -v build_postlc4_chroot_project_gtk3.sh $LFS/sources
 
+cp -rv filc-llvm-config $LFS/sources/filc-llvm-config
+
 ./build_chroot_late.sh /sources/build_postlc4_sub2_chroot.sh
 
 echo "postlc4" > $LFS/sources/lfsbuildstate
