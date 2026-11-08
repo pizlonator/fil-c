@@ -23,431 +23,211 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 
-# zegarmistrz — x86-64 user-mode emulator (phase 2: full ISA + tooling)
+# zegarmistrz — an x86-64 user-mode emulator that catches secret-dependent timing
 
-`zegarmistrz` ("clockmaker" in Polish) is a user-mode x86-64 emulator: it
-loads a Linux ELF binary and interprets it instruction by instruction,
-giving every guest memory access a common pipeline.
-
-Phase 1 goal (done): run `./hello` (a Fil-C PIE binary with its own
-dynamic loader) to print `Hello!`. Phase 2 (done): full user-mode ISA
-through AVX512 + AES/SHA, valgrind-like poisoning, ELF core dumps, signal
-conversion, CLI, parallel tests, `./build_zegarmistrz.sh`.
+`zegarmistrz` ("clockmaker" in Polish) loads a Linux x86-64 ELF binary and
+interprets it instruction by instruction, giving every guest memory access
+a common pipeline. On top of that it enforces a valgrind-style
+poison/taint system aimed at testing constant-time cryptosystems: the
+guest marks memory as secret with per-byte "cannot" bits — cannot-load,
+cannot-store, cannot-branch, cannot-index, cannot-var-time-op — and the
+emulator faults the moment a tainted value feeds an operation whose
+control flow, addressing, or timing could depend on it. A fault prints a
+symbolized guest stack trace to stderr and writes a gdb-consumable ELF
+core dump (exit status 139, i.e. SIGSEGV). The target use: run crypto
+code with its key material poisoned, and any branch on key bytes, table
+lookup indexed by key bytes, division on secret-derived values, or
+secret-indexed gather becomes an immediate, located failure instead of a
+possible side channel.
 
 ## Build & test
 
+Dependencies: `libzydis-dev` + `libzycore-dev` (Zydis decoder) and
+`binutils-dev` (BFD, for crash-time guest stack traces).
+
 ```bash
-sudo apt-get install -y libzydis-dev libzycore-dev   # Zydis decoder
-sudo apt-get install -y binutils-dev      # BFD (crash-time guest stack traces)
-make -j$(nproc)        # builds ./zegarmistrz
-./run-tests            # builds guests, runs 40 tests in parallel (xargs -P)
-./check-isa.sh         # verify ISA coverage against binaries
-./zegarmistrz <program> [args...]
-./zegarmistrz -v ./hello                             # trace instructions
-./zegarmistrz --trace-syscalls ./hello               # trace syscalls
-./zegarmistrz --help                                 # full usage + poisoning ABI
+sudo apt-get install -y libzydis-dev libzycore-dev binutils-dev
+make -j$(nproc)          # builds ./zegarmistrz
+./run-tests              # builds the guests, runs the full suite in parallel
+./check-isa.sh           # report mnemonics in real binaries lacking handlers
+
+./zegarmistrz <program> [args...]        # run a guest
+./zegarmistrz -v ./hello                 # disassemble each instruction
+./zegarmistrz --trace-syscalls ./hello   # trace syscalls
+./zegarmistrz --help                     # full usage + poisoning ABI + modes
 ```
 
-`run-tests` (bash, `xargs -P`, `JOBS=` to tune, defaults to `nproc`)
-runs: `filc-hello` (repo-root `./hello` must print `Hello!`),
-`static-hi` (statically linked guest), `threads` (pthread
-create/join + mutex), `args-exit` (argv passing + exit code 42),
-`avx512-smoke` + `aes-smoke` + `vex-smoke` (native-vs-emulated
-differentials, skipped if the host lacks the features),
-`poison-{load,store,branch,index,syscall}` (each must dump core),
-`poison-unpoison` + `poison-clear` (must exit 0),
-`poison-launder-branch` + `poison-launder-index` (store-laundering
-through a cannot-branch/cannot-index-poisoned slot without the CLEAR_*
-bit keeps the poison, so using the reloaded value faults with the
-matching reason) and `poison-launder-clear` (with CLEAR_BRANCH_ON_STORE
-the clean store sanitizes and the branch succeeds), plus the
-`poison-vt-*` CANNOT_VAR_TIME_OP tests: `poison-vt-div` (tainted DIV
-operand, doc §4.1), `poison-vt-kmask` (tainted EVEX {k} write mask on a
-masked load, doc §4.7), `poison-vt-cpuid` (tainted CPUID leaf, doc §4.9)
-and `poison-vt-rep` (tainted `rep movsb` count, doc §4.4: RCX is a VAL
-operand for REP MOVS/STOS/LODS) must fault with the var-time reason in
-every mode;
-`poison-vt-clear` (with CLEAR_VAR_TIME_OP_ON_STORE the clean store
-sanitizes and the DIV succeeds), `poison-vt-plausible` (RCR by CL, a
-doc §5 suspect: clean in the default mode, var-time fault under
-`--var-time-op=plausible`), `poison-vt-mode3` (VPERMILPS with a tainted
-control operand: deliberately unclassified, so it only traps under
-`--var-time-op=everything`), `poison-vt-exempt` (PAUSE/fences/RDTSC/
-RDTSCP/RDRAND/RDSEED/RDPID/ADD/MOV with the taint live must run clean
-even in everything mode) and `poison-vt-cmps` (REPE CMPSB over
-cannot-branch-poisoned buffers keeps its own dimension and faults with
-the cannot-branch reason), `cpuid-emulated` +
-`cpuid-native` + `zeglib-emulated` + `zeglib-native` (CPUID presence and
-the `include/zegarmistrz.h` client library, each run under the emulator
-and natively), `poison-header` (header-library poison must fault under
-the emulator; the native run exits 0), `core-gdb`
-(`gdb -batch -ex bt` shows guest `boom` → `main`, no interpreter
-frames), `stack-trace` (symbolized guest trace with `boom` before
-`main`, printed before the core), `stack-trace-off` (`--no-stack-trace`:
-no trace, core still produced), `stack-trace-o2` (trace also works for
-`-O2` guests without frame pointers), `stack-trace-fault` (a host fault
-injected inside the dump path via the test-only
-`ZEG_TEST_CRASH_IN_TRACE` hook must kill the process for real instead of
-livelocking), `no-core` (`--no-core` writes no
-core). It does not touch
-`filc/tests`.
-
+`./run-tests` compiles the guests in `tests/` into `test-output/` and
+runs every case in parallel (`xargs -P`; `JOBS=8 ./run-tests` to tune):
+basic guests, native-vs-emulated SIMD differentials, the poisoning
+battery (faults, laundering, clear-on-store, var-time mode gating, the
+per-check-site cannot-index battery), core dumps, and stack traces.
 `./build_zegarmistrz.sh` (repo root) rebuilds and installs the binary at
 `filc/zegarmistrz`.
 
-## Layout
+## Guest-side API: `include/zegarmistrz.h`
 
-- `include/zegarmistrz.h` — header-only C client library for guests:
-  `is_in_zegarmistrz()` (uncached detection via two inline-asm CPUIDs),
-  `zegarmistrz_query()`, `zegarmistrz_poison_range()`,
-  `zegarmistrz_unpoison_range()`, `zegarmistrz_client_request()`; all
-  static inline, compiler-defensive (asm-opaque call target), all no-ops
-  outside the emulator.
-- `src/cpu.h` — `GPRValue` (`uint64_t val` + `cannot_branch` /
-  `cannot_index` sidecars), `XMMValue` (64-byte ZMM + sidecars), `CPU`
-  (gpr[16], rip, rflags CF/PF/AF/ZF/SF/OF/DF, xmm[32], fs/gs_base,
-  mxcsr, minimal x87, thread bookkeeping).
-- `src/mem.h`, `src/mem.cpp` — common memory pipeline
-  (`mem_load8/16/32/64`, `mem_store*`, wide vector access,
-  `mem_read_code`, `mem_copy`). Guest VA == host VA so the fast path
-  is `memcpy`, but every access flows through here (poison checks +
-  SIGSEGV/SIGBUS recovery via thread-local `sigsetjmp`, translated to
-  guest core dumps). Poison map (`mem_poison_range`) + magic-call
-  handler included.
-- `src/elf_loader.h`, `src/elf_loader.cpp` — minimal ELF64 loader:
-  maps each object's `PT_LOAD`s with `mmap(MAP_FIXED)` (anonymous +
-  `pread`, then `mprotect` to final perms). `ET_DYN` bases come from a
-  `mmap(NULL)` reservation; the main exe reserves +1 GB of contiguous
-  brk growth room in the same reservation (so virtualized `brk` can
-  never stomp host mappings). Loads `PT_INTERP` first, exposes entry /
-  `AT_PHDR` (file-offset→vaddr translated) / `AT_ENTRY` / `AT_BASE`.
-- `src/syscall.h`, `src/syscall.cpp` — `SYSCALL` emulation:
-  number from `RAX`, args from `RDI,RSI,RDX,R10,R8,R9`, return in
-  `RAX` (negative errno), `RCX`=`RIP`/`R11`=`RFLAGS` clobber.
-  Virtualized: `brk` (per-process, capped at reservation),
-  `arch_prctl` `SET/GET_FS/GS` (per-CPU, never touches host),
-  `clone`/`clone3` (via `pthread_create`: copies CPU, new guest stack,
-  TLS, `PARENT_SETTID`/`CHILD_CLEARTID` + futex wake; child resumes
-  *after* the syscall with `RAX=0`), `exit` (ends just the thread:
-  clears ctid + wakes *both* futex flavors + `pthread_exit`) vs
-  `exit_group` (whole process), `rt_sigaction`/`rt_sigprocmask`
-  (no-op success), `execve`/`fork`/`vfork` (`ENOSYS`). Everything else
-  passes through host `syscall()` (futex, mmap/mprotect/munmap/madvise,
-  openat/read/write/close/lseek/fstat, rseq/set_robust_list/
-  set_tid_address, getrandom, prlimit64, ...). Tainted
-  (`cannot_branch`/`cannot_index`) syscall args are rejected.
-- `src/decode_exec.h`, `src/decode_exec.cpp` — fetch/decode/
-  dispatch/execute. **Decoder: system Zydis** (CMake config
-  `libzydis-dev`, no pkg-config file; `Makefile` falls back to
-  `-lZydis -lZycore`). A global `LOCK`-prefix bus mutex (`g_bus_lock`)
-  serializes `LOCK`ed RMWs plus implicitly-locked `XCHG`/`CMPXCHG8B`/
-  `16B` across guest threads. `CPUID` masks AVX512/AMX/SHA (phase 1
-  implements up to AVX2; guests then avoid EVEX paths); CPUID also
-  reports zegarmistrz's presence (hypervisor bit + vendor leaf, see
-  below). `RDRAND`/
-  `RDSEED`/`CRC32` pass through to the host; `XSAVE/XRSTOR/FXSAVE`
-  save/restore x87+SSE+AVX state (other components zeroed/skipped);
-  shadow-stack reads report 0; `RDPID` returns 0. Unimplemented
-  opcodes (EVEX/AVX512, AES, SHA, gathers, ...) fail cleanly as
-  `unimplemented <mnemonic>`.
-- `src/main.cpp` — CLI, Linux-ABI stack setup (argc/argv/envp/auxv
-  with `AT_PHDR/ENTRY/BASE/HWCAP/RANDOM/EXECFN/...`, 16-byte aligned),
-  main-thread CPU, interpreter loop. `SIGUSR1` dumps guest
-  backtraces (debug aid).
-- `src/stack_trace.h`, `src/stack_trace.cpp` — crash-time guest stack
-  traces: walks the guest stack from the faulting RIP (RBP chain through
-  guarded guest-memory reads, approximate scan fallback) and symbolizes
-  guest addresses with BFD against the ELF objects the emulator loaded;
-  printed by `dump_core` before the core file is written.
-- `tests/` — guest sources (`args.c`, `threads.c`, `static_hi.c`);
-  `test-output/` — build/run artifacts.
+A header-only C client library: `zegarmistrz_poison_range(ptr, size,
+flags)`, `zegarmistrz_unpoison_range(ptr, size)`, `zegarmistrz_query()`,
+and `is_in_zegarmistrz()`. Everything is static inline and behaves as a
+no-op outside the emulator, so the same binary runs natively and under
+zegarmistrz. (Under Fil-C the calls become runtime natives; see the
+header's comments.)
 
-## Presence (CPUID)
+## Catching errors: three worked examples
 
-Per `cpuid.txt` (repo root), zegarmistrz reveals itself through the CPUID
-hypervisor convention:
+The demos below live in `/tmp` (traces show their real paths) and were
+compiled with `gcc -O1 -g -I projects/zegarmistrz/include`. Addresses and
+tids vary run to run (ASLR).
 
-- `CPUID.1:ECX` bit 31 — the "hypervisor present" bit (reserved zero on
-  real silicon) is set.
-- Hypervisor leaf `0x40000000` returns the max hypervisor leaf in `EAX`
-  (`0x40000000`) and the 12-byte vendor signature `"Zegarmistrz\0"` in
-  `EBX:ECX:EDX`. Leaves `0x40000001`-`0x4000FFFF` read as zero — the
-  host's own hypervisor leaves never leak through.
+### 1. Table lookup indexed by a secret byte (cannot-index)
 
-Guest-side detection is `is_in_zegarmistrz()` from `include/zegarmistrz.h`
-(no caching; both CPUID instructions run on every call, in inline
-assembly; gate on bit 31 first, then match the signature — exactly the
-cpuid.txt recipe). Tests: `cpuid_vendor` runs both natively (no match
-expected) and under the emulator (signature expected).
+```c
+// Secret-indexed table lookup: the classic cache-timing leak.
+#include <zegarmistrz.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
-## RFLAGS / operand notes
+int main(void) {
+    static const uint8_t sbox[256] = {0x63, 0x7c, 0x77, 0x7b, 0xf2}; /* AES-ish */
+    uint8_t key[16], out[16];
+    memset(key, 0x42, sizeof(key));
+    zegarmistrz_poison_range(key, sizeof(key), ZEGARMISTRZ_POISON_CANNOT_INDEX);
+    for (int i = 0; i < 16; i++)
+        out[i] = sbox[key[i]];                 // data-dependent cache line
+    printf("mac=%02x%02x\n", out[0], out[1]);  // NOTREACHED under zegarmistrz
+    return 0;
+}
+```
 
-- Flags via `__int128` arithmetic + parity fold; `INC`/`DEC` preserve
-  `CF`; shifts set `CF`/`OF`/`ZF`/`SF`/`PF` per Intel (AF left alone
-  where undefined); string ops honor `DF`; `ADC`/`SBB` implement
-  carry/borrow chains exactly.
-- Zydis reports some real operands as `IMPLICIT` (e.g. `AL` in
-  `test al,1`, `CL` in `shl eax,cl`) and others as `HIDDEN`
-  (`RFLAGS`, implicit `RAX/RDX`...). Handlers index the non-hidden
-  operands in decoded order; `test`/`mul`/`div`/1-op-`imul` all work.
-- `CALL` to `0x1410141014101410` is the poisoning client-request
-  trap (request 1 = poison range, 2 = unpoison); otherwise `CALL`
-  pushes the return address normally.
+```console
+$ ./demo_index                     # natively: nothing special happens
+mac=0000
+$ zegarmistrz ./demo_index; echo "exit=$?"
+zegarmistrz: fatal guest error (tid=4105146): tainted (cannot-index) value used as address index at rip=0x708f3f8d91f4
+Guest stack trace (tid=4105146):
+  #0  0x0000708f3f8d91f4 in main () at /tmp/zegdemo/demo_index.c:13
+  #1  0x0000708f7e97e28b
+  #2  0x0000708f3f8d90a5 in _start ()
+zegarmistrz: [core: zegarmistrz.core.demo_index.4105146]
+exit=139
+```
 
-## Gotchas fixed in phase 1 (notes for phase 2)
+### 2. Branching on a secret (cannot-branch)
 
-- Guest `brk` must never `MAP_FIXED` outside a reservation (it once
-  stomped host libc). The exe reservation now includes 1 GB of growth
-  room; `do_brk` is capped at it.
-- `clone3` children must resume *after* the syscall (`RAX=0`), not
-  re-execute it.
-- `CLONE_CHILD_CLEARTID` writes tid at start *only* for
-  `CLONE_CHILD_SETTID`; for `CLEARTID`-only the kernel merely clears
-  on exit — writing at start clobbered musl's `detach_state` and
-  hung every thread spawn. Related: ctid wakeups must be issued in
-  both shared and private flavors.
-- `SYS_exit` ends one thread (`pthread_exit` after ctid
-  clear+wake); only `SYS_exit_group` (or `exit` from the main thread)
-  ends the process. `run_cpu_loop` must not `catch(...)` or it eats
-  `pthread_exit`'s forced unwinding.
-- `Makefile` tracks `src/*.h` dependencies — struct layout
-  changes without a rebuild link incompatible objects (this once
-  masqueraded as heap corruption).
-- `SAR` (and any width logic): widths are bytes, not bits.
-- Static (`ET_EXEC`) binaries need file-offset→vaddr translation for
-  `AT_PHDR` (the loader's `_dl_phdr` comes from auxv).
+`while (len < sizeof(key) && key[len] != 0) len++;` over `key` poisoned
+with `ZEGARMISTRZ_POISON_CANNOT_BRANCH`:
 
-## Gotchas fixed in phase 2 (notes for the future)
+```console
+$ zegarmistrz ./demo_branch; echo "exit=$?"
+zegarmistrz: fatal guest error (tid=4105122): tainted (cannot-branch) value used in branch condition at rip=0x7b17a4b121f1
+Guest stack trace (tid=4105122):
+  #0  0x00007b17a4b121f1 in main () at /tmp/zegdemo/demo_branch.c:15
+  #1  0x00007b17e3b7e28b
+  #2  0x00007b17a4b120a5 in _start ()
+zegarmistrz: [core: zegarmistrz.core.demo_branch.4105122]
+exit=139
+```
 
-- Zydis exposes EVEX write masks (`{k}`) as explicit operands, even
-  `{k0}` when unmasked (e.g. `vpaddd` decodes as
-  `[dst, k, src1, src2]`). `evex_explicit()` skips non-destination
-  operands equal to `avx.mask.reg`; the authoritative mask lives in
-  `avx.mask` (mode + reg). Related: `vpcmpeqb` with a `k` destination
-  is the mask-producing form (like `VPCMPB`+EQ), not the vector form —
-  dispatch on destination kind.
-- Zydis operand order is Intel order, but double-check per-opcode:
-  `VPERMB/W` (and `VPERMD/Q`) compute `SRC2[SRC1]` (index in the
-  *first* source) — verified on HW against the
-  `_mm512_permutexvar_*` intrinsics. `SHA256RNDS2` hides its `b`
-  source (`HIDDEN` visibility; `k` is the explicit mem operand) —
-  verified against GCC's emission. `GF2P8AFFINE*` needs output
-  bit-reversal plus per-64-bit-lane matrices (verified on HW), and
-  legacy/VEX forms differ in which operand supplies bytes vs matrix.
-  `INSERTPS`: `COUNT_S` is imm bits `[7:6]`, `COUNT_D` bits `[5:4]`.
-  `VPTESTM/NM` are exact inverses: `M` sets bits where `(a AND b) !=
-  0`, `NM` where `== 0` (verified on HW; the PTEST-CF analogy
-  misleads).
-- `vec_sources`/`vec_store_dst` assumed VEX means exactly 3 explicit
-  operands; 4-operand VEX (`VSHUFPS`, `VBLENDPS`, `VCMPSS`, ...) silently
-  took the legacy path (dst as a source). Now `n >= 3`.
-- BMI `exec_bmi_simple` mixed up Intel operand positions (`BZHI` used
-  the index as the value; `SHLX`/`RORX`/`PDEP` swapped src/count or
-  src/mask). `ZydisMnemonicGetString` is lowercase (`vfmadd132ps`),
-  and the FMA prefix parse was off by one (`p` starts at `'f'`).
-- `_mm_aeskeygenassist_si128` needs a compile-time immediate: use a
-  generated 256-case dispatch. `_mm_clmulepi64_si128` (not
-  `_mm_clmull_epi32_si128`) on this GCC. PCLMUL intrinsics don't
-  inherit function `target()` into lambdas — use a static helper.
-- `ZydisMnemonicGetString` names for objdump's `vpcmpneqb` etc. are
-  plain `VPCMPB` + imm (handle predicates, not names).
-- Debug facility: `ZEG_DEBUG_MOD` needle resolution collided with the
-  host's own libc mapping (same path!); resolve to the file-offset-0
-  mapping, preferring the higher base (guest). Absolute ranges
-  (`ZEG_DEBUG_OFF`) didn't work for static binaries (no interp base);
-  base-0 now means absolute. ELF `PT_NOTE` `p_align` must be 4 —
-  readers align notes by it (kernels use 4); 8 breaks `readelf`/`gdb`.
+### 3. Dividing on secret data (cannot-var-time-op)
 
-## Poisoning ABI (phase 2)
+`mac += secret[i] % prime;` with `secret` poisoned with
+`ZEGARMISTRZ_POISON_CANNOT_VAR_TIME_OP` (64-bit DIV has operand-dependent
+latency, a documented data-dependent instruction):
 
-The canonical guest-side entry points are zegarmistrz_poison_range() /
-zegarmistrz_unpoison_range() / zegarmistrz_query() from
-include/zegarmistrz.h (header-only, no-ops outside the emulator); the
-raw ABI below is what they emit.
+```console
+$ zegarmistrz ./demo_div; echo "exit=$?"
+zegarmistrz: fatal guest error (tid=4105123): tainted (cannot-var-time-op) value in variable-time operand of div (data-dependent timing) at rip=0x7ddf6bba521a fault_addr=0x7ddf6bba521a
+Guest stack trace (tid=4105123):
+  #0  0x00007ddf6bba521a in main () at /tmp/zegdemo/demo_div.c:17
+  #1  0x00007ddfaab7e28b
+  #2  0x00007ddf6bba50a5 in _start ()
+zegarmistrz: [core: zegarmistrz.core.demo_div.4105123]
+exit=139
+```
 
-Under Fil-C (`__FILC__`), include/zegarmistrz.h does not emit the magic
-call itself; instead the two entry points (is_in_zegarmistrz() and
-zegarmistrz_client_request()) are declared `extern` and are provided by
-the Fil-C runtime (libpizlo) as natives
-(`filc_native_is_in_zegarmistrz` /
-`filc_native_zegarmistrz_client_request`, registered in
-libpas/src/libpas/generate_pizlonated_forwarders.rb and implemented in
-libpas/src/libpas/filc_runtime.c). The runtime's wrapper check-reads
-`[ptr, ptr+size)` before issuing the magic call from yolo code, so
-pizlonated guests use the same API safely.
+## Poisoning semantics
 
-Client request: `CALL` to `0x1410141014101410` with `RDI=op`,
-`RSI=ptr`, `RDX=size`, `RCX=flags`; returns 0 in `RAX`:
+Poison is a per-byte map. `zegarmistrz_poison_range(ptr, size, flags)`
+ORs a bitmask into each byte of `[ptr, ptr+size)`: bit0 cannot-load,
+bit1 cannot-store, bit2 cannot-branch, bit3 cannot-index, bit4
+clear-branch-on-store, bit5 clear-index-on-store, bit6
+cannot-var-time-op, bit7 clear-var-time-op-on-store (the
+`ZEGARMISTRZ_POISON_*` constants in the header).
 
-- op 0: no-op/query, returns 0.
-- op 1: poison each byte of `[ptr, ptr+size)` OR-ing the `flags`
-  bitmask: bit0 `cannot-load`, bit1 `cannot-store`, bit2
-  `cannot-branch`, bit3 `cannot-index`, bit4
-  `clear-branch-on-store`, bit5 `clear-index-on-store`, bit6
-  `cannot-var-time-op`, bit7 `clear-var-time-op-on-store`. Example:
-  `(1, ptr, size, 1)` poisons cannot-load only.
-- op 2: unpoison (erase entries in range).
+Loading a byte taints the loaded value with its cannot-branch /
+cannot-index / cannot-var-time-op bits; computation propagates the OR of
+input taints, and flag-setting ops taint RFLAGS. A store launders the
+stored value's bits into the destination bytes; a store into a location
+carrying the matching clear-on-store bit instead clears that bit (store
+sanitizes). `xor reg,reg` (and self-sub) clears taint — the result is
+zero regardless of the input. cannot-load/cannot-store/clear bits are
+sticky.
 
-### Variable-time operand checks (CANNOT_VAR_TIME_OP)
+### What cannot-index actually covers
 
-Tainting a value with cannot-var-time-op (bit 6) makes it unusable as an
-operand that makes an instruction's execution time data-dependent —
-other than through branching (cannot-branch) or addressing
-(cannot-index), which keep their own bits and win when both would
-apply. Classification follows x86_64_data_dependent_timing.md (repo
-root): doc §4 (DIV/IDIV, PDEP/PEXT masks, FP add/sub/mul/div/sqrt,
-denormal-sensitive conversions, the MCDT integer multiplies, gathers/
-scatters/masked-memory masks, x87 arithmetic, CPUID leaves, XSAVE
-bitmaps) is KNOWN; §5 suspects (RCL/RCR counts, ROUND*/MIN*/MAX*/CMP*,
-FCOM family, FLD from memory, CMPXCHG comparands, LDMXCSR, XGETBV,
-INCSSP, expand-from-memory
-masks) are PLAUSIBLE; §6+§7 are guaranteed constant-time and never
-trap (RDRAND/RDSEED/PAUSE/fences/SERIALIZE/RDTSC/RDTSCP/RDPID, LOCK
-ops, INT/UD, SYSCALL, all of the ALU/SIMD/crypto DOIT list). Three
-global modes, `--var-time-op=`:
+cannot-index applies **only to instructions that actually touch memory**
+through the tainted value: loads/stores and any other memory operand
+(base or index), string ops via RSI/RDI, `rep` counts via RCX,
+push/pop/ret/call/leave/enter via RSP (and `enter`'s level >= 2 nesting
+copies read `[RBP - i*8]`), XLAT (`RBX`+`AL`), BT bit offsets,
+prefetch/`clflush`, gather/scatter VSIB index vectors (and their scalar
+base), indirect branch/call/ret targets, and syscall arguments. Two
+deliberate exemptions keep ordinary compiler arithmetic from
+false-positive:
 
-- `known` (default): trap only on §4 instructions.
-- `plausible`: also trap on §5.
-- `everything`: also trap on ANY instruction not in the §6+§7
-  guaranteed lists (mode 3 is deliberately aggressive; an
-  unimplemented instruction with a tainted operand reports var-time
-  before its unimplemented error).
+- **LEA never trips it.** LEA is pure address arithmetic (compilers emit
+  it for `x = y + 42`), so it computes its result without the cannot-index
+  checks — but the taint still propagates into the destination, so a later
+  real access through the result still faults. Like real hardware, LEA
+  also ignores segment overrides: it computes only the offset
+  (base + index*scale + disp); the fs/gs base is added by `resolve_mem`
+  for instructions that actually touch memory.
+- **Multi-byte NOPs never trip it.** The long NOP encodings (`0f 1f /0`
+  and friends) use an address encoding purely as padding; the decorative
+  operand is ignored.
 
-Stores launder the bit like the others (a clean store keeps it unless
-clear-var-time-op-on-store is set). ADDR timing dependencies from the
-doc are covered by the cannot-index checks (including the newly
-checked XLAT table index and BT bit-string offsets); CTRL
-dependencies are covered by cannot-branch (including the newly
-checked REPE/REPNE CMPS/SCAS compared values). For gather/scatter
-(this includes the VPGATHER/VSCATTER families and the `VMASKMOV`
-masked-memory ops) the doc tags the index vector "ADDR, VAL":
-zegarmistrz maps that onto the two dedicated dimensions -- the index
-vector is INDEX-checked (cannot-index, ADDR side) and the write mask
-is var-time-checked (cannot-var-time-op, VAL side). SYSCALL timing is the
-kernel's and is not checked. Limitations: x87 and opmask taint are
-per-register (not per-byte) and do not survive FXSAVE/XSAVE
-snapshots; SYSCALL is skipped.
+cannot-var-time-op is the fourth dimension: it faults when a tainted
+value reaches an instruction whose execution time depends on operand
+values (DIV/IDIV, gathers/masked ops, FP arithmetic, CPUID leaves, x87
+math, ...), other than through branching or addressing, which keep their
+own bits and win when both would apply. Three modes via `--var-time-op=`:
+`known` (default; only documented data-dependent instructions),
+`plausible` (also undocumented suspects like RCR counts), and
+`everything` (anything not provably constant-time). SYSCALL timing is the
+kernel's and is never checked; syscall *arguments* reject cannot-branch
+and cannot-index values.
 
-Enforcement: `cannot-load`/`cannot-store` fault on any access through
-the memory pipeline. `cannot-branch`/`cannot-index` taint loaded
-`GPRValue`/`XMMValue`s (and RFLAGS taint when flag-setting ops consume
-tainted inputs). Any ALU/vector computation propagates OR of inputs;
-self-`xor`/`vpxor`/`xorps` (and self-`sub`) of the same register clear
-taint (result is zero). Using `cannot-index` in any address
-computation (base/index/scale, `SI`/`DI` of string ops, `RSP` of
-push/pop, `RCX` of `rep`) faults; using `cannot-branch` as an indirect
-branch/call/`ret` target or in a `Jcc`/`JCXZ`/`LOOP` condition faults;
-either bit on a syscall argument faults. Stores propagate the value's
-bits into the destination bytes (plus the matching clear-on-store
-bit); storing (anything) to a location carrying a clear-on-store bit
-clears that dimension's cannot bit (store sanitizes).
-`cannot-load`/`cannot-store`/clear bits are sticky. All violations
-throw guest errors → ELF core dumps.
+## Design in brief
 
-## Crash-time guest stack traces
+- **Zydis-based interpreter.** Fetch/decode/execute with system Zydis;
+  ~full user-mode ISA through AVX512 + AES/SHA/GFNI (`./check-isa.sh`
+  verifies coverage); unimplemented instructions fail cleanly.
+- **One memory pipeline.** Guest VA == host VA, so the fast path is
+  `memcpy`, but every load/store/code-fetch/string copy flows through
+  `src/mem.cpp` — where poison checks run and host SIGSEGV/SIGBUS become
+  guest core dumps.
+- **Taint sidecars.** Every GPR/XMM value carries the three taint bits
+  (x87 and opmask registers carry whole-register sidecars) that propagate
+  like OR through ALU and vector ops; RFLAGS has its own sidecar for
+  branch conditions.
+- **ELF loader + virtualized syscalls.** Maps `PT_LOAD`s, loads
+  `PT_INTERP`, builds the Linux initial stack, reserves `brk` growth
+  room; `brk`/`arch_prctl`/`clone` (as pthreads)/`exit` vs `exit_group`
+  are emulated, the rest pass through to the host; tainted syscall
+  arguments are rejected.
+- **Fatal errors are first-class.** Symbolized guest stack traces (BFD
+  against the loaded objects; RBP-chain walk with an approximate-scan
+  fallback for `-fomit-frame-pointer` code) print before an `ET_CORE`
+  dump that gdb/lldb read as pure guest state.
+- **CPUID presence.** The hypervisor bit (CPUID.1:ECX bit 31) plus
+  hypervisor leaf `0x40000000` with vendor string `"Zegarmistrz"`;
+  leaves `0x40000001`+ read zero.
 
-On a fatal guest error, `zegarmistrz` prints a symbolized **guest stack
-trace** to stderr (default: on). `--stack-trace` / `--no-stack-trace`
-turn it on/off (last one wins).
+## Implementation details
 
-Ordering guarantee: the fatal-error banner and the guest stack trace are
-printed BEFORE the core file is written, so the trace is visible even if
-producing the core is interrupted (Ctrl-C kills the process mid-write;
-the trace has already been printed). `--no-core` /
-`--passthrough-signals` still prints the banner + trace and then reports
-`[core dumps disabled]` instead of writing anything — except that a
-guest error which is a *real host fault* (unmapped access in passthrough
-mode, where no signal handler is installed) kills the process outright,
-before any output.
+For the agent/contributor-facing companion — build/test mechanics, the
+cannot-index enforcement map, the var-time classification scheme, the raw
+poisoning ABI, and the gotchas lists — read [AGENTS.md](AGENTS.md).
 
-Fault policy: while the dump is being produced, host fault recovery is
-disarmed on the dumping thread — a host fault inside the dump code
-itself (e.g. in BFD) kills the process immediately instead of
-longjmp-ing back into the interpreter loop and re-entering the dump.
-(The fault-guarded guest-memory reads the dump uses still recover
-locally. Other guest threads keep executing — and keep their own fault
-recovery — while one thread dumps.)
-
-How the walk works: it starts at the faulting RIP and follows the guest
-RBP frame chain (`[rbp]` = caller rbp, `[rbp+8]` = return address) via
-fault-guarded guest-memory reads, validating every frame against the
-guest memory map (return addresses must land in guest-executable
-mappings, frame pointers in read/write mappings or the guest stack). If
-the chain is unusable — e.g. the guest was built with
-`-fomit-frame-pointer` — it falls back to an approximate scan of the
-guest stack for slots holding plausible return addresses (bytes before
-the target look like a `call`); those frames are marked
-`(approximate)`. The first frame is always the exact faulting RIP.
-
-Symbolization uses BFD (`bfd_find_nearest_line`, with `__cxa_demangle`
-for C++ names) against the ELF objects the emulator itself loaded: the
-main executable and the `PT_INTERP` interpreter (each `PT_LOAD` records
-its load bias, so `guest VA - bias == ELF vaddr`). Addresses in
-objects the guest's `ld.so` maps later (mmap/brk tag entries, which
-have no file path) print as raw addresses; addresses inside a known
-object that do not symbolize print as `module+0xOFFSET`. Stripped
-binaries have no symtab/debug info; the dynamic symbol table is still
-consulted as a last resort (names only, no file/line), but functions
-internal to an executable are usually not exported there, so
-stripped-binary frames typically print as `module+0xOFFSET`.
-
-Dependency: `sudo apt-get install -y binutils-dev` (also auto-installed
-by `./build_zegarmistrz.sh`). The `Makefile` probes BFD at parse time
-and explicitly pairs the SYSTEM `/usr/include/bfd.h` with the system
-`libbfd.so` by absolute path on the link line (located via
-`$(CXX) -print-multiarch`, with a `/usr/lib/*/libbfd.so` glob fallback,
-so it works on any arch): a from-source binutils under `/usr/local`
-must not have its `bfd.h` mixed with the system `libbfd` — that
-combination compiles and links fine but symbolization silently returns
-nothing. (The system header is forced in by absolute path via
-`-include`, since `-isystem /usr/include` would reorder the C++ header
-chain and break libstdc++'s `#include_next <stdlib.h>`.)
-
-## Status / phase 2
-
-Works: `./hello` → `Hello!` (exit 0), static/dynamic/threaded guests,
-full `run-tests` green (40 tests, parallel), zero compiler warnings.
-Threads, futexes, TLS (`FS`), `rseq`, robust lists, `brk`, `mmap`,
-AVX/AVX2, BMI/BMI2 (incl. `BEXTR`), x87 (+`FLDENV`/`FNSTENV`), `XSAVE`,
-`RDPKRU`/`WRPKRU` — all exercised by the loader + libc + Fil-C runtime
-startup.
-
-Phase 2 additions:
-
-- **ISA**: EVEX/AVX512 with `{k}{z}` masking (moves, logic incl.
-  `VPTERNLOG`, `VPCMP*` + mask-form `VPCMPEQ*`/`VPCMPGT*`,
-  `VPTESTM/NM`, arithmetic/minmax/avg/sad, shifts incl. variable,
-  broadcasts incl. `MB2Q`/`MW2D`, permutes, blends, converts incl.
-  saturating down-converts + `M2B`/`B2M`, `POPCNT`/`LZCNT`, `VPABS`,
-  `VP2INTERSECT`, compress/expand, `VALIGN`, sub-vector insert/extract /
-  shuffles, FP converts, gathers/scatters, `VMASKMOV`), opmask `K*`
-  insns, AES-NI + VAES + `VPCLMULQDQ`, GFNI (C++ `GF(2^8)` + output
-  bit-reversal, verified on HW), SHA1/SHA256 (host SHA-NI), FMA
-  (single-rounding via `std::fma`) + `FMSUB`/`FNMADD`/`FMADDSUB`,
-  F16C + BF16 (`RNE`), VEX classics (`PMADD`, `PHADD`, `PAVGB`,
-  `PSADBW`, `PMULH*`, `MPSADBW`, `PCMPESTRI/M`, `EXTRACTPS`/`INSERTPS`,
-  `HADD`/`ADDSUB`), `UD2`/`INT3`/`HLT` traps. `./check-isa.sh`
-  confirms every mnemonic in `./hello`, test guests, system
-  `libc.so.6`/`ld.so`, the Fil-C loader + `libc.so`, and all 111
-  `pizfix/lib/*.so` is handled.
-- **Unsupported (clean guest error, documented)**: AMX tiles, CET
-  shadow-stack (`RSTORSSP`/`SAVEPREVSSP` would `#UD` natively without
-  CET), Intel TSX (`XBEGIN` etc.; host has no RTM), AVX512-FP16
-  (`...PH`/`...SH`), AVX512 VNNI/VP2INTERSECT-followons
-  (`VPDP*`, `VPMADD52`, `VPMULTISHIFTQB`, `VPERMI2/T2`, `VRANGE*`,
-  `VSCALEF*`, `VFIXUPIMM*`), SHA512, `XSAVE` supervisor states,
-  `fork`, guest signal delivery.
-- **Poisoning** (see ABI below): per-byte map, full taint through
-  `GPRValue`/`XMMValue` + RFLAGS taint, enforced on loads/stores/
-  branches/addresses/syscalls, with self-xor clearing.
-- **Core dumps**: ELF `ET_CORE`
-  `zegarmistrz.core.<processname>.<pid>` (`NT_PRSTATUS` guest regs,
-  `NT_PRPSINFO` name, `NT_AUXV`, `PT_LOAD`s); `gdb`/`lldb` show guest
-  frames only. A symbolized guest stack trace (BFD) is printed before
-  the core is written (default; `--no-stack-trace` disables). Host
-  `SIGSEGV`/`SIGBUS`/`SIGILL`/`SIGFPE` during guest
-  execution convert to guest cores; `--no-core` /
-  `--passthrough-signals` turns that off.
-
-Not yet: `fork`, guest signal delivery, `XSAVE` compacted supervisor
-states beyond AVX.

@@ -385,9 +385,12 @@ struct Val {
     Taint taint;
 };
 
-// Compute linear address of a memory operand. next_rip = address of the
-// following instruction (for RIP-relative).
-uint64_t resolve_mem(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip) {
+// Compute linear address of a memory operand WITHOUT any cannot-index
+// checks. next_rip = address of the following instruction (for
+// RIP-relative). Only callers that never actually access memory (LEA,
+// which is pure address arithmetic) may use this directly; anything that
+// touches memory must go through resolve_mem below.
+uint64_t compute_ea(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip) {
     uint64_t base = 0, index = 0, scale = op.mem.scale ? op.mem.scale : 1;
     bool has_base = false;
     if (op.mem.base != ZYDIS_REGISTER_NONE) {
@@ -398,8 +401,6 @@ uint64_t resolve_mem(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip)
             int idx, size, shift;
             if (!reg_to_gpr(op.mem.base, idx, size, shift))
                 guest_error(cpu, "unsupported base register in memory operand");
-            if (cpu->gpr[idx].taint.cannot_index)
-                guest_error(cpu, "tainted (cannot-index) value used as address base");
             base = cpu->gpr[idx].val;
             has_base = true;
         }
@@ -408,8 +409,6 @@ uint64_t resolve_mem(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip)
         int idx, size, shift;
         if (!reg_to_gpr(op.mem.index, idx, size, shift))
             guest_error(cpu, "unsupported index register in memory operand");
-        if (cpu->gpr[idx].taint.cannot_index)
-            guest_error(cpu, "tainted (cannot-index) value used as address index");
         uint64_t iv = cpu->gpr[idx].val;
         // Index is used at its natural width; 32-bit index is zero-extended.
         if (size == 4)
@@ -421,7 +420,37 @@ uint64_t resolve_mem(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip)
         index = iv * scale;
     }
     int64_t disp = op.mem.disp.has_displacement ? op.mem.disp.value : 0;
+    // LEA semantics: the result is base + index*scale + disp -- segment
+    // overrides are IGNORED (real LEA computes only the offset), so no
+    // fs/gs base is added here. resolve_mem adds it for real accesses.
     uint64_t addr = (has_base ? base : 0) + index + (uint64_t)(int64_t)disp;
+    return addr;
+}
+
+// Compute linear address of a memory operand that the instruction is about
+// to access. A cannot-index-tainted register may not feed the address of
+// any instruction that touches memory (base or index, doc 3.1), so this
+// faults on them. LEA deliberately bypasses this via compute_ea above: it
+// computes an address without ever touching memory. Unlike compute_ea
+// (which computes the offset only, ignoring segment overrides like real
+// LEA), this adds the fs/gs segment base for actual accesses.
+uint64_t resolve_mem(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip) {
+    if (op.mem.base != ZYDIS_REGISTER_NONE &&
+        op.mem.base != ZYDIS_REGISTER_RIP) {
+        int idx, size, shift;
+        if (!reg_to_gpr(op.mem.base, idx, size, shift))
+            guest_error(cpu, "unsupported base register in memory operand");
+        if (cpu->gpr[idx].taint.cannot_index)
+            guest_error(cpu, "tainted (cannot-index) value used as address base");
+    }
+    if (op.mem.index != ZYDIS_REGISTER_NONE) {
+        int idx, size, shift;
+        if (!reg_to_gpr(op.mem.index, idx, size, shift))
+            guest_error(cpu, "unsupported index register in memory operand");
+        if (cpu->gpr[idx].taint.cannot_index)
+            guest_error(cpu, "tainted (cannot-index) value used as address index");
+    }
+    uint64_t addr = compute_ea(cpu, op, next_rip);
     if (op.mem.segment == ZYDIS_REGISTER_FS)
         addr += cpu->fs_base;
     else if (op.mem.segment == ZYDIS_REGISTER_GS)
@@ -776,30 +805,31 @@ void exec_mov(CPU* cpu, const Dec& d) {
 }
 
 void exec_lea(CPU* cpu, const Dec& d) {
-    uint64_t addr = resolve_mem(cpu, d.ops[1], cpu->rip + d.insn.length);
+    // LEA computes an address but never accesses memory: it is pure
+    // arithmetic (compilers emit it for ordinary adds like `x = y + 42`),
+    // so it must NOT trip the cannot-index checks, which only apply to
+    // instructions that actually touch memory. The taint still propagates
+    // into the destination: the result is derived from the address
+    // registers, so a later real memory access through it (or a var-time op
+    // on it) still faults.
+    if (d.ops[1].type != ZYDIS_OPERAND_TYPE_MEMORY)
+        guest_error(cpu, "LEA without memory operand");
     Val v;
-    v.v = addr;
-    // LEA of a tainted base/index propagates (address derived from secret).
-    // resolve_mem rejects cannot-index outright, so only branch taint can
-    // arrive here; recompute from the address registers.
-    {
-        const auto& op = d.ops[1];
-        Taint t;
-        if (op.mem.base != ZYDIS_REGISTER_NONE &&
-            op.mem.base != ZYDIS_REGISTER_RIP) {
-            int idx, size, shift;
-            if (reg_to_gpr(op.mem.base, idx, size, shift)) {
-                t |= cpu->gpr[idx].taint;
-            }
-        }
-        if (op.mem.index != ZYDIS_REGISTER_NONE) {
-            int idx, size, shift;
-            if (reg_to_gpr(op.mem.index, idx, size, shift)) {
-                t |= cpu->gpr[idx].taint;
-            }
-        }
-        v.taint = t;
+    v.v = compute_ea(cpu, d.ops[1], cpu->rip + d.insn.length);
+    const auto& op = d.ops[1];
+    Taint t;
+    if (op.mem.base != ZYDIS_REGISTER_NONE &&
+        op.mem.base != ZYDIS_REGISTER_RIP) {
+        int idx, size, shift;
+        if (reg_to_gpr(op.mem.base, idx, size, shift))
+            t |= cpu->gpr[idx].taint;
     }
+    if (op.mem.index != ZYDIS_REGISTER_NONE) {
+        int idx, size, shift;
+        if (reg_to_gpr(op.mem.index, idx, size, shift))
+            t |= cpu->gpr[idx].taint;
+    }
+    v.taint = t;
     op_store(cpu, d, 0, v);
     cpu->rip = next_rip(cpu, d);
 }
@@ -848,6 +878,12 @@ void exec_enter(CPU* cpu, const Dec& d) {
     if (level > 0) {
         for (unsigned i = 1; i < level; i++) {
             uint64_t a = cpu->gpr[ZG_RBP].val - i * 8;
+            // The nesting copies read [RBP - i*8]: a real memory access
+            // whose address depends on RBP (doc 3.1), so a cannot-index
+            // taint on RBP must fault here (like the RSP checks in
+            // push/pop/ret).
+            if (cpu->gpr[ZG_RBP].taint.cannot_index)
+                guest_error(cpu, "tainted RBP used by enter");
             uint64_t w = mem_load64(cpu, a);
             Taint t;
             mem_get_taint(a, 8, &t);
@@ -9342,8 +9378,12 @@ void exec_nop_like(CPU* cpu, const Dec& d) {
     // go through resolve_mem for the cannot-index base/index checks even
     // though nothing else happens. Keep them GUARANTEED for var-time (their
     // classification is untouched -- no data-dependent time in the datapath
-    // itself). NOP/PAUSE/fences/SERIALIZE/CLAC/STAC/FNOP/FWAIT have no
-    // memory operand and are not on the ADDR list, so they stay unchecked.
+    // itself). Everything else here never touches memory either:
+    // PAUSE/fences/SERIALIZE/CLAC/STAC/FNOP/FWAIT have no memory operand at
+    // all, and NOP's multi-byte encodings (0f 1f /0 and friends) use an
+    // address encoding purely as padding -- the decorative operand must NOT
+    // fault on tainted registers. So only the list below resolves its
+    // address.
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_CLFLUSH:
     case ZYDIS_MNEMONIC_CLFLUSHOPT:

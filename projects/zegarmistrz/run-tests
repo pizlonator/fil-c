@@ -8,7 +8,9 @@
 # (faults + taint laundering + clear-on-store; faults expect core dumps),
 # var-time mode tests (--var-time-op=known/plausible/everything gating for
 # the CANNOT_VAR_TIME_OP dimension, incl. exemptions and the EVEX/opmask
-# sidecar), core-dump gdb check, crash-time stack traces
+# sidecar), the cannot-index check battery (one faulting subtest per check
+# site) plus the LEA / multi-byte-NOP cannot-index exemption guests and the
+# test.c/test2.c mirror combos, core-dump gdb check, crash-time stack traces
 # (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag.
 # Does not touch filc/tests or filc/run-tests.
 set -u
@@ -34,9 +36,15 @@ gcc -O2 -o "$OUTDIR/args" tests/args.c || { log "guest compile failed: args"; ex
 gcc -O2 -o "$OUTDIR/threads" tests/threads.c -pthread || { log "guest compile failed: threads"; exit 1; }
 gcc -O2 -static -o "$OUTDIR/static_hi" tests/static_hi.c || { log "guest compile failed: static_hi"; exit 1; }
 for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall poison_launder_branch poison_launder_index poison_launder_clear \
-         poison_vt_div poison_vt_clear poison_vt_plausible poison_vt_cmps poison_vt_cpuid poison_vt_rep; do
+         poison_vt_div poison_vt_clear poison_vt_plausible poison_vt_cmps poison_vt_cpuid poison_vt_rep \
+         poison_index_lea poison_index_nop poison_index_lea_prop poison_combo; do
     gcc -O2 -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null || { log "guest compile failed: $t"; exit 1; }
 done
+# LEA/NOP cannot-index exemption guests + the cannot-index address battery
+# (vector-load/gather/scatter need AVX/AVX512F+AVX512VL at compile time for
+# the inline asm and the 256-bit VSIB gather/scatter intrinsics).
+gcc -O2 -mavx -mavx512f -mavx512vl -o "$OUTDIR/poison_index_addr" tests/poison_index_addr.c 2>/dev/null \
+    || { log "guest compile failed: poison_index_addr"; exit 1; }
 # Var-time special-flag guests: the VPERMILPS (mode-3) guest needs AVX, the
 # exemption chain needs RDRAND/RDSEED, and the EVEX masked-load guest needs
 # AVX512F (KMOVW + {k}-masked load).
@@ -160,6 +168,11 @@ echo "poison-vt-kmask"
 echo "poison-vt-cmps"
 echo "poison-vt-cpuid"
 echo "poison-vt-rep"
+echo "poison-index-lea"
+echo "poison-index-nop"
+echo "poison-index-lea-prop"
+echo "poison-index-addr"
+echo "poison-combo"
 echo "cpuid-emulated"
 echo "cpuid-native"
 echo "zeglib-emulated"
@@ -389,6 +402,96 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
       head -5 "test-output/$bin.err.txt" 2>/dev/null
     fi
     rm -f "test-output/zegarmistrz.core.$bin."* "test-output/$bin.err.txt"
+    ;;
+  poison-index-lea)
+    # LEA is pure address arithmetic (compilers use it for `x = y + 42`):
+    # it never touches memory, so a cannot-index-tainted base/index must
+    # NOT fault, and the computed address must stay exact for every form.
+    out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_index_lea 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "lea-ok" ] && echo "PASS poison-index-lea" || echo "FAIL poison-index-lea: exit=$ec out=[$out]"
+    ;;
+  poison-index-nop)
+    # Multi-byte NOPs (0f 1f /0 and friends) use an address encoding purely
+    # as padding; the decorative operand must not fault on tainted registers.
+    out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_index_nop 2>/dev/null); ec=$?
+    [ "$ec" = 0 ] && [ "$out" = "nop-ok" ] && echo "PASS poison-index-nop" || echo "FAIL poison-index-nop: exit=$ec out=[$out]"
+    ;;
+  poison-index-lea-prop)
+    # LEA must not launder taint either: the lea RESULT (derived from a
+    # tainted base or index) stays cannot-index tainted, so dereferencing
+    # it faults.
+    for which in base index; do
+      name=poison_index_lea_prop
+      rm -f "test-output/zegarmistrz.core.$name."*
+      (cd test-output && timeout 60 ../zegarmistrz ./$name $which >/dev/null 2>$name.$which.err.txt); ec=$?
+      core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+      if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+         && grep -q "cannot-index" "test-output/$name.$which.err.txt"; then
+        echo "PASS poison-index-lea-prop-$which"
+      else
+        echo "FAIL poison-index-lea-prop-$which: exit=$ec core=[$core]"
+        head -5 "test-output/$name.$which.err.txt" 2>/dev/null
+      fi
+      rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.$which.err.txt"
+    done
+    ;;
+  poison-index-addr)
+    # The cannot-index check battery: one subtest per check site, every one
+    # must fault (exit 139 + core) with the expected reason substring in
+    # stderr; optional third field bans a substring (e.g. an lea-exemption
+    # leak would put cannot-index into a var-time fault stderr).
+    name=poison_index_addr
+    for spec in load-base:cannot-index: store-base:cannot-index: load-index:cannot-index: \
+                store-index:cannot-index: alu-mem:cannot-index: movzx-mem:cannot-index: \
+                div-mem:cannot-index: vector-load:cannot-index: rsp-mem:cannot-index: \
+                push:RSP pop:RSP ret-rsp:RSP ret-addr:cannot-index: \
+                enter-frame:RBP \
+                indirect-call:cannot-index: indirect-jmp:cannot-index: \
+                string-movs:cannot-index: string-stos:cannot-index: rep-movs:RCX loop:RCX jcxz:RCX \
+                bt-mem:cannot-index: xlat:cannot-index: prefetch:cannot-index: clflush:cannot-index: \
+                gather:cannot-index: scatter:cannot-index: \
+                gather-base:cannot-index: scatter-base:cannot-index:; do
+      IFS=':' read -r which reason ban <<<"$spec"
+      rm -f "test-output/zegarmistrz.core.$name."*
+      (cd test-output && timeout 60 ../zegarmistrz ./$name $which >/dev/null 2>$name.$which.err.txt); ec=$?
+      core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+      if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+         && grep -q "$reason" "test-output/$name.$which.err.txt" \
+         && { [ -z "$ban" ] || ! grep -q "$ban" "test-output/$name.$which.err.txt"; }; then
+        echo "PASS poison-index-addr-$which"
+      else
+        echo "FAIL poison-index-addr-$which: exit=$ec core=[$core] want=[$reason] ban=[$ban]"
+        head -5 "test-output/$name.$which.err.txt" 2>/dev/null
+      fi
+      rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.$which.err.txt"
+    done
+    ;;
+  poison-combo)
+    # Mirrors the repo-root test.c / test2.c flows: poisoning with ALL THREE
+    # bits, then the commented-out (must-fault) and ACTIVE (must fault with
+    # var-time and WITHOUT cannot-index) flows. lea-div forces the LEA via
+    # inline asm: GCC -O2 compiles the plain C `value + 42` to an ADD here,
+    # which would leave the subtest with no LEA at all (poison-index-lea is
+    # the broad LEA-form guard; this subtest pins the exact test.c flow --
+    # no apostrophes here: this whole runner is one single-quoted bash -c
+    # payload, and a raw quote would terminate it).
+    name=poison_combo
+    for spec in jcc:cannot-branch: array-store:cannot-index: div:var-time: \
+                lea-div:var-time:cannot-index mul-div:var-time:cannot-index; do
+      IFS=':' read -r which reason ban <<<"$spec"
+      rm -f "test-output/zegarmistrz.core.$name."*
+      (cd test-output && timeout 60 ../zegarmistrz ./$name $which >/dev/null 2>$name.$which.err.txt); ec=$?
+      core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+      if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+         && grep -q "$reason" "test-output/$name.$which.err.txt" \
+         && { [ -z "$ban" ] || ! grep -q "$ban" "test-output/$name.$which.err.txt"; }; then
+        echo "PASS poison-combo-$which"
+      else
+        echo "FAIL poison-combo-$which: exit=$ec core=[$core] want=[$reason] ban=[$ban]"
+        head -5 "test-output/$name.$which.err.txt" 2>/dev/null
+      fi
+      rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.$which.err.txt"
+    done
     ;;
   poison-vt-clear)
     # With clear-var-time-op-on-store the clean store sanitizes, so the
