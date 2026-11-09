@@ -301,6 +301,8 @@ static void test_kat(void)
     expect_equal("authenticated decryption did not recover the message",
                  back, backlen, msg, 114);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) Tiny sizes {0, 1, 17} roundtrip, and the derived 1-byte-AAD KAT. */
@@ -357,6 +359,8 @@ static void test_tiny(void)
     expect_equal("the tiny KAT tag does not match the derived constant",
                  tag, 16, tag_want, 16);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) AAD after the first data update: 3.6.5 rejects it (the aad branch
@@ -433,6 +437,8 @@ static void test_aad_ordering(void)
                      "ordering", back, backlen, in, 5);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) Tamper detection: a tampered tag and tampered ciphertext must fail
@@ -513,6 +519,8 @@ static void test_tamper(void)
     EVP_CIPHER_CTX_free(ctx);
     ct[3] ^= 0x01;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) Tag and output-size contracts: the tag is 16 bytes (GET_TAG(16),
@@ -614,6 +622,8 @@ static void test_contracts(void)
                      back, backlen, in, 20);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -625,8 +635,6 @@ int main(int argc, char **argv)
     test_aad_ordering();
     test_tamper();
     test_contracts();
-
-    free_poison_allocations();
 
     printf("test_chacha20_poly1305_small: all %u checks passed\n", g_checks);
     return 0;

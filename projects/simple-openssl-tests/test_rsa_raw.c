@@ -262,6 +262,8 @@ static void test_roundtrip_pad_mode_param(EVP_PKEY *key)
     repoison_all();
     EVP_PKEY_CTX_free(ectx);
     EVP_PKEY_CTX_free(dctx);
+
+    free_poison_allocations();
 }
 
 
@@ -296,6 +298,8 @@ static void test_roundtrip_set_rsa_padding(EVP_PKEY *key)
     repoison_all();
     EVP_PKEY_CTX_free(ectx);
     EVP_PKEY_CTX_free(dctx);
+
+    free_poison_allocations();
 }
 
 
@@ -329,6 +333,8 @@ static void test_bad_lengths(EVP_PKEY *key)
     CHECK(EVP_PKEY_encrypt(ectx, ct, &ctlen, pt, 256) != 1,
           "no-padding encryption accepted a block >= n");
     EVP_PKEY_CTX_free(ectx);
+
+    free_poison_allocations();
 }
 
 
@@ -378,6 +384,8 @@ static void test_rsasve_kem(EVP_PKEY *key)
           "RSASVE decapsulation did not recover the shared secret");
     repoison_all();
     EVP_PKEY_CTX_free(dctx);
+
+    free_poison_allocations();
 }
 
 
@@ -393,8 +401,6 @@ int main(int argc, char **argv)
     test_bad_lengths(key);
     test_rsasve_kem(key);
     EVP_PKEY_free(key);
-
-    free_poison_allocations();
 
     printf("test_rsa_raw: all %u checks passed\n", g_checks);
     return 0;

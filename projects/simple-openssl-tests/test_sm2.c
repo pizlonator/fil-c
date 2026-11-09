@@ -306,6 +306,8 @@ static void test_sign_verify(void)
                      sig_def, deflen) != 1,
           "SM2 default-ID signature verified under the GM/T ID");
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -359,6 +361,8 @@ static void test_encrypt_decrypt(void)
               "tampered SM2 ciphertext decrypted without error");
     }
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -398,6 +402,8 @@ static void test_cipher_digest_param(void)
           "SM2 default-digest roundtrip failed");
     repoison_all();
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -408,8 +414,6 @@ int main(int argc, char **argv)
     test_sign_verify();
     test_encrypt_decrypt();
     test_cipher_digest_param();
-
-    free_poison_allocations();
 
     printf("test_sm2: all %u checks passed\n", g_checks);
     return 0;

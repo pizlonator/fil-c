@@ -274,6 +274,8 @@ static void test_kats(void)
         expect_equal(msg, back, backlen, pt, ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) Roundtrip matrix: taglen {4,8,12,16} x nonce {7,12,13} x payload
@@ -406,6 +408,8 @@ static void test_matrix(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2b) AES-192-CCM subset of the same matrix: taglen {4,12} x nonce
@@ -493,6 +497,8 @@ static void test_matrix_192(void)
         }
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) A second payload update on the same context must fail: the payload
@@ -564,6 +570,8 @@ static void test_second_data_update(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) AAD-only operation (empty payload) is valid, including decrypt; and a
@@ -655,6 +663,8 @@ static void test_aad_only(void)
           "nonzero AAD accepted before the payload-length announcement");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) Parameter rules: the defaults are ivlen 7 / taglen 12; nonce lengths
@@ -720,8 +730,6 @@ int main(int argc, char **argv)
     test_second_data_update();
     test_aad_only();
     test_param_rules();
-
-    free_poison_allocations();
 
     printf("test_aes_ccm_small: all %u checks passed\n", g_checks);
     return 0;

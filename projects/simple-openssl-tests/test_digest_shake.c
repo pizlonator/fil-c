@@ -179,6 +179,8 @@ static void test_kats(void)
         CHECK(memcmp(got_param, got_xof, wantlen) == 0, msg);
         repoison_all();
         EVP_MD_free(md);
+
+        free_poison_allocations();
     }
 }
 
@@ -214,6 +216,8 @@ static void test_prefix_property(void)
         repoison_all();
         EVP_MD_free(mds[m]);
     }
+
+    free_poison_allocations();
 }
 
 #if OPENSSL_VERSION_NUMBER >= 0x30500000L
@@ -257,6 +261,8 @@ static void test_squeeze(void)
     EVP_MD_CTX_free(c1);
     EVP_MD_CTX_free(c2);
     EVP_MD_free(md);
+
+    free_poison_allocations();
 }
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30500000L */
 
@@ -291,6 +297,8 @@ static void test_keccak_kmac(void)
 
         if (md == NULL) {
             printf("SKIP test_digest_shake: %s is unavailable\n", kat->mdname);
+
+            free_poison_allocations();
             exit(0);
         }
         CHECK(EVP_MD_get_size(md) == (int)kat->xoflen,
@@ -313,6 +321,8 @@ static void test_keccak_kmac(void)
         CHECK(memcmp(got_param, got_xof, wantlen) == 0, msg);
         repoison_all();
         EVP_MD_free(md);
+
+        free_poison_allocations();
     }
 }
 
@@ -334,8 +344,6 @@ int main(int argc, char **argv)
         printf("SKIP test_digest_shake: EVP_DigestSqueeze is unavailable\n");
         return 0;
     }
-
-    free_poison_allocations();
 
     printf("test_digest_shake: all %u checks passed\n", g_checks);
     return 0;

@@ -250,6 +250,8 @@ static void test_one_megabyte(void)
     expect_equal("the 1 MiB authenticated decrypt did not recover the "
                  "plaintext", back, backlen, in, SIZE);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) AAD sizes {0, 1, 15, 16, 17, 32} (Poly1305 mod-16 padding
@@ -289,6 +291,8 @@ static void test_aad_sizes(void)
         expect_equal(msg, back, backlen, in, 256 * 1024);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) Tamper detection at 1 MiB: a flipped bit in the final ciphertext
@@ -345,6 +349,8 @@ static void test_tamper(void)
             ct[SIZE - 1] ^= 0x01;
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -354,8 +360,6 @@ int main(int argc, char **argv)
     test_one_megabyte();
     test_aad_sizes();
     test_tamper();
-
-    free_poison_allocations();
 
     printf("test_chacha20_poly1305_large: all %u checks passed\n", g_checks);
     return 0;

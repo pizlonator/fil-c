@@ -225,6 +225,8 @@ static void test_kats(void)
         expect_equal(msg, back, backlen, pt, ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) RC4-40 (fixed 5-byte key): KAT plus equality with plain RC4 under
@@ -259,6 +261,8 @@ static void test_rc4_40(void)
                  ct40, l40, ct, lrc4);
     EVP_CIPHER_free(c40);
     EVP_CIPHER_free(crc4);
+
+    free_poison_allocations();
 }
 
 /* (3) One-shot sizes 0..24 with the default 16-byte key: every output
@@ -292,6 +296,8 @@ static void test_sizes(void)
         }
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) Streaming {1,1,1,1,5} == one-shot: the i/j state carries across
@@ -327,6 +333,8 @@ static void test_streaming(void)
         expect_equal(msg, chunked, clen, in, n);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) 8-byte-boundary behavior: chunk grids that straddle the bulk path's
@@ -363,6 +371,8 @@ static void test_eight_byte_boundaries(void)
         }
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) Empty updates are no-ops (RC4 state untouched): a 0-byte update
@@ -406,6 +416,8 @@ static void test_empty_update(void)
     expect_equal("an empty update perturbed the RC4 keystream",
                  with_empty, 16, oneshot, olen);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -425,8 +437,6 @@ int main(int argc, char **argv)
     test_streaming();
     test_eight_byte_boundaries();
     test_empty_update();
-
-    free_poison_allocations();
 
     printf("test_rc4_small: all %u checks passed\n", g_checks);
     return 0;

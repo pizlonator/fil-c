@@ -280,6 +280,8 @@ static void test_seed_keygen_kats(void)
         expect_equal("repeated seed keygen produced a different public key",
                      pub2, pub2len, want_pub, want_len);
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -368,6 +370,8 @@ static void test_sign_verify(void)
         }
 
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -444,6 +448,8 @@ static void test_context_string(void)
         repoison_all();
 
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -502,6 +508,8 @@ static void test_large_message(void)
 
         EVP_PKEY_free(pkey);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -523,8 +531,6 @@ int main(int argc, char **argv)
     test_sign_verify();
     test_context_string();
     test_large_message();
-
-    free_poison_allocations();
 
     printf("test_slh_dsa: all %u checks passed\n", g_checks);
     return 0;

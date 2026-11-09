@@ -254,6 +254,8 @@ static void test_kats(void)
                  kat->label);
         expect_equal(msgbuf, got, gotlen, want, wantlen);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) Partial updates: the 40-byte example 3 message split as {17, 23}
@@ -274,6 +276,8 @@ static void test_partial_updates(void)
     gotlen = cmac_chunked("AES-128-CBC", key, keylen, msg, 40, 17, 23, got, 16);
     expect_equal("partial updates ({17,23}) do not match the example 3 KAT",
                  got, gotlen, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (3) DES-EDE3-CBC: an 8-byte tag, with the key length the cipher
@@ -317,6 +321,8 @@ static void test_des_ede3(void)
                  got, gotlen, want, wantlen);
     EVP_MAC_CTX_free(ctx);
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 /* (4) A wrong cipher must fail at init: AES-256-CBC with a 16-byte key
@@ -349,6 +355,8 @@ static void test_wrong_cipher(void)
     CHECK(!ok, "CMAC accepted AES-256-CBC with a 16-byte key");
     EVP_MAC_CTX_free(ctx);
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -359,8 +367,6 @@ int main(int argc, char **argv)
     test_partial_updates();
     test_des_ede3();
     test_wrong_cipher();
-
-    free_poison_allocations();
 
     printf("test_mac_cmac: all %u checks passed\n", g_checks);
     return 0;

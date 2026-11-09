@@ -351,6 +351,8 @@ static void test_ecb_kats(void)
         expect_equal(msg, pt_back, ptlen, pt, 16);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) The same KATs through the legacy static EVP_camellia_128_ecb() route
@@ -388,6 +390,8 @@ static void test_alternate_routes(void)
     cbclen = camellia_cbc(byname_cbc, key, iv, pt64, 64, cbc, 64 + 16, 1, 0);
     expect_equal("EVP_get_cipherbyname() ciphertext does not match the CBC KAT",
                  cbc, cbclen, cbc_want, cbc_wantlen);
+
+    free_poison_allocations();
 }
 
 /* (3) CBC for all three key sizes: nopad KAT, streaming {1,15,16,17,31}
@@ -477,6 +481,8 @@ static void test_cbc(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) The stream modes (CTR/OFB/CFB/CFB8/CFB1) for all three key sizes:
@@ -559,6 +565,8 @@ static void test_stream_modes(void)
         expect_equal(msg, pt_back, backlen, pt, modes[m].ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (5) CFB1 bit-length mode: the same route test_aes_cfb1 documents (bare
@@ -661,6 +669,8 @@ static void test_cfb1_bitmode(void)
           "bit-mode CFB1 roundtrip of the first 13 bits failed");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -672,8 +682,6 @@ int main(int argc, char **argv)
     test_cbc();
     test_stream_modes();
     test_cfb1_bitmode();
-
-    free_poison_allocations();
 
     printf("test_camellia: all %u checks passed\n", g_checks);
     return 0;

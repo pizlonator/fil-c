@@ -528,6 +528,8 @@ static void test_seed_keygen_kats(void)
         expect_equal("repeated seed keygen produced a different encapsulation key",
                      pub2, pub2len, want_pub, want_len);
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -586,6 +588,8 @@ static void test_encap_kats(void)
 
         EVP_PKEY_free(peer);
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -632,6 +636,8 @@ static void test_tampered_ciphertext(void)
               "tampered ciphertext did not trigger implicit rejection");
         repoison_all();
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -676,6 +682,8 @@ static void test_privkey_import(void)
         expect_equal("imported private key decapsulated to the wrong shared secret",
                      ss, sslen, kat_ss, kat_sslen);
         EVP_PKEY_free(impkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -698,8 +706,6 @@ int main(int argc, char **argv)
     test_encap_kats();
     test_tampered_ciphertext();
     test_privkey_import();
-
-    free_poison_allocations();
 
     printf("test_ml_kem: all %u checks passed\n", g_checks);
     return 0;

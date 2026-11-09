@@ -255,6 +255,8 @@ static void test_kats(void)
             EVP_CIPHER_free(cinv);
         }
     }
+
+    free_poison_allocations();
 }
 
 /* (2) Plaintext sizes {1,4,7,8,13,20,255} round-trip and the wrapped
@@ -299,6 +301,8 @@ static void test_size_roundtrips(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) A corrupted wrapped output must fail to unwrap-pad, whether the
@@ -359,6 +363,8 @@ static void test_corrupted_unwrap(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) Feeding a plain RFC 3394 wrapped key (no AIV) to unwrap-pad must
@@ -402,6 +408,8 @@ static void test_plain_wrap_rejected(void)
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(wrap);
     EVP_CIPHER_free(wpad);
+
+    free_poison_allocations();
 }
 
 /* (5) The inverse variants round-trip where the build offers them, obey the
@@ -438,6 +446,8 @@ static void test_wrap_pad_inv(void)
         if (cipher == NULL) {
             printf("SKIP test_aes_wrap_pad: %s is unavailable\n",
                    cases[c].ciphername);
+
+            free_poison_allocations();
             return;
         }
         if (cases[c].kekhex != NULL)
@@ -492,6 +502,8 @@ static void test_wrap_pad_inv(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -503,8 +515,6 @@ int main(int argc, char **argv)
     test_corrupted_unwrap();
     test_plain_wrap_rejected();
     test_wrap_pad_inv();
-
-    free_poison_allocations();
 
     printf("test_aes_wrap_pad: all %u checks passed\n", g_checks);
     return 0;

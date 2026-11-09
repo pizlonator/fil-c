@@ -269,6 +269,8 @@ static void test_kats(void)
         expect_equal(msg, pt_back, ptlen, pt, kat->ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) DES-EDE3-CBC: pad/nopad roundtrips and streaming {1,7,8,9,16,17}
@@ -313,6 +315,8 @@ static void test_cbc_streaming(void)
     expect_equal("padded DES-EDE3-CBC roundtrip did not recover 33 bytes",
                  pt_back, backlen, pt, 33);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) The stream modes: partial updates (the chunk grids above) and
@@ -361,6 +365,8 @@ static void test_stream_details(void)
     CHECK(flen == 0, "0-byte DES-EDE3-OFB final emitted bytes");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) A 16-byte key must not be usable with DES-EDE3: the only public way
@@ -391,6 +397,8 @@ static void test_wrong_key_length(void)
           "a 16-byte key was accepted for DES-EDE3");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -401,8 +409,6 @@ int main(int argc, char **argv)
     test_cbc_streaming();
     test_stream_details();
     test_wrong_key_length();
-
-    free_poison_allocations();
 
     printf("test_des3: all %u checks passed\n", g_checks);
     return 0;

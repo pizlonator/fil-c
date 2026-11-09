@@ -354,6 +354,8 @@ static void test_kat_anchor(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) 2 MiB one-shot == streaming, for AES-128, AES-192 and AES-256, encrypt
@@ -415,6 +417,8 @@ static void test_large_stream_equals_one_shot(void)
         repoison_all();
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) Same as (2) but with a 1 KiB AAD fed before the data; AAD must be
@@ -449,6 +453,8 @@ static void test_large_with_aad(void)
     expect_equal("2MiB streaming tag with AAD differs from one-shot tag",
                  tag2, 16, tag1, 16);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) AAD updates interleaved between data updates must fail (GCM finalizes
@@ -499,6 +505,8 @@ static void test_aad_interleaved(void)
           "decrypt-side AAD update accepted after data");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) IV lengths 8/12/16 must round-trip the full 2 MiB payload (J0
@@ -537,6 +545,8 @@ static void test_iv_lengths_large(void)
         repoison_all();
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) Flipping any bit of the final ciphertext block must be detected by
@@ -602,6 +612,8 @@ static void test_tampered_final_block(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -614,8 +626,6 @@ int main(int argc, char **argv)
     test_aad_interleaved();
     test_iv_lengths_large();
     test_tampered_final_block();
-
-    free_poison_allocations();
 
     printf("test_aes_gcm_large: all %u checks passed\n", g_checks);
     return 0;

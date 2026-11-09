@@ -234,6 +234,8 @@ static void test_counter_cmac(void)
           "KBKDF counter/CMAC derive failed");
     expect_equal("counter-mode CMAC-AES128 output does not match the CAVS KAT",
                  out, 16, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (2) HMAC PRFs in counter mode: the CAVS HMAC-SHA1 r=8 vector, the CAVS
@@ -330,6 +332,8 @@ static void test_counter_hmac(void)
         printf("note test_kdf_kbkdf: this OpenSSL has no \"r\" parameter; "
                "skipping the r=8 CAVS vectors\n");
     }
+
+    free_poison_allocations();
 }
 
 /* (3) Feedback mode with and without the IV ("seed"), whose length must
@@ -389,6 +393,8 @@ static void test_feedback(void)
           "KBKDF feedback/CMAC with a 16-byte IV failed");
     expect_equal("feedback-mode CMAC output does not match the KAT",
                  out, 16, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (4) KMAC128 as the PRF (OpenSSL 3.1+); multi-chunk info (OpenSSL 3.2+
@@ -433,8 +439,10 @@ static void test_kmac_and_multi_info(void)
 
     /* Three info chunks (HMAC-SHA512, r=32 CAVS data) reproduce the
      * single-chunk result where both "r" and repeated-info concat exist. */
-    if (!has_r)
+    if (!has_r) {
+        free_poison_allocations();
         return;
+    }
     keylen = from_hex("a9f4a2c5af839867f5db5a1e520ab3cca72a166ca60de512fd"
                       "7fe7e64cf94f92cf1d8b636175f293e003275e021018c3f0ede"
                       "495997a505ec9a2afeb0495be57", key, KEY_CAP);
@@ -468,6 +476,8 @@ static void test_kmac_and_multi_info(void)
         printf("note test_kdf_kbkdf: this OpenSSL does not concatenate "
                "repeated info params (pre-3.2 behavior)\n");
     }
+
+    free_poison_allocations();
 }
 
 /* (5) A zero output length must fail, and so must a missing key. */
@@ -491,6 +501,8 @@ static void test_negative(void)
                         NULL, 0, infos, infolens, 1, NULL, 0, 0, 0, -1,
                         out, 16),
           "KBKDF accepted a missing key");
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -502,8 +514,6 @@ int main(int argc, char **argv)
     test_feedback();
     test_kmac_and_multi_info();
     test_negative();
-
-    free_poison_allocations();
 
     printf("test_kdf_kbkdf: all %u checks passed\n", g_checks);
     return 0;

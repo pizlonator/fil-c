@@ -226,6 +226,8 @@ static void test_fetched_kats(void)
                      pt_back, ptlen, pt, KAT_PTLEN);
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -258,6 +260,8 @@ static void test_streaming(void)
     expect_equal("streaming decryption did not recover the plaintext",
                  pt_back, ptlen, pt, KAT_PTLEN);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) The decryption route applies the same keystream as the encryption
@@ -290,6 +294,8 @@ static void test_decrypt_is_encrypt(void)
     expect_equal("encrypting the ciphertext again did not recover the plaintext",
                  twice, twice_len, in, 53);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) A zero-length update is a no-op that must not disturb the keystream
@@ -338,6 +344,8 @@ static void test_zero_byte_update_noop(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) A 37-byte message (partial final block) round-trips through the
@@ -364,6 +372,8 @@ static void test_partial_final_block(void)
     expect_equal("37-byte (partial final block) roundtrip failed",
                  pt_back, ptlen, pt, 37);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -375,8 +385,6 @@ int main(int argc, char **argv)
     test_decrypt_is_encrypt();
     test_zero_byte_update_noop();
     test_partial_final_block();
-
-    free_poison_allocations();
 
     printf("test_aes_ofb: all %u checks passed\n", g_checks);
     return 0;

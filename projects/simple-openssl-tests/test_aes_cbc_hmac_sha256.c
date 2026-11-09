@@ -369,6 +369,8 @@ static void test_kat_and_composition(void)
           "decrypting the KAT record did not recover the payload");
     repoison_all();
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) Compose-equals-stitch and roundtrip for several payload sizes and
@@ -431,6 +433,8 @@ static void test_composition_and_roundtrip(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) A tampered record must fail the decrypt update. */
@@ -499,6 +503,8 @@ static void test_tamper(void)
           "decryption accepted a tampered IV slot");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) A wrong AAD length must be rejected; a missing AAD degrades to the
@@ -582,6 +588,8 @@ static void test_aad_rules(void)
     }
     EVP_CIPHER_free(cipher);
     EVP_CIPHER_free(cbc);
+
+    free_poison_allocations();
 }
 
 /* (5) A TLS 1.0-style record (version 0x0300). */
@@ -667,6 +675,8 @@ static void test_tls10_style(void)
     repoison_all();
     EVP_CIPHER_free(cipher);
     ERR_clear_error();
+
+    free_poison_allocations();
 }
 
 /* (6) The ETM variants (encrypt-then-MAC; record = IV || ciphertext || MAC
@@ -749,8 +759,6 @@ int main(int argc, char **argv)
     test_aad_rules();
     test_tls10_style();
     test_etm_variants();
-
-    free_poison_allocations();
 
     printf("test_aes_cbc_hmac_sha256: all %u checks passed\n", g_checks);
     return 0;

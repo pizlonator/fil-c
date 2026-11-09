@@ -218,6 +218,8 @@ static void test_extract(void)
           "TLS13-KDF keyless extract failed");
     expect_equal("keyless extract is not the RFC 8448 early secret",
                  out, 32, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (2) Expand-stage KATs: HKDF-Expand-Label with the "tls13 " prefix and
@@ -253,6 +255,8 @@ static void test_expand(void)
           "TLS13-KDF e exp master expand failed");
     expect_equal("e exp master expansion does not match the ACVP KAT",
                  out, 32, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (3) Error paths: a missing digest, the unsupported
@@ -278,6 +282,8 @@ static void test_negative(void)
                         prefix, prefixlen, label, labellen, NULL, 0,
                         out, 32),
           "TLS13-KDF accepted a keyless expand");
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -287,8 +293,6 @@ int main(int argc, char **argv)
     test_extract();
     test_expand();
     test_negative();
-
-    free_poison_allocations();
 
     printf("test_kdf_tls13kdf: all %u checks passed\n", g_checks);
     return 0;

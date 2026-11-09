@@ -246,6 +246,8 @@ static void test_group(const char *group, const char *dahex, const char *qaxhex,
 
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
+
+    free_poison_allocations();
 }
 
 
@@ -269,6 +271,8 @@ static void test_cross_curve(void)
     EVP_PKEY_CTX_free(ctx);
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
+
+    free_poison_allocations();
 }
 
 
@@ -281,8 +285,6 @@ int main(int argc, char **argv)
     test_group("secp384r1", P384_DA_HEX, P384_QAX_HEX, P384_QAY_HEX,
                P384_DB_HEX, P384_QBX_HEX, P384_QBY_HEX, P384_Z_HEX, 48);
     test_cross_curve();
-
-    free_poison_allocations();
 
     printf("test_ecdh: all %u checks passed\n", g_checks);
     return 0;

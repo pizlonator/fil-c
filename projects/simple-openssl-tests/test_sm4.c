@@ -361,6 +361,8 @@ static void test_classical(void)
         expect_equal(msg, pt_back, backlen, pt, modes[m].ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* One-shot GCM encrypt: SET_IVLEN before the key+IV init, AAD first with
@@ -457,6 +459,8 @@ static void test_gcm(void)
 
     if (cipher == NULL) {
         printf("SKIP test_sm4: SM4-GCM is unavailable\n");
+
+        free_poison_allocations();
         return;
     }
     from_hex("00112233445566778899aabbccddeeff", key, 16);
@@ -499,6 +503,8 @@ static void test_gcm(void)
           "SM4-GCM decryption accepted a tampered tag");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) SM4-CCM (3.1+): derived KAT (ivlen 12, taglen 12), ivlen/taglen
@@ -521,6 +527,8 @@ static void test_ccm(void)
 
     if (cipher == NULL) {
         printf("SKIP test_sm4: SM4-CCM is unavailable\n");
+
+        free_poison_allocations();
         return;
     }
     from_hex("00112233445566778899aabbccddeeff", key, 16);
@@ -604,6 +612,8 @@ static void test_ccm(void)
                      "plaintext", back, ctlen, pt, ptlen);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) SM4-XTS (3.1+): derived KAT, 32-byte roundtrip, a data unit shorter
@@ -625,6 +635,8 @@ static void test_xts(void)
 
     if (cipher == NULL) {
         printf("SKIP test_sm4: SM4-XTS is unavailable\n");
+
+        free_poison_allocations();
         return;
     }
     from_hex(XTS_KEY_HEX, key, 32);
@@ -677,6 +689,8 @@ static void test_xts(void)
                      back, backlen, pt, 21);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -687,8 +701,6 @@ int main(int argc, char **argv)
     test_gcm();
     test_ccm();
     test_xts();
-
-    free_poison_allocations();
 
     printf("test_sm4: all %u checks passed\n", g_checks);
     return 0;

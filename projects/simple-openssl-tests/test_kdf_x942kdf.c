@@ -191,6 +191,8 @@ static void test_kats(void)
           "X942KDF partyU-info derive failed");
     expect_equal("partyU-info output does not match the KAT",
                  out, 16, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (2) Error paths: the cekalg and the shared secret are mandatory, and an
@@ -209,6 +211,8 @@ static void test_negative(void)
     CHECK(!x942_derive("SHA1", zz, zzlen, "id-aes128-cbc", NULL, 0, NULL, 0,
                        out, 16),
           "X942KDF accepted an unknown cekalg");
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -217,8 +221,6 @@ int main(int argc, char **argv)
 
     test_kats();
     test_negative();
-
-    free_poison_allocations();
 
     printf("test_kdf_x942kdf: all %u checks passed\n", g_checks);
     return 0;

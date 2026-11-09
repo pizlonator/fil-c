@@ -601,6 +601,8 @@ static void test_seed_keygen(void)
         expect_equal("repeated seed keygen produced a different public key",
                      pub2, pub2len, pub1, pub1len);
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -694,6 +696,8 @@ static void test_oneshot_kats(void)
         }
 
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -769,6 +773,8 @@ static void test_context_string(void)
         repoison_all();
 
         EVP_PKEY_free(pkey);
+
+        free_poison_allocations();
     }
 }
 
@@ -888,6 +894,8 @@ static void test_streaming(void)
         }
         EVP_PKEY_free(pkey);
     }
+
+    free_poison_allocations();
 }
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30600000L */
 
@@ -913,8 +921,6 @@ int main(int argc, char **argv)
 #if OPENSSL_VERSION_NUMBER >= 0x30600000L
     test_streaming();
 #endif
-
-    free_poison_allocations();
 
     printf("test_ml_dsa: all %u checks passed\n", g_checks);
     return 0;

@@ -347,6 +347,8 @@ static void test_kats(void)
         snprintf(msg, sizeof(msg), "%s: tag does not match the KAT", kat->label);
         expect_equal(msg, tag, 16, tag_want, tag_wantlen);
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -408,6 +410,8 @@ static void test_decrypt_and_tamper(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) Splitting the 64-byte TC3 plaintext into updates of {5,5,6,16,32}
@@ -446,6 +450,8 @@ static void test_split_updates(void)
                      tag, 16, tag_want, 16);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) AAD after the first data update must fail. */
@@ -482,6 +488,8 @@ static void test_aad_ordering(void)
           "AAD update accepted after the first data update");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) IV lengths: the default is 12 (queried through OSSL_PARAM); 0 is
@@ -581,6 +589,8 @@ static void test_iv_lengths(void)
         }
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) Short tags: ask for a 12-byte tag via the OSSL_CIPHER_PARAM_AEAD_TAGLEN
@@ -635,6 +645,8 @@ static void test_short_tag(void)
     expect_equal("short-tag decryption did not recover the plaintext",
                  back, backlen, pt, ptlen);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (7) Zero-length payload: AAD-only encryption emits no ciphertext, just
@@ -662,6 +674,8 @@ static void test_zero_length_payload(void)
     snprintf(msg, sizeof(msg), "AAD-only tag does not match the KAT");
     expect_equal(msg, tag, 16, tag_want, tag_wantlen);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (8) Update output-buffer contract: a single 20-byte GCM update into a
@@ -701,6 +715,8 @@ static void test_output_buffer_contract(void)
     CHECK(total == 20, "total output length is not 20");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -715,8 +731,6 @@ int main(int argc, char **argv)
     test_short_tag();
     test_zero_length_payload();
     test_output_buffer_contract();
-
-    free_poison_allocations();
 
     printf("test_aes_gcm_small: all %u checks passed\n", g_checks);
     return 0;

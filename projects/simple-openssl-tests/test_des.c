@@ -317,6 +317,8 @@ static void test_kats(void)
         expect_equal(msg, pt_back, ptlen, pt, kat->ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) 8-byte-block semantics for DES-CBC: nopad exact-multiple roundtrip,
@@ -391,6 +393,8 @@ static void test_block_semantics(void)
     CHECK(flen == 0, "0-byte nopad DES-CBC final emitted bytes");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) CFB8: byte-at-a-time updates must reproduce the one-shot ciphertext
@@ -454,6 +458,8 @@ static void test_cfb8_bytewise(void)
     expect_equal("byte-at-a-time DES-CFB8 decrypt did not recover the plaintext",
                  back, blen, pt, 32);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) CFB1 byte mode, plus what EVP_CIPH_FLAG_LENGTH_BITS does for DES:
@@ -521,6 +527,8 @@ static void test_cfb1_bitmode(void)
                  flag_mode, 8, byte_mode, 8);
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) DESX-CBC: KAT, roundtrip, and the per-block composition
@@ -587,6 +595,8 @@ static void test_desx(void)
                  back, backlen, pt, 16);
     EVP_CIPHER_free(dx);
     EVP_CIPHER_free(ecb);
+
+    free_poison_allocations();
 }
 
 /* (6) DES-EDE-CFB and DES-EDE-OFB: the two-key EDE stream modes the
@@ -691,6 +701,8 @@ static void test_ede_stream_modes(void)
 
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -711,8 +723,6 @@ int main(int argc, char **argv)
     test_cfb1_bitmode();
     test_desx();
     test_ede_stream_modes();
-
-    free_poison_allocations();
 
     printf("test_des: all %u checks passed\n", g_checks);
     return 0;

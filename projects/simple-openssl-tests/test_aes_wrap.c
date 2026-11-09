@@ -184,6 +184,8 @@ static void test_kats(void)
                      back, backlen, cek, 16);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) Length rules: 15 bytes fail, 16 bytes wrap, 17 bytes fail. */
@@ -228,6 +230,8 @@ static void test_length_rules(void)
     backlen = unwrap_key(cipher, kek, out, wlen, back, 64 + 16);
     expect_equal("16-byte wrap/unwrap roundtrip failed", back, backlen, in, 16);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) A 64-byte payload round-trips for all three key sizes. */
@@ -262,6 +266,8 @@ static void test_64_byte_roundtrip(void)
         expect_equal(msg, back, backlen, in, 64);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) A corrupted wrapped key must fail to unwrap: the RFC 3394 integrity
@@ -313,6 +319,8 @@ static void test_corrupted_unwrap(void)
         flen = 0;
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) The inverse variants (AES-128/192/256-WRAP-INV) round-trip where the
@@ -340,6 +348,8 @@ static void test_wrap_inv(void)
 
         if (cipher == NULL) {
             printf("SKIP test_aes_wrap: %s is unavailable\n", names[m]);
+
+            free_poison_allocations();
             return;
         }
         keklen = (size_t)EVP_CIPHER_get_key_length(cipher);
@@ -359,6 +369,8 @@ static void test_wrap_inv(void)
         expect_equal(msg, back, backlen, in, 64);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -370,8 +382,6 @@ int main(int argc, char **argv)
     test_64_byte_roundtrip();
     test_corrupted_unwrap();
     test_wrap_inv();
-
-    free_poison_allocations();
 
     printf("test_aes_wrap: all %u checks passed\n", g_checks);
     return 0;

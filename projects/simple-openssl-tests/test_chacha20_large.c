@@ -201,6 +201,8 @@ static void test_two_megabytes(void)
     expect_equal("the 2 MiB chunked ciphertext differs from the one-shot "
                  "ciphertext", chunked, clen, oneshot, olen);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) Decrypt direction at 2 MiB: chunked decryption of the one-shot
@@ -250,6 +252,8 @@ static void test_two_megabytes_decrypt(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) Counter near 2^32: IV counter 0xffffffff wraps into the first nonce
@@ -313,6 +317,8 @@ static void test_counter_wrap(void)
         (void)off;
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) 64-aligned vs misaligned chunk grids both roundtrip at 1 MiB with
@@ -347,6 +353,8 @@ static void test_grids_roundtrip(void)
     expect_equal("the misaligned-grid decrypt of the 1 MiB wrap-IV ciphertext "
                  "did not recover the plaintext", back, backlen, in, ONE / 2);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -357,8 +365,6 @@ int main(int argc, char **argv)
     test_two_megabytes_decrypt();
     test_counter_wrap();
     test_grids_roundtrip();
-
-    free_poison_allocations();
 
     printf("test_chacha20_large: all %u checks passed\n", g_checks);
     return 0;

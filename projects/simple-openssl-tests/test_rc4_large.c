@@ -179,6 +179,8 @@ static void test_64k(void)
     expect_equal("the 64 KiB chunked decrypt did not recover the plaintext",
                  back, backlen, in, SIZE);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) 128 KiB one-shot roundtrip and a byte-at-a-time decrypt of the
@@ -225,6 +227,8 @@ static void test_128k_and_bytewise(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -240,8 +244,6 @@ int main(int argc, char **argv)
 
     test_64k();
     test_128k_and_bytewise();
-
-    free_poison_allocations();
 
     printf("test_rc4_large: all %u checks passed\n", g_checks);
     return 0;

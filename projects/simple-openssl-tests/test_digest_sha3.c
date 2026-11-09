@@ -205,6 +205,8 @@ static void test_kats(void)
             if (k < 4)
                 test_failed("EVP_MD_fetch failed for a core SHA3 digest");
             g_skipmsg = kat->mdname;
+
+            free_poison_allocations();
             return;
         }
         snprintf(msg, sizeof(msg), "%s: EVP_MD_get_size is wrong", kat->mdname);
@@ -227,6 +229,8 @@ static void test_kats(void)
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
         repoison_all();
         EVP_MD_free(md);
+
+        free_poison_allocations();
     }
 }
 
@@ -251,6 +255,8 @@ static void test_byname_route(void)
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname(\"sha3-256\") digest does not match the KAT");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (3) Rate-boundary chunking: for every available variant, updates of
@@ -318,6 +324,8 @@ static void test_rate_boundaries(void)
         }
         EVP_MD_free(md);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -332,8 +340,6 @@ int main(int argc, char **argv)
         printf("SKIP test_digest_sha3: %s is unavailable\n", g_skipmsg);
         return 0;
     }
-
-    free_poison_allocations();
 
     printf("test_digest_sha3: all %u checks passed\n", g_checks);
     return 0;

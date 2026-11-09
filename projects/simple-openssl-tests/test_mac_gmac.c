@@ -249,6 +249,8 @@ static void test_tc1(void)
     gotlen = gmac_oneshot(key, 16, iv, 12, NULL, 0, got, 16);
     expect_equal("GMAC TC1 (zero key, zero IV, no data) does not match the KAT",
                  got, gotlen, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (2) The 20-byte AAD KAT, plus the in-test cross-check against the GCM
@@ -282,6 +284,8 @@ static void test_aad20(void)
     got2len = gmac_chunked(key, 16, iv, 12, aad, 20, 5, 7, got2, 16);
     expect_equal("chunked AAD updates differ from the one-shot GMAC",
                  got2, got2len, got, gotlen);
+
+    free_poison_allocations();
 }
 
 /* (3) A tampered AAD must produce a different tag: GMAC verification is
@@ -309,6 +313,8 @@ static void test_tampered_aad(void)
     CHECK(memcmp(got, got_bad, 16) != 0,
           "tampering with one AAD bit did not change the GMAC tag");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (4) IV lengths: 0 must fail; 8 and 16 must agree with the GCM path. */
@@ -370,6 +376,8 @@ static void test_iv_lengths(void)
     repoison_all();
 
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 /* (5) The tag size is the GCM tag size, 16 bytes (queried after init). */
@@ -402,6 +410,8 @@ static void test_mac_size(void)
     CHECK(macsize == 16, "GMAC EVP_MAC_CTX_get_mac_size is not 16");
     EVP_MAC_CTX_free(ctx);
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -413,8 +423,6 @@ int main(int argc, char **argv)
     test_tampered_aad();
     test_iv_lengths();
     test_mac_size();
-
-    free_poison_allocations();
 
     printf("test_mac_gmac: all %u checks passed\n", g_checks);
     return 0;

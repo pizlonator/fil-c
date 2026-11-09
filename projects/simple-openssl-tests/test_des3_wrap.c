@@ -184,6 +184,8 @@ static void test_unwrap_kat(void)
     expect_equal("the recorded blob does not unwrap to its key data",
                  back, backlen, keydata, keydatalen);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) Input rules: 15- and 17-byte inputs FAIL in the update; 8-, 16-,
@@ -234,6 +236,8 @@ static void test_input_rules(void)
         expect_equal(msg, back, backlen, in, n);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) Unwrap length rules: an 8-byte input fails (inl < 24), a 16-byte
@@ -265,6 +269,8 @@ static void test_unwrap_length_rules(void)
         EVP_CIPHER_CTX_free(ctx);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) A corrupted wrapped blob must fail to unwrap: the recovered ICV
@@ -305,6 +311,8 @@ static void test_corrupted_unwrap(void)
         wrapped[off] ^= 0x01; /* restore for the next flip */
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -315,8 +323,6 @@ int main(int argc, char **argv)
     test_input_rules();
     test_unwrap_length_rules();
     test_corrupted_unwrap();
-
-    free_poison_allocations();
 
     printf("test_des3_wrap: all %u checks passed\n", g_checks);
     return 0;

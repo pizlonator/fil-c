@@ -221,6 +221,8 @@ static void test_kat_anchor(void)
           "decrypting the KAT ciphertext did not give the plaintext");
     repoison_all();
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) The 1 MiB payload with 255 bytes of AAD round-trips in a single
@@ -265,6 +267,8 @@ static void test_large_roundtrip(void)
         repoison_all();
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) A second data update after the 1 MiB payload must fail, for AES-128
@@ -321,6 +325,8 @@ static void test_second_data_update(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) A zero-length payload (AAD-only record) is valid and round-trips. */
@@ -351,6 +357,8 @@ static void test_zero_length_payload(void)
                 back, 4 + 16, &backlen);
     CHECK(backlen == 0, "AAD-only decryption produced plaintext bytes");
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) Tampering with the ciphertext or the tag must be detected inside the
@@ -435,6 +443,8 @@ static void test_tamper(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (6) Output-size contract: CCM reports block_size 1, so the EVP contract
@@ -493,6 +503,8 @@ static void test_output_buffer_contract(void)
           "GET_TAG failed");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -505,8 +517,6 @@ int main(int argc, char **argv)
     test_zero_length_payload();
     test_tamper();
     test_output_buffer_contract();
-
-    free_poison_allocations();
 
     printf("test_aes_ccm_large: all %u checks passed\n", g_checks);
     return 0;

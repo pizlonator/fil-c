@@ -163,6 +163,8 @@ static void test_lengths(void)
           "X963KDF 103-byte derive failed");
     expect_equal("X963KDF full output does not match the NIST vector",
                  out, 103, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (2) Deriving without the shared secret must fail. */
@@ -187,6 +189,8 @@ static void test_missing_key(void)
           "X963KDF accepted a missing shared secret");
     EVP_KDF_CTX_free(ctx);
     EVP_KDF_free(kdf);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -195,8 +199,6 @@ int main(int argc, char **argv)
 
     test_lengths();
     test_missing_key();
-
-    free_poison_allocations();
 
     printf("test_kdf_x963kdf: all %u checks passed\n", g_checks);
     return 0;

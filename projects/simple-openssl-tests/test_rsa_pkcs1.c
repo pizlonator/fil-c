@@ -362,6 +362,8 @@ static void test_kat(EVP_PKEY *key)
               "the CLI KAT signature does not verify");
         EVP_PKEY_CTX_free(ctx);
     }
+
+    free_poison_allocations();
 }
 
 
@@ -408,6 +410,8 @@ static void test_digest_route_sizes(EVP_PKEY *key)
      * message signs fine -- only its 32-byte digest is ever padded. */
     CHECK(sign_digest(key, msg, 246 % 245 + 1, sig, 256) == 256,
           "digest-route sign of a long message failed");
+
+    free_poison_allocations();
 }
 
 
@@ -439,6 +443,8 @@ static void test_raw_route_boundary(EVP_PKEY *key)
     CHECK(EVP_PKEY_sign(ctx, sig, &siglen, tbs, 246) != 1,
           "raw PKCS#1 type 1 sign accepted 246 bytes (max is modlen-11)");
     EVP_PKEY_CTX_free(ctx);
+
+    free_poison_allocations();
 }
 
 
@@ -494,6 +500,8 @@ static void test_type2_roundtrip(EVP_PKEY *key)
               "type 2 encryption accepted 246 bytes (max is modlen-11)");
         EVP_PKEY_CTX_free(ectx);
     }
+
+    free_poison_allocations();
 }
 
 
@@ -531,6 +539,8 @@ static void test_type2_tamper(EVP_PKEY *key)
     repoison_all();
     EVP_PKEY_CTX_free(ectx);
     EVP_PKEY_CTX_free(dctx);
+
+    free_poison_allocations();
 }
 
 
@@ -561,6 +571,8 @@ static void test_wrong_digest(EVP_PKEY *key)
     CHECK(EVP_PKEY_verify(ctx, sig, siglen, dig, diglen) != 1,
           "SHA-256 signature verified as SHA-512");
     EVP_PKEY_CTX_free(ctx);
+
+    free_poison_allocations();
 }
 
 
@@ -578,8 +590,6 @@ int main(int argc, char **argv)
     test_type2_tamper(key);
     test_wrong_digest(key);
     EVP_PKEY_free(key);
-
-    free_poison_allocations();
 
     printf("test_rsa_pkcs1: all %u checks passed\n", g_checks);
     return 0;

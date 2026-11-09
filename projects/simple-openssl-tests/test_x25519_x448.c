@@ -235,6 +235,8 @@ static void test_kats(const char *alg, size_t keylen,
 
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
+
+    free_poison_allocations();
 }
 
 
@@ -283,6 +285,8 @@ static void test_iterated(const char *alg, size_t keylen,
     CHECK(memcmp(k, want, keylen) == 0,
           "iterated X25519/X448: 1000-iteration value != RFC");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 
@@ -310,6 +314,8 @@ static void test_low_order_peer(const char *alg, size_t keylen)
           "low-order (all-zero) peer point was accepted");
     EVP_PKEY_free(A);
     EVP_PKEY_free(Z);
+
+    free_poison_allocations();
 }
 
 
@@ -356,6 +362,8 @@ static void test_x25519_kem(void)
     repoison_all();
     EVP_PKEY_CTX_free(dctx);
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -384,8 +392,6 @@ int main(int argc, char **argv)
     test_low_order_peer("X25519", 32);
     test_low_order_peer("X448", 56);
     test_x25519_kem();
-
-    free_poison_allocations();
 
     printf("test_x25519_x448: all %u checks passed\n", g_checks);
     return 0;

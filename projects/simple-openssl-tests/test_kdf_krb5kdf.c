@@ -176,6 +176,8 @@ static void test_kats(void)
                  kat->cipher, kat->constanthex);
         expect_equal(msg, out, kat->outlen, want, wantlen);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) The constant may be up to the cipher block size; a full 16-byte
@@ -198,6 +200,8 @@ static void test_blocksize_constant(void)
           "KRB5KDF derive with a block-size constant failed");
     expect_equal("block-size constant output does not match the KAT",
                  out, 16, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (3) Error paths: the output length must equal the cipher key length, the
@@ -235,6 +239,8 @@ static void test_negative(void)
           "KRB5KDF accepted a missing key");
     CHECK(!krb5_derive("AES-128-CBC", key, keylen, NULL, 0, out, 16),
           "KRB5KDF accepted a missing constant");
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -244,8 +250,6 @@ int main(int argc, char **argv)
     test_kats();
     test_blocksize_constant();
     test_negative();
-
-    free_poison_allocations();
 
     printf("test_kdf_krb5kdf: all %u checks passed\n", g_checks);
     return 0;

@@ -131,6 +131,8 @@ static void test_null_cipher_fetch(void)
           "NULL cipher roundtrip did not recover the pattern");
     repoison_all();
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) The static route EVP_enc_null(): same roundtrip through a second,
@@ -151,6 +153,8 @@ static void test_null_cipher_static(void)
     CHECK(backlen == PATTERN_LEN && memcmp(back, in, PATTERN_LEN) == 0,
           "EVP_enc_null() roundtrip did not recover the pattern");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (3) The NULL digest through EVP_MD_fetch: size 0, empty one-shot
@@ -166,6 +170,8 @@ static void test_null_digest(void)
 
     if (md == NULL) {
         g_no_null_digest = 1;
+
+        free_poison_allocations();
         return;
     }
     CHECK(EVP_MD_get_size(md) == 0, "the NULL digest size is not 0");
@@ -192,6 +198,8 @@ static void test_null_digest(void)
           "EVP_Digest with a 1-byte input failed");
     CHECK(olen == 0, "the NULL digest output for a 1-byte input is not empty");
     EVP_MD_free(md);
+
+    free_poison_allocations();
 }
 
 /* (4) The static route EVP_md_null(): identical behavior. */
@@ -215,6 +223,8 @@ static void test_md_null_static(void)
           "EVP_DigestFinal_ex failed");
     CHECK(olen == 0, "EVP_md_null() output is not empty");
     EVP_MD_CTX_free(ctx);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -231,8 +241,6 @@ int main(int argc, char **argv)
         printf("SKIP test_null_cipher_digest: the NULL digest is unavailable\n");
         return 0;
     }
-
-    free_poison_allocations();
 
     printf("test_null_cipher_digest: all %u checks passed\n", g_checks);
     return 0;

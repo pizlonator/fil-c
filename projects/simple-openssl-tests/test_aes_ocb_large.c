@@ -291,6 +291,8 @@ static void test_kat_anchor(void)
     expect_equal("streaming tag differs from one-shot tag (64KiB AAD)",
                  tag_want, 16, tag, 16);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) 1 MiB streaming == one-shot for AES-192-OCB and AES-256-OCB, both
@@ -344,6 +346,8 @@ static void test_large_stream_equals_one_shot(void)
         repoison_all();
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) A 64 KiB AAD in two 32 KiB chunks must match a one-shot AAD, for
@@ -389,6 +393,8 @@ static void test_large_aad(void)
                      tag2, 16, tag1, 16);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) Tampering with the final ciphertext block must fail DecryptFinal, for
@@ -463,6 +469,8 @@ static void test_tampered_final_block(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -473,8 +481,6 @@ int main(int argc, char **argv)
     test_large_stream_equals_one_shot();
     test_large_aad();
     test_tampered_final_block();
-
-    free_poison_allocations();
 
     printf("test_aes_ocb_large: all %u checks passed\n", g_checks);
     return 0;

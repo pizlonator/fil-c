@@ -276,6 +276,8 @@ static void test_ed25519_rfc_kats(void)
         CHECK(ed_verify(key, NULL, msg, msglen, want, wantlen) == 1, mbuf);
         EVP_PKEY_free(key);
     }
+
+    free_poison_allocations();
 }
 
 
@@ -319,6 +321,8 @@ static void test_ed25519_sign_verify_negative(void)
     CHECK(ed_verify(key, NULL, msg, msglen, bad, siglen) != 1,
           "tampered Ed25519 signature verified");
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -426,6 +430,8 @@ static void test_ed25519_instances(void)
               "Ed25519ph RFC signature does not verify");
     }
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -527,6 +533,8 @@ static void test_ed448(void)
               "Ed448 context RFC signature does not verify");
     }
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -538,8 +546,6 @@ int main(int argc, char **argv)
     test_ed25519_sign_verify_negative();
     test_ed25519_instances();
     test_ed448();
-
-    free_poison_allocations();
 
     printf("test_ed25519_ed448: all %u checks passed\n", g_checks);
     return 0;

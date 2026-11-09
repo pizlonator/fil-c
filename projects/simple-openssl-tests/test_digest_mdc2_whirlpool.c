@@ -152,6 +152,8 @@ static void test_mdc2(void)
 
          * a core 3.x property). */
         g_skipmsg = "MDC2";
+
+        free_poison_allocations();
         return;
     }
     CHECK(EVP_MD_get_size(md) == 16, "EVP_MD_get_size(MDC2) is not 16");
@@ -179,6 +181,8 @@ static void test_mdc2(void)
           "MDC2(\"message digest\") one-shot digest does not match the KAT");
     repoison_all();
     EVP_MD_free(md);
+
+    free_poison_allocations();
 }
 
 /* (2) WHIRLPOOL: KATs for "abc", "message digest" and the empty message,
@@ -240,6 +244,8 @@ static void test_whirlpool(void)
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
     repoison_all();
     EVP_MD_free(md);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -254,8 +260,6 @@ int main(int argc, char **argv)
         printf("SKIP test_digest_mdc2_whirlpool: %s is unavailable\n", g_skipmsg);
         return 0;
     }
-
-    free_poison_allocations();
 
     printf("test_digest_mdc2_whirlpool: all %u checks passed\n", g_checks);
     return 0;

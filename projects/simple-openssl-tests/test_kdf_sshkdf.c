@@ -187,6 +187,8 @@ static void test_types_sha1(void)
         CHECK(memcmp(out, want, ssh_kats[k].outlen) == 0, msg);
         repoison_all();
     }
+
+    free_poison_allocations();
 }
 
 /* (2) SHA-256 types A and C (CLI-verified on both builds; the SHA-256 H
@@ -219,6 +221,8 @@ static void test_types_sha256(void)
           "SSHKDF SHA256 type C derive failed");
     expect_equal("SHA256 type C output does not match the KAT",
                  out, 32, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (3) The six types produce six pairwise-distinct outputs. */
@@ -254,6 +258,8 @@ static void test_types_differ(void)
             repoison_all();
         }
     }
+
+    free_poison_allocations();
 }
 
 /* (4) Error paths and the wrong-length xcghhash behavior. */
@@ -292,6 +298,8 @@ static void test_negative(void)
     wantlen = from_hex("dd8c1159d741e4f6", want, OUT_CAP);
     expect_equal("wrong-length xcghhash output is not the observed value",
                  out, 8, want, wantlen);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -302,8 +310,6 @@ int main(int argc, char **argv)
     test_types_sha256();
     test_types_differ();
     test_negative();
-
-    free_poison_allocations();
 
     printf("test_kdf_sshkdf: all %u checks passed\n", g_checks);
     return 0;

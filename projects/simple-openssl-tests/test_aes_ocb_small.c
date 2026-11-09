@@ -370,6 +370,8 @@ static void test_kats(void)
         expect_equal(msg, back, backlen, pt, ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) IV length rules: the default is 12; 1..15 round-trip; 0 and 16 are
@@ -454,6 +456,8 @@ static void test_iv_lengths(void)
         }
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) Tag length rules: 1..16 round-trip; 0 and 17 are rejected. */
@@ -546,6 +550,8 @@ static void test_tag_lengths(void)
         EVP_CIPHER_free(c192);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) Partial final blocks: {15} in one update, {16,7} across two updates,
@@ -607,6 +613,8 @@ static void test_partial_blocks(void)
                      tag2, 16, tag1, 16);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (5) AAD after the first data update: the provider ACCEPTS it (unlike
@@ -680,6 +688,8 @@ static void test_aad_after_data(void)
                  back, backlen, pt, 32);
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) Tamper detection: flipping a ciphertext bit or a tag bit must fail
@@ -761,6 +771,8 @@ static void test_tamper(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -773,8 +785,6 @@ int main(int argc, char **argv)
     test_partial_blocks();
     test_aad_after_data();
     test_tamper();
-
-    free_poison_allocations();
 
     printf("test_aes_ocb_small: all %u checks passed\n", g_checks);
     return 0;

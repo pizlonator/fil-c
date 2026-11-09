@@ -288,6 +288,8 @@ static void test_generated_key(void)
           "streaming DSA signature failed to verify");
     EVP_MD_CTX_free(mctx);
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -310,6 +312,8 @@ static void test_kat(void)
           "the CLI-made DSA KAT signature does not verify");
     EVP_MD_CTX_free(mctx);
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -343,6 +347,8 @@ static void test_negative(void)
           "SHA-256 DSA signature verified as SHA-1");
     EVP_MD_CTX_free(mctx);
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -353,8 +359,6 @@ int main(int argc, char **argv)
     test_generated_key();
     test_kat();
     test_negative();
-
-    free_poison_allocations();
 
     printf("test_dsa: all %u checks passed\n", g_checks);
     return 0;

@@ -180,6 +180,8 @@ static void test_kats(void)
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
         repoison_all();
         EVP_MD_free(md);
+
+        free_poison_allocations();
     }
 }
 
@@ -215,6 +217,8 @@ static void test_routes(void)
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname(\"sha1\") digest does not match the KAT");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (4) Chunked digesting must equal one-shot digesting for input lengths
@@ -248,6 +252,8 @@ static void test_chunked_equality(void)
         repoison_all();
     }
     EVP_MD_free(md);
+
+    free_poison_allocations();
 }
 
 /* (5) The 56-byte classic message must also digest correctly through the
@@ -271,6 +277,8 @@ static void test_msg56_chunked(void)
           "chunked SHA1 of the 56-byte message does not match the KAT");
     repoison_all();
     EVP_MD_free(md);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -281,8 +289,6 @@ int main(int argc, char **argv)
     test_routes();
     test_chunked_equality();
     test_msg56_chunked();
-
-    free_poison_allocations();
 
     printf("test_digest_sha1: all %u checks passed\n", g_checks);
     return 0;

@@ -239,6 +239,8 @@ static void test_kats(void)
         expect_equal(msg, pt_back, ptlen_back, pt, ptlen);
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -295,6 +297,8 @@ static void test_short_data_units_fail(void)
     CHECK(len == 16, "16-byte XTS update did not emit 16 bytes");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) Ciphertext stealing round-trips for non-multiple-of-16 lengths on the
@@ -381,6 +385,8 @@ static void test_stealing_roundtrip(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) Every update is an independent data unit: the tweak is never advanced
@@ -432,6 +438,8 @@ static void test_each_update_is_a_data_unit(void)
           "tweak");
     repoison_all();
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) Weak keys: a key whose two halves are equal must be rejected when
@@ -489,6 +497,8 @@ static void test_weak_key(void)
     g_checks++;
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) A 16-byte key cannot be used for AES-128-XTS: the only public way to
@@ -521,6 +531,8 @@ static void test_wrong_key_length(void)
           "a 16-byte key was accepted for AES-128-XTS");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -533,8 +545,6 @@ int main(int argc, char **argv)
     test_each_update_is_a_data_unit();
     test_weak_key();
     test_wrong_key_length();
-
-    free_poison_allocations();
 
     printf("test_aes_xts_small: all %u checks passed\n", g_checks);
     return 0;

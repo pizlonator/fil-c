@@ -298,6 +298,8 @@ static void test_rows(void)
         expect_equal(msg, pt_back, backlen, pt, ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -312,8 +314,6 @@ int main(int argc, char **argv)
           "OSSL_PROVIDER_load(\"default\") failed");
 
     test_rows();
-
-    free_poison_allocations();
 
     printf("test_legacy_block_ciphers: all %u checks passed\n", g_checks);
     return 0;

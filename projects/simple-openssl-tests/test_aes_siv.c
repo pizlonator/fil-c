@@ -266,6 +266,8 @@ static void test_kats(void)
     expect_equal("A.2: decrypting the KAT did not give the plaintext",
                  back, backlen, pt, ptlen);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) Roundtrips for sizes {0,1,15,16,17,1024} on all three key sizes; the
@@ -326,6 +328,8 @@ static void test_roundtrip_sizes(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) A wrong synthetic IV must fail DecryptFinal (and the output must be
@@ -377,6 +381,8 @@ static void test_wrong_siv(void)
           "SIV decryption accepted a wrong synthetic IV");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) A context performs exactly ONE crypto operation per init: a second
@@ -411,6 +417,8 @@ static void test_second_payload_fails(void)
      * post-rejection Final result differs between the two. */
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) The doubled key length is enforced: requesting a 1x key length at
@@ -442,6 +450,8 @@ static void test_wrong_key_length(void)
     /* (EVP_CIPHER_CTX_set_key_length(16) is NOT probed here: OpenSSL 3.0.x
      * crashes inside it for fixed-length provider ciphers.) */
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2b) The empty-payload case, with the 3.0.x/3.6.x behavioral difference
@@ -488,6 +498,8 @@ static void test_empty_payload(void)
     }
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -500,8 +512,6 @@ int main(int argc, char **argv)
     test_wrong_siv();
     test_second_payload_fails();
     test_wrong_key_length();
-
-    free_poison_allocations();
 
     printf("test_aes_siv: all %u checks passed\n", g_checks);
     return 0;

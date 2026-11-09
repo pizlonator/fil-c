@@ -230,6 +230,8 @@ static void test_kats_multi_seed(void)
     snprintf(msg, sizeof(msg),
              "TLS 1.2 SHA-256 output does not match the KAT");
     expect_equal(msg, out, OUT_CAP, want, OUT_CAP);
+
+    free_poison_allocations();
 }
 
 /* (2) Seed chunks may also be pre-concatenated: one seed with the label and
@@ -255,6 +257,8 @@ static void test_concat_seed(void)
           "TLS1-PRF derive with a single concatenated seed failed");
     expect_equal("three-seed and concatenated-seed outputs differ",
                  out, OUT_CAP, want, OUT_CAP);
+
+    free_poison_allocations();
 }
 
 /* (3) An odd-length secret (TLS <= 1.1 splits it into two halves sharing
@@ -291,6 +295,8 @@ static void test_secret_shapes(void)
           "derive with an explicitly empty secret failed");
     expect_equal("empty-secret output does not match the KAT",
                  out, 16, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (4) Omitting the secret or the seed must fail. */
@@ -308,6 +314,8 @@ static void test_missing_inputs(void)
     CHECK(!tls1prf_derive("SHA256", secret, secretlen, NULL, 0,
                           NULL, 0, NULL, 0, out, 16),
           "TLS1-PRF accepted a missing seed");
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -318,8 +326,6 @@ int main(int argc, char **argv)
     test_concat_seed();
     test_secret_shapes();
     test_missing_inputs();
-
-    free_poison_allocations();
 
     printf("test_kdf_tls1prf: all %u checks passed\n", g_checks);
     return 0;

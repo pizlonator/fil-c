@@ -183,6 +183,8 @@ static void test_kats(void)
                  kat->digest, kat->id, kat->iter);
         expect_equal(msg, dk, DK_CAP, want, wantlen);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) The three material ids (key / IV / MAC secret) must all be derived
@@ -208,6 +210,8 @@ static void test_ids_differ(void)
             CHECK(memcmp(dk[i], dk[j], DK_CAP) != 0,
                   "two PKCS12KDF material ids produced identical output");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (3) The pass and the salt are both mandatory: omitting either must fail. */
@@ -227,6 +231,8 @@ static void test_missing_inputs(void)
     CHECK(!pkcs12_derive("sha256", pass, passlen, NULL, 0, 2048, 1,
                          dk, DK_CAP),
           "PKCS12KDF accepted a missing salt");
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -236,8 +242,6 @@ int main(int argc, char **argv)
     test_kats();
     test_ids_differ();
     test_missing_inputs();
-
-    free_poison_allocations();
 
     printf("test_kdf_pkcs12kdf: all %u checks passed\n", g_checks);
     return 0;

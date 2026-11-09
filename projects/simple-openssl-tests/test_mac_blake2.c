@@ -257,6 +257,8 @@ static void test_kats(void)
     CHECK(macsize == 20, "BLAKE2BMAC mac size does not track the size param");
     EVP_MAC_CTX_free(ctx);
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 /* (2) Chunked updates over a 200-byte deterministic message must equal
@@ -285,6 +287,8 @@ static void test_chunked(void)
                           many, 64);
     expect_equal("chunked BLAKE2SMAC differs from one-shot",
                  many, many_len, one, one_len);
+
+    free_poison_allocations();
 }
 
 /* (3) Negative tests: a zero-length key, an over-long key and an
@@ -346,6 +350,8 @@ static void test_negative(void)
     EVP_MAC_CTX_free(ctx);
 
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -355,8 +361,6 @@ int main(int argc, char **argv)
     test_kats();
     test_chunked();
     test_negative();
-
-    free_poison_allocations();
 
     printf("test_mac_blake2: all %u checks passed\n", g_checks);
     return 0;

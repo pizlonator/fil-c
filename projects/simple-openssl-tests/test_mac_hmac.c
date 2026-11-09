@@ -304,6 +304,8 @@ static void test_rfc4231(void)
             expect_equal(msg, got2, got2len, got, gotlen);
         }
     }
+
+    free_poison_allocations();
 }
 
 /* (3) RFC 2202 test cases 1-4, 6 and 7 for SHA1 (20-byte keys) and MD5
@@ -384,6 +386,8 @@ static void test_rfc2202(void)
             expect_equal(msg, got, gotlen, want, wantlen);
         }
     }
+
+    free_poison_allocations();
 }
 
 /* (4) Key sizes: the empty key (zero length, non-NULL buffer) must work
@@ -425,6 +429,8 @@ static void test_key_sizes(void)
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "HMAC-SHA256 with a 64-zero-byte key differs from the empty-key KAT");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (5) A nonexistent digest name must fail cleanly: either the parameter
@@ -461,8 +467,6 @@ int main(int argc, char **argv)
     test_rfc2202();
     test_key_sizes();
     test_wrong_digest();
-
-    free_poison_allocations();
 
     printf("test_mac_hmac: all %u checks passed\n", g_checks);
     return 0;

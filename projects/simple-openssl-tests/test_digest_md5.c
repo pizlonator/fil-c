@@ -211,6 +211,8 @@ static void test_kats(void)
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
         repoison_all();
         EVP_MD_free(md);
+
+        free_poison_allocations();
     }
 }
 
@@ -257,6 +259,8 @@ static void test_routes(void)
     CHECK(gotlen == 16 && memcmp(got, want_md4, 16) == 0,
           "EVP_get_digestbyname(\"md4\") digest does not match the KAT");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (3) Chunked-vs-one-shot equality for MD5 around the 64-byte block
@@ -287,6 +291,8 @@ static void test_md5_chunked_equality(void)
         repoison_all();
     }
     EVP_MD_free(md);
+
+    free_poison_allocations();
 }
 
 /* (4) MD5-SHA1: the 36-byte concatenation of MD5("abc") and SHA1("abc").
@@ -342,6 +348,8 @@ static void test_md5_sha1(void)
     EVP_MD_free(md);
     EVP_MD_free(md5);
     EVP_MD_free(sha1);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -353,8 +361,6 @@ int main(int argc, char **argv)
     test_routes();
     test_md5_chunked_equality();
     test_md5_sha1();
-
-    free_poison_allocations();
 
     printf("test_digest_md5: all %u checks passed\n", g_checks);
     return 0;

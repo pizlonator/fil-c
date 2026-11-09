@@ -226,6 +226,8 @@ static void test_extract_and_expand_kats(void)
                  "RFC 5869 case %zu (%s) OKM does not match the KAT",
                  k + 1, kat->digest);
         expect_equal(msg, okm, kat->outlen, want, wantlen);
+
+        free_poison_allocations();
     }
 }
 
@@ -302,6 +304,8 @@ static void test_extract_only(void)
         EVP_KDF_CTX_free(ctx);
         EVP_KDF_free(kdf);
     }
+
+    free_poison_allocations();
 }
 
 /* PRK of RFC 5869 TC1 (HMAC-SHA256 of the TC1 salt and IKM). */
@@ -336,6 +340,8 @@ static void test_expand_only(void)
           "EXPAND_ONLY derive failed");
     expect_equal("EXPAND_ONLY(PRK, info) does not match the TC1 OKM",
                  okm, 42, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (4) The "info" parameter may be delivered as several octet-string params,
@@ -404,6 +410,8 @@ static void test_multi_info(void)
         printf("note test_kdf_hkdf: this OpenSSL accepts more than five "
                "info params (pre-3.1 behavior)\n");
     }
+
+    free_poison_allocations();
 }
 
 /* (5) Error paths: a zero output length and a missing key must fail;
@@ -433,6 +441,8 @@ static void test_negative(void)
     params[2] = OSSL_PARAM_construct_end();
     CHECK(!kdf_derive("HKDF", params, okm, 31),
           "EXTRACT_ONLY accepted a 31-byte (non-digest-size) output");
+
+    free_poison_allocations();
 }
 
 /* (6) The separately registered concrete HKDF-SHA256/HKDF-SHA384/HKDF-SHA512
@@ -579,6 +589,8 @@ static void test_concrete_names(void)
         EVP_KDF_CTX_free(ctx);
         EVP_KDF_free(kdf);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -591,8 +603,6 @@ int main(int argc, char **argv)
     test_multi_info();
     test_negative();
     test_concrete_names();
-
-    free_poison_allocations();
 
     printf("test_kdf_hkdf: all %u checks passed\n", g_checks);
     return 0;

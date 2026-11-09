@@ -268,6 +268,8 @@ static void test_tls_roundtrip(void)
         g_checks++;
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) The composition KAT: the stitched record must equal
@@ -323,6 +325,8 @@ static void test_composition(void)
     }
     EVP_CIPHER_free(cipher);
     EVP_CIPHER_free(rc4);
+
+    free_poison_allocations();
 }
 
 /* (3) Tampered records must fail the decrypt UPDATE (the MAC comparison
@@ -381,6 +385,8 @@ static void test_tamper(void)
             mackey[0] ^= 0x01;
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) Without the TLS AAD the cipher is plain RC4 of the update: a
@@ -429,6 +435,8 @@ static void test_nontls_is_rc4(void)
                  stitched, 64, plain, 64);
     EVP_CIPHER_free(cipher);
     EVP_CIPHER_free(rc4);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -447,8 +455,6 @@ int main(int argc, char **argv)
     test_composition();
     test_tamper();
     test_nontls_is_rc4();
-
-    free_poison_allocations();
 
     printf("test_rc4_hmac_md5: all %u checks passed\n", g_checks);
     return 0;

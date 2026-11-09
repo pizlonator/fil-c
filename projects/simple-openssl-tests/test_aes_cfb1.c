@@ -288,6 +288,8 @@ static void test_byte_mode_kats(void)
                      pt_back, ptlen, pt, KAT_PTLEN);
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -329,6 +331,8 @@ static void test_byte_mode_streaming(void)
     ptlen = cfb1_stream(cipher, key, iv, ct37, ctlen, back37, 37 + 16, 0);
     expect_equal("37-byte roundtrip failed", back37, ptlen, pt37, 37);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) Byte-mode state continuity: a zero-length update is a no-op, and the
@@ -380,6 +384,8 @@ static void test_byte_mode_zero_update(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) Consistency: byte-mode encryption of n bytes == bit-mode encryption of
@@ -426,6 +432,8 @@ static void test_bit_mode_consistency(void)
         EVP_CIPHER_CTX_free(ctx);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) Bit mode with a bit length that is not a multiple of 8: encrypting 41
@@ -494,6 +502,8 @@ static void test_bit_mode_41_bits(void)
     repoison_all();
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) Bit-mode state continuity across updates: the keystream (shifted-IV)
@@ -552,6 +562,8 @@ static void test_bit_mode_split(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -564,8 +576,6 @@ int main(int argc, char **argv)
     test_bit_mode_consistency();
     test_bit_mode_41_bits();
     test_bit_mode_split();
-
-    free_poison_allocations();
 
     printf("test_aes_cfb1: all %u checks passed\n", g_checks);
     return 0;

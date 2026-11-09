@@ -262,6 +262,8 @@ static void test_kats(void)
                  kat->macname, k + 1);
         expect_equal(msgbuf, got, gotlen, want, wantlen);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) Absent custom parameter == empty custom string (both are the empty
@@ -303,6 +305,8 @@ static void test_custom_and_sizes(void)
     CHECK(macsize == 32, "KMAC-128 default output size is not 32");
     EVP_MAC_CTX_free(ctx);
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 /* (3) Chunked updates: the 200-byte sample 3 message split as {7, rest}
@@ -339,6 +343,8 @@ static void test_chunked(void)
                           msg, 200, 7, got, 64);
     expect_equal("{7,rest} chunked KMAC-256 differs from the sample 6 KAT",
                  got, gotlen, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (4) The mac size tracks the requested size (KMAC-256 asked for 40). */
@@ -387,6 +393,8 @@ static void test_mac_size_param(void)
           "two identical KMAC computations disagree");
     repoison_all();
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -397,8 +405,6 @@ int main(int argc, char **argv)
     test_custom_and_sizes();
     test_chunked();
     test_mac_size_param();
-
-    free_poison_allocations();
 
     printf("test_mac_kmac: all %u checks passed\n", g_checks);
     return 0;

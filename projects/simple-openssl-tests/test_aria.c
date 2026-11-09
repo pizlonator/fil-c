@@ -481,6 +481,8 @@ static void test_ecb_kats(void)
         expect_equal(msg, pt_back, ptlen, pt, 16);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) CBC/CTR/OFB/CFB/CFB8/CFB1 KATs for all three key sizes, roundtrips
@@ -606,6 +608,8 @@ static void test_classical_modes(void)
         expect_equal(msg, pt_back, backlen, pt, modes[m].ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) GCM KATs for all three key sizes, plus the AEAD ordering rules:
@@ -706,6 +710,8 @@ static void test_gcm(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) CCM KATs for all three key sizes (ivlen 12, taglen 12), the ordering
@@ -810,6 +816,8 @@ static void test_ccm(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -820,8 +828,6 @@ int main(int argc, char **argv)
     test_classical_modes();
     test_gcm();
     test_ccm();
-
-    free_poison_allocations();
 
     printf("test_aria: all %u checks passed\n", g_checks);
     return 0;

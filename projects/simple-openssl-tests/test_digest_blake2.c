@@ -159,6 +159,8 @@ static void test_kats(void)
         CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
         repoison_all();
         EVP_MD_free(md);
+
+        free_poison_allocations();
     }
 }
 
@@ -204,6 +206,8 @@ static void test_byname_routes(void)
     unpoison_all();
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0, msg);
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (3) Chunked-vs-one-shot equality with splits that hit the block size
@@ -296,6 +300,8 @@ static void test_block_boundary_chunks(void)
         }
         EVP_MD_free(md);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -305,8 +311,6 @@ int main(int argc, char **argv)
     test_kats();
     test_byname_routes();
     test_block_boundary_chunks();
-
-    free_poison_allocations();
 
     printf("test_digest_blake2: all %u checks passed\n", g_checks);
     return 0;

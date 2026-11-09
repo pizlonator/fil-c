@@ -238,6 +238,8 @@ static void test_ctr_drbg(void)
 
     EVP_RAND_CTX_free(ctx);
     EVP_RAND_free(rand);
+
+    free_poison_allocations();
 }
 
 /* (2) HASH-DRBG with an explicit SHA2-256 digest, with and without a
@@ -291,6 +293,8 @@ static void test_hash_drbg(void)
           "HASH-DRBG generate after a personalized instantiation failed");
     EVP_RAND_CTX_free(ctx);
     EVP_RAND_free(rand);
+
+    free_poison_allocations();
 }
 
 /* (3) HMAC-DRBG: the "mac" and "digest" parameters must be delivered in a
@@ -343,6 +347,8 @@ static void test_hmac_drbg(void)
     CHECK(EVP_RAND_uninstantiate(ctx) == 1, "EVP_RAND_uninstantiate failed");
     EVP_RAND_CTX_free(ctx);
     EVP_RAND_free(rand);
+
+    free_poison_allocations();
 }
 
 /* The fixed TEST-RAND "test_entropy" bytes: 0x01,0x04,0x07,... (i*3+1).
@@ -420,6 +426,8 @@ static void test_test_rand_entropy_mode(void)
     EVP_RAND_CTX_free(c1);
     EVP_RAND_CTX_free(c2);
     EVP_RAND_free(rand);
+
+    free_poison_allocations();
 }
 
 /* (5) TEST-RAND "generate" mode (OSSL_RAND_PARAM_GENERATE, new in 3.6; the
@@ -468,6 +476,8 @@ static void test_test_rand_generate_mode(void)
     EVP_RAND_CTX_free(c1);
     EVP_RAND_CTX_free(c2);
     EVP_RAND_free(rand);
+
+    free_poison_allocations();
 }
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30600000L */
 
@@ -486,8 +496,6 @@ int main(int argc, char **argv)
 #if OPENSSL_VERSION_NUMBER >= 0x30600000L
     test_test_rand_generate_mode();
 #endif
-
-    free_poison_allocations();
 
     printf("test_rand_drbg: all %u checks passed\n", g_checks);
     return 0;

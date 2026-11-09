@@ -205,6 +205,8 @@ static void test_kats(void)
                  "the KAT", kat->mac ? kat->mac : "", kat->digest);
         expect_equal(msg, out, kat->outlen, want, wantlen);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) The "secret" parameter is an alias of "key": both routes must give
@@ -226,6 +228,8 @@ static void test_key_secret_alias(void)
           "SSKDF derive via the secret param failed");
     expect_equal("key-param and secret-param outputs differ",
                  out_key, 16, out_secret, 16);
+
+    free_poison_allocations();
 }
 
 /* (3) Up to five "info" params are accepted and, on OpenSSL releases that
@@ -301,6 +305,8 @@ static void test_multi_info(void)
     }
     EVP_KDF_CTX_free(ctx);
     EVP_KDF_free(kdf);
+
+    free_poison_allocations();
 }
 
 /* (4) Deriving without the shared secret must fail. */
@@ -325,6 +331,8 @@ static void test_missing_key(void)
           "SSKDF accepted a missing shared secret");
     EVP_KDF_CTX_free(ctx);
     EVP_KDF_free(kdf);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -335,8 +343,6 @@ int main(int argc, char **argv)
     test_key_secret_alias();
     test_multi_info();
     test_missing_key();
-
-    free_poison_allocations();
 
     printf("test_kdf_sskdf: all %u checks passed\n", g_checks);
     return 0;

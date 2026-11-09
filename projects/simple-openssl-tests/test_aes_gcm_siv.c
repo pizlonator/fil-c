@@ -272,6 +272,8 @@ static void test_kats(void)
         expect_equal(msg, back, backlen, pt, ptlen);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) AAD in two chunks must equal one-shot AAD, for AES-128 and AES-192. */
@@ -334,6 +336,8 @@ static void test_aad_chunking(void)
                      tag2, 16, tag1, 16);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) Payload roundtrips for sizes {0,16,17,64}, for AES-192 and AES-256. */
@@ -384,6 +388,8 @@ static void test_roundtrip_sizes(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) One payload update per init: a second data update must fail
@@ -439,6 +445,8 @@ static void test_second_update_fails(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (5) Tamper detection: a flipped ciphertext byte or tag bit must fail
@@ -517,6 +525,8 @@ static void test_tamper(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -540,8 +550,6 @@ int main(int argc, char **argv)
     test_roundtrip_sizes();
     test_second_update_fails();
     test_tamper();
-
-    free_poison_allocations();
 
     printf("test_aes_gcm_siv: all %u checks passed\n", g_checks);
     return 0;

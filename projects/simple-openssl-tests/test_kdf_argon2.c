@@ -207,6 +207,8 @@ int main(int argc, char **argv)
         EVP_KDF *probe = EVP_KDF_fetch(NULL, "ARGON2ID", NULL);
         if (probe == NULL) {
             printf("SKIP test_kdf_argon2: ARGON2 is unavailable\n");
+
+            free_poison_allocations();
             return 0;
         }
         EVP_KDF_free(probe);

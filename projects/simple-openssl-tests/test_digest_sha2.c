@@ -185,6 +185,8 @@ static void test_kats(void)
         CHECK(memcmp(got, want, wantlen) == 0, msg);
         repoison_all();
         EVP_MD_free(md);
+
+        free_poison_allocations();
     }
 }
 
@@ -218,6 +220,8 @@ static void test_routes(void)
     CHECK(gotlen == wantlen && memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname() digest does not match the KAT");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (4) Chunked digesting must equal one-shot digesting for input lengths
@@ -253,6 +257,8 @@ static void test_chunked_equality(void)
         }
         EVP_MD_free(md);
     }
+
+    free_poison_allocations();
 }
 
 /* (5) EVP_MD_get_size for all six SHA-2 variants. */
@@ -288,6 +294,8 @@ static void test_sha2_256_192(void)
 
     if (md == NULL) {
         printf("SKIP test_digest_sha2: SHA2-256/192 is unavailable\n");
+
+        free_poison_allocations();
         exit(0);
     }
     memcpy(in, MSG_ABC, 3);
@@ -301,6 +309,8 @@ static void test_sha2_256_192(void)
           "SHA2-256/192 chunked digest differs from one-shot");
     repoison_all();
     EVP_MD_free(md);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -312,8 +322,6 @@ int main(int argc, char **argv)
     test_chunked_equality();
     test_digest_sizes();
     test_sha2_256_192();
-
-    free_poison_allocations();
 
     printf("test_digest_sha2: all %u checks passed\n", g_checks);
     return 0;

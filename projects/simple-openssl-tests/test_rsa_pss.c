@@ -332,6 +332,8 @@ static void test_saltlen_modes(EVP_PKEY *key)
         CHECK(pss_verify(key, EVP_sha256(), RSA_PSS_SALTLEN_AUTO,
                          msg, 64, sig, siglen) == 1, mbuf);
     }
+
+    free_poison_allocations();
 }
 
 
@@ -354,6 +356,8 @@ static void test_sha512(EVP_PKEY *key)
     CHECK(pss_verify(key, EVP_sha512(), RSA_PSS_SALTLEN_AUTO,
                      msg, 64, sig, siglen) == 1,
           "PSS SHA-512 (digest saltlen) not accepted with AUTO on verify");
+
+    free_poison_allocations();
 }
 
 
@@ -375,6 +379,8 @@ static void test_saltlen_too_big(EVP_PKEY *key)
     CHECK(EVP_PKEY_sign(ctx, sig, &siglen, dig, diglen) != 1,
           "PSS sign accepted saltlen 300 > emLen - hLen - 2");
     EVP_PKEY_CTX_free(ctx);
+
+    free_poison_allocations();
 }
 
 
@@ -396,6 +402,8 @@ static void test_tamper(EVP_PKEY *key)
     bad[100] ^= 0x08;
     CHECK(pss_verify(key, EVP_sha256(), 20, msg, 16, bad, 256) != 1,
           "tampered PSS signature verified");
+
+    free_poison_allocations();
 }
 
 
@@ -418,6 +426,8 @@ static void test_kat(EVP_PKEY *key)
     CHECK(pss_verify(key, EVP_sha256(), RSA_PSS_SALTLEN_AUTO,
                      msg, sizeof(KAT_MSG) - 1, sig, siglen) == 1,
           "the CLI PSS KAT signature does not verify with SALTLEN_AUTO");
+
+    free_poison_allocations();
 }
 
 
@@ -434,8 +444,6 @@ int main(int argc, char **argv)
     test_tamper(key);
     test_kat(key);
     EVP_PKEY_free(key);
-
-    free_poison_allocations();
 
     printf("test_rsa_pss: all %u checks passed\n", g_checks);
     return 0;

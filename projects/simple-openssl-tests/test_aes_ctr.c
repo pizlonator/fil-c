@@ -247,6 +247,8 @@ static void test_fetched_kats(void)
                      pt_back, ptlen, pt, KAT_PTLEN);
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -279,6 +281,8 @@ static void test_streaming(void)
     expect_equal("streaming decryption did not recover the plaintext",
                  pt_back, ptlen, pt, KAT_PTLEN);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) Counter carry across the 128-bit boundary: with IV ff..fd the fourth
@@ -315,6 +319,8 @@ static void test_counter_carry(void)
         expect_equal("counter-carry split-update ciphertext differs from one-shot",
                      ct_split, ct_splitlen, ct, ctlen);
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -342,6 +348,8 @@ static void test_partial_final_block(void)
     expect_equal("37-byte (partial final block) roundtrip failed",
                  pt_back, ptlen, pt, 37);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) In-place operation: CTR must accept out == in for both directions. */
@@ -372,6 +380,8 @@ static void test_in_place(void)
     expect_equal("in-place CTR roundtrip did not recover the plaintext",
                  buf, 64, in, 64);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) Two fresh contexts with the same key and IV produce identical
@@ -442,6 +452,8 @@ static void test_keystream_and_num(void)
     g_checks++;
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -454,8 +466,6 @@ int main(int argc, char **argv)
     test_partial_final_block();
     test_in_place();
     test_keystream_and_num();
-
-    free_poison_allocations();
 
     printf("test_aes_ctr: all %u checks passed\n", g_checks);
     return 0;

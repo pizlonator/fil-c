@@ -214,6 +214,8 @@ static void test_kats(void)
                  "%s c=%lu dkLen=%zu does not match the KAT",
                  kat->digest, kat->iter, kat->dklen);
         expect_equal(msg, dk, kat->dklen, want, wantlen);
+
+        free_poison_allocations();
     }
 }
 
@@ -271,6 +273,8 @@ static void test_pkcs5_bounds(void)
     expect_equal("pkcs5=1 c=1 derive is not the well-known PBKDF2-HMAC-SHA256 "
                  "prefix",
                  dk, 16, want_weak, wantlen);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -279,8 +283,6 @@ int main(int argc, char **argv)
 
     test_kats();
     test_pkcs5_bounds();
-
-    free_poison_allocations();
 
     printf("test_kdf_pbkdf2: all %u checks passed\n", g_checks);
     return 0;

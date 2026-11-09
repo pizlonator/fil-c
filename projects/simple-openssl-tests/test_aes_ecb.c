@@ -254,6 +254,8 @@ static void test_fetched_kats(void)
                      pt_back, ptlen, pt, KAT_PTLEN);
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -309,6 +311,8 @@ static void test_alternate_routes(void)
     ctlen = ecb_encrypt(legacy256, key, pt, KAT_PTLEN, ct, KAT_PTLEN + 16, 0);
     expect_equal("EVP_aes_256_ecb() ciphertext does not match the KAT",
                  ct, ctlen, ct_want, ct_wantlen);
+
+    free_poison_allocations();
 }
 
 /* (4) Streaming: updates of {1,15,16,17,31} bytes (last one truncated) must
@@ -339,6 +343,8 @@ static void test_streaming(void)
     expect_equal("streaming decryption did not recover the plaintext",
                  pt_back, ptlen, pt, KAT_PTLEN);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (5) Padding: a 33-byte plaintext becomes a 48-byte ciphertext with PKCS#7
@@ -381,6 +387,8 @@ static void test_padding(void)
           "padding-disabled encryption of 33 bytes did not fail at Final");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) A zero-length no-padding ECB roundtrip is legal: the update is a no-op
@@ -422,6 +430,8 @@ static void test_zero_length(void)
     CHECK(len == 0, "zero-length no-padding decrypt Final emitted bytes");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (7) A key of the wrong length must not be usable: the only public way to
@@ -455,6 +465,8 @@ static void test_wrong_key_length(void)
           "a 24-byte key was accepted for AES-128-ECB");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -467,8 +479,6 @@ int main(int argc, char **argv)
     test_padding();
     test_zero_length();
     test_wrong_key_length();
-
-    free_poison_allocations();
 
     printf("test_aes_ecb: all %u checks passed\n", g_checks);
     return 0;

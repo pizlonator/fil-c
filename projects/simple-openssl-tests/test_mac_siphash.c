@@ -207,6 +207,8 @@ static void test_kats(void)
     wantlen = from_hex("5493e99933b0a8117e08ec0f97cfc3d9", want, 16);
     expect_equal("default-size SipHash is not the 16-byte tag",
                  got, gotlen, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (2) One-shot vs chunked equality for input lengths around the 8-byte
@@ -245,6 +247,8 @@ static void test_chunked_equality(void)
                            sizeof(chunks) / sizeof(chunks[0]), many, 16);
     expect_equal("default-size chunked SipHash differs from size:16 one-shot",
                  many, many_len, one, one_len);
+
+    free_poison_allocations();
 }
 
 /* (3) The mac size reflects the requested size; key length 15 fails at
@@ -294,6 +298,8 @@ static void test_negative(void)
     EVP_MAC_CTX_free(ctx);
 
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -303,8 +309,6 @@ int main(int argc, char **argv)
     test_kats();
     test_chunked_equality();
     test_negative();
-
-    free_poison_allocations();
 
     printf("test_mac_siphash: all %u checks passed\n", g_checks);
     return 0;

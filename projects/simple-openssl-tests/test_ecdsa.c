@@ -248,6 +248,8 @@ static void test_keygen_sign_verify(void)
               mbuf);
         EVP_PKEY_free(key);
     }
+
+    free_poison_allocations();
 }
 
 
@@ -282,6 +284,8 @@ static void test_streaming(void)
     if (same)
         CHECK(0, "expected randomized ECDSA signatures to differ");
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -308,6 +312,8 @@ static void test_negative(void)
     CHECK(ecdsa_verify(key, EVP_sha512(), 0, msg, msglen, sig, siglen) != 1,
           "SHA-256 ECDSA signature verified as SHA-512");
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -386,6 +392,8 @@ static void test_rfc6979_deterministic(void)
                "is unavailable\n");
         EVP_MD_CTX_free(mctx);
         EVP_PKEY_free(key);
+
+        free_poison_allocations();
         return;
     }
     siglen = 80;
@@ -401,6 +409,8 @@ static void test_rfc6979_deterministic(void)
     repoison_all();
     EVP_MD_CTX_free(mctx);
     EVP_PKEY_free(key);
+
+    free_poison_allocations();
 }
 
 
@@ -412,8 +422,6 @@ int main(int argc, char **argv)
     test_streaming();
     test_negative();
     test_rfc6979_deterministic();
-
-    free_poison_allocations();
 
     printf("test_ecdsa: all %u checks passed\n", g_checks);
     return 0;

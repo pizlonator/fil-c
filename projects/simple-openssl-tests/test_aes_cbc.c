@@ -261,6 +261,8 @@ static void test_fetched_kats(void)
                      pt_back, ptlen, pt, KAT_PTLEN);
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -293,6 +295,8 @@ static void test_alternate_routes(void)
     ctlen = cbc_encrypt(byname, key, iv, pt, KAT_PTLEN, ct, KAT_PTLEN + 16, 0);
     expect_equal("EVP_get_cipherbyname() ciphertext does not match the KAT",
                  ct, ctlen, ct_want, ct_wantlen);
+
+    free_poison_allocations();
 }
 
 /* (5) Streaming: updates of {1,15,16,17,31} bytes (last one truncated) must
@@ -324,6 +328,8 @@ static void test_streaming(void)
     expect_equal("streaming decryption did not recover the plaintext",
                  pt_back, ptlen, pt, KAT_PTLEN);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (6) Padding: a 33-byte plaintext becomes a 48-byte ciphertext with
@@ -368,6 +374,8 @@ static void test_padding(void)
           "padding-disabled encryption of 33 bytes did not fail at Final");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (7) Output-buffer contract: a single 16-byte update into a buffer of
@@ -405,6 +413,8 @@ static void test_output_buffer_contract(void)
     CHECK(total == 32, "update+final did not fill the exact-size buffer");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -416,8 +426,6 @@ int main(int argc, char **argv)
     test_streaming();
     test_padding();
     test_output_buffer_contract();
-
-    free_poison_allocations();
 
     printf("test_aes_cbc: all %u checks passed\n", g_checks);
     return 0;

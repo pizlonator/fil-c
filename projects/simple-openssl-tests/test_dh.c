@@ -309,6 +309,8 @@ static void test_dh_kat(void)
     repoison_all();
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
+
+    free_poison_allocations();
 }
 
 
@@ -333,6 +335,8 @@ static void test_dhx_kat(void)
     repoison_all();
     EVP_PKEY_free(A);
     EVP_PKEY_free(B);
+
+    free_poison_allocations();
 }
 
 
@@ -383,6 +387,8 @@ static void test_bad_peers(void)
         EVP_PKEY_free(Z);
     }
     EVP_PKEY_free(A);
+
+    free_poison_allocations();
 }
 
 
@@ -393,8 +399,6 @@ int main(int argc, char **argv)
     test_dh_kat();
     test_dhx_kat();
     test_bad_peers();
-
-    free_poison_allocations();
 
     printf("test_dh: all %u checks passed\n", g_checks);
     return 0;

@@ -231,6 +231,8 @@ static void test_fetched_kats(void)
                      pt_back, ptlen, pt, KAT_PTLEN);
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -262,6 +264,8 @@ static void test_streaming(void)
     expect_equal("streaming decryption did not recover the plaintext",
                  pt_back, ptlen, pt, KAT_PTLEN);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) num-state continuity: CFB128's shift register position is observable
@@ -324,6 +328,8 @@ static void test_num_continuity(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) The same continuity holds on the decrypt route, and a 37-byte message
@@ -364,6 +370,8 @@ static void test_decrypt_num_and_roundtrip(void)
           "decrypt shift-register position after a 7-byte update is not 7");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -374,8 +382,6 @@ int main(int argc, char **argv)
     test_streaming();
     test_num_continuity();
     test_decrypt_num_and_roundtrip();
-
-    free_poison_allocations();
 
     printf("test_aes_cfb128: all %u checks passed\n", g_checks);
     return 0;

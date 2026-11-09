@@ -179,6 +179,8 @@ static void test_kats(void)
     gotlen = poly_oneshot(key, 32, NULL, 0, got, 16);
     expect_equal("empty-message tag does not match the KAT",
                  got, gotlen, want, wantlen);
+
+    free_poison_allocations();
 }
 
 /* (2) Chunked updates must reproduce the one-shot tag: {1,16,17} splits
@@ -214,6 +216,8 @@ static void test_chunked(void)
     many_len = poly_chunked(key, 32, msg131, 131, chunks_131 + 3, 1, many, 16);
     expect_equal("3-byte-chunk digest differs from one-shot",
                  many, many_len, one, one_len);
+
+    free_poison_allocations();
 }
 
 /* (3) The tag size is 16 and only a 32-byte key is accepted: 15, 31 and
@@ -260,6 +264,8 @@ static void test_key_lengths(void)
     EVP_MAC_CTX_free(ctx);
 
     EVP_MAC_free(mac);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -269,8 +275,6 @@ int main(int argc, char **argv)
     test_kats();
     test_chunked();
     test_key_lengths();
-
-    free_poison_allocations();
 
     printf("test_mac_poly1305: all %u checks passed\n", g_checks);
     return 0;

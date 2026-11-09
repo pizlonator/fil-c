@@ -448,6 +448,8 @@ static void test_kats(void)
     expect_equal("CS3 decryption of the KAT did not give the plaintext",
                  back, backlen, pt, ptlen);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) Length sweep {17,31,32,33,48} for all six ciphers: CS1/CS3 round-trip
@@ -547,6 +549,8 @@ static void test_length_sweep(void)
         }
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (3) A single 16-byte message: CS1 == CS2 == CS3 == plain CBC, for all six
@@ -583,6 +587,8 @@ static void test_single_block(void)
         repoison_all();
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 /* (4) Update rules: fewer than 16 bytes fails; a second update fails
@@ -641,6 +647,8 @@ static void test_update_rules(void)
         EVP_CIPHER_CTX_free(ctx);
         EVP_CIPHER_free(cipher);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -651,8 +659,6 @@ int main(int argc, char **argv)
     test_length_sweep();
     test_single_block();
     test_update_rules();
-
-    free_poison_allocations();
 
     printf("test_aes_cbc_cts: all %u checks passed\n", g_checks);
     return 0;

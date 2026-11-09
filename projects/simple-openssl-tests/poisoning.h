@@ -55,8 +55,12 @@
  * - repoison_all() restores the poison on exactly those tracked allocations
  *   that poison_alloc() poisoned when they were made.
  * - free_poison_allocations() unpoisons every tracked allocation, frees them
- *   all, and empties the table.  Every test calls it in main() once it is
- *   done with a test that had allocated poison allocations.
+ *   all, and empties the table.  It is safe to call any number of times:
+ *   after it returns, poison_alloc() can hand out fresh allocations (the
+ *   table keeps its capacity).  Tests call it at the end of every test
+ *   function (or loop body) that allocated poison allocations, so the
+ *   allocations die as early as possible; buffers allocated directly in
+ *   main are freed once, at the end of main.
  */
 
 #include <stddef.h>
@@ -98,9 +102,12 @@ void poison_print_usage(FILE *out);
 void unpoison_all(void);
 void repoison_all(void);
 
-/* Unpoisons every tracked allocation, frees them all, and forgets them.
- * Tests call this in main() after they are done with a test that had
- * allocated poison allocations. */
+/* Unpoisons every tracked allocation, frees them all, and empties the
+ * table.  Safe to call any number of times: after it returns, poison_alloc()
+ * can hand out fresh allocations (the table keeps its capacity).  Tests call
+ * this at the end of every test function (or loop body) that allocated
+ * poison allocations; buffers allocated directly in main are freed once, at
+ * the end of main. */
 void free_poison_allocations(void);
 
 #endif /* POISONING_H */

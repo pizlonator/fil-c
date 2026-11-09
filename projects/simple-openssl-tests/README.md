@@ -312,8 +312,15 @@ those tracked allocations that were poisoned when they were made; it
 deliberately does not poison allocations that were never poisoned, since
 re-poisoning clean data would newly taint it.  Finally,
 `free_poison_allocations()` unpoisons every tracked allocation, frees
-them all, and forgets them; every test calls it in `main()` after the
-tests that allocated poison allocations.  Note that `unpoison_all()`
+them all, and empties the table.  It is safe to call any number of
+times: after it returns, `poison_alloc()` can hand out fresh allocations
+(the table keeps its capacity).  Tests call it as early as possible — at
+the end of every test function (or, for per-iteration allocation loops,
+at the bottom of the loop body) that allocated poison allocations, and
+on the early-return/SKIP paths that would otherwise leave allocations
+tracked; buffers allocated directly in `main()` and shared across test
+functions are freed once, at the end of `main()`.  Note that
+`unpoison_all()`
 only covers the heap allocations `poison_alloc()` has recorded: taint
 that lands in memory it does not track — stack buffers, or buffers
 allocated inside libcrypto itself — is invisible to it and still faults
@@ -672,9 +679,14 @@ picked up by the Makefile automatically.  House rules:
 4. Bracket every `memcpy`/`memcmp` comparison block with
    `unpoison_all()` before it and `repoison_all()` after it (see
    [Comparisons and freeing](#comparisons-and-freeing)) — `memcmp` branches
-   on the compared bytes and must run on unpoisoned data.  `main()` also
-   calls `free_poison_allocations()` after the tests that allocated poison
-   allocations, just before the success `printf`.
+   on the compared bytes and must run on unpoisoned data.  Call
+   `free_poison_allocations()` at the end of every test function (or, for
+   per-iteration allocation loops, at the bottom of the loop body) that
+   allocated poison allocations, and before any early `return`/`exit`
+   path that would otherwise leave allocations tracked — it is safe to
+   call any number of times.  Buffers allocated directly in `main()` and
+   shared across test functions are freed once, at the end of `main()`,
+   just before the success `printf`.
 5. Each program is fully self-contained: only `poisoning.h` and
    `poisoning.c` are shared; no new shared headers, no other helper `.c`
    files, no file I/O, no VLAs, no `alloca`,

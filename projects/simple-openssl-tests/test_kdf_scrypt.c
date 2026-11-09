@@ -180,6 +180,8 @@ static void test_kats(void)
                  kat->N, kat->r, kat->p);
         expect_equal(msg, dk, DK_CAP, want, wantlen);
     }
+
+    free_poison_allocations();
 }
 
 /* (2) Parameter validation: N must be > 1 and a power of two (and >= 2),
@@ -202,6 +204,8 @@ static void test_invalid_params(void)
     CHECK(!scrypt_derive(pass, passlen, salt, saltlen, 1024, 0, 16, 0,
                          dk, DK_CAP),
           "scrypt accepted r=0");
+
+    free_poison_allocations();
 }
 
 /* (3) maxmem_bytes is respected: with a 1 MB limit the N=16384 vector (which
@@ -224,6 +228,8 @@ static void test_maxmem(void)
           "scrypt rejected a 32 MB maxmem_bytes limit");
     expect_equal("derive with a 32 MB maxmem_bytes does not match the KAT",
                  dk, DK_CAP, want, wantlen);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -233,8 +239,6 @@ int main(int argc, char **argv)
     test_kats();
     test_invalid_params();
     test_maxmem();
-
-    free_poison_allocations();
 
     printf("test_kdf_scrypt: all %u checks passed\n", g_checks);
     return 0;

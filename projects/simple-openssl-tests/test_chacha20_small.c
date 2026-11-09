@@ -234,6 +234,8 @@ static void test_kats(void)
     expect_equal("decrypting the KAT ciphertext did not give the message",
                  back, ctlen, msg, 110);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) One-shot vs chunked equality for sizes around the 64-byte keystream
@@ -277,6 +279,8 @@ static void test_sizes(void)
         expect_equal(msg, chunked, clen, in, n);
     }
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) The explicit multi-update grid {3, 61, 64, 1} over the 110-byte KAT
@@ -304,6 +308,8 @@ static void test_multi_update(void)
     expect_equal("the {3,61,64,1} multi-update ciphertext does not match the "
                  "KAT", ct, ctlen, ct_want, ct_wantlen);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) Encrypt/decrypt roundtrips (stream cipher: decrypt is encrypt). */
@@ -328,6 +334,8 @@ static void test_roundtrip(void)
     backlen = chacha20_crypt(cipher, key, iv, ct, ctlen, back, 100, 0);
     expect_equal("ChaCha20 decrypt roundtrip failed", back, backlen, in, 100);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -338,8 +346,6 @@ int main(int argc, char **argv)
     test_sizes();
     test_multi_update();
     test_roundtrip();
-
-    free_poison_allocations();
 
     printf("test_chacha20_small: all %u checks passed\n", g_checks);
     return 0;

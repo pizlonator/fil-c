@@ -189,6 +189,8 @@ static void test_kats(void)
             repoison_all();
         }
         EVP_MD_free(md);
+
+        free_poison_allocations();
     }
 }
 
@@ -222,6 +224,8 @@ static void test_byname_routes(void)
     CHECK(memcmp(got, want, wantlen) == 0,
           "EVP_get_digestbyname(\"sm3\") digest does not match the KAT");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 /* (3) Chunked-vs-one-shot equality around the 64-byte block boundary and
@@ -271,6 +275,8 @@ static void test_chunked_equality(void)
         }
         EVP_MD_free(md);
     }
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -280,8 +286,6 @@ int main(int argc, char **argv)
     test_kats();
     test_byname_routes();
     test_chunked_equality();
-
-    free_poison_allocations();
 
     printf("test_digest_ripemd_sm3: all %u checks passed\n", g_checks);
     return 0;

@@ -235,6 +235,8 @@ static void test_fetched_kats(void)
                      pt_back, ptlen, pt, KAT_PTLEN);
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -301,6 +303,8 @@ static void test_byte_at_a_time(void)
         g_checks++;
 
         EVP_CIPHER_free(cipher);
+
+        free_poison_allocations();
     }
 }
 
@@ -332,6 +336,8 @@ static void test_streaming(void)
     expect_equal("streaming decryption did not recover the plaintext",
                  pt_back, ptlen, pt, KAT_PTLEN);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) A zero-byte update is a no-op that must not disturb the shifted-IV
@@ -390,6 +396,8 @@ static void test_zero_update_and_roundtrip(void)
     expect_equal("37-byte (partial final block) roundtrip failed",
                  back37, ptlen, pt37, 37);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -400,8 +408,6 @@ int main(int argc, char **argv)
     test_byte_at_a_time();
     test_streaming();
     test_zero_update_and_roundtrip();
-
-    free_poison_allocations();
 
     printf("test_aes_cfb8: all %u checks passed\n", g_checks);
     return 0;

@@ -346,6 +346,8 @@ static void test_size_boundaries(EVP_PKEY *key)
           "OAEP-SHA256 encryption of 190 bytes failed");
     CHECK(oaep_encrypt(key, "SHA256", NULL, NULL, 0, msg, 191, ct, &ctlen) == 0,
           "OAEP-SHA256 encryption accepted 191 bytes (max is emlen-2*hLen-2)");
+
+    free_poison_allocations();
 }
 
 
@@ -385,6 +387,8 @@ static void test_mgf1_variation(EVP_PKEY *key)
     /* Decrypting the MGF1-SHA256 ciphertext as MGF1-SHA1 must fail. */
     CHECK(oaep_decrypt(key, "SHA1", NULL, NULL, 0, ct_a, a, back, &backlen) == 0,
           "OAEP decrypt with the wrong MGF1 digest succeeded");
+
+    free_poison_allocations();
 }
 
 
@@ -446,6 +450,8 @@ static void test_labels_and_kat(EVP_PKEY *key)
     CHECK(katbacklen == 16 && memcmp(katback, katmsg, 16) == 0,
           "OAEP KAT plaintext mismatch");
     repoison_all();
+
+    free_poison_allocations();
 }
 
 
@@ -474,6 +480,8 @@ static void test_tamper(EVP_PKEY *key)
     ct[0] ^= 0x01;
     CHECK(oaep_decrypt(key, "SHA1", NULL, NULL, 0, ct, ctlen, back, &backlen) == 0,
           "tampered first ciphertext byte decrypted without error");
+
+    free_poison_allocations();
 }
 
 
@@ -489,8 +497,6 @@ int main(int argc, char **argv)
     test_labels_and_kat(key);
     test_tamper(key);
     EVP_PKEY_free(key);
-
-    free_poison_allocations();
 
     printf("test_rsa_oaep: all %u checks passed\n", g_checks);
     return 0;

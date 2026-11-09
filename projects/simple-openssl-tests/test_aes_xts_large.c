@@ -160,6 +160,8 @@ static void test_max_data_unit_roundtrip(void)
           "the 16 MiB ciphertext begins with the plaintext");
     repoison_all();
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (2) One byte beyond the maximum data unit must fail with
@@ -196,6 +198,8 @@ static void test_data_unit_too_large(void)
           "a 16 MiB + 1 byte data unit was accepted for decryption");
     EVP_CIPHER_CTX_free(ctx);
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (3) A 1 MiB data unit round-trips in one shot and in place. */
@@ -241,6 +245,8 @@ static void test_one_mebibyte_unit(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 /* (4) A 4 MiB stream through four 1 MiB updates round-trips, and each
@@ -312,6 +318,8 @@ static void test_four_mebibyte_stream(void)
     repoison_all();
     g_checks++;
     EVP_CIPHER_free(cipher);
+
+    free_poison_allocations();
 }
 
 int main(int argc, char **argv)
@@ -322,8 +330,6 @@ int main(int argc, char **argv)
     test_data_unit_too_large();
     test_one_mebibyte_unit();
     test_four_mebibyte_stream();
-
-    free_poison_allocations();
 
     printf("test_aes_xts_large: all %u checks passed\n", g_checks);
     return 0;
