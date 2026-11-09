@@ -14,8 +14,6 @@
 
 #include "llvm/Passes/RegisterFilPasses.h"
 
-#include <cstdlib>
-
 #include "llvm/Analysis/GlobalsModRef.h"
 #include "llvm/Analysis/ProfileSummaryInfo.h"
 #include "llvm/Passes/PassBuilder.h"
@@ -95,51 +93,63 @@ static cl::opt<bool> FilCDSE(
 // to a fresh ModulePassManager instead of building a default pipeline) call
 // this so that they pizlonate exactly like the PassBuilder-driven paths do.
 //
-// IsRust (i.e. the Fil-C rustc) disables the pre-pizlonation simplification
-// and inlining pipeline by default because it still miscompiles rustc-shaped
-// IR in the mem::swap class: std's swap_nonoverlapping_chunks
-// (library/core/src/ptr/mod.rs) moves the bytes of pointer-containing
-// elements through MaybeUninit<[u8; N]> block buffers (N =
-// size_of::<*const ()>()), which are NUMERIC-typed allocas, and upstream
-// SROA promotes those allocas, widening their typed byte copies into integer
-// (i64) load/store pairs.  Under GIMSO semantics that is NOT
-// semantics-preserving: the Fil-Pizlonator moves payload+shadow for
-// aggregate/byte copies (a pointer at rest carries its capability in the
-// shadow of the copied bytes), while integer loads/stores touch only the
-// payload, so the capabilities of the pointers inside the swapped element
-// are dropped at the swap.  The reviewer-shaped repro is a Vec of 40-byte
-// Node structs ({String, *mut u8, u32}) shuffled with std::mem::swap: at -O
-// the subsequent Vec::clone -> String::clone memmove then reads a source
-// pointer whose capability the swap destroyed ("filc safety error: cannot
-// read source pointer with ptr < lower", exit 133; -C opt-level=0 and
-// -C llvm-args=-filc-optimize=0 both run correctly).  Even a bare
-// mem::swap::<String> miscompiles the same way, so this is the mem::swap
-// class, not one element shape.
+// Every frontend gets the same pipeline-start block.  clang registers it with
+// no arguments (clang/lib/CodeGen/BackendUtil.cpp) and the Fil-C rustc
+// registers it through the same entry points (see PassWrapper.cpp in the
+// projeny patch), so rust-compiled modules -- including std itself -- get
+// KillUB -> pre-pizlonation simplification/inlining -> coro lowering ->
+// FilPizlonator exactly like clang-compiled ones, with the regular
+// optimization pipeline still running after the FilPizlonator on the
+// pizlonated IR -- so codegen is fully optimized in both cases.  The block
+// used to be gated off for rustc (an IsRust parameter, now gone, plus a
+// FILCRUST_FILCINLINE environment override) because the pre-pizlonation
+// pipeline miscompiled rustc-shaped IR in two classes:
 //
-// The rustc-side typed-allocas fix (see the comment inside the function
-// below, and filc_ptr_struct_type in rustc_codegen_llvm/src/type_of.rs)
-// cannot cover this class: filc_may_contain_pointers correctly declines
-// NUMERIC types -- MaybeUninit<[u8; N]> is one -- so those block-buffer
-// allocas stay untyped byte arrays and SROA still integer-widens their
-// partitions.  The SROA-side guard that closes the class (in the rewriter:
-// never widen a memintrinsic use into a non-pointer-typed access) was
-// rejected for performance: it pointer-types the memcpy-only partitions of
-// NUMERIC aggregates too, and pointer-typed partitions make the pizlonator
-// emit pointer checks for data that is just bytes -- that cost ~1.4x on
-// simdutf.  That fix lives on the fil/fixed_sroa branch and is NOT in this
-// tree (llvm/lib/Transforms/Scalar/SROA.cpp is byte-identical to upstream).
-// The rustc-side fix DID close the earlier spawn+join shape (see below),
-// which is why rustc above O0 runs KillUB -> coro lowering -> FilPizlonator,
-// with the regular optimization pipeline still running after the
-// FilPizlonator on the pizlonated IR -- exactly as it does for every Fil-C
-// clang compilation -- so codegen is still fully optimized without the
-// pre-pizlonation pipeline.  FILCRUST_FILCINLINE in the environment
-// re-enables the pre-pizlonation block under rustc (any set value), for
-// debugging the pizlonator interaction.
+//  - The spawn+join shape (std::thread::spawn + join at -O handing
+//    pthread_join a thread handle whose flight-pointer capability had been
+//    dropped): fixed by the rustc-side typed allocas -- aggregates that may
+//    contain pointers get typed allocas with all-pointer struct types
+//    (filc_may_contain_pointers / filc_ptr_struct_type in the projeny patch,
+//    mirroring clang's union representation hack from
+//    CGRecordLayoutBuilder.cpp commit 4a54ae4076b4), so SROA's type-driven
+//    partitioning gives the memcpy-only partitions of those allocas pointer
+//    types and the copied capabilities survive.
+//
+//  - The mem::swap class (std::mem::swap of pointer-containing elements at
+//    -O): std's swap_nonoverlapping_chunks moved the bytes of swapped
+//    elements through MaybeUninit<[u8; N]> block buffers (N =
+//    size_of::<*const ()>()), which are NUMERIC-typed allocas that
+//    filc_may_contain_pointers correctly declines, so upstream SROA promoted
+//    their partitions and widened the typed byte copies into integer (i64)
+//    load/store pairs.  Under GIMSO semantics that is NOT
+//    semantics-preserving: the Fil-Pizlonator moves payload+shadow for
+//    aggregate/byte copies (a pointer at rest carries its capability in the
+//    shadow of the copied bytes), while integer loads/stores touch only the
+//    payload, so the capabilities of the pointers inside the swapped element
+//    were dropped at the swap.  The reviewer-shaped repro was a Vec of
+//    40-byte Node structs ({String, *mut u8, u32}) shuffled with
+//    std::mem::swap: at -O the subsequent Vec::clone -> String::clone memmove
+//    then read a source pointer whose capability the swap destroyed ("filc
+//    safety error: cannot read source pointer with ptr < lower" / "ptr >=
+//    upper", exit 133).  This is fixed in std itself now
+//    (library/core/src/ptr/mod.rs in the projeny patch):
+//    swap_nonoverlapping_bytes swaps pointer-aligned regions in pointer-typed
+//    MaybeUninit<*const ()> chunks, so the swap's copies stay
+//    capability-preserving however far the pipeline reshapes them -- the same
+//    house pattern the Fil-C user libc uses for scratch memory that receives
+//    whole elements (qsort's) and for may-hold-pointer slots generally.
+//
+// The SROA-side guard that would have closed the mem::swap class without the
+// std change (in the rewriter: never widen a memintrinsic use into a
+// non-pointer-typed access) was rejected for performance: it pointer-types the
+// memcpy-only partitions of NUMERIC aggregates too, and pointer-typed
+// partitions make the pizlonator emit pointer checks for data that is just
+// bytes -- that cost ~1.4x on simdutf.  That fix lives on the fil/fixed_sroa
+// branch and is NOT in this tree (llvm/lib/Transforms/Scalar/SROA.cpp is
+// byte-identical to upstream).
 
 void llvm::FilCAddPipelineStartPasses(ModulePassManager &MPM,
                                       OptimizationLevel Level,
-                                      bool IsRust,
                                       FilJITConfiguration *jitConfig) {
   if (FilCKillUB)
     MPM.addPass(KillUBPass());
@@ -147,17 +157,13 @@ void llvm::FilCAddPipelineStartPasses(ModulePassManager &MPM,
   // (an early SimplifyCFG/SROA/EarlyCSE, then -- under FilCInline -- a full
   // inliner invocation whose per-CGSCC pipeline is SROA/EarlyCSE/
   // JumpThreading/CVP/SimplifyCFG/InstCombine/GVN/SCCP/ADCE/InstCombine), to
-  // create inlining opportunities before pizlonation.  IsRust (i.e. the
-  // Fil-C rustc) disables it by default because it still miscompiles
-  // rustc-shaped IR in the mem::swap class -- see the FilCAddPipelineStartPasses
-  // comment above: std moves swapped element bytes through NUMERIC-typed
-  // MaybeUninit<[u8; N]> block buffers, whose partitions upstream SROA
-  // integer-widens, dropping GIMSO capabilities; the rustc-side typed-allocas
-  // fix (below) correctly declines numeric types and so cannot cover that
-  // class.  FILCRUST_FILCINLINE in the environment turns it back on (useful
-  // for debugging the pizlonator interaction).
-  if (Level != OptimizationLevel::O0 && FilCOptimize &&
-      (!IsRust || getenv("FILCRUST_FILCINLINE"))) {
+  // create inlining opportunities before pizlonation.  This runs for every
+  // frontend: the rustc-shaped miscompiles that used to justify keeping it
+  // off for rustc (the IsRust gate) are fixed at their sources -- see the
+  // FilCAddPipelineStartPasses comment above (the rustc-side typed allocas
+  // for the spawn+join shape; std's pointer-typed swap chunk buffers for the
+  // mem::swap class).
+  if (Level != OptimizationLevel::O0 && FilCOptimize) {
     FunctionPassManager EarlyFPM;
     EarlyFPM.addPass(LowerExpectIntrinsicPass());
     EarlyFPM.addPass(SimplifyCFGPass());
@@ -239,11 +245,10 @@ void llvm::FilCAddPipelineStartPasses(ModulePassManager &MPM,
   MPM.addPass(FilPizlonatorPass(jitConfig));
 }
 
-void llvm::RegisterFilPasses(PassBuilder& PB, FilJITConfiguration* jitConfig,
-                             bool IsRust) {
+void llvm::RegisterFilPasses(PassBuilder& PB, FilJITConfiguration* jitConfig) {
   PB.registerPipelineStartEPCallback(
-    [jitConfig, IsRust](ModulePassManager &MPM, OptimizationLevel Level) {
-      FilCAddPipelineStartPasses(MPM, Level, IsRust, jitConfig);
+    [jitConfig](ModulePassManager &MPM, OptimizationLevel Level) {
+      FilCAddPipelineStartPasses(MPM, Level, jitConfig);
     });
 
   PB.registerOptimizerLastEPCallback([](ModulePassManager &MPM,

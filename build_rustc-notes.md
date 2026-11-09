@@ -45,7 +45,7 @@ sources: edit `projects/rust/...` and run `filc/projeny commit
 projects/rust.projeny` (then `git add projects/rust.projeny`).  The build
 script applies no source tweaks of its own; it only *verifies* that every
 expected Fil-C change is present in the extracted tree (the `check_grep` calls
-in `build_rustc_impl.sh` -- 47 of them) and fails fast with a clear
+in `build_rustc_impl.sh` -- 49 of them) and fails fast with a clear
 "projeny patch missing filc change X" error otherwise.
 
 The patch consists of the following changes:
@@ -53,23 +53,25 @@ The patch consists of the following changes:
 1. `compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp` — DataLayout-after-FilC
    setup at the top of LLVMRustOptimize (`setDataLayoutAfterFilC`), plus the
    registration of LLVM's Fil-C pass pipeline via
-   `RegisterFilPasses(PB, nullptr, true)` (LLVM's
+   `RegisterFilPasses(PB, nullptr)` (LLVM's
    `llvm/lib/Passes/RegisterFilPasses.cpp` — the same entry point
-   `clang/lib/CodeGen/BackendUtil.cpp` calls with `IsRust=false`), and
-   `llvm::FilCAddPipelineStartPasses(MPM, OptLevel, /*IsRust=*/true)` +
+   `clang/lib/CodeGen/BackendUtil.cpp` calls with no extra arguments, as does
+   filc's LLVM JIT shim), and
+   `llvm::FilCAddPipelineStartPasses(MPM, OptLevel)` +
    `DeleteRedundantPollchecksPass()` applied directly to the fresh pipeline in
    the NoPrepopulatePasses path (no PassBuilder-built pipeline runs there, so
    the extension-point callbacks would never fire — allocator-shim modules
    must still pizlonate).  rustc's own callbacks (CFI, verify, lint, instr
    profiling, sanitizers) stay in rustc's callback vectors and apply around
    the Fil-C passes in the same order as on a PassBuilder-built pipeline.
-   The pipeline itself (KillUB -> [pre-pizlonation simplification and
-   inlining, which the IsRust gate disables for rustc] -> coro
-   lowering -> FilPizlonator, plus OptimizerLast DeleteRedundantPollchecks)
-   lives in LLVM now; clang runs it in full, while the Fil-C rustc runs it
-   with the pre-pizlonation simplification+inlining half gated off (see
-   known-issues #1 for the two rustc-shaped miscompiles -- the fixed
-   spawn+join shape and the still-open, gate-warranting mem::swap class).
+   The pipeline itself (KillUB -> pre-pizlonation simplification and
+   inlining -> coro lowering -> FilPizlonator, plus OptimizerLast
+   DeleteRedundantPollchecks) lives in LLVM now, and every frontend runs it
+   in full: the IsRust parameter that used to gate the pre-pizlonation
+   simplification+inlining half off for rustc is gone (see known-issues #1
+   for the two rustc-shaped miscompiles it existed for -- the spawn+join
+   shape, fixed by the rustc-side typed allocas, and the mem::swap class,
+   fixed in std itself -- and for the abandoned SROA-side alternative).
    Every pipeline path pizlonates.
 2. `compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs` —
    data_layout with `-ni:0` (before-Fil-C), StackProbeType::None,
@@ -260,6 +262,39 @@ The patch consists of the following changes:
     `make_space_for_arg` call-argument scratch allocas (block.rs).  See
     known-issues #1 for why this exists, why it is done at
     the alloca only, and why it cannot slow down numeric code.
+22. `library/core/src/ptr/mod.rs` — **pointer-typed swap chunk buffers**
+    (the std-side fix for the mem::swap class of known-issues #1(b); the
+    user-libc house pattern "memory that may hold pointers must be
+    pointer-typed" applied to std's own byte shuffling).
+    `swap_nonoverlapping_bytes` now takes `align_of::<T>()` and dispatches
+    the chunk type of `swap_nonoverlapping_chunks`/`swap_chunk`: when the
+    swapped regions are pointer-aligned (`align_of::<T>() >= CHUNK_SIZE`
+    where `CHUNK_SIZE = size_of::<*const ()>()`), pointer-sized chunks are
+    swapped as `MaybeUninit<*const ()>` so the copies are pointer-typed
+    (capability-preserving under GIMSO); otherwise the upstream
+    `MaybeUninit<[u8; CHUNK_SIZE]>` byte-chunk path is kept.  Since
+    `size_of::<T>()` is always a multiple of `align_of::<T>()`,
+    pointer-aligned swaps never have a sub-pointer-sized tail, so the
+    byte-typed `swap_nonoverlapping_short` tail path is only reachable for
+    sub-pointer-aligned types (where losing a pointer's capability is the
+    documented pre-existing Fil-C gap for byte-granularity access).  A sweep
+    of `library/core`/`library/alloc`/`library/std` for other numeric-typed
+    block buffers that move potentially-pointer bytes found none besides this
+    one: `slice::rotate`'s `type BufType = [usize; 32]` scratch
+    (slice/rotate.rs) is memcpy-only -- every move into and out of it is a
+    T-typed `ptr::copy`/`ptr::copy_nonoverlapping`, and an alloca with only
+    memintrinsic uses is never promoted or widened by SROA, so capabilities
+    travel with the memcpys (its gcd-rotate temporary is a T-typed
+    `MaybeUninit`-free `T`, and its swap path goes through the now-fixed
+    `ptr::swap_nonoverlapping`) -- while the other array-typed `MaybeUninit`
+    buffers (`iter::adapters::map_windows`' `MaybeUninit<[T; N]>` and
+    `slice::sort`'s `MaybeUninit<[&mut I::Output; N]>`) store real T-typed
+    values, so their allocas are typed (all-pointer, via change #21) whenever
+    T may contain pointers.  Verified at `-O`: a 40-`String` `Vec`
+    `rotate_left(20)` (which dispatches to rotate's Algorithm 3, i.e. the
+    fixed `ptr::swap_nonoverlapping` at 24-byte element size) prints the
+    rotated sequence and clones cleanly, exit 0.  See
+    known-issues #1(b) for the mechanism and the before/after evidence.
 
 The projeny patch reproduces the build tree byte-identically: after
 `filc/projeny commit`, `filc/projeny extract projects/rust.projeny /tmp/pc`
@@ -494,11 +529,10 @@ that history): the driver had been linked at 08:47,
 contained upstream SROA while `build/bin/clang-20` next to it ran the fresh
 one, so rustc and clang disagreed about LLVM behavior -- a hazard that is
 general to ANY change in the archives the driver embeds (today that includes
-the IsRust gate in RegisterFilPasses.cpp, i.e. "the Fil-C rustc does NOT run
-the pre-pizlonation simplification+inlining block": an incremental
-`./build_rustc_incremental.sh` after a `./build_clang.sh` that rebuilt those
-archives would otherwise keep shipping a rustc whose pipeline differs from
-what its sources say).
+the RegisterFilPasses pipeline itself, i.e. "every frontend runs the full
+Fil-C pipeline-start block": an incremental `./build_rustc_incremental.sh`
+after a `./build_clang.sh` that rebuilt those archives would otherwise keep
+shipping a rustc whose pipeline differs from what its sources say).
 
 Two defenses now, both around build_rustc_impl.sh:
 
@@ -529,18 +563,18 @@ Two defenses now, both around build_rustc_impl.sh:
   `strings -a stage1/lib/librustc_driver-*.so | grep -c 'Fil-C:'` == 0 a
   usable (weak, negative) skew check.  The load-bearing checks are
   source-level: the `check_grep` assertions in build_rustc_impl.sh verify
-  the rustc-side fix in the extracted tree, and
+  the rustc-side fix and the std swap fix in the extracted tree, and
   `strings -a stage1/lib/librustc_driver-*.so | grep -c
-  FILCRUST_FILCINLINE` is nonzero again now that the IsRust gate is
-  RESTORED in RegisterFilPasses.cpp (the driver embeds the
-  `getenv("FILCRUST_FILCINLINE")` string; a count of 0 would mean a driver
-  linked against a stale LLVM that predates the gate's return).  The
-  behavioral guards for the LLVM the driver actually embedded are the
+  FILCRUST_FILCINLINE` must be 0 now that the IsRust gate is REMOVED from
+  RegisterFilPasses.cpp (a nonzero count would mean a driver linked against
+  a stale LLVM that still contained the gate's `getenv("FILCRUST_FILCINLINE")`
+  probe; the string is gone from llvm/lib/Passes/RegisterFilPasses.cpp).
+  The behavioral guards for the LLVM the driver actually embedded are the
   `threads-opt` test (the spawn+join shape, which the rustc-side typed
-  allocas keep working WITHOUT the pre-pizlonation block) and the
-  `swap_nodes` test (the mem::swap shape, which only passes because the
-  gate keeps the block off for rustc) -- both run through the shipped rustc
-  at -O.
+  allocas keep correct) and the `swap_nodes` test (the mem::swap shape,
+  which the std pointer-typed swap chunk buffers keep correct) -- both run
+  through the shipped rustc at -O, where the full pre-pizlonation block now
+  runs for rustc too.
 
 To force a relink by hand (e.g. when iterating on LLVM changes that touch
 neither headers nor archives the stamp sees): `touch
@@ -635,24 +669,24 @@ filcc" above.
   `pizlonated_*` symbols (including `pizlonated_rust_eh_personality`) and has
   zero phantom undefined imports.
 * Threads regression: 8 threads x 1000 increments via `Arc<Mutex<u64>>` prints
-  "sum = 8000", debug and `-O`, exit 0 — at `-O` the pre-pizlonation block
-  does NOT run for rustc (the IsRust gate; see known-issues #1), so nothing
-  integer-widens the pthread word's partition, and whenever the block does
-  run (FILCRUST_FILCINLINE=1) the spawn+join shape stays correct thanks to
-  the rustc-side typed allocas (verified by hand at `-O` and
+  "sum = 8000", debug and `-O`, exit 0 — the spawn+join shape stays correct
+  because of the rustc-side typed allocas (verified by hand at `-O` and
   `-C opt-level=3`, and by the `threads` and
-  `threads-opt` tests).
+  `threads-opt` tests), including at `-O`, where the full pre-pizlonation
+  block now runs for rustc (see known-issues #1).
 * `-C no-prepopulate-passes` still pizlonates: a hello-sum program compiled
   with it links, runs and prints the right answer, exit 0 — proving the
   `FilCAddPipelineStartPasses` direct-MPM path (the NoPrepopulatePasses
   branch of LLVMRustOptimize) applies the Fil-C passes including the
   FilPizlonator when no PassBuilder pipeline is built.
 * A normal build compiles and runs fine for pizlonator-friendly code (hello
-  at -O prints and exits 0) with the IsRust gate in place: above O0 the
-  Fil-C rustc runs only KillUB -> coro lowering -> FilPizlonator before the
-  regular optimization pipeline (see known-issues #1).  The
-  FILCRUST_FILCINLINE environment knob is back (it re-enables the gated
-  pre-pizlonation block under rustc for debugging).
+  at -O prints and exits 0): above O0 the Fil-C rustc runs the same
+  pipeline-start block as clang -- KillUB -> pre-pizlonation
+  simplification+inlining -> coro lowering -> FilPizlonator -- before the
+  regular optimization pipeline (see known-issues #1).  The FILCRUST_FILCINLINE
+  environment knob is gone together with the IsRust gate that used to keep
+  the pre-pizlonation block off for rustc; the block now runs unconditionally
+  for every frontend.
 * CPU feature detection (`is_x86_feature_detected!`) — debug and `-O`, exit 0,
   no filc safety error.  A sweep program queries ALL 74 `@FEATURE`-queryable
   names of `library/std_detect/src/detect/arch/x86.rs` (plus the 4
@@ -801,15 +835,15 @@ ld-fil1 does not search rustc's sysroot by default).
 
 ## Known issues / limitations
 
-1. **The pre-pizlonation simplification + inlining pipeline miscompiles
-   rustc-shaped IR.**  This is why the pipeline is disabled under rustc via
-   the IsRust gate in llvm/lib/Passes/RegisterFilPasses.cpp
+1. **The pre-pizlonation simplification + inlining pipeline miscompiled
+   rustc-shaped IR.**  This used to be why the pipeline was disabled under
+   rustc via an IsRust parameter in llvm/lib/Passes/RegisterFilPasses.cpp
    (`if (Level != OptimizationLevel::O0 && FilCOptimize &&
-   (!IsRust || getenv("FILCRUST_FILCINLINE")))`; above O0 the Fil-C rustc
-   runs only KillUB -> coro lowering -> FilPizlonator, and
-   FILCRUST_FILCINLINE in the environment re-enables the block for
-   debugging).  There are two distinct manifestations, one fixed and one
-   still open:
+   (!IsRust || getenv("FILCRUST_FILCINLINE")))`).  Both manifestations are
+   now fixed at their sources, the IsRust parameter is GONE, and the full
+   pipeline-start block (KillUB -> pre-pizlonation
+   simplification+inlining -> coro lowering -> FilPizlonator) runs for every
+   frontend at every level above O0:
 
    **(a) FIXED ON THE RUSTC SIDE: the spawn+join / pthread_t shape.**  The
    fix is change #21 in the list above: the Fil-C rustc gives pointer-maybe
@@ -822,51 +856,105 @@ ld-fil1 does not search rustc's sysroot by default).
    closed: `threads-opt` -- the exact formerly-miscompiling program
    (`std::thread::spawn` + `join`, 8 threads x 1000 `Arc<Mutex>`
    increments) at `-O` -- passes, and with
-   `-C llvm-args=--debug-only=sroa` while the pre-pizlonation block is
-   re-enabled with FILCRUST_FILCINLINE=1 (the gate keeps the block off for
-   rustc, and with it off there is no pre-pizlonation SROA run to trace --
-   the traces below are how the typed allocas feed SROA when the block
-   runs), the 24-byte
+   `-C llvm-args=--debug-only=sroa` (the pre-pizlonation block now runs for
+   rustc unconditionally; the traces below are how the typed allocas feed
+   SROA in that block), the 24-byte
    `io::Result<JoinHandle<()>>` allocas appear as
    `alloca <{ ptr, ptr, ptr }>, align 8` (packed all-pointer struct --
    `filc_ptr_struct_type` output) with the pthread-word partition split to
    `Rewriting alloca partition [16,24) to: alloca ptr` and the 24-byte
    memcpy widened to a capability-carrying `store ptr`.
 
-   **(b) STILL OPEN, GATED: the mem::swap class.**  Independently
+   **(b) FIXED IN STD: the mem::swap class.**  Independently
    reproduced by the reviewer (3/3) and re-verified on this tree: a Vec of
    40-byte `Node { name: String, next: *mut u8, id: u32 }` values built
    from a `#[inline(never)]` constructor, shuffled pairwise with
    `std::mem::swap` (`#[inline(never)]` wrapper), then cloned and read:
-   at `-O` the program dies in the Vec::clone -> String::clone memmove with
-   "filc safety error: cannot read source pointer with ptr < lower", exit
-   133, while `-C opt-level=0` and `-O -C llvm-args=-filc-optimize=0`
-   (which disables the whole pipeline-start block, i.e. the pre-gate
-   behavior) both print the correct output and exit 0.  Even a bare
-   `std::mem::swap::<String>` miscompiles at `-O` (the swapped String's
-   data pointer is later read with a destroyed capability), so this is the
+   at `-O` the program used to die in the Vec::clone -> String::clone memmove
+   with "filc safety error: cannot read source pointer with ptr < lower"
+   (exit 133, or exit 42 under `FILC_EXIT_ON_PANIC=1` -- the Fil-C panic
+   exit codes), while `-C opt-level=0` and `-O -C llvm-args=-filc-optimize=0`
+   both printed the correct output and exited 0.  Even a bare
+   `std::mem::swap::<String>` miscompiled at `-O` (the swapped String's
+   data pointer was later read with a destroyed capability), so this was the
    mem::swap class, not one element shape.  Mechanism: std's
    `swap_nonoverlapping` -> `swap_nonoverlapping_bytes`
-   (library/core/src/ptr/mod.rs) moves the element bytes through
+   (library/core/src/ptr/mod.rs) moved the element bytes through
    `swap_chunk` on `MaybeUninit<[u8; N]>` block buffers, where
    `N = CHUNK_SIZE = size_of::<*const ()>()` = 8 -- NUMERIC-typed allocas.
-   Upstream SROA promotes those allocas and widens their typed byte
+   Upstream SROA promoted those allocas and widened their typed byte
    load/stores into integer (i64) load/store pairs; under GIMSO semantics
    integer loads/stores move only the payload, so the capabilities of the
-   pointers inside the swapped element are dropped at the swap (the
+   pointers inside the swapped element were dropped at the swap (the
    pizlonator itself is correct: aggregate/byte copies move payload+shadow,
    integer moves touch only payload).  The rustc-side typed-allocas fix (a)
-   cannot cover this class because `filc_may_contain_pointers` correctly
+   could not cover this class because `filc_may_contain_pointers` correctly
    declines NUMERIC types -- `MaybeUninit<[u8; 8]>` is one -- so those
-   allocas stay untyped byte arrays.  Re-landing the SROA-side guard that
-   closes the class was rejected for performance (see "Why the SROA-side
-   fix was abandoned" below: ~1.4x on simdutf, because it pointer-types the
-   memcpy-only partitions of NUMERIC aggregates too, making the pizlonator
-   emit pointer checks for plain bytes); that guard lives on the
-   `fil/fixed_sroa` branch and is NOT in this tree.  The regression guard
-   for the gate is the new `swap_nodes` test (see the test table below),
-   which can only pass while the pre-pizlonation block stays disabled for
-   rustc.
+   allocas stayed untyped byte arrays.  The fix is in std itself now
+   (library/core/src/ptr/mod.rs, change #22 in the list above):
+   `swap_nonoverlapping_bytes` takes `align_of::<T>()` and, whenever the
+   swapped regions are pointer-aligned (`align >= CHUNK_SIZE`; the
+   function's precondition guarantees both pointers are aligned to
+   `align_of::<T>()`), swaps pointer-sized chunks as
+   `MaybeUninit<*const ()>` instead of `MaybeUninit<[u8; CHUNK_SIZE]>` --
+   the copies become pointer-typed, and the pizlonator moves each word's
+   capability alongside its payload for pointer-typed accesses, so the
+   swap stays capability-preserving however far SROA/instcombine reshape
+   it (pointer-typed accesses are never integer-widened).  This is the
+   Fil-C house pattern for scratch memory that receives whole elements --
+   the user libc retypes exactly such buffers as arrays of pointers (musl's
+   qsort `unsigned char tmp[256]` became a pointer-typed scratch, and the
+   int/pointer unions in pthread types were split so pointer slots never
+   alias int slots).  Because `size_of::<T>()` is always a multiple of
+   `align_of::<T>()`, pointer-aligned swaps never have a sub-8-byte tail,
+   so every byte of such a swap moves through a pointer-typed chunk; types
+   with a smaller alignment (e.g. `repr(packed)`) keep the upstream
+   byte-chunk path, where a pointer losing its capability remains the
+   documented pre-existing Fil-C gap for byte-granularity access (see
+   `#[repr(packed)]` below).  Re-landing the SROA-side guard that also
+   closes the class (without the std change) was still rejected for
+   performance (see "Why the SROA-side fix was abandoned" below: ~1.4x on
+   simdutf, because it pointer-types the memcpy-only partitions of NUMERIC
+   aggregates too, making the pizlonator emit pointer checks for plain
+   bytes); that guard lives on the `fil/fixed_sroa` branch and is NOT in
+   this tree.  The regression guard for the std fix is the `swap_nodes`
+   test (see the test table below), which passes now that the
+   pre-pizlonation block runs for rustc, and was verified in BOTH
+   directions: with the std fix temporarily reverted (byte-identical to
+   upstream) and the gate removed, `swap_nodes` at `-O` dies with "filc
+   safety error: cannot read source pointer with ptr < lower"; with the fix
+   restored it prints the right answer and exits 0.
+
+   Where the fix's shape comes from (the user-libc house patterns): the
+   Fil-C adaptation of musl (projects/usermusl -- the initial commit is
+   stock musl, every later commit is a Fil-C adaptation) rewrites every
+   place that moves potentially-pointer bytes through integer-typed or
+   byte-typed memory so that the bytes stay pointer-typed in the IR.  The
+   patterns, in descending relevance to this fix: **(P1)** may-hold-pointer
+   scratch that receives whole elements is retyped as pointer storage --
+   musl's qsort `unsigned char tmp[256]` byte scratch became a
+   `void *tmp = zgc_alloc(width)` with one whole-element memcpy
+   (src/stdlib/qsort.c), because a whole-element memcpy moves
+   payload+shadow while byte/word-chunked copies through integer-typed
+   memory do not; **(P2)** int/pointer unions are split so pointer slots
+   never alias int slots -- `pthread_mutex_t`/`pthread_cond_t`/`barrier`
+   got dedicated `__p[]` pointer arrays disjoint from the `__i[]` int
+   arrays (include/alltypes.h.in), and `jmp_buf` became `{ void* __p; }`;
+   **(P3)** every byte copy of possibly-pointer data goes through
+   `__builtin_memcpy`/`zmemmove_builtin`, which the pizlonator lowers to
+   shadow-propagating memmove (src/string/memcpy.c deleted its
+   `__may_alias__ u32` word-copy body; arch memcpy.S files deleted);
+   **(P4)** pointers that must travel as data live in pointer-typed fields
+   with runtime accessors (`void* zthread`, `zthread_self_cookie()`), never
+   laundered through `uintptr_t`.  The std swap fix uses P1/P2: the swap's
+   chunk scratch (`MaybeUninit<[u8; 8]>`, the std equivalent of qsort's
+   `tmp[256]`) becomes `MaybeUninit<*const ()>` whenever the swapped
+   regions are pointer-aligned, so the moved words are pointer-typed and
+   their capabilities travel with them.  The remaining user-libc patterns
+   (byte buffers the KERNEL fills, address-as-number bookkeeping like
+   `pthread_attr_getstack`'s `_a_stackaddr`, `zsys_*` marshalling below the
+   capability boundary) stay byte/integer-typed on purpose -- those bytes
+   genuinely never hold Fil-C pointers.
 
    What the spawn+join shape looked like: Fil-C clang runs an extra
    pre-pizlonation pipeline above O0 (early SimplifyCFG/SROA/EarlyCSE, then
@@ -1149,15 +1237,14 @@ ld-fil1 does not search rustc's sysroot by default).
    program (`std::thread::spawn` + `join`, 8 threads x 1000 `Arc<Mutex>`
    increments) at `-O`, plus the same program by hand at `-O` and
    `-C opt-level=3` ("sum = 8000", exit 0) -- and including `swap_nodes`,
-   the reviewer's mem::swap repro at `-O`, which passes only because the
-   IsRust gate keeps the pre-pizlonation block off for rustc (with the gate
-   removed it fails with "filc safety error: cannot read source pointer
-   with ptr < lower", exit 133; see (b) above).  With
-   `-C llvm-args=--debug-only=sroa` while the pre-pizlonation block is
-   re-enabled with FILCRUST_FILCINLINE=1 (the gate keeps the block off for
-   rustc, and with it off there is no pre-pizlonation SROA run to trace --
-   the traces below are how the typed allocas feed SROA when the block
-   runs), the 24-byte
+   the reviewer's mem::swap repro at `-O`, which now passes with the
+   pre-pizlonation block RUNNING for rustc (verified in both directions:
+   with the std fix of change #22 temporarily reverted -- byte-identical to
+   upstream -- and the gate removed, it fails with "filc safety error:
+   cannot read source pointer with ptr < lower"; see (b) above).  With
+   `-C llvm-args=--debug-only=sroa` (the pre-pizlonation block now runs for
+   rustc unconditionally -- the traces below are how the typed allocas feed
+   SROA in that block), the 24-byte
    `io::Result<JoinHandle<()>>` allocas appear as
    `alloca <{ ptr, ptr, ptr }>, align 8` (packed all-pointer struct --
    `filc_ptr_struct_type` output) and their partitions split to ptr-typed
@@ -1301,11 +1388,12 @@ ld-fil1 does not search rustc's sysroot by default).
      cannot read pointer with null object." -- the by-value ABI move of the
      8-byte union carries only the payload, so the callee's `u.p` is a
      pointer with a null capability.  Untyped by-value aggregate moves are
-     the same GIMSO gap as the mem::swap class (known-issues #1(b)), but at
-     the call boundary rather than inside SROA; fixing it needs either a
-     Fil-C calling-convention change (by-value aggregates carried with
-     capabilities) or rustc-side representation work, neither of which is
-     attempted on this branch.
+     the same GIMSO gap that the mem::swap class had (known-issues #1(b) --
+     now fixed in std for the in-memory swap path via change #22), but at
+     the call boundary rather than inside a memory copy; fixing it needs
+     either a Fil-C calling-convention change (by-value aggregates carried
+     with capabilities) or rustc-side representation work, neither of which
+     is attempted on this branch.
 
    * **A `#[repr(packed)]` struct containing a pointer is unusable through
      Fil-C's aligned-pointer model.**  Repro (verified on this tree, exit
@@ -1321,7 +1409,12 @@ ld-fil1 does not search rustc's sysroot by default).
      8` guard in `filc_ptr_struct_type` (type_of.rs) is MANDATORY: giving
      such an aggregate a typed all-pointer struct alloca would make SROA
      produce nonsense partitions, so `repr(packed)` pointer-bearing
-     aggregates fall back to the untyped byte-array alloca.  A real fix
+     aggregates fall back to the untyped byte-array alloca.  (The std swap
+     fix of change #22 makes the same alignment distinction:
+     `swap_nonoverlapping_bytes` uses pointer-typed chunks only when
+     `align_of::<T>() >= CHUNK_SIZE` and keeps the upstream byte-chunk path
+     otherwise, so packed types swap capability-blind exactly as before.)
+     A real fix
      would have to teach rustc to reject `#[repr(packed)]`-with-pointers on
      the Fil-C target (or give Fil-C sub-word capability moves); neither is
      attempted here.
@@ -1569,7 +1662,7 @@ trap-based panic, same as C.
 | vec_string | Vec/String/HashMap/iter/collect/format!/sort | success, three expected lines | exit 0 | exit 0 |
 | hello-opt | the `hello` program compiled with `optFlags: -O` | success, output-includes "hello filc rust" | exit 0 | exit 0 |
 | oob_read-opt | the `oob_read` unsafe OOB read compiled with `optFlags: -O` | failure; "filc safety error", "cannot read pointer with ptr >= upper.", "filc panic: thwarted..." | 133 (SIGTRAP, core) | 42 |
-| swap_nodes | 16 pointer-containing `Node {String, *mut u8, u32}` values built by an `#[inline(never)]` constructor, pairwise-shuffled with `#[inline(never)]` `std::mem::swap`, then cloned and read (the reviewer's mem::swap repro; `optFlags: -O` is the point -- the miscompile only fires above O0, see known-issues #1(b)) | success, output-includes "vals = [10, 20, 30, 40, 10, 20, 30, 40, 10, 20, 30, 40, 10, 20, 30, 40]" | exit 0 | exit 0 |
+| swap_nodes | 16 pointer-containing `Node {String, *mut u8, u32}` values built by an `#[inline(never)]` constructor, pairwise-shuffled with `#[inline(never)]` `std::mem::swap`, then cloned and read (the reviewer's mem::swap repro; `optFlags: -O` is the point -- the miscompile only fires above O0, see known-issues #1(b); guarded by the std fix of change #22, verified in both directions) | success, output-includes "vals = [10, 20, 30, 40, 10, 20, 30, 40, 10, 20, 30, 40, 10, 20, 30, 40]" | exit 0 | exit 0 |
 
 That is **18 tests**, all `.rs`-level.  Six .ll tests were REMOVED along with
 the abandoned SROA-side fix (`sroa_memcpy_noalign`, `sroa_memcpy_small`,
@@ -1585,24 +1678,23 @@ untyped-alloca IR would simply trip upstream SROA's integer widening again
 those IR-level tests are only meaningful against the fixed_sroa branch --
 where they live -- and would fail or be vacuous here.  The regression
 coverage for the rustc-side fix is `.rs`-level via `threads-opt` -- the
-exact formerly-miscompiling spawn+join shape, which passes with the gate
-keeping the pre-pizlonation block off at `-O`, and which the typed-alloca
-path keeps correct whenever the block does run (e.g. FILCRUST_FILCINLINE=1),
-and for the IsRust gate via `swap_nodes`, which cannot pass unless the
-pre-pizlonation
-block stays DISABLED for rustc at `-O` (it dies with "filc safety error:
-cannot read source pointer with ptr < lower" as soon as the gate is
-removed and the driver relinked -- verified in both directions for this
-review round).  The `.ll`
+exact formerly-miscompiling spawn+join shape, which the typed-alloca
+path keeps correct, now with the pre-pizlonation block running for rustc
+at `-O` -- and for the std fix (change #22) via `swap_nodes`, which
+passes only while std swaps pointer-aligned regions in pointer-typed
+`MaybeUninit<*const ()>` chunks (with the std fix temporarily reverted --
+byte-identical to upstream -- and the gate removed, it dies with "filc
+safety error: cannot read source pointer with ptr < lower"; verified in
+both directions for this review round).  The `.ll`
 runner support in `filrustc/run-tests` is kept as a harness capability for
 future regressions whose shape cannot be expressed in Rust or C (see the
 runner description above); it is currently unused.
 
 `no_prepopulate` proves the NoPrepopulatePasses pizlonation path,
 `threads-opt` guards the rustc-side GIMSO fix from known-issues #1(a), and
-`swap_nodes` guards the IsRust gate from known-issues #1(b): the mem::swap
-class is exactly what the gate exists for, and `swap_nodes` runs that shape
-at `-O`.  The `exit101` return kind is new (added to
+`swap_nodes` guards the std fix for known-issues #1(b): the mem::swap
+class is exactly what the std change exists for, and `swap_nodes` runs
+that shape at `-O`.  The `exit101` return kind is new (added to
 `filrustc/run-tests` alongside `exit13`): the generated `subRun.sh` asserts
 that the exit code is exactly 101 -- the code std exits with when a panic
 unwinds out of `main` and `lang_start_internal`'s `catch_unwind` catches it.
@@ -1632,7 +1724,7 @@ so `oob_read-opt` proves the "filc safety error" spew specifically, not just
 the exit code.  `swap_nodes` is a fifth `-O`-flagged test, but not a copy of
 a non-opt sibling: it exists only at `-O`, because the mem::swap miscompile
 it guards against only fires above O0 (known-issues #1(b)) -- at the debug
-opt-level the program is correct even with the gate removed, so an O0
+opt-level the program is correct even with the std fix reverted, so an O0
 `swap_nodes` would be vacuous.
 
 Notes on two tests that needed care:

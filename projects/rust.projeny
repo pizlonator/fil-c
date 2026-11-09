@@ -661,7 +661,7 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
    PipelineTuningOptions PTO;
    PTO.LoopUnrolling = UnrollLoops;
    PTO.LoopInterleaving = UnrollLoops;
-@@ -821,6 +836,43 @@
+@@ -821,6 +836,44 @@
        OptimizerLastEPCallbacks;
  #endif
 
@@ -669,43 +669,44 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
 +  // simplification and inlining pipeline, C++20 coroutine lowering, the
 +  // FilPizlonator on every path, and the OptimizerLast
 +  // DeleteRedundantPollchecks) is owned by LLVM's RegisterFilPasses
-+  // (llvm/lib/Passes/RegisterFilPasses.cpp) and registered here with
-+  // IsRust=true, exactly like clang/lib/CodeGen/BackendUtil.cpp registers it
-+  // with IsRust=false.  IsRust=true disables the pre-pizlonation
-+  // simplification and inlining BLOCK (KillUB -> coro lowering ->
-+  // FilPizlonator always run): that block still miscompiles rustc-shaped IR
-+  // in the mem::swap class.  std's swap_nonoverlapping_chunks moves the bytes
++  // (llvm/lib/Passes/RegisterFilPasses.cpp) and registered here, exactly
++  // like clang/lib/CodeGen/BackendUtil.cpp and filc's LLVM JIT shim register
++  // it, so rust-compiled modules -- including std itself -- get the same
++  // pipeline-start block (pre-pizlonation simplification and inlining
++  // included, above O0) as clang-compiled ones.  That block used to be gated
++  // off for rustc (an IsRust parameter in RegisterFilPasses, now gone)
++  // because it miscompiled rustc-shaped IR in two classes, both since fixed
++  // at their sources: the spawn+join shape, closed by the rustc-side typed
++  // allocas (below -- aggregates that may contain pointers get typed allocas
++  // with all-pointer struct types, see filc_ptr_struct_type in
++  // rustc_codegen_llvm/src/type_of.rs, mirroring clang's union representation
++  // hack from CGRecordLayoutBuilder.cpp commit 4a54ae4076b4), and the
++  // mem::swap class (std::mem::swap of pointer-containing elements at -O),
++  // closed in std itself: swap_nonoverlapping_chunks used to move the bytes
 +  // of swapped pointer-containing elements through MaybeUninit<[u8; N]>
-+  // block buffers -- NUMERIC-typed allocas -- and upstream SROA widens their
++  // block buffers -- NUMERIC-typed allocas -- and upstream SROA widened their
 +  // typed byte copies into integer load/store pairs, which under GIMSO
 +  // semantics drop the capabilities that copies carry in the shadow of the
-+  // copied bytes (this class first surfaced as a std::thread::spawn + join
-+  // compiled at -O handing pthread_join a thread handle whose
-+  // flight-pointer capability had been dropped; today's reviewer-verified
-+  // shape is std::mem::swap: a Vec of pointer-containing structs shuffled
-+  // with mem::swap miscompiles at -O in Vec::clone -> String::clone, and
-+  // even a bare mem::swap::<String> miscompiles).  The rustc-side typed
-+  // allocas (below) fixed the spawn+join shape -- aggregates that may
-+  // contain pointers get typed allocas with all-pointer struct types (see
-+  // filc_ptr_struct_type in rustc_codegen_llvm/src/type_of.rs), so SROA's
-+  // type-driven partitioning gives the memcpy-only partitions of those
-+  // allocas pointer types and the copied capabilities survive -- but the fix
-+  // correctly declines NUMERIC types, so it cannot cover the swap class (see
-+  // RegisterFilPasses.cpp for why the SROA-side guard that would close it
-+  // was rejected for performance -- ~1.4x on simdutf -- and where it lives:
-+  // the fil/fixed_sroa branch).  FILCRUST_FILCINLINE in the environment
-+  // re-enables the block for debugging (any set value).  The callbacks run
-+  // on every path through this function -- O0 via
++  // copied bytes (a Vec of pointer-containing structs shuffled with
++  // mem::swap miscompiled at -O in Vec::clone -> String::clone, and even a
++  // bare mem::swap::<String> miscompiled).  std's swap_nonoverlapping_bytes
++  // now swaps pointer-aligned regions in pointer-typed
++  // MaybeUninit<*const ()> chunks, so the swap's copies stay
++  // capability-preserving however far the pre-pizlonation pipeline reshapes
++  // them.  (The SROA-side guard that would have closed the mem::swap class
++  // without the std change was rejected for performance -- ~1.4x on simdutf
++  // -- and lives on the fil/fixed_sroa branch; see RegisterFilPasses.cpp.)
++  // The callbacks run on every path through this function -- O0 via
 +  // buildO0DefaultPipeline, the prepopulated per-module/ThinLTO/fat-LTO
 +  // pipelines, and (via FilCAddPipelineStartPasses in the NoPrepopulatePasses
 +  // branch below) the no-prepopulate pipeline -- so every module that rustc
 +  // compiles gets pizlonated, at every optimization level.
-+  RegisterFilPasses(PB, nullptr, true);
++  RegisterFilPasses(PB, nullptr);
 +
    if (!IsLinkerPluginLTO && SanitizerOptions && SanitizerOptions->SanitizeCFI &&
        !NoPrepopulatePasses) {
      PipelineStartEPCallbacks.push_back(
-@@ -1025,8 +1077,20 @@
+@@ -1025,8 +1078,20 @@
    } else {
      // We're not building any of the default pipelines but we still want to
      // add the verifier, instrumentation, etc passes if they were requested
@@ -719,7 +720,7 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
 +    // below then apply around them in the same order they would have on a
 +    // PassBuilder-built pipeline (Fil-C pipeline start, rustc's pipeline
 +    // start, the Fil-C optimizer-last, rustc's optimizer-last).
-+    llvm::FilCAddPipelineStartPasses(MPM, OptLevel, /*IsRust=*/true);
++    llvm::FilCAddPipelineStartPasses(MPM, OptLevel);
      for (const auto &C : PipelineStartEPCallbacks)
        C(MPM, OptLevel);
 +    MPM.addPass(DeleteRedundantPollchecksPass());
@@ -1344,6 +1345,116 @@ diff --git a/rust/library/compiler-builtins/libm/src/math/arch/x86/detect.rs b/r
 -    }
 +    Flags::empty()
  }
+diff --git a/rust/library/core/src/ptr/mod.rs b/rust/library/core/src/ptr/mod.rs
+--- a/rust/library/core/src/ptr/mod.rs
++++ b/rust/library/core/src/ptr/mod.rs
+@@ -1423,7 +1423,9 @@
+             if let Some(bytes) = NonZero::new(bytes) {
+                 // SAFETY: These are the same ranges, just expressed in a different
+                 // type, so they're still non-overlapping.
+-                unsafe { swap_nonoverlapping_bytes(x.cast(), y.cast(), bytes) };
++                unsafe {
++                    swap_nonoverlapping_bytes(x.cast(), y.cast(), bytes, align_of::<T>())
++                };
+             }
+         }
+     )
+@@ -1456,9 +1458,16 @@
+ }
+
+ // Don't let MIR inline this, because we really want it to keep its noalias metadata
++//
++// Fil-C (GIMSO): the chunk element type `T` here is chosen by
++// `swap_nonoverlapping_bytes` so that the load/store pairs this performs are
++// pointer-typed whenever the swapped memory may contain pointers: the Fil-C
++// optimizer moves a pointer's capability alongside its payload only for
++// pointer-typed accesses, so the chunk type is what makes swapping
++// capability-safe.  See the comment in `swap_nonoverlapping_bytes`.
+ #[rustc_no_mir_inline]
+ #[inline]
+-fn swap_chunk<const N: usize>(x: &mut MaybeUninit<[u8; N]>, y: &mut MaybeUninit<[u8; N]>) {
++fn swap_chunk<T: Copy>(x: &mut MaybeUninit<T>, y: &mut MaybeUninit<T>) {
+     let a = *x;
+     let b = *y;
+     *x = b;
+@@ -1466,11 +1475,16 @@
+ }
+
+ #[inline]
+-unsafe fn swap_nonoverlapping_bytes(x: *mut u8, y: *mut u8, bytes: NonZero<usize>) {
++unsafe fn swap_nonoverlapping_bytes(
++    x: *mut u8,
++    y: *mut u8,
++    bytes: NonZero<usize>,
++    align: usize,
++) {
+     // Same as `swap_nonoverlapping::<[u8; N]>`.
+-    unsafe fn swap_nonoverlapping_chunks<const N: usize>(
+-        x: *mut MaybeUninit<[u8; N]>,
+-        y: *mut MaybeUninit<[u8; N]>,
++    unsafe fn swap_nonoverlapping_chunks<T: Copy>(
++        x: *mut MaybeUninit<T>,
++        y: *mut MaybeUninit<T>,
+         chunks: NonZero<usize>,
+     ) {
+         let chunks = chunks.get();
+@@ -1497,7 +1511,7 @@
+                     // so these `add`s are in-bounds of `bytes`.  But the bit for
+                     // `$n` hasn't been set yet, so the `$n` bytes that `swap_chunk`
+                     // will read and write are within the usable range.
+-                    unsafe { swap_chunk::<$n>(&mut*x.add(i).cast(), &mut*y.add(i).cast()) };
++                    unsafe { swap_chunk::<[u8; $n]>(&mut*x.add(i).cast(), &mut*y.add(i).cast()) };
+                     i |= $n;
+                 }
+             )+};
+@@ -1512,12 +1526,44 @@
+     let chunks = bytes / CHUNK_SIZE;
+     let tail = bytes % CHUNK_SIZE;
+     if let Some(chunks) = NonZero::new(chunks) {
+-        // SAFETY: this is bytes/CHUNK_SIZE*CHUNK_SIZE bytes, which is <= bytes,
+-        // so it's within the range of our non-overlapping bytes.
+-        unsafe { swap_nonoverlapping_chunks::<CHUNK_SIZE>(x.cast(), y.cast(), chunks) };
++        // Fil-C (GIMSO): pick the chunk type so that the swap's copies move
++        // capabilities along with the bytes.  When the swapped regions are
++        // pointer-aligned (`align >= CHUNK_SIZE`; the caller's precondition
++        // guarantees `x` and `y` are aligned to `align_of::<T>()`), swap
++        // pointer-sized chunks as `MaybeUninit<*const ()>`: the copies are
++        // then pointer-typed, and the Fil-C optimizer moves each word's
++        // capability alongside its payload for pointer-typed accesses.  This
++        // matters because the bytes this swaps are exactly the bytes that may
++        // contain pointers: with the upstream `MaybeUninit<[u8; N]>` chunk
++        // type the copies are integer-typed, which after inlining and SROA
++        // become integer load/store pairs -- and integer accesses move only
++        // the payload, so a pointer swapped through such a buffer arrives
++        // without its capability and cannot be used.  This is the same house
++        // pattern the Fil-C user libc uses for scratch that receives whole
++        // elements (e.g. qsort's): memory that may hold pointers must be
++        // pointer-typed.  Types with a smaller alignment (e.g. packed reprs)
++        // cannot use pointer-typed loads, and keep the byte-chunk path, where
++        // moving a pointer without its capability remains a documented Fil-C
++        // gap for byte-granularity access.
++        if align >= CHUNK_SIZE {
++            // SAFETY: this is bytes/CHUNK_SIZE*CHUNK_SIZE bytes, which is <= bytes,
++            // so it's within the range of our non-overlapping bytes, and `x` and
++            // `y` are aligned to `align >= CHUNK_SIZE`, so the `*const ()` chunks
++            // are properly aligned.
++            unsafe { swap_nonoverlapping_chunks::<*const ()>(x.cast(), y.cast(), chunks) };
++        } else {
++            // SAFETY: this is bytes/CHUNK_SIZE*CHUNK_SIZE bytes, which is <= bytes,
++            // so it's within the range of our non-overlapping bytes.
++            unsafe { swap_nonoverlapping_chunks::<[u8; CHUNK_SIZE]>(x.cast(), y.cast(), chunks) };
++        }
+     }
+     if let Some(tail) = NonZero::new(tail) {
+         const { assert!(CHUNK_SIZE <= 8) };
++        // Fil-C (GIMSO): a nonzero tail requires `bytes % CHUNK_SIZE != 0`,
++        // which cannot happen when `align >= CHUNK_SIZE`, because
++        // `size_of::<T>()` is always a multiple of `align_of::<T>()`.  So the
++        // tail is only ever swapped for sub-pointer-aligned types, which keep
++        // the byte-chunk tail handling below.
+         let delta = chunks * CHUNK_SIZE;
+         // SAFETY: the tail length is below CHUNK SIZE because of the remainder,
+         // and CHUNK_SIZE is at most 8 by the const assert, so tail <= 7
 diff --git a/rust/library/panic_abort/src/lib.rs b/rust/library/panic_abort/src/lib.rs
 --- a/rust/library/panic_abort/src/lib.rs
 +++ b/rust/library/panic_abort/src/lib.rs

@@ -26,20 +26,21 @@ class PassBuilder;
 class OptimizationLevel;
 struct FilJITConfiguration;
 
-void RegisterFilPasses(PassBuilder&, FilJITConfiguration* = nullptr,
-                       bool IsRust = false);
+// Registers the Fil-C pass pipeline on a PassBuilder: the pipeline-start
+// extension point gets KillUB, the pre-pizlonation simplification and
+// inlining (above O0), C++20 coroutine lowering and the FilPizlonator, and
+// the optimizer-last extension point gets DeleteRedundantPollchecks.  This is
+// how every Fil-C frontend pizlonates: clang/lib/CodeGen/BackendUtil.cpp,
+// the Fil-C rustc (PassWrapper.cpp in the projeny patch), and the LLVM JIT
+// shim (filc/llvmjit/filc_llvm_jit_shim.cpp) all register it, so every module
+// gets the same pipeline-start block at every optimization level.
+void RegisterFilPasses(PassBuilder&, FilJITConfiguration* = nullptr);
 
 // The pipeline-start passes as a directly-applicable entry point (needed by
 // frontends whose pass pipelines are not always built through a PassBuilder,
 // e.g. rustc's -C no-prepopulate-passes modules).
-//
-// IsRust (i.e. the Fil-C rustc) disables the pre-pizlonation simplification
-// and inlining block by default: it still miscompiles rustc-shaped IR in the
-// mem::swap class (see the FilCAddPipelineStartPasses comment in
-// RegisterFilPasses.cpp).  FILCRUST_FILCINLINE in the environment re-enables
-// it for debugging.
 void FilCAddPipelineStartPasses(ModulePassManager&, OptimizationLevel,
-                                bool IsRust, FilJITConfiguration* = nullptr);
+                                FilJITConfiguration* = nullptr);
 
 } // namespace llvm
 

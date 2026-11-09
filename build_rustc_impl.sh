@@ -231,13 +231,20 @@ do_build_rustc() {
 
     # compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp: the Fil-C pipeline
     # comes from LLVM's RegisterFilPasses -- registered on the PassBuilder
-    # with IsRust=true (which also registers the OptimizerLast
-    # DeleteRedundantPollchecks), and applied directly to the fresh pipeline
-    # in the NoPrepopulatePasses path (there is no PassBuilder-built pipeline
-    # there to run the extension-point callbacks) -- plus the "after Fil-C"
-    # DataLayout setup.
-    check_grep "RegisterFilPasses(PB, nullptr, true)" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
-    check_grep "llvm::FilCAddPipelineStartPasses(MPM, OptLevel, /*IsRust=*/true);" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+    # with no extra arguments, exactly like clang/lib/CodeGen/BackendUtil.cpp
+    # and filc's LLVM JIT shim register it (which also registers the
+    # OptimizerLast DeleteRedundantPollchecks), and applied directly to the
+    # fresh pipeline in the NoPrepopulatePasses path (there is no
+    # PassBuilder-built pipeline there to run the extension-point callbacks)
+    # -- plus the "after Fil-C" DataLayout setup.  The IsRust parameter that
+    # used to gate the pre-pizlonation simplification and inlining block off
+    # for rustc is gone: the rustc-shaped miscompiles it existed for are
+    # fixed at their sources (the rustc-side typed allocas below for the
+    # spawn+join shape; the std swap fix below for the mem::swap class), so
+    # the full Fil-C pipeline runs for every frontend.  See
+    # llvm/lib/Passes/RegisterFilPasses.cpp.
+    check_grep "RegisterFilPasses(PB, nullptr)" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
+    check_grep "llvm::FilCAddPipelineStartPasses(MPM, OptLevel);" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
     check_grep "setDataLayoutAfterFilC" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
     check_grep "DeleteRedundantPollchecksPass()" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
 
@@ -251,17 +258,8 @@ do_build_rustc() {
     # with all-pointer struct types for aggregates that may contain pointers,
     # which types the memcpy-only partitions as pointers -- so the
     # pre-pizlonation pipeline (whose pre-inliner SROA would otherwise
-    # integer-widen those partitions, dropping GIMSO capabilities) is safe
-    # for the spawn+join shape whenever the pipeline does run under rustc
-    # (e.g. with FILCRUST_FILCINLINE=1; the IsRust gate keeps the block off
-    # by default, see RegisterFilPasses.cpp).  The mem::swap class remains
-    # gated off for rustc pending a perf-acceptable SROA-side guard: its
-    # swapped bytes travel through NUMERIC-typed MaybeUninit<[u8; N]> block
-    # buffers that fail the may-contain-pointers test and keep the
-    # byte-array alloca, so SROA still integer-widens their partitions; that
-    # guard lives on the fil/fixed_sroa branch (the brute-force SROA-side
-    # fix, which ptr-typed ALL aligned memcpy-only partitions, cost ~1.4x on
-    # simdutf, so llvm/lib/Transforms/Scalar/SROA.cpp is left at upstream).
+    # integer-widen those partitions, dropping GIMSO capabilities) cannot
+    # miscompile that shape.
     check_grep "fn filc_may_contain_pointers" compiler/rustc_codegen_llvm/src/type_of.rs
     check_grep "fn filc_ptr_struct_type" compiler/rustc_codegen_llvm/src/type_of.rs
     check_grep "Packed=*/ true" compiler/rustc_codegen_llvm/src/type_of.rs
@@ -272,6 +270,20 @@ do_build_rustc() {
     check_grep "alloca_for_layout(size, layout.align.abi, layout)" compiler/rustc_codegen_ssa/src/mir/place.rs
     check_grep "alloca_for_layout(size, align, operand.layout)" compiler/rustc_codegen_ssa/src/mir/rvalue.rs
     check_grep "alloca_for_layout(arg.layout.size, required_align, arg.layout)" compiler/rustc_codegen_ssa/src/mir/block.rs
+
+    # library/core/src/ptr/mod.rs: the Fil-C pointer-typed swap chunk buffers.
+    # std's swap_nonoverlapping_chunks used to move the bytes of swapped
+    # pointer-containing elements through NUMERIC-typed MaybeUninit<[u8; N]>
+    # block buffers, whose partitions upstream SROA integer-widens, dropping
+    # GIMSO capabilities.  swap_nonoverlapping_bytes now takes
+    # align_of::<T>() and swaps pointer-aligned regions in pointer-typed
+    # MaybeUninit<*const ()> chunks (the same house pattern the Fil-C user
+    # libc uses for scratch that receives whole elements), so the
+    # pre-pizlonation pipeline cannot miscompile the mem::swap class either,
+    # and the IsRust gate is gone -- the full Fil-C pipeline runs for every
+    # frontend (see llvm/lib/Passes/RegisterFilPasses.cpp).
+    check_grep "swap_nonoverlapping_chunks::<*const ()>" library/core/src/ptr/mod.rs
+    check_grep "MaybeUninit<*const ()>" library/core/src/ptr/mod.rs
 
     # compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs: the
     # "before Fil-C" data layout (-ni:0), filcc as the linker, -normalcrt, no
