@@ -124,6 +124,13 @@ PAS_API void verse_heap_thread_local_cache_node_stop_local_allocators(pas_thread
 																	  uint64_t expected_version);
 
 PAS_API uintptr_t verse_heap_find_allocated_object_start(uintptr_t inner_ptr);
+/* Stops counting the large object that contains object_begin as live bytes, and does not count it as
+   swept bytes when it dies. Use it for objects that reserve address space: their size says nothing about
+   the memory that the program uses, and counting them lets the garbage grow to half of their size before
+   the collector runs. Returns false if there is no large object there, or if the function excluded it
+   already. */
+PAS_API bool verse_heap_exclude_large_object_from_live_bytes(uintptr_t object_begin);
+
 PAS_API size_t verse_heap_get_allocation_size(uintptr_t inner_ptr);
 
 PAS_API bool verse_heap_owns_address(uintptr_t ptr);

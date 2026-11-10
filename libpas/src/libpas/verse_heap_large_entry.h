@@ -44,6 +44,10 @@ struct verse_heap_large_entry {
     /* True for an object that was placed at an exact address. When it dies, the sweep retires its chunks
        for reuse at the same address and does not give them to the heap. */
     bool is_exact;
+    /* True for an object that reserves address space, such as a mapping. The heap does not count it as
+       live bytes, so its size does not set how much garbage the heap can hold before the next
+       collection. */
+    bool is_reservation;
 	verse_heap_mark_bits_page_commit_controller mark_bits_page_commit_controller;
 };
 

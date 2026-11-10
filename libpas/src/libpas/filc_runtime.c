@@ -2547,6 +2547,28 @@ static PAS_NO_RETURN PAS_NEVER_INLINE void ensure_aux_ptr_free_fail(filc_object*
                       filc_object_to_new_string(object));
 }
 
+/* Zeroes a large range of memory that this thread owns exclusively and that nothing else uses yet.
+   Writing zeroes touches every page, so the aux of a 128 MiB mapping would cost 128 MiB of resident
+   memory even if the program stores only one pointer into the mapping. Instead, replace the whole pages
+   in the range with pages that the kernel zeroes on first use, and write only the partial pages at the
+   ends. */
+static void zero_large_range_without_touching(void* base, size_t size)
+{
+    size_t page_size = pas_page_malloc_alignment();
+    uintptr_t begin = (uintptr_t)base;
+    uintptr_t end = begin + size;
+    uintptr_t aligned_begin = pas_round_up_to_power_of_2(begin, page_size);
+    uintptr_t aligned_end = pas_round_down_to_power_of_2(end, page_size);
+
+    if (size < 16 * page_size || aligned_begin >= aligned_end) {
+        memset(base, 0, size);
+        return;
+    }
+    memset(base, 0, aligned_begin - begin);
+    pas_page_malloc_zero_fill((void*)aligned_begin, aligned_end - aligned_begin);
+    memset((void*)aligned_end, 0, end - aligned_end);
+}
+
 static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
     filc_thread* my_thread, filc_object* object, filc_exit_allowed_mode exit_allowed_mode,
     size_t size, filc_size_mode size_mode)
@@ -2563,6 +2585,11 @@ static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
     PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
     PAS_TESTING_ASSERT(size);
     pas_allocation_result aux_ptr_result = filc_thread_allocate(my_thread, size);
+    /* The aux of a mapping has the size of the mapping, and only the pointers that the program stores into
+       the mapping touch it. Counted as live bytes, it would let the garbage grow to half of its size
+       before the next collection, as the mapping itself would. See finish_allocate(). */
+    if (filc_object_get_flags(object) & FILC_OBJECT_FLAG_MMAP)
+        verse_heap_exclude_large_object_from_live_bytes(aux_ptr_result.begin);
     if (verbose) {
         pas_log("allocated aux at %p with size %zu, ending at %p\n",
                 (void*)aux_ptr_result.begin, size, (char*)aux_ptr_result.begin + size);
@@ -2582,7 +2609,7 @@ static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
                already true due to the fantastic properties of Phil's concurrent marking (even if you
                just allocated an object you still need a barrier). */
             filc_exit_with_allocation_root(my_thread, (void*)aux_ptr_result.begin);
-            memset((void*)aux_ptr_result.begin, 0, size);
+            zero_large_range_without_touching((void*)aux_ptr_result.begin, size);
             filc_enter_with_allocation_root(my_thread, (void*)aux_ptr_result.begin);
         }
     }
@@ -2930,6 +2957,11 @@ static PAS_ALWAYS_INLINE filc_object* finish_allocate(
     filc_object* result = initialize_object_header(
         my_thread, (void*)allocation_result.begin, size, alignment, offset_to_payload, object_flags,
         NULL, finalizer_queue);
+    /* A mapping reserves address space, and it holds only the memory that the program touches. Counting
+       its size as live bytes would let the garbage grow to half of that size before the next
+       collection. */
+    if (object_flags & FILC_OBJECT_FLAG_MMAP)
+        verse_heap_exclude_large_object_from_live_bytes(allocation_result.begin);
     if (PAS_UNLIKELY(size > FILC_MAX_BYTES_BETWEEN_POLLCHECKS) && exit_allowed_mode) {
         return finish_allocate_large(my_thread, result, size, allocation_result.zero_mode,
                                      object_flags);
