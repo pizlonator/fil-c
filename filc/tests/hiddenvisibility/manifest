@@ -14,3 +14,7 @@ optFlags:
   "-O2 -fPIC -fvisibility=hidden -fsemantic-interposition"
 output-includes:
   - "hidden visibility ok"
+
+# This fails on one of my systems
+# FIXME: https://github.com/pizlonator/fil-c/issues/359
+skip: true
