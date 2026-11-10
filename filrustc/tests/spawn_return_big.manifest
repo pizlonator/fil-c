@@ -1,0 +1,10 @@
+# Large by-value thread returns through the spawn+join flight path.
+return:
+  success
+optFlags: -O
+output-includes:
+  - "size = 80"
+  - "joined = ret-0 0 [0, 1, 2, 3, 4] 0"
+  - "joined = ret-1 1000 [1, 2, 3, 4, 5] 2"
+  - "joined = ret-2 2000 [2, 3, 4, 5, 6] 4"
+  - "joined = ret-3 3000 [3, 4, 5, 6, 7] 6"

@@ -1,0 +1,13 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "dq = f0 v0 v1 v2 v3 v4 v5 v6 v7 f2 f1"
+  - "after rr(4) = v6 v7 f2 f1 f0 v0 v1 v2 v3 v4 v5"
+  - "popped: v6 / v5"
+  - "len = 9"
+  - "idx0 = wrap"
+  - "idxlast = v4"

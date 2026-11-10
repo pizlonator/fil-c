@@ -1,0 +1,21 @@
+# #[repr(C)] unions with pointer fields moved through memory (swap, replace,
+# reference reads, bare unions by value across Rust-ABI call boundaries via
+# Vec::push and the `for u in v` drain, struct-wrapped by-value moves).
+# Regression guard for change #23 -- the Rust-ABI by-value union fix
+# (pointer-bearing unions pass indirectly, so the capability travels with the
+# payload).  The `extern "C"` by-value union variant is the remaining
+# documented gap (known-issues #10) and is deliberately NOT exercised here.
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "before: 11 22"
+  - "after: 22 11"
+  - "via ref: 22 11"
+  - "replace: 44 33"
+  - "consume = 66"
+  - "extra = 6600"
+  - "vec vals: 30,10,20,0 true"

@@ -1,0 +1,13 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "count = 12"
+  - "first3: 0: s0-m0-p0+s0-m0-p1+s0-m0-p2 from 0"
+  - "first3: 0: s1-m0-p0+s1-m0-p1+s1-m0-p2 from 1"
+  - "first3: 0: s2-m0-p0+s2-m0-p1+s2-m0-p2 from 2"
+  - "last = 3: s2-m3-p0+s2-m3-p1+s2-m3-p2 from 2"
+  - "sync = 0,1,2,10,11"

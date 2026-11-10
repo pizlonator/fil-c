@@ -1,0 +1,12 @@
+# Large pointer-bearing panic payloads via panic_any + Box<dyn Any> downcast.
+return:
+  success
+optFlags: -O
+output-includes:
+  - "down = payload-12#84:l12-a+l12-b"
+  - "orig = payload-11#77:l11-a+l11-b"
+  - "msg = plain message"
+  - "static = static panic text"
+  - "down3 = payload-13#91:l13-a+l13-b"
+output-excludes:
+  - "Not implemented"

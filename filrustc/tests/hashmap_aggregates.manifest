@@ -1,0 +1,20 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "size = 4"
+  - "key0 -> v0,v4,v8"
+  - "key1 -> v1,v5,v9"
+  - "key2 -> v2,v6"
+  - "key3 -> v3,v7"
+  - "has key3 = true"
+  - "removed key3 = true"
+  - "has key3 after = false"
+  - "only = made,added"
+  - "bt[n0] = node0#0"
+  - "bt[n3] = node1#100"
+  - "bt removed n6 = node2"
+  - "any: string payload 42 l1+l2"

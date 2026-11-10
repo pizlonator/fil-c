@@ -1,0 +1,15 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "roundtrip: it0,it1,it2,it3,it4,it5"
+  - "rev: it5,it4,it3,it2,it1,it0"
+  - "front = it0 back = it1,it2,it3,it4,it5"
+  - "zip: 1=one 2=two 3=three"
+  - "windows: w0+w1+w2 | w1+w2+w3 | w2+w3+w4 | w3+w4+w5"
+  - "chunks: w0/w1/w2/w3 | w4/w5"
+  - "chain: 10,20,30,40"
+  - "flat: n1,n2,n3"

@@ -296,6 +296,50 @@ The patch consists of the following changes:
     rotated sequence and clones cleanly, exit 0.  See
     known-issues #1(b) for the mechanism and the before/after evidence.
 
+23. `compiler/rustc_target/src/callconv/mod.rs` — **the Rust ABI stops
+    passing pointer-maybe small aggregates as integer immediates** (the
+    rustc-ABI-side fix for the union class of known-issues #10 -- the
+    in-memory half of that class, the mem::swap side, was already fixed by
+    change #22).  `adjust_for_rust_abi`'s `BackendRepr::Memory` branch used
+    to `cast_to(Reg { kind: RegKind::Integer, size })` every sized
+    Memory-repr aggregate of at most pointer size ("we want to pass small
+    aggregates as immediates ... so we pick an appropriately sized integer
+    type instead") -- the mode a pointer-bearing `union` lands in, because
+    its overlapping fields give it a Memory repr even when it holds a
+    pointer (rustc's union ABI optimization only forwards a field's scalar
+    repr when ALL fields share it, and `*mut u8` vs `u64` do not).  Under
+    GIMSO an integer-typed value in flight carries only the payload: the
+    pointer word inside the union crossed the call boundary without its
+    capability and "filc safety error: cannot read pointer with null
+    object" followed on first dereference.  The fix adds
+    `filc_layout_may_contain_pointers` (a TyAbiInterface-level twin of
+    codegen's `filc_may_contain_pointers`, change #21: same recursion over
+    fields and enum/coroutine variants) and keeps pointer-maybe small
+    Memory-repr aggregates in the default `PassMode::Indirect` mode -- the
+    move becomes a by-reference memory copy, which moves payload and
+    capability together.  This applies to arguments AND return values (the
+    same loop walks both).  Scalar/ScalarPair layouts are untouched (their
+    pointer halves already travel in ptr-typed registers), numeric small
+    aggregates keep the integer immediate (zero effect on ordinary
+    by-value passes), and the FOREIGN ABI paths (`adjust_for_foreign_abi`)
+    are deliberately NOT touched -- the SysV by-value hole for
+    `extern "C"`-passed pointer-bearing unions remains documented
+    (known-issues #10), because changing rustc's extern "C" behavior here
+    would desynchronize it from clang-compiled C callers/callees, which
+    would need matching LLVM-side work.  Validity-proven in BOTH
+    directions: with only this change's predicate guard reverted (the rest
+    of the patch intact), `filrustc/tests/union_memory_moves` at `-O` dies
+    with "filc safety error: cannot read pointer with null object" in its
+    Vec section and the by-value-return probe (`make_u(p) -> U` from an
+    `#[inline(never)]` fn) dies the same way; with the guard restored
+    everything passes.  The `MaybeUninit<[usize; 32]>`-scratch suspicion
+    for `slice::rotate_left` (its `[usize; 32]` memmove scratch, the last
+    numeric-typed buffer that receives potentially-pointer bytes) was
+    investigated and is NOT reachable: `slice::rotate_left` is a `const fn`
+    without `#[inline]`, so it is never inlined across CGUs and its
+    scratch memcpys always keep runtime lengths (unsplittable for SROA);
+    see the notes under the test table for the full sweep.
+
 The projeny patch reproduces the build tree byte-identically: after
 `filc/projeny commit`, `filc/projeny extract projects/rust.projeny /tmp/pc`
 followed by `diff -rq /tmp/pc rust-build/rust` (excluding `src/llvm-project`
@@ -1375,25 +1419,48 @@ ld-fil1 does not search rustc's sysroot by default).
    program.  (Where the missing `.rustc` section comes from has not been
    investigated.)
 
-10. **Pre-existing aggregate-ABI holes, verified but NOT fixed here** (both
-   pre-date this branch's work and both fire at `opt-level=0` AND `-O`
-   alike, so they are not pipeline-dependent -- they are rustc lowering /
-   Fil-C ABI gaps, documented per the review round that surfaced them):
+10. **Aggregate-ABI holes** (they fire at `opt-level=0` AND `-O` alike, so
+   they are not pipeline-dependent -- they are rustc lowering / Fil-C ABI
+   gaps, documented per the review round that surfaced them).  Of the two
+   holes below, the FIRST is now FIXED on this branch (change #23: the Rust
+   ABI keeps pointer-maybe small aggregates indirect); only the SECOND
+   remains a live gap:
 
-   * **A `#[repr(C)]` union with a pointer field, passed by value, loses the
-     pointer's capability.**  Repro (verified on this tree, exit 133 at both
-     opt levels): a `#[repr(C)] union U { p: *mut u8, i: u64 }` initialized
-     with `addr_of_mut!(static mut CELL)` and passed BY VALUE to an
-     `#[inline(never)]` fn that reads `*u.p` dies with "filc safety error:
-     cannot read pointer with null object." -- the by-value ABI move of the
-     8-byte union carries only the payload, so the callee's `u.p` is a
-     pointer with a null capability.  Untyped by-value aggregate moves are
-     the same GIMSO gap that the mem::swap class had (known-issues #1(b) --
-     now fixed in std for the in-memory swap path via change #22), but at
-     the call boundary rather than inside a memory copy; fixing it needs
-     either a Fil-C calling-convention change (by-value aggregates carried
-     with capabilities) or rustc-side representation work, neither of which
-     is attempted on this branch.
+   * **A `#[repr(C)]` union with a pointer field, passed by value at the
+     RUST ABI, used to lose the pointer's capability -- FIXED by change
+     #23.**  Original repro (exit 133 at both opt levels before the fix): a
+     `#[repr(C)] union U { p: *mut u8, i: u64 }` passed BY VALUE to (or
+     returned by value from) an `#[inline(never)]` fn that reads `*u.p`
+     died with "filc safety error: cannot read pointer with null object."
+     -- the by-value ABI move of the 8-byte union carried only the payload.
+     Mechanism: the union's overlapping fields (`*mut u8` vs `u64`) give it
+     a `BackendRepr::Memory` repr (rustc's union ABI optimization only
+     forwards a field's scalar repr when ALL fields share it), and
+     `adjust_for_rust_abi` casted every sized Memory-repr aggregate of at
+     most pointer size into an integer immediate (`cast_to(Reg { Integer,
+     size })`), so the union crossed the call boundary as an `i64`.  Under
+     GIMSO an integer in flight carries no capability.  The same cast also
+     dropped capabilities for `Vec::push` of a pointer-bearing union (the
+     argument to `Vec::push` crosses the same boundary) and for `Box::new`
+     of one.  Change #23 keeps pointer-maybe small Memory-repr aggregates
+     in the default indirect (by-reference) mode, which moves the value as
+     a memory copy (payload + capability together).  In-memory union moves
+     (swap/replace/Vec-element writes) were always memcpy-based and were
+     additionally covered by the typed allocas (change #21: a union's
+     alloca is an all-pointer struct because `filc_may_contain_pointers`
+     recurses into union fields) and the pointer-typed swap chunks
+     (change #22); `filrustc/tests/union_memory_moves` exercises all of
+     those (and deliberately does NOT exercise the remaining hole below --
+     the bare-union-by-value case through `extern "C"`).
+     The **`extern "C"` (SysV) by-value variant of this hole is still
+     open**: `adjust_for_foreign_abi` -> x86_64 `compute_abi_info`
+     classifies a pointer-bearing 8-byte aggregate as one Int eightbyte and
+     `cast_to`s it into an `i64` register, dropping the capability.  That
+     path is deliberately NOT fixed here: changing rustc's extern "C"
+     handling would desynchronize it from clang-compiled C callers/callees,
+     which would need matching LLVM-side (clang) work.  Any FFI that hands
+     a pointer-bearing union across `extern "C"` by value still loses the
+     capability.
 
    * **A `#[repr(packed)]` struct containing a pointer is unusable through
      Fil-C's aligned-pointer model.**  Repro (verified on this tree, exit
@@ -1663,8 +1730,43 @@ trap-based panic, same as C.
 | hello-opt | the `hello` program compiled with `optFlags: -O` | success, output-includes "hello filc rust" | exit 0 | exit 0 |
 | oob_read-opt | the `oob_read` unsafe OOB read compiled with `optFlags: -O` | failure; "filc safety error", "cannot read pointer with ptr >= upper.", "filc panic: thwarted..." | 133 (SIGTRAP, core) | 42 |
 | swap_nodes | 16 pointer-containing `Node {String, *mut u8, u32}` values built by an `#[inline(never)]` constructor, pairwise-shuffled with `#[inline(never)]` `std::mem::swap`, then cloned and read (the reviewer's mem::swap repro; `optFlags: -O` is the point -- the miscompile only fires above O0, see known-issues #1(b); guarded by the std fix of change #22, verified in both directions) | success, output-includes "vals = [10, 20, 30, 40, 10, 20, 30, 40, 10, 20, 30, 40, 10, 20, 30, 40]" | exit 0 | exit 0 |
+| swap_small_structs | mem::swap family on SMALL (<=24B) pointer-containing aggregates: two locals, whole arrays (stack allocas), through a Vec, 16-byte `Option<&str>` and tuples, plus a repeated swap loop (regression guard for change #22's pointer-chunk swap in the <=24B regime) | success, output-includes "pair: beta:2 alpha:1", "array: f:6 e:5 d:4 c:3", "vec: h:8 g:7", 'opts: Some("two") Some("one")', "tuples: (two, 22) (one, 11)", "loop: y:10 x:9" | exit 0 | exit 0 |
+| swap_large_structs | mem::swap of 72-byte `{String, *mut u8, u32, [u64; 4]}` structs (with a raw pointer whose pointee gets freed by Drop): two locals, within a stack array, through Vec references, and a 12-swap shuffle; every value (including the boxed pointee behind the raw pointer) must survive bit-for-bit | success, output-includes "size = 72", "pair: bb#2*2[2,3,4,5] aa#1*1[1,2,3,4]", "shuffled: ii#9*9[9,10,11,12] | jj#10*10[10,11,12,13] | kk#11*11[11,12,13,14] | ll#12*12[12,13,14,15]" | exit 0 | exit 0 |
+| swap_box_and_refs | mem::swap of 8-byte pointer ELEMENTS: in-place reversal of a `Vec<Box<String>>` via pairwise `split_at_mut` swaps, swap of Box locals, swap through `&mut T` references, 8-byte `Option<&str>` array elements, and 16-byte `Box<dyn Fn>` fat pointers -- the smallest size class where an integer-typed swap chunk would widen to a single i64 (guards change #22 at the 8-byte size) | success, output-includes "rev: e11 e10 e09 e08 e07 e06 e05 e04 e03 e02 e01 e00", "boxes: second first", "refs: ref-two ref-one", "opts: p3 p2 p1 p0", "closures: cb-b cb-a" | exit 0 | exit 0 |
+| mem_replace_take | mem::replace/mem::take on String/Vec/Box payloads, Option take/replace of large payloads, Vec::swap_remove, and mem::replace of a 24-byte enum (whole-aggregate typed moves) | success, output-includes "new = two[2,3,4;20], old = one[1,2,3;10]", 'taken string = "held", s = ""', "opt now true, prev = \"three[3,4,5;30]\"", "swap_remove -> six[6,7,8;60], rest = eight[8,9,10;80] | seven[7,8,9;70]" | exit 0 | exit 0 |
+| rotate_small_arrays | slice::rotate_left/rotate_right across the risky regimes: constant-folded rotate(1)/rotate(2)/rotate(3) on small FIXED arrays of 8-byte Box elements, 40-byte `[u8; 40]` elements spanning the `[usize; 32]` rotate-scratch threshold, and runtime-count rotates on `Vec<String>`/`Vec<Box<String>>` (see the rotate-scratch investigation note below the table: the scratch is unreachable by constant folding) | success, output-includes "rl1 = b,c,d,e,a", "rr1 = a,b,c,d,e", "rl2 = 3,4,1,2", "rl3 = 2,3,4,1", "bytes40 = c,d,e,f,a,b tails 234501", "rl(3) = v3,v4,v5,v6,v0,v1,v2", "rr(2) = s3,s4,s0,s1,s2" | exit 0 | exit 0 |
+| rotate_vecdeque | VecDeque<Box<String>> push_front/push_back, `rotate_left`/`rotate_right`, `make_contiguous`, pops from both ends and wrap-around indexing after rotation (the deque's internal ring-buffer rotations over pointer elements) | success, output-includes "dq = f0 v0 v1 v2 v3 v4 v5 v6 v7 f2 f1", "after rr(4) = v6 v7 f2 f1 f0 v0 v1 v2 v3 v4 v5", "popped: v6 / v5", "len = 9", "idx0 = wrap", "idxlast = v4" | exit 0 | exit 0 |
+| sort_stable_boxes | slice::sort (driftsort) of 60 `Box<String>` (8-byte elements: the small-sort's element-typed scratch AND the quicksort/stable_partition byte-typed `[MaybeUninit<u8>; 4096]` scratch with per-element constant-size copies), sort_by descending + re-sort, the <=32-element small-sort path, and 40 `String`s (24-byte elements) | success, output-includes "sorted = 0 1 10 11 12 13 14 15 16 17 18 19 2 20 21 22 23 25 26 27 28 29 3 30 31 32 33 34 35 36 37 38 39 4 40 41 42 43 44 45 46 47 48 49 5 50 51 52 53 54 55 56 57 58 59 6 60 7 8 9", "check = true", "small = 0,0,1,2,3,4,5,6,7,8,9,10", "strs = s00 s01 ... s42" | exit 0 | exit 0 |
+| sort_unstable_strings | slice::sort_unstable (ipnsort) of 100 Strings and 50 Box<String>s, plus sort_unstable_by_key of 30 structs containing String+Box (in-place quicksort partitioning moves of pointer-containing elements) | success, output-includes "first = s0 last = s96 len = 100", "matches stable = true", "recs = n0 n0 n1 n10 ... n9", "stable-ish = true" | exit 0 | exit 0 |
+| sort_large_structs | slice::sort_by/sort_by_key/sort_unstable_by of 80 96-byte structs `{String, Box<String>, [*mut u8; 2], [u64; 8]}` (sizes beyond the 4096-byte stack scratch threshold), asserting ascending order and intact boxed values | success, output-includes "sorted = big00:bx0;big00:bx3;...", "ascending = true", "bykey = bx0;bx0;bx0;", "first = big00 last = big30" | exit 0 | exit 0 |
+| vec_ops_aggregates | Vec insert/remove/drain/splice/append/extend_from_slice/truncate+shrink_to_fit/retain of String and Box<String> elements (heap memmoves around pointer words) | success, output-includes "after insert: a,ins,b,c", "removed c -> a,ins,b", "drained: ins,b rest: a", "spliced: x,s1,s2,z extracted: y", "cv: c0,c1,...,c9", "retained: c0,c1,...,c7" | exit 0 | exit 0 |
+| vec_roundtrip_iters | Vec<->iterator round-trips of Box elements: IntoIter collect, rev, front/back splits, zip of two pointer-bearing vecs, windows/chunks to_vec, chain+map, flat_map | success, output-includes "roundtrip: it0,it1,it2,it3,it4,it5", "rev: it5,...,it0", "front = it0 back = it1,...,it5", "zip: 1=one 2=two 3=three", "windows: w0+w1+w2 | ...", "chain: 10,20,30,40", "flat: n1,n2,n3" | exit 0 | exit 0 |
+| string_ops_roundtrip | String push_str/insert_str/replace/drain/into_bytes/from_utf8 round-trips, 50-chunk growth forcing Vec memmoves, split/collect/join, Box<str> round-trip, multi-byte chars | success, output-includes "s = hello filc (cap >= 8: true)", "inserted = >>hello filc", "replaced = >>hello rust", 'drained = "he" left = ">>llo rust"', "utf8 = >>hello filc same = true", "boxed roundtrip same = true", "uni = h\u{e9}llo upper = H\u{c9}LLO chars = 5" | exit 0 | exit 0 |
+| hashmap_aggregates | HashMap<String, Vec<Box<String>>> entry/or_default/get/remove with sorted-key deterministic output, BTreeMap<String, Box<Node>> ordered iteration and remove, and HashMap<&str, Box<dyn Any>> downcasts of String/u32/Vec<String> payloads | success, output-includes "size = 4", "key0 -> v0,v4,v8", "has key3 = true", "removed key3 = true", "only = made,added", "bt[n0] = node0#0", "bt removed n6 = node2", "any: string payload 42 l1+l2" | exit 0 | exit 0 |
+| box_closure_dyn | Box<dyn FnOnce()> called, Box<dyn Fn> objects in a Vec, closures capturing large pointer-bearing structs moved through filter/map/collect, an owning FnMut closure used twice, and a stateful Box<dyn FnMut> | success, output-includes "fnonce = cap:cap-d0cap-d1cap-d2cap-d3", "fns = 11,20,7", "picked = iter#ITER-D0 iter#ITER-D2", "pushed = len=5 last=x1 len=6 last=x2", "counted = 1 3" | exit 0 | exit 0 |
+| enum_large_payloads | Large multi-variant enum payloads: mem::replace/take of List/Pair variants, compare (PartialEq over [String; 3]), by-value consumption through #[inline(never)] calls, and Result<Shape, String> propagation with `?` | success, output-includes "taken empty = Empty taken = true", "prev pair = L R", "eq = true neq = true", "list x+y+z", "pair pq", "words w1|w2|w3", "ok = list deep", "err = bad input" | exit 0 | exit 0 |
+| array_moves_index | `[LargeStruct; 3]` moved into/out of an #[inline(never)] transform, element swaps via split_at_mut, each_mut/each_ref, array::map to `[Box<String>; 3]`, into_iter collect, `[Option<Box<u64>>; 4]` swaps, and a 2D `[[Box<String>; 2]; 2]` | success, output-includes "arr = n1 n2 n3", "after = n3 999 n1", "each = n3!,n2!,n1!", "pointers = 40,20,-,10", "grid = r0c0 r0c1 r1c0 r1c1", "flat = r0c0,r0c1,r1c0,r1c1" | exit 0 | exit 0 |
+| nested_containers | Vec<Vec<String>> deep-clone + mutate, Vec<Option<Box<Node>>> with a None hole, Branch{Vec<Leaf>, [u64;3]} clone-and-compare, by-value grow through #[inline(never)], Option<Branch> replace | success, output-includes "vv total = 6 mid = e", "clone paths = ab/C/def", "2 = none", "branch clone same = true", "grown = L1,L2,L3 107 3", "opt none = true prev leaves = 3" | exit 0 | exit 0 |
+| maybe_uninit_roundtrip | SAFE MaybeUninit patterns over pointer-bearing aggregates: new/assume_init round-trip, write+assume_init for a struct, `[MaybeUninit<Box<String>>; 4]` filled then element-wise assume_init, ManuallyDrop-guarded reads of a partially-initialized buffer, field copies out of a ManuallyDrop wrapper | success, output-includes "roundtrip = combo 7 true", "written = written 88", "array = box0,box1,box2,box3", "guarded = combo second", "manual = manual+read" | exit 0 | exit 0 |
+| rc_refcell_graph | Rc<RefCell<TreeNode>> acyclic graph with parent Weak links, strong/weak counts before and after moves into a Vec, RefCell borrow-scoped mutation of Box payloads, Weak::upgrade after drop | success, output-includes "root strong = 1 weak = 2", "left strong = 2", "child left payload 2 parent root kids left-child", "moved = left,right", "left still strong = 3", "mut = M1,m2,m3", "weak alive after drop = true", "root weak count = 2" | exit 0 | exit 0 |
+| arc_mutex_large | 4 threads each capturing a large (String + 5-Box) struct by value, extending a shared Arc<Mutex<Vec<String>>>; deterministic sorted final print of all 24 entries | success, output-includes "n = 24 all = c0-0,c0-1,...,capture-3" | exit 0 | exit 0 |
+| mpsc_large_messages | mpsc::channel (3 senders x 4 messages) and sync_channel (bounded, 2 senders) carrying 24-byte+ `{u64, u32, Vec<Box<String>>}` messages; deterministic via seq-number sorting | success, output-includes "count = 12", "first3: 0: s0-m0-p0+s0-m0-p1+s0-m0-p2 from 0", "last = 3: s2-m3-p0+s2-m3-p1+s2-m3-p2 from 2", "sync = 0,1,2,10,11" | exit 0 | exit 0 |
+| thread_scoped_big | std::thread::scope: 3 threads borrowing a shared Vec<Box<String>> while owning large locals, returning Strings joined in sorted order, plus a scoped thread that panics and its join().is_err() observation | success, output-includes "scoped boom", "panic caught = true", "res = t0 shared8:shared-0 local4:local0-0,...", "shared intact = true" | exit 0 | exit 0 |
+| thread_local_cells | thread_local! RefCell<Vec<String>> and RefCell<Box<String>> cells populated from 2 threads plus main, deterministic per-thread prints | success, output-includes "thread0 sees: t0-0,t0-1,t0-2", "thread1 sees: t1-0,t1-1,t1-2", "main sees: main,main2", "main drop cell: dropped" | exit 0 | exit 0 |
+| coro_async_moves | Coroutines: async fns with Box<String>/Box<Vec<String>> captures moved across await points, polled by a hand-rolled executor (RawWaker vtable), at `-O` with `--edition 2021` (the coro-split codegen path at every level) | success, output-includes "done = [[seed+ab]!+c]!" | exit 0 | exit 0 |
+| spawn_return_big | thread::spawn joining a LARGE (80-byte `{String, Box<u64>, [u64; 5], Box<u64>}`) return value from 4 threads -- the spawn+join flight-path shape that change #21's typed allocas guard, stressed with a big pointer-bearing payload | success, output-includes "size = 80", "joined = ret-0 0 [0, 1, 2, 3, 4] 0", "joined = ret-3 3000 [3, 4, 5, 6, 7] 6" | exit 0 | exit 0 |
+| panic_payload_big | Panic payloads: panic_any of a large `{String, Box<u64>, Vec<String>}` struct + catch_unwind + Box<dyn Any> downcast (twice), a formatted String payload downcast, and a &'static str payload downcast (the default hook's spew is deterministic) | success, output-includes "down = payload-12#84:l12-a+l12-b", "orig = payload-11#77:l11-a+l11-b", "msg = plain message", "static = static panic text" | exit 0 | exit 0 |
+| heap_ops | BinaryHeap<Box<String>> push/pop (element-typed Hole scratch), into_sorted_vec of Box<u32>, peek_mut in-place mutation and re-sift | success, output-includes "len = 10", "popped = h9,h8,h7,h6,h5,h4,h3,h2,h1,h0", "sorted = 0,1,2,3,5,6,7,8", "top = aaa" | exit 0 | exit 0 |
+| slice_concat_join | slice concat/flatten/join of Box elements into fresh heap allocations, deep Vec clones, Box<str> joins, and a prefix-heavy sort of Box<str>s | success, output-includes "flattened = c1,c2,c3,c4,c5", "joined = s1-s2-s3", "concat = a|b|c", "cloned = c1,c2,c3,c4,c5 same-ptr = false", "repeated = rprprp", "names = aa,ab,ba,bb" | exit 0 | exit 0 |
+| once_lock_big | OnceLock<Config> (Vec<String> + Box<u32> + Vec<Vec<String>>) initialized via get_or_init from 4 racing threads, exactly-once value observed deterministically | success, output-includes "t0: 4242 cfg-name-0 nested=n2", "t3: 4242 cfg-name-3 nested=n2", "final = 4242 6" | exit 0 | exit 0 |
+| union_memory_moves | `#[repr(C)]` unions with pointer fields moved through MEMORY: inline-init + mem::swap, reference reads (#[inline(never)]), mem::replace, a struct wrapping a union passed by value, and unions shuffled inside a Vec -- the regression guard for change #23 (the Rust-ABI by-value union fix) plus the typed-alloca/pointer-chunk coverage of in-memory union moves; deliberately does NOT exercise the extern "C" by-value hole (known-issues #10) | success, output-includes "before: 11 22", "after: 22 11", "via ref: 22 11", "replace: 44 33", "consume = 66", "extra = 6600", "vec vals: 30,10,20,0 true" | exit 0 | exit 0 |
+| aligned_aggregates | `#[repr(align(16))]`/`#[repr(align(32))]` aggregates holding pointers: Vec push/swap/pop, by-value pass-through chain, and fixed arrays (the typed-alloca path over over-aligned layouts) | success, output-includes "sizes 48 64", "aligns 16 32", "item = a3:3:3:m3", "popped = a1:1:1:m1", "passed = a1:1:1001:m1", "arr = a4:4:4:m4" | exit 0 | exit 0 |
+| drop_unwind-opt | the `drop_unwind` program compiled with `optFlags: -O` | success; same output assertions as `drop_unwind` | exit 0 | exit 0 |
+| thread_panic_join-opt | the `thread_panic_join` program compiled with `optFlags: -O` | success; same output assertions | exit 0 | exit 0 |
+| use_after_free-opt | the `use_after_free` program compiled with `optFlags: -O` | failure; same output assertions as `use_after_free` | 133 | 42 |
+| oob_write-opt | the `oob_write` program compiled with `optFlags: -O` | failure; same output assertions as `oob_write` | 133 | 42 |
 
-That is **18 tests**, all `.rs`-level.  Six .ll tests were REMOVED along with
+That is **53 tests**, all `.rs`-level (18 from the first rounds plus 35 added by the test-expansion round: 31 behavioral tests at `-O` with `extraArgs: ["--edition", "2021"]`, and 4 `-opt` copies of debug-only siblings).  Six .ll tests were REMOVED along with
 the abandoned SROA-side fix (`sroa_memcpy_noalign`, `sroa_memcpy_small`,
 `mixed_typed_memcpy`, `mixed_memset_memcpy`, `mixed_order`,
 `sroa_memset_vector`): they existed to pin the behavior of the Fil-C
@@ -1706,6 +1808,63 @@ both optimization levels.  `oob_read`/`oob_write`/`null_deref`/
 `use_after_free` are Fil-C safety panics (not Rust panics): they never
 unwind, so their manifests stay `return: failure` (exit 42 under the
 harness's `FILC_EXIT_ON_PANIC=1`).
+
+Two investigations from the test-expansion round are worth recording
+because they shape which tests are meaningful:
+
+* **The `slice::rotate` memmove scratch (`type BufType = [usize; 32]`) is
+  NOT reachable by the SROA integer-widening bug class.**  It is the last
+  numeric-typed buffer in `library/core`/`library/alloc`/`library/std` that
+  receives potentially-pointer bytes via memcpys, and it was a prime suspect
+  (the rotate memcpys into it start at a constant offset 0, so a
+  constant-size copy would be splittable and -- for an 8-byte pointer
+  element -- its partition would hit SROA's `getIntNTy` fallback).  The
+  blocker is inlining: `slice::rotate_left` (slice/mod.rs) is a `pub const
+  fn` with NO `#[inline]`, so its IR is not exported to other CGUs and the
+  pre-pizlonation inliner cannot inline it into user code (verified with
+  `-C llvm-args=--debug-only=sroa`: `rotate_left` remains a separate
+  function at `-O`, and a `rotate_left(1)` over `[Box<String>; 5]` still
+  passes).  Inside the core CGU the parameters are runtime values, so the
+  scratch memcpys have runtime lengths and are unsplittable for SROA (the
+  rewriter only pointer-adjusts them).  Callers inside std
+  (`VecDeque::make_contiguous`) also pass runtime lengths.  The
+  `rotate_small_arrays` test pins this shape as a regression guard: if
+  rotate ever becomes inlinable (or the scratch gets constant-size copies),
+  the 8-byte-element rotates in that test are exactly the shape that would
+  drop capabilities.  The same sweep of numeric-typed scratch buffers
+  (done again for this round, beyond change #22's sweep) found nothing
+  else: `filter_map::next_chunk`'s buffer is `[MaybeUninit<B>; N]`
+  (element-typed) with runtime-index writes, `map_windows`' buffer is
+  element-typed, `clone/uninit`'s copies are element-typed, sip-hash and
+  fmt/num buffers move only bytes, and the sort scratches are element-typed
+  (`MaybeUninit<[T; N]>`) or byte-typed with runtime offsets (which abort
+  SROA's analysis for the alloca).
+
+* **The pointer-bearing `union` bug class (change #23) was found by the
+  `union_memory_moves` test and root-caused from `--debug-only=sroa`
+  traces.**  The failing IR shape was rustc's own emission (it reproduced
+  with `-C llvm-args=-filc-optimize=0`, i.e. without the pre-pizlonation
+  block, and at O0): a `#[repr(C)] union U { p: *mut u8, i: u64 }` gets
+  `BackendRepr::Memory` from the union ABI optimization (its two fields
+  have different scalar reprs), so `adjust_for_rust_abi` casted the 8-byte
+  union to an `i64` immediate at every by-value call boundary (`Vec::push`,
+  `Box::new`, returns) -- the pointer crossed as a bare integer.  Validity
+  evidence, both directions: reverting ONLY the change #23 guard (upstream
+  cast restored) makes `union_memory_moves` die with "filc safety error:
+  cannot read pointer with null object" right after its "extra = 6600"
+  line (in the Vec section), and makes the by-value-return probe die in
+  the same way; restoring the guard makes all 53 tests pass (twice).
+  A sibling sweep confirmed the guard lives in the single generic path:
+  `adjust_for_rust_abi`'s Memory branch is the only rule that turns small
+  Memory-repr aggregates into integer immediates, it runs for every arch
+  (the arch-specific `compute_rust_abi_info` pre-passes only adjust float
+  soft-float/sign-extension details), and Scalar/ScalarPair -- where
+  pointer halves already travel in ptr-typed registers -- are untouched.
+  The `extern "C"` (SysV) variant of the same shape is verified to still
+  drop the capability (an `extern "C" fn read_val(u: U)` dies with the
+  same safety error) and stays documented as the remaining known-issues
+  #10 hole, because fixing it would desynchronize rustc's extern "C" ABI
+  from clang-compiled C code.
 
 The four `-opt` tests (`hello-opt`, `catch_unwind-opt`, `threads-opt`,
 `oob_read-opt`) are byte-for-byte copies of their non-opt siblings whose

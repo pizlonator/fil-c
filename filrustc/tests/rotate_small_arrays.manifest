@@ -1,0 +1,18 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "rl1 = b,c,d,e,a"
+  - "rr1 = a,b,c,d,e"
+  - "rl2 = 3,4,1,2"
+  - "rl3 = 2,3,4,1"
+  - "bytes40 = c,d,e,f,a,b tails 234501"
+  - "rl(0) = v0,v1,v2,v3,v4,v5,v6"
+  - "rl(1) = v1,v2,v3,v4,v5,v6,v0"
+  - "rl(3) = v3,v4,v5,v6,v0,v1,v2"
+  - "rl(6) = v6,v0,v1,v2,v3,v4,v5"
+  - "rl(7) = v0,v1,v2,v3,v4,v5,v6"
+  - "rr(2) = s3,s4,s0,s1,s2"

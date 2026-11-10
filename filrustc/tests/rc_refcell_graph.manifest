@@ -1,0 +1,16 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "root strong = 1 weak = 2"
+  - "left strong = 2"
+  - "child left payload 2 parent root kids left-child"
+  - "child right payload 3 parent root kids "
+  - "moved = left,right"
+  - "left still strong = 3"
+  - "mut = M1,m2,m3"
+  - "weak alive after drop = true"
+  - "root weak count = 2"

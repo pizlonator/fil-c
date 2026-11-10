@@ -1,0 +1,18 @@
+# Over-aligned aggregates holding pointers: moves, swaps, Vec push/pop and
+# by-value call chains keep every capability intact.
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "sizes 48 64"
+  - "aligns 16 32"
+  - "item = a3:3:3:m3"
+  - "item = a2:2:2:m2"
+  - "item = a1:1:1:m1"
+  - "popped = a1:1:1:m1"
+  - "passed = a1:1:1001:m1"
+  - "arr = a4:4:4:m4"
+  - "arr = a5:5:5:m5"

@@ -757,6 +757,98 @@ diff --git a/rust/compiler/rustc_session/src/session.rs b/rust/compiler/rustc_se
      }
 
      /// Returns the panic strategy for this compile session. If the user explicitly selected one
+diff --git a/rust/compiler/rustc_target/src/callconv/mod.rs b/rust/compiler/rustc_target/src/callconv/mod.rs
+--- a/rust/compiler/rustc_target/src/callconv/mod.rs
++++ b/rust/compiler/rustc_target/src/callconv/mod.rs
+@@ -2,7 +2,7 @@
+
+ use rustc_abi::{
+     AddressSpace, Align, BackendRepr, CanonAbi, ExternAbi, HasDataLayout, Primitive, Reg, RegKind,
+-    Scalar, Size, TyAbiInterface, TyAndLayout,
++    Scalar, Size, TyAbiInterface, TyAndLayout, Variants,
+ };
+ use rustc_macros::HashStable_Generic;
+
+@@ -617,6 +617,51 @@
+     }
+ }
+
++/// Fil-C (GIMSO): conservative transitive "may this layout contain a pointer
++/// word" predicate, written against `TyAbiInterface` so it can be used from
++/// the target-independent Rust-ABI adjustment.  This mirrors the codegen
++/// predicate of the same name in rustc_codegen_llvm (filc_may_contain_pointers
++/// in type_of.rs): pointers (raw pointers, references, `Box`, function
++/// pointers) make it true, `ScalarPair` if either half is a pointer, SIMD
++/// vectors never, and memory-backed aggregates recurse over their fields --
++/// with multi-variant enums (and coroutines) also checking every variant's
++/// layout, since a variant's payload fields do not appear in the top-level
++/// field list.  Unsized layouts answer false (they are never passed by value).
++fn filc_layout_may_contain_pointers<'a, Ty, C>(cx: &C, layout: TyAndLayout<'a, Ty>) -> bool
++where
++    Ty: TyAbiInterface<'a, C> + Copy,
++    C: HasDataLayout,
++{
++    match layout.backend_repr {
++        BackendRepr::Scalar(scalar) => matches!(scalar.primitive(), Primitive::Pointer(_)),
++        BackendRepr::ScalarPair(a, b) => {
++            matches!(a.primitive(), Primitive::Pointer(_))
++                || matches!(b.primitive(), Primitive::Pointer(_))
++        }
++        BackendRepr::SimdVector { .. } => false,
++        BackendRepr::Memory { .. } => {
++            if !layout.is_sized() {
++                return false;
++            }
++            let fields = layout
++                .fields
++                .index_by_increasing_offset()
++                .any(|i| filc_layout_may_contain_pointers(cx, layout.field(cx, i)));
++            if fields {
++                return true;
++            }
++            // Enums (and coroutines) keep their variants' payload fields out
++            // of the top-level field list.
++            match &layout.variants {
++                Variants::Multiple { variants, .. } => variants.indices().any(|v| {
++                    filc_layout_may_contain_pointers(cx, layout.for_variant(cx, v))
++                }),
++                Variants::Single { .. } | Variants::Empty => false,
++            }
++        }
++    }
++}
++
+ impl<'a, Ty> FnAbi<'a, Ty> {
+     pub fn adjust_for_foreign_abi<C>(&mut self, cx: &C, abi: ExternAbi)
+     where
+@@ -791,6 +836,27 @@
+                     let size = arg.layout.size;
+                     if arg.layout.is_sized()
+                         && size <= Primitive::Pointer(AddressSpace::ZERO).size(cx)
++                        // Fil-C (GIMSO): a small aggregate that may contain
++                        // pointers must NOT be passed as an integer immediate.
++                        // An integer-typed value in flight carries only the
++                        // payload; the pointer's capability travels separately
++                        // (with pointer-typed values and with memory copies),
++                        // so a pointer word passed inside an integer would
++                        // arrive without its capability and dereferencing it
++                        // would fail with "cannot read pointer with null
++                        // object" (a pointer-bearing `union` returned by value
++                        // miscompiled this way: its overlapping fields make it
++                        // a Memory repr, and this cast turned the whole union
++                        // into an `i64`).  Leaving such aggregates in the
++                        // default indirect (by-reference) mode keeps the move
++                        // a memory copy, which moves payload and capability
++                        // together.  This is the same house rule as clang's
++                        // union representation hack and the Fil-C typed
++                        // allocas: memory that may hold pointers must stay
++                        // pointer-typed (or move as whole-object copies).
++                        // Numeric aggregates keep the integer immediate, so
++                        // there is no effect on ordinary by-value passes.
++                        && !filc_layout_may_contain_pointers(cx, arg.layout)
+                     {
+                         // We want to pass small aggregates as immediates, but using
+                         // an LLVM aggregate type for this leads to bad optimizations,
 diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 --- a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 +++ b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs

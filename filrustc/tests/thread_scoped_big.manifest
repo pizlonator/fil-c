@@ -1,0 +1,13 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "scoped boom"
+  - "panic caught = true"
+  - "res = t0 shared8:shared-0 local4:local0-0,local0-1,local0-2,local0-3"
+  - "res = t1 shared8:shared-0 local4:local1-0,local1-1,local1-2,local1-3"
+  - "res = t2 shared8:shared-0 local4:local2-0,local2-1,local2-2,local2-3"
+  - "shared intact = true"

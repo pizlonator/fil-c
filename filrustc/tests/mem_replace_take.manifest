@@ -1,0 +1,15 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "new = two[2,3,4;20], old = one[1,2,3;10]"
+  - "taken string = \"held\", s = \"\""
+  - "taken vec len = 2, v len = 0"
+  - "opt now true, prev = \"three[3,4,5;30]\""
+  - "opt2 = \"five[5,6,7;50]\", prev2 = four[4,5,6;40]"
+  - "swap_remove -> six[6,7,8;60], rest = eight[8,9,10;80] | seven[7,8,9;70]"
+  - "e is B with boxed"
+  - "old e was A enum-a"

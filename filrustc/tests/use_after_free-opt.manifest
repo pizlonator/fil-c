@@ -1,0 +1,9 @@
+return:
+  failure
+optFlags: -O
+output-includes:
+  - "filc safety error"
+  - "cannot read pointer to free object"
+  - "filc panic: thwarted a futile attempt to violate memory safety"
+output-excludes:
+  - "Should not get here."

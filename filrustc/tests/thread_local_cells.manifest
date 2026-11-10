@@ -1,0 +1,11 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "thread0 sees: t0-0,t0-1,t0-2"
+  - "thread1 sees: t1-0,t1-1,t1-2"
+  - "main sees: main,main2"
+  - "main drop cell: dropped"

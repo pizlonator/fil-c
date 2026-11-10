@@ -1,0 +1,13 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "pair: beta:2 alpha:1"
+  - "array: f:6 e:5 d:4 c:3"
+  - "vec: h:8 g:7"
+  - "opts: Some(\"two\") Some(\"one\")"
+  - "tuples: (two, 22) (one, 11)"
+  - "loop: y:10 x:9"

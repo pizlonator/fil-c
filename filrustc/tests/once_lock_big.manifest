@@ -1,0 +1,11 @@
+# OnceLock<Config> initialized from competing threads; exactly-once semantics
+# with a large pointer-bearing value.
+return:
+  success
+optFlags: -O
+output-includes:
+  - "t0: 4242 cfg-name-0 nested=n2"
+  - "t1: 4242 cfg-name-1 nested=n2"
+  - "t2: 4242 cfg-name-2 nested=n2"
+  - "t3: 4242 cfg-name-3 nested=n2"
+  - "final = 4242 6"

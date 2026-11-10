@@ -1,0 +1,17 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "after insert: a,ins,b,c"
+  - "removed c -> a,ins,b"
+  - "drained: ins,b rest: a"
+  - "after extend: a,ext1,ext2"
+  - "after append: a,ext1,ext2,app1,app2 (other empty: true)"
+  - "spliced: x,s1,s2,z extracted: y"
+  - "box vec: B1,mid,B2 gone = B0"
+  - "truncated: B1,mid cap>0: true"
+  - "cv: c0,c1,c2,c3,c4,c5,c6,c7,c8,c9"
+  - "retained: c0,c1,c2,c3,c4,c5,c6,c7"

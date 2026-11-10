@@ -1,0 +1,17 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "s = hello filc (cap >= 8: true)"
+  - "inserted = >>hello filc"
+  - "replaced = >>hello rust"
+  - "drained = \"he\" left = \">>llo rust\""
+  - "utf8 = >>hello filc same = true"
+  - "big len = 390 starts chunk0;chunk"
+  - "parts = 50 first = chunk0"
+  - "rejoined starts chunk0|chunk1|ch len 389"
+  - "boxed roundtrip same = true"
+  - "uni = héllo upper = HÉLLO chars = 5"

@@ -1,0 +1,12 @@
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "roundtrip = combo 7 true"
+  - "written = written 88"
+  - "array = box0,box1,box2,box3"
+  - "guarded = combo second"
+  - "manual = manual+read"

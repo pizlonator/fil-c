@@ -1,0 +1,11 @@
+# slice concat/join of pointer-containing slices into fresh allocations.
+return:
+  success
+optFlags: -O
+output-includes:
+  - "flattened = c1,c2,c3,c4,c5"
+  - "joined = s1-s2-s3"
+  - "concat = a|b|c"
+  - "cloned = c1,c2,c3,c4,c5 same-ptr = false"
+  - "repeated = rprprp"
+  - "names = aa,ab,ba,bb"
