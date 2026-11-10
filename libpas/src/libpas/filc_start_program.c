@@ -331,41 +331,25 @@ static struct hop_context* hop_context_transfer(struct hop_context* current,
    namespace: unshare(CLONE_NEWUSER) fails with EINVAL. The program used to run on a second thread that
    the initial thread created, and the initial thread stayed behind, parked, to keep /proc/self alive.
    The thread keeps its signal mask. */
+
+/* The function to call on the new stack, and its argument. */
 static struct {
-    int argc;
-    char** argv;
-    pizlonated_getter pizlonated___libc_start_main;
-    pizlonated_getter pizlonated_main;
-    filc_stack_limit stack_limit;
+    void (*function)(void* arg);
+    void* arg;
 } hop;
 
 static __attribute__((noreturn)) void hop_main(struct hop_context* from, struct hop_context* self)
 {
     PAS_UNUSED_PARAM(from);
     PAS_UNUSED_PARAM(self);
-    really_start_program(
-        hop.stack_limit, hop.argc, hop.argv, hop.pizlonated___libc_start_main,
-        hop.pizlonated_main);
+    hop.function(hop.arg);
 
     PAS_ASSERT(!"Should not get here");
     __builtin_unreachable();
 }
 
-void filc_start_program(int argc, char** argv,
-                        pizlonated_getter pizlonated___libc_start_main,
-                        pizlonated_getter pizlonated_main)
+filc_stack_limit filc_map_program_stack(char** stack_out, size_t* stack_size_out)
 {
-    if (PAS_GLIBC) {
-        /* I trust glibc's main thread stack size measurement. But, I know that it won't work during
-           system startup. */
-        filc_stack_limit stack_limit = filc_try_compute_stack_limit();
-        if (filc_stack_limit_did_succeed(stack_limit)) {
-            really_start_program(
-                stack_limit, argc, argv, pizlonated___libc_start_main, pizlonated_main);
-            return;
-        }
-    }
-
     /* The stack has the size that `ulimit -s` says. */
     struct rlimit stack_rlim;
     intptr_t stack_min = PTHREAD_STACK_MIN;
@@ -389,20 +373,71 @@ void filc_start_program(int argc, char** argv,
     PAS_ASSERT(!mprotect(region, page_size, PROT_NONE));
     char* stack = region + page_size;
 
-    hop.argc = argc;
-    hop.argv = argv;
-    hop.pizlonated___libc_start_main = pizlonated___libc_start_main;
-    hop.pizlonated_main = pizlonated_main;
-    hop.stack_limit = filc_compute_stack_limit_for_stack_and_size(stack, stack_size);
+    *stack_out = stack;
+    *stack_size_out = stack_size;
+    return filc_compute_stack_limit_for_stack_and_size(stack, stack_size);
+}
 
+void filc_hop_to_stack(char* stack, size_t stack_size, void (*function)(void* arg), void* arg)
+{
     struct hop_context from;
     struct hop_context to;
+
+    hop.function = function;
+    hop.arg = arg;
 
     hop_context_initialize_main(&from);
     hop_context_initialize(&to, hop_main, stack, stack_size);
     hop_context_transfer(&from, &to);
 
     __builtin_unreachable();
+}
+
+struct start_args {
+    int argc;
+    char** argv;
+    pizlonated_getter pizlonated___libc_start_main;
+    pizlonated_getter pizlonated_main;
+    filc_stack_limit stack_limit;
+};
+
+static void start_program_on_stack(void* arg)
+{
+    struct start_args* args = (struct start_args*)arg;
+
+    really_start_program(
+        args->stack_limit, args->argc, args->argv, args->pizlonated___libc_start_main,
+        args->pizlonated_main);
+
+    PAS_ASSERT(!"Should not get here");
+}
+
+void filc_start_program(int argc, char** argv,
+                        pizlonated_getter pizlonated___libc_start_main,
+                        pizlonated_getter pizlonated_main)
+{
+    if (PAS_GLIBC) {
+        /* I trust glibc's main thread stack size measurement. But, I know that it won't work during
+           system startup. */
+        filc_stack_limit stack_limit = filc_try_compute_stack_limit();
+        if (filc_stack_limit_did_succeed(stack_limit)) {
+            really_start_program(
+                stack_limit, argc, argv, pizlonated___libc_start_main, pizlonated_main);
+            return;
+        }
+    }
+
+    static struct start_args args;
+    char* stack;
+    size_t stack_size;
+
+    args.argc = argc;
+    args.argv = argv;
+    args.pizlonated___libc_start_main = pizlonated___libc_start_main;
+    args.pizlonated_main = pizlonated_main;
+    args.stack_limit = filc_map_program_stack(&stack, &stack_size);
+
+    filc_hop_to_stack(stack, stack_size, start_program_on_stack, &args);
 }
 
 void filc_start_program_with_jit(int argc, char** argv,

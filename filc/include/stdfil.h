@@ -822,6 +822,24 @@ void zgc_wait(zgc_cycle_number cycle);
    Unmapping the object from its start with its whole length frees it like any other mmap object. */
 void* zgc_reserve_at(unsigned long address, __SIZE_TYPE__ length);
 
+/* Defined if zcall_on_fresh_stack() exists. Test for this rather than for a version number. */
+#define FILC_HAS_ZCALL_ON_FRESH_STACK 1
+
+/* Calls callback(arg) on a new stack and never returns to the caller. None of the frames of the
+   calling thread stay alive, and when the callback returns the process exits with status 0.
+
+   Fil-C is precise, and the frames of a running function keep alive what their slots point to: the
+   locals of the function, even the ones that it never uses again, and the pointers that it passed to
+   the calls that it made, until another call overwrites them. A process that unmaps a range and wants
+   it back at the same address, as when it reopens a file of pointers, never gets the range while a
+   frame of the thread still has a stale pointer into it. This function drops all those frames at once.
+   Only what arg and the globals reach stays alive, so pass everything that the callback needs through
+   those. The caller must not need anything from its own frames afterwards.
+
+   The new stack has the size that `ulimit -s` gives. The function does not free the stack of the
+   caller. */
+void zcall_on_fresh_stack(void* (*callback)(void* arg), void* arg) __attribute__((noreturn));
+
 /* Request a synchronous scavenge. This decommits all memory that can be decommitted.
    
    If we you want to free all memory that can possibly be freed and you're happy to wait, then you should

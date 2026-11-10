@@ -9524,6 +9524,63 @@ int filc_native_zsys_fork_impl(filc_thread* my_thread)
     return result;
 }
 
+/* Runs on the new stack of zcall_on_fresh_stack. The frames of the caller are no longer on the frame
+   chain of the thread, so the collector does not see the locals and the outgoing arguments of those
+   frames. */
+static void fresh_stack_main(void* arg)
+{
+    PAS_UNUSED_PARAM(arg);
+    filc_thread* my_thread = filc_get_my_thread();
+    PAS_ASSERT(filc_thread_is_entered(my_thread));
+
+    FILC_DEFINE_CATCHING_FRAME("zcall_on_fresh_stack");
+    filc_push_frame(my_thread, frame);
+
+    filc_native_frame native_frame;
+    filc_push_native_frame(my_thread, &native_frame);
+
+    filc_ptr callback_ptr = filc_flight_ptr_load(my_thread, &my_thread->thread_main);
+    filc_ptr arg_ptr = filc_flight_ptr_load(my_thread, &my_thread->arg_ptr);
+    filc_flight_ptr_store(my_thread, &my_thread->thread_main, filc_ptr_forge_null());
+    filc_flight_ptr_store(my_thread, &my_thread->arg_ptr, filc_ptr_forge_null());
+
+    filc_exception_and_ptr result = filc_call_user_thread_main(my_thread, callback_ptr, arg_ptr);
+    if (result.has_exception)
+        filc_user_panic(NULL, "unexpected exception thrown from the function of zcall_on_fresh_stack.");
+
+    /* The function returned and nothing is left to return to. */
+    filc_exit(my_thread);
+    exit(0);
+}
+
+void filc_native_zcall_on_fresh_stack(filc_thread* my_thread, filc_ptr callback_ptr,
+                                      filc_ptr arg_ptr)
+{
+    filc_check_function_call(callback_ptr);
+#if FILC_HAS_FIBER_CONTEXT
+    FILC_CHECK(
+        !my_thread->current_fiber_context,
+        NULL,
+        "cannot call zcall_on_fresh_stack from a fiber.");
+#endif /* FILC_HAS_FIBER_CONTEXT */
+
+    /* Pass the function and its argument through the same fields that a new thread gets them in,
+       because the collector knows those fields. */
+    filc_flight_ptr_store(my_thread, &my_thread->thread_main, callback_ptr);
+    filc_flight_ptr_store(my_thread, &my_thread->arg_ptr, arg_ptr);
+
+    /* Leave the frames of the caller behind. Nothing returns into them. */
+    char* stack;
+    size_t stack_size;
+    filc_stack_limit stack_limit = filc_map_program_stack(&stack, &stack_size);
+    my_thread->top_frame = NULL;
+    my_thread->top_native_frame = NULL;
+    filc_raw_ptr_array_destruct(&my_thread->allocation_roots);
+    filc_raw_ptr_array_construct(&my_thread->allocation_roots);
+    set_stack_limit(my_thread, stack_limit);
+    filc_hop_to_stack(stack, stack_size, fresh_stack_main, NULL);
+}
+
 int filc_native_zsys_waitpid(filc_thread* my_thread, int pid, filc_ptr status_ptr, int options)
 {
     if (filc_ptr_ptr(status_ptr))
