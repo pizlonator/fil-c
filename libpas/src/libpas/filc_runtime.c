@@ -9831,9 +9831,12 @@ void filc_unmap(void* ptr, size_t size)
        filc_unmap (munmap, shmdt, mremap) cannot hand us a Windows mapping. */
     PAS_ASSERT(!filc_running_on_windows());
 #endif /* PAS_COSMO */
+    /* The pages only hold the address range, so do not charge them to the overcommit limit.
+       Without MAP_NORESERVE, unmapping a mapping of tens of gigabytes that was reserved with
+       MAP_NORESERVE fails with ENOMEM. */
     void* result_ptr = mmap(ptr, size,
                             PROT_READ | PROT_WRITE,
-                            MAP_PRIVATE | MAP_ANON | MAP_FIXED,
+                            MAP_PRIVATE | MAP_ANON | MAP_FIXED | MAP_NORESERVE,
                             -1, 0);
     PAS_ASSERT(result_ptr == ptr);
 }
