@@ -614,6 +614,34 @@ long zsys_syscall(long n, ...)
         callee = zsys_pidfd_open;
         break;
 
+    case SYS_pidfd_getfd:
+        callee = zsys_pidfd_getfd;
+        break;
+
+    case SYS_pidfd_send_signal:
+        callee = zsys_pidfd_send_signal;
+        break;
+
+    case SYS_unshare:
+        callee = zsys_unshare;
+        break;
+
+    case SYS_setns:
+        callee = zsys_setns;
+        break;
+
+    case SYS_syncfs:
+        callee = zsys_syncfs;
+        break;
+
+    case SYS_capget:
+        callee = zsys_capget;
+        break;
+
+    case SYS_capset:
+        callee = zsys_capset;
+        break;
+
     case SYS_setreuid:
         callee = zsys_setreuid;
         break;

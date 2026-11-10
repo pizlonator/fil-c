@@ -12170,6 +12170,19 @@ int filc_native_zsys_prctl(filc_thread* my_thread, int option, filc_cc_cursor* a
         return FILC_SYSCALL(my_thread, prctl(option, value, 0, 0, 0));
     }
 
+    /* The capability bounding set and the ambient set take only integers. */
+    case PR_CAPBSET_READ:
+    case PR_CAPBSET_DROP: {
+        unsigned long value = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
+        return FILC_SYSCALL(my_thread, prctl(option, value, 0, 0, 0));
+    }
+
+    case PR_CAP_AMBIENT: {
+        unsigned long operation = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
+        unsigned long capability = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
+        return FILC_SYSCALL(my_thread, prctl(PR_CAP_AMBIENT, operation, capability, 0, 0));
+    }
+
     case PR_SET_PDEATHSIG: {
         unsigned long value = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
         FILC_CHECK(
@@ -12397,6 +12410,11 @@ int filc_native_zsys_landlock_add_rule(filc_thread* my_thread, int fd, int rule_
     switch (rule_type) {
     case LANDLOCK_RULE_PATH_BENEATH:
         filc_check_read(rule_attr_ptr, sizeof(struct landlock_path_beneath_attr));
+        break;
+
+    case LANDLOCK_RULE_NET_PORT:
+        /* Two integers: the access rights and the port. */
+        filc_check_read(rule_attr_ptr, sizeof(struct landlock_net_port_attr));
         break;
 
     default:
