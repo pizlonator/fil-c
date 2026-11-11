@@ -1228,12 +1228,20 @@ The walk and every invisicap sequence live here ONCE; the actual instructions co
 the per-arch codegen module (arm64_codegen / x86_64_codegen).
 Every injected sequence that writes the condition flags (access checks,
 pollchecks, allocations, invisicap loads/stores) is bracketed by a
-save/restore of the program's flags (x86_64 pushfq/popq through a
-regalloc-owned temp, arm64 mrs/msr nzcv) exactly when a backward
+save/restore of the program's flags through a regalloc-owned temp
+exactly when a backward
 per-flag liveness fixpoint over the lifted CFG says a flag is live at the
 insertion point (liveIn = use | (liveOut & ~def) as bitmasks: EFLAGS bits on
 x86_64 via x86_64_isa's flagUseMask/flagDefMask, all-or-nothing NZCV on
-arm64). A real call defines all flags (the ABI clobbers them); a local call
+arm64). On x86_64, arithmetic flags use `lahf`/`sahf` through a physical RAX
+scratch visible to regalloc. If OF is live, `seto %al` saves it and
+`addb $127,%al` restores it before `sahf`; neither instruction is emitted
+when OF is dead. DF-live and unknown masks still use full `pushfq`/`popfq`
+round-trips, as do the string-operation DF probe and explicit flag-stack
+instructions. Dead masks emit no save. ARM64 still uses `mrs`/`msr nzcv`.
+This experimental branch requires LAHF/SAHF support in 64-bit mode
+(CPUID.80000001H:ECX[0]), without runtime feature dispatch.
+A real call defines all flags (the ABI clobbers them); a local call
 is transparent (hardware `call` preserves flags, so the edge runs into the
 clone entry) while a local ret defines them all (the dispatch compares); a
 `ret` needs nothing past it. Partial writes (inc/dec, shifts, bt, stc, ...)
@@ -2809,4 +2817,3 @@ time. Extension-dependent tests carry manifest keys (`needsAVX512`,
 `needsARMCrypto`, `needsLSE`, `needsFP16`) probed at startup and skip cleanly
 when the hardware lacks the feature. Transform output is deterministic across
 processes (see the determinism invariant in the transform section).
-

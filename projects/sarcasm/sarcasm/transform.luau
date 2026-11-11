@@ -2223,7 +2223,8 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 		if flagLiveCache[i] ~= nil then return flagLiveCache[i] end
 		buildFlagLiveness()
 		-- Past the last node nothing can read the flags: dead.
-		local res = (i <= #lf.nodes) and flagLiveIn[i] ~= 0 or false
+		local mask = (i <= #lf.nodes) and flagLiveIn[i] or 0
+		local res = mask ~= 0 and mask or false
 		flagLiveCache[i] = res
 		return res
 	end
@@ -2231,9 +2232,9 @@ function transform.transformFunction(name, sigDesc, body, backend, extra)
 	-- the program's flags are live at the sequence's insertion point.
 	local function withFlagSave(live, f)
 		if not live then f(); return end
-		local t = cg.saveFlags()
+		local t = cg.saveFlags(live)
 		f()
-		cg.restoreFlags(t)
+		cg.restoreFlags(t, live)
 	end
 
 	-- GC root slots
