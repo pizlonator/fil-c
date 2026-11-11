@@ -747,23 +747,50 @@ function M.make(ctx)
 
 	-- Save/restore EFLAGS around an instrumented sequence when the program's flags
 	-- are live across it (transform.luau's flag-liveness scan; the arm64 backend
-	-- does the same with mrs/msr nzcv). x86 has no flags-to-register move, so the
-	-- flags round-trip through the stack: pushfq, then pop into a VIRTUAL temp
-	-- (ordinary regalloc-owned temp — it may spill freely), and the mirror image to
-	-- restore. Each pair is stack-neutral ON ITS OWN, so an out-of-bounds fail path
+	-- does the same with mrs/msr nzcv). A full RFLAGS word round-trips through
+	-- the stack: pushfq, then pop into a virtual temp, and the mirror image to
+	-- restore. Each pair is stack-neutral on its own, so an out-of-bounds fail path
 	-- taken between the two pairs (the check's branch to the fail stub, which skips
 	-- the restore) still leaves rsp exactly where the body keeps it — a bare
 	-- pushfq/popfq bracket would misalign the stack by 8 on that path and crash the
 	-- fail stub's runtime call. The temp is live across any injected runtime call in
 	-- the bracketed sequence, so regalloc gives it a callee-saved register or spills
 	-- it (the call's precolored caller-saved defs interfere with it).
-	function cg.saveFlags()
+	-- For injected checks, the liveness mask lets us save just the arithmetic
+	-- flags. LAHF captures SF/ZF/AF/PF/CF in AH; SETO captures OF in AL, and
+	-- adding 127 restores it before SAHF (which leaves OF alone). RAX is an
+	-- allocator-visible scratch, not the program's rax web. The saved virtual
+	-- temp survives calls/spills exactly like the full RFLAGS temp above.
+	-- This experimental branch requires LAHF/SAHF in 64-bit mode
+	-- (CPUID.80000001H:ECX[0]); there is no runtime feature dispatch.
+	-- DF/unknown masks and callers asking for the actual RFLAGS word (the
+	-- string-operation DF probe) retain the full-width stack round-trip.
+	function cg.saveFlags(mask)
 		local t = allocTemp({ role = "flags" })
+		if mask and bit32.band(mask, bit32.bnot(isa.FLAG_ALL)) == 0 then
+			local a = pColored(0)
+			local overflow = bit32.band(mask, 2048) ~= 0
+			if overflow then
+				emit(build.insn("seto", { rt(a, 8) }, { defs = {a} }))
+			end
+			emit(build.insn("lahf", {}, { defs = {a}, uses = overflow and {a} or {} }))
+			cg.move(t, a, true)
+			return t
+		end
 		emit(build.insn("pushfq", {}, {}))
 		emit(build.insn("pop", { rt(t) }, { defs = {t} }))
 		return t
 	end
-	function cg.restoreFlags(t)
+	function cg.restoreFlags(t, mask)
+		if mask and bit32.band(mask, bit32.bnot(isa.FLAG_ALL)) == 0 then
+			local a = pColored(0)
+			cg.move(a, t, true)
+			if bit32.band(mask, 2048) ~= 0 then
+				emit(build.insn("add", { rt(a, 8), build.imm(127) }, { defs = {a}, uses = {a} }))
+			end
+			emit(build.insn("sahf", {}, { uses = {a} }))
+			return
+		end
 		emit(build.insn("push", { rt(t) }, { uses = {t} }))
 		emit(build.insn("popfq", {}, {}))
 	end
