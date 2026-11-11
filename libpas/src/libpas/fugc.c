@@ -1559,14 +1559,26 @@ static void trigger_callback(void)
     pas_system_mutex_unlock(&collector_thread_state_lock);
 }
 
-static void create_thread(void)
+/* True when the kernel refused to create the collector thread again. It does that in a process that
+   entered a new PID namespace with unshare(CLONE_NEWPID) or setns(): such a process can fork but cannot
+   create threads. The process then runs without a collector, so it does not reclaim memory and does not
+   wait for a collection that cannot happen. A child of its fork is a member of the new namespace and
+   gets a collector again. */
+static bool collector_thread_is_unavailable = false;
+
+static bool create_thread(bool allow_errors)
 {
     sigset_t fullset;
     pas_reasonably_fill_sigset(&fullset);
     sigset_t oldset;
     PAS_ASSERT(!pthread_sigmask(SIG_BLOCK, &fullset, &oldset));
-    pas_create_detached_thread(collector_thread, NULL);
+    bool result = true;
+    if (allow_errors)
+        result = pas_create_detached_thread_allowing_errors(collector_thread, NULL);
+    else
+        pas_create_detached_thread(collector_thread, NULL);
     PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
+    return result;
 }
 
 void fugc_initialize_settings(void)
@@ -1652,7 +1664,7 @@ void fugc_initialize_collector(void)
     }
 
     collector_thread_is_running = true;
-    create_thread();
+    create_thread(false);
 }
 
 void fugc_suspend(void)
@@ -1660,6 +1672,10 @@ void fugc_suspend(void)
     pas_system_mutex_lock(&collector_thread_state_lock);
     PAS_ASSERT(!threads_locked);
     if (collector_suspend_count++) {
+        pas_system_mutex_unlock(&collector_thread_state_lock);
+        return;
+    }
+    if (collector_thread_is_unavailable) {
         pas_system_mutex_unlock(&collector_thread_state_lock);
         return;
     }
@@ -1683,10 +1699,24 @@ void fugc_resume(void)
         return;
     }
     PAS_ASSERT(!collector_thread_is_running);
+    if (collector_thread_is_unavailable) {
+        /* A suspend while the collector was unavailable did not request anything. Try to create the
+           thread again. */
+        collector_thread_is_running = true;
+        if (create_thread(true))
+            collector_thread_is_unavailable = false;
+        else
+            collector_thread_is_running = false;
+        pas_system_mutex_unlock(&collector_thread_state_lock);
+        return;
+    }
     PAS_ASSERT(collector_control_request == COLLECTOR_CONTROL_REQUEST_SUSPEND);
     collector_control_request &= ~COLLECTOR_CONTROL_REQUEST_SUSPEND;
     collector_thread_is_running = true;
-    create_thread();
+    if (!create_thread(true)) {
+        collector_thread_is_running = false;
+        collector_thread_is_unavailable = true;
+    }
     pas_system_mutex_unlock(&collector_thread_state_lock);
 }
 
@@ -1846,7 +1876,7 @@ uint64_t fugc_request_fresh(void)
 void fugc_wait(uint64_t cycle)
 {
     pas_system_mutex_lock(&collector_thread_state_lock);
-    while (completed_cycle < cycle)
+    while (completed_cycle < cycle && !collector_thread_is_unavailable)
         pas_system_condition_wait(&collector_thread_state_cond, &collector_thread_state_lock);
     pas_system_mutex_unlock(&collector_thread_state_lock);
 }
