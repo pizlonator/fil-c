@@ -3,7 +3,9 @@
 	.type	flagjcc, @function
 flagjcc:                        ;! long(ptr, long)
 	cmpq	$5, %rsi
+	sfence
 	movq	(%rdi), %rax
+	sfence
 	jg	.Lbig
 	movl	$0, %eax
 	ret
@@ -25,7 +27,11 @@ flagbits:                       ;! long(ptr, long, long, long)
 .Lbits_sub:
 	subb	%dl, %al
 .Lbits_load:
+	# SFENCE must not kill any arithmetic flag or invent a flag use. The
+	# exhaustive C reference checks flags live through both fences and the load.
+	sfence
 	movq	(%rdi), %r8
+	sfence
 	seto	%r9b
 	lahf
 	movzbl	%r9b, %r9d
@@ -36,6 +42,16 @@ flagbits:                       ;! long(ptr, long, long, long)
 	xorq	%r8, %rax
 	ret
 	.size	flagbits, .-flagbits
+
+	.globl	fencestores
+	.type	fencestores, @function
+# No flags are live here. The fence must still separate these checked stores.
+fencestores:                    ;! void(ptr, long)
+	movq	%rsi, (%rdi)
+	sfence
+	movq	$1, 8(%rdi)
+	ret
+	.size	fencestores, .-fencestores
 
 	.globl	flagadx
 	.type	flagadx, @function
