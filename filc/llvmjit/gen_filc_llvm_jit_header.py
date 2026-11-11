@@ -141,7 +141,7 @@ JIT_OWN = [
 RUNTIME_COMPILETIME_API = [
     ("void*", "shim_executable_module_allocate_object", "(void* my_thread, void* executable_module, size_t size, size_t alignment)"),
     ("void*", "shim_executable_module_allocate_data", "(void* my_thread, void* executable_module, size_t size, size_t alignment)"),
-    ("void*", "shim_executable_module_allocate_executable", "(void* my_thread, void* executable_module, size_t size)"),
+    ("void*", "shim_executable_module_allocate_executable", "(void* my_thread, void* executable_module, size_t size, size_t alignment)"),
     ("void*", "shim_executable_module_allocate_aux", "(void* my_thread, void* executable_module, size_t size)"),
     ("void", "pas_panic", "(const char* format, ...)"),
     ("void", "pas_log", "(const char* format, ...)"),
@@ -481,13 +481,15 @@ API_STRUCT_TEMPLATE = """
 #define FILC_LLVM_JIT_GC_SECTION_PREFIX "filc_gc_obj"
 #define FILC_LLVM_JIT_AUX_SECTION_PREFIX "filc_jit_aux"
 
-// SHIM_API_VERSION must be bumped whenever the shim predicate set or the
-// semantics of a predicate change, so that a stale libfilcllvmjit.so cannot
-// be paired with a runtime that expects predicates it does not have.
-// Version 13 adds ShimIntrinsicIDOK, ShimInstructionIsAtomic,
-// ShimShuffleMaskOK, and ShimTargetExtNullOK.  Version 14 adds
-// ShimKindIsTypeAttr.  Version 15 adds ShimIntrinsicTysOK.
-#define SHIM_API_VERSION 15
+// SHIM_API_VERSION must be bumped whenever the shim predicate set, the
+// semantics of a predicate, or the runtime-callback table changes, so that a
+// stale libfilcllvmjit.so cannot be paired with a runtime that expects
+// predicates (or callbacks) it does not have.  Version 13 adds
+// ShimIntrinsicIDOK, ShimInstructionIsAtomic, ShimShuffleMaskOK, and
+// ShimTargetExtNullOK.  Version 14 adds ShimKindIsTypeAttr.  Version 15 adds
+// ShimIntrinsicTysOK.  Version 16 adds an alignment argument to
+// shim_executable_module_allocate_executable.
+#define SHIM_API_VERSION 16
 
 typedef struct shim_ptr shim_ptr;
 struct shim_ptr {

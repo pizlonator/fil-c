@@ -97,6 +97,20 @@ void* jit_heap_try_allocate(size_t size)
     return result;
 }
 
+void* jit_heap_try_allocate_with_alignment(size_t size, size_t alignment)
+{
+    static const bool verbose = false;
+    void* result;
+    if (alignment <= 1)
+        return jit_heap_try_allocate(size);
+    if (verbose)
+        pas_log("going to allocate in jit with alignment %zu\n", alignment);
+    result = (void*)jit_try_allocate_common_primitive_impl(size, alignment).begin;
+    if (verbose)
+        pas_log("done allocating in jit, returning %p\n", result);
+    return result;
+}
+
 void jit_heap_shrink(void* object, size_t new_size)
 {
     /* NOTE: the shrink call will fail (return false) for segregated allocations, and that's fine because we

@@ -43,21 +43,24 @@
 # This extracts the patched Rust 1.90.0 sources from the projeny checkout in
 # projects/rust into rust-build/rust, writes a bootstrap config.toml, and then
 # runs `x.py build --stage 1`.  Rust does NOT build its own LLVM: the config
-# points bootstrap's [target.x86_64-unknown-linux-gnu] llvm-config at the
+# points bootstrap's [target.<host-triple>] llvm-config at the
 # Fil-C LLVM that build_clang.sh already built into build/ (bootstrap then
 # treats LLVM as prebuilt and never touches src/llvm-project), and
 # rustc_llvm's build script uses that llvm-config to link the Fil-C LLVM
 # statically into librustc_driver.so -- with no libz (the Fil-C LLVM build has
 # LLVM_ENABLE_ZLIB=OFF), with libstdc++ linked statically
 # ([llvm] static-libstdcpp = true) and with the -lgcc_s that stage0 std's
-# libunwind rlib metadata adds redirected to the static libgcc_eh archive via
+# libunwind rlib metadata adds redirected to the static libgcc archive(s) --
+# libgcc_eh.a alone on x86_64, libgcc.a plus libgcc_eh.a on aarch64 (whose
+# libgcc_eh.a is not self-contained; see the redirect code below) -- via
 # a -B directory holding a libgcc_s.so linker script (see below), so
 # librustc_driver.so ends up needing only libm, libc and the dynamic loader.
 # build_clang.sh builds the llvm-config binary and the LLVMMCA archives that
 # rustc's LLVM component query needs, so run it first.  The resulting stage 1
 # rustc pizlonates every module it compiles (the Fil-Pizlonator runs in every
-# pipeline, at every optimization level) and the x86_64-unknown-linux-gnu
-# target spec makes `filcc` the linker, so what it produces links as Fil-C.
+# pipeline, at every optimization level) and the Fil-C host target spec
+# (x86_64-unknown-linux-gnu on x86_64 hosts, aarch64-unknown-linux-gnu on
+# aarch64 hosts) makes `filcc` the linker, so what it produces links as Fil-C.
 #
 # ALL Fil-C changes to the Rust sources live in the projeny patch
 # (projects/rust.projeny); this script applies no source tweaks of its own.
@@ -151,6 +154,29 @@ do_build_rustc() {
     . libpas/common.sh
 
     FILC_ROOT=`pwd`
+
+    # The host triple this rustc is built for (and hosted on).  Bootstrap keys
+    # the config.toml [build] target, the [target.<triple>] llvm-config
+    # section, the stage1 output path and the native-libunwind cache path on
+    # it, so derive it once here.  Fil-C's rustc builds for its host only:
+    # x86_64-unknown-linux-gnu or aarch64-unknown-linux-gnu, the two targets
+    # the projeny patch gives Fil-C specs.  Fail fast on anything else.
+    case "`uname -m`" in
+        x86_64)
+            HOST_TRIPLE=x86_64-unknown-linux-gnu
+            ;;
+        aarch64|aarch64_be)
+            HOST_TRIPLE=aarch64-unknown-linux-gnu
+            ;;
+        *)
+            echo "ERROR: unsupported host architecture '`uname -m`'.  Fil-C's" >&2
+            echo "       rustc builds for the host only; this script knows" >&2
+            echo "       x86_64 (x86_64-unknown-linux-gnu) and aarch64" >&2
+            echo "       (aarch64-unknown-linux-gnu)." >&2
+            exit 1
+            ;;
+    esac
+
     RUST_BUILD=$FILC_ROOT/rust-build
     RUST_SRC=$RUST_BUILD/rust
 
@@ -341,10 +367,56 @@ do_build_rustc() {
         exit 1
     fi
 
+    # compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs:
+    # the aarch64 twin of the x86_64 spec above -- the "before Fil-C" data
+    # layout (-ni:0), filcc as the linker, -normalcrt, no stack probes, no
+    # sanitizers, and the default (unwind) panic strategy.  It deliberately
+    # does NOT carry upstream's "+outline-atomics" feature: the __aarch64_*
+    # outline-atomic helpers are naked asm, which the Pizlonator rewrites
+    # into run-time filc_error calls (their LL/SC loops are memory accesses
+    # plus control flow), so every Rust atomic would abort; without
+    # +outline-atomics, atomics lower inline to the IR atomics Fil-C clang
+    # emits for C on this target.  See the aarch64 spec for the details.
+    check_grep "e-m:e-ni:0-p270:32:32" compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
+    check_grep 'base.linker = Some("filcc".into());' compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
+    check_grep '"-normalcrt"' compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
+    check_grep "StackProbeType::None" compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
+    check_grep "SanitizerSet::empty()" compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
+    check_grep "unwinding is implemented on the Fil-C runtime's unwinder" compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
+
+    # ...and the same inverse check for the aarch64 spec: the default (unwind)
+    # panic strategy, for the same reason as on x86_64 above.
+    if grep -q 'PanicStrategy' "$RUST_SRC/compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs"; then
+        echo "ERROR: projeny patch missing filc change: PanicStrategy still" >&2
+        echo "       appears in compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs." >&2
+        echo "       The aarch64-unknown-linux-gnu target must keep the default (unwind)" >&2
+        echo "       panic strategy: Fil-C Rust unwinding is implemented on the Fil-C" >&2
+        echo "       runtime's unwinder (see library/std/src/sys/personality/gcc.rs)." >&2
+        echo "       projects/rust.projeny must carry ALL Fil-C changes to the Rust" >&2
+        echo "       sources; edit projects/rust/... and re-run" >&2
+        echo "       'filc/projeny commit projects/rust.projeny'." >&2
+        exit 1
+    fi
+
     # library/compiler-builtins/compiler-builtins/src/probestack.rs: the
     # naked-asm stack probe helper must be compiled out exactly for the Fil-C
-    # x86_64-unknown-linux-gnu target (the target spec sets StackProbeType::None).
+    # targets (the x86_64-unknown-linux-gnu and aarch64-unknown-linux-gnu
+    # target specs set StackProbeType::None; the module is additionally
+    # compiled out on every non-x86 arch by its trailing arch gate).
     check_grep 'all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")' library/compiler-builtins/compiler-builtins/src/probestack.rs
+    check_grep 'all(target_arch = "aarch64", target_os = "linux", target_env = "gnu")' library/compiler-builtins/compiler-builtins/src/probestack.rs
+
+    # library/compiler-builtins/compiler-builtins/src/lib.rs: the aarch64
+    # outline-atomic helper module (aarch64_linux) must be compiled out.  Its
+    # __aarch64_* helpers (cas/swp/ldadd/ldclr/ldeor/ldset) are naked asm,
+    # which rustc lowers to MODULE-level asm (.pushsection/.balign/.weak/
+    # .type/.size/.popsection wrappers) that the Fil-Pizlonator cannot parse
+    # ("Invalid directive: .pushsection" killed the first aarch64 stage1-std
+    # build of compiler_builtins), and nothing calls the helpers under the
+    # Fil-C aarch64 spec anyway: it deliberately omits +outline-atomics so
+    # that atomics lower to inline IR atomics (see the spec's base.features
+    # comment above).
+    check_grep 'Fil-C: the aarch64_linux module is compiled out' library/compiler-builtins/compiler-builtins/src/lib.rs
 
     # compiler/rustc_codegen_llvm/src/context.rs: accept the target spec's
     # before-FilC data layout ("-ni:0") in the MismatchedDataLayout validation.
@@ -362,6 +434,16 @@ do_build_rustc() {
     check_grep "/proc/cpuinfo" library/std_detect/src/detect/os/x86.rs
     check_grep "FLAG_TO_FEATURE" library/std_detect/src/detect/os/x86.rs
     check_grep "Flags::empty()" library/compiler-builtins/libm/src/math/arch/x86/detect.rs
+
+    # library/core/src/hint.rs: aarch64 spin_loop() must not emit upstream's
+    # `isb sy` (the llvm.aarch64.isb intrinsic), which the Fil-Pizlonator does
+    # not handle: every contended futex mutex/condvar/mpmc-channel spin (the
+    # lock_contended slow path) aborted at run time with "filc safety error:
+    # Unhandled intrinsic" (threads, thread_local_cells and
+    # mpsc_large_messages all died this way in the first aarch64 test-suite
+    # run).  It is a pure performance hint, so under Fil-C it is a no-op on
+    # aarch64 (the x86_64 arm's _mm_pause is fine).
+    check_grep "no-op on aarch64.  (The x86_64 arm" library/core/src/hint.rs
 
     # compiler/rustc_codegen_ssa/src/back/write.rs: allocator shim modules must go
     # through the pipeline (they used to get opt_level None, skipping
@@ -566,8 +648,11 @@ do_build_rustc() {
     echo "Baked-in Fil-C rustc version string: $FILC_VERSION"
 
     # The libunwind step is cached based on output mtime; force a rebuild after
-    # switching it to the Fil-C compilers (in the projeny patch).
-    rm -f $RUST_SRC/build/x86_64-unknown-linux-gnu/native/libunwind/libunwind.a
+    # switching it to the Fil-C compilers (in the projeny patch).  (With the
+    # llvm-libunwind = "no" setting written below, bootstrap does not build
+    # the native libunwind at all, so this is a no-op; the -f just makes sure
+    # a stale artifact from an older config cannot be picked up.)
+    rm -f $RUST_SRC/build/$HOST_TRIPLE/native/libunwind/libunwind.a
 
     # Write the bootstrap configuration.  This file is fully generated by this
     # script, so rewrite it on every run: a stale config.toml (e.g. one written
@@ -579,7 +664,16 @@ do_build_rustc() {
 change-id = 144675
 
 [build]
-target = ["x86_64-unknown-linux-gnu"]
+EOF
+
+    # The host target triple is expanded by this script, so it lives in its
+    # own unquoted heredoc between the two quoted ones above and below (it
+    # must stay inside the [build] table, i.e. before its remaining keys).
+    cat >> $RUST_SRC/config.toml <<EOF
+target = ["$HOST_TRIPLE"]
+EOF
+
+    cat >> $RUST_SRC/config.toml <<'EOF'
 extended = false
 tools = []
 # Use the pure-Rust compiler-builtins (no compiler-rt C sources, which we
@@ -649,11 +743,12 @@ codegen-tests = false
 llvm-tools = false
 EOF
 
-    # The [target] section needs the absolute llvm-config path expanded by
-    # this script, so it is written separately (the heredoc above is quoted).
+    # The [target] section needs the host triple and the absolute llvm-config
+    # path expanded by this script, so it is written separately (the heredocs
+    # above are quoted).
     cat >> $RUST_SRC/config.toml <<EOF
 
-[target.x86_64-unknown-linux-gnu]
+[target.$HOST_TRIPLE]
 # Use the Fil-C LLVM that build_clang.sh built into build/ instead of
 # building a second LLVM.  With this set, bootstrap treats LLVM as prebuilt
 # (prebuilt_llvm_config returns AlreadyBuilt; src/llvm-project is never
@@ -690,13 +785,46 @@ EOF
     # command-line order), while -B<dir> is searched for subprograms and
     # libraries alike and is kept as belt-and-suspenders for links that do
     # not echo the rustc -L args (e.g. tools linked with other drivers).
-    # The libgcc_s.so linker script GROUPs the static libgcc_eh archive,
-    # which is then linked statically into librustc_driver.so.  RUSTFLAGS
+    # The libgcc_s.so linker script GROUPs the static libgcc archive(s),
+    # which are then linked statically into librustc_driver.so.  RUSTFLAGS
     # propagates to every cargo invocation bootstrap makes, so this also
     # statically satisfies -lgcc_s for the proc-macros and tools built along
     # the way (it is inert for rlib-only compilations).  Note that changing
     # RUSTFLAGS invalidates all cargo fingerprints -- a one-time churn on the
     # first build with this script revision.
+    #
+    # The GROUP contents are arch-aware, mirroring gcc's own static-libgcc
+    # link spec, which is `%{static|static-libgcc|static-pie:-lgcc -lgcc_eh}`
+    # -- i.e. `-lgcc -lgcc_eh`, in that order:
+    #
+    # - x86_64: GROUP ( libgcc_eh.a ).  x86_64's libgcc_eh.a is
+    #   self-contained (it references nothing that only libgcc.a defines),
+    #   which the green x86_64 builds have proven; keep that historical
+    #   single-entry GROUP exactly as it was.
+    # - aarch64: GROUP ( libgcc.a libgcc_eh.a ).  aarch64's libgcc_eh.a is
+    #   NOT self-contained: its objects (unwind-dw2-fde-dip.o et al) are
+    #   compiled with outline atomics enabled and reference the LSE helpers
+    #   (__aarch64_swp8_acq_rel et al), whose definitions GCC only ever puts
+    #   in libgcc.a (nm shows libgcc.a's swp_8_4.o defining it and
+    #   libgcc_eh.a's unwind-dw2-fde-dip.o referencing it).  That is why
+    #   gcc's own spec links BOTH archives, and why the first aarch64 attempt
+    #   of this redirect (a single-entry GROUP with libgcc_eh.a alone) died
+    #   with "undefined reference to `__aarch64_swp8_acq_rel'" while linking
+    #   x.py's own bootstrap binary.  Listing libgcc.a first is safe and has
+    #   exactly the semantics of gcc's -lgcc -lgcc_eh ordering: archive
+    #   members are only extracted to resolve pending undefined symbols, so
+    #   a libgcc.a member is pulled only for a symbol nothing else has
+    #   defined yet, and once it is in, its libgcc_eh.a twin (the EH objects
+    #   overlap between the two archives) is never pulled afterwards -- so
+    #   there is no duplicate-definition risk, and the link sees precisely
+    #   what gcc's own static-libgcc links see.  Gating on the host triple
+    #   rather than nm-probing whether this particular libgcc_eh.a happens to
+    #   be self-contained is deliberate: the deficiency is a stable property
+    #   of aarch64 GCC on this distro, the extra archive is harmless when it
+    #   is not needed (members are pulled only for pending undefined
+    #   symbols), this script's HOST_TRIPLE case already restricts the
+    #   redirect to x86_64 and aarch64 hosts, and it keeps the decision
+    #   deterministic instead of dependent on nm output parsing.
     GCC_EH="$(cc --print-file-name=libgcc_eh.a)"
     if [ ! -f "$GCC_EH" ]; then
         echo "ERROR: cannot find libgcc_eh.a (cc --print-file-name=libgcc_eh.a" >&2
@@ -705,8 +833,27 @@ EOF
         echo "       rustc link." >&2
         exit 1
     fi
+    GCC_GROUP="$GCC_EH"
+    if [ "$HOST_TRIPLE" = aarch64-unknown-linux-gnu ]; then
+        # Mirror gcc's `-lgcc -lgcc_eh` static-libgcc spec: aarch64's
+        # libgcc_eh.a needs the LSE outline-atomics helpers that only
+        # libgcc.a defines (see the comment above for why the order is
+        # safe).
+        GCC_LIB="$(cc --print-file-name=libgcc.a)"
+        if [ ! -f "$GCC_LIB" ]; then
+            echo "ERROR: cannot find libgcc.a (cc --print-file-name=libgcc.a" >&2
+            echo "       printed '$GCC_LIB').  On aarch64 it is needed together" >&2
+            echo "       with libgcc_eh.a to statically satisfy the -lgcc_s that" >&2
+            echo "       stage0 std's libunwind rlib metadata adds to the rustc" >&2
+            echo "       link: aarch64's libgcc_eh.a references the LSE" >&2
+            echo "       outline-atomics helpers (__aarch64_swp8_acq_rel et al)," >&2
+            echo "       which only libgcc.a defines." >&2
+            exit 1
+        fi
+        GCC_GROUP="$GCC_LIB $GCC_EH"
+    fi
     mkdir -p "$RUST_BUILD/gcc-redirect"
-    printf 'GROUP ( %s )\n' "$GCC_EH" > "$RUST_BUILD/gcc-redirect/libgcc_s.so"
+    printf 'GROUP ( %s )\n' "$GCC_GROUP" > "$RUST_BUILD/gcc-redirect/libgcc_s.so"
     export RUSTFLAGS="-L$RUST_BUILD/gcc-redirect -Clink-arg=-B$RUST_BUILD/gcc-redirect"
 
     # Fil-C: bake the directory containing filcc into the compiler (consumed via
@@ -745,7 +892,7 @@ EOF
     cd $RUST_SRC
     python3 x.py build --stage 1 2>&1 | tee $RUST_BUILD/build.log
 
-    RUSTC_BIN=$RUST_SRC/build/x86_64-unknown-linux-gnu/stage1/bin/rustc
+    RUSTC_BIN=$RUST_SRC/build/$HOST_TRIPLE/stage1/bin/rustc
     if [ ! -x $RUSTC_BIN ]; then
         echo "ERROR: x.py did not produce $RUSTC_BIN" >&2
         exit 1

@@ -45,7 +45,9 @@ sources: edit `projects/rust/...` and run `filc/projeny commit
 projects/rust.projeny` (then `git add projects/rust.projeny`).  The build
 script applies no source tweaks of its own; it only *verifies* that every
 expected Fil-C change is present in the extracted tree (the `check_grep`
-calls in `build_rustc_impl.sh` -- 73 of them, counted as
+calls in `build_rustc_impl.sh` -- 82 of them; 9 of those were added for the
+ARM64 bring-up, see "ARM64 (aarch64) bring-up" below, and 14 for the
+Fil-Rust test-suite fixes, counted as
 `grep -c '^\s*check_grep ' build_rustc_impl.sh`; the two other mentions of
 the name are the comment above the helper and its definition) and fails
 fast with a clear
@@ -81,11 +83,16 @@ The patch consists of the following changes:
    linker = "filcc", `-normalcrt` pre-link arg (full Fil-C CRT under
    -nodefaultlibs), and sanitizers/xray off.  The panic strategy is the
    default (unwind): Fil-C Rust unwinding is implemented on the Fil-C
-   runtime's unwinder (see "Panics" below).
+   runtime's unwinder (see "Panics" below).  (Since the ARM64 bring-up this
+   spec has an aarch64 twin, `aarch64_unknown_linux_gnu.rs`, with the same
+   Fil-C shape -- see "ARM64 (aarch64) bring-up" below.)
 3. `library/compiler-builtins/compiler-builtins/src/probestack.rs` — the
    naked-asm stack-probe helper is compiled out exactly for
    `all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")`,
-   mirroring the target spec (the only Fil-C target).
+   mirroring the target spec (the Fil-C targets: x86_64-unknown-linux-gnu
+   and, since the ARM64 bring-up, aarch64-unknown-linux-gnu -- the cfg
+   widens to include `target_arch = "aarch64"` there; see "ARM64 (aarch64)
+   bring-up" below).
 4. `compiler/rustc_codegen_llvm/src/context.rs` — accept the target spec's
    before-FilC data_layout ("-ni:0") in the MismatchedDataLayout validation
    (LLVM's TargetMachine default is the same string minus "-ni:0").
@@ -410,9 +417,21 @@ How each offender was removed:
   does NOT remove it (proven: it only suppresses the compiler driver's own
   implicit -lgcc_s).  The working fix is a redirect directory,
   `rust-build/gcc-redirect/`, containing a `libgcc_s.so` **linker script**
-  `GROUP ( <path from `cc --print-file-name=libgcc_eh.a`> )` — the `-lgcc_s`
-  then resolves against the static libgcc_eh archive, which is linked into
-  librustc_driver.so with no libgcc_s.so.1 NEEDED.  Getting the directory
+  that GROUPs the static libgcc archive(s) (`cc --print-file-name` paths) —
+  `GROUP ( <libgcc_eh.a> )` on x86_64 hosts, `GROUP ( <libgcc.a>
+  <libgcc_eh.a> )` on aarch64 hosts, in that order.  The GROUP contents are
+  arch-aware, mirroring gcc's own `-lgcc -lgcc_eh` static-libgcc link spec:
+  aarch64's libgcc_eh.a has undefined LSE outline-atomics helpers
+  (`__aarch64_swp8_acq_rel` et al) that only libgcc.a defines, and every
+  host-side link (bootstrap build scripts) failed with "undefined reference
+  to `__aarch64_swp8_acq_rel`" until libgcc.a was listed first; archive
+  semantics (members are pulled only for still-undefined symbols) make the
+  order duplicate-safe.  On x86_64 the redirect is UNCHANGED (byte-identical
+  single-entry GROUP with libgcc_eh.a only) because x86_64's libgcc_eh.a is
+  self-contained -- see "ARM64 (aarch64) bring-up" below for the evidence.
+  The `-lgcc_s` then resolves against the static libgcc archive(s), which
+  are linked into librustc_driver.so with no libgcc_s.so.1 NEEDED.  Getting
+  the directory
   searched *first* needs two flags, because neither alone is sufficient:
   `RUSTFLAGS="-L<dir> -Clink-arg=-B<dir>"`.  The `-L` must come from
   RUSTFLAGS directly (rustc emits `-Clink-arg`s at the very END of the linker
@@ -421,7 +440,8 @@ How each offender was removed:
   search path in command-line order, so a -B placed there was searched too
   late; verified by strace'ing the actual `cc` link of librustc_driver.so).
   The `-B` is kept as belt-and-suspenders for links that do not echo rustc's
-  -L args.  A missing libgcc_eh.a fails the build fast with a clear message.
+  -L args.  A missing libgcc_eh.a (or, on aarch64, libgcc.a) fails the
+  build fast with a clear message.
 
 Other config.toml changes the external-LLVM path required (both are [rust]
 keys; without them bootstrap refuses to run):
@@ -494,8 +514,10 @@ The parenthetical mirrors clang/lib/Basic/Version.cpp, which appends
 
 ## How the built rustc finds filcc
 
-The x86_64-unknown-linux-gnu target spec sets the linker to the bare name
-`filcc` (the Fil-C clang driver).  Upstream rustc resolves a bare-name linker
+The Fil-C host target spec sets the linker to the bare name
+`filcc` (the Fil-C clang driver): x86_64-unknown-linux-gnu, or its aarch64
+twin aarch64-unknown-linux-gnu since the ARM64 bring-up (see that section
+below).  Upstream rustc resolves a bare-name linker
 through the PATH, which used to mean every `filrustc` invocation needed
 Fil-C's `build/bin` on PATH.  The built rustc now resolves `filcc` itself (see
 change #20, `filc_resolve_linker` in
@@ -770,6 +792,11 @@ build/" above); and the appended
     [target.x86_64-unknown-linux-gnu]
     llvm-config = "<FILC_ROOT>/build/bin/llvm-config"   (absolute)
     llvm-has-rust-patches = true
+
+(The [target] section is keyed on the host triple, which build_rustc_impl.sh
+derives from `uname -m`: `[target.x86_64-unknown-linux-gnu]` on x86_64
+hosts, `[target.aarch64-unknown-linux-gnu]` on aarch64 hosts; see "ARM64
+(aarch64) bring-up" below.)
 
 The impl script writes the [target] section separately because the heredoc
 for the rest is quoted and the llvm-config path must expand (and MUST be
@@ -2336,11 +2363,13 @@ The build is split into a shared library plus two thin entry points:
   projeny checkout, the check that `$FILC_ROOT/build/bin/llvm-config` exists
   (the Fil-C rustc links the LLVM build from build/ — no LLVM is built here;
   run ./build_clang.sh first — see "Rustc links the Fil-C LLVM from build/"
-  above), the 63 `check_grep` fail-fast verifications of the projeny patch,
+  above), the 82 `check_grep` fail-fast verifications of the projeny patch,
   the `FILC_VERSION` composition (plus the `.filc-version-stamp` handling),
   the `FILC_LINKER_DIR` resolution + export (plus the parallel
   `.filc-linker-dir-stamp` handling; see "How the built rustc finds filcc"),
-  the libgcc_s redirect (gcc-redirect dir + RUSTFLAGS, see the LLVM section),
+  the libgcc_s redirect (gcc-redirect dir + RUSTFLAGS; the GROUP contents
+  are arch-aware, see the LLVM section and "ARM64 (aarch64) bring-up"
+  below),
   the config.toml generation, the `x.py build --stage 1` run, and the
   creation of the `rust-build/rustc` and `rust-build/filrustc` symlinks.
 * `build_rustc.sh` -- thin entry: license header, `set -e -o pipefail -x`,
@@ -2493,7 +2522,8 @@ structure, same capabilities, same output protocol:
   typo'd test name cannot masquerade as a pass), and the runner works from
   any CWD (it cds to the repo root it derives from its own path).
 * The compiler is `rust-build/filrustc`; if it (or Fil-C's `build/bin/filcc`,
-  which the x86_64-unknown-linux-gnu target uses as the linker) is missing,
+  which the Fil-C host target spec -- x86_64-unknown-linux-gnu, or its
+  aarch64 twin -- uses as the linker) is missing,
   the runner exits with "Run ./build_rustc.sh first" / "Build Fil-C first"
   instead of failing every compile.
 
@@ -2794,7 +2824,7 @@ actual running container (`command -v` sweep; everything found):
 
 | needed by | commands | provided by (Dockerfile heredoc) |
 |---|---|---|
-| build_rustc_impl.sh | bash, coreutils (cd/rm/cp/mkdir/ln/tee/cat/sed/awk/grep/touch/printf), uname, nproc, `cc` (for `--print-file-name=libgcc_eh.a` in the gcc-redirect) | ubuntu base + build-essential + gawk |
+| build_rustc_impl.sh | bash, coreutils (cd/rm/cp/mkdir/ln/tee/cat/sed/awk/grep/touch/printf), uname, nproc, `cc` (for `--print-file-name=libgcc_eh.a` — plus `libgcc.a` on aarch64 hosts — in the gcc-redirect) | ubuntu base + build-essential + gawk |
 | projeny extract | `filc/projeny` (repo binary; needs libcurl.so.4 + libstdc++), rsync | libcurl4-openssl-dev (pulls libcurl4), rsync |
 | LLVM for rustc | `build/bin/llvm-config` + `build/lib/libLLVM*.a` (incl. libLLVMMCA.a, libLLVMX86TargetMCA.a), produced by ./build_clang.sh — no LLVM is built by the rust build (the Fil-C LLVM build itself needs cmake/ninja/binutils and, on a build tree configured with valgrind detection, libvalgrind's headers — the `valgrind` package — or ninja mass-rebuilds LLVMSupport and fails on `valgrind/valgrind.h`; also: this build tree ships without most `.d` depfiles, so `touch` the sources whose headers changed to force recompiles) | -- (repo build tree) |
 | patch verification | grep, awk, python3 (sha256) | grep/gawk, python3 |
@@ -2810,3 +2840,124 @@ No missing package was found, so no change was made to enter_container.sh.
 (Run `./enter_container.sh -n` if your container predates any image change;
 the image tag hashes the generated Dockerfile, so stale containers are
 flagged with a warning on attach.)
+
+## ARM64 (aarch64) bring-up (2026-11-10)
+
+The port now works on BOTH x86_64 and aarch64.  Everything above was
+verified on x86_64 unless marked otherwise; this section records what the
+ARM64 bring-up changed (nothing about the x86_64 behavior changes: on an
+x86_64 host the generated config.toml and gcc-redirect are byte-identical to
+the pre-ARM64 revision).
+
+### What changed in the projeny patch (all ARM64-only or ARM64-parallel)
+
+* NEW target spec
+  `compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs` —
+  the aarch64 twin of the patched x86_64 spec (change #2 above): linker
+  "filcc", pre-link "-normalcrt" (aarch64 needs no -m64),
+  StackProbeType::None, SanitizerSet::empty(), unwind panic strategy, and
+  the before-Fil-C data layout
+  "e-m:e-ni:0-p270:32:32-p271:32:32-p272:64:64-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128-Fn32".
+  The layout rationale: a probe of Fil-C clang `-emit-llvm` on aarch64 shows
+  the after-FilC layout identical minus "-ni:0", and PassWrapper's
+  `setDataLayoutAfterFilC` requires the module to carry `isFilC()` -- i.e.
+  the "-ni:0" marker -- so the spec must carry it, exactly like the x86_64
+  spec does (changes #2/#4; after pizlonation the layout is the same string
+  minus "-ni:0", which is also LLVM's AArch64 TargetMachine default and is
+  accepted by the MismatchedDataLayout validation).  features = "+v8a":
+  upstream's "+outline-atomics" is deliberately DROPPED so atomics lower
+  inline (IR-level atomicrmw/cmpxchg, the same lowering Fil-C clang produces
+  for C atomics on this target) instead of through compiler-builtins'
+  naked-asm LL/SC outline helpers -- with +outline-atomics every atomic
+  operation in every Rust program would route into helpers the Pizlonator
+  cannot accept (see the aarch64_linux exclusion below).
+* cfg gates widened to include `target_arch = "aarch64"` alongside x86_64
+  in: `library/compiler-builtins/compiler-builtins/src/probestack.rs` (the
+  naked-asm stack-probe helper is compiled out on aarch64 too), and
+  `library/std/src/sys/personality/gcc.rs` (the Fil-C personality is now
+  used on aarch64 too -- three cfg sites; the personality body itself is
+  target-independent: it only walks the pizlonated landing-pad data and
+  installs pads by setting the two GRs, UNWIND_DATA_REG, which is X0/X1 on
+  aarch64 instead of RAX/RDX).  `library/std/src/sys/pal/unix/stack_overflow.rs`
+  needed NO change: it was already arch-neutral (its no-op `imp` module is
+  selected by `not(all(target_os = "linux", target_env = "gnu"))`).
+* `library/compiler-builtins/compiler-builtins/src/lib.rs`: the
+  `aarch64_linux` module is compiled out with `#[cfg(any())]`.  Its
+  `__aarch64_*` outline-atomics helpers are `naked_asm!`, which rustc lowers
+  to MODULE-LEVEL asm (.pushsection/.weak/.type directives) that the
+  Fil-Pizlonator cannot parse ("Invalid directive: .pushsection"), so
+  compiler_builtins failed to build with it.  Nothing calls these helpers
+  under Fil-C, since the target spec drops +outline-atomics (above).
+* `library/core/src/hint.rs`: aarch64 `spin_loop!` no longer issues
+  `__isb(SY)`, which becomes the `llvm.aarch64.isb` intrinsic -- unhandled
+  by the Pizlonator, so every contended futex mutex/condvar/channel (whose
+  slow path spins via lock_contended) aborted at run time with "filc safety
+  error: Unhandled intrinsic: ... @llvm.aarch64.isb(i32 15)" (the threads,
+  thread_local_cells and mpsc_large_messages tests all failed on this before
+  the fix).  `spin_loop!` is a pure performance hint, so it is now a pure
+  no-op on aarch64.  x86_64's `_mm_pause` arm is untouched (the Pizlonator
+  handles llvm.x86.pause).
+* `compiler/rustc_codegen_ssa/src/back/link.rs`: doc comments only (they now
+  mention both target specs).
+
+### What changed in build_rustc_impl.sh (Fil-C side, outside the patch)
+
+* The script now derives HOST_TRIPLE from `uname -m` (x86_64 ->
+  x86_64-unknown-linux-gnu, aarch64 -> aarch64-unknown-linux-gnu, anything
+  else fails fast with a clear error) and keys config.toml's [build] target,
+  the [target.<triple>] llvm-config section, the stage1 paths and the native
+  libunwind cache path on it.  x86_64 output is byte-identical to before.
+* THE LIBGCC REDIRECT CHANGED ON AARCH64: `rust-build/gcc-redirect/`
+  libgcc_s.so on aarch64 is now `GROUP ( <libgcc.a> <libgcc_eh.a> )` instead
+  of just libgcc_eh.a.  Reason: on aarch64, GCC's libgcc_eh.a has undefined
+  LSE outline-atomics helpers (`__aarch64_swp8_acq_rel` etc.) that only
+  libgcc.a defines (verified: `nm` shows libgcc.a's swp_8_4.o with
+  `T __aarch64_swp8_acq_rel` and libgcc_eh.a's unwind-dw2-fde-dip.o with
+  `U`); every host-side link (bootstrap build scripts) failed with
+  "undefined reference to `__aarch64_swp8_acq_rel`" until libgcc.a was added
+  first.  The GROUP order mirrors gcc's own `-lgcc -lgcc_eh` spec, and
+  archive semantics make it duplicate-safe (a libgcc.a member is pulled only
+  for a symbol nothing else has defined yet).  On x86_64 the redirect is
+  UNCHANGED (byte-identical GROUP with libgcc_eh.a only) because x86_64's
+  libgcc_eh.a is self-contained.
+* One Fil-C JIT fix was needed for the full Fil-C glibc build on aarch64
+  (Fil-C side, not the rust patch): alignment threading -- aarch64
+  CPU-preferred function alignment can be up to 64, so the jit heap gained
+  alignment-aware allocation (SHIM_API_VERSION 15 -> 16).  Relatedly, the
+  filc/run-tests jit_gather test is SKIPPED on aarch64 (its manifest now has
+  only-on-platform: x86_64): that test's host side casts the JIT'd function
+  pointer to a C function pointer taking <8 x i32>-style vector arguments by
+  value, which only coincides with the LLVM function type the test authors
+  through the JIT API on x86_64 (SysV passes such vectors by value), while
+  AAPCS64 passes >128-bit vectors by reference.  The LLVM JIT API exposes
+  LLVM ABI, not C ABI, and the shim performs no ABI conformance, so the test
+  is only valid on targets where the two coincide.  (Because of that skip, a
+  full filc/run-tests pass on aarch64 is now 5518 runs rather than the 5519
+  recorded above.)
+
+### Verification results on aarch64 (8-core aarch64, 31 GB RAM)
+
+* Clean `./build_rustc.sh` green (clean and incremental paths both
+  exercised); `./filrustc/run-tests` 53/53 SUCCESS; `rustc --version` prints
+  the Fil-C parenthetical; `patchelf --print-needed` on
+  `librustc_driver-*.so` shows only libm/libc/ld-linux-aarch64 (no libgcc);
+  a manual multi-threaded smoke test (spawn + join + Mutex) is clean.
+* On the same aarch64 machine the full Fil-C glibc build is also green:
+  build_base + `filc/run-tests` (5519 runs) + `build_all_slow.sh` (61
+  packages) + `build_glibc_extras.sh` (17 packages, which includes
+  `./build_rustc.sh`).
+
+### ARM64 known issues / open items
+
+1. aarch64 inline-asm support in the Pizlonator is limited: module-level asm
+   and `llvm.aarch64.*` intrinsics are rejected (that is exactly why
+   `aarch64_linux` and `spin_loop!`'s `__isb` are compiled out).  Simple
+   register-constrained asm (e.g. libm's aarch64 vreg asm) compiles fine.
+2. `is_aarch64_feature_detected!` uses `getauxval` (present in both the
+   yolo and user glibc) but is untested.
+3. The arch-generic known issues above apply unchanged on aarch64: extern
+   "C" fat pointers (#3), `#[repr(packed)]` aggregates with pointers at
+   non-8-aligned offsets (excluded from the typed-alloca fix, change #21),
+   ThinLTO (#2), proc-macro crates (#9) and RUST_BACKTRACE (#4/#6).
+4. x86_64 remains the primary/verified platform; aarch64 was verified with
+   the same 53-test suite plus manual smoke tests.

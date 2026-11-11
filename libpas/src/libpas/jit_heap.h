@@ -47,6 +47,7 @@ PAS_API bool jit_heap_fresh_memory_should_be_committed(void);
 PAS_API void jit_heap_add_fresh_memory(pas_range range);
 
 PAS_API void* jit_heap_try_allocate(size_t size);
+PAS_API void* jit_heap_try_allocate_with_alignment(size_t size, size_t alignment);
 PAS_API void jit_heap_shrink(void* object, size_t new_size);
 PAS_API size_t jit_heap_get_size(void* object);
 PAS_API void jit_heap_deallocate(void* object);

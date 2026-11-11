@@ -629,11 +629,11 @@ static void* shim_executable_module_allocate_data(void* raw_my_thread, void* raw
 }
 
 static void* shim_executable_module_allocate_executable(void* raw_my_thread, void* raw_module,
-                                                        size_t size)
+                                                        size_t size, size_t alignment)
 {
     PAS_UNUSED_PARAM(raw_my_thread);
     filc_llvm_jit_executable_module* module = raw_module;
-    void* result = jit_heap_try_allocate(size);
+    void* result = jit_heap_try_allocate_with_alignment(size, alignment);
     PAS_ASSERT(result);
     filc_raw_ptr_array_add(&module->jit_bases, result);
     if (verbose)

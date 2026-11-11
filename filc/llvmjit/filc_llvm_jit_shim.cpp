@@ -178,9 +178,12 @@ void* AllocateSection(void* my_thread, void* executable_module,
     if (executable) {
         ASSERT(!isObject);
         ASSERT(!isAux);
-        ASSERT(alignment <= 16);
+        /* The runtime honors any power-of-two alignment for executable
+           sections; on aarch64 the codegen prefers up to 64-byte function
+           alignment depending on the host CPU, so 16 is not a ceiling. */
+        ASSERT(alignment && !(alignment & (alignment - 1)));
         return runtime->shim_executable_module_allocate_executable(
-            my_thread, executable_module, size);
+            my_thread, executable_module, size, alignment);
     }
 
     if (isAux) {
@@ -635,6 +638,14 @@ ShimExportMapping* ShimJITCompile(
             M->setDataLayoutAfterFilC("e-m:e-p270:32:32-p271:32:32-p272:64:64-i8:8:32-"
                                       "i16:16:32-i64:64-i128:128-n32:64-S128-Fn32");
         }
+
+        // Note: this pipeline compiles the module's function types exactly as
+        // authored.  The LLVM JIT API exposes LLVM IR ABI, not C ABI, and the
+        // JIT implementation performs no conformance of authored signatures to
+        // the target's C ABI; it is up to users of the JIT API to understand
+        // LLVM IR ABI and that it differs from C ABI (e.g. AAPCS64 passes
+        // fixed-size vectors larger than 128 bits by reference, while LLVM IR
+        // passes them by value).
 
         // Note: the x86 AVX2 gather intrinsics are lowered inside the
         // FilPizlonator itself (llvm/lib/Transforms/Instrumentation/

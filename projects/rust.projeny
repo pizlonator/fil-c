@@ -427,12 +427,13 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/type_of.rs b/rust/compiler/rus
 diff --git a/rust/compiler/rustc_codegen_ssa/src/back/link.rs b/rust/compiler/rustc_codegen_ssa/src/back/link.rs
 --- a/rust/compiler/rustc_codegen_ssa/src/back/link.rs
 +++ b/rust/compiler/rustc_codegen_ssa/src/back/link.rs
-@@ -681,6 +681,13 @@
+@@ -681,6 +681,14 @@
  ) {
      info!("preparing {:?} to {:?}", crate_type, out_filename);
      let (linker_path, flavor) = linker_and_flavor(sess);
-+    // Fil-C: resolve the bare linker name "filcc" (set by the Fil-C
-+    // x86_64-unknown-linux-gnu target) to an absolute path, so that the
++    // Fil-C: resolve the bare linker name "filcc" (set by the Fil-C target
++    // specs, e.g. x86_64-unknown-linux-gnu and aarch64-unknown-linux-gnu) to
++    // an absolute path, so that the
 +    // compiler finds the Fil-C driver without relying on PATH.  This runs
 +    // before every use of linker_path below (the flavor check, the command
 +    // construction -- and hence `--print link-args` -- and the error
@@ -441,12 +442,13 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/back/link.rs b/rust/compiler/ru
      let self_contained_components = self_contained_components(sess, crate_type, &linker_path);
 
      // On AIX, we ship all libraries as .a big_af archive
-@@ -1298,6 +1305,83 @@
+@@ -1298,6 +1306,84 @@
          && (info.compiler_builtins == Some(cnum) || info.is_no_builtins.contains(&cnum))
  }
 
 +/// Fil-C: when the linker is the bare name "filcc" (the Fil-C clang driver,
-+/// set by the Fil-C x86_64-unknown-linux-gnu target), resolve it to an
++/// set by the Fil-C target specs, e.g. x86_64-unknown-linux-gnu and
++/// aarch64-unknown-linux-gnu), resolve it to an
 +/// absolute path ourselves instead of relying on PATH, trying in order:
 +///
 +///   1. The directory baked into the compiler at build time as
@@ -525,7 +527,7 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/back/link.rs b/rust/compiler/ru
  /// This functions tries to determine the appropriate linker (and corresponding LinkerFlavor) to use
  pub fn linker_and_flavor(sess: &Session) -> (PathBuf, LinkerFlavor) {
      fn infer_from(
-@@ -1962,6 +2046,41 @@
+@@ -1962,6 +2048,41 @@
      if symbols.is_empty() {
          return;
      }
@@ -1144,6 +1146,132 @@ diff --git a/rust/compiler/rustc_target/src/callconv/mod.rs b/rust/compiler/rust
                      {
                          // We want to pass small aggregates as immediates, but using
                          // an LLVM aggregate type for this leads to bad optimizations,
+diff --git a/rust/compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs b/rust/compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
+--- a/rust/compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
++++ b/rust/compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_gnu.rs
+@@ -1,8 +1,76 @@
+ use crate::spec::{
+-    FramePointer, SanitizerSet, StackProbeType, Target, TargetMetadata, TargetOptions, base,
++    Cc, FramePointer, LinkerFlavor, Lld, SanitizerSet, StackProbeType, Target, TargetMetadata,
++    TargetOptions, base,
+ };
+
+ pub(crate) fn target() -> Target {
++    let mut base = base::linux_gnu::opts();
++
++    // Fil-C: rustc always links with -nodefaultlibs, which makes Fil-C's
++    // driver (filcc) pick filc_mincrt.o, whose `main` starts the program
++    // without running glibc's __libc_start_main.  Without __libc_start_main
++    // the main thread's Fil-C thread state (the thread-descriptor flight
++    // pointer that every filc frame carries) is never initialized, so
++    // pthread_self() returns null and everything touching pthreads breaks
++    // (e.g. std's startup calls pthread_getattr_np, which then trips a filc
++    // safety check).  -normalcrt tells filcc to use the full filc_crt.o (which
++    // runs pizlonated __libc_start_main) even under -nodefaultlibs.  This is
++    // the aarch64 twin of the x86_64-unknown-linux-gnu spec's pre-link args
++    // (which are ["-m64", "-normalcrt"]; aarch64 needs no -m64).
++    base.add_pre_link_args(LinkerFlavor::Gnu(Cc::Yes, Lld::No), &["-normalcrt"]);
++
++    // Fil-C: the pizlonator cannot accept the naked-asm stack-probe helpers
++    // and Fil-C clang does not probe stacks, so stack probing must stay off
++    // for Fil-C Rust (upstream aarch64 sets StackProbeType::Inline).
++    base.stack_probes = StackProbeType::None;
++
++    // Fil-C: the target features must stay at the baseline "+v8a".  Upstream
++    // adds "+outline-atomics", which makes LLVM lower every Rust atomic
++    // operation to a call into the __aarch64_* outline-atomic helpers
++    // (library/compiler-builtins/.../aarch64_linux.rs) instead of to inline
++    // LL/SC machine sequences.  Those helpers are naked-asm, and the
++    // Pizlonator rewrites any inline asm it cannot fully validate -- LL/SC
++    // loops are full of memory accesses, branches and labels, none of which
++    // the Pizlonator's AArch64 inline-asm validator accepts -- into
++    // filc_error calls that abort at run time.  Every atomic operation in
++    // every Rust program would abort, including inside the compiler itself.
++    // Without +outline-atomics, atomics lower to IR-level
++    // atomicrmw/cmpxchg instructions (LDAXR/STXLR loops and LDXP/STXP pairs
++    // for the 16-byte atomics) -- the same lowering Fil-C clang produces for
++    // C atomics on this target, and the Pizlonator handles IR atomics
++    // natively (exactly like it does the x86_64 LOCK-prefixed ones).
++    base.features = "+v8a".into();
++
++    // Fil-C provides its own safety, so the sanitizer runtimes (which don't
++    // exist under Fil-C) must not be used.
++    base.supported_sanitizers = SanitizerSet::empty();
++    base.supports_xray = false;
++
++    // Delegate linking to the Fil-C clang driver (`filcc`), which performs the
++    // full Fil-C link: pizfix CRT (Scrt1.o/crti.o/crtbegin.o/crtend.o/crtn.o)
++    // + filc_crt.o before user objects + -L/-rpath pizfix/lib + the ld-fil1
++    // dynamic linker + -lc -lpizlo -lyolort -lyoloc -lyolom -lyolounwind.
++    // rustc resolves the bare name `filcc` itself (see filc_resolve_linker in
++    // rustc_codegen_ssa): from the directory baked in at build time
++    // (FILC_LINKER_DIR -- <fil-c-checkout>/build/bin in pizfix mode,
++    // /opt/fil/bin in optfil mode), else by walking up from the rustc binary
++    // for <checkout>/build/bin/filcc, else /opt/fil/bin/filcc, and only then
++    // falls back to the PATH (pizlix mode).  Putting Fil-C's build/bin on
++    // PATH still works too, it just no longer has to be the mechanism.
++    base.linker = Some("filcc".into());
++
++    // Fil-C: unwinding is implemented on the Fil-C runtime's unwinder.
++    // libpizlo (the Fil-C runtime that filcc links into every binary) provides
++    // _Unwind_RaiseException and a pizlonated landing-pad LSDA (see
++    // filc/include/pizlonated_eh_landing_pad.h), and the personality routine
++    // in library/std/src/sys/personality/gcc.rs is written against that API
++    // (it never touches _Unwind_GetIP/_Unwind_SetIP, which libpizlo does not
++    // implement).  So the panic strategy stays the default, unwind: panics
++    // print their message and unwind out of the panicking frame, catch_unwind
++    // catches them, Drop glue runs while unwinding, a panic out of main
++    // exits 101, and -C panic=abort is still available to force the abort
++    // strategy.
++
+     Target {
+         llvm_target: "aarch64-unknown-linux-gnu".into(),
+         metadata: TargetMetadata {
+@@ -12,27 +80,31 @@
+             std: Some(true),
+         },
+         pointer_width: 64,
+-        data_layout: "e-m:e-p270:32:32-p271:32:32-p272:64:64-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128-Fn32".into(),
++        // Fil-C: the "before Fil-C" data layout, exactly like the
++        // x86_64-unknown-linux-gnu spec: Fil-C's clang marks address space 0
++        // as non-integral (-ni:0) on this target too (clang commit
++        // "Teach Clang to use a Fil-C compatible ABI on arm64" sets
++        // DataLayoutStringBeforeFilC with -ni:0 and the after-filc layout
++        // without it), and the pizlonation machinery keys off that marker --
++        // LLVMRustOptimize only installs the module's after-FilC DataLayout
++        // (which the FilPizlonator switches to as it pizlonates) when
++        // DataLayout::isFilC() sees the -ni:0 in the module's layout, and the
++        // module's layout comes from this string.  After pizlonation the
++        // layout is this string minus "-ni:0", which is also LLVM's
++        // AArch64 TargetMachine default (accepted by the MismatchedDataLayout
++        // validation in rustc_codegen_llvm/src/context.rs, like on x86_64).
++        data_layout:
++            "e-m:e-ni:0-p270:32:32-p271:32:32-p272:64:64-i8:8:32-i16:16:32-i64:64-i128:128-n32:64-S128-Fn32"
++                .into(),
+         arch: "aarch64".into(),
+         options: TargetOptions {
+-            features: "+v8a,+outline-atomics".into(),
+             // the AAPCS64 expects use of non-leaf frame pointers per
+             // https://github.com/ARM-software/abi-aa/blob/4492d1570eb70c8fd146623e0db65b2d241f12e7/aapcs64/aapcs64.rst#the-frame-pointer
+             // and we tend to encounter interesting bugs in AArch64 unwinding code if we do not
+             frame_pointer: FramePointer::NonLeaf,
+             mcount: "\u{1}_mcount".into(),
+             max_atomic_width: Some(128),
+-            stack_probes: StackProbeType::Inline,
+-            supported_sanitizers: SanitizerSet::ADDRESS
+-                | SanitizerSet::CFI
+-                | SanitizerSet::KCFI
+-                | SanitizerSet::LEAK
+-                | SanitizerSet::MEMORY
+-                | SanitizerSet::MEMTAG
+-                | SanitizerSet::THREAD
+-                | SanitizerSet::HWADDRESS,
+-            supports_xray: true,
+-            ..base::linux_gnu::opts()
++            ..base
+         },
+     }
+ }
 diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 --- a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 +++ b/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
@@ -1664,10 +1792,39 @@ diff --git a/rust/library/backtrace/src/symbolize/gimli/parse_running_mmaps_unix
      pub(super) fn offset(&self) -> u64 {
          self.offset
      }
+diff --git a/rust/library/compiler-builtins/compiler-builtins/src/lib.rs b/rust/library/compiler-builtins/compiler-builtins/src/lib.rs
+--- a/rust/library/compiler-builtins/compiler-builtins/src/lib.rs
++++ b/rust/library/compiler-builtins/compiler-builtins/src/lib.rs
+@@ -60,7 +60,24 @@
+ #[cfg(any(target_arch = "aarch64", target_arch = "arm64ec"))]
+ pub mod aarch64;
+
+-#[cfg(all(target_arch = "aarch64", target_os = "linux", not(feature = "no-asm"),))]
++// Fil-C: the aarch64_linux module is compiled out.  Its __aarch64_*
++// outline-atomic helper definitions (cas/swp/ldadd/ldclr/ldeor/ldset for
++// every size and ordering) are `naked_asm!`, and rustc lowers naked functions
++// to MODULE-LEVEL asm (.pushsection/.balign/.weak/.type/.size/.popsection
++// wrappers around the instruction sequence).  The Fil-Pizlonator parses every
++// module's asm while pizlonating it and does not know those directives, so
++// compiling this module under Fil-C fails with "Invalid directive:
++// .pushsection".  Nothing needs the helpers under Fil-C: they are only ever
++// CALLED by code compiled with the +outline-atomics target feature, which the
++// Fil-C aarch64-unknown-linux-gnu spec deliberately does not carry (see its
++// base.features = "+v8a" -- atomics must lower to inline IR atomics, which is
++// what the Pizlonator handles natively).  Upstream includes this module
++// unconditionally on aarch64-linux and would satisfy outline-atomic callers
++// with it; under Fil-C those callers cannot exist, and LSE support would come
++// from compiler-rt anyway (see the module's own header).  Note: the
++// builtins-test lse.rs test references this module, but test crates are not
++// built by `x.py build`.
++#[cfg(any())]
+ pub mod aarch64_linux;
+
+ #[cfg(all(
 diff --git a/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs b/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs
 --- a/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs
 +++ b/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs
-@@ -43,7 +43,17 @@
+@@ -43,7 +43,21 @@
 
  #![cfg(not(feature = "mangled-names"))]
  // Windows and Cygwin already has builtins to do this.
@@ -1675,13 +1832,17 @@ diff --git a/rust/library/compiler-builtins/compiler-builtins/src/probestack.rs 
 +// Fil-C requires pizlonating all code and rejects the naked-asm stack-probe
 +// helper (the Fil-Pizlonator only allows module-level asm of specific
 +// .filc_* forms), and Fil-C clang never probes stacks.  The inner cfg must
-+// mirror the Fil-C x86_64-unknown-linux-gnu target spec exactly (the only
-+// Fil-C target, which sets StackProbeType::None), so that the exclusion
-+// matches the set of targets rustc actually configures without stack probes.
++// mirror the Fil-C target specs exactly (x86_64-unknown-linux-gnu and
++// aarch64-unknown-linux-gnu, which both set StackProbeType::None), so that
++// the exclusion matches the set of targets rustc actually configures without
++// stack probes.  (The trailing arch gate below compiles this whole module
++// out on aarch64 anyway; the aarch64 arm is kept here so the exclusion list
++// stays an exact mirror of the Fil-C target specs.)
 +#![cfg(not(any(
 +    windows,
 +    target_os = "cygwin",
-+    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")
++    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
++    all(target_arch = "aarch64", target_os = "linux", target_env = "gnu")
 +)))]
  // All these builtins require assembly
  #![cfg(not(feature = "no-asm"))]
@@ -1951,6 +2112,30 @@ diff --git a/rust/library/compiler-builtins/libm/src/math/arch/x86/detect.rs b/r
 -    }
 +    Flags::empty()
  }
+diff --git a/rust/library/core/src/hint.rs b/rust/library/core/src/hint.rs
+--- a/rust/library/core/src/hint.rs
++++ b/rust/library/core/src/hint.rs
+@@ -291,8 +291,18 @@
+
+     #[cfg(any(target_arch = "aarch64", target_arch = "arm64ec"))]
+     {
+-        // SAFETY: the `cfg` attr ensures that we only execute this on aarch64 targets.
+-        unsafe { crate::arch::aarch64::__isb(crate::arch::aarch64::SY) };
++        // Fil-C: upstream emits `isb sy` here (crate::arch::aarch64::__isb,
++        // lowered to a call to the llvm.aarch64.isb intrinsic).  The
++        // Fil-Pizlonator does not handle that intrinsic, so every contended
++        // futex mutex, condvar or mpmc channel (anything whose slow path
++        // spins via lock_contended) aborted at run time with
++        // "filc safety error: Unhandled intrinsic: call void
++        // @llvm.aarch64.isb(i32 15)" -- the threads, thread_local_cells and
++        // mpsc_large_messages tests all died this way.  spin_loop! is a pure
++        // performance hint with no semantic effect, so under Fil-C it is a
++        // no-op on aarch64.  (The x86_64 arm's _mm_pause is fine: the
++        // Pizlonator handles llvm.x86.pause.  The arm32 __yield arm is not
++        // compiled on aarch64.)
+     }
+
+     #[cfg(all(target_arch = "arm", target_feature = "v6"))]
 diff --git a/rust/library/core/src/ptr/mod.rs b/rust/library/core/src/ptr/mod.rs
 --- a/rust/library/core/src/ptr/mod.rs
 +++ b/rust/library/core/src/ptr/mod.rs
@@ -2507,7 +2692,7 @@ diff --git a/rust/library/std/src/sys/pal/unix/stack_overflow.rs b/rust/library/
 diff --git a/rust/library/std/src/sys/personality/gcc.rs b/rust/library/std/src/sys/personality/gcc.rs
 --- a/rust/library/std/src/sys/personality/gcc.rs
 +++ b/rust/library/std/src/sys/personality/gcc.rs
-@@ -39,7 +39,12 @@
+@@ -39,7 +39,15 @@
 
  use unwind as uw;
 
@@ -2516,25 +2701,36 @@ diff --git a/rust/library/std/src/sys/personality/gcc.rs b/rust/library/std/src/
 +// module itself (`eh`/`EHContext`) is only used by the DWARF paths; under
 +// Fil-C the language-specific data is not DWARF at all (see below).
 +use super::dwarf::eh::EHAction;
-+#[cfg(not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")))]
++#[cfg(not(any(
++    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
++    all(target_arch = "aarch64", target_os = "linux", target_env = "gnu")
++)))]
 +use super::dwarf::eh::{self, EHContext};
  use crate::ffi::c_int;
 
  // Register ids were lifted from LLVM's TargetLowering::getExceptionPointerRegister()
-@@ -94,7 +99,213 @@
+@@ -94,7 +102,221 @@
  // https://github.com/gcc-mirror/gcc/blob/trunk/libgcc/unwind-c.c
 
  cfg_if::cfg_if! {
 -    if #[cfg(all(
-+    if #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))] {
++    if #[cfg(any(
++        all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
++        all(target_arch = "aarch64", target_os = "linux", target_env = "gnu")
++    ))] {
 +
-+        // Fil-C.  This cfg selects the Fil-C flavor of the
-+        // x86_64-unknown-linux-gnu target: this compiler only ever emits code
-+        // for Fil-C (there is no musl flavor of Fil-C rustc -- see
-+        // build_rustc-notes.md -- and this crate is only built for
-+        // x86_64-unknown-linux-gnu), so the cfg is exactly as precise as the
++        // Fil-C.  This cfg selects the Fil-C flavor of the linux-gnu targets:
++        // this compiler only ever emits code for Fil-C (there is no musl
++        // flavor of Fil-C rustc -- see build_rustc-notes.md -- and this crate
++        // is only built for the host target, x86_64-unknown-linux-gnu or
++        // aarch64-unknown-linux-gnu), so the cfg is exactly as precise as the
 +        // ones the Fil-C patches use in library/compiler-builtins and
-+        // library/std/src/sys/pal/unix/stack_overflow.rs.
++        // library/std/src/sys/pal/unix/stack_overflow.rs.  The personality
++        // body below is target-independent: it never does IP math or
++        // register-specific unwinding, it only walks the pizlonated
++        // landing-pad data and installs pads by setting the two GRs
++        // (UNWIND_DATA_REG, which each arch defines above: RAX/RDX on
++        // x86_64, X0/X1 on aarch64).
 +        //
 +        // Under Fil-C the unwinder lives in libpizlo, the Fil-C runtime: it
 +        // walks the filc frames itself, and hands each frame's personality
@@ -2736,14 +2932,17 @@ diff --git a/rust/library/std/src/sys/personality/gcc.rs b/rust/library/std/src/
          target_arch = "arm",
          not(target_vendor = "apple"),
          not(target_os = "netbsd"),
-@@ -318,6 +529,10 @@
+@@ -318,6 +540,13 @@
      }
  }
 
 +// Fil-C does not use this: its language-specific data is a
 +// `pizlonated_eh_landing_pad`, not DWARF bytes (see the Fil-C branch above),
 +// and it needs no IP math since the runtime enters the landing pad itself.
-+#[cfg(not(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu")))]
++#[cfg(not(any(
++    all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"),
++    all(target_arch = "aarch64", target_os = "linux", target_env = "gnu")
++)))]
  unsafe fn find_eh_action(context: *mut uw::_Unwind_Context) -> Result<EHAction, ()> {
      unsafe {
          let lsda = uw::_Unwind_GetLanguageSpecificData(context) as *const u8;

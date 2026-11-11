@@ -4,3 +4,15 @@ output-includes:
   "JIT-GATHER PASS"
 needsGLIBC: true
 extraLinkerArgs: "-enable-filc-jit"
+
+# The host side of this test casts the JIT'd function pointer to a C function
+# pointer taking <8 x i32>-style vector arguments by value.  That cast only
+# matches the LLVM function type the test authors through the JIT API on
+# x86_64, where the SysV C ABI passes such fixed-size vectors by value, just
+# like LLVM IR does.  On aarch64, the AAPCS64 C ABI passes fixed-size vectors
+# larger than 128 bits by reference, so the host's C-ABI cast does not match
+# the LLVM function type.  The LLVM JIT API exposes LLVM ABI -- not C ABI --
+# and the JIT implementation makes no attempt to conform one to the other, so
+# this test is only valid on targets where the two coincide.
+only-on-platform:
+  x86_64

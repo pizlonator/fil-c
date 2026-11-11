@@ -34,8 +34,9 @@
 # from build/ via llvm-config (no LLVM build of its own), and then runs
 # `x.py build --stage 1`.  The resulting stage 1 rustc pizlonates
 # every module it compiles (the Fil-Pizlonator runs in every pipeline, at
-# every optimization level) and the x86_64-unknown-linux-gnu target spec
-# makes `filcc` the linker, so what it produces links as Fil-C.
+# every optimization level) and the Fil-C host target spec
+# (x86_64-unknown-linux-gnu on x86_64 hosts, aarch64-unknown-linux-gnu on
+# aarch64 hosts) makes `filcc` the linker, so what it produces links as Fil-C.
 #
 # The built rustc also self-identifies as Fil-C, clang-style: `rustc
 # --version` appends " (Fil-C <version> <repo-url> <hash>)"; see
