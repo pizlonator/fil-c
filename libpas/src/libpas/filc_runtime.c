@@ -7172,6 +7172,42 @@ void filc_native_zgc_wait(filc_thread* my_thread, unsigned long long cycle)
     filc_enter(my_thread);
 }
 
+filc_ptr filc_native_zgc_reserve_at(filc_thread* my_thread, unsigned long address, size_t length)
+{
+    /* This makes the same object that allocate_aligned_impl() makes for an mmap object, except that the
+       verse heap places it at the given address instead of finding room for it. The allocation starts
+       a page before the payload, for the alignment header, and the object header is at the end of that
+       page. See filc_prepare_allocate(). */
+    size_t page_size = pas_real_page_size();
+    size_t offset_to_payload = page_size;
+    PAS_ASSERT(offset_to_payload >= sizeof(filc_object) + sizeof(filc_alignment_header));
+
+    if (!address || !length
+        || !pas_is_aligned((uintptr_t)address, page_size)
+        || !pas_is_aligned(length, page_size)
+        || length > FILC_MAX_ALLOCATION_SIZE
+        || address < offset_to_payload
+        || length > SIZE_MAX - offset_to_payload) {
+        filc_set_errno(EINVAL);
+        return filc_ptr_forge_invalid(NULL);
+    }
+
+    int error;
+    pas_allocation_result allocation_result = verse_heap_try_allocate_large_exact(
+        fugc_destructor_heap, (uintptr_t)address - offset_to_payload, length + offset_to_payload,
+        &error);
+    if (!allocation_result.did_succeed) {
+        filc_set_errno(error);
+        return filc_ptr_forge_invalid(NULL);
+    }
+
+    filc_object* object = finish_allocate(
+        my_thread, allocation_result, length, page_size, offset_to_payload, FILC_OBJECT_FLAG_MMAP,
+        filc_exit_allowed, NULL);
+    PAS_ASSERT((uintptr_t)filc_object_lower(object) == (uintptr_t)address);
+    return filc_ptr_create_with_object(my_thread, object);
+}
+
 bool filc_native_zgc_is_stw(filc_thread* my_thread)
 {
     PAS_UNUSED_PARAM(my_thread);

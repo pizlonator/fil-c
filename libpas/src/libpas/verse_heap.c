@@ -41,6 +41,7 @@
 #include "pas_reserved_memory_provider.h"
 #include "pas_scavenger.h"
 #include "pas_try_allocate_common.h"
+#include "pas_utility_heap.h"
 #include "verse_heap_config.h"
 #include "verse_heap_chunk_map_entry.h"
 #include "verse_heap_inlines.h"
@@ -49,7 +50,9 @@
 #include "verse_heap_page_header_inlines.h"
 #include "verse_heap_runtime_config.h"
 #include "verse_local_allocator.h"
+#include <errno.h>
 #include <inttypes.h>
+#include <sys/mman.h>
 
 #if PAS_ENABLE_VERSE
 
@@ -285,10 +288,10 @@ static void initialize_large_heap_config(pas_heap* heap, pas_large_free_heap_con
 }
 
 /* The part of try_allocate_large_in_transaction() that runs after it has found the address space for the
-   chunks. */
+   chunks. The allocation of a large object at an exact address shares it. */
 static void finish_allocate_large_in_chunks(
     pas_heap* heap, uintptr_t chunk_begin, size_t chunked_size, uintptr_t object_begin,
-    size_t object_size)
+    size_t object_size, bool is_exact)
 {
     verse_heap_large_entry* large_entry;
     verse_heap_chunk_map_entry_header entry_header;
@@ -305,6 +308,7 @@ static void finish_allocate_large_in_chunks(
     pas_zero_memory((void*)chunk_begin, VERSE_HEAP_PAGE_SIZE);
 
     large_entry = verse_heap_large_entry_create(object_begin, object_begin + object_size, heap);
+    large_entry->is_exact = is_exact;
     entry_header = verse_heap_chunk_map_entry_header_create_large(large_entry);
 
     verse_heap_set_is_marked(
@@ -388,7 +392,7 @@ static pas_allocation_result try_allocate_large_in_transaction(
 
     if (verbose)
         pas_log("size = %zu, chunked_size = %zu\n", size, chunked_size);
-    finish_allocate_large_in_chunks(heap, chunk_result.begin, chunked_size, result.begin, size);
+    finish_allocate_large_in_chunks(heap, chunk_result.begin, chunked_size, result.begin, size, false);
 
     if (verbose)
         pas_log("allocated large object at %p\n", (void*)result.begin);
@@ -420,6 +424,200 @@ static pas_allocation_result try_allocate_large(
     pas_scavenger_notify_eligibility_if_needed();
 
     return result_filter(result);
+}
+
+#ifndef MAP_FIXED_NOREPLACE
+#define MAP_FIXED_NOREPLACE 0x100000
+#endif
+
+/* The chunks of dead objects that were placed at an exact address. They stay mapped and the sharing pool
+   treats them as free, but they are not in the free heap, so only an allocation at an exact address can
+   take them. That makes the same address available again in the same process, once the GC has shown
+   that nothing refers to the old object. */
+typedef struct exact_retired_span exact_retired_span;
+struct exact_retired_span {
+    exact_retired_span* next;
+    uintptr_t begin;
+    uintptr_t end;
+};
+
+static exact_retired_span* exact_retired_spans;
+
+static void retire_exact_span(uintptr_t begin, uintptr_t end)
+{
+    exact_retired_span* span;
+    exact_retired_span** link;
+    bool did_merge;
+
+    pas_heap_lock_assert_held();
+    PAS_ASSERT(begin < end);
+
+    /* Merge adjacent spans, so that a request that covers what used to be several objects finds one
+       span. */
+    do {
+        did_merge = false;
+        for (link = &exact_retired_spans; *link; link = &(*link)->next) {
+            span = *link;
+            if (span->end == begin)
+                begin = span->begin;
+            else if (span->begin == end)
+                end = span->end;
+            else
+                continue;
+            *link = span->next;
+            pas_utility_heap_deallocate(span);
+            did_merge = true;
+            break;
+        }
+    } while (did_merge);
+
+    span = (exact_retired_span*)pas_utility_heap_allocate(
+        sizeof(exact_retired_span), "verse_heap_exact_retired_span");
+    span->begin = begin;
+    span->end = end;
+    span->next = exact_retired_spans;
+    exact_retired_spans = span;
+}
+
+/* If the range is inside a retired span, removes it from the span and returns true. */
+static bool claim_retired_exact_span(uintptr_t begin, uintptr_t end)
+{
+    exact_retired_span** link;
+
+    pas_heap_lock_assert_held();
+
+    for (link = &exact_retired_spans; *link; link = &(*link)->next) {
+        exact_retired_span* span;
+        uintptr_t span_begin;
+        uintptr_t span_end;
+
+        span = *link;
+        if (span->begin > begin || end > span->end)
+            continue;
+        span_begin = span->begin;
+        span_end = span->end;
+        *link = span->next;
+        pas_utility_heap_deallocate(span);
+        if (span_begin < begin)
+            retire_exact_span(span_begin, begin);
+        if (end < span_end)
+            retire_exact_span(end, span_end);
+        return true;
+    }
+    return false;
+}
+
+pas_allocation_result verse_heap_try_allocate_large_exact(
+    pas_heap* heap, uintptr_t begin, size_t size, int* error)
+{
+    pas_physical_memory_transaction transaction;
+    pas_large_free_heap_config config;
+    pas_range range;
+    uintptr_t chunk_begin;
+    uintptr_t chunk_end;
+    uintptr_t address;
+    void* mapped;
+    bool did_succeed;
+    bool reused;
+
+    PAS_ASSERT(heap->config_kind == pas_heap_config_kind_verse);
+    PAS_ASSERT(verse_heap_is_ready_for_allocation);
+
+    *error = 0;
+
+    if (!size || !begin
+        || !pas_is_aligned(begin, VERSE_HEAP_PAGE_SIZE)
+        || !pas_is_aligned(size, VERSE_HEAP_PAGE_SIZE)
+        /* The mark bits of the object are in the first page of its first chunk, so the object must not
+           start there. */
+        || pas_modulo_power_of_2(begin, VERSE_HEAP_CHUNK_SIZE) < VERSE_HEAP_PAGE_SIZE
+        || begin > PAS_MAX_ADDRESS || size > PAS_MAX_ADDRESS - begin) {
+        *error = EINVAL;
+        return pas_allocation_result_create_failure();
+    }
+
+    chunk_begin = pas_round_down_to_power_of_2(begin, VERSE_HEAP_CHUNK_SIZE);
+    chunk_end = pas_round_up_to_power_of_2(begin + size, VERSE_HEAP_CHUNK_SIZE);
+    if (chunk_end <= chunk_begin || chunk_end - 1 > PAS_MAX_ADDRESS) {
+        *error = EINVAL;
+        return pas_allocation_result_create_failure();
+    }
+    range = pas_range_create(chunk_begin, chunk_end);
+
+    /* The chunks of an object that was here before may be retired. They still belong to this heap. */
+    pas_heap_lock_lock();
+    reused = claim_retired_exact_span(chunk_begin, chunk_end);
+    pas_heap_lock_unlock();
+
+    if (reused) {
+        /* The old object left its bytes here, and the GC may have scribbled on them. The result has to
+           be zero like any other new mapping, so map fresh pages. This replaces only memory of this
+           heap and costs nothing until the program touches the pages. */
+        mapped = mmap((void*)chunk_begin, chunk_end - chunk_begin, PROT_READ | PROT_WRITE,
+                      MAP_PRIVATE | MAP_ANON | MAP_FIXED | MAP_NORESERVE, -1, 0);
+        if (mapped == MAP_FAILED || (uintptr_t)mapped != chunk_begin) {
+            *error = ENOMEM;
+            pas_heap_lock_lock();
+            retire_exact_span(chunk_begin, chunk_end);
+            pas_heap_lock_unlock();
+            return pas_allocation_result_create_failure();
+        }
+    } else {
+        /* Claim the whole span of chunks, or fail without touching what is there. Older kernels treat
+           MAP_FIXED_NOREPLACE as a hint, so check the address. */
+        mapped = mmap((void*)chunk_begin, chunk_end - chunk_begin, PROT_READ | PROT_WRITE,
+                      MAP_PRIVATE | MAP_ANON | MAP_FIXED_NOREPLACE | MAP_NORESERVE, -1, 0);
+        if (mapped == MAP_FAILED) {
+            *error = errno;
+            return pas_allocation_result_create_failure();
+        }
+        if ((uintptr_t)mapped != chunk_begin) {
+            munmap(mapped, chunk_end - chunk_begin);
+            *error = EEXIST;
+            return pas_allocation_result_create_failure();
+        }
+
+        /* From here on the span is memory of this heap, as if it came from the page cache: fresh,
+           zero and committed. */
+        pas_heap_lock_lock();
+        pas_large_sharing_pool_boot_free(
+            range, pas_physical_memory_is_locked_by_virtual_range_common_lock,
+            heap->segregated_heap.runtime_config->mmap_capability);
+        for (address = chunk_begin; address < chunk_end; address += VERSE_HEAP_CHUNK_SIZE)
+            verse_heap_initialize_chunk_map_entry_ptr(address);
+        pas_heap_lock_unlock();
+    }
+
+    did_succeed = false;
+    pas_physical_memory_transaction_construct(&transaction);
+    do {
+        pas_physical_memory_transaction_begin(&transaction);
+        pas_heap_lock_lock();
+
+        did_succeed = pas_large_sharing_pool_allocate_and_commit(
+            range, &transaction, pas_physical_memory_is_locked_by_virtual_range_common_lock,
+            heap->segregated_heap.runtime_config->mmap_capability);
+        if (did_succeed)
+            finish_allocate_large_in_chunks(
+                heap, chunk_begin, chunk_end - chunk_begin, begin, size, true);
+
+        pas_heap_lock_unlock();
+    } while (!pas_physical_memory_transaction_end(&transaction));
+
+    if (!did_succeed) {
+        /* The sharing pool knows the span, so we cannot unmap it. Give it to the heap. */
+        pas_heap_lock_lock();
+        initialize_large_heap_config(heap, &config);
+        pas_fast_large_free_heap_deallocate(
+            &heap->large_heap.u.free_heap, chunk_begin, chunk_end, pas_zero_mode_is_all_zero, &config);
+        pas_heap_lock_unlock();
+        *error = ENOMEM;
+        return pas_allocation_result_create_failure();
+    }
+
+    pas_scavenger_notify_eligibility_if_needed();
+
+    return pas_allocation_result_create_success_with_zero_mode(begin, pas_zero_mode_is_all_zero);
 }
 
 static PAS_ALWAYS_INLINE pas_allocation_result try_allocate_impl(
@@ -921,8 +1119,13 @@ static bool sweep_large_filter_and_deallocate_callback(verse_heap_large_entry* e
     if (verbose)
         pas_log("deallocating chunk = %p...%p\n", (void*)chunk_begin, (void*)chunk_end);
 
-    pas_fast_large_free_heap_deallocate(
-        &entry->heap->large_heap.u.free_heap, chunk_begin, chunk_end, pas_zero_mode_may_have_non_zero, &config);
+    if (entry->is_exact)
+        retire_exact_span(chunk_begin, chunk_end);
+    else {
+        pas_fast_large_free_heap_deallocate(
+            &entry->heap->large_heap.u.free_heap, chunk_begin, chunk_end, pas_zero_mode_may_have_non_zero,
+            &config);
+    }
 
     verse_heap_large_entry_destroy(entry);
 
