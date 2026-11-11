@@ -366,6 +366,14 @@ int zsys_fork(void)
     return result;
 }
 
+int zsys_fork_flags(int flags)
+{
+    lock_table();
+    int result = zsys_fork_flags_impl(flags);
+    unlock_table();
+    return result;
+}
+
 #if !defined(__COSMOPOLITAN__)
 /* The cosmo flavor doesn't expose epoll at all: the zsys_epoll_* forwarders
    panic under PAS_COSMO, the usercosmo shims trap, and <sys/epoll.h> doesn't

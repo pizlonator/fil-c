@@ -9303,7 +9303,12 @@ int filc_native_zsys_chdir(filc_thread* my_thread, filc_ptr path_ptr)
     return result;
 }
 
-int filc_native_zsys_fork_impl(filc_thread* my_thread)
+#if !PAS_COSMO
+/* The fork of the yolo libc, with clone flags (new namespaces) added to the creation of the child. */
+extern pid_t __fork_flags(int flags);
+#endif
+
+static int fork_with_flags(filc_thread* my_thread, int flags)
 {
     static const bool verbose = false;
 
@@ -9418,7 +9423,12 @@ int filc_native_zsys_fork_impl(filc_thread* my_thread)
     filc_thread* thread;
     for (thread = filc_first_thread; thread; thread = thread->next_thread)
         pas_system_mutex_lock(&thread->lock);
+#if PAS_COSMO
+    PAS_ASSERT(!flags);
     int result = fork();
+#else
+    int result = __fork_flags(flags);
+#endif
     int my_errno = errno;
     pas_lock_disallowed = false;
     /* Release the collector thread state lock baseline hold, in both the parent and the child.  We
@@ -9522,6 +9532,18 @@ int filc_native_zsys_fork_impl(filc_thread* my_thread)
     if (result < 0)
         filc_set_errno(my_errno);
     return result;
+}
+
+int filc_native_zsys_fork_impl(filc_thread* my_thread)
+{
+    return fork_with_flags(my_thread, 0);
+}
+
+/* Forks a child that is also a member of new namespaces. The flags are clone flags, and the caller
+   checks them. The parent keeps its own namespaces, so it keeps its runtime threads. */
+int filc_native_zsys_fork_flags_impl(filc_thread* my_thread, int flags)
+{
+    return fork_with_flags(my_thread, flags);
 }
 
 /* Runs on the new stack of zcall_on_fresh_stack. The frames of the caller are no longer on the frame
