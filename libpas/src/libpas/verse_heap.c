@@ -284,17 +284,62 @@ static void initialize_large_heap_config(pas_heap* heap, pas_large_free_heap_con
     config->deallocator_arg = NULL;
 }
 
+/* The part of try_allocate_large_in_transaction() that runs after it has found the address space for the
+   chunks. */
+static void finish_allocate_large_in_chunks(
+    pas_heap* heap, uintptr_t chunk_begin, size_t chunked_size, uintptr_t object_begin,
+    size_t object_size)
+{
+    verse_heap_large_entry* large_entry;
+    verse_heap_chunk_map_entry_header entry_header;
+    uintptr_t address;
+
+    pas_heap_lock_assert_held();
+
+    /* NOTE: The verse_heap_set_is_marked() call below is really enough, except that:
+
+       - It breaks the FUGC's sweep verifier, which demands that mark bit pages are all zero after
+         sweep.
+
+       - It makes debugging confusing to have mark bit pages with junk in them. */
+    pas_zero_memory((void*)chunk_begin, VERSE_HEAP_PAGE_SIZE);
+
+    large_entry = verse_heap_large_entry_create(object_begin, object_begin + object_size, heap);
+    entry_header = verse_heap_chunk_map_entry_header_create_large(large_entry);
+
+    verse_heap_set_is_marked(
+        (void*)object_begin,
+        verse_heap_page_header_should_allocate_black(&verse_heap_large_objects_header));
+
+    /* We want to make sure that if we are conservatively marking at the same time as we do this, then any
+       large entries discovered by verse_heap_find_allocated_object_start() are fully populated by the time
+       we see them.
+
+       We also want to know that the object is marked before we tell find_allocated_object_start() about it.
+
+       FIXME: Maybe we don't need this store-store fence, since set_is_marked is fully fenced. OTOH, it doesn't
+       matter much, since this isn't a fast path. */
+    pas_store_store_fence();
+
+    /* This allows deallocation to find out about the object and it allows us to handle interior pointers to
+       large objects efficiently. */
+    for (address = chunk_begin; address < chunk_begin + chunked_size; address += VERSE_HEAP_CHUNK_SIZE)
+        verse_heap_chunk_map_entry_store_header(verse_heap_get_chunk_map_entry_ptr(address), entry_header);
+
+    verse_heap_object_set_set_add_large_entry(
+        &((verse_heap_runtime_config*)heap->segregated_heap.runtime_config)->object_sets, large_entry);
+
+    verse_heap_notify_allocation(object_size);
+}
+
 static pas_allocation_result try_allocate_large_in_transaction(
     pas_heap* heap, size_t size, size_t alignment, pas_physical_memory_transaction* transaction)
 {
     static const bool verbose = false;
     
     pas_large_free_heap_config config;
-    verse_heap_large_entry* large_entry;
-    verse_heap_chunk_map_entry_header entry_header;
     pas_allocation_result chunk_result;
     pas_allocation_result result;
-    uintptr_t address;
     size_t chunked_size;
 
     pas_heap_lock_assert_held();
@@ -336,14 +381,6 @@ static pas_allocation_result try_allocate_large_in_transaction(
         return pas_allocation_result_create_failure();
     }
 
-    /* NOTE: The verse_heap_set_is_marked() call below is really enough, except that:
-     
-       - It breaks the FUGC's sweep verifier, which demands that mark bit pages are all zero after
-         sweep.
-    
-       - It makes debugging confusing to have mark bit pages with junk in them. */
-    pas_zero_memory((void*)chunk_result.begin, VERSE_HEAP_PAGE_SIZE);
-
     result = chunk_result;
     result.begin += VERSE_HEAP_PAGE_SIZE;
     result.begin = pas_round_up_to_power_of_2(result.begin, alignment);
@@ -351,33 +388,7 @@ static pas_allocation_result try_allocate_large_in_transaction(
 
     if (verbose)
         pas_log("size = %zu, chunked_size = %zu\n", size, chunked_size);
-    large_entry = verse_heap_large_entry_create(result.begin, result.begin + size, heap);
-    entry_header = verse_heap_chunk_map_entry_header_create_large(large_entry);
-
-    verse_heap_set_is_marked(
-        (void*)result.begin, verse_heap_page_header_should_allocate_black(&verse_heap_large_objects_header));
-
-    /* We want to make sure that if we are conservatively marking at the same time as we do this, then any
-       large entries discovered by verse_heap_find_allocated_object_start() are fully populated by the time
-       we see them.
-
-	   We also want to know that the object is marked before we tell find_allocated_object_start() about it.
-
-	   FIXME: Maybe we don't need this store-store fence, since set_is_marked is fully fenced. OTOH, it doesn't
-	   matter much, since this isn't a fast path. */
-    pas_store_store_fence();
-
-    /* This allows deallocation to find out about the object and it allows us to handle interior pointers to
-       large objects efficiently. */
-    for (address = chunk_result.begin;
-         address < chunk_result.begin + chunked_size;
-         address += VERSE_HEAP_CHUNK_SIZE)
-        verse_heap_chunk_map_entry_store_header(verse_heap_get_chunk_map_entry_ptr(address), entry_header);
-
-    verse_heap_object_set_set_add_large_entry(
-        &((verse_heap_runtime_config*)heap->segregated_heap.runtime_config)->object_sets, large_entry);
-
-    verse_heap_notify_allocation(size);
+    finish_allocate_large_in_chunks(heap, chunk_result.begin, chunked_size, result.begin, size);
 
     if (verbose)
         pas_log("allocated large object at %p\n", (void*)result.begin);
