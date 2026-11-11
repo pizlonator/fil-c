@@ -1,0 +1,10 @@
+return: success
+output-includes:
+- pid nonzero = true
+- status = true stdout = hello from child
+- cat = piped data
+- exit code = Some(3)
+- args = x y z
+extraArgs:
+- --edition
+- '2021'

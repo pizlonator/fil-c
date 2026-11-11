@@ -1,0 +1,18 @@
+return: success
+output-includes:
+- map_or = 10 0
+- ok_or none = Err("no value")
+- zip = Some((5, "z")) None None
+- transpose = Ok(Some(7))
+- transpose err = Err("e")
+- flatten = Some(6)
+- filter = Some(5) None
+- res or_else = Ok(4) Ok(2)
+- res flatten = Ok(9)
+- res transpose = Some(Ok(8))
+- 'helper bad = Err("bad: invalid digit found in string")'
+- helper neg = Err("negative")
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

@@ -1,0 +1,16 @@
+return: success
+output-includes:
+- a = A(i16-string) b = B
+- vec = A(vec-a), B, A(vec-c)
+- swapped x = B y = A(swap-me)
+- replaced prev = A(replace-me) now = A(replaced)
+- s1 = Small(3405705229) s2 = Big(signed-box) s3 = Neg
+- signed vec = Small(9), Neg, Big(sv)
+- signed swap = Big(signed-swap) Small(1)
+- signed replace = Small(2) now = Neg
+- eq = true
+- debug = A("dbg") Small(44)
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

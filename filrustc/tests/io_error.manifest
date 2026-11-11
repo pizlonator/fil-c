@@ -1,0 +1,9 @@
+return: success
+output-includes:
+- kind = NotFound raw = Some(2)
+- downcast custom = Some("str error")
+- chain length = 2
+- downcast box = inner source kind = PermissionDenied
+extraArgs:
+- --edition
+- '2021'

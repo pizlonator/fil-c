@@ -1,0 +1,12 @@
+return: success
+output-includes:
+- created = true
+- borrowed matches = true
+- dup fd differs = true
+- shared cursor = fd round trip via dup
+- adopted = fd round trip via dup
+- owned fd kept = true
+- cleaned = true
+extraArgs:
+- --edition
+- '2021'

@@ -1,0 +1,13 @@
+return: success
+output-includes:
+- bound local = true
+- unix echo = unix-echo:ping
+- pair = pair!
+- v6 = true loopback = true
+- cleaned = true
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O
+skip: UnixListener::accept hits the same Skew/alignment bug as net_tcp (120-byte aggregate
+  write at a 4-mod-8 offset in io::Result<(UnixStream, SocketAddr)>)

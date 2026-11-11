@@ -1,0 +1,15 @@
+return: success
+output-includes:
+- poisoned = true
+- into_inner = 0
+- counter = t0,t1,t2,t3
+- after write = written
+- thread write = thread-write
+- rw poisoned = true
+- condvar notified = true
+- wait_timeout timed_out = true
+- barrier = [0, 1, 2]
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

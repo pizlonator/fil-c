@@ -1,0 +1,13 @@
+return: success
+output-includes:
+- after to_mut = static + added
+- cow slice grown = [1, 2, 3, 4]
+- typeid = true true true
+- downcast_ref = 41
+- downcast_mut = 99
+- describe str = String
+- type_id match = true
+- downcast owned = [7, 8, 9]
+extraArgs:
+- --edition
+- '2021'

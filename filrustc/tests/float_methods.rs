@@ -1,0 +1,33 @@
+fn main() {
+    let x = 3.75f64;
+    println!("bits roundtrip = {}", f64::from_bits(x.to_bits()) == x);
+    println!("round = {} fract = {} trunc = {}", (-2.5f64).round(), (-2.5f64).fract(), (-2.5f64).trunc());
+    println!("sqrt = {} {}", (4.0f64).sqrt(), (2.0f64).sqrt().powi(2));
+    println!("powi/powf = {} {}", (2.0f64).powi(10), (2.0f64).powf(0.5));
+    println!("abs = {}", (-1.5f64).abs());
+    println!("exp/ln = {:.6} {:.6}", (1.0f64).exp(), (std::f64::consts::E).ln());
+    println!("consts = {} {} {}", std::f64::consts::PI, std::f64::consts::E, std::f64::consts::SQRT_2);
+    println!("max/min = {} {}", f64::MAX, f64::MIN_POSITIVE);
+    println!("nan = {} {} {}", f64::NAN.is_nan(), f64::INFINITY.is_infinite(), f64::NEG_INFINITY.is_sign_negative());
+    println!("nan neq self = {}", f64::NAN == f64::NAN);
+    println!("max_ = {} min_ = {}", f64::NAN.max(1.0), 1.0f64.min(f64::NAN));
+    println!("clamp = {}", (5.0f64).clamp(1.0, 3.0));
+    println!("rem_euclid = {}", (-1.0f64).rem_euclid(3.0));
+    println!("floor/ceil = {} {}", 2.7f64.floor(), 2.2f64.ceil());
+    println!("total_cmp = {:?}", [3.0, -1.0, f64::NAN, 0.0, -0.0].sort_by(f64::total_cmp));
+    let mut arr = [3.0f64, -1.0, 2.0];
+    arr.sort_by(f64::total_cmp);
+    println!("sorted = {:?}", arr);
+    let f = 0.1f32 + 0.2f32;
+    println!("f32 = {:.6} bits = {}", f, f.to_bits());
+    println!("fmt = {:.3} {:.0} {:e} {:E} {:+.2}", 3.14159, 3.14159, 12345.6789, 12345.6789, 3.14159);
+    println!("width = {:8.2}|{:08.2}|{:<8.2}", 3.14159, 3.14159, 3.14159);
+    println!("hexf = {}", format!("{:x}", 255u64));
+    println!("sign = {} {}", (-0.0f64).is_sign_negative(), (0.0f64).is_sign_positive());
+    println!("to_int = {} {} {}", 3.99f64 as u32, (-3.99f64) as i32, 1e10f64 as u64);
+    println!("recip = {} {}", (4.0f64).recip(), (0.5f64).recip());
+    println!("cbrt = {:.4}", 27.0f64.cbrt());
+    println!("hypot = {}", (3.0f64).hypot(4.0));
+    println!("sin/cos = {:.4} {:.4}", (0.0f64).sin(), (0.0f64).cos());
+    println!("mul_add = {}", (2.0f64).mul_add(3.0, 1.0));
+}

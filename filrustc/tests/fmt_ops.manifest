@@ -1,0 +1,11 @@
+return: success
+output-includes:
+- display = (3, -4)
+- 'debug = Point { x: 3, y: -4 }'
+- '[+5] [-5] [0xff] [0o10] [0b110]'
+- positional = a b a
+- socketaddr display = 127.0.0.1:9000
+- format = =========x
+extraArgs:
+- --edition
+- '2021'

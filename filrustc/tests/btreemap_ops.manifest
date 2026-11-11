@@ -1,0 +1,11 @@
+return: success
+output-includes:
+- after entries = k1=10,k2=22,k3=30,k4=40
+- range = k2=22,k3=30
+- after append len = 6 keys = k1,k2,k3,k4,k5,k6
+- left = k1,k2,k3 right = k4,k5,k6
+- pop_first = k1 11
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

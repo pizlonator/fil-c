@@ -1,0 +1,15 @@
+return: success
+output-includes:
+- v4 localhost = 127.0.0.1
+- v4 broadcast = 255.255.255.255
+- segments back = true
+- v6 loopback = true unique_local = true multicast = true
+- mapped = ::ffff:192.0.2.9
+- to_ipv4 = 192.0.2.9 canonical = 192.0.2.9
+- eq concrete = true
+- parsed = true true
+- bad v4 err = true
+- ip parsed = 192.168.1.9 matches = true
+extraArgs:
+- --edition
+- '2021'

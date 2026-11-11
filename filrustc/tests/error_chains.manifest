@@ -1,0 +1,11 @@
+return: success
+output-includes:
+- err = layer2 wrapping
+- chain = 2
+- tryfrom ok = 255
+- parse kind = InvalidDigit
+- overflow kind = true
+- map_err = Ok(5)
+extraArgs:
+- --edition
+- '2021'

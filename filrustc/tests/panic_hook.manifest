@@ -1,0 +1,11 @@
+return: success
+output-includes:
+- caught = true
+- no panic = 10
+- payload = Some("payload string")
+- str payload = Some("static str")
+- structured = Some(77)
+- thread panic caught = true
+extraArgs:
+- --edition
+- '2021'

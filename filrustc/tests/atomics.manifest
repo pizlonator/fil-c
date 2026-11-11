@@ -1,0 +1,20 @@
+return: success
+output-includes:
+- 'AtomicI8: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicU8: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicI16: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicU16: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicI32: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicU32: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicI64: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicU64: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicIsize: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicUsize: uniform = true add_old = 10 sub_old = 13 cas = true weak = true update = true'
+- 'AtomicBool: uniform = true cas = true update = true'
+- 'AtomicPtr: uniform = true deref = 20 cas = true weak = true update = true'
+- mp value = 0xdeadbeef
+- atomic sum = 400
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

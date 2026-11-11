@@ -44,8 +44,11 @@ ALL Fil-C changes to the Rust sources live in the projeny patch
 sources: edit `projects/rust/...` and run `filc/projeny commit
 projects/rust.projeny` (then `git add projects/rust.projeny`).  The build
 script applies no source tweaks of its own; it only *verifies* that every
-expected Fil-C change is present in the extracted tree (the `check_grep` calls
-in `build_rustc_impl.sh` -- 49 of them) and fails fast with a clear
+expected Fil-C change is present in the extracted tree (the `check_grep`
+calls in `build_rustc_impl.sh` -- 63 of them, counted as
+`grep -c '^\s*check_grep ' build_rustc_impl.sh`; the two other mentions of
+the name are the comment above the helper and its definition) and fails
+fast with a clear
 "projeny patch missing filc change X" error otherwise.
 
 The patch consists of the following changes:
@@ -1419,6 +1422,226 @@ ld-fil1 does not search rustc's sysroot by default).
    program.  (Where the missing `.rustc` section comes from has not been
    investigated.)
 
+24. `compiler/rustc_ty_utils/src/layout.rs` — **word-aligned variant
+    payloads for pointer-maybe direct-tagged enums** (the std::process
+    spawn fix; see known-issue #11 below for the full mechanism and the
+    validity evidence).  `layout_of_uncached` computes the layout with the
+    upstream repr; if the result is direct-tagged, pointer-maybe (the
+    `filc_layout_may_contain_pointers` predicate, a `TyAbiInterface`-level
+    twin of codegen's `filc_may_contain_pointers` from change #21), and the
+    first payload byte of any variant is not word-aligned, the layout is
+    recomputed with `repr.int = Fixed(I64, true)` (which also inhibits the
+    niche optimization -- moot, the enum is already direct-tagged) and
+    `repr.align = 8`, so the FIRST payload byte of every variant starts on a
+    word boundary.  That is exactly what the misalignment check inspects
+    (`filc_payload_misaligned` looks at each variant's `offset(0)` payload
+    field only), and it is deliberately NOT a claim about later fields: a
+    multi-field variant whose non-first fields need only 4-byte alignment
+    still has them at 4 mod 8 after the recompute
+    (`#[repr(u8)] enum { A(Box<String>), B(u32, u32) }` has an 8-byte tag with
+    B's fields at 8 and 12, and
+    `#[repr(u8)] enum { A(Box<String>), B(u64, u32, u32) }` is not even
+    recomputed -- its first payload byte is already word-aligned -- leaving
+    field .2 at 20).  That is safe because those trailing fields are only ever
+    accessed with INTEGER-typed loads and stores, and under GIMSO integer-typed
+    accesses neither need nor touch capabilities: an integer-typed store moves
+    only the payload (it cannot fabricate a capability, and it leaves whatever
+    capability rests in the shadow untouched), and an integer-typed load reads
+    only the payload.  The rewriter cannot even widen such an access into a
+    pointer-typed one: under the `-ni:0` non-integral data layout,
+    SROA's `canConvertValue` refuses every `iN -> ptr` conversion, so the
+    rewriter keeps the original integer-typed memory op on the kept alloca
+    instead of re-typing it -- which is what preserves GIMSO's
+    integer-lane/pointer-lane split (this is the load-bearing reason the
+    misaligned trailing fields, and integer-typed accesses inside
+    pointer-typed alloca partitions generally, are benign; probed empirically
+    through the `?`-desugaring, sret returns, struct splits, and Vec moves at
+    both optimization levels).  What the check MUST prevent is a POINTER
+    landing at 4 mod 8: a pointer-typed access requires a word-aligned
+    capability slot, which is what the first-payload-byte check guarantees
+    for every variant (niche layouts put the pointer AT the niche, also
+    word-aligned).
+    WHICH enums get the word-sized tag on WHICH path: reprs without an
+    explicit integer tag (repr(Rust), and repr(C) with no `int`) get it on
+    the FIRST computation -- the `get_discriminant_type` closure widens the
+    tag to `I64` there, which is consistent with typeck because such reprs
+    typeck as pointer-sized (`ReprOptions::discr_type()` is
+    `IntegerType::Pointer`) -- so the common `io::Result`-shaped enums pay
+    no second layout computation.  Explicit-int-repr pointer-maybe enums
+    (`#[repr(u8)]`, `#[repr(i16)]`, `#[repr(u32)]`, `#[repr(C, u8)]`,
+    `#[repr(u64)]`, ...) keep their chosen tag on the first computation and
+    get the word-sized tag from the recompute above exactly when that
+    computation lands on a misaligned payload (they are always
+    direct-tagged, so the misalignment check sees them).  The closure
+    decides the tag against the repr the current computation is using (a
+    `Cell<ReprOptions>`; `ReprOptions` is `Copy`) -- deciding it against
+    `def.repr()` instead is WRONG twice over: on the first computation it
+    trips rustc_abi's "layout decided on a larger discriminant type (I64)
+    than typeck (I8/I16/I32)" assert (the calculator compares the closure's
+    tag against `from_attr(repr.discr_type())` of the repr IT was given,
+    and explicit-int reprs typeck as the narrow int), and in the recompute
+    the discriminant range it is handed is derived from the bumped repr's
+    interpretation of the raw `Discr.val` bits (e.g. `-5i16` is stored as
+    `0xFFFB` and is re-interpreted at 64-bit width as 65531), which
+    overflows the narrow repr's range and trips
+    "Integer::repr_discr: `#[repr]` hint too small".  With the closure
+    against the current repr both are consistent: the tag is never larger
+    than typeck's, and the recomputed tag's valid range covers the raw bit
+    patterns that codegen's SwitchInt compares against.  A repr whose
+    payload is already word-aligned (e.g. `#[repr(i16)]` with a String
+    payload at 8, or `#[repr(C, u8)]` whose tag prefix grows to the 8-byte
+    field alignment) is left exactly as upstream laid it out -- no recompute,
+    no ABI drift.  Only direct-tagged enums are touched: niche layouts
+    already keep the pointer *at* the niche (word-aligned), packed enums
+    keep their layout (the repr(packed) hole), and pure-numeric enums are
+    unaffected (the predicate requires pointer-maybe fields), so there is
+    no impact on numeric code.  The bump recompute cannot make a layout
+    unsized (the bump only widens the discriminant and the alignment; the
+    calculator hardcodes `sized: true` for every multi-variant enum repr),
+    so upstream's sanity assert -- `if !maybe_unsized && layout.is_unsized()
+    { bug!("got unsized layout for type that cannot be unsized ...") }` --
+    holds for the recomputed layout too, and this round RESTORED it after
+    the recompute (it had been dropped when the recompute was added; the
+    full suite plus a fresh rustc+std build with assertions on pass with it
+    back in place, which is the validity proof for the assert itself).
+    Regression guards: `repr_enum_u8`, `repr_enum_c_u8`, `repr_enum_i16`,
+    `repr_enum_u32` plus their `-opt` twins (see their rows in the test
+    table and the coverage table) pin the explicit-int-repr shapes -- they
+    fail to COMPILE (the rustc_abi assert, exit 101) if the closure bump is
+    ever again applied to explicit reprs on the first computation, and they
+    RUN both variants of each enum through by-value moves and print the
+    payloads, proving the integer-only payloads at 4 mod 8 do not
+    pizlonator-panic.
+
+25. `library/std/src/io/mod.rs` + `library/std/src/fs.rs` +
+    `library/std/src/sys/fd/unix.rs` — **the fs::read / read_buf capability
+    fix** (see known-issue #12 below).  THREE std files are touched:
+
+    * `io/mod.rs`: `default_read_to_end` reads through a fixed-size plain
+      stack buffer (`[0u8; DEFAULT_BUF_SIZE]` per chunk) and appends with
+      `extend_from_slice` (a memcpy moves payload + capability shadow)
+      instead of reading through the vector's spare capacity, whose pointer
+      loses its Fil-C capability on the way through this function's
+      aggregate moves (the kernel write through it reported "cannot write
+      pointer with null object", and large `read_to_string` silently
+      returned an empty string).
+    * `fs.rs`: `fs::read::inner` uses the infallible `Vec::with_capacity`
+      instead of `Vec::try_with_capacity` (whose try-reserve aggregate move
+      carried the vector pointer as a bare integer); under Fil-C the
+      allocator aborts on OOM anyway, so the graceful allocation-failure
+      path is moot.
+    * `sys/fd/unix.rs`: `File::read_buf` no longer hands the kernel the
+      cursor's raw `MaybeUninit` slice (the cursor's data pointer travels
+      through the `BorrowedBuf`/`BorrowedCursor` aggregate moves and the
+      vector's spare capacity, and its capability does not survive the
+      trip: the read syscall reported "cannot write pointer with null
+      object" from `zsys_read`).  It now reads through a fixed-size plain
+      byte scratch buffer (`FILC_READ_BUF_SCRATCH = 8192`) and
+      `cursor.append()`s the bytes -- a memcpy, which moves payload +
+      shadow -- into the cursor.  The contract that follows: every
+      `read_buf` call on a `File` transfers AT MOST 8192 bytes even when
+      the cursor's capacity is larger (capping the transfer is within the
+      `Read` contract -- reads may legitimately return fewer bytes than
+      requested), so callers must LOOP; std's own `io::copy` loops (the
+      stack-buffer loop and the BufWriter loop) already do, and the
+      `fs_big_rw` suite test pins the cap from stable code (8 chunks of
+      exactly 8192 for a 64 KiB file).  The extra copy per read_buf call
+      is the price of the capability-preserving rewrite: the Fil-C version
+      needs a fixed-size, known-typed staging buffer whose pointer comes
+      straight from the stack, because the cursor's pointer is exactly
+      what loses its capability.
+
+    BufReader over a File never needed the fix (it reads through the plain
+    `read` path).
+
+26. `filrustc/tests/*.rs` + `filrustc/tests/*.manifest` — **the std coverage
+    suite**: 40 new `.rs` tests (see the std coverage section below for the
+    module map; the follow-up round added 7 more coverage-table rows --
+    the `repr_enum_*` change-#24 guards and the `io_terminal`/
+    `chown_fchown`/`backtrace_disabled` gap-closers -- bringing the table
+    to 47 rows, and the round-3 sort-miscompile fix added the
+    `sort_by_key_enum`/`sort_by_comparator` guards for 49), 47 runnable plus
+    `net_tcp`/`net_unix` marked `skip` with a
+    note (known-issue #13).  Each test compiles at exactly ONE optimization
+    level because the harness's `optFlags` REPLACES the default flags: 10
+    of the 47 runnable tests have base manifests compiling at `-O` and 37
+    at the default O0
+    (before the `-opt` twins of this round, 12 of the 30 runnable
+    coverage tests compiled at `-O` and 18 at the default O0 -- and the
+    earlier revision of this entry wrongly claimed "30 runnable at both the default opt level and
+    `-O`").  Every bug-guard test now has BOTH levels via `-opt` twins
+    (byte-identical `.rs` copies whose manifests add `optFlags: -O`):
+    `process_ops`/`process_ops-opt` (the known-issue #11 spawn-shape guard)
+    and `fs_ops`/`fs_ops-opt` + `fs_big_rw`/`fs_big_rw-opt` (the
+    known-issue #12 read-path guards) -- both bugs fired at BOTH
+    optimization levels before their fixes, so both levels must be guarded.
+    All tests are hermetic: filesystem tests work under a per-test
+    `/tmp/filc-...-<pid>` directory created and removed by the test itself,
+    networking is loopback-only with ephemeral ports, timing assertions use
+    generous margins, and outputs are deterministic (sorted where hashing
+    or concurrency is involved).  The bug-guard twins this round:
+    `process_ops`/`process_ops-opt` (known-issue #11), `fs_ops`/
+    `fs_ops-opt` + `fs_big_rw`/`fs_big_rw-opt` (known-issue #12), and
+    `option_result_combinators`/`option_result_combinators-opt`
+    (known-issue #14 -- its `?`-desugaring shape only miscompiles at `-O`,
+    so the `-O` twin is the regression guard and the O0 original keeps the
+    combinator coverage).
+
+27. `library/core/src/result.rs` — **`?` on a `Result` with a
+    pointer-bearing error type keeps the error payload's capability**
+    (the `?`-desugaring fix; see known-issue #14 below for the full
+    mechanism and the validity evidence).  `Result::branch` and
+    `Result::from_residual` (the two `try_trait_v2` methods the `?`
+    desugaring calls) are `#[inline(never)]` instead of `#[inline]`: when
+    they were inlined, the inlined copies became locals whose shared
+    niche-overlap partition SROA promotes to an integer register, and the
+    `Err` payload's pointer then travels through `ptrtoint`/`inttoptr`,
+    arriving with its Fil-C capability dropped ("filc safety error: cannot
+    read pointer with null object" on the first deref of an `Err(String)`
+    payload propagated by `?`, at `-O` only).  As real calls, the residual's
+    aggregate moves are memcpy-across-a-call, which moves payload +
+    capability together.  `?` on `Option<T>` needs no guard (its residual
+    `Option<Infallible>` is uninhabited and zero-sized, so no
+    pointer-bearing payload ever shares a partition with the `Continue`
+    value -- verified empirically), and `from_output` stays `#[inline]`
+    (it handles only the `Ok` path).  The cost is two small real calls per
+    `Result`-typed `?` (a discriminant switch plus one aggregate copy).
+
+28. `library/core/src/slice/sort/shared/smallsort.rs` +
+    `library/core/src/slice/sort/unstable/quicksort.rs` — **`#[inline(never)]`
+    on the sort machinery's element save/restore boundaries keeps
+    user-closure-driven sorts capability-safe** (the `sort_by_key`
+    miscompile fix; see known-issue #15 below for the full mechanism and the
+    validity evidence).  Five attributes, all the change-#27 house pattern
+    ("keep the library function that performs the critical data movement out
+    of the body that also contains the inlined user closure"):
+    `insert_tail` (the insertion-sort step whose `ManuallyDrop` tmp saves and
+    restores the sifted element), `partition_hoare_branchy_cyclic` and
+    `partition_lomuto_branchless_cyclic` (the ipnsort partitions whose
+    `GapGuard`/`PartitionState` save the gap element), and the
+    `GapGuard<T>::drop`/`GapGuardRaw<T>::drop` impls that restore the saved
+    gap element.  Without them, the key-extraction (or comparator) closure
+    inlined into those bodies lets the Fil-C pre-pizlonation pipeline collapse
+    the element save/restore memcpys into integer load/store pairs that move
+    only the payload, dropping the capabilities of the pointers inside the
+    moved elements ("filc safety error: cannot read pointer with null object"
+    when the moved element is later dropped or read, at `-O` only).  The
+    attributes are EACH load-bearing: removing the two partition-level ones
+    (with the drop-level ones still in place) re-breaks
+    `sort_unstable_by_key` on 100 pointer-bearing elements, and removing the
+    drop-level ones (with the partition-level ones in place) breaks it again
+    (the standalone partition still scalarizes its gap value when the guard
+    can be inlined).  `heapsort` (which moves via `ptr::swap_nonoverlapping`,
+    i.e. change #22's pointer-typed chunk machinery), the driftsort merge and
+    stable partition (all-memcpy moves), the stable quicksort's pivot copy
+    (a read-only `ManuallyDrop`), and `swap_if_less` (the Copy-type sort
+    network; reachable only for `CopyMarker` types, whose bare-pointer
+    elements stay pointer-typed through the save/restore -- verified with a
+    `Vec<*const u8>` and a `{ *const u8, u32 }` Copy-struct probe at `-O`)
+    needed no changes.  The cost: the small-sort step and each partition
+    become real calls per sort, and two more calls per partition invocation
+    on the panic-recovery drop paths.
+
 10. **Aggregate-ABI holes** (they fire at `opt-level=0` AND `-O` alike, so
    they are not pipeline-dependent -- they are rustc lowering / Fil-C ABI
    gaps, documented per the review round that surfaced them).  Of the two
@@ -1486,6 +1709,373 @@ ld-fil1 does not search rustc's sysroot by default).
      the Fil-C target (or give Fil-C sub-word capability moves); neither is
      attempted here.
 
+11. **Pointer-maybe enums with a small discriminant start their integer
+   payloads at 4 mod 8 (FIXED on the layout side; std::process::Command::spawn
+   is the regression guard).**  `io::Result<(Process, StdioPipes), io::Error>`
+   (and every `io::Result<T, io::Error>` with a non-pointer-bearing `T`) is
+   laid out as a 4-byte tag followed directly by the payload, because the Ok
+   variant's fields need only 4-byte alignment while the Err variant's
+   `io::Error` is a single niche-encoded pointer that lands at offset 8.
+   The Fil-C rustc gives the allocas (and sret slots) of pointer-maybe
+   aggregates all-pointer struct types (change #21), so the tag-plus-payload
+   aggregate is sliced into 8-byte pointer-typed partitions: the Err
+   variant's real pointer legitimately occupies partition [8,16), and the Ok
+   variant's *integer* bytes copied through that partition come out of the
+   typed slot as pointer-typed VALUES.  When those values flow into a
+   destination whose byte offsets differ by 4 (the `?`-desugaring's
+   field-wise stores into a differently-shaped sret, SROA's decomposition of
+   the 28-byte tuple memcpy in `Command::spawn`), the pizlonator sees a
+   pointer-typed store at an address that is 4 mod 8.  A pointer under GIMSO
+   can only rest in an 8-byte-aligned word (its capability needs a shadow
+   slot), so the pizlonator requires word alignment for every pointer-typed
+   access (`buildChecksRecurse` in FilPizlonator.cpp:
+   `T == RawPtrTy -> buildCheck(WordSize, WordSize, ...)`), and the check is
+   unsatisfiable: `Command::status()`/`output()`/`spawn()` died at every
+   optimization level with "filc safety error: alignment requirement of 8
+   bytes not met. ... expected 12 writable bytes with ptr aligned to 8 bytes
+   at offset 4." (exit 42/133).  The fix is in the layout (change #24 in the
+   list above): `layout_of_uncached` in rustc_ty_utils computes the enum's
+   layout, and when the result is direct-tagged, pointer-maybe
+   (`filc_layout_may_contain_pointers`, the rustc_ty_utils twin of the
+   codegen predicate), and the first payload byte is not word-aligned, it
+   recomputes the layout with a word-sized discriminant
+   (`repr.int = Fixed(I64, true)` -- which also inhibits the niche
+   optimization, which is fine because the enum is already direct-tagged --
+   plus `repr.align = 8`), moving the first payload byte of every variant to a
+   word boundary (what the `filc_payload_misaligned` check actually inspects;
+   later fields of multi-field variants may still sit at 4 mod 8, which is
+   safe because they are only ever touched with integer-typed accesses and
+   SROA's rewriter cannot widen those into pointer-typed ops under the
+   `-ni:0` non-integral data layout -- `canConvertValue` refuses `iN -> ptr`
+   -- see change #24 for the full explanation).
+   Niche layouts already keep the pointer *at* the niche (word-aligned), and
+   packed enums keep their layout (the repr(packed) hole above).  Explicit
+   integer reprs (`#[repr(u8)]`-style) ride the same recompute: widening
+   their tag on the FIRST computation would trip rustc_abi's
+   "layout decided on a larger discriminant type" assert, so the tag-deciding
+   closure tracks the repr each computation uses and the recompute is where
+   their tag widens (see change #24 for the full mechanism, including the
+   discriminant-range subtlety with raw `Discr.val` bits, and the
+   `repr_enum_*` ICE guards).  This is
+   the usermusl house pattern of never letting pointer slots alias integer
+   slots at sub-word granularity (pthread_mutex_t's `__p[]` vs `__i[]`
+   split).  Validity evidence, both directions: with the fix reverted
+   (upstream layout), `Command::new("/bin/echo").arg("x").status()` dies
+   with the alignment error above at O0 AND -O (captured repeatedly);
+   with the fix restored it prints "x / status = true" and exits 0, at both
+   opt levels, and the full filrustc suite passes.
+
+12. **`std::fs::read` / large `read_to_string` lose the buffer capability
+   (FIXED in std; `fs_ops` + `fs_ops-opt` + `fs_big_rw` + `fs_big_rw-opt`
+   are the regression guards).**
+   `fs::read::inner` built the destination vector with
+   `Vec::try_with_capacity` and `io::default_read_to_end` read through the
+   `BorrowedBuf`/`BorrowedCursor` machinery into the vector's spare
+   capacity.  On this branch the vector's data pointer loses its Fil-C
+   capability on the way through those aggregate moves (the pointer is
+   stored as a bare integer in the try-reserve path and re-derived as an
+   inttoptr in the pizlonated code), so the kernel write through it --
+   and even `extend_from_slice`'s memcpy destination -- reported
+   "filc safety error: cannot write pointer with null object" (or
+   "cannot write destination pointer with null object") from `zsys_read`/
+   memmove; `read_to_string` on files larger than the 32-byte probe also
+   silently returned an empty string.  THREE std-side fixes (change #25 in
+   the list above): `io::default_read_to_end` now reads through a
+   fixed-size plain stack buffer and appends with `extend_from_slice`
+   (a memcpy moves payload + shadow, so the vector only ever grows through
+   properly-typed code paths -- the usermusl house pattern for bytes the
+   KERNEL fills), `fs::read::inner` uses the infallible
+   `Vec::with_capacity` (under Fil-C the allocator aborts on OOM anyway, so
+   the try variant's graceful failure path is moot; more importantly the
+   vector's pointer stays in plain typed storage), and
+   `sys/fd/unix.rs`'s `File::read_buf` reads through the plain 8192-byte
+   `FILC_READ_BUF_SCRATCH` buffer and `cursor.append()`s the bytes.  The
+   read_buf rewrite's contract: every `read_buf` call on a `File` returns
+   AT MOST 8192 bytes regardless of the cursor's capacity (capping the
+   transfer is within the `Read` contract -- reads may legitimately return
+   fewer bytes than requested), so callers must loop; the extra copy per
+   call is the price of a fixed-size, known-typed staging buffer (the
+   capability-preserving rewrite needs a pointer that comes straight from
+   the stack, because the cursor's pointer is exactly what loses its
+   capability on the way through the `BorrowedBuf`/`BorrowedCursor`
+   aggregate moves).  Validity evidence,
+   both directions: with the fixes reverted (upstream io/mod.rs + fs.rs),
+   `fs::read` dies with the null-object errors above and `read_to_string`
+   returns 0 bytes for a 200-byte file; with the fixes restored, a
+   10-byte and a 600-byte file read correctly through `fs::read`,
+   `fs::read_to_string`, and `File::read_to_end`, and the full filrustc
+   suite passes.  `fs_big_rw` extends the guard to the >8 KiB regime this
+   round: a 64 KiB file must read back byte-identically through `fs::read`,
+   `read_to_string` and `File::read_to_end`, and io::copy's internal
+   read_buf loop must deliver exactly 8 chunks of 8192 bytes (the cap) for
+   it.  BufReader over a `File` never needed the fix (it
+   reads through the plain `read` path).
+
+13. **`TcpListener::accept` / `UnixListener::accept` (OPEN).**  Both hit the
+   same aggregate-write shape as known-issue #11 in a form the layout fix
+   does not cover: the accept result
+   `io::Result<(TcpStream, SocketAddr)>` is niche-encoded with the payload
+   at offset 0 (already word-aligned), but the *skew* machinery in SROA
+   (the Fil-C "Skew" hack for no-type alloca partitions) models one of the
+   function's local slots as a 4-mod-8 address while the runtime placement
+   is 16-aligned, so the pizlonator's static alignment inference
+   ("expected N writable bytes with ptr aligned to 8 bytes at offset 4")
+   contradicts the actual pointer and the inline check fails at run time
+   (exit 42/133) for any `accept()` call.  `net_tcp` and `net_unix` in the
+   filrustc suite pin the rest of the net stack (bind/connect/echo,
+   send/recv, socket-addr parsing) and are marked `skip` with a note
+   pending a fix.  The fix would have to land in SROA's skew bookkeeping
+   or in the pizlonator's alloca placement, both off-limits on this branch
+   (llvm/lib/Transforms/Scalar/SROA.cpp must stay byte-identical to
+   upstream), so the hole is documented instead of patched.
+
+14. **`?` on a `Result` whose error type carries pointers used to lose the
+   payload's capability at `-O` (FIXED on the std side; change #27,
+   `option_result_combinators` at `-O` is the regression guard).**
+   Repro (exit 42/133 at `-O` only, before the fix):
+   `fn h() -> Result<i32, String> { Err("boom".to_string()) }`
+   `fn f() -> Result<i32, String> { let n = h()?; Ok(n) }` +
+   `println!("{:?}", f())` printed the len of the error string correctly
+   but died reading it: "filc safety error: cannot read pointer with null
+   object" inside `<str as Debug>::fmt`, with the pointer's ADDRESS intact
+   (0x7...) and its capability null -- the classic integer-lane signature.
+   O0 was always fine, and the same enums moved by hand (`match h() {
+   Ok(n) => Ok(n), Err(e) => Err(e) }`) were fine at every level.  The
+   trigger is the `?` desugaring itself: `Try::branch` consumes the
+   `Result` and returns `ControlFlow<Result<Infallible, E>, T>`, and
+   `FromResidual::from_residual` moves the `E` payload back out.  Both
+   functions were `#[inline]`, the `ControlFlow` is niche-encoded in `E`'s
+   non-zero words exactly like `Result<T, E>` itself (so the `Continue`
+   variant's `T` payload and the `Break` variant's `E` payload occupy the
+   SAME bytes), and after the pre-pizlonation inliner inlined the two
+   calls, SROA promoted that shared partition to a single IR type -- the
+   integer, whenever `T` is an integer (`Result<i32, String>`,
+   `Result<u64, String>`, `Result<u16, String>`, `Result<i32, Vec<u8>>`
+   all reproduce; `Result<(), String>` does NOT, because its `Ok` variant
+   has no payload to mix into the partition) -- so `E`'s pointer moved
+   through `ptrtoint`/`inttoptr` and lost its capability.  Two things
+   masked the hole until this round: `#[inline(never)]` on the user's own
+   `?`-chaining functions keeps the desugaring calls out of the inliner
+   (the `enum_large_payloads` test's `?`-chain is exactly this shape and
+   passes), and `?` on `Option<T>` is immune (its residual
+   `Option<Infallible>` is uninhabited and zero-sized, so no
+   pointer-bearing payload shares a partition with the `Continue` value --
+   `Option<Vec<String>>` and `Option<Big{String,u64}>` verified immune).
+   The fix is change #27: `#[inline(never)]` on `Result::branch` and
+   `Result::from_residual`, which leaves the residual's aggregate moves as
+   memcpy-across-a-call (payload + capability together).  Validity
+   evidence, both directions: with the `#[inline]` attributes restored
+   (byte-identical to upstream), a 15-program repro matrix of the shapes
+   above (`Result<T, String>` for T in i32/u64/i64/u16, `Vec<u8>`,
+   `Box<str>`, `Vec<String>`, plus map_err/`?`/Display/Debug variants)
+   fails 15 of its 46 compile+run cells with the null-object error at
+   `-O`; with the fix in place all 46 pass, and the full filrustc suite
+   passes.  The residual risk class is now narrow: any OTHER code shape
+   that gets an integer and a pointer into the same niche-overlap
+   partition of an inlined aggregate move would hit the same SROA
+   promotion -- none was found in the combinator chains (`and_then`,
+   `map_err`, `or_else`, `inspect`, `transpose`, `flatten`, `zip` over
+   `Result<i32, String>` all pass at `-O`), and the manual-move shapes
+   (`match`, `ControlFlow` built and destructured by hand) pass too.
+
+15. **`sort_by_key`/`sort_unstable_by_key`/`sort_by` on pointer-maybe
+   elements used to lose the moved elements' capabilities at `-O` (FIXED on
+   the std side; change #28, `sort_by_key_enum` + `sort_by_comparator` and
+   their `-opt` twins are the regression guards).**  Repro (exit 42/133 at
+   `-O` only, before the fix):
+   `#[repr(u64)] enum E { A(Box<String>), B(u32, u32) }` +
+   `let mut v: Vec<E> = vec![E::B(1,2), E::A(Box::new("x".into())), E::B(3,4)];`
+   + `v.sort_by_key(|e| match e { E::A(_) => 0, E::B(a, _) => *a });` +
+   `drop(v)` died in the drop with "filc safety error: cannot read pointer
+   with null object", the pointer's ADDRESS intact and its capability null
+   (the failing read is the Box pointer of the MOVED `A` element: probed
+   directly, the failing pointer value equals the String struct's address,
+   and dropping only element 0 after the sort panics while
+   `mem::forget`-ing the whole Vec does not).  O0 was always fine, and
+   the same vector without the sort is fine at every level.  The mechanism
+   (pizlonator-source + IR-verified): `E`'s aggregate IR type is
+   `{ i64, [1 x i64] }` -- an integer payload partition (upstream
+   `uncached_llvm_type` fills a variant-payload union with
+   `type_padding_filler`, so a payload union of `{Box}` and `{u32, u32}`
+   becomes an i64 array) -- and under GIMSO integer-typed load/store pairs
+   move only the payload (the destination's shadow/aux is left stale --
+   `storeValueRecurseAfterCheck` emits a payload store and never touches
+   aux, per gimso_semantics.md "loading a pointer from a location that
+   never had a pointer stored to it yields a pointer with a null
+   capability"), while memcpy/memmove ALWAYS move payload + shadow.  At O0
+   the element moves are real memcpys through the typed
+   (all-pointer-struct, change #21) `ManuallyDrop` allocas and every
+   aggregate access is materialized payload+aux, so capabilities travel.
+   At `-O`, rustc's MIR inliner merges `insert_tail` into
+   `insertion_sort_shift_left`, the key-extraction closure (and, for the
+   comparator APIs, the `compare == Less` closure) is inlined into the
+   merged body, and the Fil-C pre-pizlonation pipeline (the early
+   SimplifyCFG/SROA/EarlyCSE plus the inliner's per-CGSCC
+   SROA/EarlyCSE/GVN/InstCombine chain) collapses the save/restore memcpys
+   into integer load/store pairs -- the saved element travels as
+   `load i64 <tag>` + `load i32 <payload lo>` + `load i32 <payload hi>`
+   and is re-stored with the corresponding integer stores
+   (`store i64`/`store i32`/`store i32`), which is exactly where an
+   `A` element's Box capability dies: the i32 halves of the Box pointer
+   are written back as plain integers and the shadow at the destination is
+   never set.  Proof that the pipeline (not codegen, not the pizlonator)
+   introduces it: `rustc -C opt-level=2 -C no-prepopulate-passes
+   -C llvm-args=--filc-optimize=0 -C llvm-args=--filc-killub=0` (pristine
+   codegen IR + pizlonator only) PASSES the repro, and pristine-O2 codegen
+   emits memcpys for the element save/restore; the same program through the
+   standard `-O` pipeline panics.  The fix is change #28's five
+   `#[inline(never)]` attributes, which keep the element save/restore
+   boundaries separate from the inlined user closure so the memcpys survive
+   to pizlonation (verified at pizlonation time with
+   `-C llvm-args=--print-before-all -C llvm-args=-filter-print-funcs=...`:
+   `insert_tail` keeps `memcpy`-based save/restore through its typed
+   `<{ ptr, ptr }>` alloca with only integer READS from the inlined key
+   closure; the partition keeps its gap copies as memcpys).  Validity
+   evidence, both directions: with all five attributes removed (projeny
+   patch byte-identical to upstream in those two files), the reviewer's
+   repro exits 42 with FILC_EXIT_ON_PANIC=1 (133 as SIGTRAP otherwise),
+   `sort_unstable_by_key` on 100 pointer-bearing elements exits 133
+   (its corruption surfaces in `<&T as Display>::fmt` reading a moved
+   String header), and the two new suite tests exit 133 at `-O`; with the
+   attributes in place all of these exit 0 at O0/O1/O2/O3 and the full
+   filrustc suite passes.  Iteration log: `#[inline(never)]` on
+   `insert_tail` alone fixed the 3-element stable-sort case but not the
+   unstable 100-element case; adding the two partition attributes alone
+   (still-inlinable guard drops) left the standalone partition
+   scalarizing its gap value into `i64`/`i32` loads plus integer stores;
+   adding `#[inline(never)]` to `GapGuard::drop`/`GapGuardRaw::drop`
+   (so the gap storage escapes and every copy touching it stays a memcpy)
+   fixed it; removing the partition attributes again (keeping the drop
+   ones) re-broke it -- hence all five are load-bearing.  Residual risk
+   class: any OTHER generic machinery that saves and restores a
+   pointer-maybe element in the same function as an inlined user closure
+   could hit the same collapse; the sort machinery was swept function by
+   function (heapsort: `ptr::swap_nonoverlapping`; driftsort merge and
+   stable partition: all memcpys; stable quicksort's pivot copy: read-only
+   `ManuallyDrop`; `swap_if_less`: CopyMarker-only, bare-pointer elements
+   stay pointer-typed -- a `Vec<*const u8>` and a `{ *const u8, u32 }`
+   Copy-struct probe pass at `-O` even before the fix) and nothing else
+   matched.
+
+## Std coverage suite (the coverage-round tests)
+
+The coverage rounds added 40 `.rs` tests whose goal is "a test for each major
+std function": every public std module gets at least one test, and the
+major methods of each module are exercised.  The follow-up round added 7
+more coverage tests (the four `repr_enum_*` change-#24 ICE guards and the
+gap-closers `io_terminal`, `chown_fchown`, `backtrace_disabled`, rows at
+the bottom of the table below), for 47 coverage-table rows total, and the
+round-3 sort-miscompile fix added the `sort_by_key_enum` and
+`sort_by_comparator` guards (the last two rows of the table), for 49
+coverage-table rows total.  47 run,
+and
+`net_tcp`/`net_unix` are `skip`-marked (known-issue #13).  OF THOSE 47, 10
+have base manifests whose `optFlags` is `-O` and 37 compile at
+the default O0 -- recountable programmatically (do NOT count by eye):
+take the first column of each
+`| test (new) | ... |` row in the table below, strip ` (skip)`, read
+`filrustc/tests/<name>.manifest`, and count the rows whose `optFlags`
+contains `-O` (10) vs not (37) -- note
+that the harness's `optFlags` REPLACES the default compile flags rather than
+adding to them, so each test compiles and runs at exactly ONE optimization
+level; a test that needs both levels needs a `-opt` twin (a byte-identical
+`.rs` copy whose manifest adds `optFlags: -O`), which is the harness
+convention for the bug-guard tests (see the test-table notes below).  All
+tests are deterministic and hermetic: fs tests work under a per-test
+`/tmp/filc-...-<pid>` directory created and removed by the test itself,
+networking is loopback-only with ephemeral ports, timing assertions use
+generous margins, and outputs are sorted wherever hashing or concurrency
+would otherwise show through.  All tests use `extraArgs: ["--edition",
+"2021"]`.  Every new test was hand-compiled AND hand-run at BOTH `-O` and
+the default O0 before its manifest was written (the manifest then picks one
+of the two levels).
+
+Intentional coverage gaps (audited, not oversights): an ENABLED backtrace
+capture -- `RUST_BACKTRACE=1` -- is not exercised because the RUST_BACKTRACE
+machinery is known to be unsupported under Fil-C: a real capture calls
+`_Unwind_Backtrace`, which libpizlo does not provide (verified: a
+`RUST_BACKTRACE=1` run of `Backtrace::capture()` aborts with "filc user
+error: Not implemented. (libpizlo.so) ../filc/src/unwind.c:96:5:
+_Unwind_Backtrace"), and frame-walking the pizlonated stack is not
+supported.  The backtrace crate's Fil-C stubs live in `library/backtrace`
+(see the check_greps in build_rustc_impl.sh: library enumeration from
+/proc/self/maps, no `_Unwind_FindEnclosingFunction`), and the DISABLED
+capture surface -- what every program hits when `RUST_BACKTRACE` is unset,
+i.e. the stable API's default path -- DOES work and is pinned by the
+`backtrace_disabled` test.  Everything
+else audited as "missing" was actually coverable and IS now covered:
+`io::IsTerminal` (works under Fil-C -- isatty through pizfix; the
+`io_terminal` test) and `os::unix::fs::{chown,fchown}` (runnable for any
+runner by chowning to the runner's own uid/gid -- the `chown_fchown`
+test).
+
+| test (new) | module(s) / functions covered |
+|---|---|
+| vecdeque_ops | `VecDeque`: push_front/push_back, front/back, insert/remove, pop_front, iter/iter_mut, rotate_left, make_contiguous, swap_remove_back, into_iter (front/back), resize, shrink_to_fit, with_capacity, extend, contains/get; `Box<String>` elements (aggregate moves) |
+| linkedlist_ops | `LinkedList`: push_front/push_back, front/back, len, append (consuming), split_off, clone, pop_front/pop_back, iter; `Box<String>` elements |
+| btreemap_ops | `BTreeMap`: insert, first_key_value/last_key_value, entry API (Occupied/Vacant, get_mut/insert), range, get_key_value, values_mut, append, split_off, pop_first; `BTreeSet`: insert/contains/take; `Box<u64>` values |
+| btreeset_ops | `BTreeSet`: union/intersection/difference/symmetric_difference, insert/get/replace/remove, range, is_subset/is_superset, iter; `Box<String>` elements; dedup over split_whitespace |
+| hashset_ops | `HashSet`: insert/contains/remove/len, union/intersection/difference/symmetric_difference (sorted for determinism), retain, drain, take; `HashSet<Box<String>>` aggregate moves |
+| binaryheap_ops | `BinaryHeap`: push/pop/peek/peek_mut (in-place sift), into_sorted_vec, `Reverse` min-heap, drain; `(u64, Box<String>)` pairs |
+| iter_adapters | `Iterator`: chain, zip, rev, scan, fold, flat_map, peekable+peek, take_while, skip_while, step_by, partition, position, find_map, max_by_key, sum/product, try_fold, by_ref+take, filter_map; `iter::from_fn`, `successors`, `once`, `repeat`; collect into `Vec`, `HashMap`, `VecDeque<Box<String>>` |
+| str_methods | `str`: split/splitn/rsplitn, matches/rmatches/match_indices, trim/trim_start/trim_end_matches, find/rfind, char_indices, encode_utf16, split_whitespace/split_ascii_whitespace, strip_prefix/strip_suffix, repeat, replace/replacen, split_terminator, lines, chars, to_uppercase, escape_debug; `char`: to_digit/len_utf8/is_alphabetic/to_uppercase; as_bytes/from_utf8/concat/eq_ignore_ascii_case/starts_with/ends_with |
+| parse_nums | `FromStr`/parse for i32/u64/i64/i128/u128/usize/isize/f32/f64/bool, from_str_radix (16/2), error cases (non-numeric, float-to-int, overflow, empty, leading +), "inf"/"NaN" parsing, sign handling |
+| int_methods | integer ops: wrapping/saturating/checked add-sub-mul, pow/checked_pow, abs/checked_abs, signum, div_euclid/rem_euclid, leading/trailing_zeros, count_ones, swap_bytes, rotate_left, to/from_le_bytes/to_be_bytes, i128/u128 arithmetic, rem, MIN/MAX consts, `u8::from(bool)`, `TryFrom`, `as` casts, abs_diff, is_power_of_two/next_power_of_two, ilog2/ilog10 |
+| float_methods | `f64`/`f32`: to_bits/from_bits, round/fract/trunc, sqrt/powi/powf/abs/exp/ln, consts (PI/E/SQRT_2/MAX/MIN_POSITIVE), NaN/INFINITY (is_nan/is_infinite/is_sign_negative, max/min with NaN), clamp, rem_euclid, floor/ceil, total_cmp sorting, formatting (`{:.3}`/`{:.0}`/`{:e}`/`{:E}`/`{:+.2}`/width/fill), as-casts, recip/cbrt/hypot/sin/cos, mul_add |
+| io_cursor | `Cursor<Vec<u8>>`: write_all/writeln!/write!/position, read_to_string, read_line, read_exact, seek (Start/End), read_to_end, BufRead::split/bytes/read_until, `io::copy` |
+| io_buf | `BufReader`: read_line/lines, read_exact, buffer(), fill_buf; `BufWriter`: write!/writeln!/flush/into_inner; `take`, `by_ref`, `chain`, `Read::read_to_string`; BufReader over a slice |
+| io_error | `io::Error`: from_raw_os_error/kind/raw_os_error, `Error::other`, downcast_ref, `Box<dyn Error>` chains with `source()` traversal, `Send + Sync` boxes, ErrorKind list, Box downcast, `From<&str>`/`From<String>` |
+| fs_ops | `fs`/`File` under a per-test tmp dir: create, write_all/writeln!, sync_all, seek, read_to_string, fs::read/read_to_string/write, metadata (len/is_file/permissions), set_permissions, OpenOptions (append/read+write), create_dir/remove_dir, read_dir (sorted), canonicalize, rename, symlink+read_link+read-through-link, remove_file/remove_dir_all, cleanup |
+| net_udp | `UdpSocket`: bind (ephemeral), local_addr, send_to/recv_from (loopback), connect + send, try_clone, read timeouts |
+| process_ops | `process`: Command::new/arg/args/env/current_dir, output(), status() (success/failure/exit codes), spawn + stdin piping + wait_with_output, missing-program error (NotFound), `process::id` |
+| time_ops | `time`: Instant (elapsed, add), SystemTime (UNIX_EPOCH, duration_since, checked_add, elapsed), Duration (as_secs/subsec_millis/as_millis/as_nanos, mul/div, checked_mul/checked_add, saturating_sub, ZERO, from_micros, as_secs_f64/f32) |
+| thread_ops | `thread`: park/unpark, yield_now, tiny sleeps, available_parallelism, Builder::name/stack_size, is_finished, join, `Thread::name`, scope (borrowing threads, panic observation), many short threads |
+| sync_primitives | `sync`: Mutex (poison + `Arc::try_unwrap` + into_inner), RwLock (multiple readers, exclusive write, cross-thread write, poison), Condvar (wait/notify_one/wait_timeout.timed_out), Barrier (3 threads x 2 phases) |
+| once_race | `sync`: Once::call_once from 4 racing threads (exactly-once via Barrier), OnceLock::get_or_init race (all observe one value), LazyLock (Box<String> vec), OnceLock set/get semantics |
+| atomics | every stable `Atomic*` type of 1.90 (AtomicI8/U8/I16/U16/I32/U32/I64/U64/Isize/Usize via a uniform macro probe, plus AtomicBool and AtomicPtr with their own op sets; AtomicI128/AtomicU128 are `#[unstable(integer_atomics)]` in this tree and are NOT exercised): store/load under Relaxed/Release/Acquire, swap under SeqCst, fetch_add (AcqRel)/fetch_sub (Acquire)/fetch_and/fetch_or/fetch_xor/fetch_max/fetch_min (SeqCst), compare_exchange strong (SeqCst/Acquire) + weak (AcqRel/Relaxed, bounded-retry), fetch_update, for every type that has each op; Release/Acquire message passing (data + flag across a spawned thread), 4-thread SeqCst fetch_add loop.  The manifest asserts ALL TWELVE per-type uniform lines (the `exercise_int!` loop's "uniform = true add_old = ... sub_old = ... cas = ... weak = ... update = ..." line for each of the ten integer atomics plus AtomicBool's and AtomicPtr's), so a miscompile confined to one type cannot pass silently |
+| os_fd_traits | `std::os::fd` on `File`: AsRawFd/AsFd/BorrowedFd (three views of one descriptor), try_clone dup semantics (different fd number, shared open file description: writes through one handle visible through the other, shared cursor), IntoRawFd/FromRawFd round trip (release + re-adopt), `OwnedFd` round trip (File -> OwnedFd -> File keeps the fd); per-test tmp dir |
+| unix_fs_ext | `std::os::unix::fs`: FileExt (read_at/write_at/read_exact_at/write_all_at at multiple offsets, cursor independence), MetadataExt (uid/gid via an owner cross-check so it holds for any runner, size, dev, ino, atime, mtime, nlink), PermissionsExt (set_mode/set_permissions + from_mode round trips at 0o600/0o640, readonly), OpenOptionsExt (custom_flags with benign O_CLOEXEC, mode(), append through the ext trait); per-test tmp dir |
+| ip_addr_methods | `IpAddr`/`Ipv4Addr`/`Ipv6Addr`: constants (LOCALHOST/BROADCAST/UNSPECIFIED), new/octets/segments/from_bits/to_bits (round trips), predicates (is_loopback/is_broadcast/is_private/is_link_local/is_multicast/is_unspecified/is_unique_local), v4<->v6 (to_ipv6_mapped/to_ipv6_compatible/to_ipv4/to_ipv4_mapped/to_canonical), the `IpAddr` enum (From/predicates/equality with concrete types), FromStr parsing (valid + invalid), Display. Pure computation, no networking |
+| cow_typeid | `Cow` (Borrowed stays borrowed, to_mut materializes, into_owned, Cow<'a, str> from &str and from String, Cow<'a, [u32]> slice pattern), `TypeId::of` equality/inequality, `Any` (is/downcast_ref/downcast_mut/downcast over a few concrete types, type_id on the dyn itself, &dyn Any downcast) |
+| slice_search | slice search: binary_search (hit/miss/head/tail/absent-low/absent-high), binary_search_by, binary_search_by_key (hit + miss), contains, starts_with/ends_with (str slices + byte slices), sort + binary_search integration, sort_unstable re-check, first/last (+ empty), windows/chunks/iter sums |
+| char_conversions | `char`: from_u32 (valid/surrogate/beyond-max/nul/max), the safe-wrapper pattern for from_u32_unchecked, from_digit (valid/over-radix/max radix), to_digit round trips (16 and 36, invalid), escape_debug/escape_default, is_control, to_uppercase (multi-char 'ß' -> "SS")/to_lowercase |
+| option_result_combinators | `Option`: transpose (some/none/err), flatten, map_or, ok_or, and_then, or_else, filter, zip, iter, cloned/copied, inspect, unwrap_or_else; `Result`: map_or, inspect, and_then, or_else, map_err, map, iter, cloned, flatten (ok/err), transpose; `?` chains inside a helper fn (parse error mapping + negative check) |
+| fs_big_rw | the >8 KiB multi-chunk regime of the fixed default_read_to_end (change #25) and the File::read_buf cap contract (change #25's sys/fd/unix.rs piece): a 64 KiB patterned file read back byte-identically through fs::read, read_to_string and File::read_to_end; io::copy into a counting sink drives File::read_buf repeatedly until 0 and pins the 8192-bytes-per-call cap (8 chunks of exactly 8192 for 64 KiB -- the trait method itself is unstable on the release channel, so std's own stable io::copy loops are the driver); io::copy into a 16384-capacity BufWriter (cursor capacity above the cap, so std must loop); tail read; per-test tmp dir.  `fs_big_rw-opt` is the -O twin.  NOTE: the "chunks = 8 max chunk = 8192" assertion is COUPLED to std's `generic_copy` stack-buffer size (the read_buf cap, `FILC_READ_BUF_SCRATCH`, is the Fil-C side of that coupling) -- a future upstream std change to the copy buffer size would break this test for non-Fil-C reasons (that coupling is the point of the known-issue #12 guard: the test exists to notice exactly such a drift) |
+| alloc_ops | `alloc`: Box::into_raw/from_raw (incl. arrays), std::alloc::alloc/dealloc/realloc with Layout + write_bytes/read/write, Vec::with_capacity/reserve/shrink_to_fit/len/capacity, `Vec::leak` |
+| mem_nonzero_pin | `mem`: discriminant, size_of/align_of, swap/replace on enum-with-Box; `NonZero{U8,U16,U32,U64,I8,I32,I64,Usize}` (get/new-none/conversions/leading_zeros); `Pin` (Pin::new, get_ref, DerefMut on Unpin, `Box::pin`, `Pin<Box<dyn Future>>` polled via a helper) |
+| ffi_ops | `ffi`: CString::new/into_raw/from_raw, CStr::to_bytes/to_bytes_with_nul/from_ptr/as_ptr, NUL-error, empty; `OsString`/`OsStr`: from/from_vec/as_bytes/to_string_lossy/Borrow/Ord/is_empty; `Path`/`PathBuf`: parent/file_name/extension/components/ancestors/starts_with/strip_prefix/push/set_extension/join/file_stem/is_absolute/iter/as_os_str |
+| env_ops | `env`: set_var/var/var_os/remove_var, current_dir, temp_dir, args, join_paths/split_paths |
+| panic_hook | `panic`: set_hook/take_hook (counting), catch_unwind (payload + non-panicking path), panic_any (String/struct payloads + downcast), silent hook, thread panic -> join Err |
+| error_chains | `Error` trait: source() chains, Display for error structs, `Box<dyn Error>` From conversions (&str, custom), TryFrom/TryInto (u8::try_from, slice->array), ParseIntError kinds (InvalidDigit/PosOverflow/Empty), downcast_ref, map_err |
+| hash_ops | `hash`: Hash/Hasher via DefaultHasher (determinism within a process), composite Hash impls, HashMap/HashSet with custom Hash keys (`Box<Key>`), BuildHasherDefault/with_hasher/build_hasher, order-independent container hashing |
+| fmt_ops | `fmt`: Display/Debug for a custom struct (incl. `{:#?}`), width/fill/alignment (`{:5}`/`{:05}`/`{:<5}`/`{:>5}`/`{:^5}`/`{:*^7}`), sign/alternate (`{:+}`/`{:#x}`/`{:#o}`/`{:#b}`), precision (`{:.2}`/`{:.0}`), string width/precision, `{{}}` escapes, positional/named args, Debug for Vec/Option/Result/String/char/tuple/Range/slice, Display for Path/SocketAddr, `fmt::write` into a String |
+| net_tcp (skip) | would cover `TcpListener::bind` (ephemeral), local_addr, accept+echo over threads, set_nodelay, peek, shutdown, connect-refused; blocked by known-issue #13 |
+| net_unix (skip) | would cover `UnixListener`/`UnixStream` (bind/connect/echo), `UnixStream::pair`, `SocketAddr` parsing, `ToSocketAddrs`; blocked by known-issue #13 |
+| repr_enum_u8 | the `#[repr(u8)]` pointer-maybe enum surface (change #24's ICE guard): both variants of `enum E { A(Box<String>), B(u32) }` constructed, moved by value (sret returns, Vec growth, mem::swap/mem::replace), matched, and printed (the Box contents + the u32 payload).  Fails to COMPILE (rustc_abi's "layout decided on a larger discriminant type (I64) than typeck (I8)" assert, exit 101) if the Fil-C discriminant bump is ever again applied to explicit reprs on the first layout computation, and RUNS to prove the integer-only variant payloads at 4 mod 8 do not pizlonator-panic at runtime (the recompute widens the tag: 8-byte discriminant, payloads at 8).  `repr_enum_u8-opt` is the -O twin |
+| repr_enum_c_u8 | the C-FFI tagged-enum pattern `#[repr(C, u8)] enum Tagged { Num(u64), Ptr(Box<String>) }` plus a misaligned-payload twin `#[repr(C, u8)] enum Mixed { Small(u32), Big(Box<String>) }`: both variants of both enums moved by value (Vec, swap, replace), matched, printed.  Same ICE guard as repr_enum_u8 (any `#[repr(C, u8)]` pointer-maybe enum fails to compile if the closure bump returns); Tagged's payloads are already word-aligned (repr(C) grows the tag prefix to the field alignment, so its 1-byte tag is kept) while Mixed's u32 payload must go through the recompute.  `repr_enum_c_u8-opt` is the -O twin |
+| repr_enum_i16 | `#[repr(i16)] enum Wide { A(String), B }` (a signed 2-byte tag whose String payload is already word-aligned at 8 -- kept as upstream laid it out) plus `#[repr(i16)] enum Signed { Small(u32) = 3, Big(Box<String>), Neg = -5 }` (the u32 payload lands at 4 mod 8, so it goes through the recompute over a NEGATIVE discriminant).  Both moved by value, matched, printed; same ICE guard as repr_enum_u8.  `repr_enum_i16-opt` is the -O twin |
+| repr_enum_u32 | `#[repr(u32)] enum E { A(Vec<u8>), B }` (4-byte tag kept, Vec payload at 8) plus `#[repr(u32)] enum Mixed { Small(u32), Big(Box<String>) }` (recompute: the u32 payload lands at 4 mod 8) and `#[repr(u32)] enum Large { Hi = 4_000_000_000, Lo = 1, Unit }` (near-u32::MAX discriminant).  All moved by value, matched, printed; same ICE guard as repr_enum_u8.  `repr_enum_u32-opt` is the -O twin |
+| io_terminal | `io::IsTerminal` (isatty-style queries) over the generic trait surface: `stdin()`/`stdout()`/`stderr()` and `File::is_terminal` through a generic `T: IsTerminal` helper; the harness always pipes the output, so every query is deterministically false and a broken syscall path would panic or report true |
+| chown_fchown | `std::os::unix::fs::{chown, fchown}`: path- and fd-based owner/group changes observed through MetadataExt's uid()/gid(), the None (leave-side-untouched) form, and a 0o640 mode round trip; the chown targets the runner's own uid/gid (read from the per-test tmp dir), so the assertions hold for root and non-root runners alike; per-test tmp dir |
+| backtrace_disabled | `std::backtrace::Backtrace`'s DISABLED capture path (what every program hits when RUST_BACKTRACE is unset): `capture()` returns a Disabled backtrace that formats as "disabled backtrace".  An ENABLED capture (RUST_BACKTRACE=1) is the documented intentional gap -- it calls `_Unwind_Backtrace`, which libpizlo does not provide |
+| sort_by_key_enum | `slice::sort_by_key` + `sort_unstable_by_key` over pointer-maybe enums (the change-#28 round-3 miscompile guard): the reviewer's `#[repr(u64)] {A(Box<String>), B(u32,u32)}` vector through the key closure `match e { A(_) => 0, B(a,_) => *a }` at 3 and 100 elements, the same through `#[repr(u8)]` and `#[repr(Rust)]` twins, post-sort payloads printed (String contents + integer fields), every key unique so the unstable order is determined.  `sort_by_key_enum-opt` is the -O twin |
+| sort_by_comparator | the `sort_by` sibling of the change-#28 guard: the same `#[repr(u64)]` pointer-maybe enums through the comparator API (`sort_by(|a, b| key(a).cmp(&key(b)))`) at 3 and 100 elements (driftsort's quicksort + merge), plus a descending re-sort and an ascending re-sort of the sorted vector (the already-sorted detection paths), exact sorted output asserted.  `sort_by_comparator-opt` is the -O twin |
+
+Not covered on purpose (the shapes fail by design -- known-issue #10):
+`extern "C"` by-value unions and `#[repr(packed)]` structs containing
+pointers.  Not covered because the APIs are unstable on 1.90 (would need
+feature gates): `intersperse`, `LinkedList::retain`/cursors,
+`div_ceil`/`next_multiple_of`, `linked_list_cursors`, and the
+`Read::read_buf` trait method itself (which is why `fs_big_rw` drives the
+patched `File::read_buf` through std's own stable `io::copy` loops instead
+of calling it directly -- see that test's note in the table above).  Modules
+covered
+through the pre-existing tests: `sync::mpsc` (mpsc_large_messages),
+`thread::scope` (thread_scoped_big), `thread_local` (thread_local_cells),
+`char`/`str` formatting (string_ops_roundtrip, vec_string), `collections`
+aggregates (hashmap_aggregates), `io::Stdin`-adjacent formatting via
+println!.
+
 ## Verified demos (from /tmp; `filrustc` alone suffices)
 
 See "How the built rustc finds filcc" above.
@@ -1528,7 +2118,7 @@ The build is split into a shared library plus two thin entry points:
   projeny checkout, the check that `$FILC_ROOT/build/bin/llvm-config` exists
   (the Fil-C rustc links the LLVM build from build/ — no LLVM is built here;
   run ./build_clang.sh first — see "Rustc links the Fil-C LLVM from build/"
-  above), the 47 `check_grep` fail-fast verifications of the projeny patch,
+  above), the 63 `check_grep` fail-fast verifications of the projeny patch,
   the `FILC_VERSION` composition (plus the `.filc-version-stamp` handling),
   the `FILC_LINKER_DIR` resolution + export (plus the parallel
   `.filc-linker-dir-stamp` handling; see "How the built rustc finds filcc"),
@@ -1765,8 +2355,33 @@ trap-based panic, same as C.
 | thread_panic_join-opt | the `thread_panic_join` program compiled with `optFlags: -O` | success; same output assertions | exit 0 | exit 0 |
 | use_after_free-opt | the `use_after_free` program compiled with `optFlags: -O` | failure; same output assertions as `use_after_free` | 133 | 42 |
 | oob_write-opt | the `oob_write` program compiled with `optFlags: -O` | failure; same output assertions as `oob_write` | 133 | 42 |
+| repr_enum_u8 (+ -opt twin) | `#[repr(u8)] enum E { A(Box<String>), B(u32) }`: both variants constructed, moved by value (sret returns, Vec growth, mem::swap/mem::replace), matched, payloads printed -- the change-#24 explicit-int-repr ICE guard (change #24's text has the mechanism); fails to COMPILE (rustc_abi assert, exit 101) if the closure bump is applied to explicit reprs on the first computation, and RUNS to prove the 4-mod-8 integer payloads do not pizlonator-panic (the recompute widens the tag) | success, output-includes "a = A(hello) b = B(3735928559)", "vec = A(vec-a), B(7), A(vec-c)", "swapped x = B(11) y = A(swap-me)", "replaced prev = A(replace-me) now = B(22)", "iter A len = 6", "iter B = 33", "eq = true neq = true", "debug = B(44)" | exit 0 | exit 0 |
+| repr_enum_c_u8 (+ -opt twin) | the C-FFI tagged-enum pattern `#[repr(C, u8)] { Num(u64), Ptr(Box<String>) }` plus a misaligned twin `#[repr(C, u8)] { Small(u32), Big(Box<String>) }`, through the same by-value moves; same ICE guard as repr_enum_u8 | success, output-includes "n = Num(43981) p = Ptr(ffi-box)", "vec = Num(1), Ptr(v2), Num(18446744073709551615)", "swapped x = Num(77) y = Ptr(swap-ptr)", "replaced prev = Ptr(replace-me) now = Ptr(replaced)", "m1 = Small(12648430) m2 = Big(mixed-box)", "mixed swap = Big(mixed-swap) Small(5)", "mixed replace = Small(6) now = Big(m-repl)", "mixed vec = Small(9), Big(mv)", "eq = true", "debug = Num(3) Small(44)" | exit 0 | exit 0 |
+| repr_enum_i16 (+ -opt twin) | `#[repr(i16)] { A(String), B }` (2-byte signed tag kept, String payload already word-aligned) plus `#[repr(i16)] { Small(u32) = 3, Big(Box<String>), Neg = -5 }` (recompute over a NEGATIVE discriminant), through the same by-value moves; same ICE guard as repr_enum_u8 | success, output-includes "a = A(i16-string) b = B", "vec = A(vec-a), B, A(vec-c)", "swapped x = B y = A(swap-me)", "replaced prev = A(replace-me) now = A(replaced)", "s1 = Small(3405705229) s2 = Big(signed-box) s3 = Neg", "signed vec = Small(9), Neg, Big(sv)", "signed swap = Big(signed-swap) Small(1)", "signed replace = Small(2) now = Neg", "eq = true", "debug = A(\"dbg\") Small(44)" | exit 0 | exit 0 |
+| repr_enum_u32 (+ -opt twin) | `#[repr(u32)] { A(Vec<u8>), B }` plus a misaligned twin `#[repr(u32)] { Small(u32), Big(Box<String>) }` and a near-u32::MAX discriminant enum, through the same by-value moves; same ICE guard as repr_enum_u8 | success, output-includes "a = A([1, 2, 3, 4]) b = B", "vec = A([9, 8]), B, A([7, 6, 5, 4, 3, 2, 1, 0])", "swapped x = B y = A([42])", "replaced prev = A([100]) now = A([200])", "m1 = Small(4207849484) m2 = Big(u32-box)", "mixed swap = Big(u32-swap) Small(5)", "mixed replace = Small(6) now = Big(m-repl)", "mixed vec = Small(9), Big(mv)", "large = 4000000000 1 unit", "eq = true", "debug = A([1]) Small(44) Hi" | exit 0 | exit 0 |
+| sort_by_key_enum (+ -opt twin) | the round-3 reviewer miscompile, EXTENDED: `#[repr(u64)]`/`#[repr(u8)]`/`#[repr(Rust)]` pointer-maybe enums `{A(Box<String>), B(u32,u32)}` sorted with the reviewer's key closure (`match e { A(_) => 0, B(a,_) => *a }`) via `sort_by_key` AND `sort_unstable_by_key`, at 3 elements (the reviewer's exact vector) and 100 elements (unique keys, so the unstable order is determined), post-sort payloads printed (String contents + integer fields) and every element's capability exercised by the drops -- fails with the null-object panic (exit 42) at `-O` if any of change #28's five `#[inline(never)]` boundaries is removed | success, output-includes "sbk3   = A(x),B(1,2)/B(3,4)/", "sbk100 = A(hundred),B(1,7)/... (full sorted 100)", "subk3  = A(x),B(1,2)/B(3,4)/", "subk100= A(hundred),B(1,7)/... (full sorted 100)", "e8sbk  = A(eight),B(1,2)/B(3,4)/", "e8subk = A(eight),B(1,2)/B(3,4)/", "ersbk  = A(rust),B(1,2)/B(3,4)/", "ersubk = A(rust),B(1,2)/B(3,4)/", "sort_by_key_enum OK" | exit 0 | exit 0 |
+| sort_by_comparator (+ -opt twin) | the sort_by sibling of the round-3 miscompile: the same `#[repr(u64)]` pointer-maybe enums through the comparator API (`sort_by(|a, b| key(a).cmp(&key(b)))`), 3 elements, 100 elements through driftsort's quicksort+merge, plus a descending re-sort of the sorted vector and an ascending re-sort (the already-sorted detection paths) -- fails at `-O` if the element-move boundaries of change #28 are removed | success, output-includes "sby3   = A(x),B(1,2)/B(3,4)/", "sby100 = A(hundred),B(1,7)/... (full sorted 100)", "sbydesc= B(99,693)/.../A(hundred), (full descending)", "sbyasc = A(hundred),B(1,7)/... (full sorted 100)", "sort_by_comparator OK" | exit 0 | exit 0 |
 
-That is **53 tests**, all `.rs`-level (18 from the first rounds plus 35 added by the test-expansion round: 31 behavioral tests at `-O` with `extraArgs: ["--edition", "2021"]`, and 4 `-opt` copies of debug-only siblings).  Six .ll tests were REMOVED along with
+That is **112 test files** -- 110 running tests plus `net_tcp`/`net_unix`
+which are `skip`-marked (known-issue #13) -- all verified green twice
+back-to-back and again after the `build_all_fast_glibc.sh` gate rebuilt
+Fil-C from scratch: the 53 tests of the earlier
+rounds, the 32 std-coverage tests of the first coverage round, and the 8
+std-coverage tests plus 4 `-opt` twins the previous round added, plus this
+round's 4 `repr_enum_*` ICE guards + 4 `-opt` twins and the 3 gap-closer
+coverage tests (`io_terminal`, `chown_fchown`, `backtrace_disabled`) (47
+coverage-table
+tests total, each with a companion `.manifest`; within the coverage table 10
+of the 45 running tests compile at `-O` and 35 at the default O0, and the
+bug-guard tests got `-opt` twins so both levels are guarded -- an earlier
+revision of this note wrongly claimed "6 of the new tests also run at `-O`":
+in reality `optFlags` REPLACES the default flags, so a test's manifest picks
+exactly one level, and the twins are how a test gets both levels), and the
+round-3 sort-miscompile fix added `sort_by_key_enum` and
+`sort_by_comparator` with their `-opt` twins (49 coverage-table tests
+total; within the coverage table 10 of the 47 running tests have base
+manifests compiling at `-O` and 37 at the default O0), and the
+earlier rounds' `-opt` copies keep doing the same for their siblings.  Six .ll tests were REMOVED along with
 the abandoned SROA-side fix (`sroa_memcpy_noalign`, `sroa_memcpy_small`,
 `mixed_typed_memcpy`, `mixed_memset_memcpy`, `mixed_order`,
 `sroa_memset_vector`): they existed to pin the behavior of the Fil-C
@@ -1866,8 +2481,12 @@ because they shape which tests are meaningful:
   #10 hole, because fixing it would desynchronize rustc's extern "C" ABI
   from clang-compiled C code.
 
-The four `-opt` tests (`hello-opt`, `catch_unwind-opt`, `threads-opt`,
-`oob_read-opt`) are byte-for-byte copies of their non-opt siblings whose
+The twelve `-opt` tests (`hello-opt`, `catch_unwind-opt`, `threads-opt`,
+`oob_read-opt`, `oob_write-opt`, `drop_unwind-opt`,
+`thread_panic_join-opt`, `use_after_free-opt`, and this round's
+`process_ops-opt`, `fs_ops-opt`, `fs_big_rw-opt`,
+`option_result_combinators-opt`) are byte-for-byte copies
+of their non-opt siblings whose
 manifests add `optFlags: -O` (plain rustc's spelling of `-C opt-level=2`;
 the runner interpolates the flag verbatim into the rustc command line), so
 the same programs are compiled and run through the optimized pipeline with
@@ -1880,7 +2499,13 @@ codegen is fully optimized rather than debug-only.  The harness's
 `output-includes` checks are enforced for `return: failure` tests too (the
 generated `subRun.sh` greps the captured output after the exit-code check),
 so `oob_read-opt` proves the "filc safety error" spew specifically, not just
-the exit code.  `swap_nodes` is a fifth `-O`-flagged test, but not a copy of
+the exit code.  The three new twins exist because their originals' bugs
+fired at BOTH optimization levels before their fixes: `process_ops` (the
+known-issue #11 spawn-shape guard, whose manifest used to carry
+`optFlags: -O` itself -- it now runs at O0 and the twin covers `-O`),
+`fs_ops` (the known-issue #12 read-path guard, same treatment), and
+`fs_big_rw` (the >8 KiB read_buf-cap guard added this round).  `swap_nodes`
+is another `-O`-flagged test, but not a copy of
 a non-opt sibling: it exists only at `-O`, because the mem::swap miscompile
 it guards against only fires above O0 (known-issues #1(b)) -- at the debug
 opt-level the program is correct even with the std fix reverted, so an O0

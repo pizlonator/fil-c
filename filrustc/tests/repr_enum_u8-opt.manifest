@@ -1,0 +1,14 @@
+return: success
+output-includes:
+- a = A(hello) b = B(3735928559)
+- vec = A(vec-a), B(7), A(vec-c)
+- swapped x = B(11) y = A(swap-me)
+- replaced prev = A(replace-me) now = B(22)
+- iter A len = 6
+- iter B = 33
+- eq = true neq = true
+- debug = B(44)
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

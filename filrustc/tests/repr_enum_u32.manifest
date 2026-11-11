@@ -1,0 +1,16 @@
+return: success
+output-includes:
+- a = A([1, 2, 3, 4]) b = B
+- vec = A([9, 8]), B, A([7, 6, 5, 4, 3, 2, 1, 0])
+- swapped x = B y = A([42])
+- replaced prev = A([100]) now = A([200])
+- m1 = Small(4207849484) m2 = Big(u32-box)
+- mixed swap = Big(u32-swap) Small(5)
+- mixed replace = Small(6) now = Big(m-repl)
+- mixed vec = Small(9), Big(mv)
+- large = 4000000000 1 unit
+- eq = true
+- debug = A([1]) Small(44) Hi
+extraArgs:
+- --edition
+- '2021'

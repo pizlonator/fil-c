@@ -1,0 +1,9 @@
+return: success
+output-includes:
+- recv = 9 udp hello same-origin = true
+- connected send = 13 connected udp
+- reply = reply!
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

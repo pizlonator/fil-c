@@ -1,0 +1,12 @@
+return: success
+output-includes:
+- box roundtrip = alloc ops
+- big len = 8 sum = 0
+- raw alloc byte = 0xab
+- realloc byte at 64 = 0xcd
+- raw dealloc ok
+- leaked = 20 v19
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

@@ -1,0 +1,15 @@
+return: success
+output-includes:
+- built len = 65536
+- on disk = true
+- fs::read identical = true
+- read_to_string identical = true
+- read_to_end identical = true
+- copy bytes = 65536 chunks = 8 max chunk = 8192 total = 65536
+- cap respected = true
+- bufwriter copy = 65536 identical = true
+- tail matches = true
+- cleaned = true
+extraArgs:
+- --edition
+- '2021'

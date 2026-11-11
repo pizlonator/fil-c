@@ -1,0 +1,11 @@
+return: success
+output-includes:
+- hash deterministic = true
+- struct hash stable = true
+- set dedup = true
+- with_hasher = 1 2
+- order-independent hash = true
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

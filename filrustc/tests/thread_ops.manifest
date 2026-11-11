@@ -1,0 +1,12 @@
+return: success
+output-includes:
+- parked/unparked ok
+- yielded = [0, 1, 2, 3, 4]
+- named = worker
+- scoped = s0+s1 len = 2
+- scoped panic caught = true
+- squares = [0, 1, 4, 9, 16, 25, 36, 49]
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

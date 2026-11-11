@@ -1,0 +1,12 @@
+return: success
+output-includes:
+- cstring roundtrip = fil-c ffi
+- cstr bytes = 10 len = 11
+- os = os string
+- parent = /tmp/filc-ffi/sub
+- extension = txt
+- join = /a/b/c
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

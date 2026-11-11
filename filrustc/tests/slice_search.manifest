@@ -1,0 +1,15 @@
+return: success
+output-includes:
+- hit = Ok(4)
+- miss = Err(5)
+- absent high = Err(8)
+- by = Ok(3)
+- key = Ok(5)
+- key miss = Err(8)
+- words starts = true ends = true
+- hit after sort = Ok(6)
+- first = Some(2) last = Some(33)
+- window gaps = [3, 3, 3, 4, 5, 7, 6]
+extraArgs:
+- --edition
+- '2021'

@@ -1,0 +1,17 @@
+return: success
+output-includes:
+- from_u32 = Some('😀')
+- from_u32 surrogate = None
+- wrapped invalid = None
+- wrapped round trip = true
+- from_digit = Some('b')
+- from_digit over radix = None
+- to_digit = 10
+- digit round trip = true
+- digit round trip 36 = true
+- escape_debug = \n
+- escape_default = \u{7}
+- upper = SS
+extraArgs:
+- --edition
+- '2021'

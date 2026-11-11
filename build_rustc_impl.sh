@@ -446,6 +446,59 @@ do_build_rustc() {
     check_grep "fn filc_resolve_linker" compiler/rustc_codegen_ssa/src/back/link.rs
     check_grep 'option_env!("FILC_LINKER_DIR")' compiler/rustc_codegen_ssa/src/back/link.rs
 
+    # compiler/rustc_ty_utils/src/layout.rs: word-aligned variant payloads for
+    # pointer-maybe direct-tagged enums (the std::process spawn fix,
+    # known-issues #11), via the filc_layout_may_contain_pointers predicate
+    # (the rustc_ty_utils twin of codegen's filc_may_contain_pointers) plus the
+    # upstream unsized-layout sanity assert, restored after the recompute.
+    # The discriminant-type closure must decide the tag against the repr the
+    # layout computation is currently using (Cell<ReprOptions>): an explicit
+    # #[repr(u8)]-style tag keeps its chosen size on the first computation
+    # (widening it trips rustc_abi's "layout decided on a larger discriminant
+    # type" assert), and the recompute below swaps in the word-sized-tag repr
+    # exactly when the first computation lands on a misaligned payload.
+    check_grep "fn filc_layout_may_contain_pointers" compiler/rustc_ty_utils/src/layout.rs
+    check_grep "let filc_repr = std::cell::Cell::new(orig_repr);" compiler/rustc_ty_utils/src/layout.rs
+    check_grep "filc_enum_ptr_maybe && repr.int.is_none() && int.size().bytes() < 8" compiler/rustc_ty_utils/src/layout.rs
+    check_grep "got unsized layout for type that cannot be unsized" compiler/rustc_ty_utils/src/layout.rs
+
+    # library/std/src/io/mod.rs + library/std/src/fs.rs + library/std/src/sys/
+    # fd/unix.rs: the fs::read capability fix (known-issues #12).
+    # default_read_to_end reads through a fixed-size plain stack buffer and
+    # appends with extend_from_slice (a memcpy moves payload + capability
+    # shadow) instead of reading through the vector's spare capacity;
+    # fs::read::inner builds the destination vector with the infallible
+    # Vec::with_capacity; and File::read_buf hands the kernel a plain 8192-byte
+    # scratch buffer (FILC_READ_BUF_SCRATCH) and cursor.append()s the bytes,
+    # capping every read_buf call at 8192 bytes (callers loop -- io::copy does).
+    check_grep "extend_from_slice(&chunk[..bytes_read])" library/std/src/io/mod.rs
+    check_grep "Vec::with_capacity(size.unwrap_or(0))" library/std/src/fs.rs
+    check_grep "FILC_READ_BUF_SCRATCH" library/std/src/sys/fd/unix.rs
+
+    # library/core/src/result.rs: the `?` desugaring's branch/from_residual
+    # must never be inlined (known-issues #14): the ControlFlow the `?`
+    # desugaring produces is niche-encoded so the Ok payload and the Err
+    # payload share bytes, and an inlined copy lets SROA promote that shared
+    # partition to an integer, dropping the capability of the Err payload's
+    # pointer.  The distinctive comment text below is what the greps pin (the
+    # #[inline(never)] attributes themselves sit under the same comments).
+    check_grep "never inline \`branch\`" library/core/src/result.rs
+    check_grep "must stay a real call" library/core/src/result.rs
+
+    # library/core/src/slice/sort/{shared/smallsort.rs,unstable/quicksort.rs}:
+    # the sort machinery's element save/restore boundaries must stay out of the
+    # bodies that also contain the inlined user key/comparator closure
+    # (known-issue #15): the closure's integer-typed accesses let the
+    # pre-pizlonation pipeline collapse the element save/restore memcpys into
+    # integer load/store pairs that drop the moved elements' pointer
+    # capabilities.  The distinctive comment text below is what the greps pin
+    # (the #[inline(never)] attributes themselves sit under the same comments).
+    check_grep "keeps the sifted element's save/restore" library/core/src/slice/sort/shared/smallsort.rs
+    check_grep "keeps this partition (whose \`GapGuard\` saves and restores" library/core/src/slice/sort/unstable/quicksort.rs
+    check_grep "for the same reason as \`partition_hoare_branchy_cyclic\`" library/core/src/slice/sort/unstable/quicksort.rs
+    check_grep "keeps the gap guard (which holds a whole saved" library/core/src/slice/sort/unstable/quicksort.rs
+    check_grep "for the same reason as \`GapGuard::drop\` above" library/core/src/slice/sort/unstable/quicksort.rs
+
     echo "All Fil-C source changes verified in the extracted tree."
 
     # Compose the Fil-C version string that the compiler bakes into its

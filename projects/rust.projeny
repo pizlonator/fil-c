@@ -930,6 +930,225 @@ diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gn
          arch: "x86_64".into(),
          options: base,
      }
+diff --git a/rust/compiler/rustc_ty_utils/src/layout.rs b/rust/compiler/rustc_ty_utils/src/layout.rs
+--- a/rust/compiler/rustc_ty_utils/src/layout.rs
++++ b/rust/compiler/rustc_ty_utils/src/layout.rs
+@@ -2,7 +2,7 @@
+ use rustc_abi::Integer::{I8, I32};
+ use rustc_abi::Primitive::{self, Float, Int, Pointer};
+ use rustc_abi::{
+-    AddressSpace, BackendRepr, FIRST_VARIANT, FieldIdx, FieldsShape, HasDataLayout, Layout,
++    AddressSpace, Align, BackendRepr, FIRST_VARIANT, FieldIdx, FieldsShape, HasDataLayout, Layout,
+     LayoutCalculatorError, LayoutData, Niche, ReprOptions, Scalar, Size, StructKind, TagEncoding,
+     VariantIdx, Variants, WrappingRange,
+ };
+@@ -82,6 +82,53 @@
+     cx.tcx().arena.alloc(err)
+ }
+
++/// Fil-C: does the memory representation of this layout possibly contain
++/// pointers?
++///
++/// This is the `rustc_ty_utils` twin of `filc_may_contain_pointers` in
++/// rustc_codegen_llvm's type_of.rs (same transitive predicate over the
++/// layout's fields and, for enums and coroutines, over every variant's
++/// fields; raw pointers, references, function pointers and `Box` make it
++/// true, and any aggregate containing such a field transitively makes it
++/// true).  It lives here because the layout *decision* below needs the
++/// answer before the layout exists for codegen to look at.
++fn filc_layout_may_contain_pointers<'tcx>(
++    cx: &LayoutCx<'tcx>,
++    layout: TyAndLayout<'tcx>,
++) -> bool {
++    match layout.backend_repr {
++        BackendRepr::Scalar(scalar) => matches!(scalar.primitive(), Primitive::Pointer(_)),
++        BackendRepr::ScalarPair(a, b) => {
++            matches!(a.primitive(), Primitive::Pointer(_))
++                || matches!(b.primitive(), Primitive::Pointer(_))
++        }
++        BackendRepr::SimdVector { .. } => false,
++        BackendRepr::Memory { .. } => {
++            if !layout.is_sized() {
++                return false;
++            }
++            // Uninhabited types (zero-variant enums and the like) have no
++            // fields to walk -- and no values, so no pointers either.
++            if matches!(layout.variants, Variants::Empty) {
++                return false;
++            }
++            if layout
++                .fields
++                .index_by_increasing_offset()
++                .any(|i| filc_layout_may_contain_pointers(cx, layout.field(cx, i)))
++            {
++                return true;
++            }
++            match &layout.variants {
++                Variants::Multiple { variants, .. } => variants
++                    .indices()
++                    .any(|v| filc_layout_may_contain_pointers(cx, layout.for_variant(cx, v))),
++                Variants::Single { .. } | Variants::Empty => false,
++            }
++        }
++    }
++}
++
+ fn map_error<'tcx>(
+     cx: &LayoutCx<'tcx>,
+     ty: Ty<'tcx>,
+@@ -593,9 +640,8 @@
+             // UnsafeCell and UnsafePinned both disable niche optimizations
+             let is_special_no_niche = def.is_unsafe_cell() || def.is_unsafe_pinned();
+
+-            let get_discriminant_type =
+-                |min, max| abi::Integer::repr_discr(tcx, ty, &def.repr(), min, max);
+
++
+             let discriminants_iter = || {
+                 def.is_enum()
+                     .then(|| def.discriminants(tcx).map(|(v, d)| (v, d.val as i128)))
+@@ -609,10 +655,89 @@
+                     !tcx.type_of(last_field.did).instantiate_identity().is_sized(tcx, typing_env)
+                 });
+
+-            let layout = cx
++            let orig_repr = def.repr();
++            let filc_enum_ptr_maybe = def.is_enum()
++                && orig_repr.pack.is_none()
++                && variants
++                    .iter()
++                    .flatten()
++                    .any(|field| filc_layout_may_contain_pointers(cx, *field));
++
++            // Fil-C: the repr that the layout computation currently in
++            // flight is using.  `get_discriminant_type` must decide the tag
++            // against THIS repr, not against `def.repr()`: the layout
++            // calculator asserts (rustc_abi layout.rs) that the tag the
++            // closure decides on is never LARGER than the tag typeck
++            // derives from the repr the calculator was given
++            // (`Integer::from_attr(dl, repr.discr_type())`), and it derives
++            // the discriminant range it passes here from that same repr.
++            // The first computation runs with the user's own repr, so an
++            // explicitly chosen `#[repr(u8)]`-style tag must stay at its
++            // chosen size there: typeck decided I8, and returning I64 for it
++            // trips the assert ("layout decided on a larger discriminant
++            // type (I64) than typeck (I8)"), while a widened-tag range
++            // derived from a different repr than the one `repr_discr` is
++            // called with can overflow the repr's range outright
++            // ("`#[repr]` hint too small" -- e.g. raw i16 discriminant bits
++            // re-interpreted at the widened width).  Reprs without an
++            // explicit integer tag (repr(Rust), and repr(C) without an int)
++            // typeck as pointer-sized (`discr_type()` is
++            // `IntegerType::Pointer`), so widening the tag to a word is
++            // consistent with typeck there.  Explicit-int-repr
++            // pointer-maybe enums get their word-sized tag from the
++            // recompute below, which swaps in a repr with the word-sized
++            // tag: there `repr_discr` itself returns I64, and deciding the
++            // tag against that repr keeps the discriminant-range
++            // interpretation consistent with the tag the calculator
++            // actually builds.  Tracking the repr in a Cell (ReprOptions is
++            // Copy) lets one closure serve both computations.
++            let filc_repr = std::cell::Cell::new(orig_repr);
++            let get_discriminant_type = |min, max| {
++                let repr = filc_repr.get();
++                let (int, signed) = abi::Integer::repr_discr(tcx, ty, &repr, min, max);
++                if filc_enum_ptr_maybe && repr.int.is_none() && int.size().bytes() < 8 {
++                    (abi::Integer::I64, signed)
++                } else {
++                    (int, signed)
++                }
++            };
++
++            // Fil-C: enums that may hold pointers keep every variant payload
++            // word-aligned.  The Fil-C rustc gives the allocas (and sret
++            // slots) of pointer-maybe aggregates all-pointer struct types so
++            // that SROA's type-driven partitioning widens the memcpys that
++            // move them into capability-preserving pointer-typed accesses
++            // (see filc_ptr_struct_type in rustc_codegen_llvm); a pointer
++            // under GIMSO semantics can only rest in an 8-byte-aligned word,
++            // where its capability has a shadow slot to live in.  An enum
++            // whose *one* variant holds a pointer (io::Error's Box,
++            // JoinHandle's pthread_t, ...) while the *other* variants are
++            // plain integers is laid out with a 4-byte tag followed directly
++            // by the integer payloads at 4 mod 8; the copies of those integer
++            // bytes through the pointer-typed partitions of the typed slot
++            // then land at offsets that are 4 mod 8 -- which the pizlonator
++            // must (and does) reject at run time ("alignment requirement of 8
++            // bytes not met").  When that shape shows up in the computed
++            // layout (direct-tagged, pointer-maybe, first payload byte not
++            // word-aligned), recompute the layout with a word-sized
++            // discriminant so every variant payload starts on a word
++            // boundary.  Explicit-int reprs (`#[repr(u8)]`,
++            // `#[repr(C, u8)]`, ...) ride the same recompute: their first
++            // computation keeps the user's tag size (widening it there would
++            // trip the calculator's typeck-vs-layout assert -- see
++            // `filc_repr` above), and the recompute replaces it with the
++            // word-sized tag exactly when the payload turns out misaligned.
++            // This mirrors the usermusl house pattern of never
++            // letting pointer slots alias integer slots at sub-word
++            // granularity (pthread_mutex_t's __p[] vs __i[] split).  Niche
++            // layouts already keep the pointer *at* the niche (word-aligned),
++            // and packed enums keep their layout (a packed aggregate with
++            // pointers is the documented Fil-C gap, and the all-pointer
++            // alloca typing already declines them).
++            let mut layout = cx
+                 .calc
+                 .layout_of_struct_or_enum(
+-                    &def.repr(),
++                    &filc_repr.get(),
+                     &variants,
+                     def.is_enum(),
+                     is_special_no_niche,
+@@ -622,6 +747,49 @@
+                     !maybe_unsized,
+                 )
+                 .map_err(|err| map_error(cx, ty, err))?;
++            let filc_payload_misaligned = match &layout.variants {
++                Variants::Multiple {
++                    tag_encoding: TagEncoding::Direct,
++                    variants: layout_variants,
++                    ..
++                } => layout_variants.iter().any(|v| {
++                    v.fields.count() > 0 && v.fields.offset(0).bytes() % 8 != 0
++                }),
++                _ => false,
++            };
++            if def.is_enum()
++                && filc_enum_ptr_maybe
++                && filc_payload_misaligned
++            {
++                let mut bumped = orig_repr;
++                // Force the discriminant to be a full word: the layout
++                // calculator otherwise re-derives the tag size from the first
++                // field's alignment, which would put the payload right after
++                // the 4-byte tag again.  repr.int also inhibits the niche
++                // optimization, which is fine here: this enum is already
++                // direct-tagged, so there was no niche to lose.
++                bumped.int = Some(abi::IntegerType::Fixed(abi::Integer::I64, true));
++                bumped.align = Some(Align::from_bytes(8).unwrap());
++                // The recompute runs with the word-sized-tag repr, so the
++                // tag decision widens with it (see `filc_repr` above):
++                // deciding the tag against this repr is also what keeps the
++                // calculator's discriminant-range interpretation consistent
++                // with the tag it builds.
++                filc_repr.set(bumped);
++                layout = cx
++                    .calc
++                    .layout_of_struct_or_enum(
++                        &filc_repr.get(),
++                        &variants,
++                        def.is_enum(),
++                        is_special_no_niche,
++                        tcx.layout_scalar_valid_range(def.did()),
++                        get_discriminant_type,
++                        discriminants_iter(),
++                        !maybe_unsized,
++                    )
++                    .map_err(|err| map_error(cx, ty, err))?;
++            }
+
+             if !maybe_unsized && layout.is_unsized() {
+                 bug!("got unsized layout for type that cannot be unsized {ty:?}: {layout:#?}");
 diff --git a/rust/library/backtrace/src/backtrace/libunwind.rs b/rust/library/backtrace/src/backtrace/libunwind.rs
 --- a/rust/library/backtrace/src/backtrace/libunwind.rs
 +++ b/rust/library/backtrace/src/backtrace/libunwind.rs
@@ -1547,6 +1766,129 @@ diff --git a/rust/library/core/src/ptr/mod.rs b/rust/library/core/src/ptr/mod.rs
          let delta = chunks * CHUNK_SIZE;
          // SAFETY: the tail length is below CHUNK SIZE because of the remainder,
          // and CHUNK_SIZE is at most 8 by the const assert, so tail <= 7
+diff --git a/rust/library/core/src/result.rs b/rust/library/core/src/result.rs
+--- a/rust/library/core/src/result.rs
++++ b/rust/library/core/src/result.rs
+@@ -2066,7 +2066,30 @@
+         Ok(output)
+     }
+
+-    #[inline]
++    // Fil-C: never inline `branch` (nor `from_residual` below).  The `?`
++    // desugaring moves `self` into `branch`, whose `ControlFlow` return type
++    // (`ControlFlow<Result<Infallible, E>, T>`) is niche-encoded in E's
++    // non-zero words exactly like `Result<T, E>` itself: the `Continue`
++    // variant holds `T` and the `Break` variant holds the `E` payload in the
++    // SAME bytes.  When these two #[inline] fns are inlined by the
++    // pre-pizlonation pipeline (which is the whole point of `#[inline]` on
++    // them), the inlined copies are locals, and SROA promotes the shared
++    // partition of that overlap to a single IR type -- and when `T` is an
++    // integer (any `Result<T, E>` whose `T` is not a pointer), it picks the
++    // integer, so `E`'s pointer travels through `ptrtoint`/`inttoptr` and
++    // arrives at the caller with its Fil-C capability dropped ("filc safety
++    // error: cannot read pointer with null object" on the first deref of an
++    // `Err(String)` payload propagated by `?`, at -O; O0 and manual
++    // `match`es of the same enums are fine, and `#[inline(never)]` on the
++    // user's own `?`-chaining functions hides it, which is why a
++    // `#[inline(never)]` `?`-chain passes).  Keeping `branch`/`from_residual`
++    // out of the inliner leaves the residual's aggregate moves as
++    // memcpy-across-a-call (payload + capability travel together, the same
++    // shape every other non-inlined call already uses).  `?` on `Option<T>`
++    // needs no such guard: its residual `Option<Infallible>` is uninhabited
++    // and zero-sized, so no pointer-bearing payload ever shares a partition
++    // with the `Continue` value.
++    #[inline(never)]
+     fn branch(self) -> ControlFlow<Self::Residual, Self::Output> {
+         match self {
+             Ok(v) => ControlFlow::Continue(v),
+@@ -2080,7 +2103,10 @@
+ impl<T, E, F: ~const From<E>> const ops::FromResidual<Result<convert::Infallible, E>>
+     for Result<T, F>
+ {
+-    #[inline]
++    // Fil-C: see `branch` above -- `from_residual` is the other half of the
++    // `?` desugaring (it moves the `E` payload out of the residual into the
++    // returned `Err`), and must stay a real call for the same reason.
++    #[inline(never)]
+     #[track_caller]
+     fn from_residual(residual: Result<convert::Infallible, E>) -> Self {
+         match residual {
+diff --git a/rust/library/core/src/slice/sort/shared/smallsort.rs b/rust/library/core/src/slice/sort/shared/smallsort.rs
+--- a/rust/library/core/src/slice/sort/shared/smallsort.rs
++++ b/rust/library/core/src/slice/sort/shared/smallsort.rs
+@@ -537,8 +537,16 @@
+
+ /// Sorts range [begin, tail] assuming [begin, tail) is already sorted.
+ ///
++/// Fil-C (GIMSO): `#[inline(never)]` keeps the sifted element's save/restore
++/// (a `ManuallyDrop` holding a whole element that may contain pointers) out of
++/// the caller's body: merged with an inlined user comparator, the Fil-C
++/// pre-pizlonation pipeline collapses the save/restore memcpys into integer
++/// load/store pairs that drop the moved element's pointer capabilities (see
++/// the Fil-Rust notes, known-issue #15).
++///
+ /// # Safety
+ /// begin < tail and p must be valid and initialized for all begin <= p <= tail.
++#[inline(never)]
+ unsafe fn insert_tail<T, F: FnMut(&T, &T) -> bool>(begin: *mut T, tail: *mut T, is_less: &mut F) {
+     // SAFETY: see individual comments.
+     unsafe {
+diff --git a/rust/library/core/src/slice/sort/unstable/quicksort.rs b/rust/library/core/src/slice/sort/unstable/quicksort.rs
+--- a/rust/library/core/src/slice/sort/unstable/quicksort.rs
++++ b/rust/library/core/src/slice/sort/unstable/quicksort.rs
+@@ -155,6 +155,15 @@
+ }
+
+ /// See [`partition`].
++///
++/// Fil-C: `#[inline(never)]` keeps this partition (whose `GapGuard` saves and restores
++/// a whole element through a `ManuallyDrop`) out of the caller's body, where the
++/// inlined user comparator would let SROA collapse the element save/restore memcpys
++/// into integer load/store pairs that drop the copied pointers' capabilities (see the
++/// Fil-Rust notes, the sort_by_key miscompile).  This attribute is load-bearing even
++/// together with `#[inline(never)]` on the gap-guard drops: removing it re-breaks
++/// `sort_unstable_by_key` on 100 pointer-containing elements.
++#[inline(never)]
+ fn partition_hoare_branchy_cyclic<T, F>(v: &mut [T], pivot: &T, is_less: &mut F) -> usize
+ where
+     F: FnMut(&T, &T) -> bool,
+@@ -246,6 +255,13 @@
+ }
+
+ #[cfg(not(feature = "optimize_for_size"))]
++/// Fil-C: `#[inline(never)]` for the same reason as `partition_hoare_branchy_cyclic`:
++/// the saved gap value (`ManuallyDrop::new(ptr::read(v_base))`) must not be scalarized
++/// together with an inlined user comparator, or the gap's restore memcpy collapses
++/// into integer stores and drops the element's pointer capabilities.  This attribute is
++/// load-bearing even together with `#[inline(never)]` on the gap-guard drops: removing
++/// it re-breaks `sort_unstable_by_key` on 100 pointer-containing elements.
++#[inline(never)]
+ fn partition_lomuto_branchless_cyclic<T, F>(v: &mut [T], pivot: &T, is_less: &mut F) -> usize
+ where
+     F: FnMut(&T, &T) -> bool,
+@@ -364,6 +380,13 @@
+ }
+
+ impl<T> Drop for GapGuard<T> {
++    // Fil-C (GIMSO): `#[inline(never)]` keeps the gap guard (which holds a whole saved
++    // element that may contain pointers) from being scalarized together with an inlined
++    // user comparator.  If the guard's storage is scalarized, the element's save/restore
++    // memcpys collapse into integer load/store pairs that move only the payload and drop
++    // the pointers' capabilities -- the same miscompile class as the `sort_by_key`
++    // insertion-sort bug (see the Fil-Rust notes).
++    #[inline(never)]
+     fn drop(&mut self) {
+         // SAFETY: `self` MUST be constructed in a way that makes copying the gap value into
+         // `self.pos` sound.
+@@ -383,6 +406,8 @@
+
+ #[cfg(not(feature = "optimize_for_size"))]
+ impl<T> Drop for GapGuardRaw<T> {
++    // Fil-C (GIMSO): `#[inline(never)]` for the same reason as `GapGuard::drop` above.
++    #[inline(never)]
+     fn drop(&mut self) {
+         // SAFETY: `self` MUST be constructed in a way that makes copying the gap value into
+         // `self.pos` sound.
 diff --git a/rust/library/panic_abort/src/lib.rs b/rust/library/panic_abort/src/lib.rs
 --- a/rust/library/panic_abort/src/lib.rs
 +++ b/rust/library/panic_abort/src/lib.rs
@@ -1582,6 +1924,187 @@ diff --git a/rust/library/panic_unwind/src/lib.rs b/rust/library/panic_unwind/sr
      unsafe { Box::into_raw(imp::cleanup(payload)) }
  }
 
+diff --git a/rust/library/std/src/fs.rs b/rust/library/std/src/fs.rs
+--- a/rust/library/std/src/fs.rs
++++ b/rust/library/std/src/fs.rs
+@@ -305,7 +305,17 @@
+     fn inner(path: &Path) -> io::Result<Vec<u8>> {
+         let mut file = File::open(path)?;
+         let size = file.metadata().map(|m| m.len() as usize).ok();
+-        let mut bytes = Vec::try_with_capacity(size.unwrap_or(0))?;
++        // Fil-C: use the infallible `Vec::with_capacity` here rather than
++        // `Vec::try_with_capacity`.  The try variant carries the vector's
++        // data pointer through a `Result<_, TryReserveError>`-shaped
++        // aggregate move, and on this branch the pointer's Fil-C capability
++        // does not survive that round trip: the vector's spare capacity then
++        // reads as a pointer with a null object (extend_from_slice / the
++        // kernel read report "cannot write destination pointer with null
++        // object").  The infallible constructor keeps the pointer in plain
++        // typed storage, and under Fil-C the allocator aborts on OOM anyway,
++        // so the try-variant's graceful allocation-failure path is moot.
++        let mut bytes = Vec::with_capacity(size.unwrap_or(0));
+         io::default_read_to_end(&mut file, &mut bytes, size)?;
+         Ok(bytes)
+     }
+diff --git a/rust/library/std/src/io/mod.rs b/rust/library/std/src/io/mod.rs
+--- a/rust/library/std/src/io/mod.rs
++++ b/rust/library/std/src/io/mod.rs
+@@ -409,79 +409,29 @@
+ pub(crate) fn default_read_to_end<R: Read + ?Sized>(
+     r: &mut R,
+     buf: &mut Vec<u8>,
+-    size_hint: Option<usize>,
++    #[allow(unused_variables)] size_hint: Option<usize>,
+ ) -> Result<usize> {
+     let start_len = buf.len();
+-    let start_cap = buf.capacity();
+-    // Optionally limit the maximum bytes read on each iteration.
+-    // This adds an arbitrary fiddle factor to allow for more data than we expect.
+-    let mut max_read_size = size_hint
+-        .and_then(|s| s.checked_add(1024)?.checked_next_multiple_of(DEFAULT_BUF_SIZE))
+-        .unwrap_or(DEFAULT_BUF_SIZE);
+
+-    let mut initialized = 0; // Extra initialized bytes from previous loop iteration
+-
+-    const PROBE_SIZE: usize = 32;
+-
+-    fn small_probe_read<R: Read + ?Sized>(r: &mut R, buf: &mut Vec<u8>) -> Result<usize> {
+-        let mut probe = [0u8; PROBE_SIZE];
+-
+-        loop {
+-            match r.read(&mut probe) {
+-                Ok(n) => {
+-                    // there is no way to recover from allocation failure here
+-                    // because the data has already been read.
+-                    buf.extend_from_slice(&probe[..n]);
+-                    return Ok(n);
+-                }
+-                Err(ref e) if e.is_interrupted() => continue,
+-                Err(e) => return Err(e),
+-            }
+-        }
+-    }
+-
+-    // avoid inflating empty/small vecs before we have determined that there's anything to read
+-    if (size_hint.is_none() || size_hint == Some(0)) && buf.capacity() - buf.len() < PROBE_SIZE {
+-        let read = small_probe_read(r, buf)?;
+-
+-        if read == 0 {
+-            return Ok(0);
+-        }
+-    }
+-
+-    let mut consecutive_short_reads = 0;
+-
++    // Fil-C: read through a fixed-size plain byte buffer and append to the
++    // vector with `extend_from_slice` (a memcpy, which moves payload +
++    // capability shadow) instead of reading through the vector's spare
++    // capacity.  On this branch the spare-capacity pointer loses its Fil-C
++    // capability on the way through this function's aggregate moves and
++    // argument passing, and the kernel write through it then reports
++    // "cannot write pointer with null object"; reads through a plain stack
++    // buffer work (the pointer comes straight from the frame), and the
++    // append is the usermusl house pattern for bytes the KERNEL fills
++    // (plain byte storage) plus memcpy-shaped copies of possibly-pointer
++    // data.  Reads may return fewer bytes than requested; the loop runs
++    // until EOF (a zero read) or an error, exactly like the upstream
++    // read_buf-based loop, and partial data is committed before an error
++    // is propagated.
+     loop {
+-        if buf.len() == buf.capacity() && buf.capacity() == start_cap {
+-            // The buffer might be an exact fit. Let's read into a probe buffer
+-            // and see if it returns `Ok(0)`. If so, we've avoided an
+-            // unnecessary doubling of the capacity. But if not, append the
+-            // probe buffer to the primary buffer and let its capacity grow.
+-            let read = small_probe_read(r, buf)?;
++        let mut chunk = [0u8; DEFAULT_BUF_SIZE];
+
+-            if read == 0 {
+-                return Ok(buf.len() - start_len);
+-            }
+-        }
+-
+-        if buf.len() == buf.capacity() {
+-            // buf is full, need more space
+-            buf.try_reserve(PROBE_SIZE)?;
+-        }
+-
+-        let mut spare = buf.spare_capacity_mut();
+-        let buf_len = cmp::min(spare.len(), max_read_size);
+-        spare = &mut spare[..buf_len];
+-        let mut read_buf: BorrowedBuf<'_> = spare.into();
+-
+-        // SAFETY: These bytes were initialized but not filled in the previous loop
+-        unsafe {
+-            read_buf.set_init(initialized);
+-        }
+-
+-        let mut cursor = read_buf.unfilled();
+-        let result = loop {
+-            match r.read_buf(cursor.reborrow()) {
++        let read = loop {
++            match r.read(&mut chunk) {
+                 Err(e) if e.is_interrupted() => continue,
+                 // Do not stop now in case of error: we might have received both data
+                 // and an error
+@@ -489,50 +439,18 @@
+             }
+         };
+
+-        let unfilled_but_initialized = cursor.init_mut().len();
+-        let bytes_read = cursor.written();
+-        let was_fully_initialized = read_buf.init_len() == buf_len;
++        let bytes_read = match read {
++            Ok(n) => n,
++            Err(e) => return Err(e),
++        };
+
+-        // SAFETY: BorrowedBuf's invariants mean this much memory is initialized.
+-        unsafe {
+-            let new_len = bytes_read + buf.len();
+-            buf.set_len(new_len);
+-        }
+-
+-        // Now that all data is pushed to the vector, we can fail without data loss
+-        result?;
+-
+         if bytes_read == 0 {
+             return Ok(buf.len() - start_len);
+         }
+
+-        if bytes_read < buf_len {
+-            consecutive_short_reads += 1;
+-        } else {
+-            consecutive_short_reads = 0;
+-        }
+-
+-        // store how much was initialized but not filled
+-        initialized = unfilled_but_initialized;
+-
+-        // Use heuristics to determine the max read size if no initial size hint was provided
+-        if size_hint.is_none() {
+-            // The reader is returning short reads but it doesn't call ensure_init().
+-            // In that case we no longer need to restrict read sizes to avoid
+-            // initialization costs.
+-            // When reading from disk we usually don't get any short reads except at EOF.
+-            // So we wait for at least 2 short reads before uncapping the read buffer;
+-            // this helps with the Windows issue.
+-            if !was_fully_initialized && consecutive_short_reads > 1 {
+-                max_read_size = usize::MAX;
+-            }
+-
+-            // we have passed a larger buffer than previously and the
+-            // reader still hasn't returned a short read
+-            if buf_len >= max_read_size && bytes_read == buf_len {
+-                max_read_size = max_read_size.saturating_mul(2);
+-            }
+-        }
++        // there is no way to recover from allocation failure here
++        // because the data has already been read.
++        buf.extend_from_slice(&chunk[..bytes_read]);
+     }
+ }
+
 diff --git a/rust/library/std/src/panicking.rs b/rust/library/std/src/panicking.rs
 --- a/rust/library/std/src/panicking.rs
 +++ b/rust/library/std/src/panicking.rs
@@ -1605,6 +2128,48 @@ diff --git a/rust/library/std/src/panicking.rs b/rust/library/std/src/panicking.
      #[rustc_std_internal_symbol]
      fn __rust_panic_cleanup(payload: *mut u8) -> *mut (dyn Any + Send + 'static);
  }
+diff --git a/rust/library/std/src/sys/fd/unix.rs b/rust/library/std/src/sys/fd/unix.rs
+--- a/rust/library/std/src/sys/fd/unix.rs
++++ b/rust/library/std/src/sys/fd/unix.rs
+@@ -173,18 +173,26 @@
+     }
+
+     pub fn read_buf(&self, mut cursor: BorrowedCursor<'_>) -> io::Result<()> {
+-        let ret = cvt(unsafe {
+-            libc::read(
+-                self.as_raw_fd(),
+-                cursor.as_mut().as_mut_ptr() as *mut libc::c_void,
+-                cmp::min(cursor.capacity(), READ_LIMIT),
+-            )
+-        })?;
+-
+-        // Safety: `ret` bytes were written to the initialized portion of the buffer
+-        unsafe {
+-            cursor.advance_unchecked(ret as usize);
+-        }
++        // Fil-C: hand the kernel a plain byte buffer instead of the cursor's
++        // raw `MaybeUninit` slice.  The cursor's data pointer travels through
++        // the `BorrowedBuf`/`BorrowedCursor` aggregate moves and the Vec's
++        // spare capacity, and on this branch the capability of that pointer
++        // does not survive the trip: the read syscall then sees a pointer
++        // with a null object ("cannot write pointer with null object" from
++        // zsys_read).  Reading through a well-typed local buffer (whose
++        // pointer comes straight from the allocator) and appending the bytes
++        // into the cursor (a memcpy, which moves payload + shadow) keeps
++        // everything the pizlonator tracks consistent.  This mirrors the
++        // usermusl house pattern: bytes that the KERNEL fills stay in plain
++        // byte storage, and byte copies of possibly-pointer data go through
++        // memcpy-shaped operations.  Reads may legitimately return fewer
++        // bytes than requested, so capping the transfer at the size of the
++        // scratch buffer is within the `Read` contract; callers loop.
++        const FILC_READ_BUF_SCRATCH: usize = 8192;
++        let want = cmp::min(cursor.capacity(), READ_LIMIT);
++        let mut scratch = [0u8; FILC_READ_BUF_SCRATCH];
++        let n = self.read(&mut scratch[..cmp::min(want, FILC_READ_BUF_SCRATCH)])?;
++        cursor.append(&scratch[..n]);
+         Ok(())
+     }
+
 diff --git a/rust/library/std/src/sys/pal/unix/stack_overflow.rs b/rust/library/std/src/sys/pal/unix/stack_overflow.rs
 --- a/rust/library/std/src/sys/pal/unix/stack_overflow.rs
 +++ b/rust/library/std/src/sys/pal/unix/stack_overflow.rs

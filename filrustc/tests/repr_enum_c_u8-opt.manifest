@@ -1,0 +1,16 @@
+return: success
+output-includes:
+- n = Num(43981) p = Ptr(ffi-box)
+- vec = Num(1), Ptr(v2), Num(18446744073709551615)
+- swapped x = Num(77) y = Ptr(swap-ptr)
+- replaced prev = Ptr(replace-me) now = Ptr(replaced)
+- m1 = Small(12648430) m2 = Big(mixed-box)
+- mixed swap = Big(mixed-swap) Small(5)
+- mixed replace = Small(6) now = Big(m-repl)
+- mixed vec = Small(9), Big(mv)
+- eq = true
+- debug = Num(3) Small(44)
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O

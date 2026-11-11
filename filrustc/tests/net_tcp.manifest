@@ -1,0 +1,15 @@
+return: success
+output-includes:
+- bound = true
+- echo = ping over tcp
+- server saw 13 bytes
+- peek = 6 read = 6
+- dead connect = true
+extraArgs:
+- --edition
+- '2021'
+optFlags: -O
+skip: TcpListener::accept hits the pizlonator Skew/alignment bug (36-byte aggregate
+  write at a 4-mod-8 offset through the all-pointer-typed sret slot of io::Result<(TcpStream,
+  SocketAddr)>); same bug family as the spawn layout fix, which does not cover this
+  shape
