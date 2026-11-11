@@ -4,11 +4,13 @@
 #include <sched.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdfil.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/prctl.h>
 #include <sys/syscall.h>
 #include <linux/capability.h>
+#include <sys/wait.h>
 
 #define CHECK(x) do { \
     if (!(x)) { \
@@ -36,10 +38,33 @@ int main(void)
     struct __user_cap_data_struct data[2];
     CHECK(!syscall(SYS_capget, &header, data));
 
-    /* The runtime is multi-threaded, so a user namespace is refused: with an error,
-       not by stopping the program. */
-    CHECK(unshare(CLONE_NEWUSER) < 0);
-    CHECK(errno == EINVAL || errno == EPERM);
+    /* A user namespace needs a process with one thread. The runtime stops its own threads for
+       the call, and the program runs on the thread that the process started with. Do it in a
+       child, so that the parent keeps its identity. */
+    pid_t child = fork();
+    CHECK(child >= 0);
+    if (!child) {
+        if (unshare(CLONE_NEWUSER)) {
+            printf("FAIL %s:%d: unshare: errno = %d\n", __FILE__, __LINE__, errno);
+            _exit(1);
+        }
+        /* An identity without a mapping is the overflow uid. */
+        if (getuid() != 65534)
+            _exit(2);
+        /* The runtime must still work: allocate enough to need a collection. */
+        for (int i = 0; i < 100000; ++i) {
+            char* p = malloc(1000);
+            if (!p)
+                _exit(3);
+            p[0] = 1;
+        }
+        zgc_wait(zgc_request_fresh());
+        _exit(0);
+    }
+    int status;
+    CHECK(waitpid(child, &status, 0) == child);
+    CHECK(WIFEXITED(status));
+    CHECK(WEXITSTATUS(status) == 0);
 
     printf("linuxcalls ok\n");
     return 0;
