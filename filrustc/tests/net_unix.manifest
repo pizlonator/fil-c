@@ -9,5 +9,11 @@ extraArgs:
 - --edition
 - '2021'
 optFlags: -O
-skip: UnixListener::accept hits the same Skew/alignment bug as net_tcp (120-byte aggregate
-  write at a 4-mod-8 offset in io::Result<(UnixStream, SocketAddr)>)
+# Same fix as net_tcp (known-issue #13, FIXED on the rustc side -- see
+# build_rustc-notes.md): the Unix bind/accept path's sockaddr_un (110 bytes,
+# align 2) copies aggregate data through pointer-maybe allocas; the Fil-C
+# rustc now escapes those allocas with `zhas_union` and emits their copies as
+# shadow-propagating `zmemmove_builtin` calls (clang parity), so no
+# pre-pizlonation optimization can manufacture misaligned pointer-typed
+# accesses here.  llvm/ carries no change for this (the SROA-side fix once
+# staged here was rejected and reverted).

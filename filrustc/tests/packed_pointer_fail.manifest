@@ -1,0 +1,12 @@
+# Mirror of filc/tests/unionpackedpointerfail (negative): a pointer at a
+# non-8-byte-aligned offset inside a #[repr(packed)] struct is not
+# representable under Fil-C's aligned-pointer model; the unaligned pointer
+# store must be caught by the runtime's alignment check (ABI carrier staging
+# must not relax actual pointer-access alignment).
+return:
+  failure
+output-includes:
+  - "filc safety error"
+  - "alignment requirement of 8 bytes not met"
+output-excludes:
+  - "nono"

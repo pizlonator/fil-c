@@ -1,0 +1,15 @@
+# Mirror of filc/tests/uniontest (PostgreSQL's config_var_value shape): a
+# struct holding a union of scalar and pointer members plus an extra pointer,
+# updated field-by-field and moved by value through noinline call boundaries,
+# Vec pushes and mem::replace.  The string pointer's capability must survive
+# every move, so reading through the cloned strings must work.
+return:
+  success
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "bool = false"
+  - "int = 500"
+  - "int2 = 766"
+  - "str = v7 2"

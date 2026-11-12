@@ -1,0 +1,15 @@
+# The direct known-issue #13 shape through real rustc codegen: a byte copy of
+# an align-2 buffer lands at a 4-mod-8 offset inside a pointer-maybe aggregate
+# whose pointer word gets typed accesses.  The zhas_union annotation must keep
+# the alloca out of SROA so no misaligned pointer-typed access is manufactured
+# (this failed with "alignment requirement of 8 bytes not met ... ptr aligned
+# to 8 bytes at offset 4" before the fix; see build_rustc-notes.md).
+return:
+  success
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "ok"
+output-excludes:
+  - "bad"

@@ -1,0 +1,17 @@
+# Mirror of filc/tests/bug294: align-4, non-multiple-of-8 float aggregates
+# copied by value at 4-mod-8 offsets through noinline call chains, both as
+# whole-aggregate assignments and field-by-field.  Numeric aggregates keep
+# untyped allocas and SROA integer widening; the test pins that the union
+# handling leaves them untouched and every copy preserves the values.
+return:
+  success
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "sizes 12 16 28"
+  - "aligns 4 4 4"
+  - "sink = "
+  - "ok"
+output-excludes:
+  - "bad"

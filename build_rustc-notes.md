@@ -45,7 +45,7 @@ sources: edit `projects/rust/...` and run `filc/projeny commit
 projects/rust.projeny` (then `git add projects/rust.projeny`).  The build
 script applies no source tweaks of its own; it only *verifies* that every
 expected Fil-C change is present in the extracted tree (the `check_grep`
-calls in `build_rustc_impl.sh` -- 63 of them, counted as
+calls in `build_rustc_impl.sh` -- 73 of them, counted as
 `grep -c '^\s*check_grep ' build_rustc_impl.sh`; the two other mentions of
 the name are the comment above the helper and its definition) and fails
 fast with a clear
@@ -264,7 +264,12 @@ The patch consists of the following changes:
     the `RValue::Cast` transmute temp (rvalue.rs) and the two
     `make_space_for_arg` call-argument scratch allocas (block.rs).  See
     known-issues #1 for why this exists, why it is done at
-    the alloca only, and why it cannot slow down numeric code.
+    the alloca only, and why it cannot slow down numeric code.  SINCE THE
+    KNOWN-ISSUE-#13 FIX (change #29) the all-pointer struct type is
+    belt-and-braces rather than load-bearing: `alloca_for_layout` also
+    annotates every pointer-maybe aggregate alloca with a `zhas_union` call
+    (clang parity), which makes the alloca an opaque escape for SROA, so
+    SROA never partitions these allocas at all (see change #29).
 22. `library/core/src/ptr/mod.rs` — **pointer-typed swap chunk buffers**
     (the std-side fix for the mem::swap class of known-issues #1(b); the
     user-libc house pattern "memory that may hold pointers must be
@@ -896,10 +901,17 @@ ld-fil1 does not search rustc's sysroot by default).
    fix is change #21 in the list above: the Fil-C rustc gives pointer-maybe
    aggregates typed allocas whose LLVM type is an all-pointer struct, so
    SROA's type-driven partitioning inherits pointer types for the partitions
-   that carry those bytes.  LLVM itself is NOT changed:
-   `llvm/lib/Transforms/Scalar/SROA.cpp` is byte-identical to upstream on
-   this branch (an earlier, abandoned fix rewrote SROA itself; its history
-   and the reason for abandoning it are below).  Evidence that this shape is
+   that carry those bytes.  llvm/lib/Transforms/Scalar/SROA.cpp is
+   byte-identical to HEAD, i.e. upstream SROA plus the pre-existing Fil-C
+   Skew hack (an earlier, abandoned fix rewrote SROA itself, and a later
+   SROA-side guard for known-issue #13 was REJECTED by the user and
+   reverted -- see known-issue #13 and change #29 for why the fix lives on
+   the rustc side instead: "clang does the right thing ... it's a rustc
+   bug, and the fix is to do what clang does").  With the clang-parity
+   union handling of change #29 in place, SROA never even sees the
+   pointer-maybe allocas (they are escaped with zhas_union before the
+   optimizer runs), so the typed allocas are belt-and-braces for the
+   partitioning machinery rather than its input.  Evidence that this shape is
    closed: `threads-opt` -- the exact formerly-miscompiling program
    (`std::thread::spawn` + `join`, 8 threads x 1000 `Arc<Mutex>`
    increments) at `-O` -- passes, and with
@@ -1211,8 +1223,11 @@ ld-fil1 does not search rustc's sysroot by default).
    partitions -- which is semantics-preserving for data with no capabilities
    in the shadow -- is untouched.  The SROA-side fix lives on the
    `fil/fixed_sroa` branch (including its three review rounds and its .ll
-   tests); this branch carries `llvm/lib/Transforms/Scalar/SROA.cpp`
-   byte-identical to upstream.
+   tests); this branch's SROA delta is limited to the pre-existing Fil-C
+   Skew hack -- llvm/lib/Transforms/Scalar/SROA.cpp is byte-identical to
+   HEAD (the known-issue #13 fix moved to the rustc side, change #29, so
+   NUMERIC aggregates' integer widening and every well-aligned pointer
+   aggregate see exactly upstream SROA behavior).
 
    The rustc-side fix (change #21 above; all in the projeny patch):
 
@@ -1560,12 +1575,14 @@ ld-fil1 does not search rustc's sysroot by default).
     the `repr_enum_*` change-#24 guards and the `io_terminal`/
     `chown_fchown`/`backtrace_disabled` gap-closers -- bringing the table
     to 47 rows, and the round-3 sort-miscompile fix added the
-    `sort_by_key_enum`/`sort_by_comparator` guards for 49), 47 runnable plus
-    `net_tcp`/`net_unix` marked `skip` with a
-    note (known-issue #13).  Each test compiles at exactly ONE optimization
-    level because the harness's `optFlags` REPLACES the default flags: 10
-    of the 47 runnable tests have base manifests compiling at `-O` and 37
-    at the default O0
+    `sort_by_key_enum`/`sort_by_comparator` guards for 49), all runnable
+    since known-issue #13 was fixed (the rustc-side clang-parity fix of
+    change #29 un-skipped `net_tcp`/`net_unix` -- the skip notes became
+    root-cause comments in their manifests), and the known-issue-#13 round
+    added the six union-mirror tests for 55 `.rs` rows (see the coverage
+    table).  Each test compiles at exactly ONE optimization
+    level because the harness's `optFlags` REPLACES the default flags
+    (recountable programmatically from the manifests)
     (before the `-opt` twins of this round, 12 of the 30 runnable
     coverage tests compiled at `-O` and 18 at the default O0 -- and the
     earlier revision of this entry wrongly claimed "30 runnable at both the default opt level and
@@ -1641,6 +1658,169 @@ ld-fil1 does not search rustc's sysroot by default).
     needed no changes.  The cost: the small-sort step and each partition
     become real calls per sort, and two more calls per partition invocation
     on the panic-recovery drop paths.
+
+29. `compiler/rustc_codegen_llvm/src/builder.rs` +
+    `compiler/rustc_codegen_llvm/src/type_of.rs` +
+    `compiler/rustc_codegen_ssa/src/traits/builder.rs` +
+    `compiler/rustc_codegen_ssa/src/mir/{intrinsic,statement,block}.rs` —
+    **the Fil-C rustc handles pointer-maybe allocas exactly the way clang
+    handles union-carrying ones: `zhas_union` on the alloca,
+    `zmemmove_builtin` for the copies, and the change-#21 all-pointer-struct
+    alloca type kept as belt-and-braces** (the known-issue #13 fix; this
+    change REPLACES the SROA-side fix that used to be change #29, which was
+    rejected by the user -- "it's 100% definitely not an SROA bug and not a
+    pizlonator bug -- it's a rustc bug, and the fix is to do what clang
+    does" -- and `llvm/lib/Transforms/Scalar/SROA.cpp` is back to being
+    byte-identical to HEAD, i.e. upstream SROA plus the pre-existing Fil-C
+    Skew hack; llvm/ carries NO diff on this branch beyond what was already
+    committed).  clang's machinery, which this mirrors:
+
+    * `zhas_union` -- clang annotates EVERY temp alloca of a union-carrying
+      type of at least 8 bytes with a `call void @zhas_union(ptr)`
+      (CodeGenFunction::CreateTempAlloca, fed by `Ty.hasUnion()`, plus
+      EmitVarAnnotations for named locals).  The call is a no-op at run time
+      (the pizlonator erases it and its escape analysis skips it --
+      FilPizlonator.cpp), but it is an OPAQUE CALL USE of the alloca pointer,
+      which stops SROA from partitioning, promoting or re-typing the alloca
+      AT ALL: an alloca that might hold pointers must never be split into
+      pieces whose types the optimizer chose, because GIMSO memory transfers
+      move payload + capability shadow together while typed (especially
+      integer-typed) accesses move only the payload, and a pointer-typed
+      widening could manufacture capability accesses at non-word-aligned
+      offsets (the exact mechanism of the UnixListener::bind/
+      TcpListener::accept panic below).  This is also what made clang-compiled
+      code FAST (qjs got ~1.3x faster when zhas_union landed, commit
+      475a8b221ef1): the escaping is what keeps the pizlonator's own escape
+      analysis cheap and the optimizer from re-typing memory.
+    * `zmemmove_builtin` -- clang emits `call void @zmemmove_builtin(ptr dst,
+      ptr src, i64 count)` for every `memcpy`/`memmove`/`mempcpy` builtin
+      call (CGBuiltin.cpp) instead of an llvm.memcpy/memmove intrinsic.  The
+      runtime function is a memmove (it handles overlap), it moves payload +
+      capability shadow together, and being an opaque call it is untouchable
+      by the pre-pizlonation pipeline -- no pass can widen it into
+      integer-typed load/store pairs (which drop capabilities) or
+      pointer-typed accesses at non-word-aligned offsets.  The pizlonator
+      lowers it like any other memmove (lowerMemmoveCall) and inlines
+      constant-count calls itself (isCallToInlineableMemmove), so small
+      constant copies still scalarize -- capability-correctly -- at
+      pizlonation time.
+    * `zmemmove_union` -- the third member of the family (declared in
+      filc_test_support.h: "the memmove that we use for union assignments"),
+      recognized and lowered by the pizlonator with the identical signature.
+      clang does NOT auto-emit it anywhere (EmitAggregateCopy emits a plain
+      llvm.memcpy decorated with TBAA; the zmemmove_union callers in the tree
+      are the C tests and the generated memmoves suites).  The rustc fix does
+      not need it either: `memcpy_maybe_unions` (below) emits
+      `zmemmove_builtin`, which has the same memmove semantics and the same
+      pizlonator lowering; zmemmove_union stays a public C API with C test
+      coverage.  (Decision: NOT emitted by rustc; nothing in the union paths
+      needed it once zhas_union + zmemmove_builtin were in.)
+
+    The rustc implementation:
+
+    * `filc_may_contain_pointers` (type_of.rs, pre-existing from change #21)
+      is the union-carrying analog of clang's `Ty.hasUnion()`: Rust enums are
+      unions in all but name, so every aggregate that may contain pointers
+      gets clang's union treatment.  It now answers `Variants::Empty`
+      (uninhabited) layouts FALSE without descending into fields
+      (`TyAndLayout::field` panics on them -- "there is no field in
+      Variants::Empty types" -- which the old predicate never noticed because
+      `filc_ptr_struct_type`'s zero-size guard rejected those layouts before
+      the predicate ran; the zhas_union annotation queries the predicate for
+      EVERY alloca, including uninhabited locals, so the guard moved inside
+      the predicate).
+    * `alloca_for_layout` (builder.rs) now does BOTH legs for pointer-maybe
+      aggregates: the all-pointer-struct typed alloca (change #21, kept) AND
+      the `zhas_union` annotation -- emitted when the layout is pointer-maybe,
+      NOT a Scalar (clang's hasUnion only fires for aggregates; a scalar
+      pointer's alloca must stay promotable by SROA -- a pointer VALUE in a
+      register carries its capability under GIMSO), and at least 8 bytes
+      (clang's `getTypeAllocSize(Ty) >= 8`).  The call is inserted past the
+      entry block's static allocas (`LLVMRustPositionBuilderPastAllocas`), so
+      it necessarily follows the alloca it annotates on either construction
+      path.
+    * `memcpy_maybe_unions` (new `BuilderMethods` method, default impl =
+      plain `memcpy` so every other backend is unchanged; the LLVM backend
+      overrides it to emit the `zmemmove_builtin` call) plus
+      `filc_may_contain_pointers` (new `BuilderMethods` method, default
+      false) route every copy of pointer-maybe bytes through the runtime:
+      `typed_place_copy_with_flags` (the compiler-generated aggregate-copy
+      path -- OperandValue::Ref stores, indirect arguments, typed swaps),
+      `copy_intrinsic` (Rust's `ptr::copy`/`ptr::copy_nonoverlapping`, which
+      is rustc's analog of clang's memcpy/memmove builtins), the MIR
+      `CopyNonOverlapping` statement, and the PassMode::Cast spill/reload in
+      mir/block.rs.  The runtime call's pointer arguments are also plain uses
+      of the endpoint allocas, so an alloca participating in a pointer-maybe
+      copy escapes SROA even when its own LLVM type does not reveal
+      pointer-ness.
+
+    Why this fixes known-issue #13 where the SROA-side guard only papered
+    over it: the panic came from a MULTI-RUN interaction -- a run's
+    widened ptr-typed store became a later run's partition evidence
+    ("Rewriting alloca partition [4,12) to: alloca ptr"), propagating
+    misaligned pointer accesses further (the second-level shape loaded a ptr
+    from the path-string constant at +2) -- and it was REMOVABLE in both
+    directions: re-bisecting the original repro against the reverted clang
+    showed that deleting ONLY the final sret aggregate copy from the repro
+    (the upstream leg of the chain) made the panic disappear, i.e. the shape
+    needs real aggregate-copy chains feeding several SROA runs.  With
+    zhas_union, pointer-maybe allocas never enter SROA at all, so no run of
+    the pipeline can start the chain; with zmemmove_builtin, the copies that
+    would seed it are opaque calls.  llvm/ carries no change for this --
+    upstream SROA still widens exactly the shapes it always did (pinned by
+    the NEGATIVE witness .ll below), and clang-compiled C never hits them
+    because clang escapes these allocas before the optimizer sees them.
+
+    Validity evidence:
+    * The negative witness `filrustc/tests/sroa_misaligned_ptr_piece_
+      unescaped.ll` (the pre-fix IR shape: typed all-pointer-struct alloca,
+      no zhas_union, plain llvm.memcpy payload copy + sret copy chain)
+      PANICS through the reverted clang with "filc safety error: alignment
+      requirement of 8 bytes not met ... expected 110 bytes with ptr aligned
+      to 8 bytes at offset 4" (exit 42 under FILC_EXIT_ON_PANIC=1) --
+      re-verified twice during this fix (once by reverting SROA and
+      rebuilding clang, once when re-deriving the shape).
+    * The positive guard `filrustc/tests/sroa_misaligned_ptr_piece.ll` is
+      the same shape WITH the post-fix annotations (zhas_union call on the
+      alloca, zmemmove_builtin for the payload copy and the sret copy): it
+      passes byte-exact ("ok") through the same `clang -O2 -x ir` command.
+    * net_unix/net_tcp at -O run green with the full stack (see the honest
+      caveat under known-issue #13: they had ALREADY stopped reproducing the
+      panic on this tree before this change -- the change-#24 layout fix and
+      the std changes moved the shapes -- so they are end-to-end coverage,
+      not discriminators).
+    * The new .rs mirrors: `union_mixed_members` (the wackyunion mirror),
+      `union_struct_config` (the uniontest/PostgreSQL config_var_value
+      mirror), `align4_numeric_moves` (the bug294 mirror -- numeric align-4
+      aggregates must keep untyped allocas and SROA integer widening),
+      `misaligned_copy_into_aggregate` (the #13 byte-copy-into-aggregate
+      shape through real rustc codegen; passes with the annotation -- and,
+      recorded honestly, also passes with the annotation disabled, because
+      the single-function shape does not reproduce the multi-run
+      interaction; the .ll witnesses are the discriminators),
+      `union_abi_carrier_fail` (the unioncarrierfail mirror -- NEGATIVE: the
+      extern "C" by-value union carrier must lose the capability and the
+      read must panic with "filc safety error: cannot read pointer with null
+      object", which is the remaining documented known-issue #10 gap) and
+      `packed_pointer_fail` (the unionpackedpointerfail mirror -- NEGATIVE:
+      a pointer at offset 7 in a repr(packed) struct must panic with
+      "alignment requirement of 8 bytes not met ... ptr aligned to 8 bytes
+      at offset 7").
+    * The full filrustc suite is green with the final rustc (120 tests, 0
+      skips, SUCCESS).
+    * Perf: the change is rustc-only, so clang-compiled code is untouched BY
+      CONSTRUCTION; the reverted SROA.cpp makes the shipped clang
+      byte-equivalent to HEAD's.  simdutf (README.md dataset, -I 2000, 3
+      runs, medians over 52 procedures) rebuilt with the reverted clang
+      (77/77 ctest pass): geomean median 14.6 GB/s, top entries
+      count_utf8+icelake 171.7 GB/s, validate_utf8+haswell 107.9 GB/s --
+      consistent with the pre-change-#29 parity measurements recorded above
+      (the SROA-side guard's geomean ratio was 1.013 vs its pre-fix binary;
+      the revert restores that pre-fix binary's codegen exactly).  The
+      filrustc suite wall time and the std build are the rustc-side
+      consumers of the extra zhas_union/zmemmove_builtin calls; no
+      regression was observed in either (std builds in the same incremental
+      time, and the suite passes at both optimization levels).
 
 10. **Aggregate-ABI holes** (they fire at `opt-level=0` AND `-O` alike, so
    they are not pipeline-dependent -- they are rustc lowering / Fil-C ABI
@@ -1811,23 +1991,44 @@ ld-fil1 does not search rustc's sysroot by default).
    it.  BufReader over a `File` never needed the fix (it
    reads through the plain `read` path).
 
-13. **`TcpListener::accept` / `UnixListener::accept` (OPEN).**  Both hit the
-   same aggregate-write shape as known-issue #11 in a form the layout fix
-   does not cover: the accept result
-   `io::Result<(TcpStream, SocketAddr)>` is niche-encoded with the payload
-   at offset 0 (already word-aligned), but the *skew* machinery in SROA
-   (the Fil-C "Skew" hack for no-type alloca partitions) models one of the
-   function's local slots as a 4-mod-8 address while the runtime placement
-   is 16-aligned, so the pizlonator's static alignment inference
-   ("expected N writable bytes with ptr aligned to 8 bytes at offset 4")
-   contradicts the actual pointer and the inline check fails at run time
-   (exit 42/133) for any `accept()` call.  `net_tcp` and `net_unix` in the
-   filrustc suite pin the rest of the net stack (bind/connect/echo,
-   send/recv, socket-addr parsing) and are marked `skip` with a note
-   pending a fix.  The fix would have to land in SROA's skew bookkeeping
-   or in the pizlonator's alloca placement, both off-limits on this branch
-   (llvm/lib/Transforms/Scalar/SROA.cpp must stay byte-identical to
-   upstream), so the hole is documented instead of patched.
+13. **`TcpListener::accept` / `UnixListener::accept` (FIXED ON THE RUSTC
+   SIDE -- change #29, the clang-parity union handling; `net_tcp`/`net_unix`
+   run un-skipped, `sroa_misaligned_ptr_piece` (+ its `_unescaped` negative
+   witness) are the direct `.ll` guards and the new union-mirror `.rs` tests
+   are the source-level guards).**  Both hit the same aggregate-write shape
+   as known-issue #11 in a form the layout fix does not cover: the accept
+   result `io::Result<(TcpStream, SocketAddr)>` copies aggregate data (the
+   110-byte align-2 `sockaddr_un`, the Err variant's io::Error pointer word)
+   through pointer-maybe allocas whose typed (all-pointer-struct)
+   representations from change #21 let upstream SROA widen crossing memcpy
+   pieces into `load ptr`/`store ptr` AT THE OTHER SIDE of the copy with the
+   slice's pointer type -- a 4-mod-8 or 2-mod-8 address -- and the
+   pizlonator's inline word-alignment check for RawPtrTy accesses (which is
+   independent of the instruction's own alignment annotation:
+   `buildCheck(WordSize, WordSize, ...)` in FilPizlonator.cpp's
+   buildChecksRecurse) failed at run time ("alignment requirement of 8
+   bytes not met. ... expected 110 writable bytes with ptr aligned to 8
+   bytes at offset 4", exit 42/133) for any `bind()`/`accept()` call.  The
+   fix is change #29's clang parity (zhas_union escaping of pointer-maybe
+   allocas + zmemmove_builtin for pointer-maybe copies; see change #29 for
+   the full mechanism, the multi-SROA-run propagation -- one run's bogus
+   ptr store became the next run's partition evidence "Rewriting alloca
+   partition [4,12) to: alloca ptr", the second-level shape loading a ptr
+   from the path-string constant at +2, and the re-bisect that showed the
+   panic needs the sret copy chain -- and why llvm/ carries NO change for
+   this).  HONEST CAVEAT about the end-to-end reproducibility: on the
+   current tree, with SROA.cpp reverted to HEAD and std rebuilt, BOTH
+   `net_unix` and `net_tcp` pass -- the change-#24 layout fix and the
+   std-side changes (the swap chunks, the inline(never) guards, the fs
+   rewrites) had already moved the real std shapes away from the
+   misaligned-widening interaction, so these tests are end-to-end coverage
+   of the bind/accept paths, not discriminators for this fix.  The
+   discriminators are the .ll witnesses (which compile the exact IR shape
+   -- a shape that cannot be expressed in Rust or C source, since clang
+   escapes may-contain-pointer allocas before SROA sees them: the positive
+   one passes only with the annotations, the negative one keeps panicking
+   with upstream SROA) and the rustc-side check_grep markers (see
+   build_rustc_impl.sh).
 
 14. **`?` on a `Result` whose error type carries pointers used to lose the
    payload's capability at `-O` (FIXED on the std side; change #27,
@@ -1968,14 +2169,25 @@ the bottom of the table below), for 47 coverage-table rows total, and the
 round-3 sort-miscompile fix added the `sort_by_key_enum` and
 `sort_by_comparator` guards (the last two rows of the table), for 49
 coverage-table rows total.  47 run,
-and
-`net_tcp`/`net_unix` are `skip`-marked (known-issue #13).  OF THOSE 47, 10
-have base manifests whose `optFlags` is `-O` and 37 compile at
-the default O0 -- recountable programmatically (do NOT count by eye):
+and `net_tcp`/`net_unix` run un-skipped since known-issue #13 was fixed on
+the rustc side (change #29).  The known-issue-#13 round added 6 more rows
+(the union-mirror tests `union_mixed_members`, `union_struct_config`,
+`align4_numeric_moves`, `misaligned_copy_into_aggregate`,
+`union_abi_carrier_fail` (negative) and `packed_pointer_fail` (negative))
+for 56 coverage-table rows total (the -opt twin is a row of its own), plus
+the negative-witness .ll
+`sroa_misaligned_ptr_piece_unescaped` which is listed in the
+current-tests table below (next to `sroa_misaligned_ptr_piece`).  ALL of
+it runs: `filrustc/run-tests` prints 121 dots, no "Skipping" lines, and
+SUCCESS (113 runnable at the start of the round -- the 49 coverage rows,
+the other std/tooling tests and `sroa_misaligned_ptr_piece.ll`, with
+`net_tcp`/`net_unix` already un-skipped -- plus the 6 new `.rs` tests, the
+`-opt` twin, and the new negative `.ll`).  The manifests are recountable programmatically
+(do NOT count by eye):
 take the first column of each
 `| test (new) | ... |` row in the table below, strip ` (skip)`, read
 `filrustc/tests/<name>.manifest`, and count the rows whose `optFlags`
-contains `-O` (10) vs not (37) -- note
+contains `-O` (12) vs not (37) -- note
 that the harness's `optFlags` REPLACES the default compile flags rather than
 adding to them, so each test compiles and runs at exactly ONE optimization
 level; a test that needs both levels needs a `-opt` twin (a byte-identical
@@ -2049,8 +2261,14 @@ test).
 | error_chains | `Error` trait: source() chains, Display for error structs, `Box<dyn Error>` From conversions (&str, custom), TryFrom/TryInto (u8::try_from, slice->array), ParseIntError kinds (InvalidDigit/PosOverflow/Empty), downcast_ref, map_err |
 | hash_ops | `hash`: Hash/Hasher via DefaultHasher (determinism within a process), composite Hash impls, HashMap/HashSet with custom Hash keys (`Box<Key>`), BuildHasherDefault/with_hasher/build_hasher, order-independent container hashing |
 | fmt_ops | `fmt`: Display/Debug for a custom struct (incl. `{:#?}`), width/fill/alignment (`{:5}`/`{:05}`/`{:<5}`/`{:>5}`/`{:^5}`/`{:*^7}`), sign/alternate (`{:+}`/`{:#x}`/`{:#o}`/`{:#b}`), precision (`{:.2}`/`{:.0}`), string width/precision, `{{}}` escapes, positional/named args, Debug for Vec/Option/Result/String/char/tuple/Range/slice, Display for Path/SocketAddr, `fmt::write` into a String |
-| net_tcp (skip) | would cover `TcpListener::bind` (ephemeral), local_addr, accept+echo over threads, set_nodelay, peek, shutdown, connect-refused; blocked by known-issue #13 |
-| net_unix (skip) | would cover `UnixListener`/`UnixStream` (bind/connect/echo), `UnixStream::pair`, `SocketAddr` parsing, `ToSocketAddrs`; blocked by known-issue #13 |
+| net_tcp | `TcpListener::bind` (ephemeral), local_addr, accept+echo over threads, set_nodelay, peek, shutdown, connect-refused.  Was `skip`-marked for known-issue #13; runs again since the fix (change #29, the rustc-side clang-parity union handling).  HONEST NOTE (see known-issue #13): on the current tree this test passes even with SROA.cpp reverted, because the change-#24 layout fix and the std changes moved the real shapes -- it is end-to-end coverage of the bind/accept path at `-O`, not a discriminator; the discriminators are the .ll witnesses |
+| net_unix | `UnixListener`/`UnixStream` (bind/connect/echo), `UnixStream::pair`, `SocketAddr` parsing, `ToSocketAddrs`.  Was `skip`-marked for known-issue #13; runs again since the fix (change #29) -- same honest note as net_tcp |
+| union_mixed_members | the filc/tests/wackyunion mirror: unions whose members mix integers, data pointers and FUNCTION POINTERS, whole-array aggregate copies through an `#[inline(never)]` fn, `slice::swap` of union elements, dispatch through a union-restored function pointer, writes and reads through a union-restored data pointer, unions into a Vec and back out (the capability of every member, including the code pointer, must survive the moves) | success, output-includes "4242 21 99 99", "12345 297 555 555" | exit 0 | exit 0 |
+| union_struct_config | the filc/tests/uniontest mirror (PostgreSQL's config_var_value): a struct holding a union of bool/i64/*mut u8 members plus an extra pointer, field-by-field updates through a dispatch, by-value returns of union-carrying structs, Vec push + mem::replace aggregate moves, and string clones through chained by-value moves that read through the union pointer (capability must survive each move) | success, output-includes "bool = false", "int = 500", "int2 = 766", "str = v7 2" | exit 0 | exit 0 |
+| align4_numeric_moves | the filc/tests/bug294 mirror: align-4, non-multiple-of-8 float aggregates (Vec3 12 / Quat 16 / Transform 28 bytes) copied by value at 4-mod-8 offsets through `#[inline(never)]` chains -- both the whole-aggregate assignment and the field-by-field variant -- plus a Vec round trip; numeric aggregates keep untyped allocas and upstream SROA integer widening, and every copy preserves the values (sink = -1.3 by both paths) | success, output-includes "sizes 12 16 28", "aligns 4 4 4", "sink = -1.30000 -1.30000", "ok"; output-excludes "bad" | exit 0 | exit 0 |
+| misaligned_copy_into_aggregate (+ -opt twin) | the known-issue #13 shape through REAL rustc codegen: a pointer-maybe aggregate whose pointer word gets typed store+load receives a 108-byte copy of an align-2 buffer at a 4-mod-8 offset (crossing the pointer word), then the copied data bytes are verified byte-exact; exercises the zhas_union-escaped typed-alloca path end-to-end at BOTH optimization levels (the -opt twin guards that the annotation survives the whole pre-pizlonation pipeline above O0) (HONEST NOTE: passes with the annotation disabled too -- the single-function shape does not reproduce the multi-SROA-run interaction, see known-issue #13; the .ll witnesses are the discriminators) | success, output-includes "ok"; output-excludes "bad" | exit 0 | exit 0 |
+| union_abi_carrier_fail | the filc/tests/unioncarrierfail mirror (NEGATIVE): a pointer-bearing union carrying a one-past-the-end pointer passed BY VALUE across an `extern "C"` boundary loses the capability in the ABI carrier staging (the remaining documented known-issue #10 gap), so the subsequent read must panic and nothing may print | return: failure, output-includes "filc safety error", output-excludes "nono" | exit 42 | exit 42 |
+| packed_pointer_fail | the filc/tests/unionpackedpointerfail mirror (NEGATIVE): a pointer at offset 7 inside a `#[repr(packed)]` struct stored through `addr_of_mut!(...).write_unaligned` -- ABI carrier staging must not relax actual pointer-access alignment, so the store must panic with the alignment error and nothing may print | return: failure, output-includes "filc safety error", "alignment requirement of 8 bytes not met"; output-excludes "nono" | exit 42 | exit 42 |
 | repr_enum_u8 | the `#[repr(u8)]` pointer-maybe enum surface (change #24's ICE guard): both variants of `enum E { A(Box<String>), B(u32) }` constructed, moved by value (sret returns, Vec growth, mem::swap/mem::replace), matched, and printed (the Box contents + the u32 payload).  Fails to COMPILE (rustc_abi's "layout decided on a larger discriminant type (I64) than typeck (I8)" assert, exit 101) if the Fil-C discriminant bump is ever again applied to explicit reprs on the first layout computation, and RUNS to prove the integer-only variant payloads at 4 mod 8 do not pizlonator-panic at runtime (the recompute widens the tag: 8-byte discriminant, payloads at 8).  `repr_enum_u8-opt` is the -O twin |
 | repr_enum_c_u8 | the C-FFI tagged-enum pattern `#[repr(C, u8)] enum Tagged { Num(u64), Ptr(Box<String>) }` plus a misaligned-payload twin `#[repr(C, u8)] enum Mixed { Small(u32), Big(Box<String>) }`: both variants of both enums moved by value (Vec, swap, replace), matched, printed.  Same ICE guard as repr_enum_u8 (any `#[repr(C, u8)]` pointer-maybe enum fails to compile if the closure bump returns); Tagged's payloads are already word-aligned (repr(C) grows the tag prefix to the field alignment, so its 1-byte tag is kept) while Mixed's u32 payload must go through the recompute.  `repr_enum_c_u8-opt` is the -O twin |
 | repr_enum_i16 | `#[repr(i16)] enum Wide { A(String), B }` (a signed 2-byte tag whose String payload is already word-aligned at 8 -- kept as upstream laid it out) plus `#[repr(i16)] enum Signed { Small(u32) = 3, Big(Box<String>), Neg = -5 }` (the u32 payload lands at 4 mod 8, so it goes through the recompute over a NEGATIVE discriminant).  Both moved by value, matched, printed; same ICE guard as repr_enum_u8.  `repr_enum_i16-opt` is the -O twin |
@@ -2221,9 +2439,14 @@ structure, same capabilities, same output protocol:
 
 * Tests live in `filrustc/tests/` as flat `<name>.rs` files, each with an
   optional companion `<name>.manifest` YAML file.  `<name>.ll` files are ALSO
-  supported by the runner (a harness capability, currently unused -- there
-  are no .ll tests in the suite right now, see the test table below for why
-  they were removed): they are compiled with Fil-C's clang itself, always at
+  supported by the runner (the suite now has one: `sroa_misaligned_ptr_piece`,
+  the known-issue #13 LLVM-side regression guard -- a shape that cannot be
+  expressed in Rust source, since it needs SROA to see a hand-built
+  all-pointer-typed alloca whose crossing memcpy is partitionable, which
+  clang-compiled C cannot produce because clang escapes may-contain-pointer
+  allocas with `zmemmove_builtin`/`zhas_union` calls before the optimization
+  pipeline; this is also why the fixed_sroa branch's .ll tests are not on
+  this branch): they are compiled with Fil-C's clang itself, always at
   -O2 (`build/bin/clang -O2 -x ir <src> -o <bin>`), because some regressions
   cannot be expressed in Rust (or even C) source -- clang lowers memcpy
   intrinsics to pizlonated builtins before its optimization pipeline runs, so
@@ -2361,9 +2584,20 @@ trap-based panic, same as C.
 | repr_enum_u32 (+ -opt twin) | `#[repr(u32)] { A(Vec<u8>), B }` plus a misaligned twin `#[repr(u32)] { Small(u32), Big(Box<String>) }` and a near-u32::MAX discriminant enum, through the same by-value moves; same ICE guard as repr_enum_u8 | success, output-includes "a = A([1, 2, 3, 4]) b = B", "vec = A([9, 8]), B, A([7, 6, 5, 4, 3, 2, 1, 0])", "swapped x = B y = A([42])", "replaced prev = A([100]) now = A([200])", "m1 = Small(4207849484) m2 = Big(u32-box)", "mixed swap = Big(u32-swap) Small(5)", "mixed replace = Small(6) now = Big(m-repl)", "mixed vec = Small(9), Big(mv)", "large = 4000000000 1 unit", "eq = true", "debug = A([1]) Small(44) Hi" | exit 0 | exit 0 |
 | sort_by_key_enum (+ -opt twin) | the round-3 reviewer miscompile, EXTENDED: `#[repr(u64)]`/`#[repr(u8)]`/`#[repr(Rust)]` pointer-maybe enums `{A(Box<String>), B(u32,u32)}` sorted with the reviewer's key closure (`match e { A(_) => 0, B(a,_) => *a }`) via `sort_by_key` AND `sort_unstable_by_key`, at 3 elements (the reviewer's exact vector) and 100 elements (unique keys, so the unstable order is determined), post-sort payloads printed (String contents + integer fields) and every element's capability exercised by the drops -- fails with the null-object panic (exit 42) at `-O` if any of change #28's five `#[inline(never)]` boundaries is removed | success, output-includes "sbk3   = A(x),B(1,2)/B(3,4)/", "sbk100 = A(hundred),B(1,7)/... (full sorted 100)", "subk3  = A(x),B(1,2)/B(3,4)/", "subk100= A(hundred),B(1,7)/... (full sorted 100)", "e8sbk  = A(eight),B(1,2)/B(3,4)/", "e8subk = A(eight),B(1,2)/B(3,4)/", "ersbk  = A(rust),B(1,2)/B(3,4)/", "ersubk = A(rust),B(1,2)/B(3,4)/", "sort_by_key_enum OK" | exit 0 | exit 0 |
 | sort_by_comparator (+ -opt twin) | the sort_by sibling of the round-3 miscompile: the same `#[repr(u64)]` pointer-maybe enums through the comparator API (`sort_by(|a, b| key(a).cmp(&key(b)))`), 3 elements, 100 elements through driftsort's quicksort+merge, plus a descending re-sort of the sorted vector and an ascending re-sort (the already-sorted detection paths) -- fails at `-O` if the element-move boundaries of change #28 are removed | success, output-includes "sby3   = A(x),B(1,2)/B(3,4)/", "sby100 = A(hundred),B(1,7)/... (full sorted 100)", "sbydesc= B(99,693)/.../A(hundred), (full descending)", "sbyasc = A(hundred),B(1,7)/... (full sorted 100)", "sort_by_comparator OK" | exit 0 | exit 0 |
+| sroa_misaligned_ptr_piece (.ll) | the known-issue #13 POST-fix guard: the same 120-byte all-pointer-typed alloca (`<{ ptr x 15 }>`, the io::Result shape) with a typed ptr store at [8,16) and a 110-byte align-2 sockaddr_un-shaped copy into the payload at offset 4 (4 mod 8) crossing that partition, plus the Err-path pointer round trip -- as the POST-FIX rustc emits it: a `call void @zhas_union(ptr %res)` annotation on the alloca (clang's exact escape, CreateTempAlloca) and `zmemmove_builtin` for the payload copy and the sret copy (clang's exact memcpy/memmove builtin handling, CGBuiltin.cpp); compiled with the fixed `clang -O2 -x ir` command at the .ll convention.  The un-annotated version of this exact module is `sroa_misaligned_ptr_piece_unescaped` below, which panics with upstream SROA -- a shape that cannot be expressed in Rust or C source (clang escapes may-contain-pointer allocas before SROA sees them) | success, output-includes "ok"; output-excludes "bad" | exit 0 | exit 0 |
+| sroa_misaligned_ptr_piece_unescaped (.ll) | the known-issue #13 NEGATIVE witness: the PRE-fix rustc IR shape of the exact module above -- typed all-pointer-struct alloca with NO zhas_union annotation, plain llvm.memcpy payload copy + sret copy chain (whose removal from the repro makes the panic vanish: the multi-SROA-run interaction is real) -- must KEEP panicking with upstream SROA's misaligned pointer-typed widening ("alignment requirement of 8 bytes not met ... expected 110 bytes with ptr aligned to 8 bytes at offset 4", exit 42 under FILC_EXIT_ON_PANIC=1; re-verified twice while deriving this fix) | return: failure, output-includes "filc safety error", "alignment requirement of 8 bytes not met" | exit 42 | exit 42 |
 
-That is **112 test files** -- 110 running tests plus `net_tcp`/`net_unix`
-which are `skip`-marked (known-issue #13) -- all verified green twice
+That is **121 test files** -- all running tests (the 113 of the previous
+round with `net_tcp`/`net_unix` un-skipped and
+`sroa_misaligned_ptr_piece.ll` present, plus the six known-issue-#13
+union-mirror `.rs` tests (`union_mixed_members`, `union_struct_config`,
+`align4_numeric_moves`, `misaligned_copy_into_aggregate` with its `-opt`
+twin, `union_abi_carrier_fail`, `packed_pointer_fail`) and the
+negative-witness `sroa_misaligned_ptr_piece_unescaped.ll` -- which the
+`.ll` convention compiles with the fixed `clang -O2 -x ir` command) --
+verified green with the final rustc build (recountable:
+`filrustc/run-tests` prints 121 dots, no "Skipping" lines, and SUCCESS;
+recount after any change)
 back-to-back and again after the `build_all_fast_glibc.sh` gate rebuilt
 Fil-C from scratch: the 53 tests of the earlier
 rounds, the 32 std-coverage tests of the first coverage round, and the 8
@@ -2371,16 +2605,25 @@ std-coverage tests plus 4 `-opt` twins the previous round added, plus this
 round's 4 `repr_enum_*` ICE guards + 4 `-opt` twins and the 3 gap-closer
 coverage tests (`io_terminal`, `chown_fchown`, `backtrace_disabled`) (47
 coverage-table
-tests total, each with a companion `.manifest`; within the coverage table 10
-of the 45 running tests compile at `-O` and 35 at the default O0, and the
+tests total, each with a companion `.manifest`; within the coverage table 12
+of the 47 running coverage-table tests compile at `-O` and 35 at the default O0, and the
 bug-guard tests got `-opt` twins so both levels are guarded -- an earlier
 revision of this note wrongly claimed "6 of the new tests also run at `-O`":
 in reality `optFlags` REPLACES the default flags, so a test's manifest picks
 exactly one level, and the twins are how a test gets both levels), and the
 round-3 sort-miscompile fix added `sort_by_key_enum` and
 `sort_by_comparator` with their `-opt` twins (49 coverage-table tests
-total; within the coverage table 10 of the 47 running tests have base
-manifests compiling at `-O` and 37 at the default O0), and the
+total; within the coverage table 12 of the 49 running tests have base
+manifests compiling at `-O` and 37 at the default O0 -- `net_tcp`/`net_unix`
+joined the runnable set (both at `-O`) when known-issue #13 was fixed on
+the rustc side), and the known-issue-#13 round added the six union-mirror
+tests (`union_mixed_members`, `union_struct_config`,
+`align4_numeric_moves`, `misaligned_copy_into_aggregate` with its `-opt`
+twin, `union_abi_carrier_fail`, `packed_pointer_fail`) for 56 `.rs`
+coverage-table rows total (their opt levels: recountable from the
+manifests -- all six run at the default O0 and
+`misaligned_copy_into_aggregate-opt` is its `-O` twin; the `.ll` sibling
+witnesses compile at the fixed `clang -O2 -x ir` level), and the
 earlier rounds' `-opt` copies keep doing the same for their siblings.  Six .ll tests were REMOVED along with
 the abandoned SROA-side fix (`sroa_memcpy_noalign`, `sroa_memcpy_small`,
 `mixed_typed_memcpy`, `mixed_memset_memcpy`, `mixed_order`,
@@ -2391,21 +2634,36 @@ rewriter-level keep-memintrinsics guard, the order-independent conjunction
 gate, the always-keep-memsets rule -- see the "abandoned SROA-side attempt"
 history in known-issues #1).  With SROA back at upstream, hand-written
 untyped-alloca IR would simply trip upstream SROA's integer widening again
-(the very behavior the rustc-side fix sidesteps by typing the allocas), so
+(the very behavior the rustc-side fix sidesteps by escaping the allocas), so
 those IR-level tests are only meaningful against the fixed_sroa branch --
-where they live -- and would fail or be vacuous here.  The regression
-coverage for the rustc-side fix is `.rs`-level via `threads-opt` -- the
-exact formerly-miscompiling spawn+join shape, which the typed-alloca
-path keeps correct, now with the pre-pizlonation block running for rustc
-at `-O` -- and for the std fix (change #22) via `swap_nodes`, which
-passes only while std swaps pointer-aligned regions in pointer-typed
-`MaybeUninit<*const ()>` chunks (with the std fix temporarily reverted --
-byte-identical to upstream -- and the gate removed, it dies with "filc
-safety error: cannot read source pointer with ptr < lower"; verified in
-both directions for this review round).  The `.ll`
-runner support in `filrustc/run-tests` is kept as a harness capability for
-future regressions whose shape cannot be expressed in Rust or C (see the
-runner description above); it is currently unused.
+where they live -- and would fail or be vacuous here.  A LATER SROA-side
+guard (the change-#29 predecessor: keep a memcpy piece when the widened
+type carries pointers and the other side is sub-word-aligned) was also
+REJECTED by the user and reverted -- same reason: the bug is rustc's, not
+SROA's.  The regression coverage for the rustc-side fix is `.rs`-level via
+`threads-opt` -- the exact formerly-miscompiling spawn+join shape, which
+the typed-alloca path keeps correct, now with the pre-pizlonation block
+running for rustc at `-O` -- and for the std fix (change #22) via
+`swap_nodes`, which passes only while std swaps pointer-aligned regions in
+pointer-typed `MaybeUninit<*const ()>` chunks (with the std fix temporarily
+reverted -- byte-identical to upstream -- and the gate removed, it dies
+with "filc safety error: cannot read source pointer with ptr < lower";
+verified in both directions for this review round).  The suite's .ll tests
+today are the known-issue #13 pair: `sroa_misaligned_ptr_piece` (the
+POST-fix rustc IR shape -- typed all-pointer-struct alloca WITH the
+zhas_union annotation and zmemmove_builtin copies -- passes byte-exact
+through the fixed `clang -O2 -x ir` command) and
+`sroa_misaligned_ptr_piece_unescaped` (the PRE-fix shape -- no annotation,
+plain llvm.memcpy copies, including the sret copy chain whose removal from
+the repro makes the panic vanish, i.e. the multi-SROA-run interaction is
+real -- which MUST KEEP FAILING with upstream SROA's misaligned
+pointer-typed widening; if it ever stops failing, upstream SROA changed
+and the rustc-side annotations could be re-examined).  Both pin behavior
+of UPSTREAM-plus-Skew SROA (llvm/ carries no Fil-C SROA delta), so neither
+trips a nonexistent Fil-C guard nor is vacuous.  The `.ll` runner support
+in `filrustc/run-tests` is a harness capability for regressions whose
+shape cannot be expressed in Rust or C (see the runner description
+above).
 
 `no_prepopulate` proves the NoPrepopulatePasses pizlonation path,
 `threads-opt` guards the rustc-side GIMSO fix from known-issues #1(a), and

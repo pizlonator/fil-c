@@ -15,13 +15,42 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/builder.rs b/rust/compiler/rus
  use crate::value::Value;
 
  #[must_use]
-@@ -602,6 +602,41 @@
-             llvm::LLVMSetAlignment(alloca, align.bytes() as c_uint);
-             // Cast to default addrspace if necessary
-             llvm::LLVMBuildPointerCast(bx.llbuilder, alloca, self.cx().type_ptr(), UNNAMED)
-+        }
-+    }
+@@ -283,6 +283,31 @@
+     }
+ }
+
++/// Fil-C: declare (or find, if already declared) a void-returning runtime
++/// helper function like `zhas_union` or `zmemmove_builtin` in the module,
++/// returning its LLVM function type and value (the call builder needs both).
++/// These are the functions clang declares via CreateRuntimeFunction
++/// (CGExpr.cpp / CGBuiltin.cpp); the pizlonator recognizes them by name plus
++/// signature (`isHasUnionFT` / `isMemmoveFT` in FilPizlonator.cpp), so the
++/// signature must be exactly `(ptr...) -> void` with an i64 for the memmove
++/// count (the pizlonator asserts IntPtrTy == i64).
++fn filc_declare_void_fn<'ll, 'tcx>(
++    cx: &CodegenCx<'ll, 'tcx>,
++    name: &str,
++    param_tys: &[&'ll Type],
++) -> (&'ll Type, &'ll Value) {
++    let fty = cx.type_func(param_tys, cx.type_void());
++    let llfn = crate::declare::declare_raw_fn(
++        cx,
++        name,
++        llvm::CallConv::CCallConv,
++        llvm::UnnamedAddr::Global,
++        llvm::Visibility::Default,
++        fty,
++    );
++    (fty, llfn)
++}
 +
+ impl<'a, 'll, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'll, 'tcx> {
+     type CodegenCx = CodegenCx<'ll, 'tcx>;
+
+@@ -605,6 +630,93 @@
+         }
+     }
+
 +    /// Fil-C: aggregates that may contain pointers get typed allocas whose
 +    /// LLVM type is an all-pointer struct (`{ ptr x N }`, packed,
 +    /// size/alignment preserving) -- clang's union representation hack from
@@ -33,17 +62,34 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/builder.rs b/rust/compiler/rus
 +    /// value's size, a non-zero multiple of 8 bytes, and 8-byte ABI-aligned,
 +    /// so a tail would always be empty anyway -- and any aggregate that
 +    /// fails those guards or the may-contain-pointers test falls back to the
-+    /// plain untyped byte-array alloca.  The alloca
-+    /// type only feeds SROA's type-driven partitioning: field accesses are
-+    /// byte-offset GEPs plus per-field typed loads/stores against the opaque
-+    /// pointer, so they are unaffected, while memcpy-only partitions inherit
-+    /// pointer types from the struct instead of being integer-widened (which
-+    /// is what drops GIMSO memcpy-carried capabilities).  Numeric aggregates
-+    /// fail the may-contain-pointers test and keep the byte-array alloca, so
-+    /// -- unlike re-typing memcpy-only partitions inside SROA itself -- this
++    /// plain untyped byte-array alloca.  Numeric aggregates fail the
++    /// may-contain-pointers test and keep the byte-array alloca, so this
 +    /// cannot add pointer checks to numeric code.
++    ///
++    /// Since the known-issue #13 fix (clang-parity union handling) the
++    /// all-pointer struct type itself is belt-and-braces rather than the
++    /// load-bearing mechanism: every pointer-maybe aggregate alloca is ALSO
++    /// annotated with a `zhas_union` call below, which makes the alloca an
++    /// opaque escape for SROA, so SROA never partitions or re-types it at
++    /// all.  The type keeps the representation document-able and protects
++    /// the alloca should the annotation ever be optimized away; the
++    /// annotation is what actually keeps SROA's type-driven partitioning
++    /// (whose integer widening drops GIMSO capabilities and whose
++    /// pointer-typed widening could manufacture non-word-aligned capability
++    /// accesses) away from the pointer-maybe bytes.
 +    fn alloca_for_layout(&mut self, size: Size, align: Align, layout: TyAndLayout<'tcx>) -> &'ll Value {
-+        if let Some(ty) = filc_ptr_struct_type(self.cx, layout, size) {
++        let may_contain_pointers = crate::type_of::filc_may_contain_pointers(self.cx(), layout);
++        // clang's `Ty.hasUnion()` only fires for aggregates that carry a
++        // union: a scalar pointer's alloca is not union-carrying, and SROA
++        // must stay free to promote it to a register (a pointer VALUE in a
++        // register carries its capability under GIMSO; only pointers AT REST
++        // in memory need conservative treatment).  ScalarPairs stay in scope:
++        // their two words rest at fixed offsets in one alloca, so a memcpy
++        // piece covering the pointer half could be widened into a
++        // non-word-aligned pointer access exactly like the aggregate shape.
++        let is_aggregate = !matches!(layout.backend_repr, abi::BackendRepr::Scalar(_));
++        let may_hold_union = may_contain_pointers && is_aggregate;
++        let llval = if let Some(ty) = filc_ptr_struct_type(self.cx(), layout, size) {
 +            let mut bx = Builder::with_cx(self.cx);
 +            bx.position_at_start(unsafe { llvm::LLVMGetFirstBasicBlock(self.llfn()) });
 +            unsafe {
@@ -54,9 +100,95 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/builder.rs b/rust/compiler/rus
 +            }
 +        } else {
 +            self.alloca(size, align)
++        };
++        if may_hold_union && size.bytes() >= 8 {
++            // Fil-C: annotate the alloca with `zhas_union(ptr)`, exactly like
++            // clang annotates every temp alloca of a union-carrying type of
++            // at least 8 bytes (CodeGenFunction::CreateTempAlloca and
++            // EmitVarAnnotations).  Rust enums are unions in all but name, so
++            // the aggregate portion of `filc_may_contain_pointers` is the
++            // union-carrying analog of clang's `QualType::hasUnion()`.  The
++            // call is a no-op at run time -- the pizlonator just erases it --
++            // but it is an opaque call use of the alloca pointer, which stops
++            // SROA (and every other pre-pizlonation optimization) from
++            // partitioning, promoting, or re-typing the alloca: an alloca
++            // that might hold pointers must never be split into pieces whose
++            // types the optimizer chose, because GIMSO memory transfers move
++            // payload + capability shadow together while typed (especially
++            // integer-typed) accesses move only the payload, and a
++            // pointer-typed widening could manufacture capability accesses at
++            // non-word-aligned offsets.  This is what broke
++            // UnixListener::bind/TcpListener::accept at -O (known-issue #13 in
++            // build_rustc-notes.md); the pizlonator's own escape analysis
++            // deliberately ignores these calls (FilPizlonator.cpp), so they
++            // only block the LLVM optimizations and cost nothing at run time.
++            // The >= 8 bytes test mirrors clang's
++            // `getTypeAllocSize(Ty) >= 8` condition (smaller objects cannot
++            // hold a pointer word anyway).  The call is inserted past the
++            // entry block's static allocas, so it necessarily comes after
++            // this alloca (which is itself a static alloca) no matter which
++            // alloca construction path was taken above.
++            let mut bx = Builder::with_cx(self.cx);
++            unsafe {
++                llvm::LLVMRustPositionBuilderPastAllocas(bx.llbuilder, self.llfn());
++            }
++            let (fty, llfn) = filc_declare_void_fn(self.cx(), "zhas_union", &[self.cx().type_ptr()]);
++            bx.call(fty, None, None, llfn, &[llval], None, None);
++        }
++        llval
++    }
++
+     fn load(&mut self, ty: &'ll Type, ptr: &'ll Value, align: Align) -> &'ll Value {
+         unsafe {
+             let load = llvm::LLVMBuildLoad2(self.llbuilder, ty, ptr, UNNAMED);
+@@ -1121,6 +1233,47 @@
+                 is_volatile,
+             );
          }
++    }
++
++    fn memcpy_maybe_unions(
++        &mut self,
++        dst: &'ll Value,
++        _dst_align: Align,
++        src: &'ll Value,
++        _src_align: Align,
++        size: &'ll Value,
++        flags: MemFlags,
++    ) {
++        // Fil-C: the copied bytes may hold pointers, so the copy must move
++        // payload + capability shadow together.  Emit a call to the runtime's
++        // `zmemmove_builtin(dst, src, count)` -- the exact function clang
++        // emits for `memcpy`/`memmove`/`mempcpy` builtin calls (CGBuiltin.cpp)
++        // -- instead of an `llvm.memcpy`/`llvm.memmove` intrinsic.  The
++        // runtime function is a memmove (it handles overlap, so callers do not
++        // have to distinguish), it is lowered by the pizlonator like any other
++        // memmove (FilPizlonator.cpp lowers calls to it and its
++        // functionWillReturn knows it), and being an opaque call it is
++        // untouchable by the pre-pizlonation pipeline: no pass can widen it
++        // into integer-typed load/store pairs (which under GIMSO move only the
++        // payload and would drop the capabilities of the copied pointers) or
++        // into pointer-typed accesses at non-word-aligned offsets (the
++        // pizlonator requires word alignment for every pointer-typed access).
++        // A side benefit: the call's pointer arguments are plain uses of the
++        // endpoint allocas, so an alloca participating in a pointer-maybe
++        // copy escapes SROA even when its own LLVM type does not reveal
++        // pointer-ness.  The pizlonator inlines constant-count calls of this
++        // shape itself (isCallToInlineableMemmove), so small constant copies
++        // still scalarize -- capability-correctly -- at pizlonation time.
++        assert!(!flags.contains(MemFlags::NONTEMPORAL), "non-temporal memcpy not supported");
++        let size = self.intcast(size, self.type_isize(), false);
++        let ptr_ty = self.cx().type_ptr();
++        let (fty, llfn) =
++            filc_declare_void_fn(self.cx(), "zmemmove_builtin", &[ptr_ty, ptr_ty, self.cx().type_isize()]);
++        self.call(fty, None, None, llfn, &[dst, src, size], None, None);
++    }
++
++    fn filc_may_contain_pointers(&self, layout: TyAndLayout<'tcx>) -> bool {
++        crate::type_of::filc_may_contain_pointers(self.cx(), layout)
      }
 
+     fn memmove(
 diff --git a/rust/compiler/rustc_codegen_llvm/src/context.rs b/rust/compiler/rustc_codegen_llvm/src/context.rs
 --- a/rust/compiler/rustc_codegen_llvm/src/context.rs
 +++ b/rust/compiler/rustc_codegen_llvm/src/context.rs
@@ -110,7 +242,7 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/type_of.rs b/rust/compiler/rus
  use rustc_abi::{Align, BackendRepr, FieldsShape, Scalar, Size, Variants};
  use rustc_codegen_ssa::traits::*;
  use rustc_middle::bug;
-@@ -137,6 +137,170 @@
+@@ -137,6 +137,181 @@
          debug!("struct_llfields: offset: {:?} stride: {:?}", offset, layout.size);
      }
      (result, packed)
@@ -186,6 +318,17 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/type_of.rs b/rust/compiler/rus
 +    cx: &CodegenCx<'a, 'tcx>,
 +    layout: TyAndLayout<'tcx>,
 +) -> bool {
++    // Uninhabited types (e.g. an enum all of whose variants are uninhabited)
++    // have `Variants::Empty`: their layout has no fields, and
++    // `TyAndLayout::field` panics on them ("there is no field in
++    // Variants::Empty types").  A value of an uninhabited type never exists,
++    // so no alloca of this type can ever hold a pointer.  (change #21 never
++    // noticed this because `filc_ptr_struct_type`'s zero-size guard rejected
++    // these layouts before the predicate ran; the zhas_union annotation
++    // queries the predicate for every alloca, including uninhabited locals.)
++    if matches!(layout.variants, Variants::Empty) {
++        return false;
++    }
 +    match layout.backend_repr {
 +        // Scalars: pointers (including references, `Box` and function
 +        // pointers) yes; integers and floats no.  SIMD vectors are always
@@ -515,6 +658,68 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/block.rs b/rust/compiler/ru
                          bx.lifetime_start(scratch.llval, arg.layout.size);
                          bx.typed_place_copy(scratch, op_place_val, op.layout);
                          lifetime_ends_after_call.push((scratch.llval, arg.layout.size));
+@@ -1594,14 +1607,32 @@
+                 let llscratch = bx.alloca(scratch_size, scratch_align);
+                 bx.lifetime_start(llscratch, scratch_size);
+                 // ...memcpy the value...
+-                bx.memcpy(
+-                    llscratch,
+-                    scratch_align,
+-                    llval,
+-                    align,
+-                    bx.const_usize(copy_bytes),
+-                    MemFlags::empty(),
+-                );
++                let copy_flags = MemFlags::empty();
++                if bx.filc_may_contain_pointers(arg.layout) {
++                    // Fil-C: the spilled value may contain pointers, so the
++                    // spill must move payload + capability shadow together
++                    // via the runtime's shadow-propagating memmove
++                    // (clang's `zmemmove_builtin` treatment of memcpy/memmove
++                    // builtins); an optimization-widened integer copy would
++                    // drop the capabilities.
++                    bx.memcpy_maybe_unions(
++                        llscratch,
++                        scratch_align,
++                        llval,
++                        align,
++                        bx.const_usize(copy_bytes),
++                        copy_flags,
++                    );
++                } else {
++                    bx.memcpy(
++                        llscratch,
++                        scratch_align,
++                        llval,
++                        align,
++                        bx.const_usize(copy_bytes),
++                        copy_flags,
++                    );
++                }
+                 // ...and then load it with the ABI type.
+                 llval = load_cast(bx, cast, llscratch, scratch_align);
+                 bx.lifetime_end(llscratch, scratch_size);
+diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/intrinsic.rs b/rust/compiler/rustc_codegen_ssa/src/mir/intrinsic.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/mir/intrinsic.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/mir/intrinsic.rs
+@@ -27,7 +27,16 @@
+     let align = layout.align.abi;
+     let size = bx.mul(bx.const_usize(size.bytes()), count);
+     let flags = if volatile { MemFlags::VOLATILE } else { MemFlags::empty() };
+-    if allow_overlap {
++    if bx.filc_may_contain_pointers(layout) {
++        // Fil-C: the pointee type may contain pointers, so this copy must
++        // move payload + capability shadow together.  `memcpy_maybe_unions`
++        // emits the runtime's `zmemmove_builtin`, which is a memmove (it
++        // handles overlap) and is opaque to the pre-pizlonation pipeline, so
++        // no optimization can widen it into integer-typed load/store pairs.
++        // This is clang's exact handling of `memcpy`/`memmove` builtin calls
++        // (CGBuiltin.cpp), applied to Rust's `ptr::copy`/`ptr::copy_nonoverlapping`.
++        bx.memcpy_maybe_unions(dst, align, src, align, size, flags);
++    } else if allow_overlap {
+         bx.memmove(dst, align, src, align, size, flags);
+     } else {
+         bx.memcpy(dst, align, src, align, size, flags);
 diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/place.rs b/rust/compiler/rustc_codegen_ssa/src/mir/place.rs
 --- a/rust/compiler/rustc_codegen_ssa/src/mir/place.rs
 +++ b/rust/compiler/rustc_codegen_ssa/src/mir/place.rs
@@ -556,10 +761,44 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/rvalue.rs b/rust/compiler/r
                  bx.lifetime_start(temp.llval, size);
                  operand.val.store(bx, temp.with_type(operand.layout));
                  let val = bx.load_operand(temp.with_type(cast)).val;
+diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/statement.rs b/rust/compiler/rustc_codegen_ssa/src/mir/statement.rs
+--- a/rust/compiler/rustc_codegen_ssa/src/mir/statement.rs
++++ b/rust/compiler/rustc_codegen_ssa/src/mir/statement.rs
+@@ -81,16 +81,24 @@
+                 let dst_val = self.codegen_operand(bx, dst);
+                 let src_val = self.codegen_operand(bx, src);
+                 let count = self.codegen_operand(bx, count).immediate();
+-                let pointee_layout = dst_val
+-                    .layout
+-                    .pointee_info_at(bx, rustc_abi::Size::ZERO)
+-                    .expect("Expected pointer");
++                let pointee_layout = bx.layout_of(
++                    dst_val.layout.ty.builtin_deref(true).expect("Expected pointer"),
++                );
+                 let bytes = bx.mul(count, bx.const_usize(pointee_layout.size.bytes()));
+
+-                let align = pointee_layout.align;
++                let align = pointee_layout.align.abi;
+                 let dst = dst_val.immediate();
+                 let src = src_val.immediate();
+-                bx.memcpy(dst, align, src, align, bytes, crate::MemFlags::empty());
++                if bx.filc_may_contain_pointers(pointee_layout) {
++                    // Fil-C: the pointee may contain pointers, so the copy
++                    // must move payload + capability shadow together via the
++                    // runtime's shadow-propagating memmove (clang's
++                    // `zmemmove_builtin` treatment of memcpy/memmove builtins).
++                    // It is a memmove, so overlap is handled too.
++                    bx.memcpy_maybe_unions(dst, align, src, align, bytes, crate::MemFlags::empty());
++                } else {
++                    bx.memcpy(dst, align, src, align, bytes, crate::MemFlags::empty());
++                }
+             }
+             mir::StatementKind::FakeRead(..)
+             | mir::StatementKind::Retag { .. }
 diff --git a/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs b/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs
 --- a/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs
 +++ b/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs
-@@ -235,6 +235,27 @@
+@@ -235,6 +235,60 @@
 
      fn alloca(&mut self, size: Size, align: Align) -> Self::Value;
 
@@ -584,9 +823,65 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/traits/builder.rs b/rust/compil
 +        self.alloca(size, align)
 +    }
 +
++    /// Fil-C: does the memory representation of `layout` possibly contain
++    /// pointers (transitively through nested aggregates and enum variants)?
++    /// The default (every non-Fil-C backend) answers false; the Fil-C LLVM
++    /// backend overrides it with the `filc_may_contain_pointers` predicate
++    /// (see rustc_codegen_llvm/src/type_of.rs).  This is the analog of
++    /// clang's `QualType::hasUnion()`: Rust enums are unions in all but
++    /// name, so every aggregate that may contain pointers gets the same
++    /// conservative treatment clang gives union-carrying types.
++    fn filc_may_contain_pointers(&self, _layout: TyAndLayout<'tcx>) -> bool {
++        false
++    }
++
++    /// Fil-C: move bytes that may carry pointer capabilities.  The default is
++    /// a plain `memcpy`; the Fil-C LLVM backend overrides this to emit a call
++    /// to the runtime's `zmemmove_builtin(dst, src, count)` (a memmove, so it
++    /// also handles overlap), exactly like clang does for `memcpy`/`memmove`
++    /// builtin calls (CGBuiltin.cpp).  The runtime call moves payload +
++    /// capability shadow together, is opaque to every pre-pizlonation
++    /// optimization (so no pass can widen it into integer-typed load/store
++    /// pairs, which under GIMSO move only the payload), and the pizlonator
++    /// lowers it like any other memmove.
++    fn memcpy_maybe_unions(
++        &mut self,
++        dst: Self::Value,
++        dst_align: Align,
++        src: Self::Value,
++        src_align: Align,
++        size: Self::Value,
++        flags: MemFlags,
++    ) {
++        self.memcpy(dst, dst_align, src, src_align, size, flags)
++    }
++
      fn load(&mut self, ty: Self::Type, ptr: Self::Value, align: Align) -> Self::Value;
      fn volatile_load(&mut self, ty: Self::Type, ptr: Self::Value) -> Self::Value;
      fn atomic_load(
+@@ -480,7 +534,21 @@
+             temp.val.store_with_flags(self, dst.with_type(layout), flags);
+         } else if !layout.is_zst() {
+             let bytes = self.const_usize(layout.size.bytes());
+-            self.memcpy(dst.llval, dst.align, src.llval, src.align, bytes, flags);
++            if self.filc_may_contain_pointers(layout) {
++                // Fil-C: the copied bytes may hold pointers, so the copy must
++                // move payload + capability shadow together and must be
++                // opaque to the pre-pizlonation pipeline -- clang's exact
++                // `zmemmove_builtin` treatment of aggregate assignments whose
++                // types carry unions (the shadow would be lost if an
++                // optimization widened this into integer-typed load/store
++                // pairs, and a pointer-typed widening could manufacture
++                // capability accesses at non-word-aligned offsets, which is
++                // what broke UnixListener/TcpListener; see known-issue #13 in
++                // build_rustc-notes.md).
++                self.memcpy_maybe_unions(dst.llval, dst.align, src.llval, src.align, bytes, flags);
++            } else {
++                self.memcpy(dst.llval, dst.align, src.llval, src.align, bytes, flags);
++            }
+         }
+     }
+
 diff --git a/rust/compiler/rustc_driver_impl/src/lib.rs b/rust/compiler/rustc_driver_impl/src/lib.rs
 --- a/rust/compiler/rustc_driver_impl/src/lib.rs
 +++ b/rust/compiler/rustc_driver_impl/src/lib.rs

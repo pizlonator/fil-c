@@ -1,0 +1,11 @@
+# NEGATIVE witness for known-issue #13: the pre-fix rustc IR shape (typed
+# all-pointer-struct alloca with NO zhas_union annotation and plain
+# llvm.memcpy copies, including the sret copy chain) must keep panicking with
+# upstream SROA's misaligned pointer-typed widening.  If this ever stops
+# failing, upstream SROA no longer widens the shape and the Fil-C rustc's
+# clang-parity escaping (sroa_misaligned_ptr_piece.ll) could be re-examined.
+return:
+  failure
+output-includes:
+  - "filc safety error"
+  - "alignment requirement of 8 bytes not met"

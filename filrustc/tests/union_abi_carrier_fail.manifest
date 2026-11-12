@@ -1,0 +1,13 @@
+# Mirror of filc/tests/unioncarrierfail (negative): a pointer-bearing union
+# passed by value across an extern "C" boundary loses the pointer's
+# capability in the ABI carrier staging (the remaining documented gap,
+# known-issue #10 -- the Rust-ABI variant was fixed by keeping pointer-maybe
+# aggregates indirect, but extern "C" by-value stays SysV-compatible).  The
+# read must be caught by the runtime (null capability or out-of-bounds), and
+# the value must not be usable.
+return:
+  failure
+output-includes:
+  - "filc safety error"
+output-excludes:
+  - "nono"

@@ -1,0 +1,15 @@
+# The -O twin of misaligned_copy_into_aggregate: the zhas_union annotation and
+# the escaped alloca must survive the whole pre-pizlonation pipeline (this
+# shape only has an SROA story above O0), and the copy must still land
+# byte-exact.  See the base manifest for the shape and the honest
+# discrimination note.
+return:
+  success
+optFlags: -O
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "ok"
+output-excludes:
+  - "bad"

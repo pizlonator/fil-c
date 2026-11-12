@@ -271,6 +271,35 @@ do_build_rustc() {
     check_grep "alloca_for_layout(size, align, operand.layout)" compiler/rustc_codegen_ssa/src/mir/rvalue.rs
     check_grep "alloca_for_layout(arg.layout.size, required_align, arg.layout)" compiler/rustc_codegen_ssa/src/mir/block.rs
 
+    # compiler/rustc_codegen_llvm/src/builder.rs +
+    # compiler/rustc_codegen_ssa/src/traits/builder.rs +
+    # compiler/rustc_codegen_ssa/src/mir/{intrinsic,statement,block}.rs: the
+    # Fil-C clang-parity union handling for pointer-maybe allocas (the
+    # known-issue #13 fix; the SROA-side fix that used to carry this was
+    # rejected -- see build_rustc-notes.md).  clang escapes every
+    # union-carrying alloca with a `zhas_union` call (CreateTempAlloca /
+    # EmitVarAnnotations) and emits `zmemmove_builtin` for memcpy/memmove
+    # builtins (CGBuiltin.cpp); both are erased/lowered by the pizlonator.
+    # The Fil-C rustc does the same: `alloca_for_layout` annotates every
+    # aggregate alloca that may contain pointers with `zhas_union` (which
+    # makes the alloca an opaque escape for SROA -- an alloca that might hold
+    # pointers must never be partitioned), and copies of pointer-maybe bytes
+    # (typed aggregate copies, ptr::copy/copy_nonoverlapping, and the
+    # ABI-cast spill) go through `memcpy_maybe_unions`, which emits the
+    # runtime's shadow-propagating `zmemmove_builtin` instead of an
+    # llvm.memcpy/memmove intrinsic that a pre-pizlonation optimization
+    # could widen into capability-dropping integer accesses.
+    check_grep "zhas_union" compiler/rustc_codegen_llvm/src/builder.rs
+    check_grep "fn filc_declare_void_fn" compiler/rustc_codegen_llvm/src/builder.rs
+    check_grep "LLVMRustPositionBuilderPastAllocas(bx.llbuilder, self.llfn())" compiler/rustc_codegen_llvm/src/builder.rs
+    check_grep "fn memcpy_maybe_unions" compiler/rustc_codegen_llvm/src/builder.rs
+    check_grep "fn filc_may_contain_pointers(&self, _layout: TyAndLayout<'tcx>) -> bool" compiler/rustc_codegen_ssa/src/traits/builder.rs
+    check_grep "fn memcpy_maybe_unions" compiler/rustc_codegen_ssa/src/traits/builder.rs
+    check_grep "self.memcpy_maybe_unions(dst.llval, dst.align, src.llval, src.align, bytes, flags)" compiler/rustc_codegen_ssa/src/traits/builder.rs
+    check_grep "bx.memcpy_maybe_unions(dst, align, src, align, size, flags)" compiler/rustc_codegen_ssa/src/mir/intrinsic.rs
+    check_grep "bx.filc_may_contain_pointers(pointee_layout)" compiler/rustc_codegen_ssa/src/mir/statement.rs
+    check_grep "bx.filc_may_contain_pointers(arg.layout)" compiler/rustc_codegen_ssa/src/mir/block.rs
+
     # library/core/src/ptr/mod.rs: the Fil-C pointer-typed swap chunk buffers.
     # std's swap_nonoverlapping_chunks used to move the bytes of swapped
     # pointer-containing elements through NUMERIC-typed MaybeUninit<[u8; N]>

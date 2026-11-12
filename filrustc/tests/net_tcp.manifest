@@ -9,7 +9,17 @@ extraArgs:
 - --edition
 - '2021'
 optFlags: -O
-skip: TcpListener::accept hits the pizlonator Skew/alignment bug (36-byte aggregate
-  write at a 4-mod-8 offset through the all-pointer-typed sret slot of io::Result<(TcpStream,
-  SocketAddr)>); same bug family as the spawn layout fix, which does not cover this
-  shape
+# known-issue #13 (FIXED on the rustc side -- see build_rustc-notes.md): the
+# bind/accept paths copy aggregate data (e.g. the io::Result<(TcpStream,
+# SocketAddr)> sret slot, the sockaddr buffers) through pointer-maybe
+# allocas whose typed (all-pointer-struct) representations used to let SROA
+# widen crossing memcpy pieces into `load ptr`/`store ptr` at 4-mod-8/2-mod-8
+# addresses that the pizlonator's word-alignment check rejects at run time.
+# The fix is clang parity in the Fil-C rustc: pointer-maybe aggregate allocas
+# are escaped with `zhas_union` calls and pointer-maybe copies are emitted as
+# `zmemmove_builtin` calls (payload + capability shadow move together; both
+# calls are opaque to the pre-pizlonation pipeline).  llvm/ carries no change
+# at all for this (the SROA-side fix once staged here was rejected and
+# reverted).  Direct guards: sroa_misaligned_ptr_piece (.ll, post-fix IR) and
+# misaligned_copy_into_aggregate (.rs, the shape through real rustc codegen);
+# this test exercises the bind/accept path end-to-end through std at -O.

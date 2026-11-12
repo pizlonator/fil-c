@@ -1,0 +1,13 @@
+# Mirror of filc/tests/wackyunion: unions with mixed members (integer, data
+# pointer, function pointer) copy-moved through arrays, swaps and Vecs, and
+# dispatched through their function-pointer member.  The function pointer's
+# capability must survive every aggregate move, so calling through it after
+# the copies must work.
+return:
+  success
+extraArgs:
+  - "--edition"
+  - "2021"
+output-includes:
+  - "4242 21 99 99"
+  - "12345 297 555 555"
