@@ -557,10 +557,8 @@ std::string diff_trees(const std::string& base_tree, const std::string& workdir,
 }
 
 bool apply_patch_whole(const std::string& treedir, const std::string& patch,
-                       const std::string& wid, const std::string& scratch_parent,
-                       VcsApplyMode mode)
+                       const std::string& wid, VcsApplyMode mode)
 {
-    (void)scratch_parent; // no temp files needed; kept for call compatibility
     if (normalize_patch_text(patch).empty())
         return true;
     return vcs_apply_whole(treedir, patch, wid, mode);
@@ -581,11 +579,9 @@ std::vector<VcsFailure> apply_patch_per_file(const std::string& workdir,
 
 bool apply_patch_with_conflicts(const std::string& treedir,
                                 const std::string& patch, const std::string& wid,
-                                const std::string& scratch_parent,
                                 std::vector<std::string>* conflicts,
                                 VcsApplyMode mode)
 {
-    (void)scratch_parent; // no temp files needed; kept for call compatibility
     if (normalize_patch_text(patch).empty())
         return true;
     return vcs_apply_with_conflicts(treedir, patch, wid, conflicts, mode);

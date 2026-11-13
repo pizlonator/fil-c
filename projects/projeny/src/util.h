@@ -192,7 +192,13 @@ std::string physical_path(const std::string& path);
 
 // System scratch parent for temp dirs/files that must never live inside a
 // workdir (crashed runs would otherwise pollute the next diff): $TMPDIR when
-// it names an existing absolute directory, else /tmp.
+// it names an existing absolute directory, else /tmp. Project scratch dirs
+// are created next to the .projeny file (see make_scratch in ops.cc) and
+// land here only through that function's READ-ONLY FALLBACK — when the
+// .projeny file's directory cannot take new directories, the fallback keeps
+// the same hidden name shape here — and this remains the home of the LEGACY
+// "projeny-<role>-XXXXXX" scratch dirs, both of which reap_legacy_tmp_scratch
+// sweeps at startup.
 std::string system_scratch_parent();
 
 // Temp dir tracking so hard-error cleanup can remove even still-registered
@@ -208,18 +214,94 @@ void unregister_tempdir(const std::string& path);
 // skipped silently: an unwinding TempDir may already have removed its own.
 void cleanup_tempdirs();
 
-// RAII temp dir. Removes the tree on destruction unless released().
+// RAII scratch dir: mkdtemp under parent/prefixXXXXXX, then (when the
+// filesystem allows it) an exclusive flock on the directory itself, held
+// for the object's lifetime. The destructor ALWAYS removes the directory —
+// on success, on die(), and on any exception — even after the freshly built
+// tree inside it was moved out (the move leaves an empty shell, and an
+// already-removed path no-ops), so a scratch dir can never outlive the code
+// that made it. Nothing may release ownership anymore: there is no
+// release(). The destructor stays non-dying — it runs during exception
+// unwinding (die() throws), and a throw from here would std::terminate —
+// so a removal that fails only warns (one line) and never throws. The
+// flock exists for the startup reapers (reap_stale_scratch and
+// reap_legacy_tmp_scratch below): it marks a live TempDir as in use, and
+// the kernel releases it automatically when the process dies — which is
+// exactly what makes a SIGKILL'ed run's leftovers reclaimable on the next
+// run instead of leaked forever.
+//
+// The class is also default-constructible and movable so a caller can
+// choose the directory conditionally: a DEFAULT-CONSTRUCTED TempDir is
+// empty (path "" and no lock; destroying it is a no-op), try_init fills an
+// empty one without dying (leaving it empty again on failure), and the
+// move operations transfer the owned dir to the target while leaving the
+// source empty. Move-assignment targets an EMPTY TempDir — the shape a
+// named local uses to adopt a dir built in a separate step; it never
+// cleans up anything the target already holds, because a live dir is
+// never overwritten. Copying stays deleted: two TempDirs can never own
+// one directory.
 class TempDir {
   public:
+    // Empty TempDir: path "", no lock. Destroying it is a no-op.
+    TempDir() = default;
+    // Creates the dir; dies on failure (try_init produces the messages).
     TempDir(const std::string& parent, const std::string& prefix);
     ~TempDir();
     TempDir(const TempDir&) = delete;
     TempDir& operator=(const TempDir&) = delete;
-    void release();
+    TempDir(TempDir&& other) noexcept;
+    TempDir& operator=(TempDir&& other) noexcept;
+    // Non-dying creation for an EMPTY (freshly default-constructed) TempDir:
+    // same behavior as the (parent, prefix) constructor, but returns false
+    // and sets *err (the exact message text the constructor would die with)
+    // instead of dying. On success the dir is created, locked, and
+    // registered exactly as the constructor does; on failure the object is
+    // left empty again (any dir a failed attempt managed to mint is removed
+    // here, which the dying constructor cannot do — its destructor never
+    // runs for an object that never finished constructing).
+    bool try_init(const std::string& parent, const std::string& prefix,
+                  std::string* err);
     std::string path;
   private:
-    bool owned_ = false;
+    // The directory's own descriptor with the flock held on it, or -1 when
+    // the filesystem refused to lock (or the dir was already removed under
+    // us during creation). flock auto-releases when this is closed, so the
+    // destructor just close()s it.
+    int lock_fd_ = -1;
+    // try_init's failure-path cleanup: removes any dir the failed attempt
+    // minted (best-effort, warning only on removal failure) and leaves the
+    // object empty again (path "", lock_fd_ -1).
+    void init_failed();
 };
+
+// Startup janitors for scratch dirs a dead run left behind (SIGKILL, power
+// loss — anything that never got to run the cleanup paths). Both sweep ONE
+// directory level for child DIRECTORIES of a scratch name shape and remove
+// exactly the ones proven not in use: a candidate is stale only when an
+// exclusive non-blocking flock on the directory itself can be taken (see
+// the TempDir comment — a live TempDir holds that flock for its whole
+// lifetime, and the kernel drops it when the owning process dies).
+// Symlinks are never followed, files are never touched, and every open/
+// flock error skips the candidate conservatively: the sweeps never die and
+// print one stderr line only when they actually removed something.
+//
+// reap_stale_scratch(pdir) matches the CURRENT scratch shape next to a
+// .projeny file: hidden ".<file>.<role>.XXXXXX" directories (the shape
+// make_scratch creates). make_scratch runs it once per directory per
+// process, before creating its own scratch dir there, so every command
+// cleans up what earlier crashes left in the directories it touches.
+// reap_legacy_tmp_scratch() sweeps the SYSTEM temp dir ($TMPDIR and /tmp)
+// for BOTH scratch shapes: the legacy "projeny-<role>-XXXXXX" directories
+// the old binaries scattered there, AND the current
+// ".<file>.projeny.<role>.XXXXXX" shape — which lands there only through
+// make_scratch's read-only fallback (the .projeny file's directory could
+// not take new dirs, so the fallback kept the same hidden name in the
+// system scratch parent) — so a SIGKILL'ed run's fallback dirs are reapable
+// too. main() runs it once per process at startup, so an upgraded binary
+// actively cleans up everything its predecessors ever leaked into
+// $TMPDIR//tmp.
+void reap_stale_scratch(const std::string& pdir);
+void reap_legacy_tmp_scratch();
 
 // Remove `path` recursively (rm -rf): files, symlinks, and directory trees.
 // True on success; a missing path is success. When `err` is non-null it
@@ -228,6 +310,11 @@ class TempDir {
 // press on after a failed deletion (erase-setup) uses it to report what
 // went wrong without stopping.
 bool remove_recursive(const std::string& path, std::string* err = nullptr);
+// Non-dying mkdir -p core: same traversal make_dirs performs, but returns
+// false instead of dying and, when `err` is non-null, sets *err to the exact
+// message make_dirs would die with ("cannot create directory '<dir>':
+// <strerror>" for the first failing mkdir).
+bool try_make_dirs(const std::string& path, std::string* err);
 void make_dirs(const std::string& path);        // mkdir -p, dies on failure
 std::vector<std::string> list_dir_names(const std::string& path); // sorted, no . / ..
 void move_path(const std::string& src, const std::string& dst);   // rename(2), dies

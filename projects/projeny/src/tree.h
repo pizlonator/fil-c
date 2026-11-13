@@ -91,8 +91,7 @@ std::string diff_trees(const std::string& base_tree, const std::string& workdir,
 // applied" is impossible — there every block is applied forward (see the
 // VcsApplyMode comment in vcs.h).
 bool apply_patch_whole(const std::string& treedir, const std::string& patch,
-                       const std::string& wid, const std::string& scratch_parent,
-                       VcsApplyMode mode);
+                       const std::string& wid, VcsApplyMode mode);
 
 // Apply each file block of `patch` individually with -p1 semantics.
 // Returns per-block failures with workdir-relative paths (single-parser
@@ -117,7 +116,6 @@ std::vector<VcsFailure> apply_patch_per_file(const std::string& workdir,
 // skipping it is what makes re-application idempotent).
 bool apply_patch_with_conflicts(const std::string& treedir,
                                 const std::string& patch, const std::string& wid,
-                                const std::string& scratch_parent,
                                 std::vector<std::string>* conflicts,
                                 VcsApplyMode mode);
 

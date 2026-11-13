@@ -37,7 +37,11 @@
 #include <fcntl.h>
 #include <functional>
 #include <mutex>
+#include <pthread.h>
+#include <set>
+#include <signal.h>
 #include <spawn.h>
+#include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -330,7 +334,39 @@ CmdResult run_cmd(const std::vector<std::string>& argv, const std::string& cwd,
     }
 
     pid_t pid = -1;
-    int sr = posix_spawnp(&pid, c_argv[0], &fa, nullptr, c_argv.data(), use_environ);
+
+    // Children must not inherit the four fatal signals blocked: projeny
+    // handles them itself via its sigwait thread (see install_signal_cleanup
+    // in main.cc), but the helpers run here (tar, cp, ...) are synchronous
+    // foreground work, so they must stay killable by a plain Ctrl-C — as
+    // inherited today they would instead ignore it while orphaned. Query the
+    // inherited mask and un-block exactly the four signals projeny blocks
+    // (any other signals the enclosing environment had blocked stay blocked),
+    // then hand the result to posix_spawn via POSIX_SPAWN_SETSIGMASK. SIGPIPE
+    // needs no un-blocking here: projeny never blocks it (again see
+    // install_signal_cleanup). If anything above fails, fall back to default
+    // (nullptr) attributes — never die.
+    posix_spawnattr_t attr;
+    bool have_attr = false;
+    if (posix_spawnattr_init(&attr) == 0) {
+        sigset_t cur;
+        if (pthread_sigmask(SIG_SETMASK, nullptr, &cur) == 0) {
+            sigdelset(&cur, SIGINT);
+            sigdelset(&cur, SIGTERM);
+            sigdelset(&cur, SIGHUP);
+            sigdelset(&cur, SIGQUIT);
+            if (posix_spawnattr_setsigmask(&attr, &cur) == 0 &&
+                posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETSIGMASK) == 0)
+                have_attr = true;
+        }
+        if (!have_attr)
+            posix_spawnattr_destroy(&attr);
+    }
+
+    int sr = posix_spawnp(&pid, c_argv[0], &fa, have_attr ? &attr : nullptr,
+                          c_argv.data(), use_environ);
+    if (have_attr)
+        posix_spawnattr_destroy(&attr);
     posix_spawn_file_actions_destroy(&fa);
     if (devnull >= 0)
         close(devnull);
@@ -872,43 +908,390 @@ std::string system_scratch_parent()
     return "/tmp";
 }
 
-std::string make_tempdir(const std::string& parent, const std::string& prefix) {
-    make_dirs(parent);
+namespace {
+
+// Non-dying core of make_tempdir: creates `parent` (via try_make_dirs) and
+// mkdtemps parent/prefixXXXXXX into *out. Returns false and sets *err — to
+// the exact message text the dying wrappers print — when either step fails.
+bool try_make_tempdir(const std::string& parent, const std::string& prefix,
+                      std::string* out, std::string* err)
+{
+    if (!try_make_dirs(parent, err))
+        return false;
     std::string tmpl = join_path(parent, prefix + "XXXXXX");
     std::vector<char> buf(tmpl.begin(), tmpl.end());
     buf.push_back('\0');
-    if (!mkdtemp(buf.data()))
-        die("cannot create temp dir in '" + parent + "': " + strerror(errno));
-    return buf.data();
+    if (!mkdtemp(buf.data())) {
+        *err = "cannot create temp dir in '" + parent + "': " + strerror(errno);
+        return false;
+    }
+    *out = buf.data();
+    return true;
+}
+
+} // namespace
+
+std::string make_tempdir(const std::string& parent, const std::string& prefix) {
+    std::string out;
+    std::string err;
+    if (!try_make_tempdir(parent, prefix, &out, &err))
+        die(err);
+    return out;
 }
 
 TempDir::TempDir(const std::string& parent, const std::string& prefix)
-    : path(make_tempdir(parent, prefix)), owned_(true)
 {
-    register_tempdir(path);
+    std::string err;
+    if (!try_init(parent, prefix, &err))
+        die(err);
+}
+
+TempDir::TempDir(TempDir&& other) noexcept
+    : path(std::move(other.path)), lock_fd_(other.lock_fd_)
+{
+    // The source is left empty (see the class comment in util.h): it owns
+    // nothing anymore, so destroying it is a no-op.
+    other.path.clear();
+    other.lock_fd_ = -1;
+}
+
+TempDir& TempDir::operator=(TempDir&& other) noexcept
+{
+    if (this != &other) {
+        // Move-assignment targets an empty TempDir (see the class comment in
+        // util.h): the dir the source owns becomes this object's dir, and
+        // the source is left empty. Nothing here cleans up a dir the target
+        // might already hold — a live dir is never overwritten.
+        path = std::move(other.path);
+        lock_fd_ = other.lock_fd_;
+        other.path.clear();
+        other.lock_fd_ = -1;
+    }
+    return *this;
+}
+
+bool TempDir::try_init(const std::string& parent, const std::string& prefix,
+                       std::string* err)
+{
+    // mkdtemp, then claim the directory with an exclusive flock held open
+    // for the object's lifetime (see the class comment in util.h). The
+    // window between mkdtemp and the open is the one race the startup
+    // reapers can hit — a reaper running in a sibling process could see
+    // the fresh, unlocked directory and remove it — so creation retries
+    // with a new random name when the directory is stolen under us
+    // (ENOENT on the open, an open descriptor whose st_nlink dropped to
+    // zero, or an flock that cannot be taken because a concurrent reaper
+    // holds the candidate — all mean exactly that), giving up only after
+    // a handful of attempts. Every failure sets *err (the exact text the
+    // dying constructor would print), removes whatever this attempt left
+    // behind, and returns false — leaving the object empty again, so the
+    // caller can retry elsewhere (make_scratch's read-only fallback).
+    for (int attempt = 1;; ++attempt) {
+        if (!try_make_tempdir(parent, prefix, &path, err))
+            return false;
+        lock_fd_ = open(path.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+        if (lock_fd_ < 0) {
+            if (errno == ENOENT && attempt < 5)
+                continue;
+            *err = "cannot open the temp dir '" + path + "' just created in '" +
+                   parent + "': " + strerror(errno);
+            init_failed();
+            return false;
+        }
+        if (flock(lock_fd_, LOCK_EX | LOCK_NB) != 0) {
+            if (errno == EWOULDBLOCK) {
+                // mkdtemp minted this name a moment ago and nobody but a
+                // startup reaper can even know it, so a competing flock can
+                // only mean the reaper saw the fresh, unlocked directory and
+                // is removing it (or has removed it already): exactly the
+                // theft the retry loop exists to survive. Drop the
+                // descriptor and try a fresh name — retrying is correct
+                // whether the reaper has rmdir'ed the dir yet or is mid-
+                // removal, so this subsumes the st_nlink check below for
+                // this case (which stays for the flock-succeeded path).
+                close(lock_fd_);
+                lock_fd_ = -1;
+                if (attempt < 5)
+                    continue;
+                *err = "cannot lock a temp dir in '" + parent +
+                       "': freshly created dirs keep getting locked by "
+                       "something else (a concurrent reaper?)";
+                init_failed();
+                return false;
+            }
+            // Impossible for a name nobody else knows yet, but exotic
+            // filesystems can refuse flock entirely (ENOLCK et al):
+            // proceed WITHOUT the lock. The reapers then leave this
+            // directory alone (a skipped candidate is their conservative
+            // outcome), and the destructor still removes it on every
+            // path.
+            close(lock_fd_);
+            lock_fd_ = -1;
+        } else {
+            struct stat st;
+            if (fstat(lock_fd_, &st) != 0) {
+                *err = "cannot stat the temp dir '" + path + "' just created in '" +
+                       parent + "': " + strerror(errno);
+                close(lock_fd_);
+                lock_fd_ = -1;
+                init_failed();
+                return false;
+            }
+            if (st.st_nlink == 0) {
+                // Removed after our open: the name is dead even though the
+                // descriptor still points at the (now unlinked) directory.
+                close(lock_fd_);
+                lock_fd_ = -1;
+                if (attempt < 5)
+                    continue;
+                *err = "cannot keep a temp dir in '" + parent +
+                       "': freshly created dirs keep being removed by something "
+                       "else (a concurrent reaper?)";
+                init_failed();
+                return false;
+            }
+        }
+        register_tempdir(path);
+        return true;
+    }
+}
+
+// Failure-path cleanup shared by try_init: remove whatever dir the failed
+// attempt minted (the dying constructor cannot do this — its destructor
+// never runs for an object that never finished constructing — so this
+// non-dying path is strictly better) and leave the object empty again.
+void TempDir::init_failed()
+{
+    if (!path.empty()) {
+        if (!remove_recursive(path))
+            warn("could not remove temp dir '" + path + "' (leaving it behind)");
+        path.clear();
+    }
+    if (lock_fd_ >= 0) {
+        close(lock_fd_);
+        lock_fd_ = -1;
+    }
 }
 
 TempDir::~TempDir()
 {
-    if (owned_) {
-        // Unregister first so a cleanup_tempdirs() sweep can never re-remove
-        // a (partially) deleted tree; and this destructor must stay
-        // non-dying — it runs during exception unwinding (die() throws), and
-        // a throw from here would std::terminate. remove_recursive reports
-        // failure via its return value, which is deliberately ignored: a
-        // temp dir that cannot be removed is not worth failing the real
-        // work over.
-        unregister_tempdir(path);
-        remove_recursive(path);
+    // The invariant (see util.h): EVERY destruction removes the scratch
+    // dir — success, die(), and exception alike. A dir whose tree was
+    // moved out is an empty shell (or already gone, which remove_recursive
+    // treats as success); removing that shell is what keeps the pdir
+    // clean. This destructor must stay non-dying — it runs during
+    // exception unwinding (die() throws), and a throw from here would
+    // std::terminate — so remove_recursive's failure only warns (one
+    // line, the same shape as every other projeny warning); a temp dir
+    // that cannot be removed is not worth failing the real work over.
+    // The lock descriptor is closed last: closing it releases the flock,
+    // so even a removal that failed here becomes reapable on the next run.
+    // An empty TempDir (never initialized, failed try_init, or moved from)
+    // owns nothing: destroying it is a no-op beyond closing any stray
+    // descriptor.
+    if (path.empty()) {
+        if (lock_fd_ >= 0)
+            close(lock_fd_);
+        return;
     }
+    unregister_tempdir(path);
+    if (!remove_recursive(path))
+        warn("could not remove temp dir '" + path + "' (leaving it behind)");
+    if (lock_fd_ >= 0)
+        close(lock_fd_);
 }
 
-void TempDir::release()
+// ---- stale scratch-dir reaping ----
+//
+// Both reapers share one primitive: lstat the entry and require a REAL
+// directory (symlinks are never followed, files are never touched), open
+// it, and try an exclusive non-blocking flock on the descriptor. EWOULDBLOCK
+// means a live TempDir owns the directory (its kernel-held flock dies with
+// the process — which is what makes SIGKILL leftovers reclaimable); any
+// other open/flock error skips the candidate conservatively. Only an
+// acquired flock proves the directory is stale; it is then removed
+// recursively, counted, and reported — one line per sweep, only when
+// something was actually removed. Reaping is best-effort janitor work: it
+// never dies and must never damage a working checkout or fail a real
+// command.
+
+namespace {
+
+// [A-Za-z0-9] — mkdtemp's suffix alphabet (exactly six of them per dir).
+bool is_reap_alnum(char c)
 {
-    if (owned_) {
-        unregister_tempdir(path);
-        owned_ = false;
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') ||
+           (c >= 'A' && c <= 'Z');
+}
+
+// [A-Za-z0-9-] — a scratch role word. Roles never contain dots, so the
+// matchers below cannot mistake a dotted suffix for the role.
+bool is_reap_role_char(char c)
+{
+    return is_reap_alnum(c) || c == '-';
+}
+
+// True when `name` (one child of a swept directory) has the CURRENT scratch
+// shape: ".<file>.<role>.XXXXXX" where <file> is a .projeny file's basename
+// (so the name contains ".projeny."), <role> is 1+ role chars, and XXXXXX
+// is mkdtemp's exactly-six-alnum suffix. The tail rule keeps every real
+// bookkeeping name out: ".<f>.projeny.status" ends in "status" (no dot, no
+// six-alnum tail), ".<archive>.snapshot" carries no ".projeny." at all, and
+// the leading dot keeps real checkouts and the undotted journal out.
+bool matches_new_scratch_name(const std::string& name)
+{
+    if (name.empty() || name[0] != '.')
+        return false;
+    size_t mark = name.rfind(".projeny.");
+    if (mark == std::string::npos)
+        return false;
+    size_t rest = mark + strlen(".projeny.");
+    size_t dot = name.find('.', rest);
+    if (dot == std::string::npos)
+        return false; // role only, no mkdtemp suffix (e.g. a status file)
+    if (dot == rest)
+        return false; // empty role
+    for (size_t i = rest; i < dot; ++i) {
+        if (!is_reap_role_char(name[i]))
+            return false;
     }
+    if (name.size() - dot - 1 != 6)
+        return false;
+    for (size_t i = dot + 1; i < name.size(); ++i) {
+        if (!is_reap_alnum(name[i]))
+            return false;
+    }
+    return true;
+}
+
+// True when `name` has the LEGACY scratch shape the old binaries left in
+// the system temp dir: "projeny-<role>-XXXXXX", a 1+ role-char middle and
+// exactly six alnum mkdtemp tail chars ("projeny-setup-Abc123",
+// "projeny-cN-xY9zWq", "projeny-commit-exp-Abc123"). "projeny-notatemp"
+// (no tail) and any name whose tail is not exactly six alnum chars after
+// the last dash never match.
+bool matches_legacy_scratch_name(const std::string& name)
+{
+    const size_t kPfxLen = strlen("projeny-");
+    if (name.size() <= kPfxLen ||
+        name.compare(0, kPfxLen, "projeny-") != 0)
+        return false;
+    // The tail is exactly "-XXXXXX": a dash seven characters from the end,
+    // then exactly six alnum characters.
+    size_t dash = name.rfind('-');
+    if (dash == std::string::npos || dash + 1 + 6 != name.size())
+        return false;
+    if (dash <= kPfxLen)
+        return false; // empty role ("projeny--Abc123" or bare "projeny-")
+    for (size_t i = kPfxLen; i < dash; ++i) {
+        if (!is_reap_role_char(name[i]))
+            return false;
+    }
+    for (size_t i = dash + 1; i < name.size(); ++i) {
+        if (!is_reap_alnum(name[i]))
+            return false;
+    }
+    return true;
+}
+
+// True when `name` has EITHER scratch shape the system temp dir can hold:
+// the legacy "projeny-<role>-XXXXXX" form (old binaries) or the current
+// ".<file>.projeny.<role>.XXXXXX" form. The current form appears there only
+// through make_scratch's read-only fallback — when the .projeny file's
+// directory cannot take new dirs, the fallback keeps the same hidden name
+// in the system scratch parent — so the system-temp sweep must reap both;
+// the pdir sweep (reap_stale_scratch) stays new-shape-only, since legacy
+// dirs never lived next to .projeny files.
+bool matches_system_temp_scratch_name(const std::string& name)
+{
+    return matches_legacy_scratch_name(name) ||
+           matches_new_scratch_name(name);
+}
+
+// Try to reap one candidate: true when it was a stale (unlocked) scratch
+// directory that this call removed. Never dies, never follows symlinks.
+bool reap_scratch_candidate(const std::string& path)
+{
+    struct stat st;
+    if (lstat(path.c_str(), &st) != 0 || !S_ISDIR(st.st_mode))
+        return false; // missing, raced away, or not a real directory
+    int fd = open(path.c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
+    if (fd < 0)
+        return false;
+    bool removed = false;
+    if (flock(fd, LOCK_EX | LOCK_NB) == 0) {
+        // The lock was free: nobody owns this directory (a live TempDir
+        // holds the flock for its whole lifetime), so it is stale.
+        removed = remove_recursive(path);
+    }
+    close(fd);
+    return removed;
+}
+
+// Sweep `dir` (one level) for child directories matching `matches` and reap
+// the stale ones. Returns the removal count and prints the one-line report
+// when it is nonzero. An unopenable directory (e.g. a make_scratch first
+// call on a path that races nothing but does not exist) is tolerated
+// silently.
+int reap_scratch_sweep(const std::string& dir,
+                       bool (*matches)(const std::string&))
+{
+    DIR* d = opendir(dir.c_str());
+    if (!d)
+        return 0;
+    int count = 0;
+    struct dirent* e;
+    while ((e = readdir(d)) != nullptr) {
+        std::string n = e->d_name;
+        if (n == "." || n == "..")
+            continue;
+        if (matches(n) && reap_scratch_candidate(join_path(dir, n)))
+            ++count;
+    }
+    closedir(d);
+    if (count > 0)
+        warn("removed " + std::to_string(count) + " stale scratch " +
+             (count == 1 ? "directory" : "directories") + " in '" + dir + "'");
+    return count;
+}
+
+} // namespace
+
+void reap_stale_scratch(const std::string& pdir)
+{
+    // Once per directory per process: parallel workers of one multi-project
+    // command share a pdir, and every make_scratch call would otherwise
+    // rescan (and re-report) the same directory. A path is remembered even
+    // when it holds nothing (or does not exist yet), so the sweep cost is
+    // paid at most once per directory per process.
+    static std::mutex mu;
+    static std::set<std::string> reaped;
+    bool first;
+    {
+        std::lock_guard<std::mutex> lk(mu);
+        first = reaped.insert(pdir).second;
+    }
+    if (first)
+        reap_scratch_sweep(pdir, matches_new_scratch_name);
+}
+
+void reap_legacy_tmp_scratch()
+{
+    // Once per process, from main(): the system temp dir holds BOTH leak
+    // shapes. The legacy "projeny-*" dirs piled up there (the old scratch
+    // parent), and the current ".<file>.projeny.<role>.XXXXXX" shape lands
+    // there through make_scratch's read-only fallback (the .projeny file's
+    // directory could not take new dirs, so the fallback kept the same
+    // hidden name in the system scratch parent). An upgraded binary reaps
+    // everything it finds here on every run. Legacy dirs are never
+    // flock-locked (the old binaries did not lock), so every one found is
+    // stale by construction — but the sweep stays conservative and reaps
+    // through the same flock primitive anyway. $TMPDIR and /tmp are both
+    // swept (once each, when they name the same directory).
+    std::string tmp = system_scratch_parent();
+    reap_scratch_sweep(tmp, matches_system_temp_scratch_name);
+    if (tmp != "/tmp")
+        reap_scratch_sweep("/tmp", matches_system_temp_scratch_name);
 }
 
 bool remove_recursive(const std::string& path, std::string* err)
@@ -961,10 +1344,10 @@ bool remove_recursive(const std::string& path, std::string* err)
     return ok;
 }
 
-void make_dirs(const std::string& path)
+bool try_make_dirs(const std::string& path, std::string* err)
 {
     if (path.empty() || path == "." || path_exists(path))
-        return;
+        return true;
     std::string cur;
     bool absolute = !path.empty() && path[0] == '/';
     if (absolute)
@@ -993,9 +1376,21 @@ void make_dirs(const std::string& path)
         if (!acc.empty() && acc.back() != '/')
             acc += '/';
         acc += comp;
-        if (mkdir(acc.c_str(), 0777) != 0 && errno != EEXIST)
-            die("cannot create directory '" + acc + "': " + strerror(errno));
+        if (mkdir(acc.c_str(), 0777) != 0 && errno != EEXIST) {
+            if (err != nullptr)
+                *err = "cannot create directory '" + acc + "': " +
+                       strerror(errno);
+            return false;
+        }
     }
+    return true;
+}
+
+void make_dirs(const std::string& path)
+{
+    std::string err;
+    if (!try_make_dirs(path, &err))
+        die(err);
 }
 
 std::vector<std::string> list_dir_names(const std::string& path)

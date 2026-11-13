@@ -36,6 +36,7 @@
 #include <fstream>
 #include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <set>
@@ -57,6 +58,10 @@ Ctx resolve_ctx(const std::string& projeny_arg)
     Ctx c;
     c.projeny_arg = projeny_arg;
     c.pdir = dirname_of(projeny_arg);
+    // The .projeny file's own basename: scratch dirs are hidden siblings of
+    // the file (".<filebase>.<role>.XXXXXX", see make_scratch below), so
+    // every command needs this alongside pdir.
+    c.filebase = basename_of(projeny_arg);
     // Canonical, dot-prefixed status file: ".<f>.projeny.status" next to the
     // .projeny file. Older projenies wrote "<f>.projeny.status"; when only
     // the legacy form exists, rename it into the canonical form (lazy
@@ -168,17 +173,71 @@ std::string normalize_workdir_rel(const std::string& workdir, const std::string&
     return abs.substr(w.size() + 1);
 }
 
-std::string scratch_parent_for(const std::string& pdir)
+// Scratch dirs live NEXT TO the .projeny file (same filesystem as the
+// checkout, so moving a freshly built tree into place is a plain rename),
+// named ".<file>.<role>.XXXXXX" (mkdtemp suffix), e.g. projects/
+// .dash.projeny.setup.k3Xm9Q for projects/dash.projeny. They are hidden,
+// unique, never inside a workdir, and are ignored by every pdir scan
+// (resolve_projeny_path only matches names ENDING in ".projeny").
+// `filebase` is the .projeny file's basename ("dash.projeny") and `role` a
+// short purpose word ("setup", "E", "rebase-url", ...) standing in for the
+// old "/tmp/projeny-<role>-" prefixes. The first use of a pdir in this
+// process reaps the stale scratch dirs a SIGKILL'ed run left there (see
+// reap_stale_scratch in util.h) before adding a new one.
+//
+// Read-only fallback: a pdir that cannot take new directories (a read-only
+// checkout, or a full filesystem) must not break the commands that only
+// READ the checkout (status/diff/package/extract/get-attributes all build
+// their trees in scratch dirs). When creating the scratch dir next to the
+// file fails, make_scratch warns ONCE per unwritable pdir per process and
+// retries in system_scratch_parent() ($TMPDIR, else /tmp) with the SAME
+// hidden name shape — cross-device tree moves are already handled by
+// move_path's EXDEV cp -a fallback, and the startup sweep of the system
+// temp dir reaps both shapes there (see reap_legacy_tmp_scratch), so
+// fallback leftovers from a SIGKILL'ed run are not leaked either. The
+// memoized pdirs skip straight to the fallback, so a read-only checkout
+// never pays the failing attempt more than once.
+TempDir make_scratch(const std::string& pdir, const std::string& filebase,
+                     const std::string& role)
 {
-    // Scratch temp dirs must NEVER live inside the workdir (or pdir): a crash
-    // between temp creation and cleanup would otherwise leave junk behind
-    // that pollutes the next diff. Use the system temp dir; TempDir removes
-    // the tree on all paths (RAII) and die() removes registered temp dirs
-    // too. diff_trees additionally filters any legacy ".projeny-tmp*" entries
-    // left behind by older crashed runs. (pdir is unused; kept for call-site
-    // readability.)
-    (void)pdir;
-    return system_scratch_parent();
+    reap_stale_scratch(pdir);
+    const std::string prefix = "." + filebase + "." + role + ".";
+
+    // Memo of the pdirs this process has already found unwritable
+    // (thread-safe: parallel workers of one multi-project command share
+    // pdirs, and every worker would otherwise repeat the failing attempt —
+    // and, without the insert().second check, re-warn — for the same
+    // directory).
+    static std::mutex mu;
+    static std::set<std::string> unwritable;
+    std::string err;
+    bool known_bad;
+    {
+        std::lock_guard<std::mutex> lk(mu);
+        known_bad = unwritable.count(pdir) != 0;
+    }
+
+    TempDir scratch;
+    if (!known_bad) {
+        if (scratch.try_init(pdir, prefix, &err))
+            return scratch; // named RVO: the move hands the dir to the caller
+        bool first;
+        {
+            std::lock_guard<std::mutex> lk(mu);
+            first = unwritable.insert(pdir).second;
+        }
+        if (first) {
+            warn("cannot create scratch dirs in '" + pdir + "' (" + err +
+                 "); using '" + system_scratch_parent() + "' instead");
+        }
+        // try_init failed, so `scratch` is empty again (its own failure
+        // path removed whatever the attempt minted) — the fallback below
+        // can fill the same named local.
+    }
+    if (!scratch.try_init(system_scratch_parent(), prefix, &err))
+        die("cannot create a scratch dir in '" + pdir + "' or in '" +
+            system_scratch_parent() + "': " + err);
+    return scratch; // named RVO: the move hands the dir to the caller
 }
 
 // Snapshot path for an archive: the dot-prefixed sibling of the archive
@@ -857,12 +916,11 @@ std::string build_tree_from_patch(TempDir& tmp, const std::string& archive,
                                   const std::string& patch_wid,
                                   const std::string& what)
 {
-    std::string scratch = scratch_parent_for(tmp.path);
     unpack_single_top(archive, tmp.path, origname);
     std::string tree = join_path(tmp.path, origname);
     if (normalize_patch_text(patch_wid).empty())
         return tree;
-    if (!apply_patch_whole(tree, patch_wid, wid, scratch,
+    if (!apply_patch_whole(tree, patch_wid, wid,
                            VcsApplyMode::kFreshApply)) {
         // Retry per-file to produce a precise error. Failures carry
         // workdir-relative paths from the single patch parser (no second
@@ -918,6 +976,8 @@ void merge_user_diff_onto(const std::string& base_tree, const std::string& fresh
                           const std::string& user_tree, const std::string& workdir,
                           const std::string& wid, const std::string& uwid,
                           const std::string& upatch,
+                          const std::string& scratch_pdir,
+                          const std::string& scratch_filebase,
                           std::vector<std::string>* conflicts)
 {
     // Parse U with its own wid (uwid): U was diffed with the old wid, which
@@ -933,7 +993,9 @@ void merge_user_diff_onto(const std::string& base_tree, const std::string& fresh
     if (bad.empty())
         return;
     // For each failed block, do a 3-way merge of base/ours(=fresh)/theirs.
-    std::string scratch = scratch_parent_for(workdir);
+    // The merge scratch dirs live next to the .projeny file like every
+    // other scratch dir (the (pdir, filebase) pair is threaded from the
+    // caller's Ctx).
     for (const auto& f : bad) {
         std::vector<std::string> touched =
             failure_paths_or_die(f, "merge local changes");
@@ -946,7 +1008,7 @@ void merge_user_diff_onto(const std::string& base_tree, const std::string& fresh
             // user file still holds the theirs content. Snapshot it first:
             // merge_one_file writes its output to the N-tree path, which
             // for in-place merges IS the user path (snapshot protects us).
-            TempDir one(scratch, "projeny-mg-");
+            TempDir one(make_scratch(scratch_pdir, scratch_filebase, "mg"));
             std::string bf = join_path(base_tree, rel);
             std::string of = join_path(fresh_tree, rel);
             std::string tf = join_path(user_tree, rel);
@@ -1094,14 +1156,13 @@ std::string build_fresh_tree(const Ctx& ctx, const ProjenyFile& cur,
 void do_fresh_setup(const Ctx& ctx, const ProjenyFile& cur)
 {
     std::string workdir = join_path(ctx.pdir, cur.name);
-    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-setup-");
+    TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "setup"));
     std::string fresh = build_fresh_tree(ctx, cur, tmp);
     if (path_exists(workdir))
         reconcile_binaries(workdir, fresh, true);
     if (path_exists(workdir) && !remove_recursive(workdir))
         die("cannot remove existing workdir '" + workdir + "'");
     move_path(fresh, workdir);
-    tmp.release(); // fresh moved out; don't delete it
 }
 
 // Inventory a tree as rel path -> is-it-a-directory, recursing into
@@ -1160,7 +1221,7 @@ void merge_tree_into(const std::string& from_dir, const std::string& to_dir)
 void do_fresh_setup_into_existing(const Ctx& ctx, const ProjenyFile& cur)
 {
     std::string workdir = join_path(ctx.pdir, cur.name);
-    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-setup-");
+    TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "setup"));
     std::string fresh = build_fresh_tree(ctx, cur, tmp);
 
     // Compatibility check: conflict iff a relative path exists in both
@@ -1197,7 +1258,6 @@ void do_fresh_setup_into_existing(const Ctx& ctx, const ProjenyFile& cur)
 
     // Compatible: merge the fresh tree's entries into the directory.
     merge_tree_into(fresh, workdir);
-    tmp.release(); // entries moved out; don't delete the temp tree
 }
 
 // Conflicted setup: the .projeny file holds git conflict markers (from
@@ -1887,13 +1947,13 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
     }
     bool have_workdir = found > 0;
 
-    std::string scratch = scratch_parent_for(ctx.pdir);
-    // All trees below are temp-only until the write phase at the end.
-    TempDir tN(scratch, "projeny-cN-");
-    TempDir tO(scratch, "projeny-cO-");
-    TempDir tB(scratch, "projeny-cB-");
-    TempDir tE(scratch, "projeny-cE-");
-    TempDir tS(scratch, "projeny-cS-");
+    // All trees below are temp-only until the write phase at the end, and
+    // all of them are scratch dirs next to the .projeny file (make_scratch).
+    TempDir tN(make_scratch(ctx.pdir, ctx.filebase, "cN"));
+    TempDir tO(make_scratch(ctx.pdir, ctx.filebase, "cO"));
+    TempDir tB(make_scratch(ctx.pdir, ctx.filebase, "cB"));
+    TempDir tE(make_scratch(ctx.pdir, ctx.filebase, "cE"));
+    TempDir tS(make_scratch(ctx.pdir, ctx.filebase, "cS"));
 
     // Harder case first (reads only): diff the checkout against the base
     // reconstruction while the workdir is still the original.
@@ -1976,12 +2036,13 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
     // Stage 1: merge the committed local patch onto the fresh upstream tree.
     std::vector<std::string> conflicts;
     merge_user_diff_onto(Btree, Ntree, Otree, Ntree, cur.name, local.name,
-                         local.patch, &conflicts);
+                         local.patch, ctx.pdir, ctx.filebase, &conflicts);
     // Stage 2 (harder case): apply the uncommitted workdir-vs-base diff
     // on top of the conflicted checkout.
     if (harder) {
         merge_user_diff_onto(Etree, Ntree, snap, Ntree, cur.name,
-                             harder_base->name, U_unc, &conflicts);
+                             harder_base->name, U_unc, ctx.pdir, ctx.filebase,
+                             &conflicts);
     }
     sort_unique(&conflicts);
 
@@ -2037,7 +2098,6 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
     if (path_exists(cur_workdir) && !remove_recursive(cur_workdir))
         die("cannot remove existing workdir '" + cur_workdir + "'");
     move_path(Ntree, cur_workdir);
-    tN.release(); // Ntree moved out; don't delete it
     for (auto& c : candidates) {
         if (c != cur_workdir && path_exists(c) && !remove_recursive(c))
             die("cannot remove existing workdir '" + c + "'");
@@ -2540,8 +2600,8 @@ int setup_impl(const Ctx& ctx)
     // git since (upstream rebase): read the snapshot copy when it exists.
     // A URL-based status copy verifies/re-fetches its snapshot instead (no
     // network while the snapshot still matches a URL: hash).
-    TempDir tE(scratch_parent_for(ctx.pdir), "projeny-E-");
-    TempDir tN(scratch_parent_for(ctx.pdir), "projeny-N-");
+    TempDir tE(make_scratch(ctx.pdir, ctx.filebase, "E"));
+    TempDir tN(make_scratch(ctx.pdir, ctx.filebase, "N"));
     std::string Etree = build_tree_from_patch(
         tE, resolve_status_archive(ctx.pdir, oldpf,
                                    "reconstruct the tree recorded by '" +
@@ -2642,7 +2702,7 @@ int setup_impl(const Ctx& ctx)
         cur.origname, cur.name, cur.patch, "patch in '" + ctx.projeny_arg + "'");
     std::vector<std::string> conflicts;
     merge_user_diff_onto(Etree, Ntree, actual_workdir, Ntree, cur.name,
-                         oldpf.name, U, &conflicts);
+                         oldpf.name, U, ctx.pdir, ctx.filebase, &conflicts);
     // Move merged N into place: remove workdir (at old or new name), move N,
     // and if the name changed, the old dir is gone. Untracked binaries ride
     // along via reconcile first.
@@ -2654,7 +2714,6 @@ int setup_impl(const Ctx& ctx)
     if (path_exists(workdir) && !remove_recursive(workdir))
         die("cannot remove existing workdir '" + workdir + "'");
     move_path(Ntree, workdir);
-    tN.release(); // Ntree moved out; don't delete it
 
     StatusData sd;
     sd.status = "setup";
@@ -2750,7 +2809,7 @@ int cmd_commit(const std::string& projeny_arg)
     // Removed entries: file should be gone from workdir (rm deletes it).
     // Tolerate either state; the diff decides.
 
-    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-commit-");
+    TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "commit"));
     unpack_single_top(
         materialize_archive(ctx.pdir, cur, "commit '" + ctx.projeny_arg + "'"),
         tmp.path, cur.origname);
@@ -2811,7 +2870,7 @@ int cmd_commit(const std::string& projeny_arg)
         // themselves rather than the raw diff blocks, so content-based
         // rename pairing can never attribute a disappearance to the wrong
         // source when several same-content files changed hands at once.
-        TempDir tmpE(scratch_parent_for(ctx.pdir), "projeny-commit-exp-");
+        TempDir tmpE(make_scratch(ctx.pdir, ctx.filebase, "commit-exp"));
         std::string Etree = build_tree_from_patch(
             tmpE,
             materialize_archive(ctx.pdir, cur,
@@ -3364,7 +3423,7 @@ int cmd_rebase(const std::string& projeny_arg,
         st, "workdir '" + workdir +
                 "' has unresolved conflicts; resolve them before rebasing");
     {
-        TempDir tC(scratch_parent_for(ctx.pdir), "projeny-rebase-clean-");
+        TempDir tC(make_scratch(ctx.pdir, ctx.filebase, "rebase-clean"));
         unpack_single_top(
             materialize_archive(ctx.pdir, cur,
                                 "rebase '" + ctx.projeny_arg + "'"),
@@ -3372,7 +3431,6 @@ int cmd_rebase(const std::string& projeny_arg,
         std::string expect = join_path(tC.path, cur.origname);
         if (!normalize_patch_text(cur.patch).empty() &&
             !apply_patch_whole(expect, cur.patch, cur.name,
-                               scratch_parent_for(ctx.pdir),
                                VcsApplyMode::kFreshApply))
             die("patch in '" + ctx.projeny_arg +
                 "' does not apply to its own base archive '" + cur.archive +
@@ -3393,14 +3451,21 @@ int cmd_rebase(const std::string& projeny_arg,
     std::string dest_archive;
     std::string new_base;      // the new archive's basename (report + headers)
     std::string verified_data; // URL mode: the verified new tarball's bytes
-    // URL mode's scratch home for those bytes (see below); legacy rebases
-    // never write into it.
-    TempDir tURL(scratch_parent_for(ctx.pdir), "projeny-rebase-url-");
+    // URL mode's scratch home for those bytes (see below). It is created
+    // only when URL mode actually runs — legacy rebases never write into
+    // it — and lives to the end of the function: dest_archive names a file
+    // INSIDE it, and that file is unpacked twice below, well after this
+    // branch is over. (A unique_ptr keeps the lazy holder explicit: the
+    // scratch dir exists only while URL mode does, and no other member
+    // state has to track "created or not".)
+    std::unique_ptr<TempDir> tURL;
     if (url_mode) {
         // URL mode: download+verify EVERY listed URL before anything is
         // written, so a hard error below leaves the .projeny file, the
         // status file, the snapshot, and the workdir untouched (see
         // verify_urls for the exact per-URL semantics).
+        tURL.reset(new TempDir(make_scratch(ctx.pdir, ctx.filebase,
+                                            "rebase-url")));
         verify_urls(&urls, &verified_data, &new_base, "rebase",
                     ctx.projeny_arg);
         // The verified bytes become the rebase's working archive as a scratch
@@ -3417,7 +3482,7 @@ int cmd_rebase(const std::string& projeny_arg,
         // derivation ProjenyFile::parse applies to the rewritten file — is
         // written late, right before write_status (see below), once the
         // .projeny file and the workdir are final.
-        dest_archive = join_path(tURL.path, new_base);
+        dest_archive = join_path(tURL->path, new_base);
         write_file_bytes(dest_archive, verified_data);
     } else {
         if (!path_exists(new_tarball))
@@ -3450,7 +3515,7 @@ int cmd_rebase(const std::string& projeny_arg,
     // Build the new tree: unpack new tarball, apply current patch, then
     // replay pending add/rm/mv ops so the result includes the pending intent
     // (the ops were validated against base+patch by the clean-check above).
-    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-rebase-");
+    TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "rebase"));
     unpack_single_top(dest_archive, tmp.path, new_origname);
     std::string tree = join_path(tmp.path, new_origname);
     // Frozen mtimes must be REFRESHED from the new archive before the patch
@@ -3473,13 +3538,12 @@ int cmd_rebase(const std::string& projeny_arg,
     // must apply forward to the very tarball it was diffed against.
     if (!normalize_patch_text(cur.patch).empty() &&
         !apply_patch_whole(tree, cur.patch, cur.name,
-                           scratch_parent_for(ctx.pdir),
                            VcsApplyMode::kAllowAlready)) {
         std::vector<VcsFailure> bad = apply_patch_per_file(
             tree, cur.patch, cur.name, VcsApplyMode::kAllowAlready);
         // 3-way merge each failed file: base = OLD tree file, ours = new
         // tree file (patched except failed parts), theirs = old tree file.
-        TempDir tO(scratch_parent_for(ctx.pdir), "projeny-rebase-old-");
+        TempDir tO(make_scratch(ctx.pdir, ctx.filebase, "rebase-old"));
         unpack_single_top(
             materialize_archive(ctx.pdir, cur,
                                 "rebase '" + ctx.projeny_arg + "'"),
@@ -3545,7 +3609,7 @@ int cmd_rebase(const std::string& projeny_arg,
     // carries the refreshed frozen-mtime headers, including attribute-only
     // blocks for frozen files the new base and the patched tree agree on.
     {
-        TempDir tB(scratch_parent_for(ctx.pdir), "projeny-rebase-base-");
+        TempDir tB(make_scratch(ctx.pdir, ctx.filebase, "rebase-base"));
         unpack_single_top(dest_archive, tB.path, new_origname);
         VcsDiffOpts ropts;
         ropts.frozen_mtimes = &frozen;
@@ -3562,7 +3626,6 @@ int cmd_rebase(const std::string& projeny_arg,
     if (path_exists(workdir) && !remove_recursive(workdir))
         die("cannot remove existing workdir '" + workdir + "'");
     move_path(tree, workdir);
-    tmp.release();
 
     // NOW the URL snapshot: the .projeny file has been rewritten and the
     // workdir swapped, so every die before this point left the .projeny
@@ -3690,7 +3753,9 @@ RecordedStatus read_recorded_status(const std::string& pdir,
 // added/rename-destination sets). Pending ops themselves stay on their
 // Added:/Removed:/Renamed: lines (the recorded half) and are not repeated
 // here. `ran` is false — and every list empty — when the diff could not
-// run: a missing workdir, or no usable archive.
+// run: a missing workdir, or no usable archive. `filebase` is the .projeny
+// file's basename (Ctx::filebase), so the expected tree is built in a
+// scratch dir named after the file (see make_scratch).
 struct LiveDiff {
     bool ran = false;
     std::vector<std::string> modified, disappeared, untracked;
@@ -3699,7 +3764,8 @@ struct LiveDiff {
 LiveDiff compute_live_diff(const std::string& pdir, const StatusData& st,
                            const ProjenyFile& emb,
                            const std::string& workdir,
-                           const std::string& statusfile)
+                           const std::string& statusfile,
+                           const std::string& filebase)
 {
     LiveDiff live;
     if (!is_dir(workdir))
@@ -3775,7 +3841,7 @@ LiveDiff compute_live_diff(const std::string& pdir, const StatusData& st,
             return live;
         }
     }
-    TempDir tmp(scratch_parent_for(pdir), "projeny-status-");
+    TempDir tmp(make_scratch(pdir, filebase, "status"));
     std::string Etree = build_tree_from_patch(
         tmp, archive_path, emb.origname, emb.name, emb.patch,
         "embedded patch in '" + statusfile + "'");
@@ -3915,7 +3981,7 @@ int cmd_status(const std::string& projeny_arg)
     // (see the comment above it), including its snapshot materialization
     // and its "(continuing ...)" warnings.
     LiveDiff live = compute_live_diff(ctx.pdir, rec.st, rec.emb, rec.workdir,
-                                      ctx.statusfile);
+                                      ctx.statusfile, ctx.filebase);
     for (auto& m : live.modified)
         printf("Modified: %s\n", m.c_str());
     for (auto& d : live.disappeared)
@@ -3965,7 +4031,7 @@ int cmd_diff_projeny(const std::string& projeny_arg)
     // dies with recovery guidance when neither file exists.
     std::string archive_path =
         resolve_status_archive(ctx.pdir, cur, "diff '" + ctx.projeny_arg + "'");
-    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-diff-");
+    TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "diff"));
     std::string Etree = build_tree_from_patch(
         tmp, archive_path, cur.origname, cur.name, cur.patch,
         "patch in '" + ctx.projeny_arg + "'");
@@ -4194,9 +4260,7 @@ int cmd_patch(const std::string& dir, const std::string& patch_file)
     // kAllowAlready: an arbitrary target directory may genuinely already
     // hold (part of) the patch, and skipping those blocks is what makes
     // re-running `projeny patch` idempotent.
-    bool clean = apply_patch_with_conflicts(dir, patch, use_wid,
-                                            system_scratch_parent(),
-                                            &conflicts,
+    bool clean = apply_patch_with_conflicts(dir, patch, use_wid, &conflicts,
                                             VcsApplyMode::kAllowAlready);
     sort_unique(&conflicts);
     if (clean) {
@@ -4302,7 +4366,6 @@ int cmd_apply(const std::string& projeny_arg, const std::string& patch_file)
     // patch, and skipping those blocks is what makes re-running
     // `projeny apply` idempotent.
     bool clean = apply_patch_with_conflicts(workdir, patch, use_wid,
-                                            system_scratch_parent(),
                                             &conflicts,
                                             VcsApplyMode::kAllowAlready);
     sort_unique(&conflicts);
@@ -4625,12 +4688,12 @@ int cmd_package(const std::string& projeny_arg, const std::string& output)
     std::string workdir = join_path(ctx.pdir, cur.name);
 
     // Fresh reference tree: what "tracked" means right now.
-    TempDir tref(system_scratch_parent(), "projeny-pkg-ref-");
+    TempDir tref(make_scratch(ctx.pdir, ctx.filebase, "pkg-ref"));
     std::string ref = build_tree_from_patch(
         tref, materialize_archive(ctx.pdir, cur, "package '" + pj + "'"),
         cur.origname, cur.name, cur.patch, "patch in '" + pj + "'");
 
-    TempDir tstage(system_scratch_parent(), "projeny-pkg-");
+    TempDir tstage(make_scratch(ctx.pdir, ctx.filebase, "pkg"));
     std::string payload = join_path(tstage.path, kind.prefix);
     make_dirs(payload);
     size_t count = 0;
@@ -4687,7 +4750,7 @@ int cmd_extract(const std::string& projeny_arg, const std::string& dest_dir)
         make_dirs(dest);
     }
 
-    TempDir tref(system_scratch_parent(), "projeny-ext-ref-");
+    TempDir tref(make_scratch(ctx.pdir, ctx.filebase, "ext-ref"));
     std::string ref = build_tree_from_patch(
         tref, materialize_archive(ctx.pdir, cur, "extract '" + pj + "'"),
         cur.origname, cur.name, cur.patch, "patch in '" + pj + "'");
@@ -5416,7 +5479,7 @@ void assess_erase_check(const ErasePlan& p, const std::string& abs,
     // that disagree on the archive's hashes; the worst case is fail-closed
     // (see the comment in compute_live_diff).
     LiveDiff live = compute_live_diff(pdir, rec.st, rec.emb, rec.workdir,
-                                      statusfile);
+                                      statusfile, basename_of(abs));
     // The workdir is there, but the expected tree could not be built: the
     // snapshot the status records is missing or unusable (for a classic
     // project the checked-in archive is gone too, so it cannot be copied
@@ -5847,11 +5910,7 @@ int cmd_create(const std::string& file_arg,
 
     std::string new_base;      // the archive's basename (headers + snapshot)
     std::string verified_data; // URL mode: the verified tarball's bytes
-    std::string archive_path;  // where the archive bytes live right now
-    // URL mode's scratch home for the verified bytes: the archive is
-    // inspected (and Origname inferred) BEFORE anything is written into
-    // the pdir, so a refusal here leaves nothing behind.
-    TempDir tURL(system_scratch_parent(), "projeny-create-url-");
+    std::string origname;      // the archive's single top-level directory
 
     // ---- the fallible read-only phase ----
     // Everything from here through the corner guard below can refuse, and
@@ -5870,9 +5929,18 @@ int cmd_create(const std::string& file_arg,
         // Download+verify every URL BEFORE any erase: a failed download
         // must leave the replaced project's checkout, status file, and
         // .projeny file untouched.
+        //
+        // The verified bytes' scratch home lives next to the .projeny file
+        // being created (see make_scratch): the archive is inspected (and
+        // Origname inferred) BEFORE anything is written into the pdir, so a
+        // refusal here leaves nothing behind. The dir dies with this scope;
+        // only the snapshot written near the end outlives it. Tarball-mode
+        // creates (and every refusal before this branch) allocate none.
+        TempDir tURL(make_scratch(pdir, basename_of(f), "create-url"));
         verify_urls(&urls, &verified_data, &new_base, "create", f);
-        archive_path = join_path(tURL.path, new_base);
+        std::string archive_path = join_path(tURL.path, new_base);
         write_file_bytes(archive_path, verified_data);
+        origname = archive_single_top_name(archive_path);
     } else {
         if (!path_exists(tarball))
             die("tarball '" + tarball + "' does not exist");
@@ -5882,10 +5950,9 @@ int cmd_create(const std::string& file_arg,
         // The SOURCE tarball is the Origname source (archive_single_top_name
         // only reads it); the copy into the pdir waits for the destructive
         // phase below.
-        archive_path = tarball;
+        origname = archive_single_top_name(tarball);
     }
 
-    std::string origname = archive_single_top_name(archive_path);
     if (origname_opt && *origname_opt != origname)
         die("the archive '" + (url_mode ? urls[0].url : tarball) +
             "' unpacks to '" + origname + "', not '" + *origname_opt +
@@ -6308,7 +6375,7 @@ int cmd_freeze_mtime(const std::string& projeny_arg,
     for (const auto& rn : t.st.renamed)
         pending_adds.push_back(rn.second);
 
-    TempDir tmp(scratch_parent_for(t.ctx.pdir), "projeny-freeze-");
+    TempDir tmp(make_scratch(t.ctx.pdir, t.ctx.filebase, "freeze"));
     std::string archive_path =
         resolve_status_archive(t.ctx.pdir, t.cur,
                                "freeze mtimes from the archive of '" +
@@ -6443,7 +6510,7 @@ int cmd_get_attributes(const std::string& projeny_arg,
     // status's live diff): a file is tracked when the fresh tree, a pending
     // add, or a rename destination holds it and no removal or rename source
     // takes it away.
-    TempDir tmp(scratch_parent_for(ctx.pdir), "projeny-attrs-");
+    TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "attrs"));
     std::string fresh = build_tree_from_patch(
         tmp, resolve_status_archive(ctx.pdir, cur,
                                     "get the attributes of '" + pj + "'"),

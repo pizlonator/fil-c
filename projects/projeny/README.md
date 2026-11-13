@@ -981,8 +981,38 @@ Exactly two external programs (no shell, no `system()`/`popen()` anywhere
   link dies at emit time, so commit never stores a patch that setup would
   later have to refuse.
 - `cp -a` for whole-tree copies (moving trees across filesystems when
-  `rename(2)` returns `EXDEV` — scratch dirs live in the system temp dir,
-  never inside the workdir — and snapshotting files for three-way merges).
+  `rename(2)` returns `EXDEV` — scratch dirs live next to the .projeny file
+  (see below), never inside the workdir — and snapshotting files for
+  three-way merges).
+
+Scratch directories (where every command builds the trees it later moves
+into place) live NEXT TO the `.projeny` file, not in `/tmp`: for
+`projects/dash.projeny` they are hidden, uniquely named
+`projects/.dash.projeny.<role>.XXXXXX` directories (`<role>` spells the
+purpose — `setup`, `E`, `N`, `rebase-url`, ... — and `XXXXXX` is the
+mkdtemp suffix). Same-filesystem placement makes moving a freshly built
+tree into the checkout a plain `rename(2)`; being hidden keeps them out of
+every directory scan (only names ending in `.projeny` are ever matched).
+They are always cleaned: the RAII destructor removes the (possibly already
+moved-out) dir on every exit path — success, hard error, and signal (the
+process installs a sigwait thread for SIGINT/SIGTERM/SIGHUP/SIGQUIT
+that sweeps first and then dies by the signal, so exit statuses stay
+shell-correct). Scratch dirs are created next to the `.projeny` file only
+when that directory accepts new directories: on a read-only checkout (or a
+full filesystem) projeny warns once and falls back to the system scratch
+parent (`$TMPDIR`, else `/tmp`), keeping the same hidden name shape there,
+so the read-only commands (`status`, `diff`, `package`, `extract`,
+`get-attributes`) keep working; moving trees out of such a fallback dir is
+no slower than usual (`move_path`'s `EXDEV` `cp -a` fallback already
+handles the cross-device case). Each TempDir also holds an exclusive
+`flock` on its own directory for its lifetime: a startup sweep reaps
+scratch-shaped dirs whose flock is unclaimed (i.e. left behind by a
+SIGKILL'ed run) both next to the `.projeny` file and — once per process at
+startup — in `$TMPDIR`//`/tmp`, where BOTH shapes are reaped: the legacy
+`projeny-<role>-XXXXXX` shape the pre-2026 binaries scattered there and the
+fallback's current hidden shape, so upgrading cleans up everything the old
+binaries ever leaked and a SIGKILL'ed run's fallback dirs are not leaked
+either.
 
 Diffing, patch application, and three-way merging are implemented internally
 in C++ (no `git` invocation anywhere): text files travel as git-compatible

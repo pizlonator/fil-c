@@ -35,6 +35,9 @@
 struct Ctx {
     std::string projeny_arg;
     std::string pdir;       // directory containing the .projeny file
+    std::string filebase;   // the .projeny file's basename ("dash.projeny"):
+                            // scratch dirs are named ".<filebase>.<role>.X"
+                            // next to the file (see make_scratch in ops.cc)
     std::string statusfile; // dot-prefixed ".<projeny path>.status" (a
                             // legacy undotted "<projeny path>.status" is
                             // renamed into place on first use)

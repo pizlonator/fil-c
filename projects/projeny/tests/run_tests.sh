@@ -95,6 +95,20 @@
 # directory next to a <dir>.projeny whose Name: differs refuses, a
 # matching sibling works, and a git-conflicted sibling keeps falling
 # through to setup's own recovery.
+# The scratch-dir sections cover the temp-dir relocation: every command
+# builds its trees in hidden .<file>.projeny.<role>.XXXXXX dirs created NEXT
+# TO the .projeny file (never /tmp — a private TMPDIR stays empty), nothing
+# is left behind on success, hard error, the fresh-setup merge or the
+# adopt-into-existing path, SIGTERM during a hung URL download cleans up and
+# dies 143, a SIGKILLed run's leftover (the one unavoidable leak) carries the
+# hidden scratch shape and is reaped by the next run, and the startup
+# reapers take stale flock-unclaimed scratch dirs — new-style next to the
+# .projeny file and legacy projeny-* dirs in $TMPDIR//tmp — while status
+# files, journals, unrelated dot-directories, non-scratch projeny-* names,
+# and flocked (live) dirs survive; a read-only pdir falls back to the system
+# scratch parent (status as an unprivileged user still exits 0, warning
+# exactly once and leaving no leftovers, and a writable-again pdir needs no
+# warning at all).
 #
 # Bash is required (process substitution in the status-copy comparisons
 # below); /bin/sh (dash) cannot run this suite.
@@ -19375,6 +19389,561 @@ if [ ! -e "$T326/F3/fake/w" ]; then
 else
     fail "the nested differing-sides patch creates no w/ directory" \
         "w/ exists"
+fi
+
+# --------------- helpers for the scratch-dir sections (327-334)
+# projeny's scratch dirs are hidden ".<filebase>.<role>.XXXXXX" directories
+# created NEXT TO the .projeny file (never /tmp), removed by the TempDir
+# destructor on every exit path — success, hard error, and signal — and
+# reaped by the next run when a SIGKILL'ed process leaked one. The helpers
+# below assert all of that.
+#
+# assert_no_scratch <name> <pdir> <filebase>: no hidden scratch DIRECTORY may
+# remain next to the .projeny file. The status file and the archive
+# snapshots are plain FILES, so -type d keeps them out of the check.
+assert_no_scratch() {
+    _n="$1"
+    _d="$2"
+    _f="$3"
+    _left="$(find "$_d" -maxdepth 1 -type d -name ".$_f.*")"
+    if [ -z "$_left" ]; then
+        ok "$_n"
+    else
+        fail "$_n" "scratch left behind: $_left"
+    fi
+}
+
+# scratch_exists <pdir> <filebase>: the first hidden scratch dir (if any).
+scratch_exists() {
+    find "$1" -maxdepth 1 -type d -name ".$2.*" | head -1
+}
+
+# hold_dir_flock <dir>: take an exclusive flock on a directory and hold it
+# in the background (proof that the reaper never reaps a live dir — a live
+# TempDir holds exactly this flock; the caller remembers $! and kills it).
+# python3 rather than flock(1), which the suite cannot rely on.
+hold_dir_flock() {
+    python3 - "$1" <<'EOF' &
+import fcntl, os, sys, time
+fd = os.open(sys.argv[1], os.O_RDONLY | os.O_DIRECTORY)
+fcntl.flock(fd, fcntl.LOCK_EX)
+time.sleep(60)
+EOF
+}
+
+# stop_job <pid>: kill a background job and reap it, silently.
+stop_job() {
+    kill "$1" 2>/dev/null
+    wait "$1" 2>/dev/null
+    return 0
+}
+
+# start_hung_http_server <outfile>: bind a local TCP server that accepts
+# connections and NEVER responds (curl hangs reading the response header),
+# write the chosen port into <outfile>, and exit on its own after two
+# minutes (the caller kills it as soon as the assertions are done).
+start_hung_http_server() {
+    python3 - "$1" <<'EOF' >/dev/null 2>&1 &
+import socket, sys, time
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("127.0.0.1", 0))
+s.listen(16)
+with open(sys.argv[1], "w") as f:
+    f.write(str(s.getsockname()[1]))
+deadline = time.time() + 120
+held = []
+while time.time() < deadline:
+    s.settimeout(5)
+    try:
+        c, _ = s.accept()
+    except Exception:
+        continue
+    held.append(c)  # accepted and never answered: curl stays hung
+EOF
+}
+
+# wait_for_file <outfile>: bounded wait for a background helper's output.
+wait_for_file() {
+    for _i in $(seq 1 100); do
+        [ -s "$1" ] && return 0
+        sleep 0.1
+    done
+    return 1
+}
+
+# run_as_nobody <tmpdir> <command...>: run <command...> as the unprivileged
+# `nobody` user with TMPDIR set to <tmpdir> in the child's environment —
+# the only way a chmod a-w directory can actually stop the suite (root
+# bypasses the permission bits). setpriv (util-linux) is preferred; su is
+# the fallback for systems without it. Returns the child's exit status, or
+# 127 when neither helper exists (callers treat that as a graceful skip).
+run_as_nobody() {
+    _rn_tmp="$1"
+    shift
+    if command -v setpriv >/dev/null 2>&1; then
+        setpriv --reuid=nobody --regid=nogroup --clear-groups \
+            env TMPDIR="$_rn_tmp" "$@"
+    elif command -v su >/dev/null 2>&1; then
+        _rn_cmd=""
+        for _rn_a in "$@"; do
+            _rn_cmd="$_rn_cmd '$(printf '%s' "$_rn_a" | sed "s/'/'\\\\''/g")'"
+        done
+        su -s /bin/bash nobody -c "TMPDIR='$_rn_tmp'$_rn_cmd"
+    else
+        return 127
+    fi
+}
+
+# ------------------- 327. scratch dirs: no leftovers on success
+# Every command builds its trees in a hidden scratch dir next to the .projeny
+# file and removes it on the success path (the freshly built tree is moved
+# OUT of the scratch shell, whose empty remains the destructor then deletes).
+# Nothing may be created in TMPDIR anymore either.
+T327="$ROOT/t327"
+make_tarballs "$T327" fake
+write_projeny "$T327" fake 1.0 fake
+mkdir -p "$T327/tmpcap"
+run_in "$T327" expect_ok "327 setup" "$PROJENY" setup fake.projeny
+assert_no_scratch "setup leaves no scratch dir" "$T327" fake.projeny
+run_in "$T327" expect_ok "327 commit" "$PROJENY" commit fake.projeny
+assert_no_scratch "commit leaves no scratch dir" "$T327" fake.projeny
+run_in "$T327" expect_ok "327 status" "$PROJENY" status fake.projeny
+assert_no_scratch "status leaves no scratch dir" "$T327" fake.projeny
+run_in "$T327" expect_ok "327 diff" "$PROJENY" diff fake.projeny
+assert_no_scratch "diff leaves no scratch dir" "$T327" fake.projeny
+run_in "$T327" expect_ok "327 rebase" "$PROJENY" rebase fake.projeny fake-2.0.tar.gz
+assert_no_scratch "rebase leaves no scratch dir" "$T327" fake.projeny
+run_in "$T327" expect_ok "327 package" "$PROJENY" package fake.projeny fake-pkg.tar.gz
+assert_no_scratch "package leaves no scratch dir" "$T327" fake.projeny
+run_in "$T327" expect_ok "327 extract" "$PROJENY" extract fake.projeny extracted
+assert_no_scratch "extract leaves no scratch dir" "$T327" fake.projeny
+out="$(cd "$T327" && TMPDIR="$T327/tmpcap" "$PROJENY" status fake.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "a run with a private TMPDIR succeeds"
+else
+    fail "a run with a private TMPDIR succeeds" "exit=$rc out: $out"
+fi
+if [ -z "$(ls -A "$T327/tmpcap")" ]; then
+    ok "projeny no longer creates anything in TMPDIR"
+else
+    fail "projeny no longer creates anything in TMPDIR" \
+        "TMPDIR now holds: $(ls -A "$T327/tmpcap")"
+fi
+
+# ------------------- 328. scratch dirs: no leftovers on failure
+# A die() with TempDirs in flight (here: a corrupt archive and a commit with
+# disappeared files, both detected with scratch dirs already created) unwinds
+# every one of them — the error path cleans up like the success path.
+T328="$ROOT/t328"
+make_tarballs "$T328" fake
+write_projeny "$T328" fake 1.0 fake
+cp "$T328/fake-1.0.tar.gz" "$T328/pristine.tar.gz"
+printf 'not a tarball' > "$T328/fake-1.0.tar.gz"
+run_in "$T328" expect_fail "setup of a corrupt archive fails" \
+    "$PROJENY" setup fake.projeny
+assert_no_scratch "the corrupt-archive failure leaves no scratch dir" \
+    "$T328" fake.projeny
+cp "$T328/pristine.tar.gz" "$T328/fake-1.0.tar.gz"
+run_in "$T328" expect_ok "the repaired project sets up" \
+    "$PROJENY" setup fake.projeny
+rm "$T328/fake/src/a.c"
+run_in "$T328" expect_fail "commit with a disappeared file fails" \
+    "$PROJENY" commit fake.projeny
+assert_no_scratch "the commit failure leaves no scratch dir" \
+    "$T328" fake.projeny
+# Restore the disappeared file byte-exact from the archive (v1's patch is
+# empty, so the archive member IS the tracked content).
+tar -xzf "$T328/fake-1.0.tar.gz" -O fake-1.0/src/a.c > "$T328/fake/src/a.c"
+run_in "$T328" expect_ok "the restored project commits" \
+    "$PROJENY" commit fake.projeny
+assert_no_scratch "the recovered commit leaves no scratch dir" \
+    "$T328" fake.projeny
+
+# ------------------- 329. scratch dirs: merge and adopt paths
+# The two setup flavors that move MANY entries out of the scratch shell (the
+# local-changes merge onto a new base, and the adopt-into-existing merge)
+# leave nothing behind either — the moved-out shell is an empty skeleton that
+# the destructor removes.
+T329="$ROOT/t329"
+make_tarballs "$T329" fake
+write_projeny "$T329" fake 1.0 fake
+run_in "$T329" expect_ok "329 setup v1" "$PROJENY" setup fake.projeny
+printf 'local v1\n' > "$T329/fake/README.local"
+write_projeny "$T329" fake 2.0 fake
+run_in "$T329" expect_ok "329 merge setup" "$PROJENY" setup fake.projeny
+assert_no_scratch "the merge setup leaves no scratch dir" "$T329" fake.projeny
+rm -rf "$T329/fake" "$T329/.fake.projeny.status"
+mkdir -p "$T329/fake/notes"
+printf 'ride along\n' > "$T329/fake/notes/keep.txt"
+run_in "$T329" expect_ok "329 adopt setup" "$PROJENY" setup fake.projeny
+assert_no_scratch "the adopt setup leaves no scratch dir" "$T329" fake.projeny
+if [ -f "$T329/fake/notes/keep.txt" ]; then
+    ok "the adopt setup kept the ride-along file"
+else
+    fail "the adopt setup kept the ride-along file" "notes/keep.txt is gone"
+fi
+
+# ------------------- 330. reaper: stale scratch dirs next to the file
+# A SIGKILL'ed run's scratch dirs (empty and content-bearing) are reaped by
+# the next command's first use of the pdir — announced with one stderr line
+# — while every decoy survives: the real status file (no mkdtemp tail), the
+# undotted journal, an unrelated dot-directory, and a scratch-shaped dir
+# held with an exclusive flock (a live TempDir's lock).
+T330="$ROOT/t330"
+make_tarballs "$T330" fake
+write_projeny "$T330" fake 1.0 fake
+run_in "$T330" expect_ok "330 setup" "$PROJENY" setup fake.projeny
+mkdir -p "$T330/.fake.projeny.setup.Abc123" "$T330/.fake.projeny.N.zzZZ99"
+printf 'stale\n' > "$T330/.fake.projeny.N.zzZZ99/junk"
+mkdir -p "$T330/.unrelated.dir"
+printf 'not scratch\n' > "$T330/.unrelated.dir/marker"
+printf 'journal\n' > "$T330/fake.projeny.setup-journal"
+mkdir -p "$T330/.fake.projeny.setup.DeadBe"
+hold_dir_flock "$T330/.fake.projeny.setup.DeadBe"
+LOCK330=$!
+sleep 1
+out="$( "$PROJENY" status "$T330/fake.projeny" 2>&1 )"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "status over the planted scratch dirs succeeds"
+else
+    fail "status over the planted scratch dirs succeeds" "exit=$rc out: $out"
+fi
+case "$out" in
+*"removed 2 stale scratch directories in '$T330'"*)
+    ok "the reaper announces what it removed"
+    ;;
+*)
+    fail "the reaper announces what it removed" "out: $out"
+    ;;
+esac
+if [ ! -e "$T330/.fake.projeny.setup.Abc123" ]; then
+    ok "the empty stale scratch dir is reaped"
+else
+    fail "the empty stale scratch dir is reaped" "it still exists"
+fi
+if [ ! -e "$T330/.fake.projeny.N.zzZZ99" ]; then
+    ok "the content-bearing stale scratch dir is reaped"
+else
+    fail "the content-bearing stale scratch dir is reaped" "it still exists"
+fi
+if [ -f "$T330/.fake.projeny.status" ]; then
+    ok "the status file survives the sweep"
+else
+    fail "the status file survives the sweep" "it is gone"
+fi
+if [ -f "$T330/fake.projeny.setup-journal" ]; then
+    ok "the undotted journal survives the sweep"
+else
+    fail "the undotted journal survives the sweep" "it is gone"
+fi
+if [ -f "$T330/.unrelated.dir/marker" ]; then
+    ok "the unrelated dot-directory survives the sweep"
+else
+    fail "the unrelated dot-directory survives the sweep" "it is gone"
+fi
+if [ -d "$T330/.fake.projeny.setup.DeadBe" ]; then
+    ok "the flocked scratch dir survives the sweep"
+else
+    fail "the flocked scratch dir survives the sweep" "it is gone"
+fi
+stop_job "$LOCK330"
+out="$( "$PROJENY" status "$T330/fake.projeny" 2>&1 )"
+rc=$?
+if [ $rc -eq 0 ] && [ ! -e "$T330/.fake.projeny.setup.DeadBe" ]; then
+    ok "the unlocked dir is reaped by the next run"
+else
+    fail "the unlocked dir is reaped by the next run" \
+        "exit=$rc out: $out"
+fi
+assert_no_scratch "status's own scratch dir is cleaned too" "$T330" fake.projeny
+
+# ------------------- 331. reaper: legacy projeny-* dirs in TMPDIR//tmp
+# The pre-2026 binaries scattered "projeny-<role>-XXXXXX" dirs into the
+# system temp dir (824 empty ones in one user's /tmp). Every startup sweeps
+# $TMPDIR and /tmp for that shape and reaps the unlocked ones — actively
+# cleaning up the old leaks; non-scratch names and flocked dirs survive.
+T331="$ROOT/t331"
+LEG331="$ROOT/legacycap"
+mkdir -p "$LEG331"
+make_tarballs "$T331" fake
+write_projeny "$T331" fake 1.0 fake
+run_in "$T331" expect_ok "331 setup" "$PROJENY" setup fake.projeny
+mkdir -p "$LEG331/projeny-setup-Abc123" "$LEG331/projeny-N-XyZ456"
+printf 'old junk\n' > "$LEG331/projeny-N-XyZ456/old"
+mkdir -p "$LEG331/projeny-notatemp"
+printf 'not a temp\n' > "$LEG331/projeny-notatemp/keep"
+mkdir -p "$LEG331/projeny-commit-QqWwEe"
+hold_dir_flock "$LEG331/projeny-commit-QqWwEe"
+LOCK331=$!
+sleep 1
+out="$( TMPDIR="$LEG331" "$PROJENY" status "$T331/fake.projeny" 2>&1 )"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "a command with TMPDIR planted with legacy dirs succeeds"
+else
+    fail "a command with TMPDIR planted with legacy dirs succeeds" \
+        "exit=$rc out: $out"
+fi
+case "$out" in
+*"removed 2 stale scratch directories in '$LEG331'"*)
+    ok "the legacy reaper announces what it removed"
+    ;;
+*)
+    fail "the legacy reaper announces what it removed" "out: $out"
+    ;;
+esac
+if [ ! -e "$LEG331/projeny-setup-Abc123" ]; then
+    ok "the empty legacy dir is reaped"
+else
+    fail "the empty legacy dir is reaped" "it still exists"
+fi
+if [ ! -e "$LEG331/projeny-N-XyZ456" ]; then
+    ok "the content-bearing legacy dir is reaped"
+else
+    fail "the content-bearing legacy dir is reaped" "it still exists"
+fi
+if [ -f "$LEG331/projeny-notatemp/keep" ]; then
+    ok "the non-scratch projeny-* name survives"
+else
+    fail "the non-scratch projeny-* name survives" "it is gone"
+fi
+if [ -d "$LEG331/projeny-commit-QqWwEe" ]; then
+    ok "the flocked legacy dir survives the sweep"
+else
+    fail "the flocked legacy dir survives the sweep" "it is gone"
+fi
+stop_job "$LOCK331"
+out="$( TMPDIR="$LEG331" "$PROJENY" status "$T331/fake.projeny" 2>&1 )"
+rc=$?
+if [ $rc -eq 0 ] && [ ! -e "$LEG331/projeny-commit-QqWwEe" ]; then
+    ok "the unlocked legacy dir is reaped by the next run"
+else
+    fail "the unlocked legacy dir is reaped by the next run" \
+        "exit=$rc out: $out"
+fi
+
+# ------------------- 332. SIGTERM cleans up and dies 143
+# A setup whose URL download hangs forever (a local TCP server that accepts
+# and never responds) is interrupted with SIGTERM once its scratch dir is
+# visible: the sigwait thread must sweep the registered temp dirs, then die
+# by the signal itself so the exit status stays shell-correct (143), and
+# nothing may remain in the pdir.
+T332="$ROOT/t332"
+make_tarballs "$T332" fake
+h332="$("$PROJENY" hash "$T332/fake-1.0.tar.gz")"
+start_hung_http_server "$T332/port"
+SRV332=$!
+if wait_for_file "$T332/port"; then
+    ok "332 hung server started"
+else
+    fail "332 hung server started" "no port file"
+fi
+PORT332="$(cat "$T332/port")"
+printf 'URL: http://127.0.0.1:%s/x.tar.gz %s\nOrigname: fake-1.0\nName: fake\n\n    Never answers.\n\n' \
+    "$PORT332" "$h332" > "$T332/fake.projeny"
+"$PROJENY" setup "$T332/fake.projeny" > "$T332/run.log" 2>&1 &
+PJ332=$!
+seen332=no
+for _i in $(seq 1 300); do
+    if [ -n "$(scratch_exists "$T332" fake.projeny)" ]; then
+        seen332=yes
+        break
+    fi
+    kill -0 "$PJ332" 2>/dev/null || break
+    sleep 0.1
+done
+if [ "$seen332" = yes ]; then
+    ok "the setup's scratch dir appears during the hung download"
+    sleep 1
+    kill -TERM "$PJ332" 2>/dev/null
+    wait "$PJ332"
+    rc332=$?
+    if [ "$rc332" -ge 128 ]; then
+        ok "SIGTERM exits with a signal status (rc=$rc332)"
+    else
+        fail "SIGTERM exits with a signal status" "rc=$rc332 log: $(cat "$T332/run.log")"
+    fi
+    assert_no_scratch "SIGTERM leaves no scratch dir" "$T332" fake.projeny
+else
+    # Tolerant path: the command already exited (it must have failed, since
+    # the server never answers).
+    wait "$PJ332"
+    rc332=$?
+    if [ "$rc332" -ne 0 ]; then
+        ok "the hung download did not succeed (tolerant path)"
+    else
+        fail "the hung download did not succeed (tolerant path)" \
+            "it exited 0 without ever downloading"
+    fi
+    assert_no_scratch "the failed setup leaves no scratch dir" "$T332" fake.projeny
+fi
+stop_job "$SRV332"
+
+# ------------------- 333. SIGKILL leftovers are reaped by the next run
+# SIGKILL cannot be intercepted: its scratch dir is the one leak that
+# remains, and it stays locked until the process dies (the kernel drops the
+# flock), so the very next command in the same pdir reaps it.
+T333="$ROOT/t333"
+make_tarballs "$T333" fake
+h333="$("$PROJENY" hash "$T333/fake-1.0.tar.gz")"
+start_hung_http_server "$T333/port"
+SRV333=$!
+wait_for_file "$T333/port" || fail "333 hung server started" "no port file"
+PORT333="$(cat "$T333/port")"
+printf 'URL: http://127.0.0.1:%s/x.tar.gz %s\nOrigname: fake-1.0\nName: fake\n\n    Never answers.\n\n' \
+    "$PORT333" "$h333" > "$T333/fake.projeny"
+"$PROJENY" setup "$T333/fake.projeny" > "$T333/run.log" 2>&1 &
+PJ333=$!
+seen333=no
+for _i in $(seq 1 300); do
+    if [ -n "$(scratch_exists "$T333" fake.projeny)" ]; then
+        seen333=yes
+        break
+    fi
+    kill -0 "$PJ333" 2>/dev/null || break
+    sleep 0.1
+done
+if [ "$seen333" != yes ]; then
+    fail "333 hung long enough to be SIGKILLed" "the setup exited early"
+fi
+sleep 1
+kill -KILL "$PJ333" 2>/dev/null
+wait "$PJ333"
+rc333=$?
+if [ "$rc333" -eq 137 ]; then
+    ok "SIGKILL exits 137"
+else
+    fail "SIGKILL exits 137" "rc=$rc333"
+fi
+N333="$(scratch_exists "$T333" fake.projeny)"
+if [ -n "$N333" ] && [ -d "$N333" ]; then
+    ok "the SIGKILLed run's scratch dir remains (the unavoidable leak)"
+else
+    fail "the SIGKILLed run's scratch dir remains (the unavoidable leak)" \
+        "nothing was left: '$N333'"
+fi
+B333="$(basename "$N333")"
+if printf '%s' "$B333" | grep -Eq \
+    '^\.fake\.projeny\.[A-Za-z0-9-]+\.[A-Za-z0-9]{6}$'; then
+    ok "the leftover scratch dir has the hidden scratch shape ($B333)"
+else
+    fail "the leftover scratch dir has the hidden scratch shape" \
+        "name: '$B333'"
+fi
+stop_job "$SRV333"
+# A working setup in the same pdir (file:// URL) reaps the leftover first
+# thing: its flock died with the SIGKILLed process, so the dir is stale.
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: fake\n\n    Local instead.\n\n' \
+    "$T333" "$h333" > "$T333/fake.projeny"
+out="$( "$PROJENY" setup "$T333/fake.projeny" 2>&1 )"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the follow-up setup succeeds"
+else
+    fail "the follow-up setup succeeds" "exit=$rc out: $out"
+fi
+case "$out" in
+*"removed 1 stale scratch directory in '$T333'"*)
+    ok "the follow-up setup reaps the SIGKILL leftover"
+    ;;
+*)
+    fail "the follow-up setup reaps the SIGKILL leftover" "out: $out"
+    ;;
+esac
+if [ ! -e "$N333" ]; then
+    ok "the SIGKILL leftover is gone"
+else
+    fail "the SIGKILL leftover is gone" "$N333 still exists"
+fi
+assert_no_scratch "the follow-up setup leaves no scratch dir" "$T333" fake.projeny
+
+# ------------------- 334. read-only pdir falls back to the system scratch dir
+# A pdir that cannot take new directories (chmod a-w here) must not break the
+# read-only commands: as an unprivileged user (root bypasses the permission
+# bit, so setpriv/su is required), status still exits 0 — warning exactly
+# once that the scratch dir moved to the system scratch parent ($TMPDIR),
+# naming both locations — leaves no scratch dir behind in the pdir, and
+# leaves the fallback dir empty (the RAII destructor removed it). The
+# fixture uses the current dotted bookkeeping names (root setup writes
+# .fake.projeny.status and .fake-1.0.tar.gz.snapshot), so nobody's status
+# never attempts a bookkeeping rename that EACCES would turn into a hard
+# error. Restoring the write bit and re-running as root proves normal
+# operation resumed: no warning, no fallback.
+T334="$ROOT/t334"
+ROCAP334="$ROOT/rocap"
+if run_as_nobody "$ROOT" true 2>/dev/null; then
+    mkdir -p "$ROCAP334"
+    make_tarballs "$T334" fake
+    write_projeny "$T334" fake 1.0 fake
+    run_in "$T334" expect_ok "334 root setup seeds the fixture state" \
+        "$PROJENY" setup fake.projeny
+    # nobody must be able to read everything the status command touches:
+    # the .projeny file, the status file, the snapshot, the workdir, and the
+    # binary; rocap must be WRITABLE (it receives the fallback scratch dir).
+    chmod -R a+rX "$T334"
+    chmod a+rX "$ROOT" "$PROJENY"
+    chmod 777 "$ROCAP334"
+    chmod a-w "$T334"
+    out="$(run_as_nobody "$ROCAP334" "$PROJENY" status "$T334/fake.projeny" 2>&1)"
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        ok "status on a read-only pdir as nobody exits 0"
+    else
+        fail "status on a read-only pdir as nobody exits 0" "exit=$rc out: $out"
+    fi
+    case "$out" in
+    *"cannot create scratch dirs in '$T334'"*"using '$ROCAP334' instead"*)
+        ok "the read-only pdir warns with the fallback location"
+        ;;
+    *)
+        fail "the read-only pdir warns with the fallback location" "out: $out"
+        ;;
+    esac
+    w334="$(printf '%s\n' "$out" | grep -c 'warning: cannot create scratch dirs in')"
+    if [ "$w334" -eq 1 ]; then
+        ok "the fallback warning is printed exactly once"
+    else
+        fail "the fallback warning is printed exactly once" "count=$w334 out: $out"
+    fi
+    case "$out" in
+    *"Status: setup"*)
+        ok "the fallback status output is still sane"
+        ;;
+    *)
+        fail "the fallback status output is still sane" "out: $out"
+        ;;
+    esac
+    assert_no_scratch "the read-only status leaves no scratch dir in the pdir" \
+        "$T334" fake.projeny
+    if [ -z "$(ls -A "$ROCAP334")" ]; then
+        ok "the fallback scratch dir is removed from the system scratch parent"
+    else
+        fail "the fallback scratch dir is removed from the system scratch parent" \
+            "TMPDIR now holds: $(ls -A "$ROCAP334")"
+    fi
+    chmod u+w "$T334"
+    out="$( "$PROJENY" status "$T334/fake.projeny" 2>&1 )"
+    rc=$?
+    if [ $rc -eq 0 ]; then
+        ok "status on the restored (writable) pdir exits 0"
+    else
+        fail "status on the restored (writable) pdir exits 0" "exit=$rc out: $out"
+    fi
+    case "$out" in
+    *"warning:"*)
+        fail "the restored pdir needs no fallback (no warning)" "out: $out"
+        ;;
+    *)
+        ok "the restored pdir needs no fallback (no warning)"
+        ;;
+    esac
+    assert_no_scratch "the root status leaves no scratch dir either" \
+        "$T334" fake.projeny
+else
+    echo "note: cannot run commands as an unprivileged user here (no setpriv/su, or not root); skipping the read-only-pdir section"
 fi
 
 # ------------------------------------------------------------- summary

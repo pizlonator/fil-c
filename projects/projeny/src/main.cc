@@ -28,8 +28,11 @@
 #include <cctype>
 #include <cstdio>
 #include <optional>
+#include <pthread.h>
+#include <signal.h>
 #include <string>
 #include <thread>
+#include <unistd.h>
 #include <vector>
 
 namespace {
@@ -142,10 +145,92 @@ bool looks_like_jobs_value(const std::string& rest)
     }
     return true;
 }
+
+// The four signals whose default dispositions kill the process outright,
+// with no cleanup: RAII never runs when a signal's default disposition
+// terminates the process, so a Ctrl-C during a slow download would leak the
+// scratch dir it just created (and any other TempDir still alive). Instead:
+//
+//   1. Block SIGINT/SIGTERM/SIGHUP/SIGQUIT process-wide BEFORE any thread
+//      exists, so every later thread (the run_parallel workers, the ones
+//      libcurl spawns) inherits the mask and none of them can be killed by
+//      one of these signals mid-operation.
+//   2. One dedicated detached thread loops on sigwait for exactly that set;
+//      on a wake it sweeps the still-registered temp dirs and then dies by
+//      the signal itself.
+//
+// SIGPIPE is deliberately NOT in the set: at its default disposition it is
+// what makes `projeny diff f.projeny | head` (or any piped projeny output)
+// die promptly and conventionally (exit 141). With SIGPIPE blocked and
+// sigwait'ed, writes to a closed pipe merely return EPIPE — which projeny's
+// output paths do not check — so a piped projeny would pointlessly run to
+// completion and exit 0 instead of dying at the pipe. SIGPIPE deaths are
+// also extremely narrow (the moment of a failed write), and any scratch dir
+// alive at that instant is cleaned by the startup reapers on the next run
+// (the flock is kernel-released on death), so not handling SIGPIPE does not
+// reintroduce a lasting leak.
+//
+// The sigwait-thread pattern is used so the cleanup can call ordinary (non-
+// async-signal-safe) functions — opendir/unlink/flock and the rest of
+// remove_recursive — in a normal thread context; a signal handler may call
+// none of them. Signals arriving while the sweep runs stay pending (every
+// thread still blocks them), so a second Ctrl-C cannot interrupt the
+// cleanup mid-removal. The exit stays shell-correct: the default
+// disposition is restored for the caught signal, which is then unblocked on
+// the sigwait thread alone and raised — the process dies with 128+sig (143
+// for SIGTERM, 130 for SIGINT, ...) exactly as it would have without any of
+// this; the _exit below is only the fallback if the raise is somehow lost.
+void install_signal_cleanup()
+{
+    sigset_t set;
+    sigemptyset(&set);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGTERM);
+    sigaddset(&set, SIGHUP);
+    sigaddset(&set, SIGQUIT);
+    if (pthread_sigmask(SIG_BLOCK, &set, nullptr) != 0)
+        return; // no mask, no sigwait: keep the default-disposition behavior
+    std::thread([set]() {
+        for (;;) {
+            int sig = 0;
+            if (sigwait(&set, &sig) != 0)
+                continue; // not a member / spurious: wait again
+            cleanup_tempdirs();
+            // Die by the signal (see the function comment): restore SIG_DFL,
+            // unblock just this signal on this thread — the other threads
+            // keep it blocked, so the raise is delivered here — then raise.
+            signal(sig, SIG_DFL);
+            sigset_t one;
+            sigemptyset(&one);
+            sigaddset(&one, sig);
+            pthread_sigmask(SIG_UNBLOCK, &one, nullptr);
+            raise(sig);
+            _exit(128 + sig); // fallback: reached only if the raise is lost
+        }
+    }).detach();
+}
+
 } // namespace
 
 int main(int argc, char** argv)
 {
+    // Signals first: every thread created below (workers, curl's own) must
+    // inherit the blocked mask (see install_signal_cleanup above).
+    install_signal_cleanup();
+
+    // Belt-and-suspenders for every exit path of main — the normal returns
+    // and the catch clauses alike (those also sweep themselves): remove
+    // anything still registered. Every TempDir has destroyed itself by now
+    // on every path, so this is a no-op unless something registered a dir
+    // it never cleaned up; cheap insurance either way, and it is a no-op
+    // when the registry is empty.
+    struct FinalTempdirSweep {
+        ~FinalTempdirSweep()
+        {
+            cleanup_tempdirs();
+        }
+    } final_tempdir_sweep;
+
     std::string arg0 = argc > 0 ? argv[0] : "projeny";
     std::vector<std::string> args;
     for (int i = 1; i < argc; ++i)
@@ -163,6 +248,13 @@ int main(int argc, char** argv)
     // bad_alloc) so the process still fails with exit 1 and a diagnostic
     // instead of an abort.
     try {
+        // Startup janitor (once per process, before any command runs):
+        // reap the legacy "projeny-<role>-XXXXXX" scratch dirs the old
+        // binaries scattered into $TMPDIR//tmp. Current scratch dirs live
+        // next to the .projeny file and are reaped by make_scratch, one
+        // directory at a time. Never dies, prints one line only when it
+        // actually removed something (see reap_legacy_tmp_scratch).
+        reap_legacy_tmp_scratch();
         if (cmd == "help" || cmd == "--help" || cmd == "-h") {
             if (args.size() == 1)
                 return cmd_help(arg0);
