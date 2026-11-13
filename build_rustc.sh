@@ -25,14 +25,19 @@
 #
 # Build Fil-C's rustc: clean build + test by default.
 #
-# This nukes rust-build/ and rebuilds the compiler from scratch, then runs
-# the Fil-Rust test suite (filrustc/run-tests).  All of the logic lives in
-# build_rustc_impl.sh (shared with build_rustc_incremental.sh, which reuses
-# rust-build/ instead of nuking it): the impl extracts the patched Rust
-# 1.90.0 sources from the projeny checkout in projects/rust into
-# rust-build/rust, writes a bootstrap config.toml that links the Fil-C LLVM
-# from build/ via llvm-config (no LLVM build of its own), and then runs
-# `x.py build --stage 1`.  The resulting stage 1 rustc pizlonates
+# This wipes the bootstrap build tree (rust-build/xpy, plus the old
+# pre-2026 rust-build/rust copy tree and the result symlinks), re-verifies
+# the projeny workdir with a full `projeny setup`, rebuilds the compiler
+# from scratch, then runs the Fil-Rust test suite (filrustc/run-tests).
+# All of the logic lives in build_rustc_impl.sh (shared with
+# build_rustc_incremental.sh, which resumes instead of wiping): the impl
+# builds the patched Rust 1.90.0 sources IN PLACE in the projeny checkout
+# (projects/rust) -- no extract into a build tree -- writing the bootstrap
+# config.toml to rust-build/config.toml (--config) and every build output
+# to rust-build/xpy (--build-dir), so the workdir stays content-clean.
+# The config links the Fil-C LLVM from build/ via llvm-config (no LLVM
+# build of its own), and the build itself is `x.py build --stage 1`.  The
+# resulting stage 1 rustc pizlonates
 # every module it compiles (the Fil-Pizlonator runs in every pipeline, at
 # every optimization level) and the Fil-C host target spec
 # (x86_64-unknown-linux-gnu on x86_64 hosts, aarch64-unknown-linux-gnu on

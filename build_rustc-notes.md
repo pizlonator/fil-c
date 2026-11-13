@@ -3,10 +3,14 @@
 `build_rustc.sh` (repo root) builds a stage-1 rustc that pizlonates everything
 it compiles, using the Fil-C LLVM and linking binaries with `filcc`.  It is a
 thin entry point that calls `do_build_rustc clean` in `build_rustc_impl.sh`:
-a clean build + test by default (it nukes `rust-build/` and rebuilds from
-scratch; see "Build scripts" below).  `build_rustc_incremental.sh` is the
-same thing without the nuke.  Output: `rust-build/rustc` (the compiler, a
-symlink to the stage-1 rustc binary) and `rust-build/filrustc` (a symlink to
+a clean build + test by default (it wipes `rust-build/xpy` — the bootstrap
+build tree — plus the old pre-2026 `rust-build/rust` copy tree and the result
+symlinks, re-verifies the projeny workdir with a full `projeny setup`, and
+rebuilds from scratch; see "Build scripts" below).
+`build_rustc_incremental.sh` is the same thing without the wipe.  Output:
+`rust-build/rustc` (the compiler, a symlink to the stage-1 rustc binary at
+`rust-build/xpy/x86_64-unknown-linux-gnu/stage1/bin/rustc`) and
+`rust-build/filrustc` (a symlink to
 the same rustc; both spellings work and are equivalent -- the Fil-C behavior
 is baked into the compiler).  The compiler finds its `filcc` linker on its
 own (baked directory, checkout discovery, /opt/fil/bin, then PATH -- see
@@ -40,11 +44,14 @@ rust-build copy is kept in sync for the disposable build dir.
 ## Where the Fil-C changes live
 
 ALL Fil-C changes to the Rust sources live in the projeny patch
-(`projects/rust.projeny`); the checkout is `projects/rust/`.  To change the
-sources: edit `projects/rust/...` and run `filc/projeny commit
-projects/rust.projeny` (then `git add projects/rust.projeny`).  The build
-script applies no source tweaks of its own; it only *verifies* that every
-expected Fil-C change is present in the extracted tree (the `check_grep`
+(`projects/rust.projeny`); the checkout is `projects/rust/`, and the build
+happens IN PLACE in that checkout (see "Build flow: in place, no extract"
+below).  To change the sources: edit `projects/rust/...` and run
+`filc/projeny commit projects/rust.projeny` (then `git add
+projects/rust.projeny`).  Committing is what stages the change for git; the
+build itself reads the workdir, so an uncommitted edit builds too.
+The build script applies no source tweaks of its own; it only *verifies*
+that every expected Fil-C change is present in the workdir (the `check_grep`
 calls in `build_rustc_impl.sh` -- 82 of them; 9 of those were added for the
 ARM64 bring-up, see "ARM64 (aarch64) bring-up" below, and 14 for the
 Fil-Rust test-suite fixes, counted as
@@ -355,12 +362,99 @@ The patch consists of the following changes:
     scratch memcpys always keep runtime lengths (unsplittable for SROA);
     see the notes under the test table for the full sweep.
 
-The projeny patch reproduces the build tree byte-identically: after
-`filc/projeny commit`, `filc/projeny extract projects/rust.projeny /tmp/pc`
-followed by `diff -rq /tmp/pc rust-build/rust` (excluding `src/llvm-project`
--- untouched: rustc no longer builds it, see "Rustc links the Fil-C LLVM from
-build/" below -- and the generated `config.toml`, `build/`, `.cargo`
-cargo-lock state and `__pycache__`) reports zero differences.
+The build flow keeps the workdir and the patch in sync by construction, so
+the old byte-identical-mirror recipes are gone; the working-state checks are
+projeny's own:
+
+* `filc/projeny status projects/rust.projeny` must print `Status: setup`
+  (plus at most `Untracked:` lines for the four runtime files the build
+  itself leaves there — see "Build flow: in place, no extract" below) and
+  NO `Modified:`/`Disappeared:` lines.
+* `filc/projeny diff projects/rust.projeny` must print NOTHING (exit 0,
+  zero bytes).  projeny compares content (mtimes do not count), so the
+  stamp touches stay invisible, and untracked files are excluded from the
+  diff the same way git excludes them.
+
+## Build flow: in place, no extract
+
+`build_rustc_impl.sh` used to extract the projeny checkout into
+`rust-build/rust` (pristine tarball + patch, via `filc/projeny extract` +
+`rsync -a --delete`) and build there, because most projeny projects dirty
+their source directory when they build (configure/make rewrite files in the
+tree) and the extract shields the workdir from that dirt — otherwise
+`projeny commit`/`package` would fold build junk into the patch.  That
+shield is not needed for Rust: bootstrap's writers are both redirectable,
+so the build can run against the projeny checkout itself, in place:
+
+* **config.toml** — bootstrap takes `--config <path>` (priority 1 in its
+  config resolution, ahead of `./bootstrap.toml`/`./config.toml` in the
+  source root; verified against the vendored 1.90.0 bootstrap), so the
+  generated config lives at `rust-build/config.toml`, outside the workdir.
+* **Everything bootstrap produces** — the stage0 download, the bootstrap
+  binary itself, the cargo target dirs, the native builds, and the stage1
+  compiler + std — goes to `rust-build/xpy` via `--build-dir <dir>` (the
+  CLI spelling of the `build.build-dir` config key; `x.py build --help`
+  documents it as "Build directory, overrides `build.build-dir` in
+  `bootstrap.toml`").  The stage1 rustc lands at
+  `rust-build/xpy/x86_64-unknown-linux-gnu/stage1/bin/rustc`, and the
+  `rust-build/rustc`/`rust-build/filrustc` symlinks keep their old paths
+  and just point there.
+
+The redirections are mandatory, not stylistic: projeny's diff machinery
+reads the full bytes of every file it walks (and binary adds carry base64
+payloads through the diff text before the keep-list filter drops them), so
+a workdir holding gigabytes of build artifacts would make every
+`projeny status`/`diff`/`commit`/`setup` scan those artifacts.  With the
+outputs redirected, a full build writes exactly four UNTRACKED runtime
+files into the workdir — `.cargo/.package-cache`,
+`.cargo/.package-cache-mutate`, `.cargo/.global-cache` (cargo's package
+cache lock/state files, created because cargo treats the workspace
+`.cargo/config.toml` directory as its home for this build) and
+`src/bootstrap/__pycache__/bootstrap.cpython-312.pyc` (python's bytecode
+cache for x.py's bootstrap.py import) — and touches nothing tracked.
+`projeny status` lists them as `Untracked:` (they ride along through
+setups, exactly like any untracked file), `projeny diff` ignores them, and
+`projeny commit` never folds them into the patch.  The three stamp touches
+(FILC_VERSION / FILC_LINKER_DIR / the LLVM-freshness stamp) land in the
+workdir too, but they are mtime-only — projeny compares content, so they
+are invisible to status/diff (verified empirically: after a full clean
+in-place build plus a stamp-fired relink, `projeny diff` prints zero
+bytes and `status` stays `Status: setup`).
+
+`projeny setup` replaces the extract as the workdir-sync mechanism, with
+one caveat the implementation works around: **a setup always
+re-materializes the whole workdir** from the archive snapshot + patch
+(unpack, patch, swap into place) — there is no cheap "already in sync, do
+nothing" path, and for Rust that costs ~1.5-2.2 minutes per run.  The
+build script therefore:
+
+* **clean mode** — always runs `projeny setup` (after wiping
+  `rust-build/xpy`): it guarantees the build starts from pristine
+  patch content, which is the guarantee the extract used to provide.
+* **incremental mode** — runs setup only when the workdir is out of sync:
+  the workdir is missing, the status file is missing or not `Status:
+  setup`, or the live `projects/rust.projeny` differs byte-exactly from
+  the copy embedded in `projects/.rust.projeny.status` (projeny records
+  that copy after every setup, and `projeny commit` requires the same
+  match — so a match means the workdir tracks exactly the patch that is in
+  the tree).  The common dev loop (edit → `projeny commit` → build) skips
+  setup entirely; a git pull that moves the patch triggers one setup
+  (~1.5 min) plus one bounded rebuild of the crates the patch touches
+  (~3 min: setup re-stamps the patched files' mtimes, and cargo rebuilds
+  exactly those crates — unpatched sources keep their tarball mtimes, and
+  cargo treats backward mtime moves as fresh).
+
+The mirror step of the old dev loop (byte-identical edits into
+`rust-build/rust` after every commit) is simply gone: the workdir IS the
+build tree, so edit → commit → build needs no copy at all.
+
+Transition cost, for the record: the first build in the new flow is a
+clean build (new build-dir layout ⇒ nothing to resume from); measured at
+~4:10 for `x.py build --stage 1` on the 32-core container (the old flow's
+equivalent phase was 5:44 including the first stage0 download and the
+extract+rsync; the copy itself is gone).  Disk-wise the old
+`rust-build/rust` copy tree (14 GB with build outputs) is no longer
+created at all.
 
 ## Rustc links the Fil-C LLVM from build/ (no second LLVM build)
 
@@ -473,8 +567,8 @@ build tree now serves clang, the LLVM JIT shim, and rustc.
 Consequence for build time: the old flow spent ~4.5 of its 8:21 clean build
 in a 2668-step bootstrap LLVM build.  With the external llvm-config there is
 no LLVM step at all (the build log has none): `x.py build --stage 1` alone
-went 8:21 → ~3:21-3:48, and the whole `./build_rustc.sh` clean run
-(extraction + stage0 download + build + test suite) is ~6 minutes wall on the
+went 8:21 → ~3:21-4:10, and the whole `./build_rustc.sh` clean run
+(setup + stage0 download + build + test suite) is ~6-9 minutes wall on the
 32-core container.
 
 Size note: `librustc_driver-*.so` is ~236 MB (was ~225 MB), because the
@@ -620,7 +714,7 @@ Two defenses now, both around build_rustc_impl.sh:
   `build/include` (header changes change the LLVM API the rustc_llvm
   wrappers compile against).  When the stamp is missing or its recorded
   state differs, the script touches
-  `rust-build/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
+  `projects/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
   (forcing cargo to recompile rustc_llvm and relink the driver), rewrites
   the stamp, and prints
   `Fil-C LLVM libraries changed: relinking the rustc driver against the updated LLVM archives ...`.
@@ -637,7 +731,7 @@ Two defenses now, both around build_rustc_impl.sh:
   `strings -a stage1/lib/librustc_driver-*.so | grep -c 'Fil-C:'` == 0 a
   usable (weak, negative) skew check.  The load-bearing checks are
   source-level: the `check_grep` assertions in build_rustc_impl.sh verify
-  the rustc-side fix and the std swap fix in the extracted tree, and
+  the rustc-side fix and the std swap fix in the workdir, and
   `strings -a stage1/lib/librustc_driver-*.so | grep -c
   FILCRUST_FILCINLINE` must be 0 now that the IsRust gate is REMOVED from
   RegisterFilPasses.cpp (a nonzero count would mean a driver linked against
@@ -652,7 +746,7 @@ Two defenses now, both around build_rustc_impl.sh:
 
 To force a relink by hand (e.g. when iterating on LLVM changes that touch
 neither headers nor archives the stamp sees): `touch
-rust-build/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp` and re-run
+projects/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp` and re-run
 `./build_rustc_incremental.sh` -- or delete the stamp and re-run, which the
 mechanism itself turns into the same relink.
 
@@ -666,7 +760,7 @@ filcc" above.
   hash>)`; the first `-vV` line is the same and the `LLVM version: 20.1.8`
   line is still present.
 * Dynamic dependencies: `patchelf --print-needed
-  rust-build/rust/build/x86_64-unknown-linux-gnu/stage1/lib/librustc_driver-*.so`
+  rust-build/xpy/x86_64-unknown-linux-gnu/stage1/lib/librustc_driver-*.so`
   → exactly `libm.so.6 libc.so.6 ld-linux-x86-64.so.2`; `patchelf
   --print-needed rust-build/rustc` → `librustc_driver-*.so libc.so.6`.  See
   "Rustc links the Fil-C LLVM from build/" above for how libz/libstdc++/
@@ -773,6 +867,10 @@ filcc" above.
   machine has no `avx512_fp16`).  See known-issues #7 for the history.
 
 ## config.toml (written by build_rustc_impl.sh)
+
+The generated config lives at `rust-build/config.toml` — OUTSIDE the projeny
+workdir — and is handed to bootstrap via `--config` (see "Build flow: in
+place, no extract" above).
 
 change-id = 144675; [build] target/extended/tools/optimized-compiler-builtins
 as before; [llvm] download-ci-llvm = false, optimize = true, assertions =
@@ -1446,7 +1544,7 @@ ld-fil1 does not search rustc's sysroot by default).
    (llvm/lib/CodeGen/MachineFunction.cpp).  After touching LLVM sources:
    ./build_clang.sh rebuilds the Fil-C LLVM (llvm-config/MCA archives
    included), then force the rustc relink with
-   `touch rust-build/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
+   `touch projects/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
    (cargo does not track the LLVM archives) and re-run
    ./build_rustc_incremental.sh.
 9. **proc-macro crates don't work.**  `--crate-type proc-macro` builds (with
@@ -2358,10 +2456,13 @@ The build is split into a shared library plus two thin entry points:
 * `build_rustc_impl.sh` -- the shared library (not meant to be executed
   directly).  It resolves the repo root from its own `$BASH_SOURCE` (so
   sourcing it works regardless of the caller's CWD), defines the
-  `check_grep` helper and `do_build_rustc <clean|incremental>`, and carries
-  ALL of the build logic: the extraction of the patched Rust sources from the
-  projeny checkout, the check that `$FILC_ROOT/build/bin/llvm-config` exists
-  (the Fil-C rustc links the LLVM build from build/ — no LLVM is built here;
+  `check_grep` helper, the `rust_workdir_in_sync` helper, and
+  `do_build_rustc <clean|incremental>`, and carries ALL of the build logic:
+  the workdir sync (`projeny setup` on clean builds; on incremental builds
+  only when the projeny workdir is missing or out of sync with the
+  `.projeny` patch — see "Build flow: in place, no extract" above), the
+  check that `$FILC_ROOT/build/bin/llvm-config` exists (the Fil-C rustc
+  links the LLVM build from build/ — no LLVM is built here;
   run ./build_clang.sh first — see "Rustc links the Fil-C LLVM from build/"
   above), the 82 `check_grep` fail-fast verifications of the projeny patch,
   the `FILC_VERSION` composition (plus the `.filc-version-stamp` handling),
@@ -2370,22 +2471,27 @@ The build is split into a shared library plus two thin entry points:
   the libgcc_s redirect (gcc-redirect dir + RUSTFLAGS; the GROUP contents
   are arch-aware, see the LLVM section and "ARM64 (aarch64) bring-up"
   below),
-  the config.toml generation, the `x.py build --stage 1` run, and the
-  creation of the `rust-build/rustc` and `rust-build/filrustc` symlinks.
+  the config.toml generation (into `rust-build/config.toml`, handed to
+  bootstrap via `--config`), the in-place `x.py build --stage 1` run (with
+  `--build-dir rust-build/xpy`), and the creation of the `rust-build/rustc`
+  and `rust-build/filrustc` symlinks.
 * `build_rustc.sh` -- thin entry: license header, `set -e -o pipefail -x`,
   source the impl, call `do_build_rustc clean`.  This is the default: it
-  nukes `rust-build/` first and does the whole build from scratch.
+  wipes `rust-build/xpy` (plus the old pre-2026 `rust-build/rust` copy tree
+  and the result symlinks), re-verifies the workdir with a full setup, and
+  does the whole build from scratch.
 * `build_rustc_incremental.sh` -- thin entry calling
-  `do_build_rustc incremental`: identical, except it does NOT nuke
-  `rust-build/`.  Extraction, the llvm-config check and the version stamp
-  only redo work when what they produce is missing or changed, and
-  x.py/cargo resume incrementally, so a re-run is usually a fast no-op; a
-  missing `rust-build/` is bootstrapped from scratch, so the incremental
-  script also doubles as a first build.  NOTE: cargo does not notice changes
+  `do_build_rustc incremental`: identical, except it does NOT wipe anything
+  and only repairs the workdir when it is out of sync with the patch.
+  The version/linker/LLVM stamps only redo work when what they produce is
+  missing or changed, and x.py/cargo resume incrementally, so a re-run is
+  usually a fast no-op (~3 s when nothing changed); a missing workdir is
+  bootstrapped from scratch, so the incremental script also doubles as a
+  first build.  NOTE: cargo does not notice changes
   to the LLVM archives rustc_llvm links against (build/lib/*.a), so after
   rebuilding clang's LLVM with a changed pipeline (e.g. after editing
   RegisterFilPasses.cpp), force the relink with
-  `touch rust-build/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
+  `touch projects/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp`
   before the incremental build.
 
 Both entry points end identically: after the symlinks are created, the
@@ -2412,8 +2518,8 @@ and rebuilds `pizfix/` for the default flavor -- then `./build_rustc.sh`
 clean; ~10.5 min wall on a 32-core container, of which `x.py` itself took
 7:49):
 
-* The clean build succeeds end to end under musl: the projeny extraction,
-  the Fil-C LLVM swap, the `check_grep` verification and
+* The clean build succeeds end to end under musl: the projeny setup, the
+  Fil-C LLVM swap, the `check_grep` verification and
   `x.py build --stage 1` ("Build completed successfully in 0:07:49") all
   pass, and the resulting compiler runs (`rustc --version` prints the same
   Fil-C parenthetical as the glibc build).  Expected: the compiler binary
@@ -2824,8 +2930,8 @@ actual running container (`command -v` sweep; everything found):
 
 | needed by | commands | provided by (Dockerfile heredoc) |
 |---|---|---|
-| build_rustc_impl.sh | bash, coreutils (cd/rm/cp/mkdir/ln/tee/cat/sed/awk/grep/touch/printf), uname, nproc, `cc` (for `--print-file-name=libgcc_eh.a` — plus `libgcc.a` on aarch64 hosts — in the gcc-redirect) | ubuntu base + build-essential + gawk |
-| projeny extract | `filc/projeny` (repo binary; needs libcurl.so.4 + libstdc++), rsync | libcurl4-openssl-dev (pulls libcurl4), rsync |
+| build_rustc_impl.sh | bash, coreutils (cd/rm/cp/mkdir/ln/tee/cat/sed/awk/grep/touch/printf/head/cmp), uname, nproc, `cc` (for `--print-file-name=libgcc_eh.a` — plus `libgcc.a` on aarch64 hosts — in the gcc-redirect) | ubuntu base + build-essential + gawk |
+| projeny setup | `filc/projeny` (repo binary; needs libcurl.so.4 + libstdc++) | libcurl4-openssl-dev (pulls libcurl4) |
 | LLVM for rustc | `build/bin/llvm-config` + `build/lib/libLLVM*.a` (incl. libLLVMMCA.a, libLLVMX86TargetMCA.a), produced by ./build_clang.sh — no LLVM is built by the rust build (the Fil-C LLVM build itself needs cmake/ninja/binutils and, on a build tree configured with valgrind detection, libvalgrind's headers — the `valgrind` package — or ninja mass-rebuilds LLVMSupport and fails on `valgrind/valgrind.h`; also: this build tree ships without most `.d` depfiles, so `touch` the sources whose headers changed to force recompiles) | -- (repo build tree) |
 | patch verification | grep, awk, python3 (sha256) | grep/gawk, python3 |
 | version composition | sed, git (remote get-url / rev-parse) | sed, git |

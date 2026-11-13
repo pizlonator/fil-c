@@ -29,10 +29,15 @@
 #
 #     do_build_rustc <clean|incremental>
 #
-# `clean` removes rust-build/ entirely and rebuilds from scratch.
-# `incremental` reuses an existing rust-build/ (extraction, the compiler build
-# and everything else resume incrementally; a missing rust-build/ is
-# bootstrapped gracefully, so the incremental mode doubles as a first build).
+# `clean` removes rust-build/xpy (the bootstrap build tree), the old
+# rust-build/rust copy tree (kept around by pre-2026 revisions of this
+# script), and the rust-build/rustc + rust-build/filrustc symlinks, then
+# re-runs `projeny setup` to guarantee a pristine workdir and rebuilds from
+# scratch.  `incremental` resumes from whatever is already built and only
+# repairs the projeny workdir when it is out of sync with the patch (a
+# missing checkout, a missing status file, or a .projeny file changed by a
+# git pull), so a re-run is usually a fast no-op.
+#
 # Both modes end by creating the rust-build/rustc and rust-build/filrustc
 # symlinks and then running the Fil-Rust test suite (filrustc/run-tests), so
 # that a build that passes is a build whose compiler is known to work.  Set
@@ -40,12 +45,40 @@
 #
 # Build Fil-C's rustc.
 #
-# This extracts the patched Rust 1.90.0 sources from the projeny checkout in
-# projects/rust into rust-build/rust, writes a bootstrap config.toml, and then
-# runs `x.py build --stage 1`.  Rust does NOT build its own LLVM: the config
-# points bootstrap's [target.<host-triple>] llvm-config at the
-# Fil-C LLVM that build_clang.sh already built into build/ (bootstrap then
-# treats LLVM as prebuilt and never touches src/llvm-project), and
+# Unlike every other projeny project build script in this repo, this script
+# does NOT extract the patched sources into a build tree: it builds the
+# patched Rust 1.90.0 sources IN PLACE, in the projeny checkout itself
+# (projects/rust), with every build output redirected OUT of the checkout.
+# The other projects build with configure/make, which rewrite files in the
+# source directory (config.status, generated headers, .o files, ...) -- the
+# extract shields the projeny workdir from that dirt.  Rust's bootstrap does
+# not need the shield: it writes only untracked build outputs, and both of
+# the writers are redirectable, so the workdir stays content-clean (see
+# build_rustc-notes.md):
+#
+#   - The bootstrap configuration goes to rust-build/config.toml (bootstrap
+#     takes `--config <path>`; without it bootstrap would want ./bootstrap.toml
+#     or ./config.toml in the source root).
+#   - Everything bootstrap produces (the stage0 download, the bootstrap binary,
+#     cargo target dirs, the stage1 compiler + std, native builds) goes to
+#     rust-build/xpy via `--build-dir <dir>` (the CLI spelling of the
+#     `build.build-dir` config key; verified against the vendored 1.90.0
+#     bootstrap).  The stage1 rustc lands at
+#     rust-build/xpy/<host-triple>/stage1/bin/rustc.
+#
+# Redirecting is not optional, it is mandatory: projeny's diff machinery
+# reads the full bytes of every file it walks, so a workdir holding 10GB of
+# build artifacts would make every projeny status/diff/commit/setup scan
+# gigabytes of binaries (binary adds even carry base64 payloads through the
+# diff text before the keep-list filter drops them).  With the outputs
+# redirected, the only writes the build makes into projects/rust are the
+# three stamp touches below, which change mtimes but no content, so
+# `projeny status projects/rust.projeny` stays "Status: setup" and
+# `projeny diff projects/rust.projeny` stays empty across builds.
+#
+# The config points bootstrap's [target.<host-triple>] llvm-config
+# at the Fil-C LLVM that build_clang.sh already built into build/ (bootstrap
+# then treats LLVM as prebuilt and never touches src/llvm-project), and
 # rustc_llvm's build script uses that llvm-config to link the Fil-C LLVM
 # statically into librustc_driver.so -- with no libz (the Fil-C LLVM build has
 # LLVM_ENABLE_ZLIB=OFF), with libstdc++ linked statically
@@ -65,9 +98,11 @@
 # ALL Fil-C changes to the Rust sources live in the projeny patch
 # (projects/rust.projeny); this script applies no source tweaks of its own.
 # Instead it verifies that every expected Fil-C change is present in the
-# extracted tree (the check_grep calls below) and fails fast with a clear
-# error if the patch is missing one.  To change the sources: edit
-# projects/rust/... then run `filc/projeny commit projects/rust.projeny`.
+# workdir (the check_grep calls below) and fails fast with a clear error if
+# the patch is missing one.  To change the sources: edit projects/rust/...
+# then run `filc/projeny commit projects/rust.projeny` (commit is optional
+# before building -- the build reads the workdir -- but it is what stages the
+# change into git).
 #
 # The built rustc also self-identifies as Fil-C, clang-style: `rustc --version`
 # appends " (Fil-C <version> <repo-url> <hash>)".  This script composes that
@@ -96,9 +131,6 @@
 # recompile + relink when those archives or the LLVM headers change, so the
 # shipped rustc can never keep running stale LLVM code (see below).
 #
-# The script is idempotent: in incremental mode, if rust-build/rust already
-# exists, extraction is skipped and bootstrap resumes incrementally.
-#
 # The result is rust-build/rustc (symlink, also as rust-build/filrustc).
 # NOTE: the built rustc finds `filcc` on its own (see above), but putting
 # $FILC_ROOT/build/bin on PATH when using it is still the supported flow (and
@@ -109,10 +141,11 @@
 # caller's current working directory.
 FILC_RUSTC_IMPL_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
-# Verify that the extracted tree contains every Fil-C change.  All Fil-C
-# changes to the Rust sources live in the projeny patch (projects/rust.projeny)
-# -- this script applies no tweaks of its own, so if one of these greps fails
-# the patch is missing a change and the build would produce a broken or
+# Verify that the workdir contains every Fil-C change.  All Fil-C changes to
+# the Rust sources live in the projeny patch (projects/rust.projeny) -- this
+# script applies no tweaks of its own, and the build happens in the projeny
+# workdir itself, so if one of these greps fails the patch (or the checked-out
+# workdir) is missing a change and the build would produce a broken or
 # non-pizlonating compiler.  Fail fast with a clear error in that case.
 check_grep() {
     local marker="$1"
@@ -122,14 +155,50 @@ check_grep() {
         echo "       $file" >&2
         echo "       projects/rust.projeny must carry ALL Fil-C changes to the Rust" >&2
         echo "       sources; edit projects/rust/... and re-run" >&2
-        echo "       'filc/projeny commit projects/rust.projeny'." >&2
+        echo "       'filc/projeny commit projects/rust.projeny' (or, if the checkout" >&2
+        echo "       itself is stale, 'filc/projeny setup projects/rust.projeny')." >&2
         exit 1
     fi
 }
 
-# Build Fil-C's rustc.  mode is "clean" (remove rust-build/ first) or
-# "incremental" (reuse rust-build/, building only what changed; a missing
-# rust-build/ is bootstrapped from scratch).
+# Is the projeny workdir in sync with the current .projeny patch, per cheap
+# bookkeeping (no tree walk, no hashing)?  projeny itself records, in the
+# status file it writes after every setup (projects/.rust.projeny.status), a
+# byte-exact copy of the .projeny file that setup used -- everything after the
+# "--- projeny content ---" line.  `projeny commit` requires that embedded
+# copy to match the live .projeny file exactly, so a matching copy means the
+# workdir was checked out from exactly the patch that is in the tree right
+# now: it needs no repair, and the build can run against it (plus any
+# uncommitted workdir edits, which is the desired dev-loop behavior: the
+# workdir IS the build tree).  This lets the incremental build skip
+# `projeny setup`, which for Rust costs ~2 minutes even when everything is in
+# sync, because a setup always re-materializes the entire workdir from the
+# archive snapshot + patch (there is no cheap "already fine, do nothing" path
+# in projeny's setup; see build_rustc-notes.md).
+rust_workdir_in_sync() {
+    [ -d "$RUST_SRC" ] || return 1
+    [ -f "$RUST_PROJENY" ] || return 1
+    [ -f "$RUST_STATUS" ] || return 1
+    # The status file's first line records the setup state; anything other
+    # than "setup" (conflicts, or an aborted setup) means the workdir needs
+    # projeny's attention.
+    if [ "`head -n 1 \"$RUST_STATUS\"`" != "Status: setup" ]; then
+        return 1
+    fi
+    # Extract the embedded copy (everything after the delimiter line) and
+    # compare it byte-exactly with the live .projeny file.  sed passes the
+    # remainder through verbatim; cmp does the byte compare.  A mismatch (a
+    # git pull moved the patch, or the file was edited by hand) means setup
+    # must reconcile the workdir with the new patch first.
+    sed '1,/^--- projeny content ---$/d' "$RUST_STATUS" \
+        > "$RUST_BUILD/.projeny-embedded-check"
+    cmp -s "$RUST_BUILD/.projeny-embedded-check" "$RUST_PROJENY"
+}
+
+# Build Fil-C's rustc.  mode is "clean" (wipe the build outputs, re-verify the
+# workdir with a full projeny setup, and rebuild from scratch) or
+# "incremental" (resume; repair the workdir only when it is out of sync with
+# the patch; a missing workdir is bootstrapped from scratch).
 do_build_rustc() {
     local mode="${1:-clean}"
     case "$mode" in
@@ -144,11 +213,17 @@ do_build_rustc() {
     set -o pipefail
     set -x
     cd -- "$FILC_RUSTC_IMPL_ROOT"
-    # A clean build starts from a wiped rust-build/.  The incremental build
-    # keeps it (source extraction below only happens when what it produces,
-    # rust-build/rust, is missing, so re-runs are fast no-ops).
+    # A clean build wipes the bootstrap build tree (rust-build/xpy), the old
+    # pre-2026 copy tree (rust-build/rust, which the extract-based flow used
+    # to keep for incremental builds), and the result symlinks -- the stamp
+    # files, the gcc-redirect directory and the logs in rust-build/ survive,
+    # since they record build inputs, not build outputs.  The projeny workdir
+    # (projects/rust) is NOT wiped: it is the source tree, and a full
+    # `projeny setup` below re-verifies it against the patch.  The
+    # incremental build keeps everything.
     if [ "$mode" = clean ]; then
-        rm -rf rust-build
+        rm -rf rust-build/xpy rust-build/rust \
+               rust-build/rustc rust-build/filrustc
     fi
 
     . libpas/common.sh
@@ -178,22 +253,28 @@ do_build_rustc() {
     esac
 
     RUST_BUILD=$FILC_ROOT/rust-build
-    RUST_SRC=$RUST_BUILD/rust
+    # The build happens IN PLACE in the projeny checkout: no extract, no copy.
+    RUST_SRC=$FILC_ROOT/projects/rust
+    RUST_PROJENY=$FILC_ROOT/projects/rust.projeny
+    # projeny's status file (written by every setup) embeds the byte-exact
+    # copy of the .projeny file the last setup used; see rust_workdir_in_sync.
+    RUST_STATUS=$FILC_ROOT/projects/.rust.projeny.status
 
-    # Extract the Rust sources from the projeny checkout, unless we already have
-    # rust-build/rust (then bootstrap just resumes incrementally).
-    if [ ! -d $RUST_SRC ]; then
+    # Keep the workdir in sync with the patch.  In clean mode always run
+    # `projeny setup`: it re-materializes the workdir from the archive
+    # snapshot + patch, which guarantees the build starts from pristine
+    # patch content (the guarantee the old extract-based clean build had).
+    # In incremental mode run it only when the workdir is missing or out of
+    # sync (missing status file, non-"setup" state, or a .projeny file that
+    # differs from what the last setup used, e.g. after a git pull) --
+    # a setup always rebuilds the whole workdir (~2 minutes for Rust), so
+    # the common dev loop (edit -> commit -> build) must not pay for it.
+    # setup is idempotent in the sense that matters here: it is safe to run
+    # on any state, and untracked files in the workdir ride along.
+    if [ "$mode" = clean ] || ! rust_workdir_in_sync; then
         mkdir -p $RUST_BUILD
-        (
-            cd projects
-            rm -rf rust/extracted-source
-            ../filc/projeny extract rust.projeny rust/extracted-source
-            mkdir -p $RUST_BUILD
-            rsync -a --delete rust/extracted-source/ $RUST_SRC/
-            rm -rf rust/extracted-source
-        )
+        ./filc/projeny setup projects/rust.projeny
     fi
-
     # Rustc links the Fil-C LLVM that build_clang.sh already built into
     # build/, via llvm-config.  With [target.<triple>] llvm-config set,
     # bootstrap's prebuilt_llvm_config() returns AlreadyBuilt and never
@@ -610,7 +691,7 @@ do_build_rustc() {
     check_grep "keeps the gap guard (which holds a whole saved" library/core/src/slice/sort/unstable/quicksort.rs
     check_grep "for the same reason as \`GapGuard::drop\` above" library/core/src/slice/sort/unstable/quicksort.rs
 
-    echo "All Fil-C source changes verified in the extracted tree."
+    echo "All Fil-C source changes verified in the projeny workdir (projects/rust)."
 
     # Compose the Fil-C version string that the compiler bakes into its
     # `rustc --version` output via option_env!("FILC_VERSION") in
@@ -648,17 +729,20 @@ do_build_rustc() {
     echo "Baked-in Fil-C rustc version string: $FILC_VERSION"
 
     # The libunwind step is cached based on output mtime; force a rebuild after
-    # switching it to the Fil-C compilers (in the projeny patch).  (With the
-    # llvm-libunwind = "no" setting written below, bootstrap does not build
+    # switching it to the Fil-C compilers (in the projeny patch).  This lives
+    # in the bootstrap build tree (rust-build/xpy), not in the workdir.  (With
+    # the llvm-libunwind = "no" setting written below, bootstrap does not build
     # the native libunwind at all, so this is a no-op; the -f just makes sure
     # a stale artifact from an older config cannot be picked up.)
-    rm -f $RUST_SRC/build/$HOST_TRIPLE/native/libunwind/libunwind.a
+    rm -f $RUST_BUILD/xpy/$HOST_TRIPLE/native/libunwind/libunwind.a
 
     # Write the bootstrap configuration.  This file is fully generated by this
     # script, so rewrite it on every run: a stale config.toml (e.g. one written
     # by an older revision of this script) would silently drop settings the
-    # current sources need.
-    cat > $RUST_SRC/config.toml <<'EOF'
+    # current sources need.  NOTE: this lives OUTSIDE the projeny workdir
+    # (rust-build/config.toml) and is handed to bootstrap with --config below;
+    # writing it into the source root would dirty the workdir.
+    cat > $RUST_BUILD/config.toml <<'EOF'
 # Bootstrap configuration for building Fil-C's rustc (written by build_rustc.sh).
 
 change-id = 144675
@@ -669,11 +753,11 @@ EOF
     # The host target triple is expanded by this script, so it lives in its
     # own unquoted heredoc between the two quoted ones above and below (it
     # must stay inside the [build] table, i.e. before its remaining keys).
-    cat >> $RUST_SRC/config.toml <<EOF
+    cat >> $RUST_BUILD/config.toml <<EOF
 target = ["$HOST_TRIPLE"]
 EOF
 
-    cat >> $RUST_SRC/config.toml <<'EOF'
+    cat >> $RUST_BUILD/config.toml <<'EOF'
 extended = false
 tools = []
 # Use the pure-Rust compiler-builtins (no compiler-rt C sources, which we
@@ -746,7 +830,7 @@ EOF
     # The [target] section needs the host triple and the absolute llvm-config
     # path expanded by this script, so it is written separately (the heredocs
     # above are quoted).
-    cat >> $RUST_SRC/config.toml <<EOF
+    cat >> $RUST_BUILD/config.toml <<EOF
 
 [target.$HOST_TRIPLE]
 # Use the Fil-C LLVM that build_clang.sh built into build/ instead of
@@ -764,7 +848,7 @@ llvm-config = "$FILC_ROOT/build/bin/llvm-config"
 # is the honest declaration.
 llvm-has-rust-patches = true
 EOF
-    cat $RUST_SRC/config.toml
+    cat $RUST_BUILD/config.toml
 
     # Fil-C's clang/filcc (the target spec links with `filcc`) live in build/bin.
     export PATH="$FILC_ROOT/build/bin:$PATH"
@@ -889,10 +973,20 @@ EOF
         touch $RUST_SRC/compiler/rustc_codegen_ssa/src/back/link.rs
     fi
 
+    # Run bootstrap from the workdir, with every output redirected out of it:
+    # --config points at the generated rust-build/config.toml and --build-dir
+    # points the whole bootstrap build tree (stage0 download + bootstrap
+    # binary + cargo target dirs + stage1) at rust-build/xpy.  Both flags are
+    # supported by the vendored 1.90.0 bootstrap (--build-dir is documented
+    # as "Build directory, overrides `build.build-dir` in `bootstrap.toml`").
+    # Without the redirections bootstrap would write bootstrap.toml and
+    # build/ into the projeny workdir, dirtying it.
     cd $RUST_SRC
-    python3 x.py build --stage 1 2>&1 | tee $RUST_BUILD/build.log
+    python3 x.py build --stage 1 \
+        --config $RUST_BUILD/config.toml \
+        --build-dir $RUST_BUILD/xpy 2>&1 | tee $RUST_BUILD/build.log
 
-    RUSTC_BIN=$RUST_SRC/build/$HOST_TRIPLE/stage1/bin/rustc
+    RUSTC_BIN=$RUST_BUILD/xpy/$HOST_TRIPLE/stage1/bin/rustc
     if [ ! -x $RUSTC_BIN ]; then
         echo "ERROR: x.py did not produce $RUSTC_BIN" >&2
         exit 1

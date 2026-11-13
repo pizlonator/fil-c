@@ -25,14 +25,17 @@
 #
 # Build Fil-C's rustc: incremental build + test.
 #
-# This reuses an existing rust-build/ -- extraction, the Fil-C version stamp
-# and the compiler build only redo work when what they produce is missing or
-# changed, so a re-run is usually a fast no-op (a
-# missing rust-build/ is bootstrapped from scratch, so this script doubles
-# as a first build) -- and then runs the Fil-Rust test suite
-# (filrustc/run-tests).  For a clean build use build_rustc.sh, which nukes
-# rust-build/ first.  All of the logic lives in build_rustc_impl.sh (shared
-# with build_rustc.sh).
+# This resumes from whatever is already built -- the projeny workdir
+# (projects/rust, where the build happens in place) is repaired with
+# `projeny setup` only when it is missing or out of sync with the patch
+# (missing status file, non-"setup" state, or a .projeny file changed by a
+# git pull), so a re-run is usually a fast no-op -- the Fil-C version stamp
+# and the compiler build only redo work when their inputs changed.  A
+# missing workdir is bootstrapped from scratch, so this script doubles as
+# a first build.  Then it runs the Fil-Rust test suite (filrustc/run-tests).
+# For a clean build use build_rustc.sh, which wipes rust-build/xpy and
+# re-verifies the workdir with a full setup first.  All of the logic lives
+# in build_rustc_impl.sh (shared with build_rustc.sh).
 #
 # Usage: ./build_rustc_incremental.sh   (incremental build + test)
 #        ./build_rustc.sh               (clean build + test)
