@@ -44,6 +44,8 @@ verse_heap_large_entry* verse_heap_large_entry_create(uintptr_t begin, uintptr_t
     result->begin = begin;
     result->end = end;
     result->heap = heap;
+    result->is_exact = false;
+    result->is_reservation = false;
 
 	verse_heap_mark_bits_page_commit_controller_construct_large(
 		&result->mark_bits_page_commit_controller, pas_round_down_to_power_of_2(begin, VERSE_HEAP_CHUNK_SIZE));

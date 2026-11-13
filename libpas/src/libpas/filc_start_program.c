@@ -43,6 +43,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/auxv.h>
+#include <sys/mman.h>
 #include <sys/resource.h>
 #include <unistd.h>
 
@@ -175,32 +176,240 @@ static void really_start_program(
     PAS_ASSERT(!"Should not get here");
 }
 
-struct args {
+/* The stack switch below is adapted from the "Coroutine" project of Samuel Williams, as bundled in
+   Ruby (coroutine/amd64/Context.{S,h} and coroutine/arm64/Context.{S,h}). Only the architectures
+   that Fil-C supports are kept, the assembly is file-scope inline assembly, and the C helpers are
+   renamed. The project is released under the MIT License:
+
+       Copyright, 2018, by Samuel Williams.
+
+       Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+       and associated documentation files (the "Software"), to deal in the Software without
+       restriction, including without limitation the rights to use, copy, modify, merge, publish,
+       distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+       Software is furnished to do so, subject to the following conditions:
+
+       The above copyright notice and this permission notice shall be included in all copies or
+       substantial portions of the Software.
+
+       THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+       BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+       NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+       DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+       OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+struct hop_context {
+    void** stack_pointer;
+};
+
+typedef __attribute__((noreturn)) void (*hop_start)(struct hop_context* from,
+                                                    struct hop_context* self);
+
+struct hop_context* filc_hop_context_transfer(struct hop_context* current,
+                                              struct hop_context* target);
+
+#if defined(__x86_64__)
+enum { HOP_REGISTERS = 6 };
+
+__asm__(
+    ".text\n"
+    ".globl filc_hop_context_transfer\n"
+    ".hidden filc_hop_context_transfer\n"
+    ".type filc_hop_context_transfer,@function\n"
+    "filc_hop_context_transfer:\n"
+    /* Make space on the stack for 6 registers, and save the caller state. */
+    "    subq $48, %rsp\n"
+    "    movq %rbp, 40(%rsp)\n"
+    "    movq %rbx, 32(%rsp)\n"
+    "    movq %r12, 24(%rsp)\n"
+    "    movq %r13, 16(%rsp)\n"
+    "    movq %r14, 8(%rsp)\n"
+    "    movq %r15, (%rsp)\n"
+    /* Save the caller stack pointer, and restore the callee one. */
+    "    movq %rsp, (%rdi)\n"
+    "    movq (%rsi), %rsp\n"
+    /* Restore the callee state. */
+    "    movq 40(%rsp), %rbp\n"
+    "    movq 32(%rsp), %rbx\n"
+    "    movq 24(%rsp), %r12\n"
+    "    movq 16(%rsp), %r13\n"
+    "    movq 8(%rsp), %r14\n"
+    "    movq (%rsp), %r15\n"
+    "    addq $48, %rsp\n"
+    /* Put the first argument into the return value, pop the return address and jump to it. */
+    "    movq %rdi, %rax\n"
+    "    ret\n"
+    ".size filc_hop_context_transfer, .-filc_hop_context_transfer\n");
+
+static void hop_context_initialize(struct hop_context* context, hop_start start, void* stack,
+                                   size_t size)
+{
+    /* The stack grows down. Force 16-byte alignment. */
+    char* top = (char*)stack + size;
+    context->stack_pointer = (void**)((uintptr_t)top & ~(uintptr_t)0xF);
+
+    *--context->stack_pointer = NULL;
+    *--context->stack_pointer = (void*)start;
+
+    context->stack_pointer -= HOP_REGISTERS;
+    memset(context->stack_pointer, 0, sizeof(void*) * HOP_REGISTERS);
+}
+#elif defined(__aarch64__)
+enum { HOP_REGISTERS = 0xa0 / 8 };
+
+__asm__(
+    ".text\n"
+    ".align 2\n"
+    ".globl filc_hop_context_transfer\n"
+    ".hidden filc_hop_context_transfer\n"
+    ".type filc_hop_context_transfer,%function\n"
+    "filc_hop_context_transfer:\n"
+    /* Make space on the stack for the caller registers, and save them. */
+    "    sub sp, sp, 0xa0\n"
+    "    stp d8, d9, [sp, 0x00]\n"
+    "    stp d10, d11, [sp, 0x10]\n"
+    "    stp d12, d13, [sp, 0x20]\n"
+    "    stp d14, d15, [sp, 0x30]\n"
+    "    stp x19, x20, [sp, 0x40]\n"
+    "    stp x21, x22, [sp, 0x50]\n"
+    "    stp x23, x24, [sp, 0x60]\n"
+    "    stp x25, x26, [sp, 0x70]\n"
+    "    stp x27, x28, [sp, 0x80]\n"
+    "    stp x29, x30, [sp, 0x90]\n"
+    /* Save the stack pointer to the first argument, and load it from the second. */
+    "    mov x2, sp\n"
+    "    str x2, [x0, 0]\n"
+    "    ldr x3, [x1, 0]\n"
+    "    mov sp, x3\n"
+    /* Restore the callee registers. */
+    "    ldp d8, d9, [sp, 0x00]\n"
+    "    ldp d10, d11, [sp, 0x10]\n"
+    "    ldp d12, d13, [sp, 0x20]\n"
+    "    ldp d14, d15, [sp, 0x30]\n"
+    "    ldp x19, x20, [sp, 0x40]\n"
+    "    ldp x21, x22, [sp, 0x50]\n"
+    "    ldp x23, x24, [sp, 0x60]\n"
+    "    ldp x25, x26, [sp, 0x70]\n"
+    "    ldp x27, x28, [sp, 0x80]\n"
+    "    ldp x29, x30, [sp, 0x90]\n"
+    "    add sp, sp, 0xa0\n"
+    /* Jump to the return address in x30. */
+    "    ret\n"
+    ".size filc_hop_context_transfer, .-filc_hop_context_transfer\n");
+
+static void hop_context_initialize(struct hop_context* context, hop_start start, void* stack,
+                                   size_t size)
+{
+    /* The stack grows down. Force 16-byte alignment. */
+    char* top = (char*)stack + size;
+    top = (char*)((uintptr_t)top & ~(uintptr_t)0xF);
+    context->stack_pointer = (void**)top;
+
+    context->stack_pointer -= HOP_REGISTERS;
+    memset(context->stack_pointer, 0, sizeof(void*) * HOP_REGISTERS);
+
+    /* The saved x30 is the address that the transfer returns to. */
+    context->stack_pointer[0x98 / 8] = (void*)start;
+}
+#else
+#error "Need a stack switch for this architecture."
+#endif
+
+static void hop_context_initialize_main(struct hop_context* context)
+{
+    context->stack_pointer = NULL;
+}
+
+static struct hop_context* hop_context_transfer(struct hop_context* current,
+                                                struct hop_context* target)
+{
+    return filc_hop_context_transfer(current, target);
+}
+
+/* The initial thread runs the program on a stack of its own that it hops to, so the process has only
+   the thread that the kernel started it with. A process with more than one thread cannot enter a user
+   namespace: unshare(CLONE_NEWUSER) fails with EINVAL. The program used to run on a second thread that
+   the initial thread created, and the initial thread stayed behind, parked, to keep /proc/self alive.
+   The thread keeps its signal mask. */
+
+/* The function to call on the new stack, and its argument. */
+static struct {
+    void (*function)(void* arg);
+    void* arg;
+} hop;
+
+static __attribute__((noreturn)) void hop_main(struct hop_context* from, struct hop_context* self)
+{
+    PAS_UNUSED_PARAM(from);
+    PAS_UNUSED_PARAM(self);
+    hop.function(hop.arg);
+
+    PAS_ASSERT(!"Should not get here");
+    __builtin_unreachable();
+}
+
+filc_stack_limit filc_map_program_stack(char** stack_out, size_t* stack_size_out)
+{
+    /* The stack has the size that `ulimit -s` says. */
+    struct rlimit stack_rlim;
+    intptr_t stack_min = PTHREAD_STACK_MIN;
+    PAS_ASSERT(stack_min > 0);
+    PAS_ASSERT(!getrlimit(RLIMIT_STACK, &stack_rlim));
+    /* No limit, or no real rlimits (cosmo on Windows, where getrlimit() reads a table that comes
+       back as RLIM_INFINITY): use the 8 MiB that a typical Linux main thread has. */
+    if (stack_rlim.rlim_cur == (rlim_t)RLIM_INFINITY
+        || (intptr_t)stack_rlim.rlim_cur < stack_min)
+        stack_rlim.rlim_cur = (rlim_t)8 * 1024 * 1024;
+    PAS_ASSERT((intptr_t)stack_rlim.rlim_cur >= stack_min);
+
+    size_t page_size = (size_t)sysconf(_SC_PAGESIZE);
+    size_t stack_size = ((size_t)stack_rlim.rlim_cur + page_size - 1) & ~(page_size - 1);
+
+    /* The lowest page is a guard. Overflows are caught by the stack limit before they get there. */
+    char* region = (char*)mmap(
+        NULL, stack_size + page_size, PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+    PAS_ASSERT(region != (char*)MAP_FAILED);
+    PAS_ASSERT(!mprotect(region, page_size, PROT_NONE));
+    char* stack = region + page_size;
+
+    *stack_out = stack;
+    *stack_size_out = stack_size;
+    return filc_compute_stack_limit_for_stack_and_size(stack, stack_size);
+}
+
+void filc_hop_to_stack(char* stack, size_t stack_size, void (*function)(void* arg), void* arg)
+{
+    struct hop_context from;
+    struct hop_context to;
+
+    hop.function = function;
+    hop.arg = arg;
+
+    hop_context_initialize_main(&from);
+    hop_context_initialize(&to, hop_main, stack, stack_size);
+    hop_context_transfer(&from, &to);
+
+    __builtin_unreachable();
+}
+
+struct start_args {
     int argc;
     char** argv;
     pizlonated_getter pizlonated___libc_start_main;
     pizlonated_getter pizlonated_main;
-    sigset_t oldset;
+    filc_stack_limit stack_limit;
 };
 
-static void* thread_main(void* arg)
+static void start_program_on_stack(void* arg)
 {
-    struct args* args = (struct args*)arg;
-
-    int argc = args->argc;
-    char** argv = args->argv;
-    pizlonated_getter pizlonated___libc_start_main = args->pizlonated___libc_start_main;
-    pizlonated_getter pizlonated_main = args->pizlonated_main;
-
-    PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &args->oldset, NULL));
-
-    bmalloc_deallocate(args);
+    struct start_args* args = (struct start_args*)arg;
 
     really_start_program(
-        filc_compute_stack_limit(), argc, argv, pizlonated___libc_start_main, pizlonated_main);
-    
+        args->stack_limit, args->argc, args->argv, args->pizlonated___libc_start_main,
+        args->pizlonated_main);
+
     PAS_ASSERT(!"Should not get here");
-    return NULL;
 }
 
 void filc_start_program(int argc, char** argv,
@@ -217,53 +426,18 @@ void filc_start_program(int argc, char** argv,
             return;
         }
     }
-    
-    struct args* args = (struct args*)bmalloc_allocate(sizeof(struct args));
-    args->argc = argc;
-    args->argv = argv;
-    args->pizlonated___libc_start_main = pizlonated___libc_start_main;
-    args->pizlonated_main = pizlonated_main;
 
-    /* FIXME: Instead of starting a thread, we could just hop stack. */
+    static struct start_args args;
+    char* stack;
+    size_t stack_size;
 
-    pthread_attr_t attr;
-    PAS_ASSERT(!pthread_attr_init(&attr));
+    args.argc = argc;
+    args.argv = argv;
+    args.pizlonated___libc_start_main = pizlonated___libc_start_main;
+    args.pizlonated_main = pizlonated_main;
+    args.stack_limit = filc_map_program_stack(&stack, &stack_size);
 
-    /* This is necessary to make `ulimit -s` work. */
-    struct rlimit stack_rlim;
-    intptr_t stack_min = PTHREAD_STACK_MIN;
-    PAS_ASSERT(stack_min > 0);
-    PAS_ASSERT(!getrlimit(RLIMIT_STACK, &stack_rlim));
-#if PAS_COSMO
-    /* On Windows there are no real rlimits: cosmo's getrlimit() reads the
-       PIB's inverted-default rlimit table, which comes back as RLIM_INFINITY
-       (i.e. ~0ul, which is -1 when viewed as a signed intptr_t).  The signed
-       assertion below therefore used to fire on every Windows boot.  Treat
-       any infinite, negative-as-signed, or below-minimum value as "unknown"
-       and substitute 8 MiB: the same main-thread stack size that a typical
-       Linux `ulimit -s` (RLIMIT_STACK = 8 MiB) hands this code path.  The
-       phony main thread spawned below carries the whole program, so this is
-       the effective main stack size on such hosts. */
-    if (stack_rlim.rlim_cur == (rlim_t)RLIM_INFINITY
-        || (intptr_t)stack_rlim.rlim_cur < stack_min)
-        stack_rlim.rlim_cur = (rlim_t)8 * 1024 * 1024;
-#endif /* PAS_COSMO */
-    PAS_ASSERT((intptr_t)stack_rlim.rlim_cur >= stack_min);
-    PAS_ASSERT(!pthread_attr_setstacksize(&attr, stack_rlim.rlim_cur));
-
-    /* Make sure the phony main thread receives no signals and stash the true sigset for the main
-       thread. */
-    sigset_t allset;
-    pas_reasonably_fill_sigset(&allset);
-    PAS_ASSERT(!pthread_sigmask(SIG_BLOCK, &allset, &args->oldset));
-
-    pthread_t thread;
-    PAS_ASSERT(!pthread_create(&thread, &attr, thread_main, args));
-    PAS_ASSERT(!pthread_detach(thread));
-    PAS_ASSERT(!pthread_attr_destroy(&attr));
-
-    /* We have to keep the main thread alive because otherwise /proc/self stops working. */
-    for (;;) pause();
+    filc_hop_to_stack(stack, stack_size, start_program_on_stack, &args);
 }
 
 void filc_start_program_with_jit(int argc, char** argv,

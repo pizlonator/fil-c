@@ -790,6 +790,56 @@ zgc_cycle_number zgc_request_fresh(void);
 /* Wait for the given GC cycle to finish. */
 void zgc_wait(zgc_cycle_number cycle);
 
+/* Defined if zgc_reserve_at() exists. Test for this rather than for a version number. */
+#define FILC_HAS_ZGC_RESERVE_AT 1
+
+/* Reserves the address range [address, address + length) and returns a pointer to it. Returns NULL and
+   sets errno on failure. The memory is anonymous, zero, readable and writable. The result is the same
+   kind of object that mmap(NULL, length, ...) returns: you can pass it to mmap with MAP_FIXED to map
+   files over parts of it, and to mprotect, madvise and munmap.
+
+   The range is exactly as requested, or the call fails. It never relocates the range and never
+   replaces an existing mapping. Use it for data that must be at the same address every time it is
+   mapped, such as a file of pointers: each process that reopens the file reserves the same range, and
+   the pointers in the file are ordinary pointers into the returned object.
+
+   The address and the length must be multiples of the page size. The runtime keeps its own data for
+   the object in the address space around it, and that space must also be free. It puts a header in the
+   page just before the address and the mark bits in the first page of the chunk (a multiple of
+   512 KiB) that contains the header. The object takes whole chunks, so the call claims everything from
+   the start of that chunk to the end of the chunk that contains the last byte. A range that starts at
+   a multiple of the chunk size always has that room before it and always works. Errors:
+
+   - EINVAL if the address is NULL, the length is 0, the range is not page aligned, wraps around or
+     leaves the address space of the runtime, or the address is in the first or second page of a chunk.
+
+   - EEXIST if any part of the range, or of the memory the runtime needs around it, is already mapped.
+     This includes an object that this function returned, until the program unmaps it and the GC
+     collects it.
+
+   - ENOMEM if the runtime lacks the resources.
+
+   Unmapping the object from its start with its whole length frees it like any other mmap object. */
+void* zgc_reserve_at(unsigned long address, __SIZE_TYPE__ length);
+
+/* Defined if zcall_on_fresh_stack() exists. Test for this rather than for a version number. */
+#define FILC_HAS_ZCALL_ON_FRESH_STACK 1
+
+/* Calls callback(arg) on a new stack and never returns to the caller. None of the frames of the
+   calling thread stay alive, and when the callback returns the process exits with status 0.
+
+   Fil-C is precise, and the frames of a running function keep alive what their slots point to: the
+   locals of the function, even the ones that it never uses again, and the pointers that it passed to
+   the calls that it made, until another call overwrites them. A process that unmaps a range and wants
+   it back at the same address, as when it reopens a file of pointers, never gets the range while a
+   frame of the thread still has a stale pointer into it. This function drops all those frames at once.
+   Only what arg and the globals reach stays alive, so pass everything that the callback needs through
+   those. The caller must not need anything from its own frames afterwards.
+
+   The new stack has the size that `ulimit -s` gives. The function does not free the stack of the
+   caller. */
+void zcall_on_fresh_stack(void* (*callback)(void* arg), void* arg) __attribute__((noreturn));
+
 /* Request a synchronous scavenge. This decommits all memory that can be decommitted.
    
    If we you want to free all memory that can possibly be freed and you're happy to wait, then you should

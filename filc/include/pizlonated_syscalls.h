@@ -98,6 +98,8 @@ int zsys_sigprocmask(int how, const void* set, void* oldset); /* This is pthread
 int zsys_chdir(const char* path);
 int zsys_fork_impl(void);
 int zsys_fork(void);
+int zsys_fork_flags_impl(int flags);
+int zsys_fork_flags(int flags);
 int zsys_waitpid(int pid, int* status, int options);
 int zsys_listen(int sockfd, int backlog);
 int zsys_accept(int sockfd, void* addr, unsigned* addrlen);

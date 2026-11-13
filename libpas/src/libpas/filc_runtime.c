@@ -444,6 +444,11 @@ static filc_stack_limit compute_stack_limit_for_stack_and_size(char* stack,
     return result;
 }
 
+filc_stack_limit filc_compute_stack_limit_for_stack_and_size(char* stack, size_t stack_size)
+{
+    return compute_stack_limit_for_stack_and_size(stack, stack_size);
+}
+
 filc_stack_limit filc_try_compute_stack_limit(void)
 {
     static const bool verbose = false;
@@ -2547,6 +2552,28 @@ static PAS_NO_RETURN PAS_NEVER_INLINE void ensure_aux_ptr_free_fail(filc_object*
                       filc_object_to_new_string(object));
 }
 
+/* Zeroes a large range of memory that this thread owns exclusively and that nothing else uses yet.
+   Writing zeroes touches every page, so the aux of a 128 MiB mapping would cost 128 MiB of resident
+   memory even if the program stores only one pointer into the mapping. Instead, replace the whole pages
+   in the range with pages that the kernel zeroes on first use, and write only the partial pages at the
+   ends. */
+static void zero_large_range_without_touching(void* base, size_t size)
+{
+    size_t page_size = pas_page_malloc_alignment();
+    uintptr_t begin = (uintptr_t)base;
+    uintptr_t end = begin + size;
+    uintptr_t aligned_begin = pas_round_up_to_power_of_2(begin, page_size);
+    uintptr_t aligned_end = pas_round_down_to_power_of_2(end, page_size);
+
+    if (size < 16 * page_size || aligned_begin >= aligned_end) {
+        memset(base, 0, size);
+        return;
+    }
+    memset(base, 0, aligned_begin - begin);
+    pas_page_malloc_zero_fill((void*)aligned_begin, aligned_end - aligned_begin);
+    memset((void*)aligned_end, 0, end - aligned_end);
+}
+
 static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
     filc_thread* my_thread, filc_object* object, filc_exit_allowed_mode exit_allowed_mode,
     size_t size, filc_size_mode size_mode)
@@ -2563,6 +2590,11 @@ static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
     PAS_TESTING_ASSERT(my_thread->state & FILC_THREAD_STATE_ENTERED);
     PAS_TESTING_ASSERT(size);
     pas_allocation_result aux_ptr_result = filc_thread_allocate(my_thread, size);
+    /* The aux of a mapping has the size of the mapping, and only the pointers that the program stores into
+       the mapping touch it. Counted as live bytes, it would let the garbage grow to half of its size
+       before the next collection, as the mapping itself would. See finish_allocate(). */
+    if (filc_object_get_flags(object) & FILC_OBJECT_FLAG_MMAP)
+        verse_heap_exclude_large_object_from_live_bytes(aux_ptr_result.begin);
     if (verbose) {
         pas_log("allocated aux at %p with size %zu, ending at %p\n",
                 (void*)aux_ptr_result.begin, size, (char*)aux_ptr_result.begin + size);
@@ -2582,7 +2614,7 @@ static PAS_ALWAYS_INLINE char* ensure_aux_ptr_slow_size_specialized(
                already true due to the fantastic properties of Phil's concurrent marking (even if you
                just allocated an object you still need a barrier). */
             filc_exit_with_allocation_root(my_thread, (void*)aux_ptr_result.begin);
-            memset((void*)aux_ptr_result.begin, 0, size);
+            zero_large_range_without_touching((void*)aux_ptr_result.begin, size);
             filc_enter_with_allocation_root(my_thread, (void*)aux_ptr_result.begin);
         }
     }
@@ -2930,6 +2962,11 @@ static PAS_ALWAYS_INLINE filc_object* finish_allocate(
     filc_object* result = initialize_object_header(
         my_thread, (void*)allocation_result.begin, size, alignment, offset_to_payload, object_flags,
         NULL, finalizer_queue);
+    /* A mapping reserves address space, and it holds only the memory that the program touches. Counting
+       its size as live bytes would let the garbage grow to half of that size before the next
+       collection. */
+    if (object_flags & FILC_OBJECT_FLAG_MMAP)
+        verse_heap_exclude_large_object_from_live_bytes(allocation_result.begin);
     if (PAS_UNLIKELY(size > FILC_MAX_BYTES_BETWEEN_POLLCHECKS) && exit_allowed_mode) {
         return finish_allocate_large(my_thread, result, size, allocation_result.zero_mode,
                                      object_flags);
@@ -7172,6 +7209,42 @@ void filc_native_zgc_wait(filc_thread* my_thread, unsigned long long cycle)
     filc_enter(my_thread);
 }
 
+filc_ptr filc_native_zgc_reserve_at(filc_thread* my_thread, unsigned long address, size_t length)
+{
+    /* This makes the same object that allocate_aligned_impl() makes for an mmap object, except that the
+       verse heap places it at the given address instead of finding room for it. The allocation starts
+       a page before the payload, for the alignment header, and the object header is at the end of that
+       page. See filc_prepare_allocate(). */
+    size_t page_size = pas_real_page_size();
+    size_t offset_to_payload = page_size;
+    PAS_ASSERT(offset_to_payload >= sizeof(filc_object) + sizeof(filc_alignment_header));
+
+    if (!address || !length
+        || !pas_is_aligned((uintptr_t)address, page_size)
+        || !pas_is_aligned(length, page_size)
+        || length > FILC_MAX_ALLOCATION_SIZE
+        || address < offset_to_payload
+        || length > SIZE_MAX - offset_to_payload) {
+        filc_set_errno(EINVAL);
+        return filc_ptr_forge_invalid(NULL);
+    }
+
+    int error;
+    pas_allocation_result allocation_result = verse_heap_try_allocate_large_exact(
+        fugc_destructor_heap, (uintptr_t)address - offset_to_payload, length + offset_to_payload,
+        &error);
+    if (!allocation_result.did_succeed) {
+        filc_set_errno(error);
+        return filc_ptr_forge_invalid(NULL);
+    }
+
+    filc_object* object = finish_allocate(
+        my_thread, allocation_result, length, page_size, offset_to_payload, FILC_OBJECT_FLAG_MMAP,
+        filc_exit_allowed, NULL);
+    PAS_ASSERT((uintptr_t)filc_object_lower(object) == (uintptr_t)address);
+    return filc_ptr_create_with_object(my_thread, object);
+}
+
 bool filc_native_zgc_is_stw(filc_thread* my_thread)
 {
     PAS_UNUSED_PARAM(my_thread);
@@ -9230,7 +9303,12 @@ int filc_native_zsys_chdir(filc_thread* my_thread, filc_ptr path_ptr)
     return result;
 }
 
-int filc_native_zsys_fork_impl(filc_thread* my_thread)
+#if !PAS_COSMO
+/* The fork of the yolo libc, with clone flags (new namespaces) added to the creation of the child. */
+extern pid_t __fork_flags(int flags);
+#endif
+
+static int fork_with_flags(filc_thread* my_thread, int flags)
 {
     static const bool verbose = false;
 
@@ -9345,7 +9423,12 @@ int filc_native_zsys_fork_impl(filc_thread* my_thread)
     filc_thread* thread;
     for (thread = filc_first_thread; thread; thread = thread->next_thread)
         pas_system_mutex_lock(&thread->lock);
+#if PAS_COSMO
+    PAS_ASSERT(!flags);
     int result = fork();
+#else
+    int result = __fork_flags(flags);
+#endif
     int my_errno = errno;
     pas_lock_disallowed = false;
     /* Release the collector thread state lock baseline hold, in both the parent and the child.  We
@@ -9449,6 +9532,75 @@ int filc_native_zsys_fork_impl(filc_thread* my_thread)
     if (result < 0)
         filc_set_errno(my_errno);
     return result;
+}
+
+int filc_native_zsys_fork_impl(filc_thread* my_thread)
+{
+    return fork_with_flags(my_thread, 0);
+}
+
+/* Forks a child that is also a member of new namespaces. The flags are clone flags, and the caller
+   checks them. The parent keeps its own namespaces, so it keeps its runtime threads. */
+int filc_native_zsys_fork_flags_impl(filc_thread* my_thread, int flags)
+{
+    return fork_with_flags(my_thread, flags);
+}
+
+/* Runs on the new stack of zcall_on_fresh_stack. The frames of the caller are no longer on the frame
+   chain of the thread, so the collector does not see the locals and the outgoing arguments of those
+   frames. */
+static void fresh_stack_main(void* arg)
+{
+    PAS_UNUSED_PARAM(arg);
+    filc_thread* my_thread = filc_get_my_thread();
+    PAS_ASSERT(filc_thread_is_entered(my_thread));
+
+    FILC_DEFINE_CATCHING_FRAME("zcall_on_fresh_stack");
+    filc_push_frame(my_thread, frame);
+
+    filc_native_frame native_frame;
+    filc_push_native_frame(my_thread, &native_frame);
+
+    filc_ptr callback_ptr = filc_flight_ptr_load(my_thread, &my_thread->thread_main);
+    filc_ptr arg_ptr = filc_flight_ptr_load(my_thread, &my_thread->arg_ptr);
+    filc_flight_ptr_store(my_thread, &my_thread->thread_main, filc_ptr_forge_null());
+    filc_flight_ptr_store(my_thread, &my_thread->arg_ptr, filc_ptr_forge_null());
+
+    filc_exception_and_ptr result = filc_call_user_thread_main(my_thread, callback_ptr, arg_ptr);
+    if (result.has_exception)
+        filc_user_panic(NULL, "unexpected exception thrown from the function of zcall_on_fresh_stack.");
+
+    /* The function returned and nothing is left to return to. */
+    filc_exit(my_thread);
+    exit(0);
+}
+
+void filc_native_zcall_on_fresh_stack(filc_thread* my_thread, filc_ptr callback_ptr,
+                                      filc_ptr arg_ptr)
+{
+    filc_check_function_call(callback_ptr);
+#if FILC_HAS_FIBER_CONTEXT
+    FILC_CHECK(
+        !my_thread->current_fiber_context,
+        NULL,
+        "cannot call zcall_on_fresh_stack from a fiber.");
+#endif /* FILC_HAS_FIBER_CONTEXT */
+
+    /* Pass the function and its argument through the same fields that a new thread gets them in,
+       because the collector knows those fields. */
+    filc_flight_ptr_store(my_thread, &my_thread->thread_main, callback_ptr);
+    filc_flight_ptr_store(my_thread, &my_thread->arg_ptr, arg_ptr);
+
+    /* Leave the frames of the caller behind. Nothing returns into them. */
+    char* stack;
+    size_t stack_size;
+    filc_stack_limit stack_limit = filc_map_program_stack(&stack, &stack_size);
+    my_thread->top_frame = NULL;
+    my_thread->top_native_frame = NULL;
+    filc_raw_ptr_array_destruct(&my_thread->allocation_roots);
+    filc_raw_ptr_array_construct(&my_thread->allocation_roots);
+    set_stack_limit(my_thread, stack_limit);
+    filc_hop_to_stack(stack, stack_size, fresh_stack_main, NULL);
 }
 
 int filc_native_zsys_waitpid(filc_thread* my_thread, int pid, filc_ptr status_ptr, int options)
@@ -9795,9 +9947,12 @@ void filc_unmap(void* ptr, size_t size)
        filc_unmap (munmap, shmdt, mremap) cannot hand us a Windows mapping. */
     PAS_ASSERT(!filc_running_on_windows());
 #endif /* PAS_COSMO */
+    /* The pages only hold the address range, so do not charge them to the overcommit limit.
+       Without MAP_NORESERVE, unmapping a mapping of tens of gigabytes that was reserved with
+       MAP_NORESERVE fails with ENOMEM. */
     void* result_ptr = mmap(ptr, size,
                             PROT_READ | PROT_WRITE,
-                            MAP_PRIVATE | MAP_ANON | MAP_FIXED,
+                            MAP_PRIVATE | MAP_ANON | MAP_FIXED | MAP_NORESERVE,
                             -1, 0);
     PAS_ASSERT(result_ptr == ptr);
 }
@@ -12099,6 +12254,19 @@ int filc_native_zsys_prctl(filc_thread* my_thread, int option, filc_cc_cursor* a
         return FILC_SYSCALL(my_thread, prctl(option, value, 0, 0, 0));
     }
 
+    /* The capability bounding set and the ambient set take only integers. */
+    case PR_CAPBSET_READ:
+    case PR_CAPBSET_DROP: {
+        unsigned long value = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
+        return FILC_SYSCALL(my_thread, prctl(option, value, 0, 0, 0));
+    }
+
+    case PR_CAP_AMBIENT: {
+        unsigned long operation = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
+        unsigned long capability = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
+        return FILC_SYSCALL(my_thread, prctl(PR_CAP_AMBIENT, operation, capability, 0, 0));
+    }
+
     case PR_SET_PDEATHSIG: {
         unsigned long value = filc_cc_cursor_get_next_unsigned_long(my_thread, args);
         FILC_CHECK(
@@ -12326,6 +12494,11 @@ int filc_native_zsys_landlock_add_rule(filc_thread* my_thread, int fd, int rule_
     switch (rule_type) {
     case LANDLOCK_RULE_PATH_BENEATH:
         filc_check_read(rule_attr_ptr, sizeof(struct landlock_path_beneath_attr));
+        break;
+
+    case LANDLOCK_RULE_NET_PORT:
+        /* Two integers: the access rights and the port. */
+        filc_check_read(rule_attr_ptr, sizeof(struct landlock_net_port_attr));
         break;
 
     default:
@@ -13864,6 +14037,58 @@ int filc_native_zsys_quotactl(filc_thread* my_thread, int cmd, filc_ptr special_
 #endif /* PAS_COSMO -> so end of !PAS_COSMO */
 }
 
+#if !PAS_COSMO
+/* The suspended threads have stopped running the runtime, but the kernel counts them until they exit.
+   Wait for them for a short while. A program with threads of its own never gets down to one thread, and
+   then the kernel gives the answer. */
+static void wait_for_runtime_threads_to_exit(void)
+{
+    unsigned attempt;
+    for (attempt = 0; attempt < 2000; ++attempt) {
+        DIR* dir = opendir("/proc/self/task");
+        if (!dir)
+            return;
+        unsigned count = 0;
+        struct dirent* entry;
+        while ((entry = readdir(dir))) {
+            if (entry->d_name[0] != '.')
+                count++;
+        }
+        closedir(dir);
+        if (count <= 1)
+            return;
+        struct timespec delay = { 0, 1000000 };
+        nanosleep(&delay, NULL);
+    }
+}
+
+/* The kernel refuses to enter a user namespace, or join a mount namespace, from a process with more
+   than one thread (EINVAL). The runtime has threads of its own: the collector, its parallel workers and
+   the scavenger. Stop them the way fork does and resume them afterwards. This does not touch threads of
+   the program, so a program with more than one thread still gets EINVAL from the kernel. */
+static int user_namespace_call(filc_thread* my_thread, bool is_setns, int arg0, int arg1)
+{
+    filc_exit(my_thread);
+    sigset_t fullset;
+    sigset_t oldset;
+    pas_reasonably_fill_sigset(&fullset);
+    PAS_ASSERT(!pthread_sigmask(SIG_BLOCK, &fullset, &oldset));
+    pas_scavenger_suspend();
+    fugc_suspend();
+    wait_for_runtime_threads_to_exit();
+    errno = 0;
+    int result = is_setns ? setns(arg0, arg1) : unshare(arg0);
+    int my_errno = errno;
+    fugc_resume();
+    pas_scavenger_resume();
+    PAS_ASSERT(!pthread_sigmask(SIG_SETMASK, &oldset, NULL));
+    filc_enter(my_thread);
+    if (my_errno)
+        filc_set_errno(my_errno);
+    return result;
+}
+#endif /* !PAS_COSMO */
+
 int filc_native_zsys_unshare(filc_thread* my_thread, int flags)
 {
 #if PAS_COSMO
@@ -13871,6 +14096,8 @@ int filc_native_zsys_unshare(filc_thread* my_thread, int flags)
     PAS_UNUSED_PARAM(flags);
     filc_internal_panic(NULL, "unshare not supported.");
 #else /* PAS_COSMO -> so !PAS_COSMO */
+    if (flags & CLONE_NEWUSER)
+        return user_namespace_call(my_thread, false, flags, 0);
     return FILC_SYSCALL(my_thread, unshare(flags));
 #endif /* PAS_COSMO -> so end of !PAS_COSMO */
 }
@@ -13970,6 +14197,11 @@ int filc_native_zsys_setns(filc_thread* my_thread, int fd, int nstype)
     PAS_UNUSED_PARAM(nstype);
     filc_internal_panic(NULL, "setns not supported.");
 #else /* PAS_COSMO -> so !PAS_COSMO */
+    /* A zero nstype lets the descriptor decide, and it may name a user namespace. Joining a mount
+       namespace needs a caller whose filesystem information no other thread shares, and the runtime's
+       threads share it. */
+    if (!nstype || (nstype & (CLONE_NEWUSER | CLONE_NEWNS)))
+        return user_namespace_call(my_thread, true, fd, nstype);
     return FILC_SYSCALL(my_thread, setns(fd, nstype));
 #endif /* PAS_COSMO -> so end of !PAS_COSMO */
 }
