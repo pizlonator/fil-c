@@ -126,6 +126,7 @@ FILC_YOLO_OBJS = \
 	o/$(MODE)/libc/stdio/fputc.o \
 	o/$(MODE)/libc/stdio/fputc_unlocked.o \
 	o/$(MODE)/libc/stdio/funlockfile.o \
+	o/$(MODE)/libc/stdio/fwrite.o \
 	o/$(MODE)/libc/stdio/fwrite_unlocked.o \
 	o/$(MODE)/libc/stdio/getcwd.o \
 	o/$(MODE)/libc/stdio/printf.o \
@@ -135,7 +136,6 @@ FILC_YOLO_OBJS = \
 	o/$(MODE)/libc/stdio/stderr.o \
 	o/$(MODE)/libc/stdio/stdout.o \
 	o/$(MODE)/libc/stdio/strtold.o \
-	o/$(MODE)/libc/stdio/syscall.o \
 	o/$(MODE)/libc/stdio/vcscanf.o \
 	o/$(MODE)/libc/stdio/vfprintf.o \
 	o/$(MODE)/libc/stdio/vfprintf_unlocked.o \

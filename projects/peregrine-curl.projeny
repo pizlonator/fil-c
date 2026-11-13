@@ -1,0 +1,490 @@
+URL: https://curl.se/download/curl-8.23.0.tar.xz c048df2e61382c619b609f94156ea73d29c96f536ff2de5abb8e9a1a871c63ac
+URL: https://github.com/curl/curl/releases/download/curl-8_23_0/curl-8.23.0.tar.xz c048df2e61382c619b609f94156ea73d29c96f536ff2de5abb8e9a1a871c63ac
+Origname: curl-8.23.0
+Name: peregrine-curl
+
+    curl with the Fil-C patch, plus the Peregrine (cosmo) fix: cosmo's AF_INET6 is an extern const variable whose value is selected at runtime per host OS, so it cannot be a case label; the unguarded switches in lib/curlx/inet_ntop.c and lib/curlx/inet_pton.c compare instead.  (The cosmo build configures curl with --disable-ipv6, which keeps the remaining AF_INET6 case labels out of the build; lifting that would mean hoisting the same comparison for the USE_IPV6-guarded switches in curl_addrinfo.c, ftp.c, hostip.c, doh.c, cf-socket.c and vquic.c.)
+
+        Copyright (c) 2026 Filip Pizlo.
+diff --git a/peregrine-curl/configure b/peregrine-curl/configure
+--- a/peregrine-curl/configure
++++ b/peregrine-curl/configure
+@@ -10710,7 +10710,7 @@
+ symcode='[BCDEGRST]'
+
+ # Regexp to match symbols that can be accessed directly from C.
+-sympat='\([_A-Za-z][_A-Za-z0-9]*\)'
++sympat='\(pizlonated_[_A-Za-z][_A-Za-z0-9]*\)'
+
+ # Define system-specific variables.
+ case $host_os in
+@@ -10776,14 +10776,14 @@
+ # so use this general approach.
+ lt_cv_sys_global_symbol_to_cdecl="$SED -n"\
+ $lt_cdecl_hook\
+-" -e 's/^T .* \(.*\)$/extern int \1();/p'"\
+-" -e 's/^$symcode$symcode* .* \(.*\)$/extern char \1;/p'"
++" -e 's/^T .* pizlonated_\(.*\)$/extern int \1();/p'"\
++" -e 's/^$symcode$symcode* .* pizlonated_\(.*\)$/extern char \1;/p'"
+
+ # Transform an extracted symbol line into symbol name and symbol address
+ lt_cv_sys_global_symbol_to_c_name_address="$SED -n"\
+ $lt_c_name_hook\
+ " -e 's/^: \(.*\) .*$/  {\"\1\", (void *) 0},/p'"\
+-" -e 's/^$symcode$symcode* .* \(.*\)$/  {\"\1\", (void *) \&\1},/p'"
++" -e 's/^$symcode$symcode* .* pizlonated_\(.*\)$/  {\"\1\", (void *) \&\1},/p'"
+
+ # Transform an extracted symbol line into symbol name with lib prefix and
+ # symbol address.
+@@ -10791,7 +10791,7 @@
+ $lt_c_name_lib_hook\
+ " -e 's/^: \(.*\) .*$/  {\"\1\", (void *) 0},/p'"\
+ " -e 's/^$symcode$symcode* .* \(lib.*\)$/  {\"\1\", (void *) \&\1},/p'"\
+-" -e 's/^$symcode$symcode* .* \(.*\)$/  {\"lib\1\", (void *) \&\1},/p'"
++" -e 's/^$symcode$symcode* .* pizlonated_\(.*\)$/  {\"lib\1\", (void *) \&\1},/p'"
+
+ # Handle CRLF in mingw tool chain
+ opt_cr=
+@@ -10867,8 +10867,8 @@
+       fi
+
+       # Make sure that we snagged all the symbols we need.
+-      if $GREP ' nm_test_var$' "$nlist" >/dev/null; then
+-	if $GREP ' nm_test_func$' "$nlist" >/dev/null; then
++      if $GREP ' pizlonated_nm_test_var$' "$nlist" >/dev/null; then
++	if $GREP ' pizlonated_nm_test_func$' "$nlist" >/dev/null; then
+ 	  cat <<_LT_EOF > conftest.$ac_ext
+ /* Keep this code in sync between libtool.m4, ltmain, lt_system.h, and tests.  */
+ #if defined _WIN32 || defined __CYGWIN__ || defined _WIN32_WCE
+@@ -10901,7 +10901,7 @@
+ {
+   { "@PROGRAM@", (void *) 0 },
+ _LT_EOF
+-	  $SED "s/^$symcode$symcode* .* \(.*\)$/  {\"\1\", (void *) \&\1},/" < "$nlist" | $GREP -v main >> conftest.$ac_ext
++	  $SED "s/^$symcode$symcode* .* pizlonated_\(.*\)$/  {\"\1\", (void *) \&\1},/" < "$nlist" | $GREP -v main >> conftest.$ac_ext
+ 	  cat <<\_LT_EOF >> conftest.$ac_ext
+   {0, (void *) 0}
+ };
+@@ -31220,7 +31220,10 @@
+ fi
+
+
+-  if test "$USE_LIBPSL" != "1"; then
++  # Fil-C: only error out when libpsl was explicitly requested; when
++  # auto-detecting (OPT_LIBPSL=off) a missing libpsl just means building
++  # without it, like curl 8.9.1 did.
++  if test "$OPT_LIBPSL" != "off" && test "$USE_LIBPSL" != "1"; then
+     as_fn_error $? "libpsl libs and/or directories were not found!" "$LINENO" 5
+   fi
+ fi
+diff --git a/peregrine-curl/configure.ac b/peregrine-curl/configure.ac
+--- a/peregrine-curl/configure.ac
++++ b/peregrine-curl/configure.ac
+@@ -2337,7 +2337,10 @@
+       LIBS=$CLEANLIBS
+   )
+
+-  if test "$USE_LIBPSL" != "1"; then
++  dnl Fil-C: only error out when libpsl was explicitly requested; when
++  dnl auto-detecting (OPT_LIBPSL=off) a missing libpsl just means building
++  dnl without it, like curl 8.9.1 did.
++  if test "$OPT_LIBPSL" != "off" && test "$USE_LIBPSL" != "1"; then
+     AC_MSG_ERROR([libpsl libs and/or directories were not found!])
+   fi
+ fi
+diff --git a/peregrine-curl/lib/Makefile.in b/peregrine-curl/lib/Makefile.in
+--- a/peregrine-curl/lib/Makefile.in
++++ b/peregrine-curl/lib/Makefile.in
+@@ -147,7 +147,7 @@
+ @CURL_LT_SHLIB_USE_MIMPURE_TEXT_TRUE@am__append_5 = -mimpure-text
+ @CURL_LT_SHLIB_USE_VERSIONED_SYMBOLS_TRUE@am__append_6 = -Wl,--version-script=libcurl.vers
+ # if symbol-hiding is enabled, hide them!
+-@CURL_LT_SHLIB_USE_VERSIONED_SYMBOLS_FALSE@@DOING_CURL_SYMBOL_HIDING_TRUE@am__append_7 = -export-symbols-regex '^curl_.*'
++@CURL_LT_SHLIB_USE_VERSIONED_SYMBOLS_FALSE@@DOING_CURL_SYMBOL_HIDING_TRUE@am__append_7 = -export-symbols-regex '^pizlonated_curl_.*'
+ @USE_CPPFLAG_CURL_STATICLIB_TRUE@am__append_8 = -DCURL_STATICLIB
+ @HAVE_WINDRES_TRUE@@USE_CPPFLAG_CURL_STATICLIB_FALSE@am__append_9 = $(LIB_RCFILES)
+ @DOING_CURL_SYMBOL_HIDING_TRUE@am__append_10 = -DCURL_HIDDEN_SYMBOLS
+@@ -357,7 +357,8 @@
+ 	libcurl_la-u8_strset.lo libcurl_la-u32_ptrset.lo \
+ 	libcurl_la-uint-bset.lo libcurl_la-uint-spbset.lo \
+ 	libcurl_la-uint-table.lo libcurl_la-url.lo \
+-	libcurl_la-urlapi.lo libcurl_la-version.lo libcurl_la-ws.lo
++	libcurl_la-urlapi.lo libcurl_la-version.lo libcurl_la-ws.lo \
++	libcurl_la-curl_ca_bundle.lo
+ am__dirstamp = $(am__leading_dot)dirstamp
+ am__objects_2 = vauth/libcurl_la-cleartext.lo vauth/libcurl_la-cram.lo \
+ 	vauth/libcurl_la-digest.lo vauth/libcurl_la-digest_sspi.lo \
+@@ -3510,6 +3511,13 @@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ws.c' object='libcurl_la-ws.lo' libtool=yes @AMDEPBACKSLASH@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -c -o libcurl_la-ws.lo `test -f 'ws.c' || echo '$(srcdir)/'`ws.c
++
++libcurl_la-curl_ca_bundle.lo: curl_ca_bundle.c
++@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -MT libcurl_la-curl_ca_bundle.lo -MD -MP -MF $(DEPDIR)/libcurl_la-curl_ca_bundle.Tpo -c -o libcurl_la-curl_ca_bundle.lo `test -f 'curl_ca_bundle.c' || echo '$(srcdir)/'`curl_ca_bundle.c
++@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcurl_la-curl_ca_bundle.Tpo $(DEPDIR)/libcurl_la-curl_ca_bundle.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='curl_ca_bundle.c' object='libcurl_la-curl_ca_bundle.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -c -o libcurl_la-curl_ca_bundle.lo `test -f 'curl_ca_bundle.c' || echo '$(srcdir)/'`curl_ca_bundle.c
+
+ vauth/libcurl_la-cleartext.lo: vauth/cleartext.c
+ @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libcurl_la_CPPFLAGS) $(CPPFLAGS) $(libcurl_la_CFLAGS) $(CFLAGS) -MT vauth/libcurl_la-cleartext.lo -MD -MP -MF vauth/$(DEPDIR)/libcurl_la-cleartext.Tpo -c -o vauth/libcurl_la-cleartext.lo `test -f 'vauth/cleartext.c' || echo '$(srcdir)/'`vauth/cleartext.c
+diff --git a/peregrine-curl/lib/Makefile.inc b/peregrine-curl/lib/Makefile.inc
+--- a/peregrine-curl/lib/Makefile.inc
++++ b/peregrine-curl/lib/Makefile.inc
+@@ -175,6 +175,10 @@
+   altsvc.c           \
+   amigaos.c          \
+   api.c              \
++  asyn-ares.c        \
++  asyn-base.c        \
++  asyn-thrdd.c       \
++  curl_ca_bundle.c   \
+   bufq.c             \
+   bufref.c           \
+   cf-h1-proxy.c      \
+@@ -322,6 +326,7 @@
+   cookie.h           \
+   creds.h            \
+   curl_addrinfo.h    \
++  curl_ca_bundle.h   \
+   curl_ctype.h       \
+   curl_endian.h      \
+   curl_fnmatch.h     \
+diff --git a/peregrine-curl/lib/curl_ca_bundle.c b/peregrine-curl/lib/curl_ca_bundle.c
+new file mode 100644
+--- /dev/null
++++ b/peregrine-curl/lib/curl_ca_bundle.c
+@@ -0,0 +1,91 @@
++/***************************************************************************
++ *                                  _   _ ____  _
++ *  Project                     ___| | | |  _ \| |
++ *                             / __| | | | |_) | |
++ *                            | (__| |_| |  _ <| |___
++ *                             \___|\___/|_| \_\_____|
++ *
++ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
++ *
++ * This software is licensed as described in the file COPYING, which
++ * you should have received as part of this distribution. The terms
++ * are also available at https://curl.se/docs/copyright.html.
++ *
++ * You may opt to use, copy, modify, merge, publish, distribute and/or sell
++ * copies of the Software, and permit persons to whom the Software is
++ * furnished to do so, under the terms of the COPYING file.
++ *
++ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
++ * KIND, either express or implied.
++ *
++ * SPDX-License-Identifier: curl
++ *
++ ***************************************************************************/
++
++#include "curl_setup.h"
++
++#include <sys/stat.h>
++#include <pthread.h>
++
++#include "curl_ca_bundle.h"
++
++/* Known CA bundle file locations across Linux distributions */
++static const char *const ca_bundle_paths[] = {
++  "/etc/ssl/certs/ca-certificates.crt",                  /* Debian/Ubuntu */
++  "/etc/pki/tls/certs/ca-bundle.crt",                    /* RHEL/Rocky/Fedora */
++  "/etc/ssl/ca-bundle.pem",                              /* OpenSUSE */
++  "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",   /* RHEL 7+ */
++  "/etc/ssl/cert.pem",                                   /* Alpine, macOS */
++  NULL
++};
++
++/* Known CA certificate directory locations */
++static const char *const ca_path_dirs[] = {
++  "/etc/ssl/certs",
++  "/etc/pki/tls/certs",
++  NULL
++};
++
++static const char *detected_ca_bundle;
++static const char *detected_ca_path;
++static pthread_once_t ca_detect_once = PTHREAD_ONCE_INIT;
++
++static void ca_detect(void)
++{
++  struct stat st;
++  int i;
++
++#if defined(CURL_CA_BUNDLE)
++  detected_ca_bundle = CURL_CA_BUNDLE;
++#else
++  for(i = 0; ca_bundle_paths[i]; i++) {
++    if(stat(ca_bundle_paths[i], &st) == 0 && S_ISREG(st.st_mode)) {
++      detected_ca_bundle = ca_bundle_paths[i];
++      break;
++    }
++  }
++#endif
++
++#if defined(CURL_CA_PATH)
++  detected_ca_path = CURL_CA_PATH;
++#else
++  for(i = 0; ca_path_dirs[i]; i++) {
++    if(stat(ca_path_dirs[i], &st) == 0 && S_ISDIR(st.st_mode)) {
++      detected_ca_path = ca_path_dirs[i];
++      break;
++    }
++  }
++#endif
++}
++
++const char *Curl_ca_bundle(void)
++{
++  pthread_once(&ca_detect_once, ca_detect);
++  return detected_ca_bundle;
++}
++
++const char *Curl_ca_path(void)
++{
++  pthread_once(&ca_detect_once, ca_detect);
++  return detected_ca_path;
++}
+diff --git a/peregrine-curl/lib/curl_ca_bundle.h b/peregrine-curl/lib/curl_ca_bundle.h
+new file mode 100644
+--- /dev/null
++++ b/peregrine-curl/lib/curl_ca_bundle.h
+@@ -0,0 +1,35 @@
++#ifndef HEADER_CURL_CA_BUNDLE_H
++#define HEADER_CURL_CA_BUNDLE_H
++/***************************************************************************
++ *                                  _   _ ____  _
++ *  Project                     ___| | | |  _ \| |
++ *                             / __| | | | |_) | |
++ *                            | (__| |_| |  _ <| |___
++ *                             \___|\___/|_| \_\_____|
++ *
++ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
++ *
++ * This software is licensed as described in the file COPYING, which
++ * you should have received as part of this distribution. The terms
++ * are also available at https://curl.se/docs/copyright.html.
++ *
++ * You may opt to use, copy, modify, merge, publish, distribute and/or sell
++ * copies of the Software, and permit persons to whom the Software is
++ * furnished to do so, under the terms of the COPYING file.
++ *
++ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
++ * KIND, either express or implied.
++ *
++ * SPDX-License-Identifier: curl
++ *
++ ***************************************************************************/
++
++/*
++ * Runtime detection of CA bundle file and CA path directory.
++ * Returns NULL if no suitable location is found.
++ * Thread-safe; results are cached after first call.
++ */
++const char *Curl_ca_bundle(void);
++const char *Curl_ca_path(void);
++
++#endif /* HEADER_CURL_CA_BUNDLE_H */
+diff --git a/peregrine-curl/lib/curlx/inet_ntop.c b/peregrine-curl/lib/curlx/inet_ntop.c
+--- a/peregrine-curl/lib/curlx/inet_ntop.c
++++ b/peregrine-curl/lib/curlx/inet_ntop.c
+@@ -188,11 +188,15 @@
+  */
+ CURLcode curlx_inet_ntop(int af, const void *src, char *buf, size_t size)
+ {
++  /* Cosmo (Peregrine): AF_INET6 is an extern const variable whose value
++     is selected at runtime per host OS (see the .syscon declarations in
++     libc/sysv/consts/*.S), so it cannot be a case label; compare instead
++     of switching. */
++  if(af == AF_INET6)
++    return inet_ntop6((const unsigned char *)src, buf, size);
+   switch(af) {
+   case AF_INET:
+     return inet_ntop4((const unsigned char *)src, buf, size);
+-  case AF_INET6:
+-    return inet_ntop6((const unsigned char *)src, buf, size);
+   default:
+     return CURLE_UNSUPPORTED_PROTOCOL;
+   }
+diff --git a/peregrine-curl/lib/curlx/inet_pton.c b/peregrine-curl/lib/curlx/inet_pton.c
+--- a/peregrine-curl/lib/curlx/inet_pton.c
++++ b/peregrine-curl/lib/curlx/inet_pton.c
+@@ -202,11 +202,14 @@
+  */
+ int curlx_inet_pton(int af, const char *src, void *dst)
+ {
++  /* Cosmo (Peregrine): AF_INET6 is an extern const variable whose value
++     is selected at runtime per host OS, so it cannot be a case label;
++     compare instead of switching. */
++  if(af == AF_INET6)
++    return inet_pton6(src, (unsigned char *)dst);
+   switch(af) {
+   case AF_INET:
+     return inet_pton4(src, (unsigned char *)dst);
+-  case AF_INET6:
+-    return inet_pton6(src, (unsigned char *)dst);
+   default:
+     return -1;
+   }
+diff --git a/peregrine-curl/lib/getinfo.c b/peregrine-curl/lib/getinfo.c
+--- a/peregrine-curl/lib/getinfo.c
++++ b/peregrine-curl/lib/getinfo.c
+@@ -30,6 +30,7 @@
+ #include "connect.h" /* Curl_getconnectinfo() */
+ #include "bufref.h"
+ #include "curlx/strparse.h"
++#include "curl_ca_bundle.h"
+
+ /*
+  * Initialize statistical and informational data.
+@@ -195,18 +196,10 @@
+     *param_charp = data->info.conn_scheme;
+     break;
+   case CURLINFO_CAPATH:
+-#ifdef CURL_CA_PATH
+-    *param_charp = CURL_CA_PATH;
+-#else
+-    *param_charp = NULL;
+-#endif
++    *param_charp = Curl_ca_path();
+     break;
+   case CURLINFO_CAINFO:
+-#ifdef CURL_CA_BUNDLE
+-    *param_charp = CURL_CA_BUNDLE;
+-#else
+-    *param_charp = NULL;
+-#endif
++    *param_charp = Curl_ca_bundle();
+     break;
+   default:
+     return CURLE_UNKNOWN_OPTION;
+diff --git a/peregrine-curl/lib/version.c b/peregrine-curl/lib/version.c
+--- a/peregrine-curl/lib/version.c
++++ b/peregrine-curl/lib/version.c
+@@ -33,6 +33,7 @@
+ #include "vssh/ssh.h"
+ #include "vquic/vquic.h"
+ #include "easy_lock.h"
++#include "curl_ca_bundle.h"
+
+ #ifdef USE_ARES
+ #  include <ares.h>
+@@ -553,16 +554,8 @@
+   0,    /* nghttp2 version number */
+   NULL, /* nghttp2 version string */
+   NULL, /* quic library string */
+-#ifdef CURL_CA_BUNDLE
+-  CURL_CA_BUNDLE, /* cainfo */
+-#else
+-  NULL,
+-#endif
+-#ifdef CURL_CA_PATH
+-  CURL_CA_PATH,  /* capath */
+-#else
+-  NULL,
+-#endif
++  NULL, /* cainfo - set at runtime by curl_version_info() */
++  NULL, /* capath - set at runtime by curl_version_info() */
+   0,    /* zstd_ver_num */
+   NULL, /* zstd version */
+   NULL, /* Hyper version */
+@@ -671,6 +664,9 @@
+
+   feature_names[n] = NULL;  /* Terminate array. */
+   version_info.features = features;
++
++  version_info.cainfo = Curl_ca_bundle();
++  version_info.capath = Curl_ca_path();
+
+   return &version_info;
+ }
+diff --git a/peregrine-curl/lib/vtls/vtls_config.c b/peregrine-curl/lib/vtls/vtls_config.c
+--- a/peregrine-curl/lib/vtls/vtls_config.c
++++ b/peregrine-curl/lib/vtls/vtls_config.c
+@@ -43,6 +43,7 @@
+ #include "urldata.h"
+ #include "setopt.h"
+ #include "strcase.h"
++#include "curl_ca_bundle.h"
+ #include "vtls/vtls.h"
+ #include "vtls/vtls_config.h"
+
+@@ -275,9 +276,7 @@
+   struct ssl_filter_config *ssl_proxy)
+ {
+   struct ssl_easy_config *sslc = &data->set.ssl;
+-#if defined(CURL_CA_PATH) || defined(CURL_CA_BUNDLE)
+   CURLcode result;
+-#endif
+
+   ssl_easy_config_compl_options(origin, data->state.initial_origin, sslc,
+                                 ssl_origin);
+@@ -287,20 +286,22 @@
+     if(!sslc->custom_capath && !sslc->custom_cafile && !sslc->custom_cablob)
+       ssl_origin->native_ca_store = TRUE;
+ #endif
+-#ifdef CURL_CA_PATH
+     if(!sslc->custom_capath && !CURL_EASY_STR(data, STRING_SSL_CAPATH)) {
+-      result = Curl_setstropt(data, STRING_SSL_CAPATH, CURL_CA_PATH);
+-      if(result)
+-        return result;
++      const char *capath = Curl_ca_path();
++      if(capath) {
++        result = Curl_setstropt(data, STRING_SSL_CAPATH, capath);
++        if(result)
++          return result;
++      }
+     }
+-#endif
+-#ifdef CURL_CA_BUNDLE
+     if(!sslc->custom_cafile && !CURL_EASY_STR(data, STRING_SSL_CAFILE)) {
+-      result = Curl_setstropt(data, STRING_SSL_CAFILE, CURL_CA_BUNDLE);
+-      if(result)
+-        return result;
++      const char *bundle = Curl_ca_bundle();
++      if(bundle) {
++        result = Curl_setstropt(data, STRING_SSL_CAFILE, bundle);
++        if(result)
++          return result;
++      }
+     }
+-#endif
+   }
+
+   ssl_origin->version = sslc->version;
+@@ -366,22 +367,24 @@
+     if(!sslc->custom_capath && !sslc->custom_cafile && !sslc->custom_cablob)
+       ssl_proxy->native_ca_store = TRUE;
+ #endif
+-#ifdef CURL_CA_PATH
+     if(!sslc->custom_capath &&
+        !CURL_EASY_STR(data, STRING_SSL_CAPATH_PROXY)) {
+-      result = Curl_setstropt(data, STRING_SSL_CAPATH_PROXY, CURL_CA_PATH);
+-      if(result)
+-        return result;
++      const char *capath = Curl_ca_path();
++      if(capath) {
++        result = Curl_setstropt(data, STRING_SSL_CAPATH_PROXY, capath);
++        if(result)
++          return result;
++      }
+     }
+-#endif
+-#ifdef CURL_CA_BUNDLE
+     if(!sslc->custom_cafile &&
+        !CURL_EASY_STR(data, STRING_SSL_CAFILE_PROXY)) {
+-      result = Curl_setstropt(data, STRING_SSL_CAFILE_PROXY, CURL_CA_BUNDLE);
+-      if(result)
+-        return result;
++      const char *bundle = Curl_ca_bundle();
++      if(bundle) {
++        result = Curl_setstropt(data, STRING_SSL_CAFILE_PROXY, bundle);
++        if(result)
++          return result;
++      }
+     }
+-#endif
+   }
+
+   ssl_proxy->version = sslc->version;

@@ -334,6 +334,43 @@ def main():
         seed_archives += sorted(
             glob.glob(os.path.join(REPO, "projects", "lute-1.0.0", "extern",
                                    "luau", "build", "release", "*.a")))
+
+    # libyolort.a and libyolounwind.a are providers: they sit in the same
+    # --start-group as -lyolocosmo and are re-scanned after every cosmo pull,
+    # so a cosmo member may reference their symbols freely.
+    provider_archives = [
+        os.path.join(pizfix, libdir, "libyolort.a"),
+        os.path.join(pizfix, libdir, "libyolounwind.a"),
+    ]
+
+    # Every other static archive installed into pizfix (e.g. the yosh dep
+    # stack: libreadline.a, libcurl.a, libssl.a, ...) is a host-toolchain
+    # static library that gets linked into Fil-C cosmo binaries, so its
+    # members' references to plain libc symbols resolve from -lyolocosmo and
+    # must be seeded here too, exactly like the luau archives above.  The
+    # x86_64 archives live in pizfix/lib; the aarch64 "shadow" archives that
+    # the driver's fat-APE -L rewrite searches first live in pizfix/lib/
+    # .aarch64.  libyolocosmo.a itself is excluded: it is the generated
+    # output of this closure, not a consumer of it; the provider archives are
+    # excluded because they are re-scanned as providers below, not seeded as
+    # consumers.
+    #
+    # NOTE: the committed filc-objects{,-aarch64}.mk fragments were generated
+    # with yosh's dependency stack (libreadline.a, libcurl.a, libssl.a, ...
+    # plus their .aarch64 shadow archives) installed in pizfix, so
+    # regenerating on a fresh machine without that stack legitimately
+    # produces a different (smaller) closure - it is not a bug.
+    seed_globs = [os.path.join(pizfix, libdir, "lib*.a"),
+                  os.path.join(pizfix, "lib", ".aarch64", "lib*.a")]
+    provider_paths = set(provider_archives)
+    for seed_glob in seed_globs:
+        for path in sorted(glob.glob(seed_glob)):
+            if path.endswith("libyolocosmo.a"):
+                continue
+            if (path in seed_archives or path in optional_cxx_archives or
+                    path in provider_paths):
+                continue
+            seed_archives.append(path)
     seed_objects = [
         os.path.join(pizfix, libdir, "crt1.o"),
         os.path.join(pizfix, libdir, "cosmo-crt.o"),
@@ -348,13 +385,6 @@ def main():
     # ape.S); aarch64 links no such object (see the Makefile's filcyolo).
     if arch == "x86_64":
         seed_objects.append(os.path.join(pizfix, "lib", "ape.o"))
-    # libyolort.a and libyolounwind.a are providers: they sit in the same
-    # --start-group as -lyolocosmo and are re-scanned after every cosmo pull,
-    # so a cosmo member may reference their symbols freely.
-    provider_archives = [
-        os.path.join(pizfix, libdir, "libyolort.a"),
-        os.path.join(pizfix, libdir, "libyolounwind.a"),
-    ]
 
     undefined = set()
     defined_elsewhere = set()

@@ -164,7 +164,16 @@ CFLAGS = $(TARGET_FLAG) -O2 -g -std=gnu23 \
 # (libc/str/has_char.h).  They compile fine with the Fil-C C++ front end; the
 # public declarations are extern "C" via COSMOPOLITAN_C_START_, so the
 # symbols land unmangled as pizlonated_<name>.
-CCXX = libc/str/iswlower.cc libc/str/iswupper.cc libc/str/iswseparator.cc
+#
+# libc/thread/pthread_once.cc is in the same boat, and it MUST be built:
+# pizlonated code (e.g. libcrypto's threads_pthread.c, libcurl, and cosmo's
+# own libc/testlib/once_test.c) references pthread_once through the
+# pizlonated_pthread_once symbol, and pthread_once.cc is cosmo's only
+# definition of it.  Without this member every pthread_once() user fails to
+# link (libyolocosmo.a has a plain pthread_once for yolo code, but pizlonated
+# code can not call yolo functions).
+CCXX = libc/str/iswlower.cc libc/str/iswupper.cc libc/str/iswseparator.cc \
+	libc/thread/pthread_once.cc
 
 CXXFLAGS = $(TARGET_FLAG) -O2 -g -std=gnu++20 \
  -DSUPPORT_VECTOR=1 -D_COSMO_SOURCE -DNDEBUG -DMODE=\"filc\" \
@@ -287,6 +296,56 @@ GEN_OBJS = \
 #                         __FILC__ branches return ENOSYS instead of touching
 #                         the excluded raw-asm implementations (pledge() can't
 #                         be enforced under Fil-C; __syslib is never populated).
+#      libc/intrin/memrchr.c, libc/calls/mincore.c, libc/stdio/putwc_unlocked.c
+#                         duplicate definitions that the Fil-C replacement
+#                         files below already provide (strong duplicate symbols
+#                         inside libc.a are only latent until two members get
+#                         pulled into one link — libcurl's memrchr use trips
+#                         this one).  filc_str.c owns the scanning mem*/str*
+#                         family (memrchr reads are vectorized past the object
+#                         bounds just like memchr/strchr, which are excluded
+#                         for the same reason), filc_mmap.c owns the memory
+#                         APIs (cosmo's mincore twins with the already-excluded
+#                         libc/intrin/mincore.c), and fputwc_unlocked.c's
+#                         __strong_reference already defines putwc_unlocked.
+#      libc/mem/valloc.c pvalloc.c reallocarray.c
+#                         the allocator family: filc_malloc.c (the Fil-C
+#                         allocator) defines all three, exactly like the
+#                         malloc/calloc/realloc/free/... files excluded above.
+#      libc/calls/fstat-sysv.c fstatat-sysv.c
+#                         these convert the __sys_fstat{,at} result from the
+#                         raw kernel stat layout via __stat2cosmo, but the
+#                         gen_shims shims for __sys_fstat{,at} already deliver
+#                         a cosmo-ABI struct stat (they forward to libpizlo's
+#                         zsys_fstat*, whose runtime calls cosmo's own yolo
+#                         fstatat).  The re-conversion is an identity on
+#                         x86_64 (the layouts coincide) but permutes st_mode/
+#                         st_nlink/st_uid/st_gid on aarch64.  filc_stat.c
+#                         provides plain pass-through sys_fstat/sys_fstatat.
+#      libc/runtime/exit.c
+#                         replaced by filc/filc_exit.c: cosmo's exit() gets
+#                         its exit-time stdio flush from a constructor inside
+#                         libc/stdio/fflush.c, which a static-archive libc
+#                         only pulls if the program references fflush/fclose
+#                         itself; programs that write a file and exit lose
+#                         the buffered data.  filc_exit.c is cosmo's exit()
+#                         plus an unconditional fflush(NULL) after the
+#                         destructors.
+#      libc/intrin/memset.c memmove.c stpcpy.c
+#                         these do not survive a pizlonated compile at
+#                         runtime: memset.c/memmove.c execute `rep stosb` /
+#                         `rep movsb` inline asm (the Fil-C compiler refuses
+#                         to run inline asm with pointer outputs — openssl's
+#                         OPENSSL_cleanse panics inside memset_avx), and
+#                         stpcpy.c scans 16 bytes at a time past the NUL
+#                         terminator.  On aarch64 their C twins compile to
+#                         empty objects anyway (the real implementations are
+#                         libc/intrin/aarch64/*.S).  filc_str.c provides safe
+#                         definitions of memset/memcpy/memmove/stpcpy for
+#                         every architecture; the compiler lowers the builtin
+#                         calls it can see to the filc_mem* runtime helpers,
+#                         so these only serve explicit extern calls (openssl,
+#                         curl, libunistring) and function pointers.
 #
 #    aarch64-only exclusions (AARCH64_EXCLUDE_FILES below, see the aarch64
 #    branch of ARCH_CFLAGS): the metal/BIOS layer (pc.internal.h's raw I/O
@@ -441,7 +500,19 @@ EXCLUDE_FILES = \
 	libc/intrin/msync-nt.c \
 	libc/dlopen/dlopen.c \
 	libc/dlopen/dlclose.c \
-	libc/dlopen/dlsym.c
+	libc/dlopen/dlsym.c \
+	libc/intrin/memrchr.c \
+	libc/intrin/memset.c \
+	libc/intrin/memmove.c \
+	libc/intrin/stpcpy.c \
+	libc/calls/mincore.c \
+	libc/calls/fstat-sysv.c \
+	libc/calls/fstatat-sysv.c \
+	libc/stdio/putwc_unlocked.c \
+	libc/mem/valloc.c \
+	libc/mem/pvalloc.c \
+	libc/mem/reallocarray.c \
+	libc/runtime/exit.c
 
 AARCH64_EXCLUDE_FILES ?=
 
@@ -459,9 +530,10 @@ SRCS_C += $(foreach d,$(THIRD_PARTY_DIRS),$(shell cd $(COSMO) && find $(d) -name
 # third_party/getopt: the __optarg/__optind/__getopt implementation that the
 # sed/tr applets use; third_party/regex: POSIX regcomp/regexec used by sed
 # (and by glob-style tools); musl's pwd.c backs getpwnam_r/getpwuid_r which
-# glob.c calls.
+# glob.c calls; musl's grp.c backs the getgrent/setgrent/endgrent group
+# enumeration API that bash's group list uses.
 SRCS_C += $(shell cd $(COSMO) && find third_party/getopt third_party/regex -name '*.c' | LC_ALL=C sort)
-SRCS_C += $(foreach m,pwd.c fgetspent.c getspnam_r.c putspent.c,\
+SRCS_C += $(foreach m,pwd.c fgetspent.c getspnam_r.c putspent.c grp.c,\
 	$(shell cd $(COSMO) && find third_party/musl -name '$(m)' 2>/dev/null))
 # selected musl bits.  cosmo vendors chunks of musl in third_party/musl/ and
 # uses them as the canonical implementations of the corresponding APIs; the
@@ -494,6 +566,33 @@ SRCS_C += $(foreach m,$(MUSL_FILES),\
 # The embedded sed/tr applets that cosmo's system()/popen() shell (cocmd)
 # dispatches to; without them every system() user has undefined symbols.
 SRCS_C += $(shell cd $(COSMO) && find third_party/sed third_party/tr -name '*.c' | LC_ALL=C sort)
+
+# The pizlonated kHalfCache3 (see filc/khalfcache3.c): cosmo's own definition
+# lives in khalfcache3.S, which neither Sarcasm nor a pizlonated compile can
+# consume, yet the pizlonated memset.c/memmove.c reference the global through
+# its pizlonated_kHalfCache3 getter (so libcrypto's OPENSSL_cleanse, which
+# pulls memset.c.o, fails to link without it).
+SRCS_C += filc/khalfcache3.c
+
+# The pizlonated sys_fstat/sys_fstatat (see filc/filc_stat.c): cosmo's
+# fstat{,at}-sysv.c re-converts what the __sys_fstat* shims already deliver
+# as cosmo-ABI struct stat, which corrupts st_mode & co on aarch64 (where the
+# kernel layout differs from the cosmo ABI).
+SRCS_C += filc/filc_stat.c
+
+# The pizlonated exit (see filc/filc_exit.c): cosmo's exit() relies on a
+# constructor inside libc/stdio/fflush.c to register the exit-time fflush(0)
+# that flushes every open stdio stream, but a static-archive link only pulls
+# fflush.c.o when the program itself references fflush/fclose, so programs
+# that just write a file and exit (bash's mksignames, bashbug generation,
+# ...) silently lose the buffered data.  Our replacement exit() flushes
+# stdio directly, exactly like musl's exit() does.
+SRCS_C += filc/filc_exit.c
+
+# The pizlonated wcscoll (see filc/filc_wcscoll.c): cosmo has no wcscoll at
+# all (only strcoll), and bash's wide-character pattern matcher calls it
+# unconditionally from its collation comparisons.
+SRCS_C += filc/filc_wcscoll.c
 
 # Every source becomes o-filc/<path>.o (and the generated ones become
 # o-filc/generated/<name>.o), exactly like the old build_usercosmo.sh.

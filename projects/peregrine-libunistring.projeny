@@ -1,0 +1,85 @@
+URL: https://ftpmirror.gnu.org/libunistring/libunistring-1.5.tar.xz be8cb96c928d03e143c90ea89bae213993bedd32c1258b0a000c1e604944d836
+URL: https://mirrors.kernel.org/gnu/libunistring/libunistring-1.5.tar.xz be8cb96c928d03e143c90ea89bae213993bedd32c1258b0a000c1e604944d836
+Origname: libunistring-1.5
+Name: peregrine-libunistring
+
+    libunistring with the Fil-C patch, plus the Peregrine (cosmo) fixes: cosmo is musl-like (NL_LOCALE_NAME, nl_langinfo_l) but its headers #undef __linux__ (its target triple is not a Linux triple), so gnulib's langinfo include and getlocalename_l-unsafe musl branch now also test __FILC__; and the gnulib pthread-rwlock test guards its glibc-only pthread_rwlockattr_setkind_np override, which cosmo does not have.
+
+        Copyright (c) 2026 Filip Pizlo.
+diff --git a/peregrine-libunistring/lib/getlocalename_l-unsafe.c b/peregrine-libunistring/lib/getlocalename_l-unsafe.c
+--- a/peregrine-libunistring/lib/getlocalename_l-unsafe.c
++++ b/peregrine-libunistring/lib/getlocalename_l-unsafe.c
+@@ -41,7 +41,13 @@
+ #endif
+ #include "setlocale_null.h"
+
+-#if (__GLIBC__ >= 2 && !defined __UCLIBC__) || (defined __linux__ && HAVE_LANGINFO_H) || defined __CYGWIN__
++#if (__GLIBC__ >= 2 && !defined __UCLIBC__) \
++    || (defined __linux__ && HAVE_LANGINFO_H) || defined __CYGWIN__ \
++    || (defined __FILC__ && HAVE_LANGINFO_H)
++/* The __FILC__ clause is for Cosmo (Peregrine): cosmo is musl-like and
++   its langinfo.h provides NL_LOCALE_NAME, but cosmo's headers #undef
++   __linux__ (its target triple is not a Linux triple), so the __linux__
++   clause above would not fire there. */
+ # include <langinfo.h>
+ #endif
+ #if defined __sun
+@@ -472,8 +478,12 @@
+            nl_langinfo_l (_NL_LOCALE_NAME (category), locale).  */
+         name = locale->__names[category];
+       return (struct string_with_storage) { name, STORAGE_OBJECT };
+-#elif defined __linux__ && HAVE_LANGINFO_H && defined NL_LOCALE_NAME
+-      /* musl libc */
++#elif (defined __linux__ || defined __FILC__) \
++      && HAVE_LANGINFO_H && defined NL_LOCALE_NAME
++      /* musl libc; and Cosmo (Peregrine): cosmo is musl-like and provides
++         nl_langinfo_l (NL_LOCALE_NAME (category), locale), but cosmo's
++         headers #undef __linux__ (its target triple is not a Linux
++         triple), so __FILC__ is tested as well. */
+       const char *name = nl_langinfo_l (NL_LOCALE_NAME (category), locale);
+       return (struct string_with_storage) { name, STORAGE_OBJECT };
+ #elif (defined __FreeBSD__ || defined __DragonFly__) || (defined __APPLE__ && defined __MACH__)
+diff --git a/peregrine-libunistring/tests/pthread-rwlock.c b/peregrine-libunistring/tests/pthread-rwlock.c
+--- a/peregrine-libunistring/tests/pthread-rwlock.c
++++ b/peregrine-libunistring/tests/pthread-rwlock.c
+@@ -62,6 +62,11 @@
+     if (err != 0)
+       return err;
+   }
++  /* Cosmo (Peregrine): cosmo has no pthread_rwlockattr_setkind_np and no
++     PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP.  Gnulib guesses a bad
++     wait queue on platforms it does not know, but the kind-setting
++     override below is only possible where the glibc extension exists. */
++#if defined PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP
+   {
+     int err = pthread_rwlockattr_setkind_np (attr,
+                                              PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP);
+@@ -71,6 +76,7 @@
+         return err;
+       }
+   }
++#endif
+   return 0;
+ }
+
+@@ -418,6 +424,12 @@
+           return err;
+       }
+       {
++        /* Cosmo (Peregrine): cosmo has no pthread_rwlockattr_setkind_np
++           and no PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP.  Gnulib
++           guesses a bad wait queue on platforms it does not know, but the
++           kind-setting override below is only possible where the glibc
++           extension exists. */
++#if defined PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP
+         int err = pthread_rwlockattr_setkind_np (&replacement_attr,
+                                                  PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP);
+         if (err != 0)
+@@ -425,6 +437,7 @@
+             pthread_rwlockattr_destroy (&replacement_attr);
+             return err;
+           }
++#endif
+       }
+       {
+         int err = pthread_rwlock_init (lock, &replacement_attr);

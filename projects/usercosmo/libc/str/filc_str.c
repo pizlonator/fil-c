@@ -454,3 +454,73 @@ wchar_t *wcsstr(const wchar_t *haystack, const wchar_t *needle) {
   }
   return 0;
 }
+
+/* memset/memcpy/memmove/stpcpy: on aarch64 cosmo implements these in raw
+ * assembly (libc/intrin/aarch64/*.S), so the C twins in libc/intrin/*.c
+ * compile to empty objects and the pizlonated libc would ship no definition
+ * at all.  On x86_64 the cosmo versions do compile, but they are not usable
+ * either: memset.c/memmove.c use `rep stosb`/`rep movsb` inline asm (which
+ * the Fil-C compiler refuses to execute: "inline assembly with pointer
+ * return type is not supported" panics the program, e.g. when openssl's
+ * OPENSSL_cleanse zeroes a key), and stpcpy.c scans 16 bytes at a time,
+ * reading past the NUL terminator just like the string scanners above.
+ *
+ * So under Fil-C these four come from here on every architecture: simple
+ * chunked byte-wise implementations that only ever touch bytes within the
+ * [p, p+n) ranges their arguments promise.  Calls that the compiler can see
+ * as builtins never reach these anyway: they lower to the filc_memset /
+ * filc_memcpy / filc_memmove runtime helpers.  (The yolo side keeps cosmo's
+ * optimized versions in libyolocosmo.a for yolo code.) */
+void *memset(void *p, int c, size_t n) {
+  char *b = (char *)p;
+  size_t i = 0;
+  if (n >= 8) {
+    unsigned long x = 0x0101010101010101ul * (unsigned char)c;
+    for (; i + 8 <= n; i += 8)
+      *(unsigned long *)(b + i) = x;
+  }
+  for (; i < n; ++i)
+    b[i] = (char)c;
+  return p;
+}
+
+void *memcpy(void *d, const void *s, size_t n) {
+  char *dst = (char *)d;
+  const char *src = (const char *)s;
+  size_t i = 0;
+  for (; i + 8 <= n; i += 8)
+    *(unsigned long *)(dst + i) = *(const unsigned long *)(src + i);
+  for (; i < n; ++i)
+    dst[i] = src[i];
+  return d;
+}
+
+void *memmove(void *d, const void *s, size_t n) {
+  char *dst = (char *)d;
+  const char *src = (const char *)s;
+  size_t i;
+  if ((char *)dst < (const char *)src || (char *)dst >= (const char *)src + n) {
+    for (i = 0; i + 8 <= n; i += 8)
+      *(unsigned long *)(dst + i) = *(const unsigned long *)(src + i);
+    for (; i < n; ++i)
+      dst[i] = src[i];
+  } else {
+    i = n;
+    while (i >= 8) {
+      i -= 8;
+      *(unsigned long *)(dst + i) = *(const unsigned long *)(src + i);
+    }
+    while (i--)
+      dst[i] = src[i];
+  }
+  return d;
+}
+
+char *stpcpy(char *d, const char *s) {
+  for (;; ++d, ++s) {
+    *d = *s;
+    if (!*s)
+      return d;
+  }
+}
+

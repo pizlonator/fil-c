@@ -1,0 +1,189 @@
+URL: https://mirrors.kernel.org/gnu/ncurses/ncurses-6.6.tar.gz fbec55697a01f99b9cc3f25be55e73ae7091f4c53e5d81a1ea15734c4e5b7238
+URL: https://mirror.csclub.uwaterloo.ca/gnu/ncurses/ncurses-6.6.tar.gz fbec55697a01f99b9cc3f25be55e73ae7091f4c53e5d81a1ea15734c4e5b7238
+URL: https://ftp.fau.de/gnu/ncurses/ncurses-6.6.tar.gz fbec55697a01f99b9cc3f25be55e73ae7091f4c53e5d81a1ea15734c4e5b7238
+Origname: ncurses-6.6
+Name: peregrine-ncurses
+
+    ncurses 6.6 with the Peregrine (cosmo) port: cosmo's termios B-constants are extern const variables whose per-OS values are selected at runtime, so the static speed tables in ncurses/tinfo/lib_baudrate.c and progs/tset.c (which initialize from B50, B75, ... as compile-time constants) do not compile; they now store pointers to the constants and read the values at runtime.
+
+        Copyright (c) 2026 Filip Pizlo.
+diff --git a/peregrine-ncurses/ncurses/tinfo/lib_baudrate.c b/peregrine-ncurses/ncurses/tinfo/lib_baudrate.c
+--- a/peregrine-ncurses/ncurses/tinfo/lib_baudrate.c
++++ b/peregrine-ncurses/ncurses/tinfo/lib_baudrate.c
+@@ -94,17 +94,43 @@
+  *
+  */
+
++#if !defined(USE_WIN32CON_DRIVER)
++#ifdef __COSMOPOLITAN__
++/*
++ * Cosmo (Peregrine): the B-constants are extern const uint32_t variables
++ * whose values are selected at runtime per host OS (see the .syscon
++ * declarations in libc/sysv/consts/B*.S), so they cannot appear in a
++ * static initializer.  Store pointers to the constants and read the
++ * values through them; each host OS's values are ascending in this
++ * table's order, exactly like the compile-time constants would be.
++ * B0 is the one exception: cosmo's termios header defines it as the
++ * literal 0, so its entry stores a null pointer instead.
++ */
+ struct speed {
++    const unsigned int *given_speed;	/* pointer to the value for 'ospeed' */
++    int actual_speed;		/* the actual speed */
++};
++#define DATA(number) { &B##number, number }
++#define GIVEN_SPEED(entry) ((entry).given_speed \
++			    ? (int) *(entry).given_speed \
++			    : 0)
++#else
++struct speed {
+     int given_speed;		/* values for 'ospeed' */
+     int actual_speed;		/* the actual speed */
+ };
+-
+-#if !defined(USE_WIN32CON_DRIVER)
+ #define DATA(number) { B##number, number }
++#define GIVEN_SPEED(speed) ((speed).given_speed)
++#endif
+
+ static struct speed const speeds[] =
+ {
++#ifdef __COSMOPOLITAN__
++    /* DATA(0): cosmo's B0 is the literal 0, not a variable. */
++    { 0, 0 },
++#else
+     DATA(0),
++#endif
+     DATA(50),
+     DATA(75),
+     DATA(110),
+@@ -220,10 +246,10 @@
+ 	    unsigned i;
+
+ 	    for (i = 0; i < SIZEOF(speeds); i++) {
+-		if (speeds[i].given_speed > OSpeed) {
++		if (GIVEN_SPEED(speeds[i]) > OSpeed) {
+ 		    break;
+ 		}
+-		if (speeds[i].given_speed == OSpeed) {
++		if (GIVEN_SPEED(speeds[i]) == OSpeed) {
+ 		    result = speeds[i].actual_speed;
+ 		    break;
+ 		}
+@@ -252,7 +278,7 @@
+
+ 	for (i = 0; i < SIZEOF(speeds); i++) {
+ 	    if (speeds[i].actual_speed == BaudRate) {
+-		result = speeds[i].given_speed;
++		result = GIVEN_SPEED(speeds[i]);
+ 		break;
+ 	    }
+ 	}
+diff --git a/peregrine-ncurses/ncurses/trace/lib_tracebits.c b/peregrine-ncurses/ncurses/trace/lib_tracebits.c
+--- a/peregrine-ncurses/ncurses/trace/lib_tracebits.c
++++ b/peregrine-ncurses/ncurses/trace/lib_tracebits.c
+@@ -106,10 +106,19 @@
+     char *buf;
+
+ #ifdef TERMIOS
+-#define DATA(name)        { name, { #name } }
+-#define DATA2(name,name2) { name, { #name2 } }
++/*
++ * Cosmo (Peregrine): cosmo's termios constants (BRKINT, OPOST, CS5, ...)
++ * are extern const uint32_t variables whose values are selected at
++ * runtime per host OS (see the .syscon declarations in
++ * libc/sysv/consts/*.S), so they cannot initialize static tables - not
++ * even through | combinations, which cannot have their address taken
++ * either.  Make the tables automatic (runtime-initialized) instead of
++ * static; this is tracing code, so the per-call copy is irrelevant.
++ */
++#define DATA(name)        { (unsigned long) (name), { #name } }
++#define DATA2(name,name2) { (unsigned long) (name), { #name2 } }
+ #define DATAX()           { 0,    { "" } }
+-    static const BITNAMES iflags[] =
++    const BITNAMES iflags[] =
+     {
+ 	DATA(BRKINT),
+ 	DATA(IGNBRK),
+@@ -181,11 +190,11 @@
+
+ #if defined(CS5) && defined(CS8)
+ 	{
+-	    static const struct {
++	    const struct {
+ 		int value;
+ 		const char name[5];
+ 	    } csizes[] = {
+-#define CS_DATA(name) { name, { #name " " } }
++#define CS_DATA(name) { (int) (name), { #name " " } }
+ 		CS_DATA(CS5),
+ #ifdef CS6
+ 		    CS_DATA(CS6),
+diff --git a/peregrine-ncurses/progs/tset.c b/peregrine-ncurses/progs/tset.c
+--- a/peregrine-ncurses/progs/tset.c
++++ b/peregrine-ncurses/progs/tset.c
+@@ -226,12 +226,34 @@
+
+ static MAP *cur, *maplist;
+
++#ifdef __COSMOPOLITAN__
++/*
++ * Cosmo (Peregrine): the B-constants are extern const uint32_t variables
++ * whose values are selected at runtime per host OS (see the .syscon
++ * declarations in libc/sysv/consts/B*.S), so they cannot appear in a
++ * static initializer.  Store pointers to the constants and read the
++ * values through them; each host OS's values are ascending in this
++ * table's order.  B0 is the one exception: cosmo's termios header
++ * defines it as the literal 0, so its entry stores a null pointer.
++ */
++#define DATA(name,value) { { name }, &value }
++#define GIVEN_SPEED(entry) ((entry).speed \
++			    ? (int) *(entry).speed \
++			    : 0)
++
++typedef struct speeds {
++    const char string[8];
++    const unsigned int *speed;
++} SPEEDS;
++#else
+ #define DATA(name,value) { { name }, value }
++#define GIVEN_SPEED(speed) ((speed).speed)
+
+ typedef struct speeds {
+     const char string[8];
+     int speed;
+ } SPEEDS;
++#endif
+
+ #if defined(_NC_WINDOWS)
+ static const SPEEDS speeds[] =
+@@ -241,7 +263,12 @@
+ #else
+ static const SPEEDS speeds[] =
+ {
++#ifdef __COSMOPOLITAN__
++    /* DATA("0", B0): cosmo's B0 is the literal 0, not a variable. */
++    { "0", 0 },
++#else
+     DATA("0", B0),
++#endif
+     DATA("50", B50),
+     DATA("75", B75),
+     DATA("110", B110),
+@@ -352,7 +379,7 @@
+ 	++rate;
+
+     for (n = 0; n < SIZEOF(speeds); ++n) {
+-	if (n > 0 && (speeds[n].speed <= speeds[n - 1].speed)) {
++	if (n > 0 && (GIVEN_SPEED(speeds[n]) <= GIVEN_SPEED(speeds[n - 1]))) {
+ 	    /* if the speeds are not increasing, likely a numeric overflow */
+ 	    break;
+ 	}
+@@ -363,7 +390,7 @@
+     }
+     if (sp == NULL)
+ 	err("unknown baud rate %s", rate);
+-    return (sp->speed);
++    return (GIVEN_SPEED(*sp));
+ }
+
+ /*

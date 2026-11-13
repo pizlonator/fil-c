@@ -96,6 +96,7 @@ FILC_YOLO_OBJS = \
 	o/$(MODE)/libc/stdio/fputc.o \
 	o/$(MODE)/libc/stdio/fputc_unlocked.o \
 	o/$(MODE)/libc/stdio/funlockfile.o \
+	o/$(MODE)/libc/stdio/fwrite.o \
 	o/$(MODE)/libc/stdio/fwrite_unlocked.o \
 	o/$(MODE)/libc/stdio/getcwd.o \
 	o/$(MODE)/libc/stdio/printf.o \
