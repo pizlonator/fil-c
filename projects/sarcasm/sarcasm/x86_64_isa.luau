@@ -1828,6 +1828,13 @@ function x86.classify(insn)
 				table.insert(uses, ops[1]); table.insert(rmw, ops[1].num)
 			end
 		end
+	elseif m == "sfence" then
+		-- SFENCE orders stores but neither reads nor writes RFLAGS or GPRs.
+		-- Model it explicitly so unknown-instruction liveness does not force
+		-- full flag snapshots. With no definitions, DCE retains the fence.
+		if #ops ~= 0 then
+			err.at(insn, rawMnem .. " takes no operands: " .. (insn.raw or rawMnem))
+		end
 	elseif m == "cld" or m == "std" then
 		-- CLD/STD write only the direction flag (DF=0 / DF=1): no GPR effects,
 		-- no memory effects. Modeled explicitly (NOT unknown) so the flag
