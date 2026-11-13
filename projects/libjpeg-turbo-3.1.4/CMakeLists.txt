@@ -261,6 +261,14 @@ option(WITH_JPEG8
   "Emulate libjpeg v8 API/ABI (this makes ${CMAKE_PROJECT_NAME} backward-incompatible with libjpeg v6b)"
   FALSE)
 boolean_number(WITH_JPEG8)
+option(SIMDE_NEON "Build the Arm Neon intrinsics SIMD extensions for x86-64 with SIMDe (SIMD Everywhere) instead of the NASM implementation"
+  FALSE)
+boolean_number(SIMDE_NEON)
+if(SIMDE_NEON)
+  find_path(SIMDE_INCLUDE_DIR simde/arm/neon.h REQUIRED)
+  include_directories(SYSTEM ${SIMDE_INCLUDE_DIR})
+  add_definitions(-DSIMDE_NEON)
+endif()
 option(WITH_SIMD "Include SIMD extensions, if available for this platform"
   TRUE)
 boolean_number(WITH_SIMD)
@@ -902,6 +910,15 @@ endif()
 
 enable_testing()
 
+if(SIMDE_NEON AND WITH_SIMD)
+  foreach(test arithmetic layout)
+    add_executable(simde-neon-${test} simd/arm/simde-neon/test-${test}.c)
+    target_include_directories(simde-neon-${test} PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/simd/arm/simde-neon)
+    add_test(NAME simde-neon-${test} COMMAND simde-neon-${test})
+  endforeach()
+endif()
+
 if(WITH_JAVA)
   add_test(NAME TJUnitTest
     COMMAND ${Java_JAVA_EXECUTABLE} ${JAVAARGS} -cp java/turbojpeg.jar
@@ -993,7 +1010,9 @@ endif()
 #        default in Visual C++ 2010 and earlier)
 
 if(CPU_TYPE STREQUAL "x86_64" OR CPU_TYPE STREQUAL "i386")
-  if(WITH_SIMD)
+  # The Neon extensions have no floating point DCT/IDCT, so SIMDE_NEON builds
+  # use the C implementation.
+  if(WITH_SIMD AND NOT SIMDE_NEON)
     set(DEFAULT_FLOATTEST8 sse)
   elseif(CPU_TYPE STREQUAL "x86_64")
     set(DEFAULT_FLOATTEST8 no-fp-contract)

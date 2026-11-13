@@ -101,11 +101,18 @@ cd ..
 rm -rf pizlonated-libpng
 hash -r
 
+if test "$(uname -m)" = x86_64
+then
+    tar -xf pizlonated-simde.tar.gz
+    set -- -DSIMDE_NEON=1 -DSIMDE_INCLUDE_DIR="$PWD/pizlonated-simde" -DREQUIRE_SIMD=1
+else
+    set -- -DCMAKE_ASM_NASM_COMPILER=""
+fi
 tar -xf pizlonated-libjpeg-turbo.tar.gz
 cd pizlonated-libjpeg-turbo
 mkdir -v build
 cd build
-cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_ASM_NASM_COMPILER="" \
+cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=/usr "$@" \
       -D CMAKE_BUILD_TYPE=RELEASE         \
       -D ENABLE_STATIC=FALSE              \
       -D CMAKE_INSTALL_DEFAULT_LIBDIR=lib \
@@ -115,6 +122,7 @@ make
 make install
 cd ../..
 rm -rf pizlonated-libjpeg-turbo
+rm -rf pizlonated-simde
 hash -r
 
 tar -xf pizlonated-tiff.tar.gz

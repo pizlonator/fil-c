@@ -30,10 +30,17 @@ export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 set -e
 set -x
+if test "$ARCH" = x86_64
+then
+    filc/projeny setup projects/simde.projeny
+    set -- -DSIMDE_NEON=1 -DSIMDE_INCLUDE_DIR="$PWD/projects/simde" -DREQUIRE_SIMD=1
+else
+    set -- -DCMAKE_ASM_NASM_COMPILER=""
+fi
 cd projects/libjpeg-turbo-3.1.4
 rm -rf build
 mkdir -v build
 cd build
-CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=$PWD/../../../pizfix -DCMAKE_ASM_NASM_COMPILER=""
+CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=$PWD/../../../pizfix "$@"
 make -j $NCPU
 make -j $NCPU install

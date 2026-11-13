@@ -8,6 +8,21 @@ macro(simd_fail message)
 endmacro()
 
 
+# SIMDE_NEON builds the Arm Neon intrinsics implementation on x86-64.  SIMDe
+# maps each Neon intrinsic to SSE/AVX intrinsics, so no assembler is needed.
+if(SIMDE_NEON)
+  if(NOT CPU_TYPE STREQUAL "x86_64")
+    simd_fail("SIMDE_NEON requires an x86-64 build")
+    return()
+  endif()
+  set(CPU_TYPE arm64)
+  set(SIMDE_NEON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/arm/simde-neon)
+  include_directories(BEFORE ${SIMDE_NEON_DIR})
+  set(CMAKE_REQUIRED_INCLUDES ${SIMDE_NEON_DIR} ${SIMDE_INCLUDE_DIR})
+  set(NEON_INTRINSICS 1 CACHE INTERNAL "" FORCE)
+endif()
+
+
 ###############################################################################
 # x86[-64] (NASM)
 ###############################################################################
