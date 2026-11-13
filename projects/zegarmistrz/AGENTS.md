@@ -224,15 +224,16 @@ else.
 Precise semantics of `mem_note_store` (this is the valgrind-flavored
 part; `tests/poison_launder_*.c` pin it):
 
-- Storing a value whose taint bit B is set marks the destination bytes
-  with B **plus the matching clear-on-store bit** (so the poison is
-  self-describing: a later clean store can sanitize it).
-- If the destination already carries the matching clear-on-store bit,
-  the store instead **clears** B there (store sanitizes).
-- A clean store (no taint) still honors clear-on-store bits: it clears
-  any dimension the destination asked to have sanitized.
-- cannot-load / cannot-store / clear bits are sticky — stores never
-  remove them (only `zegarmistrz_unpoison_range` does).
+- Each tainted dimension of the stored value sets the destination's taint
+  and matching clear-on-store bit. A later clean overwrite can sanitize it.
+- Repeated tainted stores keep the taint set, even when the destination
+  already carries its clear-on-store bit.
+- If a dimension is clean in the stored value, the store clears that
+  dimension on the destination only when its matching clear-on-store bit
+  is set. Each dimension is independent, so this also applies to
+  mixed-taint stores.
+- Stores preserve cannot-load, cannot-store and all clear bits. Only an
+  unpoison request removes these bits.
 
 ## The poisoning ABI
 

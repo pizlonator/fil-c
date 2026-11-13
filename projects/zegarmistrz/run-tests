@@ -41,7 +41,7 @@ gcc -O2 -static -o "$OUTDIR/static_hi" tests/static_hi.c || { log "guest compile
 for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall poison_launder_branch poison_launder_index poison_launder_clear \
          poison_vt_div poison_vt_clear poison_vt_plausible poison_vt_cmps poison_vt_cpuid poison_vt_rep \
          poison_index_lea poison_index_nop poison_index_lea_prop poison_combo \
-         poison_branch_ctrl poison_ortho; do
+         poison_branch_ctrl poison_ortho poison_repeat_store; do
     gcc -O2 -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null || { log "guest compile failed: $t"; exit 1; }
 done
 # LEA/NOP cannot-index exemption guests + the cannot-index address battery
@@ -163,6 +163,7 @@ echo "poison-clear"
 echo "poison-launder-branch"
 echo "poison-launder-index"
 echo "poison-launder-clear"
+echo "poison-repeat-store"
 echo "poison-vt-div"
 echo "poison-vt-clear"
 echo "poison-vt-plausible"
@@ -335,6 +336,37 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
       echo "FAIL $name: exit=$ec core=[$core]"
     fi
     rm -f "test-output/zegarmistrz.core.$bin."* "test-output/$bin.err.txt"
+    ;;
+  poison-repeat-store)
+    name=poison_repeat_store
+    for spec in 0:cannot-branch 1:cannot-index 2:var-time; do
+      IFS=: read -r dim reason <<<"$spec"
+      for mode in 1 2 3 reuse; do
+        count=$mode
+        [ "$mode" = reuse ] && count=1
+        rm -f "test-output/zegarmistrz.core.$name."*
+        out=$(cd test-output && timeout 60 ../zegarmistrz ./$name $dim $count $mode 2>$name.err.txt); ec=$?
+        core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+        if [ "$ec" = 139 ] && [ -n "$core" ] && [ -z "$out" ] \
+           && grep -q "$reason" "test-output/$name.err.txt"; then
+          echo "PASS poison-repeat-store-$dim-$mode"
+        else
+          echo "FAIL poison-repeat-store-$dim-$mode: exit=$ec out=[$out] core=[$core]"
+          head -5 "test-output/$name.err.txt"
+        fi
+        rm -f "test-output/zegarmistrz.core.$name."*
+      done
+      for mode in clean mixed; do
+        out=$(cd test-output && timeout 60 ../zegarmistrz --no-core ./$name $dim 1 $mode 2>$name.err.txt); ec=$?
+        if [ "$ec" = 0 ] && [ "$out" = "store-ok" ]; then
+          echo "PASS poison-repeat-store-$dim-$mode"
+        else
+          echo "FAIL poison-repeat-store-$dim-$mode: exit=$ec out=[$out]"
+          head -5 "test-output/$name.err.txt"
+        fi
+      done
+    done
+    rm -f "test-output/$name.err.txt"
     ;;
   poison-unpoison)
     out=$(cd test-output && timeout 60 ../zegarmistrz ./poison_unpoison 2>/dev/null); ec=$?

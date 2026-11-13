@@ -158,12 +158,17 @@ cannot-var-time-op, bit7 clear-var-time-op-on-store (the
 
 Loading a byte taints the loaded value with its cannot-branch /
 cannot-index / cannot-var-time-op bits; computation propagates the OR of
-input taints, and flag-setting ops taint RFLAGS. A store launders the
-stored value's bits into the destination bytes; a store into a location
-carrying the matching clear-on-store bit instead clears that bit (store
-sanitizes). `xor reg,reg` (and self-sub) clears taint — the result is
-zero regardless of the input. cannot-load/cannot-store/clear bits are
-sticky.
+input taints, and flag-setting ops taint RFLAGS. `xor reg,reg` and
+self-sub clear taint because the result is zero regardless of the input.
+
+A store copies each tainted dimension into the destination bytes and
+sets its matching clear-on-store bit. Repeated tainted stores keep the
+taint set. If the stored value is clean in a dimension, the store clears
+that dimension only when the destination has its clear-on-store bit.
+This lets a clean overwrite sanitize a secret spill without losing taint
+when another secret reuses the same stack slot. The dimensions are
+independent: an index-only value can clear old branch taint while setting
+index taint. Stores preserve cannot-load, cannot-store and all clear bits.
 
 ### What cannot-index actually covers
 

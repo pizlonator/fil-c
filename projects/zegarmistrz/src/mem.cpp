@@ -285,8 +285,8 @@ void mem_get_taint(uint64_t addr, size_t size, Taint* out) {
 
 // Store taint semantics (see mem.h): the destination bytes gain the stored
 // value's taint bits plus the matching clear-on-store bit, so
-// a later store to a clear-on-store location sanitizes the value (and the
-// memory). Load/store poison bits and clear bits are sticky.
+// a later clean store can sanitize the memory. Each taint dimension is
+// independent. Load/store poison bits and clear bits are sticky.
 void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t) {
     (void)cpu;
     bool cb = t.cannot_branch, ci = t.cannot_index;
@@ -328,27 +328,21 @@ void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t) {
         auto it = g_poison.find(a);
         uint8_t old = (it == g_poison.end()) ? 0 : it->second;
         uint8_t nu = old;
-        if (cb) {
-            if (old & POISON_CLEAR_BRANCH_ON_STORE)
-                nu &= ~(uint8_t)POISON_CANNOT_BRANCH;
-            else
-                nu |= (uint8_t)(POISON_CANNOT_BRANCH |
-                                POISON_CLEAR_BRANCH_ON_STORE);
-        }
-        if (ci) {
-            if (old & POISON_CLEAR_INDEX_ON_STORE)
-                nu &= ~(uint8_t)POISON_CANNOT_INDEX;
-            else
-                nu |= (uint8_t)(POISON_CANNOT_INDEX |
-                                POISON_CLEAR_INDEX_ON_STORE);
-        }
-        if (cvt) {
-            if (old & POISON_CLEAR_VAR_TIME_OP_ON_STORE)
-                nu &= ~(uint8_t)POISON_CANNOT_VAR_TIME_OP;
-            else
-                nu |= (uint8_t)(POISON_CANNOT_VAR_TIME_OP |
-                                POISON_CLEAR_VAR_TIME_OP_ON_STORE);
-        }
+        if (cb)
+            nu |= (uint8_t)(POISON_CANNOT_BRANCH |
+                            POISON_CLEAR_BRANCH_ON_STORE);
+        else if (old & POISON_CLEAR_BRANCH_ON_STORE)
+            nu &= ~(uint8_t)POISON_CANNOT_BRANCH;
+        if (ci)
+            nu |= (uint8_t)(POISON_CANNOT_INDEX |
+                            POISON_CLEAR_INDEX_ON_STORE);
+        else if (old & POISON_CLEAR_INDEX_ON_STORE)
+            nu &= ~(uint8_t)POISON_CANNOT_INDEX;
+        if (cvt)
+            nu |= (uint8_t)(POISON_CANNOT_VAR_TIME_OP |
+                            POISON_CLEAR_VAR_TIME_OP_ON_STORE);
+        else if (old & POISON_CLEAR_VAR_TIME_OP_ON_STORE)
+            nu &= ~(uint8_t)POISON_CANNOT_VAR_TIME_OP;
         if (nu)
             g_poison[a] = nu;
         else if (it != g_poison.end())
