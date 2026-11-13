@@ -30,11 +30,10 @@ export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 set -e
 set -x
-cd projects/libjpeg-turbo-3.0.1
+cd projects/libjpeg-turbo-3.1.4
 rm -rf build
 mkdir -v build
 cd build
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=$PWD/../../../pizfix -DCMAKE_ASM_NASM_COMPILER=""
 make -j $NCPU
 make -j $NCPU install
-

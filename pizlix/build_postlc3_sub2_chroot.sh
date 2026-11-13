@@ -110,7 +110,7 @@ cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_ASM_NASM_COMPILE
       -D ENABLE_STATIC=FALSE              \
       -D CMAKE_INSTALL_DEFAULT_LIBDIR=lib \
       -D CMAKE_SKIP_INSTALL_RPATH=ON      \
-      -D CMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-3.0.1
+      -D CMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-3.1.4
 make
 make install
 cd ../..
@@ -215,4 +215,3 @@ rm -rf daemon-0.6.4
 hash -r
 
 ./build_postlc3_chroot_setup_scripts_for_weston.sh
-
