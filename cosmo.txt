@@ -609,12 +609,41 @@ SDK-less Mac, not a Fil-C defect):
   `libc/calls/sysctl.o`, `libc/sysv/calls/sys_sysctl.o`,
   `libc/runtime/getsysctl.o`, ...  Counterfactual check: in the
   `aarch64-optlinux` mode (`SUPPORT_VECTOR=1`, Linux-only) `ulock.o` is not
-  built at all.  The pizlonated user libc stays `SUPPORT_VECTOR=1` (its raw
-  asm/Win32 branches are what Fil-C cannot compile); that is fine for XNU
-  because every syscall funnels through the yolo side (the `zsys_*` shims),
-  and `__hostos` detection at boot is yolo-side (upstream-tested).  aarch64
-  Linux behavior is unchanged by all this (XNU code is selected at runtime
-  via `__hostos` and never executes on Linux): hello, pthreadcleanup,
+  built at all.  The pizlonated user libc builds with `SUPPORT_VECTOR=41`
+  (Linux|XNU|FreeBSD - on aarch64, the same effective vector the yolo side
+  gets from 255).  The two things that used to force Linux-only are solved.
+  (a) The per-OS `.syscon` constants are no longer baked-in Linux values:
+  `gen_shims.py` emits all eight per-OS columns (linux, linux_aarch64, xnu,
+  xnu_aarch64, freebsd, openbsd, netbsd, windows) as C definitions plus a
+  patch table, and the pizlonated libc boot (`filc_libc_start_main.c`)
+  detects the host with `uname()` (`filc_detect_hostos()`; uname routes
+  through the `sys_uname` shim to `zsys_uname`, so it already works under
+  Fil-C) and applies `filc_syscon_apply()` before any cosmo code runs
+  (without this, every `isatty()` sent Linux ioctl numbers on Darwin and
+  failed with ENOTTY).  (b) The XNU-only service table `__syslib`
+  (`struct Syslib`, the Apple Silicon function-pointer table the ape-m1
+  loader hands to the yolo side) is mirrored on the pizlonated side by
+  `filc/filc_syslib.c`, which fills the slots the `IsXnuSilicon()` code
+  paths dereference (sigaction(), clock_nanosleep(),
+  pthread_yield_np(), getentropy(), ...) with pizlonated wrappers over
+  `zsys_*` calls, so those paths route through the Fil-C runtime instead of
+  calling yolo function pointers.  sigaltstack() is the one deliberate
+  exception: Fil-C intentionally does not support alternate signal stacks -
+  there is no way to trust the user-supplied stack buffer, and even if there
+  were, the GC would have to scan that stack too (see the comment at
+  `filc_native_zsys_sigaltstack()` in `libpas/src/libpas/filc_runtime.c`) -
+  so the `__sigaltstack` slot fails gracefully with `ENOSYS` instead of
+  being populated.  The branches Fil-C still cannot compile
+  stay excluded or re-routed: ulock.c's asm alias binding sys_ulock_wait to
+  the Linux-shaped sys_futex_cp is replaced by `filc/filc_ulock.c`'s real
+  UL_* to futex translation, raise.c and pthread_kill.c take their
+  `#ifdef __FILC__` zsys branches (`zsys_raise()`, `zthread_kill()`), and
+  the raw-inline-asm stragglers (clone.c, seccomp.c, kprintf.greg.c, ...)
+  stay excluded from the pizlonated build.  aarch64 Linux behavior is
+  unchanged by all this (on Linux the patch table writes back identical
+  Linux values, the Syslib table installs only under `_HOSTXNU`, and XNU
+  code is selected at runtime via `__hostos` and never executes on Linux):
+  hello, pthreadcleanup,
   a 4-thread pthread+TLS test, and cpphashtablegctest{,2,3} all pass under
   `qemu-aarch64` after a fresh build.
 - Still untested on real macOS hardware end-to-end (the SDK-less failure

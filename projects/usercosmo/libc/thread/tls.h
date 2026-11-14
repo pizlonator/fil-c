@@ -116,7 +116,18 @@ void *__filc_ensure_tib(void) libcesque;
 void __set_tls(struct CosmoTib *) libcesque;
 struct CosmoTib *__get_tls_rax(void) dontthrow pureconst;
 
-#if defined(__x86_64__) && (SupportsWindows() || SupportsXnu())
+#ifdef __FILC__
+/* Fil-C port: pizlonated code must keep using the cookie-based __get_tls()
+   even in privileged contexts.  __get_tls_rax() is raw assembly
+   (libc/sysv/tlsasm.S: mov %fs:0) - there is no pizlonated_ symbol for it,
+   and %fs:0 is not where the pizlonated TIB lives anyway (see
+   libc/thread/filc_tls.c).  With the Linux-only SUPPORT_VECTOR=1 this was
+   automatic (SupportsXnu()/SupportsWindows() folded to 0); with
+   SUPPORT_VECTOR=41 the x86_64 xnu/windows case would otherwise route
+   privileged callers to the asm accessor and break every link.  This
+   mirrors what the SV=1 build effectively did. */
+#define __get_tls_privileged() __get_tls()
+#elif defined(__x86_64__) && (SupportsWindows() || SupportsXnu())
 #define __get_tls_privileged() __get_tls_rax()
 #else
 #define __get_tls_privileged() __get_tls()

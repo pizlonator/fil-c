@@ -58,9 +58,26 @@ bool32 isutf8(const void *data, size_t size) {
   while (p < e) {
 #if defined(__x86_64__) && !defined(__chibicc__)
     typedef char xmm_t __attribute__((__vector_size__(16), __aligned__(16)));
+#ifdef __FILC__
+    /* Fil-C port: this loop reads 16 bytes at p without checking how many
+       bytes the object actually has left, relying on the string living in
+       a page with 16 readable bytes past its end.  Fil-C capability checks
+       turn that into a memory-safety panic whenever isutf8() runs on a
+       tightly-bounded global - e.g. __is_evil_path() validating a literal
+       path string, which SUPPORT_VECTOR=41 newly calls from pizlonated
+       code (SupportsXnu() no longer folds away).  Only take the vector
+       path when a full vector is in bounds; the scalar loop below handles
+       the tail exactly like before, so the result is unchanged. */
+    if (!((intptr_t)p & 15) && e - p >= 16) {
+      for (;;) {
+        unsigned m;
+        if (e - p < 16)
+          break;
+#else
     if (!((intptr_t)p & 15)) {
       for (;;) {
         unsigned m;
+#endif
         if ((m = __builtin_ia32_pmovmskb128(*(xmm_t *)p >= (xmm_t){0}) ^
                  0xffff)) {
           m = __builtin_ctzll(m);

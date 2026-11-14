@@ -129,9 +129,16 @@ PIZFIX ?= $(ROOT)/pizfix
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. Compile flags.  The Fil-C driver gets -nostdinc plus explicit include
 #    paths: stdfil-include (stdfil.h + pizlonated_*.h), then cosmo's own
-#    headers.  SUPPORT_VECTOR=1 is the "optlinux" configuration: Linux-only,
-#    which makes every Windows/XNU/BSD/Metal branch fold away at compile time
-#    (crucial: those branches reference raw asm and Win32 APIs).
+#    headers.  SUPPORT_VECTOR=41 is Linux|XNU|FreeBSD: the Linux, XNU and
+#    FreeBSD branches stay live code, while Windows/OpenBSD/NetBSD/Metal
+#    fold away at compile time (those reference raw asm and Win32 APIs).
+#    XNU/FreeBSD must be compiled in so that a pizlonated program can run
+#    on a Mac/BSD host: the pizlonated libc identifies the host at boot
+#    (filc_libc_start_main.c) and patches the .syscon constants
+#    (o-filc/consts.c) instead of relying on SUPPORT_VECTOR=1's Linux-only
+#    constant folding, which made every isatty() send Linux ioctl numbers
+#    on Darwin (ENOTTY).  The XNU/FreeBSD branches remain runtime-dead on a
+#    Linux host (IsXnu()/IsFreebsd() test __hostos at runtime).
 # ─────────────────────────────────────────────────────────────────────────────
 COSMO_INC = \
  -nostdinc \
@@ -152,7 +159,7 @@ COSMO_INC = \
 FILC_DRIVER_FLAGS = --filc-no-ape
 
 CFLAGS = $(TARGET_FLAG) -O2 -g -std=gnu23 \
- -DSUPPORT_VECTOR=1 -D_COSMO_SOURCE -DNDEBUG -DMODE=\"filc\" \
+ -DSUPPORT_VECTOR=41 -D_COSMO_SOURCE -DNDEBUG -DMODE=\"filc\" \
  $(ARCH_CFLAGS) \
  -fno-omit-frame-pointer -fno-stack-protector -fwrapv \
  -fno-common -w \
@@ -176,7 +183,7 @@ CCXX = libc/str/iswlower.cc libc/str/iswupper.cc libc/str/iswseparator.cc \
 	libc/thread/pthread_once.cc
 
 CXXFLAGS = $(TARGET_FLAG) -O2 -g -std=gnu++20 \
- -DSUPPORT_VECTOR=1 -D_COSMO_SOURCE -DNDEBUG -DMODE=\"filc\" \
+ -DSUPPORT_VECTOR=41 -D_COSMO_SOURCE -DNDEBUG -DMODE=\"filc\" \
  $(ARCH_CFLAGS) \
  -fno-omit-frame-pointer -fno-stack-protector -fwrapv \
  -fno-common -w -fno-exceptions -fno-rtti -nostdinc++ \
@@ -268,6 +275,19 @@ GEN_OBJS = \
 #                         pull the vendored aarch64 NEON headers
 #      libc/proc/fork-nt.c vfork-nt.c msync-nt.c posix_madvise-nt.c
 #                         Windows-only wrappers
+#      libc/intrin/ulock.c its sys_ulock_wait is declared with an asm alias to
+#                         sys_futex_cp (cosmo binds the XNU ulock syscall into
+#                         the per-OS magnum of the sys_futex_cp .scall thunk).
+#                         In the pizlonated build sys_futex_cp is
+#                         filc/filc_futex.c's Linux-shaped shim, so cosmo's
+#                         IsXnu() futex leg (live under SUPPORT_VECTOR=41)
+#                         would hand ulock-shaped arguments (op=1, µs timeout,
+#                         no uaddr2/val3) to a Linux futex - guaranteed
+#                         garbage.  filc/filc_ulock.c provides real
+#                         pizlonated ulock_wait/ulock_wake/sys_ulock_wait/
+#                         sys_ulock_wake that translate to the zsys futex API
+#                         instead.  On Linux the ulock path is runtime-dead
+#                         (IsXnu()-gated), so this exclusion is a no-op there.
 #      libc/thread/pthread_cancel.c   raw asm + SIGTHR machinery; stub in filc_stub.c
 #      libc/intrin/x86.c   defines __cpu_model/__cpu_indicator_init/__cpu_features2,
 #                         which libpizlo.a already provides for pizlonated code
@@ -494,6 +514,7 @@ EXCLUDE_FILES = \
 	libc/thread/pthread_setaffinity_np.c \
 	libc/proc/fork-nt.c \
 	libc/proc/vfork-nt.c \
+	libc/intrin/ulock.c \
 	libc/nexgen32e/envp.c \
 	libc/log/printwindowsmemory.c \
 	libc/intrin/posix_madvise-nt.c \
@@ -593,6 +614,23 @@ SRCS_C += filc/filc_exit.c
 # all (only strcoll), and bash's wide-character pattern matcher calls it
 # unconditionally from its collation comparisons.
 SRCS_C += filc/filc_wcscoll.c
+
+# The pizlonated Syslib table (see filc/filc_syslib.c): cosmo's IsXnuSilicon()
+# paths (sigaltstack, getentropy, sched_getcpu/shard, clock_nanosleep,
+# pthread_yield_np, fork.c child re-init, ...) deref `struct Syslib
+# *__syslib`, which is NULL in the pizlonated build unless this file installs
+# a table of pizlonated wrappers over the existing zsys_* API.  Without it,
+# an Apple Silicon Mac filc-panics at bash's first sigaction - before the
+# first prompt.
+SRCS_C += filc/filc_syslib.c
+
+# The pizlonated ulock translation (see filc/filc_ulock.c): cosmo's ulock.c
+# (excluded above) binds sys_ulock_wait to the Linux-shaped sys_futex_cp via
+# an asm alias, which would feed ulock-shaped arguments to filc_futex.c's
+# Linux futex shim on the IsXnu() futex leg; this file provides real
+# pizlonated ulock_wait/ulock_wake (plus sys_ulock_wait/sys_ulock_wake) that
+# translate the UL_* operations onto the zsys futex API.
+SRCS_C += filc/filc_ulock.c
 
 # Every source becomes o-filc/<path>.o (and the generated ones become
 # o-filc/generated/<name>.o), exactly like the old build_usercosmo.sh.

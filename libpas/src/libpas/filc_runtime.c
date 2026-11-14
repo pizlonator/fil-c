@@ -12623,6 +12623,16 @@ int filc_native_zsys_posix_fallocate(filc_thread* my_thread, int fd, long offset
 #endif /* PAS_COSMO -> so end of !PAS_COSMO */
 }
 
+/* sigaltstack() is deliberately not supported in Fil-C, and that is
+    intentional rather than an oversight.  There is no way to make an
+    alternate signal stack safe without a tremendous amount of work: there is
+    no way for us to trust the stack buffer passed by the user (they could
+    point it anywhere, with any size or alignment), and even if we did trust
+    it, we would have to teach the GC to also scan that stack, since FUGC
+    would otherwise miss every pointer that lives only on the alternate
+    stack.  Anything in pizlonated code that needs an alternate signal stack
+    should redesign instead.  See filc_syslib.c's __sigaltstack slot for the
+    graceful-failure path that the Syslib hand-off table uses. */
 int filc_native_zsys_sigaltstack(filc_thread* my_thread, filc_ptr ss_ptr, filc_ptr old_ss_ptr)
 {
     PAS_UNUSED_PARAM(my_thread);

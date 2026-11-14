@@ -63,6 +63,10 @@ BASE_HEADERS = [
     "libc/utime.h",
     "libc/thread/xnu.internal.h",
     "libc/proc/proc.h",
+    # The e*() errno-returning helpers (enosys(), ebadf(), ...): needed by
+    # the soft-unsupported HAND_MAP shims below, which return -1 with errno
+    # set instead of trapping.
+    "libc/sysv/errfuns.h",
 ]
 
 # Hand-written mappings for thunks whose cosmo signature does not match the
@@ -180,6 +184,33 @@ HAND_MAP = {
     "sys_exit": ("zsys_exit_hard({a0});", False),
     # sched_yield: zsys returns void.
     "sys_sched_yield": ("zsys_sched_yield();\n  return 0;", False),
+    # sched_rr_get_interval is LIVE on Linux: cosmo's sched_rr_get_interval()
+    # (libc/calls/sched_rr_get_interval.c) calls it unconditionally, and its
+    # declaration lives in that .c file, so the header scan used to miss it
+    # and nothing defined it.  zsys_sched_rr_get_interval() has the same
+    # -1/errno convention.
+    "sys_sched_rr_get_interval": ("return zsys_sched_rr_get_interval({a0}, {a1});", False),
+    # mount.c's Linux-shaped sys_mount_linux(source, target, type, flags,
+    # data) asm-renames to sys_mount; the BSD shape (4 args) stays
+    # runtime-dead on Linux (and would report an argument size mismatch
+    # under Fil-C if it ever ran, so it must not run pizlonated).
+    "sys_mount": ("return zsys_mount({a0}, {a1}, {a2}, (unsigned long){a3}, {a4});", False),
+    # reboot.c's sys_reboot_linux(magic, magic2, howto) asm-renames to
+    # sys_reboot; zsys_reboot() takes the howto argument directly.  The BSD
+    # shape (int, const char *) is runtime-dead on Linux like the mount one.
+    "sys_reboot": ("return zsys_reboot({a2});", False),
+    # BSD-only thunks that SUPPORT_VECTOR=41 compiles in (their callers are
+    # guarded by IsBsd()/IsXnu()) but the pizlonated runtime has no route
+    # for: no zsys_* forwarder exists and the yolo thunks are unpizlonated.
+    # Soft-fail with enosys() (-1 w/ errno=ENOSYS) instead of trapping, so
+    # those paths fail gracefully on a host where they are live; they remain
+    # runtime-dead on a Linux host.
+    "sys_getlogin": ("return enosys();", False),
+    "sys_sysctl": ("return enosys();", False),
+    "sys_cachestat": ("return enosys();", False),
+    "sys_rtprio_thread": ("return enosys();", False),
+    "sys_sendfile_freebsd": ("return enosys();", False),
+    "sys_sendfile_xnu": ("return enosys();", False),
 }
 
 # Variadic thunks.  These must forward the WHOLE argument area (named args +
@@ -363,6 +394,33 @@ SYNTHETIC_DECLS = {
     "sys_landlock_create_ruleset": "int32_t (const void *, uint64_t, uint32_t)",
     "sys_landlock_add_rule": "int32_t (int32_t, int32_t, const void *, uint32_t)",
     "sys_landlock_restrict_self": "int32_t (int32_t, uint32_t)",
+    # cosmo declares these thunks inside their wrapper .c files (or through
+    # asm-renamed aliases there), so the header scan misses them.  With
+    # SUPPORT_VECTOR=41 the code paths that reference them compile in, and
+    # every one of them must exist or programs fail to link.  The quals
+    # match the declaring .c files exactly (see HAND_MAP above for which
+    # forward / soft-fail).
+    "sys_getlogin": "int32_t (char *, uint32_t)",  # libc/runtime/getlogin*.c
+    "sys_sysctl": "int32_t (int32_t *, uint32_t, void *, uint64_t *, void *, uint64_t)",  # libc/calls/sysctl.c, clock_gettime-mono.c
+    "sys_cachestat": "int32_t (int32_t, void *, void *, uint32_t)",  # libc/calls/cachestat.c
+    "sys_rtprio_thread": "int32_t (int32_t, int32_t, void *)",  # libc/thread/pthread_setschedparam_freebsd.c
+    "sys_sched_rr_get_interval": "int32_t (int32_t, struct timespec *)",  # libc/calls/sched_rr_get_interval.c (LIVE on Linux)
+    "sys_mount": "int32_t (const char *, const char *, const char *, uint32_t, const void *)",  # libc/calls/mount.c linux shape
+    "sys_reboot": "int32_t (int32_t, int32_t, int32_t)",  # libc/calls/reboot.c linux shape
+}
+
+
+# Functions that are NOT .scall thunks (no libc/sysv/calls/*.S file) but
+# which pizlonated code references from runtime-live code paths.  Cosmo
+# defines them in files this build does not compile (the freebsd/xnu
+# sendfile syscall wrappers), so emit soft-fail shims with cosmo's exact
+# prototypes (libc/sock/sendfile.internal.h).  See the matching HAND_MAP
+# entries above for the failure convention.
+EXTRA_SHIMS = {
+    "sys_sendfile_xnu":
+        "int32_t (int32_t, int32_t, int64_t, int64_t *, const void *, int32_t)",
+    "sys_sendfile_freebsd":
+        "int32_t (int32_t, int32_t, int64_t, uint64_t, const void *, int64_t *, int32_t)",
 }
 
 
@@ -598,14 +656,40 @@ def gen_thunk(name, qual, zsys, out, stats, conds=None, arch="x86_64"):
     stats["trap"] += 1
 
 
+# The per-OS value columns of a .syscon invocation, in argument order (see
+# libc/sysv/consts/syscon.internal.h):
+#
+#   .syscon group,name,linux,linux_aarch64,xnu,xnu_aarch64,freebsd,openbsd,netbsd,windows
+#
+# The generated consts.c records one value per column in a patch table, and
+# initializes each object with the arch-appropriate Linux column (see
+# linux_column() below).
+SYSCON_COLUMNS = ("linux", "linux_aarch64", "xnu", "xnu_aarch64",
+                  "freebsd", "openbsd", "netbsd", "windows")
+
+
+def linux_column(arch):
+    r"""Index of the arch-appropriate Linux value column: the column that the
+    generated objects are initialized with, and the one a Linux host keeps
+    seeing.  Cosmo itself picks the Linux value per architecture at assembly
+    time (syscon.internal.h: `.uleb128 \linux` vs `.uleb128 \linux_aarch64`);
+    the generator must do the same, keyed on the FILCARCH build target."""
+    return 1 if arch == "aarch64" else 0
+
+
 def find_consts():
-    """Returns [(name, linux_value)] for every .syscon in libc/sysv/consts/*.S.
+    """Returns [(name, values)] for every .syscon in libc/sysv/consts/*.S,
+    where values is a tuple with one verbatim value expression per
+    SYSCON_COLUMNS column.
 
     cosmo's syscon constants are 8-byte objects (.quad) initialized at boot
-    with the per-OS value; with SUPPORT_VECTOR=1 the Linux column is the
-    whole story.  Defining them as `const long` in C matches both the 8-byte
-    object size and the `extern const int` / `extern int` declarations in
-    cosmo's const headers (readers only ever read)."""
+    with the per-OS value.  The values are assembly-time integer expressions
+    (hex, decimal, 0b binary, or +/* arithmetic), which are also valid C
+    integer constant expressions, so they can be emitted verbatim into
+    generated C.  The plain yolo libc rewrites the objects for the host OS
+    from magnum blobs at boot (cosmo2.c); the pizlonated libc can not use
+    that machinery, so consts.c defines the objects in C and patches them
+    itself (see gen_consts())."""
     consts = []
     directory = os.path.join(COSMO, "libc", "sysv", "consts")
     for fn in sorted(os.listdir(directory)):
@@ -620,8 +704,10 @@ def find_consts():
                 if len(parts) < 4:
                     continue
                 name = parts[1]
-                linux = parts[2]
-                consts.append((name, linux))
+                values = parts[2:2 + len(SYSCON_COLUMNS)]
+                if len(values) < len(SYSCON_COLUMNS):
+                    continue
+                consts.append((name, values))
     return consts
 
 
@@ -675,9 +761,32 @@ def gen_errfuns(path):
     return count
 
 
-def gen_consts(path):
+def gen_consts(path, arch="x86_64"):
+    """Generates consts.c: one C definition per .syscon constant, plus a
+    per-OS patch table and the filc_syscon_apply() boot-time patcher.
+
+    Each object is initialized with the arch-appropriate Linux value (the
+    same default the assembly boot would use on Linux), and the definitions
+    are deliberately NOT const: the objects must stay mutable so that
+    filc_syscon_apply() can rewrite them at boot on non-Linux hosts.  (In
+    Fil-C, const-ness of the definition is also what decides the capability
+    metadata of the object that every pizlonated reader sees, so mutable
+    definitions are exactly what makes the patching legal.)
+
+    libc/runtime/filc_libc_start_main.c calls filc_syscon_apply() during
+    boot, after uname() has identified the host OS and before the deferred
+    global constructors / user code can observe a constant."""
     consts = find_consts()
+    linux_col = linux_column(arch)
+    # Dedup exactly like the old generator: first occurrence wins, so the
+    # patch table below stays aligned with the definitions above it.
+    unique = []
     seen = set()
+    for name, values in consts:
+        if name in seen:
+            continue
+        seen.add(name)
+        unique.append((name, values))
     with open(path, "w") as f:
         f.write("/* Generated by projects/usercosmo/filc/gen_shims.py -- do not edit.\n"
                 " *\n"
@@ -685,14 +794,98 @@ def gen_consts(path):
                 " * CLOCK_*, __NR_*, ...), which are normally 8-byte objects defined\n"
                 " * and initialized by assembly (libc/sysv/consts/*.S).  Fil-C compiled\n"
                 " * code references them as pizlonated_<name> symbols, so provide real\n"
-                " * C objects initialized with the Linux values (SUPPORT_VECTOR=1).\n"
-                " */\n")
-        for name, value in consts:
-            if name in seen:
-                continue
-            seen.add(name)
-            f.write("const long %s = %s;\n" % (name, value))
-    return len(seen)
+                " * C objects initialized with the Linux values (the same defaults the\n"
+                " * assembly boot uses before it patches the values for the host OS).\n"
+                " *\n"
+                " * The definitions are deliberately NOT const: filc_syscon_apply()\n"
+                " * (bottom of this file) rewrites the objects at boot on non-Linux\n"
+                " * hosts.  Fil-C capability metadata for a global comes from its\n"
+                " * definition, so mutable definitions make every pizlonated reader's\n"
+                " * reference read-write - which is what lets the boot patch through.\n"
+                " *\n"
+                " * Every .syscon carries one value per host OS (see\n"
+                " * libc/sysv/consts/syscon.internal.h):\n"
+                " *\n"
+                " *   .syscon group,name,linux,linux_aarch64,xnu,xnu_aarch64,freebsd,openbsd,netbsd,windows\n"
+                " *\n"
+                " * The values are assembly-time integer expressions, which are also\n"
+                " * valid C integer constant expressions, so they are emitted verbatim.\n"
+                " * The patch table records every per-OS value, and filc_syscon_apply()\n"
+                " * overwrites the objects whose value for the running host OS differs\n"
+                " * from the arch's Linux default.  This build targets %s, so the\n"
+                " * Linux default column is %s (index %d).\n"
+                " */\n"
+                "#include \"libc/dce.h\"\n"
+                % (arch,
+                   "linux_aarch64" if arch == "aarch64" else "linux",
+                   linux_col))
+        for name, values in unique:
+            f.write("long %s = %s;\n" % (name, values[linux_col]))
+        f.write("\n"
+                "/* Per-OS value patch table: one entry per constant, in the same\n"
+                " * order as the definitions above.  v[] holds the .syscon value\n"
+                " * columns verbatim:\n"
+                " *\n"
+                " *   v[0] linux        v[1] linux_aarch64\n"
+                " *   v[2] xnu          v[3] xnu_aarch64\n"
+                " *   v[4] freebsd      v[5] openbsd\n"
+                " *   v[6] netbsd       v[7] windows\n"
+                " *\n"
+                " * The table itself is read-only; the addr pointers point at the\n"
+                " * mutable objects defined above. */\n"
+                "struct filc_syscon {\n"
+                "  long *addr;\n"
+                "  long v[8];\n"
+                "};\n"
+                "\n"
+                "static const struct filc_syscon filc_syscon_table[] = {\n")
+        for name, values in unique:
+            f.write("  {&%s, {%s}},\n"
+                    % (name, ", ".join(values)))
+        f.write("};\n"
+                "\n"
+                "/* Rewrites every .syscon object whose value for `hostos` differs\n"
+                " * from the arch's Linux default.  Called once at boot by\n"
+                " * libc/runtime/filc_libc_start_main.c, after the host OS has been\n"
+                " * detected via uname() and before any pizlonated constructor or\n"
+                " * user code can observe a constant.  Metal and windows have no\n"
+                " * boot-time detection here; their columns are recorded in the\n"
+                " * table for documentation but the Linux defaults are kept. */\n"
+                "void filc_syscon_apply(int hostos) {\n"
+                "  int col;\n")
+        if arch == "aarch64":
+            f.write("  int linux_col = 1; /* linux_aarch64 */\n")
+        else:
+            f.write("  int linux_col = 0; /* linux */\n")
+        f.write("  unsigned long i;\n"
+                "  const struct filc_syscon *entry;\n"
+                "  switch (hostos) {\n"
+                "    case _HOSTLINUX:\n"
+                "      col = linux_col;\n"
+                "      break;\n"
+                "    case _HOSTXNU:\n"
+                "      col = 2 + linux_col; /* xnu (x86_64) / xnu_aarch64 */\n"
+                "      break;\n"
+                "    case _HOSTFREEBSD:\n"
+                "      col = 4;\n"
+                "      break;\n"
+                "    case _HOSTOPENBSD:\n"
+                "      col = 5;\n"
+                "      break;\n"
+                "    case _HOSTNETBSD:\n"
+                "      col = 6;\n"
+                "      break;\n"
+                "    default:\n"
+                "      return;\n"
+                "  }\n"
+                "  for (i = 0; i < sizeof(filc_syscon_table) / sizeof(filc_syscon_table[0]);\n"
+                "       ++i) {\n"
+                "    entry = &filc_syscon_table[i];\n"
+                "    if (entry->v[col] != entry->v[linux_col])\n"
+                "      *entry->addr = entry->v[col];\n"
+                "  }\n"
+                "}\n")
+    return len(unique)
 
 
 def main():
@@ -719,6 +912,10 @@ def main():
             stats["skipped"] += 1
             continue
         gen_thunk(name, decls[name], zsys, chunks, stats, conds, filcarch)
+    # Non-thunk functions (see EXTRA_SHIMS): route them through the same
+    # gen_thunk() machinery; the HAND_MAP entries decide their bodies.
+    for name, qual in EXTRA_SHIMS.items():
+        gen_thunk(name, qual, zsys, chunks, stats, conds, filcarch)
 
     with open(out_path, "w") as f:
         f.write("/* Generated by projects/usercosmo/filc/gen_shims.py -- do not edit.\n"
@@ -738,7 +935,7 @@ def main():
             f.write(chunk)
             f.write("\n")
 
-    nconsts = gen_consts(consts_path) if consts_path else 0
+    nconsts = gen_consts(consts_path, filcarch) if consts_path else 0
     nerr = gen_errfuns(os.path.join(os.path.dirname(consts_path), "errfuns.c")) if consts_path else 0
     print("gen_shims: %d thunks; declared=%d skipped(no decl)=%d direct=%d hand=%d variadic=%d trap=%d; %d consts; %d errfuns"
           % (len(thunks), len(decls), stats["skipped"], stats["direct"], stats["hand"],
