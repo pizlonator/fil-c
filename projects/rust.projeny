@@ -1024,6 +1024,31 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
      for (const auto &C : OptimizerLastEPCallbacks)
  #if LLVM_VERSION_GE(20, 0)
        C(MPM, OptLevel, ThinOrFullLTOPhase::None);
+diff --git a/rust/compiler/rustc_metadata/src/rmeta/decoder.rs b/rust/compiler/rustc_metadata/src/rmeta/decoder.rs
+--- a/rust/compiler/rustc_metadata/src/rmeta/decoder.rs
++++ b/rust/compiler/rustc_metadata/src/rmeta/decoder.rs
+@@ -735,7 +735,20 @@
+         let found_version =
+             LazyValue::<String>::from_position(NonZero::new(METADATA_HEADER.len() + 8).unwrap())
+                 .decode(self);
+-        if rustc_version(cfg_version) != found_version {
++        // Fil-C: this compiler is built from the projeny source snapshot (a
++        // tarball, not a git checkout), so its version string carries
++        // bootstrap's " (built from a source tarball)" suffix.  Upstream
++        // rustc builds made from git checkouts -- notably the official dist
++        // rustc, which pizlix uses to compile proc-macro crates for cargo --
++        // do not have the suffix.  The byte-exact compare below would
++        // therefore reject every proc-macro crate compiled by the upstream
++        // rustc with E0514 (mismatched crate versions) even though the
++        // compiler versions are otherwise identical.  Normalize the compare
++        // by stripping exactly that suffix from both sides; the semver +
++        // commit-hash + date prefix must still match byte-exactly.
++        if rustc_version(cfg_version).strip_suffix(" (built from a source tarball)").unwrap_or(&rustc_version(cfg_version))
++            != found_version.strip_suffix(" (built from a source tarball)").unwrap_or(&found_version)
++        {
+             return Err(Some(found_version));
+         }
+
 diff --git a/rust/compiler/rustc_session/src/session.rs b/rust/compiler/rustc_session/src/session.rs
 --- a/rust/compiler/rustc_session/src/session.rs
 +++ b/rust/compiler/rustc_session/src/session.rs
