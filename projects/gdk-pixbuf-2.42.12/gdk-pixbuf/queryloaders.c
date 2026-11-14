@@ -231,7 +231,19 @@ query_module (GString *contents, const char *dir, const char *file)
         else
                 path = g_build_filename (dir, file, NULL);
 
-        module = g_module_open (path, 0);
+        /* Fil-C port: g_module_open (path, 0) resolves to
+         * dlopen (path, RTLD_LAZY | RTLD_GLOBAL).  gdk-pixbuf loader modules
+         * all export the same entry-point names ("fill_info", "fill_vtable"),
+         * and the Fil-C dlsym searches the global scope in load order instead
+         * of preferring the given handle, so with two RTLD_GLOBAL modules
+         * loaded, dlsym (svg_handle, "fill_info") resolved to the ANI
+         * module's fill_info and the generated loaders.cache associated every
+         * loader path with the first module's format info (making
+         * gdk_pixbuf_new_from_file unable to recognize anything but the
+         * first-loaded format).  Load the modules RTLD_LOCAL like the runtime
+         * loader in gdk-pixbuf-io.c does: with LOCAL, dlsym on a handle
+         * correctly resolves within that module. */
+        module = g_module_open (path, G_MODULE_BIND_LAZY | G_MODULE_BIND_LOCAL);
         if (module &&
             g_module_symbol (module, "fill_info", &fill_info_ptr) &&
             g_module_symbol (module, "fill_vtable", &fill_vtable_ptr)) {

@@ -40,9 +40,13 @@ cp -v $FILCSRC/rust-build/pizlonated-filrustc.tar.gz $LFS/sources
 cp -v $FILCSRC/rust-build/rust-yolo-1.90.0.tar.gz $LFS/sources
 cp -v $FILCSRC/rust-build/vendor-librsvg.tar.gz $LFS/sources
 cp -v $FILCSRC/projects/librsvg/pizlonated-librsvg.tar.gz $LFS/sources
+# Sprint S3 support: the glib GType capability-repair rebuild (its tarball is
+# a package-source.sh product, like the other pre-projeny packages).
+cp -v $FILCSRC/projects/glib-2.80.4/pizlonated-glib.tar.gz $LFS/sources
 cp -v build_postlc9_sub2_chroot.sh $LFS/sources
 cp -v build_postlc9_chroot_project_rust.sh $LFS/sources
 cp -v build_postlc9_chroot_project_rust_dispatch.sh $LFS/sources
+cp -v build_postlc9_chroot_project_glib_gtyperepair.sh $LFS/sources
 cp -v build_postlc9_chroot_project_librsvg.sh $LFS/sources
 
 ./build_chroot_late.sh /sources/build_postlc9_sub2_chroot.sh

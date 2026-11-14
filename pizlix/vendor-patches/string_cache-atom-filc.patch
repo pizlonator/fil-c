@@ -1,0 +1,120 @@
+--- a/string_cache/src/atom.rs
++++ b/string_cache/src/atom.rs
+@@ -79,12 +79,35 @@
+ // NOTE: Deriving PartialEq requires that a given string must always be interned the same way.
+ pub struct Atom<Static> {
+     unsafe_data: NonZeroU64,
++    // Fil-C port: for DYNAMIC_TAG atoms the heap Entry pointer is packed
++    // into unsafe_data as a plain integer, and every use of it (Clone, Drop,
++    // Deref, get_hash) cast that integer back with `as *const Entry`.
++    // Under Fil-C an integer-to-pointer cast has no pointer capability, so
++    // the first dereference of such a pointer panics the runtime ("cannot
++    // read/write pointer with null object").  First seen with librsvg's
++    // markup5ever Namespace/LocalName atoms: the XInclude namespace string
++    // is not in the static atom set, so the temporary atom built by
++    // xinclude_name!() is dynamic and its Drop refcount fetch_sub trapped.
++    // Keep a real, capability-carrying copy of the Entry pointer alongside;
++    // unsafe_data keeps the same packed value, so equality, ordering and
++    // hashing keep comparing the interned identity exactly as before.
++    dynamic_entry: *mut Entry,
+     phantom: PhantomData<Static>,
+ }
+ 
+ // FIXME: bound removed from the struct definition before of this error for pack_static:
+ // "error[E0723]: trait bounds other than `Sized` on const fn parameters are unstable"
+ // https://github.com/rust-lang/rust/issues/57563
++//
++// Fil-C port: the packed-u64 representation made Atom Send+Sync
++// automatically; restore that for the dynamic_entry pointer field.  This is
++// exactly as (thread-)safe as the old representation: dynamic entries live
++// in the global DYNAMIC_SET, their refcounts are AtomicIsize, and their
++// string/hash fields are immutable after insert, so sharing an &Entry across
++// threads was already happening through the set's mutexes.
++unsafe impl<Static> Send for Atom<Static> {}
++unsafe impl<Static> Sync for Atom<Static> {}
++
+ impl<Static> Atom<Static> {
+     /// For the atom!() macros
+     #[inline(always)]
+@@ -95,6 +118,7 @@
+                 // STATIC_TAG ensures this is non-zero
+                 NonZeroU64::new_unchecked((STATIC_TAG as u64) | ((n as u64) << STATIC_SHIFT_BITS))
+             },
++            dynamic_entry: core::ptr::null_mut(),
+             phantom: PhantomData,
+         }
+     }
+@@ -137,7 +161,7 @@
+     pub fn get_hash(&self) -> u32 {
+         match self.tag() {
+             DYNAMIC_TAG => {
+-                let entry = self.unsafe_data.get() as *const Entry;
++                let entry = self.dynamic_entry;
+                 unsafe { (*entry).hash }
+             }
+             STATIC_TAG => Static::get().hashes[self.static_index() as usize],
+@@ -197,6 +221,7 @@
+                 Atom {
+                     // INLINE_TAG ensures this is never zero
+                     unsafe_data: unsafe { NonZeroU64::new_unchecked(data) },
++                    dynamic_entry: core::ptr::null_mut(),
+                     phantom: PhantomData,
+                 }
+             } else {
+@@ -206,6 +231,8 @@
+                 Atom {
+                     // The address of a ptr::NonNull is non-zero
+                     unsafe_data: unsafe { NonZeroU64::new_unchecked(data) },
++                    // Fil-C port: the real pointer, carrying the capability.
++                    dynamic_entry: ptr.as_ptr(),
+                     phantom: PhantomData,
+                 }
+             }
+@@ -217,10 +244,14 @@
+     #[inline(always)]
+     fn clone(&self) -> Self {
+         if self.tag() == DYNAMIC_TAG {
+-            let entry = self.unsafe_data.get() as *const Entry;
++            let entry = self.dynamic_entry;
+             unsafe { &*entry }.ref_count.fetch_add(1, SeqCst);
+         }
+-        Atom { ..*self }
++        Atom {
++            unsafe_data: self.unsafe_data,
++            dynamic_entry: self.dynamic_entry,
++            phantom: PhantomData,
++        }
+     }
+ }
+ 
+@@ -228,7 +259,7 @@
+     #[inline]
+     fn drop(&mut self) {
+         if self.tag() == DYNAMIC_TAG {
+-            let entry = self.unsafe_data.get() as *const Entry;
++            let entry = self.dynamic_entry;
+             if unsafe { &*entry }.ref_count.fetch_sub(1, SeqCst) == 1 {
+                 drop_slow(self)
+             }
+@@ -236,7 +267,9 @@
+ 
+         // Out of line to guide inlining.
+         fn drop_slow<Static>(this: &mut Atom<Static>) {
+-            DYNAMIC_SET.remove(this.unsafe_data.get() as *mut Entry);
++            // Fil-C port: pass the real pointer; remove() only hashes and
++            // compares the key, it does not dereference it.
++            DYNAMIC_SET.remove(this.dynamic_entry);
+         }
+     }
+ }
+@@ -249,8 +282,8 @@
+         unsafe {
+             match self.tag() {
+                 DYNAMIC_TAG => {
+-                    let entry = self.unsafe_data.get() as *const Entry;
+-                    &(*entry).string
++                    let entry = self.dynamic_entry;
++                    unsafe { &(*entry).string }
+                 }
+                 INLINE_TAG => {
+                     let len = (self.unsafe_data() & LEN_MASK) >> LEN_OFFSET;

@@ -41,7 +41,10 @@ construct_backend (GApplication **app_out)
   g_application_withdraw_notification (app, "org.gtk.TestApplication.NonexistentNotification");
 
   fdo_type = g_type_from_name ("GFdoNotificationBackend");
-  g_assert_cmpuint (fdo_type, !=, G_TYPE_INVALID);
+  /* Fil-C port: g_assert_cmpuint converts both operands to guint64, which
+   * is an error for the pointer-typed GType under the Fil-C clang; compare
+   * the GType values directly instead. */
+  g_assert_true (fdo_type != G_TYPE_INVALID);
 
   /* Replicate the behaviour from g_notification_backend_new_default(), which is
    * not exported publicly so can‘t be easily used in the test. */

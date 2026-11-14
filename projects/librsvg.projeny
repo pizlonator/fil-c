@@ -3,3 +3,221 @@ Origname: librsvg-2.58.3
 Name: librsvg
 
     librsvg 2.58.3 (SVG rendering; the Rust workspace is built with the Fil-C rustc via the two-compiler dispatch)
+diff --git a/librsvg/Makefile.am b/librsvg/Makefile.am
+--- a/librsvg/Makefile.am
++++ b/librsvg/Makefile.am
+@@ -170,9 +170,20 @@
+ CARGO_RELEASE_ARGS=--release
+ endif
+
+-if CROSS_COMPILING
++# Fil-C port: cargo must ALWAYS be invoked with an explicit --target, not
++# only when autotools believe it is cross-compiling.  The two-compiler
++# dispatch (RUSTC_WRAPPER=/usr/bin/rustc-dispatch) sends rustc units whose
++# argv carries --target to the Fil-C rustc and everything else (build
++# scripts, proc-macros, host rlibs) to the upstream rustc, so a native
++# build without --target would compile the whole workspace into yolo-ABI
++# objects that cannot link into a Fil-C librsvg-2.so.  RUST_TARGET is
++# pinned to the triple of the warm Fil-Rust cargo target dir and
++# RUST_TARGET_SUBDIR to its cargo layout ($(RUST_TARGET)/release), both
++# regardless of the native-vs-cross verdict (these assignments come after
++# the configure-substituted ones and therefore win in make).
+ CARGO_TARGET_ARGS=--target=$(RUST_TARGET)
+-endif
++RUST_TARGET = x86_64-unknown-linux-gnu
++RUST_TARGET_SUBDIR = $(RUST_TARGET)/release
+
+ CARGO_VERBOSE = $(cargo_verbose_$(V))
+ cargo_verbose_ = $(cargo_verbose_$(AM_DEFAULT_VERBOSITY))
+@@ -180,7 +191,10 @@
+ cargo_verbose_1 = --verbose
+
+ LIBRSVG_BUILD_DIR=@abs_top_builddir@
+-CARGO_TARGET_DIR=$(LIBRSVG_BUILD_DIR)/target
++# Fil-C port: honor CARGO_TARGET_DIR from the environment (?=) so the build
++# reuses the warm S2 target dir (/hostbuild/librsvg-target) instead of a
++# fresh ./target inside the chroot.
++CARGO_TARGET_DIR ?= $(LIBRSVG_BUILD_DIR)/target
+
+ RUST_LIB=$(CARGO_TARGET_DIR)/$(RUST_TARGET_SUBDIR)/liblibrsvg_c.a
+
+@@ -229,12 +243,22 @@
+ gc_linked_library_args="-Wl,--gc-sections"
+ endif
+
++# Fil-C port: after pizlonation every definition this library emits is
++# renamed with a pizlonated prefix: the plain pizlonated_rsvg_* form for
++# the C glue's rsvg_* and the Rust staticlib's API symbols, PLUS the
++# per-symbol variants filcc mints (pizlonatedFI<N>_*, pizlonatedFIP<N>_*
++# for the function-index/function-pointer halves that referencing objects
++# use when they take an API function's address -- which g-ir-scanner's
++# dump program does for every symbol).  So the export list must accept
++# every name starting with "pizlonated", exactly like dbus' house-patch
++# version-script wildcard "pizlonated*;" (this is an egrep pattern over
++# the libtool symbol list, so .* plays the glob *'s role).
+ librsvg_@RSVG_API_MAJOR_VERSION@_la_LDFLAGS =	\
+ 	$(BSYMBOLIC_LDFLAG)			\
+ 	-version-info @RSVG_LT_VERSION_INFO@	\
+ 	-export-dynamic				\
+ 	-no-undefined				\
+-	-export-symbols-regex "^rsvg_.*"	\
++	-export-symbols-regex "^(rsvg_.*|pizlonated.*)"	\
+ 	$(gc_linked_library_args)		\
+ 	$(AM_LDFLAGS)
+
+diff --git a/librsvg/Makefile.in b/librsvg/Makefile.in
+--- a/librsvg/Makefile.in
++++ b/librsvg/Makefile.in
+@@ -655,14 +655,30 @@
+ 	$(NULL)
+
+ @DEBUG_RELEASE_FALSE@CARGO_RELEASE_ARGS = --release
+-@DEBUG_RELEASE_TRUE@CARGO_RELEASE_ARGS = 
+-@CROSS_COMPILING_TRUE@CARGO_TARGET_ARGS = --target=$(RUST_TARGET)
++@DEBUG_RELEASE_TRUE@CARGO_RELEASE_ARGS =
++# Fil-C port: cargo must ALWAYS be invoked with an explicit --target, not
++# only when autotools believe it is cross-compiling.  The two-compiler
++# dispatch (RUSTC_WRAPPER=/usr/bin/rustc-dispatch) sends rustc units whose
++# argv carries --target to the Fil-C rustc and everything else (build
++# scripts, proc-macros, host rlibs) to the upstream rustc, so a native
++# build without --target would compile the whole workspace into yolo-ABI
++# objects that cannot link into a Fil-C librsvg-2.so.  RUST_TARGET is
++# pinned to the triple of the warm Fil-Rust cargo target dir and
++# RUST_TARGET_SUBDIR to its cargo layout ($(RUST_TARGET)/release), both
++# regardless of the native-vs-cross verdict (these assignments come after
++# the configure-substituted ones and therefore win in make).
++CARGO_TARGET_ARGS = --target=$(RUST_TARGET)
++RUST_TARGET = x86_64-unknown-linux-gnu
++RUST_TARGET_SUBDIR = $(RUST_TARGET)/release
+ CARGO_VERBOSE = $(cargo_verbose_$(V))
+ cargo_verbose_ = $(cargo_verbose_$(AM_DEFAULT_VERBOSITY))
+-cargo_verbose_0 = 
++cargo_verbose_0 =
+ cargo_verbose_1 = --verbose
+ LIBRSVG_BUILD_DIR = @abs_top_builddir@
+-CARGO_TARGET_DIR = $(LIBRSVG_BUILD_DIR)/target
++# Fil-C port: honor CARGO_TARGET_DIR from the environment (?=) so the build
++# reuses the warm S2 target dir (/hostbuild/librsvg-target) instead of a
++# fresh ./target inside the chroot.
++CARGO_TARGET_DIR ?= $(LIBRSVG_BUILD_DIR)/target
+ RUST_LIB = $(CARGO_TARGET_DIR)/$(RUST_TARGET_SUBDIR)/liblibrsvg_c.a
+ librsvg_@RSVG_API_MAJOR_VERSION@_la_CPPFLAGS = $(AM_CPPFLAGS)
+ librsvg_@RSVG_API_MAJOR_VERSION@_la_CFLAGS = $(AM_CFLAGS)
+@@ -674,9 +690,19 @@
+ #
+ # This will no longer be needed when we switch to cargo-cbuild, which does this automatically.
+ @OS_DARWIN_TRUE@gc_linked_library_args = "-Wl,-dead_strip"
++# Fil-C port: after pizlonation every definition this library emits is
++# renamed with a pizlonated prefix: the plain pizlonated_rsvg_* form for
++# the C glue's rsvg_* and the Rust staticlib's API symbols, PLUS the
++# per-symbol variants filcc mints (pizlonatedFI<N>_*, pizlonatedFIP<N>_*
++# for the function-index/function-pointer halves that referencing objects
++# use when they take an API function's address -- which g-ir-scanner's
++# dump program does for every symbol).  So the export list must accept
++# every name starting with "pizlonated", exactly like dbus' house-patch
++# version-script wildcard "pizlonated*;" (this is an egrep pattern over
++# the libtool symbol list, so .* plays the glob *'s role).
+ librsvg_@RSVG_API_MAJOR_VERSION@_la_LDFLAGS = $(BSYMBOLIC_LDFLAG) \
+ 	-version-info @RSVG_LT_VERSION_INFO@ -export-dynamic \
+-	-no-undefined -export-symbols-regex "^rsvg_.*" \
++	-no-undefined -export-symbols-regex "^(rsvg_.*|pizlonated.*)" \
+ 	$(gc_linked_library_args) $(AM_LDFLAGS) $(am__append_1)
+ librsvg_@RSVG_API_MAJOR_VERSION@_la_LIBADD = \
+ 	librsvg_c_api.la	\
+diff --git a/librsvg/configure b/librsvg/configure
+--- a/librsvg/configure
++++ b/librsvg/configure
+@@ -8113,71 +8113,28 @@
+       fi
+
+       # Make sure that we snagged all the symbols we need.
+-      if $GREP ' nm_test_var$' "$nlist" >/dev/null; then
+-	if $GREP ' nm_test_func$' "$nlist" >/dev/null; then
+-	  cat <<_LT_EOF > conftest.$ac_ext
+-/* Keep this code in sync between libtool.m4, ltmain, lt_system.h, and tests.  */
+-#if defined _WIN32 || defined __CYGWIN__ || defined _WIN32_WCE
+-/* DATA imports from DLLs on WIN32 can't be const, because runtime
+-   relocations are performed -- see ld's documentation on pseudo-relocs.  */
+-# define LT_DLSYM_CONST
+-#elif defined __osf__
+-/* This system does not cope well with relocations in const data.  */
+-# define LT_DLSYM_CONST
+-#else
+-# define LT_DLSYM_CONST const
+-#endif
+-
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
+-
+-_LT_EOF
+-	  # Now generate the symbol file.
+-	  eval "$lt_cv_sys_global_symbol_to_cdecl"' < "$nlist" | $GREP -v main >> conftest.$ac_ext'
+-
+-	  cat <<_LT_EOF >> conftest.$ac_ext
+-
+-/* The mapping between symbol names and symbols.  */
+-LT_DLSYM_CONST struct {
+-  const char *name;
+-  void       *address;
+-}
+-lt__PROGRAM__LTX_preloaded_symbols[] =
+-{
+-  { "@PROGRAM@", (void *) 0 },
+-_LT_EOF
+-	  $SED "s/^$symcode$symcode* .* \(.*\)$/  {\"\1\", (void *) \&\1},/" < "$nlist" | $GREP -v main >> conftest.$ac_ext
+-	  cat <<\_LT_EOF >> conftest.$ac_ext
+-  {0, (void *) 0}
+-};
+-
+-/* This works around a problem in FreeBSD linker */
+-#ifdef FREEBSD_WORKAROUND
+-static const void *lt_preloaded_setup() {
+-  return lt__PROGRAM__LTX_preloaded_symbols;
+-}
+-#endif
+-
+-#ifdef __cplusplus
+-}
+-#endif
+-_LT_EOF
+-	  # Now try linking the two files.
+-	  mv conftest.$ac_objext conftstm.$ac_objext
+-	  lt_globsym_save_LIBS=$LIBS
+-	  lt_globsym_save_CFLAGS=$CFLAGS
+-	  LIBS=conftstm.$ac_objext
+-	  CFLAGS="$CFLAGS$lt_prog_compiler_no_builtin_flag"
+-	  if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_link\""; } >&5
+-  (eval $ac_link) 2>&5
+-  ac_status=$?
+-  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+-  test $ac_status = 0; } && test -s conftest$ac_exeext; then
+-	    pipe_works=yes
+-	  fi
+-	  LIBS=$lt_globsym_save_LIBS
+-	  CFLAGS=$lt_globsym_save_CFLAGS
++      # Fil-C port: filcc pizlonates every global symbol, so this probe's
++      # nm_test_var/nm_test_func are emitted as pizlonated_nm_test_var/
++      # pizlonated_nm_test_func and the original greps never match.  That
++      # leaves lt_cv_sys_global_symbol_pipe empty, which breaks every
++      # -export-symbols-regex link with "syntax error near unexpected token
++      # `|'" (an empty $global_symbol_pipe segment inside libtool's
++      # export_symbols_cmds).  Accept the pizlonated names too.
++      if $GREP -e ' nm_test_var$' -e ' pizlonated_nm_test_var$' "$nlist" >/dev/null; then
++	if $GREP -e ' nm_test_func$' -e ' pizlonated_nm_test_func$' "$nlist" >/dev/null; then
++	  # Fil-C port: upstream now compiles a second conftest holding a
++	  # symbol-address table generated FROM the nlist -- but the nlist
++	  # names are already pizlonated, and filcc pizlonates the generated
++	  # references a second time (pizlonated_pizlonated_nm_test_var),
++	  # which the link cannot resolve.  The probe therefore always
++	  # concluded pipe_works=no and left lt_cv_sys_global_symbol_pipe
++	  # empty, breaking every -export-symbols-regex link with
++	  # "syntax error near unexpected token `|'" (an empty
++	  # $global_symbol_pipe segment inside libtool's export_symbols_cmds).
++	  # Phase 1 above already proves that nm + the symbol pipe extract
++	  # the symbols the probe needs; accept the pipe without the link
++	  # phase.
++	  pipe_works=yes
+ 	else
+ 	  echo "cannot find nm_test_func in $nlist" >&5
+ 	fi

@@ -131,9 +131,27 @@ if [ ! -e $VENDOR_TARBALL ]; then
      CARGO_HOME=$OLDPWD/rust-build/.librsvg-vendor/cargo-home \
      $DIST/cargo/bin/cargo vendor \
      $OLDPWD/rust-build/.librsvg-vendor/vendor)
+    # Fil-C port: patch the vendored string_cache.  Its Atom packs the
+    # dynamic-atom Entry pointer into a NonZeroU64 and casts it back with
+    # `as *const Entry`; under Fil-C an integer-to-pointer cast has no
+    # capability, so the first refcount fetch_sub on a dynamic atom (e.g.
+    # librsvg's XInclude namespace) panics the runtime.  See
+    # pizlix/vendor-patches/string_cache-atom-filc.patch for the analysis
+    # and the fix (a real capability-carrying pointer field alongside the
+    # packed value, plus explicit Send/Sync like the packed form had).
+    patch -d rust-build/.librsvg-vendor/vendor -p1 --forward \
+        < pizlix/vendor-patches/string_cache-atom-filc.patch
     tar -czf $VENDOR_TARBALL -C rust-build/.librsvg-vendor vendor
     rm -rf rust-build/.librsvg-vendor
 fi
+
+# The vendored tree MUST carry the Fil-C string_cache patch (the tarball is
+# cached, so this guard catches a stale cache after the patch file changed).
+zcat $VENDOR_TARBALL | tar -xOf - vendor/string_cache/src/atom.rs 2>/dev/null \
+    | grep -q 'Fil-C port: for DYNAMIC_TAG atoms' || {
+    echo "vendor tarball lacks the Fil-C string_cache patch; rm $VENDOR_TARBALL and re-run" >&2
+    exit 1
+}
 
 # --- 4. the librsvg projeny package -------------------------------------------
 # Packaged from the (patched) checkout; the driver copies it into

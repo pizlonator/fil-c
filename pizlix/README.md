@@ -120,6 +120,7 @@ The wrappers (`pizlix-gnome`, `pizlix-shell`) export what the session needs:
 - `XDG_RUNTIME_DIR` comes from `/etc/profile.d/xdg-runtime-dir.sh` (`/run/user/$(id -u)`, created mode 700).
 - `/etc/machine-id` is a symlink to `/var/lib/dbus/machine-id`, created by `dbus-uuidgen --ensure`; dbus and elogind both want it.
 - Settings are gsettings/dconf: `dconf-service` D-Bus-activates on the session bus on first write and persists to `~/.config/dconf/user`.
+- SVG icons render via the Fil-Rust-built librsvg (postlc9): librsvg-2, the gdk-pixbuf SVG loader, and the `Rsvg-2.0` typelib are drop-in installed (plus the loaders.cache refresh and a glib GType repair), so app-grid, quick-settings, and symbolic icons show real artwork. The Rust toolchains live at `/usr/lib/rust/{filc,yolo}`, and `/usr/bin/rustc`/`cargo` dispatch to them.
 
 ### weston vs GNOME
 
@@ -132,7 +133,6 @@ The wrappers (`pizlix-gnome`, `pizlix-shell`) export what the session needs:
 - No NetworkManager: no wifi/bluetooth tiles in quick settings; dhcpcd on eth0 only.
 - No PipeWire: no audio.
 - No calendar server (evolution-data-server): the clock has no calendar dropdown.
-- No librsvg: SVG icons degrade to a generic glyph; PNG icons render fine.
 - No gnome-settings-daemon: gnome-session logs "Missing required core component Settings, expect trouble…" and some integration (e.g. color management) is absent.
 
 <a name="stages"></a>
@@ -193,6 +193,10 @@ If you want to start the build here, do `sudo ./build_with_recovered_postlc6.sh`
 ### Post-LC 8
 
 This builds GNOME Shell: the SpiderMonkey JavaScript engine (mozjs), gjs (the JS-to-GNOME bindings), and gnome-shell (the full GNOME desktop shell: top bar, activities overview, app grid, notifications). After this stage, `pizlix-gnome` starts the full GNOME Shell session — this is the full GNOME desktop experience. If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc8.sh`. If you want to start the build here, do `sudo ./build_with_recovered_postlc7.sh`.
+
+### Post-LC 9
+
+This builds the Rust toolchains (rustc/cargo, built+installed yolo-ABI like clang, with `/usr/bin/rustc`/`cargo` dispatching to `/usr/lib/rust/filc` and `/usr/lib/rust/yolo`), then librsvg (the SVG renderer, Rust via Fil-Rust) plus the gdk-pixbuf SVG loader. After this stage, SVG icons render in GNOME — the app grid, quick settings, and symbolic icons show real artwork instead of a generic glyph. If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc9.sh`.
 
 ### Other Tricks
 
