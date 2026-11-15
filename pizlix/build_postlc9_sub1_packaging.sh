@@ -149,15 +149,45 @@ if [ ! -e $VENDOR_TARBALL ]; then
     # packed value, plus explicit Send/Sync like the packed form had).
     patch -d rust-build/.librsvg-vendor/vendor -p1 --forward \
         < pizlix/vendor-patches/string_cache-atom-filc.patch
+    # Fil-C port: patch the vendored string_cache's dynamic-atom set too.  It
+    # used parking_lot::Mutex, whose WordLock slow path reconstructs the
+    # waiter-queue head with an integer-to-pointer cast; under Fil-C that has
+    # no capability, so the first unlock-with-waiters under contention panics
+    # ("cannot read pointer with null object").  GNOME Shell's icon-load
+    # thread pool hits exactly that while rendering SVG icons.  Swap the set
+    # to the pizlonated glibc pthread mutex (std::sync::Mutex) instead.  See
+    # pizlix/vendor-patches/string_cache-dynamic-set-filc.patch.
+    patch -d rust-build/.librsvg-vendor/vendor -p1 --forward \
+        < pizlix/vendor-patches/string_cache-dynamic-set-filc.patch
+    # Fil-C port: the patches above edit vendored files, so their entries in
+    # the vendored .cargo-checksum.json must be refreshed -- cargo verifies
+    # the per-file checksums every time it reads a vendored package
+    # ("directory sources are not intended to be edited") and would otherwise
+    # reject the patched tree.
+    python3 - <<'PYEOF'
+import hashlib, json
+vendor = 'rust-build/.librsvg-vendor/vendor'
+jpath = vendor + '/string_cache/.cargo-checksum.json'
+d = json.load(open(jpath))
+for rel in ('src/atom.rs', 'src/dynamic_set.rs'):
+    d['files'][rel] = hashlib.sha256(open(vendor + '/string_cache/' + rel, 'rb').read()).hexdigest()
+json.dump(d, open(jpath, 'w'))
+print('refreshed string_cache vendored checksums')
+PYEOF
     tar -czf $VENDOR_TARBALL -C rust-build/.librsvg-vendor vendor
     rm -rf rust-build/.librsvg-vendor
 fi
 
-# The vendored tree MUST carry the Fil-C string_cache patch (the tarball is
-# cached, so this guard catches a stale cache after the patch file changed).
+# The vendored tree MUST carry BOTH Fil-C string_cache patches (the tarball
+# is cached, so these guards catch a stale cache after a patch file changed).
 zcat $VENDOR_TARBALL | tar -xOf - vendor/string_cache/src/atom.rs 2>/dev/null \
     | grep -q 'Fil-C port: for DYNAMIC_TAG atoms' || {
-    echo "vendor tarball lacks the Fil-C string_cache patch; rm $VENDOR_TARBALL and re-run" >&2
+    echo "vendor tarball lacks the Fil-C string_cache atom patch; rm $VENDOR_TARBALL and re-run" >&2
+    exit 1
+}
+zcat $VENDOR_TARBALL | tar -xOf - vendor/string_cache/src/dynamic_set.rs 2>/dev/null \
+    | grep -q 'Fil-C port: the dynamic-atom set used parking_lot::Mutex' || {
+    echo "vendor tarball lacks the Fil-C string_cache dynamic-set patch; rm $VENDOR_TARBALL and re-run" >&2
     exit 1
 }
 
