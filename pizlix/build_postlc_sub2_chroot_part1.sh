@@ -189,7 +189,13 @@ hash -r
 
 tar -xf expect5.45.4.tar.gz
 cd expect5.45.4
-python3 -c 'from pty import spawn; spawn(["echo", "ok"])'
+# The LFS book's pty sanity check before building expect.  It reads STDIN
+# until EOF (pty.spawn's copy loop removes the master fd on child exit but
+# keeps waiting for stdin EOF), so with a live terminal in stdin -- which is
+# exactly what an interactive ./build.sh run has -- it would hang forever
+# after the child exits.  Feed it /dev/null: the check is about the pty
+# system, not about this script's stdin.
+python3 -c 'from pty import spawn; spawn(["echo", "ok"])' < /dev/null
 patch -Np1 -i ../expect-5.45.4-gcc14-1.patch
 ./configure --prefix=/usr \
     --with-tcl=/usr/lib \
