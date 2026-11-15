@@ -43,11 +43,19 @@ cd $FILCSRC
 #    functionality lives in the yolo libc.
 
 STAGE1=rust-build/xpy/x86_64-unknown-linux-gnu/stage1
-if [ ! -e $STAGE1/bin/rustc ]; then
-    echo "ERROR: $STAGE1/bin/rustc not found.  Run ./build_rustc.sh first;" >&2
-    echo "       the pizlonated-filrustc toolchain tarball is packaged from" >&2
-    echo "       the stage1 sysroot it produces." >&2
-    exit 1
+if test ! -e $STAGE1/bin/rustc; then
+    # The stage1 sysroot is missing (fresh clone, or rust-build/xpy was
+    # wiped, e.g. together with /mnt/lfs).  Build the Fil-C rustc before
+    # tarring: this script already runs as FILCOWNER (the EUID check
+    # above), which is the user build_rustc.sh expects, and the clean
+    # build takes ~15 minutes at postlc9 time.  build_rustc.sh wipes and
+    # rewrites rust-build/xpy plus the result symlinks (rust-build/rustc,
+    # rust-build/filrustc) itself, so nothing dangles afterward.
+    echo "$STAGE1/bin/rustc not found; running ./build_rustc.sh (~15 min)..." >&2
+    # cwd is already $FILCSRC (cd'd at the top of this script).  FILCSRC is
+    # the relative path `..`, so a second `cd $FILCSRC` here would walk UP
+    # out of the repo and ./build_rustc.sh would not be found.
+    ./build_rustc.sh
 fi
 
 # --- 1. the Fil-C rustc ------------------------------------------------------

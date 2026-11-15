@@ -195,6 +195,12 @@ export HOME=/root
 
 rm -rf /sources/vendor-librsvg
 tar -xf /sources/vendor-librsvg.tar.gz -C /sources
+# The tarball's root directory is `vendor/` (see build_postlc9_sub1_packaging.sh:
+# tar -czf $VENDOR_TARBALL -C rust-build/.librsvg-vendor vendor), while every
+# consumer -- the vendored-sources config below, build_postlc9_chroot_project_librsvg.sh,
+# and the packaging docs -- names the tree /sources/vendor-librsvg.  Move the
+# extracted tree where the config points.
+mv /sources/vendor /sources/vendor-librsvg
 mkdir -p $CARGO_HOME
 cat > $CARGO_HOME/config.toml <<EOF
 [source.crates-io]
