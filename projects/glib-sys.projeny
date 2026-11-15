@@ -1,0 +1,65 @@
+URL: https://static.crates.io/crates/glib-sys/glib-sys-0.19.0.crate 44addee6e4bb9b0b08a2f69ec38b073c14b12305f03af484a151ef899a42e4f3
+Origname: glib-sys-0.19.0
+Name: glib-sys
+
+    glib-sys 0.19.0 (the gtk-rs FFI bindings to libglib-2.0; patched for Fil-C: GType is a pointer, not size_t)
+diff --git a/glib-sys/src/manual.rs b/glib-sys/src/manual.rs
+--- a/glib-sys/src/manual.rs
++++ b/glib-sys/src/manual.rs
+@@ -5,7 +5,55 @@
+ #[allow(unused_imports)]
+ use libc::{c_char, c_int, c_ushort, c_void};
+
+-pub type GType = libc::size_t;
++// Fil-C port: GType is a POINTER, not a size_t.
++//
++// glib >= 2.80 declares it in C as
++//
++//     typedef struct _GTypeOpaque *GType;		(gobject/gtype.h)
++//
++// i.e. an incomplete-struct pointer, and for dynamic types the GType value
++// IS the raw TypeNode pointer (gobject/gtype.c: type = GPOINTER_TO_TYPE
++// (node)).  The upstream Rust declaration `pub type GType = libc::size_t`
++// predates that C change: both spellings have the same machine ABI (a
++// 64-bit scalar), so gcc/clang cannot tell them apart -- but the Fil-C
++// compiler can.  Fil-C capabilities ("shadows") ride on pointer-typed
++// values: a GType crossing the FFI as size_t loses its capability, and
++// when the integer value is handed back to C and decoded into a TypeNode*,
++// the first dereference panics the filc runtime ("cannot read pointer with
++// null object").  Declaring GType as the pointer type the C header already
++// uses keeps the capability alive across every Rust<->C crossing, so no
++// cooperation from glib itself is needed.  Fundamental GTypes (the small
++// integer IDs like G_TYPE_STRING) stay integer-cast pointers, exactly like
++// C's G_TYPE_MAKE_FUNDAMENTAL(x) macro; they are never dereferenced and
++// resolve through glib's static_fundamental_type_nodes table.
++//
++// The pointer hides behind a #[repr(transparent)] newtype rather than a
++// plain `pub type` alias so that GType keeps every property the upstream
++// size_t spelling had: Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash,
++// Debug -- and Send + Sync (see the unsafe impls below).  repr(transparent)
++// pins the ABI to the inner pointer's, so every FFI signature that takes or
++// returns a GType is unchanged at the machine level.  The GType value is an
++// opaque token: no Rust code ever dereferences it, and all integer
++// arithmetic on it (the fundamental-ID math and the static-scope flag bit)
++// happens in C or via explicit round trips.
++#[repr(C)]
++pub struct GTypeOpaque {
++    _private: [u8; 0],
++}
++
++#[repr(transparent)]
++#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
++pub struct GType(pub *const GTypeOpaque);
++
++// The wrapper must be Send + Sync because upstream's size_t spelling was:
++// every gtk-rs type that holds a GType (glib's Type, Value, Object
++// internals, ParamSpec, ...) inherits its Send/Sync-ness from this field,
++// and their public API contracts depend on it.  This is exactly as safe as
++// upstream: a GType is an opaque type token whose only meaningful content
++// is the address bits, which are immutable once registered (dynamic type
++// nodes are permanent for the life of the process, per glib's own docs).
++unsafe impl Send for GType {}
++unsafe impl Sync for GType {}
+
+ #[cfg(all(not(unix), docsrs))]
+ #[repr(C)]

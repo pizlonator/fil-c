@@ -364,82 +364,11 @@ static GHashTable       *static_type_nodes_ht = NULL;
 static TypeNode		*static_fundamental_type_nodes[(G_TYPE_FUNDAMENTAL_MAX >> G_TYPE_FUNDAMENTAL_SHIFT) + 1] = { NULL, };
 static GType		 static_fundamental_next = (GType) G_TYPE_RESERVED_USER_FIRST;
 
-/* Fil-C port: GType capability repair table.
- *
- * For dynamic types a GType IS the raw TypeNode pointer (see
- * type_node_any_new_W: type = GPOINTER_TO_TYPE (node)), and plain C code
- * keeps a real filc pointer capability for it end to end.  But foreign
- * (non-C-ABI) code -- for this port, the Rust workspace compiled by the
- * Fil-C rustc, whose glib-sys declares "pub type GType = libc::size_t" --
- * holds GType values as bare integers and hands them back over the FFI
- * with no capability ("shadow").  The masked decode below then yields a
- * TypeNode* whose bits are right but whose capability is null, and any
- * dereference of it panics the filc runtime ("cannot read pointer with
- * null object").  First seen with glib-rs' register_type ->
- * g_type_add_instance_private, and with g-ir-scanner's dump program
- * calling rsvg_handle_get_type().
- *
- * Repair: every dynamic node is recorded here at registration time (the
- * recorded copy carries a real capability), and a lookup that decodes a
- * raw address first tries this table and returns the recorded copy.
- * Fundamentals never enter the table (their GTypes are small integers and
- * take the static_fundamental_type_nodes path below).  The table is
- * addressed by (type >> G_TYPE_FUNDAMENTAL_SHIFT) & mask: node pointers
- * come from g_malloc (>= 16-byte aligned), so successive registrations
- * spread well.  Inserts happen only under type_rw_lock's write lock;
- * readers use atomic loads and stop at the first empty slot, which is
- * sound because entries are never removed or moved (type nodes are
- * permanent) and a node's GType only becomes observable to foreign code
- * after type_node_any_new_W returned, i.e. after its insert completed. */
-
-#define TYPE_NODE_ADDR_TABLE_SIZE	65536		/* power of two */
-#define TYPE_NODE_ADDR_INSERT_PROBES	1024
-
-static gpointer *static_type_node_addrs = NULL;		/* g_type_init */
-
-static inline guint
-type_node_addr_slot (GType type)
-{
-  return ((guint) ((guintptr) type >> G_TYPE_FUNDAMENTAL_SHIFT)) &
-	 (TYPE_NODE_ADDR_TABLE_SIZE - 1);
-}
-
 static inline TypeNode*
 lookup_type_node_I (GType utype)
 {
   if (utype > (GType) G_TYPE_FUNDAMENTAL_MAX)
-    {
-      TypeNode *node = (TypeNode*) ((uintptr_t) utype & ~(uintptr_t) TYPE_ID_MASK);
-
-      if (static_type_node_addrs)
-        {
-          guint slot = type_node_addr_slot (utype);
-          guint i;
-
-          for (i = 0; i < TYPE_NODE_ADDR_TABLE_SIZE; i++)
-            {
-              gpointer candidate = g_atomic_pointer_get (&static_type_node_addrs[slot]);
-
-              if (!candidate)
-                break;			/* end of the probe chain */
-
-              /* Pointer equality compares addresses only; `candidate'
-               * carries the capability that makes the returned node
-               * dereferenceable. */
-              if (candidate == (gpointer) node)
-                return (TypeNode*) candidate;
-
-              slot = (slot + 1) & (TYPE_NODE_ADDR_TABLE_SIZE - 1);
-            }
-        }
-
-      /* Not recorded (pre-init lookup, table full, or a GType that was
-       * never registered): behave like upstream and return the decoded
-       * pointer.  Under Fil-C a dereference of it panics if it really
-       * came from integer-typed foreign code, which is the honest
-       * outcome for an unregistered type. */
-      return node;
-    }
+    return (TypeNode*) ((uintptr_t) utype & ~(uintptr_t) TYPE_ID_MASK);
   else
     return static_fundamental_type_nodes[(uintptr_t) utype >> G_TYPE_FUNDAMENTAL_SHIFT];
 }
@@ -496,28 +425,7 @@ type_node_any_new_W (TypeNode             *pnode,
     type = GPOINTER_TO_TYPE (node);
   
   g_assert (((uintptr_t) type & (uintptr_t) TYPE_ID_MASK) == 0);
-
-  /* Fil-C port: record the node so that lookups of its GType can repair a
-   * capability-less (integer-borne) copy -- see the comment above
-   * static_type_node_addrs.  Dynamic types only; fundamentals are integer
-   * GTypes served from static_fundamental_type_nodes.  Runs under the
-   * type_rw_lock write lock; the CAS makes the entry visible to lock-free
-   * readers as a unit. */
-  if (pnode && static_type_node_addrs)
-    {
-      guint slot = type_node_addr_slot (type);
-      guint i;
-
-      for (i = 0; i < TYPE_NODE_ADDR_INSERT_PROBES; i++)
-        {
-          if (g_atomic_pointer_compare_and_exchange (&static_type_node_addrs[slot],
-                                                     NULL, (gpointer) type))
-            break;
-
-          slot = (slot + 1) & (TYPE_NODE_ADDR_TABLE_SIZE - 1);
-        }
-    }
-
+  
   node->n_supers = n_supers;
   if (!pnode)
     {
@@ -4613,11 +4521,6 @@ gobject_init (void)
 
   /* type qname hash table */
   static_type_nodes_ht = g_hash_table_new (g_str_hash, g_str_equal);
-
-  /* Fil-C port: GType capability repair table (see
-   * static_type_node_addrs near lookup_type_node_I).  Zeroed slots are
-   * NULL pointers, i.e. empty. */
-  static_type_node_addrs = g_malloc0 (sizeof (gpointer) * TYPE_NODE_ADDR_TABLE_SIZE);
 
   /* invalid type G_TYPE_INVALID (0)
    */

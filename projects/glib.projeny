@@ -1,0 +1,67 @@
+URL: https://static.crates.io/crates/glib/glib-0.19.0.crate 43c0947c5051d9aedcbbb3c53e3c58081c194ed84c3631430278c9ed2d274cd5
+Origname: glib-0.19.0
+Name: glib
+
+    glib 0.19.0 (the gtk-rs wrapper crate; patched for Fil-C: explicit integer round trips for the GType static-scope flag bit and the NULL GType array terminator -- GType itself is a pointer now, see projects/glib-sys.projeny)
+diff --git a/glib/src/subclass/signal.rs b/glib/src/subclass/signal.rs
+--- a/glib/src/subclass/signal.rs
++++ b/glib/src/subclass/signal.rs
+@@ -283,12 +283,26 @@
+ impl SignalType {
+     #[inline]
+     pub fn with_static_scope(type_: Type) -> Self {
+-        Self(type_.into_glib() | gobject_ffi::G_TYPE_FLAG_RESERVED_ID_BIT)
++        // Fil-C port: GType is a pointer for Fil-C (see the glib-sys patch;
++        // glib 2.80's C header declares it as `typedef struct _GTypeOpaque
++        // *GType;`), so the flag bit can no longer be ORed on directly.  Do
++        // exactly what C's gsignal.c does -- `(GType) ((guintptr) type |
++        // G_TYPE_FLAG_RESERVED_ID_BIT)` -- an explicit round trip through
++        // usize.  Like in C, the flagged value is only ever stored, compared,
++        // and stripped again before its GType is used; the address bits are
++        // preserved.
++        Self(crate::ffi::GType(
++            (type_.into_glib().0 as usize
++                | gobject_ffi::G_TYPE_FLAG_RESERVED_ID_BIT.0 as usize)
++                as *const crate::ffi::GTypeOpaque,
++        ))
+     }
+
+     #[inline]
+     pub fn static_scope(&self) -> bool {
+-        (self.0 & gobject_ffi::G_TYPE_FLAG_RESERVED_ID_BIT) != 0
++        // Fil-C port: see with_static_scope above -- mask the flag bit off
++        // the address bits explicitly.
++        (self.0 .0 as usize & gobject_ffi::G_TYPE_FLAG_RESERVED_ID_BIT.0 as usize) != 0
+     }
+
+     #[inline]
+@@ -308,7 +322,13 @@
+     #[inline]
+     fn from(type_: SignalType) -> Self {
+         // Remove the extra-bit used for G_SIGNAL_TYPE_STATIC_SCOPE
+-        let type_ = type_.0 & (!gobject_ffi::G_TYPE_FLAG_RESERVED_ID_BIT);
++        // Fil-C port: see with_static_scope above -- the mask is an explicit
++        // round trip through usize, matching C's gsignal.c decode.
++        let type_ = crate::ffi::GType(
++            ((type_.0 .0 as usize)
++                & !(gobject_ffi::G_TYPE_FLAG_RESERVED_ID_BIT.0 as usize))
++                as *const crate::ffi::GTypeOpaque,
++        );
+         unsafe { from_glib(type_) }
+     }
+ }
+diff --git a/glib/src/types.rs b/glib/src/types.rs
+--- a/glib/src/types.rs
++++ b/glib/src/types.rs
+@@ -622,7 +622,10 @@
+             let res =
+                 ffi::g_malloc(mem::size_of::<ffi::GType>() * (t.len() + 1)) as *mut ffi::GType;
+             std::ptr::copy_nonoverlapping(t.as_ptr() as *const ffi::GType, res, t.len());
+-            *res.add(t.len()) = 0;
++            // Fil-C port: GType is a pointer for Fil-C (see the glib-sys
++            // patch), so the NULL array terminator is a null pointer rather
++            // than a 0 integer.
++            *res.add(t.len()) = ffi::GType(ptr::null());
+             res
+         }
+     }

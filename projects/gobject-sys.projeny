@@ -1,0 +1,79 @@
+URL: https://static.crates.io/crates/gobject-sys/gobject-sys-0.19.0.crate 3e897bd0e2675f7cee73d729ebd8af3f86a66a68043a92cd77b985fa5ebfce76
+Origname: gobject-sys-0.19.0
+Name: gobject-sys
+
+    gobject-sys 0.19.0 (the gtk-rs FFI bindings to libgobject-2.0; patched for Fil-C: the G_TYPE_* fundamental constants cast their integer IDs to the pointer-typed GType)
+diff --git a/gobject-sys/src/lib.rs b/gobject-sys/src/lib.rs
+--- a/gobject-sys/src/lib.rs
++++ b/gobject-sys/src/lib.rs
+@@ -20,30 +20,38 @@
+ };
+
+ #[allow(unused_imports)]
+-use glib::{gboolean, gconstpointer, gpointer, GType};
++use glib::{gboolean, gconstpointer, gpointer, GType, GTypeOpaque};
+
+-pub const G_TYPE_INVALID: GType = 0 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_NONE: GType = 1 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_INTERFACE: GType = 2 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_CHAR: GType = 3 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_UCHAR: GType = 4 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_BOOLEAN: GType = 5 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_INT: GType = 6 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_UINT: GType = 7 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_LONG: GType = 8 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_ULONG: GType = 9 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_INT64: GType = 10 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_UINT64: GType = 11 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_ENUM: GType = 12 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_FLAGS: GType = 13 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_FLOAT: GType = 14 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_DOUBLE: GType = 15 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_STRING: GType = 16 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_POINTER: GType = 17 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_BOXED: GType = 18 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_PARAM: GType = 19 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_OBJECT: GType = 20 << G_TYPE_FUNDAMENTAL_SHIFT;
+-pub const G_TYPE_VARIANT: GType = 21 << G_TYPE_FUNDAMENTAL_SHIFT;
++// Fil-C port: GType is a pointer (see the glib-sys patch -- glib 2.80
++// declares it in C as `typedef struct _GTypeOpaque *GType;`).  The
++// fundamental type IDs are integer-cast pointers, exactly like C's
++// G_TYPE_MAKE_FUNDAMENTAL(x) macro: ((GType) ((x) <<
++// G_TYPE_FUNDAMENTAL_SHIFT)).  Fundamentals are never dereferenced through
++// their GType (glib resolves them through static_fundamental_type_nodes),
++// so like in C the cast yields a capability-less pointer that is only ever
++// compared or re-expanded by address.
++pub const G_TYPE_INVALID: GType = GType((0 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_NONE: GType = GType((1 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_INTERFACE: GType = GType((2 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_CHAR: GType = GType((3 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_UCHAR: GType = GType((4 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_BOOLEAN: GType = GType((5 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_INT: GType = GType((6 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_UINT: GType = GType((7 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_LONG: GType = GType((8 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_ULONG: GType = GType((9 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_INT64: GType = GType((10 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_UINT64: GType = GType((11 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_ENUM: GType = GType((12 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_FLAGS: GType = GType((13 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_FLOAT: GType = GType((14 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_DOUBLE: GType = GType((15 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_STRING: GType = GType((16 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_POINTER: GType = GType((17 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_BOXED: GType = GType((18 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_PARAM: GType = GType((19 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_OBJECT: GType = GType((20 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
++pub const G_TYPE_VARIANT: GType = GType((21 << G_TYPE_FUNDAMENTAL_SHIFT) as *const GTypeOpaque);
+
+ // Aliases
+ pub type GSignalCMarshaller = GClosureMarshal;
+@@ -54,7 +62,7 @@
+ pub const G_PARAM_USER_SHIFT: c_int = 8;
+ pub const G_SIGNAL_FLAGS_MASK: c_int = 511;
+ pub const G_SIGNAL_MATCH_MASK: c_int = 63;
+-pub const G_TYPE_FLAG_RESERVED_ID_BIT: GType = 1;
++pub const G_TYPE_FLAG_RESERVED_ID_BIT: GType = GType(1 as *const GTypeOpaque);
+ pub const G_TYPE_FUNDAMENTAL_MAX: c_int = 1020;
+ pub const G_TYPE_FUNDAMENTAL_SHIFT: c_int = 2;
+ pub const G_TYPE_RESERVED_BSE_FIRST: c_int = 32;

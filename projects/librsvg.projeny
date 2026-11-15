@@ -3,6 +3,78 @@ Origname: librsvg-2.58.3
 Name: librsvg
 
     librsvg 2.58.3 (SVG rendering; the Rust workspace is built with the Fil-C rustc via the two-compiler dispatch)
+diff --git a/librsvg/Cargo.lock b/librsvg/Cargo.lock
+--- a/librsvg/Cargo.lock
++++ b/librsvg/Cargo.lock
+@@ -789,8 +789,6 @@
+ [[package]]
+ name = "glib"
+ version = "0.19.0"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "170ee82b9b44b3b5fd1cf4971d6cf0eadec38303bb84c7bcc4e6b95a18934e71"
+ dependencies = [
+  "bitflags 2.4.2",
+  "futures-channel",
+@@ -824,8 +822,6 @@
+ [[package]]
+ name = "glib-sys"
+ version = "0.19.0"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "630f097773d7c7a0bb3258df4e8157b47dc98bbfa0e60ad9ab56174813feced4"
+ dependencies = [
+  "libc",
+  "system-deps",
+@@ -834,8 +830,6 @@
+ [[package]]
+ name = "gobject-sys"
+ version = "0.19.0"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "c85e2b1080b9418dd0c58b498da3a5c826030343e0ef07bde6a955d28de54979"
+ dependencies = [
+  "glib-sys",
+  "libc",
+@@ -2045,8 +2039,6 @@
+ [[package]]
+ name = "string_cache"
+ version = "0.8.7"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "f91138e76242f575eb1d3b38b4f1362f10d3a43f47d182a5b359af488a02293b"
+ dependencies = [
+  "new_debug_unreachable",
+  "once_cell",
+diff --git a/librsvg/Cargo.toml b/librsvg/Cargo.toml
+--- a/librsvg/Cargo.toml
++++ b/librsvg/Cargo.toml
+@@ -35,3 +35,29 @@
+     "fuzz",
+ ]
+ resolver = "2"
++
++# Fil-C port: patched crates.io dependencies.  The Fil-C port of these crates
++# lives in sibling projeny packages (projects/glib-sys.projeny etc.); their
++# checkout/packaged trees sit next to this workspace -- projects/glib-sys on
++# the build host, /sources/glib-sys in the Pizlix chroot -- so the relative
++# paths below resolve identically in both worlds.
++#
++#  glib-sys / gobject-sys / glib:
++#      GType is a POINTER for Fil-C (glib 2.80's C header declares it as
++#      `typedef struct _GTypeOpaque *GType;`), not a size_t: capabilities
++#      ride on pointer-typed values, so a GType that crosses the FFI as a
++#      bare integer comes back capability-less and the first dereference of
++#      the decoded TypeNode panics the filc runtime.  See
++#      projects/glib-sys.projeny (the type), projects/gobject-sys.projeny
++#      (the fundamental G_TYPE_* constants) and projects/glib.projeny (the
++#      few wrapper-crate sites that do integer arithmetic on GTypes).
++#  string_cache:
++#      the dynamic-atom Entry pointer must be kept as a real
++#      capability-carrying field (upstream packs it into a NonZeroU64), and
++#      the DYNAMIC_SET must use the pizlonated glibc pthread mutex instead
++#      of parking_lot.  See projects/string_cache.projeny.
++[patch.crates-io]
++glib-sys = { path = "../glib-sys" }
++gobject-sys = { path = "../gobject-sys" }
++glib = { path = "../glib" }
++string_cache = { path = "../string_cache" }
 diff --git a/librsvg/Makefile.am b/librsvg/Makefile.am
 --- a/librsvg/Makefile.am
 +++ b/librsvg/Makefile.am

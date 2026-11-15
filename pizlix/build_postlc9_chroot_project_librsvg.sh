@@ -23,7 +23,9 @@ set -x
 # Makefile.in Fil-C fixes: unconditional CARGO_TARGET_ARGS=--target +
 # pinned RUST_TARGET/RUST_TARGET_SUBDIR, environment-honoring
 # CARGO_TARGET_DIR, and the -export-symbols-regex extended to the
-# pizlonated_* names).  Runs INSIDE the chroot via build_chroot_late.sh.
+# pizlonated_* names; since the GType-as-pointer port it also carries the
+# workspace-level [patch.crates-io] section).  Runs INSIDE the chroot via
+# build_chroot_late.sh.
 #
 # The cargo invocation here uses an explicit --target x86_64-unknown-linux-gnu
 # so the dispatch shim sees --target units (Fil-C rustc) vs host units
@@ -31,12 +33,50 @@ set -x
 # vendored-sources replacement (written by
 # build_postlc9_chroot_project_rust_dispatch.sh, pointing at
 # /sources/vendor-librsvg) keeps the build off the network.
+#
+# Fil-C-patched crates: glib-sys, gobject-sys, glib and string_cache arrive
+# as their own projeny tarballs (sub1_packaging packages them; the stage
+# driver copies them into /sources).  They are unpacked NEXT TO the librsvg
+# tree so the workspace's [patch.crates-io] relative paths (../glib-sys
+# etc.) resolve, and cargo builds them as part of the librsvg graph -- this
+# is the principled replacement for the old vendor-patch hack (no more
+# patching the vendored tree / refreshing .cargo-checksum.json), and it is
+# how the Fil-C GType-as-pointer fix reaches the build: glib-sys declares
+# GType as a pointer, so GTypes crossing the C<->Rust FFI keep their filc
+# capabilities and glib itself needs no changes (it was built in postlc3 and
+# is NOT rebuilt here).
 
 # Extract the package (idempotent; the stage driver copies the tarball into
 # /sources with the shadow-tarball pattern).
 rm -rf /sources/pizlonated-librsvg
 tar -xf /sources/pizlonated-librsvg.tar.gz -C /sources
 cd /sources/pizlonated-librsvg
+
+# --- the patched crates ([patch.crates-io] sources) ---------------------------
+
+for crate in glib-sys gobject-sys glib string_cache; do
+    rm -rf /sources/$crate
+    tar -xf /sources/$crate.tar.gz -C /sources
+done
+
+# Gates: the [patch] wiring and the patched sources must actually be here.
+# If the wiring silently regressed, cargo would build against the UNPATCHED
+# crates.io sources -- the integer GType -- and the failure would only show
+# up at RUNTIME (a filc panic on the first Rust-registered GType), so check
+# for it explicitly.
+test -f /sources/pizlonated-librsvg/Cargo.toml
+grep -q '^\[patch\.crates-io\]' /sources/pizlonated-librsvg/Cargo.toml
+for crate in glib-sys gobject-sys glib string_cache; do
+    grep -q "path = \"../$crate\"" /sources/pizlonated-librsvg/Cargo.toml
+    test -f /sources/$crate/Cargo.toml
+done
+grep -q 'pub struct GType(pub \*const GTypeOpaque);' /sources/glib-sys/src/manual.rs
+grep -q 'pub const G_TYPE_STRING: GType = GType((16 << G_TYPE_FUNDAMENTAL_SHIFT) as \*const GTypeOpaque);' \
+    /sources/gobject-sys/src/lib.rs
+grep -q 'dynamic_entry: \*mut Entry,' /sources/string_cache/src/atom.rs
+grep -q 'use std::sync::Mutex;' /sources/string_cache/src/dynamic_set.rs
+grep -q 'as usize' /sources/glib/src/subclass/signal.rs
+echo "patched-crate gates: OK"
 
 # --- the dispatch environment (S2) ------------------------------------------------
 export RUSTC_WRAPPER=/usr/bin/rustc-dispatch

@@ -35,18 +35,24 @@ su $FILCOWNER ./build_postlc9_sub1_packaging.sh
 # they are copied explicitly here (the shadow-tarball pattern: special
 # files, explicit cp lines).  Same for the librsvg vendored dependencies;
 # pizlonated-librsvg.tar.gz IS a projeny product (sub1_packaging runs
-# `projeny package` into projects/librsvg/).
+# `projeny package` into projects/librsvg/), and so are the four
+# Fil-C-patched crates (glib-sys/gobject-sys/glib/string_cache: the GType
+# is a pointer for Fil-C, and string_cache keeps capability-carrying
+# dynamic-atom Entry pointers).  The root directory inside each crate
+# tarball is <crate>/ so unpacking into /sources yields the paths the
+# librsvg workspace's [patch.crates-io] section points at (../glib-sys
+# etc. from /sources/pizlonated-librsvg).
 cp -v $FILCSRC/rust-build/pizlonated-filrustc.tar.gz $LFS/sources
 cp -v $FILCSRC/rust-build/rust-yolo-1.90.0.tar.gz $LFS/sources
 cp -v $FILCSRC/rust-build/vendor-librsvg.tar.gz $LFS/sources
 cp -v $FILCSRC/projects/librsvg/pizlonated-librsvg.tar.gz $LFS/sources
-# Sprint S3 support: the glib GType capability-repair rebuild (its tarball is
-# a package-source.sh product, like the other pre-projeny packages).
-cp -v $FILCSRC/projects/glib-2.80.4/pizlonated-glib.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/glib-sys/glib-sys.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/gobject-sys/gobject-sys.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/glib/glib.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/string_cache/string_cache.tar.gz $LFS/sources
 cp -v build_postlc9_sub2_chroot.sh $LFS/sources
 cp -v build_postlc9_chroot_project_rust.sh $LFS/sources
 cp -v build_postlc9_chroot_project_rust_dispatch.sh $LFS/sources
-cp -v build_postlc9_chroot_project_glib_gtyperepair.sh $LFS/sources
 cp -v build_postlc9_chroot_project_librsvg.sh $LFS/sources
 
 ./build_chroot_late.sh /sources/build_postlc9_sub2_chroot.sh

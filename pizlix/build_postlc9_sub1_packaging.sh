@@ -112,7 +112,30 @@ rm -f rust-build/rust-yolo-1.90.0.tar.gz
 tar -czf rust-build/rust-yolo-1.90.0.tar.gz \
     -C rust-build rust-yolo-1.90.0
 
-# --- 3. librsvg vendored dependencies (the S2/S3 cargo builds) ----------------
+# --- 3. the Fil-C-patched Rust crates (projeny products) -----------------------
+#
+# The crates the Fil-C port patches (glib-sys, gobject-sys, glib,
+# string_cache) are PROJENY packages, exactly like librsvg itself:
+# projects/<crate>.projeny names the crates.io .crate tarball (URL + blake3)
+# and carries the Fil-C patch.  `projeny package` sets the project up
+# (download + verify + unpack + apply patch) and tars the tracked files, so
+# this step is what makes the patched trees exist on the build host -- which
+# the vendoring step below also needs, since the librsvg workspace's
+# [patch.crates-io] section points at them through relative paths
+# (../glib-sys from projects/librsvg).
+#
+# The tarballs are named without the pizlonated- prefix on purpose: the root
+# directory inside each tarball must be <crate>/ so that unpacking it into
+# /sources yields /sources/<crate>/, the same relative position the
+# [patch.crates-io] paths expect.  (The unpacked tree IS the Fil-C-patched
+# source; the distinction lives in the .projeny patch, not the filename.)
+
+filc/projeny package projects/glib-sys.projeny projects/glib-sys/glib-sys.tar.gz
+filc/projeny package projects/gobject-sys.projeny projects/gobject-sys/gobject-sys.tar.gz
+filc/projeny package projects/glib.projeny projects/glib/glib.tar.gz
+filc/projeny package projects/string_cache.projeny projects/string_cache/string_cache.tar.gz
+
+# --- 4. librsvg vendored dependencies (the S2/S3 cargo builds) ----------------
 #
 # The librsvg dependency closure, vendored ONCE at packaging time so every
 # chroot cargo build is fully offline.  NOT a projeny product (like the
@@ -128,7 +151,11 @@ tar -czf rust-build/rust-yolo-1.90.0.tar.gz \
 # The vendoring runs against the projeny checkout (projects/librsvg), whose
 # Cargo.lock pins the exact dependency versions, using the dist cargo from
 # the same 1.90.0 toolchain (vendoring only downloads; nothing compiles).
-# The result is cached in rust-build/ like the toolchain tarballs.
+# The Fil-C-patched crates (glib-sys, gobject-sys, glib, string_cache) are
+# path dependencies through [patch.crates-io], so cargo vendor excludes them
+# -- they reach the chroot as their own projeny tarballs (step 3), never
+# through the vendor tree.  The result is cached in rust-build/ like the
+# toolchain tarballs.
 
 VENDOR_TARBALL=rust-build/vendor-librsvg.tar.gz
 if [ ! -e $VENDOR_TARBALL ]; then
@@ -137,68 +164,25 @@ if [ ! -e $VENDOR_TARBALL ]; then
     mkdir -p rust-build/.librsvg-vendor
     (cd projects/librsvg && \
      CARGO_HOME=$OLDPWD/rust-build/.librsvg-vendor/cargo-home \
-     $DIST/cargo/bin/cargo vendor \
+     $DIST/cargo/bin/cargo vendor --locked \
      $OLDPWD/rust-build/.librsvg-vendor/vendor)
-    # Fil-C port: patch the vendored string_cache.  Its Atom packs the
-    # dynamic-atom Entry pointer into a NonZeroU64 and casts it back with
-    # `as *const Entry`; under Fil-C an integer-to-pointer cast has no
-    # capability, so the first refcount fetch_sub on a dynamic atom (e.g.
-    # librsvg's XInclude namespace) panics the runtime.  See
-    # pizlix/vendor-patches/string_cache-atom-filc.patch for the analysis
-    # and the fix (a real capability-carrying pointer field alongside the
-    # packed value, plus explicit Send/Sync like the packed form had).
-    patch -d rust-build/.librsvg-vendor/vendor -p1 --forward \
-        < pizlix/vendor-patches/string_cache-atom-filc.patch
-    # Fil-C port: patch the vendored string_cache's dynamic-atom set too.  It
-    # used parking_lot::Mutex, whose WordLock slow path reconstructs the
-    # waiter-queue head with an integer-to-pointer cast; under Fil-C that has
-    # no capability, so the first unlock-with-waiters under contention panics
-    # ("cannot read pointer with null object").  GNOME Shell's icon-load
-    # thread pool hits exactly that while rendering SVG icons.  Swap the set
-    # to the pizlonated glibc pthread mutex (std::sync::Mutex) instead.  See
-    # pizlix/vendor-patches/string_cache-dynamic-set-filc.patch.
-    patch -d rust-build/.librsvg-vendor/vendor -p1 --forward \
-        < pizlix/vendor-patches/string_cache-dynamic-set-filc.patch
-    # Fil-C port: the patches above edit vendored files, so their entries in
-    # the vendored .cargo-checksum.json must be refreshed -- cargo verifies
-    # the per-file checksums every time it reads a vendored package
-    # ("directory sources are not intended to be edited") and would otherwise
-    # reject the patched tree.
-    python3 - <<'PYEOF'
-import hashlib, json
-vendor = 'rust-build/.librsvg-vendor/vendor'
-jpath = vendor + '/string_cache/.cargo-checksum.json'
-d = json.load(open(jpath))
-for rel in ('src/atom.rs', 'src/dynamic_set.rs'):
-    d['files'][rel] = hashlib.sha256(open(vendor + '/string_cache/' + rel, 'rb').read()).hexdigest()
-json.dump(d, open(jpath, 'w'))
-print('refreshed string_cache vendored checksums')
-PYEOF
     tar -czf $VENDOR_TARBALL -C rust-build/.librsvg-vendor vendor
     rm -rf rust-build/.librsvg-vendor
 fi
 
-# The vendored tree MUST carry BOTH Fil-C string_cache patches (the tarball
-# is cached, so these guards catch a stale cache after a patch file changed).
-zcat $VENDOR_TARBALL | tar -xOf - vendor/string_cache/src/atom.rs 2>/dev/null \
-    | grep -q 'Fil-C port: for DYNAMIC_TAG atoms' || {
-    echo "vendor tarball lacks the Fil-C string_cache atom patch; rm $VENDOR_TARBALL and re-run" >&2
-    exit 1
-}
-zcat $VENDOR_TARBALL | tar -xOf - vendor/string_cache/src/dynamic_set.rs 2>/dev/null \
-    | grep -q 'Fil-C port: the dynamic-atom set used parking_lot::Mutex' || {
-    echo "vendor tarball lacks the Fil-C string_cache dynamic-set patch; rm $VENDOR_TARBALL and re-run" >&2
-    exit 1
-}
-
-# --- 4. the librsvg projeny package -------------------------------------------
+# --- 5. the librsvg projeny package -------------------------------------------
 # Packaged from the (patched) checkout; the driver copies it into
 # $LFS/sources and build_postlc9_chroot_project_librsvg.sh extracts it at
-# /sources/pizlonated-librsvg.
+# /sources/pizlonated-librsvg.  Since the GType-as-pointer port, the
+# checkout's patch body also carries the workspace-level [patch.crates-io]
+# section that wires the four patched crates from step 3 into every cargo
+# build of this workspace.
 
 filc/projeny package projects/librsvg.projeny projects/librsvg/pizlonated-librsvg.tar.gz
 
 rm -rf rust-build/.rust-yolo-dist rust-build/rust-yolo-1.90.0
 
 ls -la rust-build/pizlonated-filrustc.tar.gz rust-build/rust-yolo-1.90.0.tar.gz \
-       rust-build/vendor-librsvg.tar.gz projects/librsvg/pizlonated-librsvg.tar.gz
+       rust-build/vendor-librsvg.tar.gz projects/librsvg/pizlonated-librsvg.tar.gz \
+       projects/glib-sys/glib-sys.tar.gz projects/gobject-sys/gobject-sys.tar.gz \
+       projects/glib/glib.tar.gz projects/string_cache/string_cache.tar.gz

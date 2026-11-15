@@ -1,3 +1,9 @@
+URL: https://static.crates.io/crates/string_cache/string_cache-0.8.7.crate f2a681b18ebd8b9f1b1b2a9ea31846682cd3348efcc1879d62068c86ebbc162e
+Origname: string_cache-0.8.7
+Name: string_cache
+
+    string_cache 0.8.7 (interned strings for markup5ever/xml5ever; patched for Fil-C: the dynamic-atom Entry pointer is kept as a real capability-carrying field, and the DYNAMIC_SET uses the pizlonated glibc pthread mutex instead of parking_lot)
+diff --git a/string_cache/src/atom.rs b/string_cache/src/atom.rs
 --- a/string_cache/src/atom.rs
 +++ b/string_cache/src/atom.rs
 @@ -79,12 +79,35 @@
@@ -19,7 +25,7 @@
 +    dynamic_entry: *mut Entry,
      phantom: PhantomData<Static>,
  }
- 
+
  // FIXME: bound removed from the struct definition before of this error for pack_static:
  // "error[E0723]: trait bounds other than `Sized` on const fn parameters are unstable"
  // https://github.com/rust-lang/rust/issues/57563
@@ -86,7 +92,7 @@
 +        }
      }
  }
- 
+
 @@ -228,7 +259,7 @@
      #[inline]
      fn drop(&mut self) {
@@ -97,7 +103,7 @@
                  drop_slow(self)
              }
 @@ -236,7 +267,9 @@
- 
+
          // Out of line to guide inlining.
          fn drop_slow<Static>(this: &mut Atom<Static>) {
 -            DYNAMIC_SET.remove(this.unsafe_data.get() as *mut Entry);
@@ -118,3 +124,57 @@
                  }
                  INLINE_TAG => {
                      let len = (self.unsafe_data() & LEN_MASK) >> LEN_OFFSET;
+diff --git a/string_cache/src/dynamic_set.rs b/string_cache/src/dynamic_set.rs
+--- a/string_cache/src/dynamic_set.rs
++++ b/string_cache/src/dynamic_set.rs
+@@ -8,13 +8,27 @@
+ // except according to those terms.
+
+ use once_cell::sync::Lazy;
+-use parking_lot::Mutex;
+ use std::borrow::Cow;
+ use std::mem;
+ use std::ptr::NonNull;
+ use std::sync::atomic::AtomicIsize;
+ use std::sync::atomic::Ordering::SeqCst;
+
++// Fil-C port: the dynamic-atom set used parking_lot::Mutex, whose blocking
++// slow path (parking_lot_core's WordLock) packs the waiter-queue head into
++// the lock word as a plain usize and casts it back with `as *const
++// ThreadData` on every unlock-with-waiters.  Under Fil-C an
++// integer-to-pointer cast has no pointer capability, so the first queue
++// walk with waiters queued panics ("cannot read pointer with null object").
++// First seen in GNOME Shell: its icon-load thread pool contends on the
++// DYNAMIC_SET buckets while SVG icons parse, and the queue-walk dereference
++// in WordLock::unlock_slow trapped inside librsvg.  std::sync::Mutex is the
++// pizlonated glibc pthread mutex -- plain C, no integer-to-pointer round
++// trips.  Poisoning is recovered from: the set's critical sections are
++// short and its linked-list invariants hold even when a guard's scope
++// unwinds.
++use std::sync::Mutex;
++
+ const NB_BUCKETS: usize = 1 << 12; // 4096
+ const BUCKET_MASK: u32 = (1 << 12) - 1;
+
+@@ -52,7 +66,9 @@
+ impl Set {
+     pub(crate) fn insert(&self, string: Cow<str>, hash: u32) -> NonNull<Entry> {
+         let bucket_index = (hash & BUCKET_MASK) as usize;
+-        let mut linked_list = self.buckets[bucket_index].lock();
++        let mut linked_list = self.buckets[bucket_index]
++            .lock()
++            .unwrap_or_else(|err| err.into_inner());
+
+         {
+             let mut ptr: Option<&mut Box<Entry>> = linked_list.as_mut();
+@@ -90,7 +106,9 @@
+         let value: &Entry = unsafe { &*ptr };
+         let bucket_index = (value.hash & BUCKET_MASK) as usize;
+
+-        let mut linked_list = self.buckets[bucket_index].lock();
++        let mut linked_list = self.buckets[bucket_index]
++            .lock()
++            .unwrap_or_else(|err| err.into_inner());
+         debug_assert!(value.ref_count.load(SeqCst) == 0);
+         let mut current: &mut Option<Box<Entry>> = &mut linked_list;
+

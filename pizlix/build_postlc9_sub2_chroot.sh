@@ -21,15 +21,12 @@ cd /sources
 hash -r
 ./build_postlc9_chroot_project_rust_dispatch.sh
 
-# Sprint S3 support: rebuild glib with the GType capability-repair patch
-# (Rust-registered GTypes cross the FFI as bare integers; glib's
-# lookup_type_node_I must repair the TypeNode capability or the first
-# dereference panics).  Must run BEFORE the librsvg build; needs
-# pizlonated-glib.tar.gz in /sources (copied by the stage driver).
-./build_postlc9_chroot_project_glib_gtyperepair.sh
-
 # Sprint S2: the librsvg cargo build (the S2 staticlib gate; since S3 the
 # same script continues with the autotools build, GIR, rsvg-convert, the
-# gdk-pixbuf loader and the smoke gates).
+# gdk-pixbuf loader and the smoke gates).  The Fil-C-patched Rust crates
+# (glib-sys/gobject-sys/glib/string_cache) are unpacked into /sources by the
+# librsvg script and wired into the workspace through [patch.crates-io] --
+# glib itself is NOT rebuilt here: it was built in postlc3, and nothing in
+# postlc9 patches it (the GType capability repair lives in glib-sys now).
 ./build_postlc9_chroot_project_librsvg.sh
 hash -r
