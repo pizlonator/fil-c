@@ -135,7 +135,25 @@ filc/projeny package projects/gobject-sys.projeny projects/gobject-sys/gobject-s
 filc/projeny package projects/glib.projeny projects/glib/glib.tar.gz
 filc/projeny package projects/string_cache.projeny projects/string_cache/string_cache.tar.gz
 
-# --- 4. librsvg vendored dependencies (the S2/S3 cargo builds) ----------------
+# --- 4. the librsvg projeny package -------------------------------------------
+# Packaged from the (patched) checkout; the driver copies it into
+# $LFS/sources and build_postlc9_chroot_project_librsvg.sh extracts it at
+# /sources/pizlonated-librsvg.  Since the GType-as-pointer port, the
+# checkout's patch body also carries the workspace-level [patch.crates-io]
+# section that wires the four patched crates from step 3 into every cargo
+# build of this workspace.
+#
+# This step must run BEFORE the vendoring step below: `projeny package`
+# sets the checkout up, and both the vendoring (cargo resolves the workspace
+# graph, including the [patch] paths ../glib-sys etc. and the pinned
+# Cargo.lock) and the checkout's very existence on a fresh clone depend on
+# it.  (The zero-untracked ./build.sh caught exactly that ordering bug: with
+# no projects/librsvg on disk, the old vendor-first order died at its
+# `test -d projects/librsvg`.)
+
+filc/projeny package projects/librsvg.projeny projects/librsvg/pizlonated-librsvg.tar.gz
+
+# --- 5. librsvg vendored dependencies (the S2/S3 cargo builds) ----------------
 #
 # The librsvg dependency closure, vendored ONCE at packaging time so every
 # chroot cargo build is fully offline.  NOT a projeny product (like the
@@ -169,16 +187,6 @@ if [ ! -e $VENDOR_TARBALL ]; then
     tar -czf $VENDOR_TARBALL -C rust-build/.librsvg-vendor vendor
     rm -rf rust-build/.librsvg-vendor
 fi
-
-# --- 5. the librsvg projeny package -------------------------------------------
-# Packaged from the (patched) checkout; the driver copies it into
-# $LFS/sources and build_postlc9_chroot_project_librsvg.sh extracts it at
-# /sources/pizlonated-librsvg.  Since the GType-as-pointer port, the
-# checkout's patch body also carries the workspace-level [patch.crates-io]
-# section that wires the four patched crates from step 3 into every cargo
-# build of this workspace.
-
-filc/projeny package projects/librsvg.projeny projects/librsvg/pizlonated-librsvg.tar.gz
 
 rm -rf rust-build/.rust-yolo-dist rust-build/rust-yolo-1.90.0
 
