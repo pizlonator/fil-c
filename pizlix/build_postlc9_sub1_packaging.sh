@@ -79,7 +79,13 @@ fi
 rm -rf rust-build/.rust-yolo-dist
 mkdir -p rust-build/.rust-yolo-dist
 tar -xf $DISTBALL -C rust-build/.rust-yolo-dist
-DIST=rust-build/.rust-yolo-dist/rust-1.90.0-x86_64-unknown-linux-gnu
+DIST=$PWD/rust-build/.rust-yolo-dist/rust-1.90.0-x86_64-unknown-linux-gnu
+# $PWD here is $FILCSRC (this script cd'd there at the top).  Keep DIST
+# ABSOLUTE: the vendoring step below runs cargo from inside the projeny
+# checkout (cd projects/librsvg), where a relative DIST would point at a
+# nonexistent nested path.  (The zero-untracked ./build.sh caught that: the
+# vendor cache is missing on a fresh clone, so the vendoring actually runs,
+# which no earlier run ever did -- they all reused the cached tarball.)
 
 rm -rf rust-build/rust-yolo-1.90.0
 mkdir -p rust-build/rust-yolo-1.90.0/bin
