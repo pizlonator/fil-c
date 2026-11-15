@@ -2593,7 +2593,16 @@ structure, same capabilities, same output protocol:
   datalayout including `-ni:0` (what the pipeline sees -- `canConvertValue`
   and the ptr-words machinery depend on pointers being non-integral), and
   `target datalayout_after_filc` is MANDATORY: clang asserts in
-  MachineFunction::init() without it.  Manifests use the same
+  MachineFunction::init() without it.  Those target lines (`target
+  datalayout`, `target datalayout_after_filc`, and `target triple`) are
+  host-architecture specific, so the runner rewrites them to the host's
+  values -- derived once by probing the compiler with `-S -emit-llvm` on a
+  trivial C file (the before-FilC layout is the after-FilC string with
+  `-ni:0` re-inserted right after the `e-m:<model>-` prefix, exactly how the
+  Fil-C clang targets define their resetDataLayout(before, after) pairs) --
+  before compiling, so one .ll file runs on both x86_64 and aarch64 hosts; a
+  .ll test declaring none of those lines is compiled as-is.  Manifests use
+  the same
   vocabulary as a `filc/tests/<name>/manifest`: `return` (one of `success`,
   `failure`, `crash`, `dontCrash`, `exit13`, `exit101`, `compileFailure`,
   `compileOnly`, `linkFailure` -- the last is the same as `compileFailure`

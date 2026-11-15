@@ -51,7 +51,13 @@
 #   including `-ni:0` (what the pipeline sees -- canConvertValue and the
 #   ptr-words machinery depend on pointers being non-integral), and
 #   `target datalayout_after_filc` is MANDATORY: clang asserts in
-#   MachineFunction::init() without it.  Manifests work unchanged (`return`,
+#   MachineFunction::init() without it.  Those target lines (`target
+#   datalayout`, `target datalayout_after_filc`, and `target triple`) are
+#   host-architecture specific, so run-tests rewrites them to this host's
+#   values -- derived once by probing the compiler with -S -emit-llvm (see
+#   computeHostTarget below) -- before compiling, so one .ll file runs on both
+#   x86_64 and aarch64 hosts; a .ll test declaring none of those lines is
+#   compiled as-is.  Manifests work unchanged (`return`,
 #   `output-includes`/`output-excludes`, `extraArgs`, `extra-env`, etc.),
 #   except that `optFlags` is meaningless for a .ll test (the compile command
 #   is fixed); it is ignored.
@@ -65,7 +71,10 @@
 #   core dump machinery would turn into a core file.  A `return: failure`
 #   test asserts that code, so a passing failure test proves both that the
 #   program's memory-safety violation was caught *and* that it was reported
-#   through the panic machinery rather than crashing the process.
+#   through the panic machinery rather than crashing the process.  Each
+#   program's stdin comes from /dev/null and its stdout/stderr go to a file,
+#   so isatty-style behavior (io_terminal) is deterministic no matter how the
+#   suite itself is launched.
 # - Output protocol: one '.' per passing test ("FAIL: ..." spew plus the
 #   failing program's output interleaved for failures), "SUCCESS" at the end,
 #   exit code 0 iff all tests passed.  Use -t <testname> to run exactly one
@@ -133,6 +142,51 @@ unless filcc.exist?
     exit 1
 end
 ENV['PATH'] = "#{Pathname.new('build/bin').realpath}:#{ENV['PATH']}"
+
+# `.ll` tests' target lines are host-architecture specific.  Derive the
+# host's values from the Fil-C compiler itself, once, on first use: compiling
+# a trivial C program with -S -emit-llvm emits a pizlonated module carrying
+# the host target's after-FilC datalayout (`target datalayout_after_filc`) and
+# triple.  The before-FilC datalayout is that same string with AS0's
+# non-integralness (`-ni:0`) re-inserted right after the `e-m:<model>-`
+# prefix, which is exactly how the Fil-C clang targets define their
+# resetDataLayout(before, after) pairs.  These values are used to rewrite the
+# target lines of every .ll test (see below) so one test file runs on both
+# x86_64 and aarch64 hosts.
+$hostTarget = nil
+
+def computeHostTarget
+    return $hostTarget if $hostTarget
+    probeC = $testOutputDirectory + "hostProbe.c"
+    probeLL = $testOutputDirectory + "hostProbe.ll"
+    File.open(probeC, "w") {
+        | outp |
+        outp.puts "int main() { return 0; }"
+    }
+    raise unless system("#{Shellwords.shellescape($clang)} -O2 -S -emit-llvm -x c #{Shellwords.shellescape(probeC.to_s)} -o #{Shellwords.shellescape(probeLL.to_s)} > /dev/null 2>&1")
+    afterLayout = nil
+    triple = nil
+    File.open(probeLL) {
+        | inp |
+        inp.each_line {
+            | line |
+            if (match = /^target datalayout_after_filc = "(.*)"$/.match(line))
+                afterLayout = match[1]
+            elsif (match = /^target triple = "(.*)"$/.match(line))
+                triple = match[1]
+            end
+        }
+    }
+    raise unless afterLayout and triple
+    match = /\A(e-m:.-)/.match(afterLayout)
+    raise unless match
+    $hostTarget = {
+        "layout" => match[1] + "ni:0-" + match.post_match,
+        "afterLayout" => afterLayout,
+        "triple" => triple
+    }
+end
+
 $tests = []
 def handleArray(thing)
     return [] unless thing
@@ -210,13 +264,34 @@ $testDirectory.each_entry {
     justRunScript = outputPath + "justRun.sh"
     subRunScript = outputPath + "subRun.sh"
     runScript = outputPath + "run.sh"
+    compileSource = fullPath
+    if isLLVM
+        # Rewrite the host-specific target lines to this host's values, so
+        # the same test file runs on both x86_64 and aarch64 hosts.  Tests
+        # that declare no target lines are compiled as-is.
+        source = File.read(fullPath)
+        if /^target (datalayout|datalayout_after_filc|triple) = / =~ source
+            computeHostTarget
+            newSource = source.gsub(/^target datalayout = ".*"$/) { "target datalayout = \"#{$hostTarget['layout']}\"" }
+            newSource = newSource.gsub(/^target datalayout_after_filc = ".*"$/) { "target datalayout_after_filc = \"#{$hostTarget['afterLayout']}\"" }
+            newSource = newSource.gsub(/^target triple = ".*"$/) { "target triple = \"#{$hostTarget['triple']}\"" }
+            if newSource != source
+                newSource = "; target lines rewritten by filrustc/run-tests for this host.\n" + newSource
+                compileSource = outputPath + (testName + ".ll")
+                File.open(compileSource, "w") {
+                    | outp |
+                    outp.print newSource
+                }
+            end
+        end
+    end
     File.open(compileScript, "w") {
         | outp |
         outp.puts "#!/bin/sh"
         outp.puts "rm -f #{Shellwords.shellescape(compilerOutput)}"
         outp.puts "touch #{Shellwords.shellescape(compilerOutput)}"
         if isLLVM
-            outp.puts "#{$clang} -O2 -x ir #{Shellwords.shellescape(fullPath)} -o #{Shellwords.shellescape(binary)} #{extraArgs} >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
+            outp.puts "#{$clang} -O2 -x ir #{Shellwords.shellescape(compileSource)} -o #{Shellwords.shellescape(binary)} #{extraArgs} >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
         else
             outp.puts "#{$rustc} -o #{Shellwords.shellescape(binary)} #{Shellwords.shellescape(fullPath)} #{optFlags} #{extraArgs} >> #{Shellwords.shellescape(compilerOutput)} 2>&1"
         end
@@ -276,7 +351,7 @@ $testDirectory.each_entry {
             if expectedReturn == "crash"
                 outp.puts "ulimit -c 0"
             end
-            outp.puts "FILC_EXIT_ON_PANIC=1 FILC_DUMP_SETUP=1 #{Shellwords.shellescape(justRunScript)} > #{Shellwords.shellescape(output)} 2>&1"
+            outp.puts "FILC_EXIT_ON_PANIC=1 FILC_DUMP_SETUP=1 #{Shellwords.shellescape(justRunScript)} < /dev/null > #{Shellwords.shellescape(output)} 2>&1"
             case expectedReturn
             when "failure"
                 outp.puts "if [ $? -ne 42 ]"

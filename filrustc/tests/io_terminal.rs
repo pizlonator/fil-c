@@ -1,8 +1,9 @@
 // `io::IsTerminal`: the isatty-style queries (std::io::stdin/stdout/stderr
 // and `File::is_terminal` through the generic trait surface).  The harness
-// always runs the test with its output redirected, so every query here is
-// deterministically false -- and the trait works (a wrong syscall path or a
-// broken trait impl would panic or report true).
+// always runs the test with its output redirected and its stdin pointed at
+// /dev/null, so every query here is deterministically false -- and the trait
+// works (a wrong syscall path or a broken trait impl would panic or report
+// true).
 use std::fs::File;
 use std::io::{IsTerminal, Stderr, Stdin, Stdout};
 

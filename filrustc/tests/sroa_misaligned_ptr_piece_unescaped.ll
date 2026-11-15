@@ -2,6 +2,13 @@ target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:
 target datalayout_after_filc = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
+; The target lines above are host-specific: filrustc/run-tests rewrites
+; `target datalayout`, `target datalayout_after_filc`, and `target triple` to
+; the host's values before compiling, so this test runs on both x86_64 and
+; aarch64 hosts.  All three lines must be declared (clang asserts without
+; `datalayout_after_filc`); their declared values only shape the module that
+; the pizlonator's pre-pipeline sees.
+
 ; NEGATIVE witness for known-issue #13 (see build_rustc-notes.md): this is
 ; the PRE-fix rustc IR shape -- a pointer-maybe aggregate's typed
 ; (all-pointer-struct) alloca with NO zhas_union annotation, plain
