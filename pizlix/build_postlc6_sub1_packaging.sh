@@ -39,7 +39,13 @@ download_tarball() {
     fi
 
     echo "Downloading $filename from $url"
-    curl -L -o "$filepath" "$url"
+    # Retry + resume: transient CDN flakiness killed a 4-hour one-shot build
+    # here (curl error 92, "HTTP/2 stream not closed cleanly", from
+    # archives.boost.org mid-transfer).  Plain --retry does not cover such
+    # errors, so --retry-all-errors retries on any error, and --continue-at -
+    # resumes the partial file from where the failed attempt left off
+    # instead of restarting a 120MB download from byte 0.
+    curl -L --retry 5 --retry-all-errors --continue-at - -o "$filepath" "$url"
 
     local actual_sha256=$(sha256sum "$filepath" | cut -d' ' -f1)
     if [ "$actual_sha256" != "$expected_sha256" ]; then

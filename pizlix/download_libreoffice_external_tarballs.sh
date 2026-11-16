@@ -81,7 +81,12 @@ download_tarball() {
     fi
 
     echo "Downloading $filename from $url"
-    curl -L -f --retry 3 -o "$filepath" "$url"
+    # Same hardening as download_tarball in build_postlc6_sub1_packaging.sh:
+    # plain --retry does not retry errors like curl 92 ("HTTP/2 stream not
+    # closed cleanly"), and without --continue-at - a retry would restart
+    # from byte 0.  This is ~136 tarballs (~500MB) -- don't let one flake
+    # kill the build.
+    curl -L -f --retry 5 --retry-all-errors --continue-at - -o "$filepath" "$url"
 
     local actual_sha256
     actual_sha256=$(sha256sum "$filepath" | cut -d' ' -f1)

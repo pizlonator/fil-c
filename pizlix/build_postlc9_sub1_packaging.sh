@@ -74,7 +74,11 @@ rm -rf rust-build/pizlonated-filrustc
 DISTBALL=rust-build/rust-1.90.0-x86_64-unknown-linux-gnu.tar.xz
 DISTURL=https://static.rust-lang.org/dist/rust-1.90.0-x86_64-unknown-linux-gnu.tar.xz
 if [ ! -e $DISTBALL ]; then
-    curl -fL --retry 3 -o $DISTBALL $DISTURL
+    # Retry + resume, same hardening as download_tarball in
+    # build_postlc6_sub1_packaging.sh: --retry alone does not retry an
+    # error like curl 92 ("HTTP/2 stream not closed cleanly"), and without
+    # --continue-at - a retry restarts this ~200MB tarball from byte 0.
+    curl -fL --retry 5 --retry-all-errors --continue-at - -o $DISTBALL $DISTURL
 fi
 rm -rf rust-build/.rust-yolo-dist
 mkdir -p rust-build/.rust-yolo-dist
