@@ -51,18 +51,26 @@ implementation details, invariants, and gotchas.
 - `src/core_dump.cpp` — ELF `ET_CORE` writer + the fatal-error banner.
 - `src/stack_trace.{h,cpp}` — crash-time symbolized guest backtrace (BFD).
 - `include/zegarmistrz.h` — header-only guest client library.
+- `zydis/` — the vendored amalgamated Zydis distribution (`Zydis.h` +
+  `Zydis.c`, Zycore inlined; see `zydis/README.md`).
 - `tests/` guest sources; `test-output/` build/run artifacts (wiped by
   `make clean`); `run-tests`, `check-isa.sh`.
 
 ## Build
 
 ```bash
-sudo apt-get install -y libzydis-dev libzycore-dev binutils-dev
+sudo apt-get install -y binutils-dev
 make -j$(nproc)
 ```
 
-- Zydis comes from the system package (`libzydis-dev` has no pkg-config
-  file; the Makefile falls back to `-lZydis -lZycore`).
+- Zydis is vendored as the amalgamated distribution in `zydis/`
+  (`Zydis.h`/`Zydis.c`, with Zycore inlined; v4.1.0). `make` builds it
+  (`zydis/Zydis.o`; `-Izydis` plus the `-DZYDIS_STATIC_BUILD` /
+  `-DZYCORE_STATIC_BUILD` static-usage defines; no `-lZydis`/`-lZycore`).
+  Why: distro Zydis packages are often too old for the v4 API the emulator
+  uses, which broke the build. Refresh the files wholesale on update —
+  never hand-edit them (upstream generates them with
+  `assets/amalgamate.py`); see `zydis/README.md`.
 - **Makefile tracks `src/*.h` dependencies** (`src/%.o: ... $(wildcard
   src/*.h)`) — struct layout changes without rebuilding all objects link
   incompatible layouts (this once masqueraded as heap corruption).

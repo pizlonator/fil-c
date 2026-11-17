@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 # Mnemonics known-handled: ZYDIS_MNEMONIC_* referenced in decode_exec.cpp.
 grep -o "ZYDIS_MNEMONIC_[A-Z0-9]*" src/decode_exec.cpp \
     | sed 's/ZYDIS_MNEMONIC_//' | sort -u > /tmp/zeg_handled.txt
-grep -o "ZYDIS_MNEMONIC_[A-Z0-9]*" /usr/include/Zydis/Generated/EnumMnemonic.h \
+grep -o "ZYDIS_MNEMONIC_[A-Z0-9]*" zydis/Zydis.h \
     | sed 's/ZYDIS_MNEMONIC_//' | sort -u > /tmp/zydis_all.txt
 
 # Normalize an objdump (AT&T, lowercase) mnemonic to Zydis style (uppercase).
@@ -65,6 +65,15 @@ norm() {
         FSUBS|FSUBL|FSUBRS|FSUBRL) echo "$m" | sed 's/S$//;s/L$//' ; return ;;
         FDIVS|FDIVL|FDIVRS|FDIVRL) echo "$m" | sed 's/S$//;s/L$//' ; return ;;
         FCHS|FABS) echo "$m"; return ;;
+        # objdump spells string ops GNU-AS style, without the width suffix
+        # (e.g. "stos %al,(%rdi)"); Zydis canonicals (and the exec_string
+        # handlers) are width-suffixed. INS/OUTS are left alone: they are
+        # privileged and unhandled by design.
+        STOS) echo STOSB; return ;;
+        MOVS) echo MOVSB; return ;;
+        LODS) echo LODSB; return ;;
+        SCAS) echo SCASB; return ;;
+        CMPS) echo CMPSB; return ;;
         CLTD) echo CDQ; return ;;
         CLTQ) echo CDQE; return ;;
         CQTO) echo CQO; return ;;

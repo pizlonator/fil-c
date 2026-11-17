@@ -42,11 +42,12 @@ possible side channel.
 
 ## Build & test
 
-Dependencies: `libzydis-dev` + `libzycore-dev` (Zydis decoder) and
-`binutils-dev` (BFD, for crash-time guest stack traces).
+Dependencies: `binutils-dev` (BFD, for crash-time guest stack traces). The
+Zydis decoder is vendored — the amalgamated distribution lives in `zydis/`
+and is built by `make`, so no system Zydis/Zycore package is needed.
 
 ```bash
-sudo apt-get install -y libzydis-dev libzycore-dev binutils-dev
+sudo apt-get install -y binutils-dev
 make -j$(nproc)          # builds ./zegarmistrz
 ./run-tests              # builds the guests, runs the full suite in parallel
 ./check-isa.sh           # report mnemonics in real binaries lacking handlers
@@ -204,7 +205,8 @@ and cannot-index values.
 
 ## Design in brief
 
-- **Zydis-based interpreter.** Fetch/decode/execute with system Zydis;
+- **Zydis-based interpreter.** Fetch/decode/execute with the vendored Zydis
+  amalgamation (`zydis/`);
   ~full user-mode ISA through AVX512 + AES/SHA/GFNI (`./check-isa.sh`
   verifies coverage); unimplemented instructions fail cleanly.
 - **One memory pipeline.** Guest VA == host VA, so the fast path is

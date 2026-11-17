@@ -25,11 +25,27 @@
 
 CXX ?= g++
 CXXFLAGS ?= -std=c++20 -O2 -g -Wall -D_GNU_SOURCE
+
+# C compiler defaults for the vendored Zydis object below. Its compile
+# deliberately does NOT add -Wall: Zydis emits ~50 benign
+# -Wunused-const-variable warnings under it.
+CC ?= cc
+CFLAGS ?= -O2 -g
+
 LDFLAGS ?= -pthread
 
-# Zydis comes from the system (apt install libzydis-dev libzycore-dev).
-ZYDIS_CFLAGS := $(shell (pkg-config --cflags zydis 2>/dev/null || echo "-I/usr/include"))
-ZYDIS_LIBS := $(shell (pkg-config --libs zydis 2>/dev/null || echo "-lZydis -lZycore"))
+# Zydis is the vendored amalgamated distribution (v4.1.0,
+# https://github.com/zyantific/zydis/releases/download/v4.1.0/
+# zydis-amalgamated.tar.gz): upstream's amalgamation inlines the whole public
+# API -- Zydis AND Zycore -- into zydis/Zydis.h + zydis/Zydis.c (see
+# zydis/README.md). This drops the system libzydis/libzycore dependency:
+# distro Zydis packages are often too old for the v4 API the emulator uses.
+# Zycore is inlined, so there is no -lZydis/-lZycore either; the
+# static-build defines on the compile line are the documented static usage.
+# zydis/Zydis.o is built as part of the normal build (rule below).
+ZYDIS_DIR := zydis
+ZYDIS_CFLAGS := -I$(ZYDIS_DIR)
+ZYDIS_OBJS := $(ZYDIS_DIR)/Zydis.o
 
 # BFD (binutils-dev) symbolizes guest addresses for crash-time stack
 # traces. Header and library are paired by ABSOLUTE PATH (the literal .so
@@ -86,8 +102,8 @@ OBJS := $(SRCS:.cpp=.o)
 
 all: zegarmistrz
 
-zegarmistrz: $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS) $(ZYDIS_LIBS) $(BFD_LIBS)
+zegarmistrz: $(OBJS) $(ZYDIS_OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS) $(ZYDIS_OBJS) $(BFD_LIBS)
 
 src/%.o: src/%.cpp $(wildcard src/*.h)
 	$(CXX) $(CXXFLAGS) $(ZYDIS_CFLAGS) -c -o $@ $<
@@ -99,8 +115,14 @@ src/stack_trace.o: src/stack_trace.cpp $(wildcard src/*.h)
 # Headers change struct layouts; objects must rebuild.
 src/main.o src/mem.o src/elf_loader.o src/syscall.o src/decode_exec.o: $(wildcard src/*.h)
 
+# The vendored amalgamated Zydis distribution. Built with the plain $(CFLAGS)
+# above -- no -Wall (benign -Wunused-const-variable noise). Refresh zydis/
+# wholesale on update; never hand-edit Zydis.h/Zydis.c (see zydis/README.md).
+$(ZYDIS_OBJS): $(ZYDIS_DIR)/Zydis.c $(ZYDIS_DIR)/Zydis.h
+	$(CC) $(CFLAGS) $(ZYDIS_CFLAGS) -DZYDIS_STATIC_BUILD -DZYCORE_STATIC_BUILD -c -o $@ $<
+
 clean:
-	rm -f zegarmistrz $(OBJS)
+	rm -f zegarmistrz $(OBJS) $(ZYDIS_OBJS)
 	rm -rf test-output zegarmistrz.core.*
 
 test: zegarmistrz
