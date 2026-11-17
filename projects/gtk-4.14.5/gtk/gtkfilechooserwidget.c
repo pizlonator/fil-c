@@ -2301,6 +2301,15 @@ save_widgets_destroy (GtkFileChooserWidget *impl)
 {
   if (impl->external_entry && impl->external_entry == impl->location_entry)
     {
+      /* Remove the weak pointer pointing at impl->location_entry: the
+       * entry may outlive this widget (e.g. it lives in a header bar
+       * that is torn down after this widget), and the weak pointer
+       * must not fire into freed memory.  The guard above implies the
+       * entry is still alive: if the entry had died first, the weak
+       * pointer would already have nulled impl->location_entry.
+       */
+      g_object_remove_weak_pointer (G_OBJECT (impl->external_entry),
+                                    (gpointer *)&impl->location_entry);
       external_entry_disconnect (impl);
       location_entry_disconnect (impl);
       impl->location_entry = NULL;
@@ -3071,9 +3080,20 @@ gtk_file_chooser_widget_dispose (GObject *object)
 
   if (impl->external_entry && impl->location_entry == impl->external_entry)
     {
+      /* Remove the weak pointer registered by save_widgets_create()
+       * before this widget is finalized: the entry (which lives in the
+       * dialog's header bar) is typically destroyed after this widget,
+       * and if the weak pointer were left registered it would write
+       * into this widget's freed instance memory.  The guard above
+       * implies the entry is still alive: if the entry had died first,
+       * the weak pointer would already have nulled impl->location_entry.
+       */
+      g_object_remove_weak_pointer (G_OBJECT (impl->external_entry),
+                                    (gpointer *)&impl->location_entry);
       external_entry_disconnect (impl);
       location_entry_disconnect (impl);
       impl->external_entry = NULL;
+      impl->location_entry = NULL;
     }
 
   gtk_widget_dispose_template (GTK_WIDGET (impl), GTK_TYPE_FILE_CHOOSER_WIDGET);
