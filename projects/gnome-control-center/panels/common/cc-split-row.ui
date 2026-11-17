@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcSplitRow" parent="CcVerticalRow">
+    <child type="content">
+      <object class="GtkBox" id="box">
+        <property name="hexpand">True</property>
+        <property name="homogeneous">True</property>
+        <property name="spacing">24</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+
+        <!-- Default Option -->
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <property name="orientation">vertical</property>
+
+            <child>
+              <object class="GtkEventControllerMotion">
+                <signal name="enter" handler="on_default_option_focus_enter_cb" object="CcSplitRow" swapped="yes" />
+                <signal name="leave" handler="on_default_option_focus_leave_cb" object="CcSplitRow" swapped="yes" />
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkGestureClick">
+                <signal name="released" handler="on_default_option_click_released_cb" object="CcSplitRow" swapped="yes" />
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwBin">
+                <style>
+                  <class name="background"/>
+                  <class name="frame"/>
+                </style>
+                <child>
+                  <object class="GtkPicture" id="default_option_picture">
+                    <property name="hexpand">True</property>
+                    <property name="halign">center</property>
+                    <property name="margin-top">18</property>
+                    <property name="margin-bottom">18</property>
+                    <property name="margin-start">6</property>
+                    <property name="margin-end">6</property>
+                    <property name="height-request">128</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkCheckButton" id="default_option_checkbutton">
+                <property name="margin-start">6</property>
+                <property name="group">alternative_option_checkbutton</property>
+                <signal name="toggled" handler="on_checkbutton_toggled_cb" object="CcSplitRow" swapped="yes"/>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="valign">center</property>
+                    <property name="margin-start">6</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="use-underline">True</property>
+                        <property name="xalign">0.0</property>
+                        <property name="wrap">True</property>
+                        <property name="wrap-mode">word-char</property>
+                        <binding name="label">
+                          <lookup name="default-option-title">CcSplitRow</lookup>
+                        </binding>
+                        <style>
+                          <class name="title" />
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="xalign">0.0</property>
+                        <property name="wrap">True</property>
+                        <property name="wrap-mode">word-char</property>
+                        <binding name="label">
+                          <lookup name="default-option-subtitle">CcSplitRow</lookup>
+                        </binding>
+                        <style>
+                          <class name="subtitle" />
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+        <!-- Alternative Option -->
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <property name="orientation">vertical</property>
+
+            <child>
+              <object class="GtkEventControllerMotion">
+                <signal name="enter" handler="on_alternative_option_focus_enter_cb" object="CcSplitRow" swapped="yes" />
+                <signal name="leave" handler="on_alternative_option_focus_leave_cb" object="CcSplitRow" swapped="yes" />
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkGestureClick">
+                <signal name="released" handler="on_alternative_option_click_released_cb" object="CcSplitRow" swapped="yes" />
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwBin">
+                <style>
+                  <class name="background"/>
+                  <class name="frame"/>
+                </style>
+                <child>
+                  <object class="GtkPicture" id="alternative_option_picture">
+                    <property name="hexpand">True</property>
+                    <property name="halign">center</property>
+                    <property name="margin-top">18</property>
+                    <property name="margin-bottom">18</property>
+                    <property name="margin-start">6</property>
+                    <property name="margin-end">6</property>
+                    <property name="height-request">128</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkCheckButton" id="alternative_option_checkbutton">
+                <property name="margin-start">6</property>
+                <signal name="toggled" handler="on_checkbutton_toggled_cb" object="CcSplitRow" swapped="yes"/>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="valign">center</property>
+                    <property name="margin-start">6</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="use-underline">True</property>
+                        <property name="xalign">0.0</property>
+                        <property name="wrap">True</property>
+                        <property name="wrap-mode">word-char</property>
+                        <binding name="label">
+                          <lookup name="alternative-option-title">CcSplitRow</lookup>
+                        </binding>
+                        <style>
+                          <class name="title" />
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="xalign">0.0</property>
+                        <property name="wrap">True</property>
+                        <property name="wrap-mode">word-char</property>
+                        <binding name="label">
+                          <lookup name="alternative-option-subtitle">CcSplitRow</lookup>
+                        </binding>
+                        <style>
+                          <class name="subtitle" />
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </template>
+  <object class="GtkSizeGroup" id="size_group">
+    <property name="mode">vertical</property>
+    <widgets>
+      <widget name="default_option_checkbutton"/>
+      <widget name="alternative_option_checkbutton"/>
+    </widgets>
+  </object>
+</interface>

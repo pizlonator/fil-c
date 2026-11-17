@@ -1,0 +1,118 @@
+# translation of vte.HEAD.mr.po to marathi
+# This file is distributed under the same license as the PACKAGE package.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER.
+#
+# Rahul Bhalerao <b.rahul.pm@gmail.com>, 2006.
+# Sandeep Shedmake <sandeep.shedmake@gmail.com>, 2008.
+msgid ""
+msgstr ""
+"Project-Id-Version: vte.HEAD.mr\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-04-25 03:21+0100\n"
+"PO-Revision-Date: 2008-02-29 15:36+0530\n"
+"Last-Translator: Sandeep Shedmake <sandeep.shedmake@gmail.com>\n"
+"Language-Team: marathi\n"
+"Language: mr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: ../src/iso2022.c:791 ../src/iso2022.c:799 ../src/iso2022.c:830
+#: ../src/vte.c:1797
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "अक्षरे %s मधून %s मध्ये रूपांतरित करण्यास असमर्थ."
+
+#: ../src/iso2022.c:1539
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "'%c' हा अवैध NRC नकाशा निर्धारित करण्याचा प्रयत्न."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1569
+msgid "Unrecognized identified coding system."
+msgstr "अपरिचीत कोडींग प्रणाली आढळली."
+
+#: ../src/iso2022.c:1628 ../src/iso2022.c:1655
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "'%c' हा अवैध रूंद NRC नकाशा निर्धारित करण्याचा प्रयत्न."
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:837
+#, c-format
+msgid "can not run %s"
+msgstr "%s चालवता येत नाही"
+
+#: ../src/reaper.c:136
+msgid "Error creating signal pipe."
+msgstr "सिग्नल पाइप तयार करण्यात चूक."
+
+#: ../src/trie.c:414
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "नकली (%s/%s)!"
+
+#: ../src/vte.c:1187
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "रेग्यूलर वाक्यरचना \"%s\" कंपाईल करतेवेळी त्रुटी."
+
+#: ../src/vte.c:2657 ../src/vte.c:2662
+#, c-format
+msgid "No handler for control sequence `%s' defined."
+msgstr "नियंत्रण क्रम `%s' साठी हाताळक(हँडलर) ठरवलेला नाही."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:3627
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "अपत्त्यामधून वाचण्यात चूक: %s."
+
+#: ../src/vte.c:3743
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "उपकार्यक्रम करीता माहिती पाठवू शकला नाही, अवैध अक्षरसंच रूपांतर"
+
+#: ../src/vte.c:3754 ../src/vte.c:4631
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "अपत्त्यासाठी माहिती रूपांतरित करण्यात चूक(%s), सोडून देत आहे."
+
+#: ../src/vte.c:6866
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr "PTY आकार वाचण्यात चूक, मुलभूत वापरत आहे: %s."
+
+#: ../src/vte.c:6895
+#, c-format
+msgid "Error setting PTY size: %s."
+msgstr "PTY आकार निर्धारित करण्यात चूक: %s."
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:11348
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "शब्द अक्षर निश्चित करण्यास _vte_conv_open() अपयशी"
+
+#: ../src/vteseq.c:3926
+#, c-format
+msgid "Got unexpected (key?) sequence `%s'."
+msgstr "अपरिचीत (किल्ली?) श्रृंखला `%s'."
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:774
+msgid "Could not open console.\n"
+msgstr "कन्सोल उघडता आला नाही.\n"
+
+#: ../src/vteapp.c:838
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "--geometry करीता geometry spec वाचू शकले नाही"
+
+#: ../src/vteglyph.c:562
+#, c-format
+msgid "Unknown pixel mode %d.\n"
+msgstr "अपरिचित बिंदू(पिक्झल) रीत %d.\n"
+

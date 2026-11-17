@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcUaMousePage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Pointing &amp; Clicking</property>
+    <property name="tag">mouse</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+
+                <child>
+                  <object class="AdwSwitchRow" id="mouse_keys_row">
+                    <property name="title" translatable="yes">_Mouse Keys</property>
+                    <property name="subtitle" translatable="yes">Use numeric keypad to move your mouse pointer</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwSwitchRow" id="locate_pointer_row">
+                    <property name="title" translatable="yes">_Locate Pointer</property>
+                    <property name="subtitle" translatable="yes">Reveal pointer location by pressing Left Ctrl</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">_Double-Click Delay</property>
+                    <property name="use-underline">True</property>
+                    <child type="suffix">
+                      <object class="GtkScale" id="double_click_delay_scale">
+                        <property name="hexpand">True</property>
+                        <marks>
+                          <mark value="100" translatable="yes">Short</mark>
+                          <!-- Default -->
+                          <mark value="400"/>
+                          <mark value="1000" translatable="yes">Long</mark>
+                        </marks>
+                        <property name="adjustment">
+                          <object class="GtkAdjustment">
+                            <property name="lower">100</property>
+                            <property name="upper">1000</property>
+                            <property name="value">400</property>
+                            <property name="step_increment">100</property>
+                            <property name="page_increment">100</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Click Assist</property>
+                <child>
+                  <object class="AdwExpanderRow" id="secondary_click_row">
+                    <property name="title" translatable="yes">_Simulated Secondary Click</property>
+                    <property name="subtitle" translatable="yes">Secondary click by holding down the primary mouse button</property>
+                    <property name="use-underline">True</property>
+                    <property name="show-enable-switch">True</property>
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title" translatable="yes">Acceptance Delay</property>
+                        <child type="suffix">
+                          <object class="GtkScale" id="secondary_delay_scale">
+                            <property name="hexpand">True</property>
+                            <marks>
+                              <mark value="0.5" translatable="yes">Short</mark>
+                              <!-- Default -->
+                              <mark value="1.2"/>
+                              <mark value="3" translatable="yes">Long</mark>
+                            </marks>
+                            <property name="adjustment">
+                              <object class="GtkAdjustment">
+                                <property name="upper">3</property>
+                                <property name="lower">0.5</property>
+                                <property name="step-increment">0.1</property>
+                                <property name="page-increment">0.1</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwExpanderRow" id="hover_click_row">
+                    <property name="title" translatable="yes">_Hover Click</property>
+                    <property name="subtitle" translatable="yes">Trigger a click when the pointer hovers</property>
+                    <property name="use-underline">True</property>
+                    <property name="show-enable-switch">True</property>
+
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title" translatable="yes">Delay</property>
+                        <child type="suffix">
+                          <object class="GtkScale" id="hover_delay_scale">
+                            <property name="hexpand">True</property>
+                            <marks>
+                              <mark value="0.2" translatable="yes">Short</mark>
+                              <!-- Default -->
+                              <mark value="1.2"/>
+                              <mark value="3" translatable="yes">Long</mark>
+                            </marks>
+                            <property name="adjustment">
+                              <object class="GtkAdjustment">
+                                <property name="lower">0.2</property>
+                                <property name="upper">3</property>
+                                <property name="value">1.2</property>
+                                <property name="step_increment">0.1</property>
+                                <property name="page_increment">0.1</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title" translatable="yes">Motion Threshold</property>
+                        <child type="suffix">
+                          <object class="GtkScale" id="motion_threshold_scale">
+                            <property name="hexpand">True</property>
+                            <marks>
+                              <mark value="0" translatable="yes">Small</mark>
+                              <!-- Default -->
+                              <mark value="10"/>
+                              <mark value="30" translatable="yes">Large</mark>
+                            </marks>
+                            <property name="adjustment">
+                              <object class="GtkAdjustment">
+                                <property name="upper">30</property>
+                                <property name="step_increment">1</property>
+                                <property name="page_increment">1</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                  </object> <!-- ./AdwExpanderRow -->
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

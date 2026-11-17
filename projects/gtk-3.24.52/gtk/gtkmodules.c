@@ -581,18 +581,22 @@ _gtk_module_has_mixed_deps (GModule *module_to_check)
   gpointer func;
   gboolean result;
 
+  /* Fil-C: checking the main program (module_to_check == NULL) needs
+   * g_module_open (NULL, 0), and the dlopen(NULL) self-handle is not a
+   * filc-valid pointer for the pizlonated libc (its dlsym goes through
+   * zsys_dlsym, which rejects the main-program pseudo-handle: "cannot
+   * access pointer with null object").  Nothing in the pizlonated system
+   * embeds GTK+ 2.x symbols, so report no mixed deps for the main program
+   * and keep the check only for real (dlopen'd) modules. */
   if (!module_to_check)
-    module = g_module_open (NULL, 0);
-  else
-    module = module_to_check;
+    return FALSE;
+
+  module = module_to_check;
 
   if (g_module_symbol (module, "gtk_progress_get_type", &func))
     result = TRUE;
   else
     result = FALSE;
-
-  if (!module_to_check)
-    g_module_close (module);
 
   return result;
 }

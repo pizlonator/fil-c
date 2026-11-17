@@ -1,0 +1,31 @@
+{
+    "app-id" : "org.gnome.vte.gtk4",
+    "runtime" : "org.gnome.Platform",
+    "runtime-version" : "master",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "vte-2.91",
+    "finish-args" : [
+        "--device=dri",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--socket=ssh-auth"
+    ],
+    "modules" : [
+        {
+            "name" : "vte",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dglade=false",
+                "-Dgtk3=true",
+                "-Dgtk4=false",
+                "-Dvapi=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "file",
+                    "path" : ".."
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,173 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="guide"
+      id="pref-compatibility">
+
+  <info>
+    <revision pkgversion="3.14" date="2014-12-03" status="draft"/>
+    <link type="guide" xref="index#preferences"/>
+    <link type="guide" xref="pref#profile"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email its:translate="no">sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email its:translate="no">kittykat3756@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Change behaviour of <key>Backspace</key> and <key>Delete</key> keys
+    in <app>Terminal</app>.</desc>
+  </info>
+
+  <title>Key compatibility</title>
+
+  <p its:locNote="Translators: check that the wording is correct for RTL.">The
+  <key>Backspace</key> traditionally deletes character before the cursor and
+  the <key>Del</key> deletes characters after the cursor, however this is not
+  always the case. To reduce ambiguity, you can specify in <app>Terminal</app>
+  which control character or <link xref="overview">escape sequence</link> the
+  delete and backspace keys should generate. You can set different options for
+  different profiles.</p>
+
+  <section id="backspace-key">
+    <title>Backspace key compatbility</title>
+
+  <p></p>
+
+  <steps>
+    <item>
+      <p>Open <guiseq><gui style="menu">Edit</gui>
+      <gui style="menuitem">Preferences</gui></guiseq>.</p>
+    </item>
+    <item>
+      <p>Your current profile is selected in the sidebar. If you wish to edit
+      a different profile, click on its name.</p>
+    </item>
+    <item>
+      <p>Select <gui style="tab">Compatibility</gui>.</p>
+    </item>
+    <item>
+      <p>From the menu for <gui>Backspace key generates</gui>, you can select
+      from the following options:</p>
+      <terms>
+        <item>
+          <title>Automatic</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+        <item>
+          <title>Control-H</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+        <item>
+          <title>ASCII DEL</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+        <item>
+          <title>Escape sequence</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+        <item>
+          <title>TTY Erase</title>
+          <p></p>
+        </item>
+      </terms>
+    </item>
+    <item>
+      <p>Your preference is saved immediately. Click
+      <gui style="button">Close</gui> to quit the dialog and return to
+      <app>Terminal</app>.</p>
+    </item>
+  </steps>
+
+  </section>
+
+  <section id="delete-key">
+    <title>Delete key compatibility</title>
+
+    <p></p>
+
+    <steps>
+      <item>
+        <p>Open <guiseq><gui style="menu">Edit</gui>
+        <gui style="menuitem">Preferences</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>Your current profile is selected in the sidebar. If you wish to edit
+        a different profile, click on its name.</p>
+      </item>
+      <item>
+        <p>Select <gui style="tab">Compatibility</gui>.</p>
+      </item>
+      <item>
+        <p>From the menu for <gui>Backspace key generates</gui>, you can select
+        from the following options:</p>
+        <terms>
+        <item>
+          <title>Automatic</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+        <item>
+          <title>Control-H</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+        <item>
+          <title>ASCII DEL</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+        <item>
+          <title>Escape sequence</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+        <item>
+          <title>TTY Erase</title>
+          <p><!--TODO: Write behaviour --></p>
+        </item>
+      </terms>
+      </item>
+      <item>
+        <p>Your preference is saved immediately. Click
+        <gui style="button">Close</gui> to quit the dialog and return to
+        <app>Terminal</app>.</p>
+      </item>
+    </steps>
+
+  </section>
+
+  <section id="reset-compatibility">
+    <title>Reset compatibility options</title>
+
+    <p>To reset compatibility options for <key>Backspace</key> and
+    <key>Delete</key> keys:</p>
+
+    <steps>
+      <item>
+        <p>Open <guiseq><gui style="menu">Edit</gui>
+        <gui style="menuitem">Preferences</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>Your current profile is selected in the sidebar. If you wish to edit
+        a different profile, click on its name.</p>
+      </item>
+      <item>
+        <p>Select <gui style="tab">Compatibility</gui>.</p>
+      </item>
+      <item>
+        <p>Click on <gui style="button">Reset Compatibility Options to
+        Defaults</gui>.</p>
+      </item>
+      <item>
+        <p>Compatibility options are immediately reset to defaults. Click
+        <gui style="button">Close</gui> to quit the dialog and return to
+        <app>Terminal</app>.</p>
+      </item>
+    </steps>
+
+  </section>
+
+</page>

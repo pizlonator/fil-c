@@ -161,16 +161,11 @@ builder_construct (ParserData  *data,
 static GType
 _get_type_by_symbol (const gchar *symbol)
 {
-  static GModule *module = NULL;
-  GTypeGetFunc func;
-
-  if (!module)
-    module = g_module_open (NULL, 0);
-
-  if (!g_module_symbol (module, symbol, (gpointer)&func))
-    return G_TYPE_INVALID;
-
-  return func ();
+  /* Fil-C: the main-program self-module handle from g_module_open (NULL, 0)
+   * is not a filc-valid pointer for the pizlonated libc's zsys_dlsym, so
+   * this lazy main-program symbol lookup is disabled; requires-typed
+   * libraries register their GTypes normally in the pizlonated system. */
+  return G_TYPE_INVALID;
 }
 
 static void

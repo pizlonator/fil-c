@@ -1,0 +1,101 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="guide"
+      id="pref-keyboard-access">
+
+  <info>
+    <revision version="0.1" date="2013-02-25" status="candidate"/>
+    <revision version="0.2" pkgversion="3.34" date="2020-01-04" status="review"/>
+    <link type="guide" xref="index#preferences"/>
+    <link type="guide" xref="pref#global"/>
+    <link type="seealso" xref="pref-menubar"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Navigate around <app>Terminal</app> menus using keyboard keys.</desc>
+  </info>
+
+  <title>Keyboard accessibility</title>
+
+  <note style="important">
+    <!-- see https://gitlab.gnome.org/GNOME/gnome-terminal/issues/145 -->
+    <p>These keys will only have an effect in windows in which the menubar is
+    set to be visible.</p>
+    <p>Right click in the <app>Terminal</app> window and select
+    <gui style="checkbox">Show Menubar</gui> to display the menubar.</p>
+  </note>
+
+  <p>You can navigate the <app>Terminal</app> menu using a combination of keys
+  that are called <em>mnemonics</em> or a special key that takes you directly
+  to the first menu in the menubar which is called the <em>menu accelerator
+  key</em>.</p>
+
+  <section id="mnemonics">
+    <title>Mnemonics</title>
+
+    <p><app>Terminal</app> menu can be accessed by combining the <key>Alt</key>
+    key and a letter of the menu item. The letter that you need to use to
+    access the menu will be underlined when you hold down the
+    <key>Alt</key>.</p>
+
+    <p>For example, view the <gui style="menu">Edit</gui> menu using
+    <keyseq><key>Alt</key><key>E</key></keyseq>. Similarly, you can access
+    <gui style="menu">File</gui> menu using
+    <keyseq><key>Alt</key><key>F</key></keyseq>.</p>
+
+    <p>To enable mnemonics:</p>
+
+    <steps>
+      <item>
+        <p>Press the menu button in the top-right corner of the window and select
+        <gui style="menuitem">Preferences</gui>.</p>
+      </item>
+      <item>
+        <p>In the sidebar, select <gui>General</gui>.</p>
+      </item>
+      <item>
+        <p>Check <gui style="checkbox">Enable mnemonics</gui>.</p>
+      </item>
+    </steps>
+
+  </section>
+
+  <section id="menu-accelerator">
+    <title>Menu accelerator key</title>
+
+    <p>This setting brings up the <gui style="menu">File</gui> menu when the menu
+    accelerator key is pressed. This key is usually <key>F10</key> by
+    default.</p>
+
+    <steps>
+      <item>
+        <p>Press the menu button in the top-right corner of the window and select
+        <gui style="menuitem">Preferences</gui>.</p>
+      </item>
+      <item>
+        <p>In the sidebar, select <gui>General</gui>.</p>
+      </item>
+      <item>
+        <p>Check <gui style="checkbox">Enable the menu accelerator
+        key</gui>.</p>
+      </item>
+    </steps>
+
+  </section>
+
+</page>

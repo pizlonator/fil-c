@@ -1,0 +1,154 @@
+# Limburgish translation for vte.
+# Copyright (C) 2002 Free Software Foundation, Inc.
+# Mathieu van Woerkom <mathieu@brabants.org>, 2002.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: vte\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2006-03-13 00:22-0500\n"
+"PO-Revision-Date: 2002-12-09 23:49+0100\n"
+"Last-Translator: Mathieu van Woerkom <mathieu@brabants.org>\n"
+"Language-Team: Limburgish <li@gnome.org>\n"
+"Language: li\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/iso2022.c:792 src/iso2022.c:803 src/iso2022.c:852 src/vte.c:1590
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "Kèn teikes neet konvertere van %s nao %s."
+
+#: src/iso2022.c:1582
+#, fuzzy, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "Geprobeerd óngeljige NRC-map in te sjtèlle"
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: src/iso2022.c:1623
+msgid "Unrecognized identified coding system."
+msgstr "Geïdentifiseerd koodsysteem neet herkènd"
+
+#: src/iso2022.c:1672 src/iso2022.c:1698
+#, fuzzy, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "Geprobeerd óngeljig wieje NRC-map in te sjtèlle"
+
+#: src/pty.c:329
+#, c-format
+msgid "Error adding `%s' to environment, continuing."
+msgstr "'t goof eine faeler bie toeveuge `%s' aan ómgaeving. Doorgaon."
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: src/pty.c:914
+#, c-format
+msgid "can not run %s"
+msgstr "Kèn %s neet sjtarte"
+
+#: src/reaper.c:156
+msgid "Error creating signal pipe."
+msgstr "'t goof eine faeler bie make van sinjaal-pipe."
+
+#: src/trie.c:412
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "Naomake (%s/%s)!"
+
+#: src/vte.c:1016
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "'t goof eine faeler bie samesjtèlle reguliere ekspressie \"%s\"."
+
+#: src/vte.c:2472
+#, c-format
+msgid "No handler for control sequence `%s' defined."
+msgstr "Geine aafhanjelaar veur kentrolkómbinasie `%s' gedefinieerd."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: src/vte.c:3315
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "'t goof eine faeler bie laeze van kèndj: %s."
+
+#: src/vte.c:3437 src/vte.c:4331
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "Faeler (%s) bie konvertere gegaeves veur kèndj, laat 't valle."
+
+#: src/vte.c:6284
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr ""
+"'t goof eine faeler bie laeze PTY-gruutde, sjtanderdwaerdes waere gebroek: %"
+"s."
+
+#: src/vte.c:6320
+#, c-format
+msgid "Error setting PTY size: %s."
+msgstr "'t goof eine faeler bie 't insjtèlle van PTY-gruutde: %s."
+
+#. Aaargh.  We're screwed.
+#: src/vte.c:10629
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "g_iconv_open() neet gesjlaag in insjtèlle waordteikes"
+
+#. Bail back to normal mode.
+#: src/vteapp.c:736
+msgid "Could not open console.\n"
+msgstr "Kós console neet äöpene.\n"
+
+#: src/vteglyph.c:579
+#, c-format
+msgid "Unknown pixel mode %d.\n"
+msgstr "Ónbekènde pixel modus %d.\n"
+
+#: src/vtexft.c:714
+#, c-format
+msgid "Can not draw character U+%04x.\n"
+msgstr "Kèn teike U+%04x neet teikene.\n"
+
+#~ msgid "Got unexpected (key?) sequence `%s'."
+#~ msgstr "Ónverwachde (tósjebord?)-kómbinasie `%s' ontvange."
+
+#~ msgid "Using fontset \"%s\", which is missing these character sets: %s."
+#~ msgstr ""
+#~ "bookstjaaftiepset \"%s\" weurt gebroek, welke deze teikesets mis: %s."
+
+#~ msgid ""
+#~ "Failed to load Xft font pattern \"%s\", falling back to default font."
+#~ msgstr ""
+#~ "laje Xft bookstjaaftiep patroon \"%s\" mislök, val trök op sjtanderd "
+#~ "bookstjaaftiep."
+
+#~ msgid "Failed to load default Xft font."
+#~ msgstr "laje sjtanderd Xft bookstjaaftiep mislök."
+
+#~ msgid "Failed to load font set \"%s\", falling back to default font."
+#~ msgstr ""
+#~ "'t laje van bookstjaaftiepset \"%s\" is mislök, trökvalle op sjtanderd "
+#~ "bookstjaaftiep."
+
+#~ msgid "Failed to load default font, crashing or behaving abnormally."
+#~ msgstr ""
+#~ "'t laje van 't sjtanderd bookstjaaftiep is mislök, 't gedraag daovan is "
+#~ "abnormaal."
+
+#~ msgid "Error allocating draw, disabling Xft."
+#~ msgstr "'t goof eine faeler bie toewiezing teikes, Xft weurt oetgesjakeld."
+
+#~ msgid "Error allocating context, disabling Pango."
+#~ msgstr ""
+#~ "'t goof eine faeler bie toewiezing konteks, Pango weurt oetgesjakeld."
+
+#~ msgid "Error allocating layout, disabling Pango."
+#~ msgstr ""
+#~ "'t goof eine faeler bie toewiezing lay-out, Pango weurt oetgesjakeld."
+
+#~ msgid "Character 0x%x is undefined, allocating one column."
+#~ msgstr "teike 0x%x is neet gedefinieerd, wies kelóm toe."
+
+#~ msgid "Error allocating Xft font, disabling Xft."
+#~ msgstr "'t goof eine faeler bie toewieze Xft bookstjaaftiep, zèt Xft oet."

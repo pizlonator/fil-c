@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkDialog" id="button-mapping-dialog">
+    <property name="width_request">600</property>
+    <property name="height_request">450</property>
+    <property name="title" translatable="yes">Map Buttons</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="default_width">600</property>
+    <property name="default_height">450</property>
+    <child>
+      <object class="GtkBox" id="top_vbox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkBox" id="shortcuts_vbox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="xalign">0</property>
+                <property name="margin-top">12</property>
+                <property name="label" translatable="yes">Map buttons to functions</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="actions_swindow">
+                <property name="hscrollbar_policy">never</property>
+                <child>
+                  <object class="GtkListBox" id="shortcuts_list">
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="hbox1">
+                <property name="margin-top">5</property>
+                <property name="margin-bottom">5</property>
+                <property name="margin-start">5</property>
+                <property name="margin-end">5</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkLabel" id="label12">
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">To edit a shortcut, choose the “Send Keystroke” action, press the keyboard shortcut button and hold down the new keys or press Backspace to clear</property>
+                    <property name="justify">fill</property>
+                    <property name="wrap">True</property>
+                    <property name="hexpand">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButtonBox" id="dialog-action_area1">
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="close_button">
+                <property name="label" translatable="yes">_Close</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">close_button</action-widget>
+    </action-widgets>
+  </object>
+</interface>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright © 2012 Christian Persch
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<interface>
+  <menu id="notebook-popup">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Move Terminal _Left</attribute>
+        <attribute name="action">win.tab-move-left</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Move Terminal _Right</attribute>
+        <attribute name="action">win.tab-move-right</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Detach Terminal</attribute>
+        <attribute name="action">win.tab-detach</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Set _Title…</attribute>
+        <attribute name="action">win.set-title</attribute>
+        <attribute name="hidden-when">action-missing</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">C_lose Terminal</attribute>
+        <attribute name="action">win.close</attribute>
+        <attribute name="target">tab</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

@@ -1,0 +1,287 @@
+                         ╔════════════════════════════╗
+═════════════════════════╣ BiDi test – for 80 columns ╠═════════════════════════
+                         ╚════════════════════════════╝
+
+Test cases are structured like this:
+
+[01mTitle (bold)[m
+Optional LTR explanation of the logical order (normal)
+[32mReference rendering using similarly looking LTR glyphs (green)[m
+[36mActual rendering, needs to match the reference rendering (cyan)[m
+
+All words, except for the explanation of the logical order wherever it’s
+deliberately reversed, should show up in human readable order.
+
+Some test cases are marked as “should look broken”. This means that the
+overall look is not what humans are looking for; still, the actual rendering
+needs to match the reference rendering.
+
+At Arabic shaping tests, runs of connected letters are denoted.
+
+At box tests the reference rendering is upside down, so you should get nice
+squares everywhere.
+
+                              ┌──────────────────┐
+──────────────────────────────┤ 1 – Implicit LTR ├──────────────────────────────
+                              └──────────────────┘
+[01mLTR + RTL[m
+[00mHello1 ⸤Hello23⸣ Hello456 Shlm1 ⸤Shlm23⸣ Shlm456[m
+[32mHello1 ⸤Hello23⸣ Hello456 456oi7w ⸢23oi7w⸥ 1oi7w[m
+[36mHello1 ⸤Hello23⸣ Hello456 שָׁלוֹם1 ⸤שָׁלוֹם23⸣ שָׁלוֹם456[m
+
+[01mRTL + LTR[m
+[00mShlm1 ⸤Shlm23⸣ Shlm456 Hello1 ⸤Hello23⸣ Hello456[m
+[32m456oi7w ⸢23oi7w⸥ 1oi7w Hello1 ⸤Hello23⸣ Hello456[m
+[36mשָׁלוֹם1 ⸤שָׁלוֹם23⸣ שָׁלוֹם456 Hello1 ⸤Hello23⸣ Hello456[m
+
+[01mParagraph wrapping at foreign word[m
+[32mLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor w[m
+[32moi7 incididunt ut labore et dolore magna aliqua.[m
+[36mLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor שָׁלוֹם incididunt ut labore et dolore magna aliqua.[m
+
+[01mDouble wide[m
+[32ma＜z  n＞x[m
+[36ma＜z  א＜ת[m
+
+[01mArabic shaping[m
+[32m──╶╶╶─╶ ─── ─────╶ ─ ───╶──╶[m
+[36mالطرفية – استعمل سطر الأوامر[m
+
+[01mCombining accents[m
+[00mShlm Hungarian accents demo[m
+[32moi7w Árvíztűrő tükörfúrógép[m
+[36mשָׁלוֹם Árvíztűrő tükörfúrógép[m
+
+[01mBox[m
+[32m┏━┓   a╔═╗z  n┌─┐x   ╭─╮[m
+[36m┗━┛   a╚═╝z  א┘─└ת   ╰─╯[m
+
+[01mBox in mirrored mode[m
+[32m┏━┓   a╔═╗z  n┌─┐x   ╭─╮[m[?2500h
+[36m┗━┛   a╚═╝z  א└─┘ת   ╰─╯[m[?2500l
+
+                              ┌──────────────────┐
+──────────────────────────────┤ 2 – Implicit RTL ├──────────────────────────────
+                              └──────────────────┘
+[01mLTR + RTL[m
+[00mHello1 ⸤Hello23⸣ Hello456 Shlm1 ⸤Shlm23⸣ Shlm456[m
+                                [32m456oi7w ⸢23oi7w⸥ 1oi7w Hello1 ⸤Hello23⸣ Hello456[m
+[36m[2 kHello1 ⸤Hello23⸣ Hello456 שָׁלוֹם1 ⸤שָׁלוֹם23⸣ שָׁלוֹם456[1 k[m
+
+[01mRTL + LTR[m
+[00mShlm1 ⸤Shlm23⸣ Shlm456 Hello1 ⸤Hello23⸣ Hello456[m
+                                [32mHello1 ⸤Hello23⸣ Hello456 456oi7w ⸢23oi7w⸥ 1oi7w[m
+[36m[2 kשָׁלוֹם1 ⸤שָׁלוֹם23⸣ שָׁלוֹם456 Hello1 ⸤Hello23⸣ Hello456[1 k[m
+
+[01mParagraph with wrong direction (should look broken)[m
+[32mw Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor[m
+                                [32m.incididunt ut labore et dolore magna aliqua oi7[m
+[36m[2 kLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor שָׁלוֹם incididunt ut labore et dolore magna aliqua.[1 k[m
+
+[01mDouble wide[m
+                                                                      [32ma＜z  n＞x[m
+[36m[2 kא＜ת  a＜z[1 k[m
+
+[01mArabic shaping[m
+                                                    [32m──╶╶╶─╶ ─── ─────╶ ─ ───╶──╶[m
+[36m[2 kالطرفية – استعمل سطر الأوامر[1 k[m
+
+[01mOld Hungarian Rovásírás[m
+[00m(font at https://github.com/OldHungarian/old-hungarian-font)[m
+                                                         [32mΛᛩHTΛᛩMↄH ↄ4TH4Λↄ¤ᛝ +ΛↃ[m
+[36m[2 k𐲛𐳖𐳇 𐲏𐳪𐳙𐳍𐳀𐳢𐳐𐳀𐳙 𐲢𐳛𐳮𐳁𐳤𐳑𐳢𐳁𐳤[1 k[m
+
+[01mCombining accents[m
+[00mShlm Hungarian accents demo[m
+[32m                                                     Árvíztűrő tükörfúrógép oi7w[m
+[36m[2 kשָׁלוֹם Árvíztűrő tükörfúrógép[1 k[m
+
+[01mBox[m
+                                                        [32m╭─╮   a┌─┐z  n╔═╗x   ┏━┓[m[2 k
+[36m┛━┗   א╝═╚ת  a└─┘z   ╯─╰[m[1 k
+
+[01mBox in mirrored mode[m
+                                                        [32m╭─╮   a┌─┐z  n╔═╗x   ┏━┓[m[2 k[?2500h
+[36m┗━┛   א╚═╝ת  a└─┘z   ╰─╯[m[?2500l[1 k
+
+                      ┌──────────────────────────────────┐
+──────────────────────┤ 3 – Implicit auto (LTR fallback) ├──────────────────────
+                      └──────────────────────────────────┘
+[01mLTR + RTL[m
+[00mHello1 ⸤Hello23⸣ Hello456 Shlm1 ⸤Shlm23⸣ Shlm456[m
+[32mHello1 ⸤Hello23⸣ Hello456 456oi7w ⸢23oi7w⸥ 1oi7w[m
+[36m[?2501hHello1 ⸤Hello23⸣ Hello456 שָׁלוֹם1 ⸤שָׁלוֹם23⸣ שָׁלוֹם456[?2501l[m
+
+[01mRTL + LTR[m
+[00mShlm1 ⸤Shlm23⸣ Shlm456 Hello1 ⸤Hello23⸣ Hello456[m
+                                [32mHello1 ⸤Hello23⸣ Hello456 456oi7w ⸢23oi7w⸥ 1oi7w[m
+[36m[?2501hשָׁלוֹם1 ⸤שָׁלוֹם23⸣ שָׁלוֹם456 Hello1 ⸤Hello23⸣ Hello456[?2501l[m
+
+[01mParagraph wrapping at foreign word[m
+[32mLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor w[m
+[32moi7 incididunt ut labore et dolore magna aliqua.[m
+[36m[?2501hLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor שָׁלוֹם incididunt ut labore et dolore magna aliqua.[?2501l[m
+
+[01mArabic shaping[m
+                                                    [32m──╶╶╶─╶ ─── ─────╶ ─ ───╶──╶[m
+[36m[?2501hالطرفية – استعمل سطر الأوامر[?2501l[m
+
+[01mCombining accents[m
+[00mShlm Hungarian accents demo[m
+[32m                                                     Árvíztűrő tükörfúrógép oi7w[m
+[36m[?2501hשָׁלוֹם Árvíztűrő tükörfúrógép[?2501l[m
+
+[01mBox[m
+[32m┏━┓   a╔═╗z  n┌─┐x   ╭─╮[m[?2501h
+[36m┗━┛   a╚═╝z  א┘─└ת   ╰─╯[m[?2501l
+
+[01mBox in mirrored mode[m
+[32m┏━┓   a╔═╗z  n┌─┐x   ╭─╮[m[?2501h[?2500h
+[36m┗━┛   a╚═╝z  א└─┘ת   ╰─╯[m[?2500l[?2501l
+
+                      ┌──────────────────────────────────┐
+──────────────────────┤ 4 – Implicit auto (RTL fallback) ├──────────────────────
+                      └──────────────────────────────────┘
+[01mLTR + RTL[m
+[00mHello1 ⸤Hello23⸣ Hello456 Shlm1 ⸤Shlm23⸣ Shlm456[m
+[32mHello1 ⸤Hello23⸣ Hello456 456oi7w ⸢23oi7w⸥ 1oi7w[m
+[36m[2 k[?2501hHello1 ⸤Hello23⸣ Hello456 שָׁלוֹם1 ⸤שָׁלוֹם23⸣ שָׁלוֹם456[?2501l[1 k[m
+
+[01mRTL + LTR[m
+[00mShlm1 ⸤Shlm23⸣ Shlm456 Hello1 ⸤Hello23⸣ Hello456[m
+                                [32mHello1 ⸤Hello23⸣ Hello456 456oi7w ⸢23oi7w⸥ 1oi7w[m
+[36m[2 k[?2501hשָׁלוֹם1 ⸤שָׁלוֹם23⸣ שָׁלוֹם456 Hello1 ⸤Hello23⸣ Hello456[?2501l[1 k[m
+
+[01mParagraph wrapping at foreign word[m
+[32mLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor w[m
+[32moi7 incididunt ut labore et dolore magna aliqua.[m
+[36m[2 k[?2501hLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor שָׁלוֹם incididunt ut labore et dolore magna aliqua.[?2501l[1 k[m
+
+[01mArabic shaping[m
+                                                    [32m──╶╶╶─╶ ─── ─────╶ ─ ───╶──╶[m
+[36m[2 k[?2501hالطرفية – استعمل سطر الأوامر[?2501l[1 k[m
+
+[01mCombining accents[m
+[00mShlm Hungarian accents demo[m
+[32m                                                     Árvíztűrő tükörfúrógép oi7w[m
+[36m[2 k[?2501hשָׁלוֹם Árvíztűrő tükörfúrógép[?2501l[1 k[m
+
+[01mBox[m
+                                                        [32m╭─╮   a┌─┐z  n╔═╗x   ┏━┓[m[2 k[?2501h
+[36m┛━┗   א╝═╚ת  a└─┘z   ╯─╰[m[?2501l[1 k
+
+[01mBox in mirrored mode[m
+                                                        [32m╭─╮   a┌─┐z  n╔═╗x   ┏━┓[m[2 k[?2501h[?2500h
+[36m┗━┛   א╚═╝ת  a└─┘z   ╰─╯[m[?2500l[?2501l[1 k
+
+                              ┌──────────────────┐
+──────────────────────────────┤ 5 – Explicit LTR ├──────────────────────────────
+                              └──────────────────┘
+[01mLTR + fake RTL[m
+[00m⸤Hello⸣ ⸤mlhS⸣[m
+[32m⸤Hello⸣ ⸤oi7w⸣[m
+[36m[8l⸤Hello⸣ ⸤םוֹלשָׁ⸣[8h[m
+
+[01mFake RTL + RTL[m
+[00m⸤mlhS⸣ ⸤Hello⸣[m
+[32m⸤oi7w⸣ ⸤Hello⸣[m
+[36m[8l⸤םוֹלשָׁ⸣ ⸤Hello⸣[8h[m
+
+[01mArabic shaping[m
+[32m──╶╶╶─╶ ─── ─────╶ ─ ───╶──╶[m
+[36m[8lرماوألا رطس لمعتسا – ةيفرطلا[8h[m
+
+[01mCombining accents[m
+[00mmlhS Hungarian accents demo[m
+[32moi7w Árvíztűrő tükörfúrógép[m
+[36m[8lםוֹלשָׁ Árvíztűrő tükörfúrógép[8h[m
+
+[01mBox[m
+[32m┏━┓   a╔═╗z  n┌─┐x   ╭─╮[m[8l
+[36m┗━┛   a╚═╝z  ת└─┘א   ╰─╯[m[8h
+
+[01mBox in mirrored mode[m
+[32m┏━┓   a╔═╗z  n┌─┐x   ╭─╮[m[8l[?2500h
+[36m┗━┛   a╚═╝z  ת└─┘א   ╰─╯[m[?2500l[8h
+
+                              ┌──────────────────┐
+──────────────────────────────┤ 6 – Explicit RTL ├──────────────────────────────
+                              └──────────────────┘
+[01mFake LTR + RTL[m
+[00m⸤olleH⸣ ⸤Shlm⸣[m
+                                                                  [32m⸢oi7w⸥ ⸢Hello⸥[m
+[36m[8l[2 k⸤olleH⸣ ⸤שָׁלוֹם⸣[1 k[8h[m
+
+[01mRTL + fake LTR[m
+[00m⸤Shlm⸣ ⸤olleH⸣[m
+                                                                  [32m⸢Hello⸥ ⸢oi7w⸥[m
+[36m[8l[2 k⸤שָׁלוֹם⸣ ⸤olleH⸣[1 k[8h[m
+
+[01mFullwidth characters with underlines[m
+                        [32m［Ｌｏｒｅｍ  [4mｉｐｓｕｍ[24m  ｄｏｌｏｒ  [21mｓｉｔ[24m  ａｍｅｔ）[m
+[36m[8l[2 k（ｔｅｍａ  [21mｔｉｓ[24m  ｒｏｌｏｄ  [4mｍｕｓｐｉ[24m  ｍｅｒｏＬ］[1 k[8h[m
+
+[01mArabic shaping[m
+                                                    [32m──╶╶╶─╶ ─── ─────╶ ─ ───╶──╶[m
+[36m[8l[2 kالطرفية – استعمل سطر الأوامر[1 k[8h[m
+
+[01mCombining accents[m
+[00mShlm omed stnecca nairagnuH[m
+[32m                                                     Árvíztűrő tükörfúrógép oi7w[m
+[36m[8l[2 k[?2501hשָׁלוֹם pégórúfröküt őrűtzívrÁ[?2501l[1 k[8h[m
+
+[01mBox[m
+                                                        [32m╭─╮   a┌─┐z  n╔═╗x   ┏━┓[m[8l[2 k
+[36m┛━┗   א╝═╚ת  z┘─└a   ╯─╰[m[1 k[8h
+
+[01mBox in mirrored mode[m
+                                                        [32m╭─╮   a┌─┐z  n╔═╗x   ┏━┓[m[8l[2 k[?2500h
+[36m┗━┛   א╚═╝ת  z└─┘a   ╰─╯[m[?2500l[1 k[8h
+
+                               ┌────────────────┐
+───────────────────────────────┤ 7 – Misc tests ├───────────────────────────────
+                               └────────────────┘
+[01mNumbers inside RTL, across linebreak[m
+[00mjumps Shalom 123 456 789 Shalom![m
+[32mThe quick brown fox jumps over the lazy dog The quick brown fox jumps 4 123 oi7w[m
+[32moi7w 789 56![m
+[36mThe quick brown fox jumps over the lazy dog The quick brown fox jumps שָׁלוֹם 123 456 789 שָׁלוֹם![m
+
+[01mMirroring across linebreak[m
+[00mjumps Shalom <[<[<[<[ Shalom![m
+[32mThe quick brown fox jumps over the lazy dog The quick brown fox jumps >]>]> oi7w[m
+[32moi7w ]>]![m
+[36mThe quick brown fox jumps over the lazy dog The quick brown fox jumps שָׁלוֹם <[<[<[<[ שָׁלוֹם![m
+
+[01mAttributes[m
+[00mHel[4mlo1 Shlm2[24m3 Shl[21mm456 H[24mello7890[m
+[32mHel[4mlo1 [24m[21m456o[24mi7w [4m2[24m3[4moi7w[24m[21m H[24mello7890[m
+[36mHel[4mlo1 שָׁלוֹם2[24m3 שָׁלוֹ[21mם456 H[24mello7890[m
+
+[01mLink autodetection, overall LTR[m
+[00mhttps!//he.wikipedia.org/wiki/Front_page[m
+[32m[4mhttps!//he.wikipedia.org/wiki/'wxᒣ_tiny[24m[m
+[36mhttps://he.wikipedia.org/wiki/עמוד_ראשי[m
+
+[01mLink autodetection, overall LTR (should look broken)[m
+[00mhttps!//he.wikipedia.org/wiki/Front_page Shalom[m
+[32m[4mhttps!//he.wikipedia.org/wiki/[24moi7w [4m'wxᒣ_tiny[24m[m
+[36mhttps://he.wikipedia.org/wiki/עמוד_ראשי שָׁלוֹם[m
+
+[01mLink autodetection, overall RTL[m
+[00mShalom1 http!//example.com/test Shalom23[m
+[32m                                            23oi7w [4mhttp!//example.com/test[24m 1oi7w[m
+[36m[2 kשָׁלוֹם1 http://example.com/test שָׁלוֹם23[1 k[m
+
+[01mLink autodetection, overall RTL (should look broken)[m
+[00mShalom1 http!//example.com/test/ Shalom23[m
+[32m                                           23oi7w [4m/http!//example.com/test[24m 1oi7w[m
+[36m[2 kשָׁלוֹם1 http://example.com/test/ שָׁלוֹם23[1 k[m
+
+[01mExplicit hyperlinks[m
+[00m[4mHello1 Shlm23[24m [4mShlm456 Hello7890[24m[m
+[32m[4mHello1 [24m456oi7w [4m23oi7w[24m Hello7890[m
+[32mHello1 [4m456oi7w[24m 23oi7w[4m Hello7890[24m[m
+[36m]8;;http://example.com/hello123\Hello1 שָׁלוֹם23]8;;\ ]8;;http://example.com/hello4567890\שָׁלוֹם456 Hello7890]8;;\[m
+
+────────────────────────────────────────────────────────────────────────────────

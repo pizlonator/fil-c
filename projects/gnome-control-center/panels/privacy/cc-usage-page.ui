@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcUsagePage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">File History &amp; Trash</property>
+    <property name="tag">usage</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <!-- File History -->
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">File History</property>
+                <property name="description" translatable="yes">File history keeps a record of files that you have used. This information is shared between apps, and makes it easier to find files that you might want to use.</property>
+                <child>
+                  <object class="AdwSwitchRow" id="recently_used_row">
+                    <property name="title" translatable="yes">File H_istory</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwComboRow" id="retain_history_combo">
+                    <property name="title" translatable="yes">File _History Duration</property>
+                    <property name="use-underline">true</property>
+                    <signal name="notify::selected-item" handler="retain_history_combo_changed_cb"/>
+                    <property name="model">
+                      <object class="AdwEnumListModel">
+                        <property name="enum-type">CcUsagePageRetainHistory</property>
+                      </object>
+                    </property>
+                    <property name="expression">
+                      <closure type="gchararray" function="retain_history_name_cb"/>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="hexpand">false</property>
+                    <property name="halign">end</property>
+                    <property name="spacing">12</property>
+                    <property name="margin-top">12</property>
+                    <child>
+                      <object class="GtkButton" id="clear_recent_button">
+                        <property name="valign">center</property>
+                        <property name="label" translatable="yes">_Clear History…</property>
+                        <property name="can-shrink">True</property>
+                        <property name="use_underline">1</property>
+                        <signal name="clicked" handler="clear_recent" swapped="yes"/>
+                        <style>
+                          <class name="destructive-action"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <!-- Trash & Temporary Files -->
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Trash &amp;amp; Temporary Files</property>
+                <property name="description" translatable="yes">Trash and temporary files can sometimes include personal or sensitive information. Automatically deleting them can help to protect privacy.</property>
+                <child>
+                  <object class="AdwSwitchRow" id="purge_trash_row">
+                    <property name="title" translatable="yes">Automatically Delete _Trash Content</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="purge_temp_row">
+                    <property name="title" translatable="yes">Automatically Delete Temporary _Files</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwComboRow" id="purge_after_combo">
+                    <property name="title" translatable="yes">Automatically Delete _Period</property>
+                    <property name="use-underline">true</property>
+                    <signal name="notify::selected-item" handler="purge_after_combo_changed_cb"/>
+                    <property name="model">
+                      <object class="AdwEnumListModel">
+                        <property name="enum-type">CcUsagePagePurgeAfter</property>
+                      </object>
+                    </property>
+                    <property name="expression">
+                      <closure type="gchararray" function="purge_after_name_cb"/>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="hexpand">false</property>
+                    <property name="halign">end</property>
+                    <property name="margin-top">12</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkButton" id="purge_trash_button">
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="label" translatable="yes">_Empty Trash…</property>
+                        <property name="can-shrink">True</property>
+                        <property name="use-underline">true</property>
+                        <style>
+                          <class name="destructive-action"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="purge_temp_button">
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="label" translatable="yes">_Delete Temporary Files…</property>
+                        <property name="can-shrink">True</property>
+                        <property name="use-underline">true</property>
+                          <style>
+                            <class name="destructive-action"/>
+                          </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

@@ -1,0 +1,140 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="task"
+      id="app-fonts">
+
+  <info>
+    <revision version="0.1" date="2013-02-22" status="candidate"/>
+    <revision pkgversion="3.34" version="0.2" date="2020-01-04" status="candidate"/>
+    <link type="guide" xref="index#appearance"/>
+    <link type="guide" xref="pref#profile"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Use system fonts or choose a custom font for your terminal.</desc>
+
+  </info>
+
+  <title>Change font and style</title>
+
+  <p>When you work with a lot of <app>Terminal</app> text, you may want to
+  change the default font to your preference. You have the following
+  options:</p>
+
+  <section id="system-font">
+  <title>System fixed width font</title>
+
+  <p>To use system default fonts:</p>
+
+  <steps>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Preferences</gui>.</p>
+    </item>
+    <item>
+      <p>In the sidebar, select your current profile in the <gui>Profiles</gui>
+      section.</p>
+    </item>
+    <item>
+      <p>Select <gui style="tab">Text</gui>.</p>
+    </item>
+    <item>
+      <p>Unselect <gui style="checkbox">Custom font</gui>.</p>
+    </item>
+  </steps>
+
+  </section>
+
+  <section id="custom-font">
+  <title>Set a custom font</title>
+
+  <p>To set a custom font and size:</p>
+
+  <steps>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Preferences</gui>.</p>
+    </item>
+    <item>
+      <p>In the sidebar, select your current profile in the <gui>Profiles</gui>
+      section.</p>
+    </item>
+    <item>
+      <p>Select <gui style="tab">Text</gui>.</p>
+    </item>
+    <item>
+      <p>Select <gui style="checkbox">Custom font</gui>.</p>
+    </item>
+    <item>
+      <p>Click on the button next to <gui style="checkbox">Custom font</gui>.</p>
+    </item>
+    <item>
+      <p>Type the name of your desired font into the search field or browse the
+      list of fonts.</p>
+    </item>
+    <item>
+      <p>Drag the slider that is below the font list to set the font size.
+      Alternatively, you can type in the font size into the field next to the
+      slider, or click on <gui style="button">+</gui> to increase font size or
+      <gui style="button">-</gui> to decrease selected font size.</p>
+    </item>
+    <item>
+      <p>Click <gui style="button">Select</gui> to apply your changes. To
+      discard changes and go back to previous dialog, click
+      <gui style="button">Cancel</gui>.</p>
+    </item>
+  </steps>
+
+  </section>
+
+  <section id="cell-spacing">
+  <title>Line spacing and character spacing</title>
+
+  <p><app>Terminal</app> allows you to pull its characters apart for improved
+  readability. Line spacing and character spacing can be adjusted from 1.0
+  (the regular look) to 2.0 (“double spacing”), including fractional values
+  in between.</p>
+
+  <steps>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Preferences</gui>.</p>
+    </item>
+    <item>
+      <p>In the sidebar, select your current profile in the <gui>Profiles</gui>
+      section.</p>
+    </item>
+    <item>
+      <p>Select <gui style="tab">Text</gui>.</p>
+    </item>
+    <item>
+      <p>Go to the <gui>Cell spacing</gui> setting.</p>
+    </item>
+    <item>
+      <p>To set the horizontal character spacing, adjust the multiplier number
+      in front of <gui>width</gui>.</p>
+    </item>
+    <item>
+      <p>To set the line spacing, adjust the multiplier number in front of
+      <gui>height</gui>.</p>
+    </item>
+  </steps>
+
+  </section>
+
+</page>

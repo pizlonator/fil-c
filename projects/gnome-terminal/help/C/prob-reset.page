@@ -1,0 +1,76 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="guide"
+      id="prob-reset">
+
+  <info>
+    <revision version="0.1" date="2013-03-03" status="draft"/>
+    <revision pkgversion="3.34" version="0.2" date="2020-01-04" status="candidate"/>
+    <link type="guide" xref="index#troubleshooting"/>
+    <link type="seealso" xref="pref-keyboard-access"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>How do I recover my <app>Terminal</app> screen when it becomes stuck
+    or has lot of strange symbols on it?</desc>
+  </info>
+
+  <title>Reset your <app>Terminal</app> state</title>
+
+  <p>After viewing a non-text file by mistake, or launching some command, it can
+  happen the <app>Terminal</app> screen is unresponsive, has strange letters
+  printed when you press keys. You can recover your <app>Terminal</app> in
+  the following ways:</p>
+
+  <section id="reset">
+    <title>Reset</title>
+
+    <p>Reset <app>Terminal</app> screen.</p>
+
+    <steps>
+      <item>
+        <p>Press the menu button in the top-right corner of the window and
+        select <guiseq><gui style="menuitem">Advanced</gui><gui
+        style="menuitem">Reset</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>To obtain the prompt press <key>Enter</key>.</p>
+      </item>
+    </steps>
+
+  </section>
+
+  <section id="reset-clear">
+    <title>Reset and Clear</title>
+
+    <p>In addition to resetting your <app>Terminal</app>,
+    <gui style="menuitem">Reset and Clear</gui> clears the visible
+    <app>Terminal</app> screen space and the scrollback contents. To
+    <gui style="menuitem">Reset and Clear</gui> your <app>Terminal</app>:</p>
+
+    <steps>
+      <item>
+        <p>Press the menu button in the top-right corner of the window and
+        select <guiseq><gui style="menuitem">Advanced</gui><gui
+        style="menuitem">Reset and Clear</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>To obtain the prompt press <key>Enter</key>.</p>
+      </item>
+    </steps>
+
+    <note style="tip"><p><gui>Reset and Clear</gui> provides similar
+    functionality as the terminal command <cmd>reset</cmd>.</p></note>
+
+  </section>
+</page>

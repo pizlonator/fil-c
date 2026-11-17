@@ -1,0 +1,115 @@
+# Canadian English translation of vte
+# Copyright (C) Adam Weinberger and the GNOME Foundation
+# This file is distributed under the same licence as the vte package.
+# Alexander Winston <alexander.winston@comcast.net>, 2004.
+# Adam Weinberger <adamw@gnome.org>, 2004.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vte 0.11.10\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-08-15 18:02-0400\n"
+"PO-Revision-Date: 2004-09-08 22:54-0400\n"
+"Last-Translator: Adam Weinberger <adamw@gnome.org>\n"
+"Language-Team: Canadian English <adamw@gnome.org>\n"
+"Language: en_CA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/iso2022.c:791 ../src/iso2022.c:799 ../src/iso2022.c:830
+#: ../src/vte.c:1814
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "Unable to convert characters from %s to %s."
+
+#: ../src/iso2022.c:1540
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "Attempt to set invalid NRC map '%c'."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1570
+msgid "Unrecognized identified coding system."
+msgstr "Unrecognized identified coding system."
+
+#: ../src/iso2022.c:1629 ../src/iso2022.c:1656
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "Attempt to set invalid wide NRC map '%c'."
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:837
+#, c-format
+msgid "can not run %s"
+msgstr "can not run %s"
+
+#: ../src/reaper.c:136
+msgid "Error creating signal pipe."
+msgstr "Error creating signal pipe."
+
+#: ../src/trie.c:414
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "Duplicate (%s/%s)!"
+
+#: ../src/vte.c:1204
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "Error compiling regular expression \"%s\"."
+
+#: ../src/vte.c:2675 ../src/vte.c:2680
+#, c-format
+msgid "No handler for control sequence `%s' defined."
+msgstr "No handler for control sequence `%s' defined."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:3645
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "Error reading from child: %s."
+
+#: ../src/vte.c:3761
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "Unable to send data to child: invalid charset convertor"
+
+#: ../src/vte.c:3772 ../src/vte.c:4679
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "Error (%s) converting data for child: dropping."
+
+#: ../src/vte.c:6914
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr "Error reading PTY size: using defaults: %s."
+
+#: ../src/vte.c:6950
+#, c-format
+msgid "Error setting PTY size: %s."
+msgstr "Error setting PTY size: %s."
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:11415
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "_vte_conv_open() failed setting word characters"
+
+#: ../src/vteseq.c:3926
+#, c-format
+msgid "Got unexpected (key?) sequence `%s'."
+msgstr "Got unexpected (key?) sequence `%s'."
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:774
+msgid "Could not open console.\n"
+msgstr "Could not open console.\n"
+
+#: ../src/vteapp.c:838
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "Could not parse the geometry spec passed to --geometry"
+
+#: ../src/vteglyph.c:562
+#, c-format
+msgid "Unknown pixel mode %d.\n"
+msgstr "Unknown pixel mode %d.\n"

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="CcWwanNetworkDialog" parent="GtkDialog">
+    <property name="title" translatable="yes">Network</property>
+    <property name="default-height">480</property>
+    <property name="default-width">360</property>
+    <property name="hide-on-close">True</property>
+    <property name="modal">True</property>
+
+    <child>
+      <object class="GtkBox">
+        <property name="width-request">340</property>
+        <property name="height-request">360</property>
+        <child>
+          <object class="AdwToastOverlay" id="toast_overlay">
+            <property name="hexpand">True</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">18</property>
+                <property name="margin-bottom">18</property>
+                <property name="orientation">vertical</property>
+
+                <!-- Automatic Network Selection Switch -->
+                <child>
+                  <object class="GtkListBox">
+                    <property name="selection-mode">none</property>
+                    <property name="margin-bottom">18</property>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                    <child>
+                      <object class="AdwSwitchRow" id="automatic_row">
+                        <property name="use-underline">True</property>
+                        <property name="title" translatable="yes">_Automatic</property>
+                        <signal name="notify::active" handler="cc_wwan_auto_network_changed_cb" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <!-- Network Selection List Title and Spinner -->
+                <child>
+                  <object class="GtkBox" id="network_search_title">
+                    <property name="visible" bind-source="automatic_row" bind-property="active" bind-flags="sync-create|invert-boolean"/>
+                    <property name="margin-bottom">9</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Choose Network</property>
+                        <property name="xalign">0.0</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSpinner" id="loading_spinner"/>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="refresh_button">
+                        <property name="icon-name">view-refresh-symbolic</property>
+                        <signal name="clicked" handler="cc_wwan_network_dialog_refresh_networks" swapped="yes"/>
+                        <accessibility>
+                          <property name="label" translatable="yes">Refresh Network Providers</property>
+                        </accessibility>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <!-- Network Selection List -->
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="propagate-natural-height">True</property>
+                    <property name="visible" bind-source="operator_list_box" bind-flags="sync-create"/>
+                    <style>
+                      <class name="frame"/>
+                    </style>
+                    <property name="child">
+                      <object class="GtkListBox" id="operator_list_box">
+                        <property name="visible">False</property>
+                        <property name="sensitive">False</property>
+                        <property name="selection-mode">none</property>
+                        <signal name="row-activated" handler="cc_wwan_network_changed_cb" swapped="yes"/>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child type="action">
+      <object class="GtkButton" id="button_cancel">
+        <property name="use-underline">True</property>
+        <property name="label" translatable="yes">_Cancel</property>
+        <signal name="clicked" handler="gtk_widget_hide" swapped="yes"/>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="button_apply">
+        <property name="use-underline">True</property>
+        <property name="label" translatable="yes">_Set</property>
+        <signal name="clicked" handler="cc_wwan_network_dialog_apply_clicked_cb" swapped="yes"/>
+        <style>
+          <class name="suggested-action "/>
+        </style>
+      </object>
+    </child>
+
+    <action-widgets>
+      <action-widget response="cancel">button_cancel</action-widget>
+      <action-widget response="apply" default="True">button_apply</action-widget>
+    </action-widgets>
+  </template>
+</interface>

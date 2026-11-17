@@ -1,0 +1,448 @@
+╔════════════════╗
+║ VTE rewrapping ║
+╚════════════════╝
+
+as per the feature request and discussions at
+https://bugzilla.gnome.org/show_bug.cgi?id=336238
+
+by Egmont Koblinger and Behdad Esfahbod
+
+
+Overview
+════════
+
+It is a really cool feature if the terminal rewraps long lines when the window
+is resized.
+
+In order to implement this, we need to remember for each line whether we
+advanced to the next because a newline (a.k.a. linefeed) was printed, or
+because the end of line was reached. VTE and most other terminals already
+remember this (even if they don't support rewrap) for copy-paste purposes.
+
+Let's use the following terminology:
+
+A "line" or "row" (these two words are used interchangeably in this document)
+refer to a physical line of the terminal.
+
+A line is "hard wrapped" if it was terminated by an explicit newline. On
+contrary, a line is "soft wrapped" if the text overflowed to the next line.
+
+It's not clear by this definition whether the last line should be defined as
+hard or soft wrapped. It should be irrelevant. The definition also gets
+unclear as soon as we start printing escape codes that move the cursor. E.g.
+should positioning the cursor to the beginning of a previous line and printing
+something there effect the soft or hard wrapped state of the preceding line?
+
+A "paragraph" is one or more lines enclosed between two hard line breaks. That
+is, the line preceding the paragraph is hard wrapped (or we're at the
+beginning of the buffer), all lines of the paragraph except the last are soft
+wrapped, and the last line is hard wrapped (or we're at the end of the buffer,
+in which case it can also be soft wrapped).
+
+
+Specification
+═════════════
+
+Content after rewrapping
+────────────────────────
+
+The basic goal is that if an application prints some continuous stream of text
+(with no cursor positioning escape codes) then after resizing the terminal the
+text should look just as if it was originally printed at the new terminal
+width.
+
+Rewrapping paragraphs containing single width and combining characters only
+should be obvious.
+
+Double width (CJK) characters should not be cut in half. If they don't fit at
+the end of the row, they should overflow to the next, leaving one empty cell
+at the end of the previous line. That empty cell should not be considered when
+copy-pasting the text, nor when rewrapping the text again. This is the same as
+when the CJK text is originally printed.
+
+TAB characters are a nightmare. Even without rewrapping, their behavior is
+weird. You can print arbitrary amount of tabs, the cursor doesn't advance from
+the last column. Then you can print a letter, and the cursor stays just beyond
+the last cell and yet again you can print arbitrary amounts of tabs which do
+nothing. Then the next letter wraps to the next line. So, even without
+rewrapping, copy-pasting tabs around EOL doesn't reproduce the exact same text
+that was printed by the application, tab characters can get dropped. In order
+to "fix" this, we'd need to remember two numbers per line (number of tabs at
+EOL before the last character, and number of tabs at EOL after the last
+character). It's definitely not worth it. Furthermore, there's dynamic tab
+stop positions, and the very last thing we'd want to do is to remember for
+each tab character where the tab stops were when it was printed. So when
+rewrapping, we don't try to rewrap to the state exactly as if the application
+originally printed the text at the new width. If we do anything that's not
+obviously horribly broken then we're okay. (In other words, in this respect
+we're safe to say that tab is a cursor positioning code rather than a
+printable character.)
+
+
+Other generic expectations
+──────────────────────────
+
+Window managers can be configured to resize applications (and hence the VTE
+widget) only once for the final size, and can resize it continuously. It's
+expected that these two should lead to the same result (as much as possible).
+
+Some terminal emulators scroll to the bottom on resize. VTE has traditionally
+been cleverer, it kept the scroll position. I believe it's a nice feature and
+we should try to keep it the same.
+
+It is expected that a small difference in the way you resize the terminal
+shouldn't lead to a big difference in behavior. This is very hard to lay in
+exact specifications, these are rather "common sense" expectations, but I try
+to demonstrate via a couple of examples. If you change the width but all
+paragraphs were and still are shorter than the width, rewrapping shouldn't
+change the scroll offset. If there was only 1 paragraph that needed to be
+rewrapped from one line to two lines, the content shouldn't scroll by more
+than 1 line anywhere on the screen. If you change the height only, the
+behavior would be the same as with old non-rewrapping VTE. In this case the
+rewrapping code is actually skipped (because it's an expensive operation), but
+even if it was executed, the behavior should remain the same.
+
+
+Normal vs alternate screen
+──────────────────────────
+
+The normal screen should always be resized and rewrapped, even if the
+alternate screen is visible (bug 415277). This can occur immediately on each
+resize, or once when returning from the alternate screen. Probably resizing
+immediately gives a better user experience (main bug comment 34), since
+resizing is a heavyweight user-initiated event, while returning from the
+alternate screen is not where the user would expect the terminal to hang for
+some time.
+
+The alternate screen should not be rewrapped. It is used by applications that
+have full control over the entire area and they will repaint it themselves.
+Rewrapping by vte would cause ugly artifacts after vte rewraps but before the
+application catches up, e.g. characters aligned below each other would become
+arranged diagonally for a short while. (Moreover, with current VTE design,
+rewrapping the alternate screen would require many new fds to be used: main
+bug comment 60).
+
+
+Cursor position after rewrapping
+────────────────────────────────
+
+Both the active cursor and the saved cursor should be updated when rewrapping.
+(The saved cursor might be important e.g. when returning from alternate
+screen.)
+
+The cursor should ideally stay over the same character (whenever possible), or
+as "close" to that as possible. If it is over the second cell of a CJK, or in
+the middle of a Tab, it should remain so.
+
+If rewrapping is disabled, the cursor can be anywhere to the right, even
+beyond the right end of the screen. This can occur easily when the window is
+narrowed. But even with rewrapping enabled, there is 1 more valid position
+than the number of columns. E.g. with 80 columns, the cursor can be over the
+1st character, ..., over the 80th character, or beyond the 80th character,
+which are 81 valid horizontal positions; in the latter case the cursor is not
+over a character. We need to distinguish all these positions and keep them
+during rewrap whenever possible.
+
+Let's assume the cursor's old position is not above a character, but at EOL or
+beyond. After rewrapping, we should try to maintain this position, so we
+should walk to the right from the corresponding character if possible.
+However, we should not walk into text that got joined with this line during
+rewrapping a paragraphs, nor should we wrap to next line.
+
+Here are a couple of examples. Imagine the cursor stands in the underlined
+cell (although it's technically an "upper one eighth block" character in the
+cell below in this document). The text printed by applications doesn't contain
+space characters in these examples.
+
+- The cursor is far to the right in a hard wrapped line. Keep that position,
+  no matter if visible or not:
+
+  ▏width 13    ▏                ▏width 20           ▏
+  paragraphend.         <->     paragraphend.
+  Newparagraph    ▔             Newparagraph    ▔
+
+- The cursor is far to the right in a soft wrapped line. That position cannot
+  be maintained, so jump to a character:
+
+  ▏width 11  ▏              ▏width 10 ▏           ▏width 12   ▏
+  blabla12345        ->     blabla1234     or     blabla123456
+  67890        ▔            567890                7890       ▔
+                             ▔
+- The cursor is far to the right in a soft wrapped line. That position can be
+  maintained because the next CJK doesn't fix:
+
+  ▏width 11  ▏               ▏width 12   ▏
+  blabla12345        <->     blabla12345
+  伀           ▔             伀           ▔
+
+- Wrapping a CJK leaves an empty cell. Also, keep the cursor under the second
+  half:
+
+  ▏width 13    ▏            ▏width 12   ▏
+  blabla12345伀     <->     blabla12345
+              ▔             伀
+                             ▔
+
+Shell prompt
+────────────
+
+If you resize the terminal to be narrower than your shell prompt (plus the
+command you're entering) while the shell is waiting for your command, you see
+weird behavior there. This is not a bug in rewrapping: it's because the shell
+redisplays its prompt (and command line) on every resize. There's not much VTE
+could do here.
+
+As a long term goal, maybe readline could have an option where it knows that
+the terminal rewraps its contents so that it doesn't redisplay the prompt and
+the command line, just expects the terminal to do this correctly. It's a bit
+risky, since probably all terminals that support rewrapping do this a little
+bit differently.
+
+
+Scroll position, cutting lines from the bottom
+──────────────────────────────────────────────
+
+A very tricky question is to figure out the scroll position after a resize.
+First, let's ignore bug 708213's requirements.
+
+Normally the scrollbar is at the bottom. If this is the case, it should remain
+so.
+
+How to position the scroll offset if the scrollbar is somewhere at the middle?
+Playing with various possibilities suggested that probably the best behavior
+is if we try to keep the bottom visible paragraph at the bottom. (After all,
+in terminals the bottom is far more important than the top.) It's not yet
+exactly specified if the bottom of the viewport cuts a paragraph in two, but
+still then we try to keep it approximately there.
+
+The exact implemented behavior is: we look at the character at the cell just
+under the viewport's bottom left corner, keep track where this character moves
+during rewrapping, and position the scrollbar so that this character is again
+just under the viewport.
+
+As an exception, I personally found a "snap to top" feature useful: if the
+scrollbar was all the way at the top, it should stay there.
+
+Now let's address bug 708213.
+
+This breaks the expectation that changing the terminal height back and forth
+should be a no-op. To match XTerm's behavior, when the window height is
+reduced and there are lines under the cursor then those lines should be
+dropped for good.
+
+It is very hard to figure out the desired behavior when this is combined with
+rewrapping. E.g. in one step you decrease the height and would expect lines to
+be dropped from the bottom, but in the very same step you increase the width
+which causes some previously wrapped paragraphs to fit in a single line (this
+could be above or below the cursor or just in the cursor's line, or all of
+these) which makes room for previously undisplayed lines. What to do then?
+
+The total number of rows, the number of rows above the cursor, and the number
+of rows below the cursor can all increase/decrease/stay pretty much
+independently from each other, almost all combinations are possible when
+resizing diagonally with rewrapping enabled. The behavior should also be sane
+when the cursor's paragraph starts wrapping.
+
+As an additional requirement, I had the aforementioned shell prompt feature in
+mind. One of the most typical use cases when the cursor is not in the bottom
+row is when you edit a multiline shell command and move the cursor back. In
+this case, shrinking the terminal shouldn't cut lines from the bottom.
+
+My best idea which reasonably covers all the possible cases is that we drop
+the lines (if necessary) after rewrapping, but before computing the new
+scrollbar offsets, and we drop the highest number of lines that satisfies all
+these three conditions:
+
+ - drop1: We shouldn't drop more lines than necessary to fit the content
+   without scrollbars.
+
+ - drop2: We should only drop data that's below the cursor's paragraph. (We
+   don't drop data that is under the cursor's row, but belongs to the same
+   paragraph).
+
+ - drop3: We track the character cell that immediately follows the cursor's
+   paragraph (that is, the line after this paragraph, first column), and see
+   how much it would get closer to the top of the window (assuming viewport is
+   scrolled to the bottom). The original bug is about that the cursor
+   shouldn't get closer to the top, with rewrapping I found that it's probably
+   not the cursor but the end of the cursor's paragraph that makes sense to
+   track. We shouldn't drop more lines than the amount by which this point
+   would get closer to the top.
+
+
+Implementation
+══════════════
+
+Storing lines
+─────────────
+
+Vte's ring was designed with rewrapping in mind, nevertheless it operates with
+rows. Changing it to work on paragraphs would require heavy refactoring, and
+would cause all sorts of troubles with overlong paragraphs. As the main
+features of terminals (showing content, scrolling etc.) are all built around
+rows, such a change for rewrapping only doesn't sound feasible. It's even
+unclear which approach would be better for a terminal built from scratch. So
+we decided to keep Vte operate with rows. Rewrapping is an expensive operation
+that builds up the notion of paragraphs from rows, and then cuts them to rows
+again.
+
+The scrollback buffer also remains defined in terms of lines, rather than
+paragraphs or memory. This also guarantees that the scrollbar's length cannot
+fluctuate.
+
+
+Ring
+────
+
+The ring contains some of the bottom rows in thawed state, while most of the
+scrollback buffer is frozen. Rewrapping is very complicated so we don't want
+the code to be duplicated. It is also computational heavy and we should try to
+be as fast as possible. Hence we work on frozen data structure in which most
+of the data lies, and we freeze all the rows for this purpose.
+
+The frozen text is stored in UTF-8. Care should be taken that the number of
+visual cells, number of Unicode characters, and number of bytes are three
+different values.
+
+The buffer is stored in three streams: text_stream contains the raw text
+encoded in UTF-8, with '\n' characters at paragraph boundaries; attr_stream
+contains records for each continuous run of identical attributes (same colors,
+character width, etc.) of text_stream (with the exception of '\n' where the
+attribute is ignored, e.g. it can be even embedded in a continuous run of
+double-width CJK characters); and row_stream consists of pointers into
+attr_steam and text_stream for every row. Out of these three, only row_stream
+needs to be regenerated.
+
+We start building up the new row stream beginning at new row number 0. We
+could make it any other arbitrary number, but we wouldn't be able to keep any
+of the old numbers unchanged (neither ring->start because lines can be dropped
+from the scrollback's top when narrowing the window, nor ring->end because we
+have no clue at the beginning how many rows we'll have), so there's no point
+even trying.
+
+
+Rewrapping
+──────────
+
+For higher performance, for each row we store whether it consists of ASCII
+32..126 characters only (excluding tabs too). (The flag can err in the safe
+way: it can be false even if the paragraph is ASCII only.) If a paragraph
+consists solely of such rows, we can rewrap it without looking at text_stream,
+since we know that all characters are stored as a single byte and all occupy a
+single cell.
+
+If it's not the case, we need to look at text_stream to be able to wrap the
+paragraph.
+
+Other than this, rewrapping is long, boring, but straightforward code without
+any further tricks.
+
+
+Markers
+───────
+
+There are some cell positions (I call them markers) that we need to keep track
+of, and tell where they moved during rewrapping. Such markers are the cursor,
+the saved cursor, the cell under the viewport's bottom left corner (for
+computing the new scrollbar offset), the cell under the bottom left corner of
+the cursor's paragraph (for computing the number of lines to get dropped), and
+the boundaries of the highlighted region.
+
+A marker is a (row, column) pair where the row is either within the ring's
+range or in a further row, and the column is arbitrary.
+
+Before rewrapping, if the row is within the ring's range, the (row, column)
+pair is converted to a VteCellTextOffset which contains the text offset,
+fragment_cells denoting how many cells to walk from the first cell of a
+multicell character (i.e. 1 for the right half of a CJK), and eol_cells
+containing -1 if the cursor is over a character, 0 if the cursor is just after
+the last character, or more if the cursor is farther to the right. Example:
+
+  ▏width 24               ▏
+  Line 0 overflowing to LI
+  NE 1                    ▔
+
+If the cursor is over 'I' then text_offset is 23, eol_cells is -1.
+If the cursor is just after the 'I' (as shown) then text_offset is 24,
+eol_cells is 0.
+If the cursor is one n more cells further to the right then text_offset is 24,
+eol_cells is n.
+if the cursor is over 'N' then text_offset is 24 and eol_cells is -1.
+If the cursor is over 'E' then text_offset is 25 and eol_cells is -1.
+
+If the row is beyond the range covered by the ring, then text_offset will be
+text_stream's head for the immediate next row, one bigger for next row and so
+on, eol_cells will be set to the desired column, and fragment_cells is 0.
+Pretty much as if the ring continued with empty hard wrapped lines.
+
+After rewrapping, VteCellTextOffset is converted back to (row, column)
+according to the new width and new row numbering. This could be done solely
+based on VteCellTextOffset, but instead we update the row during rewrapping,
+and only compute the column afterwards. This is because we don't have a fast
+way of mapping text_offset to row number, this would require a binary search,
+it's much easier to remember this data when we're there anyway while
+rewrapping.
+
+
+Further optimization
+────────────────────
+
+In row_stream and attr_stream, along with the text offset we could similarly
+store the character offset (a counter that is increased by 1 on every Unicode
+character, in other words what the value of the text offset would be if we
+stored the text in UCS-4 rather than UTF-8).
+
+This, along with the fact that a cell's attribute contains the character
+width, and hence there is an attr change at every boundary where the character
+width changes, would enable us to compute the number of lines for each
+paragraph without looking at text_stream. This could be a huge win, since
+text_stream is by far the biggest of the three streams.
+
+The trick is however that we'd only know the number of lines for the
+paragraph, but not the text offsets for the inner lines. These would have to
+remain in a special uninitialized state in the new row_stream, and be computed
+lazily on demand. For storing that, streams would need to be writable at
+arbitrary positions, rather than just allowing appending of new data.
+
+Care should be taken that this "on demand" includes the case when they are
+being scrolled out from the scrollback buffer for good, because we'd still
+need to be able to tell the text offset for the remaining lines of the
+paragraph.
+
+
+Bugs
+════
+
+With the current design, the top of the scrollback buffer can easily contain a
+partial paragraph. After a subsequent resize, this might lead to the topmost
+row missing its first part. E.g. after executing "ls -l /bin" at width 40 and
+then widening the terminal, the first 40 characters of bash's paragraph can be
+cut off like this, because that used to form a row that got scrolled out:
+
+012 bash
+-rwxr-xr-x 3 root root   31152 Aug  3  2012 bunzip2
+-rwxr-xr-x 1 root root 1999912 Mar 13  2013 busybox
+
+With the current design I can't see any easy and clean workaround for this
+that wouldn't introduce other side effects or terribly complicated code. I'd
+say this is a small glitch we can easily live with.
+
+
+Caveats
+═══════
+
+With extremely large scrollback buffers (let's not forget: VTE supports
+infinite scrollback) rewrapping might become slow. On my computer (average
+laptop with Intel(R) Core(TM) i3 CPU, old-fashioned HDD) resizing 1 million
+lines take about 0.2 seconds wall clock time, this is close to the boundary of
+okay-ish speed. For this reason, rewrapping can be disabled with the
+vte_terminal_set_rewrap_on_resize() api call.
+
+Developers writing Vte-based multi-tab terminal emulators are encouraged to
+resize only the visible Vte, the hidden ones should be resized when they
+become visible. This avoids the time it takes to rewrap the buffer to be
+multiplied by the number of tabs and so block the user for a long
+uninterrupted time when they resize the window. Developers are also encouraged
+to implement a user friendly way of disabling rewrapping if they allow giant
+scrollback buffer.
+

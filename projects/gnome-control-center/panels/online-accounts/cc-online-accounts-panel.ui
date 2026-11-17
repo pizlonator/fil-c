@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcOnlineAccountsPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+
+            <child>
+              <object class="AdwBanner" id="offline_banner">
+                <property name="title" translatable="yes">Offline — unable to connect accounts</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesPage">
+                <property name="description" translatable="yes">Allow apps to access online services by connecting your cloud accounts</property>
+
+                <child>
+                  <object class="AdwPreferencesGroup" id="accounts_frame">
+                    <property name="title" translatable="yes">Your Accounts</property>
+                    <property name="visible">False</property>
+                    <child>
+                      <object class="GtkListBox" id="accounts_listbox">
+                        <property name="hexpand">True</property>
+                        <property name="selection_mode">none</property>
+                        <signal name="row-activated" handler="on_accounts_listbox_row_activated" object="CcOnlineAccountsPanel" swapped="yes" />
+                        <style>
+                          <class name="boxed-list" />
+                        </style>
+                        <accessibility>
+                          <relation name="labelled-by">accounts_frame</relation>
+                        </accessibility>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title" translatable="yes">Connect an Account</property>
+                    <child>
+                      <object class="GtkListBox" id="providers_listbox">
+                        <property name="selection_mode">none</property>
+                        <signal name="row-activated" handler="on_provider_row_activated_cb" object="CcOnlineAccountsPanel" swapped="yes" />
+                        <style>
+                          <class name="boxed-list" />
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
+</interface>

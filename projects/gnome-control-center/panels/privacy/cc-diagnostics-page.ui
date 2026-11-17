@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcDiagnosticsPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Diagnostics</property>
+    <property name="tag">diagnostics</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup" id="diagnostics_group">
+                <property name="title" translatable="yes">Problem Reporting</property>
+                <child>
+                  <object class="AdwSwitchRow" id="abrt_row">
+                    <property name="title" translatable="yes">_Automatic Problem Reporting</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

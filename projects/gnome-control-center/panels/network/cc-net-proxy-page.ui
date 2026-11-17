@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcNetProxyPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Proxy</property>
+    <property name="tag">proxy</property>
+    <property name="can-pop" bind-source="CcNetProxyPage" bind-property="modified" bind-flags="sync-create|invert-boolean"/>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <child type="start">
+              <object class="GtkButton" id="cancel_button">
+                <property name="visible" bind-source="CcNetProxyPage" bind-property="modified" bind-flags="sync-create"/>
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use-underline">True</property>
+                <property name="can-shrink">True</property>
+                <signal name="clicked" handler="cancel_clicked_cb" swapped="yes"/>
+              </object>
+            </child>
+
+            <child type="end">
+              <object class="GtkButton" id="save_button">
+                <property name="visible" bind-source="CcNetProxyPage" bind-property="modified" bind-flags="sync-create"/>
+                <property name="label" translatable="yes">_Save</property>
+                <property name="use-underline">True</property>
+                <property name="can-shrink">True</property>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+                <signal name="clicked" handler="save_clicked_cb" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <!-- Enable/disable proxy -->
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="enable_proxy_row">
+                    <property name="title" translatable="yes">_Network Proxy</property>
+                    <property name="use-underline">True</property>
+                    <property name="active" bind-source="CcNetProxyPage" bind-property="enabled" bind-flags="bidirectional|sync-create"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <!-- Proxy Automatic/Manual -->
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwComboRow" id="proxy_type_row">
+                    <property name="title" translatable="yes">C_onfiguration</property>
+                    <property name="use-underline">True</property>
+                    <signal name="notify::selected-item" handler="proxy_configuration_changed_cb" swapped="yes"/>
+
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <!-- Update cc-net-proxy-page.c if the order is changed -->
+                        <items>
+                          <item translatable="yes">Automatic</item>
+                          <item translatable="yes">Manual</item>
+                        </items>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkStack" id="main_stack">
+                    <property name="hhomogeneous">False</property>
+                    <property name="vhomogeneous">False</property>
+
+                    <child>
+                      <object class="AdwPreferencesGroup" id="automatic_view">
+                        <child>
+                          <object class="AdwEntryRow" id="proxy_url_entry">
+                            <property name="title" translatable="yes">Con_figuration URL</property>
+                            <property name="use-underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="proxy_warning_label">
+                            <property name="margin-top">12</property>
+                            <property name="wrap">1</property>
+                            <property name="label" translatable="yes">Web Proxy Autodiscovery is used when a Configuration URL is not provided. This is not recommended for untrusted public networks.</property>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkBox" id="manual_view">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">24</property>
+
+                        <!-- HTTP Proxy -->
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="title" translatable="yes">HTTP Proxy</property>
+                            <!-- HTTP URL -->
+                            <child>
+                              <object class="AdwEntryRow" id="http_host_entry">
+                                <property name="title" translatable="yes">URL</property>
+                              </object>
+                            </child>
+
+                            <!-- HTTP Port -->
+                            <child>
+                              <object class="AdwSpinRow">
+                                <property name="title" translatable="yes">Port</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="http_port_adjustment">
+                                    <property name="upper">65535</property>
+                                    <property name="step-increment">1</property>
+                                  </object>
+                                </property>
+                                <accessibility>
+                                  <property name="label" translatable="yes">HTTP proxy port</property>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <!-- HTTPS Proxy -->
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="title" translatable="yes">HTTPS Proxy</property>
+                            <!-- HTTPS URL -->
+                            <child>
+                              <object class="AdwEntryRow" id="https_host_entry">
+                                <property name="title" translatable="yes">URL</property>
+                              </object>
+                            </child>
+
+                            <!-- HTTPS Port -->
+                            <child>
+                              <object class="AdwSpinRow">
+                                <property name="title" translatable="yes">Port</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="https_port_adjustment">
+                                    <property name="upper">65535</property>
+                                    <property name="step-increment">1</property>
+                                  </object>
+                                </property>
+                                <accessibility>
+                                  <property name="label" translatable="yes">HTTPS proxy port</property>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <!-- FTP Proxy -->
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="title" translatable="yes">FTP Proxy</property>
+                            <!-- FTP URL -->
+                            <child>
+                              <object class="AdwEntryRow" id="ftp_host_entry">
+                                <property name="title" translatable="yes">URL</property>
+                              </object>
+                            </child>
+
+                            <!-- FTP Port -->
+                            <child>
+                              <object class="AdwSpinRow">
+                                <property name="title" translatable="yes">Port</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="ftp_port_adjustment">
+                                    <property name="upper">65535</property>
+                                    <property name="step-increment">1</property>
+                                  </object>
+                                </property>
+                                <accessibility>
+                                  <property name="label" translatable="yes">FTP proxy port</property>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <!-- SOCKS Host -->
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="title" translatable="yes">SOCKS Host</property>
+                            <!-- SOCKS URL -->
+                            <child>
+                              <object class="AdwEntryRow" id="socks_host_entry">
+                                <property name="title" translatable="yes">URL</property>
+                              </object>
+                            </child>
+
+                            <!-- SOCKS Port -->
+                            <child>
+                              <object class="AdwSpinRow">
+                                <property name="title" translatable="yes">Port</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="socks_port_adjustment">
+                                    <property name="upper">65535</property>
+                                    <property name="step-increment">1</property>
+                                  </object>
+                                </property>
+                                <accessibility>
+                                  <property name="label" translatable="yes">SOCKS host port</property>
+                                </accessibility>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <child>
+                              <object class="AdwEntryRow" id="proxy_ignore_entry">
+                                <property name="title" translatable="yes">Ignored Hosts</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                      </object> <!-- ./GtkBox manual_box -->
+                    </child>
+
+                  </object> <!-- ./GtkStack main_stack -->
+                </child>
+
+              </object> <!-- ./AdwPreferencesGroup -->
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
+</interface>

@@ -1,0 +1,94 @@
+# translation of vte.master.po to Maithili
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Sangeeta Kumari <sangeeta09@gmail.com>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: vte.master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=vte&component=general\n"
+"POT-Creation-Date: 2009-09-10 19:23+0000\n"
+"PO-Revision-Date: 2009-09-11 20:22+0530\n"
+"Last-Translator: Sangeeta Kumari <sangeeta09@gmail.com>\n"
+"Language-Team: Maithili <maithili.sf.net>\n"
+"Language: mai\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n\n"
+"\n"
+
+#: ../src/iso2022.c:771 ../src/iso2022.c:779 ../src/iso2022.c:810
+#: ../src/vte.c:2190
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "%s सँ %s मे संप्रतीसभकेँ बदलबमे असमर्थ."
+
+#: ../src/iso2022.c:1464
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "अमान्य NRC मानचित्र '%c' केँ सेट करबाक लेल प्रयास."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1494
+msgid "Unrecognized identified coding system."
+msgstr "अनचिन्हल गेल कोडिंग सिस्टम"
+
+#: ../src/iso2022.c:1553 ../src/iso2022.c:1580
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "अमान्य चओड़ा NRC मानचित्र '%c' क' लेल सेट करबाक प्रयास"
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:831
+#, c-format
+msgid "can not run %s"
+msgstr "%s केँ नहि चलाए सकैछ"
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "अनुकृति (%s/%s)!"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:846
+msgid "Could not open console.\n"
+msgstr "कंसोलकेँ नहि खोलि सकैछ.\n"
+
+#: ../src/vteapp.c:910
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr ""
+
+#: ../src/vte.c:1239
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "नियमित अभिव्यक्ति \"%s\" क' संयोजनमे त्रुटि."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4152
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "शिशुसँ पढ़बामे त्रुटि: %s."
+
+#: ../src/vte.c:4280
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr ""
+
+#: ../src/vte.c:4291 ../src/vte.c:5283
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "शिशुसँ आँकड़ाकेँ बदलबामे त्रुटि (%s), छोड़ि रहल अछि."
+
+#: ../src/vte.c:7513
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr "PTY आकार केँ पढबामे त्रुटि, मूलभूतक प्रयोग कए रहल अछि: %s."
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:13073
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "_vte_conv_open() शब्द संप्रतीसभक जमाबटमे बिफल"
+

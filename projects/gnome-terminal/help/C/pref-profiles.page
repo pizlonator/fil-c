@@ -1,0 +1,293 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="guide"
+      id="pref-profiles">
+
+  <info>
+    <revision pkgversion="3.8" date="2013-03-03" status="candidate"/>
+    <revision pkgversion="3.12" date="2014-09-08" status="candidate"/>
+    <link type="guide" xref="index#preferences"/>
+    <link type="guide" xref="pref#manage-profiles"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="author copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013-2014</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Create, rename and delete profiles.</desc>
+  </info>
+
+  <title>Manage profiles</title>
+
+  <comment>
+    <cite href="mailto:kittykat3756@gmail.com">Kat</cite>
+    <p>Repeating that the user can edit the settings in each section is not
+    very nice, we need to find a way around this.</p>
+  </comment>
+
+  <p>A profile is a collection of <app>Terminal</app> settings.
+  <app>Terminal</app> supports multiple profiles. You can configure
+  <app>Terminal</app> profiles to <link xref="pref-custom-command">run a custom
+  command or shell</link>, set a profile exclusively to connect to remote
+  computers using SSH or set a profile that launches a <app>GNU Screen</app>
+  session.</p>
+
+  <p>The available <app>Terminal</app> settings include:</p>
+
+  <list>
+    <item>
+      <p>Profile name.</p>
+    </item>
+    <item>
+      <p>Font and background colors.</p>
+    </item>
+    <item>
+      <p><gui style="tab">Compatibility</gui> with <key>Backspace</key> and
+      <key>Delete</key> keys.</p>
+    </item>
+    <item>
+      <p><gui style="tab">Scrolling</gui>.</p>
+    </item>
+  </list>
+
+  <section id="select-profile" style="task">
+    <title>Select a profile</title>
+
+    <p>If you have two or more profiles defined, you can change the profile in
+    your current <app>Terminal</app> tab or
+    window by selecting a profile from <guiseq><gui style="menu">Terminal</gui>
+    <gui style="menuitem">Change Profile</gui></guiseq>.</p>
+
+  </section>
+
+  <section id="new-profile" style="task">
+    <title>Create a new profile</title>
+
+    <p>To create a new profile with the default settings of
+    <app>Terminal</app>:</p>
+
+    <steps>
+      <item>
+        <p>Select <guiseq><gui style="menu">Edit</gui>
+        <gui style="menuitem">Preferences</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>In the sidebar, click on the <gui style="button">+</gui> button
+        next to the <gui>Profiles</gui> label.</p>
+      </item>
+      <item>
+        <p>Enter a name for the new profile. You can change this name later.</p>
+      </item>
+      <item>
+        <p>Click <gui style="button">Create</gui> to create the new profile.</p>
+      </item>
+      <item>
+        <p>Set your desired <link xref="#edit-profile">profile
+        preferences</link>. These will be saved automatically.</p>
+      </item>
+    </steps>
+
+  </section>
+
+  <section id="create-profile-from-existing" style="task">
+    <title>Create a new profile based on an existing profile</title>
+
+    <p>You can create a new profile based on settings from an existing
+    profile:</p>
+
+    <steps>
+      <item>
+        <p>Select <guiseq><gui style="menu">Edit</gui>
+        <gui style="menuitem">Preferences</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>In the sidebar select the profile on which your new profile should
+        be based.</p>
+      </item>
+      <item>
+        <p>Click on the arrow next to the profile name.</p>
+      </item>
+      <item>
+        <p>Select <gui style="menuitem">Clone…</gui>.</p>
+      </item>
+      <item>
+        <p>Enter a name for the new profile. You can change this name later.</p>
+      </item>
+      <item>
+        <p>Click <gui style="button">Clone</gui> to create the new profile.</p>
+      </item>
+      <item>
+        <p>Set your desired <link xref="#edit-profile">profile
+        preferences</link>. These will be saved automatically.</p>
+      </item>
+    </steps>
+
+    <note>
+      <p>Creating a new profile from an existing profile will not affect
+      settings in an existing profile. Any changes to settings will be stored
+      in the new profile.</p>
+    </note>
+
+  </section>
+
+  <section id="edit-profile" style="task">
+    <title>Edit a profile</title>
+
+    <note style="warning">
+      <p>If the default profile is edited, it cannot be restored to its
+      original settings! If you have not already created any other
+      <app>Terminal</app> profiles and have customized the default profile,
+      <app>Terminal</app> <em>may</em> become unusable should any settings
+      cause problems. It is recommended that you
+      <link xref="#create-profile-from-existing">create a copy of the
+      default profile</link> then edit the copy to create a custom profile.</p>
+    </note>
+
+    <p>You can make changes to existing profiles. To edit a profile:</p>
+
+    <steps>
+      <item>
+        <p>Select <guiseq><gui style="menu">Edit</gui>
+        <gui style="menuitem">Preferences</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>Your current profile is selected in the sidebar. If you wish to edit
+        a different profile, click on its name.</p>
+      </item>
+    </steps>
+
+    <p>Once the desired profile is selected, you can:</p>
+
+    <steps>
+      <item>
+        <p>Select <link xref="app-fonts">font</link>,
+        <link xref="app-cursor">cursor shapes</link> and
+        <link xref="app-terminal-sizes"><app>Terminal</app> size</link>.</p>
+      </item>
+      <item>
+        <p>You may also change behavior of <app>Terminal</app> on
+        <link xref="pref-custom-exit">command exit</link>, set a
+        <link xref="pref-login-shell">custom login shell</link> or change
+        <link xref="pref-scrolling">scrollbar preferences</link>.</p>
+      </item>
+      <item>
+        <p>To change the <app>Terminal</app> background and text colors, see
+        <link xref="app-colors"><app>Terminal</app> color schemes</link>.</p>
+      </item>
+      <item>
+        <p>Changes to profile are saved immediately. To return to
+        <app>Terminal</app>, click <gui style="button">Close</gui>.</p>
+      </item>
+    </steps>
+
+  </section>
+
+  <section id="rename-profile" style="task">
+    <title>Rename an existing profile</title>
+
+    <p>You can rename existing profiles, including the default profile:</p>
+
+    <steps>
+      <item>
+        <p>Select <guiseq><gui style="menu">Edit</gui>
+        <gui style="menuitem">Preferences</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>Select the profile you wish to rename.</p>
+      </item>
+      <item>
+        <p>Click on the arrow next to the profile name.</p>
+      </item>
+      <item>
+        <p>Select <gui style="menuitem">Rename…</gui>.</p>
+      </item>
+      <item>
+        <p>Enter the new profile name.</p>
+      </item>
+      <item>
+        <p>Click <gui style="button">Rename</gui> to rename.</p>
+      </item>
+    </steps>
+
+  </section>
+
+  <section id="delete-profile" style="task">
+    <title>Delete a profile</title>
+  
+    <p>To delete a profile:</p>
+
+    <steps>
+      <item>
+        <p>Select <guiseq><gui style="menu">Edit</gui>
+        <gui style="menuitem">Preferences</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>Select the profile you wish to delete.</p>
+      </item>
+      <item>
+        <p>Click on the arrow next to the profile name.</p>
+      </item>
+      <item>
+        <p>Select <gui style="menuitem">Delete…</gui>.</p>
+      </item>
+      <item>
+        <p>Click <gui style="button">Delete</gui> to confirm.</p>
+      </item>
+    </steps>
+
+    <note style="tip">
+      <p>The default profile cannot be deleted. If you wish to delete
+      that profile, first set another profile as <link
+      xref="#set-default">default</link>.</p>
+    </note>
+
+  </section>
+
+  <section id="set-default" style="task">
+    <title>Set a default profile</title>
+
+    <p>The default profile is loaded when a new terminal is opened unless you
+    have selected another profile. Any changes that you make to the settings will
+    be stored in the currently selected profile.</p>
+
+    <p>The default profile is used when <app>Terminal</app> could not
+    otherwise decide which profile to use. For example, <app>Terminal</app> is
+    started up freshly and opens its first terminal window. In contrast, when
+    you use a menu entry or keyboard shortcut of <app>Terminal</app> to open a
+    new terminal, the profile of the existing terminal is used.</p>
+
+    <steps>
+      <item>
+        <p>Select <guiseq><gui style="menu">Edit</gui>
+        <gui style="menuitem">Preferences</gui></guiseq>.</p>
+      </item>
+      <item>
+        <p>Select the profile you wish to set as the default.</p>
+      </item>
+      <item>
+        <p>Click on the arrow next to the profile name.</p>
+      </item>
+      <item>
+        <p>Select <gui style="menuitem">Set as default</gui>.</p>
+      </item>
+    </steps>
+
+    <note>
+      <p>The default profile is marked with a check mark symbol.</p>
+    </note>
+
+  </section>
+
+</page>

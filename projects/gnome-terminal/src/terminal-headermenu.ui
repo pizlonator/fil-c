@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright © 2012 Christian Persch
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<interface>
+  <menu id="headermenu">
+    <section>
+      <attribute name="display-hint">horizontal-buttons</attribute>
+      <item>
+        <attribute name="label" translatable="yes">Zoom _Out</attribute>
+        <attribute name="verb-icon">zoom-out-symbolic</attribute>
+        <attribute name="action">win.zoom-out</attribute>
+      </item>
+      <item>
+        <attribute name="label">100%</attribute>
+        <attribute name="action">win.zoom-normal</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Zoom _In</attribute>
+        <attribute name="verb-icon">zoom-in-symbolic</attribute>
+        <attribute name="action">win.zoom-in</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">New _Window</attribute>
+        <attribute name="action">win.new-terminal</attribute>
+        <attribute name="target" type="(ss)">('window', 'current')</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Full Screen</attribute>
+        <attribute name="action">win.enter-fullscreen</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Read-_Only</attribute>
+        <attribute name="action">win.read-only</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Set _Title…</attribute>
+        <attribute name="action">win.set-title</attribute>
+        <attribute name="hidden-when">action-missing</attribute>
+      </item>
+      <section id="set-profile-section" />
+      <submenu>
+        <attribute name="label" translatable="yes">_Advanced</attribute>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">_Reset</attribute>
+            <attribute name="action">win.reset</attribute>
+            <attribute name="target" type="b">false</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">Reset and C_lear</attribute>
+            <attribute name="action">win.reset</attribute>
+            <attribute name="target" type="b">true</attribute>
+          </item>
+        </section>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">_1. 80×24</attribute>
+            <attribute name="action">win.size-to</attribute>
+            <attribute name="target" type="(uu)">(80, 24)</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">_2. 80×43</attribute>
+            <attribute name="action">win.size-to</attribute>
+            <attribute name="target" type="(uu)">(80, 43)</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">_3. 132×24</attribute>
+            <attribute name="action">win.size-to</attribute>
+            <attribute name="target" type="(uu)">(132, 24)</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">_4. 132×43</attribute>
+            <attribute name="action">win.size-to</attribute>
+            <attribute name="target" type="(uu)">(132, 43)</attribute>
+          </item>
+        </section>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">_Inspector</attribute>
+            <attribute name="action">win.inspector</attribute>
+            <attribute name="hidden-when">action-disabled</attribute>
+          </item>
+        </section>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Preferences</attribute>
+        <attribute name="action">app.preferences</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Help</attribute>
+        <attribute name="action">app.help</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_About</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

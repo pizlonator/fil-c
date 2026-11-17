@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcWacomEkrPage" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <property name="spacing">24</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="ekr_section">
+        <property name="description">ExpressKey Remote</property>
+        <property name="header-suffix">
+          <object class="GtkPicture" id="ekr_icon">
+            <property name="halign">end</property>
+            <property name="valign">start</property>
+            <property name="file">resource:///org/gnome/control-center/wacom/wacom-tablet.svg</property>
+          </object>
+        </property>
+        <child>
+          <object class="AdwActionRow" id="ekr_map_buttons">
+            <property name="title" translatable="yes">Map Buttons</property>
+            <property name="activatable">True</property>
+            <signal name="activated" handler="on_map_buttons_activated" object="CcWacomEkrPage" swapped="yes" />
+            <child type="suffix">
+              <object class="GtkImage">
+                <property name="icon-name">go-next-symbolic</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

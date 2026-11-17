@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcUaHearingPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Hearing</property>
+    <property name="tag">hearing</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="overamplification_row">
+                    <property name="title" translatable="yes">_Overamplification</property>
+                    <property name="subtitle" translatable="yes">Allow volume to exceed 100%, with reduced sound quality</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="sound_settings_label">
+                    <property name="use-markup">True</property>
+                    <property name="margin-top">9</property>
+                    <property name="xalign">0.0</property>
+                    <property name="wrap">True</property>
+                    <signal name="activate-link" handler="ua_hearing_sound_settings_clicked_cb" swapped="yes"/>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Visual Alerts</property>
+                <property name="description" translatable="yes">Use a visual indication when an alert sound occurs</property>
+
+                <child>
+                  <object class="AdwSwitchRow" id="visual_alerts_row">
+                    <property name="title" translatable="yes">_Visual Alerts</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwComboRow" id="flash_type_row">
+                    <property name="sensitive" bind-source="visual_alerts_row" bind-property="active" bind-flags="sync-create"/>
+                    <property name="title" translatable="yes">_Flash Area</property>
+                    <property name="use-underline">True</property>
+                    <signal name="notify::selected" handler="ua_hearing_flash_type_row_changed_cb" swapped="yes" />
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <items>
+                          <item translatable="yes">Entire Screen</item>
+                          <item translatable="yes">Entire Window</item>
+                        </items>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="sensitive" bind-source="visual_alerts_row" bind-property="active" bind-flags="sync-create"/>
+                    <property name="title" translatable="yes">_Test Flash</property>
+                    <property name="use-underline">True</property>
+                    <property name="activatable-widget">test_flash_button</property>
+                    <child type="suffix">
+                      <object class="GtkButton" id="test_flash_button">
+                        <property name="valign">center</property>
+                        <property name="label" translatable="yes">Test</property>
+                        <signal name="clicked" handler="ua_hearing_test_flash_clicked_cb" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

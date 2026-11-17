@@ -1,0 +1,52 @@
+# These are the people responsible for Settings panels and domain-specific
+# parts of the GNOME Settings codebase.
+#
+# If you open a merge request for files listed here, please add the following
+# people to the list of reviewers.
+
+# The syntax of this file is defined by GitLab:
+#   https://docs.gitlab.com/ee/user/project/code_owners.html
+# Which, in turn, is similar to the .gitignore and .gitattributes files:
+#
+#  - comments start with `#`
+#  - the first column contains paths and globs
+#  - the second column contains GitLab user names or email addresses,
+#    separated by spaces
+#
+# The last matching glob (rather than the union of *all* matching globs) gives
+# the owners of a piece of code.
+#
+# If you want to be responsible for code reviews in specific sections of
+# the GNOME Settings code base, add yourself here.
+
+# General maintainers
+*	@felipeborges @robert_ancell
+
+# Panels
+## About
+panels/info-overview/*					@cyberphantom52
+
+## Accessibility
+panels/universal-access/*				@pksadiq
+
+## Appearance
+panels/background/*                                     @velsinki
+
+## Apps
+panels/applications/cc-default-apps-*			@nishalkulkarni
+panels/applications/cc-removable-media-settings*	@nishalkulkarni
+
+## Bluetooth
+panels/bluetooth/*					@hadess
+
+## Printers
+panels/printers/*					@mkasik
+
+## Sound
+panels/sound/*						@melix99
+
+## Wacom
+panels/wacom/*						@carlosg
+
+## WWAN (Cellular)
+panels/wwan/*						@pksadiq

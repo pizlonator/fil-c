@@ -1,0 +1,118 @@
+# Bengali India Translation of vte.
+# Copyright (C) 2002 Free Software Foundation
+# This file is distributed under the same license as the vte package.
+#
+# Jamil Ahmed <jamil@bengalinux.org>, 2003.
+# Samia Niamatullah <mailsamia2001@yahoo.com>, 2005.
+# Runa Bhattacharjee <runab@redhat.com>, 2011.
+msgid ""
+msgstr ""
+"Project-Id-Version: vte.HEAD\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug."
+"cgi?product=vte&component=general\n"
+"POT-Creation-Date: 2010-03-17 17:23+0000\n"
+"PO-Revision-Date: 2011-03-24 20:00+0530\n"
+"Last-Translator: Runa Bhattacharjee <runab@redhat.com>\n"
+"Language-Team: Bengali (India) <anubad@lists.ankur.org.in>\n"
+"Language: bn_IN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"\n"
+"\n"
+
+#: ../src/iso2022.c:771 ../src/iso2022.c:779 ../src/iso2022.c:810
+#: ../src/vte.c:2232
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "%s থেকে %s'এ অক্ষর রূপান্তর করতে ব্যর্থ।"
+
+#: ../src/iso2022.c:1464
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "অবৈধ NRC ম্যাপ '%c' নির্ধারণের প্রচেষ্টা করা হয়েছে।"
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1494
+msgid "Unrecognized identified coding system."
+msgstr "সনাক্ত করা কোডিং সিস্টেম অজ্ঞাত।"
+
+#: ../src/iso2022.c:1553 ../src/iso2022.c:1580
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "অবৈধ প্রশস্ত NRC ম্যাপ '%c' নির্ধারণের প্রচেষ্টা করা হয়েছে।"
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:1073 ../src/pty.c:1076
+#, c-format
+msgid "can not run %s"
+msgstr "%s চালাতে ব্যর্থ"
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "প্রতিলিপি (%s/%s)!"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:876
+msgid "Could not open console.\n"
+msgstr "কনসোল খুলতে ব্যর্থ।\n"
+
+#: ../src/vteapp.c:967
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "--geometry বিকল্পের সাথে প্রেরিত geometry spec পার্স করতে বিফল"
+
+#: ../src/vte.c:1279
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "রেগুলার এক্সপ্রেশন \"%s\" কম্পাইল করতে সমস্যা।"
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4344
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "চাইল্ড থেকে পড়তে সমস্যা: %s।"
+
+#: ../src/vte.c:4472
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "অবৈধ charset রূপান্তরের ফলে চাইল্ডে তথ্য প্রেরণ করতে ব্যর্থ"
+
+#: ../src/vte.c:4483 ../src/vte.c:5505
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "চাইল্ডের জন্য তথ্য রূপান্তর করতে সমস্যা (%s), বর্জন করা হচ্ছে।"
+
+#: ../src/vte.c:7726
+#, c-format
+#| msgid "Error reading PTY size, using defaults: %s."
+msgid "Error reading PTY size, using defaults: %s\n"
+msgstr "PTY'র মাপ পড়তে সমস্যা, ডিফল্ট মান ব্যবহার করা হবে: %s\n"
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:13281
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "_vte_conv_open() দ্বারা শব্দের অক্ষর নির্ধারণ করতে ব্যর্থ"
+
+#~ msgid "Error creating signal pipe."
+#~ msgstr "সিগন্যাল-পাইপ নির্মাণ করতে ব্যর্থ।"
+
+# sam: Control sequence has been changed from কন্ট্রোল ধারাবাহিকতা to নিয়ন্ত্রন অনুক্রম।
+# what about handler?
+#~ msgid "No handler for control sequence `%s' defined."
+#~ msgstr "কন্ট্রোল সিকোয়েন্স `%s'-র জন্য হ্যান্ডলার নির্ধারিত হয়নি।"
+
+#~ msgid "Error setting PTY size: %s."
+#~ msgstr "PTY'র মাপ নির্ধারণে সমস্যা: %s।"
+
+#~ msgid "Got unexpected (key?) sequence `%s'."
+#~ msgstr "অপ্রত্যাশিত (key?) অনুক্রম `%s' প্রাপ্ত।"
+
+#~ msgid "Unknown pixel mode %d.\n"
+#~ msgstr "অজানা পিক্সেল মোড %d।\n"
+
+#~ msgid "Can not find appropiate font for character U+%04x.\n"
+#~ msgstr "U+%04x অক্ষরের জন্য প্রযোজ্য ফন্ট সনাক্ত করতে ব্যর্থ।\n"

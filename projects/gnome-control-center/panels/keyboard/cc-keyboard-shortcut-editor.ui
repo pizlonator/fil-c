@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcKeyboardShortcutEditor" parent="AdwWindow">
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="width_request">400</property>
+    <property name="height_request">300</property>
+    <property name="hide-on-close">True</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar" id="headerbar">
+            <child type="start">
+              <object class="GtkButton" id="cancel_button">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="cancel_button_clicked_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+              </object>
+            </child>
+            <child type="start">
+              <object class="GtkButton" id="remove_button">
+                <property name="label" translatable="yes">_Remove</property>
+                <property name="use-underline">True</property>
+                <property name="valign">end</property>
+                <signal name="clicked" handler="remove_button_clicked_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                <style>
+                  <class name="destructive-action" />
+                </style>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="add_button">
+                <property name="label" translatable="yes">_Add</property>
+                <property name="use-underline">True</property>
+                <property name="sensitive">False</property>
+                <signal name="clicked" handler="add_button_clicked_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                <style>
+                  <class name="suggested-action" />
+                </style>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="replace_button">
+                <property name="label" translatable="yes">Re_place</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="replace_button_clicked_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                <style>
+                  <class name="suggested-action" />
+                </style>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="set_button">
+                <property name="label" translatable="yes">_Set</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="set_button_clicked_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                <style>
+                  <class name="suggested-action" />
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">18</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <child>
+              <object class="GtkLabel" id="top_info_label">
+                <property name="wrap">True</property>
+                <property name="wrap_mode">word-char</property>
+                <property name="width_chars">15</property>
+                <property name="max_width_chars">20</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStack" id="stack">
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkBox" id="edit_box">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">18</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <child>
+                      <object class="GtkPicture">
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="can-shrink">False</property>
+                        <property name="file">resource:///org/gnome/control-center/keyboard/enter-keyboard-shortcut.svg</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="wrap">True</property>
+                        <property name="label" translatable="yes">Press Esc to cancel or Backspace to disable the keyboard shortcut</property>
+                        <style>
+                          <class name="dim-label" />
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox" id="standard_box">
+                    <property name="hexpand">True</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">18</property>
+                    <child>
+                      <object class="GtkCenterBox">
+                        <child type="center">
+                          <object class="GtkShortcutLabel" id="shortcut_accel_label">
+                            <property name="margin-start">18</property>
+                            <property name="margin-end">18</property>
+                            <property name="halign">center</property>
+                            <property name="disabled-text" translatable="yes">Disabled</property>
+                          </object>
+                        </child>
+                        <child type="end">
+                          <object class="GtkButton" id="reset_button">
+                            <property name="icon-name">edit-clear-symbolic</property>
+                            <property name="halign">end</property>
+                            <accessibility>
+                              <property name="label" translatable="yes">Reset</property>
+                            </accessibility>
+                            <signal name="clicked" handler="reset_item_clicked_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                            <style>
+                              <class name="flat" />
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="shortcut_conflict_label">
+                        <property name="hexpand">True</property>
+                        <property name="wrap">True</property>
+                        <property name="wrap_mode">word-char</property>
+                        <property name="width_chars">15</property>
+                        <property name="max_width_chars">20</property>
+                        <property name="xalign">0</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkGrid" id="custom_grid">
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="row_spacing">12</property>
+                    <property name="column_spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Name</property>
+                        <property name="xalign">1</property>
+                        <property name="mnemonic_widget">name_entry</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Command</property>
+                        <property name="xalign">1</property>
+                        <property name="mnemonic_widget">command_entry</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Shortcut</property>
+                        <property name="xalign">1</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="new_shortcut_conflict_label">
+                        <property name="wrap">True</property>
+                        <property name="wrap_mode">word-char</property>
+                        <property name="width_chars">0</property>
+                        <property name="max_width_chars">0</property>
+                        <property name="xalign">0</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">3</property>
+                          <property name="column-span">3</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="name_entry">
+                        <property name="hexpand">True</property>
+                        <signal name="notify::text" handler="name_entry_changed_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="command_entry">
+                        <property name="hexpand">True</property>
+                        <signal name="notify::text" handler="command_entry_changed_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="reset_custom_button">
+                        <property name="halign">end</property>
+                        <property name="icon-name">edit-clear-symbolic</property>
+                        <signal name="clicked" handler="reset_custom_clicked_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                        <accessibility>
+                          <property name="label" translatable="yes">Reset</property>
+                        </accessibility>
+                        <layout>
+                          <property name="column">2</property>
+                          <property name="row">2</property>
+                        </layout>
+                        <style>
+                          <class name="flat" />
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkShortcutLabel" id="custom_shortcut_accel_label">
+                        <property name="halign">start</property>
+                        <property name="disabled-text" translatable="yes">None</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="change_custom_shortcut_button">
+                        <property name="label" translatable="yes">_Set Shortcut…</property>
+                        <property name="use-underline">True</property>
+                        <property name="hexpand">True</property>
+                        <signal name="clicked" handler="change_custom_shortcut_button_clicked_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">2</property>
+                          <property name="column-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+    <child>
+      <object class="GtkEventControllerKey">
+        <property name="propagation-phase">capture</property>
+        <signal name="key-pressed" handler="on_key_pressed_cb" object="CcKeyboardShortcutEditor" swapped="yes" />
+      </object>
+    </child>
+    <child>
+      <object class="GtkShortcutController">
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="cancel_button"/>
+      <widget name="add_button"/>
+      <widget name="replace_button"/>
+      <widget name="reset_button"/>
+      <widget name="set_button" />
+    </widgets>
+  </object>
+</interface>

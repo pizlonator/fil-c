@@ -1,0 +1,83 @@
+# Uzbek (Cyrillic) translation for vte.
+# Copyright (C) 2012 vte's COPYRIGHT HOLDER
+# This file is distributed under the same license as the vte package.
+# Bahodir Mansurov <6ahodir@gmail.com>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vte master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=vte&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2012-02-19 10:56+0000\n"
+"PO-Revision-Date: 2012-02-19 10:56+0000\n"
+"Last-Translator: Bahodir Mansurov <6ahodir@gmail.com>\n"
+"Language-Team: Uzbek (Cyrillic) <uz@cyrillic@li.org>\n"
+"Language: uz@cyrillic\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/iso2022.c:779 ../src/iso2022.c:787 ../src/iso2022.c:818
+#: ../src/vte.c:2277
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "Белгиларни %sдан %sга ўгириб бўлмади."
+
+#: ../src/iso2022.c:1472
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "Нотўғри NRC харитаси '%c'ни ўрнатишга ҳаракат қилинди."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1502
+msgid "Unrecognized identified coding system."
+msgstr "Номаълум кодлаш системаси"
+
+#: ../src/iso2022.c:1561 ../src/iso2022.c:1588
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "Нотўғри кенг NRC харитаси '%c'ни ўрнатишга ҳаракат қилинди."
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "(%s/%s) янги нусха яратиш!"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:981
+msgid "Could not open console.\n"
+msgstr "Консолни очиб бўлмади.\n"
+
+#: ../src/vteapp.c:1077
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "--geometry параметрига берилган геометрия хусусиятини таҳлил қилиб бўлмади."
+
+#: ../src/vte.c:1303
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "Доимий ифодани теришда хатолик \"%s\"."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4591
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "Авлоддан ўқишда хатолик: %s."
+
+#: ../src/vte.c:4718
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "Авлодга маълумотни жўнатиб бўлмади, кодлар жадвалининг нотўғри ўгиргичи"
+
+#: ../src/vte.c:4729 ../src/vte.c:5791
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "Авлод учун маълумотни ўгиришда хатолик (%s), ташлаб юбориляпи."
+
+#: ../src/vte.c:7976
+#, c-format
+msgid "Error reading PTY size, using defaults: %s\n"
+msgstr "PTY ўлчамларини ўқишда хатолик, андоза қийматлар ишлатиляпти: %s\n"
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:13794
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "_vte_conv_open() сўз белгиларини ўрната олмади"

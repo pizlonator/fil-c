@@ -1,0 +1,66 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="task"
+      id="pref-bell">
+
+  <info>
+    <revision version="0.1" date="2013-02-17" status="candidate"/>
+    <revision version="0.2" pkgversion="3.34" date="2020-01-04" status="candidate"/>
+    <link type="guide" xref="index#preferences"/>
+    <link type="guide" xref="pref#profile"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Enable audible notification in <app>Terminal</app>.</desc>
+
+  </info>
+
+  <title>Set audible bell</title>
+
+  <p><app>Terminal</app> can sound an audible bell to indicate events in
+  <app>Terminal</app> windows and tabs.</p>
+
+  <p>To be notified of these events:</p>
+  <steps>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Preferences</gui>.</p>
+    </item>
+    <item>
+      <p>In the sidebar, select your current profile in the <gui>Profiles</gui>
+      section.</p>
+    </item>
+    <item>
+      <p>Select <gui style="tab">Text</gui>.</p>
+    </item>
+    <item>
+      <p>Select <gui style="checkbox">Terminal bell</gui></p>
+    </item>
+  </steps>
+
+  <comment>
+    <p>TODO: Ctrl+G shortcut seems to do nothing in 3.34? When to press and where?
+    Preferences dialog? Before or after enabling the setting?
+    Or in the terminal window itself?</p>
+  </comment>
+  <note style="tip">
+    <p>To preview the bell sound that your system produces, press
+    <keyseq><key>Ctrl</key><key>G</key></keyseq>.</p>
+  </note>
+
+</page>

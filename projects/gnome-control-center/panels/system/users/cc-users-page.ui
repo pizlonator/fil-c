@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcUsersPage" parent="AdwNavigationPage">
+    <property name="tag">users</property>
+
+    <property name="child">
+      <object class="AdwNavigationView" id="navigation">
+
+        <child>
+          <object class="CcUserPage" id="current_user_page">
+            <property name="title" translatable="yes">Users</property>
+
+            <child>
+              <object class="AdwPreferencesGroup" id="other_users_group">
+                <property name="visible">False</property>
+                <property name="title" translatable="yes">Other Users</property>
+                <child>
+                  <object class="GtkListBox" id="user_list">
+                    <property name="selection-mode">none</property>
+                    <signal name="row-activated" handler="on_user_row_activated" swapped="yes" object="CcUsersPage"/>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkButton" id="add_user_button">
+                <property name="sensitive">False</property>
+                <property name="label" translatable="yes">_Add User…</property>
+                <property name="use_underline">True</property>
+                <property name="halign">center</property>
+                <signal name="clicked" handler="add_user" object="CcUsersPage" swapped="yes"/>
+                <style>
+                  <class name="suggested-action"/>
+                  <class name="pill"/>
+                </style>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkButton" id="add_enterprise_user_button">
+                <property name="visible">False</property>
+                <property name="label" translatable="yes">Add Enterprise User</property>
+                <property name="halign">center</property>
+                <signal name="clicked" handler="add_enterprise_user" object="CcUsersPage" swapped="yes"/>
+                <style>
+                  <class name="pill"/>
+                </style>
+              </object>
+            </child>
+
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="add_user_button"/>
+      <widget name="add_enterprise_user_button"/>
+    </widgets>
+  </object>
+</interface>

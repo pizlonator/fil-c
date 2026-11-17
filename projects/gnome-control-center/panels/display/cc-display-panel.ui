@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcDisplayPanel" parent="CcPanel">
+
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <property name="name">Display Panel Globals Shortcuts</property>
+        <child>
+          <object class="GtkShortcut" id="escape_shortcut">
+            <property name="trigger">Escape</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <property name="child">
+      <object class="AdwNavigationView" id="nav_view">
+
+        <!-- Displays page -->
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Displays</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+
+                <child type="top">
+                  <object class="AdwHeaderBar" id="apply_titlebar">
+                    <property name="visible" bind-source="CcDisplayPanel" bind-property="showing-apply-titlebar" bind-flags="sync-create"/>
+                    <property name="show-start-title-buttons">False</property>
+                    <property name="show-end-title-buttons">False</property>
+
+                    <child type="start">
+                      <object class="GtkButton" id="cancel_button">
+                        <property name="use-underline">True</property>
+                        <property name="label" translatable="yes">_Cancel</property>
+                        <property name="can-shrink">True</property>
+                        <signal name="clicked" handler="cancel_current_configuration" object="CcDisplayPanel" swapped="yes" />
+                      </object>
+                    </child>
+
+                    <property name="title-widget">
+                      <object class="AdwWindowTitle" id="apply_titlebar_title_widget" />
+                    </property>
+
+                    <child type="end">
+                      <object class="GtkButton" id="apply_button">
+                        <property name="use-underline">True</property>
+                        <property name="label" translatable="yes">_Apply</property>
+                        <property name="can-shrink">True</property>
+                        <signal name="clicked" handler="apply_current_configuration" object="CcDisplayPanel" swapped="yes" />
+                        <style>
+                          <class name="suggested-action" />
+                        </style>
+                      </object>
+                    </child>
+
+                  </object>
+                </child>
+
+                <!-- Displays page titlebar -->
+                <child type="top">
+                  <object class="AdwHeaderBar" id="displays_titlebar">
+                    <property name="visible" bind-source="CcDisplayPanel" bind-property="showing-apply-titlebar" bind-flags="sync-create|invert-boolean"/>
+                  </object>
+                </child>
+
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+
+                    <child>
+                      <object class="AdwPreferencesGroup" id="display_settings_disabled_group">
+                        <property name="visible">False</property>
+                        <child>
+                          <object class="AdwStatusPage">
+                            <property name="vexpand">True</property>
+                            <property name="icon-name">computer-symbolic</property>
+                            <property name="title" translatable="yes">Display Settings Disabled</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwPreferencesGroup" id="display_multiple_displays">
+                        <!-- Config Type -->
+                        <child>
+                          <object class="AdwActionRow" id="config_type_switcher_row">
+                            <property name="title" translatable="yes">Multiple Displays</property>
+                            <child type="suffix">
+                              <object class="GtkBox">
+                                <property name="valign">center</property>
+                                <style>
+                                  <class name="linked" />
+                                </style>
+                                <child>
+                                  <object class="GtkToggleButton" id="config_type_join">
+                                    <property name="label" translatable="yes" comments="'Join' as in 'Join displays'">_Join</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="active">True</property>
+                                    <signal name="toggled" handler="on_config_type_toggled_cb" swapped="yes"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkToggleButton" id="config_type_mirror">
+                                    <property name="label" translatable="yes">_Mirror</property>
+                                    <property name="use-underline">True</property>
+                                    <property name="group">config_type_join</property>
+                                    <signal name="toggled" handler="on_config_type_toggled_cb" swapped="yes"/>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwPreferencesGroup" id="display_settings_group">
+                        <!-- Display Arrangement -->
+                        <child>
+                          <object class="AdwPreferencesRow" id="arrangement_row">
+                            <property name="activatable">False</property>
+                            <child>
+                              <object class="AdwBin" id="arrangement_bin">
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <!-- Primary Display -->
+                        <child>
+                          <object class="AdwComboRow" id="primary_display_row">
+                            <property name="subtitle" translatable="yes">Contains top bar and Activities</property>
+                            <property name="title" translatable="yes">_Primary Display</property>
+                            <property name="use-underline">True</property>
+                            <signal name="notify::selected-item" handler="on_primary_display_selected_item_changed_cb" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+
+                    </child>
+
+                    <!-- Single Display Settings -->
+                    <child>
+                      <object class="AdwPreferencesGroup" id="single_display_settings_group">
+                        <property name="visible">False</property>
+                      </object>
+                    </child>
+
+                    <!-- Night Light -->
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="CcListRow" id="night_light_row">
+                            <property name="title" translatable="yes" comments="This is the redshift functionality where we suppress blue light when the sun has gone down">_Night Light</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'night-light'</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <!-- Night Light page -->
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="tag">night-light</property>
+            <property name="title" translatable="yes">Night Light</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+
+                <child type="top">
+                  <object class="AdwHeaderBar">
+                    <property name="visible" bind-source="CcDisplayPanel" bind-property="showing-apply-titlebar" bind-flags="sync-create"/>
+                    <property name="show-start-title-buttons">False</property>
+                    <property name="show-end-title-buttons">False</property>
+
+                    <child type="start">
+                      <object class="GtkButton">
+                        <property name="use-underline">True</property>
+                        <property name="label" translatable="yes">_Cancel</property>
+                       <property name="can-shrink">True</property>
+                        <signal name="clicked" handler="cancel_current_configuration" object="CcDisplayPanel" swapped="yes" />
+                      </object>
+                    </child>
+
+                    <property name="title-widget">
+                      <object class="AdwWindowTitle">
+                        <property name="title" bind-source="apply_titlebar_title_widget" bind-property="title" bind-flags="sync-create"/>
+                        <property name="subtitle" bind-source="apply_titlebar_title_widget" bind-property="subtitle" bind-flags="sync-create"/>
+                      </object>
+                    </property>
+
+                    <child type="end">
+                      <object class="GtkButton">
+                        <property name="use-underline">True</property>
+                        <property name="label" translatable="yes">_Apply</property>
+                        <property name="can-shrink">True</property>
+                        <signal name="clicked" handler="apply_current_configuration" object="CcDisplayPanel" swapped="yes" />
+                        <property name="sensitive" bind-source="apply_button" bind-property="sensitive" bind-flags="sync-create"/>
+                        <style>
+                          <class name="suggested-action" />
+                        </style>
+                      </object>
+                    </child>
+
+                  </object>
+                </child>
+
+                <!-- Night Light titlebar -->
+                <child type="top">
+                  <object class="AdwHeaderBar" id="night_light_titlebar">
+                    <property name="visible" bind-source="CcDisplayPanel" bind-property="showing-apply-titlebar" bind-flags="sync-create|invert-boolean"/>
+                  </object>
+                </child>
+
+                <!-- Night Light -->
+                <property name="content">
+                  <object class="CcNightLightPage" id="night_light_page" />
+                </property>
+
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <!-- Display Settings page -->
+        <child>
+          <object class="AdwNavigationPage" id="display_settings_page">
+            <property name="tag">display-settings</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+
+                <child type="top">
+                  <object class="AdwHeaderBar">
+                    <property name="visible" bind-source="CcDisplayPanel" bind-property="showing-apply-titlebar" bind-flags="sync-create"/>
+                    <property name="show-start-title-buttons">False</property>
+                    <property name="show-end-title-buttons">False</property>
+
+                    <child type="start">
+                      <object class="GtkButton">
+                        <property name="use-underline">True</property>
+                        <property name="label" translatable="yes">_Cancel</property>
+                        <property name="can-shrink">True</property>
+                        <signal name="clicked" handler="cancel_current_configuration" object="CcDisplayPanel" swapped="yes" />
+                      </object>
+                    </child>
+
+                    <property name="title-widget">
+                      <object class="AdwWindowTitle">
+                        <property name="title" bind-source="apply_titlebar_title_widget" bind-property="title" bind-flags="sync-create"/>
+                        <property name="subtitle" bind-source="apply_titlebar_title_widget" bind-property="subtitle" bind-flags="sync-create"/>
+                      </object>
+                    </property>
+
+                    <child type="end">
+                      <object class="GtkButton">
+                        <property name="use-underline">True</property>
+                        <property name="label" translatable="yes">_Apply</property>
+                        <property name="can-shrink">True</property>
+                        <signal name="clicked" handler="apply_current_configuration" object="CcDisplayPanel" swapped="yes" />
+                        <property name="sensitive" bind-source="apply_button" bind-property="sensitive" bind-flags="sync-create"/>
+                        <style>
+                          <class name="suggested-action" />
+                        </style>
+                      </object>
+                    </child>
+
+                  </object>
+                </child>
+
+                <!-- Display Settings titlebar -->
+                <child type="top">
+                  <object class="AdwHeaderBar" id="display_settings_titlebar">
+                    <property name="visible" bind-source="CcDisplayPanel" bind-property="showing-apply-titlebar" bind-flags="sync-create|invert-boolean"/>
+                  </object>
+                </child>
+
+                <!-- Display Settings -->
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwBin" id="display_settings_bin" />
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+
+              </object>
+            </property>
+          </object>
+        </child>
+
+      </object>
+    </property>
+
+  </template>
+
+  <object class="GtkSizeGroup">
+    <property name="mode">horizontal</property>
+    <widgets>
+      <widget name="apply_button" />
+      <widget name="cancel_button" />
+    </widgets>
+  </object>
+
+</interface>
+

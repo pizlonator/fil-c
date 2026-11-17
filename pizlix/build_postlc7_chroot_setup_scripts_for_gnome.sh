@@ -63,18 +63,20 @@ chmod -v 755 /usr/bin/pizlix-mutter
 dbus-uuidgen --ensure
 ln -sfv /var/lib/dbus/machine-id /etc/machine-id
 
-# Make shadow's login use PAM (USE_PAM was not set yet) so that
-# pam_elogind registers every console login with elogind - the
-# prerequisite for mutter to TakeControl of seat0.
-grep -q '^USE_PAM' /etc/login.defs || echo 'USE_PAM yes' >> /etc/login.defs
+# PAM session registration (pam_elogind in /etc/pam.d/login) is purely
+# compile-time: shadow's login links libpam.so and consults /etc/pam.d/*.
+# It used to append "USE_PAM yes" to /etc/login.defs here, but shadow
+# 4.16's getdef table has no USE_PAM item in ANY build flavor, so login
+# warned "configuration error - unknown item 'USE_PAM' (notify
+# administrator)" on every login and the line accomplished nothing.  The
+# append is gone; elogind session registration still works (verified by
+# loginctl listing the session after a console login).
 
 # elogind requires /run/user to be 0755; the LFS mountvirtfs bootscript
 # creates it 1777 and elogind then refuses every session
 # ("Directory /run/user ... too permissive ... refusing").
 sed -i 's|mkdir -m 1777 /run/user|mkdir -m 755 /run/user|' /etc/rc.d/init.d/mountvirtfs
 grep -n 'run/user' /etc/rc.d/init.d/mountvirtfs
-
-grep '^USE_PAM' /etc/login.defs
 
 # Fontconfig caches (postlc8 finding: with no /var/cache/fontconfig caches
 # every GUI launch rebuilt them from scratch, burning ~1 min of CPU per

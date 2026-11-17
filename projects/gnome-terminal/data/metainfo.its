@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+  Copyright © 2015-2022 Matthias Klumpp <matthias@tenstral.net>
+  Copyright © 2019 Takao Fujiwara <takao.fujiwara1@gmail.com>
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.  This file is offered as-is,
+  without any warranty.
+-->
+<its:rules xmlns:its="http://www.w3.org/2005/11/its"
+           xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"
+           version="2.0">
+
+  <its:translateRule selector="/mi:component" translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+  <its:translateRule selector="/mi:component/mi:name |
+                               /mi:component/mi:summary |
+                               /mi:component/mi:description |
+                               /mi:component/mi:developer_name |
+                               /mi:component/mi:name_variant_suffix |
+                               /mi:component/mi:keywords/mi:keyword |
+                               /mi:component/mi:screenshots/mi:screenshot/mi:caption |
+                               /mi:component/mi:releases/mi:release/mi:description |
+                               /mi:component/mi:agreement/mi:agreement_section/mi:name |
+                               /mi:component/mi:agreement/mi:agreement_section/mi:description"
+                     translate="yes"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+
+  <its:withinTextRule withinText="yes" selector="/mi:component//mi:description//mi:em |
+                                                 /mi:component//mi:description//mi:code"
+                      xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+
+  <its:translateRule selector="/mi:component/mi:name[@translate = 'no']"
+                     translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+  <its:translateRule selector="/mi:component/mi:developer_name[@translate = 'no']"
+                     translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+  <its:translateRule selector="/mi:component/mi:name_variant_suffix[@translate = 'no']"
+                     translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+  <its:translateRule selector="/mi:component/mi:keywords/mi:keyword[@translate = 'no']"
+                     translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+  <its:translateRule selector="/mi:component/mi:releases/mi:release/mi:description[@translate = 'no']"
+                     translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+
+  <!-- DEPRECATED -->
+  <its:translateRule selector="/mi:component/mi:name[@translatable = 'no']"
+                     translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+  <its:translateRule selector="/mi:component/mi:developer_name[@translatable = 'no']"
+                     translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+  <its:translateRule selector="/mi:component/mi:releases/mi:release/mi:description[@translatable = 'no']"
+                     translate="no"
+                     xmlns:mi="https://specifications.freedesktop.org/metainfo/1.0"/>
+</its:rules>

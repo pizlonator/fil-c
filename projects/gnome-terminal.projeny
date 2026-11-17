@@ -1,0 +1,274 @@
+URL: https://download.gnome.org/sources/gnome-terminal/3.54/gnome-terminal-3.54.5.tar.xz 37c41b5baba4693417d8efa1da72f0d14a80297008412a7b3b660b4f7147e316
+URL: https://ftp.gnome.org/pub/GNOME/sources/gnome-terminal/3.54/gnome-terminal-3.54.5.tar.xz 37c41b5baba4693417d8efa1da72f0d14a80297008412a7b3b660b4f7147e316
+Origname: gnome-terminal-3.54.5
+Name: gnome-terminal
+
+diff --git a/gnome-terminal/data/meson.build b/gnome-terminal/data/meson.build
+--- a/gnome-terminal/data/meson.build
++++ b/gnome-terminal/data/meson.build
+@@ -15,37 +15,24 @@
+
+ # Appstream data
+
++# Fil-C: itstool is not part of the pizlonated system, so the translated
++# appstream metainfo files are skipped; the untranslated metainfo.xml.in is
++# installed as-is (translations are cosmetic metadata), and the appstreamcli
++# validation install-script is dropped with them.  The Nautilus metainfo is
++# not installed at all (the nautilus extension is not built).
++
+ metainfo_its = [
+   'metainfo.its',
+ ]
+
+ metainfodir = gt_datadir / 'metainfo'
+
+-i18n.itstool_join(
++configure_file(
+   input: gt_dns_name + '.metainfo.xml.in',
+   install: true,
+   install_dir: gt_prefix / metainfodir,
+-  install_tag: 'metadata',
+-  its_files: metainfo_its,
+-  mo_targets: gettext_targets[0],
+-  output: '@BASENAME@',
+-)
+-
+-i18n.itstool_join(
+-  input: gt_dns_name + '.Nautilus.metainfo.xml.in',
+-  install: true,
+-  install_dir: gt_prefix / metainfodir,
+-  install_tag: 'metadata',
+-  its_files: metainfo_its,
+-  mo_targets: gettext_targets[0],
+-  output: '@BASENAME@',
+-)
+-
+-meson.add_install_script(
+-  'meson_metainfofile.py',
+-  metainfodir,
+-  gt_dns_name + '.metainfo.xml',
+-  gt_dns_name + '.Nautilus.metainfo.xml',
++  output: gt_dns_name + '.metainfo.xml',
++  copy: true,
+ )
+
+ # Desktop file
+diff --git a/gnome-terminal/meson.build b/gnome-terminal/meson.build
+--- a/gnome-terminal/meson.build
++++ b/gnome-terminal/meson.build
+@@ -57,13 +57,15 @@
+
+ glib_req_version             = '2.52.0'
+ glib_min_req_version         = '2.52'
+-glib_max_allowed_version     = '2.68'
++# Fil-C: GType is a pointer in the pizlonated glib; GLIB_VERSION_MAX_ALLOWED
++# must be 2.80 or newer so that G_DEFINE_TYPE generates the pointer-based
++# g_once_init_enter_pointer path.
++glib_max_allowed_version     = '2.80'
+
+ gtk_req_version              = '3.22.27'
+ gtk_min_req_version          = '3.18'
+ gtk_max_allowed_version      = '3.24'
+
+-libhandy_req_version         = '1.6.0'
+ libnautilus_ext_req_version  = '43'
+ pcre2_req_version            = '10.00'
+ schemas_req_version          = '0.1.0'
+@@ -376,7 +378,6 @@
+ gio_unix_dep  = dependency('gio-unix-2.0', version: '>=' + glib_req_version)
+ glib_dep      = dependency('glib-2.0',     version: '>=' + glib_req_version)
+ gtk_dep       = dependency('gtk+-3.0',     version: '>=' + gtk_req_version)
+-libhandy_dep  = dependency('libhandy-1',   version: '>=' + libhandy_req_version)
+ pcre2_dep     = dependency('libpcre2-8',   version: '>=' + pcre2_req_version)
+ pthreads_dep  = dependency('threads')
+ schemas_dep   = dependency('gsettings-desktop-schemas',
+diff --git a/gnome-terminal/src/meson.build b/gnome-terminal/src/meson.build
+--- a/gnome-terminal/src/meson.build
++++ b/gnome-terminal/src/meson.build
+@@ -264,7 +264,6 @@
+   glib_dep,
+   gtk_dep,
+   libdl_dep,
+-  libhandy_dep,
+   pcre2_dep,
+   pthreads_dep,
+   schemas_dep,
+diff --git a/gnome-terminal/src/server.cc b/gnome-terminal/src/server.cc
+--- a/gnome-terminal/src/server.cc
++++ b/gnome-terminal/src/server.cc
+@@ -48,34 +48,13 @@
+ #define INACTIVITY_TIMEOUT (100 /* ms */)
+
+
+-#include <dlfcn.h>
+-
+-// We need to block the pk-gtk module that tries to automagically
+-// install fonts.
+-// Since there appears to be no way to blocklist a gtk module,
+-// we resort to this gross hack.
+-
+-extern "C" __attribute__((__visibility__("default"))) GModule*
+-g_module_open (char const* file_name,
+-               GModuleFlags flags);
+-
+-GModule*
+-g_module_open (char const* file_name,
+-               GModuleFlags flags)
+-{
+-  static decltype(&g_module_open) _g_module_open;
+-  if (!_g_module_open)
+-    _g_module_open = reinterpret_cast<decltype(_g_module_open)>(dlsym(RTLD_NEXT, "g_module_open"));
+-
+-  if (file_name) {
+-    gs_free auto basename = g_path_get_basename(file_name);
+-    if (basename && strstr(basename, "pk-gtk-module")) {
+-      return _g_module_open("/dev/null", flags);
+-    }
+-  }
+-
+-  return _g_module_open(file_name, flags);
+-}
++/* Fil-C: this used to interpose g_module_open with a dlsym(RTLD_NEXT)
++ * wrapper to blocklist the pk-gtk module (which tries to automagically
++ * install fonts).  The pizlonated libc's dlsym goes through zsys_dlsym,
++ * which rejects the RTLD_NEXT pseudo-handle ("cannot access pointer with
++ * null object (ptr = 0xffffffffffffffff,<null>)" filc panic), and there is
++ * no pk-gtk module in the pizlonated system anyway, so the interposer is
++ * removed and g_module_open calls go straight to libgmodule. */
+
+ static gboolean
+ option_app_id_cb (const gchar *option_name,
+diff --git a/gnome-terminal/src/terminal-app.cc b/gnome-terminal/src/terminal-app.cc
+--- a/gnome-terminal/src/terminal-app.cc
++++ b/gnome-terminal/src/terminal-app.cc
+@@ -41,7 +41,9 @@
+ #include "terminal-defines.hh"
+ #include "terminal-libgsystem.hh"
+
+-#include <handy.h>
++/* Fil-C: libhandy is not part of the pizlonated system; the HdyStyleManager
++ * usage (window chrome color-scheme handling) is removed below and the
++ * GtkSettings gtk-application-prefer-dark-theme path is used instead. */
+
+ #ifdef TERMINAL_SERVER
+ #include "terminal-gdbus.hh"
+@@ -153,8 +155,6 @@
+
+ #endif /* TERMINAL_SERVER */
+
+-  HdyStyleManager* style_manager;
+-
+   gboolean ask_default;
+   gboolean xte_is_default;
+   gboolean unified_menu;
+@@ -393,30 +393,16 @@
+ {
+   auto const theme = TerminalThemeVariant(g_settings_get_enum(settings, key));
+
+-  auto const app = terminal_app_get();
+-  if (hdy_style_manager_get_system_supports_color_schemes(app->style_manager)) {
+-    switch (theme) {
+-    case TERMINAL_THEME_VARIANT_SYSTEM:
+-      hdy_style_manager_set_color_scheme(app->style_manager,
+-                                         HDY_COLOR_SCHEME_PREFER_LIGHT);
+-      break;
+-    case TERMINAL_THEME_VARIANT_LIGHT:
+-      hdy_style_manager_set_color_scheme(app->style_manager,
+-                                         HDY_COLOR_SCHEME_FORCE_LIGHT);
+-      break;
+-    case TERMINAL_THEME_VARIANT_DARK:
+-      hdy_style_manager_set_color_scheme(app->style_manager,
+-                                         HDY_COLOR_SCHEME_FORCE_DARK);
+-    }
+-  } else {
+-    if (theme == TERMINAL_THEME_VARIANT_SYSTEM)
+-      gtk_settings_reset_property(gtk_settings, GTK_SETTING_PREFER_DARK_THEME);
+-    else
+-      g_object_set(gtk_settings,
+-                   GTK_SETTING_PREFER_DARK_THEME,
+-                   theme == TERMINAL_THEME_VARIANT_DARK,
+-                   nullptr);
+-  }
++  /* Fil-C: without libhandy's HdyStyleManager, the color scheme is applied
++   * through GtkSettings:gtk-application-prefer-dark-theme (the former
++   * non-libhandy fallback path). */
++  if (theme == TERMINAL_THEME_VARIANT_SYSTEM)
++    gtk_settings_reset_property(gtk_settings, GTK_SETTING_PREFER_DARK_THEME);
++  else
++    g_object_set(gtk_settings,
++                 GTK_SETTING_PREFER_DARK_THEME,
++                 theme == TERMINAL_THEME_VARIANT_DARK,
++                 nullptr);
+ }
+
+ /* Submenus for New Terminal per profile, and to change profiles */
+@@ -948,7 +934,7 @@
+ terminal_app_init (TerminalApp* app)
+ {
+ #ifdef TERMINAL_SERVER
+-  hdy_init ();
++  /* Fil-C: hdy_init() removed together with libhandy. */
+
+   g_weak_ref_init(&app->prefs_process_ref, nullptr);
+
+@@ -1036,8 +1022,8 @@
+
+ #endif /* TERMINAL_SERVER */
+
+-  app->style_manager = hdy_style_manager_get_default();
+-
++  /* Fil-C: the libhandy HdyStyleManager is gone; the theme variant is
++   * applied below via GtkSettings. */
+   auto const gtk_settings = gtk_settings_get_default ();
+   terminal_app_theme_variant_changed_cb (app->global_settings,
+                                          TERMINAL_SETTING_THEME_VARIANT_KEY, gtk_settings);
+@@ -1046,10 +1032,8 @@
+                     "changed::" TERMINAL_SETTING_THEME_VARIANT_KEY,
+                     G_CALLBACK (terminal_app_theme_variant_changed_cb),
+                     gtk_settings);
+-  g_signal_connect(app->style_manager,
+-                   "notify::system-supports-color-schemes",
+-                   G_CALLBACK(terminal_app_theme_variant_changed_cb),
+-                   gtk_settings);
++  /* Fil-C: the libhandy style-manager notify signal is gone together with
++   * libhandy; the GSettings changed:: signal above covers theme changes. */
+
+ #ifdef TERMINAL_SERVER
+
+diff --git a/gnome-terminal/src/terminal-type-builtins.cc.template b/gnome-terminal/src/terminal-type-builtins.cc.template
+--- a/gnome-terminal/src/terminal-type-builtins.cc.template
++++ b/gnome-terminal/src/terminal-type-builtins.cc.template
+@@ -16,9 +16,14 @@
+ GType
+ @enum_name@_get_type (void)
+ {
+-  static gsize g_define_type_id__ = 0;
+- 
+-  if (g_once_init_enter (&g_define_type_id__)) {
++  /* Fil-C: GType is a pointer in the pizlonated glib, so the once-init
++   * static must be pointer-typed and the g_once_init_enter_pointer /
++   * g_once_init_leave_pointer variants must be used (the plain functions
++   * access the location through a gsize view, which fil-C rejects as a
++   * type confusion). */
++  static gpointer g_define_type_id__ = 0;
++
++  if (g_once_init_enter_pointer (&g_define_type_id__)) {
+     static const G@Type@Value values[] = {
+ /*** END value-header ***/
+
+@@ -31,11 +36,11 @@
+     };
+     GType g_define_type_id = \
+        g_@type@_register_static (/* g_intern_static_string */ ("@EnumName@"), values);
+-      
+-    g_once_init_leave (&g_define_type_id__, g_define_type_id);
++
++    g_once_init_leave_pointer (&g_define_type_id__, g_define_type_id);
+   }
+-    
+-  return g_define_type_id__;
++
++  return (GType) g_define_type_id__;
+ }
+
+ /*** END value-tail ***/

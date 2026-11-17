@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcSearchPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="app_search_row">
+                    <property name="title" translatable="yes">_App Search</property>
+                    <property name="subtitle" translatable="yes">Include app-provided search results</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="CcListRow" id="settings_row">
+                    <property name="title" translatable="yes">Search _Locations</property>
+                    <property name="subtitle" translatable="yes">Filesystem locations which are searched by system apps</property>
+                    <property name="show-arrow">True</property>
+                    <signal name="activated" handler="show_search_locations_dialog" object="CcSearchPanel" swapped="yes"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="search_group">
+                <property name="title" translatable="yes">Search Results</property>
+                <property name="description" translatable="yes">Results are displayed according to the list order</property>
+                <child>
+                  <object class="GtkListBox" id="list_box">
+                    <property name="selection-mode">none</property>
+                    <signal name="keynav-failed" handler="keynav_failed_cb" object="CcSearchPanel" swapped="yes"/>
+                    <accessibility>
+                      <relation name="labelled-by">search_group</relation>
+                    </accessibility>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

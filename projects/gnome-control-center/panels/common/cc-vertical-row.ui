@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcVerticalRow" parent="AdwPreferencesRow">
+    <property name="activatable">False</property>
+    <accessibility>
+      <relation name="labelled-by">title</relation>
+    </accessibility>
+    <child>
+      <object class="GtkBox" id="header">
+        <property name="orientation">vertical</property>
+        <property name="valign">center</property>
+        <style>
+          <class name="header"/>
+        </style>
+
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <property name="valign">center</property>
+            <property name="vexpand">True</property>
+
+            <child>
+              <object class="GtkBox" id="prefixes">
+                <property name="spacing">12</property>
+                <property name="visible">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="image">
+                <property name="pixel_size">32</property>
+                <property name="valign">center</property>
+                <property name="visible">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="title_box">
+                <property name="halign">start</property>
+                <property name="orientation">vertical</property>
+                <property name="valign">center</property>
+                <style>
+                  <class name="title"/>
+                </style>
+                <child>
+                  <object class="GtkLabel" id="title">
+                    <property name="ellipsize">end</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="label" bind-source="CcVerticalRow" bind-property="title" bind-flags="sync-create"/>
+                    <property name="lines">1</property>
+                    <property name="wrap">True</property>
+                    <property name="wrap-mode">word-char</property>
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="title"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="subtitle">
+                    <property name="ellipsize">end</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="lines">2</property>
+                    <property name="wrap">True</property>
+                    <property name="wrap-mode">word-char</property>
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="subtitle"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="suffixes">
+                <property name="spacing">12</property>
+                <property name="visible">False</property>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkBox" id="content_box">
+            <property name="visible">False</property>
+            <property name="hexpand">True</property>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </template>
+</interface>

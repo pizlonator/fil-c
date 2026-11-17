@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcSubwooferSlider" parent="GtkWidget">
+    <child>
+      <object class="GtkScale" id="scale">
+        <property name="adjustment">adjustment</property>
+        <accessibility>
+          <property name="label" translatable="yes">Subwoofer</property>
+        </accessibility>
+      </object>
+    </child>
+  </template>
+  <object class="GtkAdjustment" id="adjustment">
+    <signal name="value_changed" handler="changed_cb" object="CcSubwooferSlider" swapped="yes"/>
+  </object>
+</interface>

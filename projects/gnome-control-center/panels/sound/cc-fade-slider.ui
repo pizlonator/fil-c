@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcFadeSlider" parent="GtkWidget">
+    <child>
+      <object class="GtkScale" id="scale">
+        <property name="has-origin">False</property>
+        <property name="adjustment">adjustment</property>
+        <accessibility>
+          <property name="label" translatable="yes">Fade</property>
+        </accessibility>
+        <marks>
+          <mark value="0"/>
+        </marks>
+      </object>
+    </child>
+  </template>
+  <object class="GtkAdjustment" id="adjustment">
+    <property name="lower">-1.0</property>
+    <property name="upper">1.0</property>
+    <property name="step-increment">0.02</property>
+    <property name="page-increment">0.2</property>
+    <signal name="value-changed" handler="changed_cb" object="CcFadeSlider" swapped="yes"/>
+  </object>
+</interface>

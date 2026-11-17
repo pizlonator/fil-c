@@ -1,0 +1,107 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="guide"
+      id="txt-links">
+
+  <info>
+    <link type="guide" xref="index#textoutput"/>
+    <revision version="0.1" date="2013-03-03" status="candidate"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Open links to web and email addresses.</desc>
+  </info>
+
+  <title>Hyperlinks and email addresses</title>
+
+  <p><app>Terminal</app> parses the terminal output and automatically detects
+  snippets of text that are web addresses or email addresses. Web and email
+  addresses are automatically highlighted when you point your cursor to the
+  text, indicating that the link can be opened in an application.</p>
+
+  <p>For example, you may see <output>http://www.gnome.org</output> or
+  <output>username@example.com</output> generated as a part of terminal output by
+  programs such as <app>wget</app> or <app>curl</app>.</p>
+
+  <section id="hyperlinks">
+    <title>Open or copy web addresses</title>
+
+    <p>Web addresses are also called hyperlinks. They can be copied to the
+    system clipboard or opened in your preferred web browser.</p>
+
+    <list>
+      <item>
+        <p>Copy a hyperlink:</p>
+        <steps>
+          <item>
+            <p>Right click on the link in <app>Terminal</app>.</p>
+          </item>
+          <item>
+          <p>Select <gui style="menuitem">Copy Link</gui>.</p>
+          </item>
+        </steps>
+      </item>
+      <item>
+        <p>Open a hyperlink in your web browser:</p>
+        <steps>
+          <item>
+            <p>Right click on the hyperlink.</p>
+          </item>
+          <item>
+            <p>Select <gui style="menuitem">Open Link</gui>.</p>
+          </item>
+        </steps>
+      </item>
+    </list>
+
+  </section>
+
+  <section id="email">
+    <title>Email or copy email addresses</title>
+
+    <p>Email addresses can be copied to the system clipboard or opened in your
+    preferred email client.</p>
+
+    <list>
+      <item>
+        <p>Copy an email address:</p>
+        <steps>
+          <item>
+            <p>Right click on the email address in <app>Terminal</app>.</p>
+          </item>
+          <item>
+          <p>Select <gui style="menuitem">Copy Mail Address</gui>.</p>
+          </item>
+        </steps>
+      </item>
+      <item>
+        <p>Send mail to the email address using your email client:</p>
+        <steps>
+          <item>
+            <p>Right click on the address.</p>
+          </item>
+          <item>
+            <p>Select <gui style="menuitem">Send Mail To…</gui>.</p>
+          </item>
+        </steps>
+      </item>
+    </list>
+
+  </section>
+
+</page>

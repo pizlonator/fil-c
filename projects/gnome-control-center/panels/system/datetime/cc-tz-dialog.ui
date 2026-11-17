@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcTzDialog" parent="AdwWindow">
+    <property name="modal">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="title" translatable="yes">Select Time Zone</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="default-height">540</property>
+    <property name="default-width">400</property>
+    <style>
+      <class name="view"/>
+    </style>
+
+    <property name="content">
+      <object class="AdwToolbarView">
+
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <!-- SearchBar -->
+        <child type="top">
+          <object class="AdwBin">
+            <style>
+              <class name="toolbar"/>
+            </style>
+
+            <child>
+              <object class="GtkSearchEntry" id="location_entry">
+                <property name="placeholder_text" translatable="yes">Search cities</property>
+                <property name="halign">center</property>
+                <property name="width-chars">24</property>
+                <signal name="search-changed" handler="tz_dialog_search_changed_cb" swapped="yes"/>
+                <signal name="stop-search" handler="tz_dialog_search_stopped_cb" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <property name="content">
+          <object class="GtkStack" id="main_stack">
+
+            <child>
+              <object class="AdwStatusPage" id="empty_page">
+                <property name="margin-top">18</property>
+                <property name="title" translatable="yes">No Results</property>
+                <property name="icon-name">system-search-symbolic</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkScrolledWindow" id="tz_page">
+                <property name="hscrollbar-policy">never</property>
+                <child>
+                  <object class="AdwClampScrollable">
+                    <child>
+                      <object class="GtkListView" id="tz_view">
+                        <property name="show-separators">True</property>
+                        <property name="single-click-activate">True</property>
+                        <signal name="activate" handler="tz_dialog_row_activated_cb" swapped="yes"/>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/org/gnome/control-center/system/datetime/cc-tz-row.ui</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+          </object>
+        </property>
+
+      </object>
+    </property>
+  </template>
+</interface>

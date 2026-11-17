@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="NetConnectionEditor" parent="AdwWindow">
+    <property name="destroy-with-parent">True</property>
+    <property name="modal">True</property>
+    <property name="width_request">360</property>
+    <property name="height_request">294</property>
+    <child>
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-end-title-buttons">False</property>
+            <property name="show-start-title-buttons">False</property>
+            <child>
+              <object class="GtkButton" id="cancel_button">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use_underline">True</property>
+                <signal name="clicked" handler="cancel_clicked_cb" object="NetConnectionEditor" swapped="yes"/>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="apply_button">
+                <property name="label" translatable="yes">_Apply</property>
+                <property name="use_underline">True</property>
+                <signal name="clicked" handler="apply_clicked_cb" object="NetConnectionEditor" swapped="yes"/>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwToastOverlay" id="toast_overlay">
+            <property name="child">
+              <object class="GtkStack" id="toplevel_stack">
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkSpinner" id="spinner">
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="spinning">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkNotebook" id="notebook">
+                    <property name="show_border">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox" id="add_connection_box">
+                    <property name="vexpand">True</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
+                        <child>
+                          <object class="AdwBin" id="add_connection_frame">
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
+                            <property name="width_request">300</property>
+                            <property name="valign">start</property>
+                            <property name="margin-start">12</property>
+                            <property name="margin-end">12</property>
+                            <property name="margin-top">12</property>
+                            <property name="margin-bottom">12</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

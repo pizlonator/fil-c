@@ -1,0 +1,27 @@
+[Desktop Entry]
+Name=Terminal
+Comment=Use the command line
+Keywords=shell;prompt;command;commandline;cmd;
+TryExec=gnome-terminal
+Exec=gnome-terminal
+Icon=org.gnome.Terminal
+Type=Application
+Categories=GNOME;GTK;System;TerminalEmulator;
+StartupNotify=true
+StartupWMClass=Gnome-terminal
+SingleMainWindow=false
+Actions=new-window;preferences;
+X-ExecArg=--
+X-TerminalArgExec=--
+X-TerminalArgTitle=--title
+X-TerminalArgDir=--working-directory
+X-TerminalArgHold=--wait
+X-KDE-AuthorizeAction=shell_access
+
+[Desktop Action new-window]
+Name=New Window
+Exec=gnome-terminal --window
+
+[Desktop Action preferences]
+Name=Preferences
+Exec=gnome-terminal --preferences

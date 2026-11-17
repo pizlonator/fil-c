@@ -1,0 +1,361 @@
+<?xml version='1.0'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+        "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<refentry id="gnome-control-center">
+
+        <refentryinfo>
+                <title>gnome-control-center</title>
+                <productname>GNOME</productname>
+
+                <authorgroup>
+                        <author>
+                                <contrib>Maintainer</contrib>
+                                <firstname>Bastien</firstname>
+                                <surname>Nocera</surname>
+                                <email>hadess@hadess.net</email>
+                        </author>
+                </authorgroup>
+
+        </refentryinfo>
+
+        <refmeta>
+                <refentrytitle>gnome-control-center</refentrytitle>
+                <manvolnum>1</manvolnum>
+                <refmiscinfo class="manual">User Commands</refmiscinfo>
+        </refmeta>
+
+        <refnamediv>
+                <refname>gnome-control-center</refname>
+                <refpurpose>Configure GNOME settings</refpurpose>
+        </refnamediv>
+
+        <refsynopsisdiv>
+                <cmdsynopsis>
+                        <command>gnome-control-center <arg choice="opt" rep="repeat">OPTION</arg> <arg choice="opt">PANEL</arg> <arg choice="opt" rep="repeat">ARG</arg></command>
+                </cmdsynopsis>
+        </refsynopsisdiv>
+
+        <refsect1>
+                <title>Description</title>
+
+                <para><command>gnome-control-center</command> is a graphical
+                user interface to configure various aspects of GNOME.</para>
+
+                <para>When run without arguments, the shell displays the
+                <firstterm>overview</firstterm>, which shows all available
+                configuration panels. The overview allows to open individual
+                panels by clicking on them. It also has a search entry
+                to find panels by searching keywords.</para>
+
+                <para>It is also possible to specify a panel name
+                as commandline argument to go directly to that panel.
+                Individual panels may accept further arguments to specify
+                which tab to open (for multi-tabbed panels) or which
+                item to display (for panels with lists).</para>
+
+                <para>Note that <command>gnome-control-center</command>
+                is not meant to expose each and every setting that is
+                available. The settings that can be found here represent
+                what is considered useful and commonly needed options.
+                For more exotic or uncommon options, you can look at
+                <command>gnome-tweak-tool</command> or the
+                <command>gsettings</command> commandline utility.</para>
+        </refsect1>
+
+        <refsect1>
+                <title>Panels</title>
+
+                <para>The following panel names can be specified:</para>
+
+                <variablelist>
+                        <varlistentry>
+                                <term><option>background</option></term>
+
+                                <listitem><para>The background panel lets you
+                                set your desktop background.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>bluetooth</option></term>
+
+                                <listitem><para>The bluetooth panel lets you
+                                configure your computer's Bluetooth adapter,
+                                and pair the computer with Bluetooth keyboards,
+                                phones, etc.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>color</option></term>
+
+                                <listitem><para>The color panel can calibrate
+                                monitors, web cams and printers for accurate
+                                color reproduction.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>datetime</option></term>
+
+                                <listitem><para>The datetime panel lets you
+                                set the timezone and time format.</para>
+                                <para>Some operations in this panel
+                                affect all user accounts on the computer
+                                and require privieges.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>display</option></term>
+
+                                <listitem><para>The display panel configures
+                                the resolution and arrangement of monitors
+                                and laptop panels. Note that monitors can be
+                                rearranged by drag-and-drop, and you can change
+                                which monitor is your main display by dragging
+                                the black bar.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>info-overview</option></term>
+
+                                <listitem><para>The info-overview panel shows a general
+                                overview of the system configuration. It also
+                                lets you change the default applications for
+                                various tasks and the handling of removable
+                                media.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>keyboard</option></term>
+
+                                <listitem><para>The keyboard panel can
+                                change how the keyboard reacts to key
+                                presses and lets you change keyboard
+                                shortcuts or create custom shortcuts.</para>
+                                <para>You can open this panel on a
+                                specific tab by passing <option>typing</option>
+                                or <option>shortcuts</option> as extra
+                                argument.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>mouse</option></term>
+
+                                <listitem><para>The mouse panel can change
+                                how mice and touchpads react to user
+                                input.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>network</option></term>
+
+                                <listitem><para>The network panel provides
+                                a view of available network devices (wired,
+                                wireless or mobile) and their current
+                                configuration. It also provides a way to
+                                create new VPN connections and configure
+                                proxy settings.</para>
+                                <para>You can open this panel on a
+                                specific dialog by passing
+                                <option>create-wifi</option>,
+                                <option>connect-hidden-wifi</option>,
+                                <option>connect-3g</option>,
+                                <option>connect-8021x-wifi</option> or
+                                <option>show-device</option> as extra
+                                argument. The last three parameters
+                                require an additional extra argument for
+                                the network object in the form 
+                                <replaceable>/org/freedesktop/NetworkManager/Devices/0</replaceable>.
+                                </para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>notifications</option></term>
+
+                                <listitem><para>The notifications panel provides
+                                a way to control the display of notifications.
+                                </para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>online-accounts</option></term>
+
+                                <listitem><para>The online-accounts panel
+                                shows your configured online accounts and
+                                lets you add or remove accounts.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>power</option></term>
+
+                                <listitem><para>The power panel shows
+                                the fill level of batteries and can
+                                configure what happens when the computer
+                                is idle or runs out of battery.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>printers</option></term>
+
+                                <listitem><para>The printers panel shows
+                                all known printers and their status. It is
+                                possible to inspect queued print jobs and
+                                add new printers.</para>
+                                <para>Some operations in this panel require
+                                privileges.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>privacy</option></term>
+
+                                <listitem><para>The privacy panel allows
+                                to control visible file usage history, temporary
+                                files, and name.
+                                </para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>region</option></term>
+
+                                <listitem><para>The region panel
+                                contains regional settings such as
+                                the display language, formatting for
+                                times, dates, numbers, and input sources.
+                                </para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>search</option></term>
+
+                                <listitem><para>The search panel controls
+                                the results visible in the overview, and the
+                                files and folders to be indexed.
+                                </para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>screen</option></term>
+
+                                <listitem><para>The screen panel contains
+                                settings that control the screen brightness
+                                and screen lock behavior.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>sharing</option></term>
+
+                                <listitem><para>The sharing panel contains
+                                settings that control what is shared over the
+                                network.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>sound</option></term>
+
+                                <listitem><para>The sound panel shows
+                                all known sound devices and their configuration,
+                                including volume and balance settings.</para>
+                                <para>You can open this panel on a
+                                specific tab by passing
+                                <option>output</option>,
+                                <option>input</option>,
+                                <option>hardware</option>,
+                                <option>effects</option> or
+                                <option>applications</option> as extra
+                                argument.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>universal-access</option></term>
+
+                                <listitem><para>The universal-access panel
+                                contains settings for accessible technologies
+                                such as the screen reader, magnifier, screen
+                                keyboard and AccessX options.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>user-accounts</option></term>
+
+                                <listitem><para>The user-accounts panel
+                                shows all user accounts that exist on the
+                                computer and allows to change them in some
+                                ways, such as changing the user name, password
+                                or permissions. It also allows to create
+                                or remove accounts.</para>
+                                <para>Some operations in this panel require
+                                privileges.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>wacom</option></term>
+
+                                <listitem><para>the wacom panel shows
+                                connected Wacom graphics tablets and lets
+                                you calibrate and configure such devices.</para></listitem>
+                        </varlistentry>
+
+                </variablelist>
+
+        </refsect1>
+
+        <refsect1>
+                <title>Options</title>
+
+                <variablelist>
+                        <varlistentry>
+                                <term><option>-?</option>, <option>--help</option></term>
+
+                                <listitem><para>Prints a short help
+                                text and exits.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>--version</option></term>
+
+                                <listitem><para>Prints the program version
+                                and exits.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>-v</option>, <option>--verbose</option></term>
+
+                                <listitem><para>Enables verbose mode.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>-l</option>, <option>--list</option></term>
+
+                                <listitem><para>Lists the available panels
+                                and exits.</para></listitem>
+                        </varlistentry>
+
+                        <varlistentry>
+                                <term><option>-o</option>, <option>--overview</option></term>
+
+                                <listitem><para>Opens the overview.</para></listitem>
+			</varlistentry>
+
+                        <varlistentry>
+				<term><option>-s</option> <replaceable>term</replaceable>, <option>--search</option> <replaceable>term</replaceable></term>
+
+                                <listitem><para>Sets the following search term.</para></listitem>
+                        </varlistentry>
+
+                </variablelist>
+        </refsect1>
+
+        <refsect1>
+                <title>Exit status</title>
+
+                <para>On success 0 is returned, a non-zero failure
+                code otherwise.</para>
+        </refsect1>
+
+        <refsect1>
+                <title>See Also</title>
+                <para>
+                        <citerefentry><refentrytitle>gsettings</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+                </para>
+        </refsect1>
+
+</refentry>

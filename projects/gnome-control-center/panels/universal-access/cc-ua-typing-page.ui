@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcUaTypingPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Typing</property>
+    <property name="tag">typing</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="screen_kb_row">
+                    <property name="title" translatable="yes">Screen _Keyboard</property>
+                    <property name="subtitle" translatable="yes">Use the on-screen keyboard to type in input fields</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="shortcuts_by_kb_row">
+                    <property name="title" translatable="yes">_Enable by Keyboard</property>
+                    <property name="subtitle" translatable="yes">Turn accessibility features on or off using the keyboard</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Text Cursor</property>
+
+                <child>
+                  <object class="AdwSwitchRow" id="cursor_blink_row">
+                    <property name="title" translatable="yes">_Cursor Blinking</property>
+                    <property name="subtitle" translatable="yes">Change if the cursor blinks in text fields</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwActionRow" id="blink_speed_row">
+                    <property name="title" translatable="yes">_Blink Speed</property>
+                    <property name="use-underline">True</property>
+                    <child type="suffix">
+                      <object class="GtkScale" id="blink_time_scale">
+                        <property name="hexpand">True</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Blink Speed</property>
+                        </accessibility>
+                        <marks>
+                          <mark value="-100" translatable="yes">Fast</mark>
+                          <!-- Default -->
+                          <mark value="-1200"/>
+                          <mark value="-2500" translatable="yes">Slow</mark>
+                        </marks>
+                        <property name="adjustment">
+                          <object class="GtkAdjustment">
+                            <!-- In the UI We are showing the speed of the blinking, but
+                                 in the settings, we are storing the duration. So we want
+                                 to show the inverse of the value. But since GtkAdjustment
+                                 doesn't allow upper < lower, and GtkRange:inverted is not
+                                 what we need, use negative values for lower, upper bounds
+                                 and invert sign of them when read/write.
+                            -->
+                            <property name="lower">-2500</property>
+                            <property name="upper">-100</property>
+                            <property name="step-increment">200</property>
+                            <property name="page-increment">200</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwEntryRow" id="test_blink_row">
+                    <property name="title" translatable="yes">_Test Entry</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Typing Assist</property>
+
+                <child>
+                  <object class="AdwExpanderRow" id="repeat_keys_row">
+                    <property name="title" translatable="yes">_Repeat Keys</property>
+                    <property name="subtitle" translatable="yes">Key presses repeat when the key is held down</property>
+                    <property name="use-underline">True</property>
+                    <property name="show-enable-switch">True</property>
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title" translatable="yes">Speed</property>
+                        <property name="activatable-widget">repeat_speed_scale</property>
+                        <child type="suffix">
+                          <object class="GtkScale" id="repeat_speed_scale">
+                            <property name="hexpand">True</property>
+                            <marks>
+                              <mark value="-0.5" translatable="yes">Fast</mark>
+                              <!-- Default -->
+                              <mark value="-30"/>
+                              <mark value="-110.0" translatable="yes">Slow</mark>
+                            </marks>
+                            <property name="adjustment">
+                              <object class="GtkAdjustment">
+                                <property name="lower">-110.0</property>
+                                <property name="upper">-1.5</property>
+                                <property name="step-increment">1</property>
+                                <property name="page-increment">1</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title" translatable="yes">Delay</property>
+                        <property name="activatable-widget">repeat_delay_scale</property>
+                        <child type="suffix">
+                          <object class="GtkScale" id="repeat_delay_scale">
+                            <property name="hexpand">True</property>
+                            <marks>
+                              <mark value="100" translatable="yes">Short</mark>
+                              <!-- Default -->
+                              <mark value="500"/>
+                              <mark value="2000" translatable="yes">Long</mark>
+                            </marks>
+                            <property name="adjustment">
+                              <object class="GtkAdjustment">
+                                <property name="lower">100</property>
+                                <property name="upper">2000</property>
+                                <property name="step-increment">10</property>
+                                <property name="page-increment">10</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwExpanderRow" id="sticky_keys_row">
+                    <property name="title" translatable="yes">_Sticky Keys</property>
+                    <property name="subtitle" translatable="yes">Sequences of modifier keys act as a key combination</property>
+                    <property name="use-underline">True</property>
+                    <property name="show-enable-switch">True</property>
+                    <child>
+                      <object class="AdwSwitchRow" id="disable_sticky_keys_row">
+                        <property name="title" translatable="yes">Disable if two keys are pressed together</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwSwitchRow" id="beep_sticky_keys_row">
+                        <property name="title" translatable="yes">Beep when modifier key is pressed</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwExpanderRow" id="slow_keys_row">
+                    <property name="title" translatable="yes">S_low Keys</property>
+                    <property name="subtitle" translatable="yes">Delay between when a key is pressed and when it is accepted</property>
+                    <property name="use-underline">True</property>
+                    <property name="show-enable-switch">True</property>
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title" translatable="yes">Acceptance Delay</property>
+                        <property name="activatable-widget">slow_keys_delay_scale</property>
+                        <child type="suffix">
+                          <object class="GtkScale" id="slow_keys_delay_scale">
+                            <property name="hexpand">True</property>
+                            <marks>
+                              <mark value="0" translatable="yes">Short</mark>
+                              <!-- Default -->
+                              <mark value="300"/>
+                              <mark value="500" translatable="yes">Long</mark>
+                            </marks>
+                            <property name="adjustment">
+                              <object class="GtkAdjustment">
+                                <property name="upper">500</property>
+                                <property name="step-increment">10</property>
+                                <property name="page-increment">10</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwSwitchRow" id="slow_keys_beep_row">
+                        <property name="title" translatable="yes">Beep when a key is pressed</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwSwitchRow" id="slow_keys_beep_accept_row">
+                        <property name="title" translatable="yes">Beep when a key is accepted</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwSwitchRow" id="slow_keys_beep_reject_row">
+                        <property name="title" translatable="yes">Beep when a key is rejected</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwExpanderRow" id="bounce_keys_row">
+                    <property name="title" translatable="yes">B_ounce Keys</property>
+                    <property name="subtitle" translatable="yes">Ignore fast duplicate keypresses</property>
+                    <property name="use-underline">True</property>
+                    <property name="show-enable-switch">True</property>
+                    <child>
+                      <object class="AdwActionRow">
+                        <property name="title" translatable="yes">Acceptance Delay</property>
+                        <child type="suffix">
+                          <object class="GtkScale" id="bounce_keys_delay_scale">
+                            <property name="hexpand">True</property>
+                            <marks>
+                              <mark value="0" translatable="yes">Short</mark>
+                              <!-- Default -->
+                              <mark value="300"/>
+                              <mark value="900" translatable="yes">Long</mark>
+                            </marks>
+                            <property name="adjustment">
+                              <object class="GtkAdjustment">
+                                <property name="upper">900</property>
+                                <property name="step-increment">10</property>
+                                <property name="page-increment">10</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwSwitchRow" id="bounce_keys_beep_reject_row">
+                        <property name="title" translatable="yes">Beep when a key is rejected</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

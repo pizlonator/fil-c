@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <object class="GtkAdjustment" id="adjustment_keepalive">
+    <property name="upper">65535</property>
+    <property name="step-increment">1</property>
+    <property name="page-increment">10</property>
+  </object>
+  <template class="WireguardPeer" parent="GtkBox">
+    <property name="hexpand">1</property>
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkSeparator" id="separator">
+        <property name="visible">0</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkListBox">
+        <property name="selection-mode">none</property>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="activatable">0</property>
+            <child>
+              <object class="GtkBox">
+                <property name="valign">start</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">8</property>
+                <property name="margin-bottom">8</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkLabel" id="peer_label">
+                    <property name="hexpand">1</property>
+                    <property name="ellipsize">end</property>
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkMenuButton" id="button_configure">
+                    <property name="focus-on-click">0</property>
+                    <property name="receives-default">1</property>
+                    <property name="direction">left</property>
+                    <property name="popover">peer_popover</property>
+                    <property name="icon-name">emblem-system-symbolic</property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Options…</property>
+                    </accessibility>
+                    <style>
+                      <class name="flat" />
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="button_delete">
+                    <property name="receives-default">1</property>
+                    <property name="use-underline">1</property>
+                    <property name="icon-name">edit-delete-symbolic</property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Remove</property>
+                    </accessibility>
+                    <style>
+                      <class name="destructive-action"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkPopover" id="peer_popover">
+    <property name="position">left</property>
+    <child>
+      <object class="GtkBox">
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <property name="baseline-position">top</property>
+        <child>
+          <object class="GtkGrid" id="grid1">
+            <property name="name">grid</property>
+            <property name="margin-top">6</property>
+            <property name="row-spacing">5</property>
+            <property name="column-spacing">6</property>
+            <property name="row-homogeneous">1</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="yes">_Endpoint</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">entry_endpoint</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="entry_endpoint">
+                <property name="tooltip-text" translatable="yes">An endpoint IP or hostname, followed by a colon, and then a port number.</property>
+                <property name="hexpand">1</property>
+                <property name="truncate-multiline">1</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="yes">_Public key</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">entry_public_key</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="entry_public_key">
+                <property name="tooltip-text" translatable="yes">A base64 public key calculated by &apos;wg pubkey&apos; from a private key.</property>
+                <property name="hexpand">1</property>
+                <property name="truncate-multiline">1</property>
+                <property name="primary-icon-name">dialog-password</property>
+                <property name="primary-icon-activatable">0</property>
+                <property name="primary-icon-sensitive">0</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="yes">_Pre-shared key</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">entry_psk</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="entry_psk">
+                <property name="tooltip-text" translatable="yes">A base64 preshared key generated by &apos;wg genpsk&apos;. Optional, and may be omitted. Adds an additional layer of symmetric-key cryptography to be mixed into the already existing public-key cryptography, for post-quantum resistance.</property>
+                <property name="hexpand">1</property>
+                <property name="visibility">0</property>
+                <property name="invisible-char">●</property>
+                <property name="truncate-multiline">1</property>
+                <property name="primary-icon-name">dialog-password</property>
+                <property name="primary-icon-activatable">0</property>
+                <property name="primary-icon-sensitive">0</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="yes">Allowed _IP addresses</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">entry_allowed_ips</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="entry_allowed_ips">
+                <property name="tooltip-text" translatable="yes">Comma-separated list of IP (v4 or v6) addresses with CIDR masks from which incoming traffic for this peer is allowed and to which outgoing traffic for this peer is directed.</property>
+                <property name="hexpand">1</property>
+                <property name="truncate-multiline">1</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="halign">end</property>
+                <property name="label" translatable="yes">_Persistent keepalive</property>
+                <property name="use-underline">1</property>
+                <property name="mnemonic-widget">spin_persistent_keepalive</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">4</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkSpinButton" id="spin_persistent_keepalive">
+                    <property name="tooltip-text" translatable="yes">How often to send an authenticated empty packet to the peer for the purpose of keeping a stateful firewall or NAT mapping valid. This is optional and not recommended outside of specific setups.</property>
+                    <property name="hexpand">1</property>
+                    <property name="adjustment">adjustment_keepalive</property>
+                    <property name="climb-rate">1</property>
+                    <property name="numeric">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">seconds</property>
+                  </object>
+                </child>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">4</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_apply">
+            <property name="receives-default">1</property>
+            <property name="halign">end</property>
+            <property name="use-underline">1</property>
+            <property name="label" translatable="yes">Apply</property>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

@@ -1,0 +1,81 @@
+# Copyright © 2025 Christian Persch
+#
+# This library is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library.  If not, see <https://www.gnu.org/licenses/>.
+
+include:
+  - project: 'chpe/versuch-ci'
+    ref: f2a826ab2546761f1ab55d84b004b190de166b2d
+    file: '/versuch.yml'
+    inputs:
+      release-service: real
+
+variables:
+  VERSUCH_FEDORA_VERSION: 41
+
+  # Increase this serial when changing VERSUCH_FEDORA_PACKAGES
+  # below, and reset to 0 when changing VERSUCH_FEDORA_VERSION
+  # above.
+  VERSUCH_FEDORA_SERIAL: '0'
+
+  # Note that vte isn't on this list; gnome-terminal needs to
+  # build vte itself (since it cannot rely on the distro to
+  # have an adequate version), which is done as a meson
+  # subproject. Therefore the build dependencies of vte also
+  # need to be on this list.
+  # This image is also shared between master and gtk3 branches,
+  # so add both gtk3 and gtk4-based dependencies.
+  VERSUCH_FEDORA_PACKAGES: >-
+    appstream
+    clang
+    clang-analyzer
+    clang-tools-extra
+    desktop-file-utils
+    docbook-style-xsl
+    fast_float-devel
+    fribidi-devel
+    gcc-c++
+    gettext-devel
+    gi-docgen
+    glib2-devel
+    gnutls-devel
+    gsettings-desktop-schemas-devel
+    gtk3-devel
+    gtk4-devel
+    itstool
+    libadwaita-devel
+    libhandy-devel
+    libicu-devel
+    libuuid-devel
+    libxslt
+    lz4-devel
+    meson
+    nautilus-devel
+    pango-devel
+    pcre2-devel
+    python3-jinja2
+    python3-packaging
+    python3-pygments
+    python3-toml
+    python3-typogrify
+    systemd-devel
+    yelp-tools
+
+  VERSUCH_COMMON_BUILD_OPTIONS: >-
+    --buildtype=debug
+    --prefix=/usr
+    -Ddocs=true
+    -Dnautilus_extension=true
+    -Dsearch_provider=true
+
+  VERSUCH_CI_BOT_NAME: "GNOME Terminal Automation"

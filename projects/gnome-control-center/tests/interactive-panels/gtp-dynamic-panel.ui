@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.22"/>
+  <template class="GtpDynamicPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwStatusPage">
+            <property name="icon-name">weather-clear-night-symbolic</property>
+            <property name="title">Dynamic Panel</property>
+            <property name="description">Dynamic panels may hide if you don't have some hardware. Use the button below to toggle the panel visibility:</property>
+
+            <child>
+              <object class="GtkButton">
+                <property name="halign">center</property>
+                <property name="label">Hide</property>
+                <signal name="clicked" handler="on_button_clicked_cb" object="GtpDynamicPanel" swapped="no" />
+                <style>
+                  <class name="pill" />
+                </style>
+              </object>
+            </child>
+
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>
+

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcAlertChooserWindow" parent="AdwWindow">
+    <property name="title" translatable="yes">Alert Sound</property>
+    <property name="modal">True</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="default-width">360</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">None</property>
+                    <property name="activatable-widget">none_button</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="none_button">
+                        <property name="valign">center</property>
+                        <signal name="toggled" handler="toggled_cb" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Click</property>
+                    <property name="activatable-widget">click_button</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="click_button">
+                        <property name="valign">center</property>
+                        <property name="group">none_button</property>
+                        <signal name="activate" handler="activate_cb" swapped="yes"/>
+                        <signal name="toggled" handler="toggled_cb" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">String</property>
+                    <property name="activatable-widget">string_button</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="string_button">
+                        <property name="valign">center</property>
+                        <property name="group">none_button</property>
+                        <signal name="activate" handler="activate_cb" swapped="yes"/>
+                        <signal name="toggled" handler="toggled_cb" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Swing</property>
+                    <property name="activatable-widget">swing_button</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="swing_button">
+                        <property name="valign">center</property>
+                        <property name="group">none_button</property>
+                        <signal name="activate" handler="activate_cb" swapped="yes"/>
+                        <signal name="toggled" handler="toggled_cb" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Hum</property>
+                    <property name="activatable-widget">hum_button</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="hum_button">
+                        <property name="valign">center</property>
+                        <property name="group">none_button</property>
+                        <signal name="activate" handler="activate_cb" swapped="yes"/>
+                        <signal name="toggled" handler="toggled_cb" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="PpJobRow" parent="GtkListBoxRow">
+    <child>
+      <object class="GtkBox">
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <child>
+          <object class="GtkLabel" id="title_label">
+            <property name="ellipsize">end</property>
+            <property name="max-width-chars">40</property>
+            <property name="halign">start</property>
+            <property name="hexpand">True</property>
+            <property name="margin-start">10</property>
+            <property name="margin-end">10</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="state_label">
+            <property name="halign">end</property>
+            <property name="margin-start">74</property>
+            <property name="margin-end">74</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="priority_button">
+            <property name="margin-start">4</property>
+            <property name="margin-end">4</property>
+            <property name="icon-name">go-top-symbolic</property>
+            <signal name="clicked" handler="priority_cb" object="PpJobRow" swapped="yes" />
+            <style>
+              <class name="image-button"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="pause_button">
+            <property name="margin-start">4</property>
+            <property name="margin-end">4</property>
+            <signal name="clicked" handler="pause_cb" object="PpJobRow" swapped="yes" />
+            <style>
+              <class name="image-button"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="margin-start">4</property>
+            <property name="margin-end">4</property>
+            <property name="icon-name">edit-delete-symbolic</property>
+            <signal name="clicked" handler="stop_cb" object="PpJobRow" swapped="yes" />
+            <style>
+              <class name="image-button"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

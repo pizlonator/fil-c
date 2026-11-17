@@ -1,0 +1,78 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      id="pref-custom-exit">
+
+  <info>
+    <revision pkgversion="3.8" date="2013-03-02" status="candidate"/>
+    <revision pkgversion="3.12" date="2014-09-08" status="candidate"/>
+    <revision pkgversion="3.34" date="2020-01-04" status="candidate"/>
+    <link type="guide" xref="index#preferences"/>
+    <link type="guide" xref="pref#profile"/>
+<!--    <link type="seealso" xref="prob-recover-default-profile"/>-->
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013-2014</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Set the behavior of <app>Terminal</app> when a custom command or the default shell exits.</desc>
+
+  </info>
+
+  <title>Set behavior on command exit</title>
+
+  <p>You can set the terminal to exit, restart or remain open when the shell or
+  a custom command exits:</p>
+
+  <steps>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Preferences</gui>.</p>
+    </item>
+    <item>
+      <p>In the sidebar, select your current profile in the <gui>Profiles</gui>
+      section.</p>
+    </item>
+    <item>
+      <p>Select <gui style="tab">Command</gui>.</p>
+    </item>
+    <item>
+      <p>From the <gui>When command exits</gui> drop down list, select one of
+      the following options:</p>
+      <list>
+        <item>
+          <p><gui>Exit the terminal</gui></p>
+        </item>
+        <item>
+          <p><gui>Restart the command</gui></p>
+        </item>
+        <item>
+          <p><gui>Hold the terminal open</gui></p>
+        </item>
+      </list>
+      <p>The setting will be saved automatically when you select it.</p>
+    </item>
+  </steps>
+
+  <note style="important">
+    <p>If you have <link xref="pref-custom-command">set a custom command</link>
+    that is non-interactive, have set the exit behavior to <gui>Exit the
+    terminal</gui>, and have set the profile to be the default profile,
+    <app>Terminal</app> may exit before you can see the output of the
+    command.</p>
+  </note>
+
+</page>

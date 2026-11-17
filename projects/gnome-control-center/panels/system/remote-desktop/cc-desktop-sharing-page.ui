@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcDesktopSharingPage" parent="AdwBin">
+    <child>
+      <object class="AdwToastOverlay" id="toast_overlay">
+        <property name="child">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Share your existing desktop with other devices. The remote connection uses the existing screen resolution</property>
+                    <property name="hexpand">True</property>
+                    <property name="wrap">True</property>
+                    <property name="justify">center</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="desktop_sharing_row">
+                    <property name="title" translatable="yes">_Desktop Sharing</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="remote_control_row">
+                    <property name="title" translatable="yes">Remote _Control</property>
+                    <property name="use-underline">True</property>
+                    <property name="subtitle" translatable="yes">Allows desktop shares to control the screen</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">How to Connect</property>
+                <property name="description" translatable="yes">Use a remote desktop app to connect using the RDP protocol. Additional information about the device’s network location may also be required.</property>
+                <child>
+                  <object class="AdwActionRow" id="hostname_row">
+                    <property name="title" translatable="yes">_Hostname</property>
+                    <property name="use-underline">True</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
+                    <child type="suffix">
+                      <object class="GtkButton">
+                        <property name="tooltip-text" translatable="yes">Copy</property>
+                        <property name="valign">center</property>
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <signal name="clicked" handler="on_address_copy_clicked" swapped="yes"/>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="port_row">
+                    <property name="title" translatable="yes">_Port</property>
+                    <property name="use-underline">True</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
+                    <child type="suffix">
+                      <object class="GtkButton">
+                        <property name="tooltip-text" translatable="yes">Copy</property>
+                        <property name="valign">center</property>
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <signal name="clicked" handler="on_port_copy_clicked" swapped="yes"/>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Login Details</property>
+                <child>
+                  <object class="AdwEntryRow" id="username_entry">
+                    <property name="title" translatable="yes">Username</property>
+                    <child type="suffix">
+                      <object class="GtkButton">
+                        <property name="tooltip-text" translatable="yes">Copy</property>
+                        <property name="valign">center</property>
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <signal name="clicked" handler="on_username_copy_clicked" swapped="yes"/>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPasswordEntryRow" id="password_entry">
+                    <property name="title" translatable="yes">Password</property>
+                    <child type="suffix">
+                      <object class="GtkButton">
+                        <property name="tooltip-text" translatable="yes">Copy</property>
+                        <property name="valign">center</property>
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <signal name="clicked" handler="on_password_copy_clicked" swapped="yes"/>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="margin-top">24</property>
+                    <property name="spacing">10</property>
+                    <child>
+                      <object class="GtkButton" id="generate_password_button">
+                        <property name="sensitive">False</property>
+                        <property name="can-shrink">True</property>
+                        <property name="label" translatable="yes">_Generate New Password</property>
+                        <property name="use-underline">True</property>
+                        <signal name="clicked" handler="on_generate_password_button_clicked" swapped="yes"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="verify_encryption_button">
+                        <property name="sensitive">False</property>
+                        <property name="hexpand">True</property>
+                        <property name="halign">end</property>
+                        <property name="can-shrink">True</property>
+                        <property name="label" translatable="yes">_Verify Encryption</property>
+                        <property name="use-underline">True</property>
+                        <signal name="clicked" handler="on_verify_encryption_button_clicked" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+</interface>

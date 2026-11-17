@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+
+  <object class="CcTzDialog" id="timezone_dialog">
+    <signal name="tz-selected" handler="panel_tz_selection_changed_cb" swapped="yes"/>
+  </object>
+
+  <object class="AdwWindow" id="datetime_dialog">
+    <property name="title" translatable="yes">Date &amp; Time</property>
+    <property name="modal">True</property>
+    <property name="hide-on-close">True</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin_top">28</property>
+            <property name="margin_bottom">28</property>
+            <property name="margin_start">12</property>
+            <property name="margin_end">12</property>
+            <property name="spacing">18</property>
+            <child>
+              <object class="CcTimeEditor" id="time_editor">
+                <property name="halign">center</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwClamp">
+                <property name="maximum-size">600</property>
+
+                <child>
+                  <object class="GtkListBox" id="date_box">
+                    <property name="width-request">320</property>
+                    <property name="selection-mode">none</property>
+                    <signal name="row-activated" handler="on_date_box_row_activated_cb" swapped="yes"/>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+
+                    <!-- Year row -->
+                    <child>
+                      <object class="AdwSpinRow" id="year_spin_row">
+                        <property name="title" translatable="yes">_Year</property>
+                        <property name="use-underline">True</property>
+                        <property name="valign">center</property>
+                        <property name="width-chars">4</property>
+                        <property name="numeric">True</property>
+                      </object>
+                    </child>
+
+                    <!-- Month row -->
+                    <child>
+                      <object class="CcListRow" id="month_row">
+                        <property name="title" translatable="yes">_Month</property>
+                        <binding name="secondary-label">
+                          <lookup name="string" type="GtkStringObject">
+                            <lookup name="selected-item">month_model</lookup>
+                          </lookup>
+                        </binding>
+                        <child type="suffix">
+                          <object class="GtkBox">
+                            <property name="valign">center</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">pan-down-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkPopover" id="month_popover">
+                                <property name="child">month_grid</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <!-- Day row -->
+                    <child>
+                      <object class="AdwSpinRow" id="day_spin_row">
+                        <property name="title" translatable="yes">_Day</property>
+                        <property name="use-underline">True</property>
+                        <property name="valign">center</property>
+                        <property name="width-chars">3</property>
+                        <property name="numeric">True</property>
+                      </object>
+                    </child>
+
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+  <template class="CcDateTimePage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Date &amp; Time</property>
+    <property name="tag">datetime</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <child type="end">
+              <object class="GtkLockButton" id="lock_button">
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwActionRow" id="auto_datetime_row">
+                    <property name="title" translatable="yes">Automatic _Date &amp;amp; Time</property>
+                    <property name="subtitle" translatable="yes">Requires internet access</property>
+                    <property name="use_underline">True</property>
+                    <property name="activatable_widget">network_time_switch</property>
+                    <child>
+                      <object class="GtkSwitch" id="network_time_switch">
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="CcListRow" id="datetime_row">
+                    <property name="title" translatable="yes">Date &amp;amp; _Time</property>
+                    <property name="show-arrow">True</property>
+                    <signal name="activated" handler="list_box_row_activated" swapped="yes"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="auto_timezone_row">
+                    <property name="visible">False</property>
+                    <property name="title" translatable="yes">Automatic Time _Zone</property>
+                    <property name="subtitle" translatable="yes">Requires location services enabled and internet access</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="CcListRow" id="timezone_row">
+                    <property name="title" translatable="yes">Time Z_one</property>
+                    <property name="show-arrow">True</property>
+                    <signal name="activated" handler="list_box_row_activated" swapped="yes"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Time _Format</property>
+                    <property name="use_underline">True</property>
+                    <child type="suffix">
+                      <object class="GtkBox">
+                        <property name="valign">center</property>
+                        <property name="homogeneous">True</property>
+                        <style>
+                          <class name="linked"/>
+                        </style>
+                        <child>
+                          <object class="GtkToggleButton" id="twentyfour_format_button">
+                            <property name="label" translatable="yes">_24-hour</property>
+                            <property name="use-underline">True</property>
+                            <property name="group">ampm_format_button</property>
+                            <property name="can-shrink">True</property>
+                            <signal name="toggled" handler="change_clock_settings" object="CcDateTimePage" swapped="yes"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkToggleButton" id="ampm_format_button">
+                            <property name="label" translatable="yes">AM / _PM</property>
+                            <property name="use-underline">True</property>
+                            <property name="can-shrink">True</property>
+                            <signal name="toggled" handler="change_clock_settings" object="CcDateTimePage" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Clock &amp;amp; Calendar</property>
+                <property name="description" translatable="yes">Control how the time and date is shown in the top bar</property>
+                <child>
+                  <object class="AdwSwitchRow" id="weekday_row">
+                    <property name="title" translatable="yes">_Week Day</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="date_row">
+                    <property name="title" translatable="yes">D_ate</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="seconds_row">
+                    <property name="title" translatable="yes">_Seconds</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="week_numbers_row">
+                    <property name="title" translatable="yes">Week _Numbers</property>
+                    <property name="subtitle" translatable="yes">Shown in the dropdown calendar</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
+  <object class="GtkGridView" id="month_grid">
+    <property name="halign">start</property>
+    <property name="margin-start">3</property>
+    <property name="margin-end">3</property>
+    <property name="margin-top">3</property>
+    <property name="margin-bottom">3</property>
+    <property name="orientation">horizontal</property>
+    <property name="max-columns">6</property>
+    <property name="min-columns">6</property>
+    <property name="enable-rubberband">False</property>
+    <style>
+      <class name="month-grid"/>
+    </style>
+    <property name="factory">
+      <object class="GtkBuilderListItemFactory">
+        <property name="resource">/org/gnome/control-center/system/datetime/cc-month-row.ui</property>
+      </object>
+    </property>
+    <property name="model">
+      <object class="GtkSingleSelection" id="month_model">
+        <property name="autoselect">False</property>
+        <property name="model">
+          <object class="GtkStringList">
+            <items>
+              <item translatable="yes">January</item>
+              <item translatable="yes">February</item>
+              <item translatable="yes">March</item>
+              <item translatable="yes">April</item>
+              <item translatable="yes">May</item>
+              <item translatable="yes">June</item>
+              <item translatable="yes">July</item>
+              <item translatable="yes">August</item>
+              <item translatable="yes">September</item>
+              <item translatable="yes">October</item>
+              <item translatable="yes">November</item>
+              <item translatable="yes">December</item>
+            </items>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+
+</interface>

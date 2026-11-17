@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright © 2012, 2017 Christian Persch
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<interface>
+  <menu id="menubar">
+    <submenu>
+      <WITH_MNEMONIC><attribute name="label" translatable="yes">_File</attribute></WITH_MNEMONIC>
+      <WITHOUT_MNEMONIC><attribute name="label" translatable="yes">File</attribute></WITHOUT_MNEMONIC>
+      <section id="new-terminal-section" />
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Save Contents…</attribute>
+          <attribute name="action">win.save-contents</attribute>
+          <attribute name="hidden-when">action-missing</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Export…</attribute>
+          <attribute name="action">win.export</attribute>
+          <attribute name="hidden-when">action-missing</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Print…</attribute>
+          <attribute name="action">win.print</attribute>
+          <attribute name="hidden-when">action-missing</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">C_lose Tab</attribute>
+          <attribute name="action">win.close</attribute>
+          <attribute name="target">tab</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Close Window</attribute>
+          <attribute name="action">win.close</attribute>
+          <attribute name="target">window</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <WITH_MNEMONIC><attribute name="label" translatable="yes">_Edit</attribute></WITH_MNEMONIC>
+      <WITHOUT_MNEMONIC><attribute name="label" translatable="yes">Edit</attribute></WITHOUT_MNEMONIC>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Copy</attribute>
+          <attribute name="action">win.copy</attribute>
+          <attribute name="target">text</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Copy as _HTML</attribute>
+          <attribute name="action">win.copy</attribute>
+          <attribute name="target">html</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Paste</attribute>
+          <attribute name="action">win.paste-text</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Paste as _Filenames</attribute>
+          <attribute name="action">win.paste-uris</attribute>
+          <attribute name="hidden-when">action-disabled</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Select _All</attribute>
+          <attribute name="action">win.select-all</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">P_references</attribute>
+          <attribute name="action">win.edit-preferences</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <WITH_MNEMONIC><attribute name="label" translatable="yes">_View</attribute></WITH_MNEMONIC>
+      <WITHOUT_MNEMONIC><attribute name="label" translatable="yes">View</attribute></WITHOUT_MNEMONIC>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Show _Menubar</attribute>
+          <attribute name="action">win.menubar-visible</attribute>
+          <attribute name="hidden-when">action-disabled</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Full Screen</attribute>
+          <attribute name="action">win.fullscreen</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Zoom _In</attribute>
+          <attribute name="action">win.zoom-in</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Normal Size</attribute>
+          <attribute name="action">win.zoom-normal</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Zoom _Out</attribute>
+          <attribute name="action">win.zoom-out</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <WITH_MNEMONIC><attribute name="label" translatable="yes">_Search</attribute></WITH_MNEMONIC>
+      <WITHOUT_MNEMONIC><attribute name="label" translatable="yes">Search</attribute></WITHOUT_MNEMONIC>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Find…</attribute>
+          <attribute name="action">win.find</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Find _Next</attribute>
+          <attribute name="action">win.find-forward</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Find _Previous</attribute>
+          <attribute name="action">win.find-backward</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Clear Highlight</attribute>
+          <attribute name="action">win.find-clear</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <WITH_MNEMONIC><attribute name="label" translatable="yes">_Terminal</attribute></WITH_MNEMONIC>
+      <WITHOUT_MNEMONIC><attribute name="label" translatable="yes">Terminal</attribute></WITHOUT_MNEMONIC>
+      <section>
+        <section id="set-profile-section" />
+        <item>
+          <attribute name="label" translatable="yes">Set _Title…</attribute>
+          <attribute name="action">win.set-title</attribute>
+          <attribute name="hidden-when">action-missing</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Read-_Only</attribute>
+          <attribute name="action">win.read-only</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Reset</attribute>
+          <attribute name="action">win.reset</attribute>
+          <attribute name="target" type="b">false</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Reset and C_lear</attribute>
+          <attribute name="action">win.reset</attribute>
+          <attribute name="target" type="b">true</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_1. 80×24</attribute>
+          <attribute name="action">win.size-to</attribute>
+          <attribute name="target" type="(uu)">(80, 24)</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_2. 80×43</attribute>
+          <attribute name="action">win.size-to</attribute>
+          <attribute name="target" type="(uu)">(80, 43)</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_3. 132×24</attribute>
+          <attribute name="action">win.size-to</attribute>
+          <attribute name="target" type="(uu)">(132, 24)</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_4. 132×43</attribute>
+          <attribute name="action">win.size-to</attribute>
+          <attribute name="target" type="(uu)">(132, 43)</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <WITH_MNEMONIC><attribute name="label" translatable="yes">Ta_bs</attribute></WITH_MNEMONIC>
+      <WITHOUT_MNEMONIC><attribute name="label" translatable="yes">Tabs</attribute></WITHOUT_MNEMONIC>
+      <attribute name="action">win.tabs-menu</attribute>
+      <attribute name="hidden-when">action-disabled</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Previous Tab</attribute>
+          <attribute name="action">win.tab-switch-left</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Next Tab</attribute>
+          <attribute name="action">win.tab-switch-right</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Move Terminal _Left</attribute>
+          <attribute name="action">win.tab-move-left</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Move Terminal _Right</attribute>
+          <attribute name="action">win.tab-move-right</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Detach Terminal</attribute>
+          <attribute name="action">win.tab-detach</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <WITH_MNEMONIC><attribute name="label" translatable="yes">_Help</attribute></WITH_MNEMONIC>
+      <WITHOUT_MNEMONIC><attribute name="label" translatable="yes">Help</attribute></WITHOUT_MNEMONIC>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Contents</attribute>
+          <attribute name="action">win.help</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_About</attribute>
+          <attribute name="action">win.about</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Inspector</attribute>
+          <attribute name="action">win.inspector</attribute>
+          <attribute name="hidden-when">action-disabled</attribute>
+        </item>
+      </section>
+    </submenu>
+  </menu>
+</interface>

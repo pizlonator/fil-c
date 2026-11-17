@@ -1,0 +1,10 @@
+[Unit]
+Description=GNOME Terminal Server
+PartOf=graphical-session.target
+[Service]
+Slice=app-@gt_dns_name@.slice
+Type=dbus
+BusName=@gt_dns_name@
+ExecStart=@libexecdir@/@gt_name@-server
+TimeoutStopSec=5s
+KillMode=process

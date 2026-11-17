@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+#  Window manipulation.
+#
+if [ "$#" -eq 0 ] ; then
+	echo usage: `basename $0` 'task [...]'
+	echo tasks:
+	echo "	1	deiconify"
+	echo "	2	iconify"
+	echo "	3 x y	move window to (x, y) pixels"
+	echo "	4 h w	resize window to (w, h) pixels"
+	echo "	5	raise"
+	echo "	6	lower"
+	echo "	7	refresh"
+	echo "	8 h w	resize text area to (w, h) cells"
+	echo "	9 0	unmaximize"
+	echo "	9 1	maximize"
+        echo "	11      report iconified state"
+        echo "	13      report window location in (y, x) pixels"
+        echo "	14      report window size in (h, w) pixels"
+        echo "	18      report window size in (h, w) cells"
+        echo "	19      report screen size in (h, w) cells"
+	exit
+fi
+args=
+for arg in $@ ; do
+	if [ "$args" = "" ] ; then
+		args="$arg"
+	else
+		args="$args;$arg"
+	fi
+done
+printf "["${args}t

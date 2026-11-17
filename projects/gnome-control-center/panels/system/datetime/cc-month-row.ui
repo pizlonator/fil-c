@@ -1,0 +1,55 @@
+<interface>
+  <template class="GtkListItem">
+    <property name="activatable">False</property>
+    <property name="child">
+      <object class="GtkBox">
+        <property name="margin-start">6</property>
+        <property name="margin-end">6</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
+
+        <!-- Month name -->
+        <child>
+          <object class="GtkLabel">
+             <property name="ellipsize">end</property>
+            <property name="xalign">0</property>
+            <property name="width-request">96</property>
+            <style>
+              <class name="title"/>
+            </style>
+            <binding name="label">
+              <lookup name="string" type="GtkStringObject">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+          </object>
+        </child>
+
+        <!-- Check Image -->
+        <child>
+          <object class="GtkImage" id="select_image">
+            <property name="visible" bind-source="GtkListItem" bind-property="selected" bind-flags="sync-create" />
+            <property name="icon-name">object-select-symbolic</property>
+          </object>
+        </child>
+
+        <!-- Placeholder too keep check image space intact -->
+        <child>
+          <object class="AdwBin" id="image_placeholder">
+            <property name="visible" bind-source="select_image" bind-flags="sync-create|invert-boolean" />
+          </object>
+        </child>
+
+      </object>
+    </property>
+  </template>
+
+  <object class="GtkSizeGroup">
+    <property name="mode">both</property>
+    <widgets>
+      <widget name="select_image"/>
+      <widget name="image_placeholder"/>
+    </widgets>
+  </object>
+
+</interface>

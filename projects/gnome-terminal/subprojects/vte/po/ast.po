@@ -1,0 +1,96 @@
+# Asturian translation for vte.
+# Copyright (C) 2010 vte's COPYRIGHT HOLDER
+# This file is distributed under the same license as the vte package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vte master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=vte&component=general\n"
+"POT-Creation-Date: 2009-12-28 02:23+0000\n"
+"PO-Revision-Date: 2010-01-03 21:22+0100\n"
+"Last-Translator: astur <malditoastur@gmail.com>\n"
+"Language-Team: Asturian <alministradores@softastur.org>\n"
+"Language: ast\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: asturian\n"
+
+#: ../src/iso2022.c:771
+#: ../src/iso2022.c:779
+#: ../src/iso2022.c:810
+#: ../src/vte.c:2219
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "Nun se pueden convertir carauteres de %s a %s."
+
+#: ../src/iso2022.c:1464
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "Intentóse definir un mapa NRC inválidu «%c»."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1494
+msgid "Unrecognized identified coding system."
+msgstr "Sistema de codificación identificáu ensin reconocer."
+
+#: ../src/iso2022.c:1553
+#: ../src/iso2022.c:1580
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "Intentóse definir un anchu inválidu nel mapa NRC «%c»."
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:833
+#, c-format
+msgid "can not run %s"
+msgstr "Nun puede executase %s"
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "Duplicáu (%s/%s)!"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:859
+msgid "Could not open console.\n"
+msgstr "Nun se pudo abrir la consola.\n"
+
+#: ../src/vteapp.c:923
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "Nun se pudo analizar la especificación de xeometría pasada a --geometry"
+
+#: ../src/vte.c:1268
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "Fallu compilando espresión regular \"%s\"."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4177
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "Fallu lleendo dende'l fíu: %s."
+
+#: ../src/vte.c:4305
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "Nun pueden mandase los datos al fíu, conversor de códigos de carauteres inválidu"
+
+#: ../src/vte.c:4316
+#: ../src/vte.c:5338
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "Hebo un fallu (%s) al convertir datos dende el fíu, omitiendo."
+
+#: ../src/vte.c:7554
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr "Hebo un fallu al lleer el tamañu PTY, usando'l predetermináu: %s."
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:13140
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "Hebo un fallu en _vte_conv_open() al afitar los carauteres de la pallabra"
+

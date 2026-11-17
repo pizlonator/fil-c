@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright © 2016, 2017, 2020 Christian Persch
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<interface>
+  <requires lib="gtk+" version="3.16"/>
+  <template class="VteappSearchPopover" parent="GtkPopover">
+    <property name="child">
+      <object class="GtkBox" id="box1">
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin_top">12</property>
+        <property name="margin_bottom">12</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="box2">
+            <property name="spacing">18</property>
+            <child>
+              <object class="GtkBox" id="box4">
+                <property name="hexpand">1</property>
+                <child>
+                  <object class="GtkSearchEntry" id="search_entry">
+                    <property name="hexpand">1</property>
+                    <property name="activates_default">1</property>
+                    <property name="width_chars">30</property>
+                    <property name="placeholder_text" translatable="yes">Search</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="search_prev_button">
+                    <property name="receives_default">1</property>
+                    <property name="tooltip_text" translatable="yes">Search for previous occurrence</property>
+                    <property name="focus_on_click">0</property>
+                    <child>
+                      <object class="GtkImage" id="image2">
+                        <property name="icon_name">go-up-symbolic</property>
+                        <property name="use_fallback">1</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="search_next_button">
+                    <property name="receives_default">1</property>
+                    <property name="tooltip_text" translatable="yes">Search for next occurrence</property>
+                    <property name="focus_on_click">0</property>
+                    <child>
+                      <object class="GtkImage" id="image3">
+                        <property name="icon_name">go-down-symbolic</property>
+                        <property name="use_fallback">1</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <style>
+                  <class name="linked"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="reveal_button">
+                <property name="receives_default">1</property>
+                <property name="tooltip_text" translatable="yes">Toggle search options</property>
+                <property name="focus_on_click">0</property>
+                <child>
+                  <object class="GtkImage" id="image1">
+                    <property name="icon_name">open-menu-symbolic</property>
+                    <property name="use_fallback">1</property>
+                  </object>
+                </child>
+		<!--
+                <accessibility>
+                  <relation type="controller-for" target="revealer"/>
+                </accessibility>
+		-->
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="close_button">
+                <property name="receives_default">1</property>
+                <property name="focus_on_click">0</property>
+                <child>
+                  <object class="GtkImage" id="image4">
+                    <property name="icon_name">window-close-symbolic</property>
+                    <property name="use_fallback">1</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkRevealer" id="revealer">
+            <property name="transition_type">none</property>
+            <property name="reveal_child">0</property>
+            <property name="child">
+              <object class="GtkBox" id="box3">
+                <property name="margin_top">18</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkCheckButton" id="match_case_checkbutton">
+                    <property name="valign">center</property>
+                    <property name="label" translatable="yes">_Match case</property>
+                    <property name="use_underline">1</property>
+                    <property name="focus_on_click">0</property>
+                    <property name="halign">start</property>
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="entire_word_checkbutton">
+                    <property name="valign">center</property>
+                    <property name="label" translatable="yes">Match _entire word only</property>
+                    <property name="use_underline">1</property>
+                    <property name="focus_on_click">0</property>
+                    <property name="halign">start</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="regex_checkbutton">
+                    <property name="valign">center</property>
+                    <property name="label" translatable="yes">Match as _regular expression</property>
+                    <property name="use_underline">1</property>
+                    <property name="focus_on_click">0</property>
+                    <property name="halign">start</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkCheckButton" id="wrap_around_checkbutton">
+                    <property name="valign">center</property>
+                    <property name="label" translatable="yes">_Wrap around</property>
+                    <property name="use_underline">1</property>
+                    <property name="focus_on_click">0</property>
+                    <property name="halign">start</property>
+                    <property name="active">1</property>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

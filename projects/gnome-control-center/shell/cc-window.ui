@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcWindow" parent="AdwApplicationWindow">
+    <property name="default-width">980</property>
+    <property name="default-height">640</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <child>
+      <object class="AdwBreakpoint">
+        <condition>max-width: 550sp</condition>
+        <setter object="split_view" property="collapsed">True</setter>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwNavigationSplitView" id="split_view">
+        <signal name="notify::collapsed" handler="on_split_view_collapsed_changed_cb" object="CcWindow" swapped="yes" />
+
+        <property name="sidebar">
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Settings</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar">
+                    <child>
+                      <object class="GtkToggleButton" id="search_button">
+                        <property name="icon-name">edit-find-symbolic</property>
+                        <property name="tooltip-text" translatable="yes" comments="Translators: this is a verb.">Search</property>
+                      </object>
+                    </child>
+                    <child type="end">
+                      <object class="GtkMenuButton">
+                        <property name="icon-name">open-menu-symbolic</property>
+                        <property name="menu-model">primary_menu</property>
+                        <property name="primary">True</property>
+                        <property name="tooltip-text" translatable="yes">Main Menu</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="top">
+                  <object class="GtkSearchBar" id="search_bar">
+                    <property name="search-mode-enabled" bind-source="search_button" bind-property="active" bind-flags="sync-create|bidirectional" />
+                    <child>
+                      <object class="GtkSearchEntry" id="search_entry">
+                        <property name="hexpand">True</property>
+                        <property name="placeholder-text" translatable="yes">Search settings</property>
+                        <signal name="activate" handler="search_entry_activate_cb" object="CcWindow" swapped="yes" />
+                        <child>
+                          <object class="GtkEventControllerKey">
+                            <signal name="key-pressed" handler="search_entry_key_pressed_cb" object="CcWindow" swapped="yes" />
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <property name="content">
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <child>
+                      <object class="CcPanelList" id="panel_list">
+                        <property name="search-mode" bind-source="search_bar" bind-property="search-mode-enabled" bind-flags="bidirectional" />
+                        <property name="search-query" bind-source="search_entry" bind-property="text" bind-flags="default" />
+                        <signal name="show-panel" handler="show_panel_cb" object="CcWindow" swapped="yes" />
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
+  <!-- Warning dialog for development builds -->
+  <object class="AdwMessageDialog" id="development_warning_dialog">
+    <property name="transient-for">CcWindow</property>
+    <property name="modal">true</property>
+    <property name="heading" translatable="yes">Warning: Development Version</property>
+    <property name="body" translatable="yes">This version of Settings should only be used for development purposes. You may experience incorrect system behavior, data loss, and other unexpected issues. </property>
+    <property name="default-response">ok</property>
+    <property name="close-response">ok</property>
+    <responses>
+      <response id="ok" translatable="yes">_OK</response>
+    </responses>
+    <signal name="response" handler="on_development_warning_dialog_responded_cb" object="CcWindow" swapped="yes" />
+  </object>
+
+  <menu id="primary_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
+        <attribute name="action">win.show-help-overlay</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_Help</attribute>
+        <attribute name="action">app.help</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">_About Settings</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </section>
+  </menu>
+
+</interface>

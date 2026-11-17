@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcWacomStylusPage" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <property name="spacing">24</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="stylus_section">
+        <property name="header-suffix">
+          <object class="GtkPicture" id="stylus_icon">
+            <property name="halign">end</property>
+            <property name="valign">start</property>
+          </object>
+        </property>
+        <child>
+          <object class="AdwActionRow" id="stylus_tip_pressure">
+            <property name="title" translatable="yes">Tip _Pressure Feel</property>
+            <property name="use-underline">true</property>
+            <child>
+              <object class="GtkBox" id="stylus_tip_pressure_box">
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Soft</property>
+                    <style>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScale" id="stylus_tip_pressure_scale">
+                    <property name="adjustment">stylus_tip_pressure_adjustment</property>
+                    <property name="draw_value">False</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <signal name="value-changed" handler="on_tip_pressure_value_changed" swapped="yes"/>
+                    <accessibility>
+                      <property name="label" translatable="yes">Stylus tip pressure</property>
+                    </accessibility>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Firm</property>
+                    <style>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="CcListRow" id="stylus_button1_action_row">
+            <property name="title" translatable="yes">Button _1</property>
+            <property name="activatable">True</property>
+            <signal name="activated" handler="on_stylus_button1_action_activated" object="CcWacomStylusPage" swapped="yes" />
+            <child>
+              <object class="GtkLabel" id="stylus_button1_action_label">
+                <property name="use-underline">True</property>
+                <property name="halign">end</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage">
+                <property name="valign">center</property>
+                <property name="icon-name">go-next-symbolic</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="CcListRow" id="stylus_button2_action_row">
+            <property name="title" translatable="yes">Button _2</property>
+            <property name="activatable">True</property>
+            <signal name="activated" handler="on_stylus_button2_action_activated" object="CcWacomStylusPage" swapped="yes" />
+            <child>
+              <object class="GtkLabel" id="stylus_button2_action_label">
+                <property name="use-underline">True</property>
+                <property name="halign">end</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage">
+                <property name="valign">center</property>
+                <property name="icon-name">go-next-symbolic</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="CcListRow" id="stylus_button3_action_row">
+            <property name="title" translatable="yes">Button _3</property>
+            <property name="activatable">True</property>
+            <signal name="activated" handler="on_stylus_button3_action_activated" object="CcWacomStylusPage" swapped="yes" />
+            <child>
+              <object class="GtkLabel" id="stylus_button3_action_label">
+                <property name="use-underline">True</property>
+                <property name="halign">end</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage">
+                <property name="valign">center</property>
+                <property name="icon-name">go-next-symbolic</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="stylus_eraser_pressure">
+            <property name="title" translatable="yes">_Eraser Pressure Feel</property>
+            <property name="use-underline">true</property>
+            <child>
+              <object class="GtkBox" id="stylus_eraser_pressure_box">
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Soft</property>
+                    <style>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScale" id="stylus_eraser_pressure_scale">
+                    <property name="adjustment">stylus_eraser_pressure_adjustment</property>
+                    <property name="draw_value">False</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <signal name="value-changed" handler="on_eraser_pressure_value_changed" swapped="yes"/>
+                    <accessibility>
+                      <property name="label" translatable="yes">Eraser pressure</property>
+                    </accessibility>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Firm</property>
+                    <style>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkAdjustment" id="stylus_tip_pressure_adjustment">
+    <property name="upper">200</property>
+    <property name="step_increment">20</property>
+    <property name="page_increment">60</property>
+  </object>
+  <object class="GtkAdjustment" id="stylus_eraser_pressure_adjustment">
+    <property name="upper">200</property>
+    <property name="step_increment">20</property>
+    <property name="page_increment">60</property>
+  </object>
+  <object class="GtkSizeGroup" id="sizegroup_pressure">
+    <widgets>
+      <widget name="stylus_tip_pressure_box" />
+      <widget name="stylus_eraser_pressure_box" />
+    </widgets>
+  </object>
+</interface>

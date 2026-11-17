@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcWacomPage" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <property name="spacing">24</property>
+    <child>
+      <object class="AdwPreferencesGroup" id="tablet_section">
+        <property name="header-suffix">
+          <object class="GtkPicture" id="tablet_icon">
+            <property name="halign">end</property>
+            <property name="valign">start</property>
+          </object>
+        </property>
+        <child>
+          <object class="AdwSwitchRow" id="tablet_mode_row">
+            <property name="title" translatable="yes">_Tablet Mode</property>
+            <property name="subtitle" translatable="yes">Use absolute positioning for the pen</property>
+            <property name="use-underline">true</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSwitchRow" id="tablet_left_handed_row">
+            <property name="title" translatable="yes">_Left Hand Orientation</property>
+            <property name="subtitle" translatable="yes">Tablet and Express Keys™ are rotated for left hand use</property>
+            <property name="use-underline">true</property>
+          </object>
+        </child>
+        <child>
+          <object class="CcListRow" id="tablet_map_buttons">
+            <property name="title" translatable="yes">Map _Buttons</property>
+            <property name="activatable">True</property>
+            <property name="show-arrow">True</property>
+            <signal name="activated" handler="on_map_buttons_activated" object="CcWacomPage" swapped="yes" />
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <object class="AdwPreferencesGroup" id="display_section">
+        <child>
+          <object class="AdwComboRow" id="tablet_display">
+            <property name="width_request">100</property>
+            <property name="title" translatable="yes" context="display setting">Map to _Monitor</property>
+            <property name="use-underline">true</property>
+            <signal name="notify::selected-item" handler="on_display_selected" object="CcWacomPage" swapped="yes"/>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSwitchRow" id="tablet_aspect_ratio_row">
+            <property name="title" translatable="yes">_Keep Aspect Ratio</property>
+            <property name="subtitle" translatable="yes">Only use a portion of the tablet surface to keep monitor aspect ratio</property>
+            <property name="use-underline">true</property>
+          </object>
+        </child>
+        <child>
+          <object class="CcListRow" id="tablet_calibrate">
+            <property name="title" translatable="yes">_Calibrate</property>
+            <property name="activatable">True</property>
+            <property name="show-arrow">True</property>
+            <signal name="activated" handler="on_calibrate_activated" object="CcWacomPage" swapped="yes" />
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

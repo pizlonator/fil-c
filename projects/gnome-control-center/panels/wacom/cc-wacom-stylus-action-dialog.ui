@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcWacomStylusActionDialog" parent="AdwWindow">
+    <property name="modal">True</property>
+    <property name="resizable">False</property>
+    <property name="title" translatable="no">Grip Pen</property>
+    <child>
+      <object class="AdwNavigationView" id="navigation_view">
+        <child>
+          <object class="AdwNavigationPage" id="main_page">
+            <property name="title" bind-source="CcWacomStylusActionDialog" bind-flags="sync-create" bind-property="title"/>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="AdwPreferencesGroup" id="preferences_group">
+                    <property name="margin-top">12</property>
+                    <property name="margin-bottom">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
+                    <property name="title" translatable="no">Button %d mapping</property>
+                    <property name="description" translatable="no">Choose an action when Button %d on the stylus is pressed</property>
+                    <child>
+                      <object class="GtkListBox" id="switch_listbox">
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                        <child>
+                          <object class="AdwActionRow" id="left_button_row">
+                            <property name="use-underline">True</property>
+                            <property name="activatable-widget">left_button</property>
+                            <signal name="activated" handler="left_button_activated" swapped="yes"/>
+                            <child type="prefix">
+                              <object class="GtkCheckButton" id="left_button">
+                                <property name="valign">center</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwActionRow" id="middle_button_row">
+                            <property name="use-underline">True</property>
+                            <property name="activatable-widget">middle_button</property>
+                            <signal name="activated" handler="middle_button_activated" swapped="yes"/>
+                            <child type="prefix">
+                              <object class="GtkCheckButton" id="middle_button">
+                                <property name="valign">center</property>
+                                <property name="group">left_button</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwActionRow" id="right_button_row">
+                            <property name="use-underline">True</property>
+                            <property name="activatable-widget">right_button</property>
+                            <signal name="activated" handler="right_button_activated" swapped="yes"/>
+                            <child type="prefix">
+                              <object class="GtkCheckButton" id="right_button">
+                                <property name="valign">center</property>
+                                <property name="group">left_button</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwActionRow" id="back_row">
+                            <property name="use-underline">True</property>
+                            <property name="activatable-widget">back</property>
+                            <signal name="activated" handler="back_activated" swapped="yes"/>
+                            <child type="prefix">
+                              <object class="GtkCheckButton" id="back">
+                                <property name="valign">center</property>
+                                <property name="group">left_button</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwActionRow" id="forward_row">
+                            <property name="use-underline">True</property>
+                            <property name="activatable-widget">forward</property>
+                            <signal name="activated" handler="forward_activated" swapped="yes"/>
+                            <child type="prefix">
+                              <object class="GtkCheckButton" id="forward">
+                                <property name="valign">center</property>
+                                <property name="group">left_button</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>  <!-- ./AdwNavigationView navigation_view-->
+    </child>
+
+  </template>
+  <object class="GtkSizeGroup" id="accelerator_size_group"/>
+</interface>

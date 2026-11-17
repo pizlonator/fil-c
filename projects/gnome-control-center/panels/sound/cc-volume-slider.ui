@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcVolumeSlider" parent="GtkWidget">
+    <child>
+      <object class="GtkButton" id="mute_button">
+        <property name="icon_name">audio-volume-muted-symbolic</property>
+        <property name="action-name">volume-slider.mute</property>
+        <property name="tooltip-text" translatable="yes">Mute</property>
+        <style>
+          <class name="flat" />
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScale" id="volume_scale">
+        <property name="adjustment">volume_adjustment</property>
+        <property name="hexpand">True</property>
+        <accessibility>
+          <property name="label" translatable="yes">Volume</property>
+        </accessibility>
+      </object>
+    </child>
+  </template>
+  <object class="GtkAdjustment" id="volume_adjustment">
+    <signal name="value_changed" handler="volume_changed_cb" object="CcVolumeSlider" swapped="yes"/>
+  </object>
+</interface>

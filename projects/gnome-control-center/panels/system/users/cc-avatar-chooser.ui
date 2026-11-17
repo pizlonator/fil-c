@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<interface>
+  <!-- interface-requires gtk+ 3.8 -->
+  <template class="CcAvatarChooser" parent="GtkPopover">
+    <property name="visible">False</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkFlowBox" id="flowbox">
+            <property name="selection-mode">none</property>
+            <property name="homogeneous">True</property>
+            <property name="max-children-per-line">5</property>
+            <property name="column-spacing">10</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="halign">GTK_ALIGN_CENTER</property>
+            <property name="spacing">20</property>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">Select a File…</property>
+                <signal name="clicked" handler="cc_avatar_chooser_select_file" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

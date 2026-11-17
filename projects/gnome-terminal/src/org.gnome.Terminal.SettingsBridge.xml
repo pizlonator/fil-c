@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Introspection 0.1//EN"
+                      "http://www.freedesktop.org/software/dbus/introspection.dtd">
+<!--
+  Copyright © 2022 Christian Persch
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3, or (at your option)
+  any later version.
+
+  This program is distributed in the hope conf it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<node>
+  <interface name="org.gnome.Terminal.SettingsBridge">
+    <annotation name="org.gtk.GDBus.C.Name" value="SettingsBridge" />
+
+    <method name="get_permission">
+      <arg type="s" name="path" direction="in" />
+      <arg type="v" name="permission" direction="out" />
+    </method>
+
+    <method name="get_writable">
+      <arg type="s" name="key" direction="in" />
+      <arg type="b" name="writable" direction="out" />
+    </method>
+
+    <method name="read">
+      <arg type="s" name="key" direction="in" />
+      <arg type="s" name="type" direction="in" />
+      <arg type="b" name="default" direction="in" />
+      <arg type="ay" name="value" direction="out">
+        <annotation name="org.gtk.GDBus.C.ForceGVariant" value="true" />
+      </arg>
+    </method>
+
+    <method name="read_user_value">
+      <arg type="s" name="key" direction="in" />
+      <arg type="s" name="type" direction="in" />
+      <arg type="ay" name="value" direction="out">
+        <annotation name="org.gtk.GDBus.C.ForceGVariant" value="true" />
+      </arg>
+    </method>
+
+    <method name="reset">
+      <arg type="s" name="key" direction="in" />
+    </method>
+
+    <method name="subscribe">
+      <arg type="s" name="name" direction="in" />
+    </method>
+
+    <method name="sync">
+    </method>
+
+    <method name="unsubscribe">
+      <arg type="s" name="name" direction="in" />
+    </method>
+
+    <method name="write">
+      <arg type="s" name="key" direction="in" />
+      <arg type="ay" name="value" direction="in">
+        <annotation name="org.gtk.GDBus.C.ForceGVariant" value="true" />
+      </arg>
+      <arg type="b" name="success" direction="out" />
+    </method>
+
+    <method name="write_tree">
+      <arg type="s" name="path_prefix" direction="in" />
+      <arg type="ay" name="tree" direction="in">
+        <annotation name="org.gtk.GDBus.C.ForceGVariant" value="true" />
+      </arg>
+      <arg type="b" name="success" direction="out" />
+    </method>
+
+  </interface>
+</node>

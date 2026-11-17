@@ -1,0 +1,134 @@
+URL: https://download.gnome.org/sources/vte/0.78/vte-0.78.7.tar.xz d464c01ddb3a7174da82a8a96e0f44bde3467a6283b925a82f3e0d204fd0152b
+URL: https://ftp.gnome.org/pub/GNOME/sources/vte/0.78/vte-0.78.7.tar.xz d464c01ddb3a7174da82a8a96e0f44bde3467a6283b925a82f3e0d204fd0152b
+Origname: vte-0.78.7
+Name: vte
+
+diff --git a/vte/meson.build b/vte/meson.build
+--- a/vte/meson.build
++++ b/vte/meson.build
+@@ -51,7 +51,11 @@
+ gio_req_version           = '2.72.0'
+ glib_req_version          = '2.72.0'
+ glib_min_req_version      = '2.72'
+-glib_max_allowed_version  = '2.72'
++# Fil-C: GType is a pointer in the pizlonated glib, so GLIB_VERSION_MAX_ALLOWED
++# must be 2.80 or newer for G_DEFINE_TYPE to generate the pointer-based
++# g_once_init_enter_pointer path (the pre-2.80 path treats the static as gsize,
++# which fil-C rejects as a type confusion).
++glib_max_allowed_version  = '2.80'
+ gnutls_req_version        = '3.2.7'
+ icu_uc_req_version        = '4.8'
+ pango_req_version         = '1.22.0'
+diff --git a/vte/src/missing.cc b/vte/src/missing.cc
+--- a/vte/src/missing.cc
++++ b/vte/src/missing.cc
+@@ -26,7 +26,9 @@
+ #include <gio/gio.h>
+
+ #ifdef __linux__
+-#include <sys/syscall.h>  /* for syscall and SYS_getdents64 */
++#include <sys/syscall.h>  /* for the SYS_* constants (the calls themselves go
++                           * through the zsys_* wrappers below) */
++#include <pizlonated_syscalls.h>  /* Fil-C: zsys_* syscall wrappers */
+ #endif
+
+ #ifdef __APPLE__
+@@ -48,6 +50,12 @@
+
+ #ifdef __linux__
+
++/* Fil-C: the kernel's 64-bit getdents format (struct linux_dirent64), used
++ * with the zsys_getdents wrapper below - fil-C requires syscalls to go
++ * through the zsys_* wrappers, and although the wrapper is named
++ * zsys_getdents it produces the 64-bit dirent format (verified by feeding
++ * its output on /proc/self/fd through this struct: the names come out
++ * clean and the d_type bytes land where linux_dirent64 puts them). */
+ struct linux_dirent64
+ {
+   guint64        d_ino;    /* 64-bit inode number */
+@@ -148,10 +156,11 @@
+             unsigned int flags)
+ {
+ #if defined(__linux__) && defined(SYS_close_range)
+-        return syscall(SYS_close_range,
+-                       first_fd,
+-                       last_fd == unsigned(-1) ? ~0u : last_fd,
+-                       flags);
++        /* Fil-C: raw syscall() is not allowed; use the zsys_close_range
++         * wrapper (same semantics, but fil-C-safe argument passing). */
++        return zsys_close_range(first_fd,
++                                last_fd == unsigned(-1) ? ~0u : last_fd,
++                                flags);
+ #else
+         errno = ENOSYS;
+         return -1;
+@@ -186,7 +195,10 @@
+       int pos, nread;
+       struct linux_dirent64 *de;
+
+-      while ((nread = syscall (SYS_getdents64, dir_fd, buf, sizeof(buf))) > 0)
++      /* Fil-C: raw syscall(SYS_getdents64) is not allowed; use the
++       * zsys_getdents wrapper, which produces the 64-bit dirent format
++       * (see the struct definition above). */
++      while ((nread = zsys_getdents (dir_fd, buf, sizeof(buf))) > 0)
+         {
+           for (pos = 0; pos < nread; pos += de->d_reclen)
+             {
+diff --git a/vte/src/vtegtk.cc b/vte/src/vtegtk.cc
+--- a/vte/src/vtegtk.cc
++++ b/vte/src/vtegtk.cc
+@@ -1781,7 +1781,7 @@
+                              NULL,
+                              _vte_marshal_VOID__STRING_BOXED,
+                              G_TYPE_NONE,
+-                             2, G_TYPE_STRING, GDK_TYPE_RECTANGLE | G_SIGNAL_TYPE_STATIC_SCOPE);
++                             2, G_TYPE_STRING, (GType)((uintptr_t)GDK_TYPE_RECTANGLE | (uintptr_t)G_SIGNAL_TYPE_STATIC_SCOPE));
+         g_signal_set_va_marshaller(signals[SIGNAL_HYPERLINK_HOVER_URI_CHANGED],
+                                    G_OBJECT_CLASS_TYPE(klass),
+                                    _vte_marshal_VOID__STRING_BOXEDv);
+@@ -2279,7 +2279,7 @@
+                              g_cclosure_marshal_VOID__STRING,
+                              G_TYPE_NONE,
+                              1,
+-                             G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
++                             (GType)((uintptr_t)G_TYPE_STRING | (uintptr_t)G_SIGNAL_TYPE_STATIC_SCOPE));
+         g_signal_set_va_marshaller(signals[SIGNAL_TERMPROP_CHANGED],
+                                    G_OBJECT_CLASS_TYPE(klass),
+                                    g_cclosure_marshal_VOID__STRINGv);
+diff --git a/vte/src/vtetypebuiltins.cc.template b/vte/src/vtetypebuiltins.cc.template
+--- a/vte/src/vtetypebuiltins.cc.template
++++ b/vte/src/vtetypebuiltins.cc.template
+@@ -11,9 +11,14 @@
+ GType
+ @enum_name@_get_type (void)
+ {
+-  static gsize g_define_type_id = 0;
+- 
+-  if (g_once_init_enter (&g_define_type_id)) {
++  /* Fil-C: GType is a pointer in the pizlonated glib, so the once-init
++   * static must be pointer-typed and the g_once_init_enter_pointer /
++   * g_once_init_leave_pointer variants must be used (the plain functions
++   * access the location through a gsize view, which fil-C rejects as a
++   * type confusion). */
++  static gpointer g_define_type_id__volatile = 0;
++
++  if (g_once_init_enter_pointer (&g_define_type_id__volatile)) {
+     static const G@Type@Value values[] = {
+ /*** END value-header ***/
+
+@@ -26,11 +31,11 @@
+     };
+     GType type_id = \
+        g_@type@_register_static (g_intern_static_string ("@EnumName@"), values);
+-      
+-    g_once_init_leave (&g_define_type_id, type_id);
++
++    g_once_init_leave_pointer (&g_define_type_id__volatile, type_id);
+   }
+-    
+-  return g_define_type_id;
++
++  return (GType) g_define_type_id__volatile;
+ }
+
+ /*** END value-tail ***/

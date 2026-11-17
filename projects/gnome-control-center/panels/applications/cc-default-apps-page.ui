@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcDefaultAppsPage" parent="AdwPreferencesGroup">   
+    <property name="title" translatable="yes">Default Apps</property>
+    <child>
+      <object class="CcDefaultAppsRow" id="web_row">
+        <property name="title" translatable="yes">_Web</property>
+        <property name="use-underline">True</property>
+        <property name="content-type">x-scheme-handler/http</property>
+        <property name="filters">text/html;application/xhtml+xml;x-scheme-handler/https</property>
+        <signal name="notify::selected-item" handler="on_row_selected_item_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="CcDefaultAppsRow" id="mail_row">
+        <property name="title" translatable="yes">_Mail</property>
+        <property name="use_underline">True</property>
+        <property name="content-type">x-scheme-handler/mailto</property>
+        <signal name="notify::selected-item" handler="on_row_selected_item_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="CcDefaultAppsRow" id="calendar_row">
+        <property name="title" translatable="yes">_Calendar</property>
+        <property name="use-underline">True</property>
+        <property name="content-type">text/calendar</property>
+        <signal name="notify::selected-item" handler="on_row_selected_item_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="CcDefaultAppsRow" id="music_row">
+        <property name="title" translatable="yes">M_usic</property>
+        <property name="use-underline">True</property>
+        <property name="content-type">audio/x-vorbis+ogg</property>
+        <property name="filters">audio/*</property>
+        <signal name="notify::selected-item" handler="on_row_selected_item_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="CcDefaultAppsRow" id="video_row">
+        <property name="title" translatable="yes">_Video</property>
+        <property name="use-underline">True</property>
+        <property name="content-type">video/x-ogm+ogg</property>
+        <property name="filters">video/*</property>
+        <signal name="notify::selected-item" handler="on_row_selected_item_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="CcDefaultAppsRow" id="photos_row">
+        <property name="title" translatable="yes">_Photos</property>
+        <property name="use-underline">True</property>
+        <property name="content-type">image/jpeg</property>
+        <property name="filters">image/*</property>
+        <signal name="notify::selected-item" handler="on_row_selected_item_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="CcDefaultAppsRow" id="calls_row">
+        <property name="visible">False</property>
+        <property name="title" translatable="yes" comments="Translators: This is a telephone call">Ca_lls</property>
+        <property name="use-underline">True</property>
+        <property name="content-type">x-scheme-handler/tel</property>
+        <signal name="notify::selected-item" handler="on_row_selected_item_changed"/>
+      </object>
+    </child>
+    <child>
+      <object class="CcDefaultAppsRow" id="sms_row">
+        <property name="visible">False</property>
+        <property name="title" translatable="yes">_SMS</property>
+        <property name="use-underline">True</property>
+        <property name="content-type">x-scheme-handler/sms</property>
+        <signal name="notify::selected-item" handler="on_row_selected_item_changed"/>
+      </object>
+    </child>
+  </template>
+</interface>

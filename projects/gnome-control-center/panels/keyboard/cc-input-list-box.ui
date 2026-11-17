@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CcInputListBox" parent="AdwBin">
+
+    <child>
+      <object class="GtkListBox" id="listbox">
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <property name="selection-mode">none</property>
+        <signal name="row_activated" handler="input_row_activated_cb" object="CcInputListBox" swapped="yes"/>
+        <signal name="keynav_failed" handler="keynav_failed_cb" object="CcInputListBox" swapped="yes"/>
+        <style>
+          <class name="boxed-list"/>
+        </style>
+        <child>
+          <object class="AdwActionRow" id="no_inputs_row">
+            <property name="title" translatable="yes">No input source selected</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow" id="add_input_row">
+            <property name="selectable">False</property>
+            <child>
+              <object class="GtkBox">
+                <property name="halign">center</property>
+                <property name="margin_start">12</property>
+                <property name="margin_end">12</property>
+                <property name="margin_top">16</property>
+                <property name="margin_bottom">16</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="hexpand">True</property>
+                    <property name="icon_name">list-add-symbolic</property>
+                    <property name="accessible_role">presentation</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="use_underline">True</property>
+                    <property name="label" translatable="yes">_Add Input Source…</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+  </template>
+</interface>

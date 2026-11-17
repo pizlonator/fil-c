@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcIllustratedRow" parent="CcVerticalRow">
+    <child>
+      <object class="GtkEventControllerMotion">
+        <signal name="enter" handler="on_picture_hover_cb" object="CcIllustratedRow" swapped="yes"/>
+        <signal name="leave" handler="on_picture_leave_cb" object="CcIllustratedRow" swapped="yes"/>
+      </object>
+    </child>
+    <child type="content">
+      <object class="GtkBox" id="picture_box">
+        <property name="visible">False</property>
+        <property name="hexpand">True</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <style>
+          <class name="frame" />
+          <class name="background" />
+        </style>
+        <child>
+          <object class="GtkPicture" id="picture">
+            <property name="hexpand">True</property>
+            <property name="content-fit">scale-down</property>
+            <property name="margin-top">18</property>
+            <property name="margin-bottom">18</property>
+            <property name="margin-start">18</property>
+            <property name="margin-end">18</property>
+            <property name="height-request">128</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

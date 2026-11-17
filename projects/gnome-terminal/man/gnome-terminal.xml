@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright © 2020 Red Hat, Inc.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of either:
+
+  * the GNU General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+  or
+
+  * the GNU Free Documentation License version 1.3 as published by the
+    Free Software Foundation; with no Invariant Sections, no Front-Cover
+    Texts, and no Back-Cover Texts.
+
+  or both in parallel, as here.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License and the GNU Free Documentation License
+  for more details.
+
+  You should have received a copy of the GNU General Public License and
+  of the GNU Free Documentation License along with this program.
+  If not, see <https://www.gnu.org/licenses/>.
+-->
+<refentry id="gnome-terminal.1">
+  <refentryinfo>
+    <title>gnome-terminal</title>
+    <date>June 2020</date>
+    <productname>GNOME</productname>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>gnome-terminal</refentrytitle>
+    <manvolnum>1</manvolnum>
+    <refmiscinfo class="manual">User Commands</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>gnome-terminal</refname>
+    <refpurpose>A terminal emulator for GNOME</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>gnome-terminal</command>
+      <group rep="repeat"><replaceable>OPTION</replaceable></group>
+      <group>-- <replaceable>PROGRAM</replaceable> <group rep="repeat"><replaceable>ARG</replaceable></group></group>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1>
+    <title>DESCRIPTION</title>
+    <para>
+      <command>gnome-terminal</command> is a terminal emulator application for
+      accessing a UNIX shell environment which can be used to run programs
+      available on your system. It supports several profiles, multiple tabs and
+      implements several keyboard shortcuts.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term><option>--help, -h</option></term>
+        <listitem>
+          <para>
+            Show a brief overview of all the options.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--help-all</option></term>
+        <listitem>
+          <para>
+            Show all the options in detail.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--help-gtk</option></term>
+        <listitem>
+          <para>
+            Show all the GTK options.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--help-terminal</option></term>
+        <listitem>
+          <para>
+            Show all the options to select between new terminal tabs or
+            windows.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--help-terminal-options</option></term>
+        <listitem>
+          <para>
+            Show all the options to change the attributes of terminals
+            regardless of whether they are in separate tabs or windows.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--help-window-options</option></term>
+        <listitem>
+          <para>
+            Show all the options to change the attributes of windows
+            containing terminals.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--load-config=FILE</option></term>
+        <listitem>
+          <para>
+            Restore the application to a previously saved state by loading it
+            from a configuration file.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--preferences</option></term>
+        <listitem>
+          <para>
+            Show the preferences window.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--print-environment, -p</option></term>
+        <listitem>
+          <para>
+            Print the environment variables to interact with newly created
+            terminals.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--quiet, -q</option></term>
+        <listitem>
+          <para>
+            Suppress diagnostics.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--verbose, -v</option></term>
+        <listitem>
+          <para>
+            Increase diagnostic verbosity.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--tab</option></term>
+        <listitem>
+          <para>
+            Open a new tab containing a terminal in the last-opened window with
+            the default profile.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--window</option></term>
+        <listitem>
+          <para>
+            Open a new window with a tab containing a terminal with the default
+            profile.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--command, -e COMMAND</option></term>
+        <listitem>
+          <para>
+            Split the argument to this option into a program and arguments
+            in the same way a shell would, and execute the resulting
+            command-line inside the terminal.
+          </para>
+          <para>
+            This option is deprecated. Instead, use <option>--</option>
+            to terminate the options, and put the program and arguments to
+            execute after it: for example, instead of
+            <userinput>gnome-terminal -e "python3 -q"</userinput>, prefer to use
+            <userinput>gnome-terminal -- python3 -q</userinput>.
+          </para>
+          <para>
+            Note that the <replaceable>COMMAND</replaceable> is not run via
+            a shell: it is split into words and executed as a program. If
+            shell syntax is required, use the form
+            <userinput>gnome-terminal -- sh -c '...'</userinput>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--execute PROGRAM [ARGS], -x PROGRAM [ARGS]</option></term>
+        <listitem>
+          <para>
+            Stop parsing options at this point, and interpret all
+            subsequent options as a program and arguments to execute
+            inside the terminal.
+          </para>
+          <para>
+            This option is deprecated: use <option>--</option> instead.
+            For example, instead of
+            <userinput>gnome-terminal -x python3 -q</userinput>, prefer to use
+            <userinput>gnome-terminal -- python3 -q</userinput>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--fd=FD</option></term>
+        <listitem>
+          <para>
+            Forward file descriptor.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--profile=PROFILE-NAME</option></term>
+        <listitem>
+          <para>
+            Use the given profile instead of the default profile.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--title, -t TITLE</option></term>
+        <listitem>
+          <para>
+            Set the initial terminal title.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--wait</option></term>
+        <listitem>
+          <para>
+            Wait until the terminal's child exits.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--working-directory=DIRNAME</option></term>
+        <listitem>
+          <para>
+            Set the terminal's working directory.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--zoom=ZOOM</option></term>
+        <listitem>
+          <para>
+            Set the terminal's zoom factor. 1.0 is normal size.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--active</option></term>
+        <listitem>
+          <para>
+            Set the last specified tab as the active one in its window.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--full-screen</option></term>
+        <listitem>
+          <para>
+            Full-screen the window.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--geometry=GEOMETRY</option></term>
+        <listitem>
+          <para>
+            Set the window size as COLSxROWS+X+Y. For example, 80x24 or
+            80x24+200+200.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--hide-menubar</option></term>
+        <listitem>
+          <para>
+            Turn off the menubar for the window.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--show-menubar</option></term>
+        <listitem>
+          <para>
+            Turn on the menubar for the window.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--maximize</option></term>
+        <listitem>
+          <para>
+            Maximize the window.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--role=ROLE</option></term>
+        <listitem>
+          <para>
+            Set the X window role.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--class=CLASS</option></term>
+        <listitem>
+          <para>
+            Program class as used by the window manager.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--display=DISPLAY</option></term>
+        <listitem>
+          <para>
+            X display to use.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--g-fatal-warnings</option></term>
+        <listitem>
+          <para>
+            Make all warnings fatal.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--gdk-debug=FLAGS</option></term>
+        <listitem>
+          <para>
+            GDK debugging flags to set.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--gdk-no-debug=FLAGS</option></term>
+        <listitem>
+          <para>
+            GDK debugging flags to unset.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--gtk-debug=FLAGS</option></term>
+        <listitem>
+          <para>
+            GTK debugging flags to set.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--gtk-no-debug=FLAGS</option></term>
+        <listitem>
+          <para>
+            GTK debugging flags to unset.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--gtk-module=MODULES</option></term>
+        <listitem>
+          <para>
+            Load additional GTK modules.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--name=NAME</option></term>
+        <listitem>
+          <para>
+            Program name as used by the window manager.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>BUGS</title>
+    <para>
+      Please read
+      <ulink url="https://wiki.gnome.org/Apps/Terminal/ReportingBugs"></ulink>
+      on how to report bugs.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>EXAMPLES</title>
+    <para>
+      To run a terminal containing an interactive Python prompt:
+      <literallayout>
+        gnome-terminal --title=Python -- python3 -q
+      </literallayout>
+    </para>
+    <para>
+      To interpret shell syntax in a terminal, either write it in a
+      separate shell script, or use <literal>sh -c</literal>:
+      <literallayout>
+        gnome-terminal -- sh -c 'if [ "$(id -u)" = 0 ]; then ...'
+      </literallayout>
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para>
+      For further information, visit the website
+      <ulink url="https://wiki.gnome.org/Apps/Terminal"></ulink>. There's a
+      list of frequently asked questions at
+      <ulink url="https://wiki.gnome.org/Apps/Terminal/FAQ"></ulink>.
+    </para>
+  </refsect1>
+</refentry>

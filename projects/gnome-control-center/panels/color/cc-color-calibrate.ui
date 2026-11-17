@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="dialog_calibrate">
+    <property name="margin_top">32</property>
+    <property name="margin_bottom">32</property>
+    <property name="margin_start">12</property>
+    <property name="margin_end">12</property>
+    <property name="title" translatable="yes">Display Calibration</property>
+    <property name="deletable">False</property>
+    <style>
+      <class name="cc-color-calibrate-window"/>
+    </style>
+    <child>
+      <object class="GtkBox" id="dialog-vbox4">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkBox" id="dialog-action_area1">
+            <child>
+              <object class="GtkButton" id="button_cancel">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_start">
+                <property name="label" translatable="yes" comments="This starts the calibration process">_Start</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_resume">
+                <property name="label" translatable="yes" comments="This resumes the calibration process">_Resume</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_done">
+                <property name="label" translatable="yes" comments="This button returns the user back to the color control panel">_Done</property>
+                <property name="use_underline">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="vbox_status">
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">15</property>
+            <child>
+              <object class="GtkImage" id="image_status">
+                <property name="valign">end</property>
+                <property name="pixel_size">192</property>
+                <property name="icon_name">address-book-new</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_status">
+                <property name="valign">start</property>
+                <property name="label" translatable="yes">Do not disturb the calibration device while in progress</property>
+                <property name="justify">center</property>
+                <property name="wrap">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="progressbar_status">
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkSizeGroup" id="sizegroup_sample"/>
+</interface>

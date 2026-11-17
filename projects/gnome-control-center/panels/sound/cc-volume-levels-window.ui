@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcVolumeLevelsWindow" parent="AdwWindow">
+    <property name="title" translatable="yes">Volume Levels</property>
+    <property name="modal">True</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="default-width">660</property>
+    <property name="default-height">560</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkListBox" id="listbox">
+                    <property name="selection-mode">none</property>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+  <object class="GtkSizeGroup" id="label_size_group">
+    <property name="mode">horizontal</property>
+  </object>
+</interface>

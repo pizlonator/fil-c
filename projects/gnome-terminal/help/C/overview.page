@@ -1,0 +1,101 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="guide" style="task"
+      id="overview">
+  <info>
+    <revision version="0.1" date="2013-01-10" status="draft"/>
+    <link type="guide" xref="index"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>What is a terminal?</desc>
+  </info>
+
+  <title>Overview of a terminal</title>
+
+  <p><app>Terminal</app> is a terminal program for <gui>GNOME</gui>. The
+  following terms and their descriptions will help you to be familiar with
+  <app>Terminal</app> and its capabilities.</p>
+
+  <terms>
+    <item>
+      <title>A terminal</title>
+      <p>A terminal is a text input point in a computer that is also called
+       the Command Line Interface (CLI).</p>
+    </item>
+    <item>
+      <title>Physical terminals</title>
+      <p>IBM 3270, VT100 and many others are hardware terminals that are no
+      longer produced as physical devices. To emulate these terminals, there are
+      terminal emulators.</p>
+    </item>
+    <item>
+      <title>Terminal emulators</title>
+      <p>Emulation is the ability of a computer program to imitate another
+      program or device.</p>
+
+      <p>A terminal emulator, also called tty, is a software program that emulates
+      a video terminal in modern computers that use graphical user interfaces
+      and provide interactive access to applications that run only in the
+      command line environments. These applications may be running either on the
+      same machine or on a different one via <app>telnet</app>, <app>ssh</app>,
+      or <app>dial-up</app>.</p>
+    </item>
+    <item>
+      <title>VTE</title>
+      <p>Virtual Terminal Environment (VTE) is a terminal emulator which
+      emulates a text terminal inside a graphical user interface (GUI)
+      environment. <app>Terminal</app> is largely based on the <app>VTE</app>.
+      <app>VTE</app> has widgets that implement a fully functional terminal
+      emulator.</p>
+    </item>
+    <item>
+      <title>Shell</title>
+      <p>A <em>shell</em> is a program that provides an interface to invoke or
+      “launch” commands or another program inside a terminal. It also allows you
+      to view and browse the contents of directories. Popular shells include
+      <app>bash</app>, <app>zsh</app>, <app>fish</app>.</p>
+    </item>
+    <item>
+      <title>Escape Sequences</title>
+      <p>An escape sequence is a series of characters used to change the meaning
+      of data in a terminal. Escape sequences are used when a computer has only
+      single channel to send information back and forth. Escape sequences are
+      used to distinguish if data being sent is a command to be executed or
+      information to be stored and displayed.</p>
+    </item>
+
+    <item>
+      <title>Prompt</title>
+      <p>A prompt is also called a <em>command prompt</em>. It is a sequence of
+      characters used in the command line environment to indicate the readiness
+      of the shell to accept commands.</p>
+
+      <p>A prompt usually ends with the characters <sys>$</sys>, <sys>%</sys>,
+      <sys>#</sys> or <sys>&gt;</sys> and includes
+      information about the path of the present working directory. On Unix based
+      systems, it is common for the prompt to end in a <sys>$</sys> or 
+      <sys>#</sys> character depending on the user role such as <sys>$</sys>
+      for user and <sys>#</sys> for superuser (also called <sys>root</sys>).
+      </p>
+    </item>
+    <item>
+      <title>Command</title>
+      <p>An input entered in the prompt to be executed is called a
+      <em>command</em>. It is a combination of the program name along with any
+      other additional parameters passed as flags to alter the execution of the
+      program.</p>
+    </item>
+  </terms>
+
+</page>

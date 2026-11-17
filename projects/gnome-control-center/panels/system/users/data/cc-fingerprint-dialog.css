@@ -1,0 +1,83 @@
+.fingerprint-icon {
+  padding: 3px;
+}
+
+.fingerprint-icon > button,
+.fingerprint-icon > image {
+  padding: 15px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 64px;
+  border: 1px solid @borders;
+  background-color: @theme_base_color;
+  color: @insensitive_fg_color;
+}
+
+.fingerprint-print-add image:not(:disabled):not(:backdrop),
+.fingerprint-print-add button:not(:disabled):not(:backdrop) {
+  color: @theme_fg_color;
+}
+
+.fingerprint-icon.enroll-status image {
+  outline-color: @theme_selected_bg_color;
+  outline-offset: 0px;
+  outline-width: 4px;
+}
+
+.fingerprint-icon.enroll-status image:backdrop {
+  outline-color: @theme_unfocused_selected_bg_color;
+}
+
+.fingerprint-icon.enroll-status {
+  font-weight: bold;
+}
+
+.fingerprint-icon.enroll-status.completed image {
+  outline-color: @success_color;
+}
+
+.fingerprint-icon.enroll-status.warning image {
+  outline-color: @warning_color;
+}
+
+.fingerprint-icon.enroll-status.error image {
+  outline-color: @error_color;
+  /* Given we don't have an error image, we can just recolorize the warning one */
+  -gtk-icon-palette: warning @error_color;
+}
+
+.fingerprint-icon.enroll-status.success image:not(:backdrop) {
+  color: @theme_selected_bg_color;
+}
+
+.fingerprint-icon.enroll-status.warning image:not(:backdrop),
+.fingerprint-icon.enroll-status.warning label:not(:backdrop) {
+  color: @warning_color;
+}
+
+.fingerprint-icon.enroll-status.error image:not(:backdrop),
+.fingerprint-icon.enroll-status.error label:not(:backdrop) {
+  color: @error_color;
+}
+
+@keyframes wiggle {
+  /* Unfortunately we can't use translation or xalign, so here's the workaround */
+  0% { padding-left: 0; padding-right: 0; }
+  10% { padding-left: 0; padding-right: 2px; }
+  20% { padding-left: 4px; padding-right: 0; }
+  30% { padding-left: 0; padding-right: 8px; }
+  40% { padding-left: 8px; padding-right: 0; }
+  50% { padding-left: 0; padding-right: 8px; }
+  60% { padding-left: 8px; padding-right: 0; }
+  70% { padding-left: 0; padding-right: 8px; }
+  80% { padding-left: 4px; padding-right: 0; }
+  90% { padding-left: 0; padding-right: 2px; }
+  100% { padding-left: 0; padding-right: 0; }
+}
+
+.fingerprint-icon.enroll-status.retry label {
+  animation-name: wiggle;
+  animation-duration: 850ms;
+  animation-timing-function: ease-in;
+  animation-iteration-count: 1;
+}

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="CcWwanPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <!-- Cellular panel on/off switch -->
+            <child type="end">
+              <object class="GtkSwitch" id="enable_switch">
+                <accessibility>
+                  <property name="label" translatable="yes">Enable Mobile Network</property>
+                </accessibility>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="AdwToastOverlay" id="toast_overlay">
+            <property name="child">
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="min-content-height">500</property>
+                <child>
+                  <object class="AdwClamp">
+                    <property name="margin-top">0</property>
+                    <property name="margin-bottom">32</property>
+                    <property name="margin-start">18</property>
+                    <property name="margin-end">18</property>
+
+                    <child>
+                      <object class="GtkBox">
+                        <property name="hexpand">True</property>
+                        <property name="orientation">vertical</property>
+                        <property name="valign">center</property>
+                        <child>
+                          <object class="GtkStack" id="main_stack">
+                            <property name="vhomogeneous">False</property>
+                            <property name="hhomogeneous">False</property>
+                            <property name="transition-type">crossfade</property>
+
+                            <!-- "No WWAN Adapter" page -->
+                            <child>
+                              <object class="GtkStackPage">
+                                <property name="name">no-wwan-devices</property>
+                                <property name="child">
+                                  <object class="AdwStatusPage">
+                                    <property name="icon-name">network-cellular-offline-symbolic</property>
+                                    <property name="title" translatable="yes">No WWAN Adapter Found</property>
+                                    <property name="description" translatable="yes">Make sure you have a Wireless Wan/Cellular device</property>
+                                    <property name="vexpand">True</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+
+                            <!-- "Airplane Mode" page -->
+                            <child>
+                              <object class="GtkStackPage">
+                                <property name="name">airplane-mode</property>
+                                <property name="child">
+                                  <object class="AdwStatusPage">
+                                    <property name="icon-name">airplane-mode-symbolic</property>
+                                    <property name="title" translatable="yes">Airplane Mode On</property>
+                                    <property name="description" translatable="yes">Wireless Wan is disabled when airplane mode is on</property>
+                                    <property name="vexpand">True</property>
+                                    <property name="child">
+                                      <object class="GtkButton">
+                                        <property name="halign">center</property>
+                                        <property name="use-underline">True</property>
+                                        <property name="label" translatable="yes">_Turn off Airplane Mode</property>
+                                        <signal name="clicked" handler="wwan_on_airplane_off_clicked_cb" swapped="yes"/>
+                                        <style>
+                                          <class name="pill"/>
+                                          <class name="suggested-action"/>
+                                        </style>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkStackPage">
+                                <property name="name">device-settings</property>
+                                <property name="child">
+                                  <object class="GtkBox">
+                                    <property name="orientation">vertical</property>
+
+                                    <child>
+                                      <object class="GtkRevealer" id="multi_device_revealer">
+                                        <property name="margin-top">18</property>
+                                        <property name="child">
+                                          <object class="GtkBox">
+                                            <property name="orientation">vertical</property>
+
+                                            <!-- Data SIM selector -->
+                                            <child>
+                                              <object class="GtkListBox" id="data_sim_select_listbox">
+                                                <property name="margin-bottom">32</property>
+                                                <style>
+                                                  <class name="boxed-list"/>
+                                                </style>
+                                                <child>
+                                                  <object class="AdwComboRow" id="data_list_row">
+                                                    <property name="title" translatable="yes">Data Connection</property>
+                                                    <property name="subtitle" translatable="yes">SIM card used for internet</property>
+                                                    <signal name="notify::selected-item" handler="wwan_data_list_selected_sim_changed_cb" swapped="1"/>
+                                                  </object>
+                                                </child>
+                                              </object>
+                                            </child>
+
+                                            <!-- Device (SIM) Name -->
+                                            <child>
+                                              <object class="GtkStackSwitcher" id="devices_switcher">
+                                                <property name="stack">devices_stack</property>
+                                                <property name="hexpand">True</property>
+                                                <property name="halign">center</property>
+                                              </object>
+                                            </child>
+
+                                          </object>
+                                        </property>
+                                      </object>
+                                    </child>
+
+                                    <!-- Device (SIM) settings page -->
+                                    <child>
+                                      <object class="GtkStack" id="devices_stack">
+                                        <property name="vhomogeneous">False</property>
+                                        <property name="hhomogeneous">False</property>
+                                      </object>
+                                    </child>
+
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                          </object> <!-- ./GtkStack main_stack -->
+                        </child>
+                      </object>
+                    </child>
+
+                  </object> <!-- ./AdwClamp -->
+                </child>
+              </object> <!-- ./GtkScrolledWindow -->
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+
+  </template>
+</interface>

@@ -1,0 +1,16 @@
+# already_present_printer1, space, already_present_printer2, ...., tab,
+# new device id, tab,
+# new device make and model, tab,
+# new device original name, tab,
+# new device info, tab,
+# canonicalized name
+#  - stripped leading and trailing spaces
+#  - characters not in ALLOWED_CHARACTERS replaced by '-'
+#  - everything behind strings in residues removed
+#  - leading and trailing '-' removed
+#  - recurring '-' merged
+#  - indexed if the name is already in any of given lists
+Canon-BJ-30 Canon-BJ-30-2		Canon BJ-30 - CUPS+Gutenprint v5.2.9 Simplified			Canon-BJ-30-3
+Canon-BJ-30		HP Business Inkjet 1000, hpcups 3.14.6			HP-Business-Inkjet-1000
+				...A---strange;;printer  ;;;;info  	A-strange-printer-info
+HP-Something	MFG:HP;MDL:Officejet 7300 series;	HP Officejet 7300 series		Officejet 7300 series	Officejet-7300

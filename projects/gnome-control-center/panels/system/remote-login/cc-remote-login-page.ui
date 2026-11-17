@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcRemoteLoginPage" parent="AdwWindow">
+    <property name="title" translatable="yes">Secure Shell</property>
+    <property name="hide-on-close">True</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="destroy-with-parent">True</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwToastOverlay" id="toast_overlay">
+            <property name="child">
+              <object class="AdwPreferencesPage">
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="halign">center</property>
+                        <property name="wrap">True</property>
+                        <property name="lines">2</property>
+                        <property name="label" translatable="yes">Access this device using Secure Shell (SSH)</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdwSwitchRow" id="remote_login_row">
+                        <property name="title" translatable="yes">Secu_re Shell</property>
+                        <property name="use-underline">True</property>
+                        <property name="sensitive">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="hostname_row">
+                        <property name="title" translatable="yes">SSH Login Command</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                        <child type="suffix">
+                          <object class="GtkButton">
+                            <property name="valign">center</property>
+                            <property name="tooltip-text" translatable="yes">Copy</property>
+                            <property name="icon-name">edit-copy-symbolic</property>
+                            <signal name="clicked" handler="on_copy_ssh_command_button_clicked" object="CcRemoteLoginPage" swapped="yes"/>
+                            <style>
+                              <class name="flat"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

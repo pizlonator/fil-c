@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CcInputChooser" parent="AdwWindow">
+    <property name="title" translatable="yes">Add Input Source</property>
+    <property name="modal">True</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="default-height">430</property>
+    <property name="default-width">420</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-start-title-buttons">False</property>
+            <property name="show-end-title-buttons">False</property>
+            <child>
+              <object class="GtkButton" id="cancel_button">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="use_underline">True</property>
+                <property name="valign">center</property>
+                <property name="action-name">window.close</property>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="add_button">
+                <property name="label" translatable="yes">_Add</property>
+                <property name="sensitive">False</property>
+                <property name="use_underline">True</property>
+                <property name="valign">center</property>
+                <signal name="clicked" handler="on_add_button_clicked_cb" object="CcInputChooser" swapped="yes" />
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="top">
+          <object class="GtkSearchEntry" id="filter_entry">
+            <property name="placeholder_text" translatable="yes">Language or country</property>
+            <property name="visible">False</property>
+            <property name="hexpand">True</property>
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <signal name="search-changed" handler="on_filter_entry_search_changed_cb" object="CcInputChooser" swapped="yes" />
+            <signal name="stop-search" handler="on_stop_search_cb" object="CcInputChooser" swapped="yes" />
+          </object>
+        </child>
+        <child type="top">
+          <object class="GtkLabel" id="login_label">
+            <property name="visible">False</property>
+            <property name="wrap">True</property>
+            <property name="label" translatable="yes">Input methods can’t be used on the login screen</property>
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+            <property name="margin-bottom">6</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="hscrollbar-policy">never</property>
+            <property name="propagate-natural-height">True</property>
+            <property name="vadjustment">
+              <object class="GtkAdjustment" id="scroll_adjustment"/>
+            </property>
+            <property name="child">
+              <object class="AdwClamp">
+                <property name="child">
+                  <object class="GtkListBox" id="input_sources_listbox">
+                    <property name="halign">fill</property>
+                    <property name="valign">start</property>
+                    <property name="margin-top">24</property>
+                    <property name="margin-bottom">24</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
+                    <signal name="row-activated" handler="on_input_sources_listbox_row_activated_cb" object="CcInputChooser" swapped="yes" />
+                    <signal name="selected-rows-changed" handler="on_input_sources_listbox_selected_rows_changed_cb" object="CcInputChooser" swapped="yes" />
+                    <style>
+                      <class name="boxed-list" />
+                    </style>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

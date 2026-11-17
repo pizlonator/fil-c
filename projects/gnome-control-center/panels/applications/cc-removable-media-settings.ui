@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CcRemovableMediaSettings" parent="AdwPreferencesGroup">
+      <child>
+        <object class="AdwActionRow" id="cd_audio_row">
+          <property name="title" translatable="yes">CD _Audio</property>
+          <property name="use_underline">True</property>
+          <property name="activatable_widget">audio_cdda_chooser</property>
+          <child>
+            <object class="GtkAppChooserButton" id="audio_cdda_chooser">
+              <property name="valign">center</property>
+              <property name="content_type">x-content/audio-cdda</property>
+            </object>
+          </child>
+        </object>
+      </child>
+      <child>
+        <object class="AdwActionRow" id="dvd_video_row">
+          <property name="title" translatable="yes">_DVD Video</property>
+          <property name="use_underline">True</property>
+          <property name="activatable_widget">video_dvd_chooser</property>
+          <child>
+            <object class="GtkAppChooserButton" id="video_dvd_chooser">
+              <property name="valign">center</property>
+              <property name="content_type">x-content/video-dvd</property>
+            </object>
+          </child>
+        </object>
+      </child>
+      <child>
+        <object class="AdwActionRow" id="music_player_row">
+          <property name="title" translatable="yes">Music Pla_yer</property>
+          <property name="use_underline">True</property>
+          <property name="activatable_widget">music_player_chooser</property>
+          <child>
+            <object class="GtkAppChooserButton" id="music_player_chooser">
+              <property name="valign">center</property>
+              <property name="content_type">x-content/audio-player</property>
+            </object>
+          </child>
+        </object>
+      </child>
+      <child>
+        <object class="AdwActionRow" id="photos_row">
+          <property name="title" translatable="yes">P_hotos</property>
+          <property name="use_underline">True</property>
+          <property name="activatable_widget">dcf_chooser</property>
+          <child>
+            <object class="GtkAppChooserButton" id="dcf_chooser">
+              <property name="valign">center</property>
+              <property name="content_type">x-content/image-dcf</property>
+            </object>
+          </child>
+        </object>
+      </child>
+      <child>
+        <object class="AdwActionRow" id="software_row">
+          <property name="title" translatable="yes">Sof_tware</property>
+          <property name="use_underline">True</property>
+          <property name="activatable_widget">software_chooser</property>
+          <child>
+            <object class="GtkAppChooserButton" id="software_chooser">
+              <property name="valign">center</property>
+              <property name="content_type">x-content/unix-software</property>
+            </object>
+          </child>
+        </object>
+      </child>
+      <child>
+        <object class="CcListRow" id="other_media_row">
+          <property name="title" translatable="yes">_Other Media</property>
+          <property name="show-arrow">True</property>
+          <property name="subtitle" translatable="yes">Select how other media should be handled</property>
+          <signal name="activated" handler="on_extra_options_button_clicked" object="CcRemovableMediaSettings"/>
+        </object>
+      </child>
+  </template>
+
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="audio_cdda_chooser"/>
+      <widget name="video_dvd_chooser"/>
+      <widget name="music_player_chooser"/>
+      <widget name="dcf_chooser"/>
+      <widget name="software_chooser"/>
+    </widgets>
+  </object>
+
+  <object class="AdwWindow" id="other_type_dialog">
+    <property name="title" translatable="yes">Other Media</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="default-width">360</property>
+    <property name="default-height">294</property>
+    <signal name="close-request" handler="on_extra_options_dialog_close_request" object="CcRemovableMediaSettings" swapped="yes"/>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">_Type</property>
+                    <property name="use-underline">True</property>
+                    <property name="activatable-widget">other_type_combo_box</property>
+                    <child>
+                      <object class="GtkComboBox" id="other_type_combo_box">
+                        <property name="model">other_type_list_store</property>
+                        <property name="valign">center</property>
+                        <signal name="changed" handler="on_other_type_combo_box_changed" object="CcRemovableMediaSettings" swapped="yes"/>
+                        <child>
+                          <object class="GtkCellRendererText"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="other_action_row">
+                    <property name="title" translatable="yes">_Action</property>
+                    <property name="use-underline">True</property>
+                    <child>
+                      <object class="GtkBox" id="other_action_box">
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+  <object class="GtkListStore" id="other_type_list_store">
+    <columns>
+      <!-- column-name description -->
+      <column type="gchararray"/>
+      <!-- column-name content-type -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+</interface>

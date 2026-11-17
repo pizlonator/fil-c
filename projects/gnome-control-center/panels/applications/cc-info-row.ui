@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcInfoRow" parent="AdwActionRow">
+    <property name="use-underline">True</property>
+    <child>
+      <object class="GtkLabel" id="info">
+        <property name="valign">center</property>
+        <style>
+          <class name="dim-label"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkImage" id="expander">
+        <property name="visible">False</property>
+        <property name="valign">center</property>
+        <property name="icon-name">pan-end-symbolic</property>
+      </object>
+    </child>
+  </template>
+</interface>

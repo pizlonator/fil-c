@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkListStore" id="time_liststore">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gint"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">15 minutes</col>
+        <col id="1">900</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">20 minutes</col>
+        <col id="1">1200</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">25 minutes</col>
+        <col id="1">1500</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">30 minutes</col>
+        <col id="1">1800</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">45 minutes</col>
+        <col id="1">2700</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">1 hour</col>
+        <col id="1">3600</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">80 minutes</col>
+        <col id="1">4800</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">90 minutes</col>
+        <col id="1">5400</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">100 minutes</col>
+        <col id="1">6000</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes" context="automatic_suspend" comments="Translators: Option for &quot;Delay&quot; in &quot;Automatic suspend&quot; dialog.">2 hours</col>
+        <col id="1">7200</col>
+      </row>
+    </data>
+  </object>
+  <template class="CcPowerPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup" id="battery_section">
+                <child>
+                  <object class="GtkListBox" id="battery_listbox">
+                    <property name="selection-mode">none</property>
+                    <signal name="keynav-failed" handler="keynav_failed_cb" object="CcPowerPanel" swapped="yes"/>
+                    <accessibility>
+                      <relation name="labelled-by">battery_section</relation>
+                    </accessibility>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="device_section">
+                <property name="title" translatable="yes">Connected Devices</property>
+                <child>
+                  <object class="GtkListBox" id="device_listbox">
+                    <property name="selection-mode">none</property>
+                    <signal name="keynav-failed" handler="keynav_failed_cb" object="CcPowerPanel" swapped="yes"/>
+                    <accessibility>
+                      <relation name="labelled-by">device_section</relation>
+                    </accessibility>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="power_profile_section">
+                <property name="visible">False</property>
+                <property name="title" translatable="yes">Power Mode</property>
+                <child>
+                  <object class="GtkListBox" id="power_profile_listbox">
+                    <property name="selection-mode">none</property>
+                    <signal name="keynav-failed" handler="keynav_failed_cb" object="CcPowerPanel" swapped="yes"/>
+                    <accessibility>
+                      <relation name="labelled-by">power_profile_section</relation>
+                    </accessibility>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBox" id="power_profile_info_listbox">
+                    <property name="visible">False</property>
+                    <property name="selection-mode">none</property>
+                    <property name="margin_top">12</property>
+                    <signal name="keynav-failed" handler="keynav_failed_cb" object="CcPowerPanel" swapped="yes"/>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="power_saving_section">
+                <property name="title" translatable="yes">Power Saving</property>
+                <child>
+                  <object class="AdwSwitchRow" id="als_row">
+                    <property name="title" translatable="yes">A_utomatic Screen Brightness</property>
+                    <property name="subtitle" translatable="yes">Adjust screen brightness to the surrounding light</property>
+                    <property name="use_underline">True</property>
+                    <signal name="notify::active" handler="als_row_changed_cb" object="CcPowerPanel" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="dim_screen_row">
+                    <property name="title" translatable="yes">_Dim Screen</property>
+                    <property name="subtitle" translatable="yes">Reduce screen brightness when the computer is inactive</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwComboRow" id="blank_screen_row">
+                    <property name="title" translatable="yes">Screen _Blank</property>
+                    <property name="subtitle" translatable="yes">Turn the screen off after a period of inactivity</property>
+                    <property name="use_underline">True</property>
+                    <signal name="notify::selected-item" handler="blank_screen_row_changed_cb" object="CcPowerPanel" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="power_saver_low_battery_row">
+                    <property name="visible">False</property>
+                    <property name="title" translatable="yes">Automatic Power _Saver</property>
+                    <property name="subtitle" translatable="yes">Turn on power saver mode when battery power is low</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="CcListRow" id="automatic_suspend_row">
+                    <property name="visible">False</property>
+                    <property name="title" translatable="yes">_Automatic Suspend</property>
+                    <property name="subtitle" translatable="yes">Pause the computer after a period of inactivity</property>
+                    <property name="show-arrow">True</property>
+                    <signal name="activated" handler="automatic_suspend_row_activated_cb" swapped="yes"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="general_section">
+                <property name="title" translatable="yes">General</property>
+                <child>
+                  <object class="AdwComboRow" id="power_button_row">
+                    <property name="visible">False</property>
+                    <property name="title" translatable="yes">Po_wer Button Behavior</property>
+                    <property name="use_underline">True</property>
+                    <signal name="notify::selected-item" handler="power_button_row_changed_cb" object="CcPowerPanel" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="battery_percentage_row">
+                    <property name="visible">False</property>
+                    <property name="title" translatable="yes">Show Battery _Percentage</property>
+                    <property name="subtitle" translatable="yes">Show exact charge level in the top bar</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
+  <object class="AdwWindow" id="automatic_suspend_dialog">
+    <property name="title" translatable="yes">Automatic Suspend</property>
+    <property name="hide-on-close">True</property>
+    <property name="destroy-with-parent">True</property>
+    <property name="default-width">400</property>
+    <property name="default-height">330</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup" id="suspend_on_battery_group">
+                <child>
+                  <object class="AdwSwitchRow" id="suspend_on_battery_switch_row">
+                    <property name="title" translatable="yes">On _Battery Power</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="activatable-widget">suspend_on_battery_delay_combo</property>
+                    <property name="title" translatable="yes">_Delay</property>
+                    <property name="use_underline">True</property>
+                    <child>
+                      <object class="GtkComboBoxText" id="suspend_on_battery_delay_combo">
+                        <property name="entry_text_column">0</property>
+                        <property name="id_column">1</property>
+                        <property name="model">time_liststore</property>
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="suspend_on_ac_switch_row">
+                    <property name="title" translatable="yes">_Plugged In</property>
+                    <property name="use_underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">D_elay</property>
+                    <property name="use_underline">True</property>
+                    <property name="activatable-widget">suspend_on_ac_delay_combo</property>
+                    <child>
+                      <object class="GtkComboBoxText" id="suspend_on_ac_delay_combo">
+                        <property name="entry_text_column">0</property>
+                        <property name="id_column">1</property>
+                        <property name="model">time_liststore</property>
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+</interface>

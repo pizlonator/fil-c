@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcWifiHotspotDialog" parent="GtkDialog">
+    <property name="title" translatable="yes">Turn On Wi-Fi Hotspot?</property>
+    <property name="modal">1</property>
+    <property name="destroy-with-parent">1</property>
+    <property name="hide-on-close">True</property>
+
+    <child internal-child="headerbar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">0</property>
+      </object>
+    </child>
+
+    <child internal-child="content_area">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="margin-top">30</property>
+        <property name="margin-bottom">30</property>
+        <property name="margin-start">30</property>
+        <property name="margin-end">30</property>
+        <property name="spacing">20</property>
+
+        <child>
+          <object class="GtkLabel" id="label">
+            <property name="wrap">1</property>
+            <property name="max-width-chars">50</property>
+            <property name="label" translatable="yes">Wi-Fi hotspot allows others to share your internet connection, by creating a Wi-Fi network that they can connect to. To do this, you must have an internet connection through a source other than Wi-Fi.</property>
+            <property name="xalign">0.0</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkLabel" id="connection_label">
+            <property name="margin-bottom">18</property>
+            <property name="wrap">1</property>
+            <property name="max-width-chars">40</property>
+            <property name="use-markup">1</property>
+            <property name="xalign">0.0</property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkGrid">
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
+
+            <!-- Hotspot SSID Name -->
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Network Name</property>
+                <property name="halign">end</property>
+                <property name="mnemonic_widget">name_entry</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="name_entry">
+                <property name="hexpand">1</property>
+                <property name="max-length">64</property>
+                <signal name="changed" handler="hotspot_entry_changed_cb" swapped="yes" />
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+
+            <!-- SSID Error Label -->
+            <child>
+              <object class="GtkLabel" id="name_error_label">
+                <property name="halign">start</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label" />
+                </style>
+                <attributes>
+                  <attribute name="scale" value="0.83"/>
+                </attributes>
+              </object>
+            </child>
+
+            <!-- Hotspot Password -->
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Password</property>
+                <property name="halign">end</property>
+                <property name="mnemonic_widget">password_entry</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="password_entry">
+                <property name="max-length">64</property>
+                <property name="secondary-icon-name">view-refresh-symbolic</property>
+                <property name="secondary-icon-tooltip-text" translatable="yes">Generate Random Password</property>
+                <property name="placeholder-text" translatable="yes">Autogenerate Password</property>
+                <signal name="icon-press" handler="generate_password_clicked_cb" swapped="yes" />
+                <signal name="changed" handler="hotspot_entry_changed_cb" swapped="yes" />
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+
+            <!-- Password Error Label -->
+            <child>
+              <object class="GtkLabel" id="password_error_label">
+                <property name="halign">start</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                </layout>
+                <style>
+                  <class name="dim-label" />
+                </style>
+                <attributes>
+                  <attribute name="scale" value="0.83"/>
+                </attributes>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+    <child type="action">
+      <object class="GtkButton" id="cancel_button">
+        <property name="use-underline">1</property>
+        <property name="label" translatable="yes">_Cancel</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="ok_button">
+        <property name="use-underline">1</property>
+        <property name="label" translatable="yes">_Turn On</property>
+      </object>
+    </child>
+
+    <action-widgets>
+      <action-widget response="cancel">cancel_button</action-widget>
+      <action-widget response="apply" default="true">ok_button</action-widget>
+    </action-widgets>
+  </template>
+</interface>

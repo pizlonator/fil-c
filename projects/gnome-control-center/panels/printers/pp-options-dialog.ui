@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.18.3 -->
+<interface>
+  <requires lib="gtk+" version="3.12"/>
+  <template class="PpOptionsDialog" parent="AdwWindow">
+    <property name="width_request">500</property>
+    <property name="height_request">400</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <property name="top-bar-style">raised</property>
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <child type="start">
+              <object class="GtkButton">
+                <property name="label" translatable="yes" comments="Translators: This button triggers the printing of a test page.">_Test Page</property>
+                <property name="use-underline">True</property>
+                <signal name="clicked" handler="test_page_cb" object="PpOptionsDialog" swapped="yes"/>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkStack" id="stack">
+            <property name="hhomogeneous">True</property>
+            <property name="vhomogeneous">True</property>
+            <child>
+              <object class="AdwOverlaySplitView" id="main_box">
+                <property name="sidebar">
+                  <object class="GtkScrolledWindow">
+                    <property name="width_request">120</property>
+                    <property name="hscrollbar_policy">never</property>
+                    <child>
+                      <object class="GtkTreeView" id="categories_treeview">
+                        <property name="headers_visible">False</property>
+                        <style>
+                          <class name="navigation-sidebar"/>
+                          <class name="printer-options-sidebar"/>
+                        </style>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection" id="categories_selection">
+                            <signal name="changed" handler="category_selection_changed_cb" object="PpOptionsDialog" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="content">
+                  <object class="GtkNotebook" id="notebook">
+                    <property name="tab_pos">left</property>
+                    <property name="show_tabs">False</property>
+                    <property name="show_border">False</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSpinner" id="spinner">
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="width_request">24</property>
+                <property name="height_request">24</property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

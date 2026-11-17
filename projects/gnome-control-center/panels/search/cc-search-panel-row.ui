@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcSearchPanelRow" parent="AdwActionRow">
+    <property name="activatable-widget">switcher</property>
+    <child type="prefix">
+      <object class="GtkImage" id="icon">
+        <property name="icon-size">large</property>
+        <style>
+          <class name="lowres-icon"/>
+        </style>
+      </object>
+    </child>
+    <child type="prefix">
+      <object class="GtkImage">
+        <property name="icon-name">list-drag-handle-symbolic</property>
+        <style>
+          <class name="drag-handle"/>
+        </style>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkSwitch" id="switcher">
+        <property name="valign">center</property>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkSeparator">
+        <property name="orientation">vertical</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkMenuButton">
+        <property name="tooltip-text" translatable="yes">View More</property>
+        <property name="valign">center</property>
+        <property name="icon-name">view-more-symbolic</property>
+        <property name="menu-model">move_row_menu</property>
+        <style>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+  </template>
+
+  <!-- Move Row Menu -->
+  <menu id="move_row_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Move Up</attribute>
+        <attribute name="action">row.move-up</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Move Down</attribute>
+        <attribute name="action">row.move-down</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="CcWwanModeDialog" parent="GtkDialog">
+    <property name="title" translatable="yes">Network Mode</property>
+    <property name="default-height">480</property>
+    <property name="default-width">360</property>
+    <property name="hide-on-close">True</property>
+    <property name="modal">True</property>
+
+    <child>
+      <object class="AdwPreferencesPage">
+        <child>
+          <object class="AdwPreferencesGroup">
+            <child>
+              <object class="GtkListBox" id="network_mode_list">
+                <property name="selection-mode">none</property>
+                <signal name="row-activated" handler="cc_wwan_mode_changed_cb" swapped="yes"/>
+                <style>
+                  <class name="boxed-list"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child type="action">
+      <object class="GtkButton" id="button_cancel">
+        <property name="use-underline">True</property>
+        <property name="label" translatable="yes">_Cancel</property>
+        <signal name="clicked" handler="gtk_widget_hide" swapped="yes"/>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="button_ok">
+        <property name="use-underline">True</property>
+        <property name="label" translatable="yes">_Set</property>
+        <signal name="clicked" handler="cc_wwan_mode_dialog_ok_clicked_cb" swapped="yes"/>
+        <style>
+          <class name="suggested-action "/>
+        </style>
+      </object>
+    </child>
+
+    <action-widgets>
+      <action-widget response="cancel">button_cancel</action-widget>
+      <action-widget response="apply" default="True">button_ok</action-widget>
+    </action-widgets>
+  </template>
+</interface>

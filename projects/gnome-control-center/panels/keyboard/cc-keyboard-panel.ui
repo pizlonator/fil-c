@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkAdjustment" id="cursor_blink_time_adjustment">
+    <property name="lower">100</property>
+    <property name="upper">2500</property>
+    <property name="value">1000</property>
+    <property name="step_increment">200</property>
+    <property name="page_increment">200</property>
+  </object>
+  <template class="CcKeyboardPanel" parent="CcPanel">
+
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Input Sources</property>
+                <property name="description" translatable="yes">Includes keyboard layouts and input methods</property>
+                <child>
+                  <object class="CcInputListBox" id="input_list">
+                    <property name="vexpand">False</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="input_switch_group">
+                <property name="title" translatable="yes">Input Source Switching</property>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Use the _same source for all windows</property>
+                    <property name="use-underline">True</property>
+                    <property name="activatable-widget">same_source</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="same_source">
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">Switch input sources _individually for each window</property>
+                    <property name="use-underline">True</property>
+                    <property name="activatable-widget">per_window_source</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="per_window_source">
+                        <property name="active" bind-source="same_source" bind-flags="sync-create|invert-boolean"/>
+                        <property name="valign">center</property>
+                        <property name="group">same_source</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Special Character Entry</property>
+                <property name="description" translatable="yes">Methods for entering symbols and letter variants using the keyboard</property>
+                <child>
+                  <object class="CcListRow" id="alt_chars_row">
+                    <property name="title" translatable="yes">A_lternate Characters Key</property>
+                    <property name="show-arrow">True</property>
+                    <property name="secondary-label" translatable="no">Right Alt</property>
+                    <signal name="activated" handler="alt_chars_row_activated" object="CcKeyboardPanel" swapped="yes" />
+                  </object>
+                </child>
+                <child>
+                  <object class="CcListRow" id="compose_row">
+                    <property name="title" translatable="yes">_Compose Key</property>
+                    <property name="show-arrow">True</property>
+                    <signal name="activated" handler="compose_row_activated" object="CcKeyboardPanel" swapped="yes" />
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Keyboard Shortcuts</property>
+                <child>
+                  <object class="CcListRow" id="common_shortcuts_row">
+                    <property name="title" translatable="yes">_View and Customize Shortcuts</property>
+                    <property name="show-arrow">True</property>
+                    <signal name="activated" handler="keyboard_shortcuts_activated" object="CcKeyboardPanel" swapped="yes" />
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

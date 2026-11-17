@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcBackgroundChooser" parent="GtkBox">
+    <property name="orientation">vertical</property>
+
+    <!-- Recent -->
+    <child>
+      <object class="GtkBox" id="recent_box">
+        <property name="orientation">vertical</property>
+        <property name="halign">center</property>
+
+        <child>
+          <object class="GtkFlowBox" id="recent_flowbox">
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="column-spacing">12</property>
+            <property name="row-spacing">12</property>
+            <property name="homogeneous">True</property>
+            <property name="halign">center</property>
+            <property name="min-children-per-line">1</property>
+            <property name="max-children-per-line">8</property>
+            <property name="activate-on-single-click">True</property>
+            <property name="selection-mode">single</property>
+            <signal name="child-activated" handler="on_item_activated_cb" object="CcBackgroundChooser" swapped="yes" />
+            <style>
+              <class name="background-flowbox"/>
+            </style>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkSeparator">
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkFlowBox" id="flowbox">
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="column-spacing">12</property>
+        <property name="row-spacing">12</property>
+        <property name="homogeneous">True</property>
+        <property name="halign">center</property>
+        <property name="min-children-per-line">1</property>
+        <property name="max-children-per-line">8</property>
+        <property name="activate-on-single-click">True</property>
+        <property name="selection-mode">single</property>
+        <signal name="child-activated" handler="on_item_activated_cb" object="CcBackgroundChooser" swapped="yes" />
+        <style>
+          <class name="background-flowbox"/>
+        </style>
+      </object>
+    </child>
+
+  </template>
+</interface>

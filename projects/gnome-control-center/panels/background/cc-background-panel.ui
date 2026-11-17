@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcBackgroundPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="AdwPreferencesPage">
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Style</property>
+
+                <child>
+                  <object class="AdwPreferencesRow">
+                    <property name="activatable">False</property>
+                    <property name="focusable">False</property>
+                    <child>
+                      <object class="AdwClamp">
+                        <property name="maximum-size">400</property>
+                        <property name="tightening-threshold">300</property>
+                        <child>
+                          <object class="GtkGrid">
+                            <property name="column-homogeneous">True</property>
+                            <property name="column-spacing">24</property>
+                            <property name="row-spacing">12</property>
+                            <property name="margin-start">12</property>
+                            <property name="margin-end">12</property>
+                            <property name="margin-top">18</property>
+                            <property name="margin-bottom">12</property>
+                            <property name="hexpand">True</property>
+                            <child>
+                              <object class="GtkToggleButton" id="default_toggle">
+                                <accessibility>
+                                  <relation name="labelled-by">default_label</relation>
+                                </accessibility>
+                                <signal name="notify::active" handler="on_color_scheme_toggle_active_cb" swapped="true"/>
+                                <child>
+                                  <object class="CcBackgroundPreview" id="default_preview"/>
+                                </child>
+                                <style>
+                                  <class name="background-preview-button"/>
+                                </style>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="default_label">
+                                <property name="label" translatable="yes">_Default</property>
+                                <property name="use-underline">True</property>
+                                <property name="mnemonic-widget">default_toggle</property>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">1</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkToggleButton" id="dark_toggle">
+                                <property name="group">default_toggle</property>
+                                <accessibility>
+                                  <relation name="labelled-by">dark_label</relation>
+                                </accessibility>
+                                <signal name="notify::active" handler="on_color_scheme_toggle_active_cb" swapped="true"/>
+                                <child>
+                                  <object class="CcBackgroundPreview" id="dark_preview">
+                                    <property name="is-dark">True</property>
+                                  </object>
+                                </child>
+                                <style>
+                                  <class name="background-preview-button"/>
+                                </style>
+                                <layout>
+                                  <property name="column">1</property>
+                                  <property name="row">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="dark_label">
+                                <property name="label" translatable="yes">Da_rk</property>
+                                <property name="use-underline">True</property>
+                                <property name="mnemonic-widget">dark_toggle</property>
+                                <layout>
+                                  <property name="column">1</property>
+                                  <property name="row">1</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Background</property>
+                <property name="header-suffix">
+                  <object class="GtkButton">
+                    <child>
+                      <object class="AdwButtonContent">
+                        <property name="icon-name">list-add-symbolic</property>
+                        <property name="label" translatable="yes">_Add Picture…</property>
+                        <property name="use-underline">True</property>
+                      </object>
+                    </child>
+                    <signal name="clicked" handler="on_add_picture_button_clicked_cb" object="CcBackgroundPanel" swapped="yes" />
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </property>
+
+                <child>
+                  <object class="AdwBin">
+                    <style>
+                      <class name="card"/>
+                    </style>
+                    <child>
+                      <object class="CcBackgroundChooser" id="background_chooser">
+                        <property name="hexpand">True</property>
+                        <signal name="background-chosen" handler="on_chooser_background_chosen_cb" object="CcBackgroundPanel" swapped="yes" />
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

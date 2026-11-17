@@ -1,0 +1,82 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="topic"
+      id="pref-custom-command">
+
+  <info>
+    <revision pkgversion="3.8" date="2013-03-02" status="candidate"/>
+    <revision pkgversion="3.12" date="2014-09-08" status="candidate"/>
+    <revision pkgversion="3.34" date="2020-01-04" status="candidate"/>
+    <link type="guide" xref="index#preferences"/>
+    <link type="guide" xref="pref#profile"/>
+    <link type="seealso" xref="gs-execute-commands"/>
+<!--    <link type="seealso" xref="prob-add-to-path"/>-->
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013-2014</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Set <app>Terminal</app> to run a command or a different shell on startup.</desc>
+
+  </info>
+
+  <title>Custom commands and shells</title>
+
+  <p>A <em>shell</em> is software that provides an interface for users of an
+  operating system to run <em>commands</em>, which can be programs such as
+  <app>top</app> or a command line shell. The default shell is usually
+  <app>Bash</app>.</p>
+
+  <p>You can set <app>Terminal</app> to run a command when it starts up instead
+  of awaiting input from you:</p>
+
+  <steps>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Preferences</gui>.</p>
+    </item>
+    <item>
+      <p>In the sidebar, select your current profile in the <gui>Profiles</gui>
+      section.</p>
+    </item>
+    <item>
+      <p>Select <gui style="tab">Command</gui>.</p>
+    </item>
+    <item>
+      <p>Check <gui>Run a custom command instead of my shell</gui>.</p>
+    </item>
+    <item>
+      <p>In the text box, type the command or the desired shell.</p>
+      <p>The command will be passed to the terminal exactly as you write it,
+      including any arguments that you specify. Environment variables will be
+      inherited from the terminal as it is a child process of the terminal.</p>
+    </item>
+    <item>
+      <p>Open a new <app>Terminal</app> tab or window to see how the custom
+      shell or command executes.</p>
+    </item>
+  </steps>
+
+  <p>You can also <link xref="pref-custom-exit">set the behavior</link> of
+  the terminal once the command finishes executing.</p>
+
+  <note style="important">
+    <p>You may have to enter full path to the command or the shell if the
+    directory where the command or shell resides is not in the
+    <code>PATH</code> variable of your system.</p>
+  </note>
+
+</page>

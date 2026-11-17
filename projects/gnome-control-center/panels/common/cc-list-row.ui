@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcListRow" parent="AdwActionRow">
+    <property name="activatable">True</property>
+    <property name="use-underline">True</property>
+
+    <!-- Secondary Label -->
+    <child type="suffix">
+      <object class="GtkLabel" id="secondary_label">
+        <property name="valign">center</property>
+        <property name="ellipsize">end</property>
+        <property name="selectable" bind-source="CcListRow" bind-property="activatable" bind-flags="sync-create|invert-boolean" />
+        <style>
+          <class name="dim-label"/>
+        </style>
+      </object>
+    </child>
+
+    <!-- Arrow -->
+    <child type="suffix">
+      <object class="GtkImage" id="arrow">
+        <property name="visible" bind-source="CcListRow" bind-property="show-arrow" bind-flags="sync-create"/>
+        <property name="valign">center</property>
+        <property name="icon-name">go-next-symbolic</property>
+      </object>
+    </child>
+
+    <signal name="notify::sensitive" handler="cc_list_row_sensitivity_changed_cb" object="CcListRow" swapped="yes"/>
+  </template>
+</interface>

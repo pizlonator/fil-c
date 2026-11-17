@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcLocationPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Location</property>
+    <property name="tag">location</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="location_row">
+                    <property name="title" translatable="yes">_Automatic Device Location</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="margin-top">12</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Automatic device location uses sources like GPS, Wi-Fi and cellular to determine an approximate location for this device. Location data is sent to Mozilla Location Services as part of this feature.</property>
+                        <property name="wrap">True</property>
+                        <property name="wrap-mode">word-char</property>
+                        <property name="xalign">0</property>
+                        <style>
+                          <class name="caption"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="privacy_policy_link">
+                        <property name="use-markup">True</property>
+                        <property name="wrap">True</property>
+                        <property name="wrap-mode">word-char</property>
+                        <property name="xalign">0</property>
+                        <style>
+                          <class name="caption"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Permitted Apps</property>
+                <property name="description" translatable="yes">The following sandboxed apps have been given access to location data. Apps that are not sandboxed can access location data without asking for permission.</property>
+                <child>
+                  <object class="GtkListBox" id="location_apps_list_box">
+                    <property name="selection-mode">none</property>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+
+                    <child type="placeholder">
+                      <object class="GtkLabel">
+                        <property name="margin_top">18</property>
+                        <property name="margin_bottom">18</property>
+                        <property name="margin_start">18</property>
+                        <property name="margin_end">18</property>
+                        <property name="label" translatable="yes">No sandboxed apps have asked for location access</property>
+                        <property name="wrap">true</property>
+                        <property name="max-width-chars">50</property>
+                        <style>
+                          <class name="dim-label" />
+                        </style>
+                      </object>
+                    </child>
+
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

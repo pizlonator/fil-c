@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkAdjustment" id="mtu_adjustment">
+    <property name="upper">65536</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <template class="CEPageEthernet" parent="AdwBin">
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="propagate-natural-height">True</property>
+        <property name="propagate-natural-width">True</property>
+        <child>
+          <object class="GtkGrid">
+            <property name="margin_start">50</property>
+            <property name="margin_end">50</property>
+            <property name="margin_top">12</property>
+            <property name="margin_bottom">12</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <property name="row_spacing">10</property>
+            <property name="column_spacing">6</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">_Name</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">name_entry</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="name_entry">
+                <property name="invisible_char">●</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">_MAC Address</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">mac_combo</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkComboBoxText" id="mac_combo">
+                <property name="has_entry">True</property>
+                <property name="entry_text_column">0</property>
+                <property name="id_column">1</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkComboBoxText" id="cloned_mac_combo">
+                <property name="has_entry">True</property>
+                <property name="hexpand">True</property>
+                <property name="active_id">0</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+                <child internal-child="entry">
+                  <object class="GtkEntry">
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">M_TU</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">mtu_spin</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="valign">center</property>
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">_Cloned Address</property>
+                <property name="use_underline">True</property>
+                <property name="mnemonic_widget">cloned_mac_combo</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="mtu_label">
+                <property name="label" translatable="yes">bytes</property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="mtu_spin">
+                <property name="adjustment">mtu_adjustment</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

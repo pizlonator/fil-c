@@ -1,0 +1,115 @@
+# Telugu translation of vte.
+# Copyright (C) 2007 Swecha Telugu Localisation Team <localisation@swecha.org>
+# This file is distributed under the same license as the vte package.
+# Matapathi Pramod <pramod@swecha.net>, 2007
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vte\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-11-27 10:26+0530\n"
+"PO-Revision-Date: 2007-11-19 12:22+0530\n"
+"Last-Translator: Matapathi Pramod <pramod@swecha.net>\n"
+"Language-Team: Swecha Telugu Localisation Team <localisation@swecha.org>\n"
+"Language: te\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: ../src/iso2022.c:791 ../src/iso2022.c:799 ../src/iso2022.c:830
+#: ../src/vte.c:1845
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "%s నుండి %s కు అక్షరములు పరివర్తించుటకు వీలుకాదు."
+
+#: ../src/iso2022.c:1540
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "'%c' నిస్సారమైన ఎన్ఆర్సి పటం అమర్చుటకు ప్రయత్నించుచున్నది."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1570
+msgid "Unrecognized identified coding system."
+msgstr "పోలికలేని గుర్తించదగ్గ సంకేత వ్యవస్థ."
+
+#: ../src/iso2022.c:1629 ../src/iso2022.c:1656
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "నిస్సారమైన వెడల్పు ఎనార్సి పటం అమర్చుటకు ప్రయత్నించుచున్నది '%c'."
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:837
+#, c-format
+msgid "can not run %s"
+msgstr "%s నడుపుటకు వీలుకాదు"
+
+#: ../src/reaper.c:136
+msgid "Error creating signal pipe."
+msgstr "సైగల పైపును సృష్టించుటలో దోషము."
+
+#: ../src/trie.c:414
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "(%s/%s)!నకలుతీయు"
+
+#: ../src/vte.c:1232
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "\"%s\" క్రమబద్దమైన వ్యక్తీకరణ క్రోడీకరించుటలో దోషము."
+
+#: ../src/vte.c:2707 ../src/vte.c:2712
+#, c-format
+msgid "No handler for control sequence `%s' defined."
+msgstr "ఎటువంటి నియంత్రణ క్రమము అదుపుచేయగల `%s' నిర్వచింపబడలేదు."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:3698
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "శిశువు నుండి చదువుటలో దోషము: %s."
+
+#: ../src/vte.c:3826
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "శిశువుకు దత్తాంశం పంపుటకు వీలుకాదు, నిస్సారమైన అక్షరమాల పరివర్తించునది"
+
+#: ../src/vte.c:3837 ../src/vte.c:4744
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "(%s) దోషము శిశువు నుండి దత్తంశం పరివర్తించుచున్నది, పడవేయుచున్నది."
+
+#: ../src/vte.c:6985
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr "పిటివై పరిమాణం చదువుటలో దోషము, అప్రమేయములు వాడుచున్నది: %s."
+
+#: ../src/vte.c:7021
+#, c-format
+msgid "Error setting PTY size: %s."
+msgstr "పిటివై పరిమాణం అమర్చుటలో దోషము :%s."
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:11495
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "_విటిఇ_పరివర్తనం_తెరుచుట() విఫలమైంది పద అక్షరములు అమర్చుచున్నది"
+
+#: ../src/vteseq.c:3934
+#, c-format
+msgid "Got unexpected (key?) sequence `%s'."
+msgstr "ఊహించని (మీట?) `%s'క్రమము పొందినది."
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:778
+msgid "Could not open console.\n"
+msgstr "ఓదార్పు తెరుచుటకు వీలుకాదు. \n"
+
+#: ../src/vteapp.c:842
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "క్షేత్రగణితం పార్స్ కు వీలుకాదు --క్షేత్రగణితం వెళ్ళుటకు నిర్థేశింపబడినది"
+
+#: ../src/vteglyph.c:562
+#, c-format
+msgid "Unknown pixel mode %d.\n"
+msgstr "తెలియని పిక్సెల్ %d విధము. \n"

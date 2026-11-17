@@ -1,0 +1,68 @@
+# Copyright © 2025 Christian Persch
+#
+# This library is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library.  If not, see <https://www.gnu.org/licenses/>.
+
+include:
+  - project: 'chpe/versuch-ci'
+    ref: 4a04e0c88965b04b2dc784f2ec341399d86b74e8
+    file: '/versuch.yml'
+    inputs:
+      release-service: real
+
+variables:
+  VERSUCH_FEDORA_VERSION: 41
+
+  # Increase this serial when changing VERSUCH_FEDORA_PACKAGES
+  # below, and reset to 0 when changing VERSUCH_FEDORA_VERSION
+  # above.
+  VERSUCH_FEDORA_SERIAL: '1'
+
+  VERSUCH_FEDORA_PACKAGES: >-
+    clang
+    clang-analyzer
+    clang-tools-extra
+    fast_float-devel
+    fmt-devel
+    fribidi-devel
+    gcc-c++
+    gettext-devel
+    gi-docgen
+    glib2-devel
+    gnutls-devel
+    gobject-introspection-devel
+    gtk3-devel
+    gtk4-devel
+    libicu-devel
+    lz4-devel
+    meson
+    pango-devel
+    pcre2-devel
+    python3-jinja2
+    python3-packaging
+    python3-pygments
+    python3-toml
+    python3-typogrify
+    simdutf-devel
+    systemd-devel
+    vala
+
+  VERSUCH_COMMON_BUILD_OPTIONS: >-
+    --prefix=/usr
+    -Dgtk3=true
+    -Dgtk4=true
+    -Dgir=true
+    -Dvapi=true
+    -Ddocs=true
+
+  VERSUCH_CI_BOT_NAME: "VTE Automation"

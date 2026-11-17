@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcScreenPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Screen Lock</property>
+    <property name="tag">screenlock</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <property name="description" translatable="yes">Automatically locking the screen prevents others from accessing the computer while you're away</property>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <!-- Blank Screen Delay row -->
+                <child>
+                  <object class="AdwComboRow" id="blank_screen_row">
+                    <property name="title" translatable="yes">_Blank Screen Delay</property>
+                    <property name="subtitle" translatable="yes">Period of inactivity until screen blanks</property>
+                    <property name="subtitle-lines">2</property>
+                    <property name="use-underline">true</property>
+                    <signal name="notify::selected-item" handler="on_blank_screen_delay_changed_cb"/>
+                    <property name="model">
+                      <object class="AdwEnumListModel">
+                        <property name="enum-type">CcScreenPageBlankScreenDelay</property>
+                      </object>
+                    </property>
+                    <property name="expression">
+                      <closure type="gchararray" function="screen_delay_name_cb"/>
+                    </property>
+                  </object>
+                </child>
+
+                <!-- Automatic Screen Lock row -->
+                <child>
+                  <object class="AdwSwitchRow" id="automatic_screen_lock_row">
+                    <property name="title" translatable="yes">Automatic Screen _Lock</property>
+                    <property name="subtitle" translatable="yes">Locks the screen after it blanks</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </child>
+
+                <!-- Automatic Screen Lock Delay row -->
+                <child>
+                  <object class="AdwComboRow" id="lock_after_row">
+                    <property name="title" translatable="yes">Automatic _Screen Lock Delay</property>
+                    <property name="subtitle" translatable="yes">Time from screen blank to screen lock</property>
+                    <property name="subtitle-lines">2</property>
+                    <property name="use-underline">true</property>
+                    <signal name="notify::selected-item" handler="on_lock_combo_changed_cb"/>
+                    <property name="model">
+                      <object class="AdwEnumListModel">
+                        <property name="enum-type">CcScreenPageLockAfter</property>
+                      </object>
+                    </property>
+                    <property name="expression">
+                      <closure type="gchararray" function="lock_after_name_cb"/>
+                    </property>
+                  </object>
+                </child>
+
+                <!-- Show Notifications row -->
+                <child>
+                  <object class="AdwSwitchRow" id="show_notifications_row">
+                    <property name="title" translatable="yes" comments="Translators: Whether to show notifications on the lock screen">Lock Screen _Notifications</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </child>
+
+                <!-- USB protection row -->
+                <child>
+                  <object class="AdwSwitchRow" id="usb_protection_row">
+                    <property name="visible">false</property>
+                    <property name="title" translatable="yes">Forbid New _USB Devices</property>
+                    <property name="subtitle" translatable="yes">Prevent new USB devices from interacting with the system when the screen is locked</property>
+                    <property name="subtitle-lines">2</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup" id="screen_privacy_group">
+                <property name="title" translatable="yes">Screen Privacy</property>
+
+                <!-- Privacy Screen row -->
+                <child>
+                  <object class="AdwSwitchRow" id="privacy_screen_row">
+                    <property name="title" translatable="yes">Restrict Viewing _Angle</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

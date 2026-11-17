@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcFirmwareSecurityDialog" parent="AdwWindow">
+    <property name="modal">True</property>
+    <property name="width-request">360</property>
+    <property name="height-request">200</property>
+    <property name="default-width">420</property>
+
+    <property name="content">
+      <object class="AdwToastOverlay" id="toast_overlay">
+        <property name="child">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar">
+                <property name="show-title">False</property>
+              </object>
+            </child>
+
+            <property name="content">
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="propagate-natural-height">True</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">24</property>
+                    <property name="margin-top">12</property>
+                    <property name="margin-start">24</property>
+                    <property name="margin-end">24</property>
+                    <property name="margin-bottom">24</property>
+
+                    <child>
+                      <object class="GtkImage" id="firmware_security_dialog_icon">
+                        <property name="icon-size">large</property>
+                        <property name="halign">center</property>
+                        <property name="icon-name">dialog-question-symbolic</property>
+                        <style>
+                          <class name="security-level-icon"/>
+                        </style>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkLabel" id="firmware_security_dialog_title_label">
+                        <property name="wrap">True</property>
+                        <property name="justify">center</property>
+                        <style>
+                          <class name="title-2" />
+                        </style>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkLabel" id="firmware_security_dialog_body_label">
+                        <property name="wrap">True</property>
+                        <property name="justify">center</property>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkButton" id="status_download_button">
+                        <property name="receives-default">True</property>
+                        <property name="halign">center</property>
+                        <property name="use-underline">True</property>
+                        <property name="label" translatable="yes">_Copy Technical Report</property>
+                        <signal name="clicked" handler="on_hsi_detail_button_clicked_cb" object="CcFirmwareSecurityDialog" swapped="yes" />
+                        <style>
+                          <class name="pill" />
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

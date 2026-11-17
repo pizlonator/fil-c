@@ -444,7 +444,11 @@ gtk_search_engine_tracker3_new (void)
   GError *error = NULL;
   GModule *self;
 
-  self = g_module_open (NULL, G_MODULE_BIND_LAZY);
+  /* Fil-C: the main-program self-module handle from g_module_open (NULL,
+   * G_MODULE_BIND_LAZY) is not a filc-valid pointer for the pizlonated
+   * libc's zsys_dlsym, so the "application links to Tracker 2.x" probe is
+   * skipped; nothing in the pizlonated system links Tracker 2.x. */
+  self = NULL;
 
   /* Avoid hell from breaking loose if the application links to Tracker 2.x */
   if (self)

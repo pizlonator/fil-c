@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.2 -->
+<interface>
+  <requires lib="gtk+" version="3.22"/>
+  <object class="GtkPopover" id="authentication_popover">
+    <property name="halign">start</property>
+    <property name="valign">start</property>
+    <child>
+      <object class="GtkBox">
+        <property name="margin_start">30</property>
+        <property name="margin_end">30</property>
+        <property name="margin_top">20</property>
+        <property name="margin_bottom">20</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">20</property>
+        <child>
+          <object class="GtkLabel" id="authentication_label">
+            <property name="margin_top">5</property>
+            <property name="margin_bottom">5</property>
+            <property name="label" translatable="no">Enter credentials to print from %s</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkGrid">
+            <property name="row_spacing">10</property>
+            <property name="column_spacing">15</property>
+            <child>
+              <object class="GtkLabel" id="domain_label">
+                <property name="halign">start</property>
+                <property name="label" translatable="yes" comments="Translators: This is a windows domain used with SMB protocol.">Domain</property>
+                <property name="xalign">1</property>
+                <property name="mnemonic_widget">domain_entry</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="username_label">
+                <property name="halign">start</property>
+                <property name="label" translatable="yes" comments="Translators: This is a username on a print server.">Username</property>
+                <property name="xalign">1</property>
+                <property name="mnemonic_widget">username_entry</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="password_label">
+                <property name="halign">start</property>
+                <property name="label" translatable="yes" comments="Translators: This is a password needed for printing.">Password</property>
+                <property name="xalign">1</property>
+                <property name="mnemonic_widget">password_entry</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="domain_entry">
+                <property name="hexpand">True</property>
+                <signal name="changed" handler="auth_entries_changed" swapped="yes"/>
+                <signal name="activate" handler="auth_entries_activated" swapped="yes"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="username_entry">
+                <property name="hexpand">True</property>
+                <signal name="changed" handler="auth_entries_changed" swapped="yes"/>
+                <signal name="activate" handler="auth_entries_activated" swapped="yes"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkEntry" id="password_entry">
+                <property name="hexpand">True</property>
+                <property name="visibility">False</property>
+                <property name="invisible_char">*</property>
+                <property name="input_purpose">password</property>
+                <signal name="changed" handler="auth_entries_changed" swapped="yes"/>
+                <signal name="activate" handler="auth_entries_activated" swapped="yes"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="authenticate_button">
+            <property name="label" translatable="yes" comments="Translators: This button authenticates all print jobs and send them for printing.">A_uthenticate</property>
+            <property name="use_underline">True</property>
+            <property name="receives_default">True</property>
+            <property name="halign">end</property>
+            <signal name="clicked" handler="authenticate_button_clicked" swapped="yes"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="domain_label"/>
+      <widget name="username_label"/>
+      <widget name="password_label"/>
+    </widgets>
+  </object>
+  <template class="PpJobsDialog" parent="AdwWindow">
+    <property name="width_request">720</property>
+    <property name="height_request">500</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="destroy_with_parent">True</property>
+    <style>
+      <class name="view"/>
+    </style>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <child type="start">
+              <object class="GtkButton" id="jobs_clear_all_button">
+                <property name="label" translatable="yes" comments="Translators: this action removes (purges) all the listed jobs from the list.">Clear All</property>
+                <property name="receives_default">True</property>
+                <property name="use_underline">True</property>
+                <signal name="clicked" handler="on_clear_all_button_clicked" swapped="yes"/>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkInfoBar" id="authentication_infobar">
+                <child>
+                  <object class="GtkBox">
+                    <property name="spacing">16</property>
+                    <property name="margin-start">12</property>
+                    <child>
+                      <object class="GtkLabel" id="authenticate_jobs_label">
+                        <property name="halign">start</property>
+                        <property name="hexpand">False</property>
+                        <property name="wrap">True</property>
+                        <property name="label" translatable="no">2 Jobs Require Authentication</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="margin-top">12</property>
+                    <property name="margin-bottom">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">2</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkMenuButton" id="authenticate_jobs_button">
+                        <property name="label" translatable="yes" comments="Translators: This button pop up authentication dialog for print jobs which need credentials.">_Authenticate</property>
+                        <property name="receives-default">False</property>
+                        <property name="use-underline">True</property>
+                        <property name="halign">end</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <property name="popover">authentication_popover</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStack" id="stack">
+                <child>
+                  <object class="GtkScrolledWindow" id="list_jobs_page">
+                    <property name="vexpand">True</property>
+                    <property name="hscrollbar-policy">never</property>
+                    <child>
+                      <object class="GtkListBox" id="jobs_listbox">
+                        <property name="halign">fill</property>
+                        <property name="valign">fill</property>
+                        <property name="selection-mode">none</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox" id="no_jobs_page">
+                    <property name="spacing">10</property>
+                    <property name="orientation">vertical</property>
+                    <property name="valign">center</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="valign">start</property>
+                        <property name="pixel_size">64</property>
+                        <property name="icon_name">printer-symbolic</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes" comments="Translators: this label describes the dialog empty state, with no jobs listed.">No Active Printer Jobs</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

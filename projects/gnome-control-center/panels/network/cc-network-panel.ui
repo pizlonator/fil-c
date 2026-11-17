@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcNetworkPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwNavigationView" id="main_nav">
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Network</property>
+            <child>
+              <object class="AdwToolbarView" id="toolbar_view">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+                    <!-- Each group below will contain GtkStacks from the NetDevices -->
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="GtkBox" id="box_wired">
+                            <property name="orientation">vertical</property>
+                            <property name="spacing">24</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup" id="container_bluetooth">
+                        <property name="visible">False</property>
+                        <property name="title" translatable="yes">Bluetooth</property>
+                        <child>
+                          <object class="GtkListBox" id="box_bluetooth">
+                            <property name="selection_mode">none</property>
+                            <accessibility>
+                              <relation name="labelled-by">container_bluetooth</relation>
+                            </accessibility>
+                            <style>
+                              <class name="boxed-list" />
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title" translatable="yes">VPN</property>
+                        <property name="header-suffix">
+                          <object class="GtkButton">
+                            <property name="tooltip-text" translatable="yes">Add VPN</property>
+                            <property name="icon_name">list-add-symbolic</property>
+                            <style>
+                              <class name="flat" />
+                            </style>
+                            <signal name="clicked" handler="create_connection_cb" object="CcNetworkPanel" swapped="yes" />
+                          </object>
+                        </property>
+                        <child>
+                          <object class="GtkStack" id="vpn_stack">
+                            <child>
+                              <!-- "Not set up" row -->
+                              <object class="GtkListBox" id="empty_listbox">
+                                <property name="selection_mode">none</property>
+                                <style>
+                                  <class name="boxed-list" />
+                                </style>
+                                <child>
+                                  <object class="AdwActionRow">
+                                    <property name="activatable">False</property>
+                                    <property name="title" translatable="yes">Not set up</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkListBox" id="box_vpn">
+                                <property name="selection_mode">none</property>
+                                <accessibility>
+                                  <property name="label" translatable="yes">VPN</property>
+                                </accessibility>
+                                <style>
+                                  <class name="boxed-list" />
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <!-- xxx: Added to avoid confusion with the preceding VPN row -->
+                        <property name="title" translatable="yes">Proxy</property>
+                        <child>
+                          <object class="CcListRow" id="proxy_row">
+                            <property name="title" translatable="yes">_Proxy</property>
+                            <property name="show-arrow">True</property>
+                            <property name="icon-name">preferences-system-network-proxy-symbolic</property>
+                            <property name="secondary-label" bind-source="proxy_page" bind-property="state-text" bind-flags="sync-create"/>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'proxy'</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="CcNetProxyPage" id="proxy_page"/>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

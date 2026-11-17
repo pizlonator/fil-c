@@ -1,0 +1,28 @@
+/* color selection by Daniel Foré and elementary OS */
+@define-color ORANGE_100 #ffc27d;
+@define-color ORANGE_500 #f37329;
+@define-color base_color white;
+@define-color bg_color shade(@base_color, 0.96);
+
+/* Hide the marks at the beginning and the end */
+.night-light-temperature mark indicator:nth-child(even) {
+   color:transparent;
+}
+
+.night-light-temperature trough {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    background-image: linear-gradient(to right, mix(@bg_color, @ORANGE_100, 0.5), @ORANGE_500);
+}
+
+.night-light-temperature:dir(rtl) trough {
+    background-image: linear-gradient(to left, mix(@bg_color, @ORANGE_100, 0.5), @ORANGE_500);
+}
+
+.padded-spinbutton {
+    min-width: 40px;
+}
+
+.unpadded-button {
+    padding: 6px;
+}

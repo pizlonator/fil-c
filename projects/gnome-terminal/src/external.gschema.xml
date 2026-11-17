@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright © 2021 Christian Persch
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<schemalist>
+
+  <!-- From gsettings-desktop-schemas -->
+
+  <schema id="org.gnome.desktop.interface"
+          gettext-domain="gsettings-desktop-schemas"
+          path="/org/gnome/desktop/interface/">
+    <key name="monospace-font-name"
+         type="s">
+      <default>'DejaVu Sans Mono 10'</default>
+    </key>
+  </schema>
+
+  <enum id="org.gnome.desktop.GDesktopProxyMode">
+    <value nick="none"
+           value="0"/>
+    <value nick="manual"
+           value="1"/>
+    <value nick="auto"
+           value="2"/>
+  </enum>
+
+  <schema id="org.gnome.system.proxy.http"
+          gettext-domain="gsettings-desktop-schemas"
+          path="/system/proxy/http/">
+    <key name="host"
+         type="s">
+      <default>''</default>
+    </key>
+    <key name="port"
+         type="i">
+      <range min="0"
+             max="65535" />
+      <default>8080</default>
+    </key>
+    <key name="use-authentication"
+         type="b">
+      <default>false</default>
+    </key>
+    <key name="authentication-user"
+         type="s">
+      <default>''</default>
+    </key>
+    <key name="authentication-password"
+         type="s">
+      <default>''</default>
+    </key>
+  </schema>
+
+  <schema id="org.gnome.system.proxy.https"
+          gettext-domain="gsettings-desktop-schemas"
+          path="/system/proxy/https/">
+    <key name="host"
+         type="s">
+      <default>''</default>
+    </key>
+    <key name="port"
+         type="i">
+      <range min="0"
+             max="65535" />
+      <default>0</default>
+    </key>
+  </schema>
+
+  <schema id="org.gnome.system.proxy.ftp"
+          gettext-domain="gsettings-desktop-schemas"
+          path="/system/proxy/ftp/">
+    <key name="host"
+         type="s">
+      <default>''</default>
+    </key>
+    <key name="port"
+         type="i">
+      <range min="0"
+             max="65535" />
+      <default>0</default>
+    </key>
+  </schema>
+
+  <schema id="org.gnome.system.proxy.socks"
+          gettext-domain="gsettings-desktop-schemas"
+          path="/system/proxy/socks/">
+    <key name="host"
+         type="s">
+      <default>''</default>
+    </key>
+    <key name="port"
+         type="i">
+      <range min="0"
+             max="65535" />
+      <default>0</default>
+    </key>
+  </schema>
+
+  <schema id="org.gnome.system.proxy"
+          gettext-domain="gsettings-desktop-schemas"
+          path="/system/proxy/">
+    <child name="http"
+           schema="org.gnome.system.proxy.http" />
+    <child name="https"
+           schema="org.gnome.system.proxy.https" />
+    <child name="ftp"
+           schema="org.gnome.system.proxy.ftp" />
+    <child name="socks"
+           schema="org.gnome.system.proxy.socks" />
+    <key name="mode"
+         enum="org.gnome.desktop.GDesktopProxyMode">
+      <default>'none'</default>
+    </key>
+    <key name="ignore-hosts"
+         type="as">
+      <default>['localhost', '127.0.0.0/8', '::1']</default>
+    </key>
+  </schema>
+
+  <!-- From gtk+ -->
+
+  <schema id="org.gtk.Settings.Debug"
+          path="/org/gtk/settings/debug/">
+    <key name="enable-inspector-keybinding"
+         type="b">
+      <default>false</default>
+    </key>
+  </schema>
+
+</schemalist>

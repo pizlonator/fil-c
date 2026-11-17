@@ -1,0 +1,24 @@
+<schemalist>
+  <schema gettext-domain="gnome-control-center-2.0" id="org.gnome.Settings" path="/org/gnome/control-center/">
+    <key name="last-panel" type="s">
+      <default>''</default>
+      <summary>The identifier for the last Settings panel to be opened</summary>
+      <description>
+        The identifier for the last Settings panel to be opened. Unrecognised values
+        will be ignored and the first panel in the list selected.
+      </description>
+    </key>
+    <key name="show-development-warning" type="b">
+      <default>true</default>
+      <summary>Show warning when running a development build of Settings</summary>
+      <description>
+        Whether Settings should show a warning when running a development build.
+      </description>
+    </key>
+    <key type="(iib)" name="window-state">
+      <default>(-1, -1, false)</default>
+      <summary>Initial state of the window</summary>
+      <description>A tuple containing the initial width, height and maximized state of the app window.</description>
+    </key>
+  </schema>
+</schemalist>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcAboutPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">About</property>
+    <property name="tag">about</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+
+                <child>
+                  <object class="AdwClamp">
+                    <property name="orientation">vertical</property>
+                    <property name="maximum-size">192</property>
+                    <property name="tightening-threshold">192</property>
+                    <property name="child">
+                      <object class="GtkPicture" id="os_logo">
+                        <property name="can-shrink">False</property>
+                        <property name="content-fit">scale-down</property>
+                        <property name="alternative-text" translatable="yes">System Logo</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+
+                <!-- Device name -->
+                <child>
+                  <object class="CcHostnameEntry" id="hostname_row">
+                    <property name="title" translatable="yes">_Device Name</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+
+                <!-- OS Name -->
+                <child>
+                  <object class="CcListRow" id="os_name_row">
+                    <property name="activatable">False</property>
+                    <property name="title" translatable="yes"
+                              comments="Translators: this field contains the distro name and version">Operating System</property>
+                  </object>
+                </child>
+
+                <!-- Hardware Model -->
+                <child>
+                  <object class="CcListRow" id="hardware_model_row">
+                    <property name="visible">False</property>
+                    <property name="activatable">False</property>
+                    <property name="title" translatable="yes">Hardware Model</property>
+                  </object>
+                </child>
+
+
+                <!-- Processor -->
+                <child>
+                  <object class="CcListRow" id="processor_row">
+                    <property name="activatable">False</property>
+                    <property name="title" translatable="yes">Processor</property>
+                  </object>
+                </child>
+
+                <!-- Memory -->
+                <child>
+                  <object class="CcListRow" id="memory_row">
+                    <property name="activatable">False</property>
+                    <property name="title" translatable="yes">Memory</property>
+                  </object>
+                </child>
+
+                <!-- Disk Capacity -->
+                <child>
+                  <object class="CcListRow" id="disk_row">
+                    <property name="activatable">False</property>
+                    <property name="title" translatable="yes">Disk Capacity</property>
+                    <property name="secondary-label" translatable="yes">Calculating…</property>
+                  </object>
+                </child>
+
+                <!-- System Details -->
+                <child>
+                  <object class="CcListRow">
+                    <property name="title" translatable="yes">_System Details</property>
+                    <property name="show-arrow">True</property>
+                    <signal name="activated" handler="cc_about_page_open_system_details" swapped="yes"/>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

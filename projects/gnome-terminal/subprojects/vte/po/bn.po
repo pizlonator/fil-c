@@ -1,0 +1,121 @@
+# vte এর বাংলা অনুবাদ.
+# Copyright (C) 2002 Free Software Foundation
+# This file is distributed under the same license as the vte package.
+# Jamil Ahmed <jamil@bengalinux.org>, 2003.
+# Samia Niamatullah <mailsamia2001@yahoo.com>, 2005.
+# Khandakar Mujahidul Islam <suzan@bengalinux.org>, 2007.
+# Sadia Afroz <sadia@ankur.org.bd>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bn\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=vte&component=general\n"
+"POT-Creation-Date: 2010-03-17 23:26+0000\n"
+"PO-Revision-Date: 2010-03-23 15:10+0600\n"
+"Last-Translator: Sadia Afroz <sadia@ankur.org.bd>\n"
+"Language-Team: Bengali <ankur-bd-l10n@googlegroups.com>\n"
+"Language: bn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/iso2022.c:771 ../src/iso2022.c:779 ../src/iso2022.c:810
+#: ../src/vte.c:2227
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "%s অক্ষরগুলোকে %s-এ রূপান্তর করতে অক্ষম।"
+
+#: ../src/iso2022.c:1464
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "অকার্যকর NRC ম্যাপ '%c' নির্ধারণ করার চেষ্টা করা হয়েছে।"
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1494
+msgid "Unrecognized identified coding system."
+msgstr "সনাক্তকৃত অজানা কোডিং সিস্টেম।"
+
+#: ../src/iso2022.c:1553 ../src/iso2022.c:1580
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "অকার্যকর প্রশস্ত NRC ম্যাপ '%c' নির্ধারণ করার চেষ্টা করা হয়েছে।"
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:833
+#, c-format
+msgid "can not run %s"
+msgstr "%s চালানো যাচ্ছে না"
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "প্রতিলিপি (%s/%s)!"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:876
+msgid "Could not open console.\n"
+msgstr "কনসোল খোলা সম্ভব হয়নি।\n"
+
+#: ../src/vteapp.c:945
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "--geometry-তে যে জ্যামিতিক স্পেক পাঠানো হয়েছে তা পার্স করা যায়নি"
+
+#: ../src/vte.c:1276
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "রেগুলার এক্সপ্রেশন \"%s\" কমপাইল করার সময় ত্রুটি দেখা দিয়েছে।"
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4186
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "এই চাইল্ড থেকে পড়ার সময় ত্রুটি দেখা দিয়েছে: %s।"
+
+#: ../src/vte.c:4314
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "চাইল্ডের কাছে ডাটা পাঠাতে অক্ষম, অকার্যকর charset কনভার্টার"
+
+#: ../src/vte.c:4325 ../src/vte.c:5347
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr ""
+"চাইল্ডের জন্য ডাটা রূপান্তর করার সময় ত্রুটি (%s) দেখা দিয়েছে, বাতিল করা "
+"হচ্ছে।"
+
+#: ../src/vte.c:7563
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr ""
+"পূর্বনির্ধারিত মান: %s ব্যবহার করে, PTY আকারের মান পড়ার সময় ত্রুটি দেখা "
+"দিয়েছে।"
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:13094
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "_vte_conv_open() শব্দের অক্ষরগুলো বসাতে ব্যর্থ হয়েছে"
+
+#~ msgid "Error creating signal pipe."
+#~ msgstr "সিগন্যাল পাইপ তৈরি করতে পারছি না।"
+
+# sam: Control sequence has been changed from কন্ট্রোল ধারাবাহিকতা to নিয়ন্ত্রন অনুক্রম।
+# what about handler?
+#~ msgid "No handler for control sequence `%s' defined."
+#~ msgstr "নিয়ন্ত্রন অনুক্রম '%s' র কোন পরিচালক স্থির করা নেই।"
+
+#~ msgid "Error setting PTY size: %s."
+#~ msgstr "PTY এর আকার: %s স্থাপন করতে ত্রুটি হয়েছে।"
+
+#~ msgid "Got unexpected (key?) sequence `%s'."
+#~ msgstr "অপ্রত্যাশিত (কী?) '%s' ধারাবাহিকতা পেয়েছি।"
+
+#~ msgid "Unknown pixel mode %d.\n"
+#~ msgstr "অজানা পিক্সেল মোড %d.\n"
+
+#~ msgid "Error adding `%s' to environment, continuing."
+#~ msgstr "পরিবেশ এর সাথে '%s' যোগ করতে ত্রুটি হচ্ছে, এগিয়ে যাচ্ছি।"
+
+#~ msgid "Can not draw character U+%04x.\n"
+#~ msgstr "U+%04x অক্ষরটি আঁকা সম্ভব হয়নি।\n"

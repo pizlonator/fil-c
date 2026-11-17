@@ -1,0 +1,121 @@
+# translation of vte.po to Norwegian Nynorsk
+# This file is distributed under the same license as the vte package.
+# Copyright (C) 2008, GNOME Foundation
+# Åsmund Skjæveland <aasmunds@fys.uio.no>, 2004.
+# Eskild Hustvedt <eskildh@gnome.org>, 2008
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nn\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-03-31 15:43+0200\n"
+"PO-Revision-Date: 2008-03-31 15:45+0200\n"
+"Last-Translator: Eskild Hustvedt <eskildh@gnome.org>\n"
+"Language-Team: Norwegian Nynorsk <i18n-nn@lister.ping.uio.no>\n"
+"Language: nn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/iso2022.c:791 ../src/iso2022.c:799 ../src/iso2022.c:830
+#: ../src/vte.c:1851
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "Kan ikkje konvertera teikn frå %s til %s."
+
+#: ../src/iso2022.c:1474
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "Freistnad på å setja NRC-kart «%c»."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1504
+msgid "Unrecognized identified coding system."
+msgstr "Ikkje attkjend kodingssystem."
+
+#: ../src/iso2022.c:1563 ../src/iso2022.c:1590
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "Freistnad på å setja gyldig breitt NRC-kart «%c»"
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:832
+#, c-format
+msgid "can not run %s"
+msgstr "kan ikkje køyra %s"
+
+#: ../src/reaper.c:136
+msgid "Error creating signal pipe."
+msgstr "Feil under oppretting av signalrøyr."
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "Duplikat (%s/%s)!"
+
+#: ../src/vte.c:1231
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "Feil under kompilering av regulært uttrykk«%s»."
+
+#: ../src/vte.c:2713 ../src/vte.c:2718
+#, c-format
+msgid "No handler for control sequence `%s' defined."
+msgstr "Ikkje definert nokon handsamar for kontrollsekvensen «%s»."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:3704
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "Klarte ikkje lesa frå underprosess: %s."
+
+#: ../src/vte.c:3832
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "Klarte ikkje sende data til underprosess, ugyldig konvertering av teiknkoding"
+
+#: ../src/vte.c:3843 ../src/vte.c:4770
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "Feil (%s) ved konvertering av data for underprosess. Hoppar over."
+
+#: ../src/vte.c:7016
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr "Klarte ikkje lesa PTY-storleik. Brukar standard: %s."
+
+#: ../src/vte.c:7052
+#, c-format
+msgid "Error setting PTY size: %s."
+msgstr "Klarte ikkje setja PTY-storleik: %s."
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:11526
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "_vte_conv_open() klarte ikkje å setja ord-teikn"
+
+#: ../src/vteseq.c:3979
+#, c-format
+msgid "Got unexpected (key?) sequence `%s'."
+msgstr "Fekk uventa sekvens (nøkkelsekvens?) «%s»."
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:775
+msgid "Could not open console.\n"
+msgstr "Klarte ikkje opna konsoll.\n"
+
+#: ../src/vteapp.c:839
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "Klarte ikkje tolke geometri-spesifikasjonen gitt til --geometry"
+
+#: ../src/vteglyph.c:556
+#, c-format
+msgid "Unknown pixel mode %d.\n"
+msgstr "Ukjend pikselmodus %d.\n"
+
+#~ msgid "Error adding `%s' to environment, continuing."
+#~ msgstr "Klarte ikkje å leggja til «%s» i miljøet. Held fram."
+
+#~ msgid "Can not draw character U+%04x.\n"
+#~ msgstr "Kan ikkje teikna teiknet U+%04x.\n"

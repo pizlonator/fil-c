@@ -1,0 +1,99 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="task"
+      id="app-terminal-sizes">
+
+  <info>
+    <revision version="0.1" date="2013-02-25" status="candidate"/>
+    <revision version="0.2" pkgversion="3.34" date="2020-01-04" status="candidate"/>
+    <link type="guide" xref="index#appearance"/>
+    <link type="guide" xref="adv-keyboard-shortcuts"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Change the <app>Terminal</app> window size.</desc>
+
+  </info>
+
+  <title><app>Terminal</app> sizes</title>
+
+  <p>If you work with certain command line applications that have minimum
+  terminal size requirements in order to display correctly, or if you want to
+  view long lines of terminal output with minimal line breaks on your
+  display, you may require <app>Terminal</app> windows to be of a particular
+  size.</p>
+
+  <p>You can change the <app>Terminal</app> window size to some preset
+  values:</p>
+  
+  <steps>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Advanced</gui>.</p>
+    </item>
+    <item>
+      <p>Choose one of the following options:</p>
+      <list>
+        <item>
+          <p><gui style="menuitem">80×24</gui></p>
+        </item>
+        <item>
+          <p><gui style="menuitem">80×43</gui></p>
+        </item>
+        <item>
+          <p><gui style="menuitem">132×24</gui></p>
+        </item>
+        <item>
+          <p><gui style="menuitem">132×43</gui></p>
+        </item>
+      </list>
+    </item>
+  </steps>
+
+  <note style="tip">
+    <p>If you have enabled <link xref="pref-keyboard-access"><gui>Menu access
+    keys</gui></link>, you can access this menu by pressing
+    <keyseq><key>Alt</key><key>T</key></keyseq> and then pressing <key>1</key>
+    to switch the <app>Terminal</app> window to size <gui>80×24</gui> and so
+    on.</p>
+  </note>
+
+  <p>If you require custom size <app>Terminal</app> windows, you can also set
+  the default window size according to your requirements:</p>
+
+  <steps>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Preferences</gui>.</p>
+    </item>
+    <item>
+      <p>In the sidebar, select your current profile in the <gui>Profiles</gui>
+      section.</p>
+    </item>
+    <item>
+      <p>Select <gui style="tab">Text</gui>.</p>
+    </item>
+    <item>
+      <p>Set <gui>Initial terminal size</gui> by typing the desired number of columns and
+      rows in the corresponding input boxes. You can also click
+      <gui style="button">+</gui> to increase or <gui style="button">-</gui> to
+      decrease the size.</p>
+    </item>
+  </steps>
+
+</page>

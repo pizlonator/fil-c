@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcFingerprintDialog" parent="GtkWindow">
+    <style>
+      <class name="fingerprint" />
+    </style>
+    <property name="name">fingerprint-dialog</property>
+    <property name="title" translatable="yes">Fingerprint Manager</property>
+    <property name="destroy-with-parent">True</property>
+    <property name="default-width">600</property>
+    <property name="default-height">400</property>
+    <property name="modal">True</property>
+    <property name="hide-on-close">True</property>
+    <child type="titlebar">
+      <object class="AdwHeaderBar" id="titlebar">
+        <property name="show-end-title-buttons">True</property>
+        <property name="show-start-title-buttons">True</property>
+        <child type="title">
+          <object class="GtkLabel" id="title">
+            <property name="label" translatable="yes">Fingerprint</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkButton" id="cancel_button">
+            <property name="can_focus">False</property>
+            <property name="receives_default">False</property>
+            <property name="valign">center</property>
+            <property name="use-underline">True</property>
+            <property name="label" translatable="yes">_Cancel</property>
+            <signal name="clicked" handler="cancel_button_clicked_cb" object="CcFingerprintDialog" swapped="yes" />
+          </object>
+        </child>
+        <child type="start">
+          <object class="GtkButton" id="back_button">
+            <property name="can_focus">False</property>
+            <property name="receives_default">False</property>
+            <property name="valign">center</property>
+            <property name="use-underline">True</property>
+            <property name="icon_name">go-previous-symbolic</property>
+            <accessibility>
+              <property name="label" translatable="yes">Back</property>
+            </accessibility>
+            <signal name="clicked" handler="back_button_clicked_cb" object="CcFingerprintDialog" swapped="yes" />
+            <style>
+              <class name="image-button"/>
+            </style>
+          </object>
+        </child>
+
+        <child type="end">
+          <object class="GtkButton" id="done_button">
+            <property name="use-underline">True</property>
+            <property name="sensitive">False</property>
+            <property name="label" translatable="yes">_Done</property>
+            <signal name="clicked" handler="done_button_clicked_cb" object="CcFingerprintDialog" swapped="yes" />
+            <style>
+              <class name="suggested-action"/>
+            </style>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkSpinner" id="spinner">
+            <property name="can_focus">False</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+
+        <child>
+          <object class="GtkInfoBar" id="delete_confirmation_infobar">
+            <property name="visible">False</property>
+            <child>
+              <object class="GtkBox">
+                <child>
+                  <object class="GtkButton">
+                    <signal name="clicked" handler="cancel_deletion_button_clicked_cb" object="CcFingerprintDialog" swapped="yes"/>
+                    <property name="label" translatable="yes">_No</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <signal name="clicked" handler="confirm_deletion_button_clicked_cb" object="CcFingerprintDialog" swapped="yes"/>
+                    <property name="receives_default">True</property>
+                    <property name="label" translatable="yes">_Yes</property>
+                    <property name="use-underline">True</property>
+                    <style>
+                      <class name="destructive-action"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="can_focus">False</property>
+                <property name="spacing">16</property>
+                <property name="margin-start">12</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">False</property>
+                    <property name="wrap">True</property>
+                    <property name="label" translatable="yes">Do you want to delete your registered fingerprints so fingerprint login is disabled?</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"/>
+                    </attributes>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkInfoBar" id="error_infobar">
+            <property name="name">error_infobar</property>
+            <property name="visible">False</property>
+            <property name="can_focus">False</property>
+            <style>
+              <class name="error"/>
+            </style>
+            <child>
+              <object class="GtkBox">
+                <property name="can_focus">False</property>
+                <property name="spacing">16</property>
+                <child>
+                  <object class="GtkLabel" id="infobar_error">
+                    <property name="can_focus">False</property>
+                    <property name="halign">start</property>
+                    <property name="hexpand">False</property>
+                    <property name="wrap">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="halign">fill</property>
+            <property name="valign">fill</property>
+            <property name="propagate-natural-width">True</property>
+            <property name="can-focus">False</property>
+            <property name="hscrollbar-policy">never</property>
+
+            <child>
+              <object class="GtkStack" id="stack">
+                <property name="transition_duration">300</property>
+                <property name="margin-start">20</property>
+                <property name="margin-end">20</property>
+                <property name="margin-top">30</property>
+                <property name="margin-bottom">30</property>
+                <property name="width_request">360</property>
+                <property name="halign">center</property>
+
+                <child>
+                  <object class="GtkBox" id="no_devices_found">
+                    <property name="name" translatable="yes">No fingerprint device</property>
+                    <property name="orientation">vertical</property>
+                    <property name="valign">center</property>
+                    <property name="spacing">12</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon_name">fingerprint-detection-symbolic</property>
+                        <property name="pixel_size">192</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes" comments="Translators: This is the empty state page label which states that there are no devices ready.">No Fingerprint device</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                          <attribute name="scale" value="1.6"/>
+                        </attributes>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Ensure the device is properly connected</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkBox" id="device_selector">
+                    <property name="name" translatable="yes">Fingerprint Device</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="spacing">10</property>
+                    <property name="orientation">vertical</property>
+
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Choose the fingerprint device you want to configure</property>
+                        <property name="halign">start</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkScrolledWindow">
+                        <property name="can-focus">False</property>
+                        <property name="hscrollbar-policy">never</property>
+                        <property name="propagate-natural-height">True</property>
+                        <child>
+                          <object class="GtkListBox" id="devices_list">
+                            <property name="selection-mode">none</property>
+                            <property name="valign">center</property>
+                            <signal name="row-activated" handler="select_device_row" object="CcFingerprintDialog" swapped="yes"/>
+                            <style>
+                              <class name="frame" />
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkBox" id="prints_manager">
+                    <property name="name" translatable="yes">Fingerprint Login</property>
+                    <property name="orientation">vertical</property>
+                    <property name="valign">fill</property>
+                    <property name="spacing">12</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Fingerprint login allows you to unlock and log into your computer with your finger</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkFlowBox" id="prints_gallery">
+                        <style>
+                          <class name="prints-gallery" />
+                        </style>
+                        <property name="column-spacing">12</property>
+                        <property name="row-spacing">12</property>
+                        <property name="homogeneous">True</property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                        <property name="min-children-per-line">1</property>
+                        <property name="max-children-per-line">3</property>
+                        <property name="activate-on-single-click">True</property>
+                        <property name="selection-mode">none</property>
+                        <signal name="child-activated" handler="on_print_activated_cb" object="CcFingerprintDialog" swapped="yes" />
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="GtkButton" id="delete_prints_button">
+                        <property name="visible">False</property>
+                        <property name="halign">end</property>
+                        <property name="use-underline">True</property>
+                        <property name="label" translatable="yes">_Delete Fingerprints</property>
+                        <property name="margin-top">10</property>
+                        <property name="margin-bottom">10</property>
+                        <signal name="clicked" handler="delete_prints_button_clicked_cb" object="CcFingerprintDialog" swapped="yes"/>
+                        <style>
+                          <class name="destructive-action"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkBox" id="enrollment_view">
+                    <property name="name" translatable="yes">Fingerprint Enroll</property>
+                    <property name="orientation">vertical</property>
+                    <property name="valign">fill</property>
+                    <property name="spacing">12</property>
+                    <style>
+                      <class name="enrollment" />
+                    </style>
+                    <child>
+                      <object class="GtkLabel" id="enroll_message">
+                        <property name="wrap">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">12</property>
+                        <property name="halign">fill</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                        <property name="hexpand">True</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkBox" id="enroll_print_bin">
+                            <property name="hexpand">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="enroll_print_entry">
+                            <property name="valign">end</property>
+                            <property name="halign">center</property>
+                            <property name="editable">False</property>
+                            <property name="sensitive">False</property>
+                            <property name="width-request">200</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </template>
+
+  <object class="GtkPopover" id="add_print_popover">
+    <property name="position">bottom</property>
+    <child>
+      <object class="GtkBox" id="add_print_popover_box">
+        <property name="can_focus">False</property>
+        <property name="spacing">6</property>
+        <property name="orientation">vertical</property>
+      </object>
+    </child>
+  </object>
+
+</interface>

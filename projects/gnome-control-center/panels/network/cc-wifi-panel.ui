@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcWifiPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar" id="titlebar">
+            <!-- Center Widget -->
+            <property name="title-widget">
+              <object class="GtkStack" id="center_stack">
+                <property name="halign">center</property>
+                <property name="hhomogeneous">False</property>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">many</property>
+                    <property name="child">
+                      <object class="GtkStackSwitcher">
+                        <property name="stack">stack</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </property>
+
+          </object>
+        </child>
+
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkStack" id="device_stack" />
+                </child>
+              </object>
+            </child>
+
+            <!-- Airplane Mode -->
+            <child>
+              <object class="AdwPreferencesGroup" id="rfkill_widget">
+                <child>
+                  <object class="AdwSwitchRow" id="rfkill_row">
+                    <property name="title" translatable="yes">Airplane Mode</property>
+                    <property name="subtitle" translatable="yes">Disables Wi-Fi, Bluetooth and mobile broadband</property>
+                    <signal name="notify::active" handler="rfkill_switch_notify_activate_cb" object="CcWifiPanel" swapped="yes" />
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <!-- Wi-Fi List / No Wi-Fi Adapter / Airplane Mode Enabled -->
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkStack" id="main_stack">
+                    <property name="hhomogeneous">False</property>
+                    <property name="vhomogeneous">False</property>
+                    <property name="transition_type">crossfade</property>
+
+                    <!-- "No Wi-Fi Adapter" page -->
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">no-wifi-devices</property>
+                        <property name="child">
+                          <object class="AdwStatusPage">
+                            <property name="icon-name">network-wireless-no-route-symbolic</property>
+                            <property name="title" translatable="yes">No Wi-Fi Adapter Found</property>
+                            <property name="description" translatable="yes">Make sure you have a Wi-Fi adapter plugged and turned on</property>
+                         </object>
+                        </property>
+                      </object>
+                    </child>
+
+                    <!-- "Airplane Mode" page -->
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">airplane-mode</property>
+                        <property name="child">
+                          <object class="AdwStatusPage">
+                            <property name="icon-name">airplane-mode-symbolic</property>
+                            <property name="title" translatable="yes">Airplane Mode On</property>
+                            <property name="description" translatable="yes">Turn off to use Wi-Fi</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+
+                    <!-- Wi-Fi connections and devices -->
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">wifi-connections</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="orientation">vertical</property>
+
+                            <child>
+                              <object class="GtkBox" id="hotspot_box">
+                                <property name="orientation">vertical</property>
+
+                                <!-- Hotspot QR code -->
+                                <child>
+                                  <object class="GtkPicture" id="wifi_qr_image">
+                                    <property name="halign">center</property>
+                                    <property name="valign">center</property>
+                                    <property name="width-request">180</property>
+                                    <property name="height-request">180</property>
+                                    <style>
+                                      <class name="frame"/>
+                                      <class name="qr-image"/>
+                                    </style>
+                                  </object>
+                                </child>
+
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="margin-top">12</property>
+                                    <property name="label" translatable="yes">Wi-Fi Hotspot Active</property>
+                                    <attributes>
+                                      <attribute name="weight" value="bold" />
+                                      <attribute name="scale" value="1.8" />
+                                    </attributes>
+                                  </object>
+                                </child>
+
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="label" translatable="yes">Mobile devices can scan the QR code to connect.</property>
+                                  </object>
+                                </child>
+
+                                <child>
+                                  <object class="GtkButton">
+                                    <property name="halign">center</property>
+                                    <property name="margin-top">12</property>
+                                    <property name="label" translatable="yes">Turn Off Hotspot…</property>
+                                    <signal name="clicked" handler="hotspot_stop_clicked_cb" swapped="yes"/>
+                                    <style>
+                                      <class name="destructive-action"/>
+                                    </style>
+                                  </object>
+                                </child>
+
+                              </object>
+                            </child>
+
+                            <!-- Visible Networks label & spinner -->
+                            <child>
+                              <object class="GtkBox">
+                                <property name="hexpand">True</property>
+                                <property name="halign">start</property>
+                                <property name="spacing">6</property>
+                                <property name="margin_bottom">12</property>
+                                <child>
+                                  <object class="GtkLabel" id="list_label">
+                                    <property name="label" translatable="yes">Visible Networks</property>
+                                    <property name="xalign">0.0</property>
+                                    <attributes>
+                                      <attribute name="weight" value="bold"/>
+                                    </attributes>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkSpinner" id="spinner">
+                                    <property name="hexpand">True</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+
+                            <!-- Stack with a listbox for each Wi-Fi device -->
+                            <child>
+                              <object class="GtkStack" id="stack">
+                                <property name="hexpand">True</property>
+                                <property name="vexpand">True</property>
+                                <property name="transition_type">crossfade</property>
+                                <signal name="notify::visible-child-name" handler="on_stack_visible_child_changed_cb" object="CcWifiPanel" swapped="yes" />
+                              </object>
+                            </child>
+
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+
+                    <!-- "NetworkManager Not Running" page -->
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">nm-not-running</property>
+                        <property name="child">
+                          <object class="AdwStatusPage">
+                            <property name="icon-name">network-wireless-disabled</property>
+                            <property name="title" translatable="yes">Wi-Fi Unavailable</property>
+                            <property name="description" translatable="yes">An error has occurred and Wi-Fi cannot be used.
+    Error details: NetworkManager not running.</property>
+                           </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

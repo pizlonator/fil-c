@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcTimeEditor" parent="AdwBin">
+    <child>
+      <object class="GtkGrid">
+        <property name="row-spacing">6</property>
+        <property name="column-spacing">6</property>
+
+        <!-- Increment Hour Button -->
+        <child>
+          <object class="GtkButton" id="hour_up_button">
+            <property name="valign">center</property>
+            <property name="halign">center</property>
+            <property name="icon-name">go-up-symbolic</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+            <style>
+              <class name="titlebutton"/>
+              <class name="circular"/>
+              <class name="flat"/>
+            </style>
+            <accessibility>
+              <property name="label" translatable="yes">Increment Hour</property>
+            </accessibility>
+            <child>
+              <object class="GtkGestureClick">
+                <property name="propagation-phase">capture</property>
+                <signal name="pressed" handler="editor_change_time_pressed_cb" swapped="yes"/>
+                <signal name="released" handler="editor_change_time_released_cb" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- Increment Minute Button -->
+        <child>
+          <object class="GtkButton" id="minute_up_button">
+            <property name="valign">center</property>
+            <property name="halign">center</property>
+            <property name="icon-name">go-up-symbolic</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+            <style>
+              <class name="titlebutton"/>
+              <class name="circular"/>
+              <class name="flat"/>
+            </style>
+            <accessibility>
+              <property name="label" translatable="yes">Increment Minute</property>
+            </accessibility>
+            <child>
+              <object class="GtkGestureClick">
+                <property name="propagation-phase">capture</property>
+                <signal name="pressed" handler="editor_change_time_pressed_cb" swapped="yes"/>
+                <signal name="released" handler="editor_change_time_released_cb" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="CcTimeEntry" id="time_entry">
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+              <property name="column-span">2</property>
+            </layout>
+            <accessibility>
+              <property name="label" translatable="yes">Time</property>
+            </accessibility>
+          </object>
+        </child>
+
+        <!-- Decrement Hour Button -->
+        <child>
+          <object class="GtkButton" id="hour_down_button">
+            <property name="valign">center</property>
+            <property name="halign">center</property>
+            <property name="icon-name">go-down-symbolic</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+            <style>
+              <class name="titlebutton"/>
+              <class name="circular"/>
+              <class name="flat"/>
+            </style>
+            <accessibility>
+              <property name="label" translatable="yes">Decrement Hour</property>
+            </accessibility>
+            <child>
+              <object class="GtkGestureClick">
+                <property name="propagation-phase">capture</property>
+                <signal name="pressed" handler="editor_change_time_pressed_cb" swapped="yes"/>
+                <signal name="released" handler="editor_change_time_released_cb" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- Decrement Minute Button -->
+        <child>
+          <object class="GtkButton" id="minute_down_button">
+            <property name="valign">center</property>
+            <property name="halign">center</property>
+            <property name="icon-name">go-down-symbolic</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+            <style>
+              <class name="titlebutton"/>
+              <class name="circular"/>
+              <class name="flat"/>
+            </style>
+            <accessibility>
+              <property name="label" translatable="yes">Decrement Minute</property>
+            </accessibility>
+            <child>
+              <object class="GtkGestureClick">
+                <property name="propagation-phase">capture</property>
+                <signal name="pressed" handler="editor_change_time_pressed_cb" swapped="yes"/>
+                <signal name="released" handler="editor_change_time_released_cb" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- AM/PM Button -->
+        <child>
+          <object class="GtkButton" id="am_pm_button">
+            <property name="valign">center</property>
+            <signal name="clicked" handler="editor_am_pm_button_clicked_cb" swapped="yes"/>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+            <child>
+              <object class="GtkStack" id="am_pm_stack">
+                <signal name="notify::visible-child" handler="editor_am_pm_stack_changed_cb" swapped="yes"/>
+                <child>
+                  <object class="GtkLabel" id="am_label">
+                    <attributes>
+                      <attribute name="scale" value="1.4"/>
+                    </attributes>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="pm_label">
+                    <attributes>
+                      <attribute name="scale" value="1.4"/>
+                    </attributes>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </template>
+</interface>

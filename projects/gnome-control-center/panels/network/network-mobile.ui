@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkListStore" id="mobile_connections_list_store">
+    <columns>
+      <!-- column-name id -->
+      <column type="gchararray"/>
+      <!-- column-name title -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+      <template class="NetDeviceMobile" parent="GtkBox">
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkGrid">
+            <property name="valign">start</property>
+            <property name="row_spacing">10</property>
+            <property name="column_spacing">6</property>
+            <child>
+              <object class="GtkLabel" id="imei_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">IMEI</property>
+                <property name="mnemonic_widget">imei_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="provider_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Provider</property>
+                <property name="mnemonic_widget">provider_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">3</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="imei_label">
+                <property name="xalign">0</property>
+                <property name="label">1234567890</property>
+                <property name="selectable">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="provider_label">
+                <property name="xalign">0</property>
+                <property name="label">SuperTel Supremo	</property>
+                <property name="selectable">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ipv4_label">
+                <property name="xalign">0</property>
+                <property name="label">127.0.0.1</property>
+                <property name="selectable">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">4</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ipv6_label">
+                <property name="xalign">0</property>
+                <property name="selectable">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">5</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="route_label">
+                <property name="xalign">0</property>
+                <property name="selectable">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">6</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="dns4_label">
+                <property name="xalign">0</property>
+                <property name="yalign">0</property>
+                <property name="wrap">True</property>
+                <property name="selectable">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">7</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="dns6_label">
+                <property name="xalign">0</property>
+                <property name="yalign">0</property>
+                <property name="wrap">True</property>
+                <property name="selectable">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">8</property>
+                  <property name="column-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkAlignment">
+                <property name="halign">end</property>
+                <property name="valign">start</property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ipv4_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">IP Address</property>
+                <property name="mnemonic_widget">ipv4_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">4</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ipv6_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">IPv6 Address</property>
+                <property name="mnemonic_label">ipv6_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">5</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="route_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Default Route</property>
+                <property name="mnemonic_label">route_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">6</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="dns4_heading_label">
+                <property name="xalign">1</property>
+                <property name="yalign">0</property>
+                <property name="label" translatable="yes">DNS</property>
+                <property name="mnemonic_widget">dns4_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">7</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="dns6_heading_label">
+                <property name="xalign">1</property>
+                <property name="yalign">0</property>
+                <property name="label" translatable="yes">DNS</property>
+                <property name="mnemonic_widget">dns6_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">8</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="network_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Network</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkComboBox" id="network_combo">
+                <property name="model">mobile_connections_list_store</property>
+                <property name="entry_text_column">1</property>
+                <signal name="changed" handler="network_combo_changed_cb" object="NetDeviceMobile" swapped="yes"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+                <child>
+                  <object class="GtkCellRendererText"/>
+                  <attributes>
+                    <attribute name="text">1</attribute>
+                  </attributes>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="column-span">3</property>
+                </layout>
+                <child>
+                  <object class="GtkImage">
+                    <property name="halign">end</property>
+                    <property name="valign">start</property>
+                    <property name="xalign">1</property>
+                    <property name="pixel_size">48</property>
+                    <property name="icon_name">network-cellular-connected</property>
+                    <property name="icon-size">6</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="valign">start</property>
+                    <property name="hexpand">True</property>
+                    <property name="spacing">3</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel" id="device_label">
+                        <property name="xalign">0</property>
+                        <property name="label" translable="yes">Mobile Broadband</property>
+                        <property name="ellipsize">end</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                          <attribute name="scale" value="1.2"/>
+                        </attributes>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="status_label">
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Not connected</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSwitch" id="device_off_switch">
+                    <property name="halign">end</property>
+                    <property name="valign">center</property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Active</property>
+                    </accessibility>
+                    <signal name="notify::active" handler="device_off_switch_changed_cb" object="NetDeviceMobile" swapped="yes"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="options_button">
+            <property name="halign">end</property>
+            <property name="valign">end</property>
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <property name="margin-top">12</property>
+            <property name="icon_name">emblem-system-symbolic</property>
+            <signal name="clicked" handler="options_button_clicked_cb" object="NetDeviceMobile" swapped="yes"/>
+            <accessibility>
+              <property name="label" translatable="yes">Options…</property>
+            </accessibility>
+            <style>
+              <class name="flat"/>
+            </style>
+          </object>
+        </child>
+      </template>
+</interface>

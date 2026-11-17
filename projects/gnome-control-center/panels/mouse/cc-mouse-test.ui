@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkAdjustment" id="scrolled_window_adjustment">
+    <property name="upper">100</property>
+    <property name="value">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <signal name="value-changed" handler="on_scroll_adjustment_changed_cb"/>
+  </object>
+  <template class="CcMouseTest" parent="AdwWindow">
+    <property name="title" translatable="yes">Test Mouse &amp; Touchpad</property>
+    <property name="modal">True</property>
+    <property name="hide-on-close">True</property>
+    <signal name="show" handler="on_mouse_test_show_cb"/>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="title-widget">
+              <object class="AdwViewSwitcher" id="switcher_bar">
+                <property name="stack">stack</property>
+                <property name="policy">wide</property>
+              </object>
+            </property>
+          </object>
+        </child>
+        <property name="content">
+          <object class="AdwViewStack" id="stack">
+            <child>
+              <object class="AdwViewStackPage" id="click_page">
+                <property name="title" translatable="yes">Clicking</property>
+                <property name="icon-name">input-mouse-symbolic</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="halign">center</property>
+                    <property name="spacing">32</property>
+                    <property name="margin-top">32</property>
+                    <property name="margin-bottom">32</property>
+                    <child>
+                      <object class="GtkButton" id="click_button">
+                        <property name="label" translatable="yes">Click Here</property>
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                        <property name="width-request">256</property>
+                        <property name="height-request">256</property>
+                        <style>
+                          <class name="circular"/>
+                          <class name="title-1"/>
+                        </style>
+                        <child>
+                          <object class="GtkGestureClick">
+                            <property name="propagation-phase">capture</property>
+                            <signal name="pressed" handler="on_test_button_clicked_cb"/>
+                            <property name="button">0</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkGrid">
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="vexpand">True</property>
+                        <property name="column-spacing">10</property>
+                        <property name="row-spacing">10</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                        <child>
+                          <object class="GtkImage" id="primary_click_image">
+                            <property name="icon-name">emblem-ok-symbolic</property>
+                            <property name="icon-size">normal</property>
+                            <style>
+                              <class name="click-status-emblem"/>
+                            </style>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Primary Click</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="GtkImage" id="secondary_click_image">
+                            <property name="icon-name">emblem-ok-symbolic</property>
+                            <property name="icon-size">normal</property>
+                            <style>
+                              <class name="click-status-emblem"/>
+                            </style>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Secondary Click</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">1</property>
+                            </layout>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="GtkImage" id="double_click_image">
+                            <property name="icon-name">emblem-ok-symbolic</property>
+                            <property name="icon-size">normal</property>
+                            <style>
+                              <class name="click-status-emblem"/>
+                            </style>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">Double Click</property>
+                            <property name="xalign">0</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">2</property>
+                            </layout>
+                          </object>
+                        </child>
+
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwViewStackPage" id="scroll_page">
+                <property name="title" translatable="yes">Scrolling</property>
+                <property name="icon-name">mail-send-receive-symbolic</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkOverlay">
+                        <child type="overlay">
+                          <object class="GtkImage" id="arrow_up">
+                            <property name="icon-name">go-up-symbolic</property>
+                            <property name="pixel-size">72</property>
+                            <property name="valign">start</property>
+                            <property name="can-target">False</property>
+                            <style>
+                              <class name="mouse-test-arrow"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child type="overlay">
+                          <object class="GtkImage" id="arrow_down">
+                            <property name="icon-name">go-down-symbolic</property>
+                            <property name="pixel-size">72</property>
+                            <property name="valign">end</property>
+                            <property name="can-target">False</property>
+                            <style>
+                              <class name="mouse-test-arrow"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScrolledWindow" id="scrolledwindow">
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
+                            <property name="vadjustment">scrolled_window_adjustment</property>
+                            <property name="hscrollbar_policy">never</property>
+                            <property name="vscrollbar_policy">external</property>
+                            <property name="min_content_height">440</property>
+                            <child>
+                              <object class="GtkViewport" id="viewport">
+                                <style>
+                                  <class name="mouse-test-viewport"/>
+                                </style>
+                                <child>
+                                  <object class="GtkPicture" id="image">
+                                    <property name="can-shrink">False</property>
+                                    <property name="file">resource:///org/gnome/control-center/mouse/scroll-test.svg</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

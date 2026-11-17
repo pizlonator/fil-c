@@ -1,0 +1,50 @@
+Unicode defines width information for characters.  Conventionally this
+describes the number of columns a character is expected to occupy when
+printed or drawn using a monospaced font.
+
+There are five width classes with which we concern ourselves.  Four of
+these are narrow, wide, half-width, and full-width.  For practical
+purposes, narrow and half-width can be grouped together as
+"single-width" (occupying one column), and wide and full-width can be
+grouped together as "double-width" (occupying two columns).
+
+The last class we're concerned with is those of ambiguous width.  These
+are characters which have the same meaning and graphical representation
+everywhere, but which are either single-width or double-width based on
+the context in which they appear.
+
+Width information is crucial for terminal-based applications which need
+to address the screen:  if the application draws five characters and
+expects the cursor to be moved six columns to the right, and the
+terminal moves the cursor seven (or five, or any number other than six),
+display bugs manifest.
+
+Ambiguously-wide characters pose an implementation problem for terminals
+which may not be running in the same locale as an application which is
+running inside the terminal.  In these cases, the terminal cannot depend
+on the libc wcwidth() function because wcwidth() typically makes use of
+locale information.
+
+There are basically four approaches to solving this problem:
+A) Force characters with ambiguous width to be single-width.
+B) Force characters with ambiguous width to be double-width.
+C) Force characters with ambiguous width to have a width value based
+   on the locale's region.
+D) Force characters with ambiguous width to have a width value based
+   on the locale's encoding.
+
+Methods A and B will produce display bugs, because they don't take into
+account any context information.  Method C fails on glibc-based systems
+because glibc uses method D and the two methods produce different
+results for the same wchar_t values.
+
+So the VteTerminal widget uses approach D.  Depending on the context in
+which a character was received (a combination of the terminal's encoding
+and whether or not the character was received as an ISO-2022 sequence),
+a character is internally assigned a width when it is received from the
+terminal.
+
+Text which is not received from the terminal (input method preedit data)
+is processed using method C, although now that I think about it, the
+fact that it's UTF-8 text suggests that these characters should be
+treated as single-width.

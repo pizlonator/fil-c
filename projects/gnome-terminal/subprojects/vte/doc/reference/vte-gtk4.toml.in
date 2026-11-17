@@ -1,0 +1,59 @@
+# Copyright © 2022 Christian Persch
+#
+# This library is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library.  If not, see <https://www.gnu.org/licenses/>.
+
+[library]
+authors = "VTE developers"
+browse_url = "https://gitlab.gnome.org/GNOME/vte/"
+dependencies = ["Gdk-4.0", "Graphene-1.0", "Gtk-4.0", "GObject-2.0", "Pango-1.0"]
+description = "Virtual TErminal widget"
+devhelp = true
+license = "LGPL-3.0-or-later"
+repository_url = "https://gitlab.gnome.org/GNOME/vte.git"
+search_index = true
+version = "@version@"
+website_url = "https://wiki.gnome.org/Apps/Terminal"
+
+  [dependencies."Gdk-4.0"]
+  description = "The GDK 4.0 toolkit"
+  docs_url = "https://docs.gtk.org/gdk4/"
+  name = "GDK"
+
+  [dependencies."Graphene-1.0"]
+  description = "The GSK 1.0 toolkit"
+  docs_url = "https://ebassi.github.io/graphene/docs/"
+  name = "Graphene"
+
+  [dependencies."Gtk-4.0"]
+  description = "The GTK+ 4.0 toolkit"
+  docs_url = "https://docs.gtk.org/gtk4/"
+  name = "GTK"
+
+  [dependencies."GObject-2.0"]
+  description = "The GObject 2.0 toolkit"
+  docs_url = "https://docs.gtk.org/gobject/"
+  name = "GObject"
+
+  [dependencies."Pango-1.0"]
+  description = "The Pango 1.0 toolkit"
+  docs_url = "https://docs.gtk.org/Pango/"
+  name = "Pango"
+
+[theme]
+name = "basic"
+show_class_hierarchy = true
+show_index_summary = true
+
+[source-location]
+base_url = "https://gitlab.gnome.org/GNOME/vte/-/blob/master/"

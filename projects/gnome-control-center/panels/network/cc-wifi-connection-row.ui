@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.0 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <template class="CcWifiConnectionRow" parent="AdwActionRow">
+    <property name="activatable">True</property>
+    <child type="prefix">
+      <object class="GtkBox">
+        <property name="valign">center</property>
+        <child>
+          <object class="GtkCheckButton" id="checkbutton">
+            <property name="halign">start</property>
+            <property name="valign">center</property>
+            <property name="margin_end">6</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="strength_icon">
+            <property name="icon_name">network-wireless-signal-excellent-symbolic</property>
+            <property name="icon_size">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="encrypted_icon">
+            <property name="valign">end</property>
+            <property name="pixel-size">8</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child type="suffix">
+      <object class="GtkLabel" id="active_label">
+        <property name="margin_end">6</property>
+        <property name="label" translatable="yes">Connected</property>
+        <style>
+          <class name="dim-label"/>
+        </style>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkSpinner" id="connecting_spinner">
+        <property name="name">connecting_spinner</property>
+        <property name="valign">center</property>
+        <property name="margin_end">6</property>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkButton" id="qr_code_button">
+        <property name="name">qr_code_button</property>
+        <property name="icon_name">qr-code-symbolic</property>
+        <property name="valign">center</property>
+        <property name="tooltip-text" translatable="yes">Share Network</property>
+        <signal name="clicked" handler="qr_code_clicked_cb" object="CcWifiConnectionRow" swapped="yes"/>
+        <style>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkButton" id="options_button">
+        <property name="name">options_button</property>
+        <property name="icon_name">emblem-system-symbolic</property>
+        <property name="valign">center</property>
+        <property name="tooltip-text" translatable="yes">Network Options</property>
+        <signal name="clicked" handler="configure_clicked_cb" object="CcWifiConnectionRow" swapped="yes"/>
+        <style>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkButton" id="forget_button">
+        <property name="icon_name">user-trash-symbolic</property>
+        <property name="valign">center</property>
+        <property name="tooltip-text" translatable="yes">Forget Network</property>
+        <signal name="clicked" handler="forget_clicked_cb" object="CcWifiConnectionRow" swapped="yes"/>
+        <style>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>

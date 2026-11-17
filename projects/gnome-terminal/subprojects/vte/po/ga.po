@@ -1,0 +1,87 @@
+# Irish translations for vte package.
+# Copyright (C) 2009-2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the vte package.
+# Seán de Búrca <leftmostcat@gmail.com>, 2009-2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vte.master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-08-29 16:00-0600\n"
+"PO-Revision-Date: 2013-08-29 16:00-0600\n"
+"Last-Translator: Seán de Búrca <leftmostcat@gmail.com>\n"
+"Language-Team: Irish <gaeilge-gnulinux@lists.sourceforge.net>\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : "
+"4;\n"
+
+#: ../src/iso2022.c:795 ../src/iso2022.c:803 ../src/iso2022.c:834
+#: ../src/vte.c:2296
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "Ní féidir carachtair a thiontú ó %s go %s."
+
+#: ../src/iso2022.c:1488
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "Déan iarracht ar mapa NRC neamhbhailí '%c' a shocrú."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1518
+msgid "Unrecognized identified coding system."
+msgstr "Córas códaithe aitheanta anaithnid."
+
+#: ../src/iso2022.c:1577 ../src/iso2022.c:1604
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "Déan iarracht ar mapa NRC leathan neamhbhailí '%c' a shocrú."
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "Dúblach (%s/%s)!"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:981
+msgid "Could not open console.\n"
+msgstr "Níorbh fhéidir consól a oscailt.\n"
+
+#: ../src/vteapp.c:1077
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr ""
+"Níorbh fhéidir an tsonraíocht céimseatan a seoladh chuig --geometry a "
+"pharsáil"
+
+#: ../src/vte.c:1318
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "Earráid agus slonn ionadaíochta \"%s\" á thiomsú."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4613
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "Earráid agus á léamh ó mhac: %s."
+
+#: ../src/vte.c:4740
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr ""
+"Ní féidir sonraí a sheoladh chuig mac, tiontaire tacair carachtar neamhbhailí"
+
+#: ../src/vte.c:4751 ../src/vte.c:5798
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "Earráid (%s) agus sonraí á thiontú do mhac, á mbaint."
+
+#: ../src/vte.c:8009
+#, c-format
+msgid "Error reading PTY size, using defaults: %s\n"
+msgstr "Earráid agus méid PTY á léamh, réamhshocruithe á úsáid: %s\n"
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:13852
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "theip _vte_conv_open() ar shocrú carachtar focail"

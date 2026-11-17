@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.8 -->
+  <template class="PpPrinterEntry" parent="GtkListBoxRow">
+    <property name="activatable">False</property>
+    <property name="hexpand">True</property>
+
+    <child>
+      <object class="GtkBox">
+        <property name="margin-top">18</property>
+        <property name="margin-end">18</property>
+        <property name="margin-start">24</property>
+        <property name="margin-bottom">18</property>
+        <property name="spacing">12</property>
+        <property name="orientation">vertical</property>
+
+        <child>
+          <object class="GtkBox" id="header_box">
+            <property name="spacing">12</property>
+
+            <child>
+              <object class="GtkLabel" id="printer_name_label">
+                <property name="ellipsize">middle</property>
+                <property name="xalign">0</property>
+                <property name="hexpand">true</property>
+                <style>
+                  <class name="title-2"/>
+                </style>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <property name="orientation">horizontal</property>
+                <property name="valign">center</property>
+                <child>
+
+                  <object class="GtkButton" id="show_jobs_dialog_button">
+                    <property name="sensitive">False</property>
+                    <property name="label" translatable="yes">No Active Jobs</property>
+                    <property name="can-shrink">True</property>"
+                    <signal name="clicked" handler="show_jobs_dialog"/>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkMenuButton">
+                    <property name="tooltip-text" translatable="yes">View More</property>
+                    <property name="menu-model">printer_menu</property>
+                    <property name="icon_name">view-more-symbolic</property>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkGrid">
+            <property name="row-spacing">6</property>
+            <property name="column-spacing">12</property>
+
+            <child>
+              <object class="GtkLabel" id="printer_model_label">
+                <property name="label" translatable="yes">Model</property>
+                <property name="ellipsize">middle</property>
+                <property name="xalign">1</property>
+                <property name="mnemonic-widget">printer_model</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="printer_model">
+                <property name="ellipsize">middle</property>
+                <property name="xalign">0</property>
+                <property name="hexpand">True</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="printer_location_label">
+                <property name="label" translatable="yes">Location</property>
+                <property name="xalign">1</property>
+                <property name="mnemonic-widget">printer_location_address_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="printer_location_address_label">
+                <property name="ellipsize">middle</property>
+                <property name="xalign">0</property>
+                <property name="hexpand">True</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Status</property>
+                <property name="xalign">1</property>
+                <property name="mnemonic-widget">printer_status</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel" id="printer_status">
+                <property name="xalign">0</property>
+                <property name="ellipsize">middle</property>
+                <property name="hexpand">True</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+"
+            <child>
+              <object class="GtkLabel" id="printer_inklevel_label">
+                <property name="label" translatable="yes">Ink Level</property>
+                <property name="xalign">1</property>
+                <property name="mnemonic-widget">supply_frame</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">3</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkFrame" id="supply_frame">
+                <property name="valign">center</property>
+                <property name="height_request">18</property>
+                <property name="hexpand">True</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                </layout>
+
+                <child>
+                  <object class="GtkDrawingArea" id="supply_drawing_area">
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkGrid" id="printer_error">
+            <property name="visible">False</property>
+            <property name="column-spacing">12</property>
+            <property name="row-spacing">3</property>
+            <property name="margin-top">6</property>
+
+            <child>
+              <object class="GtkLabel" id="error_status">
+                <property name="hexpand">True</property>
+                <property name="xalign">0</property>
+                <property name="wrap">True</property>
+                <property name="wrap-mode">word-char</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+                <style>
+                  <class name="heading"/>
+                </style>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkLabel">
+                <property name="hexpand">True</property>
+                <property name="xalign">0</property>
+                <property name="wrap">True</property>
+                <property name="wrap-mode">word-char</property>
+                <property name="label" translatable="yes" comments="Translators: This is the message which follows the printer error.">Please restart when the problem is resolved</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkButton">
+                <property name="valign">center</property>
+                <property name="can-shrink">True</property>
+                <property name="label" translatable="yes" comments="Translators: This is the button which restarts the printer.">Restart</property>
+                <signal name="clicked" handler="restart_printer"/>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                  <property name="row-span">2</property>
+                </layout>
+              </object>
+            </child>
+
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <menu id="printer_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Printing Options</attribute>
+        <attribute name="action">printer.options</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Printer Details</attribute>
+        <attribute name="action">printer.details</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes" comments="Set this printer as default">Use Printer by Default</attribute>
+        <attribute name="action">printer.default</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes" comments="Translators: This button executes command which cleans print heads of the printer.">Clean Print Heads</attribute>
+        <attribute name="action">printer.clean-heads</attribute>
+        <attribute name="hidden-when">action-disabled</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Remove Printer</attribute>
+        <attribute name="action">printer.remove</attribute>
+      </item>
+    </section>
+  </menu>
+
+</interface>

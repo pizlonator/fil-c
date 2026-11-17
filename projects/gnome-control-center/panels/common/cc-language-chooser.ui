@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CcLanguageChooser" parent="GtkDialog">
+    <property name="title" translatable="yes">Select Language</property>
+    <property name="modal">True</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="default_width">400</property>
+    <property name="default_height">475</property>
+    <signal name="activate-default" handler="activate_default_cb"/>
+    <child type="action">
+      <object class="GtkButton" id="select_button">
+        <property name="label" translatable="yes">_Select</property>
+        <property name="sensitive">False</property>
+        <property name="use_underline">True</property>
+        <property name="valign">center</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="cancel_button">
+        <property name="label" translatable="yes">_Cancel</property>
+        <property name="use_underline">True</property>
+        <property name="valign">center</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">0</property>
+        <child>
+          <object class="GtkSearchBar" id="search_bar">
+            <property name="hexpand">True</property>
+            <child>
+              <object class="GtkSearchEntry" id="language_filter_entry">
+                <property name="placeholder_text" translatable="yes">Language or country</property>
+                <property name="width_chars">30</property>
+                <signal name="search-changed" handler="language_filter_entry_search_changed_cb" object="CcLanguageChooser" swapped="yes"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="hscrollbar-policy">never</property>
+            <property name="vscrollbar-policy">automatic</property>
+            <property name="propagate-natural-height">True</property>
+            <property name="min-content-height">200</property>
+            <child>
+              <object class="GtkListBox" id="language_listbox">
+                <property name="can-focus">True</property>
+                <property name="vexpand">True</property>
+                <property name="halign">fill</property>
+                <property name="valign">fill</property>
+                <property name="selection-mode">none</property>
+                <property name="show-separators">True</property>
+                <signal name="row-activated" handler="language_listbox_row_activated_cb" object="CcLanguageChooser" swapped="yes"/>
+                <child type="placeholder">
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">No languages found</property>
+                    <property name="sensitive">False</property>
+                  </object>
+                </child>
+
+                <!-- "More" row -->
+                <child>
+                  <object class="GtkListBoxRow" id="more_row">
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">10</property>
+                        <property name="tooltip_markup" translatable="yes">More…</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="hexpand">True</property>
+                            <property name="halign">center</property>
+                            <property name="icon-name">view-more-symbolic</property>
+                            <property name="icon-size">1</property>
+                            <property name="margin-top">10</property>
+                            <property name="margin-bottom">10</property>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="-5" default="true">select_button</action-widget>
+      <action-widget response="-6">cancel_button</action-widget>
+    </action-widgets>
+  </template>
+</interface>

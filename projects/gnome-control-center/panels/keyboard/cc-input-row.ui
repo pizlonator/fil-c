@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <template class="CcInputRow" parent="AdwActionRow">
+    <property name="selectable">False</property>
+    <child type="prefix">
+      <object class="GtkImage">
+        <property name="icon_name">list-drag-handle-symbolic</property>
+          <style>
+            <class name="drag-handle"/>
+          </style>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkMenuButton">
+        <property name="tooltip-text" translatable="yes">View More</property>
+        <property name="valign">center</property>
+        <property name="icon_name">view-more-symbolic</property>
+        <property name="menu_model">popover_menu</property>
+        <style>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+  </template>
+  <menu id="popover_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Move Up</attribute>
+        <attribute name="action">row.move-up</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Move Down</attribute>
+        <attribute name="action">row.move-down</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Preferences</attribute>
+        <attribute name="action">row.show-settings</attribute>
+        <attribute name="hidden-when">action-disabled</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">View Keyboard Layout</attribute>
+        <attribute name="action">row.show-layout</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Remove</attribute>
+        <attribute name="action">row.remove</attribute>
+        <attribute name="hidden-when">action-disabled</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

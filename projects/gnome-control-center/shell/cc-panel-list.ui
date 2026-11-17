@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <template class="CcPanelList" parent="AdwBin">
+
+    <child>
+      <object class="GtkStack" id="stack">
+        <property name="vhomogeneous">False</property>
+        <property name="hhomogeneous">True</property>
+        <property name="transition_type">slide-left-right</property>
+
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">main</property>
+            <property name="child">
+              <object class="GtkListBox" id="main_listbox">
+                <accessibility>
+                  <property name="label" translatable="yes">Settings categories</property>
+                </accessibility>
+                <signal name="row-activated" handler="row_activated_cb" object="CcPanelList" swapped="no" />
+                <style>
+                  <class name="navigation-sidebar" />
+                </style>
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">search</property>
+            <property name="child">
+              <object class="GtkListBox" id="search_listbox">
+                <signal name="row-activated" handler="search_row_activated_cb" object="CcPanelList" swapped="no" />
+                <signal name="keynav-failed" handler="search_list_keynav_failed_cb" swapped="yes"/>
+                <style>
+                  <class name="navigation-sidebar" />
+                </style>
+
+                <!-- Placeholder -->
+                <child type="placeholder">
+                  <object class="AdwStatusPage">
+                    <property name="icon-name">edit-find-symbolic</property>
+                    <property name="title" translatable="yes">No Results Found</property>
+                    <property name="description" translatable="yes">Try a different search</property>
+                    <style>
+                      <class name="compact"/>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+
+      </object>
+    </child>
+  </template>
+</interface>

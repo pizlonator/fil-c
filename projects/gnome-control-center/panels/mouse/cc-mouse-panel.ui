@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcMousePanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwBreakpointBin">
+        <property name="width-request">300</property>
+        <property name="height-request">200</property>
+        <child>
+          <object class="AdwBreakpoint">
+            <condition>max-width: 650sp</condition>
+            <setter object="header_bar" property="title-widget"/>
+            <setter object="view_switcher_bar" property="reveal">True</setter>
+            <setter object="mouse_scroll_direction_row" property="compact">True</setter>
+            <setter object="touchpad_scroll_method_row" property="compact">True</setter>
+            <setter object="touchpad_scroll_direction_row" property="compact">True</setter>
+          </object>
+        </child>
+        <property name="child">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar" id="header_bar">
+                <property name="title-widget">
+                  <object class="GtkStack" id="title_stack">
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">switcher</property>
+                        <property name="child">
+                          <object class="AdwViewSwitcher">
+                            <property name="stack">stack</property>
+                            <property name="policy">wide</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkStackPage">
+                        <property name="name">title</property>
+                        <property name="child">
+                          <object class="AdwWindowTitle">
+                            <property name="title" bind-source="CcMousePanel" bind-property="title" bind-flags="sync-create"/>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child type="bottom">
+              <object class="AdwViewSwitcherBar" id="view_switcher_bar">
+                <property name="stack">stack</property>
+              </object>
+            </child>
+            <property name="content">
+              <object class="AdwViewStack" id="stack">
+                <child>
+                  <object class="AdwViewStackPage" id="mouse_stack_page">
+                    <property name="title" translatable="yes">_Mouse</property>
+                    <property name="use-underline">True</property>
+                    <property name="icon-name">input-mouse-symbolic</property>
+                    <property name="child">
+
+                      <object class="AdwPreferencesPage" id="preferences">
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="title" translatable="yes">General</property>
+                            <child>
+                              <object class="AdwActionRow" id="primary_button_row">
+                                <property name="title" translatable="yes">Primary Button</property>
+                                <property name="subtitle" translatable="yes">Order of physical buttons on mice and touchpads</property>
+                                <property name="subtitle-lines">0</property>
+                                <child>
+                                  <object class="GtkBox" id="primary_button_box">
+                                    <property name="valign">center</property>
+                                    <property name="homogeneous">True</property>
+                                    <property name="margin_top">12</property>
+                                    <property name="margin_bottom">12</property>
+                                    <style>
+                                     <class name="linked"/>
+                                    </style>
+                                    <child>
+                                      <object class="GtkToggleButton" id="primary_button_left">
+                                        <property name="hexpand">True</property>
+                                        <property name="label" translatable="yes">_Left</property>
+                                        <property name="height_request">35</property>
+                                        <property name="use-underline">True</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkToggleButton" id="primary_button_right">
+                                        <property name="hexpand">True</property>
+                                        <property name="label" translatable="yes">_Right</property>
+                                        <property name="group">primary_button_left</property>
+                                        <property name="height_request">35</property>
+                                        <property name="use-underline">True</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="AdwPreferencesGroup" id="mouse_group">
+                            <property name="title" translatable="yes">Mouse</property>
+                            <child>
+                              <object class="AdwActionRow" id="mouse_row">
+                                <property name="title" translatable="yes">Po_inter Speed</property>
+                                <property name="use-underline">True</property>
+                                <property name="activatable-widget">mouse_speed_scale</property>
+                                <child type="suffix">
+                                  <object class="GtkScale" id="mouse_speed_scale">
+                                    <property name="hexpand">True</property>
+                                    <marks>
+                                      <mark value="-1" translatable="yes">Slow</mark>
+                                      <mark value="0"/>
+                                      <mark value="1" translatable="yes">Fast</mark>
+                                    </marks>
+                                    <property name="adjustment">
+                                      <object class="GtkAdjustment">
+                                        <property name="lower">-1</property>
+                                        <property name="upper">1</property>
+                                        <property name="step-increment">0.1</property>
+                                        <property name="page-increment">0.1</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwActionRow" id="mouse_accel_profile">
+                                <property name="title" translatable="yes">Mouse _Acceleration</property>
+                                <property name="subtitle" translatable="yes">Recommended for most users and applications</property>
+                                <property name="activatable-widget">mouse_accel_switch</property>
+                                <property name="use-underline">True</property>
+                                <child type="suffix">
+                                  <object class="CcListRowInfoButton">
+                                    <property name="valign">center</property>
+                                    <property name="text" translatable="yes">Turning mouse acceleration off can allow faster and more precise movements, but can also make the mouse more difficult to use.</property>
+                                  </object>
+                                </child>
+                                <child type="suffix">
+                                  <object class="GtkSwitch" id="mouse_accel_switch">
+                                    <property name="valign">center</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="CcSplitRow" id="mouse_scroll_direction_row">
+                                <property name="title" translatable="yes">Scroll Direction</property>
+                                <property name="default-option-title" translatable="yes">Tra_ditional</property>
+                                <property name="default-option-subtitle" translatable="yes">Scrolling moves the view</property>
+                                <property name="alternative-option-title" translatable="yes">_Natural</property>
+                                <property name="alternative-option-subtitle" translatable="yes">Scrolling moves the content</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="halign">center</property>
+                            <child>
+                              <object class="GtkButton" id="test_button_mouse">
+                                <property name="use-underline">True</property>
+                                <property name="valign">end</property>
+                                <property name="halign">center</property>
+                                <property name="label" translatable="yes">Test _Settings</property>
+                                <signal name="clicked" handler="test_button_clicked_cb" object="CcMousePanel" swapped="yes"/>
+                                <style>
+                                  <class name="pill"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwViewStackPage" id="touchpad_stack_page">
+                    <property name="visible">False</property>
+                    <property name="name">touchpad</property>
+                    <property name="icon-name">input-touchpad-symbolic</property>
+                    <property name="title" translatable="yes">_Touchpad</property>
+                    <property name="use-underline">True</property>
+                    <property name="child">
+                      <object class="AdwPreferencesPage">
+                        <child>
+                          <object class="AdwPreferencesGroup" id="touchpad_group">
+                            <child>
+                              <object class="AdwSwitchRow" id="touchpad_toggle_row">
+                                <property name="title" translatable="yes">T_ouchpad</property>
+                                <property name="use-underline">True</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="touchpad_typing_row">
+                                <property name="title" translatable="yes">_Disable Touchpad While Typing</property>
+                                <property name="use-underline">True</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwActionRow" id="touchpad_speed_row">
+                                <property name="title" translatable="yes">Po_inter Speed</property>
+                                <property name="use-underline">True</property>
+                                <property name="sensitive" bind-source="touchpad_toggle_row" bind-property="active" bind-flags="default|sync-create" />
+                                <property name="activatable-widget">touchpad_speed_scale</property>
+                                <child type="suffix">
+                                  <object class="GtkScale" id="touchpad_speed_scale">
+                                    <property name="hexpand">True</property>
+                                    <marks>
+                                      <mark value="-1" translatable="yes">Slow</mark>
+                                      <mark value="0"/>
+                                      <mark value="1" translatable="yes">Fast</mark>
+                                    </marks>
+                                    <property name="adjustment">
+                                      <object class="GtkAdjustment">
+                                        <property name="lower">-1</property>
+                                        <property name="upper">1</property>
+                                        <property name="step-increment">0.1</property>
+                                        <property name="page-increment">0.1</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="title" translatable="yes">Clicking</property>
+                            <child>
+                              <object class="CcSplitRow" id="two_finger_push_row">
+                                <property name="title" translatable="yes">Secondary Click</property>
+                                <property name="default-option-title" translatable="yes">Two Finger Push</property>
+                                <property name="default-option-subtitle" translatable="yes">Push anywhere with 2 fingers</property>
+                                <property name="alternative-option-title" translatable="yes">Corner Push</property>
+                                <property name="alternative-option-subtitle" translatable="yes">Push with a single finger in the corner</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <child>
+                              <object class="CcIllustratedRow" id="tap_to_click_row">
+                                <property name="visible">False</property>
+                                <property name="title" translatable="yes">T_ap to Click</property>
+                                <property name="use-underline">True</property>
+                                <property name="subtitle" translatable="yes">Quickly touch the touchpad to click</property>
+                                <property name="activatable-widget">tap_to_click_switch</property>
+                                <property name="sensitive" bind-source="touchpad_toggle_row" bind-property="active" bind-flags="default|sync-create" />
+                                <child>
+                                  <object class="GtkSwitch" id="tap_to_click_switch">
+                                    <property name="valign">center</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="title" translatable="yes">Scrolling</property>
+                            <child>
+                              <object class="CcSplitRow" id="touchpad_scroll_method_row">
+                                <property name="title" translatable="yes">Scroll Method</property>
+                                <property name="default-option-title" translatable="yes">T_wo Finger</property>
+                                <property name="default-option-subtitle" translatable="yes">Drag two fingers on the touchpad</property>
+                                <property name="alternative-option-title" translatable="yes">_Edge</property>
+                                <property name="alternative-option-subtitle" translatable="yes">Drag one finger on the edge</property>
+                                <property name="sensitive" bind-source="touchpad_toggle_row" bind-property="active" bind-flags="default|sync-create" />
+                                <signal name="notify::use-default" handler="on_touchpad_scroll_method_changed_cb" object="CcMousePanel" swapped="yes"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <child>
+                              <object class="CcSplitRow" id="touchpad_scroll_direction_row">
+                                <property name="title" translatable="yes">Scroll Direction</property>
+                                <property name="default-option-title" translatable="yes">T_raditional</property>
+                                <property name="default-option-subtitle" translatable="yes">Scrolling moves the view</property>
+                                <property name="alternative-option-title" translatable="yes">_Natural</property>
+                                <property name="sensitive" bind-source="touchpad_toggle_row" bind-property="active" bind-flags="default|sync-create" />
+                                <property name="alternative-option-subtitle" translatable="yes">Scrolling moves the content</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <property name="halign">center</property>
+                              <child>
+                                <object class="GtkButton" id="test_button_touchpad">
+                                  <property name="use-underline">True</property>
+                                  <property name="valign">end</property>
+                                  <property name="halign">center</property>
+                                  <property name="label" translatable="yes">Test _Settings</property>
+                                  <signal name="clicked" handler="test_button_clicked_cb" object="CcMousePanel" swapped="yes"/>
+                                  <style>
+                                    <class name="pill"/>
+                                  </style>
+                                </object>
+                              </child>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

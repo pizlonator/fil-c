@@ -1,0 +1,51 @@
+# gnome-control-center tab completion for bash.
+
+_gnome_control_center()
+{
+	local cur prev command_list i v
+
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	case "$prev" in
+	*)
+		if [ $prev = "gnome-control-center" ] ; then
+			command_list="--verbose --version"
+			command_list="$command_list @PANELS@"
+		elif [ $prev = "--verbose" ]; then
+			command_list="@PANELS@"
+		fi
+
+		for i in --version @PANELS@; do
+			if [ $i = $prev ]; then
+				case $i in
+				keyboard)
+					command_list="shortcuts typing"
+					;;
+				network)
+					# FIXME
+					# The first 3 commands need an object path like
+					# /org/freedesktop/NetworkManager/Devices/1
+					command_list="connect-3g connect-8021x-wifi show-device connect-hidden-wifi create-wifi"
+					;;
+				sound)
+					command_list="applications effects hardware input outputs"
+					;;
+				*)
+					command_list=""
+					;;
+				esac
+			fi
+		done
+		;;
+	esac
+
+	for i in $command_list; do
+		if [ -z "${i/$cur*}" ]; then
+			COMPREPLY=( ${COMPREPLY[@]} $i )
+		fi
+	done
+}
+
+# load the completion
+complete -F _gnome_control_center gnome-control-center

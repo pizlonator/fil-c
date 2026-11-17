@@ -1,0 +1,585 @@
+<!DOCTYPE node PUBLIC
+"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd" [
+<!ENTITY ERROR_CLAIM_DEVICE "net.reactivated.Fprint.Error.ClaimDevice">
+<!ENTITY ERROR_ALREADY_IN_USE "net.reactivated.Fprint.Error.AlreadyInUse">
+<!ENTITY ERROR_INTERNAL "net.reactivated.Fprint.Error.Internal">
+<!ENTITY ERROR_PERMISSION_DENIED "net.reactivated.Fprint.Error.PermissionDenied">
+<!ENTITY ERROR_NO_ENROLLED_PRINTS "net.reactivated.Fprint.Error.NoEnrolledPrints">
+<!ENTITY ERROR_NO_ACTION_IN_PROGRESS "net.reactivated.Fprint.Error.NoActionInProgress">
+<!ENTITY ERROR_INVALID_FINGERNAME "net.reactivated.Fprint.Error.InvalidFingername">
+]>
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+	<interface name="net.reactivated.Fprint.Device">
+			value="fprint_device" />
+
+		<doc:doc>
+			<doc:title id="polkit-integration">
+				PolicyKit integration
+			</doc:title>
+			<doc:para>
+				fprintd uses PolicyKit to check whether users are allowed to access fingerprint data, or the
+				fingerprint readers itself.
+				<doc:list>
+					<doc:item>
+						<doc:term>net.reactivated.fprint.device.verify</doc:term>
+						<doc:definition>
+							Whether the user is allowed to verify fingers against saved fingerprints.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>net.reactivated.fprint.device.enroll</doc:term>
+						<doc:definition>
+							Whether the user is allowed to enroll new fingerprints.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>net.reactivated.fprint.device.setusername</doc:term>
+						<doc:definition>
+							Whether the user is allowed to query, verify, or enroll fingerprints for users other than itself.
+						</doc:definition>
+					</doc:item>
+				</doc:list>
+			</doc:para>
+
+			<doc:title id="usernames">
+				Usernames
+			</doc:title>
+			<doc:para>
+				When a username argument is used for a method, a PolicyKit check is done on the
+				<doc:tt>net.reactivated.fprint.device.setusername</doc:tt> PolicyKit
+				action to see whether the user the client is running as is allowed to access data from other users.
+			</doc:para>
+			<doc:para>
+				By default, only root is allowed to access fingerprint data for users other than itself. For a normal user,
+				it is recommended that you use an empty string for the username, which will mean "the client the user is
+				running as".
+			</doc:para>
+			<doc:para>
+				See <doc:ref type="description" to="polkit-integration">PolicyKit integration</doc:ref>.
+			</doc:para>
+
+			<doc:title id="fingerprint-names">
+				Fingerprint names
+			</doc:title>
+			<doc:para>
+				When a finger name argument is used for a method, it refers to either a single finger, or
+				"any" finger. See the list of possible values below:
+				<doc:list>
+					<doc:item>
+						<doc:term>left-thumb</doc:term>
+						<doc:definition>
+							Left thumb
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>left-index-finger</doc:term>
+						<doc:definition>
+							Left index finger
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>left-middle-finger</doc:term>
+						<doc:definition>
+							Left middle finger
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>left-ring-finger</doc:term>
+						<doc:definition>
+							Left ring finger
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>left-little-finger</doc:term>
+						<doc:definition>
+							Left little finger
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>right-thumb</doc:term>
+						<doc:definition>
+							Right thumb
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>right-index-finger</doc:term>
+						<doc:definition>
+							Right index finger
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>right-middle-finger</doc:term>
+						<doc:definition>
+							Right middle finger
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>right-ring-finger</doc:term>
+						<doc:definition>
+							Right ring finger
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>right-little-finger</doc:term>
+						<doc:definition>
+							Right little finger
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>any</doc:term>
+						<doc:definition>
+							Any finger. This is only used for <doc:ref type="method" to="Device.VerifyStart">Device.VerifyStart</doc:ref>
+							(select the first finger with a fingerprint associated, or all the fingerprints available for the user when
+							the device supports it) and <doc:ref type="signal" to="Device::VerifyFingerSelected">Device::VerifyFingerSelected</doc:ref>
+							(any finger with an associated fingerprint can be used).
+						</doc:definition>
+					</doc:item>
+				</doc:list>
+			</doc:para>
+
+			<doc:title id="verify-statuses">
+				Verify Statuses
+			</doc:title>
+			<doc:para>
+				<doc:list>
+					Possible values for the result passed through <doc:ref type="signal" to="Device::VerifyResult">Device::VerifyResult</doc:ref> are:
+					<doc:item>
+						<doc:term>verify-no-match</doc:term>
+						<doc:definition>
+							The verification did not match, <doc:ref type="method" to="Device.VerifyStop">Device.VerifyStop</doc:ref> should now be called.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>verify-match</doc:term>
+						<doc:definition>
+							The verification succeeded, <doc:ref type="method" to="Device.VerifyStop">Device.VerifyStop</doc:ref> should now be called.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>verify-retry-scan</doc:term>
+						<doc:definition>
+							The user should retry scanning their finger, the verification is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>verify-swipe-too-short</doc:term>
+						<doc:definition>
+							The user's swipe was too short. The user should retry scanning their finger, the verification is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>verify-finger-not-centered</doc:term>
+						<doc:definition>
+							The user's finger was not centered on the reader. The user should retry scanning their finger, the verification is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>verify-remove-and-retry</doc:term>
+						<doc:definition>
+							The user should remove their finger from the reader and retry scanning their finger, the verification is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>verify-disconnected</doc:term>
+						<doc:definition>
+							The device was disconnected during the verification, no other actions should be taken, and you shouldn't use the device any more.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>verify-unknown-error</doc:term>
+						<doc:definition>
+							An unknown error occurred (usually a driver problem), <doc:ref type="method" to="Device.VerifyStop">Device.VerifyStop</doc:ref> should now be called.
+						</doc:definition>
+					</doc:item>
+				</doc:list>
+			</doc:para>
+
+			<doc:title id="enroll-statuses">
+				Enroll Statuses
+			</doc:title>
+			<doc:para>
+				<doc:list>
+					Possible values for the result passed through <doc:ref type="signal" to="Device::EnrollResult">Device::EnrollResult</doc:ref> are:
+					<doc:item>
+						<doc:term>enroll-completed</doc:term>
+						<doc:definition>
+							The enrollment successfully completed, <doc:ref type="method" to="Device.EnrollStop">Device.EnrollStop</doc:ref> should now be called.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-failed</doc:term>
+						<doc:definition>
+							The enrollment failed, <doc:ref type="method" to="Device.EnrollStop">Device.EnrollStop</doc:ref> should now be called.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-stage-passed</doc:term>
+						<doc:definition>
+							One stage of the enrollment passed, the enrollment is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-retry-scan</doc:term>
+						<doc:definition>
+							The user should retry scanning their finger, the enrollment is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-swipe-too-short</doc:term>
+						<doc:definition>
+							The user's swipe was too short. The user should retry scanning their finger, the enrollment is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-finger-not-centered</doc:term>
+						<doc:definition>
+							The user's finger was not centered on the reader. The user should retry scanning their finger, the enrollment is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-remove-and-retry</doc:term>
+						<doc:definition>
+							The user should remove their finger from the reader and retry scanning their finger, the enrollment is still ongoing.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-data-full</doc:term>
+						<doc:definition>
+							No further prints can be enrolled on this device, <doc:ref type="method" to="Device.EnrollStop">Device.EnrollStop</doc:ref> should now be called.
+
+							<doc:ref type="method" to="DeleteEnrolledFingers2">Delete other prints</doc:ref> from the device first to continue
+							(e.g. from other users). Note that old prints or prints from other operating systems may be deleted automatically
+							to resolve this error without any notification.
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-disconnected</doc:term>
+						<doc:definition>
+							The device was disconnected during the enrollment, no other actions should be taken, and you shouldn't use the device any more.
+
+						</doc:definition>
+					</doc:item>
+					<doc:item>
+						<doc:term>enroll-unknown-error</doc:term>
+						<doc:definition>
+							An unknown error occurred (usually a driver problem), <doc:ref type="method" to="Device.EnrollStop">Device.EnrollStop</doc:ref> should now be called.
+
+						</doc:definition>
+					</doc:item>
+				</doc:list>
+			</doc:para>
+		</doc:doc>
+
+		<!-- ************************************************************ -->
+
+		<method name="ListEnrolledFingers">
+			<arg type="s" name="username" direction="in">
+				<doc:doc><doc:summary>The username for whom to list the enrolled fingerprints. See <doc:ref type="description" to="usernames">Usernames</doc:ref>.</doc:summary></doc:doc>
+			</arg>
+			<arg type="as" name="enrolled_fingers" direction="out">
+				<doc:doc><doc:summary>An array of strings representing the enrolled fingerprints. See <doc:ref type="description" to="fingerprint-names">Fingerprint names</doc:ref>.</doc:summary></doc:doc>
+			</arg>
+
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						List all the enrolled fingerprints for the chosen user.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+					<doc:error name="&ERROR_NO_ENROLLED_PRINTS;">if the chosen user doesn't have any fingerprints enrolled</doc:error>
+				</doc:errors>
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<method name="DeleteEnrolledFingers">
+			<arg type="s" name="username" direction="in">
+				<doc:doc><doc:summary>The username for whom to delete the enrolled fingerprints. See <doc:ref type="description" to="usernames">Usernames</doc:ref>.</doc:summary></doc:doc>
+			</arg>
+
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						Delete all the enrolled fingerprints for the chosen user.
+					</doc:para>
+					<doc:para>
+						This call only exists for compatibility reasons, you should instead claim the device using
+						<doc:ref type="method" to="Device.Claim">Device.Claim</doc:ref> and then call
+						<doc:ref type="method" to="DeleteEnrolledFingers2">DeleteEnrolledFingers2</doc:ref>.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+				</doc:errors>
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<method name="DeleteEnrolledFingers2">
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						Delete all the enrolled fingerprints for the user currently claiming the device with <doc:ref type="method" to="Device.Claim">Device.Claim</doc:ref>.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+				</doc:errors>
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<method name="Claim">
+			<arg type="s" name="username" direction="in">
+				<doc:doc><doc:summary>The username for whom to claim the device. See <doc:ref type="description" to="usernames">Usernames</doc:ref>.</doc:summary></doc:doc>
+			</arg>
+
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						Claim the device for the chosen user.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+					<doc:error name="&ERROR_ALREADY_IN_USE;">if the device is already claimed</doc:error>
+					<doc:error name="&ERROR_INTERNAL;">if the device couldn't be claimed</doc:error>
+				</doc:errors>
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<method name="Release">
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						Release a device claimed with <doc:ref type="method" to="Device.Claim">Device.Claim</doc:ref>.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+					<doc:error name="&ERROR_CLAIM_DEVICE;">if the device was not claimed</doc:error>
+				</doc:errors>
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<method name="VerifyStart">
+			<arg type="s" name="finger_name" direction="in">
+				<doc:doc><doc:summary>A string representing the finger to verify. See <doc:ref type="description" to="fingerprint-names">Fingerprint names</doc:ref>.</doc:summary></doc:doc>
+			</arg>
+
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						Check the chosen finger against a saved fingerprint. You need to have claimed the device using
+						<doc:ref type="method" to="Device.Claim">Device.Claim</doc:ref>. The finger selected is sent to the front-end
+						using <doc:ref type="signal" to="Device::VerifyFingerSelected">Device::VerifyFingerSelected</doc:ref> and
+						verification status through <doc:ref type="signal" to="Device::VerifyStatus">Device::VerifyStatus</doc:ref>.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+					<doc:error name="&ERROR_CLAIM_DEVICE;">if the device was not claimed</doc:error>
+					<doc:error name="&ERROR_ALREADY_IN_USE;">if the device was already being used</doc:error>
+					<doc:error name="&ERROR_NO_ENROLLED_PRINTS;">if there are no enrolled prints for the chosen user</doc:error>
+					<doc:error name="&ERROR_INTERNAL;">if there was an internal error</doc:error>
+				</doc:errors>
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<method name="VerifyStop">
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						Stop an on-going fingerprint verification started with <doc:ref type="method" to="Device.VerifyStart">Device.VerifyStart</doc:ref>.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+					<doc:error name="&ERROR_CLAIM_DEVICE;">if the device was not claimed</doc:error>
+					<doc:error name="&ERROR_NO_ACTION_IN_PROGRESS;">if there was no ongoing verification</doc:error>
+					<doc:error name="&ERROR_INTERNAL;">if there was an internal error</doc:error>
+				</doc:errors>
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<signal name="VerifyFingerSelected">
+			<arg type="s" name="finger_name">
+				<doc:doc>
+					<doc:summary>
+						<doc:para>
+							A string representing the finger select to be verified.
+						</doc:para>
+					</doc:summary>
+				</doc:doc>
+			</arg>
+			<doc:doc>
+				<doc:seealso>
+					<doc:ref type="description" to="fingerprint-names">Fingerprint names</doc:ref>.
+				</doc:seealso>
+			</doc:doc>
+		</signal>
+
+		<!-- ************************************************************ -->
+
+		<signal name="VerifyStatus">
+			<arg type="s" name="result">
+				<doc:doc>
+					<doc:summary>
+						A string representing the status of the verification.
+					</doc:summary>
+				</doc:doc>
+			</arg>
+
+			<arg type="b" name="done">
+				<doc:doc>
+					<doc:summary>
+						Whether the verification finished and can be stopped.
+					</doc:summary>
+				</doc:doc>
+			</arg>
+
+			<doc:doc>
+				<doc:seealso>
+					<doc:ref type="description" to="verify-statuses">Verify Statuses</doc:ref> and <doc:ref type="method" to="Device.VerifyStop">Device.VerifyStop</doc:ref>.
+				</doc:seealso>
+			</doc:doc>
+		</signal>
+
+		<!-- ************************************************************ -->
+
+		<method name="EnrollStart">
+			<arg type="s" name="finger_name" direction="in">
+				<doc:doc><doc:summary>A string representing the finger to enroll. See
+				<doc:ref type="description" to="fingerprint-names">Fingerprint names</doc:ref>.
+				Note that "any" is not a valid finger name for this method.</doc:summary></doc:doc>
+			</arg>
+
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						Start enrollment for the selected finger. You need to have claimed the device using
+						<doc:ref type="method" to="Device.Claim">Device.Claim</doc:ref> before calling
+						this method. Enrollment status is sent through <doc:ref type="signal" to="Device::EnrollStatus">Device::EnrollStatus</doc:ref>.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+					<doc:error name="&ERROR_CLAIM_DEVICE;">if the device was not claimed</doc:error>
+					<doc:error name="&ERROR_ALREADY_IN_USE;">if the device was already being used</doc:error>
+					<doc:error name="&ERROR_INVALID_FINGERNAME;">if the finger name passed is invalid</doc:error>
+					<doc:error name="&ERROR_INTERNAL;">if there was an internal error</doc:error>
+				</doc:errors>
+
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<method name="EnrollStop">
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						Stop an on-going fingerprint enrollment started with <doc:ref type="method" to="Device.EnrollStart">Device.EnrollStart</doc:ref>.
+					</doc:para>
+				</doc:description>
+
+				<doc:errors>
+					<doc:error name="&ERROR_PERMISSION_DENIED;">if the caller lacks the appropriate PolicyKit authorization</doc:error>
+					<doc:error name="&ERROR_CLAIM_DEVICE;">if the device was not claimed</doc:error>
+					<doc:error name="&ERROR_NO_ACTION_IN_PROGRESS;">if there was no ongoing verification</doc:error>
+					<doc:error name="&ERROR_INTERNAL;">if there was an internal error</doc:error>
+				</doc:errors>
+			</doc:doc>
+		</method>
+
+		<!-- ************************************************************ -->
+
+		<signal name="EnrollStatus">
+			<arg type="s" name="result">
+				<doc:doc>
+					<doc:summary>
+						A string representing the status of the enrollment.
+					</doc:summary>
+				</doc:doc>
+			</arg>
+
+			<arg type="b" name="done">
+				<doc:doc>
+					<doc:summary>
+						Whether the enrollment finished and can be stopped.
+					</doc:summary>
+				</doc:doc>
+			</arg>
+
+			<doc:doc>
+				<doc:seealso>
+					<doc:ref type="description" to="enroll-statuses">Enrollment Statuses</doc:ref> and <doc:ref type="method" to="Device.EnrollStop">Device.EnrollStop</doc:ref>.
+				</doc:seealso>
+			</doc:doc>
+		</signal>
+
+		<!-- ************************************************************ -->
+
+		<property name="name" type="s" access="read">
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						The product name of the device.
+					</doc:para>
+				</doc:description>
+			</doc:doc>
+		</property>
+
+		<!-- ************************************************************ -->
+
+		<property name="num-enroll-stages" type="i" access="read">
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						The number of enrollment stages for the device. This is only available when the device has been claimed, otherwise it will be undefined (-1).
+					</doc:para>
+					<doc:seealso>
+						<doc:ref type="method" to="Device.Claim">Device.Claim</doc:ref> and <doc:ref type="method" to="Device.EnrollStart">Device.EnrollStart</doc:ref>.
+					</doc:seealso>
+				</doc:description>
+			</doc:doc>
+		</property>
+
+		<!-- ************************************************************ -->
+
+		<property name="scan-type" type="s" access="read">
+			<doc:doc>
+				<doc:description>
+					<doc:para>
+						The scan type of the device, either "press" if you place your finger on the device, or "swipe" if you have to swipe your finger.
+					</doc:para>
+				</doc:description>
+			</doc:doc>
+		</property>
+
+	</interface>
+</node>
+

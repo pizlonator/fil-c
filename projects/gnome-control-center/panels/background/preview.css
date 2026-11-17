@@ -1,0 +1,97 @@
+background-preview {
+  border-radius: 6px;
+}
+
+background-preview .window {
+  border-radius: 6px;
+  box-shadow: 0 1px 4px 1px alpha(black, 0.13),
+              0 1px 10px 5px alpha(black, 0.09),
+              0 3px 16px 8px alpha(black, 0.04),
+              0 0 0 1px alpha(black, .05);
+}
+
+background-preview .window .header-bar {
+  min-height: 15px;
+}
+
+background-preview .window.light {
+  background-color: #fafafa;
+  color: alpha(black, .8);
+}
+
+background-preview .window.light .header-bar {
+  box-shadow: inset 0 -1px alpha(black, .07);
+}
+
+background-preview .window.front.light .header-bar {
+  background-color: #ebebeb;
+}
+
+background-preview .window.dark {
+  background-color: #242424;
+  color: white;
+}
+
+background-preview .window.dark .header-bar {
+  box-shadow: inset 0 -1px alpha(black, .36);
+}
+
+background-preview .window.front.dark .header-bar {
+  background-color: #303030;
+}
+
+.background-preview-button {
+  background: none;
+  border-radius: 9px;
+  padding: 3px;
+  box-shadow: none;
+  outline: none;
+}
+
+.background-preview-button:checked {
+  box-shadow: 0 0 0 3px @accent_color;
+}
+
+.background-preview-button:focus:focus-visible {
+  box-shadow: 0 0 0 3px alpha(@accent_color, .3);
+}
+
+.background-preview-button:checked:focus:focus-visible {
+  box-shadow: 0 0 0 3px @accent_color, 0 0 0 6px alpha(@accent_color, .3);
+}
+
+.background-flowbox > flowboxchild {
+  background: none;
+  border-radius: 9px;
+}
+
+.background-thumbnail {
+  border-radius: 6px;
+}
+
+.slideshow-icon {
+  color: white;
+  -gtk-icon-shadow: 0 1px 2px rgba(0, 0, 0, 0.33);
+  margin: 8px;
+}
+
+.selected-check {
+  color: @accent_fg_color;
+  background: @accent_bg_color;
+  border-radius: 100px;
+  padding: 2px;
+  opacity: 0;
+  margin: 6px;
+  transition-duration: 200ms;
+}
+
+flowboxchild.active-item .selected-check {
+  opacity: 1;
+}
+
+.remove-button {
+  padding: 2px;
+  min-width: 0;
+  min-height: 0;
+  margin: 6px;
+}

@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcFirmwareSecurityPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Device Security</property>
+    <property name="tag">device-security</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <child type="end">
+              <object class="GtkButton" id="fw_help_button">
+                <property name="tooltip-text" translatable="yes">About Device Security</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="icon-name">help-about-symbolic</property>
+                  <signal name="clicked" handler="on_fw_help_button_clicked_cb" object="CcFirmwareSecurityPage" swapped="yes" />
+                <style>
+                  <class name="image-button" />
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkStack" id="panel_stack">
+
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">panel_loading</property>
+                <property name="child">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+
+                          <object class="GtkBox">
+                            <property name="spacing">12</property>
+                            <property name="homogeneous">True</property>
+                            <property name="orientation">vertical</property>
+                            <property name="halign">center</property>
+                            <property name="valign">center</property>
+                            <property name="hexpand">true</property>
+                            <property name="vexpand">true</property>
+                            <child>
+                              <object class="GtkSpinner">
+                                <property name="halign">center</property>
+                                <property name="valign">center</property>
+                                <property name="spinning">true</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="justify">center</property>
+                                <property name="wrap">True</property>
+                                <property name="halign">0.0</property>
+                                <property name="valign">0.0</property>
+                                <property name="label" translatable="yes">Starting Device Security…</property>
+                                <style>
+                                  <class name="heading" />
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">panel_unavaliable</property>
+                <property name="child">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwStatusPage">
+                            <property name="vexpand">True</property>
+                            <property name="opacity">0.5</property>
+                            <property name="title" translatable="yes">Device Security Unavailable</property>
+                            <property name="icon-name">security-high-symbolic</property>
+                            <property name="description" translatable="yes">Device Security is only available on physical hardware. No physical hardware has been detected.</property>
+
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">panel_show</property>
+                <property name="child">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+
+                        <child>
+                          <object class="GtkBox" id="firmware_security_hbox">
+                            <property name="spacing">24</property>
+                            <property name="homogeneous">True</property>
+                            <child>
+                              <object class="GtkButton" id="hsi_button">
+                                <property name="receives-default">True</property>
+                                <property name="sensitive">True</property>
+                                <property name="vexpand-set">True</property>
+                                <signal name="clicked" handler="on_hsi_button_clicked_cb" object="CcFirmwareSecurityPage" swapped="yes" />
+                                <style>
+                                  <class name="card" />
+                                </style>
+                                <child>
+                                  <object class="GtkBox" id="hsi_box">
+                                    <property name="orientation">vertical</property>
+                                    <property name="halign">fill</property>
+                                    <property name="valign">start</property>
+                                    <property name="margin-start">12</property>
+                                    <property name="margin-end">12</property>
+                                    <property name="margin-top">24</property>
+                                    <property name="margin-bottom">24</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkImage" id="hsi_icon">
+                                        <property name="halign">center</property>
+                                        <property name="valign">center</property>
+                                        <property name="icon-name">dialog-question-symbolic</property>
+                                        <property name="pixel-size">32</property>
+                                        <property name="margin-bottom">6</property>
+                                        <style>
+                                          <class name="security-level-icon"/>
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="hsi_label">
+                                        <property name="justify">center</property>
+                                        <property name="wrap">True</property>
+                                        <style>
+                                          <class name="heading" />
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="hsi_description">
+                                        <property name="wrap">True</property>
+                                        <property name="justify">center</property>
+                                        <property name="ellipsize">none</property>
+                                        <property name="lines">2</property>
+                                        <style>
+                                          <class name="caption" />
+                                        </style>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="secure_boot_button">
+                                <property name="receives-default">True</property>
+                                <signal name="clicked" handler="on_secure_boot_button_clicked_cb" object="CcFirmwareSecurityPage" swapped="yes" />
+                                <style>
+                                  <class name="card" />
+                                </style>
+                                <child>
+                                  <object class="GtkBox" id="secure_boot_box">
+                                    <property name="orientation">vertical</property>
+                                    <property name="halign">fill</property>
+                                    <property name="valign">start</property>
+                                    <property name="margin-start">12</property>
+                                    <property name="margin-end">12</property>
+                                    <property name="margin-top">24</property>
+                                    <property name="margin-bottom">24</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkImage" id="secure_boot_icon">
+                                        <property name="pixel-size">32</property>
+                                        <property name="halign">center</property>
+                                        <property name="valign">center</property>
+                                        <property name="icon-name">channel-insecure</property>
+                                        <property name="margin-bottom">6</property>
+                                        <style>
+                                          <class name="security-level-icon" />
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="secure_boot_label">
+                                        <property name="justify">center</property>
+                                        <property name="wrap">True</property>
+                                        <style>
+                                          <class name="heading" />
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="secure_boot_description">
+                                        <property name="wrap">True</property>
+                                        <property name="justify">center</property>
+                                        <property name="ellipsize">none</property>
+                                        <property name="lines">2</property>
+                                        <style>
+                                          <class name="caption" />
+                                        </style>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title" translatable="yes">Security Events</property>
+                        <child>
+                          <object class="AdwViewStack" id="firmware_security_log_stack">
+                            <child>
+                              <object class="AdwViewStackPage">
+                                <property name="name">no_event</property>
+                                <property name="child">
+                                  <object class="AdwStatusPage">
+                                    <property name="vexpand">True</property>
+                                    <property name="opacity">0.5</property>
+                                    <property name="title" translatable="yes">No Events</property>
+                                    <property name="icon-name">document-open-recent-symbolic</property>
+                                    <style>
+                                      <class name="card" />
+                                      <class name="compact" />
+                                    </style>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwViewStackPage">
+                                <property name="name">page2</property>
+                                <property name="child">
+                                  <object class="AdwPreferencesGroup" id="firmware_security_log_pgroup" />
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                  </object>
+                </property>
+              </object>
+            </child>
+
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

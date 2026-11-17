@@ -1,0 +1,2023 @@
+# translation of gnome-terminal.HEAD.po to Maithili
+# Copyright (C) 2006 The GNOME Foundation
+# This file is distributed under the same license as the PACKAGE package.
+# BOSS GNU/Linux <bosslinux@cdac.in>, 2008.
+msgid ""
+msgstr ""
+"Project-Id-Version: gedit.HEAD\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-08-27 08:48+0000\n"
+"PO-Revision-Date: 2008-01-25 13:49+0530\n"
+"Last-Translator: Sangeeta Kumari\n"
+"Language-Team:  <en@li.org>\n"
+"Language: mai\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"\n"
+"\n"
+
+#: ../gnome-terminal.desktop.in.in.h:1 ../src/gnome-terminal.schemas.in.h:96
+#: ../src/terminal-accels.c:167 ../src/terminal.c:1197
+#: ../src/terminal-profile.c:150 ../src/terminal-window.c:1497
+msgid "Terminal"
+msgstr "टर्मिनल"
+
+#: ../gnome-terminal.desktop.in.in.h:2
+msgid "Use the command line"
+msgstr "कमांड लाइन क' प्रयोग करू"
+
+#. { "UTF-8",	N_("Current Locale") },
+#: ../src/encoding.c:51 ../src/encoding.c:64 ../src/encoding.c:78
+#: ../src/encoding.c:100 ../src/encoding.c:111
+msgid "Western"
+msgstr "पश्चिमी"
+
+#: ../src/encoding.c:52 ../src/encoding.c:79 ../src/encoding.c:90
+#: ../src/encoding.c:109
+msgid "Central European"
+msgstr "मध्य यूरोपीय"
+
+#: ../src/encoding.c:53
+msgid "South European"
+msgstr "दक्षिण यूरोपीय"
+
+#: ../src/encoding.c:54 ../src/encoding.c:62 ../src/encoding.c:116
+msgid "Baltic"
+msgstr "बाल्टिक"
+
+#: ../src/encoding.c:55 ../src/encoding.c:80 ../src/encoding.c:86
+#: ../src/encoding.c:87 ../src/encoding.c:92 ../src/encoding.c:110
+msgid "Cyrillic"
+msgstr "साइरिलिक"
+
+#: ../src/encoding.c:56 ../src/encoding.c:83 ../src/encoding.c:89
+#: ../src/encoding.c:115
+msgid "Arabic"
+msgstr "अरबी"
+
+#: ../src/encoding.c:57 ../src/encoding.c:95 ../src/encoding.c:112
+msgid "Greek"
+msgstr "ग्रीक"
+
+#: ../src/encoding.c:58
+msgid "Hebrew Visual"
+msgstr "हिब्रू दृश्य"
+
+#: ../src/encoding.c:59 ../src/encoding.c:82 ../src/encoding.c:98
+#: ../src/encoding.c:114
+msgid "Hebrew"
+msgstr "हिब्रू"
+
+#: ../src/encoding.c:60 ../src/encoding.c:81 ../src/encoding.c:102
+#: ../src/encoding.c:113
+msgid "Turkish"
+msgstr "तुर्की"
+
+#: ../src/encoding.c:61
+msgid "Nordic"
+msgstr "नोर्डिक"
+
+#: ../src/encoding.c:63
+msgid "Celtic"
+msgstr "सेल्टिक"
+
+#: ../src/encoding.c:65 ../src/encoding.c:101
+msgid "Romanian"
+msgstr "रोमानियाइ"
+
+#. These encodings do NOT pass-through ASCII, so are always rejected.
+#. * FIXME: why are they in this table; or rather why do we need
+#. * the ASCII pass-through requirement?
+#.
+#: ../src/encoding.c:66 ../src/encoding.c:123 ../src/encoding.c:124
+#: ../src/encoding.c:125 ../src/encoding.c:126
+msgid "Unicode"
+msgstr "यूनिकोड"
+
+#: ../src/encoding.c:67
+msgid "Armenian"
+msgstr "आर्मेनियाइ"
+
+#: ../src/encoding.c:68 ../src/encoding.c:69 ../src/encoding.c:73
+msgid "Chinese Traditional"
+msgstr "चीनी पारम्परिक"
+
+#: ../src/encoding.c:70
+msgid "Cyrillic/Russian"
+msgstr "साइरिलिक/रूसी"
+
+#: ../src/encoding.c:71 ../src/encoding.c:84 ../src/encoding.c:104
+msgid "Japanese"
+msgstr "जापानी"
+
+#: ../src/encoding.c:72 ../src/encoding.c:85 ../src/encoding.c:107
+#: ../src/encoding.c:127
+msgid "Korean"
+msgstr "कोरियाइ"
+
+#: ../src/encoding.c:74 ../src/encoding.c:75 ../src/encoding.c:76
+msgid "Chinese Simplified"
+msgstr "चीनी (सरल)"
+
+#: ../src/encoding.c:77
+msgid "Georgian"
+msgstr "ज्यॉर्जियाइ"
+
+#: ../src/encoding.c:88 ../src/encoding.c:103
+msgid "Cyrillic/Ukrainian"
+msgstr "साइरिलिक/यूक्रेनी"
+
+#: ../src/encoding.c:91
+msgid "Croatian"
+msgstr "क्रोएशियाइ"
+
+#: ../src/encoding.c:93
+msgid "Hindi"
+msgstr "हिन्दी"
+
+#: ../src/encoding.c:94
+msgid "Persian"
+msgstr "फारसी"
+
+#: ../src/encoding.c:96
+msgid "Gujarati"
+msgstr "गुजराती"
+
+#: ../src/encoding.c:97
+msgid "Gurmukhi"
+msgstr "गुरूमुखी"
+
+#: ../src/encoding.c:99
+msgid "Icelandic"
+msgstr "आइसलैंडिक"
+
+#: ../src/encoding.c:105 ../src/encoding.c:108 ../src/encoding.c:117
+msgid "Vietnamese"
+msgstr "विएतनामी"
+
+#: ../src/encoding.c:106
+msgid "Thai"
+msgstr "थाइ"
+
+#: ../src/encoding.c:323
+msgid "User Defined"
+msgstr "प्रयोक्ता पारिभाषित"
+
+#: ../src/encoding.c:597 ../src/encoding.c:622
+msgid "_Description"
+msgstr "वर्णन (_D)"
+
+#: ../src/encoding.c:606 ../src/encoding.c:631
+msgid "_Encoding"
+msgstr "एनकोडिंग (_E)"
+
+#: ../src/encoding.c:688
+msgid "Current Locale"
+msgstr "वर्तमान लोकेल"
+
+#: ../src/encodings-dialog.glade.h:1
+msgid "A_vailable encodings:"
+msgstr "उपलब्ध एनकोडिंग्स(_v):"
+
+#: ../src/encodings-dialog.glade.h:2
+msgid "Add or Remove Terminal Encodings"
+msgstr "टर्मिनल एनकोडिंग्स जोड़ू अथवा मेटाबू"
+
+#: ../src/encodings-dialog.glade.h:3
+msgid "E_ncodings shown in menu:"
+msgstr "मेनूमे देखाओल गए एनकोडिंग्स (_E):"
+
+#: ../src/gnome-terminal.schemas.in.h:1
+msgid ""
+"A subset of possible encodings are presented in the Encoding submenu. This "
+"is a list of encodings to appear there. The special encoding name \"current"
+"\" means to display the encoding of the current locale."
+msgstr ""
+"संभावित एनकोडिंग क' उपसमुच्चय एनकोडिंगमेनूमे देखाओल गेल अछि ई एनकोडिंग क' एतय प्रकट "
+"हए क' सूची अछि विशेष एनकोडिंग नाम \"current\" क' मतलब मोजुदा लोकेल क' एनकोडिंग "
+"देखओनाइ अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:2
+msgid ""
+"A value between 0.0 and 1.0 indicating how much to darken the background "
+"image. 0.0 means no darkness, 1.0 means fully dark. In the current "
+"implementation, there are only two levels of darkness possible, so the "
+"setting behaves as a boolean, where 0.0 disables the darkening effect."
+msgstr ""
+"0.0 आओर 1.0 क' बीच क' मान बतबैत अछि जे पृष्ठभूमि चित्रकेँ कतेक गहिर कएनाइ अछि 0.0 कोनो "
+"गहिरपन नहि, 1.0 पूरी तरह सँ गहिर. वर्तमान कार्यान्वयनमे, दुइ स्तर क' गहिरपन संभव अछि "
+"ताकि जमावट बुलियन क' रूपमे आचरण करै, जतए 0.0 गहिरपन प्रभावकेँ निष्क्रिय करैत अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:3
+msgid ""
+"Accelerator key to detach current tab. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keybinding for this action."
+msgstr ""
+"मोजुदा टैब सँ अलग करबाक लेल त्वरक. जीटीके+ संसाधन फ़ाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे अभिव्यक्त कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"निष्क्रिय\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:4
+msgid ""
+"Accelerator key to move the current tab to the left. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keybinding for this "
+"action."
+msgstr ""
+"बामाँ तरफ मोजुदा टैब चलाबै क'लेल त्वरक चलाबू. जीटीके+ संसाधन फाइलसभमे उपयोगमे लेल जाए बला स्ट्रिंग क' रूपमे अभिव्यक्त कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:5
+msgid ""
+"Accelerator key to move the current tab to the right. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keybinding for this "
+"action."
+msgstr ""
+"दहिन्ना तरफ मोजुदा टैब चलाबै क'लेल त्वरक चलाबू. जीटीके+ संसाधन फ़ाइलमे उपयोगमे लेल जाए बला स्ट्रिंग क' रूपमे अभिव्यक्त कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"निष्क्रिय\" "
+"पर नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:6
+msgid "Accelerator to detach current tab."
+msgstr "मोजुदा टैब सँ अलग करबाक लेल कुँजीपटल"
+
+#: ../src/gnome-terminal.schemas.in.h:7
+msgid "Accelerator to move the current tab to the left."
+msgstr "बायाँ तरफ मोजुदा टैब चलाबै क'लेल त्वरक चलाबू"
+
+#: ../src/gnome-terminal.schemas.in.h:8
+msgid "Accelerator to move the current tab to the right."
+msgstr "दायाँ तरफ मोजुदा टैब चलाबै क'लेल त्वरक चलाबू"
+
+#: ../src/gnome-terminal.schemas.in.h:9
+msgid "An Pango font name. Examples are \"Sans 12\" or \"Monospace Bold 14\"."
+msgstr "एकटा पैंगो फ़ॉन्ट नाम. उदाहरण अछि \"संस 12\" अथवा \"मोनोस्पेस गाढ़ा 14\"."
+
+#: ../src/gnome-terminal.schemas.in.h:10
+msgid "Background image"
+msgstr "पृष्ठभूमि बिंब"
+
+#: ../src/gnome-terminal.schemas.in.h:11
+msgid "Background type"
+msgstr "पृष्ठभूमि प्रकार"
+
+#: ../src/gnome-terminal.schemas.in.h:12
+msgid "Characters that are considered \"part of a word\""
+msgstr "संप्रतीक क' जे \"शब्द क' भाग\" बुझल जाए"
+
+#: ../src/gnome-terminal.schemas.in.h:13
+msgid "Custom command to use instead of the shell"
+msgstr "शैल क' बदला अनुकूलित कमांड जकरा चलओनाइ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:14
+msgid "Default"
+msgstr "मूलभूत"
+
+#: ../src/gnome-terminal.schemas.in.h:15
+msgid "Default color of terminal background"
+msgstr "टर्मिनल पृष्ठभूमि क' मूलभूत रँग"
+
+#: ../src/gnome-terminal.schemas.in.h:16
+msgid ""
+"Default color of terminal background, as a color specification (can be HTML-"
+"style hex digits, or a color name such as \"red\")."
+msgstr ""
+"टर्मिनल पृष्ठभूमि क' मूलभूत रँग, रँग विशिष्टता क' रूपमे (HTML-style hex digits, अथवा रँग "
+"नाम जहिना जे \"red\")."
+
+#: ../src/gnome-terminal.schemas.in.h:17
+msgid "Default color of text in the terminal"
+msgstr "टर्मिनलमे पाठ क' मूलभूत रँग"
+
+#: ../src/gnome-terminal.schemas.in.h:18
+msgid ""
+"Default color of text in the terminal, as a color specification (can be HTML-"
+"style hex digits, or a color name such as \"red\")."
+msgstr ""
+"टर्मिनल पृष्ठभूमि क' मूलभूत रँग, रँग विशिष्टता क' रूपमे (HTML-style hex digits भ' सकैत "
+"अछि, अथवा जे रँग नाम जहिना जे \"red\")."
+
+#: ../src/gnome-terminal.schemas.in.h:19
+msgid "Effect of the Backspace key"
+msgstr "बैकस्पेस कुँजी क' प्रभाव"
+
+#: ../src/gnome-terminal.schemas.in.h:20
+msgid "Effect of the Delete key"
+msgstr "मेटाबू कुँजी क' प्रभाव"
+
+#: ../src/gnome-terminal.schemas.in.h:21
+msgid "Filename of a background image."
+msgstr "पृष्ठभूमि बिंब क' फ़ाइलनाम."
+
+#: ../src/gnome-terminal.schemas.in.h:22
+msgid "Font"
+msgstr "फाँट"
+
+#. Translators: S/Key is the name of an application, so it should
+#. not be translated.
+#: ../src/gnome-terminal.schemas.in.h:25
+msgid "Highlight S/Key challenges"
+msgstr "S/कुँजी चुनौती उभारू"
+
+#: ../src/gnome-terminal.schemas.in.h:26
+msgid "How much to darken the background image"
+msgstr "पृष्ठभूमि बिंबकेँ कतेक गहिर कएनाइ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:27
+msgid "Human-readable name of the profile"
+msgstr "प्रोफ़ाइल क' मानव पठनीय नाम"
+
+#: ../src/gnome-terminal.schemas.in.h:28
+msgid "Human-readable name of the profile."
+msgstr "एहि प्रोफ़ाइल क' मानव पठनीय नाम."
+
+#: ../src/gnome-terminal.schemas.in.h:29
+msgid "Icon for terminal window"
+msgstr "टर्मिनल विंडो लेल चिह्न"
+
+#: ../src/gnome-terminal.schemas.in.h:30
+msgid "Icon to use for tabs/windows containing this profile."
+msgstr "एहि प्रोफ़ाइलमे टैब/विंडोज़ क' उपयोग लेल चिह्न"
+
+#: ../src/gnome-terminal.schemas.in.h:31
+msgid ""
+"If the application in the terminal sets the title (most typically people "
+"have their shell set up to do this), the dynamically-set title can erase the "
+"configured title, go before it, go after it, or replace it. The possible "
+"values are \"replace\", \"before\", \"after\", and \"ignore\"."
+msgstr ""
+"टर्मिनलमे जँ अनुप्रयोग शीर्षक सेट करैत अछि (व्यक्ति क' पास अपन शेल अछि एकरा करबाकलेल ), "
+"गतिशील सेट शीर्षक विन्यस्त शीर्षककेँ मेटाए सकैत अछि एकरा पहिले जाए क'लेल , एकर बाद जाए "
+" क'लेल , अथवा एकरा हटाबै क'लेल . संभावित मान अछि \"replace\", \"before\", \"after\", आओर "
+"\"ignore\"."
+
+#: ../src/gnome-terminal.schemas.in.h:32
+msgid "If true, allow applications in the terminal to make text boldface."
+msgstr "जँ सही अछि अनुप्रयोगसभकेँ टर्मिनलमे पाठकेँ गहिर बनाबै लेल स्वीकारू."
+
+#: ../src/gnome-terminal.schemas.in.h:33
+msgid ""
+"If true, don't make a noise when applications send the escape sequence for "
+"the terminal bell."
+msgstr "जँ सही अछि जखन अनुप्रयोग टर्मिनल घंटी लेल एस्केप सिक्वेंस भेजू."
+
+#: ../src/gnome-terminal.schemas.in.h:34
+msgid ""
+"If true, font anti-aliasing will be disabled when running without the X "
+"RENDER extension, which gives a considerable performance improvement in "
+"these situations."
+msgstr ""
+"जँ सही अछि फोन्ट एलियासिंगकेँ निष्क्रिय हाएत जखन X RENDER विस्तार क' बिनु,जे एहन "
+"स्थितिमे नीक प्रदर्शन करैत अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:35
+msgid "If true, pressing a key jumps the scrollbar to the bottom."
+msgstr "जँ सत्य अछि कोनो कुँजी दाबै पर स्क्रॉल-पट्टी तल पर कूदि जएताह."
+
+#: ../src/gnome-terminal.schemas.in.h:36
+msgid ""
+"If true, scroll the background image with the foreground text; if false, "
+"keep the image in a fixed position and scroll the text above it."
+msgstr "जँ सही अछि पृष्ठभूमि विंबकेँ अग्रभूमि पाठ सँ स्क्रॉल करू; जँ गलत अछि विंबकेँ स्थिर स्थितिमे राखू आओर पाठकेँ उप्पर स्क्रॉल करू."
+
+#: ../src/gnome-terminal.schemas.in.h:37
+msgid ""
+"If true, the command inside the terminal will be launched as a login shell. "
+"(argv[0] will have a hyphen in front of it.)"
+msgstr ""
+"जँ सही अछि टर्मिनल क' अंदर क' कमांड एकटा लॉगिन शेल क' रूपमे लाँच हाएत. (argv[0] एकरा "
+"सामना एकटा हाइफन रखताह.)"
+
+#: ../src/gnome-terminal.schemas.in.h:38
+msgid ""
+"If true, the system login records utmp and wtmp will be updated when the "
+"command inside the terminal is launched."
+msgstr ""
+"जँ सही अछि सिस्टम लॉगिन utmpकेँ रिकार्ड करैत अछि आओर wtmp केँ अद्यतन कएल जएताह जखन "
+"टर्मिनल क' अंदर कमांड लाँच कएल जाएत अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:39
+msgid ""
+"If true, the terminal will use the desktop-global standard font if it's "
+"monospace (and the most similar font it can come up with otherwise)."
+msgstr "जँ सही अछि टर्मिनल डेस्कटाप वैश्विक मानक फोन्ट क' प्रयोग करताह जँ ई मोनोस्पेस अछि (आओर बेसी समान फोन्ट ई जकरा सँग आबि सकैत अछि अन्यथा)."
+
+#: ../src/gnome-terminal.schemas.in.h:40
+msgid ""
+"If true, the theme color scheme used for text entry boxes will be used for "
+"the terminal, instead of colors provided by the user."
+msgstr ""
+"जँ सही अछि थीम रँग स्कीम पाठ प्रविष्टि बाक्स क'लेल प्रयुक्त टर्मिनल क' प्रयुक्त हाएत, "
+"प्रयोक्ता द्वारा देल गेल रँग क' बजाय."
+
+#: ../src/gnome-terminal.schemas.in.h:41
+msgid ""
+"If true, the value of the custom_command setting will be used in place of "
+"running a shell."
+msgstr "जँ सही अछि custom_command जमावट क' मान शेल क' चलाबै क' बजाय प्रयुक्त हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:42
+msgid "If true, whenever there's new output the terminal will scroll to the bottom."
+msgstr "जँ सत्य अछि, जखनो ओतए एकटा नवीन आउटपुट हाएत, टर्मिनल तल पर स्क्रॉल करताह."
+
+#: ../src/gnome-terminal.schemas.in.h:43
+msgid ""
+"Keyboard shortcut key for bringing up the dialog for profile creation. "
+"Expressed as a string in the same format used for GTK+ resource files. If "
+"you set the option to the special string \"disabled\", then there will be no "
+"keyboard shortcut for this action."
+msgstr ""
+"प्रोफ़ाइल बनाबै लेल समाद लाबै लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फ़ाइलसभमे उपयोगमे लेल "
+"जाएबला स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम"
+"\" पर नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:44
+msgid ""
+"Keyboard shortcut key for closing a tab. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"टैब बन्न करब लेल कुँजीपटल शार्टकट कुँजी. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला स्ट्रिंग "
+"क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर नियत करैत "
+"अछि तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:45
+msgid ""
+"Keyboard shortcut key for closing a window. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"विंडो बन्न करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:46
+msgid ""
+"Keyboard shortcut key for copying selected text to the clipboard. Expressed "
+"as a string in the same format used for GTK+ resource files. If you set the "
+"option to the special string \"disabled\", then there will be no keyboard "
+"shortcut for this action."
+msgstr ""
+"चयनित पाठ क्लिपबोर्ड पर कॉपी करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे "
+"उपयोगमे लेल जाए बला स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट "
+"स्ट्रिंग \"अक्षम\" पर नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि "
+"हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:47
+msgid ""
+"Keyboard shortcut key for launching help. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"मद्दति प्रारंभ करब लेल कुँजीपटल शार्टकट कुँजी. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:48
+msgid ""
+"Keyboard shortcut key for making font larger. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"फ़ॉन्ट पैघ करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:49
+msgid ""
+"Keyboard shortcut key for making font smaller. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"फ़ॉन्ट छोट करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:50
+msgid ""
+"Keyboard shortcut key for making font the normal size. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"फ़ॉन्ट आकार सामान्य बनाबै लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल"
+"जाएबला स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम"
+"\" पर नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:51
+msgid ""
+"Keyboard shortcut key for opening a new tab. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"नवीन टैब खोलब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:52
+msgid ""
+"Keyboard shortcut key for opening a new window. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"नवीन विंडो खोलब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:53
+msgid ""
+"Keyboard shortcut key for pasting the contents of the clipboard into the "
+"terminal. Expressed as a string in the same format used for GTK+ resource "
+"files. If you set the option to the special string \"disabled\", then there "
+"will be no keyboard shortcut for this action."
+msgstr ""
+"क्लिपबोर्ड क' सामग्रीकेँ टर्मिनलमे साटब क'लेल कुँजीपटल शॉर्टकट कुँजी. स्ट्रिंग क' रूपमे "
+"अभिव्यक्त GTK+ resource पाइल क'लेल प्रयुक्त क' समान प्रारूप. जँ अहाँ विशेष स्टिंग "
+"\"disabled\" सेट करते छी , तब एहि क्रिया क'लेल कोनो कुँजीपटल शार्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:54
+msgid ""
+"Keyboard shortcut key for toggling full screen mode. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"पूर्ण स्क्रीन मोड टॉगल करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल"
+"जाएबला स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम"
+"\" पर नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:55
+msgid ""
+"Keyboard shortcut key to reset and clear the terminal. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"टर्मिनलकेँ रीसेट करब तथा साफ़ करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग "
+"\"अक्षम\" पर नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:56
+msgid ""
+"Keyboard shortcut key to reset the terminal. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"टर्मिनल रिसेट करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:57
+msgid ""
+"Keyboard shortcut key to set the terminal title. Expressed as a string in "
+"the same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"टर्मिनल शीर्षक नियत करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल"
+"जाएबला स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम"
+"\" पर नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:58
+msgid ""
+"Keyboard shortcut key to switch to the next tab. Expressed as a string in "
+"the same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"अगिला टैबमे स्विच लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल जाए बला "
+"स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:59
+msgid ""
+"Keyboard shortcut key to switch to the previous tab. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"पछिला टैबमे स्विच करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे लेल"
+"जाएबला स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग \"अक्षम\" पर "
+"नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:60
+msgid ""
+"Keyboard shortcut key to toggle the visibility of the menubar. Expressed as "
+"a string in the same format used for GTK+ resource files. If you set the "
+"option to the special string \"disabled\", then there will be no keyboard "
+"shortcut for this action."
+msgstr ""
+"मेनू -पट्टी क' दृश्यता टॉगल करब लेल कुँजीपटल शॉर्टकट. जीटीके+ रिसोर्स फाइलसभमे उपयोगमे "
+"लेल जाए बला स्ट्रिंग क' रूपमे एक्सप्रेस्ड कएल जाएत अछि. जँ अहाँ विकल्पकेँ विशिष्ट स्ट्रिंग "
+"\"अक्षम\" पर नियत करैत छी तँ फिनु एहि क्रिया लेल कोनो कुँजीपटल शॉर्टकट नहि हाएत."
+
+#: ../src/gnome-terminal.schemas.in.h:61
+msgid "Keyboard shortcut to close a tab"
+msgstr "टैब बन्न करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:62
+msgid "Keyboard shortcut to close a window"
+msgstr "विंडो बन्न करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:63
+msgid "Keyboard shortcut to copy text"
+msgstr "पाठ कॉपी करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:64
+msgid "Keyboard shortcut to create a new profile"
+msgstr "नवीन प्रोफ़ाइल बनाबै लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:65
+msgid "Keyboard shortcut to launch help"
+msgstr "मद्दति प्रारंभ करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:66
+msgid "Keyboard shortcut to make font larger"
+msgstr "फ़ॉन्ट पैघ करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:67
+msgid "Keyboard shortcut to make font normal-size"
+msgstr "फ़ॉन्टकेँ सामान्य-आकार बनाबै लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:68
+msgid "Keyboard shortcut to make font smaller"
+msgstr "फ़ॉन्ट छोट करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:69
+msgid "Keyboard shortcut to open a new tab"
+msgstr "नवीन टैब खोलब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:70
+msgid "Keyboard shortcut to open a new window"
+msgstr "एकटा नवीन विंडो खोलब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:71
+msgid "Keyboard shortcut to paste text"
+msgstr "पाठ साटब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:72
+msgid "Keyboard shortcut to reset and clear the terminal"
+msgstr "टर्मिनल रिसेट करब आओर साफ करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:73
+msgid "Keyboard shortcut to reset the terminal"
+msgstr "टर्मिनल रीसेट करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:74
+msgid "Keyboard shortcut to set the terminal title"
+msgstr "टर्मिनल क' शीर्षक नियत करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:75
+msgid "Keyboard shortcut to switch to the next tab"
+msgstr "अगिला टैब पर स्विच करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:76
+msgid "Keyboard shortcut to switch to the previous tab"
+msgstr "पछिला टैबमे स्विच करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:77
+msgid "Keyboard shortcut to toggle full screen mode"
+msgstr "पूर्ण स्क्रीन मोड टॉगल करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:78
+msgid "Keyboard shortcut to toggle the visibility of the menubar"
+msgstr "मेनू पट्टी क' दृश्यताकेँ टॉगल करब लेल कुँजीपटल शॉर्टकट"
+
+#: ../src/gnome-terminal.schemas.in.h:79
+msgid "List of available encodings"
+msgstr "उपलब्घ एनकोडिंगसभ क' सूची"
+
+#: ../src/gnome-terminal.schemas.in.h:80
+msgid "List of profiles"
+msgstr "प्रोफाइल सूची"
+
+#: ../src/gnome-terminal.schemas.in.h:81
+msgid ""
+"List of profiles known to gnome-terminal. The list contains strings naming "
+"subdirectories relative to /apps/gnome-terminal/profiles."
+msgstr ""
+"gnome-terminalकेँ ज्ञात प्रोफाइल क' सूची. सूचीमे /apps/gnome-terminal/profiles क' "
+"सापेक्ष स्ट्रिंग नामित उपनिर्देशिका अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:82
+msgid ""
+"Normally you can access the menubar with F10. This can also be customized "
+"via gtkrc (gtk-menu-bar-accel = \"whatever\"). This option allows the "
+"standard menubar accelerator to be disabled."
+msgstr ""
+"सामान्यतः अहाँ मेनू बारकेँ F10 सँ अभिगम कए सकैत अछि. एकरा gtkrc (gtk-menu-bar-accel = "
+"\"whatever\") सँ भ' कए पसंदीदा कएल जाए सकैत अछि ई विकल्प मानक मेनू बार त्वरककेँ "
+"निष्क्रिय करबाक अनुमति देत अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:83
+msgid "Number of lines to keep in scrollback"
+msgstr "स्क्रॉलबैकमे राखब लेल पंक्तिसभक सँख्या "
+
+#: ../src/gnome-terminal.schemas.in.h:84
+msgid ""
+"Number of scrollback lines to keep around. You can scroll back in the "
+"terminal by this number of lines; lines that don't fit in the scrollback are "
+"discarded. Be careful with this setting; it's the primary factor in "
+"determining how much memory the terminal will use."
+msgstr ""
+"आसपास रहबाक लेल स्क्रॉलबैक पंक्ति क' सँख्या . अहाँ टर्मिनलमे एहि पंक्ति क' सँख्या क' द्वारा "
+"स्क्रॉल बैक कए सकैत अछि; स्क्रॉल बैकमे नहि फिट पंक्तिकेँ छोड़ि देल जाएत अछि. एहि जमावट क' "
+"सँग सावधान रहै; ई प्राथमिक कारक अछि जे टर्मिनल कतेक स्मृति क' प्रयोग करताह."
+
+#: ../src/gnome-terminal.schemas.in.h:85
+msgid "Palette for terminal applications"
+msgstr "टर्मिनल अनुप्रयोगसभ लेल पटल"
+
+#. Translators: S/Key is the name of an application, so it should
+#. not be translated.
+#: ../src/gnome-terminal.schemas.in.h:88
+msgid ""
+"Popup a dialog when an S/Key challenge response query is detected and "
+"clicked on. Typing a password into the dialog will send it to the terminal."
+msgstr ""
+"एकटा समाद पॉपअप करू जखन एकटा S/key चुनौती अनुक्रिया प्रश्न जाँचल जाएत अछि आओर क्लिक कएल "
+"जाएत अछि. समाद पेटीमे शब्दकूट टाइप कएनाइ  एकरा टर्मिनलमे भेजताह."
+
+#: ../src/gnome-terminal.schemas.in.h:89
+msgid "Position of the scrollbar"
+msgstr "स्क्रॉल-पट्टी क' स्थिति"
+
+#: ../src/gnome-terminal.schemas.in.h:90
+msgid ""
+"Possible values are \"close\" to close the terminal, and \"restart\" to "
+"restart the command."
+msgstr ""
+"संभावित मान \"close\" अछि टर्मिनल बन्न करबाक लेल , आओर \"restart\" कमांड फिनु आरंभ करब "
+" क'लेल ."
+
+#: ../src/gnome-terminal.schemas.in.h:91
+msgid "Profile to be used when opening a new window or tab. Must be in profile_list."
+msgstr ""
+"जखन नवीन विंडो अथवा टैब खोलल जाए तँ उपयोगमे प्रोफ़ाइल. एकर प्रोफ़ाइल सूचीमे होनाइ आवश्यक "
+"अछि. (_l)"
+
+#: ../src/gnome-terminal.schemas.in.h:92
+msgid "Profile to use for new terminals"
+msgstr "नवीन टर्मिनल्स क' उपयोग लेल प्रोफ़ाइल"
+
+#: ../src/gnome-terminal.schemas.in.h:93
+msgid "Run this command in place of the shell, if use_custom_command is true."
+msgstr "शेल पर ई कमांड चलाबू, जँ use_custom_command सही अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:94
+msgid ""
+"Sets what code the backspace key generates. Possible values are \"ascii-del"
+"\" for the ASCII DEL character, \"control-h\" for Control-H (AKA the ASCII "
+"BS character), \"escape-sequence\" for the escape sequence typically bound "
+"to backspace or delete. \"ascii-del\" is normally considered the correct "
+"setting for the Backspace key."
+msgstr ""
+"देखू जे कओन कोड बैकस्पेस उत्पन्न करैत अछि. संभावित मान अछि \"ascii-del\" ASCII DEL "
+"संप्रतीक क'लेल , \"control-h\" for Control-H (AKA the ASCII BS character), "
+"\"escape-sequence\" escape श्रृंखला backspace अथवा delete मे बान्हल रहैत अछि \"ascii-"
+"del\" Backspace कुँजी क'लेल सामान्य देखल गेल ."
+
+#: ../src/gnome-terminal.schemas.in.h:95
+msgid ""
+"Sets what code the delete key generates. Possible values are \"ascii-del\" "
+"for the ASCII DEL character, \"control-h\" for Control-H (AKA the ASCII BS "
+"character), \"escape-sequence\" for the escape sequence typically bound to "
+"backspace or delete. \"escape-sequence\" is normally considered the correct "
+"setting for the Delete key."
+msgstr ""
+"सेट करैत अछि जे कओन delete कुँजी उत्पन्न करैत अछि. संभावित मान अछि \"ascii-del\" ASCII "
+"DEL संप्रतीक क'लेल , \"control-h\" Control-H (AKA the ASCII BS character) क' "
+"लेल, \"escape-sequence\" escape श्रृंखला क'लेल backspace अथवा deleteमें. \"escape-"
+"sequence\" सामान्यतः Delete कुँजी क'लेल सही जमावट मानल जाएत अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:97
+msgid ""
+"Terminals have a 16-color palette that applications inside the terminal can "
+"use. This is that palette, in the form of a colon-separated list of color "
+"names. Color names should be in hex format e.g. \"#FF00FF\""
+msgstr ""
+"टर्मिनलमे 16-रँग पैलेट अछि जे अनुप्रयोग ट्रमिनल क' अंदर प्रयोग करैत अछि. ई ओ पैलेट अछि "
+"रँग नाम क' कॉलन सँ अलग क' रूपमें. रँग क' नाम हेक्स प्रारूपमे रहनाइ चाही उदा. \"#FF00FF\""
+
+#: ../src/gnome-terminal.schemas.in.h:98
+msgid ""
+"The possible values are \"system\" to use the global cursor blinking "
+"settings, or \"on\" or \"off\" to set the mode explicitly."
+msgstr ""
+
+#: ../src/gnome-terminal.schemas.in.h:99
+msgid "Title for terminal"
+msgstr "टर्मिनल लेल शीर्षक"
+
+#: ../src/gnome-terminal.schemas.in.h:100
+msgid ""
+"Title to display for the terminal window or tab. This title may be replaced "
+"by or combined with the title set by the application inside the terminal, "
+"depending on the title_mode setting."
+msgstr ""
+"टर्मिनल विंडो अथवा टैब क' देखाबै क'लेल शीर्षक. ई शीर्षककेँ प्रतिस्थापित कएल जाएत अछि अथवा "
+"शीर्षक क' द्वारा सेट कएल जाएत अछि टर्मिनल क' अंदर अनुप्रयोग, title_mode जमावट पर निर्भर "
+"करैत."
+
+#: ../src/gnome-terminal.schemas.in.h:101
+msgid ""
+"True if the menubar should be shown in new windows, for windows/tabs with "
+"this profile."
+msgstr "सही जँ मेनू बार नवीन विंडोमे देखाओल जाएत अछि, एहि प्रोफाइल क' सँग विंडो/टैब."
+
+#: ../src/gnome-terminal.schemas.in.h:102
+msgid ""
+"Type of terminal background. May be \"solid\" for a solid color, \"image\" "
+"for an image, or \"transparent\" for pseudo-transparency."
+msgstr ""
+"टर्मिनल पृष्ठभूमि क' प्रकार. \"solid\" ठोस रँग क'लेल ठोस भ' सकैत अछि \"image\" एकटा "
+"विंब क'लेल , अथवा \"transparent\" छद्म पाररदर्शिता क'लेल ."
+
+#: ../src/gnome-terminal.schemas.in.h:103
+msgid "What to do with dynamic title"
+msgstr "गतिमय शीर्षक क' सँग की कएल जाए"
+
+#: ../src/gnome-terminal.schemas.in.h:104
+msgid "What to do with the terminal when the child command exits"
+msgstr "टर्मिनल क' सँग की कएल जाए जखन संतति कमांड बाहर भ' जाए"
+
+#: ../src/gnome-terminal.schemas.in.h:105
+msgid ""
+"When selecting text by word, sequences of these characters are considered "
+"single words. Ranges can be given as \"A-Z\". Literal hyphen (not expressing "
+"a range) should be the first character given."
+msgstr ""
+"जखन पाठकेँ शब्द सँ चुनल जाएत अछि, एहि संप्रतीक क' श्रृंखलाकेँ एकटा शब्द मानल जाए सकैत अछि "
+"परिसरकेँ \"A-Z\" क' रूपमे देल जाएत अछि. शाब्दिक हाइफन (परिसरकेँ अभिव्यक्त नहि करत) "
+"देल गेल पहला संप्रतीक होनाइ चाही."
+
+#: ../src/gnome-terminal.schemas.in.h:106
+msgid ""
+"Where to put the terminal scrollbar. Possibilities are \"left\", \"right\", "
+"and \"disabled\"."
+msgstr "टर्मिनल स्क्रॉल-पट्टी कतए राखल जाए. संभावना अछि \"बायाँ\", \"दायाँ\", आओर \"अक्षम\"."
+
+#: ../src/gnome-terminal.schemas.in.h:107
+msgid "Whether the menubar has access keys"
+msgstr "की मेनू -पट्टीमे पहुँच कुंजीसभ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:108
+msgid "Whether the standard GTK shortcut for menubar access is enabled"
+msgstr "की मेनू -पट्टी पहुँच लेल मानक जीटीके शॉर्टकट सक्षम अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:109
+msgid "Whether to allow bold text"
+msgstr "की गाढ़ा पाठ स्वीकार कएनाइ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:110
+msgid ""
+"Whether to ask for confirmation when closing a terminal window which has "
+"more than one open tab."
+msgstr "की जखन टर्मिनल विंडो जकरामे एकटा सँ बेसी टैब अछि, बन्न कएल जाए तँ पुष्टिकरण लेल पूछब"
+
+#: ../src/gnome-terminal.schemas.in.h:111
+msgid "Whether to ask for confirmation when closing terminal windows"
+msgstr "की जखन टर्मिनल विंडो बन्न कएल जाए तँ पुष्टिकरण लेल पूछब"
+
+#: ../src/gnome-terminal.schemas.in.h:112
+msgid "Whether to blink the cursor"
+msgstr "की कर्सरकेँ टिमटिमानाइ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:113
+msgid "Whether to disable anti-aliasing without the X RENDER extension"
+msgstr "की X RENDER विस्तार क' बिनु एंटी एलियासिंग निष्क्रिय कएल जाए सकैत अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:114
+msgid ""
+"Whether to have Alt+letter access keys for the menubar. They may interfere "
+"with some applications run inside the terminal so it's possible to turn them "
+"off."
+msgstr "की मेनू बार क'लेल Alt+letter अभिगम कुँजी रखनाइ अछि ओ टर्मिनल क' अंदर चलाबैबला अनुप्रयोगमे व्यवधान कए सकैत छी एहिलेल ओकरा ऑफ कए चलओनाइ संभव अछि."
+
+#: ../src/gnome-terminal.schemas.in.h:115
+msgid "Whether to launch the command in the terminal as a login shell"
+msgstr "की लॉगइन शैल क' रूपमे टर्मिनलमे कमांड चलाएब"
+
+#: ../src/gnome-terminal.schemas.in.h:116
+msgid "Whether to run a custom command instead of the shell"
+msgstr "की शैल क' बदला अनुकूलित कमांड चलओनाइ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:117
+msgid "Whether to scroll background image"
+msgstr "की पृष्ठभूमि बिंब स्क्रॉल करू"
+
+#: ../src/gnome-terminal.schemas.in.h:118
+msgid "Whether to scroll to the bottom when a key is pressed"
+msgstr "जखन एकटा कुँजीकेँ दाबल जाए तँ की तल पर स्क्रॉल करू"
+
+#: ../src/gnome-terminal.schemas.in.h:119
+msgid "Whether to scroll to the bottom when there's new output"
+msgstr "जखन नवीन आउटपुट हुए तँ की तल पर स्क्रॉल करू"
+
+#: ../src/gnome-terminal.schemas.in.h:120
+msgid "Whether to show menubar in new windows/tabs"
+msgstr "की नवीन विंडोज़/टैबमे मेनू -पट्टी देखओनाइ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:121
+msgid "Whether to silence terminal bell"
+msgstr "की टर्मिनल घंटीकेँ चुप करओनाइ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:122
+msgid "Whether to update login records when launching terminal command"
+msgstr "की लॉगिन रिकार्डकेँ अद्यतन कएनाइ अछि जखन टर्मिनल कमांड चलाएब"
+
+#: ../src/gnome-terminal.schemas.in.h:123
+msgid "Whether to use the colors from the theme for the terminal widget"
+msgstr "की टर्मिनल विज़ेट लेल प्रसंग सँ रंग क' उपयोग कएनाइ अछि"
+
+#: ../src/gnome-terminal.schemas.in.h:124
+msgid "Whether to use the system font"
+msgstr "की सिस्टम फ़ॉन्ट प्रयोग कएनाइ अछि"
+
+#. Translators: Please note that this has to be a list of
+#. valid encodings (which are to be taken from the list in src/encoding.c).
+#. It has to include UTF-8 and the word 'current', which is not to be
+#. translated. This is provided for customization of the default encoding
+#. menu; see bug 144810 for an use case. In most cases, this should be
+#. left alone.
+#: ../src/gnome-terminal.schemas.in.h:131
+msgid "[UTF-8,current]"
+msgstr "[UTF-8,current]"
+
+#: ../src/keybinding-editor.glade.h:1
+msgid "Enable the _menu shortcut key (F10 by default)"
+msgstr ""
+
+#: ../src/keybinding-editor.glade.h:2
+msgid "Keyboard Shortcuts"
+msgstr "कुंजीपटल शार्टकट"
+
+#: ../src/keybinding-editor.glade.h:3
+msgid "_Enable menu access keys (such as Alt+F to open the File menu)"
+msgstr ""
+
+#: ../src/keybinding-editor.glade.h:4
+msgid "_Shortcut keys:"
+msgstr "शॉर्टकट कुँजीसभ (_S):"
+
+#: ../src/profile-editor.c:48
+msgid "Black on light yellow"
+msgstr "हलुक पिअर पर करिया"
+
+#: ../src/profile-editor.c:50
+msgid "Black on white"
+msgstr "उज्जर पर करिया"
+
+#: ../src/profile-editor.c:52
+msgid "Gray on black"
+msgstr "करिया पर धूसर"
+
+#: ../src/profile-editor.c:54
+msgid "Green on black"
+msgstr "करिया पर हरिअर"
+
+#: ../src/profile-editor.c:56
+msgid "White on black"
+msgstr "करिया पर उज्जर"
+
+#: ../src/profile-editor.c:440
+#, c-format
+msgid "Error parsing command: %s"
+msgstr ""
+
+#: ../src/profile-editor.c:460
+#, c-format
+msgid "Editing Profile “%s”"
+msgstr ""
+
+#. Translators: %s will be a data size, e.g. "(about 500kB)"
+#: ../src/profile-editor.c:476
+#, c-format
+msgid "(about %s)"
+msgstr ""
+
+#: ../src/profile-editor.c:614
+msgid "Images"
+msgstr "बिंब"
+
+#: ../src/profile-editor.c:729
+#, c-format
+msgid "Choose Palette Color %d"
+msgstr "रंगपट्टिका रँग चुनू %d"
+
+#: ../src/profile-editor.c:733
+#, c-format
+msgid "Palette entry %d"
+msgstr "रंगपट्टिका प्रविष्टि %d"
+
+#: ../src/profile-manager.glade.h:1
+msgid "Profiles"
+msgstr "प्रोफाइल"
+
+#: ../src/profile-manager.glade.h:2
+msgid "_Profile used when launching a new terminal:"
+msgstr ""
+
+#: ../src/profile-new-dialog.glade.h:1
+msgid "C_reate"
+msgstr "बनाबू (_r)"
+
+#: ../src/profile-new-dialog.glade.h:2 ../src/terminal-accels.c:104
+msgid "New Profile"
+msgstr "नवीन प्रोफाइल"
+
+#: ../src/profile-new-dialog.glade.h:3
+msgid "Profile _name:"
+msgstr "प्रोफ़ाइल नाम (_n):"
+
+#: ../src/profile-new-dialog.glade.h:4
+msgid "_Base on:"
+msgstr "आधार पर: (_B)"
+
+#: ../src/profile-preferences.glade.h:1
+msgid "<b>Command</b>"
+msgstr "<b>कमांड</b>"
+
+#: ../src/profile-preferences.glade.h:2
+msgid "<b>Foreground and Background</b>"
+msgstr "<b>अग्रभूमि आ पृष्ठभूमि</b>"
+
+#: ../src/profile-preferences.glade.h:3
+msgid "<b>Palette</b>"
+msgstr "<b>पैलेट</b>"
+
+#: ../src/profile-preferences.glade.h:4
+msgid "<b>Title</b>"
+msgstr "<b>शीर्षक</b>"
+
+#: ../src/profile-preferences.glade.h:5
+msgid ""
+"<small><i><b>Note:</b> Terminal applications have these colors available to "
+"them.</i></small>"
+msgstr "<small><i><b>नोट:</b> ई रँग टर्मिनल अनुप्रयोगमे उपलब्ध हएताह.</i></small>"
+
+#: ../src/profile-preferences.glade.h:6
+msgid ""
+"<small><i><b>Note:</b> These options may cause some applications to behave "
+"incorrectly.  They are only here to allow you to work around certain "
+"applications and operating systems that expect different terminal behavior.</"
+"i></small>"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:7
+msgid "<small><i>Maximum</i></small>"
+msgstr "<small><i> अधिकतम</i></small>"
+
+#: ../src/profile-preferences.glade.h:8
+msgid "<small><i>None</i></small>"
+msgstr "<small><i>किछु नहि</i></small>"
+
+#: ../src/profile-preferences.glade.h:9
+msgid ""
+"Automatic\n"
+"Control-H\n"
+"ASCII DEL\n"
+"Escape sequence"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:13
+msgid "Background"
+msgstr "पृष्ठभूमि"
+
+#: ../src/profile-preferences.glade.h:14
+msgid "Background image _scrolls"
+msgstr "पृष्ठभूमि बिंब स्क्रॉल करू (_s)"
+
+#: ../src/profile-preferences.glade.h:15
+msgid "Built-in _schemes:"
+msgstr "अंतःस्थापित प्रसंगः (_s)"
+
+#: ../src/profile-preferences.glade.h:16
+msgid "Built-in sche_mes:"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:17
+msgid "Choose A Terminal Font"
+msgstr "टर्मिनल फ़ॉन्ट चुनू"
+
+#: ../src/profile-preferences.glade.h:18
+msgid "Choose Terminal Background Color"
+msgstr "टर्मिनल पृष्ठभूमि रँग चुनू"
+
+#: ../src/profile-preferences.glade.h:19
+msgid "Choose Terminal Text Color"
+msgstr "टर्मिनल पाठ रँग चुनू"
+
+#: ../src/profile-preferences.glade.h:20
+msgid "Color p_alette:"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:21
+msgid "Colors"
+msgstr "रंग"
+
+#: ../src/profile-preferences.glade.h:22
+msgid "Compatibility"
+msgstr "सुसंगतता"
+
+#: ../src/profile-preferences.glade.h:23
+msgid "Custom"
+msgstr "पसंदीदा"
+
+#: ../src/profile-preferences.glade.h:24
+msgid "Custom co_mmand:"
+msgstr "पसंदीदा कमांडः (_m)"
+
+#: ../src/profile-preferences.glade.h:25
+msgid ""
+"Exit the terminal\n"
+"Restart the command\n"
+"Hold the terminal open"
+msgstr ""
+"टर्मिनल सँ बाहर निकलू \n"
+"कमांड फिनु आरंभ करू\n"
+"टर्मिनल खुलल राखू"
+
+#: ../src/profile-preferences.glade.h:28
+msgid "General"
+msgstr "सामान्य"
+
+#: ../src/profile-preferences.glade.h:29
+msgid "Image _file:"
+msgstr "बिंब फ़ाइल (_f):"
+
+#: ../src/profile-preferences.glade.h:30
+msgid "Initial _title:"
+msgstr "आरंभिक शीर्षक (_t):"
+
+#: ../src/profile-preferences.glade.h:31
+msgid ""
+"On the left side\n"
+"On the right side\n"
+"Disabled"
+msgstr ""
+"बायाँ किनार पर\n"
+"दायाँ किनार पर\n"
+"निष्क्रिय"
+
+#: ../src/profile-preferences.glade.h:34
+msgid "Profile Editor"
+msgstr "प्रोफ़ाइल संपादक"
+
+#: ../src/profile-preferences.glade.h:35
+msgid ""
+"Replace initial title\n"
+"Append initial title\n"
+"Prepend initial title\n"
+"Keep initial title"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:39
+msgid "Ru_n a custom command instead of my shell"
+msgstr "हमर शेल क' बदला पसंदीदा कमांड चलाबू (_n)"
+
+#: ../src/profile-preferences.glade.h:40
+msgid "S_hade transparent or image background:"
+msgstr "पारदर्शी छाया अथवा बिंब पृष्ठभूमि (_h):"
+
+#: ../src/profile-preferences.glade.h:41
+msgid "Scroll on _keystroke"
+msgstr "कुँजी दाबै पर स्क्रॉल करू (_k)"
+
+#: ../src/profile-preferences.glade.h:42
+msgid "Scroll on _output"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:43
+msgid "Scroll_back:"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:44
+msgid "Scrolling"
+msgstr "स्क्रॉल कए रहल अछि"
+
+#: ../src/profile-preferences.glade.h:45
+msgid "Select Background Image"
+msgstr "पृष्ठभूमि बिंब चुनू"
+
+#: ../src/profile-preferences.glade.h:46
+msgid "Select-by-_word characters:"
+msgstr "शब्द संप्रतीकसँ चुनू (_w):"
+
+#: ../src/profile-preferences.glade.h:47
+msgid "Show _menubar by default in new terminals"
+msgstr "नवीन टर्मिनल्समे मूलभूत सँ मेनू पट्टी देखाबू"
+
+#: ../src/profile-preferences.glade.h:48
+msgid ""
+"Tango\n"
+"Linux console\n"
+"XTerm\n"
+"Rxvt\n"
+"Custom"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:53
+msgid "Terminal _bell"
+msgstr "टर्मिनल घंटी (_b)"
+
+#: ../src/profile-preferences.glade.h:54
+msgid "Title and Command"
+msgstr "शीर्षक आ कमांड"
+
+#: ../src/profile-preferences.glade.h:55
+msgid "When command _exits:"
+msgstr "जखन कमांड बाहर निकल जाएत अछि (_e):"
+
+#: ../src/profile-preferences.glade.h:56
+msgid "When terminal commands set their o_wn titles:"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:57
+msgid "_Allow bold text"
+msgstr "गहिर पाठ स्वीकारू (_A)"
+
+#: ../src/profile-preferences.glade.h:58
+msgid "_Background color:"
+msgstr "पृष्ठभूमि रँग (_B):"
+
+#: ../src/profile-preferences.glade.h:59
+msgid "_Background image"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:60
+msgid "_Backspace key generates:"
+msgstr "बैकस्पेस कुँजी उत्पन्न करैत अछि (_D):"
+
+#: ../src/profile-preferences.glade.h:61
+msgid "_Delete key generates:"
+msgstr "डिलीट कुँजी उत्पन्न करैत अछि (_D):"
+
+#: ../src/profile-preferences.glade.h:62
+msgid "_Font:"
+msgstr "फ़ॉन्ट (_F):"
+
+#: ../src/profile-preferences.glade.h:63
+msgid "_Profile name:"
+msgstr "प्रोफाइल नामः (_P)"
+
+#: ../src/profile-preferences.glade.h:64
+msgid "_Reset Compatibility Options to Defaults"
+msgstr "सुसंगतता विकल्पसभकेँ मूलभूतमे फिनु सेट करू (_R)"
+
+#: ../src/profile-preferences.glade.h:65
+msgid "_Run command as a login shell"
+msgstr "कमांडकेँ लॉगइन शैल क' रूपमे चलाबू (_R)"
+
+#: ../src/profile-preferences.glade.h:66
+msgid "_Scrollbar is:"
+msgstr "स्क्रॉल-पट्टी अछि (_S):"
+
+#: ../src/profile-preferences.glade.h:67
+msgid "_Solid color"
+msgstr "ठोस रंग (_S)"
+
+#: ../src/profile-preferences.glade.h:68
+msgid "_Text color:"
+msgstr "पाठ रँग (_T):"
+
+#: ../src/profile-preferences.glade.h:69
+msgid "_Transparent background"
+msgstr "पारदर्शी पृष्ठभूमि (_T)"
+
+#: ../src/profile-preferences.glade.h:70
+msgid "_Update login records when command is launched"
+msgstr "लॉगिन रेकार्ड अद्यतन करू जखन कमांड चलाओल जाए (_U)"
+
+#: ../src/profile-preferences.glade.h:71
+msgid "_Use colors from system theme"
+msgstr ""
+
+#: ../src/profile-preferences.glade.h:72
+msgid "_Use the system fixed width font"
+msgstr "सिस्टम स्थिर चओड़ाइ फाँट क' प्रयोग करू (_U)"
+
+#: ../src/profile-preferences.glade.h:73
+msgid "lines"
+msgstr "पँक्तिसभ"
+
+#: ../src/skey-challenge.glade.h:1
+msgid "S/Key Challenge Response"
+msgstr "एस/कुँजी चैलेंज प्रतिक्रिया"
+
+#: ../src/skey-challenge.glade.h:2
+msgid "_Password:"
+msgstr "कूटशब्द (_P):"
+
+#: ../src/skey-popup.c:164
+msgid "The text you clicked on doesn't seem to be a valid S/Key challenge."
+msgstr "जे पाठ अहाँ क्लिक केने अछि ओ एस/कुँजी चैलेन्ज प्रतीत नहि हाएत अछि."
+
+#: ../src/skey-popup.c:175
+msgid "The text you clicked on doesn't seem to be a valid OTP challenge."
+msgstr "जे पाठ अहाँ क्लिक केने अछि ओ OTP चुनौती प्रतीत नहि हाएत अछि."
+
+#: ../src/terminal-accels.c:100
+msgid "New Tab"
+msgstr "नवीन टैब"
+
+#: ../src/terminal-accels.c:102
+msgid "New Window"
+msgstr "नवीन विंडो"
+
+#: ../src/terminal-accels.c:106
+msgid "Close Tab"
+msgstr "टैब बन्न करू"
+
+#: ../src/terminal-accels.c:108
+msgid "Close Window"
+msgstr "विंडो बन्न करू"
+
+#: ../src/terminal-accels.c:114
+msgid "Copy"
+msgstr "कॉपी करू"
+
+#: ../src/terminal-accels.c:116
+msgid "Paste"
+msgstr "साटू"
+
+#: ../src/terminal-accels.c:122
+msgid "Hide and Show menubar"
+msgstr "मेनू -पट्टी नुकाबू आओर देखाबू"
+
+#: ../src/terminal-accels.c:124
+msgid "Full Screen"
+msgstr "पूर्ण स्क्रीन"
+
+#: ../src/terminal-accels.c:126
+msgid "Zoom In"
+msgstr "ज़ूम इन"
+
+#: ../src/terminal-accels.c:128
+msgid "Zoom Out"
+msgstr "ज़ूम आउट"
+
+#: ../src/terminal-accels.c:130
+msgid "Normal Size"
+msgstr "सामान्य आकार"
+
+#: ../src/terminal-accels.c:136 ../src/terminal-window.c:2963
+msgid "Set Title"
+msgstr "शीर्षक नियत करू"
+
+#: ../src/terminal-accels.c:138
+msgid "Reset"
+msgstr "रिसेट करू"
+
+#: ../src/terminal-accels.c:140
+msgid "Reset and Clear"
+msgstr "रिसेट करू आओर साफ करू"
+
+#: ../src/terminal-accels.c:146
+msgid "Switch to Previous Tab"
+msgstr "पछिला टैब पर जाउ"
+
+#: ../src/terminal-accels.c:148
+msgid "Switch to Next Tab"
+msgstr "अगिला टैब पर जाउ"
+
+#: ../src/terminal-accels.c:150
+msgid "Move Tab to the Left"
+msgstr "बायाँ टैब घसकाबू"
+
+#: ../src/terminal-accels.c:152
+msgid "Move Tab to the Right"
+msgstr "दायाँ टैब घसकाबू"
+
+#: ../src/terminal-accels.c:154
+msgid "Detach Tab"
+msgstr "टैब अलग करू"
+
+#: ../src/terminal-accels.c:159
+msgid "Contents"
+msgstr "विषय सूची"
+
+#: ../src/terminal-accels.c:164
+msgid "File"
+msgstr "फ़ाइल"
+
+#: ../src/terminal-accels.c:165
+msgid "Edit"
+msgstr "संपादन"
+
+#: ../src/terminal-accels.c:166
+msgid "View"
+msgstr "दृश्य"
+
+#: ../src/terminal-accels.c:168
+msgid "Tabs"
+msgstr "टैब"
+
+#: ../src/terminal-accels.c:169
+msgid "Help"
+msgstr "मद्दति "
+
+#: ../src/terminal-accels.c:234
+msgid "Disabled"
+msgstr "अक्षम"
+
+#: ../src/terminal-accels.c:672
+#, c-format
+msgid "The shortcut key “%s” is already bound to the “%s” action"
+msgstr ""
+
+#: ../src/terminal-accels.c:796
+msgid "_Action"
+msgstr "क्रिया (_A)"
+
+#: ../src/terminal-accels.c:815
+msgid "Shortcut _Key"
+msgstr "शॉर्टकट कुँजी (_K)"
+
+#: ../src/terminal-app.c:408
+msgid "Click button to choose profile"
+msgstr "प्रोफ़ाइल चुनए लेल बटन क्लिक करू"
+
+#: ../src/terminal-app.c:493
+msgid "Profile list"
+msgstr "प्रोफ़ाइल सूची"
+
+#: ../src/terminal-app.c:554
+#, c-format
+msgid "Delete profile “%s”?"
+msgstr ""
+
+#: ../src/terminal-app.c:570
+msgid "Delete Profile"
+msgstr "प्रोफाइल मेटाबू"
+
+#: ../src/terminal-app.c:946
+#, c-format
+msgid ""
+"You already have a profile called “%s”. Do you want to create another "
+"profile with the same name?"
+msgstr ""
+
+#: ../src/terminal-app.c:1047
+msgid "Choose base profile"
+msgstr "मूल प्रोफ़ाइल चुनू"
+
+#: ../src/terminal.c:275
+#, c-format
+msgid ""
+"Option \"%s\" is no longer supported in this version of gnome-terminal; you "
+"might want to create a profile with the desired setting, and use the new '--"
+"window-with-profile' option\n"
+msgstr ""
+
+#: ../src/terminal.c:298
+#, c-format
+msgid "Argument to \"%s\" is not a valid command: %s\n"
+msgstr "आर्गुमेंट \"%s\"केँ एकटा वैध कमांड नहि अछि %s\n"
+
+#: ../src/terminal.c:451
+msgid "Two roles given for one window"
+msgstr ""
+
+#: ../src/terminal.c:473 ../src/terminal.c:507
+#, c-format
+msgid "\"%s\" option given twice for the same window\n"
+msgstr "एकटा विंडो लेल दुइ \"%s\" विकल्प देल गेल अछि\n"
+
+#: ../src/terminal.c:666
+#, c-format
+msgid ""
+"Option \"%s\" requires specifying the command to run on the rest of the "
+"command line\n"
+msgstr ""
+"विकल्प \"%s\"केँ आवश्यक अछि जे ई निर्दिष्ट कएल जाए जे कओन कमांड बाकी क' कमांड "
+"पंक्तिमे चलाओल जाए\n"
+
+#: ../src/terminal.c:696
+#, c-format
+msgid "\"%s\" is not a valid zoom factor\n"
+msgstr "\"%s\" ई एकटा वैध ज़ूम गुणक नहि अछि\n"
+
+#: ../src/terminal.c:703
+#, c-format
+msgid "Zoom factor \"%g\" is too small, using %g\n"
+msgstr "ज़ूम गुणक \"%g\" बहुत पैघ अछि %g उपयोगमे\n"
+
+#: ../src/terminal.c:711
+#, c-format
+msgid "Zoom factor \"%g\" is too large, using %g\n"
+msgstr "ज़ूम गुणक \"%g\" बहुत पैघ अछि %g उपयोगमे\n"
+
+#: ../src/terminal.c:831
+#, c-format
+msgid "No argument given to \"%s\" option\n"
+msgstr "विकल्प \"%s\"केँ कोनो आर्गुमेंट नहि देल गेल अछि\n"
+
+#: ../src/terminal.c:853
+#, c-format
+msgid "\"%s\" option requires an argument\n"
+msgstr "विकल्प \"%s\" मे आर्गुमेंट देनाइ आवश्यक अछि\n"
+
+#: ../src/terminal.c:1035
+#, c-format
+msgid "No such profile \"%s\", using default profile\n"
+msgstr ""
+
+#: ../src/terminal.c:1054
+#, c-format
+msgid "Invalid geometry string \"%s\"\n"
+msgstr "अवैध ज्यामिति स्ट्रिंग \"%s\"\n"
+
+#: ../src/terminal.c:1287
+msgid "Execute the argument to this option inside the terminal."
+msgstr "एहि विकल्प क' आर्गुमेंटकेँ टर्मिनल क' भीतर चलाबू"
+
+#: ../src/terminal.c:1296
+msgid "Execute the remainder of the command line inside the terminal."
+msgstr "बाकी बचल कमांड पंक्तिकेँ टर्मिनल क' भीतर चलाबू"
+
+#: ../src/terminal.c:1305
+msgid ""
+"Open a new window containing a tab with the default profile. More than one "
+"of these options can be provided."
+msgstr "मूलभूत प्रोफाइल क' साथ एकटा नवीन विंडो खोलू. एकरामेसँ एकटासँ बेसी विकल्प देल जएताह."
+
+#: ../src/terminal.c:1314
+msgid ""
+"Open a new window containing a tab with the given profile. More than one of "
+"these options can be provided."
+msgstr ""
+"देल प्रोफाइल क' सँग एकटा टैब क' सँग एकटा नवीन विंडो खोलू. एकरामेसँ एकटासँ बेसी विकल्प देल"
+"जएताह."
+
+#: ../src/terminal.c:1315 ../src/terminal.c:1333
+msgid "PROFILENAME"
+msgstr "प्रोफ़ाइलनाम"
+
+#: ../src/terminal.c:1323
+msgid ""
+"Open a new tab in the last-opened window with the default profile. More than "
+"one of these options can be provided."
+msgstr ""
+"मूलभूत प्रोफाइल क' सँग अंतिम खुलल विंडोमे एकटा नवीन टैब खोलू. एकरामेसँ एकटासँ बेसी विकल्प देल "
+"जएताह."
+
+#: ../src/terminal.c:1332
+msgid ""
+"Open a new tab in the last-opened window with the given profile. More than "
+"one of these options can be provided."
+msgstr ""
+"देल प्रोफाइल क' सँग अंतिम खुलल विंडोमे एकटा नवीन टैब खोलू. एकरामेसँ एकटासँ बेसी विकल्प देल "
+"जएताह."
+
+#: ../src/terminal.c:1341
+msgid ""
+"Open a new window containing a tab with the given profile ID. Used "
+"internally to save sessions."
+msgstr ""
+"देल प्रोफाइल आइडी क' सँग एकटा टैब क' सँग एकटा नवीन विंडो खोलू. एकरामेसँ एकटासँ बेसी विकल्प "
+"देल जएताह."
+
+#: ../src/terminal.c:1342 ../src/terminal.c:1351
+msgid "PROFILEID"
+msgstr "PROFILEID"
+
+#: ../src/terminal.c:1350
+msgid ""
+"Open a new tab in the last-opened window with the given profile ID. Used "
+"internally to save sessions."
+msgstr ""
+"देल प्रोफाइल आइडी क' सँग एकटा टैब अंतिम खुलल विंडोमे खोलू. एकरामेसँ एकटासँ बेसी विकल्प देल "
+"जएताह."
+
+#: ../src/terminal.c:1359
+msgid ""
+"Set the role for the last-specified window; applies to only one window; can "
+"be specified once for each window you create from the command line."
+msgstr ""
+"अंतिम निर्दिष्ट विंडो क'लेल भूमिका सेट करू; सिर्फ एकटा विंडो पर लागू हाएत अछि सभ विंडो क' "
+"लेल एक बार निर्दिष्ट कएल जाए सकैत अछि जकरा अहाँ कमांड रेखासँ बनबैत अछि"
+
+#: ../src/terminal.c:1360
+msgid "ROLE"
+msgstr "भूमिका"
+
+#: ../src/terminal.c:1368
+msgid ""
+"Turn on the menubar for the last-specified window; applies to only one "
+"window; can be specified once for each window you create from the command "
+"line."
+msgstr ""
+"अंतिम निर्दिष्ट विंडो क'लेलमेनू बारकेँ चलाबू; सिर्फ एकटा विंडो पर लागू हाएत अछि सभ विंडो "
+"क' लेल एकटाबार निर्दिष्ट कएल जाए सकैत अछि जकरा अहाँ कमांड लाइन सँ बनबैत अछि."
+
+#: ../src/terminal.c:1377
+msgid ""
+"Turn off the menubar for the last-specified window; applies to only one "
+"window; can be specified once for each window you create from the command "
+"line."
+msgstr ""
+"अंतिम निर्दिष्ट विंडो क'लेल मेनू बार बन्न करू; सिर्फ एकटा विंडो पर लागू हाएत अछि सभ विंडो क' "
+"लेल एक बार निर्दिष्ट कएल जाए सकैत अछि जकरा अहाँ कमांड लाइन सँ बनबैत अछि."
+
+#: ../src/terminal.c:1386
+msgid ""
+"Set the last-specified window into maximized mode; applies to only one "
+"window; can be specified once for each window you create from the command "
+"line."
+msgstr ""
+
+#: ../src/terminal.c:1395
+msgid ""
+"Set the last-specified window into fullscreen mode; applies to only one "
+"window; can be specified once for each window you create from the command "
+"line."
+msgstr ""
+"फुलस्क्रीन मोडमे अंतिम निर्दिष्ट विंडोकेँ सेट करू; सिर्फ एकटा विंडो पर लागू हाएत अछि सभ "
+"विंडो क'लेल एक बार निर्दिष्ट कएल जाए सकैत अछि जकरा अहाँ कमांड रेखा सँ बनबैत अछि."
+
+#: ../src/terminal.c:1404
+msgid ""
+"X geometry specification (see \"X\" man page), can be specified once per "
+"window to be opened."
+msgstr ""
+"X ज्यामिति विशिष्टता (देखू \"X\" मुख्य पृष्ठ),केँ प्रति विंडो एकटा खोलल जएनाइ निर्दिष्ट "
+"कएनाइ चाही."
+
+#: ../src/terminal.c:1405
+msgid "GEOMETRY"
+msgstr "ज्यामिति"
+
+#: ../src/terminal.c:1413
+msgid ""
+"Do not register with the activation nameserver, do not re-use an active "
+"terminal"
+msgstr "सक्रियण नाम-सर्वर क' सँग पंजीकृत नहि होउ, कोनो सक्रिय टर्मिनलकेँ पुनः उपयोग नहि करू"
+
+#: ../src/terminal.c:1422
+msgid "Register with the activation nameserver [default]"
+msgstr "सक्रियण नेम-सर्वर पर पंजीकृत होउ [मूलभूत]"
+
+#: ../src/terminal.c:1440
+msgid "Set the terminal's title"
+msgstr "टर्मिनल क' शीर्षक नियत करू"
+
+#: ../src/terminal.c:1441
+msgid "TITLE"
+msgstr "शीर्षक"
+
+#: ../src/terminal.c:1449
+msgid "Set the terminal's working directory"
+msgstr "टर्मिनल क' कार्यशील निर्देशिका नियत करू"
+
+#: ../src/terminal.c:1450 ../src/terminal.c:1459
+msgid "DIRNAME"
+msgstr "DIRNAME"
+
+#: ../src/terminal.c:1458
+msgid "Set the default terminal's working directory. Used internally"
+msgstr "मूलभूत टर्मिनल क' कार्यकारी डायरेक्ट्री नियत करू. आंतरिक रूप सँ प्रयुक्त"
+
+#: ../src/terminal.c:1467
+msgid "Set the terminal's zoom factor (1.0 = normal size)"
+msgstr "टर्मिनल क' ज़ूम गुणक नियत करू (1.0 = सामान्य आकार)"
+
+#: ../src/terminal.c:1468
+msgid "ZOOMFACTOR"
+msgstr "ZOOMFACTOR"
+
+#: ../src/terminal.c:1476
+msgid "Set the last specified tab as the active one in its window"
+msgstr "एहि विंडोमे अंतिम निर्दिष्ट टैबकेँ सक्रिय रूपमे नियत करैत अछि"
+
+#: ../src/terminal.c:1656 ../src/terminal.c:1659
+msgid "GNOME Terminal Emulator"
+msgstr ""
+
+#: ../src/terminal.c:1660
+msgid "Show GNOME Terminal options"
+msgstr ""
+
+#: ../src/terminal.c:1817
+#, c-format
+msgid ""
+"It appears that you do not have gnome-terminal.server installed in a valid "
+"location. Factory mode disabled.\n"
+msgstr ""
+"प्रतीत हाएत अछि जे अहाँ गनोम-टर्मिनल.सर्वरकेँ वैध स्थान पर संस्थापित नहि केने अछि फ़ैक्ट्री "
+"मोड अक्षम\n"
+
+#: ../src/terminal.c:1820
+#, c-format
+msgid ""
+"Error registering terminal with the activation service; factory mode "
+"disabled.\n"
+msgstr "सक्रियण सेवा क' सँग टर्मिनलकेँ पंजीकृत करबमे त्रुटि; फ़ैक्ट्री मोड अक्षम.\n"
+
+#: ../src/terminal.c:1859
+#, c-format
+msgid "Failed to retrieve terminal server from activation server\n"
+msgstr "सक्रियण सर्वरसँ टर्मिनल सर्वर आनैमे असफल\n"
+
+#: ../src/terminal-profile.c:156
+msgid "Unnamed"
+msgstr "बेनाम"
+
+#: ../src/terminal-screen.c:1099
+#, c-format
+msgid "There was a problem with the command for this terminal: %s"
+msgstr "एहि टर्मिनल लेल कमांड क' सँग कोनो समस्या अछि %s"
+
+#: ../src/terminal-screen.c:1397
+msgid "There was an error creating the child process for this terminal"
+msgstr "एहि टर्मिनल लेल शिशु प्रक्रिया सृजित करबमे त्रुटि"
+
+#: ../src/terminal-tabs-menu.c:198
+msgid "Switch to this tab"
+msgstr "एहि टैब पर आउ"
+
+#: ../src/terminal-util.c:127
+#, c-format
+msgid "There was an error displaying help: %s"
+msgstr "मद्दति देखाबैमे कोनो त्रुटि भेल: %s"
+
+#: ../src/terminal-util.c:208
+#, c-format
+msgid ""
+"Could not open the address “%s”:\n"
+"%s"
+msgstr ""
+
+#: ../src/terminal-window.c:410
+#, c-format
+msgid "_%d. %s"
+msgstr "_%d. %s"
+
+#: ../src/terminal-window.c:412
+#, c-format
+msgid "_%c. %s"
+msgstr "_%c. %s"
+
+#. Toplevel
+#: ../src/terminal-window.c:1322
+msgid "_File"
+msgstr "फाइल (_F)"
+
+#. File menu
+#: ../src/terminal-window.c:1323 ../src/terminal-window.c:1334
+#: ../src/terminal-window.c:1453
+msgid "Open _Terminal"
+msgstr "टर्मिनल खोलू (_T)"
+
+#: ../src/terminal-window.c:1324 ../src/terminal-window.c:1337
+#: ../src/terminal-window.c:1456
+msgid "Open Ta_b"
+msgstr "टैब खोलू (_b)"
+
+#: ../src/terminal-window.c:1325
+msgid "_Edit"
+msgstr "संपादन (_E)"
+
+#: ../src/terminal-window.c:1326
+msgid "_View"
+msgstr "देखू (_V)"
+
+#: ../src/terminal-window.c:1327
+msgid "_Terminal"
+msgstr "टर्मिनल (_T)"
+
+#: ../src/terminal-window.c:1328
+msgid "_Tabs"
+msgstr "टैब (_T)"
+
+#: ../src/terminal-window.c:1329
+msgid "_Help"
+msgstr "मद्दति (_H)"
+
+#: ../src/terminal-window.c:1340
+msgid "New _Profile…"
+msgstr ""
+
+#: ../src/terminal-window.c:1343 ../src/terminal-window.c:1462
+msgid "C_lose Tab"
+msgstr "टैब बन्न करू (_l)"
+
+#: ../src/terminal-window.c:1346
+msgid "_Close Window"
+msgstr "विंडो बन्न करू (_C)"
+
+#: ../src/terminal-window.c:1357 ../src/terminal-window.c:1450
+msgid "Paste _Filenames"
+msgstr ""
+
+#: ../src/terminal-window.c:1360
+msgid "P_rofiles…"
+msgstr ""
+
+#: ../src/terminal-window.c:1363
+msgid "_Keyboard Shortcuts…"
+msgstr ""
+
+#: ../src/terminal-window.c:1366
+msgid "Profile _Preferences"
+msgstr ""
+
+#. Terminal menu
+#: ../src/terminal-window.c:1382
+msgid "Change _Profile"
+msgstr "प्रोफ़ाइल बदलू (_P)"
+
+#: ../src/terminal-window.c:1383
+msgid "_Set Title…"
+msgstr ""
+
+#: ../src/terminal-window.c:1386
+msgid "Set _Character Encoding"
+msgstr "संप्रतीक एनकोडिंग नियत करू (_C)"
+
+#: ../src/terminal-window.c:1387
+msgid "_Reset"
+msgstr "रिसेट करू (_R)"
+
+#: ../src/terminal-window.c:1390
+msgid "Reset and C_lear"
+msgstr "रिसेट करू आओर साफ करू (_l)"
+
+#. Terminal/Encodings menu
+#: ../src/terminal-window.c:1395
+msgid "_Add or Remove…"
+msgstr ""
+
+#. Tabs menu
+#: ../src/terminal-window.c:1400
+msgid "_Previous Tab"
+msgstr "पछिला टैब (_P)"
+
+#: ../src/terminal-window.c:1403
+msgid "_Next Tab"
+msgstr "अगिला टैब (_N)"
+
+#: ../src/terminal-window.c:1406
+msgid "Move Tab _Left"
+msgstr "टैब बामाँ लए जाउ (_L)"
+
+#: ../src/terminal-window.c:1409
+msgid "Move Tab _Right"
+msgstr "टैब दहिन्ना लए जाउ (_R)"
+
+#: ../src/terminal-window.c:1412
+msgid "_Detach tab"
+msgstr ""
+
+#. Help menu
+#: ../src/terminal-window.c:1417
+msgid "_Contents"
+msgstr "विषय सूची (_C)"
+
+#: ../src/terminal-window.c:1420
+msgid "_About"
+msgstr "क' संबंधमे (_A)"
+
+#. Popup menu
+#: ../src/terminal-window.c:1425
+msgid "_Send Mail To…"
+msgstr ""
+
+#: ../src/terminal-window.c:1428
+msgid "_Copy E-mail Address"
+msgstr "इमेल पता कॉपी करू (_C)"
+
+#: ../src/terminal-window.c:1431
+msgid "C_all To…"
+msgstr ""
+
+#: ../src/terminal-window.c:1434
+msgid "_Copy Call Address"
+msgstr ""
+
+#: ../src/terminal-window.c:1437
+msgid "_Open Link"
+msgstr "लिंक खोलू (_O)"
+
+#: ../src/terminal-window.c:1440
+msgid "_Copy Link Address"
+msgstr "लिंक पता कापी करू (_C)"
+
+#: ../src/terminal-window.c:1443
+msgid "P_rofiles"
+msgstr ""
+
+#: ../src/terminal-window.c:1459
+msgid "C_lose Window"
+msgstr "विंडो बन्न करू (_l)"
+
+#: ../src/terminal-window.c:1465
+msgid "_Input Methods"
+msgstr "इनपुट विधिसभ (_I)"
+
+#. View Menu
+#: ../src/terminal-window.c:1471
+msgid "Show _Menubar"
+msgstr "मेन्यू-पट्टी देखाबू (_M)"
+
+#: ../src/terminal-window.c:1475
+msgid "_Full Screen"
+msgstr "पूर्ण स्क्रीन (_F)"
+
+#: ../src/terminal-window.c:1907
+msgid "Close tab"
+msgstr "टैब बन्न करू"
+
+#: ../src/terminal-window.c:2632
+msgid "Close all tabs?"
+msgstr "सभ टैब बन्न करू?"
+
+#: ../src/terminal-window.c:2634
+#, c-format
+msgid "This window has one tab open. Closing the window will close it."
+msgid_plural "This window has %d tabs open. Closing the window will also close all tabs."
+msgstr[0] "एहि विंडोमे खुलल टैब अछि विंडोकेँ बन्न कएनाइ एकरा बन्न कए देताह."
+msgstr[1] "एहि विंडोमे %d खुलल टैब अछि विंडोकेँ बन्न कएनाइ एकरा बन्न कए देताह."
+
+#: ../src/terminal-window.c:2643
+msgid "Close All _Tabs"
+msgstr "सबहि टैब बन्न करू (_T)"
+
+#: ../src/terminal-window.c:2979
+msgid "_Title:"
+msgstr "शीर्षक (_T):"
+
+#: ../src/terminal-window.c:3134
+msgid ""
+"GNOME Terminal is free software; you can redistribute it and/or modify it "
+"under the terms of the GNU General Public License as published by the Free "
+"Software Foundation; either version 2 of the License, or (at your option) "
+"any later version."
+msgstr ""
+
+#: ../src/terminal-window.c:3138
+msgid ""
+"GNOME Terminal is distributed in the hope that it will be useful, but "
+"WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY "
+"or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for "
+"more details."
+msgstr ""
+
+#: ../src/terminal-window.c:3142
+msgid ""
+"You should have received a copy of the GNU General Public License along with "
+"GNOME Terminal; if not, write to the Free Software Foundation, Inc., 51 "
+"Franklin St, Fifth Floor, Boston, MA  02110-1301 USA"
+msgstr ""
+
+#: ../src/terminal-window.c:3151
+msgid "GNOME Terminal"
+msgstr "गनोम टर्मिनल"
+
+#: ../src/terminal-window.c:3153
+msgid "A terminal emulator for the GNOME desktop"
+msgstr "GNOME डेस्कटाप क'लेल टर्मिनल एमुलेटर"
+
+#: ../src/terminal-window.c:3158
+msgid "translator-credits"
+msgstr "संगीता कुमारी (sangeeta09@gmail.com)"
+
+
+msgid "_Search"
+msgstr "खोजू (_S)"
+
+msgid "_Find..."
+msgstr "खोजू (_F)..."
+
+msgid "Find Ne_xt"
+msgstr "अगिला खोजू (_x)"
+
+msgid "Find Pre_vious"
+msgstr "पछिला खोजू (_v)"
+
+msgid "Find"
+msgstr "खोजू"
+
+msgid "_Search for:"
+msgstr "खोजू (_S):"
+
+msgid "_Match case"
+msgstr "अक्षर मिलाबू (_M)"
+
+msgid "Match _entire word only"
+msgstr "केवल पूर्ण शब्द जोड़ मिलाबू (_e)"
+
+msgid "Search _backwards"
+msgstr "पाछाँ सँ खोजू (_b)"
+
+msgid "_Wrap around"
+msgstr "चारोकात व्रेप करू (_W)"

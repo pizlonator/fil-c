@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="NetDeviceBluetooth" parent="AdwActionRow">
+    <property name="activatable_widget">device_off_switch</property>
+    <property name="title" translatable="yes">Wired</property>
+    <child type="suffix">
+      <object class="GtkSwitch" id="device_off_switch">
+        <property name="valign">center</property>
+        <signal name="notify::active" handler="device_off_switch_changed_cb" object="NetDeviceBluetooth" swapped="yes"/>
+      </object>
+    </child>
+    <child type="suffix">
+      <object class="GtkButton" id="options_button">
+        <property name="valign">center</property>
+        <property name="use_underline">True</property>
+        <property name="icon_name">emblem-system-symbolic</property>
+        <signal name="clicked" handler="options_button_clicked_cb" object="NetDeviceBluetooth" swapped="yes"/>
+        <accessibility>
+          <property name="label" translatable="yes">Options…</property>
+        </accessibility>
+        <style>
+          <class name="flat"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>
+

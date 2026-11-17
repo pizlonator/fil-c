@@ -1,0 +1,13 @@
+polkit.addRule(function(action, subject) {
+	if ((action.id == "org.freedesktop.locale1.set-locale" ||
+	     action.id == "org.freedesktop.locale1.set-keyboard" ||
+	     action.id == "org.freedesktop.ModemManager1.Device.Control" ||
+	     action.id == "org.freedesktop.hostname1.set-static-hostname" ||
+	     action.id == "org.freedesktop.hostname1.set-hostname" ||
+	     action.id == "org.gnome.controlcenter.datetime.configure") &&
+	    subject.local &&
+	    subject.active &&
+	    subject.isInGroup ("@PRIVILEGED_GROUP@")) {
+		    return polkit.Result.YES;
+	    }
+});

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CcBackgroundPreview" parent="GtkWidget">
+    <property name="overflow">hidden</property>
+    <property name="width-request">2</property>
+    <property name="height-request">2</property>
+
+    <!-- Wallpaper -->
+    <child>
+      <object class="GtkPicture" id="picture">
+        <property name="content-fit">cover</property>
+      </object>
+    </child>
+
+    <!-- Always dark window -->
+    <child>
+      <object class="AdwBin" id="dark_window">
+        <property name="overflow">hidden</property>
+        <style>
+          <class name="window"/>
+          <class name="back"/>
+          <class name="dark"/>
+        </style>
+        <child>
+          <object class="AdwBin">
+            <style>
+              <class name="header-bar"/>
+            </style>
+            <property name="valign">start</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <!-- Light/dark window -->
+    <child>
+      <object class="AdwBin" id="light_dark_window">
+        <property name="overflow">hidden</property>
+        <style>
+          <class name="window"/>
+          <class name="front"/>
+          <class name="light"/>
+        </style>
+        <child>
+          <object class="AdwBin">
+            <style>
+              <class name="header-bar"/>
+            </style>
+            <property name="valign">start</property>
+          </object>
+        </child>
+      </object>
+    </child>
+
+  </template>
+</interface>

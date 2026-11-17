@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcWacomPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <child type="end">
+              <object class="GtkMenuButton" id="test_button">
+                <property name="use_underline">True</property>
+                <property name="label" translatable="yes">Test _Settings</property>
+                <property name="can-shrink">True</property>
+                <property name="popover">test_popover</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkStack" id="initial_state_stack">
+            <property name="transition_duration">0</property>
+            <child>
+              <object class="GtkScrolledWindow" id="panel_view">
+                <property name="hscrollbar-policy">never</property>
+                <property name="vadjustment">vadjustment</property>
+                <child>
+                  <object class="AdwClamp" id="scrollable">
+                    <property name="margin_top">32</property>
+                    <property name="margin_bottom">32</property>
+                    <property name="margin_start">12</property>
+                    <property name="margin_end">12</property>
+
+                    <child>
+                      <object class="GtkBox">
+                        <property name="spacing">48</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkBox" id="tablets">
+                            <property name="orientation">vertical</property>
+                            <property name="spacing">48</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="styli">
+                            <property name="orientation">vertical</property>
+                            <property name="spacing">48</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+	            </object>
+	          </child>
+	          <child>
+              <object class="AdwStatusPage" id="panel_empty_state">
+                <property name="icon-name">input-tablet-symbolic</property>
+                <property name="title" translatable="yes">No tablet detected</property>
+                <property name="description" translatable="yes">Please plug in or turn on your Wacom tablet</property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
+  <object class="GtkAdjustment" id="vadjustment" />
+
+  <!-- Test Popover -->
+  <object class="GtkPopover" id="test_popover">
+    <style>
+      <class name="menu" />
+    </style>
+    <child>
+      <object class="GtkBox">
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="spacing">6</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="CcDrawingArea" id="test_draw_area">
+            <property name="width-request">400</property>
+            <property name="height-request">300</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

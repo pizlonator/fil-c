@@ -1,0 +1,104 @@
+# translation of vte.HEAD.po to Arabic
+# Copyright (C) 2003 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Arafat Medini <lumina@silverpen.de>, 2003.
+# Khaled Hosny <khaledhosny@eglug.org>, 2006, 2007, 2008.
+msgid ""
+msgstr ""
+"Project-Id-Version: vte.HEAD\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-06-26 22:29+0300\n"
+"PO-Revision-Date: 2008-05-24 18:50+0300\n"
+"Last-Translator: Khaled Hosny <khaledhosny@eglug.org>\n"
+"Language-Team: Arabic <doc@arabeyes.org>\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: ../src/iso2022.c:771 ../src/iso2022.c:779 ../src/iso2022.c:810
+#: ../src/vte.c:2239
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "لا يمكن تحويل المحارف من %s إلى %s."
+
+#: ../src/iso2022.c:1464
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "محاولة ضبط خارطة NRC غير سليمة '%c'."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1494
+msgid "Unrecognized identified coding system."
+msgstr "مُيّز نظام ترميز غير معروف."
+
+#: ../src/iso2022.c:1553 ../src/iso2022.c:1580
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "محاولة لضبط خارطة NRC واسعة غير سليمة '%c'."
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "مكرر (%s/%s)!"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:954
+msgid "Could not open console.\n"
+msgstr "لا يمكن فتح الكونسول.\n"
+
+#: ../src/vteapp.c:1045
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "لا يمكن تحليل مواصفات الأبعاد الممرة للخيار ‪--geometry‬"
+
+#: ../src/vte.c:1275
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "خطأ عند تجميع التعبير النظامي \"%s\"."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4343
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "خطأ عند القراءة من الابن: %s."
+
+#: ../src/vte.c:4470
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "تعذّر إرسال البيانات للابن، محول محارف غير صحيح"
+
+#: ../src/vte.c:4481 ../src/vte.c:5498
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "خطأ (%s) عند تحويل البيانات من الابن، تخلي."
+
+#: ../src/vte.c:7687
+#, c-format
+msgid "Error reading PTY size, using defaults: %s\n"
+msgstr "خطأ عند قراءة حجم PTY، استعمال الافتراض: %s\n"
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:13215
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "فشل ‪_vte_conv_open()‬ في ضبط رموز الكلمة"
+
+#~ msgid "can not run %s"
+#~ msgstr "تعذّر تشغيل %s"
+
+#~ msgid "Error setting PTY size: %s."
+#~ msgstr "خطأ عند ضبط حجم PTY: %s."
+
+#~ msgid "Error creating signal pipe."
+#~ msgstr "خطأ أثناء إنشاء أنبوب الإشارات."
+
+#~ msgid "No handler for control sequence `%s' defined."
+#~ msgstr "لم يخصص معالج لسلسلة التحكم `%s'."
+
+#~ msgid "Got unexpected (key?) sequence `%s'."
+#~ msgstr "تلقيت تتابع (مفتاح؟) غير متوقع `%s'."
+
+#~ msgid "Unknown pixel mode %d.\n"
+#~ msgstr "نمط بكسلي %Id مجهول.\n"

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="NetDeviceEthernet" parent="AdwPreferencesGroup">
+    <property name="title" translatable="yes">Wired</property>
+    <property name="header-suffix">
+      <object class="GtkButton">
+        <property name="tooltip-text" translatable="yes">Add Ethernet Connection</property>
+        <property name="icon_name">list-add-symbolic</property>
+        <signal name="clicked" handler="add_profile_button_clicked_cb" object="NetDeviceEthernet" swapped="yes"/>
+        <style>
+          <class name="flat" />
+        </style>
+      </object>
+    </property>
+
+    <child>
+      <object class="GtkStack" id="connection_stack">
+        <child>
+          <object class="GtkListBox" id="connection_list">
+            <property name="selection-mode">none</property>
+            <signal name="row-activated" handler="connection_list_row_activated_cb" object="NetDeviceEthernet" swapped="yes"/>
+            <style>
+              <class name="boxed-list" />
+            </style>
+          </object>
+        </child>
+
+        <!-- Single profile row -->
+        <child>
+          <object class="GtkListBox" id="details_listbox">
+            <property name="selection_mode">none</property>
+            <style>
+              <class name="boxed-list" />
+            </style>
+            <child>
+              <object class="AdwActionRow" id="details_row">
+                <property name="activatable-widget">device_off_switch</property>
+                <child>
+                  <object class="GtkSwitch" id="device_off_switch">
+                    <property name="valign">center</property>
+                    <signal name="notify::active" handler="device_off_switch_changed_cb" object="NetDeviceEthernet" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="details_button">
+                    <property name="tooltip-text" translatable="yes">Network Options</property>
+                    <property name="valign">center</property>
+                    <property name="icon-name">emblem-system-symbolic</property>
+                    <signal name="clicked" handler="details_button_clicked_cb" object="NetDeviceEthernet" swapped="yes"/>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                 </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

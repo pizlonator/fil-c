@@ -1,0 +1,123 @@
+# Biełaruski pierakład vte.
+# Copyright (C) 2007 Free Software Foundation.
+# This file is distributed under the same license as the vte package.
+# Ihar Hračyška <ihar.hrachyshka@gmail.com>, 2007.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vte\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-03-10 02:45+0200\n"
+"PO-Revision-Date: 2007-03-09 22:31+0100\n"
+"Last-Translator: Alaksandar Navicki <zolak@lacinka.org>\n"
+"Language-Team: Belarusian Latin <i18n@mova.org>\n"
+"Language: be@latin\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: ../src/iso2022.c:784 ../src/iso2022.c:792 ../src/iso2022.c:823
+#: ../src/vte.c:1790
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "Niemahčyma kanvertavać znaki z %s u %s."
+
+#: ../src/iso2022.c:1532
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "Sproba akreśleńnia niapravilnaj mapy NRC '%c'."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1562
+msgid "Unrecognized identified coding system."
+msgstr "Nieraspaznanaja systema kadavańnia."
+
+#: ../src/iso2022.c:1621 ../src/iso2022.c:1648
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "Sproba akreśleńnia niapravilnaj šyrokaj mapy NRC '%c'."
+
+#. Give the user some clue as to why session logging is not
+#. * going to work (assuming we can open a pty using some other
+#. * method).
+#: ../src/pty.c:837
+#, c-format
+msgid "can not run %s"
+msgstr "niemahčyma vykanać %s"
+
+#: ../src/reaper.c:136
+msgid "Error creating signal pipe."
+msgstr "Pamyłka stvareńnia płyni syhnałaŭ."
+
+#: ../src/trie.c:414
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "Duplikat (%s/%s)!"
+
+#: ../src/vte.c:1178
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "Pamyłka kampilacyi rehularnaha vyrazu \"%s\"."
+
+#: ../src/vte.c:2673 ../src/vte.c:2678
+#, c-format
+msgid "No handler for control sequence `%s' defined."
+msgstr "Absłuha dla kiroŭnaj paśladoŭnaści `%s' nia vyznačanaja."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:3628
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "Pamyłka čytańnia źviestak ad naščadka: %s."
+
+#: ../src/vte.c:3745
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "Niemahčyma dasłać źviestki naščadku, niapravilny kanvertar kadavańniaŭ"
+
+#: ../src/vte.c:3756 ../src/vte.c:4674
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "Pamyłka (%s) kanvertavańnia źviestak dla naščadka, ihnarujecca."
+
+#: ../src/vte.c:6903
+#, c-format
+msgid "Error reading PTY size, using defaults: %s."
+msgstr "Pamyłka čytańnia pamieraŭ PTY, vykarystanyja zmoŭčanyja: %s."
+
+#: ../src/vte.c:6932
+#, c-format
+msgid "Error setting PTY size: %s."
+msgstr "pamyłka akreśleńnia pamieraŭ PTY: %s."
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:11352
+msgid "_vte_conv_open() failed setting word characters"
+msgstr ""
+"Funkcyja _vte_conv_open() viarnuła pamyłku akreśleńnia znakaŭ šyryni słova"
+
+#: ../src/vteseq.c:3937
+#, c-format
+msgid "Got unexpected (key?) sequence `%s'."
+msgstr "Atrymanaja niečakanaja paśladoŭnaść (klavišaŭ?) `%s'."
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:774
+msgid "Could not open console.\n"
+msgstr "Niemahčyma adčynić kansol.\n"
+
+#: ../src/vteapp.c:838
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr ""
+"Niemahčyma razabrać źviestki hieametryi, akreślenyja opcyjaj --geometry"
+
+#: ../src/vteglyph.c:562
+#, c-format
+msgid "Unknown pixel mode %d.\n"
+msgstr "Nieviadomy režym pikselaŭ %d.\n"
+
+#: ../src/vtexft.c:267
+#, c-format
+msgid "Can not find appropiate font for character U+%04x.\n"
+msgstr "Niemahčyma znajści adpaviedny šryft dla znaku U+%04x.\n"

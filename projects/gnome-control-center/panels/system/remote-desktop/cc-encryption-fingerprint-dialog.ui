@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcEncryptionFingerprintDialog" parent="AdwWindow">
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="hide-on-close">True</property>
+    <property name="modal">True</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-title">False</property>
+          </object>
+        </child>
+        <property name="content">
+          <object class="AdwStatusPage">
+            <property name="title" translatable="yes">Encryption Fingerprint</property>
+            <property name="description" translatable="yes">The encryption fingerprint can be seen in connecting clients and should be identical</property>
+            <property name="vexpand">True</property>
+            <style>
+              <class name="compact"/>
+            </style>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">horizontal</property>
+                <property name="halign">center</property>
+                <style>
+                  <class name="tls-cert-verification" />
+                </style>
+                <child>
+                  <object class="GtkLabel" id="fingerprint_left_label">
+                    <style>
+                      <class name="tls-cert-fingerprint" />
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="fingerprint_right_label">
+                    <style>
+                      <class name="tls-cert-fingerprint" />
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
+</interface>

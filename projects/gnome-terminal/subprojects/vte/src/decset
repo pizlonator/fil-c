@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+#  Set or reset DEC private modes.  You'll need the XTerm docs.
+#
+if [ "$#" -eq 0 ] ; then
+	echo usage: `basename $0` '[ -r | -s ] mode [...]'
+	exit
+fi
+char=h
+for arg in $@ ; do
+	case "$arg" in
+	-r) char=l ;;
+	-s) char=h ;;
+	*) echo -n -e '\033[?'${arg}${char}
+	esac
+done

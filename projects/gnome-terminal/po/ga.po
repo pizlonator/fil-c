@@ -1,0 +1,1927 @@
+# Irish translations of gnome-terminal package.
+# Copyright (C) 2003-2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gnome-terminal package.
+# Paul Duffy <dubhthach@frink.nuigalway.ie>, 2003.
+# Alastair McKinstry <mckinstry@computer.org>, 2004.
+# Seán de Búrca <leftmostcat@gmail.com>, 2007-2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-terminal.master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-09-01 18:23-0600\n"
+"PO-Revision-Date: 2013-09-01 19:12-0600\n"
+"Last-Translator: Seán de Búrca <leftmostcat@gmail.com>\n"
+"Language-Team: Irish <gaeilge-gnulinux@lists.sourceforge.net>\n"
+"Language: ga\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : "
+"4;\n"
+
+#: ../gnome-terminal.desktop.in.in.h:1 ../src/server.c:106
+#: ../src/terminal-accels.c:178 ../src/terminal.c:249
+#: ../src/terminal-screen.c:722 ../src/terminal-screen.c:1526
+#: ../src/terminal-window.c:2556 ../src/terminal-window.c:2880
+msgid "Terminal"
+msgstr "Teirminéal"
+
+#: ../gnome-terminal.desktop.in.in.h:2
+msgid "Use the command line"
+msgstr "Bain úsáid as líne na n-orduithe"
+
+#: ../gnome-terminal.desktop.in.in.h:3
+msgid "shell;prompt;command;commandline;"
+msgstr "blaosc;leid;ordú;líne na n-orduithe;"
+
+#: ../src/client.c:89
+msgid "COMMAND"
+msgstr "ORDÚ"
+
+#: ../src/client.c:94
+#, c-format
+msgid ""
+"Commands:\n"
+"  help    Shows this information\n"
+"  run     Create a new terminal running the specified command\n"
+"  shell   Create a new terminal running the user shell\n"
+"\n"
+"Use \"%s COMMAND --help\" to get help on each command.\n"
+msgstr ""
+"Orduithe:\n"
+"  help    Taispeáin an t-eolas seo\n"
+"  run     Cruthaigh teirminéal nua agus an t-ordú socraithe á rith\n"
+"  shell   Cruthaigh teirminéal nua agus an bhlaosc úsáideora á rith\n"
+"\n"
+"Úsáid \"%s ORDÚ --help\" chun cabhair a fháil le haghaidh gach ordaithe.\n"
+
+#: ../src/client.c:201 ../src/terminal-options.c:682
+#, c-format
+msgid "\"%s\" is not a valid zoom factor"
+msgstr "Ní fachtóir súmála bailí é \"%s\""
+
+#: ../src/client.c:332
+msgid "Be quiet"
+msgstr "Bí ciúin"
+
+#: ../src/client.c:343 ../src/terminal-options.c:1095
+msgid "Maximize the window"
+msgstr "Uasmhéadaigh an fhuinneog"
+
+#: ../src/client.c:345 ../src/terminal-options.c:1104
+msgid "Full-screen the window"
+msgstr "Taispeáin an fhuinneog i lánscáileán"
+
+#: ../src/client.c:347 ../src/terminal-options.c:1113
+msgid ""
+"Set the window size; for example: 80x24, or 80x24+200+200 (COLSxROWS+X+Y)"
+msgstr ""
+"Socraigh méid na fuinneoige; mar shampla: 80x24, nó 80x24+200+200 (COLxRÓ+X"
+"+Y)"
+
+#: ../src/client.c:348 ../src/terminal-options.c:1114
+msgid "GEOMETRY"
+msgstr "CÉIMSEATA"
+
+#: ../src/client.c:350 ../src/terminal-options.c:1122
+msgid "Set the window role"
+msgstr "Socraigh ról na fuinneoige"
+
+#: ../src/client.c:350 ../src/terminal-options.c:1123
+msgid "ROLE"
+msgstr "RÓL"
+
+#: ../src/client.c:356 ../src/terminal-options.c:1153
+msgid "Use the given profile instead of the default profile"
+msgstr "Úsáid an phróifíl sonraithe in ionad na próifíle réamhshocraithe"
+
+#: ../src/client.c:357
+msgid "UUID"
+msgstr "UUID"
+
+#: ../src/client.c:359 ../src/terminal-options.c:1162
+msgid "Set the terminal title"
+msgstr "Socraigh teideal an teirminéil"
+
+#: ../src/client.c:359 ../src/terminal-options.c:1163
+msgid "TITLE"
+msgstr "TEIDEAL"
+
+#: ../src/client.c:361 ../src/terminal-options.c:1171
+msgid "Set the working directory"
+msgstr "Socraigh an chomhadlann oibre"
+
+#: ../src/client.c:361 ../src/terminal-options.c:1172
+msgid "DIRNAME"
+msgstr "AINMCOMHADLAINNE"
+
+#: ../src/client.c:363 ../src/terminal-options.c:1180
+msgid "Set the terminal's zoom factor (1.0 = normal size)"
+msgstr "Socraigh fachtóir súmála an teirminéil (1.0 = gnáthmhéid)"
+
+#: ../src/client.c:364 ../src/terminal-options.c:1181
+msgid "ZOOM"
+msgstr "SÚMÁIL"
+
+#: ../src/client.c:370
+msgid "Forward stdin"
+msgstr ""
+
+#: ../src/client.c:372
+msgid "Forward stdout"
+msgstr ""
+
+#: ../src/client.c:374
+msgid "Forward stderr"
+msgstr ""
+
+#: ../src/client.c:376
+msgid "Forward file descriptor"
+msgstr ""
+
+#: ../src/client.c:376
+msgid "FD"
+msgstr "FD"
+
+#: ../src/client.c:382
+msgid "Wait until the child exits"
+msgstr ""
+
+#: ../src/client.c:392
+msgid "GNOME Terminal Client"
+msgstr "Cliant Teirminéil GNOME"
+
+#: ../src/client.c:396
+#, fuzzy
+msgid "Global options:"
+msgstr "Taispeáin roghanna teirminéil"
+
+#: ../src/client.c:397
+#, fuzzy
+msgid "Show global options"
+msgstr "Taispeáin roghanna teirminéil"
+
+#: ../src/client.c:405
+#, fuzzy
+msgid "Server options:"
+msgstr "Taispeáin roghanna de réir teirminéil"
+
+#: ../src/client.c:406
+#, fuzzy
+msgid "Show server options"
+msgstr "Taispeáin roghanna de réir teirminéil"
+
+#: ../src/client.c:414
+#, fuzzy
+msgid "Window options:"
+msgstr "Taispeáin roghanna de réir fuinneoige"
+
+#: ../src/client.c:415
+#, fuzzy
+msgid "Show window options"
+msgstr "Taispeáin roghanna de réir fuinneoige"
+
+#: ../src/client.c:423
+#, fuzzy
+msgid "Terminal options:"
+msgstr "Taispeáin roghanna teirminéil"
+
+#: ../src/client.c:424 ../src/terminal-options.c:1460
+msgid "Show terminal options"
+msgstr "Taispeáin roghanna teirminéil"
+
+#: ../src/client.c:432
+msgid "Exec options:"
+msgstr ""
+
+#: ../src/client.c:433
+#, fuzzy
+msgid "Show exec options"
+msgstr "Taispeáin roghanna teirminéil"
+
+#: ../src/client.c:441
+#, fuzzy
+msgid "Processing options:"
+msgstr "Roghanna bhainistíocht an tseisiún:"
+
+#: ../src/client.c:442
+#, fuzzy
+msgid "Show processing options"
+msgstr "Taispeáin roghanna de réir teirminéil"
+
+#: ../src/find-dialog.ui.h:1
+msgid "Find"
+msgstr "Aimsigh"
+
+#: ../src/find-dialog.ui.h:2
+msgid "_Search for:"
+msgstr "_Cuardaigh ar: "
+
+#: ../src/find-dialog.ui.h:3
+msgid "_Match case"
+msgstr "_Meaitseáil an cás"
+
+#: ../src/find-dialog.ui.h:4
+msgid "Match _entire word only"
+msgstr "Meaitseáil an focal ar _fad amháin"
+
+#: ../src/find-dialog.ui.h:5
+msgid "Match as _regular expression"
+msgstr ""
+
+#: ../src/find-dialog.ui.h:6
+msgid "Search _backwards"
+msgstr "Cuardaigh ar _gcúl"
+
+#: ../src/find-dialog.ui.h:7
+msgid "_Wrap around"
+msgstr "_Timfhill"
+
+#: ../src/migration.c:387
+msgid "Default"
+msgstr "Réamhshocrú"
+
+#: ../src/migration.c:387 ../src/terminal-prefs.c:98
+msgid "Unnamed"
+msgstr "Gan Ainm"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:1
+msgid "Human-readable name of the profile"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:2
+msgid "Human-readable name of the profile."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:3
+msgid "Default color of text in the terminal"
+msgstr "Dath réamhshocraithe téacs sa teirminéal"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:4
+msgid ""
+"Default color of text in the terminal, as a color specification (can be HTML-"
+"style hex digits, or a color name such as \"red\")."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:5
+msgid "Default color of terminal background"
+msgstr "Dath réamhshocraithe chúlra an teirminéil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:6
+msgid ""
+"Default color of terminal background, as a color specification (can be HTML-"
+"style hex digits, or a color name such as \"red\")."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:7
+#, fuzzy
+msgid "Default color of bold text in the terminal"
+msgstr "Dath réamhshocraithe téacs sa teirminéal"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:8
+msgid ""
+"Default color of bold text in the terminal, as a color specification (can be "
+"HTML-style hex digits, or a color name such as \"red\"). This is ignored if "
+"bold_color_same_as_fg is true."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:9
+msgid "Whether bold text should use the same color as normal text"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:10
+msgid ""
+"If true, boldface text will be rendered using the same color as normal text."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:11
+msgid "Title for terminal"
+msgstr "Teideal don teirminéal"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:12
+msgid ""
+"Title to display for the terminal window or tab. This title may be replaced "
+"by or combined with the title set by the application inside the terminal, "
+"depending on the title_mode setting."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:13
+msgid "Whether to allow bold text"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:14
+msgid "If true, allow applications in the terminal to make text boldface."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:15
+#, fuzzy
+msgid "Whether to ring the terminal bell"
+msgstr "Socraigh teideal an teirminéil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:16
+msgid "Characters that are considered \"part of a word\""
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:17
+msgid ""
+"When selecting text by word, sequences of these characters are considered "
+"single words. Ranges can be given as \"A-Z\". Literal hyphen (not expressing "
+"a range) should be the first character given."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:18
+msgid "Whether to show menubar in new windows/tabs"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:19
+msgid "True if the menubar should be shown in new window"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:20
+msgid "Whether to use custom terminal size for new windows"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:21
+msgid ""
+"If true, newly created terminal windows will have custom size specified by "
+"default_size_columns and default_size_rows."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:22
+msgid "Default number of columns"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:23
+msgid ""
+"Number of columns in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:24
+msgid "Default number of rows"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:25
+msgid ""
+"Number of rows in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:26
+#, fuzzy
+msgid "When to show the scrollbar"
+msgstr "Ionad an scrollbharra"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:27
+msgid "Number of lines to keep in scrollback"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:28
+msgid ""
+"Number of scrollback lines to keep around. You can scroll back in the "
+"terminal by this number of lines; lines that don't fit in the scrollback are "
+"discarded. If scrollback_unlimited is true, this value is ignored."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:29
+msgid "Whether an unlimited number of lines should be kept in scrollback"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:30
+msgid ""
+"If true, scrollback lines will never be discarded. The scrollback history is "
+"stored on disk temporarily, so this may cause the system to run out of disk "
+"space if there is a lot of output to the terminal."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:31
+msgid "Whether to scroll to the bottom when a key is pressed"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:32
+msgid "If true, pressing a key jumps the scrollbar to the bottom."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:33
+msgid "Whether to scroll to the bottom when there's new output"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:34
+msgid ""
+"If true, whenever there's new output the terminal will scroll to the bottom."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:35
+msgid "What to do with the terminal when the child command exits"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:36
+msgid ""
+"Possible values are \"close\" to close the terminal, and \"restart\" to "
+"restart the command."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:37
+msgid "Whether to launch the command in the terminal as a login shell"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:38
+msgid ""
+"If true, the command inside the terminal will be launched as a login shell. "
+"(argv[0] will have a hyphen in front of it.)"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:39
+msgid "Whether to update login records when launching terminal command"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:40
+msgid ""
+"If true, the system login records utmp and wtmp will be updated when the "
+"command inside the terminal is launched."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:41
+msgid "Whether to run a custom command instead of the shell"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:42
+msgid ""
+"If true, the value of the custom_command setting will be used in place of "
+"running a shell."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:43
+msgid "Whether to blink the cursor"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:44
+msgid ""
+"The possible values are \"system\" to use the global cursor blinking "
+"settings, or \"on\" or \"off\" to set the mode explicitly."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:45
+msgid "The cursor appearance"
+msgstr "Cuma an chúrsóra"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:46
+msgid "Custom command to use instead of the shell"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:47
+msgid "Run this command in place of the shell, if use_custom_command is true."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:48
+msgid "Palette for terminal applications"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:49
+msgid "A Pango font name and size"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:50
+#, fuzzy
+msgid "The code sequence the Backspace key generates"
+msgstr "Gineann an eochair _Backspace:"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:51
+#, fuzzy
+msgid "The code sequence the Delete key generates"
+msgstr "Gineann an eochair _Delete:"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:52
+msgid "Whether to use the colors from the theme for the terminal widget"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:53
+msgid "Whether to use the system monospace font"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:54
+msgid "Which encoding to use"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:55
+msgid "Keyboard shortcut to open a new tab"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:56
+msgid "Keyboard shortcut to open a new window"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:57
+msgid "Keyboard shortcut to create a new profile"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:58
+#, fuzzy
+msgid "Keyboard shortcut to save the current tab contents to file"
+msgstr "Aicearra méarchláir chun athrú go cluaisín 1"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:59
+msgid "Keyboard shortcut to close a tab"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:60
+msgid "Keyboard shortcut to close a window"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:61
+msgid "Keyboard shortcut to copy text"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:62
+msgid "Keyboard shortcut to paste text"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:63
+msgid "Keyboard shortcut to toggle full screen mode"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:64
+msgid "Keyboard shortcut to toggle the visibility of the menubar"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:65
+msgid "Keyboard shortcut to set the terminal title"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:66
+msgid "Keyboard shortcut to reset the terminal"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:67
+msgid "Keyboard shortcut to reset and clear the terminal"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:68
+msgid "Keyboard shortcut to switch to the previous tab"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:69
+msgid "Keyboard shortcut to switch to the next tab"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:70
+#, fuzzy
+msgid "Keyboard shortcut to move the current tab to the left"
+msgstr "Aicearra méarchláir chun athrú go cluaisín 1"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:71
+#, fuzzy
+msgid "Keyboard shortcut to move the current tab to the right"
+msgstr "Aicearra méarchláir chun athrú go cluaisín 1"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:72
+#, fuzzy
+msgid "Keyboard shortcut to detach current tab"
+msgstr "Aicearra méarchláir chun athrú go cluaisín 1"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:73
+#, fuzzy
+msgid "Keyboard shortcut to switch to the numbered tab"
+msgstr "Aicearra méarchláir chun athrú go cluaisín 1"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:74
+msgid "Keyboard shortcut to launch help"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:75
+msgid "Keyboard shortcut to make font larger"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:76
+msgid "Keyboard shortcut to make font smaller"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:77
+msgid "Keyboard shortcut to make font normal-size"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:78
+msgid "Whether the menubar has access keys"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:79
+msgid ""
+"Whether to have Alt+letter access keys for the menubar. They may interfere "
+"with some applications run inside the terminal so it's possible to turn them "
+"off."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:80
+msgid "Whether the standard GTK shortcut for menubar access is enabled"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:81
+msgid ""
+"Normally you can access the menubar with F10. This can also be customized "
+"via gtkrc (gtk-menu-bar-accel = \"whatever\"). This option allows the "
+"standard menubar accelerator to be disabled."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:82
+msgid "List of available encodings"
+msgstr "Liosta ionchóduithe le fáil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:83
+msgid ""
+"A subset of possible encodings are presented in the Encoding submenu. This "
+"is a list of encodings to appear there. The special encoding name \"current"
+"\" means to display the encoding of the current locale."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:84
+msgid "Whether to ask for confirmation before closing a terminal"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:85
+msgid "Whether to show the menubar in new windows"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:86
+msgid "Whether to use a dark theme variant"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.in.h:87
+msgid "Whether to open new terminals as windows or tabs"
+msgstr ""
+
+#. Open new terminal in new window
+#: ../src/preferences.ui.h:2
+msgid "Window"
+msgstr "bhFuinneog"
+
+#. Open new terminal in new tab
+#: ../src/preferences.ui.h:4
+msgid "Tab"
+msgstr "gCluaisín"
+
+#: ../src/preferences.ui.h:5
+msgid "Preferences"
+msgstr "Sainroghanna"
+
+#: ../src/preferences.ui.h:6
+msgid "Show _menubar by default in new terminals"
+msgstr "Taispeáin _barra roghchláir i dteirminéil nua mar réamhshocrú"
+
+#: ../src/preferences.ui.h:7
+msgid "_Enable mnemonics (such as Alt+F to open the File menu)"
+msgstr ""
+"_Cumasaigh eochracha rochtain an roghchláir (mar shampla Alt+F chun an "
+"roghchlár Comhad a oscailt)"
+
+#: ../src/preferences.ui.h:8
+msgid "Enable the _menu accelerator key (F10 by default)"
+msgstr "Cumasaigh an eochair aicearra _roghchláir (F10 mar réamhshocrú)"
+
+#: ../src/preferences.ui.h:9
+msgid "Use _dark theme variant"
+msgstr "Úsáid an malairt téama _dorcha"
+
+#: ../src/preferences.ui.h:10
+msgid "Open _new terminals in:"
+msgstr "Oscail teirminéil _nua i:"
+
+#: ../src/preferences.ui.h:11 ../src/profile-preferences.ui.h:61
+msgid "General"
+msgstr "Ginearálta"
+
+#: ../src/preferences.ui.h:12
+msgid "Shortcuts"
+msgstr "Aicearraí"
+
+#: ../src/preferences.ui.h:13
+msgid "_Clone"
+msgstr "_Clónáil"
+
+#: ../src/preferences.ui.h:14
+msgid "_Profile used when launching a new terminal:"
+msgstr "_Próifíl úsáidte agus teirminéal nua á thosú:"
+
+#: ../src/preferences.ui.h:15
+msgid "Profiles"
+msgstr "Próifílí"
+
+#: ../src/preferences.ui.h:16
+msgid "E_ncodings shown in menu:"
+msgstr "Io_nchóduithe a thaispeántar sa roghchlár:"
+
+#: ../src/preferences.ui.h:17
+msgid "Encodings"
+msgstr "Ionchóduithe"
+
+#: ../src/profile-editor.c:47
+msgid "Black on light yellow"
+msgstr "Dubh ar buí geal"
+
+#: ../src/profile-editor.c:51
+msgid "Black on white"
+msgstr "Dubh ar bán"
+
+#: ../src/profile-editor.c:55
+msgid "Gray on black"
+msgstr "Liath ar dubh"
+
+#: ../src/profile-editor.c:59
+msgid "Green on black"
+msgstr "Glas ar dubh"
+
+#: ../src/profile-editor.c:63
+msgid "White on black"
+msgstr "Bán ar dubh"
+
+#: ../src/profile-editor.c:412
+#, c-format
+msgid "Error parsing command: %s"
+msgstr "Earráid agus ordú á pharsáil: %s"
+
+#. This is the name of a colour scheme
+#: ../src/profile-editor.c:446 ../src/profile-preferences.ui.h:30
+msgid "Custom"
+msgstr "Saincheaptha"
+
+#: ../src/profile-editor.c:561
+#, c-format
+msgid "Editing Profile “%s”"
+msgstr "Ag Cur Eagar ar Phróifíl \"%s\""
+
+#: ../src/profile-editor.c:744
+#, c-format
+msgid "Choose Palette Color %d"
+msgstr "Roghnaigh Dath Pailéid %d"
+
+#: ../src/profile-editor.c:748
+#, c-format
+msgid "Palette entry %d"
+msgstr "Iontráil pailéid %d"
+
+#. Cursor shape
+#: ../src/profile-preferences.ui.h:2
+msgid "Block"
+msgstr "Bloc"
+
+#. Cursor shape
+#: ../src/profile-preferences.ui.h:4
+msgid "I-Beam"
+msgstr "I-Bhíoma"
+
+#. Cursor shape
+#: ../src/profile-preferences.ui.h:6
+msgid "Underline"
+msgstr "Líne faoi"
+
+#. When terminal commands set their own titles
+#: ../src/profile-preferences.ui.h:8
+msgid "Replace initial title"
+msgstr "Ionadaigh teideal tosaigh"
+
+#. When terminal commands set their own titles
+#: ../src/profile-preferences.ui.h:10
+msgid "Append initial title"
+msgstr "Iarcheangail teideal tosaigh"
+
+#. When terminal commands set their own titles
+#: ../src/profile-preferences.ui.h:12
+msgid "Prepend initial title"
+msgstr "Réamhcheangail teideal tosaigh"
+
+#. When terminal commands set their own titles
+#: ../src/profile-preferences.ui.h:14
+msgid "Keep initial title"
+msgstr "Coinnigh teideal tosaigh"
+
+#. When command exits
+#: ../src/profile-preferences.ui.h:16
+msgid "Exit the terminal"
+msgstr "Scoir an teirminéal"
+
+#. When command exits
+#: ../src/profile-preferences.ui.h:18
+msgid "Restart the command"
+msgstr "Atosaigh an t-ordú"
+
+#. When command exits
+#: ../src/profile-preferences.ui.h:20
+msgid "Hold the terminal open"
+msgstr "Coinnigh an teirminéal ar oscailt"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:22
+msgid "Tango"
+msgstr "Tango"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:24
+msgid "Linux console"
+msgstr "Consól Linux"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:26
+msgid "XTerm"
+msgstr "XTerm"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:28
+msgid "Rxvt"
+msgstr "Rxvt"
+
+#. Scrollbar is
+#: ../src/profile-preferences.ui.h:32
+msgid "Always visible"
+msgstr "Infheicthe i gcónaí"
+
+#. Scrollbar is
+#: ../src/profile-preferences.ui.h:34
+msgid "Visible only when necessary"
+msgstr "Infheicthe nuair is gá amháin"
+
+#. Scrollbar is
+#: ../src/profile-preferences.ui.h:36
+msgid "Hidden"
+msgstr "Folaithe"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:38
+msgid "Automatic"
+msgstr "Uathoibríoch"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:40
+msgid "Control-H"
+msgstr "Control-H"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:42
+msgid "ASCII DEL"
+msgstr "DEL ASCII"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:44
+msgid "Escape sequence"
+msgstr "Seicheamh éalúcháin"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:46
+msgid "TTY Erase"
+msgstr "Glanadh TTY"
+
+#: ../src/profile-preferences.ui.h:47
+msgid "Profile Editor"
+msgstr "Eagarthóir Próifílí"
+
+#: ../src/profile-preferences.ui.h:48
+msgid "_Profile name:"
+msgstr "Ainm na _próifíle:"
+
+#: ../src/profile-preferences.ui.h:49
+msgid "Profile ID:"
+msgstr "CA Próifíle:"
+
+#: ../src/profile-preferences.ui.h:50
+msgid "_Use the system fixed width font"
+msgstr "Ú_sáid cló aonleithid an chórais"
+
+#: ../src/profile-preferences.ui.h:51
+msgid "_Font:"
+msgstr "_Cló:"
+
+#: ../src/profile-preferences.ui.h:52
+msgid "Choose A Terminal Font"
+msgstr "Roghnaigh Cló Teirminéil"
+
+#: ../src/profile-preferences.ui.h:53
+msgid "_Allow bold text"
+msgstr "Ce_adaigh téacs trom"
+
+#: ../src/profile-preferences.ui.h:54
+msgid "Terminal _bell"
+msgstr "C_loigín teirminéil"
+
+#: ../src/profile-preferences.ui.h:55
+msgid "Cursor _shape:"
+msgstr "Cruth an chúr_sóra:"
+
+#: ../src/profile-preferences.ui.h:56
+msgid "Select-by-_word characters:"
+msgstr "Carachtar roghnaigh-de-réir-_focail:"
+
+#: ../src/profile-preferences.ui.h:57
+msgid "Use custom default terminal si_ze"
+msgstr "Úsáid _méid an teirminéal réamhshocraithe saincheaptha"
+
+#: ../src/profile-preferences.ui.h:58
+msgid "Default size:"
+msgstr "Méid réamhshocraithe"
+
+#: ../src/profile-preferences.ui.h:59
+msgid "columns"
+msgstr "colún"
+
+#: ../src/profile-preferences.ui.h:60
+msgid "rows"
+msgstr "ró"
+
+#: ../src/profile-preferences.ui.h:62
+msgid "Title"
+msgstr "Teideal"
+
+#: ../src/profile-preferences.ui.h:63 ../src/terminal-window.c:771
+msgid "_Title:"
+msgstr "_Teideal:"
+
+#: ../src/profile-preferences.ui.h:64
+msgid "Command"
+msgstr "Ordú"
+
+#: ../src/profile-preferences.ui.h:65
+msgid "_Run command as a login shell"
+msgstr "_Rith ordú mar bhlaosc logála isteach"
+
+#: ../src/profile-preferences.ui.h:66
+msgid "_Update login records when command is launched"
+msgstr "_Nuashonraigh taifid logála isteach agus ordú tosaithe"
+
+#: ../src/profile-preferences.ui.h:67
+msgid "Ru_n a custom command instead of my shell"
+msgstr "R_ith ordú saincheaptha in ionad mo bhlaoisce"
+
+#: ../src/profile-preferences.ui.h:68
+msgid "Custom co_mmand:"
+msgstr "_Ordú saincheaptha:"
+
+#: ../src/profile-preferences.ui.h:69
+msgid "When command _exits:"
+msgstr "Agus ordú á _scor:"
+
+#: ../src/profile-preferences.ui.h:70
+msgid "Title and Command"
+msgstr "Teideal agus Ordú"
+
+#: ../src/profile-preferences.ui.h:71
+msgid "Text and Background Color"
+msgstr "Dath Téacs agus Cúlra"
+
+#: ../src/profile-preferences.ui.h:72
+msgid "_Use colors from system theme"
+msgstr "Ú_sáid dathanna ó théama an chórais"
+
+#: ../src/profile-preferences.ui.h:73
+msgid "Built-in sche_mes:"
+msgstr "Scéi_meanna ionsuite:"
+
+#: ../src/profile-preferences.ui.h:74
+msgid "_Text color:"
+msgstr "_Dath téacs:"
+
+#: ../src/profile-preferences.ui.h:75
+msgid "_Background color:"
+msgstr "Dath _cúlra:"
+
+#: ../src/profile-preferences.ui.h:76
+msgid "Choose Terminal Background Color"
+msgstr "Roghnaigh Dath Chúlra an Teirminéil"
+
+#: ../src/profile-preferences.ui.h:77
+msgid "Choose Terminal Text Color"
+msgstr "Roghnaigh Dath Théacs an Teirminéil"
+
+#: ../src/profile-preferences.ui.h:78
+msgid "_Underline color:"
+msgstr "Dath téacs le _líne faoi:"
+
+#: ../src/profile-preferences.ui.h:79
+msgid "_Same as text color"
+msgstr "_Ionann leis an dath téacs"
+
+#: ../src/profile-preferences.ui.h:80
+msgid "Bol_d color:"
+msgstr "Dath téacs _trom:"
+
+#: ../src/profile-preferences.ui.h:81
+msgid "Palette"
+msgstr "Pailéad"
+
+#: ../src/profile-preferences.ui.h:82
+msgid "Built-in _schemes:"
+msgstr "S_céimeanna ionsuite:"
+
+#: ../src/profile-preferences.ui.h:83
+msgid "<b>Note:</b> Terminal applications have these colors available to them."
+msgstr "<b>Nóta:</b> Tá na dathanna seo ar fáil d'fheidhmchláir teirminéil."
+
+#: ../src/profile-preferences.ui.h:84
+msgid "Color p_alette:"
+msgstr "_Pailéad dathanna:"
+
+#: ../src/profile-preferences.ui.h:85
+msgid "Colors"
+msgstr "Dathanna"
+
+#: ../src/profile-preferences.ui.h:86
+msgid "_Scrollbar is:"
+msgstr "Tá an _scrollbharra:"
+
+#: ../src/profile-preferences.ui.h:87
+msgid "Scroll_back:"
+msgstr "_Iarscrollú:"
+
+#: ../src/profile-preferences.ui.h:88
+msgid "Scroll on _keystroke"
+msgstr "Scrollaigh ar _eochairbhuille"
+
+#: ../src/profile-preferences.ui.h:89
+msgid "Scroll on _output"
+msgstr "Scrollaigh ar _aschur"
+
+#: ../src/profile-preferences.ui.h:90
+msgid "_Unlimited"
+msgstr "_Gan teorainn"
+
+#: ../src/profile-preferences.ui.h:91
+msgid "lines"
+msgstr "líne"
+
+#: ../src/profile-preferences.ui.h:92
+msgid "Scrolling"
+msgstr "Scrollú"
+
+#: ../src/profile-preferences.ui.h:93
+msgid ""
+"<b>Note:</b> These options may cause some applications to behave "
+"incorrectly.  They are only here to allow you to work around certain "
+"applications and operating systems that expect different terminal behavior."
+msgstr ""
+"<small><i><b>Nóta:</b> Is féidir go gcuirfidh na roghanna seo feidhmchláir "
+"éigin á n-oibriú go mícheart.  Tá siad ann chun ligean duit oibriú thar "
+"feidhmchláir agus córais oibriúcháin atá ag súil le hoibriú difriúil "
+"teirminéil.</i></small>"
+
+#: ../src/profile-preferences.ui.h:94
+msgid "_Delete key generates:"
+msgstr "Gineann an eochair _Delete:"
+
+#: ../src/profile-preferences.ui.h:95
+msgid "_Backspace key generates:"
+msgstr "Gineann an eochair _Backspace:"
+
+#: ../src/profile-preferences.ui.h:96
+msgid "_Reset Compatibility Options to Defaults"
+msgstr "_Athshocraigh Roghanna Comhoiriúnachta go Réamhshocruithe"
+
+#: ../src/profile-preferences.ui.h:97
+msgid "Compatibility"
+msgstr "Comhoiriúnacht"
+
+#: ../src/terminal-accels.c:111
+msgid "New Tab"
+msgstr "Cluaisín Nua"
+
+#: ../src/terminal-accels.c:112
+msgid "New Window"
+msgstr "Fuinneog Nua"
+
+#: ../src/terminal-accels.c:113
+msgid "New Profile"
+msgstr "Próifíl Nua"
+
+#: ../src/terminal-accels.c:115
+msgid "Save Contents"
+msgstr "Sábháil Ábhar"
+
+#: ../src/terminal-accels.c:117
+msgid "Close Tab"
+msgstr "Dún Cluaisín"
+
+#: ../src/terminal-accels.c:118
+msgid "Close Window"
+msgstr "Dún Fuinneog"
+
+#: ../src/terminal-accels.c:122
+msgid "Copy"
+msgstr "Cóipeáil"
+
+#: ../src/terminal-accels.c:123
+msgid "Paste"
+msgstr "Greamaigh"
+
+#: ../src/terminal-accels.c:127
+msgid "Hide and Show toolbar"
+msgstr "Folaigh agus Taispeáin an barra uirlisí"
+
+#: ../src/terminal-accels.c:128
+msgid "Full Screen"
+msgstr "Lánscáileán"
+
+#: ../src/terminal-accels.c:129
+msgid "Zoom In"
+msgstr "Súmáil Isteach"
+
+#: ../src/terminal-accels.c:130
+msgid "Zoom Out"
+msgstr "Súmáil Amach"
+
+#: ../src/terminal-accels.c:131
+msgid "Normal Size"
+msgstr "Gnáthmhéid"
+
+#: ../src/terminal-accels.c:135 ../src/terminal-window.c:754
+msgid "Set Title"
+msgstr "Socraigh Teideal"
+
+#: ../src/terminal-accels.c:136
+msgid "Reset"
+msgstr "Athshocraigh"
+
+#: ../src/terminal-accels.c:137
+msgid "Reset and Clear"
+msgstr "Athshocraigh agus Glan"
+
+#: ../src/terminal-accels.c:141
+msgid "Switch to Previous Tab"
+msgstr "Athraigh go dtí an Cluaisín Roimhe Seo"
+
+#: ../src/terminal-accels.c:142
+msgid "Switch to Next Tab"
+msgstr "Athraigh go dtí an Chead Chluaisín Eile"
+
+#: ../src/terminal-accels.c:143
+msgid "Move Tab to the Left"
+msgstr "Bog Cluaisín ar Chlé"
+
+#: ../src/terminal-accels.c:144
+msgid "Move Tab to the Right"
+msgstr "Bog Cluaisín ar Dheis"
+
+#: ../src/terminal-accels.c:145
+msgid "Detach Tab"
+msgstr "Dícheangail Cluaisín"
+
+#: ../src/terminal-accels.c:168
+msgid "Contents"
+msgstr "Inneachar"
+
+#: ../src/terminal-accels.c:175
+msgid "File"
+msgstr "Comhad"
+
+#: ../src/terminal-accels.c:176
+msgid "Edit"
+msgstr "Eagar"
+
+#: ../src/terminal-accels.c:177
+msgid "View"
+msgstr "Amharc"
+
+#: ../src/terminal-accels.c:179
+msgid "Tabs"
+msgstr "Cluaisíní"
+
+#: ../src/terminal-accels.c:180
+msgid "Help"
+msgstr "Cabhair"
+
+#: ../src/terminal-accels.c:261
+#, c-format
+msgid "Switch to Tab %d"
+msgstr "Athraigh go Cluaisín %d"
+
+#: ../src/terminal-accels.c:487
+msgid "_Action"
+msgstr "_Gníomh"
+
+#: ../src/terminal-accels.c:505
+msgid "Shortcut _Key"
+msgstr "_Eochair Aicearra"
+
+#: ../src/terminal-app.c:591
+msgid "User Defined"
+msgstr "Sainmhínithe ag an Úsáideoir"
+
+#: ../src/terminal-appmenu.ui.h:1
+msgid "_New Terminal"
+msgstr "Teirminéal _Nua"
+
+#: ../src/terminal-appmenu.ui.h:2
+msgid "_Preferences"
+msgstr "_Sainroghanna"
+
+#: ../src/terminal-appmenu.ui.h:3
+msgid "_About Terminal"
+msgstr "_Maidir le Teirminéal"
+
+#: ../src/terminal-appmenu.ui.h:4 ../src/terminal-window.c:2351
+msgid "_Help"
+msgstr "Cab_hair"
+
+#: ../src/terminal-appmenu.ui.h:5
+msgid "_Quit"
+msgstr "_Scoir"
+
+#: ../src/terminal.c:242
+#, c-format
+msgid "Failed to parse arguments: %s\n"
+msgstr "Theip ar pharsáil argóintí: %s\n"
+
+#: ../src/terminal-encoding.c:52 ../src/terminal-encoding.c:65
+#: ../src/terminal-encoding.c:79 ../src/terminal-encoding.c:101
+#: ../src/terminal-encoding.c:112
+msgid "Western"
+msgstr "Iartharach"
+
+#: ../src/terminal-encoding.c:53 ../src/terminal-encoding.c:80
+#: ../src/terminal-encoding.c:91 ../src/terminal-encoding.c:110
+msgid "Central European"
+msgstr "Lár-Eorpach"
+
+#: ../src/terminal-encoding.c:54
+msgid "South European"
+msgstr "Deisceart na hEorpa"
+
+#: ../src/terminal-encoding.c:55 ../src/terminal-encoding.c:63
+#: ../src/terminal-encoding.c:117
+msgid "Baltic"
+msgstr "Baltach"
+
+#: ../src/terminal-encoding.c:56 ../src/terminal-encoding.c:81
+#: ../src/terminal-encoding.c:87 ../src/terminal-encoding.c:88
+#: ../src/terminal-encoding.c:93 ../src/terminal-encoding.c:111
+msgid "Cyrillic"
+msgstr "Coireallach"
+
+#: ../src/terminal-encoding.c:57 ../src/terminal-encoding.c:84
+#: ../src/terminal-encoding.c:90 ../src/terminal-encoding.c:116
+msgid "Arabic"
+msgstr "Arabach"
+
+#: ../src/terminal-encoding.c:58 ../src/terminal-encoding.c:96
+#: ../src/terminal-encoding.c:113
+msgid "Greek"
+msgstr "Gréagach"
+
+#: ../src/terminal-encoding.c:59
+msgid "Hebrew Visual"
+msgstr "Eabhrach Infheicthe"
+
+#: ../src/terminal-encoding.c:60 ../src/terminal-encoding.c:83
+#: ../src/terminal-encoding.c:99 ../src/terminal-encoding.c:115
+msgid "Hebrew"
+msgstr "Eabhrach"
+
+#: ../src/terminal-encoding.c:61 ../src/terminal-encoding.c:82
+#: ../src/terminal-encoding.c:103 ../src/terminal-encoding.c:114
+msgid "Turkish"
+msgstr "Turcach"
+
+#: ../src/terminal-encoding.c:62
+msgid "Nordic"
+msgstr "Nordach"
+
+#: ../src/terminal-encoding.c:64
+msgid "Celtic"
+msgstr "Ceilteach"
+
+#: ../src/terminal-encoding.c:66 ../src/terminal-encoding.c:102
+msgid "Romanian"
+msgstr "Rómánach"
+
+#. These encodings do NOT pass-through ASCII, so are always rejected.
+#. * FIXME: why are they in this table; or rather why do we need
+#. * the ASCII pass-through requirement?
+#.
+#: ../src/terminal-encoding.c:67 ../src/terminal-encoding.c:124
+#: ../src/terminal-encoding.c:125 ../src/terminal-encoding.c:126
+#: ../src/terminal-encoding.c:127
+msgid "Unicode"
+msgstr "Unicode"
+
+#: ../src/terminal-encoding.c:68
+msgid "Armenian"
+msgstr "Airméanach"
+
+#: ../src/terminal-encoding.c:69 ../src/terminal-encoding.c:70
+#: ../src/terminal-encoding.c:74
+msgid "Chinese Traditional"
+msgstr "Síneach Traidisiúnta"
+
+#: ../src/terminal-encoding.c:71
+msgid "Cyrillic/Russian"
+msgstr "Coireallach/Rúiseach"
+
+#: ../src/terminal-encoding.c:72 ../src/terminal-encoding.c:85
+#: ../src/terminal-encoding.c:105
+msgid "Japanese"
+msgstr "Seapánach"
+
+#: ../src/terminal-encoding.c:73 ../src/terminal-encoding.c:86
+#: ../src/terminal-encoding.c:108 ../src/terminal-encoding.c:128
+msgid "Korean"
+msgstr "Cóiréach"
+
+#: ../src/terminal-encoding.c:75 ../src/terminal-encoding.c:76
+#: ../src/terminal-encoding.c:77
+msgid "Chinese Simplified"
+msgstr "Síneach Simplithe"
+
+#: ../src/terminal-encoding.c:78
+msgid "Georgian"
+msgstr "Seoirseach"
+
+#: ../src/terminal-encoding.c:89 ../src/terminal-encoding.c:104
+msgid "Cyrillic/Ukrainian"
+msgstr "Coireallach/Úcránach"
+
+#: ../src/terminal-encoding.c:92
+msgid "Croatian"
+msgstr "Crótach"
+
+#: ../src/terminal-encoding.c:94
+msgid "Hindi"
+msgstr "Hiondúch"
+
+#: ../src/terminal-encoding.c:95
+msgid "Persian"
+msgstr "Peirseach"
+
+#: ../src/terminal-encoding.c:97
+msgid "Gujarati"
+msgstr "Gúisearátach"
+
+#: ../src/terminal-encoding.c:98
+msgid "Gurmukhi"
+msgstr "Gurmúcaíoch"
+
+#: ../src/terminal-encoding.c:100
+msgid "Icelandic"
+msgstr "Íoslannach"
+
+#: ../src/terminal-encoding.c:106 ../src/terminal-encoding.c:109
+#: ../src/terminal-encoding.c:118
+msgid "Vietnamese"
+msgstr "Vítneamach"
+
+#: ../src/terminal-encoding.c:107
+msgid "Thai"
+msgstr "Téalannach"
+
+#: ../src/terminal-encoding.c:273
+msgid "Current Locale"
+msgstr "Logchaighdeán Reatha"
+
+#: ../src/terminal-nautilus.c:599
+msgid "Open in _Remote Terminal"
+msgstr "Oscail i g_Cianteirminéal"
+
+#: ../src/terminal-nautilus.c:601
+msgid "Open in _Local Terminal"
+msgstr "Oscail i dTeirminéal _Logánta"
+
+#: ../src/terminal-nautilus.c:605 ../src/terminal-nautilus.c:616
+msgid "Open the currently selected folder in a terminal"
+msgstr ""
+
+#: ../src/terminal-nautilus.c:607 ../src/terminal-nautilus.c:618
+#: ../src/terminal-nautilus.c:628
+msgid "Open the currently open folder in a terminal"
+msgstr ""
+
+#: ../src/terminal-nautilus.c:613 ../src/terminal-nautilus.c:627
+msgid "Open in T_erminal"
+msgstr "Oscail i d_Teirminéal"
+
+#: ../src/terminal-nautilus.c:624
+msgid "Open T_erminal"
+msgstr "Oscail _Teirminéal"
+
+#: ../src/terminal-nautilus.c:625
+msgid "Open a terminal"
+msgstr "Oscail teirminéal"
+
+#: ../src/terminal-nautilus.c:643 ../src/terminal-nautilus.c:656
+msgid "Open in _Midnight Commander"
+msgstr "Oscail i _Midnight Commander"
+
+#: ../src/terminal-nautilus.c:645
+msgid ""
+"Open the currently selected folder in the terminal file manager Midnight "
+"Commander"
+msgstr ""
+
+#: ../src/terminal-nautilus.c:647 ../src/terminal-nautilus.c:657
+msgid ""
+"Open the currently open folder in the terminal file manager Midnight "
+"Commander"
+msgstr ""
+
+#: ../src/terminal-nautilus.c:653
+msgid "Open _Midnight Commander"
+msgstr "Oscail _Midnight Commander"
+
+#: ../src/terminal-nautilus.c:654
+msgid "Open the terminal file manager Midnight Commander"
+msgstr ""
+
+#: ../src/terminal-options.c:224
+#, c-format
+msgid "Option \"%s\" is no longer supported in this version of gnome-terminal."
+msgstr ""
+
+#: ../src/terminal-options.c:235 ../src/terminal-util.c:221
+msgid "GNOME Terminal"
+msgstr "Teirminéal GNOME"
+
+#: ../src/terminal-options.c:275
+#, c-format
+msgid "Argument to \"%s\" is not a valid command: %s"
+msgstr ""
+
+#: ../src/terminal-options.c:424
+msgid "Two roles given for one window"
+msgstr ""
+
+#: ../src/terminal-options.c:445 ../src/terminal-options.c:478
+#, c-format
+msgid "\"%s\" option given twice for the same window\n"
+msgstr ""
+
+#: ../src/terminal-options.c:689
+#, c-format
+msgid "Zoom factor \"%g\" is too small, using %g\n"
+msgstr ""
+
+#: ../src/terminal-options.c:697
+#, c-format
+msgid "Zoom factor \"%g\" is too large, using %g\n"
+msgstr ""
+
+#: ../src/terminal-options.c:735
+#, c-format
+msgid ""
+"Option \"%s\" requires specifying the command to run on the rest of the "
+"command line"
+msgstr ""
+
+#: ../src/terminal-options.c:871
+msgid "Not a valid terminal config file."
+msgstr ""
+
+#: ../src/terminal-options.c:884
+msgid "Incompatible terminal config file version."
+msgstr ""
+
+#: ../src/terminal-options.c:1024
+msgid ""
+"Do not register with the activation nameserver, do not re-use an active "
+"terminal"
+msgstr ""
+"Ná cláraigh leis an bhfreastalaí ainmneacha gníomhachtaithe, ná hathúsáid "
+"teirminéal gníomhach"
+
+#: ../src/terminal-options.c:1033
+msgid "Load a terminal configuration file"
+msgstr "Luchtaigh comhad cumraíochta teirminéil"
+
+#: ../src/terminal-options.c:1034
+msgid "FILE"
+msgstr "COMHAD"
+
+#: ../src/terminal-options.c:1055
+msgid "Open a new window containing a tab with the default profile"
+msgstr ""
+"Oscail fuinneog nua ina bhfuil cluaisín leis an bpróifíl réamhshocraithe"
+
+#: ../src/terminal-options.c:1064
+msgid "Open a new tab in the last-opened window with the default profile"
+msgstr ""
+"Oscail cluaisín nua san fhuinneog oscailte is déanaí leis an bpróifíl "
+"réamhshocraithe"
+
+#: ../src/terminal-options.c:1077
+msgid "Turn on the menubar"
+msgstr "Cumasaigh an barra roghchláir"
+
+#: ../src/terminal-options.c:1086
+msgid "Turn off the menubar"
+msgstr "Díchumasaigh an barra roghchláir"
+
+#: ../src/terminal-options.c:1131
+msgid "Set the last specified tab as the active one in its window"
+msgstr ""
+"Socraigh an cluaisín sonraithe is déanaí mar an ceann gníomhach ina fhuinneog"
+
+#: ../src/terminal-options.c:1144
+msgid "Execute the argument to this option inside the terminal"
+msgstr "Rith an argóint don rogha seo isteach sa teirminéal"
+
+#: ../src/terminal-options.c:1154
+msgid "PROFILE-NAME"
+msgstr "AINM-PRÓIFÍLE"
+
+#: ../src/terminal-options.c:1442 ../src/terminal-options.c:1448
+msgid "GNOME Terminal Emulator"
+msgstr "Aithriseoir Teirminéil GNOME"
+
+#: ../src/terminal-options.c:1449
+msgid "Show GNOME Terminal options"
+msgstr "Taispeáin roghanna Teirminéal GNOME"
+
+#: ../src/terminal-options.c:1459
+msgid ""
+"Options to open new windows or terminal tabs; more than one of these may be "
+"specified:"
+msgstr ""
+"Roghanna chun fuinneoga nó cluaisíní teirminéil nua a oscailt; is féidir "
+"breis is ceann acu a shonrú:"
+
+#: ../src/terminal-options.c:1468
+msgid ""
+"Window options; if used before the first --window or --tab argument, sets "
+"the default for all windows:"
+msgstr ""
+"Roghanna fuinneoige; má úsáidtear roimh an chéad argóint --window nó --tab, "
+"socraíonn sé seo an réamhshocrú do gach fuinneog:"
+
+#: ../src/terminal-options.c:1469
+msgid "Show per-window options"
+msgstr "Taispeáin roghanna de réir fuinneoige"
+
+#: ../src/terminal-options.c:1477
+msgid ""
+"Terminal options; if used before the first --window or --tab argument, sets "
+"the default for all terminals:"
+msgstr ""
+"Roghanna teirminéil; má úsáidtear roimh an chéad argóint --window nó --tab, "
+"socraíonn sé seo an réamhshocrú do gach teirminéal:"
+
+#: ../src/terminal-options.c:1478
+msgid "Show per-terminal options"
+msgstr "Taispeáin roghanna de réir teirminéil"
+
+#: ../src/terminal-prefs.c:224
+msgid "Click button to choose profile"
+msgstr "Cliceáil an cnaipe chun próifíl a roghnú"
+
+#: ../src/terminal-prefs.c:338
+msgid "Profile list"
+msgstr "Liosta próifílí"
+
+#: ../src/terminal-prefs.c:393
+#, c-format
+msgid "Delete profile “%s”?"
+msgstr "Scrios próifíl \"%s\"?"
+
+#: ../src/terminal-prefs.c:397
+msgid "_Cancel"
+msgstr "_Cealaigh"
+
+#: ../src/terminal-prefs.c:399
+msgid "_Delete"
+msgstr "_Scrios"
+
+#: ../src/terminal-prefs.c:409
+msgid "Delete Profile"
+msgstr "Scrios Próifíl"
+
+#: ../src/terminal-prefs.c:723
+msgid "Show"
+msgstr "Taispeáin"
+
+#: ../src/terminal-prefs.c:734
+msgid "_Encoding"
+msgstr "_Ionchódú"
+
+#: ../src/terminal-screen.c:1058
+msgid "No command supplied nor shell requested"
+msgstr ""
+
+#: ../src/terminal-screen.c:1306 ../src/terminal-window.c:2394
+msgid "_Profile Preferences"
+msgstr "Sainroghanna na _Próifíle"
+
+#: ../src/terminal-screen.c:1307 ../src/terminal-screen.c:1635
+msgid "_Relaunch"
+msgstr "_Athluchtaigh"
+
+#: ../src/terminal-screen.c:1310
+msgid "There was an error creating the child process for this terminal"
+msgstr "Tharla earráid agus an macphróiseas don teirminéal seo á chruthú"
+
+#: ../src/terminal-screen.c:1639
+#, c-format
+msgid "The child process exited normally with status %d."
+msgstr "Scoir an macphróiseas go normálta le stádas %d."
+
+#: ../src/terminal-screen.c:1642
+#, c-format
+msgid "The child process was aborted by signal %d."
+msgstr "Tobscoireadh an macphróiseas ag comhartha %d."
+
+#: ../src/terminal-screen.c:1645
+msgid "The child process was aborted."
+msgstr "Tobscoireadh an macphróiseas."
+
+#: ../src/terminal-tab-label.c:196
+msgid "Close tab"
+msgstr "Dún cluaisín"
+
+#: ../src/terminal-tabs-menu.c:196
+msgid "Switch to this tab"
+msgstr "Athraigh go dtí an cluaisín seo"
+
+#: ../src/terminal-util.c:148
+msgid "There was an error displaying help"
+msgstr "Tharla earráid agus cabhair á taispeáint"
+
+#: ../src/terminal-util.c:204
+msgid "Contributors:"
+msgstr "Cuiditheoirí:"
+
+#: ../src/terminal-util.c:223
+msgid "A terminal emulator for the GNOME desktop"
+msgstr "Aithriseoir teirminéil don deasc GNOME"
+
+#: ../src/terminal-util.c:231
+msgid "translator-credits"
+msgstr ""
+"Paul Duffy <dubhthach@frink.nuigalway.ie>\n"
+"Alastair McKinstry <mckinstry@computer.org>\n"
+"Seán de Búrca <leftmostcat@gmail.com>"
+
+#: ../src/terminal-util.c:304
+#, c-format
+msgid "Could not open the address “%s”"
+msgstr "Níorbh fhéidir an seoladh \"%s\" a oscailt"
+
+#: ../src/terminal-util.c:379
+msgid ""
+"GNOME Terminal is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU General Public License as published by the Free "
+"Software Foundation, either version 3 of the License, or (at your option) "
+"any later version."
+msgstr ""
+"Is bogearraí saor é Teirminéal GNOME: is féidir leat é a athdháileadh agus/"
+"nó é a athrú faoi théarmaí an GNU General Public License mar foilsíodh é ag "
+"an Free Software Foundation, leagan 3 den License, nó (de do rogha) aon "
+"leagan níos déanaí."
+
+#: ../src/terminal-util.c:383
+msgid ""
+"GNOME Terminal is distributed in the hope that it will be useful, but "
+"WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY "
+"or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for "
+"more details."
+msgstr ""
+"Dáileadh Teirminéal GNOME le súil go mbeidh sé úsáideach, ach GAN AON "
+"BHARÁNTA; gan an baránta intuigthe INDÍOLTÓIREACHTA nó OIRIÚNACHTA D'FHEIDHM "
+"ÁIRITHE fiú. Féach an GNU General Public License le haghaidh tuilleadh "
+"mionsonraí."
+
+#: ../src/terminal-util.c:387
+msgid ""
+"You should have received a copy of the GNU General Public License along with "
+"GNOME Terminal.  If not, see <http://www.gnu.org/licenses/>."
+msgstr ""
+"Ba chóir go bhfuair tú cóip den GNU General Public License in éineacht le "
+"Teirminéal GNOME.  Mura bhfuair tú é, féach <http://www.gnu.org/licenses/>."
+
+#: ../src/terminal-window.c:488
+msgid "Could not save contents"
+msgstr "Níorbh fhéidir ábhar a shábháil"
+
+#: ../src/terminal-window.c:514
+msgid "Save as…"
+msgstr "Sábháil mar…"
+
+#. Translators: This is the label of a menu item to choose a profile.
+#. * _%d is used as the accelerator (with d between 1 and 9), and
+#. * the %s is the name of the terminal profile.
+#.
+#: ../src/terminal-window.c:1178
+#, c-format
+msgid "_%d. %s"
+msgstr "_%d. %s"
+
+#. Translators: This is the label of a menu item to choose a profile.
+#. * _%c is used as the accelerator (it will be a character between A and Z),
+#. * and the %s is the name of the terminal profile.
+#.
+#: ../src/terminal-window.c:1184
+#, c-format
+msgid "_%c. %s"
+msgstr "_%c. %s"
+
+#. Toplevel
+#: ../src/terminal-window.c:2344
+msgid "_File"
+msgstr "_Comhad"
+
+#. File menu
+#: ../src/terminal-window.c:2345 ../src/terminal-window.c:2356
+#: ../src/terminal-window.c:2362 ../src/terminal-window.c:2503
+msgid "Open _Terminal"
+msgstr "Oscail _Teirminéal"
+
+#: ../src/terminal-window.c:2346
+msgid "_Edit"
+msgstr "_Eagar"
+
+#: ../src/terminal-window.c:2347
+msgid "_View"
+msgstr "_Amharc"
+
+#: ../src/terminal-window.c:2348
+msgid "_Search"
+msgstr "Cuar_daigh"
+
+#: ../src/terminal-window.c:2349
+msgid "_Terminal"
+msgstr "_Teirminéal"
+
+#: ../src/terminal-window.c:2350
+msgid "Ta_bs"
+msgstr "C_luaisíní"
+
+#: ../src/terminal-window.c:2359
+msgid "Open Ta_b"
+msgstr "Oscail Cl_uaisín"
+
+#: ../src/terminal-window.c:2365
+msgid "New _Profile"
+msgstr "_Próifíl Nua"
+
+#: ../src/terminal-window.c:2368
+msgid "_Save Contents"
+msgstr "_Sábháil Ábhar"
+
+#: ../src/terminal-window.c:2371
+msgid "C_lose Tab"
+msgstr "Dún C_luaisín"
+
+#: ../src/terminal-window.c:2374
+msgid "_Close Window"
+msgstr "_Dún Fuinneog"
+
+#: ../src/terminal-window.c:2385 ../src/terminal-window.c:2500
+msgid "Paste _Filenames"
+msgstr "Greamaigh Ainmneacha _Comhad"
+
+#: ../src/terminal-window.c:2391
+msgid "Pre_ferences"
+msgstr "_Sainroghanna"
+
+#. Search menu
+#: ../src/terminal-window.c:2410
+msgid "_Find…"
+msgstr "_Aimsigh…"
+
+#: ../src/terminal-window.c:2413
+msgid "Find Ne_xt"
+msgstr "An Chéad Cheann _Eile"
+
+#: ../src/terminal-window.c:2416
+msgid "Find Pre_vious"
+msgstr "_Roimhe Seo"
+
+#: ../src/terminal-window.c:2419
+msgid "_Clear Highlight"
+msgstr "_Glan Aibhsiú"
+
+#: ../src/terminal-window.c:2423
+msgid "Go to _Line..."
+msgstr "Téigh go _Líne..."
+
+#: ../src/terminal-window.c:2426
+msgid "_Incremental Search..."
+msgstr "Cuardach _Incriminteach..."
+
+#. Terminal menu
+#: ../src/terminal-window.c:2432
+msgid "Change _Profile"
+msgstr "Athraigh _Próifíl"
+
+#: ../src/terminal-window.c:2433
+msgid "_Set Title…"
+msgstr "_Socraigh Teideal..."
+
+#: ../src/terminal-window.c:2436
+msgid "Set _Character Encoding"
+msgstr "Socraigh Ionchódú _Carachtar"
+
+#: ../src/terminal-window.c:2437
+msgid "_Reset"
+msgstr "_Athshocraigh"
+
+#: ../src/terminal-window.c:2440
+msgid "Reset and C_lear"
+msgstr "Athshocraigh agus G_lan"
+
+#. Terminal/Encodings menu
+#: ../src/terminal-window.c:2445
+msgid "_Add or Remove…"
+msgstr "_Cuir Leis nó Bain..."
+
+#. Tabs menu
+#: ../src/terminal-window.c:2450
+msgid "_Previous Tab"
+msgstr "Cluaisín _Roimhe Seo"
+
+#: ../src/terminal-window.c:2453
+msgid "_Next Tab"
+msgstr "An Chéad Cluaisín _Eile"
+
+#: ../src/terminal-window.c:2456
+msgid "Move Tab _Left"
+msgstr "Bog Cluaisín ar _Chlé"
+
+#: ../src/terminal-window.c:2459
+msgid "Move Tab _Right"
+msgstr "Bog Cluaisín ar _Dheis"
+
+#: ../src/terminal-window.c:2462
+msgid "_Detach tab"
+msgstr "Díchean_gail Cluaisín"
+
+#. Help menu
+#: ../src/terminal-window.c:2467
+msgid "_Contents"
+msgstr "_Inneachar"
+
+#: ../src/terminal-window.c:2470
+msgid "_About"
+msgstr "_Maidir Leis Seo"
+
+#. Popup menu
+#: ../src/terminal-window.c:2475
+msgid "_Send Mail To…"
+msgstr "_Seol Post Chuig..."
+
+#: ../src/terminal-window.c:2478
+msgid "_Copy E-mail Address"
+msgstr "_Cóipeáil Seoladh Ríomhphoist"
+
+#: ../src/terminal-window.c:2481
+msgid "C_all To…"
+msgstr "C_uir Glaoch Ar..."
+
+#: ../src/terminal-window.c:2484
+msgid "_Copy Call Address"
+msgstr "_Cóipeáil Seoladh Glaoigh"
+
+#: ../src/terminal-window.c:2487
+msgid "_Open Link"
+msgstr "_Oscail Nasc"
+
+#: ../src/terminal-window.c:2490
+msgid "_Copy Link Address"
+msgstr "_Cóipeáil Seoladh an Naisc"
+
+#: ../src/terminal-window.c:2493
+msgid "P_rofiles"
+msgstr "_Próifílí"
+
+#: ../src/terminal-window.c:2506
+msgid "L_eave Full Screen"
+msgstr "_Fág Lánscáileán"
+
+#. View Menu
+#: ../src/terminal-window.c:2514
+msgid "Show _Menubar"
+msgstr "Taispeáin _Barra Roghchláir"
+
+#: ../src/terminal-window.c:2518
+msgid "_Full Screen"
+msgstr "_Lánscáileán"
+
+#: ../src/terminal-window.c:3569
+msgid "Close this window?"
+msgstr "Dún an fhuinneog seo?"
+
+#: ../src/terminal-window.c:3569
+msgid "Close this terminal?"
+msgstr "Dún an teirminéal seo?"
+
+#: ../src/terminal-window.c:3573
+msgid ""
+"There are still processes running in some terminals in this window. Closing "
+"the window will kill all of them."
+msgstr ""
+"Tá próisis fós á rith i dteirminéil éigin san fhuinneog seo. Maróidh dúnadh "
+"na fuinneoige gach ceann acu."
+
+#: ../src/terminal-window.c:3577
+msgid ""
+"There is still a process running in this terminal. Closing the terminal will "
+"kill it."
+msgstr ""
+"Tá próiseas fós á rith sa teirminéal seo. Maróidh dúnadh an teirminéil é."
+
+#: ../src/terminal-window.c:3582
+msgid "C_lose Window"
+msgstr "_Dún Fuinneog"
+
+#: ../src/terminal-window.c:3582
+msgid "C_lose Terminal"
+msgstr "_Dún Teirminéal"

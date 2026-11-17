@@ -1,0 +1,183 @@
+<!DOCTYPE node PUBLIC
+'-//freedesktop//DTD D-BUS Object Introspection 1.0//EN'
+'http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd'>
+<node>
+
+  <!--
+      org.gnome.RemoteDesktop:
+      @short_description: Remote desktop interface
+
+      This API is intended to report the status of the
+      remote desktop daemon.
+      No compatibility between versions is promised.
+  -->
+  <interface name="org.gnome.RemoteDesktop">
+
+    <property name="RuntimeMode" type="s" access="read" />
+
+  </interface>
+
+  <!--
+      org.gnome.RemoteDesktop.Rdp.Server:
+      @short_description: RDP server interface
+
+      This API is intended to report status about the RDP server.
+      No compatibility between versions is promised.
+  -->
+  <interface name="org.gnome.RemoteDesktop.Rdp.Server">
+
+    <property name="Enabled" type="b" access="read" />
+    <property name="Port" type="i" access="read" />
+    <property name="NegotiatePort" type="b" access="read" />
+    <property name="TlsCert" type="s" access="read" />
+    <property name="TlsFingerprint" type="s" access="read" />
+    <property name="TlsKey" type="s" access="read" />
+    <property name="ViewOnly" type="b" access="read" />
+
+    <method name="Enable" />
+
+    <method name="Disable" />
+
+    <method name="GetCredentials">
+      <arg name="credentials" direction="out" type="a{sv}" />
+    </method>
+
+    <method name="SetCredentials">
+      <arg name="credentials" direction="in" type="a{sv}" />
+    </method>
+
+    <method name="ExportCertificate">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true" />
+      <arg name="Certificate" type="(sh)" direction="out" />
+      <arg name="PrivateKey" type="(sh)" direction="out" />
+    </method>
+
+    <method name="ImportCertificate">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true" />
+      <arg name="Certificate" type="(sh)" direction="in" />
+      <arg name="PrivateKey" type="(sh)" direction="in" />
+    </method>
+
+    <!--
+        Binding:
+
+        Signal to inform that the RDP server is currently attempting to bind
+        the port passed as an argument.
+    -->
+    <signal name="Binding">
+      <arg name="port" type="i" />
+    </signal>
+
+  </interface>
+
+  <!--
+      org.gnome.RemoteDesktop.Vnc.Server:
+      @short_description: VNC server interface
+
+      This API is intended to report status about the VNC server.
+      No compatibility between versions is promised.
+  -->
+  <interface name="org.gnome.RemoteDesktop.Vnc.Server">
+
+    <property name="Enabled" type="b" access="read" />
+    <property name="Port" type="i" access="read" />
+    <property name="NegotiatePort" type="b" access="read" />
+    <property name="AuthMethod" type="s" access="read" />
+    <property name="ViewOnly" type="b" access="read" />
+
+  </interface>
+
+  <!--
+      org.gnome.RemoteDesktop.Rdp.Dispatcher:
+      @short_description: Dispatcher interface
+
+      This API is intended to be used to dispatch remote
+      desktop client connections from the system to a specific
+      session.
+      No compatibility between versions is promised.
+  -->
+  <interface name="org.gnome.RemoteDesktop.Rdp.Dispatcher">
+
+    <!--
+        RequestHandover:
+
+        Looks if there is an active client waiting to be handed over to
+        the session.
+    -->
+    <method name="RequestHandover">
+      <arg name="handover" direction="out" type="o" />
+    </method>
+
+  </interface>
+
+  <!--
+      org.gnome.RemoteDesktop.Rdp.Handover:
+      @short_description: Handover interface
+
+      This API is intended to be used to process a Handover of an RDP client 
+      between two grd-daemons.
+      No compatibility between versions is promised.
+  -->
+  <interface name="org.gnome.RemoteDesktop.Rdp.Handover">
+
+    <!--
+        StartHandover:
+
+        The dst server is ready and starts the handover process, sending its
+        one time username/password and getting the certificate and key used
+        by the system server.
+    -->
+    <method name="StartHandover">
+      <arg name="username" direction="in" type="s" />
+      <arg name="password" direction="in" type="s" />
+      <arg name="certificate" direction="out" type="s" />
+      <arg name="key" direction="out" type="s" />
+    </method>
+
+    <!--
+        RedirectClient:
+
+        Signal to make the src server send the Server Redirection PDU with the
+        routing token and one time username/password to the client.
+    -->
+    <signal name="RedirectClient">
+      <arg name="routing_token" type="s" />
+      <arg name="username" type="s" />
+      <arg name="password" type="s" />
+    </signal>
+
+    <!--
+        TakeClientReady:
+
+        Signal to make the dst server aware that the client was redirected
+        successfully and is ready to be taken.
+    -->
+    <signal name="TakeClientReady">
+      <arg name="use_system_credentials" type="b" />
+    </signal>
+
+    <!--
+        TakeClient:
+
+        The dst server takes the file descriptor which has the active
+        connection of the redirected client.
+    -->
+    <method name="TakeClient">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true" />
+      <arg name="fd" direction="out" type="h" />
+    </method>
+
+    <!--
+        GetSystemCredentials:
+
+        Get the system credentials to be used instead of the one-time
+        generated to authenticate the redirected client.
+    -->
+    <method name="GetSystemCredentials">
+      <arg name="username" direction="out" type="s" />
+      <arg name="password" direction="out" type="s" />
+    </method>
+
+  </interface>
+
+</node>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcSystemPanel" parent="CcPanel">
+    <child type="child">
+      <object class="AdwNavigationView" id="navigation">
+
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">System</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+
+                        <child>
+                          <object class="CcListRow" id="region_row">
+                            <property name="title" translatable="yes">_Region &amp;amp; Language</property>
+                            <property name="subtitle" translatable="yes">System language and localization</property>
+                            <property name="icon-name">org.gnome.Settings-region-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <signal name="activated" handler="on_page_activated"/>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow" id="datetime_row">
+                            <property name="title" translatable="yes">_Date &amp;amp; Time</property>
+                            <property name="subtitle" translatable="yes">Time zone and clock settings</property>
+                            <property name="icon-name">org.gnome.Settings-time-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <signal name="activated" handler="on_page_activated"/>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow" id="users_row">
+                            <property name="title" translatable="yes">_Users</property>
+                            <property name="subtitle" translatable="yes">Add and remove accounts, change password</property>
+                            <property name="icon-name">org.gnome.Settings-users-symbolic</property>
+                            <property name="use-underline">True</property>
+                            <property name="show-arrow">True</property>
+                            <signal name="activated" handler="on_page_activated"/>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow" id="remote_desktop_row">
+                            <property name="title" translatable="yes">R_emote Desktop</property>
+                            <property name="subtitle" translatable="yes">Allow this device to be used remotely</property>
+                            <property name="icon-name">org.gnome.Settings-remote-desktop-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <signal name="activated" handler="on_page_activated"/>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow">
+                            <property name="title" translatable="yes">Secu_re Shell</property>
+                            <property name="subtitle" translatable="yes">SSH network access</property>
+                            <property name="icon-name">utilities-terminal-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <signal name="activated" handler="on_secure_shell_row_clicked" object="CcSystemPanel" swapped="yes"/>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow" id="about_row">
+                            <property name="title" translatable="yes">_About</property>
+                            <property name="subtitle" translatable="yes">Hardware details and software versions</property>
+                            <property name="icon-name">org.gnome.Settings-about-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <signal name="activated" handler="on_page_activated"/>
+                          </object>
+                        </child>
+
+                      </object>
+                    </child>
+                    <child>
+                      <!-- Software Updates -->
+                      <object class="AdwPreferencesGroup" id="software_updates_group">
+                        <property name="visible">False</property>
+                        <child>
+                          <object class="AdwActionRow">
+                            <property name="activatable">True</property>
+                            <property name="title" translatable="yes">Software _Updates</property>
+                            <property name="icon-name">update-symbolic</property>
+                            <property name="use-underline">True</property>
+                            <signal name="activated" handler="cc_system_page_open_software_update" swapped="yes"/>
+                            <child type="suffix">
+                              <object class="GtkImage">
+                                <property name="valign">center</property>
+                                <property name="icon-name">adw-external-link-symbolic</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,0 +1,79 @@
+<!--
+Copyright 2023 Zander Brown
+
+This library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this library.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Vte Docs</title>
+        <style>
+            * {
+                color-scheme: dark;
+            }
+
+            body {
+                background: #241f31;
+                display: grid;
+                grid-template: "title title" 1fr "gtk3 gtk4" 1fr / 1fr 1fr;
+                gap: 2em 2em;
+                padding: 0;
+                margin: 0;
+                min-height: 100vh;
+                font-family: "Cantarell", -apple-system, BlinkMacSystemFont, "Helvetica", sans-serif;
+            }
+
+            h1 {
+                grid-area: title;
+                align-self: end;
+                justify-self: center;
+            }
+
+            .doc-card {
+                align-self: start;
+                padding: 5rem;
+                background: #5e5c64;
+                padding: 2em 3em;
+                border-radius: 0.5em;
+                color: #ffffff;
+                text-decoration: none;
+                transition: background 0.4s ease-in-out;
+            }
+
+            .doc-card:hover {
+                background: #77767b;
+            }
+
+            .gtk3 {
+                justify-self: end;
+                grid-area: gtk3;
+            }
+
+            .gtk4 {
+                justify-self: start;
+                grid-area: gtk4;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Vte Documentation</h1>
+        <a href="gtk3/index.html" class="doc-card gtk3">Gtk 3</a>
+        <a href="gtk4/index.html" class="doc-card gtk4">Gtk 4</a>
+    </body>
+
+</html>

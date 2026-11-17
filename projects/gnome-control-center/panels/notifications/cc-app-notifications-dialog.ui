@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcAppNotificationsDialog" parent="AdwWindow">
+    <property name="default-width">550</property>
+    <property name="default-height">450</property>
+    <property name="width-request">360</property>
+    <property name="resizable">True</property>
+    <property name="modal">True</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="notifications_row">
+                    <property name="use-underline">True</property>
+                    <property name="title" translatable="yes" context="notifications" comments="This is the per app switch for message tray usage.">_Notifications</property>
+                    <signal name="notify::active" handler="notifications_row_state_set_cb" object="CcAppNotificationsDialog" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="sound_alerts_row">
+                    <property name="use-underline">True</property>
+                    <property name="title" translatable="yes" context="notifications" comments="This is the setting to configure sounds associated with notifications.">Sound _Alerts</property>
+                    <signal name="notify::active" handler="sound_alerts_row_state_set_cb" object="CcAppNotificationsDialog" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="notification_banners_row">
+                    <property name="use-underline">True</property>
+                    <property name="title" translatable="yes" context="notifications">Notification _Popups</property>
+                    <property name="subtitle" translatable="yes">Notifications will continue to appear in the notification list when popups are disabled</property>
+                    <signal name="notify::active" handler="notification_banners_row_state_set_cb" object="CcAppNotificationsDialog" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="notification_banners_content_row">
+                    <property name="use-underline">True</property>
+                    <property name="title" translatable="yes" context="notifications" comments="Popups here refers to message tray notifications in the middle of the screen.">Show Message _Content in Popups</property>
+                    <signal name="notify::active" handler="notification_banners_content_row_state_set_cb" object="CcAppNotificationsDialog" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="lock_screen_notifications_row">
+                    <property name="use-underline">True</property>
+                    <property name="title" translatable="yes" context="notifications">_Lock Screen Notifications</property>
+                    <signal name="notify::active" handler="lock_screen_notifications_row_state_set_cb" object="CcAppNotificationsDialog" swapped="yes"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="lock_screen_content_row">
+                    <property name="use-underline">True</property>
+                    <property name="title" translatable="yes" context="notifications">Show Message C_ontent on Lock Screen</property>
+                    <signal name="notify::active" handler="lock_screen_content_row_state_set_cb" object="CcAppNotificationsDialog" swapped="yes"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

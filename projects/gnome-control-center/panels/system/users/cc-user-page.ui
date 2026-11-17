@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcUserPage" parent="AdwNavigationPage">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="CcPermissionInfobar" id="permission_infobar"/>
+            </child>
+            <child>
+              <object class="AdwPreferencesPage">
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="GtkOverlay">
+                        <property name="halign">center</property>
+                        <property name="sensitive" bind-source="CcUserPage" bind-property="editable" bind-flags="sync-create"/>
+                        <property name="has-tooltip" bind-source="CcUserPage" bind-property="editable" bind-flags="invert-boolean"/>
+                        <property name="tooltip-text" translatable="yes">Unlock to Change This Setting</property>
+                        <child>
+                          <object class="AdwAvatar" id="avatar">
+                            <property name="show-initials">True</property>
+                            <property name="size">120</property>
+                            <property name="halign">center</property>
+                          </object>
+                        </child>
+                        <child type="overlay">
+                          <object class="AdwBin">
+                            <style>
+                              <class name="cutout-button"/>
+                            </style>
+                            <property name="halign">end</property>
+                            <property name="valign">end</property>
+                            <child>
+                              <object class="GtkMenuButton" id="avatar_edit_button">
+                                <property name="tooltip-text" translatable="yes">Change Avatar</property>
+                                <property name="icon-name">document-edit-symbolic</property>
+                                <style>
+                                  <class name="circular"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child type="overlay">
+                          <object class="AdwBin">
+                            <style>
+                              <class name="cutout-button"/>
+                            </style>
+                            <property name="halign">end</property>
+                            <property name="valign">start</property>
+                            <child>
+                              <object class="GtkButton" id="avatar_remove_button">
+                                <property name="tooltip-text" translatable="yes">Remove Avatar</property>
+                                <property name="icon-name">user-trash-symbolic</property>
+                                <signal name="clicked" handler="remove_avatar" object="CcUserPage" swapped="yes"/>
+                                <style>
+                                  <class name="circular"/>
+                                  <class name="destructive-image-button"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+
+                    <child>
+                      <object class="AdwEntryRow" id="fullname_row">
+                        <property name="sensitive" bind-source="CcUserPage" bind-property="editable" bind-flags="sync-create"/>
+                        <property name="has-tooltip" bind-source="CcUserPage" bind-property="editable" bind-flags="invert-boolean"/>
+                        <property name="tooltip-text" translatable="yes">Unlock to Change This Setting</property>
+                        <property name="input-purpose">name</property>
+                        <property name="show-apply-button">True</property>
+                        <property name="title" translatable="yes">_Name</property>
+                        <property name="use-underline">True</property>
+                        <signal name="apply" handler="fullname_entry_apply_cb" object="CcUserPage" swapped="yes"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="CcListRow" id="password_row">
+                        <property name="sensitive" bind-source="CcUserPage" bind-property="editable" bind-flags="sync-create"/>
+                        <property name="has-tooltip" bind-source="CcUserPage" bind-property="editable" bind-flags="invert-boolean"/>
+                        <property name="tooltip-text" translatable="yes">Unlock to Change This Setting</property>
+                        <property name="activatable">True</property>
+                        <property name="title" translatable="yes">Pa_ssword</property>
+                        <property name="use_underline">True</property>
+                        <property name="show-arrow">True</property>
+                        <signal name="activated" handler="change_password" object="CcUserPage" swapped="yes"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="CcListRow" id="fingerprint_row">
+                        <property name="sensitive" bind-source="CcUserPage" bind-property="editable" bind-flags="sync-create"/>
+                        <property name="has-tooltip" bind-source="CcUserPage" bind-property="editable" bind-flags="invert-boolean"/>
+                        <property name="tooltip-text" translatable="yes">Unlock to Change This Setting</property>
+                        <property name="visible">False</property>
+                        <property name="title" translatable="yes">_Fingerprint Login</property>
+                        <property name="use_underline">True</property>
+                        <property name="activatable">True</property>
+                        <property name="show-arrow">True</property>
+                        <signal name="activated" handler="change_fingerprint" object="CcUserPage" swapped="yes"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwSwitchRow" id="auto_login_row">
+                        <property name="title" translatable="yes">A_utomatic Login</property>
+                        <property name="use-underline">True</property>
+                        <property name="sensitive" bind-source="CcUserPage" bind-property="locked" bind-flags="invert-boolean"/>
+                        <property name="has-tooltip" bind-source="CcUserPage" bind-property="locked" bind-flags="sync-create"/>
+                        <property name="tooltip-text" translatable="yes">Unlock to Change This Setting</property>
+                        <signal name="notify::active" handler="autologin_changed" object="CcUserPage" swapped="yes"/>
+                      </object>
+                    </child>
+
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwPreferencesGroup" id="account_settings_box">
+                    <child>
+                      <object class="CcListRow" id="account_type_row">
+                        <property name="sensitive" bind-source="CcUserPage" bind-property="editable" bind-flags="sync-create"/>
+                        <property name="has-tooltip" bind-source="CcUserPage" bind-property="editable" bind-flags="invert-boolean"/>
+                        <property name="tooltip-text" translatable="yes">Unlock to Change This Setting</property>
+                        <property name="title" translatable="yes">_Administrator</property>
+                        <property name="subtitle-lines">0</property>
+                        <property name="use_underline">True</property>
+                        <child type="suffix">
+                          <object class="CcListRowInfoButton">
+                            <property name="valign">center</property>
+                            <property name="text" translatable="yes">Administrators have extra abilities, including adding and removing users, changing login settings, and removing software. Parental controls cannot be applied to administrators.</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSwitch" id="account_type_switch">
+                            <property name="valign">center</property>
+                            <signal name="notify::active" handler="account_type_changed" object="CcUserPage" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="CcListRow" id="parental_controls_row">
+                        <property name="title" translatable="yes">_Parental Controls</property>
+                        <property name="subtitle" translatable="yes">Open the Parental Controls app</property>
+                        <property name="subtitle-lines">0</property>
+                        <property name="use_underline">True</property>
+                        <property name="activatable">True</property>
+                        <property name="show-arrow">True</property>
+                        <property name="visible">False</property>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="CcListRow" id="language_row">
+                        <property name="sensitive" bind-source="CcUserPage" bind-property="editable" bind-flags="sync-create"/>
+                        <property name="has-tooltip" bind-source="CcUserPage" bind-property="editable" bind-flags="invert-boolean"/>
+                        <property name="tooltip-text" translatable="yes">Unlock to Change This Setting</property>
+                        <property name="title" translatable="yes">_Language</property>
+                        <property name="use_underline">True</property>
+                        <property name="activatable">True</property>
+                        <property name="show-arrow">True</property>
+                        <signal name="activated" handler="change_language" object="CcUserPage" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="GtkBox" id="action_area">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">12</property>
+
+                        <child>
+                          <object class="GtkButton" id="remove_user_button">
+                            <property name="visible" bind-source="CcUserPage" bind-property="is-current-user" bind-flags="invert-boolean"/>
+                            <property name="sensitive" bind-source="CcUserPage" bind-property="editable" bind-flags="sync-create"/>
+                            <property name="label" translatable="yes">_Remove User</property>
+                            <property name="use-underline">True</property>
+                            <property name="halign">center</property>
+                            <signal name="clicked" handler="remove_user" object="CcUserPage" swapped="yes"/>
+                            <style>
+                              <class name="destructive-action"/>
+                              <class name="pill"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
+  <object class="AdwMessageDialog" id="remove_local_user_dialog">
+    <property name="modal">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="body" translatable="yes">The user will not be able to use this device once their account has been removed</property>
+    <property name="default-response">cancel</property>
+    <property name="close-response">cancel</property>
+    <signal name="response" handler="remove_local_user_response" object="CcUserPage" swapped="yes"/>
+    <responses>
+      <response id="cancel" translatable="yes">_Cancel</response>
+      <response id="remove" translatable="yes" appearance="destructive">_Remove</response>
+    </responses>
+    <child type="extra-child">
+      <object class="AdwPreferencesGroup">
+        <child>
+          <object class="AdwSwitchRow" id="remove_local_files_choice">
+            <property name="title" translatable="yes">_Delete Files and Settings</property>
+            <property name="use-underline">True</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

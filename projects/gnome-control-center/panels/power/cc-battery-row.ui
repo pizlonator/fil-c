@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CcBatteryRow" parent="GtkListBoxRow">
+    <property name="selectable">False</property>
+    <property name="activatable">False</property>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="valign">center</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">16</property>
+        <property name="margin-bottom">14</property>
+        <property name="spacing">10</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">12</property>
+            <child>
+              <object class="GtkBox" id="battery_box">
+                <property name="orientation">horizontal</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkLabel" id="name_label">
+                    <property name="ellipsize">end</property>
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage" id="icon">
+                    <property name="halign">end</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="percentage_label">
+                <property name="halign">end</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLevelBar" id="levelbar">
+                <property name="hexpand">True</property>
+                <property name="halign">fill</property>
+                <property name="valign">center</property>
+                <offsets>
+                  <offset name="warning-battery-offset" value="0.03"/>
+                  <offset name="low-battery-offset" value="0.1"/>
+                  <offset name="high-battery-offset" value="1.0"/>
+                </offsets>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="primary_bottom_box">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkLabel" id="details_label">
+                <property name="hexpand">True</property>
+                <property name="ellipsize">end</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="primary_percentage_label" />
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
+

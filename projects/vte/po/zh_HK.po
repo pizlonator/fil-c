@@ -1,0 +1,126 @@
+# Chinese (Hong Kong) translation of vte.
+# Copyright (C) 2003, 06, 07 Free Software Foundation, Inc.
+# Abel Cheung <abel@oaka.org>, 2003, 06.
+#
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vte 0.25.90\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=vte&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2014-08-20 22:48+0000\n"
+"PO-Revision-Date: 2014-08-21 19:02+0800\n"
+"Last-Translator: Chao-Hsiung Liao <j_h_liau@yahoo.com.tw>\n"
+"Language-Team: Chinese (Hong Kong) <community@linuxhall.org>\n"
+"Language: zh_HK\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.5\n"
+
+#: ../src/app.ui.h:1
+msgid "Copy"
+msgstr "複製"
+
+#: ../src/app.ui.h:2
+msgid "Paste"
+msgstr "貼上"
+
+#: ../src/app.ui.h:3
+msgid "Reset (use Ctrl to reset and clear)"
+msgstr "重設 (使用 Ctrl 以重設並清除)"
+
+#: ../src/app.ui.h:4
+msgid "Reset"
+msgstr "重設"
+
+#: ../src/app.ui.h:5
+msgid "Toggle input enabled setting"
+msgstr "切換啟用輸入的設定值"
+
+#: ../src/app.ui.h:6
+msgid "Input"
+msgstr "輸入"
+
+#: ../src/iso2022.c:791 ../src/iso2022.c:799 ../src/iso2022.c:830
+#: ../src/vte.c:2003
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "無法將字符從 %s 轉換至 %s。"
+
+#: ../src/iso2022.c:1496
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "嘗試設定無效的 NRC 字符映射‘%c’。"
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1526
+msgid "Unrecognized identified coding system."
+msgstr "無法辨認編碼系統。"
+
+#: ../src/iso2022.c:1585 ../src/iso2022.c:1612
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "嘗試設定無效的多位元組 NRC 字符映射‘%c’。"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:1028
+msgid "Could not open console.\n"
+msgstr "無法開啟文字模式視窗。\n"
+
+#: ../src/vteapp.c:1138
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "無法分析傳遞給 --geometry 的坐標資料"
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4223
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "從副進程讀取資料時出現錯誤：%s"
+
+#: ../src/vte.c:4359
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "無法傳送資料至副進程，無效的字符轉換程式"
+
+#: ../src/vte.c:4370 ../src/vte.c:5388
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "從副進程轉換資料時出現錯誤 (%s)，放棄。"
+
+#: ../src/vte.c:7689
+#, c-format
+msgid "Error reading PTY size, using defaults: %s\n"
+msgstr "無法讀取 PTY 的大小，改用預設值：%s\n"
+
+#~ msgid "Duplicate (%s/%s)!"
+#~ msgstr "重複 (%s/%s)！"
+
+#~ msgid "Error compiling regular expression \"%s\"."
+#~ msgstr "計算正規表示式‘%s’時出現錯誤。"
+
+#~ msgid "_vte_conv_open() failed setting word characters"
+#~ msgstr "_vte_conv_open() 無法轉換字元"
+
+#~ msgid "can not run %s"
+#~ msgstr "無法執行 %s"
+
+#~ msgid "Error setting PTY size: %s."
+#~ msgstr "無法設定 PTY 的大小：%s。"
+
+#~ msgid "Error creating signal pipe."
+#~ msgstr "建立訊號管道出現錯誤。"
+
+#~ msgid "No handler for control sequence `%s' defined."
+#~ msgstr "未指定控制字元序列‘%s’的處理方式。"
+
+#~ msgid "Got unexpected (key?) sequence `%s'."
+#~ msgstr "收到預料之外的跳出字元序列（可能是按鍵？）‘%s’。"
+
+#~ msgid "Unknown pixel mode %d.\n"
+#~ msgstr "不明的像素模式 %d。\n"
+
+#~ msgid "Can not find appropiate font for character U+%04x.\n"
+#~ msgstr "無法找到字元 U+%04x 相應的字型。\n"
+
+#~ msgid "Error adding `%s' to environment, continuing."
+#~ msgstr "加入「%s」環境變數時出現錯誤，將會繼續。"

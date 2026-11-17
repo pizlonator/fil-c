@@ -1,0 +1,2575 @@
+# Ukrainian translation of profterm module.
+# Copyright (C) 2002 Free Software Foundation, Inc.
+#
+# Yuriy Syrota <yuri@renome.rovno.ua>, 2002.
+# Maxim Dziumanenko <dziumanenko@gmail.com>, 2003-2010.
+# Daniel Korostil <ted.korostiled@gmail.com>, 2013, 2014, 2015, 2016.
+# Danylo Korostil <ted.korostiled@gmail.com>, 2019.
+# Yuri Chornoivan <yurchor@ukr.net>, 2020, 2021, 2022, 2023, 2024.
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-terninal\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gnome-terminal/issues/\n"
+"POT-Creation-Date: 2024-10-03 19:48+0000\n"
+"PO-Revision-Date: 2024-10-04 19:02+0300\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2\n"
+"X-Generator: Lokalize 23.04.3\n"
+"X-Project-Style: gnome\n"
+
+#: data/org.gnome.Terminal.desktop.in:3
+#: data/org.gnome.Terminal.metainfo.xml.in:37 src/server.cc:184
+#: src/terminal-accels.cc:232 src/terminal-menubar.ui.in:144
+#: src/terminal-tab-label.cc:82 src/terminal-window.cc:1903
+#: src/terminal-window.cc:2207 src/terminal-window.cc:2522 src/terminal.cc:598
+msgid "Terminal"
+msgstr "Термінал"
+
+#: data/org.gnome.Terminal.desktop.in:4
+#: data/org.gnome.Terminal.metainfo.xml.in:38
+msgid "Use the command line"
+msgstr "Командний рядок"
+
+#: data/org.gnome.Terminal.desktop.in:5
+#: data/org.gnome.Terminal.Preferences.desktop.in:8
+msgid "shell;prompt;command;commandline;cmd;"
+msgstr ""
+"shell;prompt;command;commandline;cmd;оболонка;командний;рядок;команда;"
+
+#: data/org.gnome.Terminal.desktop.in:18 src/terminal-accels.cc:127
+msgid "New Window"
+msgstr "Нове вікно"
+
+#: data/org.gnome.Terminal.desktop.in:22 src/terminal-accels.cc:146
+msgid "Preferences"
+msgstr "Параметри"
+
+#: data/org.gnome.Terminal.Preferences.desktop.in:4
+msgid "Configure the command line"
+msgstr "Налаштувати командний рядок"
+
+#: data/org.gnome.Terminal.Preferences.desktop.in:9 src/prefs-main.cc:146
+msgid "Terminal Preferences"
+msgstr "Параметри «Термінала»"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:34
+#: data/org.gnome.Terminal.metainfo.xml.in:67
+msgid "org.gnome.Terminal.desktop"
+msgstr "org.gnome.Terminal.desktop"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:35
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:36
+msgid "GPL-3.0+ or GFDL-1.3-only"
+msgstr "GPL-3.0+ або GFDL-1.3-only"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:36
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:37
+msgid "GPL-3.0+"
+msgstr "GPL-3.0+"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:40
+msgid ""
+"GNOME Terminal is a terminal emulator application for accessing a UNIX shell "
+"environment which can be used to run programs available on your system."
+msgstr ""
+"GNOME Terminal — програма для емулювання термінала, щоб доступитись до "
+"оболонки UNIX, яку можна використати для запускання програм, що доступні на "
+"вашій системі."
+
+#: data/org.gnome.Terminal.metainfo.xml.in:41
+msgid ""
+"It supports several profiles, multiple tabs and implements several keyboard "
+"shortcuts."
+msgstr ""
+"Підтримуються кілька профілів, кілька вкладок і різні клавіатурні скорочення."
+
+#: data/org.gnome.Terminal.metainfo.xml.in:44
+msgid "console"
+msgstr "консоль"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:45
+msgid "keyboard"
+msgstr "клавіатура"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:46
+msgid "pointing"
+msgstr "зазначення"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:50
+msgid ""
+"https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal.png"
+msgstr ""
+"https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal.png"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:54
+msgid "HiDpiIcon"
+msgstr "HiDpiIcon"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:55
+msgid "HighContrast"
+msgstr "HighContrast"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:56
+msgid "ModernToolkit"
+msgstr "ModernToolkit"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:57
+msgid "SearchProvider"
+msgstr "SearchProvider"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:58
+msgid "UserDocs"
+msgstr "UserDocs"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:60
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:43
+#| msgid ""
+#| "https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal."
+#| "png"
+msgid "https://gitlab.gnome.org/GNOME/gnome-terminal/-/wikis/home"
+msgstr "https://gitlab.gnome.org/GNOME/gnome-terminal/-/wikis/home"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:61
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:44
+#| msgid ""
+#| "https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal."
+#| "png"
+msgid "https://gitlab.gnome.org/GNOME/gnome-terminal/-/issues"
+msgstr "https://gitlab.gnome.org/GNOME/gnome-terminal/-/issues"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:62
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:45
+#| msgid "https://wiki.gnome.org/Apps/Terminal"
+msgid "https://gitlab.gnome.org/GNOME/gnome-terminal/-/wikis/FAQ"
+msgstr "https://gitlab.gnome.org/GNOME/gnome-terminal/-/wikis/FAQ"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:63
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:46
+#| msgid ""
+#| "https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal."
+#| "png"
+msgid "https://help.gnome.org/users/gnome-terminal/stable/"
+msgstr "https://help.gnome.org/users/gnome-terminal/stable/"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:64
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:47
+#| msgid "https://wiki.gnome.org/Apps/Terminal"
+msgid "https://l10n.gnome.org/module/gnome-terminal/"
+msgstr "https://l10n.gnome.org/module/gnome-terminal/"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:65
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:48
+#| msgid "https://wiki.gnome.org/Apps/Terminal"
+msgid "https://gitlab.gnome.org/GNOME/gnome-terminal"
+msgstr "https://gitlab.gnome.org/GNOME/gnome-terminal"
+
+#. This is the name of a colour scheme
+#: data/org.gnome.Terminal.metainfo.xml.in:66
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:49 src/preferences.ui:214
+msgid "GNOME"
+msgstr "GNOME"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:68
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:50
+msgid "gnome-terminal"
+msgstr "gnome-terminal"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:34
+msgid "org.gnome.Terminal.Nautilus"
+msgstr "org.gnome.Terminal.Nautilus"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:35
+msgid "org.gnome.Nautilus.desktop"
+msgstr "org.gnome.Nautilus.desktop"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:38
+msgid "Terminal plugin for Files"
+msgstr "Додаток для Файлів"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:39
+msgid "Open a terminal from Files"
+msgstr "Відкрити термінал з Файлів"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:41
+msgid ""
+"Open Terminal is a plugin for the Files application that adds a menu item to "
+"the context menu to open a terminal in the currently browsed directory."
+msgstr ""
+"Відкрити термінал — додаток для програми Файли, яка додає пункт в контекстне "
+"меню, щоб відкривати термінал у поточному каталозі."
+
+#. Translators: This needs to be parsed as a GVariant string, so keep the regular single quotes around the string as-is, and do not add extra quotes.
+#: src/org.gnome.Terminal.gschema.xml:133
+msgctxt "visible-name"
+msgid "'Unnamed'"
+msgstr "'Без назви'"
+
+#: src/org.gnome.Terminal.gschema.xml:134
+msgid "Human-readable name of the profile"
+msgstr "Зрозуміла людині назва профілю"
+
+#: src/org.gnome.Terminal.gschema.xml:135
+msgid "Human-readable name of the profile."
+msgstr "Зрозуміла людині назва профілю."
+
+#: src/org.gnome.Terminal.gschema.xml:139
+msgid "Default color of text in the terminal"
+msgstr "Типовий колір тексту у терміналі"
+
+#: src/org.gnome.Terminal.gschema.xml:140
+msgid ""
+"Default color of text in the terminal, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr ""
+"Типовий колір тексту термінала, у вигляді шістнадцяткових цифр (як у HTML), "
+"або назви кольору (наприклад «red»)."
+
+#: src/org.gnome.Terminal.gschema.xml:144
+msgid "Default color of terminal background"
+msgstr "Типовий колір тла термінала"
+
+#: src/org.gnome.Terminal.gschema.xml:145
+msgid ""
+"Default color of terminal background, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr ""
+"Типовий колір тла термінала, у вигляді шістнадцяткових цифр (як у HTML), або "
+"назви кольору (наприклад «red»)."
+
+#: src/org.gnome.Terminal.gschema.xml:149
+msgid "Default color of bold text in the terminal"
+msgstr "Типовий колір тексту з жирним накресленням у терміналі"
+
+#: src/org.gnome.Terminal.gschema.xml:150
+msgid ""
+"Default color of bold text in the terminal, as a color specification (can be "
+"HTML-style hex digits, or a color name such as “red”). This is ignored if "
+"bold-color-same-as-fg is true."
+msgstr ""
+"Типовий колір тексту з жирним накресленням у терміналі, у вигляді "
+"шістнадцяткових цифр (в стилі HTML), або назви кольору (наприклад, «red»). "
+"Значення ігнорується, якщо вказано bold-color-same-as-fg."
+
+#: src/org.gnome.Terminal.gschema.xml:154
+msgid "Whether bold text should use the same color as normal text"
+msgstr ""
+"Чи текст з жирним накресленням виводиться тим самим кольором, що й звичайний "
+"текст"
+
+#: src/org.gnome.Terminal.gschema.xml:155
+msgid ""
+"If true, boldface text will be rendered using the same color as normal text."
+msgstr ""
+"Якщо встановлено, текст з жирним накресленням виводиться тим самим кольором, "
+"що й звичайний текст."
+
+#: src/org.gnome.Terminal.gschema.xml:160
+msgid ""
+"Scale factor for the cell height to increase line spacing. (Does not "
+"increase the font’s height.)"
+msgstr ""
+"Коефіцієнт масштабу висоти комірки для збільшення відстані між рядками. (Не "
+"збільшує висоту шрифту.)"
+
+#: src/org.gnome.Terminal.gschema.xml:165
+msgid ""
+"Scale factor for the cell width to increase letter spacing. (Does not "
+"increase the font’s width.)"
+msgstr ""
+"Коефіцієнт масштабу ширини комірки, для збільшення інтервалу між літерами. "
+"(Не збільшує ширину шрифту.)"
+
+#: src/org.gnome.Terminal.gschema.xml:169
+msgid "Whether to use custom cursor colors"
+msgstr "Чи використовувати власний колір курсора"
+
+#: src/org.gnome.Terminal.gschema.xml:170
+msgid "If true, use the cursor colors from the profile."
+msgstr "Якщо встановлено, можете використовувати кольори курсора з профілю."
+
+#: src/org.gnome.Terminal.gschema.xml:174
+msgid "Cursor background color"
+msgstr "Колір тла курсора"
+
+#: src/org.gnome.Terminal.gschema.xml:175
+msgid ""
+"Custom color of the background of the terminal’s cursor, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if cursor-colors-set is false."
+msgstr ""
+"Власний колір тла курсору термінала, у вигляді шістнадцяткових цифр (в стилі "
+"HTML), або назви кольору (наприклад, «red»). Значення не ігнорується, якщо "
+"вказано cursor-colors-set."
+
+#: src/org.gnome.Terminal.gschema.xml:179
+msgid "Cursor foreground colour"
+msgstr "Колір курсора"
+
+#: src/org.gnome.Terminal.gschema.xml:180
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"cursor position, as a color specification (can be HTML-style hex digits, or "
+"a color name such as “red”). This is ignored if cursor-colors-set is false."
+msgstr ""
+"Власний колір курсору термінала, у вигляді шістнадцяткових цифр (в стилі "
+"HTML), або назви кольору (наприклад, «red»). Значення не ігнорується, якщо "
+"вказано cursor-colors-set."
+
+#: src/org.gnome.Terminal.gschema.xml:184
+msgid "Whether to use custom highlight colors"
+msgstr "Чи використовувати власний колір підкреслення"
+
+#: src/org.gnome.Terminal.gschema.xml:185
+msgid "If true, use the highlight colors from the profile."
+msgstr ""
+"Якщо встановлено, можете використовувати кольори підкреслення з профілю."
+
+#: src/org.gnome.Terminal.gschema.xml:189
+msgid "Highlight background color"
+msgstr "Колір тла підкреслення"
+
+#: src/org.gnome.Terminal.gschema.xml:190
+msgid ""
+"Custom color of the background of the terminal’s highlight, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if highlight-colors-set is false."
+msgstr ""
+"Власний колір тла підкреслення термінала, у вигляді шістнадцяткових цифр (в "
+"стилі HTML), або назви кольору (наприклад, «red»). Значення не ігнорується, "
+"якщо вказано highlight-colors-set."
+
+#: src/org.gnome.Terminal.gschema.xml:194
+msgid "Highlight foreground colour"
+msgstr "Колір підкреслення"
+
+#: src/org.gnome.Terminal.gschema.xml:195
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"highlight position, as a color specification (can be HTML-style hex digits, "
+"or a color name such as “red”). This is ignored if highlight-colors-set is "
+"false."
+msgstr ""
+"Власний колір підкреслення термінала, у вигляді шістнадцяткових цифр (в "
+"стилі HTML), або назви кольору (наприклад, «red»). Значення не ігнорується, "
+"якщо вказано highlight-colors-set."
+
+#: src/org.gnome.Terminal.gschema.xml:199
+msgid "Whether to perform bidirectional text rendering"
+msgstr "Визначає, чи слід виконувати двобічну обробку тексту для показу"
+
+#: src/org.gnome.Terminal.gschema.xml:200
+msgid "If true, perform bidirectional text rendering (“BiDi”)."
+msgstr "Якщо «true», виконувати двобічну обробку тексту для показу («BiDi»)."
+
+#: src/org.gnome.Terminal.gschema.xml:204
+msgid "Whether to perform Arabic shaping"
+msgstr "Визначає, чи слід виконувати форматування тексту арабською"
+
+#: src/org.gnome.Terminal.gschema.xml:205
+msgid "If true, shape Arabic text."
+msgstr "Якщо «true», форматувати текст арабською."
+
+#: src/org.gnome.Terminal.gschema.xml:209
+msgid "Whether to enable SIXEL images"
+msgstr "Ви слід вмикати зображення SIXEL"
+
+#: src/org.gnome.Terminal.gschema.xml:210
+msgid "If true, SIXEL sequences are parsed and images are rendered."
+msgstr ""
+"Якщо «true», програма оброблятиме послідовності даних SIXEL і показуватиме "
+"зображення."
+
+#: src/org.gnome.Terminal.gschema.xml:214
+msgid "Whether bold is also bright"
+msgstr "Текст з жирним накресленням також яскравий"
+
+#: src/org.gnome.Terminal.gschema.xml:215
+msgid ""
+"If true, setting bold on the first 8 colors also switches to their bright "
+"variants."
+msgstr ""
+"Якщо встановлено, встановлення жирного накреслення на перших 8 кольорах "
+"також перемикає їх на яскраві варіанти."
+
+#: src/org.gnome.Terminal.gschema.xml:219
+msgid "Whether to ring the terminal bell"
+msgstr "Чи подавати звуковий сигнал термінала"
+
+#: src/org.gnome.Terminal.gschema.xml:223
+#| msgid ""
+#| "List of ASCII punctuation characters that are not to be treated as part "
+#| "of a word when doing word-wise selection"
+msgid "List of punctuation characters that are treated as word characters"
+msgstr "Список символів пунктуації, які вважатимуться символами слова"
+
+#: src/org.gnome.Terminal.gschema.xml:224
+msgid ""
+"By default, when doing word-wise selection, most punctuation breaks up word "
+"boundaries. This list of exceptions will instead be treated as part of the "
+"word."
+msgstr ""
+"Типово, при виконанні позначення за словами більшість знаків пунктуації"
+" вважаються завершенням слова. У цьому списку мають бути виключення, які"
+" вважатимуться частиною слова."
+
+#: src/org.gnome.Terminal.gschema.xml:229
+msgid "Default number of columns"
+msgstr "Типова кількість стовпчиків"
+
+#: src/org.gnome.Terminal.gschema.xml:230
+msgid ""
+"Number of columns in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+"Кількість стовпчиків у нових вікнах термінала. Ні на що не впливатиме, якщо "
+"вимкнено use_custom_default_size."
+
+#: src/org.gnome.Terminal.gschema.xml:235
+msgid "Default number of rows"
+msgstr "Типова кількість рядків"
+
+#: src/org.gnome.Terminal.gschema.xml:236
+msgid ""
+"Number of rows in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+"Кількість рядків у нових вікнах термінала. Ні на що не впливатиме, якщо "
+"вимкнено use_custom_default_size."
+
+#: src/org.gnome.Terminal.gschema.xml:240
+msgid "When to show the scrollbar"
+msgstr "Коли показувати смужку прокручування"
+
+#: src/org.gnome.Terminal.gschema.xml:244
+msgid "Number of lines to keep in scrollback"
+msgstr "Кількість рядків, які зберігаються для прокрутки"
+
+#: src/org.gnome.Terminal.gschema.xml:245
+msgid ""
+"Number of scrollback lines to keep around. You can scroll back in the "
+"terminal by this number of lines; lines that don’t fit in the scrollback are "
+"discarded. If scrollback_unlimited is true, this value is ignored."
+msgstr ""
+"Кількість рядків, які зберігаються. Ви можете прокручувати вміст термінала "
+"на вказану кількість рядків назад. Рядки які не вміщаються у вказану "
+"кількість відкидаються. Якщо увімкнено scrollback_unlimited, це значення "
+"ігнорується."
+
+#: src/org.gnome.Terminal.gschema.xml:249
+msgid "Whether an unlimited number of lines should be kept in scrollback"
+msgstr ""
+"Чи увімкнено нескінчену кількість рядків, які зберігаються для прокрутки"
+
+#: src/org.gnome.Terminal.gschema.xml:250
+msgid ""
+"If true, scrollback lines will never be discarded. The scrollback history is "
+"stored on disk temporarily, so this may cause the system to run out of disk "
+"space if there is a lot of output to the terminal."
+msgstr ""
+"Якщо встановлено, прокручені рядки ніколи не будуть відкидатись. Історія "
+"прокрутки тимчасово зберігається на диску, тож це може призвести до "
+"закінчення дискового простору, якщо на термінал буде виводитись багато "
+"інформації."
+
+#: src/org.gnome.Terminal.gschema.xml:254
+#| msgid "Whether to scroll to the bottom when a key is pressed"
+msgid "Whether to scroll to the bottom when text is inserted"
+msgstr "Визначає, чи слід гортати текст донизу, якщо вставлено текст"
+
+#: src/org.gnome.Terminal.gschema.xml:255
+#| msgid "Whether to scroll to the bottom when a key is pressed"
+msgid ""
+"If true, the terminal will scroll to the bottom when text is inserted by "
+"paste."
+msgstr ""
+"Якщо має значення «true», термінал гортатиме дані вниз, коли буде вставлено"
+" текстовий фрагмент."
+
+#: src/org.gnome.Terminal.gschema.xml:259
+msgid "Whether to scroll to the bottom when a key is pressed"
+msgstr "Чи вікно прокручувати донизу при натисканні клавіші"
+
+#: src/org.gnome.Terminal.gschema.xml:260
+msgid "If true, pressing a key jumps the scrollbar to the bottom."
+msgstr "Якщо встановлено, натискання клавіші призводить до прокрутки вниз."
+
+#: src/org.gnome.Terminal.gschema.xml:264
+msgid "Whether to scroll to the bottom when there’s new output"
+msgstr "Чи вікно прокручувати донизу при виводі інформації у терміналі"
+
+#: src/org.gnome.Terminal.gschema.xml:265
+msgid ""
+"If true, whenever there’s new output the terminal will scroll to the bottom."
+msgstr ""
+"Якщо встановлено, будь-яка інформація, що виводиться у терміналі буде "
+"призводити до прокрутки донизу."
+
+#: src/org.gnome.Terminal.gschema.xml:269
+msgid "What to do with the terminal when the child command exits"
+msgstr "Що робити з терміналом при завершується програма у терміналі"
+
+#: src/org.gnome.Terminal.gschema.xml:270
+msgid ""
+"Possible values are “close” to close the terminal, “restart” to restart the "
+"command, and “hold” to keep the terminal open with no command running inside."
+msgstr ""
+"Можливі значення: «close», щоб закрити термінал, «restart», щоб "
+"перезапустити його, і «hold», щоб утримувати термінал відкритим без "
+"запущених команд."
+
+#: src/org.gnome.Terminal.gschema.xml:274
+msgid "Whether to launch the command in the terminal as a login shell"
+msgstr "Чи запускати команди у терміналі як реєстраційну оболонку"
+
+#: src/org.gnome.Terminal.gschema.xml:275
+msgid ""
+"If true, the command inside the terminal will be launched as a login shell "
+"(argv[0] will have a hyphen in front of it)."
+msgstr ""
+"Якщо встановлено, команда у терміналі буде запущена як реєстраційна оболонка "
+"(буде додане тире перед argv[0])."
+
+#: src/org.gnome.Terminal.gschema.xml:279
+msgid "Whether to preserve the working directory when opening a new terminal"
+msgstr ""
+"Визначає, чи слід зберігати робочий каталог при відкритті нового термінала"
+
+#: src/org.gnome.Terminal.gschema.xml:280
+msgid ""
+"Controls when opening a new terminal from a previous one carries over the "
+"working directory of the opening terminal to the new one."
+msgstr ""
+"Визначає, чи слід зберігати при відкритті нового термінала робочий каталог "
+"вже відкритого термінала у новому."
+
+#: src/org.gnome.Terminal.gschema.xml:286
+msgid "Whether to run a custom command instead of the shell"
+msgstr "Чи запустити іншу команду замість оболонки"
+
+#: src/org.gnome.Terminal.gschema.xml:287
+msgid ""
+"If true, the value of the custom_command setting will be used in place of "
+"running a shell."
+msgstr ""
+"Якщо встановлено, замість запуску оболонки буде використовуватись значення "
+"параметру custom_command."
+
+#: src/org.gnome.Terminal.gschema.xml:291
+msgid "Whether to blink the cursor"
+msgstr "Чи вмикати блимання курсору"
+
+#: src/org.gnome.Terminal.gschema.xml:292
+msgid ""
+"The possible values are “system” to use the global cursor blinking settings, "
+"or “on” or “off” to set the mode explicitly."
+msgstr ""
+"Можливі значення цього ключа: «system» для використання системних параметри "
+"блимання курсору, або «on» або «off» для явного встановлення режиму блимання."
+
+#: src/org.gnome.Terminal.gschema.xml:296
+msgid "The cursor appearance"
+msgstr "Вигляд курсора"
+
+#: src/org.gnome.Terminal.gschema.xml:300
+msgid ""
+"Possible values are “always” or “never” allow blinking text, or only when "
+"the terminal is “focused” or “unfocused”."
+msgstr ""
+"Можливі значення: «always» (завжди) або «never» (ніколи) дозволяти блимаючий "
+"текст, або тільки коли термінал «focused» (сфокусований) або «unfocused» "
+"(розфокусований)."
+
+#: src/org.gnome.Terminal.gschema.xml:304
+msgid "Custom command to use instead of the shell"
+msgstr "Команда, що використовується замість оболонки"
+
+#: src/org.gnome.Terminal.gschema.xml:305
+msgid "Run this command in place of the shell, if use_custom_command is true."
+msgstr ""
+"Запускати цю команду замість оболонки, якщо ввімкнено параметр "
+"use_custom_command."
+
+#: src/org.gnome.Terminal.gschema.xml:324
+msgid "Palette for terminal applications"
+msgstr "Палітра для термінальних програм"
+
+#: src/org.gnome.Terminal.gschema.xml:328
+msgid "A Pango font name and size"
+msgstr "Назва й розмір шрифту Pango"
+
+#: src/org.gnome.Terminal.gschema.xml:332
+msgid "The code sequence the Backspace key generates"
+msgstr "Послідовність коду, який породжує клавіша Backspace"
+
+#: src/org.gnome.Terminal.gschema.xml:336
+msgid "The code sequence the Delete key generates"
+msgstr "Послідовність коду, який породжує клавіша Delete"
+
+#: src/org.gnome.Terminal.gschema.xml:340
+msgid "Whether to use the colors from the theme for the terminal widget"
+msgstr "Чи використовувати кольори з теми термінального віджету"
+
+#: src/org.gnome.Terminal.gschema.xml:344
+msgid "Whether to use the system monospace font"
+msgstr "Чи використовувати системний моноширинний шрифт"
+
+#: src/org.gnome.Terminal.gschema.xml:348
+msgid "Whether to rewrap the terminal contents on window resize"
+msgstr "Чи перерозташовувати вміст, коли змінюєте розмір термінала"
+
+#: src/org.gnome.Terminal.gschema.xml:352
+msgid "Which encoding to use"
+msgstr "Яке кодування використовувати"
+
+#: src/org.gnome.Terminal.gschema.xml:356
+msgid ""
+"Whether ambiguous-width characters are narrow or wide when using UTF-8 "
+"encoding"
+msgstr ""
+"Чи символи з нечіткою шириною вузькі, чи широкі, коли використовується "
+"кодування UTF-8"
+
+#: src/org.gnome.Terminal.gschema.xml:365
+msgid "Keyboard shortcut to open a new tab"
+msgstr "Комбінація клавіш для відкривання нової вкладки"
+
+#: src/org.gnome.Terminal.gschema.xml:369
+msgid "Keyboard shortcut to open a new window"
+msgstr "Комбінація клавіш для відкривання нового вікна"
+
+#: src/org.gnome.Terminal.gschema.xml:373
+msgid "Keyboard shortcut to save the current tab contents to file"
+msgstr ""
+"Клавіатурне скорочення для збереження вмісту теперішньої вкладки у файл"
+
+#: src/org.gnome.Terminal.gschema.xml:377
+msgid ""
+"Keyboard shortcut to export the current tab contents to file in various "
+"formats"
+msgstr ""
+"Комбінація клавіш для експорту вмісту поточної вкладки у файл у різних "
+"форматах"
+
+#: src/org.gnome.Terminal.gschema.xml:381
+msgid "Keyboard shortcut to print the current tab contents to printer or file"
+msgstr ""
+"Комбінація клавіш для друку вмісту поточної вкладки на принтері або у файл"
+
+#: src/org.gnome.Terminal.gschema.xml:385
+msgid "Keyboard shortcut to close a tab"
+msgstr "Комбінація клавіш для закривання вкладки"
+
+#: src/org.gnome.Terminal.gschema.xml:389
+msgid "Keyboard shortcut to close a window"
+msgstr "Комбінація клавіш для відкривання вікна"
+
+#: src/org.gnome.Terminal.gschema.xml:393
+msgid "Keyboard shortcut to copy text"
+msgstr "Комбінація клавіш для копіювання тексту"
+
+#: src/org.gnome.Terminal.gschema.xml:397
+msgid "Keyboard shortcut to copy text as HTML"
+msgstr "Комбінація клавіш для копіювання тексту як HTML"
+
+#: src/org.gnome.Terminal.gschema.xml:401
+msgid "Keyboard shortcut to paste text"
+msgstr "Комбінація клавіш для вставки тексту"
+
+#: src/org.gnome.Terminal.gschema.xml:405
+msgid "Keyboard shortcut to select all text"
+msgstr "Комбінація клавіш для вибирання всього тексту"
+
+#: src/org.gnome.Terminal.gschema.xml:409
+msgid "Keyboard shortcut to open the Preferences dialog"
+msgstr "Клавіатурне скорочення для відкриття вікна Параметрів"
+
+#: src/org.gnome.Terminal.gschema.xml:413
+msgid "Keyboard shortcut to toggle full screen mode"
+msgstr ""
+"Комбінація клавіш для перемикання між звичайним режимом та повноекранним"
+
+#: src/org.gnome.Terminal.gschema.xml:417
+msgid "Keyboard shortcut to toggle the visibility of the menubar"
+msgstr "Комбінація клавіш для перемикання стану видимості панелі меню"
+
+#: src/org.gnome.Terminal.gschema.xml:421
+msgid "Keyboard shortcut to toggle the read-only state"
+msgstr "Клавіатурне скорочення для перемикання стану тільки для читання"
+
+#: src/org.gnome.Terminal.gschema.xml:425
+msgid "Keyboard shortcut to reset the terminal"
+msgstr "Комбінація клавіш для повторної ініціалізації термінала"
+
+#: src/org.gnome.Terminal.gschema.xml:429
+msgid "Keyboard shortcut to reset and clear the terminal"
+msgstr "Комбінація клавіш для повторної ініціалізації та очищення термінала"
+
+#: src/org.gnome.Terminal.gschema.xml:433
+msgid "Keyboard shortcut to open the search dialog"
+msgstr "Клавіатурне скорочення для відкриття вікна пошуку"
+
+#: src/org.gnome.Terminal.gschema.xml:437
+msgid "Keyboard shortcut to find the next occurrence of the search term"
+msgstr "Клавіатурне скорочення для пошуку наступного збігу шуканого терміна"
+
+#: src/org.gnome.Terminal.gschema.xml:441
+msgid "Keyboard shortcut to find the previous occurrence of the search term"
+msgstr "Клавіатурне скорочення для пошуку попереднього збігу шуканого терміна"
+
+#: src/org.gnome.Terminal.gschema.xml:445
+msgid "Keyboard shortcut to clear the find highlighting"
+msgstr "Клавіатурне скорочення для очищення підсвічування знайденого"
+
+#: src/org.gnome.Terminal.gschema.xml:449
+msgid "Keyboard shortcut to switch to the previous tab"
+msgstr "Комбінація клавіш для перемикання на попередню вкладку"
+
+#: src/org.gnome.Terminal.gschema.xml:453
+msgid "Keyboard shortcut to switch to the next tab"
+msgstr "Комбінація клавіш для перемикання на наступну вкладку"
+
+#: src/org.gnome.Terminal.gschema.xml:457
+msgid "Keyboard shortcut to move the current tab to the left"
+msgstr "Клавіатурне скорочення для перенесення поточної вкладки вліво"
+
+#: src/org.gnome.Terminal.gschema.xml:461
+msgid "Keyboard shortcut to move the current tab to the right"
+msgstr "Клавіатурне скорочення для перенесення поточної вкладки вправо"
+
+#: src/org.gnome.Terminal.gschema.xml:465
+msgid "Keyboard shortcut to detach current tab"
+msgstr "Клавіатурне скорочення для відокремлення поточної вкладки"
+
+#: src/org.gnome.Terminal.gschema.xml:469
+#: src/org.gnome.Terminal.gschema.xml:473
+#: src/org.gnome.Terminal.gschema.xml:477
+#: src/org.gnome.Terminal.gschema.xml:481
+#: src/org.gnome.Terminal.gschema.xml:485
+#: src/org.gnome.Terminal.gschema.xml:489
+#: src/org.gnome.Terminal.gschema.xml:493
+#: src/org.gnome.Terminal.gschema.xml:497
+#: src/org.gnome.Terminal.gschema.xml:501
+#: src/org.gnome.Terminal.gschema.xml:505
+#: src/org.gnome.Terminal.gschema.xml:509
+#: src/org.gnome.Terminal.gschema.xml:513
+#: src/org.gnome.Terminal.gschema.xml:517
+#: src/org.gnome.Terminal.gschema.xml:521
+#: src/org.gnome.Terminal.gschema.xml:525
+#: src/org.gnome.Terminal.gschema.xml:529
+#: src/org.gnome.Terminal.gschema.xml:533
+#: src/org.gnome.Terminal.gschema.xml:537
+#: src/org.gnome.Terminal.gschema.xml:541
+#: src/org.gnome.Terminal.gschema.xml:545
+#: src/org.gnome.Terminal.gschema.xml:549
+#: src/org.gnome.Terminal.gschema.xml:553
+#: src/org.gnome.Terminal.gschema.xml:557
+#: src/org.gnome.Terminal.gschema.xml:561
+#: src/org.gnome.Terminal.gschema.xml:565
+#: src/org.gnome.Terminal.gschema.xml:569
+#: src/org.gnome.Terminal.gschema.xml:573
+#: src/org.gnome.Terminal.gschema.xml:577
+#: src/org.gnome.Terminal.gschema.xml:581
+#: src/org.gnome.Terminal.gschema.xml:585
+#: src/org.gnome.Terminal.gschema.xml:589
+#: src/org.gnome.Terminal.gschema.xml:593
+#: src/org.gnome.Terminal.gschema.xml:597
+#: src/org.gnome.Terminal.gschema.xml:601
+#: src/org.gnome.Terminal.gschema.xml:605
+msgid "Keyboard shortcut to switch to the numbered tab"
+msgstr "Клавіатурне скорочення для переходу до нумерованої вкладки"
+
+#: src/org.gnome.Terminal.gschema.xml:609
+msgid "Keyboard shortcut to switch to the last tab"
+msgstr "Комбінація клавіш для перемикання на останню вкладку"
+
+#: src/org.gnome.Terminal.gschema.xml:613
+msgid "Keyboard shortcut to launch help"
+msgstr "Комбінація клавіш для відкривання довідки"
+
+#: src/org.gnome.Terminal.gschema.xml:617
+msgid "Keyboard shortcut to make font larger"
+msgstr "Комбінація клавіш для збільшення шрифту"
+
+#: src/org.gnome.Terminal.gschema.xml:621
+msgid "Keyboard shortcut to make font smaller"
+msgstr "Комбінація клавіш для зменшення шрифту"
+
+#: src/org.gnome.Terminal.gschema.xml:625
+msgid "Keyboard shortcut to make font normal-size"
+msgstr "Комбінація клавіш для встановлення шрифту звичайного розміру"
+
+#: src/org.gnome.Terminal.gschema.xml:629
+msgid "Keyboard shortcut to show the primary menu"
+msgstr "Комбінація клавіш для відображення основного меню"
+
+#: src/org.gnome.Terminal.gschema.xml:639
+msgid "Whether the menubar has access keys"
+msgstr "Чи ввімкнено клавішу швидкого доступу до панелі меню"
+
+#: src/org.gnome.Terminal.gschema.xml:640
+msgid ""
+"Whether to have Alt+letter access keys for the menubar. They may interfere "
+"with some applications run inside the terminal so it’s possible to turn them "
+"off."
+msgstr ""
+"Чи вмикати комбінації клавіш Alt+літера меню. Такі комбінації можуть "
+"збігатись з комбінаціями клавіш запущених у терміналі програм, тому їх можна "
+"вимкнути."
+
+#: src/org.gnome.Terminal.gschema.xml:649
+msgid "Whether shortcuts are enabled"
+msgstr "Чи скорочення ввімкнено"
+
+#: src/org.gnome.Terminal.gschema.xml:650
+msgid ""
+"Whether shortcuts are enabled. They may interfere with some applications run "
+"inside the terminal so it’s possible to turn them off."
+msgstr ""
+"Чи скорочення ввімкнено. Такі комбінації можуть збігатись з комбінаціями "
+"клавіш запущених у терміналі програм, тому їх можна вимкнути."
+
+#: src/org.gnome.Terminal.gschema.xml:659
+msgid "Whether the standard GTK shortcut for menubar access is enabled"
+msgstr "Чи вмикати стандартну для GTK комбінацію клавіш переходу до меню"
+
+#: src/org.gnome.Terminal.gschema.xml:660
+msgid ""
+"Normally you can access the menubar with F10. This can also be customized "
+"via gtkrc (gtk-menu-bar-accel = \"whatever\"). This option allows the "
+"standard menubar accelerator to be disabled."
+msgstr ""
+"Зазвичай, ви можете активувати панель меню натиснувши F10. це можна "
+"налаштувати у файлі gtkrc (gtk-menu-bar-accel = \"будь-що\"). Цей параметр "
+"дозволяє вимкнути клавішу швидкого доступу до меню."
+
+#: src/org.gnome.Terminal.gschema.xml:670
+msgid "Whether the shell integration is enabled"
+msgstr "Чи інтеграцію з оболонкою ввімкнено"
+
+#: src/org.gnome.Terminal.gschema.xml:675
+msgid "Whether to ask for confirmation before closing a terminal"
+msgstr "Чи прохати підтвердження перед закриттям термінала"
+
+#: src/org.gnome.Terminal.gschema.xml:680
+msgid "Additional info section items to appear in the context menu"
+msgstr ""
+"Пункти розділу додаткових даних, які буде показано у контекстному меню"
+
+#: src/org.gnome.Terminal.gschema.xml:685
+msgid "Whether to show the menubar in new windows"
+msgstr "Чи показувати панель меню у нових вікнах"
+
+#: src/org.gnome.Terminal.gschema.xml:690
+msgid "Whether to open new terminals as windows or tabs"
+msgstr "Чи відкривати нові термінали як вікно, чи як вкладки"
+
+#: src/org.gnome.Terminal.gschema.xml:695
+msgid "When to show the tabs bar"
+msgstr "Коли показувати вкладки"
+
+#: src/org.gnome.Terminal.gschema.xml:700
+msgid "The position of the tab bar"
+msgstr "Розміщення панелі вкладок"
+
+#: src/org.gnome.Terminal.gschema.xml:705
+msgid "Which theme variant to use"
+msgstr "Який варіант теми використовувати"
+
+#: src/org.gnome.Terminal.gschema.xml:710
+msgid ""
+"Whether new tabs should open next to the current one or at the last position"
+msgstr ""
+"Визначає, чи слід відкривати нові вкладки далі за поточною або у останній "
+"позиції"
+
+#: src/org.gnome.Terminal.gschema.xml:717
+msgid "Always check whether GNOME Terminal is the default terminal"
+msgstr "Завжди перевіряти, чи є «Термінал GNOME» типовим терміналом"
+
+#. Open new terminal in new window
+#: src/preferences.ui:14
+msgid "Window"
+msgstr "Вікні"
+
+#. Open new terminal in new tab
+#: src/preferences.ui:18
+msgid "Tab"
+msgstr "Вкладці"
+
+#. New tab opens at the last position
+#: src/preferences.ui:32
+msgid "Last"
+msgstr "Остання"
+
+#. New tab opens next to current tab
+#: src/preferences.ui:36
+msgid "Next"
+msgstr "Далі"
+
+#: src/preferences.ui:50
+msgctxt "theme variant"
+msgid "Follow system style"
+msgstr "Використовувати стиль системи"
+
+#: src/preferences.ui:54
+msgctxt "theme variant"
+msgid "Light style"
+msgstr "Світлий стиль"
+
+#: src/preferences.ui:58
+msgctxt "theme variant"
+msgid "Dark style"
+msgstr "Темний стиль"
+
+#. ambiguous-width characers are
+#: src/preferences.ui:107
+msgid "Narrow"
+msgstr "Вузький"
+
+#. ambiguous-width characers are
+#: src/preferences.ui:111
+msgid "Wide"
+msgstr "Широкий"
+
+#. Cursor shape
+#: src/preferences.ui:123
+msgid "Block"
+msgstr "Блок"
+
+#. Cursor shape
+#: src/preferences.ui:126
+msgid "I-Beam"
+msgstr "I-Beam"
+
+#. Cursor shape
+#: src/preferences.ui:129
+msgid "Underline"
+msgstr "Підкреслення"
+
+#. Cursor blink mode
+#: src/preferences.ui:140
+msgid "Default"
+msgstr "Типово"
+
+#. Cursor blink mode
+#: src/preferences.ui:143
+msgid "Enabled"
+msgstr "Увімкнено"
+
+#. Cursor blink mode
+#: src/preferences.ui:146
+msgid "Disabled"
+msgstr "Вимкнено"
+
+#. Text blink mode
+#. Preserve working directory
+#: src/preferences.ui:157 src/preferences.ui:268
+msgid "Never"
+msgstr "Ніколи"
+
+#. Text blink mode
+#: src/preferences.ui:160
+msgid "When focused"
+msgstr "Коли сфокусовано"
+
+#. Text blink mode
+#: src/preferences.ui:163
+msgid "When unfocused"
+msgstr "Коли не сфокусовано"
+
+#. Text blink mode
+#. Preserve working directory
+#: src/preferences.ui:166 src/preferences.ui:276
+msgid "Always"
+msgstr "Завжди"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:177
+msgid "Replace initial title"
+msgstr "Міняти початковий заголовок"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:180
+msgid "Append initial title"
+msgstr "Додавати до початкового заголовку"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:183
+msgid "Prepend initial title"
+msgstr "Перед початковим заголовком"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:186
+msgid "Keep initial title"
+msgstr "Зберігати початковий заголовок"
+
+#. When command exits
+#: src/preferences.ui:197
+msgid "Exit the terminal"
+msgstr "Вийти з термінала"
+
+#. When command exits
+#: src/preferences.ui:200
+msgid "Restart the command"
+msgstr "Перезапустити команду"
+
+#. When command exits
+#: src/preferences.ui:203
+msgid "Hold the terminal open"
+msgstr "Тримати термінал відкритим"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:217
+msgid "Tango"
+msgstr "Танго"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:220
+msgid "Linux console"
+msgstr "Консоль Linux"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:223
+msgid "XTerm"
+msgstr "XTerm"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:226
+msgid "Rxvt"
+msgstr "Rxvt"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:229
+msgid "Solarized"
+msgstr "Засвічено"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:232 src/profile-editor.cc:730
+msgid "Custom"
+msgstr "Інше"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:243
+msgid "Automatic"
+msgstr "Автоматично"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:246
+msgid "Control-H"
+msgstr "Ctrl-H"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:249
+msgid "ASCII DEL"
+msgstr "DEL"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:252
+msgid "Escape sequence"
+msgstr "Послідовність Escape"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:255
+msgid "TTY Erase"
+msgstr "Вилучення TTY"
+
+#. Preserve working directory
+#: src/preferences.ui:272
+msgid "Shell only"
+msgstr "Лише оболонка"
+
+#: src/preferences.ui:341
+msgid "_Show menubar by default in new terminals"
+msgstr "_Показувати панель меню у нових терміналах"
+
+#: src/preferences.ui:357
+msgid "_Enable mnemonics (such as Alt+F to open the File menu)"
+msgstr "_Увімкнути мнемоніку (такі, як Alt+Ф для меню «Файл»)"
+
+#: src/preferences.ui:374
+msgid "Enable the _menu accelerator key (F10 by default)"
+msgstr "Увімкнути акселератор _меню (зазвичай F10)"
+
+#: src/preferences.ui:399
+msgid "Theme _variant:"
+msgstr "_Варіант теми:"
+
+#: src/preferences.ui:431
+msgid "Open _new terminals in:"
+msgstr "Відкрити _новий термінал у:"
+
+#: src/preferences.ui:463
+msgid "New tab _position:"
+msgstr "Позиція _нової вкладки:"
+
+#: src/preferences.ui:500
+msgid "_Always check if default terminal"
+msgstr "З_авжди перевіряти, чи є типовим терміналом"
+
+#: src/preferences.ui:517
+msgid "_Set as default terminal"
+msgstr "З_робити типовим терміналом"
+
+#: src/preferences.ui:557
+msgid "_Enable shortcuts"
+msgstr "_Увімкнути скорочення"
+
+#: src/preferences.ui:623
+msgid "Text Appearance"
+msgstr "Вигляд тексту"
+
+#: src/preferences.ui:640
+msgid "Initial terminal si_ze:"
+msgstr "Початковий _розмір термінала:"
+
+#: src/preferences.ui:673
+msgid "columns"
+msgstr "стовпчиків"
+
+#: src/preferences.ui:710
+msgid "rows"
+msgstr "рядків"
+
+#: src/preferences.ui:731 src/preferences.ui:877
+msgid "Rese_t"
+msgstr "С_кинути"
+
+#: src/preferences.ui:752
+msgid "Custom _font:"
+msgstr "Користувацький _шрифт:"
+
+#: src/preferences.ui:773
+msgid "Choose A Terminal Font"
+msgstr "Вибрати шрифт термінала"
+
+#: src/preferences.ui:786
+msgid "Cell spaci_ng:"
+msgstr "Відстань _між клітинками:"
+
+#: src/preferences.ui:901
+msgid "Allow b_linking text:"
+msgstr "_Дозволити блимаючий текст:"
+
+#: src/preferences.ui:935
+msgid "Cursor"
+msgstr "Курсор"
+
+#: src/preferences.ui:952
+msgid "Cursor _shape:"
+msgstr "_Форма курсору:"
+
+#: src/preferences.ui:986
+msgid "Cursor blin_king:"
+msgstr "_Блимання курсора:"
+
+#: src/preferences.ui:1020
+msgid "Sound"
+msgstr "Звук"
+
+#: src/preferences.ui:1034
+msgid "Terminal _bell"
+msgstr "Термінальний _сигнал"
+
+#: src/preferences.ui:1060
+msgid "Profile ID:"
+msgstr "Ідентифікатор профілю:"
+
+#: src/preferences.ui:1100 src/preferences.ui:1217
+msgid "Text"
+msgstr "Текст"
+
+#: src/preferences.ui:1123
+msgid "Text and Background Color"
+msgstr "Колір тексту та тла"
+
+#: src/preferences.ui:1147
+msgid "_Use colors from system theme"
+msgstr "Використовувати кольори _системної теми"
+
+#: src/preferences.ui:1176
+msgid "Built-in sche_mes:"
+msgstr "В_будовані схеми:"
+
+#: src/preferences.ui:1229
+msgid "Background"
+msgstr "Тип тла"
+
+#: src/preferences.ui:1242
+msgid "_Default color:"
+msgstr "_Типовий колір:"
+
+#: src/preferences.ui:1259
+msgid "Choose Terminal Text Color"
+msgstr "Вибір кольору тексту термінала"
+
+#: src/preferences.ui:1273
+msgid "Choose Terminal Background Color"
+msgstr "Вибір кольору тла термінала"
+
+#: src/preferences.ui:1283
+msgid "Bo_ld color:"
+msgstr "Колір тексту з _жирним накресленням:"
+
+#: src/preferences.ui:1303
+msgid "Choose Terminal Bold Text Color"
+msgstr "Виберіть колір тексту термінала з жирним накресленням"
+
+#: src/preferences.ui:1313
+msgid "_Underline color:"
+msgstr "Колір під_креслення:"
+
+#: src/preferences.ui:1331
+msgid "Choose Terminal Underlined Text Color"
+msgstr "Виберіть колір підкресленого тексту термінала"
+
+#: src/preferences.ui:1340
+msgid "Cu_rsor color:"
+msgstr "Колір _курсору:"
+
+#: src/preferences.ui:1360
+msgid "Choose Terminal Cursor Foreground Color"
+msgstr "Виберіть колір курсора"
+
+#: src/preferences.ui:1374
+msgid "Choose Terminal Cursor Background Color"
+msgstr "Виберіть колір тла курсора"
+
+#: src/preferences.ui:1384
+msgid "_Highlight color:"
+msgstr "Колір _підкреслення:"
+
+#: src/preferences.ui:1403
+msgid "Choose Terminal Highlight Foreground Color"
+msgstr "Виберіть основний колір виділення термінала"
+
+#: src/preferences.ui:1417
+msgid "Choose Terminal Highlight Background Color"
+msgstr "Виберіть колір фону виділення термінала"
+
+#: src/preferences.ui:1464
+msgid "Palette"
+msgstr "Палітра"
+
+#: src/preferences.ui:1496
+msgid "Built-in _schemes:"
+msgstr "Вбудовані с_хеми:"
+
+#: src/preferences.ui:1529
+msgid "Color p_alette:"
+msgstr "_Палітра:"
+
+#: src/preferences.ui:1770
+msgid "Show _bold text in bright colors"
+msgstr "Показувати текст з _жирним накресленням в яскравих кольорах"
+
+#: src/preferences.ui:1809
+msgid "Colors"
+msgstr "Кольори"
+
+#: src/preferences.ui:1827
+msgid "_Show scrollbar"
+msgstr "По_казувати смужку прокручування"
+
+#: src/preferences.ui:1844
+msgid "Scroll on _output"
+msgstr "Про_кручувати при виводі"
+
+#: src/preferences.ui:1861
+msgid "Scroll on _keystroke"
+msgstr "_Прокручувати при натисканні клавіші"
+
+#: src/preferences.ui:1878
+#| msgid "Scroll on _output"
+msgid "Scroll on _paste"
+msgstr "_Гортати при вставленні"
+
+#: src/preferences.ui:1895
+msgid "_Limit scrollback to:"
+msgstr "_Обмежити зворотне прокручування до:"
+
+#: src/preferences.ui:1933
+msgid "lines"
+msgstr "рядків"
+
+#: src/preferences.ui:1987
+msgid ""
+"Warning! Large scrollback buffers may lead to exhaustion of system resources."
+msgstr ""
+"Увага! Великі буфери гортання можуть призвести до вичерпання ресурсів"
+" системи."
+
+#: src/preferences.ui:2021
+msgid "Scrolling"
+msgstr "Прокручування"
+
+#: src/preferences.ui:2038
+msgid "_Run command as a login shell"
+msgstr "За_пускати команду як оболонку входу"
+
+#: src/preferences.ui:2053
+msgid "Ru_n a custom command instead of my shell"
+msgstr "Запускати _іншу команду замість оболонки"
+
+#: src/preferences.ui:2070
+msgid "Custom co_mmand:"
+msgstr "Інша _команда:"
+
+#: src/preferences.ui:2096
+msgid "_Preserve working directory:"
+msgstr "З_берігати робочий каталог:"
+
+#: src/preferences.ui:2130
+msgid "When command _exits:"
+msgstr "При з_авершенні команди:"
+
+#: src/preferences.ui:2168
+msgid "Command"
+msgstr "Команда"
+
+#: src/preferences.ui:2188
+msgid "_Backspace key generates:"
+msgstr "Клавіша _Backspace генерує:"
+
+#: src/preferences.ui:2221
+msgid "_Delete key generates:"
+msgstr "Клавіша _Delete генерує:"
+
+#: src/preferences.ui:2254
+msgid "_Encoding:"
+msgstr "_Кодування:"
+
+#: src/preferences.ui:2286
+msgid "Ambiguous-_width characters:"
+msgstr "Символи з нечіткою _шириною:"
+
+#: src/preferences.ui:2318
+msgid "Enable _SIXEL images"
+msgstr "Увімк_нути зображення SIXEL"
+
+#: src/preferences.ui:2334
+msgid "_Reset Compatibility Options to Defaults"
+msgstr "С_кинути параметри сумісності в початкові значення"
+
+#: src/preferences.ui:2357
+msgid "Compatibility"
+msgstr "Сумісність"
+
+#: src/preferences.ui:2436
+msgid "Clone…"
+msgstr "Клонувати…"
+
+#: src/preferences.ui:2443
+msgid "Rename…"
+msgstr "Перейменувати…"
+
+#: src/preferences.ui:2450
+msgid "Delete…"
+msgstr "Вилучити…"
+
+#: src/preferences.ui:2463
+msgid "Set as default"
+msgstr "Зробити типовим"
+
+#: src/preferences.ui:2527
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: src/profile-editor.cc:157
+msgid "Black on light yellow"
+msgstr "Чорний на світло-жовтому"
+
+#: src/profile-editor.cc:161
+msgid "Black on white"
+msgstr "Чорний на білому"
+
+#: src/profile-editor.cc:165
+msgid "Gray on black"
+msgstr "Сірий на чорному"
+
+#: src/profile-editor.cc:169
+msgid "Green on black"
+msgstr "Зелений на чорному"
+
+#: src/profile-editor.cc:173
+msgid "White on black"
+msgstr "Білий на чорному"
+
+#. Translators: "GNOME" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:178
+msgid "GNOME light"
+msgstr "Світла GNOME"
+
+#. Translators: "GNOME" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:183
+msgid "GNOME dark"
+msgstr "Темна GNOME"
+
+#. Translators: "Tango" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:188
+msgid "Tango light"
+msgstr "Світлий танго"
+
+#. Translators: "Tango" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:193
+msgid "Tango dark"
+msgstr "Темний танго"
+
+#. Translators: "Solarized" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:198
+msgid "Solarized light"
+msgstr "Засвічена світла"
+
+#. Translators: "Solarized" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:203
+msgid "Solarized dark"
+msgstr "Засвічена темна"
+
+#: src/profile-editor.cc:598
+#, c-format
+msgid "Error parsing command: %s"
+msgstr "Помилка у синтаксисі команди: %s"
+
+#: src/profile-editor.cc:755 src/profile-editor.cc:756
+#: src/profile-editor.cc:760
+msgid "Chinese Traditional"
+msgstr "Традиційне китайське"
+
+#: src/profile-editor.cc:757
+msgid "Cyrillic/Russian"
+msgstr "Кирилиця (російська)"
+
+#: src/profile-editor.cc:758 src/profile-editor.cc:797
+msgid "Japanese"
+msgstr "Японське"
+
+#: src/profile-editor.cc:759 src/profile-editor.cc:799
+msgid "Korean"
+msgstr "Корейське"
+
+#: src/profile-editor.cc:761 src/profile-editor.cc:762
+#: src/profile-editor.cc:763
+msgid "Chinese Simplified"
+msgstr "Спрощене китайське"
+
+#: src/profile-editor.cc:764 src/profile-editor.cc:770
+#: src/profile-editor.cc:774 src/profile-editor.cc:793
+#: src/profile-editor.cc:803
+msgid "Western"
+msgstr "Західне"
+
+#: src/profile-editor.cc:765 src/profile-editor.cc:776
+#: src/profile-editor.cc:789 src/profile-editor.cc:801
+msgid "Central European"
+msgstr "Центрально-європейське"
+
+#: src/profile-editor.cc:766 src/profile-editor.cc:779
+#: src/profile-editor.cc:785 src/profile-editor.cc:787
+#: src/profile-editor.cc:802
+msgid "Cyrillic"
+msgstr "Кирилиця"
+
+#: src/profile-editor.cc:767 src/profile-editor.cc:784
+#: src/profile-editor.cc:795 src/profile-editor.cc:805
+msgid "Turkish"
+msgstr "Турецьке"
+
+#: src/profile-editor.cc:768 src/profile-editor.cc:783
+#: src/profile-editor.cc:792 src/profile-editor.cc:806
+msgid "Hebrew"
+msgstr "Єврейське"
+
+#: src/profile-editor.cc:769 src/profile-editor.cc:780
+#: src/profile-editor.cc:788 src/profile-editor.cc:807
+msgid "Arabic"
+msgstr "Арабське"
+
+#: src/profile-editor.cc:771
+msgid "Nordic"
+msgstr "Північне"
+
+#: src/profile-editor.cc:772 src/profile-editor.cc:778
+#: src/profile-editor.cc:808
+msgid "Baltic"
+msgstr "Балтійське"
+
+#: src/profile-editor.cc:773
+msgid "Celtic"
+msgstr "Кельтське"
+
+#: src/profile-editor.cc:775 src/profile-editor.cc:794
+msgid "Romanian"
+msgstr "Румунське"
+
+#: src/profile-editor.cc:777
+msgid "South European"
+msgstr "Південноєвропейське"
+
+#: src/profile-editor.cc:781 src/profile-editor.cc:791
+#: src/profile-editor.cc:804
+msgid "Greek"
+msgstr "Грецьке"
+
+#: src/profile-editor.cc:782
+msgid "Hebrew Visual"
+msgstr "Єврейське візуальне"
+
+#: src/profile-editor.cc:786 src/profile-editor.cc:796
+msgid "Cyrillic/Ukrainian"
+msgstr "Кирилиця (українська)"
+
+#: src/profile-editor.cc:790
+msgid "Croatian"
+msgstr "Хорватське"
+
+#: src/profile-editor.cc:798
+msgid "Thai"
+msgstr "Таїландське"
+
+#: src/profile-editor.cc:800 src/profile-editor.cc:816
+msgid "Unicode"
+msgstr "Юнікод"
+
+#: src/profile-editor.cc:809
+msgid "Vietnamese"
+msgstr "В'єтнамське"
+
+#: src/profile-editor.cc:817
+msgid "Legacy CJK Encodings"
+msgstr "Застарілі кодування CJK"
+
+#: src/profile-editor.cc:818
+msgid "Obsolete Encodings"
+msgstr "Застарілі Кодування"
+
+#. Translators: Appears as: [numeric entry] × width
+#: src/profile-editor.cc:1022
+msgid "width"
+msgstr "ширина"
+
+#. Translators: Appears as: [numeric entry] × height
+#: src/profile-editor.cc:1027
+msgid "height"
+msgstr "висота"
+
+#: src/profile-editor.cc:1075
+#, c-format
+msgid "Choose Palette Color %u"
+msgstr "Вибір кольору палітри %u"
+
+#: src/profile-editor.cc:1079
+#, c-format
+msgid "Palette entry %u"
+msgstr "Поле палітри %u"
+
+#: src/search-popover.ui:7 src/search-popover.ui:37 src/terminal-accels.cc:150
+#: src/terminal-headerbar.ui:118
+msgid "Find"
+msgstr "Знайти"
+
+#: src/search-popover.ui:51
+msgid "Find previous occurrence"
+msgstr "Знайти попередній збіг"
+
+#: src/search-popover.ui:73
+msgid "Find next occurrence"
+msgstr "Знайти наступний збіг"
+
+#: src/search-popover.ui:104
+msgid "Toggle search options"
+msgstr "Перемкнути параметри пошуку"
+
+#: src/search-popover.ui:167
+msgid "_Match case"
+msgstr "Збігається _регістр"
+
+#: src/search-popover.ui:186
+msgid "Match _entire word only"
+msgstr "Збігається _ціле слово"
+
+#: src/search-popover.ui:204
+msgid "Match as _regular expression"
+msgstr "Збіг як _формальний вираз"
+
+#: src/search-popover.ui:222
+msgid "_Wrap around"
+msgstr "_Досягнувши кінця, починати спочатку"
+
+#: src/terminal-accels.cc:126 src/terminal-headerbar.ui:48
+msgid "New Tab"
+msgstr "Нова вкладка"
+
+#: src/terminal-accels.cc:129
+msgid "Save Contents"
+msgstr "Зберегти вміст"
+
+#: src/terminal-accels.cc:132
+msgid "Export"
+msgstr "Експортувати"
+
+#: src/terminal-accels.cc:135
+msgid "Print"
+msgstr "Надрукувати"
+
+#: src/terminal-accels.cc:137
+msgid "Close Tab"
+msgstr "Закрити вкладку"
+
+#: src/terminal-accels.cc:138
+msgid "Close Window"
+msgstr "Закрити вікно"
+
+#: src/terminal-accels.cc:142
+msgid "Copy"
+msgstr "Копіювати"
+
+#: src/terminal-accels.cc:143
+msgid "Copy as HTML"
+msgstr "Копіювати як HTML"
+
+#: src/terminal-accels.cc:144
+msgid "Paste"
+msgstr "Вставити"
+
+#: src/terminal-accels.cc:145
+msgid "Select All"
+msgstr "Вибрати все"
+
+#: src/terminal-accels.cc:151
+msgid "Find Next"
+msgstr "Знайти наступне"
+
+#: src/terminal-accels.cc:152
+msgid "Find Previous"
+msgstr "Знайти попереднє"
+
+#: src/terminal-accels.cc:153
+msgid "Clear Highlight"
+msgstr "Очистити підсвічування"
+
+#: src/terminal-accels.cc:157
+msgid "Hide and Show Menubar"
+msgstr "Приховати і показати панель меню"
+
+#: src/terminal-accels.cc:158
+msgid "Full Screen"
+msgstr "На весь екран"
+
+#: src/terminal-accels.cc:159
+msgid "Zoom In"
+msgstr "Збільшити"
+
+#: src/terminal-accels.cc:160
+msgid "Zoom Out"
+msgstr "Зменшити"
+
+#: src/terminal-accels.cc:161
+msgid "Normal Size"
+msgstr "Звичайний розмір"
+
+#: src/terminal-accels.cc:165
+msgid "Read-Only"
+msgstr "Лише читання"
+
+#: src/terminal-accels.cc:166
+msgid "Reset"
+msgstr "Скинути"
+
+#: src/terminal-accels.cc:167
+msgid "Reset and Clear"
+msgstr "Скинути та очистити"
+
+#: src/terminal-accels.cc:171
+msgid "Switch to Previous Tab"
+msgstr "Перейти на попередню вкладку"
+
+#: src/terminal-accels.cc:172
+msgid "Switch to Next Tab"
+msgstr "Перейти на наступну вкладку"
+
+#: src/terminal-accels.cc:173
+msgid "Move Tab to the Left"
+msgstr "Перенести вкладку ліворуч"
+
+#: src/terminal-accels.cc:174
+msgid "Move Tab to the Right"
+msgstr "Перенести вкладку праворуч"
+
+#: src/terminal-accels.cc:175
+msgid "Detach Tab"
+msgstr "Від'єднати вкладку"
+
+#: src/terminal-accels.cc:211
+msgid "Switch to Last Tab"
+msgstr "Перейти на останню вкладку"
+
+#: src/terminal-accels.cc:215
+msgid "Contents"
+msgstr "Зміст"
+
+#: src/terminal-accels.cc:219
+msgid "Show Primary Menu"
+msgstr "Показати панель меню"
+
+#: src/terminal-accels.cc:228 src/terminal-menubar.ui.in:22
+msgid "File"
+msgstr "Файл"
+
+#: src/terminal-accels.cc:229 src/terminal-menubar.ui.in:56
+msgid "Edit"
+msgstr "Зміни"
+
+#: src/terminal-accels.cc:230 src/terminal-menubar.ui.in:93
+msgid "View"
+msgstr "Перегляд"
+
+#: src/terminal-accels.cc:231 src/terminal-menubar.ui.in:122
+msgid "Search"
+msgstr "Пошук"
+
+#: src/terminal-accels.cc:233 src/terminal-menubar.ui.in:196
+msgid "Tabs"
+msgstr "Вкладки"
+
+#: src/terminal-accels.cc:234 src/terminal-menubar.ui.in:228
+msgid "Help"
+msgstr "Довідка"
+
+#: src/terminal-accels.cc:235 src/terminal-prefs.cc:645
+msgid "Global"
+msgstr "Загальне"
+
+#: src/terminal-accels.cc:361
+#, c-format
+msgid "Switch to Tab %u"
+msgstr "Перейти до вкладки %u"
+
+#: src/terminal-accels.cc:551
+msgid "_Action"
+msgstr "Д_ія"
+
+#: src/terminal-accels.cc:570
+msgid "Shortcut _Key"
+msgstr "Комбінація к_лавіш"
+
+#: src/terminal-app.cc:572
+msgid "New Terminal"
+msgstr "Новий термінал"
+
+#: src/terminal-app.cc:582 src/terminal-window.cc:1804
+msgid "New _Terminal"
+msgstr "Новий _термінал"
+
+#: src/terminal-app.cc:584 src/terminal-window.cc:1813
+msgid "New _Tab"
+msgstr "Нова _вкладка"
+
+#: src/terminal-app.cc:585 src/terminal-headermenu.ui:39
+#: src/terminal-window.cc:1809
+msgid "New _Window"
+msgstr "Нове _вікно"
+
+#: src/terminal-app.cc:634
+msgid "Change _Profile"
+msgstr "Змінити _профіль"
+
+#: src/terminal-app.cc:647
+msgid "_Profile"
+msgstr "_Профіль"
+
+#: src/terminal-headerbar.ui:72 src/terminal-prefs.cc:657
+msgid "Profiles"
+msgstr "Профілі"
+
+#: src/terminal-headermenu.ui:23 src/terminal-menubar.ui.in:115
+msgid "Zoom _Out"
+msgstr "З_меншити"
+
+#: src/terminal-headermenu.ui:32 src/terminal-menubar.ui.in:107
+msgid "Zoom _In"
+msgstr "З_більшити"
+
+#: src/terminal-headermenu.ui:44 src/terminal-menubar.ui.in:101
+msgid "_Full Screen"
+msgstr "_На весь екран"
+
+#: src/terminal-headermenu.ui:50 src/terminal-menubar.ui.in:155
+#: src/terminal-window.cc:1785
+msgid "Read-_Only"
+msgstr "Тільки для _читання"
+
+#: src/terminal-headermenu.ui:54 src/terminal-menubar.ui.in:148
+#: src/terminal-notebook-menu.ui:36
+msgid "Set _Title…"
+msgstr "Вказати _заголовок…"
+
+#: src/terminal-headermenu.ui:60
+msgid "_Advanced"
+msgstr "Д_одаткове"
+
+#: src/terminal-headermenu.ui:63 src/terminal-menubar.ui.in:161
+msgid "_Reset"
+msgstr "_Скинути"
+
+#: src/terminal-headermenu.ui:68 src/terminal-menubar.ui.in:166
+msgid "Reset and C_lear"
+msgstr "Скинути і о_чистити"
+
+#: src/terminal-headermenu.ui:75 src/terminal-menubar.ui.in:173
+msgid "_1. 80×24"
+msgstr "_1. 80×24"
+
+#: src/terminal-headermenu.ui:80 src/terminal-menubar.ui.in:178
+msgid "_2. 80×43"
+msgstr "_2. 80×43"
+
+#: src/terminal-headermenu.ui:85 src/terminal-menubar.ui.in:183
+msgid "_3. 132×24"
+msgstr "_3. 132×24"
+
+#: src/terminal-headermenu.ui:90 src/terminal-menubar.ui.in:188
+msgid "_4. 132×43"
+msgstr "_4. 132×43"
+
+#: src/terminal-headermenu.ui:97 src/terminal-menubar.ui.in:241
+msgid "_Inspector"
+msgstr "_Ревізор"
+
+#: src/terminal-headermenu.ui:106 src/terminal-screen.cc:1562
+#: src/terminal-window.cc:1797
+msgid "_Preferences"
+msgstr "П_араметри"
+
+#: src/terminal-headermenu.ui:110 src/terminal-menubar.ui.in:227
+msgid "_Help"
+msgstr "_Довідка"
+
+#: src/terminal-headermenu.ui:114 src/terminal-menubar.ui.in:235
+msgid "_About"
+msgstr "_Про програму"
+
+#: src/terminal-menubar.ui.in:21
+msgid "_File"
+msgstr "_Файл"
+
+#: src/terminal-menubar.ui.in:26
+msgid "_Save Contents…"
+msgstr "_Зберегти вміст…"
+
+#: src/terminal-menubar.ui.in:31
+msgid "_Export…"
+msgstr "_Експортувати…"
+
+#: src/terminal-menubar.ui.in:36
+msgid "_Print…"
+msgstr "На_друкувати…"
+
+#: src/terminal-menubar.ui.in:43
+msgid "C_lose Tab"
+msgstr "Закр_ити вкладку"
+
+#: src/terminal-menubar.ui.in:48
+msgid "_Close Window"
+msgstr "_Закрити вікно"
+
+#: src/terminal-menubar.ui.in:55
+msgid "_Edit"
+msgstr "З_міни"
+
+#: src/terminal-menubar.ui.in:59 src/terminal-window.cc:1775
+msgid "_Copy"
+msgstr "_Копіювати"
+
+#: src/terminal-menubar.ui.in:64 src/terminal-window.cc:1776
+msgid "Copy as _HTML"
+msgstr "Копіювати як _HTML"
+
+#: src/terminal-menubar.ui.in:69 src/terminal-window.cc:1777
+msgid "_Paste"
+msgstr "_Вставити"
+
+#: src/terminal-menubar.ui.in:73 src/terminal-window.cc:1779
+msgid "Paste as _Filenames"
+msgstr "Вставити як _імена файлів"
+
+#: src/terminal-menubar.ui.in:80
+msgid "Select _All"
+msgstr "Вибрати _все"
+
+#: src/terminal-menubar.ui.in:86
+msgid "P_references"
+msgstr "_Параметри"
+
+#: src/terminal-menubar.ui.in:92
+msgid "_View"
+msgstr "П_ерегляд"
+
+#: src/terminal-menubar.ui.in:96 src/terminal-window.cc:1825
+msgid "Show _Menubar"
+msgstr "Показати _панель меню"
+
+#: src/terminal-menubar.ui.in:111
+msgid "_Normal Size"
+msgstr "_Звичайний розмір"
+
+#: src/terminal-menubar.ui.in:121
+msgid "_Search"
+msgstr "По_шук"
+
+#: src/terminal-menubar.ui.in:125
+msgid "_Find…"
+msgstr "З_найти…"
+
+#: src/terminal-menubar.ui.in:129
+msgid "Find _Next"
+msgstr "Знайти _наступне"
+
+#: src/terminal-menubar.ui.in:133
+msgid "Find _Previous"
+msgstr "Знайти _попереднє"
+
+#: src/terminal-menubar.ui.in:137
+msgid "_Clear Highlight"
+msgstr "_Очистити підсвічування"
+
+#: src/terminal-menubar.ui.in:143
+msgid "_Terminal"
+msgstr "_Термінал"
+
+#: src/terminal-menubar.ui.in:195
+msgid "Ta_bs"
+msgstr "В_кладки"
+
+#: src/terminal-menubar.ui.in:201
+msgid "_Previous Tab"
+msgstr "_Попередня вкладка"
+
+#: src/terminal-menubar.ui.in:205
+msgid "_Next Tab"
+msgstr "_Наступна вкладка"
+
+#: src/terminal-menubar.ui.in:211 src/terminal-notebook-menu.ui:22
+msgid "Move Terminal _Left"
+msgstr "Перемістити термінал _ліворуч"
+
+#: src/terminal-menubar.ui.in:215 src/terminal-notebook-menu.ui:26
+msgid "Move Terminal _Right"
+msgstr "Перемістити термінал _праворуч"
+
+#: src/terminal-menubar.ui.in:221 src/terminal-notebook-menu.ui:32
+msgid "_Detach Terminal"
+msgstr "_Від'єднати термінал"
+
+#: src/terminal-menubar.ui.in:231
+msgid "_Contents"
+msgstr "_Зміст"
+
+#: src/terminal-nautilus.cc:542
+msgid "Open in _Remote Terminal"
+msgstr "Відкрити у _віддаленому терміналі"
+
+#: src/terminal-nautilus.cc:544
+msgid "Open in _Local Terminal"
+msgstr "Відкрити у _локальному терміналі"
+
+#: src/terminal-nautilus.cc:548 src/terminal-nautilus.cc:559
+msgid "Open the currently selected folder in a terminal"
+msgstr "Відкрити поточну вибрану теку в терміналі"
+
+#: src/terminal-nautilus.cc:550 src/terminal-nautilus.cc:561
+msgid "Open the currently open folder in a terminal"
+msgstr "Відкрити поточну відкриту теку в терміналі"
+
+#: src/terminal-nautilus.cc:556
+msgid "Open in T_erminal"
+msgstr "Відкрити у _терміналі"
+
+#: src/terminal-nautilus.cc:566
+msgid "Open T_erminal"
+msgstr "Відкрити т_ермінал"
+
+#: src/terminal-nautilus.cc:567
+msgid "Open a terminal"
+msgstr "Відкрити термінал"
+
+#: src/terminal-notebook-menu.ui:43 src/terminal-window.cc:3336
+msgid "C_lose Terminal"
+msgstr "_Закрити термінал"
+
+#: src/terminal-options.cc:332
+#, c-format
+msgid ""
+"Option “%s” is deprecated and might be removed in a later version of gnome-"
+"terminal."
+msgstr ""
+"Параметр «%s» застарів і може бути вилученим у наступних версіях програми."
+
+#. %s is being replaced with "-- " (without quotes), which must be used literally, not translatable
+#: src/terminal-options.cc:343
+#, c-format
+msgid ""
+"Use “%s” to terminate the options and put the command line to execute after "
+"it."
+msgstr ""
+"Використовуйте «%s» для вказівки завершення параметрів, а потім вкажіть "
+"рядок команди."
+
+#: src/terminal-options.cc:353 src/terminal-options.cc:366
+#, c-format
+msgid "Option “%s” is no longer supported in this version of gnome-terminal."
+msgstr "Параметр «%s» більше не підтримується в цій версії термінала."
+
+#: src/terminal-options.cc:438
+#, c-format
+msgid "Cannot specify more than one command to run"
+msgstr "Не можна вказувати одночасно декілька команд"
+
+#: src/terminal-options.cc:447
+#, c-format
+msgid "Argument to “%s” is not a valid command: %s"
+msgstr "Аргумент до «%s» не є припустимою командою: %s"
+
+#: src/terminal-options.cc:620
+msgid "Two roles given for one window"
+msgstr "Для одного вікна вказано дві ролі"
+
+#: src/terminal-options.cc:641 src/terminal-options.cc:674
+#, c-format
+msgid "“%s” option given twice for the same window\n"
+msgstr "«%s» вказано двічі для одного вікна\n"
+
+#: src/terminal-options.cc:891
+#, c-format
+msgid "Cannot pass FD %d twice"
+msgstr "Неможливо пропустити %d двічі"
+
+#: src/terminal-options.cc:953
+#, c-format
+msgid "“%s” is not a valid zoom factor"
+msgstr "«%s» не є припустимим множником збільшення"
+
+#: src/terminal-options.cc:960
+#, c-format
+msgid "Zoom factor “%g” is too small, using %g\n"
+msgstr "Множник збільшення «%g» надто малий, використовується %g\n"
+
+#: src/terminal-options.cc:968
+#, c-format
+msgid "Zoom factor “%g” is too large, using %g\n"
+msgstr "Множник збільшення «%g» надто великий, використовується %g\n"
+
+#: src/terminal-options.cc:1006
+#, c-format
+msgid ""
+"Option “%s” requires specifying the command to run on the rest of the "
+"command line"
+msgstr ""
+"Параметр «%s» вимагає вказування команди для запуску у залишку командного "
+"рядка"
+
+#: src/terminal-options.cc:1148
+#, c-format
+msgid "Too many arguments"
+msgstr "Забагато аргументів"
+
+#: src/terminal-options.cc:1176
+msgid "Can only use --wait once"
+msgstr "Можна використовувати тільки --wait once"
+
+#: src/terminal-options.cc:1212
+msgid "Not a valid terminal config file."
+msgstr "Неправильний формат файлу конфігурації термінала."
+
+#: src/terminal-options.cc:1225
+msgid "Incompatible terminal config file version."
+msgstr "Версія файлу конфігурації та термінала несумісні."
+
+#: src/terminal-options.cc:1384
+msgid ""
+"Do not register with the activation nameserver, do not re-use an active "
+"terminal"
+msgstr ""
+"Не реєструвати за допомогою сервера назв активації, не використовувати "
+"повторно термінал"
+
+#: src/terminal-options.cc:1393
+msgid "Load a terminal configuration file"
+msgstr "Завантажити конфігурацію термінала з файлу"
+
+#: src/terminal-options.cc:1394
+msgid "FILE"
+msgstr "ФАЙЛ"
+
+#: src/terminal-options.cc:1410
+msgid "Do not pass the environment"
+msgstr "Не передавати середовище"
+
+#: src/terminal-options.cc:1419
+msgid "Show preferences window"
+msgstr "Показати вікно параметрів"
+
+#: src/terminal-options.cc:1428
+msgid "Print environment variables to interact with the terminal"
+msgstr "Вивести змінні середовища для взаємодії з терміналом"
+
+#: src/terminal-options.cc:1446
+msgid "Increase diagnostic verbosity"
+msgstr "Збільшити деталізацію діагностики"
+
+#: src/terminal-options.cc:1455
+msgid "Suppress output"
+msgstr "Приховати вивід"
+
+#: src/terminal-options.cc:1468
+msgid "Open a new window containing a tab with the default profile"
+msgstr "Відкрити нове вікно, що містить вкладку типовим профілем"
+
+#: src/terminal-options.cc:1477
+msgid "Open a new tab in the last-opened window with the default profile"
+msgstr ""
+"Відкрити нову вкладку з типовим профілем у останньому відкритому вікні"
+
+#: src/terminal-options.cc:1490
+msgid "Turn on the menubar"
+msgstr "Показати рядок меню"
+
+#: src/terminal-options.cc:1499
+msgid "Turn off the menubar"
+msgstr "Сховати рядок меню"
+
+#: src/terminal-options.cc:1508
+msgid "Maximize the window"
+msgstr "Розгорнути вікно"
+
+#: src/terminal-options.cc:1517
+msgid "Full-screen the window"
+msgstr "Розгорнути на весь екран"
+
+#: src/terminal-options.cc:1526
+msgid ""
+"Set the window size; for example: 80x24, or 80x24+200+200 (COLSxROWS+X+Y)"
+msgstr ""
+"Встановити розмір вікна; наприклад: 80x24, або 80x24+200+200 (СТОВПxРЯДК+X+Y)"
+
+#: src/terminal-options.cc:1527
+msgid "GEOMETRY"
+msgstr "ГЕОМЕТРІЯ"
+
+#: src/terminal-options.cc:1535
+msgid "Set the window role"
+msgstr "Встановити роль вікна"
+
+#: src/terminal-options.cc:1536
+msgid "ROLE"
+msgstr "РОЛЬ"
+
+#: src/terminal-options.cc:1544
+msgid "Set the last specified tab as the active one in its window"
+msgstr ""
+"Встановити останню вкладку, яка використовувалась, як активну у її вікні"
+
+#: src/terminal-options.cc:1557
+msgid "Execute the argument to this option inside the terminal"
+msgstr "Виконати аргумент цього параметру в терміналі"
+
+#: src/terminal-options.cc:1566
+msgid "Use the given profile instead of the default profile"
+msgstr "Використовувати цей профіль замість типового профілю"
+
+#: src/terminal-options.cc:1567
+msgid "PROFILE-NAME"
+msgstr "НАЗВА-ПРОФІЛЮ"
+
+#: src/terminal-options.cc:1575
+msgid "Set the initial terminal title"
+msgstr "Вказати початковий заголовок термінала"
+
+#: src/terminal-options.cc:1576
+msgid "TITLE"
+msgstr "ЗАГОЛОВОК"
+
+#: src/terminal-options.cc:1584
+msgid "Set the working directory"
+msgstr "Встановити робочий каталог"
+
+#: src/terminal-options.cc:1585
+msgid "DIRNAME"
+msgstr "КАТАЛОГ"
+
+#: src/terminal-options.cc:1593
+msgid "Wait until the child exits"
+msgstr "Чекати, поки існує підпроцес"
+
+#: src/terminal-options.cc:1602
+msgid "Forward file descriptor"
+msgstr "Подальший описувач файла"
+
+#. FD = file descriptor
+#: src/terminal-options.cc:1604
+msgid "FD"
+msgstr "FD"
+
+#: src/terminal-options.cc:1612
+msgid "Set the terminal’s zoom factor (1.0 = normal size)"
+msgstr "Встановити множник збільшення термінала (1.0 = звичайний розмір)"
+
+#: src/terminal-options.cc:1613
+msgid "ZOOM"
+msgstr "МАСШТАБ"
+
+#: src/terminal-options.cc:1709
+msgid "COMMAND"
+msgstr "КОМАНДА"
+
+#: src/terminal-options.cc:1717
+msgid "GNOME Terminal Emulator"
+msgstr "Емулятор термінала для GNOME"
+
+#: src/terminal-options.cc:1718
+msgid "Show GNOME Terminal options"
+msgstr "Показати параметри термінала GNOME"
+
+#: src/terminal-options.cc:1728
+msgid ""
+"Options to open new windows or terminal tabs; more than one of these may be "
+"specified:"
+msgstr ""
+"Параметри для відкривання нових вікон чи вкладок термінала; ці параметри "
+"можна вказати кілька разів:"
+
+#: src/terminal-options.cc:1729
+msgid "Show terminal options"
+msgstr "Показати параметри термінала"
+
+#: src/terminal-options.cc:1737
+msgid ""
+"Window options; if used before the first --window or --tab argument, sets "
+"the default for all windows:"
+msgstr ""
+"Параметри вікна; якщо використовуються до першого аргументу --window чи --"
+"tab, встановлюються типово для усіх вікон:"
+
+#: src/terminal-options.cc:1738
+msgid "Show per-window options"
+msgstr "Показати параметри, що застосовуються до вікна"
+
+#: src/terminal-options.cc:1746
+msgid ""
+"Terminal options; if used before the first --window or --tab argument, sets "
+"the default for all terminals:"
+msgstr ""
+"Параметри термінала; якщо використовуються до першого аргументу --window чи "
+"--tab, встановлюються типово для усіх терміналів:"
+
+#: src/terminal-options.cc:1747
+msgid "Show per-terminal options"
+msgstr "Показати параметри, що застосовуються до термінала"
+
+#: src/terminal-prefs.cc:130
+#, c-format
+msgid "Profile “%s”"
+msgstr "Профіль «%s»"
+
+#: src/terminal-prefs.cc:133
+#, c-format
+msgid "Preferences – %s"
+msgstr "Параметри – %s"
+
+#: src/terminal-prefs.cc:368
+msgid "New Profile"
+msgstr "Створення профілю"
+
+#: src/terminal-prefs.cc:369
+msgid "Enter name for new profile with default settings:"
+msgstr "Введіть назву для нового профілю з типовими параметрами:"
+
+#: src/terminal-prefs.cc:371
+msgid "Create"
+msgstr "Створити"
+
+#: src/terminal-prefs.cc:383
+#, c-format
+msgid "Enter name for new profile based on “%s”:"
+msgstr "Введіть назву для нового профілю на основі «%s»:"
+
+#: src/terminal-prefs.cc:384
+#, c-format
+msgid "%s (Copy)"
+msgstr "%s (копія)"
+
+#: src/terminal-prefs.cc:387
+msgid "Clone Profile"
+msgstr "Клонувати профіль"
+
+#: src/terminal-prefs.cc:390
+msgid "Clone"
+msgstr "Клонувати"
+
+#: src/terminal-prefs.cc:405
+#, c-format
+msgid "Enter new name for profile “%s”:"
+msgstr "Введіть нове назву для профілю «%s»:"
+
+#: src/terminal-prefs.cc:408
+msgid "Rename Profile"
+msgstr "Перейменувати профіль"
+
+#: src/terminal-prefs.cc:411
+msgid "Rename"
+msgstr "Перейменувати"
+
+#: src/terminal-prefs.cc:426
+#, c-format
+msgid "Really delete profile “%s”?"
+msgstr "Дійсно вилучити профіль «%s»?"
+
+#: src/terminal-prefs.cc:429
+msgid "Delete Profile"
+msgstr "Вилучення профілю"
+
+#: src/terminal-prefs.cc:432
+msgid "Delete"
+msgstr "Вилучити"
+
+#: src/terminal-prefs.cc:491
+msgid "This is the default profile"
+msgstr "Це типовий профіль"
+
+#: src/terminal-prefs.cc:515
+msgid "General"
+msgstr "Загальне"
+
+#: src/terminal-prefs.cc:520
+msgid "Shortcuts"
+msgstr "Скорочення"
+
+#: src/terminal-screen.cc:1425
+msgid "No command supplied nor shell requested"
+msgstr "Ні команди не надано, ні оболонки не вимагається"
+
+#: src/terminal-screen.cc:1563 src/terminal-screen.cc:1910
+msgid "_Relaunch"
+msgstr "_Перезапустити"
+
+#: src/terminal-screen.cc:1566
+msgid "There was an error creating the child process for this terminal"
+msgstr "Помилка створення процесу-нащадка для цього термінала"
+
+#: src/terminal-screen.cc:1914
+#, c-format
+msgid "The child process exited normally with status %d."
+msgstr "Підпроцес вийшов нормально зі станом %d."
+
+#: src/terminal-screen.cc:1917
+#, c-format
+msgid "The child process was aborted by signal %d."
+msgstr "Підпроцес скасовано за сигналом %d."
+
+#: src/terminal-screen.cc:1920
+msgid "The child process was aborted."
+msgstr "Підпроцес скасовано."
+
+#: src/terminal-tab-label.cc:222
+msgid "Close tab"
+msgstr "Закрити вкладку"
+
+#: src/terminal-util.cc:156
+msgid "There was an error displaying help"
+msgstr "Помилка відкриття довідки"
+
+#: src/terminal-util.cc:214
+msgid "Contributors:"
+msgstr "Помічники:"
+
+#: src/terminal-util.cc:235
+#, c-format
+msgid "Version %s for GNOME %d"
+msgstr "Версія %s для GNOME %d"
+
+#: src/terminal-util.cc:239
+#, c-format
+msgid "Using VTE version %u.%u.%u"
+msgstr "Використовується VTE версії %u.%u.%u"
+
+#: src/terminal-util.cc:245
+msgid "A terminal emulator for the GNOME desktop"
+msgstr "Емулятор термінала для середовища GNOME"
+
+#: src/terminal-util.cc:252
+msgid "GNOME Terminal"
+msgstr "Термінал GNOME"
+
+#: src/terminal-util.cc:262
+msgid "translator-credits"
+msgstr ""
+"Юрій Сирота\n"
+"Максим Дзюманенко <dziumanenko@gmail.com>\n"
+"Daniel Korostil <ted.korostiled@gmail.com>\n"
+"vikaig <vikaig99@gmail.com>"
+
+#: src/terminal-util.cc:337
+#, c-format
+msgid "Could not open the address “%s”"
+msgstr "Не вдається відкрити адресу «%s»"
+
+#: src/terminal-util.cc:406
+msgid ""
+"GNOME Terminal is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU General Public License as published by the Free "
+"Software Foundation, either version 3 of the License, or (at your option) "
+"any later version."
+msgstr ""
+"GNOME Terminal — вільна програма: ви можете розповсюджувати й/або змінювати "
+"її на умовах ліцензії GNU General Public License, що видали Free Software "
+"Foundation, версії 3 цієї ліцензії, або (на ваш розсуд) будь-якою подальшої "
+"версії."
+
+#: src/terminal-util.cc:410
+msgid ""
+"GNOME Terminal is distributed in the hope that it will be useful, but "
+"WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY "
+"or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for "
+"more details."
+msgstr ""
+"Програма GNOME Terminal поширюється зі сподіванням, що вона буде корисною "
+"але БЕЗ БУДЬ-ЯКОЇ ГАРАНТІЇ; навіть без неявної гарантії ПРИДАТНОСТІ ДО "
+"ПРОДАЖУ чи ВІДПОВІДНОСТІ ПЕВНІЙ МЕТІ.  Докладнішу інформацію дивіться у GNU "
+"General Public License."
+
+#: src/terminal-util.cc:414
+msgid ""
+"You should have received a copy of the GNU General Public License along with "
+"GNOME Terminal.  If not, see <http://www.gnu.org/licenses/>."
+msgstr ""
+"Ви мали одержати копію GNU General Public License разом з терміналом GNOME. "
+"Якщо цього не сталося, дивіться <http://www.gnu.org/licenses/>."
+
+#: src/terminal-util.cc:1149
+msgid "“file” scheme with remote hostname not supported"
+msgstr "Схема «file» з віддаленою назвою вузла не підтримується"
+
+#: src/terminal-window.cc:474
+msgid "Could not save contents"
+msgstr "Не вдалось зберегти зміст"
+
+#: src/terminal-window.cc:494
+msgid "Save as…"
+msgstr "Зберегти як…"
+
+#: src/terminal-window.cc:497
+msgid "_Cancel"
+msgstr "_Скасувати"
+
+#: src/terminal-window.cc:498
+msgid "_Save"
+msgstr "З_берегти"
+
+#: src/terminal-window.cc:1714
+msgid "Open _Hyperlink"
+msgstr "Відкрити _гіперпосилання"
+
+#: src/terminal-window.cc:1715
+msgid "Copy Hyperlink _Address"
+msgstr "Копіювати _адресу гіперпосилання"
+
+#: src/terminal-window.cc:1725
+msgid "Send Mail _To…"
+msgstr "_Надіслати листа…"
+
+#: src/terminal-window.cc:1726
+msgid "Copy Mail _Address"
+msgstr "Копіювати поштову _адресу"
+
+#: src/terminal-window.cc:1729
+msgid "Call _To…"
+msgstr "_Подзвонити…"
+
+#: src/terminal-window.cc:1730
+msgid "Copy Call _Address "
+msgstr "Копіювати _адресу виклику "
+
+#: src/terminal-window.cc:1735
+msgid "_Open Link"
+msgstr "_Відкрити посилання"
+
+#: src/terminal-window.cc:1736
+msgid "Copy _Link"
+msgstr "Копіювати _посилання"
+
+#: src/terminal-window.cc:1792
+msgid "P_rofiles"
+msgstr "П_рофілі"
+
+#: src/terminal-window.cc:1827
+msgid "L_eave Full Screen"
+msgstr "По_лишити повноекранний режим"
+
+#: src/terminal-window.cc:2291
+msgid "Set GNOME Terminal as your default terminal?"
+msgstr "Зробити «Термінал GNOME» вашим типовим терміналом?"
+
+#: src/terminal-window.cc:2297
+msgid "_Yes"
+msgstr "_Так"
+
+#: src/terminal-window.cc:2298
+msgid "_No"
+msgstr "_Ні"
+
+#: src/terminal-window.cc:3323
+msgid "Close this window?"
+msgstr "Закрити вікно?"
+
+#: src/terminal-window.cc:3323
+msgid "Close this terminal?"
+msgstr "Закрити цей термінал?"
+
+#: src/terminal-window.cc:3327
+msgid ""
+"There are still processes running in some terminals in this window. Closing "
+"the window will kill all of them."
+msgstr ""
+"У деяких терміналах цього вікна запущені процеси. Закриття вікна призведе до "
+"переривання усіх цих процесів."
+
+#: src/terminal-window.cc:3331
+msgid ""
+"There is still a process running in this terminal. Closing the terminal will "
+"kill it."
+msgstr ""
+"У терміналі запущено процес. Закриття термінала призведе до переривання "
+"процесу."
+
+#: src/terminal-window.cc:3336
+msgid "C_lose Window"
+msgstr "Закр_ити вікно"
+
+#: src/terminal.cc:594
+#, c-format
+msgid "Failed to parse arguments: %s\n"
+msgstr "Не вдається визначити аргументи: %s\n"
+
+#~ msgid "https://wiki.gnome.org/Apps/Terminal/ReportingBugs"
+#~ msgstr "https://wiki.gnome.org/Apps/Terminal/ReportingBugs"
+
+#~ msgctxt "theme variant"
+#~ msgid "Default"
+#~ msgstr "Типовий"
+
+#~ msgctxt "theme variant"
+#~ msgid "Dark"
+#~ msgstr "Темний"
+
+#~ msgid "org.gnome.Terminal"
+#~ msgstr "org.gnome.Terminal"
+
+#~ msgid "Armenian"
+#~ msgstr "Американське"
+
+#~ msgid "Georgian"
+#~ msgstr "Грузинське"

@@ -1,0 +1,107 @@
+# Copyright © 2018, 2019 Iñigo Martínez
+#
+# This library is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library.  If not, see <https://www.gnu.org/licenses/>.
+
+# This option allows you to disable -Bsymbolic-functions if your linker
+# doesn't support it.
+option(
+  '_b_symbolic_functions',
+  type: 'boolean',
+  value: true,
+  description: 'Use -Bsymbolic-functions',
+)
+
+option(
+  'a11y',
+  type: 'boolean',
+  value: true,
+  description: 'Enable a11y',
+)
+
+option(
+  'dbg', # for some reason, 'debug' is "reserved"
+  type: 'boolean',
+  value: false,
+  description: 'Enable extra debugging functionality',
+)
+
+option(
+  'docs',
+  type: 'boolean',
+  value: false,
+  description: 'Enable documentation',
+)
+
+option(
+  'gir',
+  type: 'boolean',
+  value: true,
+  description: 'Enable GObject Introspection',
+)
+
+option(
+  'fribidi',
+  type: 'boolean',
+  value: true,
+  description: 'Enable FriBidi support',
+)
+
+option(
+  'glade',
+  type: 'boolean',
+  value : true,
+  description: 'Install a glade catalogue file'
+)
+
+option(
+  'gnutls',
+  type: 'boolean',
+  value: true,
+  description: 'Enable GNUTLS support',
+)
+
+option(
+  'gtk3',
+  type: 'boolean',
+  value: true,
+  description: 'Enable GTK+ 3.0 widget',
+)
+
+option(
+  'gtk4',
+  type: 'boolean',
+  value: true,
+  description: 'Enable GTK+ 4.0 widget',
+)
+
+option(
+  'icu',
+  type: 'boolean',
+  value: true,
+  description: 'Enable legacy charset support using ICU',
+)
+
+option(
+  '_systemd',
+  type: 'boolean',
+  value: true,
+  description: 'Enable systemd support',
+)
+
+option(
+  'vapi', # would use 'vala' but that name is reserved
+  type: 'boolean',
+  value: true,
+  description: 'Enable Vala bindings',
+)

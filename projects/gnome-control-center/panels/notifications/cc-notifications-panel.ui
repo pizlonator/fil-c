@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcNotificationsPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="dnd_row">
+                    <property name="title" translatable="yes">_Do Not Disturb</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwSwitchRow" id="lock_screen_row">
+                    <property name="title" translatable="yes" comments="Translators: Whether to show notifications on the lock screen">_Lock Screen Notifications</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="app_group">
+                <property name="title" translatable="yes" comments="List of apps.">App Notifications</property>
+                <child>
+                  <object class="GtkListBox" id="app_listbox">
+                    <property name="selection_mode">none</property>
+                    <signal name="row-activated" handler="select_app" object="CcNotificationsPanel" swapped="yes" />
+                    <signal name="keynav-failed" handler="keynav_failed_cb" object="CcNotificationsPanel" swapped="yes"/>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                    <accessibility>
+                      <relation name="labelled-by">app_group</relation>
+                    </accessibility>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcNightLightPage" parent="AdwBin">
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkInfoBar" id="infobar_unsupported">
+            <property name="visible">False</property>
+            <property name="name">infobar_unsupported</property>
+            <property name="message-type">warning</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="hexpand">True</property>
+                <property name="margin-top">10</property>
+                <property name="margin-bottom">10</property>
+                <property name="margin-start">10</property>
+                <property name="margin-end">10</property>
+                <property name="spacing">10</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="halign">start</property>
+                    <property name="hexpand">False</property>
+                    <property name="label" translatable="yes">Night Light Unavailable</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"/>
+                    </attributes>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="infobar_unsupported_description">
+                    <property name="label" translatable="yes">This could be the result of the graphics driver being used, or the desktop being used remotely</property>
+                    <property name="wrap">True</property>
+                    <property name="xalign">0.0</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkInfoBar" id="infobar_disabled">
+            <property name="name">infobar_disabled</property>
+            <child>
+              <object class="GtkBox">
+                <property name="hexpand">True</property>
+                <property name="spacing">16</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="halign">start</property>
+                    <property name="margin-start">12</property>
+                    <property name="hexpand">False</property>
+                    <property name="label" translatable="yes" comments="Inhibit the redshift functionality until the next day starts">Temporarily Disabled Until Tomorrow</property>
+                    <attributes>
+                      <attribute name="weight" value="bold"/>
+                    </attributes>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_undisable">
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="label" translatable="yes" comments="This cancels the redshift inhibit.">Restart Filter</property>
+                <property name="name">button_undisable</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="valign">GTK_ALIGN_CENTER</property>
+                <signal name="clicked" handler="dialog_undisable_clicked_cb" object="CcNightLightPage" swapped="yes" />
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesPage" id="night_light_settings">
+            <property name="description" translatable="yes">Night light makes the screen color warmer. This can help to prevent eye strain and sleeplessness.</property>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <!-- Night Light -->
+                <child>
+                  <object class="AdwSwitchRow" id="night_light_toggle_row">
+                    <property name="title" translatable="yes">_Night Light</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <!-- Schedule -->
+                <child>
+                  <object class="AdwComboRow" id="schedule_type_row">
+                    <property name="title" translatable="yes">_Schedule</property>
+                    <property name="use-underline">True</property>
+                    <property name="sensitive" bind-source="night_light_toggle_row" bind-property="active" bind-flags="default|sync-create" />
+                    <signal name="notify::selected" handler="on_schedule_type_row_selected_changed_cb" object="CcNightLightPage" swapped="yes" />
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <items>
+                          <item translatable="yes">Sunset to Sunrise</item>
+                          <item translatable="yes">Manual Schedule</item>
+                        </items>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+                <!-- Time -->
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="title" translatable="yes">_Times</property>
+                    <property name="use-underline">True</property>
+                    <property name="sensitive" bind-source="night_light_toggle_row" bind-property="active" bind-flags="default|sync-create" />
+
+                    <child>
+                      <object class="GtkBox" id="box_manual">
+                        <property name="spacing">6</property>
+                        <property name="margin-top">12</property>
+                        <property name="margin-bottom">12</property>
+                        <style>
+                          <class name="time-widget" />
+                        </style>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label" translatable="yes">From</property>
+                            <property name="mnemonic_widget">spinbutton_from_hours</property>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="from_spinbuttons_box">
+                            <property name="spacing">4</property>
+                            <child>
+                              <object class="GtkSpinButton" id="spinbutton_from_hours">
+                                <property name="can_focus">True</property>
+                                <property name="max_width_chars">2</property>
+                                <property name="text">4</property>
+                                <property name="orientation">vertical</property>
+                                <property name="adjustment">adjustment_from_hours</property>
+                                <property name="numeric">True</property>
+                                <property name="wrap">True</property>
+                                <property name="value">4</property>
+                                <signal name="output" handler="dialog_format_from_hours_combobox" object="CcNightLightPage" swapped="yes" />
+                                <style>
+                                  <class name="padded-spinbutton"/>
+                                </style>
+                                <accessibility>
+                                  <property name="description" translatable="yes">Hour</property>
+                                </accessibility>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">:</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="spinbutton_from_minutes">
+                                <property name="can_focus">True</property>
+                                <property name="max_width_chars">2</property>
+                                <property name="text">0</property>
+                                <property name="orientation">vertical</property>
+                                <property name="adjustment">adjustment_from_minutes</property>
+                                <property name="numeric">True</property>
+                                <property name="wrap">True</property>
+                                <signal name="output" handler="dialog_format_from_minutes_combobox" object="CcNightLightPage" swapped="yes" />
+                                <style>
+                                  <class name="padded-spinbutton"/>
+                                </style>
+                                <accessibility>
+                                  <property name="description" translatable="yes">Minute</property>
+                                </accessibility>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkStack" id="stack_from">
+                                <property name="hhomogeneous">False</property>
+                                <property name="vhomogeneous">False</property>
+                                <child>
+                                  <object class="GtkButton" id="button_from_am">
+                                    <property name="label" translatable="yes" comments="This is the short form for the time period in the morning">AM</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">True</property>
+                                    <property name="valign">center</property>
+                                    <signal name="clicked" handler="dialog_am_pm_from_button_clicked_cb" object="CcNightLightPage" swapped="yes" />
+                                    <style>
+                                      <class name="unpadded-button"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="button_from_pm">
+                                    <property name="label" translatable="yes" comments="This is the short form for the time period in the afternoon">PM</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">True</property>
+                                    <property name="valign">center</property>
+                                    <signal name="clicked" handler="dialog_am_pm_from_button_clicked_cb" object="CcNightLightPage" swapped="yes" />
+                                    <style>
+                                      <class name="unpadded-button"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="margin-start">6</property>
+                            <property name="label" translatable="yes">To</property>
+                            <property name="mnemonic_widget">spinbutton_to_hours</property>
+                            <style>
+                              <class name="dim-label"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkBox" id="to_spinbuttons_box">
+                            <property name="spacing">4</property>
+                            <child>
+                              <object class="GtkSpinButton" id="spinbutton_to_hours">
+                                <property name="can_focus">True</property>
+                                <property name="max_width_chars">2</property>
+                                <property name="text">4</property>
+                                <property name="orientation">vertical</property>
+                                <property name="adjustment">adjustment_to_hours</property>
+                                <property name="numeric">True</property>
+                                <property name="wrap">True</property>
+                                <property name="value">4</property>
+                                <signal name="output" handler="dialog_format_to_hours_combobox" object="CcNightLightPage" swapped="yes" />
+                                <style>
+                                  <class name="padded-spinbutton"/>
+                                </style>
+                                <accessibility>
+                                  <property name="description" translatable="yes">Hour</property>
+                                </accessibility>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">:</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="spinbutton_to_minutes">
+                                <property name="can_focus">True</property>
+                                <property name="max_width_chars">2</property>
+                                <property name="text">0</property>
+                                <property name="orientation">vertical</property>
+                                <property name="adjustment">adjustment_to_minutes</property>
+                                <property name="numeric">True</property>
+                                <property name="wrap">True</property>
+                                <signal name="output" handler="dialog_format_to_minutes_combobox" object="CcNightLightPage" swapped="yes" />
+                                <style>
+                                  <class name="padded-spinbutton"/>
+                                </style>
+                                <accessibility>
+                                  <property name="description" translatable="yes">Minute</property>
+                                </accessibility>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkStack" id="stack_to">
+                                <property name="hhomogeneous">False</property>
+                                <property name="vhomogeneous">False</property>
+                                <child>
+                                  <object class="GtkButton" id="button_to_am">
+                                    <property name="label" translatable="yes">AM</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">True</property>
+                                    <property name="valign">center</property>
+                                    <signal name="clicked" handler="dialog_am_pm_to_button_clicked_cb" object="CcNightLightPage" swapped="yes" />
+                                    <style>
+                                      <class name="unpadded-button"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="button_to_pm">
+                                    <property name="label" translatable="yes">PM</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">True</property>
+                                    <property name="valign">center</property>
+                                    <signal name="clicked" handler="dialog_am_pm_to_button_clicked_cb" object="CcNightLightPage" swapped="yes" />
+                                    <style>
+                                      <class name="unpadded-button"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <!-- Color Temperature -->
+                <child>
+                  <object class="AdwPreferencesRow">
+                    <property name="activatable">False</property>
+                    <property name="sensitive" bind-source="night_light_toggle_row" bind-property="active" bind-flags="default|sync-create" />
+
+                    <child>
+                      <object class="GtkBox">
+                        <property name="margin-start">12</property>
+                        <property name="margin-end">12</property>
+                        <property name="margin-top">12</property>
+                        <property name="margin-bottom">12</property>
+                        <property name="spacing">6</property>
+                        <property name="orientation">vertical</property>
+
+                        <child>
+                          <object class="GtkLabel" id="title">
+                            <property name="label" translatable="yes">_Color Temperature</property>
+                            <property name="use-underline">True</property>
+                            <property name="ellipsize">none</property>
+                            <property name="lines">0</property>
+                            <property name="xalign">0.0</property>
+                            <style>
+                              <class name="title"/>
+                            </style>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="GtkScale" id="scale_color_temperature">
+                            <property name="hexpand">True</property>
+                            <property name="width-request">280</property>
+                            <property name="adjustment">adjustment_color_temperature</property>
+                            <property name="inverted">True</property>
+                            <property name="restrict_to_fill_level">False</property>
+                            <property name="fill_level">1</property>
+                            <property name="digits">0</property>
+                            <property name="draw_value">False</property>
+                            <property name="has_origin">False</property>
+                            <property name="value_pos">bottom</property>
+                            <style>
+                              <class name="night-light-temperature"/>
+                            </style>
+                          </object>
+                        </child>
+
+                      </object>
+                    </child>
+
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+
+  <object class="GtkAdjustment" id="adjustment_from_hours">
+    <property name="upper">23</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <signal name="value-changed" handler="dialog_time_from_value_changed_cb" object="CcNightLightPage" swapped="yes" />
+  </object>
+  <object class="GtkAdjustment" id="adjustment_from_minutes">
+    <property name="upper">59</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <signal name="value-changed" handler="dialog_time_from_value_changed_cb" object="CcNightLightPage" swapped="yes" />
+  </object>
+  <object class="GtkAdjustment" id="adjustment_to_hours">
+    <property name="upper">23</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <signal name="value-changed" handler="dialog_time_to_value_changed_cb" object="CcNightLightPage" swapped="yes" />
+  </object>
+  <object class="GtkAdjustment" id="adjustment_to_minutes">
+    <property name="upper">59</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <signal name="value-changed" handler="dialog_time_to_value_changed_cb" object="CcNightLightPage" swapped="yes" />
+  </object>
+  <object class="GtkAdjustment" id="adjustment_color_temperature">
+    <property name="lower">1700</property>
+    <property name="upper">4700</property>
+    <property name="step_increment">100</property>
+    <property name="page_increment">500</property>
+    <signal name="value-changed" handler="dialog_color_temperature_value_changed_cb" object="CcNightLightPage" swapped="yes" />
+  </object>
+</interface>

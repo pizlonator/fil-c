@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="CcWwanDetailsDialog" parent="GtkDialog">
+    <property name="title" translatable="yes">Modem Details</property>
+    <property name="default-height">480</property>
+    <property name="default-width">360</property>
+    <property name="hide-on-close">True</property>
+    <property name="modal">True</property>
+
+    <child>
+      <object class="AdwPreferencesPage">
+
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">Modem Status</property>
+            <child>
+              <object class="GtkGrid">
+                <property name="row-spacing">9</property>
+                <property name="column-spacing">6</property>
+
+                <!-- Carrier -->
+                <child>
+                  <object class="GtkLabel" id="carrier_label">
+                    <property name="label" translatable="yes">Carrier</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="operator_name">
+                    <property name="xalign">0.0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+
+                <!-- Network Type -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Network Type</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="network_type">
+                    <property name="xalign">0.0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+
+                <!-- Signal Strength -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Signal Strength</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">2</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="signal_strength">
+                    <property name="xalign">0.0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">2</property>
+                    </layout>
+                  </object>
+                </child>
+
+                <!-- Network Status -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Network Status</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">3</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="network_status">
+                    <property name="xalign">0.0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">3</property>
+                    </layout>
+                  </object>
+                </child>
+
+                <!-- Own Numbers -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible" bind-source="own_numbers" bind-flags="sync-create"/>
+                    <property name="label" translatable="yes">Own Number</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">4</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="own_numbers">
+                    <property name="xalign">0.0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">4</property>
+                    </layout>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <!-- Device Details Content -->
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">Device Details</property>
+            <child>
+              <object class="GtkGrid">
+                <property name="row-spacing">9</property>
+                <property name="column-spacing">6</property>
+
+                <!-- Manufacturer -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Manufacturer</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="manufacturer">
+                    <property name="xalign">0.0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+
+                <!-- Model -->
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label" translatable="yes">Model</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="device_model">
+                    <property name="xalign">0.0</property>
+                    <property name="selectable">True</property>
+                    <property name="ellipsize">end</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+
+                <!-- Firmware version -->
+                <child>
+                  <object class="GtkLabel" id="firmware_label">
+                    <property name="label" translatable="yes">Firmware Version</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">2</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="firmware_version">
+                    <property name="selectable">True</property>
+                    <property name="xalign">0.0</property>
+                    <property name="ellipsize">end</property>
+                    <property name="wrap">True</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">2</property>
+                    </layout>
+                  </object>
+                </child>
+
+                <!-- IMEI/ICCID -->
+                <child>
+                  <object class="GtkLabel" id="identifier_label">
+                    <property name="label" translatable="yes">IMEI</property>
+                    <property name="xalign">1.0</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">3</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="device_identifier">
+                    <property name="selectable">True</property>
+                    <property name="xalign">0.0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">3</property>
+                    </layout>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+  </template>
+  <object class="GtkSizeGroup">
+    <property name="mode">horizontal</property>
+    <widgets>
+      <widget name="carrier_label"/>
+      <widget name="firmware_label"/>
+    </widgets>
+  </object>
+</interface>

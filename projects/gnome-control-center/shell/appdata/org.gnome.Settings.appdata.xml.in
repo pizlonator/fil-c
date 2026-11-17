@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2015 Richard Hughes <richard@hughsie.com> -->
+<component type="desktop">
+  <id>org.gnome.Settings.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  <name>Settings</name>
+  <summary>Utility to configure the GNOME desktop</summary>
+  <description>
+    <p>
+      Settings is the primary interface for configuring your system.
+    </p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://gitlab.gnome.org/GNOME/gnome-control-center/raw/HEAD/shell/appdata/screenshot-appearance.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://gitlab.gnome.org/GNOME/gnome-control-center/raw/HEAD/shell/appdata/screenshot-sound.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://gitlab.gnome.org/GNOME/gnome-control-center/raw/HEAD/shell/appdata/screenshot-mouse.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://gitlab.gnome.org/GNOME/gnome-control-center/raw/HEAD/shell/appdata/screenshot-keyboard.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://apps.gnome.org/Settings/</url>
+  <url type="bugtracker">https://gitlab.gnome.org/GNOME/gnome-control-center/issues/</url>
+  <url type="contact">https://discourse.gnome.org/tag/settings</url>
+  <url type="donation">https://www.gnome.org/donate/</url>
+  <url type="help">https://discourse.gnome.org/tag/settings</url>
+  <url type="translate">https://l10n.gnome.org/module/gnome-control-center/</url>
+  <url type="contribute">https://welcome.gnome.org/app/Settings/</url>
+  <url type="vcs-browser">https://gitlab.gnome.org/GNOME/gnome-control-center/</url>
+  <project_group>GNOME</project_group>
+  <launchable type="desktop-id">org.gnome.Settings.desktop</launchable>
+  <!-- developer_name tag deprecated with Appstream 1.0 -->
+  <developer_name>The GNOME Project</developer_name>
+  <developer id="org.gnome">
+    <name>The GNOME Project</name>
+  </developer>
+  <compulsory_for_desktop>GNOME</compulsory_for_desktop>
+  <kudos>
+    <kudo>HiDpiIcon</kudo>
+    <kudo>HighContrast</kudo>
+    <kudo>ModernToolkit</kudo>
+    <kudo>SearchProvider</kudo>
+    <kudo>UserDocs</kudo>
+  </kudos>
+
+  <releases>
+    <release version="46.8" date="2025-02-04">
+      <description>
+      <ul>
+        <li>Use static hostname when displaying hostname based addresses</li>
+        <li>Simplify Crosshair length slider in Accessibility Zoom settings</li>
+      </ul>
+      </description>
+    </release>
+    <release version="46.7" date="2025-01-09">
+      <description>
+      <ul>
+        <li>Fix wrong GPU names on the About panel launched with dGPUs</li>
+        <li>Make user avatar names readable to screen readers</li>
+        <li>Fix crash in Sound Volume Levels when a stream has no name</li>
+        <li>Various fixes to the color calibration tool</li>
+        <li>Translation updates</li>
+      </ul>
+      </description>
+    </release>
+
+    <release version="46.6" date="2024-11-25">
+      <description>
+      <ul>
+        <li>Fix some memory leaks in the App settings</li>
+        <li>Fix alignment of status pages in the Mobile Networks settings</li>
+        <li>Fix translation issues in the about dialog</li>
+        <li>Fix wrong tooltip in the "Add Printer" button</li>
+        <li>Ensure color profiles operations work</li>
+        <li>Translation updates</li>
+      </ul>
+      </description>
+    </release>
+
+    <release version="46.5" date="2024-10-21">
+      <description>
+      <ul>
+        <li>Fix disabling of auto timezone when location services unavailable</li>
+        <li>Fix value of system language row after selecting new language</li>
+        <li>Improve performance when loading background images</li>
+        <li>Fix "speed of repeat key" accessibility setting</li>
+        <li>Fix crash when handling unkown stylus IDs in the Wacom settings</li>
+        <li>Fix button visibility behavior in the Color settings</li>
+        <li>Translation updates</li>
+      </ul>
+      </description>
+    </release>
+
+    <release version="46.4" date="2024-08-05">
+      <description>
+      <p>GNOME Settings is the sixth stable release for GNOME 46. This update contains bug fixes for issues discovered in 46.3</p>
+
+      <ul>
+        <li>Fix crash of the SIM Unlock dialog on Mobile Networks settings</li>
+        <li>Fix visibility issue of Bolt settings when Bolt isn't available</li>
+        <li>Show correctly the list of remanining fingerprint options to enroll</li>
+        <li>Avoid accidental mnemonics for user name rows</li>
+
+      </ul>
+      </description>
+    </release>
+
+    <release version="46.3" date="2024-06-28">
+      <description>
+        <p>This update contains bug fixes for issues discovered in 46.2</p>
+
+        <ul>
+          <li>Make screen reader read the "Add Folder" option in Media Sharing</li>
+          <li>Make Mouse test click indicator not respond for middle clicks</li>
+          <li>Translation updates</li>
+        </ul>
+      </description>
+    </release>
+
+    <release version="46.2" date="2024-05-27">
+      <description>
+      <p>GNOME Settings is the forth stable release for GNOME 46. This update contains bug fixes for issues discovered in 46.1</p>
+
+      <ul>
+        <li>Enable Location settings by default (distros can disable)</li>
+        <li>Various screen reader accessibility fixes</li>
+        <li>Sort VPN connections list alphabetically</li>
+        <li>Fix Display settings crash when closing laptop lid</li>
+        <li>Improve keyboard navigations of keyboard shortcuts dialog</li>
+        <li>Fix "flash area" accessibility setting</li>
+        <li>Fix crash when removing bluetooth network adapter</li>
+        <li>Make sound sliders more keyboard accessible</li>
+        <li>Fix visibility issue of parental controls row</li>
+        <li>Fix crash in Date and Time settings when closing too fast</li>
+        <li>Various translation updates</li>
+      </ul>
+    </description>
+    </release>
+    <release version="46.1" date="2024-04-19">
+      <description>
+      <p>GNOME Settings is the third stable release for GNOME 46. This update contains bug fixes for issues discovered in 46.0.1</p>
+
+      <ul>
+        <li>Improve accessibility of "Typing" settings sliders</li>
+        <li>Hide "Sharing" settings when backend is unavailable</li>
+        <li>Fix crash when pressing Escape in the display settings</li>
+        <li>Avoid unnecessary time synchronization calls</li>
+        <li>Add stable-ssid support for cloned-mac</li>
+        <li>Allow distros to disable "Location" settings</li>
+        <li>Fix opening of Help pages in the Privacy settings</li>
+        <li>Improve capacity of generating passwords in Remote Desktop settings</li>
+        <li>Fix issue with sensitivity of "Add"/"Enroll" Enterprise Login buttons</li>
+        <li>Various translation updates</li>
+      </ul>
+    </description>
+    </release>
+    <release version="46.0.1" date="2024-03-27">
+      <description>
+      <p>GNOME Settings is the second stable release for GNOME 46. This update contains bug fixes for issues discovered in 46.0</p>
+
+      <ul>
+        <li>Fix "Thunderbolt" settings not opening</li>
+        <li>Fix handle of legacy command line arguments</li>
+        <li>Allow launching Accessibility setting subpages directly from the commandline</li>
+        <li>Avoid setting auto time synchronization when it is not needed</li>
+        <li>Improve startup time of the "System" settings</li>
+        <li>Various translation updates</li>
+      </ul>
+    </description>
+    </release>
+    <release version="46.0" date="2024-03-18">
+    <description>
+      <p>GNOME Settings is the first stable release for GNOME 46. This update comprises the work of contributors over the past six months, including enhancements and bug fixes.</p>
+
+      <ul>
+        <li>Add support for Variable Refresh Rate (VRR) modes</li>
+        <li>Introduce "Remote Login" settings for Remote Desktop</li>
+        <li>Rework the Online Accounts functionality for GTK4</li>
+        <li>Improved Mouse and Touchpad testing capabilities</li>
+        <li>Introduce the new "System" settings panel</li>
+        <li>Move SSH settings to the System panel</li>
+        <li>Move "Default Apps" and "Removable Media" settings to "Apps" panel</li>
+        <li>Add "Secondary Click" setting for Touchpads</li>
+        <li>Add "Disable While Typing" setting for Touchpads</li>
+        <li>Modernize the Enterprise Login settings</li>
+        <li>More fine-grained control over stylus pressure in Wacom settings</li>
+        <li>Allow launching subpages of System and Privacy panels directly</li>
+        <li>Create prettier user account avatars</li>
+        <li>Various bugfixes, accessibility and translation improvements</li>
+      </ul>
+    </description>
+    </release>
+    <release version="45.0" date="2023-09-15">
+    <description>
+      <ul>
+        <li>Fix sidebar navigation issues</li>
+        <li>Fix showing of QR Code button for non-supported Wi-Fi network security</li>
+        <li>Various other fixes, improvements, and translation updates</li>
+      </ul>
+    </description>
+    </release>
+    <release version="45~rc" date="2023-08-25">
+    <description>
+      <ul>
+        <li>Settings panels have been ported to modern libadwaita navigation widgets</li>
+        <li>The Printers settings have been redesigned</li>
+        <li>Various other fixes and improvements</li>
+      </ul>
+    </description>
+    </release>
+    <release version="45~beta" date="2023-08-07">
+    <description>
+      <ul>
+        <li>Performance improvements when loading a panel at startup</li>
+        <li>Multiple settings are now using modern Libadwaita widgets</li>
+        <li>New Privacy settings panel</li>
+        <li>New About panel</li>
+        <li>Various new accessibility labels added for screen readers</li>
+        <li>Visual and text improvements to the Online Accounts panel</li>
+        <li>New "card" style for the list of printers</li>
+        <li>Various other fixes and improvements</li>
+      </ul>
+    </description>
+    </release>
+  </releases>
+
+  <translation type="gettext">gnome-control-center-2.0</translation>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+</component>

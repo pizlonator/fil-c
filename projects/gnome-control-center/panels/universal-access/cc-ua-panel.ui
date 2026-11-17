@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcUaPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwNavigationView" id="main_nav_view">
+        <child>
+          <object class="AdwNavigationPage" id="main_page">
+            <property name="title" translatable="yes">Accessibility</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+
+                    <!-- Accessibility menu row -->
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwSwitchRow" id="show_ua_menu_row">
+                            <property name="title" translatable="yes">_Always Show Accessibility Menu</property>
+                            <property name="subtitle" translatable="yes">Display the accessibility menu in the top bar</property>
+                            <property name="use-underline">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <!-- Seeing row -->
+                        <child>
+                          <object class="CcListRow" id="seeing_row">
+                            <property name="title" translatable="yes">_Seeing</property>
+                            <property name="icon-name">seeing-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'seeing'</property>
+                          </object>
+                        </child>
+
+                        <!-- Hearing row -->
+                        <child>
+                          <object class="CcListRow" id="hearing_row">
+                            <property name="title" translatable="yes">_Hearing</property>
+                            <property name="icon-name">hearing-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'hearing'</property>
+                          </object>
+                        </child>
+
+                        <!-- Typing row -->
+                        <child>
+                          <object class="CcListRow" id="typing_row">
+                            <property name="title" translatable="yes">_Typing</property>
+                            <property name="icon-name">typing-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'typing'</property>
+                          </object>
+                        </child>
+
+                        <!-- Mouse and clicking row -->
+                        <child>
+                          <object class="CcListRow" id="mouse_row">
+                            <property name="title" translatable="yes">_Pointing and Clicking</property>
+                            <property name="icon-name">pointing-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'mouse'</property>
+                          </object>
+                        </child>
+
+                        <!-- Zoom row -->
+                        <child>
+                          <object class="CcListRow" id="zoom_row">
+                            <property name="title" translatable="yes">_Zoom</property>
+                            <property name="icon-name">zoom-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'zoom'</property>
+                          </object>
+                        </child>
+                      </object> <!-- ./AdwPreferencesGroup -->
+                    </child>
+                  </object> <!-- ./AdwPreferencesPage main_page -->
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <child>
+          <object class="CcUaSeeingPage" id="seeing_page"/>
+        </child>
+
+        <child>
+          <object class="CcUaHearingPage" id="hearing_page"/>
+        </child>
+
+        <child>
+          <object class="CcUaTypingPage" id="typing_page"/>
+        </child>
+
+        <child>
+          <object class="CcUaMousePage" id="mouse_page"/>
+        </child>
+
+        <child>
+          <object class="CcUaZoomPage" id="zoom_page"/>
+        </child>
+
+      </object>
+    </property>
+  </template>
+</interface>

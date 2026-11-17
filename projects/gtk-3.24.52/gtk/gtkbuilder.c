@@ -406,16 +406,28 @@ _gtk_builder_resolve_type_lazily (const gchar *name)
 {
   static GModule *module = NULL;
   GTypeGetFunc func;
-  gchar *symbol;
+  gchar *symbol = NULL;
   GType gtype = G_TYPE_INVALID;
 
-  if (!module)
-    module = g_module_open (NULL, 0);
+  /* Fil-C: the main-program self-module handle from g_module_open (NULL, 0)
+   * is not a filc-valid pointer for the pizlonated libc's zsys_dlsym, so
+   * the lazy main-program symbol lookup is disabled; all the types the
+   * pizlonated system needs come from registered GTypes instead. */
+  if (FALSE)
+    {
+      gpointer pfunc;
 
-  symbol = type_name_mangle (name);
+      if (!module)
+        module = g_module_open (NULL, 0);
 
-  if (g_module_symbol (module, symbol, (gpointer)&func))
-    gtype = func ();
+      symbol = type_name_mangle (name);
+
+      if (g_module_symbol (module, symbol, (gpointer)&pfunc))
+        {
+          func = (GTypeGetFunc) pfunc;
+          gtype = func ();
+        }
+    }
 
   g_free (symbol);
 
@@ -1678,10 +1690,12 @@ gtk_builder_connect_signals (GtkBuilder *builder,
 
   args.data = user_data;
 
-  if (g_module_supported ())
-    args.module = g_module_open (NULL, G_MODULE_BIND_LAZY);
-  else
-    args.module = NULL;
+  /* Fil-C: the main-program self-module handle from g_module_open (NULL,
+   * G_MODULE_BIND_LAZY) is not a filc-valid pointer for the pizlonated
+   * libc's zsys_dlsym, so the module stays NULL; the default connect
+   * function then skips module-based symbol lookup (applications in the
+   * pizlonated system connect their builder signals in code). */
+  args.module = NULL;
 
   gtk_builder_connect_signals_full (builder,
                                     gtk_builder_connect_signals_default,

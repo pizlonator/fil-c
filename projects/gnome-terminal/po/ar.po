@@ -1,0 +1,3378 @@
+# translation of gnome-terminal to Arabic
+# This file is distributed under the same license as the gnome-terminal package.
+# Copyright (C) Listed translators
+# Sayed Jaffer Al-Mosawi <mosawi@arabeyes.org>, 2002.
+# Isam Bayazidi <bayazidi@arabeyes.org>, 2002.
+# Arafat Medini <lumina@silverpen.de>, 2003.
+# Arafat Medini <silverwhale@silverpen.de>, 2003.
+# Abdulaziz Al-Arfaj <alarfaj0@yahoo.com>, 2004.
+# Khaled Hosny <khaledhosny@eglug.org>, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019.
+# Djihed Afifi <djihed@gmail.com>, 2006.
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-terminal master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-15 23:34+0200\n"
+"PO-Revision-Date: 2019-03-15 23:36+0200\n"
+"Last-Translator: Khaled Hosny <khaledhosny@eglug.org>\n"
+"Language-Team: Arabic <doc@arabeyes.org>\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Virtaal 0.7.1\n"
+"X-Project-Style: gnome\n"
+
+#. VERSION=@VERSION@
+#: ../org.gnome.Terminal.appdata.xml.in.h:1
+#: ../org.gnome.Terminal.desktop.in.in.h:2 ../src/server.c:147
+#: ../src/terminal-accels.c:232 ../src/terminal.c:572
+#: ../src/terminal-menubar.ui.in.h:30 ../src/terminal-tab-label.c:81
+#: ../src/terminal-window.c:1885 ../src/terminal-window.c:2156
+#: ../src/terminal-window.c:2446
+msgid "Terminal"
+msgstr "الطرفية"
+
+#: ../org.gnome.Terminal.appdata.xml.in.h:2
+#: ../org.gnome.Terminal.desktop.in.in.h:3
+msgid "Use the command line"
+msgstr "استعمل سطر الأوامر"
+
+#: ../org.gnome.Terminal.appdata.xml.in.h:3
+msgid ""
+"GNOME Terminal is a terminal emulator application for accessing a UNIX shell "
+"environment which can be used to run programs available on your system."
+msgstr ""
+"طرفية جنوم هو محاكي طرفية للوصول إلى بيئة صدفة يونكس و التي يمكن استخدامها "
+"لتشغيل البرامج الموجودة على نظامك."
+
+#: ../org.gnome.Terminal.appdata.xml.in.h:4
+msgid ""
+"It supports several profiles, multiple tabs and implements several keyboard "
+"shortcuts."
+msgstr "يدعم تشكيلات مختلفة، و الألسنة و العديد من اختصارات لوحة المفاتيح."
+
+#: ../org.gnome.Terminal.Nautilus.metainfo.xml.in.h:1
+msgid "Terminal plugin for Files"
+msgstr "ملحق طرفيّة لمدير الملفات"
+
+#: ../org.gnome.Terminal.Nautilus.metainfo.xml.in.h:2
+msgid "Open a terminal from Files"
+msgstr "افتح طرفيّة من مدير الملفات"
+
+#: ../org.gnome.Terminal.Nautilus.metainfo.xml.in.h:3
+msgid ""
+"Open Terminal is a plugin for the Files application that adds a menu item to "
+"the context menu to open a terminal in the currently browsed directory."
+msgstr ""
+
+#: ../org.gnome.Terminal.desktop.in.in.h:4
+msgid "shell;prompt;command;commandline;cmd;"
+msgstr "طرفية;صدفة;سطر;أوامر;أمر;"
+
+#: ../org.gnome.Terminal.desktop.in.in.h:5 ../src/terminal-accels.c:127
+msgid "New Window"
+msgstr "نافذة جديدة"
+
+#: ../org.gnome.Terminal.desktop.in.in.h:6 ../src/terminal-accels.c:146
+msgid "Preferences"
+msgstr "التفضيلات"
+
+#. Translators: Keep single quote please!
+#: ../src/org.gnome.Terminal.gschema.xml.h:2
+msgctxt "visible-name"
+msgid "'Unnamed'"
+msgstr "'بلا اسم'"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:3
+msgid "Human-readable name of the profile"
+msgstr "اسم التشكيلة المقروء"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:4
+msgid "Human-readable name of the profile."
+msgstr "اسم تشكيلة المقروء."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:5
+msgid "Default color of text in the terminal"
+msgstr "اللون المبدئي للنص في الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:6
+msgid ""
+"Default color of text in the terminal, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr ""
+"اللون الافتراضي للنص في الطرفيّة، كمواصفة لونيّة (يمكن أن يكون بأسلوب HTML "
+"رقمي سداسي أو اسم لون مثل ”red“)."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:7
+msgid "Default color of terminal background"
+msgstr "اللون المبدئي لخلفية الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:8
+msgid ""
+"Default color of terminal background, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr ""
+"اللون المبدئي لخلفية الطرفيّة كمواصفة لونيّة (يمكن أن يكون بأسلوب HTML ذي "
+"الرقميّات السداسيّة أو اسم لون مثل ”red“)."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:9
+msgid "Default color of bold text in the terminal"
+msgstr "اللون المبدئي للنص العريض في الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:10
+msgid ""
+"Default color of bold text in the terminal, as a color specification (can be "
+"HTML-style hex digits, or a color name such as “red”). This is ignored if "
+"bold-color-same-as-fg is true."
+msgstr ""
+"اللون المبدئي للنص العريض في الطرفيّة، كمواصفة لونيّة (يمكن أن يكون بأسلوب "
+"HTML رقمي سداسي أو كاسم لون مثل ”red“)."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:11
+msgid "Whether bold text should use the same color as normal text"
+msgstr "ما إذا كان النص العريض يأخذ نفس لون النص العادي"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:12
+msgid ""
+"If true, boldface text will be rendered using the same color as normal text."
+msgstr "إذا ضبط لصحيح، فسيأخذ النص العريض نفس لون النص العادي."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:13
+msgid ""
+"Scale factor for the cell height to increase line spacing. (Does not "
+"increase the font’s height.)"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:14
+msgid ""
+"Scale factor for the cell width to increase letter spacing. (Does not "
+"increase the font’s width.)"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:15
+msgid "Whether to use custom cursor colors"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:16
+msgid "If true, use the cursor colors from the profile."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:17
+msgid "Cursor background color"
+msgstr "لون خلفية المؤشر"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:18
+#, fuzzy
+msgid ""
+"Custom color of the background of the terminal’s cursor, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if cursor-colors-set is false."
+msgstr ""
+"اللون المبدئي للنص العريض في الطرفيّة، كمواصفة لونيّة (يمكن أن يكون بأسلوب "
+"HTML رقمي سداسي أو كأسم لون مثل \"red\")."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:19
+msgid "Cursor foreground colour"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:20
+#, fuzzy
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"cursor position, as a color specification (can be HTML-style hex digits, or "
+"a color name such as “red”). This is ignored if cursor-colors-set is false."
+msgstr ""
+"اللون المبدئي للنص العريض في الطرفيّة، كمواصفة لونيّة (يمكن أن يكون بأسلوب "
+"HTML رقمي سداسي أو كأسم لون مثل \"red\")."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:21
+#, fuzzy
+msgid "Whether to use custom highlight colors"
+msgstr "فيما إذا سيختد حجم طرفية مخصص للنوافذ الجديدة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:22
+msgid "If true, use the highlight colors from the profile."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:23
+#, fuzzy
+msgid "Highlight background color"
+msgstr "لون ال_خلفية:"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:24
+#, fuzzy
+msgid ""
+"Custom color of the background of the terminal’s highlight, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if highlight-colors-set is false."
+msgstr ""
+"اللون المبدئي للنص العريض في الطرفيّة، كمواصفة لونيّة (يمكن أن يكون بأسلوب "
+"HTML رقمي سداسي أو كأسم لون مثل \"red\")."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:25
+msgid "Highlight foreground colour"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:26
+#, fuzzy
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"highlight position, as a color specification (can be HTML-style hex digits, "
+"or a color name such as “red”). This is ignored if highlight-colors-set is "
+"false."
+msgstr ""
+"اللون المبدئي للنص العريض في الطرفيّة، كمواصفة لونيّة (يمكن أن يكون بأسلوب "
+"HTML رقمي سداسي أو كأسم لون مثل \"red\")."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:27
+msgid "Whether to allow bold text"
+msgstr "فيما إذا يسمح بنص سميك"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:28
+msgid "If true, allow applications in the terminal to make text boldface."
+msgstr "إذا ضبط لصحيح، فسيسمح للتطبيقات أن تجعل النص في الطرفيّة سميكا."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:29
+#, fuzzy
+msgid "Whether bold is also bright"
+msgstr "فيما إذا يسمح بنص سميك"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:30
+msgid ""
+"If true, setting bold on the first 8 colors also switches to their bright "
+"variants."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:31
+msgid "Whether to ring the terminal bell"
+msgstr "فيما إذا سيُرن جرس الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:32
+msgid ""
+"List of ASCII punctuation characters that are not to be treated as part of a "
+"word when doing word-wise selection"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:33
+msgid "Default number of columns"
+msgstr "عدد الأعمدة المبدئي"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:34
+msgid ""
+"Number of columns in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+"عدد الأعمدة في نوافذ الطرفية الجديدة. لا تأثير له إذا كان "
+"use_custom_default_size مُفعّلا."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:35
+msgid "Default number of rows"
+msgstr "عدد الصفوف المبدئي"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:36
+msgid ""
+"Number of rows in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+"عدد الصفوف في نوافذ الطرفية الجديدة. لا تأثير له إذا كان "
+"use_custom_default_size مُفعّلا."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:37
+#, fuzzy
+msgid "When to show the scrollbar"
+msgstr "موقع شريط التمرير"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:38
+msgid "Number of lines to keep in scrollback"
+msgstr "عدد السطور التي سيبقى عليها عند اللف إلى الخلف"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:39
+#, fuzzy
+msgid ""
+"Number of scrollback lines to keep around. You can scroll back in the "
+"terminal by this number of lines; lines that don’t fit in the scrollback are "
+"discarded. If scrollback_unlimited is true, this value is ignored."
+msgstr ""
+"عدد سطور سجل الرجوع التي سيبقى عليها. يمكنك اللف إلى الوراء في الشاشة الطرفيّ"
+"ة بحسب هذا العدد من السطور. السطور الزائدة عن هذا ستُمحى. إذا ضبط سجل الرجوع "
+"ليكون غير محدود فستُتجاهل هذه القيمة."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:40
+msgid "Whether an unlimited number of lines should be kept in scrollback"
+msgstr "ما إذا كان سيُبقى على عدد لا محدود من السطور في سجل الرجوع"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:41
+msgid ""
+"If true, scrollback lines will never be discarded. The scrollback history is "
+"stored on disk temporarily, so this may cause the system to run out of disk "
+"space if there is a lot of output to the terminal."
+msgstr ""
+"إذا ضبط لصحيح، فلن تمحى أي سطور من سجل الرجوع. سيحفظ تاريخ الرجوع مؤقتا على "
+"القرص مما قد يتسبب في استنفاذ المساحة الخالية في حال كان خرج الطرفية كثيرا."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:42
+msgid "Whether to scroll to the bottom when a key is pressed"
+msgstr "فيما إذا سيقع اللف إلى الأسفل عند نقر مفتاح"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:43
+msgid "If true, pressing a key jumps the scrollbar to the bottom."
+msgstr "إذا ضبط لصحيح فسيجعل شريط التمرير يقفز إلى الأسفل عند نقر المفتاح."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:44
+#, fuzzy
+msgid "Whether to scroll to the bottom when there’s new output"
+msgstr "فيما إذا سيقع اللف إلى الأسفل عند حصول خرْج جديد"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:45
+#, fuzzy
+msgid ""
+"If true, whenever there’s new output the terminal will scroll to the bottom."
+msgstr "إذا ضبط لصحيح، ستلف الشاشة إلى الأسفل كل ما أتى خرْج جديد."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:46
+msgid "What to do with the terminal when the child command exits"
+msgstr "ما الذي سيفعل بالطرفيّة عند خروج الأمر الإبن"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:47
+#, fuzzy
+msgid ""
+"Possible values are “close” to close the terminal, “restart” to restart the "
+"command, and “hold” to keep the terminal open with no command running inside."
+msgstr ""
+"القيم الممكنة هي \"close\" لغلق الطرفيّة و \"restart\" لإعادة تشغيل الأمر."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:48
+msgid "Whether to launch the command in the terminal as a login shell"
+msgstr "فيما إذا سيشغّل الامر في الطرفيّة كصدفة تسجيل دخول"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:49
+#, fuzzy
+msgid ""
+"If true, the command inside the terminal will be launched as a login shell "
+"(argv[0] will have a hyphen in front of it)."
+msgstr ""
+"إذا ضبط لصحيح سيطلق الأمر داخل الطرفيّة كصدفة تسجيل دخول. (سيكون لـ argv[0] "
+"تلدة أمامها.)"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:50
+msgid "Whether to run a custom command instead of the shell"
+msgstr "فيما إذا ينفذ أمر خاض عوض الصدفة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:51
+msgid ""
+"If true, the value of the custom_command setting will be used in place of "
+"running a shell."
+msgstr "إذا ضبط لصحيح، فسيستعمل تعيين custom_command عوض تشغيل صدفة."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:52
+msgid "Whether to blink the cursor"
+msgstr "فيما إذا سيومض المؤشّر"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:53
+#, fuzzy
+msgid ""
+"The possible values are “system” to use the global cursor blinking settings, "
+"or “on” or “off” to set the mode explicitly."
+msgstr ""
+"القيم الممكنة هي \"system\" لتستخدم إعدادات وميض المؤشر العامة، أو \"on\" أو "
+"\"off\" لتحدد الوضع."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:54
+msgid "The cursor appearance"
+msgstr "مظهر المؤشر"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:55
+msgid ""
+"Possible values are “always” or “never” allow blinking text, or only when "
+"the terminal is “focused” or “unfocused”."
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:56
+msgid "Custom command to use instead of the shell"
+msgstr "الأمر الخاص الذي سيستعمل عوض الصدفة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:57
+msgid "Run this command in place of the shell, if use_custom_command is true."
+msgstr "نفّذ هذا الأمر عوض الصدفة إذا ضبط use_custom_command لصحيح."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:58
+msgid "Palette for terminal applications"
+msgstr "لوح ألوان تطبيقات الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:59
+msgid "A Pango font name and size"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:60
+#, fuzzy
+msgid "The code sequence the Backspace key generates"
+msgstr "مفتاح Backspace يولد:"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:61
+#, fuzzy
+msgid "The code sequence the Delete key generates"
+msgstr "زر ال_حذف يولّد:"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:62
+msgid "Whether to use the colors from the theme for the terminal widget"
+msgstr "فيما إذا ستسعمل ألوان السِمة لقطع الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:63
+msgid "Whether to use the system monospace font"
+msgstr "فيما إذا سيستعمل خط النظام ثابت العرض"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:64
+#, fuzzy
+msgid "Whether to rewrap the terminal contents on window resize"
+msgstr "فيما إذا سيعرض شريط القوائم في النوافذ/الألسنة الجديدة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:65
+msgid "Which encoding to use"
+msgstr "ما الترميز الذي سيُستخدم"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:66
+msgid ""
+"Whether ambiguous-width characters are narrow or wide when using UTF-8 "
+"encoding"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:67
+msgid "Keyboard shortcut to open a new tab"
+msgstr "اختصار لوحة المفاتيح لفتح لسان جديد"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:68
+msgid "Keyboard shortcut to open a new window"
+msgstr "اختصار لوحة المفاتيح لفتح نافذة جديدة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:69
+msgid "Keyboard shortcut to save the current tab contents to file"
+msgstr "اختصار لوحة المفاتيح لحفظ محتويات اللسان الحالي في ملف"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:70
+#, fuzzy
+msgid ""
+"Keyboard shortcut to export the current tab contents to file in various "
+"formats"
+msgstr "اختصار لوحة المفاتيح لحفظ محتويات اللسان الحالي في ملف"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:71
+#, fuzzy
+msgid "Keyboard shortcut to print the current tab contents to printer or file"
+msgstr "اختصار لوحة المفاتيح لحفظ محتويات اللسان الحالي في ملف"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:72
+msgid "Keyboard shortcut to close a tab"
+msgstr "اختصار لوحة المفاتيح لغلق لسان"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:73
+msgid "Keyboard shortcut to close a window"
+msgstr "اختصار لوحة المفاتيح لغلق نافذة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:74
+msgid "Keyboard shortcut to copy text"
+msgstr "اختصار لوحة المفاتيح لنسخ نص"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:75
+#, fuzzy
+msgid "Keyboard shortcut to copy text as HTML"
+msgstr "اختصار لوحة المفاتيح لنسخ نص"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:76
+msgid "Keyboard shortcut to paste text"
+msgstr "اختصار لوحة المفاتيح للصق النص"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:77
+#, fuzzy
+msgid "Keyboard shortcut to select all text"
+msgstr "اختصار لوحة المفاتيح للصق النص"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:78
+#, fuzzy
+msgid "Keyboard shortcut to open the Preferences dialog"
+msgstr "اختصار لوحة المفاتيح لإعادة ضبط الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:79
+msgid "Keyboard shortcut to toggle full screen mode"
+msgstr "اختصار لوحة المفاتيح للتحوّل لنمط ملأ الشاشة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:80
+msgid "Keyboard shortcut to toggle the visibility of the menubar"
+msgstr "اختصار لوحة المفاتيح لتبديل رؤية شريط القوائم"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:81
+#, fuzzy
+msgid "Keyboard shortcut to toggle the read-only state"
+msgstr "اختصار لوحة المفاتيح لضبط عنوان الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:82
+msgid "Keyboard shortcut to reset the terminal"
+msgstr "اختصار لوحة المفاتيح لإعادة ضبط الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:83
+msgid "Keyboard shortcut to reset and clear the terminal"
+msgstr "اختصار لوحة المفاتيح لإعادة ضبط و مسح الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:84
+#, fuzzy
+msgid "Keyboard shortcut to open the search dialog"
+msgstr "اختصار لوحة المفاتيح لإعادة ضبط الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:85
+#, fuzzy
+msgid "Keyboard shortcut to find the next occurrence of the search term"
+msgstr "اختصار لوحة المفاتيح لنقل اللسان الحالي إلى اليمين"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:86
+#, fuzzy
+msgid "Keyboard shortcut to find the previous occurrence of the search term"
+msgstr "اختصار لوحة المفاتيح لنقل اللسان الحالي إلى اليمين"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:87
+#, fuzzy
+msgid "Keyboard shortcut to clear the find highlighting"
+msgstr "اختصار لوحة المفاتيح لضبط عنوان الطرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:88
+msgid "Keyboard shortcut to switch to the previous tab"
+msgstr "اختصار لوحة المفاتيح للتحوّل للسان السابق"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:89
+msgid "Keyboard shortcut to switch to the next tab"
+msgstr "اختصار لوحة المفاتيح للتحوّل للسان التالي"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:90
+msgid "Keyboard shortcut to move the current tab to the left"
+msgstr "اختصار لوحة المفاتيح لنقل اللسان الحالي إلى اليسار"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:91
+msgid "Keyboard shortcut to move the current tab to the right"
+msgstr "اختصار لوحة المفاتيح لنقل اللسان الحالي إلى اليمين"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:92
+msgid "Keyboard shortcut to detach current tab"
+msgstr "اختصار لوحة المفاتيح لفصل اللسان الحالي"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:93
+#, fuzzy
+msgid "Keyboard shortcut to switch to the numbered tab"
+msgstr "اختصار لوحة المفاتيح للتحوّل للسان التالي"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:94
+#, fuzzy
+msgid "Keyboard shortcut to switch to the last tab"
+msgstr "اختصار لوحة المفاتيح للتحوّل للسان التالي"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:95
+msgid "Keyboard shortcut to launch help"
+msgstr "اختصار لوحة المفاتيح لإطلاق المساعدة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:96
+msgid "Keyboard shortcut to make font larger"
+msgstr "اختصار لوحة المفاتيح لجعل الخط أعرض"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:97
+msgid "Keyboard shortcut to make font smaller"
+msgstr "اختصار لوحة المفاتيح لجعل الخط أصغر"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:98
+msgid "Keyboard shortcut to make font normal-size"
+msgstr "اختصار لوحة المفاتيح لإرجاع الخط إلى حجمه العادي"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:99
+#, fuzzy
+msgid "Keyboard shortcut to show the primary menu"
+msgstr "اختصار لوحة المفاتيح للتحوّل للسان السابق"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:100
+msgid "Whether the menubar has access keys"
+msgstr "فيما إذا كان لشريط القوائم مفاتيح وصول"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:101
+#, fuzzy
+msgid ""
+"Whether to have Alt+letter access keys for the menubar. They may interfere "
+"with some applications run inside the terminal so it’s possible to turn them "
+"off."
+msgstr ""
+"فيما إذا يمكن لـ Alt+حرف النفاذ إلى شريط القوائم. قد تتضارب مع بعض التطبيقات "
+"التي شغلت داخل شاشة طرفيّة فيمكنك تعطيلها."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:102
+#, fuzzy
+msgid "Whether shortcuts are enabled"
+msgstr "فيما إذا كان اختصار GTK القياسي لشريط القوائم مفعّلا"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:103
+#, fuzzy
+msgid ""
+"Whether shortcuts are enabled. They may interfere with some applications run "
+"inside the terminal so it’s possible to turn them off."
+msgstr ""
+"فيما إذا يمكن لـ Alt+حرف النفاذ إلى شريط القوائم. قد تتضارب مع بعض التطبيقات "
+"التي شغلت داخل شاشة طرفيّة فيمكنك تعطيلها."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:104
+msgid "Whether the standard GTK shortcut for menubar access is enabled"
+msgstr "فيما إذا كان اختصار GTK القياسي لشريط القوائم مفعّلا"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:105
+msgid ""
+"Normally you can access the menubar with F10. This can also be customized "
+"via gtkrc (gtk-menu-bar-accel = \"whatever\"). This option allows the "
+"standard menubar accelerator to be disabled."
+msgstr ""
+"عادة يمكنك النفاذ إلى شريط القوائم بـ F10. يمكنك تخصيص هذا كذلك عن طريق "
+"gtkrc (gtk-menu-bar-accel = \"whatever\"). يسمح هذا الخيار بتعطيل مفتاح "
+"اختصار شريط القوائم القياسي."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:106
+msgid "Whether the shell integration is enabled"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:107
+msgid "Whether to ask for confirmation before closing a terminal"
+msgstr "فيما إذا سيطلب التّأكيد عند قبل إغلاق الطّرفيّة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:108
+msgid "Whether to show the menubar in new windows"
+msgstr "فيما إذا سيعرض شريط القوائم في النوافذ الجديدة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:109
+#, fuzzy
+msgid "Whether to open new terminals as windows or tabs"
+msgstr "فيما إذا سيعرض شريط القوائم في النوافذ/الألسنة الجديدة"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:110
+#, fuzzy
+msgid "When to show the tabs bar"
+msgstr "موقع شريط التمرير"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:111
+msgid "The position of the tab bar"
+msgstr ""
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:112
+#, fuzzy
+msgid "Which theme variant to use"
+msgstr "ما الترميز الذي سيُستخدم"
+
+#. Open new terminal in new window
+#: ../src/preferences.ui.h:2
+msgid "Window"
+msgstr "نافذة"
+
+#. Open new terminal in new tab
+#: ../src/preferences.ui.h:4
+msgid "Tab"
+msgstr "لسان"
+
+#: ../src/preferences.ui.h:5
+msgctxt "theme variant"
+msgid "Default"
+msgstr "المبدئي"
+
+#: ../src/preferences.ui.h:6
+msgctxt "theme variant"
+msgid "Light"
+msgstr "فاتحة"
+
+#: ../src/preferences.ui.h:7
+msgctxt "theme variant"
+msgid "Dark"
+msgstr "داكنة"
+
+#. ambiguous-width characers are
+#: ../src/preferences.ui.h:9
+msgid "Narrow"
+msgstr "ضيقة"
+
+#. ambiguous-width characers are
+#: ../src/preferences.ui.h:11
+msgid "Wide"
+msgstr "عريضة"
+
+#. Cursor shape
+#: ../src/preferences.ui.h:13
+msgid "Block"
+msgstr "قالب"
+
+#. Cursor shape
+#: ../src/preferences.ui.h:15
+msgid "I-Beam"
+msgstr "شرطة رأسية"
+
+#. Cursor shape
+#: ../src/preferences.ui.h:17
+msgid "Underline"
+msgstr "شرطة تحتية"
+
+#. Cursor blink mode
+#: ../src/preferences.ui.h:19
+msgid "Default"
+msgstr "المبدئي"
+
+#. Cursor blink mode
+#: ../src/preferences.ui.h:21
+msgid "Enabled"
+msgstr "مفعّل"
+
+#. Cursor blink mode
+#: ../src/preferences.ui.h:23
+msgid "Disabled"
+msgstr "معطل"
+
+#. Text blink mode
+#: ../src/preferences.ui.h:25
+msgid "Never"
+msgstr "أبدًا"
+
+#. Text blink mode
+#: ../src/preferences.ui.h:27
+msgid "When focused"
+msgstr "عند التركيز"
+
+#. Text blink mode
+#: ../src/preferences.ui.h:29
+msgid "When unfocused"
+msgstr "عند عدم التركيز"
+
+#. Text blink mode
+#: ../src/preferences.ui.h:31
+msgid "Always"
+msgstr "دائمًا"
+
+#. When terminal commands set their own titles
+#: ../src/preferences.ui.h:33
+msgid "Replace initial title"
+msgstr "استبدل العنوان الأولي"
+
+#. When terminal commands set their own titles
+#: ../src/preferences.ui.h:35
+msgid "Append initial title"
+msgstr "ابدأ بالعنوان الأولي"
+
+#. When terminal commands set their own titles
+#: ../src/preferences.ui.h:37
+msgid "Prepend initial title"
+msgstr "ألحِق العنوان الأولي"
+
+#. When terminal commands set their own titles
+#: ../src/preferences.ui.h:39
+msgid "Keep initial title"
+msgstr "أبقِ العنوان الأولي"
+
+#. When command exits
+#: ../src/preferences.ui.h:41
+msgid "Exit the terminal"
+msgstr "اخرج من  الطرفيّة"
+
+#. When command exits
+#: ../src/preferences.ui.h:43
+msgid "Restart the command"
+msgstr "أعد تشغيل الطرفية"
+
+#. When command exits
+#: ../src/preferences.ui.h:45
+msgid "Hold the terminal open"
+msgstr "أبق الطرفيّة مفتوحة"
+
+#. This is the name of a colour scheme
+#: ../src/preferences.ui.h:47
+msgid "Tango"
+msgstr "تانجو"
+
+#. This is the name of a colour scheme
+#: ../src/preferences.ui.h:49
+msgid "Linux console"
+msgstr "كونسول لينكس"
+
+#. This is the name of a colour scheme
+#: ../src/preferences.ui.h:51
+msgid "XTerm"
+msgstr "طرفية إكس"
+
+#. This is the name of a colour scheme
+#: ../src/preferences.ui.h:53
+msgid "Rxvt"
+msgstr "Rxvt"
+
+#. This is the name of a colour scheme
+#: ../src/preferences.ui.h:55
+msgid "Solarized"
+msgstr "شمسية"
+
+#. This is the name of a colour scheme
+#: ../src/preferences.ui.h:57 ../src/profile-editor.c:606
+msgid "Custom"
+msgstr "مخصّصّ"
+
+#. This refers to the Delete keybinding option
+#: ../src/preferences.ui.h:59
+msgid "Automatic"
+msgstr "آلي"
+
+#. This refers to the Delete keybinding option
+#: ../src/preferences.ui.h:61
+msgid "Control-H"
+msgstr "Control-H"
+
+#. This refers to the Delete keybinding option
+#: ../src/preferences.ui.h:63
+msgid "ASCII DEL"
+msgstr "ASCII DEL"
+
+#. This refers to the Delete keybinding option
+#: ../src/preferences.ui.h:65
+msgid "Escape sequence"
+msgstr "تتابع خلوص (Escape sequence)"
+
+#. This refers to the Delete keybinding option
+#: ../src/preferences.ui.h:67
+msgid "TTY Erase"
+msgstr "TTY Erase"
+
+#: ../src/preferences.ui.h:68
+msgid "_Show menubar by default in new terminals"
+msgstr "أظهر _شريط القوائم في الطرفيات الجديدة"
+
+#: ../src/preferences.ui.h:69
+msgid "_Enable mnemonics (such as Alt+F to open the File menu)"
+msgstr "_فعّل الاختصارات (مثل Alt+F لفتح قائمة ملف)"
+
+#: ../src/preferences.ui.h:70
+msgid "Enable the _menu accelerator key (F10 by default)"
+msgstr "فعّل مفتاح المسرّع للوصول إلى ال_قائمة (F10 مبدئيا)"
+
+#: ../src/preferences.ui.h:71
+msgid "Theme _variant:"
+msgstr "تنويعة ال_سمة:"
+
+#: ../src/preferences.ui.h:72
+msgid "Open _new terminals in:"
+msgstr "افتح الطرفيّات الج_ديدة في:"
+
+#: ../src/preferences.ui.h:73
+msgid "_Enable shortcuts"
+msgstr "_فعّل الاختصارات"
+
+#: ../src/preferences.ui.h:74
+msgid "Text Appearance"
+msgstr "مظهر النص"
+
+#: ../src/preferences.ui.h:75
+msgid "Initial terminal si_ze:"
+msgstr "_حجم الطرفية الأولي:"
+
+#: ../src/preferences.ui.h:76
+msgid "columns"
+msgstr "الأعمدة"
+
+#: ../src/preferences.ui.h:77
+msgid "rows"
+msgstr "الصفوف"
+
+#: ../src/preferences.ui.h:78
+msgid "Rese_t"
+msgstr "_صفّر"
+
+#: ../src/preferences.ui.h:79
+msgid "Custom _font:"
+msgstr "_خط مخصّص:"
+
+#: ../src/preferences.ui.h:80
+msgid "Choose A Terminal Font"
+msgstr "اختر خط طرفية"
+
+#: ../src/preferences.ui.h:81
+msgid "Cell spaci_ng:"
+msgstr "تبا_عد الخلايا:"
+
+#: ../src/preferences.ui.h:82
+msgid "Allow b_linking text:"
+msgstr "اسمح بالنص الو_ماض:"
+
+#: ../src/preferences.ui.h:83
+msgid "Cursor"
+msgstr "المؤشر"
+
+#: ../src/preferences.ui.h:84
+msgid "Cursor _shape:"
+msgstr "ش_كل المؤشر:"
+
+#: ../src/preferences.ui.h:85
+msgid "Cursor blin_king:"
+msgstr "وميض المؤ_شر:"
+
+#: ../src/preferences.ui.h:86
+msgid "Sound"
+msgstr "الصوت"
+
+#: ../src/preferences.ui.h:87
+msgid "Terminal _bell"
+msgstr "_جرس الطرفيّة"
+
+#: ../src/preferences.ui.h:88
+msgid "Profile ID:"
+msgstr "معرّف التشكيلة:"
+
+#: ../src/preferences.ui.h:89
+msgid "Text"
+msgstr "النص"
+
+#: ../src/preferences.ui.h:90
+msgid "Text and Background Color"
+msgstr "لون النّصّ و الخلفيّة"
+
+#: ../src/preferences.ui.h:91
+msgid "_Use colors from system theme"
+msgstr "استخدم ألوان سِمة ال_نظام"
+
+#: ../src/preferences.ui.h:92
+msgid "Built-in sche_mes:"
+msgstr "المخططات م_ضمنة:"
+
+#: ../src/preferences.ui.h:93
+msgid "Background"
+msgstr "الخلفية"
+
+#: ../src/preferences.ui.h:94
+msgid "_Default color:"
+msgstr "اللون المبد_ئي:"
+
+#: ../src/preferences.ui.h:95
+msgid "Choose Terminal Text Color"
+msgstr "اختر لون النص في الطرفيّة"
+
+#: ../src/preferences.ui.h:96
+msgid "Choose Terminal Background Color"
+msgstr "اختر لون خلفية الطرفيّة"
+
+#: ../src/preferences.ui.h:97
+msgid "Bo_ld color:"
+msgstr "لون النص ال_سميك:"
+
+#: ../src/preferences.ui.h:98
+msgid "Choose Terminal Bold Text Color"
+msgstr "اختر لون النص العريض في الطرفيّة"
+
+#: ../src/preferences.ui.h:99
+msgid "_Underline color:"
+msgstr "لون الت_سطير"
+
+#: ../src/preferences.ui.h:100
+msgid "Choose Terminal Underlined Text Color"
+msgstr "اختر لون النص المسطّر في الطرفيّة"
+
+#: ../src/preferences.ui.h:101
+msgid "Cu_rsor color:"
+msgstr "لون المؤ_شر:"
+
+#: ../src/preferences.ui.h:102
+msgid "Choose Terminal Cursor Foreground Color"
+msgstr "اختر لون مؤشر الطرفيّة"
+
+#: ../src/preferences.ui.h:103
+msgid "Choose Terminal Cursor Background Color"
+msgstr "اختر لون خلفية مؤشر الطرفيّة"
+
+#: ../src/preferences.ui.h:104
+msgid "_Highlight color:"
+msgstr "لون ال_تحديد:"
+
+#: ../src/preferences.ui.h:105
+msgid "Choose Terminal Highlight Foreground Color"
+msgstr "اختر لون إبراز الطرفيّة"
+
+#: ../src/preferences.ui.h:106
+msgid "Choose Terminal Highlight Background Color"
+msgstr "اختر لون خلفية إبراز الطرفيّة"
+
+#: ../src/preferences.ui.h:107
+msgid "Palette"
+msgstr "لوح الألوان"
+
+#: ../src/preferences.ui.h:108
+msgid "Built-in _schemes:"
+msgstr "ال_مخططات المضمنة:"
+
+#: ../src/preferences.ui.h:109
+msgid "Color p_alette:"
+msgstr "_لوح الألوان:"
+
+#: ../src/preferences.ui.h:110
+msgid "Show _bold text in bright colors"
+msgstr "أظهر النص ال_عريض بألوان فاتحة"
+
+#: ../src/preferences.ui.h:111
+msgid "Colors"
+msgstr "الألوان"
+
+#: ../src/preferences.ui.h:112
+msgid "_Show scrollbar"
+msgstr "أظهر شريط ال_تمرير"
+
+#: ../src/preferences.ui.h:113
+msgid "Scroll on _output"
+msgstr "لف عند ال_خرْج"
+
+#: ../src/preferences.ui.h:114
+msgid "Scroll on _keystroke"
+msgstr "لف عند _نقر مفتاح"
+
+#: ../src/preferences.ui.h:115
+msgid "_Limit scrollback to:"
+msgstr "_حد اللف إلى الوراء:"
+
+#: ../src/preferences.ui.h:116
+msgid "lines"
+msgstr "سطور"
+
+#: ../src/preferences.ui.h:117
+msgid "Scrolling"
+msgstr "اللف"
+
+#: ../src/preferences.ui.h:118
+msgid "_Run command as a login shell"
+msgstr "_شغّل ألأمر كصدفة دخول"
+
+#: ../src/preferences.ui.h:119
+msgid "Ru_n a custom command instead of my shell"
+msgstr "_نفّذ أمرا خاصا بدلا من صدفتي"
+
+#: ../src/preferences.ui.h:120
+msgid "Custom co_mmand:"
+msgstr "ال_أمر المخصّص:"
+
+#: ../src/preferences.ui.h:121
+msgid "When command _exits:"
+msgstr "عند _خروج الأمر:"
+
+#: ../src/preferences.ui.h:122
+msgid "Command"
+msgstr "الأمر"
+
+#: ../src/preferences.ui.h:123
+msgid "_Backspace key generates:"
+msgstr "مفتاح Backspace يولد:"
+
+#: ../src/preferences.ui.h:124
+msgid "_Delete key generates:"
+msgstr "زر ال_حذف يولّد:"
+
+#: ../src/preferences.ui.h:125
+msgid "_Encoding:"
+msgstr "ال_ترميز:"
+
+#: ../src/preferences.ui.h:126
+msgid "Ambiguous-_width characters:"
+msgstr "المحارف غير المحدد ات_ساعها:"
+
+#: ../src/preferences.ui.h:127
+msgid "_Reset Compatibility Options to Defaults"
+msgstr "أعد _ضبط خيارات التوافق لقيمها المبدئية"
+
+#: ../src/preferences.ui.h:128
+msgid "Compatibility"
+msgstr "التوافق"
+
+#: ../src/preferences.ui.h:129
+msgid "Clone…"
+msgstr "استنسخ…"
+
+#: ../src/preferences.ui.h:130
+msgid "Rename…"
+msgstr "غيّر الاسم…"
+
+#: ../src/preferences.ui.h:131
+msgid "Delete…"
+msgstr "احذف…"
+
+#: ../src/preferences.ui.h:132
+msgid "Set as default"
+msgstr "اجعله المبدئي"
+
+#: ../src/preferences.ui.h:133
+msgid "Cancel"
+msgstr "ألغِ"
+
+#: ../src/profile-editor.c:158
+msgid "Black on light yellow"
+msgstr "أسود على أصفر فاتح"
+
+#: ../src/profile-editor.c:162
+msgid "Black on white"
+msgstr "أسود على أبيض"
+
+#: ../src/profile-editor.c:166
+msgid "Gray on black"
+msgstr "رمادي على أسود"
+
+#: ../src/profile-editor.c:170
+msgid "Green on black"
+msgstr "أخضر على أسود"
+
+#: ../src/profile-editor.c:174
+msgid "White on black"
+msgstr "أبيض على أسود"
+
+#. Translators: "Tango" is the name of a colour scheme, "light" can be translated
+#: ../src/profile-editor.c:179
+msgid "Tango light"
+msgstr "تانجو فاتح"
+
+#. Translators: "Tango" is the name of a colour scheme, "dark" can be translated
+#: ../src/profile-editor.c:184
+msgid "Tango dark"
+msgstr "تانجو غامق"
+
+#. Translators: "Solarized" is the name of a colour scheme, "light" can be translated
+#: ../src/profile-editor.c:189
+msgid "Solarized light"
+msgstr "سولارايزد فاتح"
+
+#. Translators: "Solarized" is the name of a colour scheme, "dark" can be translated
+#: ../src/profile-editor.c:194
+msgid "Solarized dark"
+msgstr "سولارايزد غامق"
+
+#: ../src/profile-editor.c:549
+#, c-format
+msgid "Error parsing command: %s"
+msgstr "خطأ أثناء تحليل الأمر: %s"
+
+#. Translators: Appears as: [numeric entry] × width
+#: ../src/profile-editor.c:828
+msgid "width"
+msgstr "العرض"
+
+#. Translators: Appears as: [numeric entry] × height
+#: ../src/profile-editor.c:833
+msgid "height"
+msgstr "الارتفاع"
+
+#: ../src/profile-editor.c:885
+#, c-format
+msgid "Choose Palette Color %u"
+msgstr "اختر لوح ألوان %u"
+
+#: ../src/profile-editor.c:889
+#, c-format
+msgid "Palette entry %u"
+msgstr "خانة لوح الألوان %u"
+
+#: ../src/search-popover.ui.h:1 ../src/terminal-accels.c:150
+msgid "Find"
+msgstr "ابحث"
+
+#: ../src/search-popover.ui.h:2
+msgid "Find previous occurrence"
+msgstr "ابحث عن النتيجة السابقة"
+
+#: ../src/search-popover.ui.h:3
+msgid "Find next occurrence"
+msgstr "ابحث عن النتيجة التالية"
+
+#: ../src/search-popover.ui.h:4
+msgid "Toggle search options"
+msgstr "بدّل خيارات البحث"
+
+#: ../src/search-popover.ui.h:5
+msgid "_Match case"
+msgstr "_طابِق الحالة"
+
+#: ../src/search-popover.ui.h:6
+msgid "Match _entire word only"
+msgstr "طابِق ك_امل الكلمة فقط"
+
+#: ../src/search-popover.ui.h:7
+msgid "Match as _regular expression"
+msgstr "طابق _تعبيرا نمطيا"
+
+#: ../src/search-popover.ui.h:8
+msgid "_Wrap around"
+msgstr "_لف حول"
+
+#: ../src/terminal-accels.c:126
+msgid "New Tab"
+msgstr "لسان جديد"
+
+#: ../src/terminal-accels.c:129
+msgid "Save Contents"
+msgstr "احفظ المحتويات"
+
+#: ../src/terminal-accels.c:132
+msgid "Export"
+msgstr "صدِّر"
+
+#: ../src/terminal-accels.c:135
+msgid "Print"
+msgstr "اطبع"
+
+#: ../src/terminal-accels.c:137
+msgid "Close Tab"
+msgstr "أغلق اللسان"
+
+#: ../src/terminal-accels.c:138
+msgid "Close Window"
+msgstr "أغلق النافذة"
+
+#: ../src/terminal-accels.c:142
+msgid "Copy"
+msgstr "انسخ"
+
+#: ../src/terminal-accels.c:143
+msgid "Copy as HTML"
+msgstr "انسخ بنسق HTML"
+
+#: ../src/terminal-accels.c:144
+msgid "Paste"
+msgstr "ألصق"
+
+#: ../src/terminal-accels.c:145
+msgid "Select All"
+msgstr "اختر الكل"
+
+#: ../src/terminal-accels.c:151
+msgid "Find Next"
+msgstr "ابحث عن التالي"
+
+#: ../src/terminal-accels.c:152
+msgid "Find Previous"
+msgstr "ابحث عن السابق"
+
+#: ../src/terminal-accels.c:153
+msgid "Clear Highlight"
+msgstr "امسح الإبراز"
+
+#: ../src/terminal-accels.c:157
+msgid "Hide and Show Menubar"
+msgstr "أخف و أظهر شريط القوائم"
+
+#: ../src/terminal-accels.c:158
+msgid "Full Screen"
+msgstr "ملء الشاشة"
+
+#: ../src/terminal-accels.c:159
+msgid "Zoom In"
+msgstr "قرّب"
+
+#: ../src/terminal-accels.c:160
+msgid "Zoom Out"
+msgstr "بعّد"
+
+#: ../src/terminal-accels.c:161
+msgid "Normal Size"
+msgstr "الحجم العادي"
+
+#: ../src/terminal-accels.c:165
+msgid "Read-Only"
+msgstr "للقراءة فقط"
+
+#: ../src/terminal-accels.c:166
+msgid "Reset"
+msgstr "أعد الضبط"
+
+#: ../src/terminal-accels.c:167
+msgid "Reset and Clear"
+msgstr "أعد الضبط وامسح"
+
+#: ../src/terminal-accels.c:171
+msgid "Switch to Previous Tab"
+msgstr "انتقل للسان السابق"
+
+#: ../src/terminal-accels.c:172
+msgid "Switch to Next Tab"
+msgstr "انتقل للسان التالي"
+
+#: ../src/terminal-accels.c:173
+msgid "Move Tab to the Left"
+msgstr "انقل اللسان يسارا"
+
+#: ../src/terminal-accels.c:174
+msgid "Move Tab to the Right"
+msgstr "انقل اللسان يمينا"
+
+#: ../src/terminal-accels.c:175
+msgid "Detach Tab"
+msgstr "افصل اللسان"
+
+#: ../src/terminal-accels.c:211
+msgid "Switch to Last Tab"
+msgstr "انتقل للسان الأخير"
+
+#: ../src/terminal-accels.c:215
+msgid "Contents"
+msgstr "المحتويات"
+
+#: ../src/terminal-accels.c:219
+msgid "Show Primary Menu"
+msgstr "أظهر القائمة الرئيسية"
+
+#: ../src/terminal-accels.c:228 ../src/terminal-menubar.ui.in.h:2
+msgid "File"
+msgstr "ملف"
+
+#: ../src/terminal-accels.c:229 ../src/terminal-menubar.ui.in.h:9
+msgid "Edit"
+msgstr "تحرير"
+
+#: ../src/terminal-accels.c:230 ../src/terminal-menubar.ui.in.h:17
+msgid "View"
+msgstr "عرض"
+
+#: ../src/terminal-accels.c:231 ../src/terminal-menubar.ui.in.h:24
+msgid "Search"
+msgstr "ابحث"
+
+#: ../src/terminal-accels.c:233 ../src/terminal-menubar.ui.in.h:41
+msgid "Tabs"
+msgstr "ألسنة"
+
+#: ../src/terminal-accels.c:234 ../src/terminal-menubar.ui.in.h:48
+msgid "Help"
+msgstr "مساعدة"
+
+#: ../src/terminal-accels.c:235 ../src/terminal-prefs.c:671
+msgid "Global"
+msgstr "شامل"
+
+#: ../src/terminal-accels.c:362
+#, c-format
+msgid "Switch to Tab %u"
+msgstr "انتقل للسان %u"
+
+#: ../src/terminal-accels.c:552
+msgid "_Action"
+msgstr "الإ_جراء"
+
+#: ../src/terminal-accels.c:571
+msgid "Shortcut _Key"
+msgstr "مفتاح الا_ختصار"
+
+#: ../src/terminal-app.c:502
+msgid "New Terminal"
+msgstr "طرفية جديدة"
+
+#: ../src/terminal-app.c:512 ../src/terminal-window.c:1796
+msgid "New _Terminal"
+msgstr "_طرفية جديدة"
+
+#: ../src/terminal-app.c:514 ../src/terminal-window.c:1805
+msgid "New _Tab"
+msgstr "_لسان جديد"
+
+#: ../src/terminal-app.c:515 ../src/terminal-headermenu.ui.h:3
+#: ../src/terminal-window.c:1801
+msgid "New _Window"
+msgstr "_نافذة جديدة"
+
+#: ../src/terminal-app.c:564
+msgid "Change _Profile"
+msgstr "غيّر ال_تشكيلة"
+
+#: ../src/terminal-app.c:577
+msgid "_Profile"
+msgstr "ال_تشكيلة"
+
+#: ../src/terminal.c:568
+#, c-format
+msgid "Failed to parse arguments: %s\n"
+msgstr "تعذّر تحليل المعاملات: %s\n"
+
+#: ../src/terminal-encoding.c:66
+msgid "Armenian"
+msgstr "أرمني"
+
+#: ../src/terminal-encoding.c:67 ../src/terminal-encoding.c:68
+#: ../src/terminal-encoding.c:72
+msgid "Chinese Traditional"
+msgstr "صيني تقليدي"
+
+#: ../src/terminal-encoding.c:69
+msgid "Cyrillic/Russian"
+msgstr "سريلي/روسي"
+
+#: ../src/terminal-encoding.c:70 ../src/terminal-encoding.c:83
+#: ../src/terminal-encoding.c:119
+msgid "Japanese"
+msgstr "ياباني"
+
+#. { "UCS-4",       N_("Unicode"),             GROUP_UNICODE },
+#: ../src/terminal-encoding.c:71 ../src/terminal-encoding.c:84
+#: ../src/terminal-encoding.c:124
+msgid "Korean"
+msgstr "كوري"
+
+#: ../src/terminal-encoding.c:73 ../src/terminal-encoding.c:74
+#: ../src/terminal-encoding.c:75
+msgid "Chinese Simplified"
+msgstr "صيني مبسّط"
+
+#: ../src/terminal-encoding.c:76
+msgid "Georgian"
+msgstr "جورجي"
+
+#: ../src/terminal-encoding.c:77 ../src/terminal-encoding.c:85
+#: ../src/terminal-encoding.c:89 ../src/terminal-encoding.c:115
+#: ../src/terminal-encoding.c:132
+msgid "Western"
+msgstr "غربي"
+
+#: ../src/terminal-encoding.c:78 ../src/terminal-encoding.c:91
+#: ../src/terminal-encoding.c:106 ../src/terminal-encoding.c:130
+msgid "Central European"
+msgstr "وسط أوروبي"
+
+#. { "JOHAB",      N_("Korean"),              GROUP_CJKV },
+#: ../src/terminal-encoding.c:79 ../src/terminal-encoding.c:94
+#: ../src/terminal-encoding.c:100 ../src/terminal-encoding.c:102
+#: ../src/terminal-encoding.c:104 ../src/terminal-encoding.c:131
+msgid "Cyrillic"
+msgstr "سريلي"
+
+#: ../src/terminal-encoding.c:80 ../src/terminal-encoding.c:99
+#: ../src/terminal-encoding.c:117 ../src/terminal-encoding.c:134
+msgid "Turkish"
+msgstr "تركي"
+
+#: ../src/terminal-encoding.c:81 ../src/terminal-encoding.c:98
+#: ../src/terminal-encoding.c:113 ../src/terminal-encoding.c:135
+msgid "Hebrew"
+msgstr "عبري"
+
+#: ../src/terminal-encoding.c:82 ../src/terminal-encoding.c:95
+#: ../src/terminal-encoding.c:105 ../src/terminal-encoding.c:136
+msgid "Arabic"
+msgstr "عربي"
+
+#: ../src/terminal-encoding.c:86
+msgid "Nordic"
+msgstr "شمالي"
+
+#: ../src/terminal-encoding.c:87 ../src/terminal-encoding.c:93
+#: ../src/terminal-encoding.c:137
+msgid "Baltic"
+msgstr "بلطيقي"
+
+#: ../src/terminal-encoding.c:88
+msgid "Celtic"
+msgstr "كلتي"
+
+#: ../src/terminal-encoding.c:90 ../src/terminal-encoding.c:116
+msgid "Romanian"
+msgstr "روماني"
+
+#: ../src/terminal-encoding.c:92
+msgid "South European"
+msgstr "جنوب أوروبي"
+
+#: ../src/terminal-encoding.c:96 ../src/terminal-encoding.c:110
+#: ../src/terminal-encoding.c:133
+msgid "Greek"
+msgstr "يوناني"
+
+#: ../src/terminal-encoding.c:97
+msgid "Hebrew Visual"
+msgstr "عبري مرئي"
+
+#: ../src/terminal-encoding.c:103 ../src/terminal-encoding.c:118
+msgid "Cyrillic/Ukrainian"
+msgstr "سريلي/أكراني"
+
+#: ../src/terminal-encoding.c:107
+msgid "Croatian"
+msgstr "كرواتي"
+
+#: ../src/terminal-encoding.c:108
+msgid "Hindi"
+msgstr "هندي"
+
+#: ../src/terminal-encoding.c:109
+msgid "Persian"
+msgstr "فارسي"
+
+#: ../src/terminal-encoding.c:111
+msgid "Gujarati"
+msgstr "كوجراتي"
+
+#: ../src/terminal-encoding.c:112
+msgid "Gurmukhi"
+msgstr "غورموخي"
+
+#: ../src/terminal-encoding.c:114
+msgid "Icelandic"
+msgstr "آيسلندي"
+
+#. This is TCVN-5712-1, not TCVN-5773:1993 which would be CJKV
+#: ../src/terminal-encoding.c:121 ../src/terminal-encoding.c:129
+#: ../src/terminal-encoding.c:138
+msgid "Vietnamese"
+msgstr "فيتنامي"
+
+#: ../src/terminal-encoding.c:122
+msgid "Thai"
+msgstr "تايلاندي"
+
+#. { "UTF-16",      N_("Unicode"),             GROUP_UNICODE },
+#. { "UTF-32",      N_("Unicode"),             GROUP_UNICODE },
+#. { "UTF-7",       N_("Unicode"),             GROUP_UNICODE },
+#: ../src/terminal-encoding.c:128 ../src/terminal-encoding.c:145
+msgid "Unicode"
+msgstr "يونيكود"
+
+#: ../src/terminal-encoding.c:146
+msgid "Legacy CJK Encodings"
+msgstr "ترميزات ص‌ي‌ك (CJK) العتيقة"
+
+#: ../src/terminal-encoding.c:147
+msgid "Obsolete Encodings"
+msgstr "ترميزات لاغية"
+
+#: ../src/terminal-headermenu.ui.h:1 ../src/terminal-menubar.ui.in.h:22
+msgid "Zoom _Out"
+msgstr "ب_عّد"
+
+#: ../src/terminal-headermenu.ui.h:2 ../src/terminal-menubar.ui.in.h:20
+msgid "Zoom _In"
+msgstr "_قرّب"
+
+#: ../src/terminal-headermenu.ui.h:4 ../src/terminal-menubar.ui.in.h:19
+msgid "_Full Screen"
+msgstr "_ملء الشاشة"
+
+#: ../src/terminal-headermenu.ui.h:5 ../src/terminal-menubar.ui.in.h:33
+#: ../src/terminal-window.c:1777
+msgid "Read-_Only"
+msgstr "قراءة فقط"
+
+#: ../src/terminal-headermenu.ui.h:6
+msgid "_Advanced"
+msgstr "_متقدم"
+
+#: ../src/terminal-headermenu.ui.h:7 ../src/terminal-menubar.ui.in.h:34
+msgid "_Reset"
+msgstr "أعد ال_ضبط"
+
+#: ../src/terminal-headermenu.ui.h:8 ../src/terminal-menubar.ui.in.h:35
+msgid "Reset and C_lear"
+msgstr "أعد الضبط و ا_مسح"
+
+#: ../src/terminal-headermenu.ui.h:9 ../src/terminal-menubar.ui.in.h:36
+msgid "_1. 80×24"
+msgstr "_1. 80×24"
+
+#: ../src/terminal-headermenu.ui.h:10 ../src/terminal-menubar.ui.in.h:37
+msgid "_2. 80×43"
+msgstr "_2. 80×43"
+
+#: ../src/terminal-headermenu.ui.h:11 ../src/terminal-menubar.ui.in.h:38
+msgid "_3. 132×24"
+msgstr "_3. 132×24"
+
+#: ../src/terminal-headermenu.ui.h:12 ../src/terminal-menubar.ui.in.h:39
+msgid "_4. 132×43"
+msgstr "_4. 132×43"
+
+#: ../src/terminal-headermenu.ui.h:13 ../src/terminal-menubar.ui.in.h:51
+msgid "_Inspector"
+msgstr "ال_فاحص"
+
+#: ../src/terminal-headermenu.ui.h:14 ../src/terminal-screen.c:1354
+#: ../src/terminal-window.c:1789
+msgid "_Preferences"
+msgstr "ال_تفضيلات"
+
+#: ../src/terminal-headermenu.ui.h:15 ../src/terminal-menubar.ui.in.h:47
+msgid "_Help"
+msgstr "_مساعدة"
+
+#: ../src/terminal-headermenu.ui.h:16 ../src/terminal-menubar.ui.in.h:50
+msgid "_About"
+msgstr "_عن"
+
+#: ../src/terminal-menubar.ui.in.h:1
+msgid "_File"
+msgstr "_ملف"
+
+#: ../src/terminal-menubar.ui.in.h:3
+msgid "_Save Contents…"
+msgstr "ا_حفظ المحتويات…"
+
+#: ../src/terminal-menubar.ui.in.h:4
+msgid "_Export…"
+msgstr "_صدّ_ر…"
+
+#: ../src/terminal-menubar.ui.in.h:5
+msgid "_Print…"
+msgstr "ا_طبع…"
+
+#: ../src/terminal-menubar.ui.in.h:6
+msgid "C_lose Tab"
+msgstr "أ_غلق اللسان"
+
+#: ../src/terminal-menubar.ui.in.h:7
+msgid "_Close Window"
+msgstr "أغ_لق النافذة"
+
+#: ../src/terminal-menubar.ui.in.h:8
+msgid "_Edit"
+msgstr "_تحرير"
+
+#: ../src/terminal-menubar.ui.in.h:10 ../src/terminal-window.c:1767
+msgid "_Copy"
+msgstr "ا_نسخ"
+
+#: ../src/terminal-menubar.ui.in.h:11 ../src/terminal-window.c:1768
+msgid "Copy as _HTML"
+msgstr "انسخ بن_سق HTML"
+
+#: ../src/terminal-menubar.ui.in.h:12 ../src/terminal-window.c:1769
+msgid "_Paste"
+msgstr "أل_صق"
+
+#: ../src/terminal-menubar.ui.in.h:13 ../src/terminal-window.c:1771
+msgid "Paste as _Filenames"
+msgstr "ألصق كأسماء مل_فات"
+
+#: ../src/terminal-menubar.ui.in.h:14
+msgid "Select _All"
+msgstr "اختر ال_كل"
+
+#: ../src/terminal-menubar.ui.in.h:15
+msgid "P_references"
+msgstr "الت_فضيلات"
+
+#: ../src/terminal-menubar.ui.in.h:16
+msgid "_View"
+msgstr "_عرض"
+
+#: ../src/terminal-menubar.ui.in.h:18 ../src/terminal-window.c:1817
+msgid "Show _Menubar"
+msgstr "أظهر _شريط القوائم"
+
+#: ../src/terminal-menubar.ui.in.h:21
+msgid "_Normal Size"
+msgstr "ال_حجم العادي"
+
+#: ../src/terminal-menubar.ui.in.h:23
+msgid "_Search"
+msgstr "_بحث"
+
+#: ../src/terminal-menubar.ui.in.h:25
+msgid "_Find…"
+msgstr "اب_حث…"
+
+#: ../src/terminal-menubar.ui.in.h:26
+msgid "Find _Next"
+msgstr "ابحث عن ال_تالي"
+
+#: ../src/terminal-menubar.ui.in.h:27
+msgid "Find _Previous"
+msgstr "ابحث عن ال_سابق"
+
+#: ../src/terminal-menubar.ui.in.h:28
+msgid "_Clear Highlight"
+msgstr "ا_مسح الإبراز"
+
+#: ../src/terminal-menubar.ui.in.h:29
+msgid "_Terminal"
+msgstr "_طرفية"
+
+#: ../src/terminal-menubar.ui.in.h:31 ../src/terminal-notebook-menu.ui.h:4
+msgid "Set _Title…"
+msgstr "حدد ال_عنوان…"
+
+#: ../src/terminal-menubar.ui.in.h:32
+msgid "Set _Character Encoding"
+msgstr "اضبط ترميز ال_محارف"
+
+#: ../src/terminal-menubar.ui.in.h:40
+msgid "Ta_bs"
+msgstr "أ_لسنة"
+
+#: ../src/terminal-menubar.ui.in.h:42
+msgid "_Previous Tab"
+msgstr "اللسان ال_سابق"
+
+#: ../src/terminal-menubar.ui.in.h:43
+msgid "_Next Tab"
+msgstr "اللسان ال_تالي"
+
+#: ../src/terminal-menubar.ui.in.h:44
+msgid "Move Tab _Left"
+msgstr "انقل اللسان ي_سارا"
+
+#: ../src/terminal-menubar.ui.in.h:45
+msgid "Move Tab _Right"
+msgstr "انقل اللسان ي_مينا"
+
+#: ../src/terminal-menubar.ui.in.h:46
+msgid "_Detach Tab"
+msgstr "ا_فصل اللسان"
+
+#: ../src/terminal-menubar.ui.in.h:49
+msgid "_Contents"
+msgstr "الم_حتويات"
+
+#: ../src/terminal-nautilus.c:534
+msgid "Open in _Remote Terminal"
+msgstr "افتح في طرفيّة ب_عيدة"
+
+#: ../src/terminal-nautilus.c:536
+msgid "Open in _Local Terminal"
+msgstr "افتح في طرفيّة م_حلية"
+
+#: ../src/terminal-nautilus.c:540 ../src/terminal-nautilus.c:551
+msgid "Open the currently selected folder in a terminal"
+msgstr "افتح المجلد المحدّد حاليا في طرفيّة"
+
+#: ../src/terminal-nautilus.c:542 ../src/terminal-nautilus.c:553
+msgid "Open the currently open folder in a terminal"
+msgstr "افتح المجلد المفتوح حاليا في طرفية"
+
+#: ../src/terminal-nautilus.c:548
+msgid "Open in T_erminal"
+msgstr "افتح في ال_طرفيّة"
+
+#: ../src/terminal-nautilus.c:558
+msgid "Open T_erminal"
+msgstr "افتح ال_طرفيّة"
+
+#: ../src/terminal-nautilus.c:559
+msgid "Open a terminal"
+msgstr "افتح طرفيّة"
+
+#: ../src/terminal-notebook-menu.ui.h:1
+msgid "Move Terminal _Left"
+msgstr "انقل الطرفية ي_مينًا"
+
+#: ../src/terminal-notebook-menu.ui.h:2
+msgid "Move Terminal _Right"
+msgstr "انقل الطرفية _يسارا"
+
+#: ../src/terminal-notebook-menu.ui.h:3
+msgid "_Detach Terminal"
+msgstr "ا_فصل الطرفية"
+
+#: ../src/terminal-notebook-menu.ui.h:5 ../src/terminal-window.c:3246
+msgid "C_lose Terminal"
+msgstr "أغلق ال_طرفية"
+
+#: ../src/terminal-options.c:281
+#, c-format
+msgid ""
+"Option “%s” is deprecated and might be removed in a later version of gnome-"
+"terminal."
+msgstr "الخيار ”%s“ ملغى و قد يُزال في المستقبل."
+
+#. %s is being replaced with "-- " (without quotes), which must be used literally, not translatable
+#: ../src/terminal-options.c:292
+#, c-format
+msgid ""
+"Use “%s” to terminate the options and put the command line to execute after "
+"it."
+msgstr ""
+
+#: ../src/terminal-options.c:302 ../src/terminal-options.c:315
+#, c-format
+msgid "Option “%s” is no longer supported in this version of gnome-terminal."
+msgstr "الخيار ”%s“ لم يعد مدعوما في هذه الإصدارة."
+
+#: ../src/terminal-options.c:387
+#, c-format
+msgid "Argument to “%s” is not a valid command: %s"
+msgstr "المعامل ”%s“ ليس أمرا سليما: %s"
+
+#: ../src/terminal-options.c:560
+msgid "Two roles given for one window"
+msgstr "دوران لنافذة واحدة"
+
+#: ../src/terminal-options.c:581 ../src/terminal-options.c:614
+#, c-format
+msgid "“%s” option given twice for the same window\n"
+msgstr "خيار ”%s“ معطً مرتين لنفس النافذة\n"
+
+#: ../src/terminal-options.c:833
+#, c-format
+msgid "Cannot pass FD %d twice"
+msgstr ""
+
+#: ../src/terminal-options.c:895
+#, c-format
+msgid "“%s” is not a valid zoom factor"
+msgstr "“%s” ليس عامل تقريب سليم"
+
+#: ../src/terminal-options.c:902
+#, c-format
+msgid "Zoom factor “%g” is too small, using %g\n"
+msgstr "عامل التقريب ”%g“ منخفض جدا، سأستعمل %g\n"
+
+#: ../src/terminal-options.c:910
+#, c-format
+msgid "Zoom factor “%g” is too large, using %g\n"
+msgstr "عامل التقريب ”%g“ مرتفع جدا، سأستعمل %g\n"
+
+#: ../src/terminal-options.c:948
+#, c-format
+msgid ""
+"Option “%s” requires specifying the command to run on the rest of the "
+"command line"
+msgstr "الخيار ”%s“ يتطلب تحديد الأمر للتنفيذ عند باقي سطر الأوامر"
+
+#: ../src/terminal-options.c:1101
+#, fuzzy
+msgid "Can only use --wait once"
+msgstr "لا يمكن استخدام الخيار %s أكثر من مرة"
+
+#: ../src/terminal-options.c:1137
+msgid "Not a valid terminal config file."
+msgstr "ليس ملف إعدادات طرفية سليم."
+
+#: ../src/terminal-options.c:1150
+msgid "Incompatible terminal config file version."
+msgstr "إصدارة ملف إعدادات الطرفية غير متوافقة."
+
+#: ../src/terminal-options.c:1304
+msgid ""
+"Do not register with the activation nameserver, do not re-use an active "
+"terminal"
+msgstr "لا تسجل بخادوم التنشيط الاسمي، لا تعد استعمال طرفية شاغلة"
+
+#: ../src/terminal-options.c:1313
+msgid "Load a terminal configuration file"
+msgstr "حمّل ملف إعدادات طرفية"
+
+#: ../src/terminal-options.c:1314
+msgid "FILE"
+msgstr "FILE"
+
+#: ../src/terminal-options.c:1330
+msgid "Show preferences window"
+msgstr "اعرض نافذة الخيارات"
+
+#: ../src/terminal-options.c:1339
+msgid "Print environment variables to interact with the terminal"
+msgstr ""
+
+#: ../src/terminal-options.c:1357
+msgid "Increase diagnostic verbosity"
+msgstr ""
+
+#: ../src/terminal-options.c:1366
+msgid "Suppress output"
+msgstr "أوقف الخرج"
+
+#: ../src/terminal-options.c:1379
+msgid "Open a new window containing a tab with the default profile"
+msgstr "افتح نافذة جديدة تحتوي على لسان بالتشكيلة المبدئية"
+
+#: ../src/terminal-options.c:1388
+msgid "Open a new tab in the last-opened window with the default profile"
+msgstr "افتح لسان جديد في النافذة التي فتحت أخيرا بالتشكيلة المبدئية"
+
+#: ../src/terminal-options.c:1401
+msgid "Turn on the menubar"
+msgstr "أظهر شريط القوائم"
+
+#: ../src/terminal-options.c:1410
+msgid "Turn off the menubar"
+msgstr "أخف شريط القوائم"
+
+#: ../src/terminal-options.c:1419
+msgid "Maximize the window"
+msgstr "كبّر النافذة"
+
+#: ../src/terminal-options.c:1428
+msgid "Full-screen the window"
+msgstr "املأ الشاشة بالنافذة"
+
+#: ../src/terminal-options.c:1437
+msgid ""
+"Set the window size; for example: 80x24, or 80x24+200+200 (COLSxROWS+X+Y)"
+msgstr "حدد حجم النافذة؛ مثلا 80x24 أو 80x24+200+200 (أعمدة×صفوف+س+ص)"
+
+#: ../src/terminal-options.c:1438
+msgid "GEOMETRY"
+msgstr "GEOMETRY"
+
+#: ../src/terminal-options.c:1446
+msgid "Set the window role"
+msgstr "حدد دور النافذة"
+
+#: ../src/terminal-options.c:1447
+msgid "ROLE"
+msgstr "ROLE"
+
+#: ../src/terminal-options.c:1455
+msgid "Set the last specified tab as the active one in its window"
+msgstr "اضبط آخر لسان محدّد كالنشط في نافذته"
+
+#: ../src/terminal-options.c:1468
+msgid "Execute the argument to this option inside the terminal"
+msgstr "نفّذ معطى هذا الخيار داخل الطرفيّة"
+
+#: ../src/terminal-options.c:1477
+msgid "Use the given profile instead of the default profile"
+msgstr "استعمل التشكيلة المعطاة بدلا من المبدئية"
+
+#: ../src/terminal-options.c:1478
+msgid "PROFILE-NAME"
+msgstr "PROFILE-NAME"
+
+#: ../src/terminal-options.c:1486
+msgid "Set the initial terminal title"
+msgstr "حدد عنوان الطرفيّة المبدئي"
+
+#: ../src/terminal-options.c:1487
+msgid "TITLE"
+msgstr "TITLE"
+
+#: ../src/terminal-options.c:1495
+msgid "Set the working directory"
+msgstr "اضبط دليل العمل"
+
+#: ../src/terminal-options.c:1496
+msgid "DIRNAME"
+msgstr "DIRNAME"
+
+#: ../src/terminal-options.c:1504
+msgid "Wait until the child exits"
+msgstr "انتظر انتهاء الابن"
+
+#: ../src/terminal-options.c:1513
+msgid "Forward file descriptor"
+msgstr ""
+
+#. FD = file descriptor
+#: ../src/terminal-options.c:1515
+msgid "FD"
+msgstr ""
+
+#: ../src/terminal-options.c:1523
+msgid "Set the terminal’s zoom factor (1.0 = normal size)"
+msgstr "اضبط عامل تقريب الطرفيّة (1.0 = الحجم الطبيعي)"
+
+#: ../src/terminal-options.c:1524
+msgid "ZOOM"
+msgstr "ZOOM"
+
+#: ../src/terminal-options.c:1611
+msgid "COMMAND"
+msgstr "الأمر"
+
+#: ../src/terminal-options.c:1619
+msgid "GNOME Terminal Emulator"
+msgstr "طرفيّة جنوم"
+
+#: ../src/terminal-options.c:1620
+msgid "Show GNOME Terminal options"
+msgstr "اعرض خيارات طرفيّة جنوم"
+
+#: ../src/terminal-options.c:1630
+msgid ""
+"Options to open new windows or terminal tabs; more than one of these may be "
+"specified:"
+msgstr ""
+"خيارات لفتح نوافذ أو ألسنة طرفية جديدة؛ يمكن تحديد أكثر من واحد من هذه:"
+
+#: ../src/terminal-options.c:1631
+msgid "Show terminal options"
+msgstr "اعرض خيارات طرفيّة جنوم"
+
+#: ../src/terminal-options.c:1639
+msgid ""
+"Window options; if used before the first --window or --tab argument, sets "
+"the default for all windows:"
+msgstr ""
+"خيارات النافذة؛ إذا استخدمت قبل أول معامل ‪--window‬ أو ‪--tab‬ فستحدد مبدئيات "
+"كل النوافذ:"
+
+#: ../src/terminal-options.c:1640
+msgid "Show per-window options"
+msgstr "اعرض خيارات النوافذ"
+
+#: ../src/terminal-options.c:1648
+msgid ""
+"Terminal options; if used before the first --window or --tab argument, sets "
+"the default for all terminals:"
+msgstr ""
+"خيارات الطرفية؛ إذا استخدمت قبل أول معامل ‪--window‬ أو ‪--tab‬ فستحدد مبدئيات "
+"كل الطرفيات:"
+
+#: ../src/terminal-options.c:1649
+msgid "Show per-terminal options"
+msgstr "اعرض خيارات الطرفية"
+
+#: ../src/terminal-prefs.c:131
+#, c-format
+msgid "Profile “%s”"
+msgstr "التشكيلة ”%s“"
+
+#: ../src/terminal-prefs.c:134
+#, c-format
+msgid "Preferences – %s"
+msgstr "التفضيلات – %s"
+
+#: ../src/terminal-prefs.c:377
+msgid "New Profile"
+msgstr "تشكيلة جديدة"
+
+#: ../src/terminal-prefs.c:378
+msgid "Enter name for new profile with default settings:"
+msgstr "أدخل اسمًا لتشكيلة جديدة مع الإعدادات المبدئية:"
+
+#: ../src/terminal-prefs.c:380
+msgid "Create"
+msgstr "أنشئ"
+
+#: ../src/terminal-prefs.c:392
+#, c-format
+msgid "Enter name for new profile based on “%s”:"
+msgstr "أدخل اسمًا لتشكيلة جديدة مبنية على ”%s“:"
+
+#: ../src/terminal-prefs.c:393
+#, c-format
+msgid "%s (Copy)"
+msgstr "%s (نسخة)"
+
+#: ../src/terminal-prefs.c:396
+msgid "Clone Profile"
+msgstr "استنسخ التشكيلة"
+
+#: ../src/terminal-prefs.c:399
+msgid "Clone"
+msgstr "استنسخ"
+
+#: ../src/terminal-prefs.c:414
+#, c-format
+msgid "Enter new name for profile “%s”:"
+msgstr "أدخل اسمًا جديدًا للتشكيلة ”%s“:"
+
+#: ../src/terminal-prefs.c:417
+msgid "Rename Profile"
+msgstr "غيّر اسم التشكيلة"
+
+#: ../src/terminal-prefs.c:420
+msgid "Rename"
+msgstr "غيّر الاسم"
+
+#: ../src/terminal-prefs.c:435
+#, c-format
+msgid "Really delete profile “%s”?"
+msgstr "هل تريد فعلًا حذف التشكيلة ”%s“؟"
+
+#: ../src/terminal-prefs.c:438
+msgid "Delete Profile"
+msgstr "احذف التشكيلة"
+
+#: ../src/terminal-prefs.c:441
+msgid "Delete"
+msgstr "احذف"
+
+#: ../src/terminal-prefs.c:519
+msgid "This is the default profile"
+msgstr "هذه هي التشكيلة المبدئية"
+
+#: ../src/terminal-prefs.c:543
+msgid "General"
+msgstr "عام"
+
+#: ../src/terminal-prefs.c:548
+msgid "Shortcuts"
+msgstr "الاختصارات"
+
+#: ../src/terminal-prefs.c:683
+msgid "Profiles"
+msgstr "التشكيلات"
+
+#: ../src/terminal-screen.c:1140
+msgid "No command supplied nor shell requested"
+msgstr ""
+
+#: ../src/terminal-screen.c:1355 ../src/terminal-screen.c:1681
+msgid "_Relaunch"
+msgstr "أ_عد التشغيل"
+
+#: ../src/terminal-screen.c:1358
+msgid "There was an error creating the child process for this terminal"
+msgstr "حدث خطأ عند إنشاء العملية الفرعية لهذه الطرفيّة"
+
+#: ../src/terminal-screen.c:1685
+#, c-format
+msgid "The child process exited normally with status %d."
+msgstr "انتهت العملية الابنة بشكل طبيعية بالحالة %d."
+
+#: ../src/terminal-screen.c:1688
+#, c-format
+msgid "The child process was aborted by signal %d."
+msgstr "انتهت العملية الابنة بالإشارة %d."
+
+#: ../src/terminal-screen.c:1691
+msgid "The child process was aborted."
+msgstr "انتهت العملية الابنة."
+
+#: ../src/terminal-tab-label.c:206
+msgid "Close tab"
+msgstr "أغلق اللسان"
+
+#: ../src/terminal-util.c:150
+msgid "There was an error displaying help"
+msgstr "حدث خطأ أثناء عرض المساعدة"
+
+#: ../src/terminal-util.c:207
+msgid "Contributors:"
+msgstr "المساهمون:"
+
+#: ../src/terminal-util.c:223
+#, c-format
+msgid "Using VTE version %u.%u.%u"
+msgstr "يستخدم إصدارة %u.%u.%u من VTE"
+
+#: ../src/terminal-util.c:229
+msgid "A terminal emulator for the GNOME desktop"
+msgstr "محاكي طرفية لسطح مكتب جنوم"
+
+#: ../src/terminal-util.c:236
+msgid "GNOME Terminal"
+msgstr "طرفيّة جنوم"
+
+#: ../src/terminal-util.c:246
+msgid "translator-credits"
+msgstr ""
+"فريق عربآيز للترجمة http://www.arabeyes.org :\n"
+"جهاد عفيفي\t<djihed@gmail.com>\n"
+"خالد حسني\t<khaledhosny@eglug.org>"
+
+#: ../src/terminal-util.c:321
+#, c-format
+msgid "Could not open the address “%s”"
+msgstr "تعذّر فتح العنوان “%s”"
+
+#: ../src/terminal-util.c:390
+msgid ""
+"GNOME Terminal is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU General Public License as published by the Free "
+"Software Foundation, either version 3 of the License, or (at your option) "
+"any later version."
+msgstr ""
+"طرفية جنوم برمجية حرة بإمكانك إعادة توزيعه و/أو تعديله تحت شروط الرخصة "
+"العمومية العامة لجنو والتي نشرتها منظمة البرمجيات الحرة؛ سواء الإصدارة 3 من "
+"الرخصة أو أي إصدارة بعدها حسب رغبتك."
+
+#: ../src/terminal-util.c:394
+msgid ""
+"GNOME Terminal is distributed in the hope that it will be useful, but "
+"WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY "
+"or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for "
+"more details."
+msgstr ""
+"توزّع طرفية جنوم على أمل أن تكون مفيدة لمن يستخدمها دون أدنى مسؤولية؛ ولا حتى "
+"أي ضمان يضمن صلاحية العرض في السوق أو توافقه مع أي استخدام محدد. يمكنك "
+"مراجعة الرخصة العمومية العامة لجنو لمزيد من التفاصيل."
+
+#: ../src/terminal-util.c:398
+msgid ""
+"You should have received a copy of the GNU General Public License along with "
+"GNOME Terminal.  If not, see <http://www.gnu.org/licenses/>."
+msgstr ""
+"من المفترض أن تكون قد استلمت نسخة من رخصة جنو العامة مع طرفيّة جنوم؛ في حال "
+"عدم استلامك لذلك، يمكنك مكاتبة:\n"
+"Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  "
+"02110-1301 USA"
+
+#: ../src/terminal-util.c:1149
+msgid "“file” scheme with remote hostname not supported"
+msgstr ""
+
+#: ../src/terminal-window.c:457
+msgid "Could not save contents"
+msgstr "تعذّر حفظ المحتويات."
+
+#: ../src/terminal-window.c:477
+msgid "Save as…"
+msgstr "احفظ باسم…"
+
+#: ../src/terminal-window.c:480
+msgid "_Cancel"
+msgstr "أ_لغِ"
+
+#: ../src/terminal-window.c:481
+msgid "_Save"
+msgstr "ا_حفظ"
+
+#: ../src/terminal-window.c:1724
+msgid "Open _Hyperlink"
+msgstr "ا_فتح الرابط"
+
+#: ../src/terminal-window.c:1725
+msgid "Copy Hyperlink _Address"
+msgstr "ا_نسخ عنوان الرابط"
+
+#: ../src/terminal-window.c:1735
+msgid "Send Mail _To…"
+msgstr "أر_سل بريدًا إلى…"
+
+#: ../src/terminal-window.c:1736
+msgid "Copy Mail _Address"
+msgstr "ا_نسخ عنوان البريد"
+
+#: ../src/terminal-window.c:1739
+msgid "Call _To…"
+msgstr "ا_تّصل ب…"
+
+#: ../src/terminal-window.c:1740
+msgid "Copy Call _Address "
+msgstr "ا_نسخ عنوان الاتصال"
+
+#: ../src/terminal-window.c:1745
+msgid "_Open Link"
+msgstr "ا_فتح الرابط"
+
+#: ../src/terminal-window.c:1746
+msgid "Copy _Link"
+msgstr "انسخ الراب_ط"
+
+#: ../src/terminal-window.c:1784
+msgid "P_rofiles"
+msgstr "ال_تشكيلات"
+
+#: ../src/terminal-window.c:1819
+msgid "L_eave Full Screen"
+msgstr "_غادر ملء الشاشة"
+
+#: ../src/terminal-window.c:3233
+msgid "Close this window?"
+msgstr "أأغلق هذه النافذة؟"
+
+#: ../src/terminal-window.c:3233
+msgid "Close this terminal?"
+msgstr "أأغلق هذه الطرفيّة؟"
+
+#: ../src/terminal-window.c:3237
+msgid ""
+"There are still processes running in some terminals in this window. Closing "
+"the window will kill all of them."
+msgstr "ما تزال بعض العمليات عاملة في هذه النافذة. غلق النافذة سيقتلها جميعا."
+
+#: ../src/terminal-window.c:3241
+msgid ""
+"There is still a process running in this terminal. Closing the terminal will "
+"kill it."
+msgstr "ما تزال بعض العمليات عاملة في هذه الطرفية. غلق الطرفية سيقتلها جميعا."
+
+#: ../src/terminal-window.c:3246
+msgid "C_lose Window"
+msgstr "أغ_لق النافذة"
+
+#~ msgid "Whether to show menubar in new windows/tabs"
+#~ msgstr "فيما إذا سيعرض شريط القوائم في النوافذ/الألسنة الجديدة"
+
+#, fuzzy
+#~ msgid "True if the menubar should be shown in new window"
+#~ msgstr ""
+#~ "يضبط لـ True إذا وجب عرض شريط القوائم في النوافذ الجديدة، أو نوافذ/ألسنة "
+#~ "بهذه الطور."
+
+#~ msgid "_Quit"
+#~ msgstr "أ_نهِ"
+
+#~ msgid "Verbose output"
+#~ msgstr "مخرج مطول"
+
+#~ msgid "Output options:"
+#~ msgstr "خيارات الخرج:"
+
+#~ msgid "Show output options"
+#~ msgstr "اعرض خيارات الخرج"
+
+#, fuzzy
+#~ msgid "“%s” is not a valid application ID"
+#~ msgstr "\"%s\" ليس عامل تقريب سليم"
+
+#~ msgid "ID"
+#~ msgstr "ID"
+
+#, fuzzy
+#~ msgid "Show completions"
+#~ msgstr "اعرض خيارات التنفيذ"
+
+#~ msgid "Global options:"
+#~ msgstr "الخيارات العامة:"
+
+#~ msgid "Show global options"
+#~ msgstr "اعرض الخيارات العامّة"
+
+#~ msgid "Exec options:"
+#~ msgstr "خيارات التنفيذ:"
+
+#~ msgid "Show exec options"
+#~ msgstr "اعرض خيارات التنفيذ"
+
+#~ msgid "Maximise the window"
+#~ msgstr "كبّر النافذة"
+
+#~ msgid "Window options:"
+#~ msgstr "خيارات النوافذ:"
+
+#~ msgid "Show window options"
+#~ msgstr "اعرض خيارات النوافذ"
+
+#~ msgid "Zoom value “%s” is outside allowed range"
+#~ msgstr "قيمة التقريب ”%s“ تتجاوز المدى المسموح به"
+
+#~ msgid "UUID"
+#~ msgstr "UUID"
+
+#~ msgid "Terminal options:"
+#~ msgstr "خيارات الطرفيّة:"
+
+#~ msgid "Processing options:"
+#~ msgstr "خيارات المعالجة:"
+
+#~ msgid "Show processing options"
+#~ msgstr "اعرض خيارات المعالجة"
+
+#~ msgid "Missing argument"
+#~ msgstr "مُعطى مفقود"
+
+#~ msgid "Unknown command “%s”"
+#~ msgstr "أمر غير معروف ”%s“"
+
+#~ msgid "GTerminal"
+#~ msgstr "الطرفية"
+
+#~ msgid "Error processing arguments: %s\n"
+#~ msgstr "خطأ أثناء تحليل المعطيات: %s\n"
+
+#~ msgid "Unnamed"
+#~ msgstr "بلا اسم"
+
+#~ msgid "Keyboard shortcut to create a new profile"
+#~ msgstr "اختصار لوحة المفاتيح لإنشاء طور جديدة"
+
+#, fuzzy
+#~ msgid "Keyboard shortcut to open the current profile’s Preferences dialog"
+#~ msgstr "اختصار لوحة المفاتيح لإعادة ضبط الطرفيّة"
+
+#~ msgid "List of available encodings"
+#~ msgstr "قائمة بالترميزات المتوفّرة"
+
+#, fuzzy
+#~ msgid ""
+#~ "A subset of possible encodings are presented in the Encoding submenu. "
+#~ "This is a list of encodings to appear there."
+#~ msgstr ""
+#~ "مجموعة فرعية للترميزات الممكنة المعروضة في القائمة الفرعية للترميزات. هذه "
+#~ "قائمة الترميزات التي ستظهر هناك. اسم الترميز الخاص \"current\" يعني عرض "
+#~ "ترميز للمنطقة الحالية."
+
+#~ msgid "_Profile used when launching a new terminal:"
+#~ msgstr "الطور الم_ستخدم عند فتح طرفية جديدة:"
+
+#~ msgid "E_ncodings shown in menu:"
+#~ msgstr "الت_رميزات المعروضة في القائمة:"
+
+#~ msgid "Profile Editor"
+#~ msgstr "محرر الأطوار"
+
+#~ msgid "_Profile name:"
+#~ msgstr "اسم ال_طور:"
+
+#~ msgid "_Rewrap on resize"
+#~ msgstr "أعد ق_طع السطور عند تغيير الحجم"
+
+#~ msgid ""
+#~ "<b>Note:</b> Terminal applications have these colors available to them."
+#~ msgstr "<b>ملاحظة:</b> الألوان التالية متاحة لتطبيقات الطرفيّة."
+
+#~ msgid ""
+#~ "<b>Note:</b> These options may cause some applications to behave "
+#~ "incorrectly.  They are only here to allow you to work around certain "
+#~ "applications and operating systems that expect different terminal "
+#~ "behavior."
+#~ msgstr ""
+#~ "<b>ملاحظة:</b> قد تتسبّب هذه الخيارات في عدم عمل بعض التطبيقات بسلامة.\n"
+#~ "الخيارات موجودة فقط لتجعلك تتخطّى عددا من التطبيقات و أنظمة التشغيل التي "
+#~ "تتوقّع سلوكا مختلفا من الطرفيّة."
+
+#~ msgid "New Terminal in New Tab"
+#~ msgstr "طرفية جديدة في لسان جديد"
+
+#~ msgid "New Terminal in New Window"
+#~ msgstr "طرفية جديدة في نافذة جديدة"
+
+#~ msgid "Close Terminal"
+#~ msgstr "أغلق الطرفية"
+
+#~ msgid "Close All Terminals"
+#~ msgstr "أغلق كل الطرفيات"
+
+#~ msgid "Profile Preferences"
+#~ msgstr "تفضيلات الطور"
+
+#~ msgid "Clear Find Highlight"
+#~ msgstr "امسح نتائج البحث المُبرزة"
+
+#~ msgid "Detach Terminal"
+#~ msgstr "افصل الطرفية "
+
+#~ msgid "User Defined"
+#~ msgstr "معَرّف من المستخدم"
+
+#~ msgid "Open in _Midnight Commander"
+#~ msgstr "افتح في _Midnight Commander"
+
+#~ msgid ""
+#~ "Open the currently selected folder in the terminal file manager Midnight "
+#~ "Commander"
+#~ msgstr ""
+#~ "افتح المجلد المحدّد حاليا في مدير ملفات سطر الأوامر Midnight Commander"
+
+#~ msgid ""
+#~ "Open the currently open folder in the terminal file manager Midnight "
+#~ "Commander"
+#~ msgstr ""
+#~ "افتح المجلد المفتوح حاليا في مدير ملفات سطر الأوامر Midnight Commander"
+
+#~ msgid "Open _Midnight Commander"
+#~ msgstr "افتح _Midnight Commander"
+
+#~ msgid "Open the terminal file manager Midnight Commander"
+#~ msgstr "افتح مدير ملفات سطر الأوامر Midnight Commander"
+
+#~ msgid "Click button to choose profile"
+#~ msgstr "انقر الزر لاختيار طور"
+
+#~ msgid "Profile list"
+#~ msgstr "قائمة الأطوار"
+
+#~ msgid "Show"
+#~ msgstr "أظهر"
+
+#~ msgid "_Encoding"
+#~ msgstr "ال_ترميز"
+
+#~ msgid "_Profile Preferences"
+#~ msgstr "_تفضيلات الطور"
+
+#~ msgid "Switch to this tab"
+#~ msgstr "انتقل لهذا اللسان"
+
+#~ msgid "_%u. %s"
+#~ msgstr "_%u. %s"
+
+#~ msgid "_%c. %s"
+#~ msgstr "_%c. %s"
+
+#~ msgid "Open _Terminal"
+#~ msgstr "افتح _طرفيّة"
+
+#~ msgid "Open Ta_b"
+#~ msgstr "افتح ل_سان"
+
+#~ msgid "New _Profile"
+#~ msgstr "طور ج_ديد"
+
+#~ msgid "_Close All Terminals"
+#~ msgstr "أغلق _كل الطرفيات"
+
+#~ msgid "Pre_ferences"
+#~ msgstr "ال_تفضيلات"
+
+#~ msgid "Find Ne_xt"
+#~ msgstr "ابحث عن الت_الي"
+
+#~ msgid "Find Pre_vious"
+#~ msgstr "ابحث عن ال_سابق"
+
+#~ msgid "Go to _Line…"
+#~ msgstr "اذهب إ_لى سطر…"
+
+#~ msgid "_Incremental Search…"
+#~ msgstr "بحث _تزايدي…"
+
+#~ msgid "_Add or Remove…"
+#~ msgstr "أ_ضف أو احذف…"
+
+#~ msgid "_Next Terminal"
+#~ msgstr "الطرفية ال_تالية"
+
+#~ msgid "_Same as text color"
+#~ msgstr "م_ثل لون النص"
+
+#~ msgid "_Search for:"
+#~ msgstr "ا_بحث عن:"
+
+#~ msgid "Search _backwards"
+#~ msgstr "ابحث إلى ال_خلف"
+
+#~ msgid "Whether to update login records when launching terminal command"
+#~ msgstr "فيما إذا ستحدّث سجلّات الدّخول عند إطلاق أمر الطرفيّة"
+
+#~ msgid ""
+#~ "If true, the system login records utmp and wtmp will be updated when the "
+#~ "command inside the terminal is launched."
+#~ msgstr ""
+#~ "إذا ضبط لصحيح، ستحدّث سجلّات دخول النّظام utmp و wtmp عند إطلاق الأمر داخل "
+#~ "الطرفيّة"
+
+#~ msgid "_Update login records when command is launched"
+#~ msgstr "_حدّث سجلّات الولوج عند إطلاق الأمر"
+
+#, fuzzy
+#~ msgid "Missing command"
+#~ msgstr "خطأ أثناء تحليل الأمر: %s"
+
+#, fuzzy
+#~ msgid "Whether to use a dark theme variant"
+#~ msgstr "فيما إذا سيستعمل خط النظام ثابت العرض"
+
+#~ msgid "Be quiet"
+#~ msgstr "كن صامتًا"
+
+#~ msgid "GNOME Terminal Client"
+#~ msgstr "عميل طرفيّة جنوم"
+
+#~ msgctxt "title"
+#~ msgid "'Terminal'"
+#~ msgstr "'الطرفية'"
+
+#~ msgid "Title for terminal"
+#~ msgstr "عنوان الطرفيّة"
+
+#~ msgid ""
+#~ "Title to display for the terminal window or tab. This title may be "
+#~ "replaced by or combined with the title set by the application inside the "
+#~ "terminal, depending on the title_mode setting."
+#~ msgstr ""
+#~ "العنوان الذي سيعرض لنافذة أو لسان الطرفيّة. قد يستبدل هذا العنوان أو يضم "
+#~ "مع العنوان المضبوط من قبل التطبيق داخل الطرفيّة، بحسب تعيين title_mode."
+
+#~ msgid "Characters that are considered \"part of a word\""
+#~ msgstr "المحارف المعتبرة \"جزءا من كلمة\""
+
+#~ msgid ""
+#~ "When selecting text by word, sequences of these characters are considered "
+#~ "single words. Ranges can be given as \"A-Z\". Literal hyphen (not "
+#~ "expressing a range) should be the first character given."
+#~ msgstr ""
+#~ "عند انتقاء النص بحسب الكلمة، فستعتبر سلاسل هذه الرموز ككلمات واحدة. يمكن "
+#~ "إعطاء المدى كـ \"A-Z\". وصلة حرفيّة (لا يعرض مدى) يجب أن يكون أول رمز معطى."
+
+#~ msgid "_Use the system fixed width font"
+#~ msgstr "استخدم خط النظام _ثابت العرض"
+
+#~ msgid "_Font:"
+#~ msgstr "ال_خط:"
+
+#~ msgid "Use custom default terminal si_ze"
+#~ msgstr "استخدم _حجم طرفية مبدئي مخصص"
+
+#~ msgid "Default size:"
+#~ msgstr "الحجم المبدئي:"
+
+#~ msgid "Title"
+#~ msgstr "العنوان"
+
+#~ msgid "_Title:"
+#~ msgstr "ال_عنوان:"
+
+#~ msgid "Title and Command"
+#~ msgstr "العنوان والأمر"
+
+#~ msgid "_Unlimited"
+#~ msgstr "_غير محدود"
+
+#~ msgid "Set Title"
+#~ msgstr "حدد العنوان"
+
+#~ msgid "Current Locale"
+#~ msgstr "المحليّة الحالية"
+
+#~ msgid "Visible only when necessary"
+#~ msgstr "ظاهر عند الحاجة"
+
+#~ msgid "Hidden"
+#~ msgstr "مخفيّ"
+
+#~ msgid "_About Terminal"
+#~ msgstr "_عن الطرفية"
+
+#~ msgid "What to do with dynamic title"
+#~ msgstr "ما الذي سيفعل بالعناوين الديناميكية"
+
+#~ msgid ""
+#~ "If the application in the terminal sets the title (most typically people "
+#~ "have their shell set up to do this), the dynamically-set title can erase "
+#~ "the configured title, go before it, go after it, or replace it. The "
+#~ "possible values are \"replace\", \"before\", \"after\", and \"ignore\"."
+#~ msgstr ""
+#~ "إذا كان التطبيق في الطرفيّة يضبط العنوان (عامة تضبط الصدفة العنوان)، يمكن "
+#~ "للعنوان المضبوط ديناميكيا فسخ العنوان المعدّ أو أن يكون أمامه أو وراءه او "
+#~ "إستبداله. القيم الممكنة هي \"replace\" و \"before\" و \"after\" و \"ignore"
+#~ "\"."
+
+#~ msgid "When terminal commands set their o_wn titles:"
+#~ msgstr "عندما تحدد أوامر الطرفية عناوينها ال_خاصة:"
+
+#~ msgid "The shortcut key “%s” is already bound to the “%s” action"
+#~ msgstr "مفتاح الاختصار “%s” مقيّدٌ مسبقًا بالإجراء “%s”"
+
+#~ msgid "_Input Methods"
+#~ msgstr "طرق ال_إدخال"
+
+#~ msgid "Keyboard Shortcuts"
+#~ msgstr "اختصارات لوحة المفاتيح"
+
+#~ msgid "Foreground, Background, Bold and Underline"
+#~ msgstr "المقدمة و الخلفية والنص العريض و المسطَّر"
+
+#~ msgid "Switch to Tab 3"
+#~ msgstr "انتقل للسان 3"
+
+#~ msgid "Switch to Tab 4"
+#~ msgstr "انتقل للسان 4"
+
+#~ msgid "Switch to Tab 5"
+#~ msgstr "انتقل للسان 5"
+
+#~ msgid "Switch to Tab 6"
+#~ msgstr "انتقل للسان 6"
+
+#~ msgid "Switch to Tab 7"
+#~ msgstr "انتقل للسان 7"
+
+#~ msgid "Switch to Tab 8"
+#~ msgstr "انتقل للسان 8"
+
+#~ msgid "Switch to Tab 9"
+#~ msgstr "انتقل للسان 9"
+
+#~ msgid "Switch to Tab 10"
+#~ msgstr "انتقل للسان 10"
+
+#~ msgid "Switch to Tab 11"
+#~ msgstr "انتقل للسان 11"
+
+#~ msgid "Switch to Tab 12"
+#~ msgstr "انتقل للسان 12"
+
+#~ msgid "_Description"
+#~ msgstr "ال_وصف"
+
+#~ msgid "New _Profile…"
+#~ msgstr "طور ج_ديد…"
+
+#~ msgid "P_rofiles…"
+#~ msgstr "الأ_طوار…"
+
+#~ msgid "_Keyboard Shortcuts…"
+#~ msgstr "ا_ختصارات لوحة المفاتيح…"
+
+#~ msgid "_Find..."
+#~ msgstr "ا_بحث..."
+
+#~ msgid "Add or Remove Terminal Encodings"
+#~ msgstr "أضف أو احذف ترميزات الطرفيّة"
+
+#~ msgid "A_vailable encodings:"
+#~ msgstr "الترميزات ال_متاحة:"
+
+#~ msgid "Profile _name:"
+#~ msgstr "ا_سم الطور:"
+
+#~ msgid "_Base on:"
+#~ msgstr "م_بنيا على:"
+
+#~ msgid ""
+#~ "Block\n"
+#~ "I-Beam\n"
+#~ "Underline"
+#~ msgstr ""
+#~ "كتلة\n"
+#~ "خط |\n"
+#~ "شرطة تحتية"
+
+#~ msgid "<b>Title</b>"
+#~ msgstr "<b>العنوان</b>"
+
+#~ msgid ""
+#~ "Replace initial title\n"
+#~ "Append initial title\n"
+#~ "Prepend initial title\n"
+#~ "Keep initial title"
+#~ msgstr ""
+#~ "استبدل العنوان الأولي\n"
+#~ "ألحق العنوان الأولي\n"
+#~ "أسبِق العنوان الأولي\n"
+#~ "اترك العنوان الأولي"
+
+#~ msgid ""
+#~ "Exit the terminal\n"
+#~ "Restart the command\n"
+#~ "Hold the terminal open"
+#~ msgstr ""
+#~ "اخرج من الطرفيّة\n"
+#~ "أعد تشغيل الأمر\n"
+#~ "اترك الطرفيّة مفتوحة"
+
+#~ msgid ""
+#~ "Always visible\n"
+#~ "Visible only when necessary\n"
+#~ "Hidden"
+#~ msgstr ""
+#~ "ظاهر دائما\n"
+#~ "ظاهر عن الحاجة\n"
+#~ "مخفيّ"
+
+#~ msgid ""
+#~ "Automatic\n"
+#~ "Control-H\n"
+#~ "ASCII DEL\n"
+#~ "Escape sequence\n"
+#~ "TTY Erase"
+#~ msgstr ""
+#~ "تلقائي\n"
+#~ "Control-H\n"
+#~ "ASCII DEL\n"
+#~ "Escape sequence\n"
+#~ "TTY Erase"
+
+#~ msgid ""
+#~ "You already have a profile called “%s”. Do you want to create another "
+#~ "profile with the same name?"
+#~ msgstr "يوجد طور بالاسم “%s”. هل تريد إنشاء آخرٍ بنفس الاسم؟"
+
+#~ msgid "Choose base profile"
+#~ msgstr "اختر الطور الرئيسيّ"
+
+#~ msgid "Disable connection to session manager"
+#~ msgstr "عطّل الاتصال بمدير الجلسات"
+
+#~ msgid "Specify file containing saved configuration"
+#~ msgstr "حدد ملفا يحتوي الإعدادات المحفوظة"
+
+#~ msgid "Specify session management ID"
+#~ msgstr "حدد معرف إدارة الجلسة"
+
+#~ msgid "Show session management options"
+#~ msgstr "اعرض خيارات إدارة الجلسات"
+
+#~ msgid "List of profiles"
+#~ msgstr "قائمة الأطوار"
+
+#~ msgid ""
+#~ "List of profiles known to gnome-terminal. The list contains strings "
+#~ "naming subdirectories relative to /apps/gnome-terminal/profiles."
+#~ msgstr ""
+#~ "قائمة الأطوار المعروفة لطرفية جنوم. تحوي القائمة سلاسل تسمي الدلائل "
+#~ "الفرعية نسبة إلى /apps/gnome-terminal/profiles."
+
+#~ msgid "Profile to use for new terminals"
+#~ msgstr "الطور التي سيسعمل للطرفيّات الجديدة"
+
+#~ msgid ""
+#~ "Profile to be used when opening a new window or tab. Must be in "
+#~ "profile_list."
+#~ msgstr ""
+#~ "الطور التي سيستخدم عند فتح نافذة أو لسان جديد. يجب أن يكون في "
+#~ "profile_list."
+
+#~ msgid "[UTF-8,current]"
+#~ msgstr "[UTF-8,current]"
+
+#~ msgid ""
+#~ "Whether to ask for confirmation when closing a terminal window which has "
+#~ "more than one open tab."
+#~ msgstr ""
+#~ "فيما إذا سيطلب التّاكيد عند إغلاق نافذة طرفيّة فيها أكثر من لسانٍ واحدٍ مفتوح."
+
+#~ msgid ""
+#~ "If true, don't make a noise when applications send the escape sequence "
+#~ "for the terminal bell."
+#~ msgstr ""
+#~ "إذا ضبط لصحيح، فلن يقوم بصوت عند إرسال التطبيقات تسلسل الخروج لجرس "
+#~ "الطرفيّة."
+
+#~ msgid ""
+#~ "Where to put the terminal scrollbar. Possibilities are \"left\", \"right"
+#~ "\", and \"hidden\"."
+#~ msgstr ""
+#~ "أين سيوضع شريط التمرير للطرفيّة. القيم الممكنة هي \"left\" أو \"right\" أو "
+#~ "\"hidden\"."
+
+#~ msgid ""
+#~ "The possible values are \"block\" to use a block cursor, \"ibeam\" to use "
+#~ "a vertical line cursor, or \"underline\" to use an underline cursor."
+#~ msgstr ""
+#~ "القيم الممكنة هي \"block\" لاستخدام مؤشر مصمت، أو \"ibeam\" لاستخدام شرطة "
+#~ "رأسية، أو \"underline\" لاستخدام شرطة أفقية."
+
+#~ msgid "Icon for terminal window"
+#~ msgstr "أيقونة نافذة الطرفيّة"
+
+#~ msgid "Icon to use for tabs/windows containing this profile."
+#~ msgstr "الأيقونة التي ستسخدم للألسنة/النوافذ المتضمّنة لهذه الطور."
+
+#~ msgid ""
+#~ "Terminals have a 16-color palette that applications inside the terminal "
+#~ "can use. This is that palette, in the form of a colon-separated list of "
+#~ "color names. Color names should be in hex format e.g. \"#FF00FF\""
+#~ msgstr ""
+#~ "للطرفيّات لوح ألوان ذي 16 لونا ستستخدمه التطبيقات داخل الطرفيّة. هذه هي "
+#~ "لوحة الألوان بهيئة قائمة أسماء ألوان منفصلة بفواصل. يجب أن تكون أسماء "
+#~ "الألوان بتهيئة سداسية، مثلا \"#FF00FF\""
+
+#~ msgid "Font"
+#~ msgstr "خط"
+
+#~ msgid ""
+#~ "An Pango font name. Examples are \"Sans 12\" or \"Monospace Bold 14\"."
+#~ msgstr "اسم خط بانجو. \"Sans 12\" أو \"Monospace Bold 14\" مثلا."
+
+#~ msgid "Background type"
+#~ msgstr "نوع الخلفية"
+
+#~ msgid ""
+#~ "Type of terminal background. May be \"solid\" for a solid color, \"image"
+#~ "\" for an image, or \"transparent\" for either real transparency if a "
+#~ "compositing window manager is running, or pseudo-transparency otherwise."
+#~ msgstr ""
+#~ "نوع خلفية الطرفيّة. يمكن أن يكون \"solid\" للون صلب أو  \"image\"لصورة أو "
+#~ "\"transparent\" لشفافيّة حقيقية أو غير حقيقيّة حسب نوع مدير النوافذ "
+#~ "المستخدم."
+
+#~ msgid "Background image"
+#~ msgstr "صورة الخلفية"
+
+#~ msgid "Filename of a background image."
+#~ msgstr "اسم ملف صورة الخلفية."
+
+#~ msgid "Whether to scroll background image"
+#~ msgstr "فيما إذا ستلف صورة الخلفيّة"
+
+#~ msgid ""
+#~ "If true, scroll the background image with the foreground text; if false, "
+#~ "keep the image in a fixed position and scroll the text above it."
+#~ msgstr ""
+#~ "إذا ضبط لصحيح، ستلف صورة الخلفية مع النص الأمامي، إذا ضبط لخطأ فستبقى "
+#~ "الصورة في موقع مضبوط و سيلف النص فوقها."
+
+#~ msgid "How much to darken the background image"
+#~ msgstr "كم ستعتم صورة الخلفيّة"
+
+#~ msgid ""
+#~ "A value between 0.0 and 1.0 indicating how much to darken the background "
+#~ "image. 0.0 means no darkness, 1.0 means fully dark. In the current "
+#~ "implementation, there are only two levels of darkness possible, so the "
+#~ "setting behaves as a boolean, where 0.0 disables the darkening effect."
+#~ msgstr ""
+#~ "قيمة بين 0.0 و 1.0 تؤشر لكمية تعتيم صورة الخلفية 0.0 يعني لا تعتيم و 1.0 "
+#~ "تعتيم تام. حاليا لا يوجد إلا مستويان للتعتيم/ مما يجعل سلوك التعيين "
+#~ "منطقيّا أي أن 0.0 يلغي أثر التعتيم."
+
+#~ msgid "Effect of the Backspace key"
+#~ msgstr "تأثير مفتاح Backspace"
+
+#~ msgid ""
+#~ "Sets what code the backspace key generates. Possible values are \"ascii-"
+#~ "del\" for the ASCII DEL character, \"control-h\" for Control-H (AKA the "
+#~ "ASCII BS character), \"escape-sequence\" for the escape sequence "
+#~ "typically bound to backspace or delete. \"ascii-del\" is normally "
+#~ "considered the correct setting for the Backspace key."
+#~ msgstr ""
+#~ "يحدّد أي رمز سينشأه مفتاح backspace. القيم الممكنة هي \"ascii-del\" لرمز "
+#~ "ASCII DEL أو \"control-h\" لـ Control-H (أي محرف ASCII BS)أو \"escape-"
+#~ "sequence\" لسلسلة الإفلات المربوطة عادة لمفتاحا backspace أو delete. "
+#~ "يعتبر \"ascii-del\" عادة التعيين الصحيح لمفتاح Backspace."
+
+#~ msgid "Effect of the Delete key"
+#~ msgstr "تأثير مفتاح الحذف"
+
+#~ msgid ""
+#~ "Sets what code the delete key generates. Possible values are \"ascii-del"
+#~ "\" for the ASCII DEL character, \"control-h\" for Control-H (AKA the "
+#~ "ASCII BS character), \"escape-sequence\" for the escape sequence "
+#~ "typically bound to backspace or delete. \"escape-sequence\" is normally "
+#~ "considered the correct setting for the Delete key."
+#~ msgstr ""
+#~ "يضبط أي رمز سينشأه مفتاح المحو. القيم الممكنة هي \"ascii-del\" لمحارف "
+#~ "ASCII DEL أو \"control-h\" لـ Control-H (أي محرف ASCII BS) أو \"escape-"
+#~ "sequence\" لسلسلة الأفلات المربوطة عامة بمفاتيح backspace أو الحذف. "
+#~ "\"escape-sequence\" معتبرة عادة التعيين الصحيح لمفتاح الحذف."
+
+#~ msgid ""
+#~ "If true, the theme color scheme used for text entry boxes will be used "
+#~ "for the terminal, instead of colors provided by the user."
+#~ msgstr ""
+#~ "إذا ضبط لصحيح، فسيستعمل مخطّط لون السِمة المستخدم لصناديق خانات النصوص "
+#~ "للشاشة الطرفيّة عوض الألوان المستعملة من طرف المستخدم."
+
+#~ msgid ""
+#~ "If true, the terminal will use the desktop-global standard font if it's "
+#~ "monospace (and the most similar font it can come up with otherwise)."
+#~ msgstr ""
+#~ "إذا ضبط لصحيح، فستستعمل الطرفيّة خط المكتب العام القياسي إذا كان أحادي "
+#~ "الفراغم (و أقرب خط يمكن أن تأتي به في أي حالة أخرى)."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for opening a new tab. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لفتح لسان جديد. يعرض  كسلسلة بنفس الهيئة المستخدمة من ملفات "
+#~ "مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، فلن "
+#~ "يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for opening a new window. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لفتح نافذة جديدة. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for bringing up the dialog for profile creation. "
+#~ "Expressed as a string in the same format used for GTK+ resource files. If "
+#~ "you set the option to the special string \"disabled\", then there will be "
+#~ "no keyboard shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لتقديم حوار إنشاء الطور. يعرض كسلسلة بنفس الهيئة المستخدمة "
+#~ "من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled"
+#~ "\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to save the current tab contents to a file. "
+#~ "Expressed as a string in the same format used for GTK+ resource files. If "
+#~ "you set the option to the special string \"disabled\", then there will be "
+#~ "no keyboard shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لحفظ محتويات اللسان الحالي في ملف. يعرض  كسلسلة بنفس الهيئة "
+#~ "المستخدمة من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ "
+#~ "\"disabled\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for closing a tab. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لغلق لسان. يعرض كسلسلة في نفس الهيئة المستعملة لملفات مصادر "
+#~ "GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، فلن يكون "
+#~ "هناك مفتاح اختصار للوحة المفاتيح لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for closing a window. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لغلق نافذة. يعرض كسلسلة بنفس الهيئة المستعملة لملفات مصادر "
+#~ "GTK+. إذا ضَبطت الخيار للسلسلة الخاصة \"disabled\" كـ (ملغى)، فلن يكون "
+#~ "هناك مفتاح اختصار للوحة المفاتيح لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for copying selected text to the clipboard. "
+#~ "Expressed as a string in the same format used for GTK+ resource files. If "
+#~ "you set the option to the special string \"disabled\", then there will be "
+#~ "no keyboard shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لنسخ النص المنتقى في الحافظة الوسيطة. يعرض كسلسلة بنفس "
+#~ "الهيئة المستعملة لملفات مصادر GTK+.إذا ضَبطت الخيار للسلسلة الخاصة كـ "
+#~ "\"disabled\" (ملغى)، فلن يكون هناك مفتاح اختثار للوحة المفاتيح لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for pasting the contents of the clipboard into the "
+#~ "terminal. Expressed as a string in the same format used for GTK+ resource "
+#~ "files. If you set the option to the special string \"disabled\", then "
+#~ "there will be no keyboard shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لجعل الخط أكبر. يعرض  كسلسلة بنفس الهيئة المستخدمة من ملفات "
+#~ "مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، فلن "
+#~ "يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for toggling full screen mode. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no keyboard "
+#~ "shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى نسق ملأ الشاشة. يعرض  كسلسلة بنفس الهيئة "
+#~ "المستخدمة من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ "
+#~ "\"disabled\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to toggle the visibility of the menubar. Expressed "
+#~ "as a string in the same format used for GTK+ resource files. If you set "
+#~ "the option to the special string \"disabled\", then there will be no "
+#~ "keyboard shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لتحويل رؤية شريط القوائم. يعرض  كسلسلة بنفس الهيئة المستخدمة "
+#~ "من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled"
+#~ "\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to set the terminal title. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لضبط عنوان الطرفيّة. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to reset the terminal. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لإعادة ضبط الطرفيّة. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to reset and clear the terminal. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no keyboard "
+#~ "shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لإعادة الضبط و مسح الطرفيّة. يعرض  كسلسلة بنفس الهيئة "
+#~ "المستخدمة من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ "
+#~ "\"disabled\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to switch to the previous tab. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no keyboard "
+#~ "shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان السابق. يعرض  كسلسلة بنفس الهيئة المستخدمة "
+#~ "من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled"
+#~ "\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to switch to the next tab. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان التالي. يعرض  كسلسلة بنفس الهيئة المستخدمة "
+#~ "من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled"
+#~ "\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Accelerator to move the current tab to the left."
+#~ msgstr "مفتاح اختصار لنقل الطرفيّة الحالية إلى اليسار."
+
+#~ msgid ""
+#~ "Accelerator key to move the current tab to the left. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no "
+#~ "keybinding for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لنقل الطرفيّة الحالية إلى اليسار. يعرض  كسلسلة بنفس الهيئة "
+#~ "المستخدمة من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ "
+#~ "\"disabled\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Accelerator to move the current tab to the right."
+#~ msgstr "مفتاح اختصار لنقل الطرفيّة الحالية إلى اليمين."
+
+#~ msgid ""
+#~ "Accelerator key to move the current tab to the right. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no "
+#~ "keybinding for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار  لنقل الطرفيّة الحالية إلى اليسار. يعرض  كسلسلة بنفس الهيئة "
+#~ "المستخدمة من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ "
+#~ "\"disabled\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Accelerator to detach current tab."
+#~ msgstr "مفتاح اختصار اقتطاع اللسان الحالي."
+
+#~ msgid ""
+#~ "Accelerator key to detach current tab. Expressed as a string in the same "
+#~ "format used for GTK+ resource files. If you set the option to the special "
+#~ "string \"disabled\", then there will be no keybinding for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول لإقتطاع اللسان التالي. يعرض  كسلسلة بنفس الهيئة "
+#~ "المستخدمة من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ "
+#~ "\"disabled\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 1. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 1. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 2"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 2"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 2. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 2. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 3"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 3"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 3. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 3. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 4"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 4"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 4. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 4. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 5"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 5"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 5. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 5. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 6"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 6"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 6. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 6. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 7"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 7"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 7. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 7. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 8"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 8"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 8. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 8. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 9"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 9"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 9. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 9. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 10"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 10"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 10. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 10. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 11"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 11"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 11. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 11. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Keyboard shortcut to switch to tab 12"
+#~ msgstr "اختصار لوحة المفاتيح للتحوّل للسان 12"
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 12. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار للتحول إلى اللسان 12. يعرض  كسلسلة بنفس الهيئة المستخدمة من "
+#~ "ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، "
+#~ "فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for launching help. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لتشغيل المساعدة. يعرض  كسلسلة بنفس الهيئة المستخدمة من ملفات "
+#~ "مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، فلن "
+#~ "يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for making font larger. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لجعل الخط أكبر. يعرض  كسلسلة بنفس الهيئة المستخدمة من ملفات "
+#~ "مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، فلن "
+#~ "يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for making font smaller. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لجعل الخط أصغر. يعرض  كسلسلة بنفس الهيئة المستخدمة من ملفات "
+#~ "مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ \"disabled\" (ملغى)، فلن "
+#~ "يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for making font the normal size. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no keyboard "
+#~ "shortcut for this action."
+#~ msgstr ""
+#~ "مفتاح اختصار لضبط الخط إلى حجمه العادي. يعرض  كسلسلة بنفس الهيئة "
+#~ "المستخدمة من ملفات مصادر GTK+. إذا ضَبطت الخيار للسلسلة الخاصة كـ "
+#~ "\"disabled\" (ملغى)، فلن يكون هناك مفتاح اختصار لهذا الحدث."
+
+#~ msgid "Images"
+#~ msgstr "الصور"
+
+#~ msgid ""
+#~ "Tango\n"
+#~ "Linux console\n"
+#~ "XTerm\n"
+#~ "Rxvt\n"
+#~ "Custom"
+#~ msgstr ""
+#~ "تانجو\n"
+#~ "مِعراض لينكس\n"
+#~ "XTerm\n"
+#~ "Rxvt\n"
+#~ "مخصص"
+
+#~ msgid "_Solid color"
+#~ msgstr "_لون"
+
+#~ msgid "_Background image"
+#~ msgstr "_صورة الخلفية"
+
+#~ msgid "Image _file:"
+#~ msgstr "ملف الصورة:"
+
+#~ msgid "Select Background Image"
+#~ msgstr "اختر صورة الخلفية"
+
+#~ msgid "Background image _scrolls"
+#~ msgstr "صورة الخلفية ت_لتف"
+
+#~ msgid "_Transparent background"
+#~ msgstr "خلفية _شفافة"
+
+#~ msgid "S_hade transparent or image background:"
+#~ msgstr "_ظلل شفافية أو صورة الخلفية:"
+
+#~ msgid "<small><i>None</i></small>"
+#~ msgstr "<small><i>لا شيء</i></small>"
+
+#~ msgid "<small><i>Maximum</i></small>"
+#~ msgstr "<small><i>الأقصى</i></small>"
+
+#~ msgid ""
+#~ "On the left side\n"
+#~ "On the right side\n"
+#~ "Disabled"
+#~ msgstr ""
+#~ "على الجهة اليمنى\n"
+#~ "على الجهة اليسرى\n"
+#~ "معطل"
+
+#~ msgid "No such profile \"%s\", using default profile\n"
+#~ msgstr "لا طور \"%s\" موجود، سأستعمل الطور المبدئي\n"
+
+#~ msgid "Invalid geometry string \"%s\"\n"
+#~ msgstr "سلسلة هندسة غير سليمة \"%s\"\n"
+
+#~ msgid ""
+#~ "Option \"%s\" is no longer supported in this version of gnome-terminal; "
+#~ "you might want to create a profile with the desired setting, and use the "
+#~ "new '--profile' option\n"
+#~ msgstr ""
+#~ "الخيار '%s' لم يعد مدعوما في هذه الإصدارة من طرفيّة جنوم، قد تفضل إنشاء "
+#~ "طور بالإعدادات المطلوبة، و استعمال خيار ‪--profile‬ الجديد\n"
+
+#~ msgid "Save the terminal configuration to a file"
+#~ msgstr "احفظ إعدادات الطرفية في ملف"
+
+#~ msgid "Pr_ofile Preferences"
+#~ msgstr "_تفضيلات الطور"
+
+#~ msgid "On the left side"
+#~ msgstr "على الجانب الأيمن"
+
+#~ msgid "On the right side"
+#~ msgstr "على الجانب الأيسر"

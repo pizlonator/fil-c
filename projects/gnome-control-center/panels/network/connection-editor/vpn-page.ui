@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CEPageVpn" parent="GtkBox">
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="propagate-natural-height">True</property>
+        <property name="propagate-natural-width">True</property>
+        <child>
+          <object class="GtkBox" id="box">
+            <property name="margin_start">50</property>
+            <property name="margin_end">50</property>
+            <property name="margin_top">12</property>
+            <property name="margin_bottom">12</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">10</property>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">_Name</property>
+                    <property name="use_underline">True</property>
+                    <property name="mnemonic_widget">name_entry</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="name_entry">
+                    <property name="hexpand">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="invisible_char_set">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="failure_label">
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">(Error: unable to load VPN connection editor)</property>
+                <attributes>
+                  <attribute name="style" value="italic"/>
+                </attributes>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

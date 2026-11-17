@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+#  Operating system commands.
+#
+if [ "$#" -eq 0 ] ; then
+	echo usage: `basename $0` 'command [...]'
+	echo commands:
+	echo "	0 'title'	change icon name and window title"
+	echo "	1 'title'	change icon name"
+	echo "	2 'title'	change window title"
+	echo "	4 'index;color'	change color"
+	echo "	6 'uri'		change current file uri"
+	echo "	7 'uri'		change current directory uri"
+	echo "	10 'color'	change foreground color"
+	echo "	11 'color'	change background color"
+	echo "	12 'color'	change cursor color"
+	echo "	17 'color'	change highlight background color"
+	echo "	104 'index'	reset color (or all colors)"
+	echo "	110		reset foreground color"
+	echo "	111		reset background color"
+	echo "	112		reset cursor color"
+	echo "	117		reset highlight background color"
+	exit
+fi
+args=
+for arg in $@ ; do
+	if [ "$args" = "" ] ; then
+		args="$arg"
+	else
+		args="$args;$arg"
+	fi
+done
+printf "]"${args}

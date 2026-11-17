@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcInfoEntry" parent="GtkBox">
+    <property name="accessible-role">group</property>
+    <property name="orientation">vertical</property>
+    <accessibility>
+      <relation name="labelled-by">prop</relation>
+      <property name="label">Info entry</property>
+    </accessibility>
+
+    <!-- Prop -->
+    <child>
+      <object class="GtkLabel" id="prop">
+        <property name="halign">start</property>
+        <style>
+          <class name="dim-label"/>
+          <class name="caption"/>
+        </style>
+      </object>
+    </child>
+
+    <!-- Value -->
+    <child>
+      <object class="GtkLabel" id="value">
+        <property name="halign">start</property>
+        <property name="selectable">true</property>
+        <property name="wrap">True</property>
+        <property name="xalign">0</property>
+      </object>
+    </child>
+
+  </template>
+</interface>

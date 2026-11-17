@@ -1,0 +1,122 @@
+.security-level-icon {
+  border-radius: 9999px;
+  min-width: 64px;
+  min-height: 64px;
+}
+
+.panel-unavaliable-color {
+  color:  @light_4;
+}
+
+.hsi-level-box.level0 {
+  background-color: alpha(@error_color, .25);
+}
+
+.hsi-level-box.level1 {
+  background-color: alpha(@light_4, .25);
+}
+
+.hsi-level-box.level2 {
+  background-color: alpha(@warning_color, .25);
+}
+
+.hsi-level-box.level3 {
+  background-color: alpha(@success_color, .25);
+}
+
+.hsi-level-font {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.hsi-level-font.hsi0 {
+  color: @error_color;
+}
+
+.hsi-level-font.hsi1 {
+  color: @light_4;
+}
+
+.hsi-level-font.hsi2 {
+  color: @warning_color;
+}
+
+.hsi-level-font.hsi3 {
+  color: @success_color;
+}
+
+.security-level-icon {
+  border-radius: 9999px;
+  min-width: 64px;
+  min-height: 64px;
+}
+
+.security-level-icon.good {
+  color: @success_color;
+  background-color: alpha(@success_color, .25);
+}
+
+.security-level-icon.error {
+  color: @error_color;
+  background-color: alpha(@error_color, .25);
+}
+
+.security-level-icon.warning {
+  color: @warning_color;
+  background-color: alpha(@warning_color, .25);
+}
+
+.security-level-icon.neutral {
+  color: @light_4;
+  background-color: alpha(@light_4, .25);
+}
+
+#color_green {
+  color: @success_color;
+}
+
+#color_dim {
+  color: @light_4f;
+}
+
+row.success-icon image.icon {
+  color: @success_color;
+}
+
+row.warning-icon image.icon {
+  color: @warning_color;
+}
+
+row.error-icon image.icon {
+  color: @error_color;
+}
+
+row.gray-icon image {
+  color: @light_4;
+}
+
+row.success-hsi-icon image.hsi_icon {
+  color: @success_color;
+}
+
+row.error-hsi-icon image.hsi_icon {
+  color: @error_color;
+}
+
+row.success-title label.hsi_label {
+  font-weight: bold;
+  color: @success_color;
+}
+
+row.error-title label.hsi_label {
+  font-weight: bold;
+  color: @error_color;
+}
+
+row.security-description-row label.subtitle {
+  padding: 12px 0;
+}
+
+row.hide-arrow image.expander-row-arrow {
+  opacity: 0;
+}

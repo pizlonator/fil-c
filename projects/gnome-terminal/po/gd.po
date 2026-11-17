@@ -1,0 +1,2452 @@
+# Scottish Gaelic translation for gnome-terminal.
+# Copyright (C) 2014 gnome-terminal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the gnome-terminal package.
+# GunChleoc <fios@foramnagaidhlig.net>, 2014, 2015, 2016, 2018.
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-terminal gnome-3-14\n"
+"Report-Msgid-Bugs-To: https://bugzilla.gnome.org/enter_bug.cgi?product"
+"=gnome-terminal&keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2017-09-11 19:16+0000\n"
+"PO-Revision-Date: 2018-03-02 11:23+0100\n"
+"Last-Translator: GunChleoc <fios@foramnagaidhlig.net>\n"
+"Language-Team: Fòram na Gàidhlig\n"
+"Language: gd\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : "
+"(n > 2 && n < 20) ? 2 : 3;\n"
+"X-Generator: Virtaal 0.7.1\n"
+"X-Project-Style: gnome\n"
+
+#: ../org.gnome.Terminal.appdata.xml.in.h:1
+#: ../org.gnome.Terminal.desktop.in.in.h:1 ../src/server.c:161
+#: ../src/terminal-accels.c:237 ../src/terminal.c:384
+#: ../src/terminal-tab-label.c:81 ../src/terminal-tabs-menu.c:180
+#: ../src/terminal-window.c:2734 ../src/terminal-window.c:3093
+msgid "Terminal"
+msgstr "Tèirmineal"
+
+#: ../org.gnome.Terminal.appdata.xml.in.h:2
+#: ../org.gnome.Terminal.desktop.in.in.h:2
+msgid "Use the command line"
+msgstr "Cleachd an loidhne-àithne"
+
+#: ../org.gnome.Terminal.appdata.xml.in.h:3
+msgid ""
+"GNOME Terminal is a terminal emulator application for accessing a UNIX shell "
+"environment which can be used to run programs available on your system."
+msgstr ""
+"’S e aplacaid aithrisiche tèirmineil a th’ ann an Tèirmineal GNOME gus "
+"àrainneachd slige UNIX inntrigeadh a ghabhas cleachdadh gus prògraman a "
+"ruith a tha ri am faighinn air an t-siostam agad."
+
+#: ../org.gnome.Terminal.appdata.xml.in.h:4
+msgid ""
+"It supports several profiles, multiple tabs and implements several keyboard "
+"shortcuts."
+msgstr "Cuiridh e taic ri iomadh pròifil, taba ’s ath-ghoiridean meur-chlàir."
+
+#: ../org.gnome.Terminal.Nautilus.metainfo.xml.in.h:1
+msgid "Terminal plugin for Files"
+msgstr "Plugan an tèirmineil airson Faidhlichean"
+
+#: ../org.gnome.Terminal.Nautilus.metainfo.xml.in.h:2
+msgid "Open a terminal from Files"
+msgstr "Fosgail tèirmineal o Fhaidhlichean"
+
+#: ../org.gnome.Terminal.Nautilus.metainfo.xml.in.h:3
+msgid ""
+"Open Terminal is a plugin for the Files application that adds a menu item to "
+"the context menu to open a terminal in the currently browsed directory."
+msgstr ""
+"’S e plugan a th’ ann am “Fosgail tèirmineal” airson aplacaid nam "
+"faidhlichean a chuireas nì ris a’ chlàr-taice cho-theacsail gus tèirmineal "
+"fhosgladh sa phasgan a thagh thu."
+
+#: ../org.gnome.Terminal.desktop.in.in.h:3
+msgid "shell;prompt;command;commandline;cmd;"
+msgstr ""
+"shell;prompt;command;commandline;loidhne-àithne;àithne;àitheantan;cmd;slige;"
+
+#: ../src/gterminal.vala:29
+msgid "Suppress output"
+msgstr "Mùch an t-às-chur"
+
+#: ../src/gterminal.vala:31
+msgid "Verbose output"
+msgstr "Às-chur briathrach"
+
+#: ../src/gterminal.vala:43
+msgid "Output options:"
+msgstr "Roghainnean an às-chuir:"
+
+#: ../src/gterminal.vala:44
+msgid "Show output options"
+msgstr "Seall roghainnean an ás-chuir"
+
+#: ../src/gterminal.vala:85
+#, c-format
+#| msgid "\"%s\" is not a valid application ID"
+msgid "“%s” is not a valid application ID"
+msgstr "Chan e “%s” ’na ID aplacaide dligheach"
+
+#: ../src/gterminal.vala:102
+msgid "Server application ID"
+msgstr "ID na h-aplacaid frithealaiche"
+
+#: ../src/gterminal.vala:102
+msgid "ID"
+msgstr "ID"
+
+#: ../src/gterminal.vala:104
+msgid "Show completions"
+msgstr "Seall slànachaidhean"
+
+#: ../src/gterminal.vala:111
+msgid "Global options:"
+msgstr "Roghainnean uile-choitcheann:"
+
+#: ../src/gterminal.vala:112
+msgid "Show global options"
+msgstr "Seall na roghainnean uile-choitcheann"
+
+#: ../src/gterminal.vala:135 ../src/gterminal.vala:156
+msgid "FD passing of stdin is not supported"
+msgstr "Cha chuirear taic ri cur an FD o stdin"
+
+#: ../src/gterminal.vala:136 ../src/gterminal.vala:157
+msgid "FD passing of stdout is not supported"
+msgstr "Cha chuirear taic ri cur an FD o stdout"
+
+#: ../src/gterminal.vala:137 ../src/gterminal.vala:158
+msgid "FD passing of stderr is not supported"
+msgstr "Cha chuirear taic ri cur an FD o stderr"
+
+#: ../src/gterminal.vala:149
+#, c-format
+#| msgid "Invalid argument \"%s\" to --fd option"
+msgid "Invalid argument “%s” to --fd option"
+msgstr "Argamaid “%s” mhì-dhligheach airson na roghainn --fd"
+
+#: ../src/gterminal.vala:162
+#, c-format
+msgid "Cannot pass FD %d twice"
+msgstr "Cha ghabh FD %d a chur dà thuras"
+
+#: ../src/gterminal.vala:185
+msgid "Forward stdin"
+msgstr "Sìn stdin air adhart"
+
+#: ../src/gterminal.vala:187
+msgid "Forward stdout"
+msgstr "Sìn stdout air adhart"
+
+#: ../src/gterminal.vala:189
+msgid "Forward stderr"
+msgstr "Sìn stderr air adhart"
+
+#: ../src/gterminal.vala:191
+msgid "Forward file descriptor"
+msgstr "Sìn air adhart tuairisgeulaiche an fhaidhle"
+
+#: ../src/gterminal.vala:191
+msgid "FD"
+msgstr "FD"
+
+#: ../src/gterminal.vala:198
+msgid "Exec options:"
+msgstr "Roghainnean exec:"
+
+#: ../src/gterminal.vala:199
+msgid "Show exec options"
+msgstr "Seall na roghainnean airson exec"
+
+#: ../src/gterminal.vala:218
+msgid "Maximise the window"
+msgstr "Làn-mheudaich an uinneag"
+
+#: ../src/gterminal.vala:220 ../src/terminal-options.c:1162
+msgid "Full-screen the window"
+msgstr "Cuir an uinneag sa mhodh làn-sgrìn"
+
+#: ../src/gterminal.vala:222 ../src/terminal-options.c:1171
+msgid ""
+"Set the window size; for example: 80x24, or 80x24+200+200 (COLSxROWS+X+Y)"
+msgstr ""
+"Suidhich meud na h-uinneige; mar eisimpleir: 80x24 no 80x24+200+200 "
+"(COLBHANxRÀGHAN+X+Y)"
+
+#: ../src/gterminal.vala:223 ../src/terminal-options.c:1172
+msgid "GEOMETRY"
+msgstr "GEOMATRAS"
+
+#: ../src/gterminal.vala:225 ../src/terminal-options.c:1180
+msgid "Set the window role"
+msgstr "Suidhich dreuchd na h-uinneige"
+
+#: ../src/gterminal.vala:225 ../src/terminal-options.c:1181
+msgid "ROLE"
+msgstr "DREUCHD"
+
+#: ../src/gterminal.vala:232
+msgid "Window options:"
+msgstr "Roghainnean na h-uinneige:"
+
+#: ../src/gterminal.vala:233
+msgid "Show window options"
+msgstr "Seall roghainnean na h-uinneige"
+
+#: ../src/gterminal.vala:251
+#, c-format
+msgid "May only use option %s once"
+msgstr "Chan fhaod thu an roghainn %s a chleachdadh ach aon turas"
+
+#: ../src/gterminal.vala:264 ../src/terminal-options.c:731
+#, c-format
+#| msgid "\"%s\" is not a valid zoom factor"
+msgid "“%s” is not a valid zoom factor"
+msgstr "Chan eil “%s” ’na fhactar sùmaidh dligheach"
+
+#: ../src/gterminal.vala:268
+#, c-format
+#| msgid "Zoom value \"%s\" is outside allowed range"
+msgid "Zoom value “%s” is outside allowed range"
+msgstr "Tha luach “%s” an t-sùmaidh taobh a-muigh an rainse dlighich"
+
+#: ../src/gterminal.vala:277 ../src/terminal-options.c:1211
+msgid "Use the given profile instead of the default profile"
+msgstr "Cleachd a’ phròifil a chaidh a thoirt seachad seach an tè thùsail"
+
+#: ../src/gterminal.vala:278
+msgid "UUID"
+msgstr "UUID"
+
+#: ../src/gterminal.vala:280 ../src/terminal-options.c:1229
+msgid "Set the working directory"
+msgstr "Suidhich am pasgan-obrach"
+
+#: ../src/gterminal.vala:280 ../src/terminal-options.c:1230
+msgid "DIRNAME"
+msgstr "AINM-PASGAIN"
+
+#: ../src/gterminal.vala:282 ../src/terminal-options.c:1238
+#| msgid "Set the terminal's zoom factor (1.0 = normal size)"
+msgid "Set the terminal’s zoom factor (1.0 = normal size)"
+msgstr ""
+"Suidhich factar an t-sùmaidh airson an tèirmineil (1.0 = meud àbhaisteach)"
+
+#: ../src/gterminal.vala:283 ../src/terminal-options.c:1239
+msgid "ZOOM"
+msgstr "SÙM"
+
+#: ../src/gterminal.vala:290
+msgid "Terminal options:"
+msgstr "Roghainnean an tèirmineil:"
+
+#: ../src/gterminal.vala:291 ../src/terminal-options.c:1346
+msgid "Show terminal options"
+msgstr "Seall roghainnean an tèirmineil"
+
+#: ../src/gterminal.vala:304
+msgid "Wait until the child exits"
+msgstr "Fuirich gus am fàg a’ chlann"
+
+#: ../src/gterminal.vala:311
+msgid "Processing options:"
+msgstr "Roghainnean nam pròiseasan:"
+
+#: ../src/gterminal.vala:312
+msgid "Show processing options"
+msgstr "Seall roghainnean nam pròiseasan"
+
+#: ../src/gterminal.vala:479 ../src/gterminal.vala:576
+#: ../src/gterminal.vala:599 ../src/gterminal.vala:658
+#: ../src/gterminal.vala:685 ../src/gterminal.vala:707
+msgid "Missing argument"
+msgstr "Tha argamaid a dhìth"
+
+#: ../src/gterminal.vala:499
+#, c-format
+#| msgid "Unknown command \"%s\""
+msgid "Unknown command “%s”"
+msgstr "Àithne “%s” nach aithne dhuinn"
+
+#: ../src/gterminal.vala:526
+#, c-format
+#| msgid "'%s' needs the command to run as arguments after '--'"
+msgid "“%s” needs the command to run as arguments after “--”"
+msgstr "Iarraidh “%s” gun dèid an àithne a ruith ’na argamaidean às dèidh “--”"
+
+#: ../src/gterminal.vala:529
+#| msgid "Extraneous arguments after '--'"
+msgid "Extraneous arguments after “--”"
+msgstr "Argamaidean gun fheum às dèidh “--”"
+
+#: ../src/gterminal.vala:744
+msgid "GTerminal"
+msgstr "GTerminal"
+
+#: ../src/gterminal.vala:760
+#, c-format
+msgid "Error processing arguments: %s\n"
+msgstr "Mearachd le pròiseasadh nan argamaidean: %s\n"
+
+#: ../src/migration.c:403
+msgid "Default"
+msgstr "Bun-roghainn"
+
+#: ../src/migration.c:403 ../src/terminal-prefs.c:99
+msgid "Unnamed"
+msgstr "Gun ainm"
+
+#. Translators: Keep single quote please!
+#: ../src/org.gnome.Terminal.gschema.xml.h:2
+msgctxt "visible-name"
+msgid "'Unnamed'"
+msgstr "'Gun ainm'"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:3
+msgid "Human-readable name of the profile"
+msgstr "Ainm a’ phròifil a leughas duine"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:4
+msgid "Human-readable name of the profile."
+msgstr "Ainm a’ phròifil a tha furasta leughadh do dhuine."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:5
+msgid "Default color of text in the terminal"
+msgstr "Dath tùsail aig teacsa an tèirmineil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:6
+#| msgid ""
+#| "Default color of text in the terminal, as a color specification (can be "
+#| "HTML-style hex digits, or a color name such as \"red\")."
+msgid ""
+"Default color of text in the terminal, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr ""
+"Dath tùsail aig teacsa an tèirmineil ’na shònrachadh datha (faodaidh seo a "
+"bhith ’nan àireamhan sia-dheicheach ann an stoidhle HTML no ainm datha, can "
+"“red”)."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:7
+msgid "Default color of terminal background"
+msgstr "Dath tùsail aig cùlaibh an tèirmineil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:8
+#| msgid ""
+#| "Default color of terminal background, as a color specification (can be "
+#| "HTML-style hex digits, or a color name such as \"red\")."
+msgid ""
+"Default color of terminal background, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr ""
+"Dath tùsail aig cùlaibh an tèirmineil ’na shònrachadh datha (faodaidh seo a "
+"bhith ’nan àireamhan sia-dheicheach ann an stoidhle HTML no ainm datha, can "
+"“red”)."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:9
+msgid "Default color of bold text in the terminal"
+msgstr "Dath tùsail aig teacsa trom an tèirmineil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:10
+#| msgid ""
+#| "Default color of bold text in the terminal, as a color specification (can "
+#| "be HTML-style hex digits, or a color name such as \"red\"). This is "
+#| "ignored if bold-color-same-as-fg is true."
+msgid ""
+"Default color of bold text in the terminal, as a color specification (can be "
+"HTML-style hex digits, or a color name such as “red”). This is ignored if "
+"bold-color-same-as-fg is true."
+msgstr ""
+"Dath tùsail aig teacsa an tèirmineil ’na shònrachadh datha (faodaidh seo a "
+"bhith ’nan àireamhan sia-dheicheach ann an stoidhle HTML no ainm datha, can "
+"“red”). Thèid seo a leigeil seachad mas e “true” a th’ ann am bold-color-"
+"same-as-fg."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:11
+msgid "Whether bold text should use the same color as normal text"
+msgstr ""
+"Co-dhiù am bi an aon dath air teacsa trom ’s a tha air teacsa àbhaisteach "
+"gus nach bi"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:12
+msgid ""
+"If true, boldface text will be rendered using the same color as normal text."
+msgstr ""
+"Mas e “true” a th’ ann, thèid teacsa trom a reandaradh leis an aon dath ’s a "
+"thèid teacsa àbhaisteach."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:13
+msgid "Whether to use custom cursor colors"
+msgstr "Co-dhiù an cleachd an cùrsair dathan gnàthaichte gus nach cleachd"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:14
+msgid "If true, use the cursor colors from the profile."
+msgstr "Mas e “true” a th’ ann, cleachd dàthan a’ chùrsair on phròifil."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:15
+msgid "Cursor background color"
+msgstr "Dath cùlaibh a’ chùrsair"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:16
+#| msgid ""
+#| "Custom color of the background of the terminal's cursor, as a color "
+#| "specification (can be HTML-style hex digits, or a color name such as \"red"
+#| "\"). This is ignored if cursor-colors-set is false."
+msgid ""
+"Custom color of the background of the terminal’s cursor, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if cursor-colors-set is false."
+msgstr ""
+"Dath gnàthaichte aig cùlaibh cùrsair an tèirmineil ’na shònrachadh datha "
+"(faodaidh seo a bhith ’nan àireamhan sia-dheicheach ann an stoidhle HTML no "
+"ainm datha, can “red”). Thèid seo a leigeil seachad mas e “false” a th’ ann "
+"am cursor-colors-set."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:17
+msgid "Cursor foreground colour"
+msgstr "Dath beulaibh a’ chùrsair"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:18
+#| msgid ""
+#| "Custom color for the foreground of the text character at the terminal's "
+#| "cursor position, as a color specification (can be HTML-style hex digits, "
+#| "or a color name such as \"red\"). This is ignored if cursor-colors-set is "
+#| "false."
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"cursor position, as a color specification (can be HTML-style hex digits, or "
+"a color name such as “red”). This is ignored if cursor-colors-set is false."
+msgstr ""
+"Dath gnàthaichte aig beulaibh a’ charactar teacsa air ionad cùrsair an "
+"tèirmineil ’na shònrachadh datha (faodaidh seo a bhith ’nan àireamhan sia-"
+"dheicheach ann an stoidhle HTML no ainm datha, can “red”). Thèid seo a "
+"leigeil seachad mas e “false” a th’ ann am cursor-colors-set."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:19
+msgid "Whether to use custom highlight colors"
+msgstr ""
+"Co-dhiù an dèid dathan soillseachaidh gnàthaichte a chleachdadh gus nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:20
+msgid "If true, use the highlight colors from the profile."
+msgstr "Mas e “true” a th’ ann, cleachd na dàthan soillseachaidh on phròifil."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:21
+msgid "Highlight background color"
+msgstr "Dath cùlaibh an t-soillseachaidh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:22
+#| msgid ""
+#| "Custom color of the background of the terminal's highlight, as a color "
+#| "specification (can be HTML-style hex digits, or a color name such as \"red"
+#| "\"). This is ignored if highlight-colors-set is false."
+msgid ""
+"Custom color of the background of the terminal’s highlight, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if highlight-colors-set is false."
+msgstr ""
+"Dath gnàthaichte aig cùlaibh soillseachaidh an tèirmineil ’na shònrachadh "
+"datha (faodaidh seo a bhith ’nan àireamhan sia-dheicheach ann an stoidhle "
+"HTML no ainm datha, can “red”). Thèid seo a leigeil seachad mas e “false” a "
+"th’ ann am highlight-colors-set."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:23
+msgid "Highlight foreground colour"
+msgstr "Dath beulaibh an t-soillseachaidh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:24
+#| msgid ""
+#| "Custom color for the foreground of the text character at the terminal's "
+#| "highlight position, as a color specification (can be HTML-style hex "
+#| "digits, or a color name such as \"red\"). This is ignored if highlight-"
+#| "colors-set is false."
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"highlight position, as a color specification (can be HTML-style hex digits, "
+"or a color name such as “red”). This is ignored if highlight-colors-set is "
+"false."
+msgstr ""
+"Dath gnàthaichte aig beulaibh a’ charactar teacsa air ionad soillseachaidh "
+"an tèirmineil ’na shònrachadh datha (faodaidh seo a bhith ’nan àireamhan "
+"sia-dheicheach ann an stoidhle HTML no ainm datha, can “red”). Thèid seo a "
+"leigeil seachad mas e “false” a th’ ann am highlight-colors-set."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:25
+msgid "Whether to allow bold text"
+msgstr "Co-dhiù a bheil teacsa trom ceadaichte gus nach eil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:26
+msgid "If true, allow applications in the terminal to make text boldface."
+msgstr ""
+"Mas e “true” a th’ ann, faodaidh aplacaidean teacsa trom a nochdadh san "
+"tèirmineal."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:27
+msgid "Whether to ring the terminal bell"
+msgstr "Co-dhiù an dèid clag an tèirmineil a sheinn"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:28
+msgid ""
+"List of ASCII punctuation characters that are not to be treated as part of a "
+"word when doing word-wise selection"
+msgstr ""
+"Liosta de charactaran puingeachaidh ASCII nach dèid dèiligeadh riutha mar "
+"phàirt de dh’fhacal nuair a thèid taghadh facal air an fhacal"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:29
+msgid "Whether to show menubar in new windows/tabs"
+msgstr ""
+"Co-dhiù an dèid am bàr clàr-taice a shealltainn le uinneagan/tabaichean ùra"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:30
+msgid "True if the menubar should be shown in new window"
+msgstr ""
+"Suidhich seo air “true” ma tha thu airson am bàr clàr-taice a shealltainn "
+"ann an uinneag ùr"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:31
+msgid "Default number of columns"
+msgstr "Àireamh thùsail nan colbhan"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:32
+msgid ""
+"Number of columns in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+"An àireamh de cholbhan a bhios aig uinneagan tèirmineil air an ùr-"
+"chruthachadh. Cha dèan seo dad ach ma bhios use_custom_default_size an comas."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:33
+msgid "Default number of rows"
+msgstr "Àireamh thùsail nan ràghan"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:34
+msgid ""
+"Number of rows in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+"An àireamh de ràghan a bhios aig uinneagan tèirmineil air an ùr-"
+"chruthachadh. Cha dèan seo dad ach ma bhios use_custom_default_size an comas."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:35
+msgid "When to show the scrollbar"
+msgstr "Co-dhiù an dèid am bàr-sgolaidh a shealltainn"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:36
+msgid "Number of lines to keep in scrollback"
+msgstr "An àireamh de loidhnichean san sgroladh air ais"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:37
+#| msgid ""
+#| "Number of scrollback lines to keep around. You can scroll back in the "
+#| "terminal by this number of lines; lines that don't fit in the scrollback "
+#| "are discarded. If scrollback_unlimited is true, this value is ignored."
+msgid ""
+"Number of scrollback lines to keep around. You can scroll back in the "
+"terminal by this number of lines; lines that don’t fit in the scrollback are "
+"discarded. If scrollback_unlimited is true, this value is ignored."
+msgstr ""
+"An àireamh de loidhnichean a thèid a chumail gus sgroladh air ais. Seo an "
+"àireamh de loidhnichean as urrainn dhut sgoladh air ais san tèirmineil ’s "
+"thèid an còrr a thilgeil air falbh. Thèid an luach seo a chur dhan dàrna "
+"taobh ma tha scrollback_unlimited suidhichte air “true”."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:38
+msgid "Whether an unlimited number of lines should be kept in scrollback"
+msgstr ""
+"Co-dhiù an dèid loidhnichean gun chrìch a chumail san sgoladh air ais gus "
+"nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:39
+msgid ""
+"If true, scrollback lines will never be discarded. The scrollback history is "
+"stored on disk temporarily, so this may cause the system to run out of disk "
+"space if there is a lot of output to the terminal."
+msgstr ""
+"Mas e “true” a th’ ann, cha dèid loidhnichean sgrolaidh air ais a thilgeil "
+"air falbh idir. thèid eachdraidh an sgrolaidh air ais a ghlèidheadh air a "
+"diosga ’s le sin dh’fhaoidte gun ruith an rum air an diosga ort ma tha torr "
+"às-chur san tèirmineal."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:40
+msgid "Whether to scroll to the bottom when a key is pressed"
+msgstr ""
+"Co-dhiù an dèid sgroladh gun bhonn le brùthadh air iuchair gus nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:41
+msgid "If true, pressing a key jumps the scrollbar to the bottom."
+msgstr ""
+"Mas e “true” a th’ ann, leumaidh am bàr-sgrolaidh gun bhonn le brùthadh air "
+"iuchair."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:42
+#| msgid "Whether to scroll to the bottom when there's new output"
+msgid "Whether to scroll to the bottom when there’s new output"
+msgstr ""
+"Co-dhiù an dèid sgroladh gun bhonn nuair a bhios às-chur ùr ann gus nach "
+"dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:43
+#| msgid ""
+#| "If true, whenever there's new output the terminal will scroll to the "
+#| "bottom."
+msgid ""
+"If true, whenever there’s new output the terminal will scroll to the bottom."
+msgstr ""
+"Mas e “true” a th’ ann, nì an tèirmineil sgroladh gun bhonn nuair a bhios "
+"às-chur ùr ann."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:44
+msgid "What to do with the terminal when the child command exits"
+msgstr ""
+"Dè thèid a dhèanamh leis an tèirmineil nuair a dh’fhàgas an àithne-cloinne"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:45
+#| msgid ""
+#| "Possible values are \"close\" to close the terminal, \"restart\" to "
+#| "restart the command, and \"hold\" to keep the terminal open with no "
+#| "command running inside."
+msgid ""
+"Possible values are “close” to close the terminal, “restart” to restart the "
+"command, and “hold” to keep the terminal open with no command running inside."
+msgstr ""
+"Faodaidh tu seo a shuidheachadh air “close” gus an tèirmineal a dhùnadh no "
+"air “restart” gus an àithne a thòiseachadh às ùr is air “hold” gus an "
+"tèirmineal a chumail fosgailte gun àithne ’ga ruith ann."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:46
+msgid "Whether to launch the command in the terminal as a login shell"
+msgstr ""
+"Co-dhiù an dèid an àithne san tèirmineal a thòiseachadh ’na slige clàraidh "
+"a-steach gus nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:47
+msgid ""
+"If true, the command inside the terminal will be launched as a login shell "
+"(argv[0] will have a hyphen in front of it)."
+msgstr ""
+"Mas e “true” a th’ ann, thèid an àithne san tèirmineal a thòiseachadh ’na "
+"slige clàraidh a-steach (bidh tàthan ro argv[0])."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:48
+msgid "Whether to run a custom command instead of the shell"
+msgstr ""
+"Co-dhiù an dèid àithne ghnàthaichte a ruith an àite na slige gus nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:49
+msgid ""
+"If true, the value of the custom_command setting will be used in place of "
+"running a shell."
+msgstr ""
+"Mas e “true” a th’ ann, thèid an luach air an roghainn custom_command a "
+"chleachdadh an àite slige a ruith."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:50
+msgid "Whether to blink the cursor"
+msgstr "Co-dhiù an dèan an cùrsair priobadh gus nach dèan"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:51
+#| msgid ""
+#| "The possible values are \"system\" to use the global cursor blinking "
+#| "settings, or \"on\" or \"off\" to set the mode explicitly."
+msgid ""
+"The possible values are “system” to use the global cursor blinking settings, "
+"or “on” or “off” to set the mode explicitly."
+msgstr ""
+"’S urrainn dhut “system” a chleachdadh airson roghainnean coitcheann a "
+"thaobh priobadh a’ chùrsair no “on” no “off” gus am modh a shuidheachadh gu "
+"sònraichte."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:52
+msgid "The cursor appearance"
+msgstr "Coltas a’ chùrsair"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:53
+msgid "Custom command to use instead of the shell"
+msgstr "Àithne ghnàthaichte an àite na slige"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:54
+msgid "Run this command in place of the shell, if use_custom_command is true."
+msgstr ""
+"Ruith an àithne seo an àite na slige mas e “true” a th’ ann an "
+"use_custom_command."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:55
+msgid "Palette for terminal applications"
+msgstr "Pailead airson aplacaidean an tèirmineil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:56
+msgid "A Pango font name and size"
+msgstr "Ainm ’s meud aig cruth-clò Pango"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:57
+msgid "The code sequence the Backspace key generates"
+msgstr "An sreath de chòdaichean a ghineas an iuchair Backspace"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:58
+msgid "The code sequence the Delete key generates"
+msgstr "An sreath de chòdaichean a ghineas an iuchair Delete"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:59
+msgid "Whether to use the colors from the theme for the terminal widget"
+msgstr ""
+"Co-dhiù an dèid na dathan aig an ùrlar a chleachdadh airson widget an "
+"tèirmineil gus nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:60
+msgid "Whether to use the system monospace font"
+msgstr ""
+"Co-dhiù an dèid cruth-clò aon-leud an t-siostaim a chleachdadh no nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:61
+msgid "Whether to rewrap the terminal contents on window resize"
+msgstr ""
+"Co-dhiù an dèid susbaint an tèirmineil a phasgadh às ùr le ath-mheudachadh "
+"na h-uinneige gus nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:62
+msgid "Which encoding to use"
+msgstr "An còdachadh ri chleachdadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:63
+msgid ""
+"Whether ambiguous-width characters are narrow or wide when using UTF-8 "
+"encoding"
+msgstr ""
+"Co-dhiù am bi caractaran le leud ioma-fhillte caol no leathan gus nach bi "
+"nuair a bhios còdachadh UTF-8 ’ga chleachdadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:64
+msgid "Keyboard shortcut to open a new tab"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus taba ùr fhosgladh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:65
+msgid "Keyboard shortcut to open a new window"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus uinneag ùr fhosgladh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:66
+msgid "Keyboard shortcut to create a new profile"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus pròifil ùr a chruthachadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:67
+msgid "Keyboard shortcut to save the current tab contents to file"
+msgstr ""
+"Ath-ghoirid a’ mheur-chlàir gus susbaint an taba a shàbhaladh gu faidhle"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:68
+msgid "Keyboard shortcut to close a tab"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus taba ùr a dhùnadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:69
+msgid "Keyboard shortcut to close a window"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus uinneag ùr a dhùnadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:70
+msgid "Keyboard shortcut to copy text"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus lethbhreac de theacsa a dhèanamh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:71
+#| msgid "Keyboard shortcut to copy text"
+msgid "Keyboard shortcut to copy text as HTML"
+msgstr ""
+"Ath-ghoirid a’ mheur-chlàir gus lethbhreac de theacsa a dhèanamh mar HTML"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:72
+msgid "Keyboard shortcut to paste text"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus teacsa a chur ann"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:73
+msgid "Keyboard shortcut to select all text"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus a h-uile teacsa a thaghadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:74
+msgid "Keyboard shortcut to open the Preferences dialog"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus còmhradh nan roghainnean fhosgladh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:75
+#| msgid "Keyboard shortcut to open the current profile's Preferences dialog"
+msgid "Keyboard shortcut to open the current profile’s Preferences dialog"
+msgstr ""
+"Ath-ghoirid a’ mheur-chlàir gus còmhradh airson roghainnean na pròifil "
+"làithrich fhosgladh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:76
+msgid "Keyboard shortcut to toggle full screen mode"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus am modh làn-sgrìn a thoglachadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:77
+msgid "Keyboard shortcut to toggle the visibility of the menubar"
+msgstr ""
+"Ath-ghoirid a’ mheur-chlàir gus toglachadh an dèid bàr clàr-taice a "
+"shealltainn"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:78
+msgid "Keyboard shortcut to toggle the read-only state"
+msgstr "Ath-ghoirid a’ mheur-chlàir an staid ri leughadh a-mhàin a thoglachadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:79
+msgid "Keyboard shortcut to reset the terminal"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus an tèirmineal ath-shuidheachadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:80
+msgid "Keyboard shortcut to reset and clear the terminal"
+msgstr ""
+"Ath-ghoirid a’ mheur-chlàir gus an tèirmineal ath-shuidheachadh ’s "
+"fhalamhachadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:81
+msgid "Keyboard shortcut to open the search dialog"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus còmhradh luirg fhosgladh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:82
+msgid "Keyboard shortcut to find the next occurrence of the search term"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus an ath-fhear a lorg"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:83
+msgid "Keyboard shortcut to find the previous occurrence of the search term"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus am fear roimhe a lorg"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:84
+msgid "Keyboard shortcut to clear the find highlighting"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus soillseachadh an luirg fhalamhachadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:85
+msgid "Keyboard shortcut to switch to the previous tab"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus leum a ghearradh dhan taba roimhe"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:86
+msgid "Keyboard shortcut to switch to the next tab"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus leum a ghearradh dhan ath-thaba"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:87
+msgid "Keyboard shortcut to move the current tab to the left"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus an taba làithreach a ghluasad gu clì"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:88
+msgid "Keyboard shortcut to move the current tab to the right"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus an taba làithreach a ghluasad gu deas"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:89
+msgid "Keyboard shortcut to detach current tab"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus an taba làithreach a dhealachadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:90
+msgid "Keyboard shortcut to switch to the numbered tab"
+msgstr ""
+"Ath-ghoirid a’ mheur-chlàir gus leum a ghearradh dhan taba àireamhaichte"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:91
+msgid "Keyboard shortcut to launch help"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus a’ chobhair a thòiseachadh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:92
+msgid "Keyboard shortcut to make font larger"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus an cruth-clò a dhèanamh nas motha"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:93
+msgid "Keyboard shortcut to make font smaller"
+msgstr "Ath-ghoirid a’ mheur-chlàir gus an cruth-clò a dhèanamh nas lugha"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:94
+msgid "Keyboard shortcut to make font normal-size"
+msgstr ""
+"Ath-ghoirid a’ mheur-chlàir gus am meud tùsail a chur air a’ chruth-chlò"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:95
+msgid "Whether the menubar has access keys"
+msgstr ""
+"Co-dhiù am bi iuchraichean inntrigidh aig a’ bhàr clàir-thaice gus nach bi"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:96
+#| msgid ""
+#| "Whether to have Alt+letter access keys for the menubar. They may "
+#| "interfere with some applications run inside the terminal so it's possible "
+#| "to turn them off."
+msgid ""
+"Whether to have Alt+letter access keys for the menubar. They may interfere "
+"with some applications run inside the terminal so it’s possible to turn them "
+"off."
+msgstr ""
+"Co-dhiù am bi iuchraichean inntrigidh Alt+litir aig a’ bhàr clàir-thaice gus "
+"nach bi. Dh’fhaoidte gum buin iad ri cuid a dh’aplacaidean a tha ’gan ruith "
+"san tèirmineal, mar sin faodaidh tu an cur dheth."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:97
+msgid "Whether shortcuts are enabled"
+msgstr "Co-dhiù a bheil ath-ghoiridean an comas gus nach eil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:98
+#| msgid ""
+#| "Whether shortcuts are enabled. They may interfere with some applications "
+#| "run inside the terminal so it's possible to turn them off."
+msgid ""
+"Whether shortcuts are enabled. They may interfere with some applications run "
+"inside the terminal so it’s possible to turn them off."
+msgstr ""
+"Co-dhiù a bheil ath-ghoiridean an comas gus nach eil. Dh’fhaoidte gum buin "
+"iad ri cuid a dh’aplacaidean a tha ’gan ruith san tèirmineal, mar sin "
+"faodaidh tu an cur dheth."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:99
+msgid "Whether the standard GTK shortcut for menubar access is enabled"
+msgstr ""
+"Co-dhiù a bheil an ath-ghoirid thùsail aig GTK an comas gus am bàr clàir-"
+"taice inntrigeadh gus nach eil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:100
+msgid ""
+"Normally you can access the menubar with F10. This can also be customized "
+"via gtkrc (gtk-menu-bar-accel = \"whatever\"). This option allows the "
+"standard menubar accelerator to be disabled."
+msgstr ""
+"’S urrainn dhut am bàr clàir-taice inntrigeadh le F10 o thùs. ’S urrainn "
+"dhut seo a ghnàthachadh slighe gtkrc (gtk-menu-bar-accel = \"rudeigin\"). "
+"Leigidh an roghainn seo leat ath-ghoirid thùsail a’ bhàir clàir-thaice a "
+"chur à comas."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:101
+msgid "Whether the shell integration is enabled"
+msgstr "Co-dhiù a bheil filleadh a-steach na slige an comas gus nach eil"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:102
+msgid "List of available encodings"
+msgstr "Liosta dhe na còdachaidhean a tha ri làimh"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:103
+msgid ""
+"A subset of possible encodings are presented in the Encoding submenu. This "
+"is a list of encodings to appear there."
+msgstr ""
+"Thèid fo-sheata dhe na còdachaidhean a ghabhas cleachdadh a shealltainn ann "
+"am fo-chlàr-taice a’ chòdachaidh. Seo liosta dhe na còdachaidhean a nochdas "
+"ann."
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:104
+msgid "Whether to ask for confirmation before closing a terminal"
+msgstr ""
+"Co-dhiù an dèid dearbhadh iarraidh mus dèid tèirmineal a dhùnadh gus nach "
+"dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:105
+msgid "Whether to show the menubar in new windows"
+msgstr ""
+"Co-dhiù an dèid am bàr clàr-taice a shealltainn le uinneagan ùra gus nach "
+"dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:106
+msgid "Whether to open new terminals as windows or tabs"
+msgstr ""
+"Co-dhiù an dèid tèirmineal ùr fhosgladh ’na uinneag no taba gus nach dèid"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:107
+msgid "When to show the tabs bar"
+msgstr "Cuin a thèid bàr nan tabaichean a shealltainn"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:108
+msgid "The position of the tab bar"
+msgstr "An t-ionad aig bàr nan tabaichean"
+
+#: ../src/org.gnome.Terminal.gschema.xml.h:109
+msgid "Which theme variant to use"
+msgstr "An eugsamhail dhen ùrlar a thèid a chleachdadh"
+
+#. Open new terminal in new window
+#: ../src/preferences.ui.h:2
+msgid "Window"
+msgstr "Uinneag"
+
+#. Open new terminal in new tab
+#: ../src/preferences.ui.h:4
+msgid "Tab"
+msgstr "Taba"
+
+#: ../src/preferences.ui.h:5
+msgctxt "theme variant"
+msgid "Default"
+msgstr "Bun-roghainn"
+
+#: ../src/preferences.ui.h:6
+msgctxt "theme variant"
+msgid "Light"
+msgstr "Soilleir"
+
+#: ../src/preferences.ui.h:7
+msgctxt "theme variant"
+msgid "Dark"
+msgstr "Dorcha"
+
+#: ../src/preferences.ui.h:8 ../src/terminal-accels.c:173
+msgid "Preferences"
+msgstr "Roghainnean"
+
+#: ../src/preferences.ui.h:9
+msgid "Show _menubar by default in new terminals"
+msgstr "Seall am :bàr clàr-taice a ghnàth ann an tèirmineil ùr"
+
+#: ../src/preferences.ui.h:10
+msgid "_Enable mnemonics (such as Alt+F to open the File menu)"
+msgstr ""
+"Cuir ath-ghoiridean cuimhneachaidh an c_omas (mar Alt+F gus an clàr-taice "
+"“Faidhle” fhosgladh)"
+
+#: ../src/preferences.ui.h:11
+msgid "Enable the _menu accelerator key (F10 by default)"
+msgstr "Cuir ath-ghoirid a’ chlàir-_taice an comas (F10 a ghnàth)"
+
+#: ../src/preferences.ui.h:12
+msgid "Theme _variant:"
+msgstr "Eug_samhail dhen ùrlar:"
+
+#: ../src/preferences.ui.h:13
+msgid "Open _new terminals in:"
+msgstr "Fosgail tèirminealan ù_ra ann an:"
+
+#: ../src/preferences.ui.h:14 ../src/profile-preferences.ui.h:61
+msgid "General"
+msgstr "Coitcheann"
+
+#: ../src/preferences.ui.h:15
+msgid "_Enable shortcuts"
+msgstr "Cuir ath-ghoiridean an _comas"
+
+#: ../src/preferences.ui.h:16
+msgid "Shortcuts"
+msgstr "Ath-ghoiridean"
+
+#: ../src/preferences.ui.h:17
+msgid "_Clone"
+msgstr "_Clònaich"
+
+#: ../src/preferences.ui.h:18
+msgid "_Profile used when launching a new terminal:"
+msgstr "A’ _phròifil a thèid a chleachdadh gus tèirmineil ùr a thòiseachadh:"
+
+#: ../src/preferences.ui.h:19
+msgid "Profiles"
+msgstr "Pròifilean"
+
+#: ../src/preferences.ui.h:20
+msgid "E_ncodings shown in menu:"
+msgstr "Còdachaidhea_n gan shealltainn sa chlàr-taice:"
+
+#: ../src/preferences.ui.h:21
+msgid "Encodings"
+msgstr "Còdachaidhean"
+
+#: ../src/profile-editor.c:49
+msgid "Black on light yellow"
+msgstr "Dubh air soilleir-bhuidhe"
+
+#: ../src/profile-editor.c:53
+msgid "Black on white"
+msgstr "Dubh air geal"
+
+#: ../src/profile-editor.c:57
+msgid "Gray on black"
+msgstr "Liath air dubh"
+
+#: ../src/profile-editor.c:61
+msgid "Green on black"
+msgstr "Uaine air dubh"
+
+#: ../src/profile-editor.c:65
+msgid "White on black"
+msgstr "Geal air dubh"
+
+#. Translators: "Solarized" is the name of a colour scheme, "light" can be translated
+#: ../src/profile-editor.c:70
+msgid "Solarized light"
+msgstr "Grianach soilleir"
+
+#. Translators: "Solarized" is the name of a colour scheme, "dark" can be translated
+#: ../src/profile-editor.c:75
+msgid "Solarized dark"
+msgstr "Grianach dorcha"
+
+#: ../src/profile-editor.c:437
+#, c-format
+msgid "Error parsing command: %s"
+msgstr "Mearachd le parsadh na h-àithne: %s"
+
+#. This is the name of a colour scheme
+#: ../src/profile-editor.c:478 ../src/profile-preferences.ui.h:36
+msgid "Custom"
+msgstr "Gnàthaichte"
+
+#: ../src/profile-editor.c:637
+#, c-format
+msgid "Editing Profile “%s”"
+msgstr "A’ deasachadh na pròifil “%s”"
+
+#: ../src/profile-editor.c:895
+#, c-format
+msgid "Choose Palette Color %u"
+msgstr "Tagh dath a’ phaileid %u"
+
+#: ../src/profile-editor.c:899
+#, c-format
+msgid "Palette entry %u"
+msgstr "Innteart sa phailead %u"
+
+#. ambiguous-width characers are
+#: ../src/profile-preferences.ui.h:2
+msgid "Narrow"
+msgstr "Caol"
+
+#. ambiguous-width characers are
+#: ../src/profile-preferences.ui.h:4
+msgid "Wide"
+msgstr "Leathann"
+
+#. Cursor shape
+#: ../src/profile-preferences.ui.h:6
+msgid "Block"
+msgstr "Bloca"
+
+#. Cursor shape
+#: ../src/profile-preferences.ui.h:8
+msgid "I-Beam"
+msgstr "I-Beam"
+
+#. Cursor shape
+#: ../src/profile-preferences.ui.h:10
+msgid "Underline"
+msgstr "Fo-loidhne"
+
+#. When terminal commands set their own titles
+#: ../src/profile-preferences.ui.h:12
+msgid "Replace initial title"
+msgstr "Cuir an àite an tiotail thùsail"
+
+#. When terminal commands set their own titles
+#: ../src/profile-preferences.ui.h:14
+msgid "Append initial title"
+msgstr "Cuir ri deireadh an tiotail thùsail"
+
+#. When terminal commands set their own titles
+#: ../src/profile-preferences.ui.h:16
+msgid "Prepend initial title"
+msgstr "Cuir ri toiseach an tiotail thùsail"
+
+#. When terminal commands set their own titles
+#: ../src/profile-preferences.ui.h:18
+msgid "Keep initial title"
+msgstr "Cum an tiotal tùsail"
+
+#. When command exits
+#: ../src/profile-preferences.ui.h:20
+msgid "Exit the terminal"
+msgstr "Fàg an tèirmineal"
+
+#. When command exits
+#: ../src/profile-preferences.ui.h:22
+msgid "Restart the command"
+msgstr "Ath-thòisich an àithne"
+
+#. When command exits
+#: ../src/profile-preferences.ui.h:24
+msgid "Hold the terminal open"
+msgstr "Cum an tèirmineal fosgailte"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:26
+msgid "Tango"
+msgstr "Tango"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:28
+msgid "Linux console"
+msgstr "Consoil Linux"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:30
+msgid "XTerm"
+msgstr "XTerm"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:32
+msgid "Rxvt"
+msgstr "Rxvt"
+
+#. This is the name of a colour scheme
+#: ../src/profile-preferences.ui.h:34
+msgid "Solarized"
+msgstr "Grianach"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:38
+msgid "Automatic"
+msgstr "Fèin-obrachail"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:40
+msgid "Control-H"
+msgstr "Control-H"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:42
+msgid "ASCII DEL"
+msgstr "ASCII DEL"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:44
+msgid "Escape sequence"
+msgstr "Sreath Escape"
+
+#. This refers to the Delete keybinding option
+#: ../src/profile-preferences.ui.h:46
+msgid "TTY Erase"
+msgstr "TTY Erase"
+
+#: ../src/profile-preferences.ui.h:47
+msgid "Profile Editor"
+msgstr "Deasaiche nam pròifil"
+
+#: ../src/profile-preferences.ui.h:48
+msgid "_Profile name:"
+msgstr "Ainm a’ _phròifil:"
+
+#: ../src/profile-preferences.ui.h:49
+msgid "Profile ID:"
+msgstr "ID a’ phròifil:"
+
+#: ../src/profile-preferences.ui.h:50
+msgid "Initial terminal si_ze:"
+msgstr "_Meud tùsail an tèirmineil:"
+
+#: ../src/profile-preferences.ui.h:51
+msgid "columns"
+msgstr "colbhan"
+
+#: ../src/profile-preferences.ui.h:52
+msgid "rows"
+msgstr "ràghan"
+
+#: ../src/profile-preferences.ui.h:53
+msgid "Cursor _shape:"
+msgstr "Cruth a’ chùr_sair:"
+
+#: ../src/profile-preferences.ui.h:54
+msgid "Terminal _bell"
+msgstr "Cla_g an tèirmineil:"
+
+#: ../src/profile-preferences.ui.h:55
+msgid "Text Appearance"
+msgstr "Coltas an teacsa"
+
+#: ../src/profile-preferences.ui.h:56
+msgid "_Allow bold text"
+msgstr "Ce_adaich teacsa trom"
+
+#: ../src/profile-preferences.ui.h:57
+msgid "_Rewrap on resize"
+msgstr "Ath-_phasgaich nuair a thèid ath-mheudachadh"
+
+#: ../src/profile-preferences.ui.h:58
+msgid "_Custom font:"
+msgstr "_Cruth-clò gnàthaichte:"
+
+#: ../src/profile-preferences.ui.h:59
+msgid "Choose A Terminal Font"
+msgstr "Tagh cruth-clò an tèirmineil"
+
+#: ../src/profile-preferences.ui.h:60
+msgid "Rese_t"
+msgstr "A_th-shuidhich"
+
+#: ../src/profile-preferences.ui.h:62
+msgid "_Run command as a login shell"
+msgstr "_Ruith an àithne mar shlige clàraidh a-steach"
+
+#: ../src/profile-preferences.ui.h:63
+msgid "Ru_n a custom command instead of my shell"
+msgstr "Ruith àith_ne ghnàthaichte an àite na slige agam"
+
+#: ../src/profile-preferences.ui.h:64
+msgid "Custom co_mmand:"
+msgstr "Àithne _ghnàthaichte:"
+
+#: ../src/profile-preferences.ui.h:65
+msgid "When command _exits:"
+msgstr "Nuair a dh’_fhàgas an àithne:"
+
+#: ../src/profile-preferences.ui.h:66
+msgid "Command"
+msgstr "Àithne"
+
+#: ../src/profile-preferences.ui.h:67
+msgid "Text and Background Color"
+msgstr "Teacsa ’s dath a’ chùlaibh"
+
+#: ../src/profile-preferences.ui.h:68
+msgid "_Use colors from system theme"
+msgstr "C_leachd na dathan o ùrlar an t-siostaim"
+
+#: ../src/profile-preferences.ui.h:69
+msgid "Built-in sche_mes:"
+msgstr "Sgea_mannan ’na bhroinn:"
+
+#: ../src/profile-preferences.ui.h:70
+msgid "Text"
+msgstr "Teacsa"
+
+#: ../src/profile-preferences.ui.h:71
+msgid "Background"
+msgstr "Cùlaibh"
+
+#: ../src/profile-preferences.ui.h:72
+msgid "_Default color:"
+msgstr "An _dath tùsail:"
+
+#: ../src/profile-preferences.ui.h:73
+msgid "Choose Terminal Text Color"
+msgstr "Tagh dath airson teacsa an tèirmineil"
+
+#: ../src/profile-preferences.ui.h:74
+msgid "Choose Terminal Background Color"
+msgstr "Tagh dath airson cùlaibh an tèirmineil"
+
+#: ../src/profile-preferences.ui.h:75
+msgid "Choose Terminal Bold Text Color"
+msgstr "Tagh dath airson teacsa trom an tèirmineil"
+
+#: ../src/profile-preferences.ui.h:76
+msgid "Choose Terminal Underlined Text Color"
+msgstr "Tagh dath airson teacsa an tèirmineil le loidhne fodha"
+
+#: ../src/profile-preferences.ui.h:77
+msgid "Cu_rsor color:"
+msgstr "Dath a’ chù_rsair:"
+
+#: ../src/profile-preferences.ui.h:78
+msgid "Choose Terminal Cursor Foreground Color"
+msgstr "Tagh dath airson beulaibh cùrsair an tèirmineil"
+
+#: ../src/profile-preferences.ui.h:79
+msgid "Choose Terminal Cursor Background Color"
+msgstr "Tagh dath airson cùlaibh cùrsair an tèirmineil"
+
+#: ../src/profile-preferences.ui.h:80
+msgid "_Underline color:"
+msgstr "Dath _fo-loidhnidh:"
+
+#: ../src/profile-preferences.ui.h:81
+msgid "Bo_ld color:"
+msgstr "Dath _trom:"
+
+#: ../src/profile-preferences.ui.h:82
+msgid "_Highlight color:"
+msgstr "Dath an t-soillseac_haidh:"
+
+#: ../src/profile-preferences.ui.h:83
+msgid "Palette"
+msgstr "Pailead"
+
+#: ../src/profile-preferences.ui.h:84
+msgid "Built-in _schemes:"
+msgstr "_Sgeamannan ’na bhroinn:"
+
+#: ../src/profile-preferences.ui.h:85
+msgid "<b>Note:</b> Terminal applications have these colors available to them."
+msgstr ""
+"<b>An aire:</b> Tha na dhathan seo ri làimh do dh’aplacaidean tèirmineil."
+
+#: ../src/profile-preferences.ui.h:86
+msgid "Color p_alette:"
+msgstr "P_ailead datha:"
+
+#: ../src/profile-preferences.ui.h:87
+msgid "Colors"
+msgstr "Dathan"
+
+#: ../src/profile-preferences.ui.h:88
+msgid "Scroll on _keystroke"
+msgstr "Sgrolaich le _brùthadh iuchrach"
+
+#: ../src/profile-preferences.ui.h:89
+msgid "Scroll on _output"
+msgstr "Sgrolaich le à_s-chur"
+
+#: ../src/profile-preferences.ui.h:90
+msgid "_Limit scrollback to:"
+msgstr "_Cuingich an sgroladh gu:"
+
+#: ../src/profile-preferences.ui.h:91
+msgid "lines"
+msgstr "loidhnichean"
+
+#: ../src/profile-preferences.ui.h:92
+msgid "_Show scrollbar"
+msgstr "_Seall am bàr-sgrolaidh"
+
+#: ../src/profile-preferences.ui.h:93
+msgid "Scrolling"
+msgstr "Sgroladh"
+
+#: ../src/profile-preferences.ui.h:94
+msgid ""
+"<b>Note:</b> These options may cause some applications to behave "
+"incorrectly.  They are only here to allow you to work around certain "
+"applications and operating systems that expect different terminal behavior."
+msgstr ""
+"<b>An aire:</b> Faodaidh na roghainnean seo adhbharachadh nach obraich a "
+"h-uile aplacaid mar bu chòir. Chan eil iad ann ach an urrainn dhut obrachadh "
+"le aplacaidean ’s siostaman-obrachaidh a bhios an dùil air giùlan eadar-"
+"dhealaichte an tèirmineil."
+
+#: ../src/profile-preferences.ui.h:95
+msgid "_Delete key generates:"
+msgstr "Ginidh iuchair _Delete:"
+
+#: ../src/profile-preferences.ui.h:96
+msgid "_Backspace key generates:"
+msgstr "Ginidh iuchair _Backspace:"
+
+#: ../src/profile-preferences.ui.h:97
+msgid "_Encoding:"
+msgstr "_Còdachadh:"
+
+#: ../src/profile-preferences.ui.h:98
+msgid "Ambiguous-_width characters:"
+msgstr "Caractaran le _leud ioma-fhillte:"
+
+#: ../src/profile-preferences.ui.h:99
+msgid "_Reset Compatibility Options to Defaults"
+msgstr "_Ath-shuidhich roghainnean na co-chòrdalachd air na bun-roghainnean"
+
+#: ../src/profile-preferences.ui.h:100
+msgid "Compatibility"
+msgstr "Co-chòrdalachd"
+
+#: ../src/search-popover.ui.h:1
+msgid "Search"
+msgstr "Lorg"
+
+#: ../src/search-popover.ui.h:2
+msgid "Search for previous occurrence"
+msgstr "Lorg am fear roimhe"
+
+#: ../src/search-popover.ui.h:3
+msgid "Search for next occurrence"
+msgstr "Lorg an ath-fhear"
+
+#: ../src/search-popover.ui.h:4
+msgid "Toggle search options"
+msgstr "Toglaich na roghainnean luirg"
+
+#: ../src/search-popover.ui.h:5
+msgid "_Match case"
+msgstr "Aire do litrichean _mòra ’s beaga"
+
+#: ../src/search-popover.ui.h:6
+msgid "Match _entire word only"
+msgstr "Faclan s_làna a-mhàin"
+
+#: ../src/search-popover.ui.h:7
+msgid "Match as _regular expression"
+msgstr "Maidsich mar eas-preisean _riaghailteach"
+
+#: ../src/search-popover.ui.h:8
+msgid "_Wrap around"
+msgstr "_Paisg timcheall"
+
+#: ../src/terminal-accels.c:158
+msgid "New Terminal in New Tab"
+msgstr "Tèirmineal ùr ann an taba ùr"
+
+#: ../src/terminal-accels.c:159
+msgid "New Terminal in New Window"
+msgstr "Tèirmineal ùr ann an uinneag ùr"
+
+#: ../src/terminal-accels.c:160
+msgid "New Profile"
+msgstr "Pròifil ùr"
+
+#: ../src/terminal-accels.c:162
+msgid "Save Contents"
+msgstr "Sàbhail an t-susbaint"
+
+#: ../src/terminal-accels.c:164
+msgid "Close Terminal"
+msgstr "Dùin an tèirmineal"
+
+#: ../src/terminal-accels.c:165
+msgid "Close All Terminals"
+msgstr "Dùin a h-uile tèirmineal"
+
+#: ../src/terminal-accels.c:169
+msgid "Copy"
+msgstr "Dèan lethbhreac"
+
+#: ../src/terminal-accels.c:170
+msgid "Copy as HTML"
+msgstr "Dèan lethbhreac dheth mar HTML"
+
+#: ../src/terminal-accels.c:171
+msgid "Paste"
+msgstr "Cuir ann"
+
+#: ../src/terminal-accels.c:172 ../src/terminal-window.c:2548
+msgid "Select All"
+msgstr "Tagh na h-uile"
+
+#: ../src/terminal-accels.c:174
+msgid "Profile Preferences"
+msgstr "Roghainnean na pròifil"
+
+#: ../src/terminal-accels.c:178 ../src/terminal-accels.c:236
+msgid "Find"
+msgstr "Lorg"
+
+#: ../src/terminal-accels.c:179
+msgid "Find Next"
+msgstr "Lorg an ath fhear"
+
+#: ../src/terminal-accels.c:180
+msgid "Find Previous"
+msgstr "Lorg am fear roimhe"
+
+#: ../src/terminal-accels.c:181
+msgid "Clear Find Highlight"
+msgstr "Falamhaich soillseachadh an luirg"
+
+#: ../src/terminal-accels.c:185
+msgid "Hide and Show toolbar"
+msgstr "Falaich ’s seall am bàr-inneal"
+
+#: ../src/terminal-accels.c:186
+msgid "Full Screen"
+msgstr "Làn-sgrìn"
+
+#. View menu
+#: ../src/terminal-accels.c:187 ../src/terminal-window.c:2559
+msgid "Zoom In"
+msgstr "Sùm a-steach"
+
+#: ../src/terminal-accels.c:188 ../src/terminal-window.c:2562
+msgid "Zoom Out"
+msgstr "Sùm a-mach"
+
+#: ../src/terminal-accels.c:189 ../src/terminal-window.c:2565
+msgid "Normal Size"
+msgstr "Meud àbhaisteach"
+
+#: ../src/terminal-accels.c:193
+msgid "Read-Only"
+msgstr "Ri leughadh a-mhàin"
+
+#: ../src/terminal-accels.c:194
+msgid "Reset"
+msgstr "Ath-shuidhich"
+
+#: ../src/terminal-accels.c:195
+msgid "Reset and Clear"
+msgstr "Ath-shuidhich ’s falamhaich"
+
+#: ../src/terminal-accels.c:199
+msgid "Switch to Previous Terminal"
+msgstr "Gearr leum dhan tèirmineal roimhe"
+
+#: ../src/terminal-accels.c:200
+msgid "Switch to Next Terminal"
+msgstr "Gearr leum dhan ath-thèirmineal"
+
+#: ../src/terminal-accels.c:201
+msgid "Move Terminal to the Left"
+msgstr "Gluais an tèirmineal gu clì"
+
+#: ../src/terminal-accels.c:202
+msgid "Move Terminal to the Right"
+msgstr "Gluais an tèirmineal gu deas"
+
+#: ../src/terminal-accels.c:203
+msgid "Detach Terminal"
+msgstr "Dealaich an tèirmineal"
+
+#: ../src/terminal-accels.c:226
+msgid "Contents"
+msgstr "Susbaint"
+
+#: ../src/terminal-accels.c:233
+msgid "File"
+msgstr "Faidhle"
+
+#: ../src/terminal-accels.c:234
+msgid "Edit"
+msgstr "Deasaich"
+
+#: ../src/terminal-accels.c:235
+msgid "View"
+msgstr "Sealladh"
+
+#: ../src/terminal-accels.c:238
+msgid "Tabs"
+msgstr "Tabaichean"
+
+#: ../src/terminal-accels.c:239
+msgid "Help"
+msgstr "Cobhair"
+
+#: ../src/terminal-accels.c:336
+#, c-format
+msgid "Switch to Tab %u"
+msgstr "Gearr leum gun taba %u"
+
+#: ../src/terminal-accels.c:544
+msgid "_Action"
+msgstr "Gnìo_mh"
+
+#: ../src/terminal-accels.c:563
+msgid "Shortcut _Key"
+msgstr "I_uchair ath-ghoirid:"
+
+#: ../src/terminal-app.c:753
+msgid "User Defined"
+msgstr "Gnàthaichte"
+
+#: ../src/terminal.c:380
+#, c-format
+msgid "Failed to parse arguments: %s\n"
+msgstr "Dh’fhàillig le parsadh nan argamaidean: %s\n"
+
+#: ../src/terminal-encoding.c:52 ../src/terminal-encoding.c:65
+#: ../src/terminal-encoding.c:79 ../src/terminal-encoding.c:101
+#: ../src/terminal-encoding.c:112
+msgid "Western"
+msgstr "Siarach"
+
+#: ../src/terminal-encoding.c:53 ../src/terminal-encoding.c:80
+#: ../src/terminal-encoding.c:91 ../src/terminal-encoding.c:110
+msgid "Central European"
+msgstr "Meadhan-Eòrpach"
+
+#: ../src/terminal-encoding.c:54
+msgid "South European"
+msgstr "Eòrpach Deasach"
+
+#: ../src/terminal-encoding.c:55 ../src/terminal-encoding.c:63
+#: ../src/terminal-encoding.c:117
+msgid "Baltic"
+msgstr "Baltach"
+
+#: ../src/terminal-encoding.c:56 ../src/terminal-encoding.c:81
+#: ../src/terminal-encoding.c:87 ../src/terminal-encoding.c:88
+#: ../src/terminal-encoding.c:93 ../src/terminal-encoding.c:111
+msgid "Cyrillic"
+msgstr "Cirilis"
+
+#: ../src/terminal-encoding.c:57 ../src/terminal-encoding.c:84
+#: ../src/terminal-encoding.c:90 ../src/terminal-encoding.c:116
+msgid "Arabic"
+msgstr "Arabais"
+
+#: ../src/terminal-encoding.c:58 ../src/terminal-encoding.c:96
+#: ../src/terminal-encoding.c:113
+msgid "Greek"
+msgstr "Greugais"
+
+#: ../src/terminal-encoding.c:59
+msgid "Hebrew Visual"
+msgstr "Eabhra lèirsinneach"
+
+#: ../src/terminal-encoding.c:60 ../src/terminal-encoding.c:83
+#: ../src/terminal-encoding.c:99 ../src/terminal-encoding.c:115
+msgid "Hebrew"
+msgstr "Eabhra"
+
+#: ../src/terminal-encoding.c:61 ../src/terminal-encoding.c:82
+#: ../src/terminal-encoding.c:103 ../src/terminal-encoding.c:114
+msgid "Turkish"
+msgstr "Turcais"
+
+#: ../src/terminal-encoding.c:62
+msgid "Nordic"
+msgstr "Tuathach"
+
+#: ../src/terminal-encoding.c:64
+msgid "Celtic"
+msgstr "Ceiltis"
+
+#: ../src/terminal-encoding.c:66 ../src/terminal-encoding.c:102
+msgid "Romanian"
+msgstr "Romàinis"
+
+#. These encodings do NOT pass-through ASCII, so are always rejected.
+#. * FIXME: why are they in this table; or rather why do we need
+#. * the ASCII pass-through requirement?
+#.
+#: ../src/terminal-encoding.c:67 ../src/terminal-encoding.c:124
+#: ../src/terminal-encoding.c:125 ../src/terminal-encoding.c:126
+#: ../src/terminal-encoding.c:127
+msgid "Unicode"
+msgstr "Unicode"
+
+#: ../src/terminal-encoding.c:68
+msgid "Armenian"
+msgstr "Airmeinis"
+
+#: ../src/terminal-encoding.c:69 ../src/terminal-encoding.c:70
+#: ../src/terminal-encoding.c:74
+msgid "Chinese Traditional"
+msgstr "Sìnis thradaiseanta"
+
+#: ../src/terminal-encoding.c:71
+msgid "Cyrillic/Russian"
+msgstr "Cirilis/Ruisis"
+
+#: ../src/terminal-encoding.c:72 ../src/terminal-encoding.c:85
+#: ../src/terminal-encoding.c:105
+msgid "Japanese"
+msgstr "Seapanais"
+
+#: ../src/terminal-encoding.c:73 ../src/terminal-encoding.c:86
+#: ../src/terminal-encoding.c:108 ../src/terminal-encoding.c:128
+msgid "Korean"
+msgstr "Coireanais"
+
+#: ../src/terminal-encoding.c:75 ../src/terminal-encoding.c:76
+#: ../src/terminal-encoding.c:77
+msgid "Chinese Simplified"
+msgstr "Sìnis shimplichte"
+
+#: ../src/terminal-encoding.c:78
+msgid "Georgian"
+msgstr "Cairtbheilis"
+
+#: ../src/terminal-encoding.c:89 ../src/terminal-encoding.c:104
+msgid "Cyrillic/Ukrainian"
+msgstr "Cirilis/Ucràinis"
+
+#: ../src/terminal-encoding.c:92
+msgid "Croatian"
+msgstr "Cròthaisis"
+
+#: ../src/terminal-encoding.c:94
+msgid "Hindi"
+msgstr "Hindis"
+
+#: ../src/terminal-encoding.c:95
+msgid "Persian"
+msgstr "Farsaidh"
+
+#: ../src/terminal-encoding.c:97
+msgid "Gujarati"
+msgstr "Gujarati"
+
+#: ../src/terminal-encoding.c:98
+msgid "Gurmukhi"
+msgstr "Gurmukhi"
+
+#: ../src/terminal-encoding.c:100
+msgid "Icelandic"
+msgstr "Innis Tìlis"
+
+#: ../src/terminal-encoding.c:106 ../src/terminal-encoding.c:109
+#: ../src/terminal-encoding.c:118
+msgid "Vietnamese"
+msgstr "Bhiet-Namais"
+
+#: ../src/terminal-encoding.c:107
+msgid "Thai"
+msgstr "Tàidh"
+
+#: ../src/terminal-menus.ui.h:1
+msgid "_New Terminal"
+msgstr "Tèirmineal ù_r"
+
+#: ../src/terminal-menus.ui.h:2
+msgid "_Preferences"
+msgstr "_Roghainnean"
+
+#: ../src/terminal-menus.ui.h:3 ../src/terminal-window.c:2507
+msgid "_Help"
+msgstr "Cob_hair"
+
+#: ../src/terminal-menus.ui.h:4 ../src/terminal-window.c:2627
+msgid "_About"
+msgstr "_Mu dhèidhinn"
+
+#: ../src/terminal-menus.ui.h:5
+msgid "_Quit"
+msgstr "_Fàg an-seo"
+
+#: ../src/terminal-nautilus.c:601
+msgid "Open in _Remote Terminal"
+msgstr "Fosgail ann an tèirmineal _cèin"
+
+#: ../src/terminal-nautilus.c:603
+msgid "Open in _Local Terminal"
+msgstr "Fosgail ann an tèirmineal ionadai_l"
+
+#: ../src/terminal-nautilus.c:607 ../src/terminal-nautilus.c:618
+msgid "Open the currently selected folder in a terminal"
+msgstr "Fosgail am pasgan a thagh thu ann an tèirmineal"
+
+#: ../src/terminal-nautilus.c:609 ../src/terminal-nautilus.c:620
+#: ../src/terminal-nautilus.c:630
+msgid "Open the currently open folder in a terminal"
+msgstr "Fosgail am pasgan a tha fosgailte an-dràsta ann an tèirmineal"
+
+#: ../src/terminal-nautilus.c:615 ../src/terminal-nautilus.c:629
+msgid "Open in T_erminal"
+msgstr "Fosgail ann an tèirmin_eal"
+
+#: ../src/terminal-nautilus.c:626
+msgid "Open T_erminal"
+msgstr "Fosgail tèirmin_eal"
+
+#: ../src/terminal-nautilus.c:627
+msgid "Open a terminal"
+msgstr "Fosgail tèirmineal"
+
+#: ../src/terminal-nautilus.c:645 ../src/terminal-nautilus.c:658
+msgid "Open in _Midnight Commander"
+msgstr "Fosgail le _Midnight Commander"
+
+#: ../src/terminal-nautilus.c:647
+msgid ""
+"Open the currently selected folder in the terminal file manager Midnight "
+"Commander"
+msgstr ""
+"Fosgail am pasgan a thagh thu ann am manaidsear nam faidhlichean “Midnight "
+"Commander” aig an tèirmineal"
+
+#: ../src/terminal-nautilus.c:649 ../src/terminal-nautilus.c:659
+msgid ""
+"Open the currently open folder in the terminal file manager Midnight "
+"Commander"
+msgstr ""
+"Fosgail am pasgan a tha fosgailte an-dràsta ann am manaidsear nam "
+"faidhlichean “Midnight Commander” aig an tèirmineal"
+
+#: ../src/terminal-nautilus.c:655
+msgid "Open _Midnight Commander"
+msgstr "Fosgail _Midnight Commander"
+
+#: ../src/terminal-nautilus.c:656
+msgid "Open the terminal file manager Midnight Commander"
+msgstr ""
+"Fosgail manaidsear nam faidhlichean “Midnight Commander” aig an tèirmineal"
+
+#: ../src/terminal-options.c:223
+#, c-format
+#| msgid ""
+#| "Option \"%s\" is deprecated and might be removed in a later version of "
+#| "gnome-terminal."
+msgid ""
+"Option “%s” is deprecated and might be removed in a later version of gnome-"
+"terminal."
+msgstr ""
+"Cha mholar an roghainn “%s” tuilleadh agus dh’fhaoidte gun dèid a toirt air "
+"falbh o thionndaidhean ri teachd dhe gnome-terminal."
+
+#. %s is being replaced with "-- " (without quotes), which must be used literally, not translatable
+#: ../src/terminal-options.c:234
+#, c-format
+msgid ""
+"Use “%s” to terminate the options and put the command line to execute after "
+"it."
+msgstr ""
+"Cleachd “%s” gus crìoch a chur air na roghainnean agus an loidhne-àithne a "
+"ghnìomhachadh às a dhèidh."
+
+#: ../src/terminal-options.c:244 ../src/terminal-options.c:257
+#, c-format
+#| msgid ""
+#| "Option \"%s\" is no longer supported in this version of gnome-terminal."
+msgid "Option “%s” is no longer supported in this version of gnome-terminal."
+msgstr ""
+"Cha chuir an tionndadh seo de gnome-terminal taic ris an roghainn “%s” "
+"tuilleadh."
+
+#: ../src/terminal-options.c:269 ../src/terminal-util.c:239
+msgid "GNOME Terminal"
+msgstr "Tèirmineal GNOME"
+
+#: ../src/terminal-options.c:270 ../src/terminal-util.c:226
+#, c-format
+msgid "Using VTE version %u.%u.%u"
+msgstr "A’ cleachdadh VTE tionndadh %u.%u.%u"
+
+#: ../src/terminal-options.c:316
+#, c-format
+#| msgid "Argument to \"%s\" is not a valid command: %s"
+msgid "Argument to “%s” is not a valid command: %s"
+msgstr "Chan eil an argamaid airson “%s” ’na àithne dligheach: %s"
+
+#: ../src/terminal-options.c:484
+msgid "Two roles given for one window"
+msgstr "Chaidh dà dhreuchd a chur air uinneag"
+
+#: ../src/terminal-options.c:505 ../src/terminal-options.c:538
+#, c-format
+#| msgid "\"%s\" option given twice for the same window\n"
+msgid "“%s” option given twice for the same window\n"
+msgstr "Chaidh an roghainn “%s” a thoirt seachad dà thuras airson an aon uinneag\n"
+
+#: ../src/terminal-options.c:738
+#, c-format
+#| msgid "Zoom factor \"%g\" is too small, using %g\n"
+msgid "Zoom factor “%g” is too small, using %g\n"
+msgstr "Tha factar “%g” an t-sùmaidh ro bheag, a’ chleachdadh %g\n"
+
+#: ../src/terminal-options.c:746
+#, c-format
+#| msgid "Zoom factor \"%g\" is too large, using %g\n"
+msgid "Zoom factor “%g” is too large, using %g\n"
+msgstr "Tha factar “%g” an t-sùmaidh ro mhòr, a’ chleachdadh %g\n"
+
+#: ../src/terminal-options.c:784
+#, c-format
+#| msgid ""
+#| "Option \"%s\" requires specifying the command to run on the rest of the "
+#| "command line"
+msgid ""
+"Option “%s” requires specifying the command to run on the rest of the "
+"command line"
+msgstr ""
+"Iarraidh an roghainn “%s” gun sònraich thu an àithne a tha thu airson ruith "
+"air a’ chorr dhen loidhne-àithne"
+
+#: ../src/terminal-options.c:922
+msgid "Not a valid terminal config file."
+msgstr "Chan eil seo ’na fhaidhle rèiteachaidh dligheach airson an tèirmineal."
+
+#: ../src/terminal-options.c:935
+msgid "Incompatible terminal config file version."
+msgstr ""
+"Chan eil tionndadh an fhaidhle rèiteachaidh airson an tèirmineil co-chòrdail."
+
+#: ../src/terminal-options.c:1081
+msgid ""
+"Do not register with the activation nameserver, do not re-use an active "
+"terminal"
+msgstr ""
+"Na clàraich le frithealaiche ainmean a’ ghnìomhachaidh, na ath-chleachd "
+"tèirmineal gnìomhach"
+
+#: ../src/terminal-options.c:1090
+msgid "Load a terminal configuration file"
+msgstr "Luchdaich faidhle rèiteachaidh airson an tèirmineil"
+
+#: ../src/terminal-options.c:1091
+msgid "FILE"
+msgstr "FAIDHLE"
+
+#: ../src/terminal-options.c:1101
+msgid "Show preferences window"
+msgstr "Seall uinneag nan roghainnean"
+
+#: ../src/terminal-options.c:1113
+msgid "Open a new window containing a tab with the default profile"
+msgstr "Fosgail uinneag ùr sa bheil taba leis a’ phròifil thùsail"
+
+#: ../src/terminal-options.c:1122
+msgid "Open a new tab in the last-opened window with the default profile"
+msgstr ""
+"Fosgail taba ùr san uinneag mu dheireadh a chaidh fhosgladh leis a’ phròifil "
+"thùsail"
+
+#: ../src/terminal-options.c:1135
+msgid "Turn on the menubar"
+msgstr "Cuir bàr clàr-taice air"
+
+#: ../src/terminal-options.c:1144
+msgid "Turn off the menubar"
+msgstr "Cuir bàr clàr-taice dheth"
+
+#: ../src/terminal-options.c:1153
+msgid "Maximize the window"
+msgstr "Làn-mheudaich an uinneag"
+
+#: ../src/terminal-options.c:1189
+msgid "Set the last specified tab as the active one in its window"
+msgstr ""
+"Suidhich an taba mu dheireadh a chaidh a shònrachadh ’na fhear ghnìomhach "
+"san uinneag aige"
+
+#: ../src/terminal-options.c:1202
+msgid "Execute the argument to this option inside the terminal"
+msgstr "Ruith an argamaid aig an roghainn seo san tèirmineal"
+
+#: ../src/terminal-options.c:1212
+msgid "PROFILE-NAME"
+msgstr "AINM-PRÒIFIL"
+
+#: ../src/terminal-options.c:1220
+msgid "Set the initial terminal title"
+msgstr "Suidhich tiotal tùsail an tèirmineil"
+
+#: ../src/terminal-options.c:1221
+msgid "TITLE"
+msgstr "TIOTAL"
+
+#: ../src/terminal-options.c:1326
+msgid "COMMAND"
+msgstr "ÀITHNE"
+
+#: ../src/terminal-options.c:1334
+msgid "GNOME Terminal Emulator"
+msgstr "Aithrisiche tèirmineil GNOME"
+
+#: ../src/terminal-options.c:1335
+msgid "Show GNOME Terminal options"
+msgstr "Seall roghainnean an tèirmineil GNOME"
+
+#: ../src/terminal-options.c:1345
+msgid ""
+"Options to open new windows or terminal tabs; more than one of these may be "
+"specified:"
+msgstr ""
+"Roghainnean gus uinneagan no tabaichean tèirmineil ùra fhosgladh; faodaidh "
+"tu barrachd air aonan dhiubh a shònrachadh:"
+
+#: ../src/terminal-options.c:1354
+msgid ""
+"Window options; if used before the first --window or --tab argument, sets "
+"the default for all windows:"
+msgstr ""
+"Roghainnean na h-uinneige; suidhichidh seo a’ bhun-roghainn airson a h-uile "
+"uinneag ma chleachdas tu ron chiad argamaid --window no --tab e:"
+
+#: ../src/terminal-options.c:1355
+msgid "Show per-window options"
+msgstr "Seall roghainnean fa leth na h-uinneige"
+
+#: ../src/terminal-options.c:1363
+msgid ""
+"Terminal options; if used before the first --window or --tab argument, sets "
+"the default for all terminals:"
+msgstr ""
+"Roghainnean an tèirmineil; suidhichidh seo a’ bhun-roghainn airson a h-uile "
+"tèirmineal ma chleachdas tu ron chiad argamaid --window no --tab e:"
+
+#: ../src/terminal-options.c:1364
+msgid "Show per-terminal options"
+msgstr "Seall roghainnean fa leth an tèirmineil"
+
+#: ../src/terminal-prefs.c:214
+msgid "Click button to choose profile"
+msgstr "Briog air putan gus pròifil a thaghadh"
+
+#: ../src/terminal-prefs.c:315
+msgid "Profile list"
+msgstr "Liosta nam pròifilean"
+
+#: ../src/terminal-prefs.c:370
+#, c-format
+msgid "Delete profile “%s”?"
+msgstr "A bheil thu airson a’ phròifil “%s” a sguabadh às?"
+
+#: ../src/terminal-prefs.c:374 ../src/terminal-window.c:549
+msgid "_Cancel"
+msgstr "_Sguir dheth"
+
+#: ../src/terminal-prefs.c:376
+msgid "_Delete"
+msgstr "Sgua_b às"
+
+#: ../src/terminal-prefs.c:386
+msgid "Delete Profile"
+msgstr "Sguab às a’ phròifil"
+
+#: ../src/terminal-prefs.c:711
+msgid "Show"
+msgstr "Seall"
+
+#: ../src/terminal-prefs.c:722
+msgid "_Encoding"
+msgstr "_Còdachadh"
+
+#: ../src/terminal-screen.c:1161
+msgid "No command supplied nor shell requested"
+msgstr "Cha deach àithne a shònrachadh no slige iarraidh"
+
+#: ../src/terminal-screen.c:1378 ../src/terminal-window.c:2554
+msgid "_Profile Preferences"
+msgstr "Roghainnean na _pròifil"
+
+#: ../src/terminal-screen.c:1379 ../src/terminal-screen.c:1728
+msgid "_Relaunch"
+msgstr "_Tòisich às ùr"
+
+#: ../src/terminal-screen.c:1382
+msgid "There was an error creating the child process for this terminal"
+msgstr ""
+"Tachair mearachd le cruthachadh a’ phròiseis-chloinne airson an tèirmineil "
+"seo"
+
+#: ../src/terminal-screen.c:1732
+#, c-format
+msgid "The child process exited normally with status %d."
+msgstr "Dh’fhàg am pròiseas-cloinne gu àbhaisteach le staid %d."
+
+#: ../src/terminal-screen.c:1735
+#, c-format
+msgid "The child process was aborted by signal %d."
+msgstr "Chaidh sgur dhen phròiseas-chloinne leis an t-siognail %d."
+
+#: ../src/terminal-screen.c:1738
+msgid "The child process was aborted."
+msgstr "Chaidh sgur dhen phròiseas-chloinne."
+
+#: ../src/terminal-tab-label.c:206
+msgid "Close tab"
+msgstr "Dùin an taba"
+
+#: ../src/terminal-tabs-menu.c:198
+msgid "Switch to this tab"
+msgstr "Gearr leum dhan taba seo"
+
+#: ../src/terminal-util.c:154
+msgid "There was an error displaying help"
+msgstr "Thachair mearachd le sealltainn na cobharach"
+
+#: ../src/terminal-util.c:210
+msgid "Contributors:"
+msgstr "Co-thabhartaichean:"
+
+#: ../src/terminal-util.c:232
+msgid "A terminal emulator for the GNOME desktop"
+msgstr "Aithrisiche tèirmineil airson an deasga GNOME"
+
+#: ../src/terminal-util.c:249
+msgid "translator-credits"
+msgstr "GunChleoc fios@foramnagaidhlig.net"
+
+#: ../src/terminal-util.c:325
+#, c-format
+msgid "Could not open the address “%s”"
+msgstr "Cha b’ urrainn dhuinn an seòladh “%s” fhosgladh"
+
+#: ../src/terminal-util.c:394
+msgid ""
+"GNOME Terminal is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU General Public License as published by the Free "
+"Software Foundation, either version 3 of the License, or (at your option) "
+"any later version."
+msgstr ""
+"’S e bathar-bog saor a th’ ann an tèrmineal GNOME: faodaidh tu ath-"
+"sgaoileadh agus/no atharrachadh fo theirmichean a’ cheadachais GNU General "
+"Public License mar a chaidh fhoillseachadh leis a’ Free Software Foundation, "
+"cleachd tionndadh 3 dhen cheadachas no (ma thogras tu) tionndadh as ùire "
+"dheth."
+
+#: ../src/terminal-util.c:398
+msgid ""
+"GNOME Terminal is distributed in the hope that it will be useful, but "
+"WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY "
+"or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for "
+"more details."
+msgstr ""
+"Tha tèirmineal GNOME ’ga sgaoileadh an dòchas gum bi e feumail ach GUN "
+"BHARANTAS SAM BITH; fiù ’s gun bharantas fillte gun GABHADH A REIC no gum "
+"biodh e IOMCHAIDH AIRSON ADHBHAIR SHÓNRAICHTE. Faic GNU General Public "
+"License airson barrachd fiosrachaidh."
+
+#: ../src/terminal-util.c:402
+msgid ""
+"You should have received a copy of the GNU General Public License along with "
+"GNOME Terminal.  If not, see <http://www.gnu.org/licenses/>."
+msgstr ""
+"Bu chòir gun d’ fhuair thu lethbhreac de GNU General Public License an cois "
+"tèirmineil GNOME. Mur an d’ fhuair, faic <http://www.gnu.org/licenses/>."
+
+#: ../src/terminal-util.c:1181
+msgid "“file” scheme with remote hostname not supported"
+msgstr "Cha chuirear taic ri sgeama “file” le ainm-òstair cèin"
+
+#: ../src/terminal-window.c:524
+msgid "Could not save contents"
+msgstr "Cha deach leinn an t-susbaint a shàbhaladh"
+
+#: ../src/terminal-window.c:546
+msgid "Save as…"
+msgstr "Sàbhail mar…"
+
+#: ../src/terminal-window.c:550
+msgid "_Save"
+msgstr "_Sàbhail"
+
+#. Translators: This is the label of a menu item to choose a profile.
+#. * _%u is used as the accelerator (with u between 1 and 9), and
+#. * the %s is the name of the terminal profile.
+#.
+#: ../src/terminal-window.c:1286
+#, c-format
+msgid "_%u. %s"
+msgstr "_%u. %s"
+
+#. Translators: This is the label of a menu item to choose a profile.
+#. * _%c is used as the accelerator (it will be a character between A and Z),
+#. * and the %s is the name of the terminal profile.
+#.
+#: ../src/terminal-window.c:1292
+#, c-format
+msgid "_%c. %s"
+msgstr "_%c. %s"
+
+#. Toplevel
+#: ../src/terminal-window.c:2500
+msgid "_File"
+msgstr "_Faidhle"
+
+#. File menu
+#: ../src/terminal-window.c:2501 ../src/terminal-window.c:2513
+#: ../src/terminal-window.c:2519 ../src/terminal-window.c:2675
+msgid "Open _Terminal"
+msgstr "Fosgail _tèirmineal"
+
+#: ../src/terminal-window.c:2502
+msgid "_Edit"
+msgstr "D_easaich"
+
+#: ../src/terminal-window.c:2503
+msgid "_View"
+msgstr "_Seall"
+
+#: ../src/terminal-window.c:2504
+msgid "_Search"
+msgstr "_Lorg"
+
+#: ../src/terminal-window.c:2505
+msgid "_Terminal"
+msgstr "_Tèirmineal"
+
+#: ../src/terminal-window.c:2506
+msgid "Ta_bs"
+msgstr "Ta_baichean"
+
+#: ../src/terminal-window.c:2516
+msgid "Open Ta_b"
+msgstr "Fosgail ta_ba"
+
+#: ../src/terminal-window.c:2522
+msgid "New _Profile"
+msgstr "_Pròifil ùr"
+
+#: ../src/terminal-window.c:2525
+msgid "_Save Contents"
+msgstr "_Sàbhail an t-susbaint"
+
+#: ../src/terminal-window.c:2528 ../src/terminal-window.c:3953
+msgid "C_lose Terminal"
+msgstr "_Dùin an tèirmineal"
+
+#: ../src/terminal-window.c:2531
+msgid "_Close All Terminals"
+msgstr "Dùin a h-_uile tèirmineal"
+
+#. Edit menu
+#: ../src/terminal-window.c:2536 ../src/terminal-window.c:2663
+#| msgid "Copy"
+msgid "_Copy"
+msgstr "Dèan lethbhrea_c"
+
+#: ../src/terminal-window.c:2539 ../src/terminal-window.c:2666
+msgid "Copy as _HTML"
+msgstr "Dèan lethbhreac dheth mar _HTML"
+
+#: ../src/terminal-window.c:2542 ../src/terminal-window.c:2669
+#| msgid "Paste"
+msgid "_Paste"
+msgstr "Cuir a_nn"
+
+#: ../src/terminal-window.c:2545 ../src/terminal-window.c:2672
+msgid "Paste _Filenames"
+msgstr "Cuir ann ainmean-_fhaidhle"
+
+#: ../src/terminal-window.c:2551
+msgid "Pre_ferences"
+msgstr "_Roghainnean"
+
+#. Search menu
+#: ../src/terminal-window.c:2570
+msgid "_Find…"
+msgstr "_Lorg…"
+
+#: ../src/terminal-window.c:2573
+msgid "Find Ne_xt"
+msgstr "Lorg an ath _fhear"
+
+#: ../src/terminal-window.c:2576
+msgid "Find Pre_vious"
+msgstr "Lorg am fear _roimhe"
+
+#: ../src/terminal-window.c:2579
+msgid "_Clear Highlight"
+msgstr "Falamhai_ch an soillseachadh"
+
+#: ../src/terminal-window.c:2583
+#| msgid "Go to _Line..."
+msgid "Go to _Line…"
+msgstr "Rach _gu loidhne…"
+
+#: ../src/terminal-window.c:2586
+#| msgid "_Incremental Search..."
+msgid "_Incremental Search…"
+msgstr "Lorg _ioncramaideach…"
+
+#. Terminal menu
+#: ../src/terminal-window.c:2592
+msgid "Change _Profile"
+msgstr "Atharraich a’ _phròifil"
+
+#: ../src/terminal-window.c:2593
+msgid "Set _Character Encoding"
+msgstr "Suidhich còdachadh nan c_haractaran:"
+
+#: ../src/terminal-window.c:2594
+msgid "_Reset"
+msgstr "Ath-_shuidhich"
+
+#: ../src/terminal-window.c:2597
+msgid "Reset and C_lear"
+msgstr "Ath-shuidhich ’s fa_lamhaich"
+
+#. Terminal/Encodings menu
+#: ../src/terminal-window.c:2602
+msgid "_Add or Remove…"
+msgstr "Cuir ris no thoir air f_albh…"
+
+#. Tabs menu
+#: ../src/terminal-window.c:2607
+msgid "_Previous Terminal"
+msgstr "An tèirmineal _roimhe"
+
+#: ../src/terminal-window.c:2610
+msgid "_Next Terminal"
+msgstr "An ath-thèirmi_neal"
+
+#: ../src/terminal-window.c:2613
+msgid "Move Terminal _Left"
+msgstr "Gluais an tèirmineal gu c_lì"
+
+#: ../src/terminal-window.c:2616
+msgid "Move Terminal _Right"
+msgstr "Gluais an tèirmineal gu d_eas"
+
+#: ../src/terminal-window.c:2619
+msgid "_Detach Terminal"
+msgstr "_Dealaich an tèirmineal"
+
+#. Help menu
+#: ../src/terminal-window.c:2624
+msgid "_Contents"
+msgstr "_Susbaint"
+
+#: ../src/terminal-window.c:2630
+msgid "_Inspector"
+msgstr "S_grùdair"
+
+#. Popup menu
+#: ../src/terminal-window.c:2635
+#| msgid "_Open Link"
+msgid "_Open Hyperlink"
+msgstr "F_osgail an ceangal-lìn"
+
+#: ../src/terminal-window.c:2638
+#| msgid "_Copy Link Address"
+msgid "_Copy Hyperlink Address"
+msgstr "Dèan lethbhreac de sheòladh a’ _cheangail"
+
+#: ../src/terminal-window.c:2641
+msgid "_Send Mail To…"
+msgstr "Cuir _post-d gu…"
+
+#: ../src/terminal-window.c:2644
+msgid "_Copy E-mail Address"
+msgstr "Dèan lethbhrea_c de sheòladh a’ phuist-d"
+
+#: ../src/terminal-window.c:2647
+msgid "C_all To…"
+msgstr "G_airm gu…"
+
+#: ../src/terminal-window.c:2650
+msgid "_Copy Call Address"
+msgstr "Dèan lethbhrea_c de sheòladh a’ ghairm"
+
+#: ../src/terminal-window.c:2653
+msgid "_Open Link"
+msgstr "F_osgail an ceangal"
+
+#: ../src/terminal-window.c:2656
+msgid "_Copy Link Address"
+msgstr "Dèan lethbhreac de sheòladh a’ _cheangail"
+
+#: ../src/terminal-window.c:2662
+msgid "P_rofiles"
+msgstr "P_ròifilean"
+
+#: ../src/terminal-window.c:2678
+msgid "L_eave Full Screen"
+msgstr "Fàg an _làn-sgrìn"
+
+#. View Menu
+#: ../src/terminal-window.c:2686
+msgid "Show _Menubar"
+msgstr "Seall _bàr clàr-taice"
+
+#: ../src/terminal-window.c:2690
+msgid "_Full Screen"
+msgstr "_Làn-sgrìn"
+
+#. Terminal menu
+#: ../src/terminal-window.c:2695
+msgid "Read-_Only"
+msgstr "Ri leughadh a-_mhàin"
+
+#: ../src/terminal-window.c:3940
+msgid "Close this window?"
+msgstr "A bheil thu airson an uinneag seo a dhùnadh?"
+
+#: ../src/terminal-window.c:3940
+msgid "Close this terminal?"
+msgstr "A bheil thu airson an tèirmineal seo a dhùnadh?"
+
+#: ../src/terminal-window.c:3944
+msgid ""
+"There are still processes running in some terminals in this window. Closing "
+"the window will kill all of them."
+msgstr ""
+"Tha pròiseas no dhà ’ga ruith ann an tèirmineal san uinneag seo fhathast. "
+"Thèid iad uile a mharbhadh ma dhùineas tu an uinneag seo."
+
+#: ../src/terminal-window.c:3948
+msgid ""
+"There is still a process running in this terminal. Closing the terminal will "
+"kill it."
+msgstr ""
+"Tha pròiseas ’ga ruith san tèirmineal seo fhathast. Thèid a mharbhadh ma "
+"dhùineas tu an tèirmineal seo."
+
+#: ../src/terminal-window.c:3953
+msgid "C_lose Window"
+msgstr "_Dùin an uinneag"
+
+#~ msgid "_Same as text color"
+#~ msgstr "_Mar dhath an teacsa"
+
+#~ msgid "_Search for:"
+#~ msgstr "Lorg air_son:"
+
+#~ msgid "Search _backwards"
+#~ msgstr "Lorg an comhair a _chùil"
+
+#~ msgid "_Update login records when command is launched"
+#~ msgstr ""
+#~ "Ù_raich clàran an logaidh a-steach nuair a thèid àithne a thòiseachadh"
+
+#~ msgid "Unknown completion request for \"%s\""
+#~ msgstr "Iarrtas coileanaidh airson \"%s\" nach aithne dhuinn"
+
+#~ msgid "Missing command"
+#~ msgstr "Tha àithne a dhìth"
+
+#~ msgid "Whether to use a dark theme variant"
+#~ msgstr ""
+#~ "Co-dhiù an tèid tionndadh dorcha dhen ùrlar a chleachdadh gus nach tèid"

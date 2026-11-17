@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcUaSeeingPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Seeing</property>
+    <property name="tag">seeing</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+
+                <child>
+                  <object class="AdwSwitchRow" id="high_contrast_row">
+                    <property name="title" translatable="yes">_High Contrast</property>
+                    <property name="subtitle" translatable="yes">Increase color contrast of foreground and background interface elements</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwSwitchRow" id="status_shapes_row">
+                    <property name="title" translatable="yes">_On/Off Shapes</property>
+                    <property name="subtitle" translatable="yes">Use shapes to indicate state in addition to or instead of color</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwSwitchRow" id="animations_row">
+                    <property name="title" translatable="yes">Reduce _Animation</property>
+                    <property name="subtitle" translatable="yes">Reduce animations in the user interface to reduce motion</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwSwitchRow" id="large_text_row">
+                    <property name="title" translatable="yes">_Large Text</property>
+                    <property name="subtitle" translatable="yes">Increase the size of all text in the user interface</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="CcListRow" id="cursor_size_row">
+                    <property name="title" translatable="yes">_Cursor Size</property>
+                    <property name="subtitle" translatable="yes">The size of the cursor can be increased to make it easier to see</property>
+                    <signal name="activated" handler="ua_cursor_row_activated_cb" swapped="yes"/>
+                    <property name="show-arrow">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwSwitchRow" id="sound_keys_row">
+                    <property name="title" translatable="yes">_Sound Keys</property>
+                    <property name="subtitle" translatable="yes">Beep when Num Lock or Caps Lock are turned on or off</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwSwitchRow" id="show_scrollbars_row">
+                    <property name="title" translatable="yes">Always Show Scroll_bars</property>
+                    <property name="subtitle" translatable="yes">Make scrollbars always visible</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="screen_reader_row">
+                    <property name="title" translatable="yes">Screen _Reader</property>
+                    <property name="subtitle" translatable="yes">The screen reader reads displayed text as you move the focus</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

@@ -1,0 +1,633 @@
+URL: https://download.gnome.org/sources/gnome-control-center/46/gnome-control-center-46.8.tar.xz bbe24cf0c5638b8c9d410881a6560fcce58c3f4d2418514b7f225a34b8eb6e03
+URL: https://ftp.gnome.org/pub/GNOME/sources/gnome-control-center/46/gnome-control-center-46.8.tar.xz bbe24cf0c5638b8c9d410881a6560fcce58c3f4d2418514b7f225a34b8eb6e03
+Origname: gnome-control-center-46.8
+Name: gnome-control-center
+
+diff --git a/gnome-control-center/meson.build b/gnome-control-center/meson.build
+--- a/gnome-control-center/meson.build
++++ b/gnome-control-center/meson.build
+@@ -167,12 +167,14 @@
+   required: false
+ )
+
+-# Needs to be a subproject since tecla does not declare dependencies
+-tecla_is_subproject = not tecla_dep.found()
+-if tecla_is_subproject
+-  tecla = subproject(
+-    'tecla'
+-  )
++# Fil-C: tecla (the keyboard shortcut previewer) is not part of the
++# pizlonated system, and its wrap file would require a network git clone at
++# configure time.  Reference the (optional) installed tecla binary instead:
++# the keyboard panel keeps working without it (the shortcut preview button
++# simply has nothing to launch).
++tecla_is_subproject = true
++if not tecla_dep.found()
++  tecla_dep = dependency('', required: false)
+ endif
+
+ accounts_dep = dependency('accountsservice', version: '>= 0.6.39')
+@@ -183,8 +185,16 @@
+ gnome_desktop_dep = dependency('gnome-desktop-4')
+ gnome_bg_dep = dependency('gnome-bg-4')
+ gnome_rr_dep = dependency('gnome-rr-4')
+-gnome_settings_dep = dependency('gnome-settings-daemon', version: '>= 41.0')
+-goa_dep = dependency('goa-1.0', version: goa_req_version)
++gnome_settings_dep = declare_dependency(
++  # Fil-C: gnome-settings-daemon is not part of the pizlonated system; the
++  # gsd-enums.h header the panels include is vendored under
++  # panels/common/gsd-include/gnome-settings-daemon/gsd-enums.h.
++  include_directories: include_directories('panels/common/gsd-include'),
++)
++goa_dep = dependency('goa-1.0', version: goa_req_version, required: false)
++# Fil-C: gnome-online-accounts is not part of the pizlonated system; the
++# online-accounts panel is dropped (see panels/meson.build) and the panel
++# loader entry is guarded by HAVE_GOA below.
+ gsettings_desktop_dep = dependency('gsettings-desktop-schemas', version: '>= 46.beta')
+ libxml_dep = dependency('libxml-2.0')
+ pulse_dep = dependency('libpulse', version: pulse_req_version)
+@@ -195,8 +205,38 @@
+ xi_dep = dependency('xi', version: '>= 1.2')
+ epoxy_dep = dependency('epoxy')
+ gcr_dep = dependency('gcr-4', version: '>= 4.1.0')
+-pwquality_dep = dependency('pwquality', version: '>= 1.2.2')
++# Fil-C: libpwquality is not part of the pizlonated system; the system panel
++# (which needs it for the users subpage) is dropped.
++pwquality_dep = dependency('pwquality', version: '>= 1.2.2', required: false)
+
++# Fil-C: optional panel dependencies.  The corresponding panels are dropped
++# (see panels/meson.build) when the dependency is missing, and the panel
++# loader entries (shell/cc-panel-loader.c) are guarded by the same macros.
++libgtop_dep = dependency('libgtop-2.0', required: false)
++if libgtop_dep.found()
++  config_h.set('HAVE_LIBGTOP', 1,
++               description: 'Define if libgtop is available')
++endif
++udisks_dep = dependency('udisks2', version: '>= 2.8.2', required: false)
++if udisks_dep.found()
++  config_h.set('HAVE_UDISKS2', 1,
++               description: 'Define if udisks2 is available')
++endif
++if goa_dep.found()
++  config_h.set('HAVE_GOA', 1,
++               description: 'Define if gnome-online-accounts is available')
++endif
++colord_gtk_dep = dependency('colord-gtk4', version: '>= 0.1.24', required: false)
++if colord_gtk_dep.found()
++  config_h.set('HAVE_COLORD_GTK', 1,
++               description: 'Define if colord-gtk is available')
++endif
++gsound_dep = dependency('gsound', required: false)
++if gsound_dep.found()
++  config_h.set('HAVE_GSOUND', 1,
++               description: 'Define if gsound is available')
++endif
++
+ m_dep = cc.find_library('m')
+
+ common_deps = [
+@@ -218,29 +258,33 @@
+   assert(r.returncode() == 0, 'ITS support missing from polkit, please upgrade or contact your distribution')
+ endforeach
+
+-# Check for CUPS 1.4 or newer
++# Fil-C: CUPS is not part of the pizlonated system; the printers panel is
++# dropped and the cups checks are skipped entirely.
+ cups_dep = dependency('cups', version : '>= 1.4', required: false)
+-assert(cups_dep.found(), 'CUPS 1.4 or newer not found')
++if cups_dep.found()
++  config_h.set('HAVE_CUPS', 1,
++               description: 'Define if CUPS is available')
+
+-# https://bugzilla.gnome.org/show_bug.cgi?id=696766
+-cups_cflags = []
+-if cups_dep.version().version_compare('>= 1.6')
+-  cups_cflags += '-D_PPD_DEPRECATED='
+-endif
++  # https://bugzilla.gnome.org/show_bug.cgi?id=696766
++  cups_cflags = []
++  if cups_dep.version().version_compare('>= 1.6')
++    cups_cflags += '-D_PPD_DEPRECATED='
++  endif
+
+-# cups headers
+-check_headers = [
+-  ['HAVE_CUPS_CUPS_H', 'cups/cups.h'],
+-  ['HAVE_CUPS_PPD_H', 'cups/ppd.h']
+-]
++  # cups headers
++  check_headers = [
++    ['HAVE_CUPS_CUPS_H', 'cups/cups.h'],
++    ['HAVE_CUPS_PPD_H', 'cups/ppd.h']
++  ]
+
+-foreach header: check_headers
+-  assert(cc.has_header(header[1], args: cups_cflags), 'CUPS headers not found: ' + header[1])
+-endforeach
++  foreach header: check_headers
++    assert(cc.has_header(header[1], args: cups_cflags), 'CUPS headers not found: ' + header[1])
++  endforeach
+
+-config_h.set10('HAVE_CUPS_HTTPCONNECT2',
+-               cc.has_function('httpConnect2', dependencies: cups_dep),
+-               description: 'Define if httpConnect2() is available in CUPS')
++  config_h.set10('HAVE_CUPS_HTTPCONNECT2',
++                 cc.has_function('httpConnect2', dependencies: cups_dep),
++                 description: 'Define if httpConnect2() is available in CUPS')
++endif
+
+ # IBus support
+ enable_ibus = get_option('ibus')
+@@ -280,47 +324,26 @@
+              description: 'Whether location services is enabled')
+
+ if host_is_linux
+-  # ModemManager
+-  mm_dep =  dependency('mm-glib', version: '>= 0.7')
+-  # NetworkManager
+-  network_manager_deps = [
+-    dependency('libnm', version: '>= 1.24.0'),
+-    dependency('libnma-gtk4', version: '>= 1.10.2'),
+-    mm_dep,
+-  ]
++  # Fil-C: NetworkManager and ModemManager are not part of the pizlonated
++  # system; the network and wwan panels are dropped (see panels/meson.build)
++  # and the BUILD_*/HAVE_* network config macros stay undefined so the
++  # panel-loader entries vanish.  mm-glib is still probed (optionally) for
++  # the applications panel.
++  mm_dep = dependency('mm-glib', version: '>= 0.7', required: false)
++  network_manager_deps = []
+ endif
+-config_h.set('BUILD_NETWORK', host_is_linux,
+-             description: 'Define to 1 to build the Network panel')
+-config_h.set('HAVE_NETWORK_MANAGER', host_is_linux,
+-             description: 'Define to 1 if NetworkManager is available')
+-config_h.set('BUILD_WWAN', host_is_linux,
+-             description: 'Define to 1 to build the WWan panel')
+-config_h.set('HAVE_WWAN', host_is_linux,
+-             description: 'Define to 1 if WWan is available')
++# Fil-C: BUILD_NETWORK / HAVE_NETWORK_MANAGER / BUILD_WWAN / HAVE_WWAN are
++# intentionally not defined.
+
+ if host_is_linux_not_s390
+-  # gnome-bluetooth
+-  gnome_bluetooth_dep = dependency('gnome-bluetooth-ui-3.0')
+-
+-  libwacom_dep = dependency('libwacom', version: '>= 1.4')
+-
+-  wacom_deps = [
+-    libwacom_dep,
+-  ]
+-else
+-  message('Bluetooth and Wacom panels will not be built (no USB support on this platform)')
+-  message('Thunderbolt panel will not be built (not supported on this platform)')
++  # Fil-C: gnome-bluetooth, libwacom and thunderbolt support are not part
++  # of the pizlonated system; the bluetooth and wacom panels are dropped
++  # (see panels/meson.build) and BUILD_BLUETOOTH / HAVE_BLUETOOTH /
++  # BUILD_WACOM / HAVE_WACOM / BUILD_THUNDERBOLT stay undefined.
++  message('Bluetooth, Wacom and Thunderbolt panels will not be built (their dependencies are not part of the pizlonated system)')
+ endif
+-config_h.set('BUILD_BLUETOOTH', host_is_linux_not_s390,
+-             description: 'Define to 1 to build the Bluetooth panel')
+-config_h.set('HAVE_BLUETOOTH', host_is_linux_not_s390,
+-             description: 'Define to 1 if bluetooth support is available')
+-config_h.set('BUILD_WACOM', host_is_linux_not_s390,
+-             description: 'Define to 1 to build the Wacom panel')
+-config_h.set('HAVE_WACOM', host_is_linux_not_s390,
+-             description: 'Define to 1 if Wacom is supportted')
+-config_h.set('BUILD_THUNDERBOLT', host_is_linux_not_s390,
+-             description: 'Define to 1 to build the Thunderbolt panel')
++# Fil-C: the shell links an empty wacom_deps list.
++wacom_deps = []
+
+ gnome = import('gnome')
+ i18n = import('i18n')
+diff --git a/gnome-control-center/panels/applications/meson.build b/gnome-control-center/panels/applications/meson.build
+--- a/gnome-control-center/panels/applications/meson.build
++++ b/gnome-control-center/panels/applications/meson.build
+@@ -38,7 +38,9 @@
+
+ deps = common_deps
+
+-if host_is_linux
++# Fil-C: mm-glib is optional in the pizlonated system (NetworkManager is
++# not built).
++if host_is_linux and mm_dep.found()
+   deps += mm_dep
+ endif
+
+diff --git a/gnome-control-center/panels/common/gnome-settings-bus.h b/gnome-control-center/panels/common/gnome-settings-bus.h
+--- a/gnome-control-center/panels/common/gnome-settings-bus.h
++++ b/gnome-control-center/panels/common/gnome-settings-bus.h
+@@ -1,14 +1,17 @@
+ /* Stub to replace gnome-settings-daemon's
+  * gnome-settings-bus.h helpers */
+
+-#include <gdk/x11/gdkx.h>
++/* Fil-C: the pizlonated gtk4 is built without the X11 backend
++ * (-D x11-backend=false; pizlix is Wayland-only), so gdk/x11/gdkx.h does not
++ * exist.  With GDK_WINDOWING_WAYLAND defined (always, in the pizlonated
++ * gtk4) every display is a Wayland display. */
+
+ #ifdef GDK_WINDOWING_WAYLAND
+
+ static inline gboolean
+ gnome_settings_is_wayland (void)
+ {
+-  return !GDK_IS_X11_DISPLAY (gdk_display_get_default ());
++  return TRUE;
+ }
+
+ #endif /* GDK_WINDOWING_WAYLAND */
+diff --git a/gnome-control-center/panels/common/gsd-device-manager.c b/gnome-control-center/panels/common/gsd-device-manager.c
+--- a/gnome-control-center/panels/common/gsd-device-manager.c
++++ b/gnome-control-center/panels/common/gsd-device-manager.c
+@@ -364,6 +364,8 @@
+ 	manager_class->list_devices = gsd_device_manager_real_list_devices;
+ 	manager_class->lookup_device = gsd_device_manager_real_lookup_device;
+
++	/* Fil-C: GType is a pointer in the pizlonated glib, so the
++	 * type-flag ORs below need (GType)((uintptr_t)A | (uintptr_t)B). */
+ 	signals[DEVICE_ADDED] =
+ 		g_signal_new ("device-added",
+ 			      GSD_TYPE_DEVICE_MANAGER,
+@@ -371,7 +373,7 @@
+ 			      G_STRUCT_OFFSET (GsdDeviceManagerClass, device_added),
+ 			      NULL, NULL, NULL,
+ 			      G_TYPE_NONE, 1,
+-			      GSD_TYPE_DEVICE | G_SIGNAL_TYPE_STATIC_SCOPE);
++			      (GType)((uintptr_t)GSD_TYPE_DEVICE | (uintptr_t)G_SIGNAL_TYPE_STATIC_SCOPE));
+
+ 	signals[DEVICE_REMOVED] =
+ 		g_signal_new ("device-removed",
+@@ -380,7 +382,7 @@
+ 			      G_STRUCT_OFFSET (GsdDeviceManagerClass, device_removed),
+ 			      NULL, NULL, NULL,
+ 			      G_TYPE_NONE, 1,
+-			      GSD_TYPE_DEVICE | G_SIGNAL_TYPE_STATIC_SCOPE);
++			      (GType)((uintptr_t)GSD_TYPE_DEVICE | (uintptr_t)G_SIGNAL_TYPE_STATIC_SCOPE));
+
+ 	signals[DEVICE_CHANGED] =
+ 		g_signal_new ("device-changed",
+@@ -389,7 +391,7 @@
+ 			      G_STRUCT_OFFSET (GsdDeviceManagerClass, device_changed),
+ 			      NULL, NULL, NULL,
+ 			      G_TYPE_NONE, 1,
+-			      GSD_TYPE_DEVICE | G_SIGNAL_TYPE_STATIC_SCOPE);
++			      (GType)((uintptr_t)GSD_TYPE_DEVICE | (uintptr_t)G_SIGNAL_TYPE_STATIC_SCOPE));
+ }
+
+ static GsdDeviceType
+diff --git a/gnome-control-center/panels/common/gsd-include/gnome-settings-daemon/gsd-enums.h b/gnome-control-center/panels/common/gsd-include/gnome-settings-daemon/gsd-enums.h
+new file mode 100644
+--- /dev/null
++++ b/gnome-control-center/panels/common/gsd-include/gnome-settings-daemon/gsd-enums.h
+@@ -0,0 +1,132 @@
++/*
++ * Copyright (C) 2010 Bastien Nocera <hadess@hadess.net>
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the
++ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++ * Boston, MA 02110-1301, USA.
++ */
++
++/*
++ * Fil-C: vendored copy of gnome-settings-daemon's data/gsd-enums.h
++ * (from gnome-settings-daemon 46.0), which gnome-settings-daemon
++ * installs as <gnome-settings-daemon/gsd-enums.h>.  gnome-settings-daemon
++ * is not part of the pizlonated system, so this header is shipped inside
++ * gnome-control-center instead (see meson.build: gnome_settings_dep).
++ */
++
++#ifndef __gsd_enums_h__
++#define __gsd_enums_h__
++
++typedef enum
++{
++  GSD_FONT_ANTIALIASING_MODE_NONE,
++  GSD_FONT_ANTIALIASING_MODE_GRAYSCALE,
++  GSD_FONT_ANTIALIASING_MODE_RGBA
++} GsdFontAntialiasingMode;
++
++typedef enum
++{
++  GSD_FONT_HINTING_NONE,
++  GSD_FONT_HINTING_SLIGHT,
++  GSD_FONT_HINTING_MEDIUM,
++  GSD_FONT_HINTING_FULL
++} GsdFontHinting;
++
++typedef enum
++{
++  GSD_FONT_RGBA_ORDER_RGBA,
++  GSD_FONT_RGBA_ORDER_RGB,
++  GSD_FONT_RGBA_ORDER_BGR,
++  GSD_FONT_RGBA_ORDER_VRGB,
++  GSD_FONT_RGBA_ORDER_VBGR
++} GsdFontRgbaOrder;
++
++typedef enum
++{
++  GSD_SMARTCARD_REMOVAL_ACTION_NONE,
++  GSD_SMARTCARD_REMOVAL_ACTION_LOCK_SCREEN,
++  GSD_SMARTCARD_REMOVAL_ACTION_FORCE_LOGOUT
++} GsdSmartcardRemovalAction;
++
++typedef enum
++{
++  GSD_TOUCHPAD_SCROLL_METHOD_DISABLED,
++  GSD_TOUCHPAD_SCROLL_METHOD_EDGE_SCROLLING,
++  GSD_TOUCHPAD_SCROLL_METHOD_TWO_FINGER_SCROLLING
++} GsdTouchpadScrollMethod;
++
++typedef enum
++{
++  GSD_BELL_MODE_ON,
++  GSD_BELL_MODE_OFF,
++  GSD_BELL_MODE_CUSTOM
++} GsdBellMode;
++
++typedef enum
++{
++  GSD_TOUCHPAD_HANDEDNESS_RIGHT,
++  GSD_TOUCHPAD_HANDEDNESS_LEFT,
++  GSD_TOUCHPAD_HANDEDNESS_MOUSE
++} GsdTouchpadHandedness;
++
++typedef enum
++{
++  GSD_WACOM_ROTATION_NONE,
++  GSD_WACOM_ROTATION_CW,
++  GSD_WACOM_ROTATION_CCW,
++  GSD_WACOM_ROTATION_HALF
++} GsdWacomRotation;
++
++typedef enum
++{
++  GSD_WACOM_ACTION_TYPE_NONE,
++  GSD_WACOM_ACTION_TYPE_CUSTOM,
++  GSD_WACOM_ACTION_TYPE_SWITCH_MONITOR,
++  GSD_WACOM_ACTION_TYPE_HELP
++} GsdWacomActionType;
++
++typedef enum
++{
++  GSD_POWER_ACTION_BLANK,
++  GSD_POWER_ACTION_SUSPEND,
++  GSD_POWER_ACTION_SHUTDOWN,
++  GSD_POWER_ACTION_HIBERNATE,
++  GSD_POWER_ACTION_INTERACTIVE,
++  GSD_POWER_ACTION_NOTHING,
++  GSD_POWER_ACTION_LOGOUT
++} GsdPowerActionType;
++
++typedef enum
++{
++  GSD_POWER_BUTTON_ACTION_NOTHING,
++  GSD_POWER_BUTTON_ACTION_SUSPEND,
++  GSD_POWER_BUTTON_ACTION_HIBERNATE,
++  GSD_POWER_BUTTON_ACTION_INTERACTIVE
++} GsdPowerButtonActionType;
++
++typedef enum
++{
++  GSD_UPDATE_TYPE_ALL,
++  GSD_UPDATE_TYPE_SECURITY,
++  GSD_UPDATE_TYPE_NONE
++} GsdUpdateType;
++
++typedef enum
++{
++  GSD_NUM_LOCK_STATE_UNKNOWN,
++  GSD_NUM_LOCK_STATE_ON,
++  GSD_NUM_LOCK_STATE_OFF
++} GsdNumLockState;
++
++#endif /* __gsd_enums_h__ */
+diff --git a/gnome-control-center/panels/common/gsd-input-helper.c b/gnome-control-center/panels/common/gsd-input-helper.c
+--- a/gnome-control-center/panels/common/gsd-input-helper.c
++++ b/gnome-control-center/panels/common/gsd-input-helper.c
+@@ -22,11 +22,16 @@
+ #include <string.h>
+
+ #include <gdk/gdk.h>
++/* Fil-C: the pizlonated gtk4 is built without the X11 backend; the X11
++ * XInput2 property helpers below are only compiled when gtk4 actually
++ * provides the X11 backend (GDK_WINDOWING_X11). */
++#ifdef GDK_WINDOWING_X11
+ #include <gdk/x11/gdkx.h>
+
+ #include <sys/types.h>
+ #include <X11/Xatom.h>
+ #include <X11/extensions/XInput2.h>
++#endif
+
+ #include "gsd-input-helper.h"
+ #include "gsd-device-manager.h"
+@@ -57,6 +62,7 @@
+         return device_type_is_present (GSD_DEVICE_TYPE_MOUSE);
+ }
+
++#ifdef GDK_WINDOWING_X11
+ char *
+ xdevice_get_device_node (int deviceid)
+ {
+@@ -106,3 +112,4 @@
+         XFree (data);
+         return NULL;
+ }
++#endif /* GDK_WINDOWING_X11 */
+diff --git a/gnome-control-center/panels/meson.build b/gnome-control-center/panels/meson.build
+--- a/gnome-control-center/panels/meson.build
++++ b/gnome-control-center/panels/meson.build
+@@ -1,36 +1,29 @@
+ subdir('common')
+
++# Fil-C: panels whose external dependencies are not part of the pizlonated
++# system are dropped here (the panel-loader entries in
++# shell/cc-panel-loader.c are guarded by the same HAVE_* macros):
++# - color             (colord-gtk4)
++# - online-accounts   (goa-1.0 / goa-backend-1.0)
++# - printers          (cups, smbclient)
++# - privacy           (libgtop-2.0)
++# - sound             (gsound)
++# - system            (libgtop-2.0, udisks2, libpwquality, krb5)
++# - wwan / network    (libnm, libnma-gtk4, mm-glib)
++# - bluetooth / wacom (gnome-bluetooth-ui-3.0, libwacom)
+ panels = [
+   'applications',
+   'background',
+-  'color',
+   'display',
+   'keyboard',
+   'mouse',
+   'multitasking',
+   'notifications',
+-  'online-accounts',
+   'power',
+-  'printers',
+-  'privacy',
+   'search',
+   'sharing',
+-  'sound',
+-  'system',
+   'universal-access',
+- 'wwan',
+ ]
+-
+-if host_is_linux
+-  panels += ['network']
+-endif
+-
+-if host_is_linux_not_s390
+-  panels += [
+-    'bluetooth',
+-    'wacom'
+-  ]
+-endif
+
+ panels_list = []
+ panels_libs = []
+diff --git a/gnome-control-center/panels/mouse/cc-mouse-caps-helper.c b/gnome-control-center/panels/mouse/cc-mouse-caps-helper.c
+--- a/gnome-control-center/panels/mouse/cc-mouse-caps-helper.c
++++ b/gnome-control-center/panels/mouse/cc-mouse-caps-helper.c
+@@ -18,12 +18,21 @@
+  * Author: Felipe Borges <feborges@redhat.com>
+  */
+
++/* Fil-C: the pizlonated gtk4 is built without the X11 backend
++ * (-D x11-backend=false; pizlix is Wayland-only), so gdk/x11/gdkx.h and the
++ * XInput2 helpers do not exist.  The X11 capability checks are compiled only
++ * when GDK_WINDOWING_X11 is defined (i.e. when gtk4 has the X11 backend);
++ * on Wayland the touchpad knobs are shown unconditionally, which is what
++ * the non-X11 fallback below already did. */
++#ifdef GDK_WINDOWING_X11
+ #include <gdk/x11/gdkx.h>
+ #include <X11/Xatom.h>
+ #include <X11/extensions/XInput2.h>
++#endif
+
+ #include "cc-mouse-caps-helper.h"
+
++#ifdef GDK_WINDOWING_X11
+ static gboolean
+ touchpad_check_capabilities_x11 (gboolean *have_two_finger_scrolling,
+                                  gboolean *have_edge_scrolling,
+@@ -87,16 +96,19 @@
+
+ 	return TRUE;
+ }
++#endif /* GDK_WINDOWING_X11 */
+
+ gboolean
+ cc_touchpad_check_capabilities (gboolean *have_two_finger_scrolling,
+                                 gboolean *have_edge_scrolling,
+                                 gboolean *have_tap_to_click)
+ {
++#ifdef GDK_WINDOWING_X11
+ 	if (GDK_IS_X11_DISPLAY (gdk_display_get_default ()))
+ 		return touchpad_check_capabilities_x11 (have_two_finger_scrolling,
+                                                         have_edge_scrolling,
+                                                         have_tap_to_click);
++#endif /* GDK_WINDOWING_X11 */
+ 	/* else we unconditionally show all touchpad knobs */
+         *have_two_finger_scrolling = TRUE;
+         *have_edge_scrolling = TRUE;
+@@ -107,6 +119,11 @@
+ gboolean
+ cc_synaptics_check (void)
+ {
++        gboolean have_synaptics = FALSE;
++
++#ifndef GDK_WINDOWING_X11
++        return FALSE;
++#else
+         GdkDisplay *gdisplay;
+         Display *display;
+         g_autoptr(GList) devicelist = NULL;
+@@ -115,7 +132,6 @@
+         int realformat;
+         unsigned long nitems, bytes_after;
+         unsigned char *data;
+-        gboolean have_synaptics = FALSE;
+
+         if (!GDK_IS_X11_DISPLAY (gdk_display_get_default ()))
+                 return FALSE;
+@@ -145,4 +161,5 @@
+         gdk_x11_display_error_trap_pop_ignored (gdisplay);
+
+         return have_synaptics;
++#endif /* GDK_WINDOWING_X11 */
+ }
+diff --git a/gnome-control-center/shell/cc-object-storage.c b/gnome-control-center/shell/cc-object-storage.c
+--- a/gnome-control-center/shell/cc-object-storage.c
++++ b/gnome-control-center/shell/cc-object-storage.c
+@@ -418,13 +418,17 @@
+ {
+   g_assert (_instance == NULL);
+
+-  if (g_once_init_enter (&_instance))
++  /* Fil-C: _instance is a pointer-typed static (GType is a pointer in the
++   * pizlonated glib), so the pointer once-init variants must be used; the
++   * plain g_once_init_enter/leave functions access the location through a
++   * gsize view, which fil-C rejects as a type confusion. */
++  if (g_once_init_enter_pointer (&_instance))
+     {
+       CcObjectStorage *instance = g_object_new (CC_TYPE_OBJECT_STORAGE, NULL);
+
+       g_debug ("Initializing object storage");
+
+-      g_once_init_leave (&_instance, instance);
++      g_once_init_leave_pointer (&_instance, instance);
+     }
+ }
+
+diff --git a/gnome-control-center/shell/cc-panel-loader.c b/gnome-control-center/shell/cc-panel-loader.c
+--- a/gnome-control-center/shell/cc-panel-loader.c
++++ b/gnome-control-center/shell/cc-panel-loader.c
+@@ -90,7 +90,9 @@
+ #ifdef BUILD_BLUETOOTH
+   PANEL_TYPE("bluetooth",        cc_bluetooth_panel_get_type,            NULL),
+ #endif
++#ifdef HAVE_COLORD_GTK
+   PANEL_TYPE("color",            cc_color_panel_get_type,                NULL),
++#endif /* HAVE_COLORD_GTK */
+   PANEL_TYPE("display",          cc_display_panel_get_type,              NULL),
+   PANEL_TYPE("keyboard",         cc_keyboard_panel_get_type,             NULL),
+   PANEL_TYPE("mouse",            cc_mouse_panel_get_type,                NULL),
+@@ -100,14 +102,24 @@
+   PANEL_TYPE("wifi",             cc_wifi_panel_get_type,                 cc_wifi_panel_static_init_func),
+ #endif
+   PANEL_TYPE("notifications",    cc_notifications_panel_get_type,        NULL),
++#ifdef HAVE_GOA
+   PANEL_TYPE("online-accounts",  cc_online_accounts_panel_get_type,      NULL),
++#endif /* HAVE_GOA */
+   PANEL_TYPE("power",            cc_power_panel_get_type,                NULL),
++#ifdef HAVE_CUPS
+   PANEL_TYPE("printers",         cc_printers_panel_get_type,             NULL),
++#endif /* HAVE_CUPS */
++#ifdef HAVE_LIBGTOP
+   PANEL_TYPE("privacy",          cc_privacy_panel_get_type,              NULL),
++#endif /* HAVE_LIBGTOP */
+   PANEL_TYPE("search",           cc_search_panel_get_type,               NULL),
+   PANEL_TYPE("sharing",          cc_sharing_panel_get_type,              cc_sharing_panel_static_init_func),
++#ifdef HAVE_GSOUND
+   PANEL_TYPE("sound",            cc_sound_panel_get_type,                NULL),
++#endif /* HAVE_GSOUND */
++#if defined(HAVE_LIBGTOP) && defined(HAVE_UDISKS2)
+   PANEL_TYPE("system",           cc_system_panel_get_type,               NULL),
++#endif /* HAVE_LIBGTOP && HAVE_UDISKS2 */
+   PANEL_TYPE("universal-access", cc_ua_panel_get_type,                   NULL),
+ #ifdef BUILD_WACOM
+   PANEL_TYPE("wacom",            cc_wacom_panel_get_type,                cc_wacom_panel_static_init_func),

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcQrCodeDialog" parent="AdwWindow">
+    <property name="default-width">350</property>
+    <property name="default-height">500</property>
+    <property name="height-request">350</property>
+    <property name="modal">True</property>
+    <property name="destroy-with-parent">True</property>
+    <property name="title" translatable="yes">Share Network</property>
+
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwClamp">
+
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">24</property>
+                <property name="orientation">vertical</property>
+                <property name="margin-top">32</property>
+                <property name="margin-bottom">32</property>
+                <property name="margin-start">32</property>
+                <property name="margin-end">32</property>
+
+                <child>
+                  <object class="GtkPicture" id="qr_image">
+                    <property name="halign">center</property>
+                    <property name="can-shrink">True</property>
+                    <property name="alternative-text" translatable="yes">QR Code</property>
+                    <style>
+                      <class name="card"/>
+                      <class name="qr-image"/>
+                    </style>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="qr_title">
+                    <property name="label" translatable="yes">Scan to Connect</property>
+                    <property name="css-classes">title-1</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel" id="qr_subtitle_ssid">
+                        <property name="wrap">True</property>
+                        <property name="halign">center</property>
+                        <property name="justify">center</property>
+                        <property name="natural-wrap-mode">none</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="qr_subtitle_password">
+                        <property name="wrap">True</property>
+                        <property name="halign">center</property>
+                        <property name="justify">center</property>
+                        <property name="natural-wrap-mode">none</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

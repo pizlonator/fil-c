@@ -62,3 +62,10 @@ filc/projeny package projects/adwaita-icon-theme.projeny projects/adwaita-icon-t
 filc/projeny package projects/dconf.projeny projects/dconf/pizlonated-dconf.tar.gz
 filc/projeny package projects/gnome-text-editor.projeny projects/gnome-text-editor/pizlonated-gnome-text-editor.tar.gz
 filc/projeny package projects/gnome-font-viewer.projeny projects/gnome-font-viewer/pizlonated-gnome-font-viewer.tar.gz
+# Sprint 8: the GNOME applications that need the desktop to feel complete:
+# vte (terminal widget library), gnome-terminal (on top of vte), and
+# gnome-control-center (standalone; most heavily-dep-ended panels dropped,
+# see the projeny patch).
+filc/projeny package projects/vte.projeny projects/vte/pizlonated-vte.tar.gz
+filc/projeny package projects/gnome-terminal.projeny projects/gnome-terminal/pizlonated-gnome-terminal.tar.gz
+filc/projeny package projects/gnome-control-center.projeny projects/gnome-control-center/pizlonated-gnome-control-center.tar.gz

@@ -1,0 +1,75 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      xmlns:its="http://www.w3.org/2005/11/its"
+      type="guide"
+      id="pref-tab-window">
+
+  <info>
+    <link type="guide" xref="index#appearance"/>
+    <link type="seealso" xref="gs-tabs"/>
+    <revision pkgversion="3.12" date="2014-02-26" status="review"/>
+    <revision pkgversion="3.14.2" date="2015-01-27" status="review"/>
+    <revision pkgversion="3.34" date="2020-02-09" status="review"/>
+
+    <credit type="author copyright">
+      <name>Ekaterina Gerasimova</name>
+      <email its:translate="no">kittykat3756@gmail.com</email>
+      <years>2014–2015</years>
+    </credit>
+    <!--<credit type="copyright editor">
+      <name></name>
+      <email its:translate="no"></email>
+      <years></years>
+    </credit>-->
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Choose whether to open a new window or a new tab by default.</desc>
+  </info>
+
+  <title>Windows and tabs</title>
+
+<note style="tip">
+  <p>This setting only applies when the <link xref="pref-menubar">menubar is
+  enabled</link>, or when <app>Terminal</app> is started from the command line and
+  neither the <cmd>--tab</cmd> nor the <cmd>--window</cmd> options are passed.</p>
+</note>
+
+  <p>You can choose whether to open a new tab or a new <app>Terminal</app>
+  window when you use <gui style="menuitem">New Terminal</gui>.</p>
+
+  <steps>
+    <title>If the menubar is enabled,</title>
+    <item>
+      <p>Select
+      <guiseq><gui style="menu">Edit</gui><gui style="menuitem">Preferences</gui>
+      <gui style="tab">General</gui></guiseq>.</p>
+    </item>
+    <item>
+      <p>Set <gui>Open new terminals in:</gui> to <gui>Tab</gui> or
+      <gui>Window</gui>.</p>
+    </item>
+  </steps>
+
+  <steps>
+    <title>If the menubar is not enabled,</title>
+    <item>
+      <p>Press the menu button in the top-right corner of the window and select
+      <gui style="menuitem">Preferences</gui>.</p>
+    </item>
+    <item>
+      <p>In the sidebar, select <gui>General</gui>.</p>
+    </item>
+    <item>
+      <p>Set <gui>Open new terminals in:</gui> to <gui>Tab</gui> or
+      <gui>Window</gui>.</p>
+    </item>
+  </steps>
+
+  <p>Once you have set the preference, you can use <key>Ctrl</key> to invert
+  the preference. For example, if you have your preferences set to open a new
+  terminal in a new tab, then pressing <gui style="menuitem">New Terminal</gui>
+  will open a new tab. On the other hand, if you hold down <key>Ctrl</key> and
+  then press <gui style="menuitem">New Terminal</gui>, then a new window will
+  be opened instead.</p>
+
+</page>

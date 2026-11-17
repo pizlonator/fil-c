@@ -1,0 +1,104 @@
+# Uighur Translation for vte.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Abduxukur Abdurixit <abduxukur.abdurixit@t-systems.ch>, 2005
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: vte\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=vte&component=general\n"
+"POT-Creation-Date: 2010-12-23 18:42+0000\n"
+"PO-Revision-Date: 2004-02-05 00:10+0100\n"
+"Last-Translator:  Abduxukur Abdurixit <abduxukur.abdurixit@t-systems.ch>\n"
+"Language-Team:  GNOME Uighur Translation Project <gnome-uighur@yahoogroups.com>\n"
+"Language: ug\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/iso2022.c:779 ../src/iso2022.c:787 ../src/iso2022.c:818
+#: ../src/vte.c:2278
+#, c-format
+msgid "Unable to convert characters from %s to %s."
+msgstr "%s ھەرپىنى %s ھەرپىگە ئايلاندۇرالمىدى"
+
+#: ../src/iso2022.c:1472
+#, c-format
+msgid "Attempt to set invalid NRC map '%c'."
+msgstr "ئىناۋەتسىز NRC خەرىتە '%c' تەڭشەشنى سىنىدى."
+
+#. Application signalled an "identified coding system" we haven't heard of.  See ECMA-35 for gory details.
+#: ../src/iso2022.c:1502
+msgid "Unrecognized identified coding system."
+msgstr "تونۇيالمىغان كودلاشنى بەلگىلەش سىستېمىسى"
+
+#: ../src/iso2022.c:1561 ../src/iso2022.c:1588
+#, c-format
+msgid "Attempt to set invalid wide NRC map '%c'."
+msgstr "ئىناۋەتسىز كەڭ NRC خەرىتە '%c' تەڭشەشنى سىنىدى."
+
+#: ../src/trie.c:409
+#, c-format
+msgid "Duplicate (%s/%s)!"
+msgstr "(%s/%s) نۇسخىلا!"
+
+#. Bail back to normal mode.
+#: ../src/vteapp.c:981
+msgid "Could not open console.\n"
+msgstr "كونترول سۇپىسىنى ئاچالمىدى.\n"
+
+#: ../src/vteapp.c:1074
+msgid "Could not parse the geometry spec passed to --geometry"
+msgstr "--geometry غا يوللايدىغان گېئومېتىرىيىلىك پارامېتىرنى يېشەلمىدى"
+
+#: ../src/vte.c:1304
+#, c-format
+msgid "Error compiling regular expression \"%s\"."
+msgstr "مۇنتىزىم ئىپادە \"%s\" نى ھېسابلاشتا خاتالىق يۈز بەردى."
+
+#. Translators: %s is replaced with error message returned by strerror().
+#: ../src/vte.c:4387
+#, c-format
+msgid "Error reading from child: %s."
+msgstr "تارماق پروگراممىدىن سانلىق-مەلۇمات ئوقۇش خاتالىقى: %s ."
+
+#: ../src/vte.c:4514
+msgid "Unable to send data to child, invalid charset convertor"
+msgstr "تارماق جەريانغا سانلىق-مەلۇمات يوللىيالمىدى، ھەرپ-بەلگە ئايلاندۇرغۇچ ئىناۋەتسىز"
+
+#: ../src/vte.c:4525 ../src/vte.c:5562
+#, c-format
+msgid "Error (%s) converting data for child, dropping."
+msgstr "تارماق پروگرامما سانلىق-ئاساسىنى ئۆزگەرتىش جەريانىدا خاتالىق كۆرۈلگىنىنى ئۈچۈن تاشلىۋېتىلدى(%s) ."
+
+#: ../src/vte.c:7756
+#, c-format
+msgid "Error reading PTY size, using defaults: %s\n"
+msgstr "PTY چوڭلۇقىنى ئوقۇشتا خاتالىق كۆرۈلدى، كۆڭۈلدىكى چوڭلۇق ئىشلىتىلىدۇ: %s\n"
+
+#. Aaargh.  We're screwed.
+#: ../src/vte.c:13554
+msgid "_vte_conv_open() failed setting word characters"
+msgstr "_vte_conv_open() سۆزدىكى ھەرپ تىزمىسىنى بەلگىلەش مەغلۇپ بولدى."
+
+#~ msgid "can not run %s"
+#~ msgstr "%s نى ئىجرا قىلالمىدى"
+
+#~ msgid "Error adding `%s' to environment, continuing."
+#~ msgstr "%s نى مۇھىتقا قوشۇشتا خاتالىق يۈز بەردى، داۋاملىشىدۇ."
+
+#~ msgid "Error creating signal pipe."
+#~ msgstr "سىگنال قانىلى ھاسىل قىلىشتا خاتالىق يۈز بەردى"
+
+#~ msgid "No handler for control sequence `%s' defined."
+#~ msgstr ""
+#~ "%s كونترول ھەرپلەر تىزمىسى نى بىر تەرەپ قىلىش پروگراممىسى ئېنىق ئەمەس "
+
+#~ msgid "Error setting PTY size: %s."
+#~ msgstr "PTY ئۆلچىمىنى بەلگىلەشتە خاتالىق كۆرۈلدى:%s"
+
+#~ msgid "Unknown pixel mode %d.\n"
+#~ msgstr "%d تونۇمايدىغان پىكسېل شەكلى \n"
+
+#~ msgid "Can not draw character U+%04x.\n"
+#~ msgstr " U+%04x ھەرپىنى سىزالمايدۇ.\n"

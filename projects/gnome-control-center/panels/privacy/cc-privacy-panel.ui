@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcPrivacyPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwNavigationView" id="navigation">
+
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Privacy &amp; Security</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title" translatable="yes">System</property>
+
+                        <child>
+                          <object class="CcListRow">
+                            <property name="title" translatable="yes">_Screen Lock</property>
+                            <property name="subtitle" translatable="yes">Automatic screen lock</property>
+                            <property name="icon-name">screen-lock-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'screenlock'</property>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow" id="location_row">
+                            <property name="visible">False</property>
+                            <property name="title" translatable="yes">_Location</property>
+                            <property name="subtitle" translatable="yes">Control access to your location</property>
+                            <property name="icon-name">location-access-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'location'</property>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow">
+                            <property name="title" translatable="yes">_File History &amp;amp; Trash</property>
+                            <property name="subtitle" translatable="yes">Remove saved data and files</property>
+                            <property name="icon-name">trash-file-history-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'usage'</property>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow">
+                            <property name="title" translatable="yes">_Diagnostics</property>
+                            <property name="subtitle" translatable="yes">Automatic problem reporting</property>
+                            <property name="icon-name">device-diagnostics-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'diagnostics'</property>
+                            <binding name="visible">
+                              <lookup name="visible">diagnostics_page</lookup>
+                            </binding>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title" translatable="yes">Devices</property>
+
+                        <child>
+                          <object class="CcListRow">
+                            <property name="title" translatable="yes">_Cameras</property>
+                            <property name="subtitle" translatable="yes">Control camera access</property>
+                            <property name="icon-name">camera-access-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'camera'</property>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow">
+                            <property name="title" translatable="yes">_Microphones</property>
+                            <property name="subtitle" translatable="yes">Control microphone access</property>
+                            <property name="visible">False</property>
+                            <property name="icon-name">microphone-access-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'microphone'</property>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow" id="bolt_row">
+                            <property name="visible">False</property>
+                            <property name="title" translatable="yes">_Thunderbolt</property>
+                            <property name="subtitle" translatable="yes">Manage device access</property>
+                            <property name="icon-name">thunderbolt-access-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'thunderbolt'</property>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="CcListRow">
+                            <property name="title" translatable="yes">Device _Security</property>
+                            <property name="subtitle" translatable="yes">Hardware security status and information</property>
+                            <property name="icon-name">device-security-symbolic</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'device-security'</property>
+                            <binding name="visible">
+                              <lookup name="visible">security_page</lookup>
+                            </binding>
+                          </object>
+                        </child>
+
+                      </object>
+                    </child>
+                  </object>
+                </property>
+
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <child>
+          <object class="CcScreenPage"/>
+        </child>
+
+        <child>
+          <object class="CcCameraPage"/>
+        </child>
+
+        <child>
+          <object class="CcMicrophonePage"/>
+        </child>
+
+        <child>
+          <object class="CcUsagePage"/>
+        </child>
+
+        <child>
+          <object class="CcDiagnosticsPage" id="diagnostics_page"/>
+        </child>
+
+        <child>
+          <object class="CcFirmwareSecurityPage" id="security_page"/>
+        </child>
+
+      </object>
+    </property>
+  </template>
+</interface>

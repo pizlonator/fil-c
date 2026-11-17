@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcRegionPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Region &amp; Language</property>
+    <property name="tag">region</property>
+
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+
+            <child>
+              <object class="AdwBanner" id="banner">
+                <property name="title" translatable="yes">Language and format will be changed after next login</property>
+                <property name="button-label" translatable="yes">Log _Out…</property>
+                <signal name="button-clicked" handler="restart_now" object="CcRegionPage" swapped="yes"/>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesPage">
+                <property name="description" translatable="yes">The language setting is used for interface text and web pages. Formats are used for numbers, dates, and currencies.</property>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <property name="title" translatable="yes">Your Account</property>
+
+                    <child>
+                      <object class="CcListRow" id="language_row">
+                        <property name="title" translatable="yes">_Language</property>
+                        <property name="show-arrow">True</property>
+                        <signal name="activated" handler="on_user_language_row_activated_cb" object="CcRegionPage" swapped="yes" />
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="CcListRow" id="formats_row">
+                        <property name="title" translatable="yes">_Formats</property>
+                        <property name="show-arrow">True</property>
+                        <signal name="activated" handler="on_user_formats_row_activated_cb" object="CcRegionPage" swapped="yes" />
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwPreferencesGroup" id="login_group">
+                    <property name="title" translatable="yes">Login Screen</property>
+
+                    <child>
+                      <object class="CcListRow" id="login_language_row">
+                        <property name="title" translatable="yes">L_anguage</property>
+                        <property name="show-arrow">True</property>
+                        <signal name="activated" handler="on_login_language_row_activated_cb" object="CcRegionPage" swapped="yes" />
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="CcListRow" id="login_formats_row">
+                        <property name="title" translatable="yes">Fo_rmats</property>
+                        <property name="show-arrow">True</property>
+                        <signal name="activated" handler="on_login_formats_row_activated_cb" object="CcRegionPage" swapped="yes" />
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

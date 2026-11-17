@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkListStore" id="slots_combo_model">
+    <columns>
+      <!-- column-name slot -->
+      <column type="JsonObject"/>
+      <!-- column-name label -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <template class="CcSnapRow" parent="AdwActionRow">
+    <property name="can-focus">True</property>
+    <property name="activatable">False</property>
+    <property name="activatable-widget">slot_toggle</property>
+    <child>
+      <object class="GtkSwitch" id="slot_toggle">
+        <property name="valign">center</property>
+        <signal name="notify::active" handler="switch_changed_cb" swapped="yes"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkComboBox" id="slots_combo">
+        <property name="valign">center</property>
+        <property name="model">slots_combo_model</property>
+        <signal name="changed" handler="combo_changed_cb" swapped="yes"/>
+        <child>
+          <object class="GtkCellRendererText">
+            <property name="ellipsize">end</property>
+          </object>
+          <attributes>
+            <attribute name="text">1</attribute>
+          </attributes>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

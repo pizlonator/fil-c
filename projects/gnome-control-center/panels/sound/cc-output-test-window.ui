@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcOutputTestWindow" parent="AdwWindow">
+    <property name="title" translatable="yes">Test Speakers</property>
+    <property name="modal">True</property>
+    <property name="resizable">False</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="CcOutputTestWheel" id="wheel"/>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

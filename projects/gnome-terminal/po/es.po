@@ -1,0 +1,4045 @@
+# translation of gnome-terminal.master.po to Español
+# Spanish translation of es
+# translation of es.po to
+# traducción de es.po al Spanish
+# Spanish translation of gnome-terminal.
+# Copyright © 2002-2003, 2006, 2007, 2008 the Free Software Foundation, Inc.
+# This file is distributed under the same license as the gnome-terminal package.
+#
+# Pablo Gonzalo del Campo <pablodc@bigfoot.com>, 2002-2003.
+# Francisco Javier F. Serrador <serrador@arrakis.es>, 2003.
+# Pablo del Campo <pablodc@bigfoot.com>, 2003.
+# Francisco Javier F. Serrador <serrador@cvs.gnome.org>, 2003, 2004, 2005, 2006.
+# Jorge González <jorgegonz@svn.gnome.org>, 2007, 2008, 2009, 2010.
+#
+# Jorge González <jorgegonz@svn.gnome.org>, 2011.
+# Alberto H Sande <albertohsande@gmail.com>, 2022.
+# Daniel Mustieles <daniel.mustieles@gmail.com>, 2021-2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gnome-terminal.master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gnome-terminal/issues/\n"
+"POT-Creation-Date: 2024-02-27 09:59+0000\n"
+"PO-Revision-Date: 2024-02-28 14:26+0100\n"
+"Last-Translator: Daniel Mustieles <daniel.mustieles@gmail.com>\n"
+"Language-Team: Spanish - Spain <gnome-es-list@gnome.org>\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Gtranslator 45.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#: data/org.gnome.Terminal.desktop.in:3
+#: data/org.gnome.Terminal.metainfo.xml.in:37 src/server.cc:184
+#: src/terminal-accels.cc:232 src/terminal-menubar.ui.in:144
+#: src/terminal-tab-label.cc:82 src/terminal-window.cc:1903
+#: src/terminal-window.cc:2207 src/terminal-window.cc:2522 src/terminal.cc:598
+msgid "Terminal"
+msgstr "Terminal"
+
+#: data/org.gnome.Terminal.desktop.in:4
+#: data/org.gnome.Terminal.metainfo.xml.in:38
+msgid "Use the command line"
+msgstr "Use la línea de comandos"
+
+#: data/org.gnome.Terminal.desktop.in:5
+#: data/org.gnome.Terminal.Preferences.desktop.in:8
+msgid "shell;prompt;command;commandline;cmd;"
+msgstr "shell;prompt;comando;línea de comandos;cmd;"
+
+#: data/org.gnome.Terminal.desktop.in:18 src/terminal-accels.cc:127
+msgid "New Window"
+msgstr "Ventana nueva"
+
+#: data/org.gnome.Terminal.desktop.in:22 src/terminal-accels.cc:146
+msgid "Preferences"
+msgstr "Preferencias"
+
+#: data/org.gnome.Terminal.Preferences.desktop.in:4
+msgid "Configure the command line"
+msgstr "Configurar la línea de comandos"
+
+#: data/org.gnome.Terminal.Preferences.desktop.in:9 src/prefs-main.cc:146
+msgid "Terminal Preferences"
+msgstr "Preferencias de la terminal"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:34
+#: data/org.gnome.Terminal.metainfo.xml.in:63
+msgid "org.gnome.Terminal.desktop"
+msgstr "org.gnome.Terminal.desktopc"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:35
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:36
+msgid "GPL-3.0+ or GFDL-1.3-only"
+msgstr "GPL-3.0+ o GFDL-1.3-only"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:36
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:37
+msgid "GPL-3.0+"
+msgstr "GPL-3.0+"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:40
+msgid ""
+"GNOME Terminal is a terminal emulator application for accessing a UNIX shell "
+"environment which can be used to run programs available on your system."
+msgstr ""
+"GNOME Terminal es una aplicación de emulación de la terminal para acceder al "
+"entorno de shell de UNIX, que se puede usar para ejecutar programas "
+"disponibles en su equipo."
+
+#: data/org.gnome.Terminal.metainfo.xml.in:41
+msgid ""
+"It supports several profiles, multiple tabs and implements several keyboard "
+"shortcuts."
+msgstr ""
+"Soporta varios perfiles, varias pestañas e implementa varios atajos de "
+"teclado."
+
+#: data/org.gnome.Terminal.metainfo.xml.in:44
+msgid "console"
+msgstr "consola"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:45
+msgid "keyboard"
+msgstr "teclado"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:46
+msgid "pointing"
+msgstr "puntero"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:50
+msgid ""
+"https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal.png"
+msgstr ""
+"https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal.png"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:54
+msgid "HiDpiIcon"
+msgstr "HiDpiIcon"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:55
+msgid "HighContrast"
+msgstr "HighContrast"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:56
+msgid "ModernToolkit"
+msgstr "ModernToolkit"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:57
+msgid "SearchProvider"
+msgstr "SearchProvider"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:58
+msgid "UserDocs"
+msgstr "UserDocs"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:60
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:43
+msgid "https://wiki.gnome.org/Apps/Terminal"
+msgstr "https://wiki.gnome.org/Apps/Terminal"
+
+#. This is the name of a colour scheme
+#: data/org.gnome.Terminal.metainfo.xml.in:61
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:44 src/preferences.ui:214
+msgid "GNOME"
+msgstr "GNOME"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:62
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:45
+msgid "https://wiki.gnome.org/Apps/Terminal/ReportingBugs"
+msgstr "https://wiki.gnome.org/Apps/Terminal/ReportingBugs"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:34
+msgid "org.gnome.Terminal.Nautilus"
+msgstr "org.gnome.Terminal.Nautilus"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:35
+msgid "org.gnome.Nautilus.desktop"
+msgstr "org.gnome.Nautilus.desktop"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:38
+msgid "Terminal plugin for Files"
+msgstr "Complemento de terminal para Archivos"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:39
+msgid "Open a terminal from Files"
+msgstr "Abrir una terminal desde Archivos"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:41
+msgid ""
+"Open Terminal is a plugin for the Files application that adds a menu item to "
+"the context menu to open a terminal in the currently browsed directory."
+msgstr ""
+"Abrir terminal es un complemento para la aplicación Archivos que añade un "
+"elemento de menú al menú contextual para abrir una terminal en la carpeta "
+"actual."
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:46
+msgid "gnome-terminal"
+msgstr "gnome-terminal"
+
+#. Translators: This needs to be parsed as a GVariant string, so keep the regular single quotes around the string as-is, and do not add extra quotes.
+#: src/org.gnome.Terminal.gschema.xml:133
+msgctxt "visible-name"
+msgid "'Unnamed'"
+msgstr "'Sin nombre'"
+
+#: src/org.gnome.Terminal.gschema.xml:134
+msgid "Human-readable name of the profile"
+msgstr "Nombre del perfil legible por el humano"
+
+#: src/org.gnome.Terminal.gschema.xml:135
+msgid "Human-readable name of the profile."
+msgstr "Nombre del perfil legible por el humano."
+
+#: src/org.gnome.Terminal.gschema.xml:139
+msgid "Default color of text in the terminal"
+msgstr "Color predeterminado del texto en la terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:140
+msgid ""
+"Default color of text in the terminal, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr ""
+"Color predeterminado del texto en la terminal como una especificación de "
+"color (puede ser en estilo hexadecimal de HTML o el nombre de un color en "
+"inglés como «red»)."
+
+#: src/org.gnome.Terminal.gschema.xml:144
+msgid "Default color of terminal background"
+msgstr "Color predeterminado del fondo de la terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:145
+msgid ""
+"Default color of terminal background, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr ""
+"Color predeterminado del fondo de la terminal, como una especificación de "
+"color (puede ser en estilo hexadecimal de HTML o el nombre de un color en "
+"inglés como «red»)."
+
+#: src/org.gnome.Terminal.gschema.xml:149
+msgid "Default color of bold text in the terminal"
+msgstr "Color predeterminado del texto en negrita en la terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:150
+msgid ""
+"Default color of bold text in the terminal, as a color specification (can be "
+"HTML-style hex digits, or a color name such as “red”). This is ignored if "
+"bold-color-same-as-fg is true."
+msgstr ""
+"Color predeterminado del texto en negrita en la terminal como una "
+"especificación de color (puede ser en estilo hexadecimal de HTML o el nombre "
+"de un color en inglés como «red»). Se ignora si bold_color_same_as_fg es "
+"cierto."
+
+#: src/org.gnome.Terminal.gschema.xml:154
+msgid "Whether bold text should use the same color as normal text"
+msgstr ""
+"Indica si el texto en negrita debe usar el mismo color que el texto normal"
+
+#: src/org.gnome.Terminal.gschema.xml:155
+msgid ""
+"If true, boldface text will be rendered using the same color as normal text."
+msgstr ""
+"Si es verdadero el texto en negrita se renderizará usando el mismo color que "
+"el texto normal."
+
+#: src/org.gnome.Terminal.gschema.xml:160
+msgid ""
+"Scale factor for the cell height to increase line spacing. (Does not "
+"increase the font’s height.)"
+msgstr ""
+"Factor de escalado para la altura de la celda para aumentar el espaciado de "
+"la línea. (No aumenta la altura de la tipografía.)"
+
+#: src/org.gnome.Terminal.gschema.xml:165
+msgid ""
+"Scale factor for the cell width to increase letter spacing. (Does not "
+"increase the font’s width.)"
+msgstr ""
+"Factor de escalado para la anchura de la celda para aumentar el espaciado de "
+"la letra. (No aumenta la anchura de la tipografía.)"
+
+#: src/org.gnome.Terminal.gschema.xml:169
+msgid "Whether to use custom cursor colors"
+msgstr "Indica si se deben usar los colores del cursor personalizados"
+
+#: src/org.gnome.Terminal.gschema.xml:170
+msgid "If true, use the cursor colors from the profile."
+msgstr "Si es cierto, usar los colores del cursor del perfil."
+
+#: src/org.gnome.Terminal.gschema.xml:174
+msgid "Cursor background color"
+msgstr "Color de fondo del cursor"
+
+#: src/org.gnome.Terminal.gschema.xml:175
+msgid ""
+"Custom color of the background of the terminal’s cursor, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if cursor-colors-set is false."
+msgstr ""
+"Color predeterminado de fondo en la terminal como una especificación de "
+"color (puede ser en estilo hexadecimal de HTML o el nombre de un color en "
+"inglés como «red»). Se ignora si cursor-colors-set es falso."
+
+#: src/org.gnome.Terminal.gschema.xml:179
+msgid "Cursor foreground colour"
+msgstr "Color de primer plano del cursor"
+
+#: src/org.gnome.Terminal.gschema.xml:180
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"cursor position, as a color specification (can be HTML-style hex digits, or "
+"a color name such as “red”). This is ignored if cursor-colors-set is false."
+msgstr ""
+"Color predeterminado de primer plano de los caracteres de texto en la "
+"posición del cursor en la terminal como una especificación de color (puede "
+"ser en estilo hexadecimal de HTML o el nombre de un color en inglés como "
+"«red»). Se ignora si cursor-colors-set es falso."
+
+#: src/org.gnome.Terminal.gschema.xml:184
+msgid "Whether to use custom highlight colors"
+msgstr "Indica si se deben usar los colores de resaltado personalizados"
+
+#: src/org.gnome.Terminal.gschema.xml:185
+msgid "If true, use the highlight colors from the profile."
+msgstr "Si es cierto, usar los colores del resaltado del perfil."
+
+#: src/org.gnome.Terminal.gschema.xml:189
+msgid "Highlight background color"
+msgstr "Color de fondo de resaltado"
+
+#: src/org.gnome.Terminal.gschema.xml:190
+msgid ""
+"Custom color of the background of the terminal’s highlight, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if highlight-colors-set is false."
+msgstr ""
+"Color personalizado de fondo del resaltado de la terminal como una "
+"especificación de color (puede ser en estilo hexadecimal de HTML o el nombre "
+"de un color en inglés como «red»). Se ignora si highlight-colors-set es "
+"falso."
+
+#: src/org.gnome.Terminal.gschema.xml:194
+msgid "Highlight foreground colour"
+msgstr "Color de primer plano de resaltado"
+
+#: src/org.gnome.Terminal.gschema.xml:195
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"highlight position, as a color specification (can be HTML-style hex digits, "
+"or a color name such as “red”). This is ignored if highlight-colors-set is "
+"false."
+msgstr ""
+"Color personalizado de primer plano de los caracteres de texto en la "
+"posición de resaltado en la terminal como una especificación de color (puede "
+"ser en estilo hexadecimal de HTML o el nombre de un color en inglés como "
+"«red»). Se ignora si highlight-colors-set es falso."
+
+#: src/org.gnome.Terminal.gschema.xml:199
+msgid "Whether to perform bidirectional text rendering"
+msgstr "Indica si se debe realizar el renderizado del texto bidireccional"
+
+#: src/org.gnome.Terminal.gschema.xml:200
+msgid "If true, perform bidirectional text rendering (“BiDi”)."
+msgstr "Si es cierto hacer el renderizado del texto bidireccional («BiDi»)."
+
+#: src/org.gnome.Terminal.gschema.xml:204
+msgid "Whether to perform Arabic shaping"
+msgstr "Indica si se debe dar forma al texto en árabe"
+
+#: src/org.gnome.Terminal.gschema.xml:205
+msgid "If true, shape Arabic text."
+msgstr "Si es cierto, dar formar al texto en árabe."
+
+#: src/org.gnome.Terminal.gschema.xml:209
+msgid "Whether to enable SIXEL images"
+msgstr "Indica si deben activar las imágenes SIXEL"
+
+#: src/org.gnome.Terminal.gschema.xml:210
+msgid "If true, SIXEL sequences are parsed and images are rendered."
+msgstr ""
+"Si es cierto, las secuencias SIXEL se analizan y se renderizan las imágenes"
+
+#: src/org.gnome.Terminal.gschema.xml:214
+msgid "Whether bold is also bright"
+msgstr "Indica si la negrita también brilla"
+
+#: src/org.gnome.Terminal.gschema.xml:215
+msgid ""
+"If true, setting bold on the first 8 colors also switches to their bright "
+"variants."
+msgstr ""
+"Si es cierto establecer a negrita los 8 primeros colores también cambia a "
+"sus variantes brillantes."
+
+#: src/org.gnome.Terminal.gschema.xml:219
+msgid "Whether to ring the terminal bell"
+msgstr "Indica si debe sonar la campana de la terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:223
+msgid "List of punctuation characters that are treated as word characters"
+msgstr ""
+"Lista de caracteres de puntuación que no se tratan como caracteres de la "
+"palabra"
+
+#: src/org.gnome.Terminal.gschema.xml:224
+msgid ""
+"By default, when doing word-wise selection, most punctuation breaks up word "
+"boundaries. This list of exceptions will instead be treated as part of the "
+"word."
+msgstr ""
+"De manera predeterminada, al realizar una selección de palabras, la mayoría "
+"de la puntuación rompe los límites de las palabras. En cambio, esta lista de "
+"excepciones se tratará como parte de la palabra."
+
+#: src/org.gnome.Terminal.gschema.xml:229
+msgid "Default number of columns"
+msgstr "Número predeterminado de columnas"
+
+#: src/org.gnome.Terminal.gschema.xml:230
+msgid ""
+"Number of columns in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+"Número de columnas en las nuevas ventanas creadas de la terminal. No tiene "
+"efecto si use_custom_default_size no está activado."
+
+#: src/org.gnome.Terminal.gschema.xml:235
+msgid "Default number of rows"
+msgstr "Número predeterminado de filas"
+
+#: src/org.gnome.Terminal.gschema.xml:236
+msgid ""
+"Number of rows in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr ""
+"Número de filas en las nuevas ventanas creadas de la terminal. No tiene "
+"efecto si use_custom_default_size no está activado."
+
+#: src/org.gnome.Terminal.gschema.xml:240
+msgid "When to show the scrollbar"
+msgstr "Cuándo mostrar la barra de desplazamiento"
+
+#: src/org.gnome.Terminal.gschema.xml:244
+msgid "Number of lines to keep in scrollback"
+msgstr "Cantidad de líneas a mantener en el desplazamiento"
+
+#: src/org.gnome.Terminal.gschema.xml:245
+msgid ""
+"Number of scrollback lines to keep around. You can scroll back in the "
+"terminal by this number of lines; lines that don’t fit in the scrollback are "
+"discarded. If scrollback_unlimited is true, this value is ignored."
+msgstr ""
+"Número de líneas de desplazamiento que guardar aproximadamente. Puede "
+"desplazarse hacia atrás en la terminal esta cantidad de líneas; las líneas "
+"que no entran en el desplazamiento se descartan. Se ignora este valor si "
+"scrollback_unlimited es verdadero."
+
+#: src/org.gnome.Terminal.gschema.xml:249
+msgid "Whether an unlimited number of lines should be kept in scrollback"
+msgstr ""
+"Indica si se debe mantener un número ilimitado de líneas en el desplazamiento"
+
+#: src/org.gnome.Terminal.gschema.xml:250
+msgid ""
+"If true, scrollback lines will never be discarded. The scrollback history is "
+"stored on disk temporarily, so this may cause the system to run out of disk "
+"space if there is a lot of output to the terminal."
+msgstr ""
+"Si es verdadero las líneas de desplazamiento no se descartarán nunca. El "
+"histórico de desplazamiento se almacena temporalmente en el disco, de tal "
+"forma que puede causar que el disco se quede sin espacio si existe mucha "
+"salida en el terminal."
+
+#: src/org.gnome.Terminal.gschema.xml:254
+msgid "Whether to scroll to the bottom when text is inserted"
+msgstr "Indica si se debe desplazar hasta el final cuando se inserte texto"
+
+#: src/org.gnome.Terminal.gschema.xml:255
+msgid ""
+"If true, the terminal will scroll to the bottom when text is inserted by "
+"paste."
+msgstr "Indica si se debe desplazar hasta el final cuando se pegue texto."
+
+#: src/org.gnome.Terminal.gschema.xml:259
+msgid "Whether to scroll to the bottom when a key is pressed"
+msgstr ""
+"Indica si se debe desplazar hasta el final cuando se presione una tecla"
+
+#: src/org.gnome.Terminal.gschema.xml:260
+msgid "If true, pressing a key jumps the scrollbar to the bottom."
+msgstr ""
+"Si es verdadero, pulsar una tecla hace saltar la barra de desplazamiento "
+"hasta el final."
+
+#: src/org.gnome.Terminal.gschema.xml:264
+msgid "Whether to scroll to the bottom when there’s new output"
+msgstr "Indica si se debe desplazar hasta el final cuando hay una salida nueva"
+
+#: src/org.gnome.Terminal.gschema.xml:265
+msgid ""
+"If true, whenever there’s new output the terminal will scroll to the bottom."
+msgstr ""
+"Si es cierto, cada vez que haya una salida nueva en la terminal se "
+"desplazará hasta el final."
+
+#: src/org.gnome.Terminal.gschema.xml:269
+msgid "What to do with the terminal when the child command exits"
+msgstr "Qué hacer con la terminal cuando el comando hijo termina"
+
+#: src/org.gnome.Terminal.gschema.xml:270
+msgid ""
+"Possible values are “close” to close the terminal, “restart” to restart the "
+"command, and “hold” to keep the terminal open with no command running inside."
+msgstr ""
+"Los valores posibles son «close» para cerrar la terminal, «restart» para "
+"reiniciar el comando y «hold» para mantener la terminal abierta sin ningún "
+"comando ejecutándose en ella."
+
+#: src/org.gnome.Terminal.gschema.xml:274
+msgid "Whether to launch the command in the terminal as a login shell"
+msgstr ""
+"Define si se debe ejecutar el comando en terminal como un intérprete de "
+"acceso (login shell)"
+
+#: src/org.gnome.Terminal.gschema.xml:275
+msgid ""
+"If true, the command inside the terminal will be launched as a login shell "
+"(argv[0] will have a hyphen in front of it)."
+msgstr ""
+"Si es cierto, el comando del interior de la terminal se ejecutará como un "
+"intérprete de acceso (login) (argv[0] tendrá un guión delante de él)."
+
+#: src/org.gnome.Terminal.gschema.xml:279
+msgid "Whether to preserve the working directory when opening a new terminal"
+msgstr ""
+"Indica si se debe mantener la carpeta de trabajo al abrir una terminal nueva"
+
+#: src/org.gnome.Terminal.gschema.xml:280
+msgid ""
+"Controls when opening a new terminal from a previous one carries over the "
+"working directory of the opening terminal to the new one."
+msgstr ""
+"Controla que cuando se abre una terminal nueva desde otra arrastre la "
+"carpeta de trabajo de la terminal abierta a la nueva."
+
+#: src/org.gnome.Terminal.gschema.xml:286
+msgid "Whether to run a custom command instead of the shell"
+msgstr ""
+"Define si se debe ejecutar un comando personalizado en lugar del intérprete"
+
+#: src/org.gnome.Terminal.gschema.xml:287
+msgid ""
+"If true, the value of the custom_command setting will be used in place of "
+"running a shell."
+msgstr ""
+"Si es verdadero, el valor de la configuración de «custom_command» será usado "
+"en lugar de ejecutar un intérprete."
+
+#: src/org.gnome.Terminal.gschema.xml:291
+msgid "Whether to blink the cursor"
+msgstr "Indica si el cursor debe parpadear"
+
+#: src/org.gnome.Terminal.gschema.xml:292
+msgid ""
+"The possible values are “system” to use the global cursor blinking settings, "
+"or “on” or “off” to set the mode explicitly."
+msgstr ""
+"Los valores posibles son \"system\" para usar los ajustes de parpadeo "
+"globales, u \"on\" u \"off\" para establecer el modo explícito."
+
+#: src/org.gnome.Terminal.gschema.xml:296
+msgid "The cursor appearance"
+msgstr "La apariencia del cursor"
+
+#: src/org.gnome.Terminal.gschema.xml:300
+msgid ""
+"Possible values are “always” or “never” allow blinking text, or only when "
+"the terminal is “focused” or “unfocused”."
+msgstr ""
+"Los valores posibles son “always” o “never” permitir texto parpadeante, o "
+"sólo cuando la terminal tiene el foco (“focused”) o no (“unfocused”)."
+
+#: src/org.gnome.Terminal.gschema.xml:304
+msgid "Custom command to use instead of the shell"
+msgstr "Comando personalizado a utilizar en lugar del intérprete"
+
+#: src/org.gnome.Terminal.gschema.xml:305
+msgid "Run this command in place of the shell, if use_custom_command is true."
+msgstr ""
+"Ejecuta este comando en lugar del intérprete si «use_custom_command» es "
+"«true» (verdadero)."
+
+#: src/org.gnome.Terminal.gschema.xml:324
+msgid "Palette for terminal applications"
+msgstr "Paleta para la aplicaciones de la terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:328
+msgid "A Pango font name and size"
+msgstr "Un nombre y tamaño de tipografía Pango"
+
+#: src/org.gnome.Terminal.gschema.xml:332
+msgid "The code sequence the Backspace key generates"
+msgstr "El código de secuencia que genera la tecla Retroceso"
+
+#: src/org.gnome.Terminal.gschema.xml:336
+msgid "The code sequence the Delete key generates"
+msgstr "El código de secuencia que genera la tecla Suprimir"
+
+#: src/org.gnome.Terminal.gschema.xml:340
+msgid "Whether to use the colors from the theme for the terminal widget"
+msgstr ""
+"Indica si se deben utilizar los colores del tema para los controles de la "
+"terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:344
+msgid "Whether to use the system monospace font"
+msgstr "Indica si se debe usar la tipografía monoespaciada del sistema"
+
+#: src/org.gnome.Terminal.gschema.xml:348
+msgid "Whether to rewrap the terminal contents on window resize"
+msgstr ""
+"Indica si se debe ajustar el contenido de la terminal al redimensionar la "
+"ventana"
+
+#: src/org.gnome.Terminal.gschema.xml:352
+msgid "Which encoding to use"
+msgstr "Qué codificación usar"
+
+#: src/org.gnome.Terminal.gschema.xml:356
+msgid ""
+"Whether ambiguous-width characters are narrow or wide when using UTF-8 "
+"encoding"
+msgstr ""
+"Indica si los caracteres con anchura ambigua son estrechos o anchos al usar "
+"codificación UTF-8"
+
+#: src/org.gnome.Terminal.gschema.xml:365
+msgid "Keyboard shortcut to open a new tab"
+msgstr "Atajo del teclado para abrir una pestaña nueva"
+
+#: src/org.gnome.Terminal.gschema.xml:369
+msgid "Keyboard shortcut to open a new window"
+msgstr "Atajo del teclado para abrir una ventana nueva"
+
+#: src/org.gnome.Terminal.gschema.xml:373
+msgid "Keyboard shortcut to save the current tab contents to file"
+msgstr ""
+"Atajo del teclado para guardar el contenido actual de las pestaña a un "
+"archivo"
+
+#: src/org.gnome.Terminal.gschema.xml:377
+msgid ""
+"Keyboard shortcut to export the current tab contents to file in various "
+"formats"
+msgstr ""
+"Atajo del teclado para exportar el contenido actual de las pestaña a un "
+"archivo en varios formatos"
+
+#: src/org.gnome.Terminal.gschema.xml:381
+msgid "Keyboard shortcut to print the current tab contents to printer or file"
+msgstr ""
+"Atajo del teclado para imprimir el contenido actual de las pestaña en un "
+"archivo o usando una impresora"
+
+#: src/org.gnome.Terminal.gschema.xml:385
+msgid "Keyboard shortcut to close a tab"
+msgstr "Atajo del teclado para cerrar una pestaña"
+
+#: src/org.gnome.Terminal.gschema.xml:389
+msgid "Keyboard shortcut to close a window"
+msgstr "Atajo del teclado para cerrar una ventana"
+
+#: src/org.gnome.Terminal.gschema.xml:393
+msgid "Keyboard shortcut to copy text"
+msgstr "Atajo del teclado para copiar texto"
+
+#: src/org.gnome.Terminal.gschema.xml:397
+msgid "Keyboard shortcut to copy text as HTML"
+msgstr "Atajo del teclado para copiar texto como HTML"
+
+#: src/org.gnome.Terminal.gschema.xml:401
+msgid "Keyboard shortcut to paste text"
+msgstr "Atajo del teclado para pegar texto"
+
+#: src/org.gnome.Terminal.gschema.xml:405
+msgid "Keyboard shortcut to select all text"
+msgstr "Atajo del teclado para seleccionar todo el texto"
+
+#: src/org.gnome.Terminal.gschema.xml:409
+msgid "Keyboard shortcut to open the Preferences dialog"
+msgstr "Atajo de teclado para abrir el diálogo de preferencias"
+
+#: src/org.gnome.Terminal.gschema.xml:413
+msgid "Keyboard shortcut to toggle full screen mode"
+msgstr "Atajo del teclado para cambiar al modo de pantalla completa"
+
+#: src/org.gnome.Terminal.gschema.xml:417
+msgid "Keyboard shortcut to toggle the visibility of the menubar"
+msgstr "Atajo del teclado para cambiar la visibilidad de la barra de menús"
+
+#: src/org.gnome.Terminal.gschema.xml:421
+msgid "Keyboard shortcut to toggle the read-only state"
+msgstr "Atajo del teclado para cambiar el estado de solo lectura"
+
+#: src/org.gnome.Terminal.gschema.xml:425
+msgid "Keyboard shortcut to reset the terminal"
+msgstr "Atajo del teclado para reiniciar la terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:429
+msgid "Keyboard shortcut to reset and clear the terminal"
+msgstr "Atajo del teclado para reiniciar y limpiar la terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:433
+msgid "Keyboard shortcut to open the search dialog"
+msgstr "Atajo de teclado para abrir el diálogo de búsqueda"
+
+#: src/org.gnome.Terminal.gschema.xml:437
+msgid "Keyboard shortcut to find the next occurrence of the search term"
+msgstr ""
+"Atajo de teclado para buscar la siguiente aparición del término buscado"
+
+#: src/org.gnome.Terminal.gschema.xml:441
+msgid "Keyboard shortcut to find the previous occurrence of the search term"
+msgstr "Atajo de teclado para buscar la anterior aparición del término buscado"
+
+#: src/org.gnome.Terminal.gschema.xml:445
+msgid "Keyboard shortcut to clear the find highlighting"
+msgstr "Atajo del teclado para limpiar el resaltado de la búsqueda"
+
+#: src/org.gnome.Terminal.gschema.xml:449
+msgid "Keyboard shortcut to switch to the previous tab"
+msgstr "Atajo del teclado para cambiar a la pestaña anterior"
+
+#: src/org.gnome.Terminal.gschema.xml:453
+msgid "Keyboard shortcut to switch to the next tab"
+msgstr "Atajo del teclado para cambiar a la pestaña siguiente"
+
+#: src/org.gnome.Terminal.gschema.xml:457
+msgid "Keyboard shortcut to move the current tab to the left"
+msgstr "Atajo de teclado para mover la pestaña actual a la izquierda"
+
+#: src/org.gnome.Terminal.gschema.xml:461
+msgid "Keyboard shortcut to move the current tab to the right"
+msgstr "Atajo de teclado para mover la pestaña actual a la derecha"
+
+#: src/org.gnome.Terminal.gschema.xml:465
+msgid "Keyboard shortcut to detach current tab"
+msgstr "Atajo de teclado para desacoplar la pestaña actual"
+
+#: src/org.gnome.Terminal.gschema.xml:469
+#: src/org.gnome.Terminal.gschema.xml:473
+#: src/org.gnome.Terminal.gschema.xml:477
+#: src/org.gnome.Terminal.gschema.xml:481
+#: src/org.gnome.Terminal.gschema.xml:485
+#: src/org.gnome.Terminal.gschema.xml:489
+#: src/org.gnome.Terminal.gschema.xml:493
+#: src/org.gnome.Terminal.gschema.xml:497
+#: src/org.gnome.Terminal.gschema.xml:501
+#: src/org.gnome.Terminal.gschema.xml:505
+#: src/org.gnome.Terminal.gschema.xml:509
+#: src/org.gnome.Terminal.gschema.xml:513
+#: src/org.gnome.Terminal.gschema.xml:517
+#: src/org.gnome.Terminal.gschema.xml:521
+#: src/org.gnome.Terminal.gschema.xml:525
+#: src/org.gnome.Terminal.gschema.xml:529
+#: src/org.gnome.Terminal.gschema.xml:533
+#: src/org.gnome.Terminal.gschema.xml:537
+#: src/org.gnome.Terminal.gschema.xml:541
+#: src/org.gnome.Terminal.gschema.xml:545
+#: src/org.gnome.Terminal.gschema.xml:549
+#: src/org.gnome.Terminal.gschema.xml:553
+#: src/org.gnome.Terminal.gschema.xml:557
+#: src/org.gnome.Terminal.gschema.xml:561
+#: src/org.gnome.Terminal.gschema.xml:565
+#: src/org.gnome.Terminal.gschema.xml:569
+#: src/org.gnome.Terminal.gschema.xml:573
+#: src/org.gnome.Terminal.gschema.xml:577
+#: src/org.gnome.Terminal.gschema.xml:581
+#: src/org.gnome.Terminal.gschema.xml:585
+#: src/org.gnome.Terminal.gschema.xml:589
+#: src/org.gnome.Terminal.gschema.xml:593
+#: src/org.gnome.Terminal.gschema.xml:597
+#: src/org.gnome.Terminal.gschema.xml:601
+#: src/org.gnome.Terminal.gschema.xml:605
+msgid "Keyboard shortcut to switch to the numbered tab"
+msgstr "Atajo de teclado para cambiar a la siguiente pestaña numerada"
+
+#: src/org.gnome.Terminal.gschema.xml:609
+msgid "Keyboard shortcut to switch to the last tab"
+msgstr "Atajo del teclado para cambiar a la última pestaña"
+
+#: src/org.gnome.Terminal.gschema.xml:613
+msgid "Keyboard shortcut to launch help"
+msgstr "Atajo del teclado para lanzar la ayuda"
+
+#: src/org.gnome.Terminal.gschema.xml:617
+msgid "Keyboard shortcut to make font larger"
+msgstr "Atajo del teclado para agrandar la tipografía"
+
+#: src/org.gnome.Terminal.gschema.xml:621
+msgid "Keyboard shortcut to make font smaller"
+msgstr "Atajo del teclado para reducir la tipografía"
+
+#: src/org.gnome.Terminal.gschema.xml:625
+msgid "Keyboard shortcut to make font normal-size"
+msgstr "Atajo del teclado para establecer la tipografía a su tamaño normal"
+
+#: src/org.gnome.Terminal.gschema.xml:629
+msgid "Keyboard shortcut to show the primary menu"
+msgstr "Atajo del teclado para mostrar el menú primario"
+
+#: src/org.gnome.Terminal.gschema.xml:639
+msgid "Whether the menubar has access keys"
+msgstr "Define si la barra de menús tiene teclas de acceso"
+
+#: src/org.gnome.Terminal.gschema.xml:640
+msgid ""
+"Whether to have Alt+letter access keys for the menubar. They may interfere "
+"with some applications run inside the terminal so it’s possible to turn them "
+"off."
+msgstr ""
+"Define si se debe tener atajos del teclado de Alt+letra para la barra de "
+"menús. Éstos podrían interferir con algunas aplicaciones ejecutadas dentro "
+"de la terminal así que es posible desactivarlos."
+
+#: src/org.gnome.Terminal.gschema.xml:649
+msgid "Whether shortcuts are enabled"
+msgstr "Indica si los atajos están activados"
+
+#: src/org.gnome.Terminal.gschema.xml:650
+msgid ""
+"Whether shortcuts are enabled. They may interfere with some applications run "
+"inside the terminal so it’s possible to turn them off."
+msgstr ""
+"Indica si los atajos están activados- Éstos podrían interferir con algunas "
+"aplicaciones ejecutadas dentro de la terminal así que es posible "
+"desactivarlos."
+
+#: src/org.gnome.Terminal.gschema.xml:659
+msgid "Whether the standard GTK shortcut for menubar access is enabled"
+msgstr ""
+"Define si la Atajo del teclado estándar de GTK+ para acceder a la barra de "
+"menús está activada"
+
+#: src/org.gnome.Terminal.gschema.xml:660
+msgid ""
+"Normally you can access the menubar with F10. This can also be customized "
+"via gtkrc (gtk-menu-bar-accel = \"whatever\"). This option allows the "
+"standard menubar accelerator to be disabled."
+msgstr ""
+"Generalmente puede acceder a la barra de menús pulsando F10. Esto puede ser "
+"personalizado por medio de gtkrc (gtk-menu-bar-accel = \"lo que quiera\"). "
+"Esta opción permite deshabilitar la Atajo del teclado estándar de acceso a "
+"la barra de menús."
+
+#: src/org.gnome.Terminal.gschema.xml:670
+msgid "Whether the shell integration is enabled"
+msgstr "Indica si la integración de la shell está activada"
+
+#: src/org.gnome.Terminal.gschema.xml:675
+msgid "Whether to ask for confirmation before closing a terminal"
+msgstr "Indica si se debe preguntar antes de una terminal"
+
+#: src/org.gnome.Terminal.gschema.xml:680
+msgid "Additional info section items to appear in the context menu"
+msgstr ""
+"Elementos de la sección de información adicional que aparecerán en el menú "
+"contextual"
+
+#: src/org.gnome.Terminal.gschema.xml:685
+msgid "Whether to show the menubar in new windows"
+msgstr "Indica si se debe mostrar la barra de menú en las ventanas nuevas"
+
+#: src/org.gnome.Terminal.gschema.xml:690
+msgid "Whether to open new terminals as windows or tabs"
+msgstr ""
+"Indica si se deben abrir las terminales nuevas como ventanas o como pestañas"
+
+#: src/org.gnome.Terminal.gschema.xml:695
+msgid "When to show the tabs bar"
+msgstr "Cuándo mostrar la barra de pestañas"
+
+#: src/org.gnome.Terminal.gschema.xml:700
+msgid "The position of the tab bar"
+msgstr "La posición de la barra de pestañas"
+
+#: src/org.gnome.Terminal.gschema.xml:705
+msgid "Which theme variant to use"
+msgstr "Qué variante del tema usar"
+
+#: src/org.gnome.Terminal.gschema.xml:710
+msgid ""
+"Whether new tabs should open next to the current one or at the last position"
+msgstr ""
+"Indica si las pestañas nuevas se deben abrir junto a la actual o en la "
+"última posición"
+
+#: src/org.gnome.Terminal.gschema.xml:717
+msgid "Always check whether GNOME Terminal is the default terminal"
+msgstr "Comprobar siempre si GNOME Terminal es la terminal predeterminada"
+
+#. Open new terminal in new window
+#: src/preferences.ui:14
+msgid "Window"
+msgstr "Ventana"
+
+#. Open new terminal in new tab
+#: src/preferences.ui:18
+msgid "Tab"
+msgstr "Pestaña"
+
+#. New tab opens at the last position
+#: src/preferences.ui:32
+msgid "Last"
+msgstr "Última"
+
+#. New tab opens next to current tab
+#: src/preferences.ui:36
+msgid "Next"
+msgstr "Siguiente"
+
+#: src/preferences.ui:50
+msgctxt "theme variant"
+msgid "Follow system style"
+msgstr "Seguir el estilo del sistema"
+
+#: src/preferences.ui:54
+msgctxt "theme variant"
+msgid "Light style"
+msgstr "Estilo claro"
+
+#: src/preferences.ui:58
+msgctxt "theme variant"
+msgid "Dark style"
+msgstr "Estilo oscuro"
+
+#. ambiguous-width characers are
+#: src/preferences.ui:107
+msgid "Narrow"
+msgstr "Estrechos"
+
+#. ambiguous-width characers are
+#: src/preferences.ui:111
+msgid "Wide"
+msgstr "Anchos"
+
+#. Cursor shape
+#: src/preferences.ui:123
+msgid "Block"
+msgstr "Bloque"
+
+#. Cursor shape
+#: src/preferences.ui:126
+msgid "I-Beam"
+msgstr "Doble T"
+
+#. Cursor shape
+#: src/preferences.ui:129
+msgid "Underline"
+msgstr "Subrayado"
+
+#. Cursor blink mode
+#: src/preferences.ui:140
+msgid "Default"
+msgstr "Predeterminado"
+
+#. Cursor blink mode
+#: src/preferences.ui:143
+msgid "Enabled"
+msgstr "Activado"
+
+#. Cursor blink mode
+#: src/preferences.ui:146
+msgid "Disabled"
+msgstr "Desactivado"
+
+#. Text blink mode
+#. Preserve working directory
+#: src/preferences.ui:157 src/preferences.ui:268
+msgid "Never"
+msgstr "Nunca"
+
+#. Text blink mode
+#: src/preferences.ui:160
+msgid "When focused"
+msgstr "Con el foco"
+
+#. Text blink mode
+#: src/preferences.ui:163
+msgid "When unfocused"
+msgstr "Sin el foco"
+
+#. Text blink mode
+#. Preserve working directory
+#: src/preferences.ui:166 src/preferences.ui:276
+msgid "Always"
+msgstr "Siempre"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:177
+msgid "Replace initial title"
+msgstr "Reemplazar el título inicial"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:180
+msgid "Append initial title"
+msgstr "Añadir al título inicial"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:183
+msgid "Prepend initial title"
+msgstr "Añadir al comienzo del título inicial"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:186
+msgid "Keep initial title"
+msgstr "Mantener el título inicial"
+
+#. When command exits
+#: src/preferences.ui:197
+msgid "Exit the terminal"
+msgstr "Salir de la terminal"
+
+#. When command exits
+#: src/preferences.ui:200
+msgid "Restart the command"
+msgstr "Reiniciar el comando"
+
+#. When command exits
+#: src/preferences.ui:203
+msgid "Hold the terminal open"
+msgstr "Mantener la terminal abierta"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:217
+msgid "Tango"
+msgstr "Tango"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:220
+msgid "Linux console"
+msgstr "Consola Linux"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:223
+msgid "XTerm"
+msgstr "Terminal"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:226
+msgid "Rxvt"
+msgstr "Rxvt"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:229
+msgid "Solarized"
+msgstr "Solar"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:232 src/profile-editor.cc:730
+msgid "Custom"
+msgstr "Personalizado"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:243
+msgid "Automatic"
+msgstr "Automático"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:246
+msgid "Control-H"
+msgstr "Control-H"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:249
+msgid "ASCII DEL"
+msgstr "ASCII para Supr."
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:252
+msgid "Escape sequence"
+msgstr "Secuencia de escape"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:255
+msgid "TTY Erase"
+msgstr "Borrado TTY"
+
+#. Preserve working directory
+#: src/preferences.ui:272
+msgid "Shell only"
+msgstr "Sólo shell"
+
+#: src/preferences.ui:341
+msgid "_Show menubar by default in new terminals"
+msgstr "Mostrar la barra de _menús en las terminales nuevas"
+
+#: src/preferences.ui:357
+msgid "_Enable mnemonics (such as Alt+F to open the File menu)"
+msgstr "_Activar los mnemónicos (como Alt+F para abrir el menú Archivo)"
+
+#: src/preferences.ui:374
+msgid "Enable the _menu accelerator key (F10 by default)"
+msgstr ""
+"Activar la tecla de acceso rápido al _menú (F10 de manera predeterminada)"
+
+#: src/preferences.ui:399
+msgid "Theme _variant:"
+msgstr "_Variante del tema:"
+
+#: src/preferences.ui:431
+msgid "Open _new terminals in:"
+msgstr "Abrir terminales _nuevas en:"
+
+#: src/preferences.ui:463
+msgid "New tab _position:"
+msgstr "_Posición de la pestaña nueva:"
+
+#: src/preferences.ui:500
+msgid "_Always check if default terminal"
+msgstr "_Comprobar siempre si es la terminal predeterminada"
+
+#: src/preferences.ui:517
+msgid "_Set as default terminal"
+msgstr "Es_tablecer como terminal predeterminada"
+
+#: src/preferences.ui:557
+msgid "_Enable shortcuts"
+msgstr "Activar _atajos"
+
+#: src/preferences.ui:623
+msgid "Text Appearance"
+msgstr "Apariencia del texto"
+
+#: src/preferences.ui:640
+msgid "Initial terminal si_ze:"
+msgstr "_Tamaño inicial de la terminal:"
+
+#: src/preferences.ui:673
+msgid "columns"
+msgstr "columnas"
+
+#: src/preferences.ui:710
+msgid "rows"
+msgstr "filas"
+
+#: src/preferences.ui:731 src/preferences.ui:877
+msgid "Rese_t"
+msgstr "Re_iniciar"
+
+#: src/preferences.ui:752
+msgid "Custom _font:"
+msgstr "_Tipografía personalizada:"
+
+#: src/preferences.ui:773
+msgid "Choose A Terminal Font"
+msgstr "Elija una tipografía de terminal"
+
+#: src/preferences.ui:786
+msgid "Cell spaci_ng:"
+msgstr "Espaciado e_ntre celdas:"
+
+#: src/preferences.ui:901
+msgid "Allow b_linking text:"
+msgstr "Permitir texto _parpadeante:"
+
+#: src/preferences.ui:935
+msgid "Cursor"
+msgstr "Cursor"
+
+#: src/preferences.ui:952
+msgid "Cursor _shape:"
+msgstr "_Forma del cursor:"
+
+#: src/preferences.ui:986
+msgid "Cursor blin_king:"
+msgstr "Par_padeo del cursor:"
+
+#: src/preferences.ui:1020
+msgid "Sound"
+msgstr "Sonido"
+
+#: src/preferences.ui:1034
+msgid "Terminal _bell"
+msgstr "C_ampana de la terminal"
+
+#: src/preferences.ui:1060
+msgid "Profile ID:"
+msgstr "ID del perfil:"
+
+#: src/preferences.ui:1100 src/preferences.ui:1217
+msgid "Text"
+msgstr "Texto"
+
+#: src/preferences.ui:1123
+msgid "Text and Background Color"
+msgstr "Color del texto y del texto"
+
+#: src/preferences.ui:1147
+msgid "_Use colors from system theme"
+msgstr "_Usar colores del tema del sistema"
+
+#: src/preferences.ui:1176
+msgid "Built-in sche_mes:"
+msgstr "Esque_mas incluidos:"
+
+#: src/preferences.ui:1229
+msgid "Background"
+msgstr "Fondo"
+
+#: src/preferences.ui:1242
+msgid "_Default color:"
+msgstr "Color _predeterminado:"
+
+#: src/preferences.ui:1259
+msgid "Choose Terminal Text Color"
+msgstr "Elija el color del texto de la terminal"
+
+#: src/preferences.ui:1273
+msgid "Choose Terminal Background Color"
+msgstr "Elija el color de fondo de la terminal"
+
+#: src/preferences.ui:1283
+msgid "Bo_ld color:"
+msgstr "Color de _negrita:"
+
+#: src/preferences.ui:1303
+msgid "Choose Terminal Bold Text Color"
+msgstr "Elija el color de la negrita de la terminal"
+
+#: src/preferences.ui:1313
+msgid "_Underline color:"
+msgstr "Color del _subrayado:"
+
+#: src/preferences.ui:1331
+msgid "Choose Terminal Underlined Text Color"
+msgstr "Elija el color del subrayado de la terminal"
+
+#: src/preferences.ui:1340
+msgid "Cu_rsor color:"
+msgstr "Color del cu_rsor:"
+
+#: src/preferences.ui:1360
+msgid "Choose Terminal Cursor Foreground Color"
+msgstr "Elija el color de primer plano del cursor de la terminal"
+
+#: src/preferences.ui:1374
+msgid "Choose Terminal Cursor Background Color"
+msgstr "Elija el color de fondo del cursor de la terminal"
+
+#: src/preferences.ui:1384
+msgid "_Highlight color:"
+msgstr "Color de _resaltado:"
+
+#: src/preferences.ui:1403
+msgid "Choose Terminal Highlight Foreground Color"
+msgstr "Elija el color de primer plano de resaltado de la terminal"
+
+#: src/preferences.ui:1417
+msgid "Choose Terminal Highlight Background Color"
+msgstr "Elija el color de fondo de resaltado de la terminal"
+
+#: src/preferences.ui:1464
+msgid "Palette"
+msgstr "Paleta"
+
+#: src/preferences.ui:1496
+msgid "Built-in _schemes:"
+msgstr "E_squemas incluidos:"
+
+#: src/preferences.ui:1529
+msgid "Color p_alette:"
+msgstr "P_aleta de colores:"
+
+#: src/preferences.ui:1770
+msgid "Show _bold text in bright colors"
+msgstr "Mostrar texto en _negrita en colores brillantes"
+
+#: src/preferences.ui:1809
+msgid "Colors"
+msgstr "Colores"
+
+#: src/preferences.ui:1827
+msgid "_Show scrollbar"
+msgstr "_Mostrar la barra de desplazamiento"
+
+#: src/preferences.ui:1844
+msgid "Scroll on _output"
+msgstr "Desplazar en la _salida"
+
+#: src/preferences.ui:1861
+msgid "Scroll on _keystroke"
+msgstr "Desplazar al pulsar _teclas"
+
+#: src/preferences.ui:1878
+msgid "Scroll on _paste"
+msgstr "Desplazar al _pegar"
+
+#: src/preferences.ui:1895
+msgid "_Limit scrollback to:"
+msgstr "_Limitar el desplazamiento hacia atrás a:"
+
+#: src/preferences.ui:1933
+msgid "lines"
+msgstr "líneas"
+
+#: src/preferences.ui:1987
+msgid ""
+"Warning! Large scrollback buffers may lead to exhaustion of system resources."
+msgstr ""
+"Advertencia. Los búferes de retroceso grandes pueden provocar el agotamiento "
+"de los recursos del sistema."
+
+#: src/preferences.ui:2021
+msgid "Scrolling"
+msgstr "Desplazamiento"
+
+#: src/preferences.ui:2038
+msgid "_Run command as a login shell"
+msgstr "_Ejecutar el comando como un intérprete de conexión"
+
+#: src/preferences.ui:2053
+msgid "Ru_n a custom command instead of my shell"
+msgstr "Ejec_utar un comando personalizado en vez de mi intérprete"
+
+#: src/preferences.ui:2070
+msgid "Custom co_mmand:"
+msgstr "Comando _personalizado:"
+
+#: src/preferences.ui:2096
+msgid "_Preserve working directory:"
+msgstr "_Mantener la carpeta de trabajo:"
+
+#: src/preferences.ui:2130
+msgid "When command _exits:"
+msgstr "Cuando el comando termi_na:"
+
+#: src/preferences.ui:2168
+msgid "Command"
+msgstr "Comando"
+
+#: src/preferences.ui:2188
+msgid "_Backspace key generates:"
+msgstr "La tecla _Retroceso genera:"
+
+#: src/preferences.ui:2221
+msgid "_Delete key generates:"
+msgstr "La tecla _Suprimir genera:"
+
+#: src/preferences.ui:2254
+msgid "_Encoding:"
+msgstr "_Codificación:"
+
+#: src/preferences.ui:2286
+msgid "Ambiguous-_width characters:"
+msgstr "Caracteres de _anchura ambigua:"
+
+#: src/preferences.ui:2318
+msgid "Enable _SIXEL images"
+msgstr "Activar imágenes _SIXEL"
+
+#: src/preferences.ui:2334
+msgid "_Reset Compatibility Options to Defaults"
+msgstr ""
+"R_einiciar las opciones de compatibilidad con los valores predeterminados"
+
+#: src/preferences.ui:2357
+msgid "Compatibility"
+msgstr "Compatibilidad"
+
+#: src/preferences.ui:2436
+msgid "Clone…"
+msgstr "Clonar…"
+
+#: src/preferences.ui:2443
+msgid "Rename…"
+msgstr "Renombrar…"
+
+#: src/preferences.ui:2450
+msgid "Delete…"
+msgstr "Eliminar…"
+
+#: src/preferences.ui:2463
+msgid "Set as default"
+msgstr "Establecer como predeterminado"
+
+#: src/preferences.ui:2527
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: src/profile-editor.cc:157
+msgid "Black on light yellow"
+msgstr "Negro sobre amarillo suave"
+
+#: src/profile-editor.cc:161
+msgid "Black on white"
+msgstr "Negro sobre blanco"
+
+#: src/profile-editor.cc:165
+msgid "Gray on black"
+msgstr "Gris sobre negro"
+
+#: src/profile-editor.cc:169
+msgid "Green on black"
+msgstr "Verde sobre negro"
+
+#: src/profile-editor.cc:173
+msgid "White on black"
+msgstr "Blanco sobre negro"
+
+#. Translators: "GNOME" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:178
+msgid "GNOME light"
+msgstr "GNOME claro"
+
+#. Translators: "GNOME" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:183
+msgid "GNOME dark"
+msgstr "GNOME oscuro"
+
+#. Translators: "Tango" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:188
+msgid "Tango light"
+msgstr "Tango claro"
+
+#. Translators: "Tango" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:193
+msgid "Tango dark"
+msgstr "Tango oscuro"
+
+#. Translators: "Solarized" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:198
+msgid "Solarized light"
+msgstr "Solar claro"
+
+#. Translators: "Solarized" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:203
+msgid "Solarized dark"
+msgstr "Solar oscuro"
+
+#: src/profile-editor.cc:598
+#, c-format
+msgid "Error parsing command: %s"
+msgstr "Error al analizar el comando: %s"
+
+#: src/profile-editor.cc:755 src/profile-editor.cc:756
+#: src/profile-editor.cc:760
+msgid "Chinese Traditional"
+msgstr "Chino tradicional"
+
+#: src/profile-editor.cc:757
+msgid "Cyrillic/Russian"
+msgstr "Cirílico/Ruso"
+
+#: src/profile-editor.cc:758 src/profile-editor.cc:797
+msgid "Japanese"
+msgstr "Japonés"
+
+#: src/profile-editor.cc:759 src/profile-editor.cc:799
+msgid "Korean"
+msgstr "Coreano"
+
+#: src/profile-editor.cc:761 src/profile-editor.cc:762
+#: src/profile-editor.cc:763
+msgid "Chinese Simplified"
+msgstr "Chino simplificado"
+
+#: src/profile-editor.cc:764 src/profile-editor.cc:770
+#: src/profile-editor.cc:774 src/profile-editor.cc:793
+#: src/profile-editor.cc:803
+msgid "Western"
+msgstr "Occidental"
+
+#: src/profile-editor.cc:765 src/profile-editor.cc:776
+#: src/profile-editor.cc:789 src/profile-editor.cc:801
+msgid "Central European"
+msgstr "Europa central"
+
+#: src/profile-editor.cc:766 src/profile-editor.cc:779
+#: src/profile-editor.cc:785 src/profile-editor.cc:787
+#: src/profile-editor.cc:802
+msgid "Cyrillic"
+msgstr "Cirílico"
+
+#: src/profile-editor.cc:767 src/profile-editor.cc:784
+#: src/profile-editor.cc:795 src/profile-editor.cc:805
+msgid "Turkish"
+msgstr "Turco"
+
+#: src/profile-editor.cc:768 src/profile-editor.cc:783
+#: src/profile-editor.cc:792 src/profile-editor.cc:806
+msgid "Hebrew"
+msgstr "Hebreo"
+
+#: src/profile-editor.cc:769 src/profile-editor.cc:780
+#: src/profile-editor.cc:788 src/profile-editor.cc:807
+msgid "Arabic"
+msgstr "Árabe"
+
+#: src/profile-editor.cc:771
+msgid "Nordic"
+msgstr "Nórdico"
+
+#: src/profile-editor.cc:772 src/profile-editor.cc:778
+#: src/profile-editor.cc:808
+msgid "Baltic"
+msgstr "Báltico"
+
+#: src/profile-editor.cc:773
+msgid "Celtic"
+msgstr "Celta"
+
+#: src/profile-editor.cc:775 src/profile-editor.cc:794
+msgid "Romanian"
+msgstr "Rumano"
+
+#: src/profile-editor.cc:777
+msgid "South European"
+msgstr "Europa del sur"
+
+#: src/profile-editor.cc:781 src/profile-editor.cc:791
+#: src/profile-editor.cc:804
+msgid "Greek"
+msgstr "Griego"
+
+#: src/profile-editor.cc:782
+msgid "Hebrew Visual"
+msgstr "Hebreo visual"
+
+#: src/profile-editor.cc:786 src/profile-editor.cc:796
+msgid "Cyrillic/Ukrainian"
+msgstr "Cirílico/Ucraniano"
+
+#: src/profile-editor.cc:790
+msgid "Croatian"
+msgstr "Croata"
+
+#: src/profile-editor.cc:798
+msgid "Thai"
+msgstr "Tailandés"
+
+#: src/profile-editor.cc:800 src/profile-editor.cc:816
+msgid "Unicode"
+msgstr "Unicode"
+
+#: src/profile-editor.cc:809
+msgid "Vietnamese"
+msgstr "Vietnamita"
+
+#: src/profile-editor.cc:817
+msgid "Legacy CJK Encodings"
+msgstr "Codificaciones CJK heredadas"
+
+#: src/profile-editor.cc:818
+msgid "Obsolete Encodings"
+msgstr "Codificaciones obsoletas"
+
+#. Translators: Appears as: [numeric entry] × width
+#: src/profile-editor.cc:1022
+msgid "width"
+msgstr "anchura"
+
+#. Translators: Appears as: [numeric entry] × height
+#: src/profile-editor.cc:1027
+msgid "height"
+msgstr "altura"
+
+#: src/profile-editor.cc:1075
+#, c-format
+msgid "Choose Palette Color %u"
+msgstr "Elija la paleta de colores %u"
+
+#: src/profile-editor.cc:1079
+#, c-format
+msgid "Palette entry %u"
+msgstr "Entrada de paleta %u"
+
+#: src/search-popover.ui:7 src/search-popover.ui:37 src/terminal-accels.cc:150
+#: src/terminal-headerbar.ui:118
+msgid "Find"
+msgstr "Buscar"
+
+#: src/search-popover.ui:51
+msgid "Find previous occurrence"
+msgstr "Buscar la coincidencia anterior"
+
+#: src/search-popover.ui:73
+msgid "Find next occurrence"
+msgstr "Buscar la siguiente coincidencia"
+
+#: src/search-popover.ui:104
+msgid "Toggle search options"
+msgstr "Conmutar las opciones de búsqueda"
+
+#: src/search-popover.ui:167
+msgid "_Match case"
+msgstr "_Coincidir mayúsculas y minúsculas"
+
+#: src/search-popover.ui:186
+msgid "Match _entire word only"
+msgstr "Coincidir sólo con la palabra _entera"
+
+#: src/search-popover.ui:204
+msgid "Match as _regular expression"
+msgstr "Coincidir con expresión _regular"
+
+#: src/search-popover.ui:222
+msgid "_Wrap around"
+msgstr "_Volver al principio"
+
+#: src/terminal-accels.cc:126 src/terminal-headerbar.ui:48
+msgid "New Tab"
+msgstr "Pestaña nueva"
+
+#: src/terminal-accels.cc:129
+msgid "Save Contents"
+msgstr "Guardar contenido"
+
+#: src/terminal-accels.cc:132
+msgid "Export"
+msgstr "Exportar"
+
+#: src/terminal-accels.cc:135
+msgid "Print"
+msgstr "Imprimir"
+
+#: src/terminal-accels.cc:137
+msgid "Close Tab"
+msgstr "Cerrar pestaña"
+
+#: src/terminal-accels.cc:138
+msgid "Close Window"
+msgstr "Cerrar ventana"
+
+#: src/terminal-accels.cc:142
+msgid "Copy"
+msgstr "Copiar"
+
+#: src/terminal-accels.cc:143
+msgid "Copy as HTML"
+msgstr "Copiar como HTML"
+
+#: src/terminal-accels.cc:144
+msgid "Paste"
+msgstr "Pegar"
+
+#: src/terminal-accels.cc:145
+msgid "Select All"
+msgstr "Seleccionar todo"
+
+#: src/terminal-accels.cc:151
+msgid "Find Next"
+msgstr "Buscar siguiente"
+
+#: src/terminal-accels.cc:152
+msgid "Find Previous"
+msgstr "Buscar anterior"
+
+#: src/terminal-accels.cc:153
+msgid "Clear Highlight"
+msgstr "Limpiar resaltado"
+
+#: src/terminal-accels.cc:157
+msgid "Hide and Show Menubar"
+msgstr "Ocultar y mostrar la barra de menú"
+
+#: src/terminal-accels.cc:158
+msgid "Full Screen"
+msgstr "Pantalla completa"
+
+#: src/terminal-accels.cc:159
+msgid "Zoom In"
+msgstr "Ampliar"
+
+#: src/terminal-accels.cc:160
+msgid "Zoom Out"
+msgstr "Reducir"
+
+#: src/terminal-accels.cc:161
+msgid "Normal Size"
+msgstr "Tamaño normal"
+
+#: src/terminal-accels.cc:165
+msgid "Read-Only"
+msgstr "Sólo lectura"
+
+#: src/terminal-accels.cc:166
+msgid "Reset"
+msgstr "Reiniciar"
+
+#: src/terminal-accels.cc:167
+msgid "Reset and Clear"
+msgstr "Reiniciar y limpiar"
+
+#: src/terminal-accels.cc:171
+msgid "Switch to Previous Tab"
+msgstr "Cambiar a la pestaña anterior"
+
+#: src/terminal-accels.cc:172
+msgid "Switch to Next Tab"
+msgstr "Cambiar a la siguiente pestaña"
+
+#: src/terminal-accels.cc:173
+msgid "Move Tab to the Left"
+msgstr "Mover pestaña a la izquierda"
+
+#: src/terminal-accels.cc:174
+msgid "Move Tab to the Right"
+msgstr "Mover la pestaña a la derecha"
+
+#: src/terminal-accels.cc:175
+msgid "Detach Tab"
+msgstr "Desprender pestaña"
+
+#: src/terminal-accels.cc:211
+msgid "Switch to Last Tab"
+msgstr "Cambiar a última pestaña"
+
+#: src/terminal-accels.cc:215
+msgid "Contents"
+msgstr "Índice"
+
+#: src/terminal-accels.cc:219
+msgid "Show Primary Menu"
+msgstr "Mostrar el menú primario"
+
+#: src/terminal-accels.cc:228 src/terminal-menubar.ui.in:22
+msgid "File"
+msgstr "Archivo"
+
+#: src/terminal-accels.cc:229 src/terminal-menubar.ui.in:56
+msgid "Edit"
+msgstr "Editar"
+
+#: src/terminal-accels.cc:230 src/terminal-menubar.ui.in:93
+msgid "View"
+msgstr "Ver"
+
+#: src/terminal-accels.cc:231 src/terminal-menubar.ui.in:122
+msgid "Search"
+msgstr "Buscar"
+
+#: src/terminal-accels.cc:233 src/terminal-menubar.ui.in:196
+msgid "Tabs"
+msgstr "Pestañas"
+
+#: src/terminal-accels.cc:234 src/terminal-menubar.ui.in:228
+msgid "Help"
+msgstr "Ayuda"
+
+#: src/terminal-accels.cc:235 src/terminal-prefs.cc:645
+msgid "Global"
+msgstr "Global"
+
+#: src/terminal-accels.cc:361
+#, c-format
+msgid "Switch to Tab %u"
+msgstr "Cambiar a la pestaña %u"
+
+#: src/terminal-accels.cc:551
+msgid "_Action"
+msgstr "_Acción"
+
+#: src/terminal-accels.cc:570
+msgid "Shortcut _Key"
+msgstr "Atajo del _teclado"
+
+#: src/terminal-app.cc:576
+msgid "New Terminal"
+msgstr "Nueva terminal"
+
+#: src/terminal-app.cc:586 src/terminal-window.cc:1804
+msgid "New _Terminal"
+msgstr "Nueva _terminal"
+
+#: src/terminal-app.cc:588 src/terminal-window.cc:1813
+msgid "New _Tab"
+msgstr "_Pestaña nueva"
+
+#: src/terminal-app.cc:589 src/terminal-headermenu.ui:39
+#: src/terminal-window.cc:1809
+msgid "New _Window"
+msgstr "_Ventana nueva"
+
+#: src/terminal-app.cc:638
+msgid "Change _Profile"
+msgstr "Cambiar _perfil"
+
+#: src/terminal-app.cc:651
+msgid "_Profile"
+msgstr "_Perfil"
+
+#: src/terminal-headerbar.ui:72 src/terminal-prefs.cc:657
+msgid "Profiles"
+msgstr "Perfiles"
+
+#: src/terminal-headermenu.ui:23 src/terminal-menubar.ui.in:115
+msgid "Zoom _Out"
+msgstr "Re_ducir"
+
+#: src/terminal-headermenu.ui:32 src/terminal-menubar.ui.in:107
+msgid "Zoom _In"
+msgstr "_Ampliar"
+
+#: src/terminal-headermenu.ui:44 src/terminal-menubar.ui.in:101
+msgid "_Full Screen"
+msgstr "_Pantalla completa"
+
+#: src/terminal-headermenu.ui:50 src/terminal-menubar.ui.in:155
+#: src/terminal-window.cc:1785
+msgid "Read-_Only"
+msgstr "Sólo _lectura"
+
+#: src/terminal-headermenu.ui:54 src/terminal-menubar.ui.in:148
+#: src/terminal-notebook-menu.ui:36
+msgid "Set _Title…"
+msgstr "E_stablecer título…"
+
+#: src/terminal-headermenu.ui:60
+msgid "_Advanced"
+msgstr "_Avanzado"
+
+#: src/terminal-headermenu.ui:63 src/terminal-menubar.ui.in:161
+msgid "_Reset"
+msgstr "_Reiniciar"
+
+#: src/terminal-headermenu.ui:68 src/terminal-menubar.ui.in:166
+msgid "Reset and C_lear"
+msgstr "Reiniciar y _limpiar"
+
+#: src/terminal-headermenu.ui:75 src/terminal-menubar.ui.in:173
+msgid "_1. 80×24"
+msgstr "_1. 80×24"
+
+#: src/terminal-headermenu.ui:80 src/terminal-menubar.ui.in:178
+msgid "_2. 80×43"
+msgstr "_2. 80×43"
+
+#: src/terminal-headermenu.ui:85 src/terminal-menubar.ui.in:183
+msgid "_3. 132×24"
+msgstr "_3. 132×24"
+
+#: src/terminal-headermenu.ui:90 src/terminal-menubar.ui.in:188
+msgid "_4. 132×43"
+msgstr "_4. 132×43"
+
+#: src/terminal-headermenu.ui:97 src/terminal-menubar.ui.in:241
+msgid "_Inspector"
+msgstr "_Inspector"
+
+#: src/terminal-headermenu.ui:106 src/terminal-screen.cc:1562
+#: src/terminal-window.cc:1797
+msgid "_Preferences"
+msgstr "_Preferencias"
+
+#: src/terminal-headermenu.ui:110 src/terminal-menubar.ui.in:227
+msgid "_Help"
+msgstr "Ay_uda"
+
+#: src/terminal-headermenu.ui:114 src/terminal-menubar.ui.in:235
+msgid "_About"
+msgstr "Acerca _de"
+
+#: src/terminal-menubar.ui.in:21
+msgid "_File"
+msgstr "_Archivo"
+
+#: src/terminal-menubar.ui.in:26
+msgid "_Save Contents…"
+msgstr "_Guardar contenido…"
+
+#: src/terminal-menubar.ui.in:31
+msgid "_Export…"
+msgstr "_Exportar…"
+
+#: src/terminal-menubar.ui.in:36
+msgid "_Print…"
+msgstr "_Imprimir…"
+
+#: src/terminal-menubar.ui.in:43
+msgid "C_lose Tab"
+msgstr "C_errar pestaña"
+
+#: src/terminal-menubar.ui.in:48
+msgid "_Close Window"
+msgstr "_Cerrar ventana"
+
+#: src/terminal-menubar.ui.in:55
+msgid "_Edit"
+msgstr "_Editar"
+
+#: src/terminal-menubar.ui.in:59 src/terminal-window.cc:1775
+msgid "_Copy"
+msgstr "_Copiar"
+
+#: src/terminal-menubar.ui.in:64 src/terminal-window.cc:1776
+msgid "Copy as _HTML"
+msgstr "Copiar como _HTML"
+
+#: src/terminal-menubar.ui.in:69 src/terminal-window.cc:1777
+msgid "_Paste"
+msgstr "_Pegar"
+
+#: src/terminal-menubar.ui.in:73 src/terminal-window.cc:1779
+msgid "Paste as _Filenames"
+msgstr "Pegar como _nombres de archivo"
+
+#: src/terminal-menubar.ui.in:80
+msgid "Select _All"
+msgstr "Seleccionar _todo"
+
+#: src/terminal-menubar.ui.in:86
+msgid "P_references"
+msgstr "P_referencias"
+
+#: src/terminal-menubar.ui.in:92
+msgid "_View"
+msgstr "_Ver"
+
+#: src/terminal-menubar.ui.in:96 src/terminal-window.cc:1825
+msgid "Show _Menubar"
+msgstr "Mostrar la barra de _menú"
+
+#: src/terminal-menubar.ui.in:111
+msgid "_Normal Size"
+msgstr "Tamaño _normal"
+
+#: src/terminal-menubar.ui.in:121
+msgid "_Search"
+msgstr "_Buscar"
+
+#: src/terminal-menubar.ui.in:125
+msgid "_Find…"
+msgstr "_Buscar…"
+
+#: src/terminal-menubar.ui.in:129
+msgid "Find _Next"
+msgstr "Buscar _siguiente"
+
+#: src/terminal-menubar.ui.in:133
+msgid "Find _Previous"
+msgstr "Buscar _anterior"
+
+#: src/terminal-menubar.ui.in:137
+msgid "_Clear Highlight"
+msgstr "_Quitar resaltado"
+
+#: src/terminal-menubar.ui.in:143
+msgid "_Terminal"
+msgstr "_Terminal"
+
+#: src/terminal-menubar.ui.in:195
+msgid "Ta_bs"
+msgstr "Pe_stañas"
+
+#: src/terminal-menubar.ui.in:201
+msgid "_Previous Tab"
+msgstr "Pestaña _anterior"
+
+#: src/terminal-menubar.ui.in:205
+msgid "_Next Tab"
+msgstr "Pestaña _siguiente"
+
+#: src/terminal-menubar.ui.in:211 src/terminal-notebook-menu.ui:22
+msgid "Move Terminal _Left"
+msgstr "Mover terminal a la _izquierda"
+
+#: src/terminal-menubar.ui.in:215 src/terminal-notebook-menu.ui:26
+msgid "Move Terminal _Right"
+msgstr "Mover terminal a la de_recha"
+
+#: src/terminal-menubar.ui.in:221 src/terminal-notebook-menu.ui:32
+msgid "_Detach Terminal"
+msgstr "_Desacoplar terminal"
+
+#: src/terminal-menubar.ui.in:231
+msgid "_Contents"
+msgstr "Índ_ice"
+
+#: src/terminal-nautilus.cc:542
+msgid "Open in _Remote Terminal"
+msgstr "Abrir en una terminal _remota"
+
+#: src/terminal-nautilus.cc:544
+msgid "Open in _Local Terminal"
+msgstr "Abrir en una terminal _local"
+
+#: src/terminal-nautilus.cc:548 src/terminal-nautilus.cc:559
+msgid "Open the currently selected folder in a terminal"
+msgstr "Abrir la carpeta seleccionada en una terminal"
+
+#: src/terminal-nautilus.cc:550 src/terminal-nautilus.cc:561
+msgid "Open the currently open folder in a terminal"
+msgstr "Abrir la carpeta abierta actualmente en una terminal"
+
+#: src/terminal-nautilus.cc:556
+msgid "Open in T_erminal"
+msgstr "Abrir en una t_erminal"
+
+#: src/terminal-nautilus.cc:566
+msgid "Open T_erminal"
+msgstr "Abrir t_erminal"
+
+#: src/terminal-nautilus.cc:567
+msgid "Open a terminal"
+msgstr "Abrir una terminal"
+
+#: src/terminal-notebook-menu.ui:43 src/terminal-window.cc:3336
+msgid "C_lose Terminal"
+msgstr "Cerrar la _terminal"
+
+#: src/terminal-options.cc:332
+#, c-format
+msgid ""
+"Option “%s” is deprecated and might be removed in a later version of gnome-"
+"terminal."
+msgstr ""
+"La opción «%s» está obsoleta y se eliminará en una versión futura de gnome-"
+"terminal."
+
+#. %s is being replaced with "-- " (without quotes), which must be used literally, not translatable
+#: src/terminal-options.cc:343
+#, c-format
+msgid ""
+"Use “%s” to terminate the options and put the command line to execute after "
+"it."
+msgstr ""
+"Use «%s» para terminar las opciones y coloque el comando que ejecutar "
+"después."
+
+#: src/terminal-options.cc:353 src/terminal-options.cc:366
+#, c-format
+msgid "Option “%s” is no longer supported in this version of gnome-terminal."
+msgstr "La opción «%s» ya no está soportada en esta versión de gnome-terminal."
+
+#: src/terminal-options.cc:438
+#, c-format
+msgid "Argument to “%s” is not a valid command: %s"
+msgstr "El argumento para «%s» no es un comando válido: %s"
+
+#: src/terminal-options.cc:611
+msgid "Two roles given for one window"
+msgstr "Se han dado dos roles para una ventana"
+
+#: src/terminal-options.cc:632 src/terminal-options.cc:665
+#, c-format
+msgid "“%s” option given twice for the same window\n"
+msgstr "La opción «%s» se ha utilizado dos veces para la misma ventana\n"
+
+#: src/terminal-options.cc:882
+#, c-format
+msgid "Cannot pass FD %d twice"
+msgstr "No se puede pasar el FD %d dos veces"
+
+#: src/terminal-options.cc:944
+#, c-format
+msgid "“%s” is not a valid zoom factor"
+msgstr "«%s» no es un factor de ampliación válido"
+
+#: src/terminal-options.cc:951
+#, c-format
+msgid "Zoom factor “%g” is too small, using %g\n"
+msgstr "El factor de ampliación «%g» es demasiado pequeño, utilizando %g\n"
+
+#: src/terminal-options.cc:959
+#, c-format
+msgid "Zoom factor “%g” is too large, using %g\n"
+msgstr "El factor de ampliación «%g» es demasiado grande, utilizando %g\n"
+
+#: src/terminal-options.cc:997
+#, c-format
+msgid ""
+"Option “%s” requires specifying the command to run on the rest of the "
+"command line"
+msgstr ""
+"La opción «%s» necesita que se especifique el comando para ejecutarse en el "
+"resto de la línea de comandos"
+
+#: src/terminal-options.cc:1158
+msgid "Can only use --wait once"
+msgstr "Sólo puede usar --wait una vez"
+
+#: src/terminal-options.cc:1194
+msgid "Not a valid terminal config file."
+msgstr "No es un archivo de configuración de la terminal válido."
+
+#: src/terminal-options.cc:1207
+msgid "Incompatible terminal config file version."
+msgstr "Versión del archivo de configuración incompatible."
+
+#: src/terminal-options.cc:1366
+msgid ""
+"Do not register with the activation nameserver, do not re-use an active "
+"terminal"
+msgstr ""
+"No registrar con el servidor de nombres de activación, no reutilizar una "
+"terminal activa"
+
+#: src/terminal-options.cc:1375
+msgid "Load a terminal configuration file"
+msgstr "Cargar un archivo de configuración de la terminal"
+
+#: src/terminal-options.cc:1376
+msgid "FILE"
+msgstr "ARCHIVO"
+
+#: src/terminal-options.cc:1392
+msgid "Do not pass the environment"
+msgstr "No pasar el entorno"
+
+#: src/terminal-options.cc:1401
+msgid "Show preferences window"
+msgstr "Muestra la ventana de preferencias"
+
+#: src/terminal-options.cc:1410
+msgid "Print environment variables to interact with the terminal"
+msgstr "Mostrar variables de entorno para interactuar con la terminal."
+
+#: src/terminal-options.cc:1428
+msgid "Increase diagnostic verbosity"
+msgstr "Aumentar el detalle del diagnóstico"
+
+#: src/terminal-options.cc:1437
+msgid "Suppress output"
+msgstr "Suprimir salida"
+
+#: src/terminal-options.cc:1450
+msgid "Open a new window containing a tab with the default profile"
+msgstr ""
+"Abre un ventana nueva conteniendo una pestaña con el perfil predeterminado."
+
+#: src/terminal-options.cc:1459
+msgid "Open a new tab in the last-opened window with the default profile"
+msgstr ""
+"Abre un pestaña nueva en la última ventana abierta con el perfile "
+"predeterminado."
+
+#: src/terminal-options.cc:1472
+msgid "Turn on the menubar"
+msgstr "Activar la barra de menú"
+
+#: src/terminal-options.cc:1481
+msgid "Turn off the menubar"
+msgstr "Desactivar la barra de menú"
+
+#: src/terminal-options.cc:1490
+msgid "Maximize the window"
+msgstr "Maximizar la ventana"
+
+#: src/terminal-options.cc:1499
+msgid "Full-screen the window"
+msgstr "Ventana a pantalla completa"
+
+#: src/terminal-options.cc:1508
+msgid ""
+"Set the window size; for example: 80x24, or 80x24+200+200 (COLSxROWS+X+Y)"
+msgstr ""
+"Establecer el tamaño de la ventana; por ejemplo: 80x24, u 80x24+200+200 "
+"(FILASxCOLUMNAS+X+Y)"
+
+#: src/terminal-options.cc:1509
+msgid "GEOMETRY"
+msgstr "GEOMETRÍA"
+
+#: src/terminal-options.cc:1517
+msgid "Set the window role"
+msgstr "Establece el rol de la ventana"
+
+#: src/terminal-options.cc:1518
+msgid "ROLE"
+msgstr "ROL"
+
+#: src/terminal-options.cc:1526
+msgid "Set the last specified tab as the active one in its window"
+msgstr "Establece la última pestaña especificada como la activa en su ventana"
+
+#: src/terminal-options.cc:1539
+msgid "Execute the argument to this option inside the terminal"
+msgstr "Ejecuta el argumento de esta opción dentro de la terminal"
+
+#: src/terminal-options.cc:1548
+msgid "Use the given profile instead of the default profile"
+msgstr "Usa el perfil proporcionado en lugar del perfil predeterminado"
+
+#: src/terminal-options.cc:1549
+msgid "PROFILE-NAME"
+msgstr "NOMBRE-DEL-PERFIL"
+
+#: src/terminal-options.cc:1557
+msgid "Set the initial terminal title"
+msgstr "Establece el título inicial de la terminal"
+
+#: src/terminal-options.cc:1558
+msgid "TITLE"
+msgstr "TITULO"
+
+#: src/terminal-options.cc:1566
+msgid "Set the working directory"
+msgstr "Establece la carpeta de trabajo"
+
+#: src/terminal-options.cc:1567
+msgid "DIRNAME"
+msgstr "NOMBREDIR"
+
+#: src/terminal-options.cc:1575
+msgid "Wait until the child exits"
+msgstr "Esperar a que el hijo termine"
+
+#: src/terminal-options.cc:1584
+msgid "Forward file descriptor"
+msgstr "Redireccionar el descriptor del archivo"
+
+#. FD = file descriptor
+#: src/terminal-options.cc:1586
+msgid "FD"
+msgstr "Descriptor"
+
+#: src/terminal-options.cc:1594
+msgid "Set the terminal’s zoom factor (1.0 = normal size)"
+msgstr ""
+"Establecer el factor de ampliación de la terminal (1.0 = tamaño normal)"
+
+#: src/terminal-options.cc:1595
+msgid "ZOOM"
+msgstr "AMPLIACIÓN"
+
+#: src/terminal-options.cc:1691
+msgid "COMMAND"
+msgstr "COMANDO"
+
+#: src/terminal-options.cc:1699
+msgid "GNOME Terminal Emulator"
+msgstr "Emulador de terminal para GNOME"
+
+#: src/terminal-options.cc:1700
+msgid "Show GNOME Terminal options"
+msgstr "Muestra las opciones del Terminal de GNOME"
+
+#: src/terminal-options.cc:1710
+msgid ""
+"Options to open new windows or terminal tabs; more than one of these may be "
+"specified:"
+msgstr ""
+"Opciones para abrir ventanas nuevas o pestañas del termina; puede haber "
+"especificado más de una de ellas:"
+
+#: src/terminal-options.cc:1711
+msgid "Show terminal options"
+msgstr "Mostrar las opciones de la terminal"
+
+#: src/terminal-options.cc:1719
+msgid ""
+"Window options; if used before the first --window or --tab argument, sets "
+"the default for all windows:"
+msgstr ""
+"Opciones de la ventanas; si se usan antes del primer argumento --window o --"
+"tab, establecen los valores predeterminados para todas las ventanas:"
+
+#: src/terminal-options.cc:1720
+msgid "Show per-window options"
+msgstr "Muestra las opciones por ventana"
+
+#: src/terminal-options.cc:1728
+msgid ""
+"Terminal options; if used before the first --window or --tab argument, sets "
+"the default for all terminals:"
+msgstr ""
+"Opciones de la terminal; si se usan antes del primer argumento --window o --"
+"tab, establecen los valores predeterminados para todos los terminales:"
+
+#: src/terminal-options.cc:1729
+msgid "Show per-terminal options"
+msgstr "Muestra las opciones por terminal"
+
+#: src/terminal-prefs.cc:130
+#, c-format
+msgid "Profile “%s”"
+msgstr "Perfil «%s»"
+
+#: src/terminal-prefs.cc:133
+#, c-format
+msgid "Preferences – %s"
+msgstr "Preferencias - %s"
+
+#: src/terminal-prefs.cc:368
+msgid "New Profile"
+msgstr "Perfil nuevo"
+
+#: src/terminal-prefs.cc:369
+msgid "Enter name for new profile with default settings:"
+msgstr ""
+"Introduzca un nombre para el perfil nuevo con la configuración "
+"predeterminada:"
+
+#: src/terminal-prefs.cc:371
+msgid "Create"
+msgstr "Crear"
+
+#: src/terminal-prefs.cc:383
+#, c-format
+msgid "Enter name for new profile based on “%s”:"
+msgstr "Introduzca un nombre para un perfil nuevo basado en «%s»:"
+
+#: src/terminal-prefs.cc:384
+#, c-format
+msgid "%s (Copy)"
+msgstr "%s (Copiar)"
+
+#: src/terminal-prefs.cc:387
+msgid "Clone Profile"
+msgstr "Clonar perfil"
+
+#: src/terminal-prefs.cc:390
+msgid "Clone"
+msgstr "Clonar"
+
+#: src/terminal-prefs.cc:405
+#, c-format
+msgid "Enter new name for profile “%s”:"
+msgstr "Introduzca un nombre nuevo para el perfil «%s»:"
+
+#: src/terminal-prefs.cc:408
+msgid "Rename Profile"
+msgstr "Renombrar perfil"
+
+#: src/terminal-prefs.cc:411
+msgid "Rename"
+msgstr "Renombrar"
+
+#: src/terminal-prefs.cc:426
+#, c-format
+msgid "Really delete profile “%s”?"
+msgstr "¿Realmente quiere eliminar el perfil «%s»?"
+
+#: src/terminal-prefs.cc:429
+msgid "Delete Profile"
+msgstr "Eliminar perfil"
+
+#: src/terminal-prefs.cc:432
+msgid "Delete"
+msgstr "Eliminar"
+
+#: src/terminal-prefs.cc:491
+msgid "This is the default profile"
+msgstr "Este es el perfil predeterminado"
+
+#: src/terminal-prefs.cc:515
+msgid "General"
+msgstr "General"
+
+#: src/terminal-prefs.cc:520
+msgid "Shortcuts"
+msgstr "Atajos"
+
+#: src/terminal-screen.cc:1425
+msgid "No command supplied nor shell requested"
+msgstr "No se ha especificado un comando ni se ha indicado la shell"
+
+#: src/terminal-screen.cc:1563 src/terminal-screen.cc:1910
+msgid "_Relaunch"
+msgstr "_Relanzar"
+
+#: src/terminal-screen.cc:1566
+msgid "There was an error creating the child process for this terminal"
+msgstr "Hubo un error al crear el proceso hijo para este terminal"
+
+#: src/terminal-screen.cc:1914
+#, c-format
+msgid "The child process exited normally with status %d."
+msgstr "El proceso hijo finalizó correctamente con el estado %d."
+
+#: src/terminal-screen.cc:1917
+#, c-format
+msgid "The child process was aborted by signal %d."
+msgstr "Se interrumpió el proceso hijo con la señal %d."
+
+#: src/terminal-screen.cc:1920
+msgid "The child process was aborted."
+msgstr "Se interrumpió el proceso hijo."
+
+#: src/terminal-tab-label.cc:222
+msgid "Close tab"
+msgstr "Cerrar pestaña"
+
+#: src/terminal-util.cc:156
+msgid "There was an error displaying help"
+msgstr "Hubo un error al mostrar la ayuda"
+
+#: src/terminal-util.cc:214
+msgid "Contributors:"
+msgstr "Colaboradores:"
+
+#: src/terminal-util.cc:235
+#, c-format
+msgid "Version %s for GNOME %d"
+msgstr "Versión %s para GNOME %d"
+
+#: src/terminal-util.cc:239
+#, c-format
+msgid "Using VTE version %u.%u.%u"
+msgstr "Usando la versión %u.%u.%u de VTE"
+
+#: src/terminal-util.cc:245
+msgid "A terminal emulator for the GNOME desktop"
+msgstr "Un emulador de terminal para el escritorio GNOME"
+
+#: src/terminal-util.cc:252
+msgid "GNOME Terminal"
+msgstr "Terminal de GNOME"
+
+#: src/terminal-util.cc:262
+msgid "translator-credits"
+msgstr ""
+"Daniel Mustieles, <daniel.mustieles@gmail.com>\n"
+"Jorge González <jorgegonz@svn.gnome.org>, 2007-2010\n"
+"Francisco Javier F. Serrador <serrador@cvs.gnome.org>, 2003-2006\n"
+"Pablo Gonzalo del Campo <pablodc@bigfoot.com>, 2002-2003"
+
+#: src/terminal-util.cc:337
+#, c-format
+msgid "Could not open the address “%s”"
+msgstr "No se pudo abrir la dirección «%s»"
+
+#: src/terminal-util.cc:406
+msgid ""
+"GNOME Terminal is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU General Public License as published by the Free "
+"Software Foundation, either version 3 of the License, or (at your option) "
+"any later version."
+msgstr ""
+"GNOME Terminal es software libre; puede redistribuirlo y/o modificarlo bajo "
+"los términos de la Licencia Pública General GNU tal como se publica por la "
+"Free Software Foundation; ya sea la versión 3 de la Licencia, o (a su "
+"elección) cualquier versión posterior."
+
+#: src/terminal-util.cc:410
+msgid ""
+"GNOME Terminal is distributed in the hope that it will be useful, but "
+"WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY "
+"or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for "
+"more details."
+msgstr ""
+"Este programa se distribuye con la esperanza de que le sea útil, pero SIN "
+"NINGUNA GARANTÍA; sin incluso la garantía implícita de MERCANTILIDAD o "
+"IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Vea la Licencia Pública General GNU "
+"para más detalles."
+
+#: src/terminal-util.cc:414
+msgid ""
+"You should have received a copy of the GNU General Public License along with "
+"GNOME Terminal.  If not, see <http://www.gnu.org/licenses/>."
+msgstr ""
+"Debería haber recibido una copia de la Licencia pública General de GNU junto "
+"con GNOME Terminal; si no, consulte <http://www.gnu.org/licenses/>."
+
+#: src/terminal-util.cc:1149
+msgid "“file” scheme with remote hostname not supported"
+msgstr "esquema «archivo» con nombre de equipo remoto no soportado"
+
+#: src/terminal-window.cc:474
+msgid "Could not save contents"
+msgstr "No se pudo guardar el contenido"
+
+#: src/terminal-window.cc:494
+msgid "Save as…"
+msgstr "Guardar como…"
+
+#: src/terminal-window.cc:497
+msgid "_Cancel"
+msgstr "_Cancelar"
+
+#: src/terminal-window.cc:498
+msgid "_Save"
+msgstr "_Guardar"
+
+#: src/terminal-window.cc:1714
+msgid "Open _Hyperlink"
+msgstr "Abrir _hiperenlace"
+
+#: src/terminal-window.cc:1715
+msgid "Copy Hyperlink _Address"
+msgstr "Copi_ar la dirección del hiperenlace"
+
+#: src/terminal-window.cc:1725
+msgid "Send Mail _To…"
+msgstr "_Enviar correo a…"
+
+#: src/terminal-window.cc:1726
+msgid "Copy Mail _Address"
+msgstr "Copi_ar la dirección de correo-e"
+
+#: src/terminal-window.cc:1729
+msgid "Call _To…"
+msgstr "_Llamar a…"
+
+#: src/terminal-window.cc:1730
+msgid "Copy Call _Address "
+msgstr "_Copiar la dirección de llamada "
+
+#: src/terminal-window.cc:1735
+msgid "_Open Link"
+msgstr "A_brir el enlace"
+
+#: src/terminal-window.cc:1736
+msgid "Copy _Link"
+msgstr "Copiar en_lace"
+
+#: src/terminal-window.cc:1792
+msgid "P_rofiles"
+msgstr "Pe_rfiles"
+
+#: src/terminal-window.cc:1827
+msgid "L_eave Full Screen"
+msgstr "_Pantalla completa"
+
+#: src/terminal-window.cc:2291
+msgid "Set GNOME Terminal as your default terminal?"
+msgstr "¿Establecer GNOME terminal como su terminal predeterminada?"
+
+#: src/terminal-window.cc:2297
+msgid "_Yes"
+msgstr "_Sí"
+
+#: src/terminal-window.cc:2298
+msgid "_No"
+msgstr "_No"
+
+#: src/terminal-window.cc:3323
+msgid "Close this window?"
+msgstr "¿Cerrar esta ventana?"
+
+#: src/terminal-window.cc:3323
+msgid "Close this terminal?"
+msgstr "¿Cerrar esta terminal?"
+
+#: src/terminal-window.cc:3327
+msgid ""
+"There are still processes running in some terminals in this window. Closing "
+"the window will kill all of them."
+msgstr ""
+"Aún hay procesos ejecutándose en algunas terminales de esta ventana. Cerrar "
+"la ventana matará todos los procesos."
+
+#: src/terminal-window.cc:3331
+msgid ""
+"There is still a process running in this terminal. Closing the terminal will "
+"kill it."
+msgstr ""
+"Aún hay un proceso ejecutándose en esta terminal. Cerrar la terminal lo "
+"matará."
+
+#: src/terminal-window.cc:3336
+msgid "C_lose Window"
+msgstr "_Cerrar ventana"
+
+#: src/terminal.cc:594
+#, c-format
+msgid "Failed to parse arguments: %s\n"
+msgstr "Falló al analizar los argumentos: %s\n"
+
+#~ msgctxt "theme variant"
+#~ msgid "Default"
+#~ msgstr "Predeterminado"
+
+#~ msgctxt "theme variant"
+#~ msgid "Dark"
+#~ msgstr "Oscuro"
+
+#~ msgid "org.gnome.Terminal"
+#~ msgstr "org.gnome.Terminal"
+
+#~ msgid "Armenian"
+#~ msgstr "Armenio"
+
+#~ msgid "Georgian"
+#~ msgstr "Georgiano"
+
+#~ msgid "Whether to allow bold text"
+#~ msgstr "Define si se permite el uso de texto resaltado"
+
+#~ msgid "If true, allow applications in the terminal to make text boldface."
+#~ msgstr ""
+#~ "Si es verdadero se le permite a las aplicaciones en la terminal resaltar "
+#~ "el texto."
+
+#~ msgid "Hindi"
+#~ msgstr "Hindú"
+
+#~ msgid "Persian"
+#~ msgstr "Persa"
+
+#~ msgid "Gujarati"
+#~ msgstr "Gujarati"
+
+#~ msgid "Gurmukhi"
+#~ msgstr "Gurmukhi"
+
+#~ msgid "Icelandic"
+#~ msgstr "Islandés"
+
+#~ msgid "Set _Character Encoding"
+#~ msgstr "Establecer _codificación de caracteres"
+
+#~ msgid "Move Tab _Left"
+#~ msgstr "Mover la pestaña a la _izquierda"
+
+#~ msgid "Move Tab _Right"
+#~ msgstr "Mover la pestaña a la de_recha"
+
+#~ msgid "_Detach Tab"
+#~ msgstr "_Desprender pestaña"
+
+#~ msgid "Unnamed"
+#~ msgstr "Sin nombre"
+
+#~ msgid "Whether to show menubar in new windows/tabs"
+#~ msgstr ""
+#~ "Indica si se deben mostrar la barra de menú en las ventanas/pestañas "
+#~ "nuevas"
+
+#~ msgid "True if the menubar should be shown in new window"
+#~ msgstr "Cierto si la barra de menús debe mostrarse en las ventanas nuevas"
+
+#~ msgid "label"
+#~ msgstr "etiqueta"
+
+#~ msgid "_Quit"
+#~ msgstr "_Salir"
+
+#~ msgid "Open in _Midnight Commander"
+#~ msgstr "Abrir en _Midnight Commander"
+
+#~ msgid ""
+#~ "Open the currently selected folder in the terminal file manager Midnight "
+#~ "Commander"
+#~ msgstr ""
+#~ "Abrir la carpeta actualmente seleccionada en el gestor de archivos de la "
+#~ "terminal Midnight Commander"
+
+#~ msgid ""
+#~ "Open the currently open folder in the terminal file manager Midnight "
+#~ "Commander"
+#~ msgstr ""
+#~ "Abrir la carpeta actualmente abierta en el gestor de archivos de la "
+#~ "terminal Midnight Commander"
+
+#~ msgid "Open _Midnight Commander"
+#~ msgstr "Abrir _Midnight Commander"
+
+#~ msgid "Open the terminal file manager Midnight Commander"
+#~ msgstr "Abrir el gestor de archivos de la terminal Midnight Commander"
+
+#~ msgid "Keyboard shortcut to create a new profile"
+#~ msgstr "Combinación de teclas para crear un perfil nuevo"
+
+#~ msgid "Keyboard shortcut to open the current profile’s Preferences dialog"
+#~ msgstr ""
+#~ "Atajo de teclado para abrir el diálogo de preferencias del perfil actual"
+
+#~ msgid "_Profile used when launching a new terminal:"
+#~ msgstr "_Perfil utilizado al lanzar una terminal nueva:"
+
+#~ msgid "Profile Editor"
+#~ msgstr "Editor de perfiles"
+
+#~ msgid "_Profile name:"
+#~ msgstr "_Nombre del perfil:"
+
+#~ msgid "_Rewrap on resize"
+#~ msgstr "_Ajustar al redimensionar"
+
+#~| msgid "Reset"
+#~ msgid "R_eset"
+#~ msgstr "R_einiciar"
+
+#~ msgid ""
+#~ "<b>Note:</b> These options may cause some applications to behave "
+#~ "incorrectly.  They are only here to allow you to work around certain "
+#~ "applications and operating systems that expect different terminal "
+#~ "behavior."
+#~ msgstr ""
+#~ "<b>Nota:</b> estas opciones pueden causar que algunas aplicaciones se "
+#~ "comporten incorrectamente. Sólo están aquí para permitirle trabajar con "
+#~ "ciertas aplicaciones y sistemas operativos que esperan un comportamiento "
+#~ "diferente de la terminal."
+
+#~ msgid "New _Profile"
+#~ msgstr "_Perfil nuevo"
+
+#~ msgid "Pr_ofile Preferences"
+#~ msgstr "Pre_ferencias del perfil"
+
+#~ msgid "_Find"
+#~ msgstr "_Buscar"
+
+#~ msgid "Click button to choose profile"
+#~ msgstr "Pulse el botón para seleccionar un perfil"
+
+#~ msgid "Profile list"
+#~ msgstr "Lista de perfiles"
+
+#~ msgid "_Profile Preferences"
+#~ msgstr "_Preferencias del perfil"
+
+#~ msgid ""
+#~ "<b>Note:</b> Terminal applications have these colors available to them."
+#~ msgstr ""
+#~ "<b>Nota:</b> las aplicaciones de la terminal tienen a su disposición "
+#~ "estos colores."
+
+#~ msgid "New _Profile…"
+#~ msgstr "_Perfil nuevo…"
+
+#~ msgid "Pr_ofile Preferences…"
+#~ msgstr "_Preferencias del perfil…"
+
+#~ msgid "_Profile Preferences…"
+#~ msgstr "_Preferencias del perfil…"
+
+#~ msgid "Verbose output"
+#~ msgstr "Salida detallada"
+
+#~ msgid "Output options:"
+#~ msgstr "Opciones de salida:"
+
+#~ msgid "Show output options"
+#~ msgstr "Mostrar opciones de salida"
+
+#~ msgid "“%s” is not a valid application ID"
+#~ msgstr "«%s» no es un ID de aplicación válido"
+
+#~ msgid "Server application ID"
+#~ msgstr "ID del servidor de la aplicación"
+
+#~ msgid "ID"
+#~ msgstr "ID"
+
+#~ msgid "Show completions"
+#~ msgstr "Mostrar opciones de completado"
+
+#~ msgid "Global options:"
+#~ msgstr "Opciones globales:"
+
+#~ msgid "Show global options"
+#~ msgstr "Mostrar las opciones globales"
+
+#~ msgid "FD passing of stdin is not supported"
+#~ msgstr "No está soportado pasar el FD de stdin"
+
+#~ msgid "FD passing of stdout is not supported"
+#~ msgstr "No está soportado pasar el FD de stdout"
+
+#~ msgid "FD passing of stderr is not supported"
+#~ msgstr "No está soportado pasar el FD de stderr"
+
+#~ msgid "Invalid argument “%s” to --fd option"
+#~ msgstr "Argumento «%s» no válido para la opción --fd"
+
+#~ msgid "Forward stdin"
+#~ msgstr "Redireccionar entrada estándar (stdin)"
+
+#~ msgid "Forward stdout"
+#~ msgstr "Redireccionar salida estándar (stdout)"
+
+#~ msgid "Forward stderr"
+#~ msgstr "Redireccionar salida de error estándar (stderror)"
+
+#~ msgid "Exec options:"
+#~ msgstr "Opciones de ejecución:"
+
+#~ msgid "Show exec options"
+#~ msgstr "Mostrar las opciones de ejecución"
+
+#~ msgid "Maximise the window"
+#~ msgstr "Maximizar la ventana"
+
+#~ msgid "Window options:"
+#~ msgstr "Opciones de la ventana:"
+
+#~ msgid "Show window options"
+#~ msgstr "Mostrar las opciones de la ventana"
+
+#~ msgid "May only use option %s once"
+#~ msgstr "Sólo puede usar una opción %s a la vez"
+
+#~ msgid "Zoom value “%s” is outside allowed range"
+#~ msgstr "El valor de ampliación «%s» está fuera del rango permitido"
+
+#~ msgid "UUID"
+#~ msgstr "UUID"
+
+#~ msgid "Terminal options:"
+#~ msgstr "Opciones de la terminal:"
+
+#~ msgid "Processing options:"
+#~ msgstr "Opciones de procesado:"
+
+#~ msgid "Show processing options"
+#~ msgstr "Mostrar las opciones de procesado"
+
+#~ msgid "Missing argument"
+#~ msgstr "Falta el argumento"
+
+#~ msgid "Unknown command “%s”"
+#~ msgstr "Comando «%s» desconocido"
+
+#~ msgid "“%s” needs the command to run as arguments after “--”"
+#~ msgstr ""
+#~ "«%s» necesita el comando que ejecutar como argumento después de «--»"
+
+#~ msgid "Extraneous arguments after “--”"
+#~ msgstr "Argumentos extraños después de «--»"
+
+#~ msgid "GTerminal"
+#~ msgstr "GTerminal"
+
+#~ msgid "Error processing arguments: %s\n"
+#~ msgstr "Error al procesar los argumentos: %s\n"
+
+#~ msgid "Legacy European Encodings"
+#~ msgstr "Codificaciones europeas heredadas"
+
+#~ msgid "List of available encodings"
+#~ msgstr "Lista de las codificaciones disponibles"
+
+#~ msgid ""
+#~ "A subset of possible encodings are presented in the Encoding submenu. "
+#~ "This is a list of encodings to appear there."
+#~ msgstr ""
+#~ "Un subconjunto de codificaciones posibles están presentes en el submenú "
+#~ "«Codificaciones». Esta es una lista de las codificaciones que aparecerán "
+#~ "ahí."
+
+#~ msgid "E_ncodings shown in menu:"
+#~ msgstr "Codificaciones _mostradas en el menú:"
+
+#~ msgid "New Terminal in New Tab"
+#~ msgstr "Nueva terminal en una pestaña nueva"
+
+#~ msgid "New Terminal in New Window"
+#~ msgstr "Nueva terminal en una ventana nueva"
+
+#~ msgid "Close All Terminals"
+#~ msgstr "Cerrar todas las terminales"
+
+#~ msgid "Clear Find Highlight"
+#~ msgstr "Limpiar el resaltado de la búsqueda"
+
+#~ msgid "Detach Terminal"
+#~ msgstr "Desacoplar terminal"
+
+#~ msgid "User Defined"
+#~ msgstr "Definido por el usuario"
+
+#~ msgid "Show"
+#~ msgstr "Mostrar"
+
+#~ msgid "_Encoding"
+#~ msgstr "_Codificación"
+
+#~ msgid "Switch to this tab"
+#~ msgstr "Cambiar a esta pestaña"
+
+#~ msgid "_%u. %s"
+#~ msgstr "_%u. %s"
+
+#~ msgid "_%c. %s"
+#~ msgstr "_%c. %s"
+
+#~ msgid "Open _Terminal"
+#~ msgstr "Abrir _terminal"
+
+#~ msgid "Open Ta_b"
+#~ msgstr "Abrir pe_staña"
+
+#~ msgid "_Close All Terminals"
+#~ msgstr "_Cerrar todas las terminales"
+
+#~ msgid "Pre_ferences"
+#~ msgstr "_Preferencias"
+
+#~ msgid "Find Ne_xt"
+#~ msgstr "Buscar _siguiente"
+
+#~ msgid "Find Pre_vious"
+#~ msgstr "Buscar _anterior"
+
+#~ msgid "Go to _Line…"
+#~ msgstr "Ir a la _línea…"
+
+#~ msgid "_Incremental Search…"
+#~ msgstr "Búsqueda _incremental…"
+
+#~ msgid "_Add or Remove…"
+#~ msgstr "_Añadir o quitar…"
+
+#~ msgid "_Next Terminal"
+#~ msgstr "_Siguiente terminal"
+
+#~| msgid "Background"
+#~ msgid "Foreground"
+#~ msgstr "Fondo"
+
+#~ msgid "_Same as text color"
+#~ msgstr "El _mismo que el color del texto"
+
+#~ msgid "Search _backwards"
+#~ msgstr "Buscar hacia _atrás"
+
+#~ msgid ""
+#~ "If true, the system login records utmp and wtmp will be updated when the "
+#~ "command inside the terminal is launched."
+#~ msgstr ""
+#~ "Si es verdadero, el los registros de entrada del sistema utmp y wtmp se "
+#~ "actualizarán cuando se lance el comando de dentro de la terminal."
+
+#~ msgid "_Update login records when command is launched"
+#~ msgstr ""
+#~ "_Actualizar registros de inicio de sesión cuando se ejecuta un comando"
+
+#~ msgid "Unknown completion request for \"%s\""
+#~ msgstr "Solicitud de completado desconocida para «%s»"
+
+#~ msgid "Missing command"
+#~ msgstr "Falta el comando"
+
+#~ msgid "Whether to use a dark theme variant"
+#~ msgstr "Indica si se debe usar la variante oscura del tema"
+
+#~ msgid "_Unlimited"
+#~ msgstr "_Ilimitado"
+
+#~ msgid "_Use the system fixed width font"
+#~ msgstr "_Usar la tipografía de ancho fijo del sistema"
+
+#~ msgid "_Font:"
+#~ msgstr "_Tipografía:"
+
+#~ msgid ""
+#~ "Commands:\n"
+#~ "  help    Shows this information\n"
+#~ "  run     Create a new terminal running the specified command\n"
+#~ "  shell   Create a new terminal running the user shell\n"
+#~ "\n"
+#~ "Use \"%s COMMAND --help\" to get help on each command.\n"
+#~ msgstr ""
+#~ "Comandos:\n"
+#~ "  help    Muestra esta información\n"
+#~ "  run      Crear una terminal nueva y ejecutar el comando especificado\n"
+#~ "  shell   Crear una terminal nueva y ejecutar la shell del usuario\n"
+#~ "\n"
+#~ "Use «%s COMANDO --help» para obtener ayuda sobre cada comando.\n"
+
+#~ msgid "Be quiet"
+#~ msgstr "Estarse quieto"
+
+#~ msgid "GNOME Terminal Client"
+#~ msgstr "Cliente de terminal de GNOME"
+
+#~ msgctxt "title"
+#~ msgid "'Terminal'"
+#~ msgstr "«Terminal»"
+
+#~ msgid "Title for terminal"
+#~ msgstr "Título de la terminal"
+
+#~ msgid ""
+#~ "Title to display for the terminal window or tab. This title may be "
+#~ "replaced by or combined with the title set by the application inside the "
+#~ "terminal, depending on the title_mode setting."
+#~ msgstr ""
+#~ "Título a mostrar para la ventana o la pestaña de la terminal. Este título "
+#~ "puede ser reemplazado o combinado con el título definido por la "
+#~ "aplicación del interior de la terminal, dependiendo de la configuración "
+#~ "de \"title_mode\"."
+
+#~ msgid "Characters that are considered \"part of a word\""
+#~ msgstr "Caracteres que son considerados «parte de una palabra»"
+
+#~ msgid ""
+#~ "When selecting text by word, sequences of these characters are considered "
+#~ "single words. Ranges can be given as \"A-Z\". Literal hyphen (not "
+#~ "expressing a range) should be the first character given."
+#~ msgstr ""
+#~ "Al seleccionar texto por palabras, las secuencias de estos caracteres se "
+#~ "consideran palabras simples. Los rangos se pueden dar como «A-Z». Un "
+#~ "guión literal (sin expresar un rango) debería ser el primer carácter "
+#~ "proporcionado."
+
+#~ msgid ""
+#~ "If true, newly created terminal windows will have custom size specified "
+#~ "by default_size_columns and default_size_rows."
+#~ msgstr ""
+#~ "Si es verdadero las ventanas nuevas creadas de la terminal tendrán un "
+#~ "tamaño personalizado especificador por default_size_columns y "
+#~ "default_size_rows."
+
+#~ msgid "Default size:"
+#~ msgstr "Tamaño predeterminado:"
+
+#~ msgid "Title"
+#~ msgstr "Título"
+
+#~ msgid "_Title:"
+#~ msgstr "_Título:"
+
+#~ msgid "Title and Command"
+#~ msgstr "Título y comando"
+
+#~ msgid "Set Title"
+#~ msgstr "Establecer título"
+
+#~ msgid "Current Locale"
+#~ msgstr "Configuración regional actual"
+
+#~ msgid "_About Terminal"
+#~ msgstr "_Acerca de la Terminal"
+
+#~ msgid "Visible only when necessary"
+#~ msgstr "Visible sólo cuando sea necesaria"
+
+#~ msgid "Hidden"
+#~ msgstr "Oculta"
+
+#~ msgid "What to do with dynamic title"
+#~ msgstr "Qué hacer con el título dinámico"
+
+#~ msgid ""
+#~ "If the application in the terminal sets the title (most typically people "
+#~ "have their shell set up to do this), the dynamically-set title can erase "
+#~ "the configured title, go before it, go after it, or replace it. The "
+#~ "possible values are \"replace\", \"before\", \"after\", and \"ignore\"."
+#~ msgstr ""
+#~ "Si la aplicación en la configuración de la terminal define el título (la "
+#~ "mayoría de la gente deja que su intérprete haga esto), el título definido "
+#~ "dinámicamente puede eliminar el título configurado, puede ir antes de "
+#~ "éste, después de éste, o reemplazarlo. Los valores posibles son "
+#~ "«replace» (reemplazar), «before» (antes), «after» (después) e "
+#~ "«ignore» (ignorar)."
+
+#~ msgid "When terminal commands set their o_wn titles:"
+#~ msgstr "Cuando los comandos de la terminal establecen sus p_ropios títulos:"
+
+#~ msgid "The shortcut key “%s” is already bound to the “%s” action"
+#~ msgstr "La combinación de teclas «%s» ya está asignada a la acción «%s»"
+
+#~ msgid "_Input Methods"
+#~ msgstr "Mé_todos de entrada"
+
+#~ msgid "Keyboard shortcut to switch to tab 1"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 1"
+
+#~ msgid "Keyboard shortcut to switch to tab 2"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 2"
+
+#~ msgid "Keyboard shortcut to switch to tab 3"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 3"
+
+#~ msgid "Keyboard shortcut to switch to tab 4"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 4"
+
+#~ msgid "Keyboard shortcut to switch to tab 5"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 5"
+
+#~ msgid "Keyboard shortcut to switch to tab 6"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 6"
+
+#~ msgid "Keyboard shortcut to switch to tab 7"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 7"
+
+#~ msgid "Keyboard shortcut to switch to tab 8"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 8"
+
+#~ msgid "Keyboard shortcut to switch to tab 9"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 9"
+
+#~ msgid "Keyboard shortcut to switch to tab 10"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 10"
+
+#~ msgid "Keyboard shortcut to switch to tab 11"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 11"
+
+#~ msgid "Keyboard shortcut to switch to tab 12"
+#~ msgstr "Combinación de teclas para cambiar a la pestaña 12"
+
+#~ msgid "Switch to Tab 3"
+#~ msgstr "Cambiar a la pestaña 3"
+
+#~ msgid "Switch to Tab 4"
+#~ msgstr "Cambiar a la pestaña 4"
+
+#~ msgid "Switch to Tab 5"
+#~ msgstr "Cambiar a la pestaña 5"
+
+#~ msgid "Switch to Tab 6"
+#~ msgstr "Cambiar a la pestaña 6"
+
+#~ msgid "Switch to Tab 7"
+#~ msgstr "Cambiar a la pestaña 7"
+
+#~ msgid "Switch to Tab 8"
+#~ msgstr "Cambiar a la pestaña 8"
+
+#~ msgid "Switch to Tab 9"
+#~ msgstr "Cambiar a la pestaña 9"
+
+#~ msgid "Switch to Tab 10"
+#~ msgstr "Cambiar a la pestaña 10"
+
+#~ msgid "Switch to Tab 11"
+#~ msgstr "Cambiar a la pestaña 11"
+
+#~ msgid "Switch to Tab 12"
+#~ msgstr "Cambiar a la pestaña 12"
+
+#~ msgid "Foreground, Background, Bold and Underline"
+#~ msgstr "Primer plano, fondo, negrita y subrayado"
+
+#~ msgid "Keybindings"
+#~ msgstr "Asociaciones de teclas"
+
+#~ msgid "_Find..."
+#~ msgstr "_Buscar…"
+
+#~ msgid "Keyboard Shortcuts"
+#~ msgstr "Combinaciones de teclas"
+
+#~ msgid "_Description"
+#~ msgstr "_Descripción"
+
+#~ msgid "P_rofiles…"
+#~ msgstr "Pe_rfiles…"
+
+#~ msgid "_Keyboard Shortcuts…"
+#~ msgstr "Com_binaciones de teclas…"
+
+#~ msgid "Add or Remove Terminal Encodings"
+#~ msgstr "Añade o quita codificaciones de la terminal"
+
+#~ msgid "A_vailable encodings:"
+#~ msgstr "Codificaciones _disponibles:"
+
+#~ msgid "Profile _name:"
+#~ msgstr "_Nombre del perfil:"
+
+#~ msgid "_Base on:"
+#~ msgstr "_Basado en:"
+
+#~ msgid ""
+#~ "Block\n"
+#~ "I-Beam\n"
+#~ "Underline"
+#~ msgstr ""
+#~ "Bloque\n"
+#~ "Doble T\n"
+#~ "Subrayar"
+
+#~ msgid "<b>Title</b>"
+#~ msgstr "<b>Título</b>"
+
+#~ msgid ""
+#~ "Replace initial title\n"
+#~ "Append initial title\n"
+#~ "Prepend initial title\n"
+#~ "Keep initial title"
+#~ msgstr ""
+#~ "Reemplaza el título inicial\n"
+#~ "Se añade al título inicial\n"
+#~ "Precede al título inicial\n"
+#~ "Mantiene el título inicial"
+
+#~ msgid ""
+#~ "Exit the terminal\n"
+#~ "Restart the command\n"
+#~ "Hold the terminal open"
+#~ msgstr ""
+#~ "Salir de la terminal\n"
+#~ "Reiniciar el comando\n"
+#~ "Mantener la terminal abierta"
+
+#~ msgid ""
+#~ "Always visible\n"
+#~ "Visible only when necessary\n"
+#~ "Hidden"
+#~ msgstr ""
+#~ "Siempre visible\n"
+#~ "Visible sólo cuando sea necesaria\n"
+#~ "Oculta"
+
+#~ msgid ""
+#~ "Automatic\n"
+#~ "Control-H\n"
+#~ "ASCII DEL\n"
+#~ "Escape sequence\n"
+#~ "TTY Erase"
+#~ msgstr ""
+#~ "Automático\n"
+#~ "Control-H\n"
+#~ "ASCII para Supr.\n"
+#~ "Secuencia de escape\n"
+#~ "Borrado TTY"
+
+#~ msgid ""
+#~ "You already have a profile called “%s”. Do you want to create another "
+#~ "profile with the same name?"
+#~ msgstr ""
+#~ "Ya tiene un perfil llamado «%s». ¿Quiere crear otro perfil con el mismo "
+#~ "nombre?"
+
+#~ msgid "Choose base profile"
+#~ msgstr "Seleccione el perfil base"
+
+#~ msgid "Server D-Bus name"
+#~ msgstr "Nombre del servidor D-Bus"
+
+#~| msgid "DIRNAME"
+#~ msgid "NAME"
+#~ msgstr "NOMBRE"
+
+#~ msgid "Disable connection to session manager"
+#~ msgstr "Desactivar la conexión con el gestor de sesiones"
+
+#~ msgid "Specify file containing saved configuration"
+#~ msgstr "Especificar el archivo que contiene la configuración guardada"
+
+#~ msgid "Specify session management ID"
+#~ msgstr "Especificar el ID de gestión de sesión"
+
+#~ msgid "Show session management options"
+#~ msgstr "Mostrar las opciones de gestión de la sesión"
+
+#~ msgid ""
+#~ "A value between 0.0 and 1.0 indicating how much to darken the background "
+#~ "image. 0.0 means no darkness, 1.0 means fully dark. In the current "
+#~ "implementation, there are only two levels of darkness possible, so the "
+#~ "setting behaves as a boolean, where 0.0 disables the darkening effect."
+#~ msgstr ""
+#~ "Un valor entre 0.0 y 1.0 indica cuánto oscurecer la imagen de fondo. 0.0 "
+#~ "significa sin oscuridad, 1.0 significa oscuridad total. En la "
+#~ "implementación actual sólo existen dos niveles de oscuridad posibles, "
+#~ "debido a esto esta configuración se comporta como un valor booleano, "
+#~ "donde 0.0 desactiva el efecto de oscuridad."
+
+#~ msgid ""
+#~ "Accelerator key to detach current tab. Expressed as a string in the same "
+#~ "format used for GTK+ resource files. If you set the option to the special "
+#~ "string \"disabled\", then there will be no keybinding for this action."
+#~ msgstr ""
+#~ "Tecla aceleradora para desacoplar la pestaña actual. Expresada como una "
+#~ "cadena en el mismo formato que usan los archivos de recursos de GTK+. Si "
+#~ "define la opción con la cadena especial «disabled», entonces no habrá una "
+#~ "combinación para esta acción."
+
+#~ msgid ""
+#~ "Accelerator key to move the current tab to the left. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no "
+#~ "keybinding for this action."
+#~ msgstr ""
+#~ "Tecla aceleradora para mover la pestaña actual a la izquierda. Expresada "
+#~ "como una cadena en el mismo formato que usan los archivos de recursos de "
+#~ "GTK+. Si define esta opción con la cadena especial «disabled», entonces "
+#~ "no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Accelerator key to move the current tab to the right. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no "
+#~ "keybinding for this action."
+#~ msgstr ""
+#~ "Tecla aceleradora para mover la pestaña actual a la derecha. Expresada "
+#~ "como una cadena en el mismo formato que usan los archivos de recursos de "
+#~ "GTK+. Si define esta opción con la cadena especial «disabled», entonces "
+#~ "no habrá una combinación para esta acción."
+
+#~ msgid "Accelerator to detach current tab."
+#~ msgstr "Acelerador para desacoplar la pestaña actual."
+
+#~ msgid "Accelerator to move the current tab to the left."
+#~ msgstr "Acelerador para mover la pestaña actual a la izquierda."
+
+#~ msgid ""
+#~ "An Pango font name. Examples are \"Sans 12\" or \"Monospace Bold 14\"."
+#~ msgstr ""
+#~ "Un nombre de tipografía de Pango. Algunos ejemplos son \"Sans 12\" o "
+#~ "\"Monospace Bold 14\"."
+
+#~ msgid "Background image"
+#~ msgstr "Imagen de fondo"
+
+#~ msgid "Background type"
+#~ msgstr "Tipo de fondo"
+
+#~ msgid "Effect of the Backspace key"
+#~ msgstr "Efecto de la tecla «Retroceso» (Backspace)"
+
+#~ msgid "Effect of the Delete key"
+#~ msgstr "Efecto de la tecla «Suprimir» (Delete)"
+
+#~ msgid "Filename of a background image."
+#~ msgstr "Nombre de archivo de una imagen de fondo."
+
+#~ msgid "Font"
+#~ msgstr "Tipografía"
+
+#~ msgid "How much to darken the background image"
+#~ msgstr "Cuánto oscurecer la imagen de fondo"
+
+#~ msgid "Icon for terminal window"
+#~ msgstr "Icono de la ventana de la terminal"
+
+#~ msgid "Icon to use for tabs/windows containing this profile."
+#~ msgstr ""
+#~ "Icono que usar para las pestañas/ventanas que contienen este perfil."
+
+#~ msgid ""
+#~ "If true, don't make a noise when applications send the escape sequence "
+#~ "for the terminal bell."
+#~ msgstr ""
+#~ "Si es verdadero no se produce un sonido cuando las aplicaciones envían la "
+#~ "secuencia de escape para la campana de la terminal."
+
+#~ msgid ""
+#~ "If true, scroll the background image with the foreground text; if false, "
+#~ "keep the image in a fixed position and scroll the text above it."
+#~ msgstr ""
+#~ "Si es verdadero, se desplaza la imagen de fondo junto con el texto del "
+#~ "frente, si es «false» (falso) se mantiene la imagen en una posición fija "
+#~ "y se desplaza el texto por encima de ésta."
+
+#~ msgid ""
+#~ "If true, the terminal will use the desktop-global standard font if it's "
+#~ "monospace (and the most similar font it can come up with otherwise)."
+#~ msgstr ""
+#~ "Si es verdadero, la terminal usará la tipografía global del escritorio si "
+#~ "ésta es de ancho fijo (de otro modo será la tipografía más similar "
+#~ "posible a ésta)."
+
+#~ msgid ""
+#~ "If true, the theme color scheme used for text entry boxes will be used "
+#~ "for the terminal, instead of colors provided by the user."
+#~ msgstr ""
+#~ "Si es verdadero, el esquema de color del tema usado para las cajas de "
+#~ "entrada de texto será usado para la terminal, en lugar de los colores "
+#~ "indicados por el usuario."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for bringing up the dialog for profile creation. "
+#~ "Expressed as a string in the same format used for GTK+ resource files. If "
+#~ "you set the option to the special string \"disabled\", then there will be "
+#~ "no keyboard shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para mostrar el diálogo para la creación de "
+#~ "perfiles. Expresado como una cadena en el mismo formato usado por los "
+#~ "archivos de recursos de GTK+. Si define esta opción con la cadena "
+#~ "especial «disabled», entonces no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for closing a tab. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cerrar una pestaña. Expresado como una cadena "
+#~ "en el mismo formato usado por los archivos de recursos de GTK+. Si define "
+#~ "esta opción con la cadena especial «disabled», entonces no habrá una "
+#~ "combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for closing a window. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cerrar una ventana. Expresado como una cadena "
+#~ "en el mismo formato usado por los archivos de recursos de GTK+. Si define "
+#~ "esta opción con la cadena especial «disabled», entonces no habrá una "
+#~ "combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for copying selected text to the clipboard. "
+#~ "Expressed as a string in the same format used for GTK+ resource files. If "
+#~ "you set the option to the special string \"disabled\", then there will be "
+#~ "no keyboard shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para copiar el texto seleccionado en el "
+#~ "portapapeles. Expresado como una cadena en el mismo formato usado por los "
+#~ "archivos de recursos de GTK+. Si define esta opción con la cadena "
+#~ "especial «disabled», entonces no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for launching help. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para lanzar la ayuda. Expresado como una cadena en "
+#~ "el mismo formato usado por los archivos de recursos de GTK+. Si define "
+#~ "esta opción con la cadena especial «disabled», entonces no habrá una "
+#~ "combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for making font larger. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para agrandar la tipografía. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for making font smaller. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para reducir la tipografía. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for making font the normal size. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no keyboard "
+#~ "shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para dejar a tamaño normal la tipografía. Expresado "
+#~ "como una cadena en el mismo formato usado por los archivos de recursos de "
+#~ "GTK+. Si define esta opción con la cadena especial «disabled», entonces "
+#~ "no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for opening a new tab. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para abrir una pestaña nueva. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for opening a new window. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para abrir una ventana nueva. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for pasting the contents of the clipboard into the "
+#~ "terminal. Expressed as a string in the same format used for GTK+ resource "
+#~ "files. If you set the option to the special string \"disabled\", then "
+#~ "there will be no keyboard shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para pegar el contenido del portapapeles en la "
+#~ "terminal. Expresado como una cadena en el mismo formato usado por los "
+#~ "archivos de recursos de GTK+. Si define esta opción con la cadena "
+#~ "especial «disabled», entonces no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 1. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 1. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 10. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 10. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 11. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 11. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 12. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 12. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 2. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 2. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 3. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 3. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 4. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 4. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 5. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 5. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 6. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 6. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 7. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 7. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 8. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 8. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for switch to tab 9. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña 9. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key for toggling full screen mode. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no keyboard "
+#~ "shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar al modo de pantalla completa. "
+#~ "Expresado como una cadena en el mismo formato usado por los archivos de "
+#~ "recursos de GTK+. Si define esta opción con la cadena especial "
+#~ "«disabled», entonces no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to reset and clear the terminal. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no keyboard "
+#~ "shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para reiniciar y limpiar la terminal. Expresado "
+#~ "como una cadena en el mismo formato usado por los archivos de recursos de "
+#~ "GTK+. Si define esta opción con la cadena especial «disabled», entonces "
+#~ "no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to reset the terminal. Expressed as a string in the "
+#~ "same format used for GTK+ resource files. If you set the option to the "
+#~ "special string \"disabled\", then there will be no keyboard shortcut for "
+#~ "this action."
+#~ msgstr ""
+#~ "Combinación de teclas para reiniciar la terminal. Expresado como una "
+#~ "cadena en el mismo formato usado por los archivos de recursos de GTK+. Si "
+#~ "define esta opción con la cadena especial «disabled», entonces no habrá "
+#~ "una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to save the current tab contents to a file. "
+#~ "Expressed as a string in the same format used for GTK+ resource files. If "
+#~ "you set the option to the special string \"disabled\", then there will be "
+#~ "no keyboard shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para guardar el contenido actual de la pestaña a un "
+#~ "archivo. Expresado como una cadena en el mismo formato usado por los "
+#~ "archivos de recursos de GTK+. Si define esta opción con la cadena "
+#~ "especial «disabled», entonces no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to set the terminal title. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para definir el título de la terminal. Expresado "
+#~ "como una cadena en el mismo formato usado por los archivos de recursos de "
+#~ "GTK+. Si define esta opción con la cadena especial «disabled», entonces "
+#~ "no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to switch to the next tab. Expressed as a string in "
+#~ "the same format used for GTK+ resource files. If you set the option to "
+#~ "the special string \"disabled\", then there will be no keyboard shortcut "
+#~ "for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la siguiente pestaña. Expresado como "
+#~ "una cadena en el mismo formato usado por los archivos de recursos de "
+#~ "GTK+. Si define esta opción con la cadena especial «disabled», entonces "
+#~ "no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to switch to the previous tab. Expressed as a "
+#~ "string in the same format used for GTK+ resource files. If you set the "
+#~ "option to the special string \"disabled\", then there will be no keyboard "
+#~ "shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar a la pestaña anterior. Expresado como "
+#~ "una cadena en el mismo formato usado por los archivos de recursos de "
+#~ "GTK+. Si define esta opción con la cadena especial «disabled», entonces "
+#~ "no habrá una combinación para esta acción."
+
+#~ msgid ""
+#~ "Keyboard shortcut key to toggle the visibility of the menubar. Expressed "
+#~ "as a string in the same format used for GTK+ resource files. If you set "
+#~ "the option to the special string \"disabled\", then there will be no "
+#~ "keyboard shortcut for this action."
+#~ msgstr ""
+#~ "Combinación de teclas para cambiar la visibilidad de la barra de menús. "
+#~ "Expresado como una cadena en el mismo formato usado por los archivos de "
+#~ "recursos de GTK+. Si define esta opción con la cadena especial "
+#~ "«disabled», entonces no habrá una combinación para esta acción."
+
+#~ msgid "List of profiles"
+#~ msgstr "Lista de perfiles"
+
+#~ msgid ""
+#~ "List of profiles known to gnome-terminal. The list contains strings "
+#~ "naming subdirectories relative to /apps/gnome-terminal/profiles."
+#~ msgstr ""
+#~ "Lista de perfiles conocidos por la terminal de GNOME. La lista contiene "
+#~ "las cadenas de los nombres de los subdirectorios relativas a /apps/gnome-"
+#~ "terminal/profiles."
+
+#~ msgid ""
+#~ "Profile to be used when opening a new window or tab. Must be in "
+#~ "profile_list."
+#~ msgstr ""
+#~ "Perfil a ser usado cuando se abra una ventana o una pestaña nueva. Debe "
+#~ "figurar en «profile_list»."
+
+#~ msgid "Profile to use for new terminals"
+#~ msgstr "Perfil a utilizar para las terminales nuevas"
+
+#~ msgid ""
+#~ "Sets what code the backspace key generates. Possible values are \"ascii-"
+#~ "del\" for the ASCII DEL character, \"control-h\" for Control-H (AKA the "
+#~ "ASCII BS character), \"escape-sequence\" for the escape sequence "
+#~ "typically bound to backspace or delete. \"ascii-del\" is normally "
+#~ "considered the correct setting for the Backspace key."
+#~ msgstr ""
+#~ "Determina que código genera la tecla Retroceso (Backspace). Los valores "
+#~ "posibles son «ascii-del» para el carácter ASCII para Supr., «control-h» "
+#~ "para Control-H (también conocido como el carácter ASCII BS), «escape-"
+#~ "sequence» para la secuencia de escape que típicamente está asociada con "
+#~ "retroceso (backspace) o suprimir (delete). «ascii-del» se considera "
+#~ "normalmente como la configuración correcta para la tecla Retroceso "
+#~ "(Backspace)."
+
+#~ msgid ""
+#~ "Sets what code the delete key generates. Possible values are \"ascii-"
+#~ "del\" for the ASCII DEL character, \"control-h\" for Control-H (AKA the "
+#~ "ASCII BS character), \"escape-sequence\" for the escape sequence "
+#~ "typically bound to backspace or delete. \"escape-sequence\" is normally "
+#~ "considered the correct setting for the Delete key."
+#~ msgstr ""
+#~ "Determina qué código genera la tecla Suprimir (Delete). Los valores "
+#~ "posibles son «ascii-del» para el carácter ASCII para Supr., «control-h» "
+#~ "para Control-H (también conocido como el carácter ASCII BS), «escape-"
+#~ "sequence» para la secuencia de escape que típicamente está asociada con "
+#~ "retroceso (backspace) o suprimir (delete). «escape-sequence» se considera "
+#~ "normalmente como la configuración correcta para la tecla Suprimir "
+#~ "(Delete)."
+
+#~ msgid ""
+#~ "Terminals have a 16-color palette that applications inside the terminal "
+#~ "can use. This is that palette, in the form of a colon-separated list of "
+#~ "color names. Color names should be in hex format e.g. \"#FF00FF\""
+#~ msgstr ""
+#~ "Las terminales tienen una paleta de 16 colores que las aplicaciones de "
+#~ "terminal pueden utilizar. Ésta es esa paleta en la forma de una lista de "
+#~ "nombres de colores separada por comas. Los colores deben estar en formato "
+#~ "hexadecimal, por ejemplo: «#FF00FF»"
+
+#~ msgid ""
+#~ "The possible values are \"block\" to use a block cursor, \"ibeam\" to use "
+#~ "a vertical line cursor, or \"underline\" to use an underline cursor."
+#~ msgstr ""
+#~ "Los valores posibles son \"block\" (bloque) para usar un cursor de "
+#~ "bloque, \"ibeam\" (doble T) para usar una línea de cursor vertical o "
+#~ "\"underline\" (subrayar) para usar un cursor de subrayado."
+
+#~ msgid ""
+#~ "Type of terminal background. May be \"solid\" for a solid color, "
+#~ "\"image\" for an image, or \"transparent\" for either real transparency "
+#~ "if a compositing window manager is running, or pseudo-transparency "
+#~ "otherwise."
+#~ msgstr ""
+#~ "El tipo de fondo de la terminal. Puede ser \"solid\" para un color "
+#~ "sólido, \"image\" para una imagen o \"transparent\" para una "
+#~ "transparencia real o, si se está ejecutando un gestor de ventanas de "
+#~ "composición, una pseudo-transparencia."
+
+#~ msgid ""
+#~ "Where to put the terminal scrollbar. Possibilities are \"left\", "
+#~ "\"right\", and \"hidden\"."
+#~ msgstr ""
+#~ "Indica dónde colocar la barra de desplazamiento de la terminal. Las "
+#~ "posibilidades son «left» (izquierda), «right» (derecha), y "
+#~ "«hidden» (oculta)."
+
+#~ msgid ""
+#~ "Whether to ask for confirmation when closing a terminal window which has "
+#~ "more than one open tab."
+#~ msgstr ""
+#~ "Indica si debe pedir confirmación al cerrar una ventana de terminal que "
+#~ "tenga más de una pestaña abierta."
+
+#~ msgid "Whether to scroll background image"
+#~ msgstr "Indica si debe desplazarse la imagen de fondo"
+
+#~ msgid "[UTF-8,current]"
+#~ msgstr "[UTF-8,current,ISO-8859-15]"
+
+#~ msgid "Images"
+#~ msgstr "Imágenes"
+
+#~ msgid "<small><i>Maximum</i></small>"
+#~ msgstr "<small><i>Máximo</i></small>"
+
+#~ msgid "<small><i>None</i></small>"
+#~ msgstr "<small><i>Ninguno</i></small>"
+
+#~ msgid "Background image _scrolls"
+#~ msgstr "_Desplazar la imagen de fondo"
+
+#~ msgid "Image _file:"
+#~ msgstr "Archivo de _imagen:"
+
+#~ msgid ""
+#~ "On the left side\n"
+#~ "On the right side\n"
+#~ "Disabled"
+#~ msgstr ""
+#~ "En el lado izquierdo\n"
+#~ "En el lado derecho\n"
+#~ "Desactivada"
+
+#~ msgid "S_hade transparent or image background:"
+#~ msgstr "So_mbra transparente o imagen de fondo:"
+
+#~ msgid "Select Background Image"
+#~ msgstr "Seleccione la imagen de fondo"
+
+#~ msgid ""
+#~ "Tango\n"
+#~ "Linux console\n"
+#~ "XTerm\n"
+#~ "Rxvt\n"
+#~ "Custom"
+#~ msgstr ""
+#~ "Tango\n"
+#~ "Consola Linux\n"
+#~ "XTerm\n"
+#~ "Rxvt\n"
+#~ "Personalizado"
+
+#~ msgid "_Background image"
+#~ msgstr "Imagen de _fondo"
+
+#~ msgid "_Solid color"
+#~ msgstr "Color _sólido"
+
+#~ msgid "_Transparent background"
+#~ msgstr "Fondo _transparente"
+
+#~ msgid "No such profile \"%s\", using default profile\n"
+#~ msgstr "No existe el perfil «%s», usando el perfil predeterminado\n"
+
+#~ msgid "Invalid geometry string \"%s\"\n"
+#~ msgstr "Cadena de geometría inválida «%s»\n"
+
+#~ msgid ""
+#~ "Option \"%s\" is no longer supported in this version of gnome-terminal; "
+#~ "you might want to create a profile with the desired setting, and use the "
+#~ "new '--profile' option\n"
+#~ msgstr ""
+#~ "La opción «%s» ya no está soportada en esta versión de gnome-terminal; "
+#~ "quizá quiera crear un perfil con el ajuste deseado y usar la nueva opción "
+#~ "«--profile»\n"
+
+#~ msgid "Save the terminal configuration to a file"
+#~ msgstr "Guardar la configuración de la terminal a un archivo"
+
+#~ msgid "On the left side"
+#~ msgstr "En la parte izquierda"
+
+#~ msgid "On the right side"
+#~ msgstr "En la parte derecha"
+
+#~ msgid "Highlight S/Key challenges"
+#~ msgstr "Resaltar desafíos S/Key"
+
+#~ msgid ""
+#~ "Popup a dialog when an S/Key challenge response query is detected and "
+#~ "clicked on. Typing a password into the dialog will send it to the "
+#~ "terminal."
+#~ msgstr ""
+#~ "Mostrar un diálogo emergente cuando se detecte y se pulse sobre una "
+#~ "consulta de respuesta a desafío S/Key. Al escribir una contraseña en el "
+#~ "diálogo ésta será enviada a la terminal."
+
+#~ msgid "S/Key Challenge Response"
+#~ msgstr "Respuesta al desafío S/Key"
+
+#~ msgid "_Password:"
+#~ msgstr "_Contraseña:"
+
+#~ msgid "The text you clicked on doesn't seem to be a valid S/Key challenge."
+#~ msgstr "El texto que ha pulsado no parece ser un desafío válido S/Key."
+
+#~ msgid "The text you clicked on doesn't seem to be a valid OTP challenge."
+#~ msgstr "El texto que ha pulsado no parece ser un desafío válido OTP."
+
+#~ msgid "Could not open link"
+#~ msgstr "No se pudo abrir el enlace"
+
+#~ msgid "Incompatible factory version; creating a new instance.\n"
+#~ msgstr "Versión incompatible de la fábrica; creando una nueva instancia.\n"
+
+#~ msgid "Factory error: %s\n"
+#~ msgstr "Error de la fábrica: %s\n"
+
+#~ msgid "There was a problem with the command for this terminal"
+#~ msgstr "Hubo un problema con el comando para este terminal"
+
+#~ msgid ""
+#~ "Set the window geometry from the provided X geometry specification; see "
+#~ "the \"X\" man page for more information"
+#~ msgstr ""
+#~ "Establece la geometría de la ventana para la especificación de geometría "
+#~ "X proporcionada; consulte la página del manual de las «X» para obtener "
+#~ "más información"
+
+#~ msgid "(about %s)"
+#~ msgstr "(aproximadamente %s)"
+
+#~ msgid "Close all tabs?"
+#~ msgstr "¿Desea cerrar todas las pestañas?"
+
+#~ msgid "This window has one tab open. Closing the window will close it."
+#~ msgid_plural ""
+#~ "This window has %d tabs open. Closing the window will also close all tabs."
+#~ msgstr[0] ""
+#~ "Esta ventana tiene una pestaña abierta. Al cerrar la ventana también se "
+#~ "cerrará la pestaña."
+#~ msgstr[1] ""
+#~ "Esta ventana tiene %d pestañas abiertas. Al cerrar la ventana también se "
+#~ "cerrarán todas sus pestañas."
+
+#~ msgid "Close All _Tabs"
+#~ msgstr "Cerrar _todas las pestañas"
+
+#~ msgid ""
+#~ "If true, font anti-aliasing will be disabled when running without the X "
+#~ "RENDER extension, which gives a considerable performance improvement in "
+#~ "these situations."
+#~ msgstr ""
+#~ "Si es «true», el suavizado de tipografías será desactivado cuando se "
+#~ "ejecute sin la extensión X RENDER, la cual produce una mejora "
+#~ "considerable de rendimiento en estos casos."
+
+#~ msgid "Whether to disable anti-aliasing without the X RENDER extension"
+#~ msgstr ""
+#~ "Indica si se debe desactivar el alisado de tipografías sin la extensión X "
+#~ "RENDER"
+
+#~ msgid "\"%s\" option requires an argument\n"
+#~ msgstr "La opción «%s» requiere un argumento\n"
+
+#~ msgid "Execute the remainder of the command line inside the terminal."
+#~ msgstr "Ejecutar el histórico de la línea de comandos dentro del terminal."
+
+#~ msgid ""
+#~ "Open a new window containing a tab with the given profile. More than one "
+#~ "of these options can be provided."
+#~ msgstr ""
+#~ "Abrir una ventana nueva conteniendo una pestaña con el perfil dado. Puede "
+#~ "proveerse más de una de estas opciones."
+
+#~ msgid ""
+#~ "Open a new tab in the last-opened window with the given profile. More "
+#~ "than one of these options can be provided."
+#~ msgstr ""
+#~ "Abrir una pestaña nueva en la última ventana abierta con el perfil dado. "
+#~ "Puede proveerse más de una de estas opciones."
+
+#~ msgid ""
+#~ "Open a new window containing a tab with the given profile ID. Used "
+#~ "internally to save sessions."
+#~ msgstr ""
+#~ "Abrir una ventana nueva conteniendo una pestaña con el ID de perfil dado. "
+#~ "Usado internamente para guardar las sesiones."
+
+#~ msgid "PROFILEID"
+#~ msgstr "IDPERFIL"
+
+#~ msgid ""
+#~ "Open a new tab in the last-opened window with the given profile ID. Used "
+#~ "internally to save sessions."
+#~ msgstr ""
+#~ "Abrir una pestaña nueva en la última ventana abierta con el ID de perfil "
+#~ "dado. Usado internamente para guardar la sesiones."
+
+#~ msgid ""
+#~ "Set the role for the last-specified window; applies to only one window; "
+#~ "can be specified once for each window you create from the command line."
+#~ msgstr ""
+#~ "Establece el rol para la última ventana especificada; se aplica a sólo "
+#~ "una ventana; puede ser especificado una sola vez para cada ventana que "
+#~ "crea desde la línea de comandos."
+
+#~ msgid ""
+#~ "Turn on the menubar for the last-specified window; applies to only one "
+#~ "window; can be specified once for each window you create from the command "
+#~ "line."
+#~ msgstr ""
+#~ "Mostrar la barra de menú en la última ventana especificada, se aplica "
+#~ "sólo a una ventana, puede ser especificado para cada ventana que crea "
+#~ "desde la línea de comandos."
+
+#~ msgid ""
+#~ "Turn off the menubar for the last-specified window; applies to only one "
+#~ "window; can be specified once for each window you create from the command "
+#~ "line."
+#~ msgstr ""
+#~ "Oculta la barra de menú en la última ventana especificada, se aplica a "
+#~ "una sola ventana, puede ser especificado para cada ventana que crea desde "
+#~ "la línea de comandos."
+
+#~ msgid ""
+#~ "Set the last-specified window into maximized mode; applies to only one "
+#~ "window; can be specified once for each window you create from the command "
+#~ "line."
+#~ msgstr ""
+#~ "Establece la última ventana especificada en modo a pantalla completa; "
+#~ "esto se aplica sólo a una ventana; se puede especificar una sola vez para "
+#~ "cada ventana que cree desde la línea de comandos."
+
+#~ msgid ""
+#~ "Set the last-specified window into fullscreen mode; applies to only one "
+#~ "window; can be specified once for each window you create from the command "
+#~ "line."
+#~ msgstr ""
+#~ "Establece la última ventana especificada en modo a pantalla completa; "
+#~ "esto se aplica sólo a una ventana; puede ser especificado una sola vez "
+#~ "para cada ventana que crea desde la línea de comandos."
+
+#~ msgid ""
+#~ "X geometry specification (see \"X\" man page), can be specified once per "
+#~ "window to be opened."
+#~ msgstr ""
+#~ "La especificación de la geometría X (vea la página de manual «X») puede "
+#~ "ser especificada sólo una vez por ventana a ser abierta."
+
+#~ msgid "Register with the activation nameserver [default]"
+#~ msgstr ""
+#~ "Registrarse con el servidor de nombres de activación [predeterminado]"
+
+#~ msgid "Set the default terminal's working directory. Used internally"
+#~ msgstr ""
+#~ "Establecer el directorio de trabajo del terminal. Usado internamente"
+
+#~ msgid "ZOOMFACTOR"
+#~ msgstr "FACTORZOOM"
+
+#~ msgid ""
+#~ "It appears that you do not have gnome-terminal.server installed in a "
+#~ "valid location. Factory mode disabled.\n"
+#~ msgstr ""
+#~ "Parece que no tiene gnome-terminal.server instalado en un lugar válido. "
+#~ "Configuración de fábrica desactivada.\n"
+
+#~ msgid ""
+#~ "Error registering terminal with the activation service; factory mode "
+#~ "disabled.\n"
+#~ msgstr ""
+#~ "Error registrando la terminal con el servicio de activación; modo de "
+#~ "configuración desactivado.\n"
+
+#~ msgid "Failed to retrieve terminal server from activation server\n"
+#~ msgstr ""
+#~ "Falló al obtener el servidor de terminal desde el servidor\n"
+#~ " de activación\n"
+
+#~ msgid "_Tabs"
+#~ msgstr "_Pestañas"

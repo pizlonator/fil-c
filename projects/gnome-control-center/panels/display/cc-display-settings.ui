@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.0 -->
+<interface>
+  <template class="CcDisplaySettings" parent="GtkBox">
+    <property name="spacing">18</property>
+    <property name="orientation">vertical</property>
+
+    <child>
+      <object class="GtkListBox" id="enabled_listbox">
+        <property name="hexpand">True</property>
+        <property name="selection_mode">none</property>
+        <style>
+          <class name="boxed-list" />
+        </style>
+        <child>
+          <object class="AdwSwitchRow" id="enabled_row">
+            <signal name="notify::active" handler="on_enabled_row_active_changed_cb" swapped="yes"/>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkListBox" id="listbox">
+        <property name="hexpand">True</property>
+        <property name="selection_mode">none</property>
+        <style>
+          <class name="boxed-list" />
+        </style>
+        <child>
+          <object class="AdwComboRow" id="orientation_row">
+            <property name="width_request">100</property>
+            <property name="title" translatable="yes" context="display setting">_Orientation</property>
+            <property name="use-underline">True</property>
+            <signal name="notify::selected-item" handler="on_orientation_selection_changed_cb" swapped="yes"/>
+          </object>
+        </child>
+        <child>
+          <object class="AdwComboRow" id="resolution_row">
+            <property name="width_request">100</property>
+            <property name="title" translatable="yes" context="display setting">_Resolution</property>
+            <property name="use-underline">True</property>
+            <signal name="notify::selected-item" handler="on_resolution_selection_changed_cb" swapped="yes"/>
+          </object>
+        </child>
+        <child>
+          <object class="AdwComboRow" id="refresh_rate_row">
+            <property name="width_request">100</property>
+            <property name="title" translatable="yes">R_efresh Rate</property>
+            <property name="use-underline">True</property>
+            <signal name="notify::selected-item" handler="on_refresh_rate_selection_changed_cb" swapped="yes"/>
+          </object>
+        </child>
+        <child>
+          <object class="AdwExpanderRow" id="refresh_rate_expander_row">
+            <property name="width_request">100</property>
+            <property name="title" translatable="yes">R_efresh Rate</property>
+            <property name="use-underline">True</property>
+            <child type="suffix">
+              <object class="GtkLabel" id="refresh_rate_expander_suffix_label">
+              </object>
+            </child>
+            <child>
+              <object class="AdwSwitchRow" id="variable_refresh_rate_row">
+                <property name="width_request">100</property>
+                <property name="title" translatable="yes">_Variable Refresh Rate</property>
+                <property name="use-underline">True</property>
+                <signal name="notify::active" handler="on_variable_refresh_rate_active_changed_cb" swapped="yes"/>
+              </object>
+            </child>
+            <child>
+              <object class="AdwComboRow" id="preferred_refresh_rate_row">
+                <property name="width_request">100</property>
+                <property name="title" translatable="yes">Re_fresh Rate</property>
+                <property name="use-underline">True</property>
+                <property name="selected" bind-source="refresh_rate_row" bind-flags="bidirectional"/>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSwitchRow" id="underscanning_row">
+            <property name="width_request">100</property>
+            <property name="title" translatable="yes">Adjust for _TV</property>
+            <property name="use-underline">True</property>
+            <signal name="notify::active" handler="on_underscanning_row_active_changed_cb" swapped="yes"/>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="scale_buttons_row">
+            <property name="width_request">100</property>
+            <property name="title" translatable="yes" context="display setting">_Scale</property>
+            <property name="use-underline">True</property>
+            <child>
+              <object class="GtkBox" id="scale_bbox">
+                <property name="halign">end</property>
+                <property name="valign">center</property>
+                <style>
+                  <class name="linked" />
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwComboRow" id="scale_combo_row">
+            <property name="width_request">100</property>
+            <property name="title" translatable="yes" context="display setting">_Scale</property>
+            <property name="use-underline">True</property>
+            <signal name="notify::selected-item" handler="on_scale_selection_changed_cb" swapped="yes"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

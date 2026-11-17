@@ -1,0 +1,845 @@
+{
+    "app-id" : "org.gnome.Settings",
+    "runtime" : "org.gnome.Sdk",
+    "runtime-version" : "master",
+    "sdk" : "org.gnome.Sdk",
+    "command" : "gnome-control-center",
+    "tags" : [
+        "devel"
+    ],
+    "desktop-file-name-prefix" : "(Development) ",
+    "finish-args" : [
+        "--device=dri",
+        "--env=DCONF_USER_CONFIG_DIR=.config/dconf",
+        "--filesystem=host",
+        "--own-name=org.gnome.SessionManager",
+        "--share=ipc",
+        "--share=network",
+        "--socket=x11",
+        "--socket=pulseaudio",
+        "--socket=session-bus",
+        "--socket=system-bus",
+        "--socket=wayland"
+    ],
+    "build-options" : {
+        "cflags" : "-O2 -g",
+        "cxxflags" : "-O2 -g",
+        "env" : {
+            "V" : "1"
+        },
+        "build-args": [
+            "--share=network"
+        ]
+    },
+    "x-run-args" : [
+        "--verbose"
+    ],
+    "cleanup" : [
+        "/include",
+        "/share/aclocal",
+        "/man",
+        "/share/man",
+        "/share/gtk-doc",
+        "/share/vala",
+        "*.la",
+        "*.a"
+    ],
+    "modules" : [
+        {
+            "name" : "pwquality",
+            "buildsystem" : "autotools",
+            "config-opts" : [
+                "--disable-python-bindings"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/libpwquality/libpwquality.git"
+                }
+            ]
+        },
+        {
+            "name" : "intltool",
+            "cleanup" : [ "*" ],
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "https://launchpad.net/intltool/trunk/0.51.0/+download/intltool-0.51.0.tar.gz",
+                    "sha256" : "67c74d94196b153b774ab9f89b2fa6c6ba79352407037c8c14d5aeb334e959cd"
+                }
+            ]
+        },
+        {
+            "name" : "polkit",
+            "buildsystem" : "autotools",
+            "config-opts" : [
+                "--disable-polkitd",
+                "--disable-man-pages",
+                "--disable-examples",
+                "--disable-gtk-doc",
+                "--disable-libelogind",
+                "--disable-libsystemd-login",
+                "--with-systemdsystemunitdir=no",
+                "--with-authdb=dummy",
+                "--with-authfw=none"
+            ],
+            "rm-configure" : true,
+            "cleanup" : [
+                "/bin/*",
+                "/etc/pam.d",
+                "/etc/dbus-1",
+                "/share/dbus-1/system-services/*",
+                "/share/polkit-1",
+                "/lib/polkit-1"
+            ],
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "https://www.freedesktop.org/software/polkit/releases/polkit-0.116.tar.gz",
+                    "sha256" : "88170c9e711e8db305a12fdb8234fac5706c61969b94e084d0f117d8ec5d34b1"
+                },
+                {
+                    "type" : "patch",
+                    "path" : "polkit-build-Add-option-to-build-without-polkitd.patch"
+                },
+                {
+                    "type" : "file",
+                    "path" : "polkit-autogen",
+                    "dest-filename" : "autogen.sh"
+                }
+            ]
+        },
+        {
+            "name" : "accountsservice",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dsystemdsystemunitdir=no",
+                "-Dintrospection=false",
+                "-Dvapi=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.freedesktop.org/accountsservice/accountsservice",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "libusb1",
+            "buildsystem" : "autotools",
+            "config-opts" : [
+                "--disable-udev"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/libusb/libusb.git"
+                }
+            ]
+        },
+        {
+            "name" : "gusb",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Ddocs=false",
+                "-Dtests=false",
+                "-Dvapi=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/hughsie/libgusb.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "udev",
+            "config-opts" : [
+                "--disable-hwdb",
+                "--disable-logging",
+                "--disable-gudev",
+                "--disable-introspection",
+                "--disable-keymap",
+                "--disable-mtd_probe"
+            ],
+            "cleanup" : [
+                "/include",
+                "/etc",
+                "/libexec",
+                "/sbin",
+                "/lib/pkgconfig",
+                "/man",
+                "/share/aclocal",
+                "/share/doc",
+                "/share/gtk-doc",
+                "/share/man",
+                "/share/pkgconfig",
+                "*.la",
+                "*.a"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/gentoo/eudev.git"
+                }
+            ]
+        },
+        {
+            "name" : "colord",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dargyllcms_sensor=false",
+                "-Dbash_completion=false",
+                "-Dman=false",
+                "-Dudev_rules=false",
+                "-Dsystemd=false",
+                "-Dvapi=false",
+                "-Ddocs=false",
+                "-Dtests=false",
+                "-Dinstalled_tests=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch" : "main",
+                    "url" : "https://github.com/hughsie/colord.git"
+                }
+            ]
+        },
+        {
+            "name" : "colord-gtk",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dman=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch" : "main",
+                    "url" : "https://github.com/hughsie/colord-gtk.git"
+                }
+            ]
+        },
+        {
+            "name" : "rest",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dgtk_doc=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch" : "master",
+                    "url" : "https://gitlab.gnome.org/GNOME/librest.git"
+                }
+            ]
+        },
+        {
+            "name" : "gnome-online-accounts",
+            "buildsystem" : "meson",
+            "build-options" : {
+                "cflags" : "-Wno-error"
+            },
+            "config-opts" : [
+                "-Dgtk_doc=false",
+                "-Dintrospection=false",
+                "-Dvapi=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/gnome-online-accounts.git"
+                }
+            ]
+        },
+        {
+            "name" : "gnome-desktop",
+            "buildsystem" : "meson",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/gnome-desktop.git"
+                }
+            ]
+        },
+        {
+            "name" : "geocode-glib",
+            "buildsystem" : "meson",
+            "config-opts" : [
+            	"-Denable-installed-tests=false",
+            	"-Denable-introspection=false",
+            	"-Denable-gtk-doc=false",
+            	"-Dsoup2=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/geocode-glib.git"
+                }
+            ]
+        },
+        {
+            "name" : "libgweather",
+            "buildsystem" : "meson",
+            "config-opts" : [
+            	"-Denable_vala=false",
+            	"-Dgtk_doc=false",
+            	"-Dintrospection=false",
+            	"-Dtests=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/libgweather.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "upower",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dsystemdsystemunitdir=/app/lib/systemd/system",
+                "-Dudevrulesdir=/app/lib/udev",
+                "-Dudevhwdbdir=/app/lib/udev",
+                "-Dgtk-doc=false",
+                "-Dman=false",
+                "-Dintrospection=disabled"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.freedesktop.org/upower/upower.git",
+                    "tag" : "v1.90.2"
+                }
+            ]
+        },
+        {
+            "name" : "libwacom",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Ddocumentation=disabled",
+                "-Dtests=disabled"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/linuxwacom/libwacom.git"
+                }
+            ]
+        },
+        {
+            "name" : "libndp",
+            "buildsystem" : "autotools",
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "http://libndp.org/files/libndp-1.6.tar.gz",
+                    "sha256" : "0c7dfa84e013bd5e569ef2c6292a6f72cfaf14f4ff77a77425e52edc33ffac0e"
+                }
+            ]
+        },
+        {
+            "name" : "NetworkManager",
+            "buildsystem" : "meson",
+            "build-options" : {
+                "cflags" : "-ltinfo",
+                "cxxflags" : "-ltinfo"
+            },
+            "config-opts" : [
+                "-Dlibaudit=no",
+                "-Ddbus_conf_dir=/app/etc/dbus-1/system.d",
+                "-Ddnsmasq=/usr/bin/true",
+                "-Ddocs=false",
+                "-Dintrospection=false",
+                "-Diptables=/usr/bin/true",
+                "-Dlibpsl=false",
+                "-Dmodem_manager=false",
+                "-Dnmtui=false",
+                "-Dovs=false",
+                "-Dppp=false",
+                "-Dqt=false",
+                "-Dselinux=false",
+                "-Dsession_tracking=no",
+                "-Dsystemdsystemunitdir=/app/lib/systemd/system",
+                "-Dudev_dir=/app/lib/udev",
+                "-Dsystemd_journal=false",
+                "-Dtests=no",
+                "-Dvapi=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch": "main",
+                    "url" : "https://gitlab.freedesktop.org/NetworkManager/NetworkManager.git"
+                }
+            ]
+        },
+        {
+            "name" : "mobile-broadband-provider-info",
+            "buildsystem" : "autotools",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch": "main",
+                    "url" : "https://gitlab.gnome.org/GNOME/mobile-broadband-provider-info.git"
+                }
+            ]
+        },
+        {
+            "name" : "libnma",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dlibnma_gtk4=true",
+                "-Dgtk_doc=false",
+                "-Dintrospection=false",
+                "-Dvapi=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/libnma.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "network-manager-applet",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dappindicator=no",
+                "-Dwwan=false",
+                "-Dselinux=false",
+                "-Dteam=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/network-manager-applet.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "ModemManager",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dintrospection=false",
+                "-Dbash_completion=false",
+                "-Dudevdir=/app/lib/udev",
+                "-Dsystemdsystemunitdir=/app/lib/systemd/system",
+                "-Ddbus_policy_dir=/app/etc/dbus-1/system.d",
+                "-Dsystemd_journal=false",
+                "-Dtests=false",
+                "-Dman=false",
+                "-Dfuzzer=false",
+                "-Dexamples=false",
+                "-Dmbim=false",
+                "-Dplugin_dell=disabled",
+                "-Dplugin_foxconn=disabled",
+                "-Dplugin_fibocom=disabled",
+                "-Dqmi=false",
+                "-Dqrtr=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.freedesktop.org/mobile-broadband/ModemManager.git",
+                    "branch" : "main"
+                }
+            ]
+        },
+        {
+            "name" : "gnome-settings-daemon",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dudev_dir=/app/lib/udev",
+                "-Dsystemd=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/gnome-settings-daemon.git"
+                }
+            ],
+            "modules": [
+                {
+                    "name": "libcanberra",
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "http://0pointer.de/lennart/projects/libcanberra/libcanberra-0.30.tar.xz",
+                            "sha256": "c2b671e67e0c288a69fc33dc1b6f1b534d07882c2aceed37004bf48c601afa72"
+                        }
+                    ],
+                    "config-opts": [
+                        "--disable-alsa",
+                        "--disable-null",
+                        "--disable-oss"
+                    ]
+                }
+            ]
+        },
+        {
+            "name" : "gsound",
+            "buildsystem" : "meson",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/gsound.git"
+                }
+            ]
+        },
+        {
+            "name" : "gnome-bluetooth",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dintrospection=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/gnome-bluetooth.git"
+                }
+            ]
+        },
+        {
+            "name" : "openldap",
+            "buildsystem" : "autotools",
+            "config-opts" : [
+                "--disable-slapd"
+            ],
+            "sources" : [
+                {
+                    "type": "archive",
+                    "url": "https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.1.tgz",
+                    "sha256": "9d576ea6962d7db8a2e2808574e8c257c15aef55f403a1fb5a0faf35de70e6f3"
+                }
+            ]
+        },
+        {
+            "name" : "libtirpc",
+            "buildsystem" : "autotools",
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "http://downloads.sourceforge.net/sourceforge/libtirpc/libtirpc-1.2.6.tar.bz2",
+                    "sha256" : "4278e9a5181d5af9cd7885322fdecebc444f9a3da87c526e7d47f7a12a37d1cc"
+                }
+            ]
+        },
+        {
+            "name" : "rpcsvc-proto",
+            "buildsystem" : "autotools",
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "https://github.com/thkukuk/rpcsvc-proto/archive/v1.4.tar.gz",
+                    "sha256" : "eaa227686b84e8ae20181d2119c0ccac29d82371441844008019a134dafe3613"
+                }
+            ]
+        },
+        {
+            "name" : "lmdb",
+            "buildsystem" : "simple",
+            "build-commands" : [
+                "cd libraries/liblmdb/ && make prefix=/app install"
+            ],
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "https://github.com/LMDB/lmdb/archive/LMDB_0.9.23.tar.gz",
+                    "sha256" : "abf42e91f046787ed642d9eb21812a5c473f3ba5854124484d16eadbe0aa9c81"
+                }
+            ]
+        },
+        {
+            "name": "yapp-driver",
+            "buildsystem": "simple",
+            "build-commands": [
+                "perl Makefile.PL",
+                "make install -j1"
+            ],
+            "build-options" : {
+                "env" :  {
+                    "PERL5LIB": "/app/lib/perl5/",
+                    "PERL_MM_OPT": "INSTALL_BASE=/app"
+                }
+            },
+            "cleanup": [ "*" ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://cpan.metacpan.org/authors/id/W/WB/WBRASWELL/Parse-Yapp-1.21.tar.gz",
+                    "sha256": "3810e998308fba2e0f4f26043035032b027ce51ce5c8a52a8b8e340ca65f13e5"
+                }
+            ]
+        },
+        {
+            "name" : "samba",
+            "buildsystem" : "autotools",
+            "config-opts" : [
+                "--without-json",
+                "--without-ad-dc",
+                "--without-pam"
+            ],
+            "build-options" : {
+                "env" :  {
+                    "PERL5LIB": "/app/lib/perl5/",
+                    "PERL_MM_OPT": "INSTALL_BASE=/app"
+                }
+            },
+            "sources" : [
+                {
+                    "type" : "archive",
+                    "url" : "https://download.samba.org/pub/samba/stable/samba-4.14.5.tar.gz",
+                    "sha256" : "bb6ef5d2f16b85288d823578abc453d9a80514c42e5a2ea2c4e3c60dc42335c3"
+                }
+            ]
+        },
+        {
+            "name" : "libgtop2",
+            "buildsystem" : "autotools",
+            "config-opts" : [
+                "--disable-introspection"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/libgtop.git"
+                }
+            ]
+        },
+        {
+            "name" : "udisks",
+            "buildsystem" : "autotools",
+            "config-opts" : [
+                "--disable-introspection",
+                "--disable-lvm2",
+                "--enable-daemon=no",
+                "--with-systemdsystemunitdir=/app/lib/systemd/system",
+                "--with-tmpfilesdir=/app/lib/tmpfiles.d"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/storaged-project/udisks.git"
+                }
+            ]
+        },
+        {
+            "name": "python3-jinja2",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"jinja2\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/1d/97/2288fe498044284f39ab8950703e88abbac2abbdf65524d576157af70556/MarkupSafe-2.1.1.tar.gz",
+                    "sha256": "7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/bc/c3/f068337a370801f372f2f8f6bad74a5c140f6fda3d9de154052708dd3c65/Jinja2-3.1.2-py3-none-any.whl",
+                    "sha256": "6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61"
+                }
+            ]
+        },
+        {
+            "name": "python3-attrs",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"attrs\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/f0/eb/fcb708c7bf5056045e9e98f62b93bd7467eb718b0202e7698eb11d66416c/attrs-23.1.0-py3-none-any.whl",
+                    "sha256": "1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04"
+                }
+            ]
+        },
+        {
+            "name" : "libei",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dliboeffis=disabled",
+                "-Dtests=disabled"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch" : "main",
+                    "url" : "https://gitlab.freedesktop.org/libinput/libei.git"
+                }
+            ]
+        },
+        {
+            "name" : "mutter",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dgles2=false",
+                "-Dglx=false",
+                "-Dxwayland=false",
+                "-Dwayland=false",
+                "-Dsystemd=false",
+                "-Dnative_backend=false",
+                "-Dremote_desktop=false",
+                "-Degl_device=false",
+                "-Dudev=false",
+                "-Dstartup_notification=false",
+                "-Dsm=false",
+                "-Dintrospection=true",
+                "-Ddocs=false",
+                "-Dtests=false",
+                "-Dnative_tests=false",
+                "-Dprofiler=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch" : "main",
+                    "url" : "https://gitlab.gnome.org/gnome/mutter.git"
+                }
+            ]
+        },
+        {
+            "name" : "libical",
+            "buildsystem" : "cmake",
+            "config-opts" : [
+                "-DICAL_BUILD_DOCS=false",
+                "-DICAL_GLIB=true",
+                "-DLIBICAL_BUILD_TESTING=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/libical/libical.git"
+                }
+            ]
+        },
+        {
+            "name" : "evolution-data-server",
+            "buildsystem" : "cmake",
+            "config-opts" : [
+                "-DWITH_LIBDB=OFF"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/evolution-data-server.git"
+                }
+            ]
+        },
+        {
+            "name" : "libstartup-notification",
+            "buildsystem" : "autotools",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.freedesktop.org/xdg/startup-notification.git"
+                }
+            ]
+        },
+        {
+            "name" : "sassc",
+            "buildsystem" : "simple",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/sass/libsass"
+                },
+                {
+                    "type" : "git",
+                    "url" : "https://github.com/sass/sassc.git",
+                    "dest" : "sassc"
+                }
+            ],
+            "build-commands" : [
+                "make -C sassc",
+                "PREFIX=/app make -C sassc install"
+            ]
+        },
+        {
+            "name" : "cogl",
+            "buildsystem" : "autotools",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "tag" : "cogl-1.22",
+                    "url" : "https://gitlab.gnome.org/Archive/cogl.git"
+                }
+            ]
+        },
+        {
+            "name" : "clutter",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dbackends='system'",
+                "-Ddrivers='all'",
+                "-Dbuild_tests=false",
+                "-Dbuild_examples=false",
+                "-Ddocumentation=false",
+                "-Dintrospection=true",
+                "-Dpixbuf_tests=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "url" : "https://gitlab.gnome.org/GNOME/clutter.git"
+                }
+            ]
+        },
+        {
+            "name" : "gnome-shell",
+            "buildsystem" : "meson",
+            "config-opts" : [
+                "-Dextensions_tool=false",
+                "-Dextensions_app=false",
+                "-Dgtk_doc=false",
+                "-Dman=false",
+                "-Dtests=false",
+                "-Dnetworkmanager=false",
+                "-Dcamera_monitor=false",
+                "-Dsystemd=false"
+            ],
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch" : "main",
+                    "url" : "https://gitlab.gnome.org/GNOME/gnome-shell.git"
+                }
+            ]
+        },
+
+        {
+            "name" : "gnome-backgrounds",
+            "buildsystem" : "meson",
+            "sources" : [
+                {
+                    "type" : "git",
+                    "branch": "main",
+                    "url" : "https://gitlab.gnome.org/GNOME/gnome-backgrounds.git"
+                }
+            ]
+        },
+        {
+            "name" : "gnome-control-center",
+            "buildsystem" : "meson",
+            "sources" : [
+                {
+                    "type" : "dir",
+                    "path" : "../../"
+                }
+            ],
+            "config-opts" : [
+                "-Dsnap=false",
+                "-Dtests=false",
+                "-Dprofile=development"
+            ]
+        }
+    ]
+}

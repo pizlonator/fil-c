@@ -1,0 +1,18 @@
+wheel {
+  background: alpha(currentColor, .08);
+  border-radius: 100%;
+  margin: 40px;
+  min-width: 280px;
+  min-height: 280px;
+}
+
+wheel > button {
+  background-color: @window_bg_color;
+  border: 1px solid @borders;
+  padding: 3px;
+}
+
+wheel > button.playing {
+  background-color: @accent_bg_color;
+  color: @accent_fg_color;
+}

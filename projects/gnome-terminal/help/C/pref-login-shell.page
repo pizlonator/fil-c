@@ -1,0 +1,99 @@
+<page xmlns="http://projectmallard.org/1.0/"
+      type="guide"
+      id="pref-login-shell">
+
+  <info>
+    <revision pkgversion="3.8" date="2013-03-03" status="review"/>
+    <revision pkgversion="3.14" date="2014-09-08" status="review"/>
+    <revision version="0.2" pkgversion="3.34" date="2020-01-04" status="review"/>
+    <link type="guide" xref="index#preferences"/>
+    <link type="guide" xref="pref#profile"/>
+
+    <credit type="author copyright">
+      <name>Sindhu S</name>
+      <email>sindhus@live.in</email>
+      <years>2013</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Ekaterina Gerasimova</name>
+      <email>kittykat3756@gmail.com</email>
+      <years>2013-2014</years>
+    </credit>
+    <credit type="copyright editor">
+      <name>Michael Hill</name>
+      <email>mdhillca@gmail.com</email>
+      <years>2013</years>
+    </credit>
+
+    <include href="legal.xml" xmlns="http://www.w3.org/2001/XInclude"/>
+
+    <desc>Start a login shell in <app>Terminal</app>.</desc>
+  </info>
+
+  <title>Login shells</title>
+
+  <p>Shells in UNIX based systems can be started up in login and non-login
+  modes:</p>
+
+  <terms>
+    <item>
+      <title>Login shell</title>
+      <p>A login shell is a shell given to a user upon login into their user
+      account. This is initiated by using the <cmd>-l</cmd> or
+      <cmd>--login</cmd> option, or placing a dash as the initial character
+      of the command name, for example invoking <cmd>bash</cmd> as
+      <cmd>-bash</cmd>.</p>
+    </item>
+    <item>
+      <title>Sub shell</title>
+      <p>Sub shell, also called a non-login shell is a shell started after
+      the login process without the <cmd>-l</cmd> or <cmd>--login</cmd>
+      option and without an extra dash before the command name.</p>
+    </item>
+  </terms>
+
+  <p>The general cases for having a login shell include:</p>
+  <list>
+    <item>
+      <p>Accessing your computer remotely using <app>ssh</app>.</p>
+    </item>
+    <item>
+      <p>Simulating an initial login shell with <cmd>bash -l</cmd> or
+      <cmd>sh -l</cmd>.</p>
+    </item>
+    <item>
+      <p>Simulating an initial root login shell with <cmd>sudo -i</cmd>.</p>
+    </item>
+  </list>
+
+  <section id="login-shell-howto">
+    <title>Start a login shell</title>
+
+    <p>You can allow <app>Terminal</app> to start a login shell. Your default
+    shell will be started with a dash character prepended to its name.</p>
+
+    <steps>
+      <item>
+        <p>Press the menu button in the top-right corner of the window and select
+        <gui style="menuitem">Preferences</gui>.</p>
+      </item>
+      <item>
+        <p>In the sidebar, select your current profile in the <gui>Profiles</gui>
+        section.</p>
+      </item>
+      <item>
+        <p>Select <gui style="tab">Command</gui>.</p>
+      </item>
+      <item>
+        <comment>
+          <cite href="mailto:kittykat3756@gmail.com">Kat</cite>
+          <p>TODO: test when this takes effect.</p>
+        </comment>
+        <p>Under the <gui>Command</gui> label, select
+        <gui style="checkbox">Run command as a login shell</gui>.</p>
+      </item>
+    </steps>
+
+  </section>
+
+</page>

@@ -1,0 +1,301 @@
+<?xml version="1.0"?>
+<interface>
+  <!-- interface-requires gtk+ 3.8 -->
+  <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkListStore" id="local_username_model">
+    <columns>
+      <!-- column-name gchararray -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <template class="CcAddUserDialog" parent="AdwWindow">
+    <property name="modal">True</property>
+    <property name="title" translatable="yes">Add User</property>
+    <property name="default-width">500</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-end-title-buttons">False</property>
+            <property name="show-start-title-buttons">False</property>
+            <child type="start">
+              <object class="GtkButton" id="cancel_button">
+                <property name="label" translatable="yes">_Cancel</property>
+                <property name="visible">True</property>
+                <property name="visible">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_underline">True</property>
+                <property name="valign">center</property>
+                <signal name="clicked" handler="gtk_window_destroy" object="CcAddUserDialog"/>
+                <style>
+                  <class name="text-button"/>
+                </style>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="add_button">
+                <property name="label" translatable="yes">_Add</property>
+                <property name="receives_default">True</property>
+                <property name="use_underline">True</property>
+                <property name="valign">center</property>
+                <signal name="clicked" handler="add_button_clicked_cb" object="CcAddUserDialog" swapped="yes"/>
+                <style>
+                  <class name="text-button"/>
+                  <class name="suggested-action"/>
+                </style>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkSpinner" id="spinner">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage" id="local_page">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwActionRow" id="local_name_row">
+                    <property name="activatable-widget">local_name_entry</property>
+                    <property name="title" translatable="yes">_Name</property>
+                    <property name="use-underline">True</property>
+                    <child>
+                      <object class="GtkEntry" id="local_name_entry">
+                        <property name="valign">center</property>
+                        <property name="max-length">255</property>
+                        <property name="activates_default">True</property>
+                        <property name="hexpand">True</property>
+                        <signal name="changed" handler="local_name_entry_changed_cb" object="CcAddUserDialog" swapped="yes"/>
+                        <signal name="activate" handler="dialog_validate" object="CcAddUserDialog" swapped="yes"/>
+                        <child>
+                          <object class="GtkEventControllerFocus">
+                            <signal name="leave" handler="local_name_entry_focus_out_event_cb" object="CcAddUserDialog" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="suffix">
+                      <object class="GtkImage" id="local_name_status_icon">
+                        <property name="icon-name">dialog-warning-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="local_username_row">
+                    <property name="activatable-widget">local_username_combo</property>
+                    <property name="title" translatable="yes">_Username</property>
+                    <property name="use-underline">True</property>
+                    <property name="subtitle-lines">2</property>
+                    <child>
+                      <object class="GtkComboBoxText" id="local_username_combo">
+                        <property name="valign">center</property>
+                        <property name="has_entry">True</property>
+                        <property name="entry_text_column">0</property>
+                        <property name="model">local_username_model</property>
+                        <signal name="changed" handler="local_username_combo_changed_cb" object="CcAddUserDialog" swapped="yes"/>
+                        <child>
+                          <object class="GtkEventControllerFocus">
+                            <signal name="leave" handler="local_username_combo_focus_out_event_cb" object="CcAddUserDialog" swapped="yes"/>
+                          </object>
+                        </child>
+                        <child internal-child="entry">
+                          <object class="GtkEntry" id="local_username_entry">
+                            <property name="activates_default">True</property>
+                            <property name="hexpand">True</property>
+                            <signal name="activate" handler="dialog_validate" object="CcAddUserDialog" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="suffix">
+                      <object class="GtkImage" id="local_username_status_icon">
+                        <property name="icon-name">dialog-warning-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="activatable-widget">local_account_type_switch</property>
+                    <property name="title" translatable="yes">Ad_ministrator</property>
+                    <property name="use-underline">True</property>
+                    <child type="suffix">
+                      <object class="CcListRowInfoButton">
+                        <property name="valign">center</property>
+                        <property name="text" translatable="yes">Administrators have extra abilities, including adding and removing users, changing login settings, and removing software. Parental controls cannot be applied to administrators.</property>
+                      </object>
+                    </child>
+                    <child type="suffix">
+                      <object class="GtkSwitch" id="local_account_type_switch">
+                        <property name="valign">center</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Password</property>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="activatable-widget">local_password_login_radio</property>
+                    <property name="title" translatable="yes">User sets password on _first login</property>
+                    <property name="use-underline">True</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="local_password_login_radio">
+                        <property name="valign">center</property>
+                        <property name="active">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow">
+                    <property name="activatable-widget">local_password_radio</property>
+                    <property name="title" translatable="yes">Set password n_ow</property>
+                    <property name="use-underline">True</property>
+                    <child type="prefix">
+                      <object class="GtkCheckButton" id="local_password_radio">
+                        <property name="valign">center</property>
+                        <property name="use_underline">True</property>
+                        <property name="group">local_password_login_radio</property>
+                        <signal name="toggled" handler="local_password_radio_changed_cb" object="CcAddUserDialog" swapped="yes"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup" id="password_group">
+                <property name="sensitive">False</property>
+                <child>
+                  <object class="AdwActionRow" id="local_password_row">
+                    <property name="activatable-widget">local_password_entry</property>
+                    <property name="title" translatable="yes">Pass_word</property>
+                    <property name="use-underline">True</property>
+                    <property name="subtitle-lines">2</property>
+                    <child>
+                      <object class="GtkPasswordEntry" id="local_password_entry">
+                        <property name="hexpand">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="valign">center</property>
+                        <property name="show-peek-icon">True</property>
+                        <signal name="notify::text" handler="local_password_entry_changed_cb" object="CcAddUserDialog" swapped="yes"/>
+                        <signal name="activate" handler="dialog_validate" object="CcAddUserDialog" swapped="yes"/>
+                        <child>
+                          <object class="GtkEventControllerKey">
+                            <signal name="key-pressed" handler="local_password_entry_key_press_event_cb" object="CcAddUserDialog" swapped="yes"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEventControllerFocus">
+                            <signal name="leave" handler="password_focus_out_event_cb" object="CcAddUserDialog" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="suffix">
+                      <object class="GtkButton">
+                        <property name="visible">False</property>
+                        <property name="icon-name">system-run-symbolic</property>
+                        <property name="valign">center</property>
+                        <signal name="clicked" handler="generate_password" object="CcAddUserDialog" swapped="yes"/>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child type="suffix">
+                      <object class="GtkImage" id="local_password_status_icon">
+                        <property name="icon-name">dialog-warning-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="local_verify_password_row">
+                    <property name="activatable-widget">local_verify_entry</property>
+                    <property name="title" translatable="yes">_Confirm</property>
+                    <property name="use-underline">True</property>
+                    <child>
+                      <object class="GtkPasswordEntry" id="local_verify_entry">
+                        <property name="hexpand">True</property>
+                        <property name="valign">center</property>
+                        <property name="sensitive">False</property>
+                        <property name="show-peek-icon">True</property>
+                        <signal name="notify::text" handler="local_verify_entry_changed_cb" object="CcAddUserDialog" swapped="yes"/>
+                        <signal name="activate" handler="dialog_validate" object="CcAddUserDialog" swapped="yes"/>
+                        <child>
+                          <object class="GtkEventControllerFocus">
+                            <signal name="leave" handler="password_focus_out_event_cb" object="CcAddUserDialog" swapped="yes"/>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="suffix">
+                      <object class="GtkImage" id="local_verify_status_icon">
+                        <property name="icon-name">dialog-warning-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLevelBar" id="local_strength_indicator">
+                    <property name="mode">continuous</property>
+                    <property name="max-value">5</property>
+                    <property name="margin-top">12</property>
+                    <offsets>
+                      <offset name="strength-weak" value="1"/>
+                      <offset name="strength-low" value="2"/>
+                      <offset name="strength-medium" value="3"/>
+                      <offset name="strength-good" value="4"/>
+                      <offset name="strength-high" value="5"/>
+                    </offsets>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="local_password_hint">
+                    <property name="halign">start</property>
+                    <property name="wrap">True</property>
+                    <property name="margin-top">12</property>
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="cancel_button"/>
+      <widget name="add_button"/>
+    </widgets>
+  </object>
+</interface>

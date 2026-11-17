@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CEPageDetails" parent="AdwBin">
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="propagate-natural-height">True</property>
+        <property name="propagate-natural-width">True</property>
+        <child>
+          <object class="GtkGrid">
+            <property name="margin_start">24</property>
+            <property name="margin_end">24</property>
+            <property name="margin_top">24</property>
+            <property name="margin_bottom">24</property>
+            <property name="row_spacing">12</property>
+            <property name="column_spacing">12</property>
+            <child>
+              <object class="GtkLabel" id="strength_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Signal Strength</property>
+                <property name="mnemonic_widget">strength_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="strength_label">
+                <property name="hexpand">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Weak</property>
+                <property name="selectable">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="speed_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Link speed</property>
+                <property name="mnemonic_widget">speed_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="speed_label">
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">1Mb/sec</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="security_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Security</property>
+                <property name="mnemonic_widget">security_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ipv4_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">IPv4 Address</property>
+                <property name="mnemonic_widget">ipv4_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">3</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ipv6_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">IPv6 Address</property>
+                <property name="mnemonic_widget">ipv6_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">4</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="mac_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Hardware Address</property>
+                <property name="mnemonic_widget">mac_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">5</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="freq_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Supported Frequencies</property>
+                <property name="mnemonic_widget">freq_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">6</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="route_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Default Route</property>
+                <property name="mnemonic_widget">route_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">7</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="dns4_heading_label">
+                <property name="xalign">1</property>
+                <property name="yalign">0</property>
+                <property name="label" translatable="yes">DNS</property>
+                <property name="mnemonic_widget">dns4_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">8</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="dns6_heading_label">
+                <property name="xalign">1</property>
+                <property name="yalign">0</property>
+                <property name="label" translatable="yes">DNS</property>
+                <property name="mnemonic_widget">dns6_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">9</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="last_used_heading_label">
+                <property name="xalign">1</property>
+                <property name="label" translatable="yes">Last Used</property>
+                <property name="mnemonic_widget">last_used_label</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">10</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="security_label">
+                <property name="xalign">0</property>
+                <property name="label">WPA</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ipv4_label">
+                <property name="xalign">0</property>
+                <property name="label">127.0.0.1</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="ipv6_label">
+                <property name="xalign">0</property>
+                <property name="label">::1</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">4</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="mac_label">
+                <property name="xalign">0</property>
+                <property name="label">AA:BB:CC:DD:55:66:77:88</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">5</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="freq_label">
+                <property name="xalign">0</property>
+                <property name="label">2.4 GHz / 5 GHz</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">6</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="route_label">
+                <property name="xalign">0</property>
+                <property name="label">127.0.0.1</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">7</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="dns4_label">
+                <property name="xalign">0</property>
+                <property name="yalign">0</property>
+                <property name="label">127.0.0.1</property>
+                <property name="wrap">True</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">8</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="dns6_label">
+                <property name="xalign">0</property>
+                <property name="yalign">0</property>
+                <property name="label">::1</property>
+                <property name="wrap">True</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">9</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="last_used_label">
+                <property name="xalign">0</property>
+                <property name="label">today</property>
+                <property name="selectable">True</property>
+                <property name="hexpand">True</property>
+                <property name="max-width-chars">50</property>
+                <property name="ellipsize">end</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">10</property>
+                  <property name="column-span">1</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="auto_connect_check">
+                <property name="label" translatable="yes">Connect _automatically</property>
+                <property name="valign">end</property>
+                <property name="use_underline">True</property>
+                <property name="margin_top">12</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">11</property>
+                  <property name="column-span">2</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkCheckButton" id="all_user_check">
+                <property name="label" translatable="yes">Make available to _other users</property>
+                <property name="use_underline">True</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">12</property>
+                  <property name="column-span">2</property>
+                  <property name="row-span">1</property>
+                </layout>
+              </object>
+            </child>
+
+            <!-- "Restrict Data Usage" section -->
+            <child>
+              <object class="GtkCheckButton" id="restrict_data_check">
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">13</property>
+                  <property name="column-span">2</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <property name="margin_bottom">12</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">_Metered connection: has data limits or can incur charges</property>
+                        <property name="hexpand">True</property>
+                        <property name="use_underline">True</property>
+                        <property name="mnemonic_widget">restrict_data_check</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Software updates and other large downloads will not be started automatically.</property>
+                        <property name="wrap">True</property>
+                        <property name="max_width_chars">60</property>
+                        <style>
+                          <class name="dim-label" />
+                        </style>
+                        <attributes>
+                          <attribute name="scale" value="0.8" />
+                        </attributes>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="forget_button">
+                <property name="use_underline">True</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                <property name="halign">center</property>
+                <property name="valign">end</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">14</property>
+                  <property name="column-span">2</property>
+                  <property name="row-span">1</property>
+                </layout>
+                <style>
+                  <class name="destructive-action" />
+                  <class name="pill" />
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

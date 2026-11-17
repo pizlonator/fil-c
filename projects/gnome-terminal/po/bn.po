@@ -1,0 +1,2648 @@
+# Bengali Translation of Gnome-Terminal.
+# Copyright (C)2003 Free Software Foundation,Inc
+# This file is distributed under the same license as the gnome-terminal package.
+#
+# Runa Bhattacharjee <runa77@softhome.net>, 2003.
+# Runa Bhattacharjee <runa@bengalinux.org>, 2006.
+# Runa Bhattacharjee <runabh@gmail.com>, 2007.
+# Runa Bhattacharjee <runab@fedoraproject.org>, 2008.
+# Runa Bhattacharjee <runab@redhat.com>, 2008, 2009.
+# Israt Jahan <israt@ankur.org.bd>, 2009.
+# Sadia Afroz <sadia@ankur.org.bd>, 2010.
+# Israt Jahan <israt@ankur.org.bd>, 2010.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bn\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=gnome-"
+"terminal&component=general\n"
+"POT-Creation-Date: 2010-03-23 23:55+0000\n"
+"PO-Revision-Date: 2010-03-24 12:35+0600\n"
+"Last-Translator: Israt Jahan <israt@ankur.org.bd>\n"
+"Language-Team: Bengali <ankur-bd-l10n@googlegroups.com>\n"
+"Language: bn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../gnome-terminal.desktop.in.in.h:1 ../src/gnome-terminal.schemas.in.h:129
+#: ../src/terminal-accels.c:228 ../src/terminal.c:304
+#: ../src/terminal-profile.c:158 ../src/terminal-window.c:1901
+msgid "Terminal"
+msgstr "টার্মিনাল"
+
+#: ../gnome-terminal.desktop.in.in.h:2
+msgid "Use the command line"
+msgstr "কমান্ড লাইন ব্যবহার করুন"
+
+#: ../src/eggsmclient.c:225
+msgid "Disable connection to session manager"
+msgstr "সেশন ব্যবস্থাপকের সাথে সংযোগ বিচ্ছিন্ন করা হবে"
+
+#: ../src/eggsmclient.c:228
+msgid "Specify file containing saved configuration"
+msgstr "সংরক্ষিত কনফিগারেশন ধারণকারী ফাইল উল্লেখ করুন"
+
+# Translated by sadia
+#: ../src/eggsmclient.c:228 ../src/terminal-options.c:957
+#: ../src/terminal-options.c:966
+msgid "FILE"
+msgstr "ফাইল"
+
+#: ../src/eggsmclient.c:231
+msgid "Specify session management ID"
+msgstr "সেশন ব্যবস্থাপনার ID উল্লেখ করুন"
+
+#: ../src/eggsmclient.c:231
+msgid "ID"
+msgstr "ID"
+
+#: ../src/eggsmclient.c:252
+msgid "Session management options:"
+msgstr "সেশন ব্যবস্থাপনা সংক্রান্ত অপশন:"
+
+#: ../src/eggsmclient.c:253
+msgid "Show session management options"
+msgstr "সেশন ব্যবস্থাপনা সংক্রান্ত অপশন প্রদর্শন করা হবে"
+
+# Translated by sadia
+#: ../src/encodings-dialog.glade.h:1
+msgid "A_vailable encodings:"
+msgstr "বিদ্যমান এনকোডিং: (_v)"
+
+#: ../src/encodings-dialog.glade.h:2
+msgid "Add or Remove Terminal Encodings"
+msgstr "টার্মিনালে ব্যবহারযোগ্য এনকোডিং যোগ অথবা অপসারণ করুন"
+
+# Translated by sadia
+#: ../src/encodings-dialog.glade.h:3
+msgid "E_ncodings shown in menu:"
+msgstr "মেনুর মধ্যে প্রদর্শিত এনকোডিং: (_n)"
+
+#: ../src/gnome-terminal.schemas.in.h:1
+msgid ""
+"A subset of possible encodings are presented in the Encoding submenu. This "
+"is a list of encodings to appear there. The special encoding name \"current"
+"\" means to display the encoding of the current locale."
+msgstr ""
+"সম্ভাব্য এনকোডিং এর একটি ক্ষুদ্র তালিকা এনকোডিং নামক সাবমেনুর মধ্যে উপস্থিত করা হয়। "
+"এই তালিকায় প্রদর্শনযোগ্য এনকোডিং গুলি এই স্থানে প্রস্তুত করা হয়েছে। \"current\" রূপে "
+"প্রদর্শিত বিশেষ এনকোডিং দ্বারা বর্তমান লোকেলে ব্যবহৃত এনকোডিং দর্শানো হয়।"
+
+#: ../src/gnome-terminal.schemas.in.h:2
+msgid ""
+"A value between 0.0 and 1.0 indicating how much to darken the background "
+"image. 0.0 means no darkness, 1.0 means fully dark. In the current "
+"implementation, there are only two levels of darkness possible, so the "
+"setting behaves as a boolean, where 0.0 disables the darkening effect."
+msgstr ""
+"পটভূমির চিত্র ছায়াচ্ছন্ন করার মাত্রা হিসাবে 0.0 ও 1.0-র মধ্যবর্তী একটি মান। মান 0.0 "
+"হলে ছায়াচ্ছন্ন করা হবে না, 1.0 মান নির্ধারিত হলে চিত্র সম্পূর্ণরূপে ছায়াচ্ছন্ন হবে। "
+"বর্তমানে এই বৈশিষ্ট্যের শুধুমাত্র দুটি স্তর উপলব্ধ রয়েছে, যার ফলে এই বৈশিষ্ট্যের জন্য "
+"বুলিয়ানের অনুরূপ মান ধার্য হয়। অর্থাৎ 0.0 মান প্রয়োগ করে এই বৈশিষ্ট্য নিষ্ক্রিয় করা "
+"যাবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:3
+msgid ""
+"Accelerator key to detach current tab. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keybinding for this action."
+msgstr ""
+"বর্তমান ট্যাব বিচ্ছিন্ন করতে ব্যবহৃত এক্সেলারেটর কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:4
+msgid ""
+"Accelerator key to move the current tab to the left. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keybinding for this "
+"action."
+msgstr ""
+"বর্তমান ট্যাব বাদিকে স্থানান্তর করতে ব্যবহৃত এক্সেলারেটর কী। GTK+ রিসোর্স ফাইলে "
+"ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান "
+"নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:5
+msgid ""
+"Accelerator key to move the current tab to the right. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keybinding for this "
+"action."
+msgstr ""
+"বর্তমান ট্যাব ডানদিকে স্থানান্তর করতে ব্যবহৃত এক্সেলারেটর কী। GTK+ রিসোর্স ফাইলে "
+"ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান "
+"নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:6
+msgid "Accelerator to detach current tab."
+msgstr "বর্তমান ট্যাব বিচ্ছিন্ন করতে ব্যবহৃত শর্টকাট।"
+
+#: ../src/gnome-terminal.schemas.in.h:7
+msgid "Accelerator to move the current tab to the left."
+msgstr "বর্তমান ট্যাব বাদিকে স্থানান্তর করতে ব্যবহৃত শর্টকাট।"
+
+#: ../src/gnome-terminal.schemas.in.h:8
+msgid "Accelerator to move the current tab to the right."
+msgstr "বর্তমান ট্যাব ডানদিকে স্থানান্তর করতে ব্যবহৃত শর্টকাট।"
+
+#: ../src/gnome-terminal.schemas.in.h:9
+msgid "An Pango font name. Examples are \"Sans 12\" or \"Monospace Bold 14\"."
+msgstr "একটি Pango ফন্টের নাম। উদাহরণ, \"Sans 12\" অথবা \"Monospace Bold 14\"।"
+
+#: ../src/gnome-terminal.schemas.in.h:10
+msgid "Background image"
+msgstr "পটভূমির চিত্র"
+
+#: ../src/gnome-terminal.schemas.in.h:11
+msgid "Background type"
+msgstr "পটভূমির ধরণ"
+
+#: ../src/gnome-terminal.schemas.in.h:12
+msgid "Characters that are considered \"part of a word\""
+msgstr "\"শব্দের অংশ\" হিসাবে ধার্য অক্ষর"
+
+#: ../src/gnome-terminal.schemas.in.h:13
+msgid "Custom command to use instead of the shell"
+msgstr "শেলের পরিবর্তে ব্যবহারের জন্য চিহ্নিত স্বনির্বাচিত কমান্ড"
+
+# Translated by sadia
+#: ../src/gnome-terminal.schemas.in.h:14
+msgid "Default"
+msgstr "পূর্বনির্ধারিত"
+
+#: ../src/gnome-terminal.schemas.in.h:15
+msgid "Default color of bold text in the terminal"
+msgstr "টার্মিনালে গাঢ় টেক্সটের পূর্বনির্ধারিত রং"
+
+#: ../src/gnome-terminal.schemas.in.h:16
+msgid ""
+"Default color of bold text in the terminal, as a color specification (can be "
+"HTML-style hex digits, or a color name such as \"red\"). This is ignored if "
+"bold_color_same_as_fg is true."
+msgstr ""
+"টার্মিনালের গাঢ় টেক্সটের পূর্বনির্ধারিত রং, রঙের সুনির্দিষ্ট মান হিসাবে (HTML-শৈলীতে "
+"ব্যবহৃত hex সংখ্যা অথবা রঙের নাম যেমন \"red\") চিহ্নিত। bold_color_same_as_fg-র "
+"মান true হলে এটি উপেক্ষা করা হয়।"
+
+#: ../src/gnome-terminal.schemas.in.h:17
+msgid "Default color of terminal background"
+msgstr "টার্মিনাল পটভূমির ডিফল্ট রং"
+
+#: ../src/gnome-terminal.schemas.in.h:18
+msgid ""
+"Default color of terminal background, as a color specification (can be HTML-"
+"style hex digits, or a color name such as \"red\")."
+msgstr ""
+"টার্মিনালের পটভূমির ডিফল্ট রং, রঙের সুনির্দিষ্ট মান হিসাবে চিহ্নিত (HTML এ ব্যবহৃত "
+"hex অক্ষর অথবা রঙের নাম যেমন \"red\")।"
+
+#: ../src/gnome-terminal.schemas.in.h:19
+msgid "Default color of text in the terminal"
+msgstr "টার্মিনালে ব্যবহৃত পাঠ্যের ডিফল্ট রং"
+
+#: ../src/gnome-terminal.schemas.in.h:20
+msgid ""
+"Default color of text in the terminal, as a color specification (can be HTML-"
+"style hex digits, or a color name such as \"red\")."
+msgstr ""
+"টার্মিনালে ব্যবহৃত পাঠ্যের ডিফল্ট রং, রঙের সুনির্দিষ্ট মান হিসাবে চিহ্নিত (HTML এ "
+"ব্যবহৃত hex সংখ্যা অথবা রঙের নাম যেমন \"red\")।"
+
+#: ../src/gnome-terminal.schemas.in.h:21
+msgid "Default number of columns"
+msgstr "পূর্বনির্ধারিত কলামের সংখ্যা"
+
+#: ../src/gnome-terminal.schemas.in.h:22
+msgid "Default number of rows"
+msgstr "পূর্বনির্ধারিত সারির সংখ্যা"
+
+#: ../src/gnome-terminal.schemas.in.h:23
+msgid "Effect of the Backspace key"
+msgstr "Backspace কীর প্রভাব"
+
+#: ../src/gnome-terminal.schemas.in.h:24
+msgid "Effect of the Delete key"
+msgstr "Delete কীর প্রভাব"
+
+#: ../src/gnome-terminal.schemas.in.h:25
+msgid "Filename of a background image."
+msgstr "পটভূমির চিত্র হিসাবে ব্যবহৃত ফাইলের নাম।"
+
+#: ../src/gnome-terminal.schemas.in.h:26
+msgid "Font"
+msgstr "ফন্ট"
+
+#. Translators: S/Key is the name of an application, so it should
+#. not be translated.
+#: ../src/gnome-terminal.schemas.in.h:29
+msgid "Highlight S/Key challenges"
+msgstr "S/Key challenges হাইলাইট করা হবে"
+
+#: ../src/gnome-terminal.schemas.in.h:30
+msgid "How much to darken the background image"
+msgstr "পটভূমির চিত্র চিহ্নিত মাত্রা অনুযায়ী নিষ্প্রভ করা হবে"
+
+#: ../src/gnome-terminal.schemas.in.h:31
+msgid "Human-readable name of the profile"
+msgstr "প্রোফাইলের জন্য নির্ধারিত পাঠযোগ্য নাম"
+
+#: ../src/gnome-terminal.schemas.in.h:32
+msgid "Human-readable name of the profile."
+msgstr "প্রোফাইলের জন্য নির্ধারিত পাঠযোগ্য নাম।"
+
+#: ../src/gnome-terminal.schemas.in.h:33
+msgid "Icon for terminal window"
+msgstr "টার্মিনাল উইন্ডোর আইকন"
+
+#: ../src/gnome-terminal.schemas.in.h:34
+msgid "Icon to use for tabs/windows containing this profile."
+msgstr "চিহ্নিত প্রোফাইল ধারণকারী ট্যাব/উইন্ডোর জন্য ব্যবহৃত আইকন।"
+
+#: ../src/gnome-terminal.schemas.in.h:35
+msgid ""
+"If the application in the terminal sets the title (most typically people "
+"have their shell set up to do this), the dynamically-set title can erase the "
+"configured title, go before it, go after it, or replace it. The possible "
+"values are \"replace\", \"before\", \"after\", and \"ignore\"."
+msgstr ""
+"টার্মিনালে চলমান অ্যাপ্লিকেশনের দ্বারা শিরোনাম ধার্য করা হলে (অধিকাংশ শেলের "
+"ক্ষেত্রে এই বৈশিষ্ট্য সক্রিয় করা থাকে), পরিবর্তনশীল এই শিরোনামের দরুন কনফিগার করা "
+"পূর্ববর্তী শিরোনাম মুছে ফেলা হতে পারে। অথবা কনফিগার করা শিরোনামের পূর্বে, পরে অথবা "
+"পরিবর্তে প্রয়োগ করা হবে। সম্ভাব্য মান হল \"replace\", \"before\", \"after\" ও "
+"\"ignore\"।"
+
+#: ../src/gnome-terminal.schemas.in.h:36
+msgid "If true, allow applications in the terminal to make text boldface."
+msgstr ""
+"মান true (সত্য) হলে, টার্মিনালে চলমান অ্যাপ্লিকেশনগুলির দ্বারা গাঢ় হরফ প্রয়োগ করা "
+"যাবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:37
+msgid ""
+"If true, boldface text will be rendered using the same color as normal text."
+msgstr ""
+"মান true (সত্য) হলে, গাঢ়কৃত টেক্সট সাধারণ টেক্সটের মত একই রং ব্যবহার করে অঙ্কন করা "
+"হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:38
+msgid ""
+"If true, don't make a noise when applications send the escape sequence for "
+"the terminal bell."
+msgstr ""
+"মান true (সত্য) হলে, অ্যাপ্লিকেশনের দ্বারা টার্মিনাল বেলের জন্য এস্কেপ ক্যারেক্টার "
+"উল্লিখিত হলে আওয়াজ করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:39
+msgid "If true, pressing a key jumps the scrollbar to the bottom."
+msgstr "মান true (সত্য) হলে, কোনো কী চাপা হলে স্ক্রলবারটি নীচে স্থানান্তর করা হয়।"
+
+#: ../src/gnome-terminal.schemas.in.h:40
+msgid ""
+"If true, scroll the background image with the foreground text; if false, "
+"keep the image in a fixed position and scroll the text above it."
+msgstr ""
+"মান true (সত্য) হলে, অগ্রভূমির পাঠ্যের সাথে পটভূমির চিত্র স্ক্রল করা হবে; মান সত্য না "
+"হলে (false) পটভূমির চিত্রের স্থান অপরিবর্তিত রেখে অগ্রভূমির পাঠ্য স্ক্রল করা হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:41
+msgid ""
+"If true, scrollback lines will never be discarded. The scrollback history is "
+"stored on disk temporarily, so this may cause the system to run out of disk "
+"space if there is a lot of output to the terminal."
+msgstr ""
+"মান true (সত্য) হলে, স্ক্রলব্যাক রেখাগুলো কখনও বাতিল করা হবে না। স্ক্রলব্যাক ইতিহাস "
+"সাময়িকভাবে ডিস্কে সংরক্ষণ করা হয়, যাতে টার্মিনালে অধিক সংখ্যক আউটপুট থাকার কারণে "
+"ডিস্কে জায়গার অভাব সত্ত্বেও সিস্টেম চালানো যায়।"
+
+#: ../src/gnome-terminal.schemas.in.h:42
+msgid ""
+"If true, the command inside the terminal will be launched as a login shell. "
+"(argv[0] will have a hyphen in front of it.)"
+msgstr ""
+"মান true (সত্য) হলে, টার্মিনালের কমান্ডটি লগইন শেল হিসাবে আরম্ভ করা হবে। (argv"
+"[0]-র পূর্বে একটি হাইফেন চিহ্ন উপস্থিত থাকবে।)"
+
+#: ../src/gnome-terminal.schemas.in.h:43
+msgid ""
+"If true, the system login records utmp and wtmp will be updated when the "
+"command inside the terminal is launched."
+msgstr ""
+"মান true (সত্য) হলে, টার্মিনালের মধ্যে কমান্ড আরম্ভ করা হলে সিস্টেমের লগইন রেকর্ড "
+"utmp ও wtmp হালনাগাদ করা হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:44
+msgid ""
+"If true, the terminal will use the desktop-global standard font if it's "
+"monospace (and the most similar font it can come up with otherwise)."
+msgstr ""
+"মান true (সত্য) হলে, টার্মিনালে ডেস্কটপ গ্লোবাল প্রমিত মানের ফন্ট ব্যবহার করা হবে "
+"যদি তা মোনোস্পেস হয় (অথবা নিকটতম মানের কোনো ফন্ট)।"
+
+#: ../src/gnome-terminal.schemas.in.h:45
+msgid ""
+"If true, the theme color scheme used for text entry boxes will be used for "
+"the terminal, instead of colors provided by the user."
+msgstr ""
+"মান true (সত্য) হলে, ব্যবহারকারীর দ্বারা উল্লিখিত রঙের পরিবর্তে পাঠ্য ভুক্তি বাক্সের "
+"জন্য ব্যবহৃত থীমের রং টার্মিনালে প্রয়োগ করা হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:46
+msgid ""
+"If true, the value of the custom_command setting will be used in place of "
+"running a shell."
+msgstr ""
+"মান true (সত্য) হলে, চলমান শেলের পরিবর্তে custom_command বৈশিষ্ট্যের মান প্রয়োগ "
+"করা হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:47
+msgid ""
+"If true, whenever there's new output the terminal will scroll to the bottom."
+msgstr ""
+"মান true (সত্য) হলে, নতুন আউটপুট উৎ‌পন্ন হলে নীচের প্রান্ত অবধি টার্মিনাল স্ক্রল করা "
+"হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:48
+msgid ""
+"Keyboard shortcut key for bringing up the dialog for profile creation. "
+"Expressed as a string in the same format used for GTK+ resource files. If "
+"you set the option to the special string \"disabled\", then there will be no "
+"keyboard shortcut for this action."
+msgstr ""
+"প্রোফাইল নির্মাণের ডায়লগ বাক্স প্রদর্শনের উদ্দেশ্যে ব্যবহৃত কীবোর্ড শর্টকাট। GTK+ "
+"রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য "
+"\"disabled\" মান নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা "
+"হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:49
+msgid ""
+"Keyboard shortcut key for closing a tab. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব বন্ধ করতে ব্যবহৃত কীবোর্ড শর্টকাট। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী "
+"পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে চিহ্নিত "
+"কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:50
+msgid ""
+"Keyboard shortcut key for closing a window. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"উইন্ডো বন্ধ করতে ব্যবহৃত কীবোর্ড শর্টকাট। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী "
+"পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে চিহ্নিত "
+"কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:51
+msgid ""
+"Keyboard shortcut key for copying selected text to the clipboard. Expressed "
+"as a string in the same format used for GTK+ resource files. If you set the "
+"option to the special string \"disabled\", then there will be no keyboard "
+"shortcut for this action."
+msgstr ""
+"নির্বাচিত টেক্সট ক্লিপবোর্ডের অনুলিপি করতে ব্যবহৃত কীবোর্ড শর্টকাট। GTK+ রিসোর্স ফাইলে "
+"ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান "
+"নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:52
+msgid ""
+"Keyboard shortcut key for launching help. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"সহায়িকা প্রদর্শনের জন্য ব্যবহৃত শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী "
+"পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে চিহ্নিত "
+"কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:53
+msgid ""
+"Keyboard shortcut key for making font larger. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"ফন্টের আকার বৃদ্ধি করতে ব্যবহৃত শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী "
+"পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে চিহ্নিত "
+"কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:54
+msgid ""
+"Keyboard shortcut key for making font smaller. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"ফন্টের আকার হ্রাস করার জন্য ব্যবহৃত শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:55
+msgid ""
+"Keyboard shortcut key for making font the normal size. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"ফন্টের আকার স্বাভাবিক করতে ব্যবহৃত শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:56
+msgid ""
+"Keyboard shortcut key for opening a new tab. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"নতুন ট্যাব খোলার জন্য ব্যবহৃত শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী "
+"পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে চিহ্নিত "
+"কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:57
+msgid ""
+"Keyboard shortcut key for opening a new window. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"নতুন উইন্ডো খোলার জন্য ব্যবহৃত শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী "
+"পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে চিহ্নিত "
+"কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:58
+msgid ""
+"Keyboard shortcut key for pasting the contents of the clipboard into the "
+"terminal. Expressed as a string in the same format used for GTK+ resource "
+"files. If you set the option to the special string \"disabled\", then there "
+"will be no keyboard shortcut for this action."
+msgstr ""
+"ক্লিপবোর্ডের বিষয়বস্তু টার্মিনালে প্রতিলেপন করার জন্য ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ "
+"রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য "
+"\"disabled\" মান নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা "
+"হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:59
+msgid ""
+"Keyboard shortcut key for switch to tab 1. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ১ এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে "
+"ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"নিষ্ক্রিয়\" "
+"মান নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:60
+msgid ""
+"Keyboard shortcut key for switch to tab 10. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"tab 10 এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:61
+msgid ""
+"Keyboard shortcut key for switch to tab 11. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"tab 11 এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:62
+msgid ""
+"Keyboard shortcut key for switch to tab 12. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"ট্যাব ১২ এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত "
+"বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত "
+"হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:63
+msgid ""
+"Keyboard shortcut key for switch to tab 2. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ২-এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কি-বোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:64
+msgid ""
+"Keyboard shortcut key for switch to tab 3. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ৩-এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:65
+msgid ""
+"Keyboard shortcut key for switch to tab 4. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ৪-এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:66
+msgid ""
+"Keyboard shortcut key for switch to tab 5. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ৫-এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:67
+msgid ""
+"Keyboard shortcut key for switch to tab 6. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ৬-এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:68
+msgid ""
+"Keyboard shortcut key for switch to tab 7. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ৭-এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:69
+msgid ""
+"Keyboard shortcut key for switch to tab 8. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ৮-এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:70
+msgid ""
+"Keyboard shortcut key for switch to tab 9. Expressed as a string in the same "
+"format used for GTK+ resource files. If you set the option to the special "
+"string \"disabled\", then there will be no keyboard shortcut for this action."
+msgstr ""
+"ট্যাব ৯-এ পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনের জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:71
+msgid ""
+"Keyboard shortcut key for toggling full screen mode. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"সম্পূর্ণ পর্দা জুড়ে প্রদর্শন ব্যবস্থা সক্রিয় অথবা নিষ্ক্রিয় করতে ব্যবহৃত কীবোর্ড শর্টকাট। GTK"
+"+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য "
+"\"disabled\" মান নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা "
+"হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:72
+msgid ""
+"Keyboard shortcut key to reset and clear the terminal. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"টার্মিনাল রিসেট অথবা পরিশোধন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে "
+"ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান "
+"নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:73
+msgid ""
+"Keyboard shortcut key to reset the terminal. Expressed as a string in the "
+"same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"টার্মিনাল রিসেট করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত বিন্যাস "
+"অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত হলে "
+"চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:74
+msgid ""
+"Keyboard shortcut key to save the current tab contents to a file. Expressed "
+"as a string in the same format used for GTK+ resource files. If you set the "
+"option to the special string \"disabled\", then there will be no keyboard "
+"shortcut for this action."
+msgstr ""
+"বর্তমান ট্যাবের বিষয়বস্তু ফাইলে সংরক্ষণ করার কীবোর্ড শর্টকাট। GTK+ রিসোর্স ফাইলে "
+"ব্যবহৃত ফরম্যাটের অনুরূপভাবে স্ট্রিং আকারে ব্যক্ত করা হয়। আপনি যদি অপশন হিসেবে বিশেষ "
+"স্ট্রিং \"নিষ্ক্রিয়\" নির্ধারণ করেন, তবে এই কাজটির জন্য কোন কীবোর্ড শর্টকাট থাকবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:75
+msgid ""
+"Keyboard shortcut key to set the terminal title. Expressed as a string in "
+"the same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"টার্মিনালের শিরোনাম পরিশোধন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে "
+"ব্যবহৃত বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান "
+"নির্ধারিত হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:76
+msgid ""
+"Keyboard shortcut key to switch to the next tab. Expressed as a string in "
+"the same format used for GTK+ resource files. If you set the option to the "
+"special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"পরবর্তী ট্যাবে পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত "
+"বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত "
+"হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:77
+msgid ""
+"Keyboard shortcut key to switch to the previous tab. Expressed as a string "
+"in the same format used for GTK+ resource files. If you set the option to "
+"the special string \"disabled\", then there will be no keyboard shortcut for "
+"this action."
+msgstr ""
+"পূর্ববর্তী ট্যাবে পরিবর্তন করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত "
+"বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত "
+"হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:78
+msgid ""
+"Keyboard shortcut key to toggle the visibility of the menubar. Expressed as "
+"a string in the same format used for GTK+ resource files. If you set the "
+"option to the special string \"disabled\", then there will be no keyboard "
+"shortcut for this action."
+msgstr ""
+"মেনুবার প্রদর্শন অথবা আড়াল করতে ব্যবহৃত কীবোর্ড শর্টকাট কী। GTK+ রিসোর্স ফাইলে ব্যবহৃত "
+"বিন্যাস অনুযায়ী পংক্তিরূপে উল্লিখিত হয়। এই অপশনটির জন্য \"disabled\" মান নির্ধারিত "
+"হলে চিহ্নিত কর্মের জন্য কোনো কীবোর্ড শর্টকাট যুক্ত করা হবে না।"
+
+#: ../src/gnome-terminal.schemas.in.h:79
+msgid "Keyboard shortcut to close a tab"
+msgstr "ট্যাব বন্ধ করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:80
+msgid "Keyboard shortcut to close a window"
+msgstr "উইন্ডো বন্ধ করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:81
+msgid "Keyboard shortcut to copy text"
+msgstr "পাঠ্য অনুলিপি করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:82
+msgid "Keyboard shortcut to create a new profile"
+msgstr "নতুন প্রোফাইল নির্মাণ করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:83
+msgid "Keyboard shortcut to launch help"
+msgstr "সহায়িকা প্রদর্শন করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:84
+msgid "Keyboard shortcut to make font larger"
+msgstr "নতুন প্রোফাইল নির্মাণ করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:85
+msgid "Keyboard shortcut to make font normal-size"
+msgstr "ফন্টের আকার বৃদ্ধি করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:86
+msgid "Keyboard shortcut to make font smaller"
+msgstr "ফন্টের আকার হ্রাস করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:87
+msgid "Keyboard shortcut to open a new tab"
+msgstr "নতুন ট্যাব খোলার জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:88
+msgid "Keyboard shortcut to open a new window"
+msgstr "নতুন উইন্ডো খোলার জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:89
+msgid "Keyboard shortcut to paste text"
+msgstr "পাঠ্য প্রতিলেপন করার জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:90
+msgid "Keyboard shortcut to reset and clear the terminal"
+msgstr "টার্মিনাল রিসেট ও পরিশোধন করার উদ্দেশ্যে কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:91
+msgid "Keyboard shortcut to reset the terminal"
+msgstr "টার্মিনাল রিসেট করার উদ্দেশ্যে কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:92
+msgid "Keyboard shortcut to save the current tab contents to file"
+msgstr "বর্তমান ট্যাবের বিষয়বস্তু ফাইলে সংরক্ষণ করার কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:93
+msgid "Keyboard shortcut to set the terminal title"
+msgstr "টার্মিনালের শিরোনাম নির্ধারণের উদ্দেশ্যে কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:94
+msgid "Keyboard shortcut to switch to tab 1"
+msgstr "ট্যাব ১-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:95
+msgid "Keyboard shortcut to switch to tab 10"
+msgstr "ট্যাব ১০-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:96
+msgid "Keyboard shortcut to switch to tab 11"
+msgstr "ট্যাব ১১-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:97
+msgid "Keyboard shortcut to switch to tab 12"
+msgstr "ট্যাব ১২-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:98
+msgid "Keyboard shortcut to switch to tab 2"
+msgstr "ট্যাব ২-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:99
+msgid "Keyboard shortcut to switch to tab 3"
+msgstr "ট্যাব ৩-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:100
+msgid "Keyboard shortcut to switch to tab 4"
+msgstr "ট্যাব ৪-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:101
+msgid "Keyboard shortcut to switch to tab 5"
+msgstr "ট্যাব ৫-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:102
+msgid "Keyboard shortcut to switch to tab 6"
+msgstr "ট্যাব ৬-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:103
+msgid "Keyboard shortcut to switch to tab 7"
+msgstr "ট্যাব ৭-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:104
+msgid "Keyboard shortcut to switch to tab 8"
+msgstr "ট্যাব ৮-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:105
+msgid "Keyboard shortcut to switch to tab 9"
+msgstr "ট্যাব ৯-এ পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:106
+msgid "Keyboard shortcut to switch to the next tab"
+msgstr "পরবর্তী ট্যাবে পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:107
+msgid "Keyboard shortcut to switch to the previous tab"
+msgstr "পূর্ববর্তী ট্যাবে পরিবর্তনের জন্য ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:108
+msgid "Keyboard shortcut to toggle full screen mode"
+msgstr ""
+"সম্পূর্ণ পর্দাজুড়ে প্রদর্শন ব্যবস্থা সক্রিয় অথবা নিষ্ক্রিয় করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:109
+msgid "Keyboard shortcut to toggle the visibility of the menubar"
+msgstr "মেনুবার প্রদর্শন অথবা আড়াল করতে ব্যবহৃত কীবোর্ড শর্টকাট"
+
+#: ../src/gnome-terminal.schemas.in.h:110
+msgid "List of available encodings"
+msgstr "উপস্থিত এনকোডিং এর তালিকা"
+
+#: ../src/gnome-terminal.schemas.in.h:111
+msgid "List of profiles"
+msgstr "প্রোফাইলের তালিকা"
+
+# Translated by sadia
+#: ../src/gnome-terminal.schemas.in.h:112
+msgid ""
+"List of profiles known to gnome-terminal. The list contains strings naming "
+"subdirectories relative to /apps/gnome-terminal/profiles."
+msgstr ""
+"জিনোম টার্মিনালের পরিচিত প্রোফাইলের তালিকা। /apps/gnome-terminal/profiles "
+"ডিরেক্টরি অনুযায়ী সাব-ডিরেক্টরির নাম এই তালিকায় উপস্থিত করা হয়।"
+
+#: ../src/gnome-terminal.schemas.in.h:113
+msgid ""
+"Normally you can access the menubar with F10. This can also be customized "
+"via gtkrc (gtk-menu-bar-accel = \"whatever\"). This option allows the "
+"standard menubar accelerator to be disabled."
+msgstr ""
+"সাধারণত F10 কীর সাহায্যে মেনুবার ব্যবহার করা সম্ভব। gtkrc-র (gtk-menu-bar-accel "
+"= \"whatever\") সাহায্যে আপনার পছন্দ অনুসারে এটি পরিবর্তন করা যাবে। এই অপশনের "
+"ফলে মেনুবারের আদর্শ শর্টকাটগুলি নিষ্ক্রিয় করা হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:114
+msgid "Number of columns in newly created terminal windows."
+msgstr "নতুন তৈরিকৃত টার্মিনাল উইন্ডোতে কলামের সংখ্যা।"
+
+# Translated by sadia
+#: ../src/gnome-terminal.schemas.in.h:115
+msgid "Number of lines to keep in scrollback"
+msgstr "স্ক্রলব্যাকে উপস্থিত রেখার সংখ্যা"
+
+#: ../src/gnome-terminal.schemas.in.h:116
+msgid "Number of rows in newly created terminal windows."
+msgstr "নতুন তৈরিকৃত টার্মিনাল উইন্ডোতে সারির সংখ্যা।"
+
+# Translated by sadia
+#: ../src/gnome-terminal.schemas.in.h:117
+msgid ""
+"Number of scrollback lines to keep around. You can scroll back in the "
+"terminal by this number of lines; lines that don't fit in the scrollback are "
+"discarded. If scrollback_unlimited is true, this value is ignored."
+msgstr ""
+"চারিদিকে যত সংখ্যক স্ক্রলব্যাক রেখা রাখা হবে। এই নির্দিষ্ট সংখ্যক রেখায় আপনি "
+"টার্মিন্যালে স্ক্রল করতে পারবেন; স্ক্রলব্যাকের নির্ধারণ বহির্ভূত রেখা অগ্রাহ্য করা হবে। "
+"স্ক্রলব্যাক অসীমের মান true (সত্য) হলে, এই মান উপেক্ষা করা হবে। (_u)"
+
+#: ../src/gnome-terminal.schemas.in.h:118
+msgid "Palette for terminal applications"
+msgstr "টার্মিনালের অ্যাপ্লিকেশনের জন্য ব্যবহারযোগ্য প্যালেট"
+
+#. Translators: S/Key is the name of an application, so it should
+#. not be translated.
+#: ../src/gnome-terminal.schemas.in.h:121
+msgid ""
+"Popup a dialog when an S/Key challenge response query is detected and "
+"clicked on. Typing a password into the dialog will send it to the terminal."
+msgstr ""
+"যখন একটি S/Key চ্যালেঞ্জ নির্দেশ করা হয় এবং ক্লিক করা হয় তখন একটি ডায়ালগ সামনে "
+"আস । ডায়লগে পাসওয়ার্ড লেখা হলে তা টার্মিনালে প্রেরিত হবে।"
+
+# Translated by sadia
+#: ../src/gnome-terminal.schemas.in.h:122
+msgid "Position of the scrollbar"
+msgstr "স্ক্রলবারের অবস্থান"
+
+#: ../src/gnome-terminal.schemas.in.h:123
+msgid ""
+"Possible values are \"close\" to close the terminal, and \"restart\" to "
+"restart the command."
+msgstr ""
+"সম্ভাব্য মান হল \"close\" টার্মিনাল বন্ধ করার জন্য ও \"restart\", কমান্ড পুনরায় "
+"আরম্ভ করার জন্য।"
+
+#: ../src/gnome-terminal.schemas.in.h:124
+msgid ""
+"Profile to be used when opening a new window or tab. Must be in profile_list."
+msgstr ""
+"নতুন উইন্ডো অথবা ট্যাব খোলার সময় ব্যবহারযোগ্য প্রোফাইল। নির্বাচিত প্রোফাইলটি প্রোফাইল "
+"তালিকায় (profile_list) উপস্থিত থাকা আবশ্যক।"
+
+#: ../src/gnome-terminal.schemas.in.h:125
+msgid "Profile to use for new terminals"
+msgstr "নতুন টার্মিনালের জন্য ব্যবহারযোগ্য প্রোফাইল"
+
+#: ../src/gnome-terminal.schemas.in.h:126
+msgid "Run this command in place of the shell, if use_custom_command is true."
+msgstr ""
+"use_custom_command  true (সত্য) হলে শেলের পরিবর্তে চিহ্নিত কমান্ডটি চালানো হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:127
+msgid ""
+"Sets what code the backspace key generates. Possible values are \"ascii-del"
+"\" for the ASCII DEL character, \"control-h\" for Control-H (AKA the ASCII "
+"BS character), \"escape-sequence\" for the escape sequence typically bound "
+"to backspace or delete. \"ascii-del\" is normally considered the correct "
+"setting for the Backspace key."
+msgstr ""
+"ব্যাকস্পেস-কী দ্বারা উৎপন্ন কোড নির্ধারণ করে। সম্ভাব্য মান হল ASCII DEL অক্ষরের "
+"ক্ষেত্রে \"ascii-del\", Control-H-র (অর্থাৎ‌ ASCII BS অক্ষর) ক্ষেত্রে \"control-h\" "
+"ও ব্যাকস্পেস অথবা ডিলিট কীর সাথে যুক্ত এস্কেপ সিকোয়েন্সের জন্য \"escape-sequence"
+"\"।  Backspace কী এর সঠিক বৈশিষ্ট্য হিসাবে \"ascii-del\" ধার্য করা হয়।"
+
+#: ../src/gnome-terminal.schemas.in.h:128
+msgid ""
+"Sets what code the delete key generates. Possible values are \"ascii-del\" "
+"for the ASCII DEL character, \"control-h\" for Control-H (AKA the ASCII BS "
+"character), \"escape-sequence\" for the escape sequence typically bound to "
+"backspace or delete. \"escape-sequence\" is normally considered the correct "
+"setting for the Delete key."
+msgstr ""
+"ডিলিট কী দ্বারা উৎপন্ন কোড নির্ধারণ করে। সম্ভাব্য মান হল ASCII DEL অক্ষরের ক্ষেত্রে "
+"\"ascii-del\", Control-H-র (অর্থাৎ‌ ASCII BS অক্ষর) ক্ষেত্রে \"control-h\" ও "
+"ব্যাকস্পেস অথবা ডিলিট কী এর সাথে যুক্ত এস্কেপ সিকোয়েন্সের জন্য \"escape-sequence"
+"\"।  Delete কী এর সঠিক বৈশিষ্ট্য হিসাবে \"ascii-del\" ধার্য করা হয়।"
+
+#: ../src/gnome-terminal.schemas.in.h:130
+msgid ""
+"Terminals have a 16-color palette that applications inside the terminal can "
+"use. This is that palette, in the form of a colon-separated list of color "
+"names. Color names should be in hex format e.g. \"#FF00FF\""
+msgstr ""
+"টার্মিনালের মধ্যে চলমান অ্যাপ্লিকেশনগুলির দ্বারা ব্যবহারের জন্য ১৬-টি রং বিশিষ্ট একটি "
+"প্যালেট উপস্থিত রয়েছে। কোলোন চিহ্ন দ্বারা বিভাজিত বিন্যাসে রঙের নামের তালিকা এই "
+"প্যালেটে উপস্থিত রয়েছে। রঙের নাম hex বিন্যাসে লেখা আবশ্যক উদাহরণস্বরূপ \"#FF00FF\""
+
+#: ../src/gnome-terminal.schemas.in.h:131
+msgid "The cursor appearance"
+msgstr "কারসারের প্রদর্শিত রূপ"
+
+#: ../src/gnome-terminal.schemas.in.h:132
+msgid ""
+"The possible values are \"block\" to use a block cursor, \"ibeam\" to use a "
+"vertical line cursor, or \"underline\" to use an underline cursor."
+msgstr ""
+"সম্ভাব্য মানগুলি হল, ঘনক আকারের জন্য \"block\", উল্লম্ব রেখার জন্য \"ibeam\" অথবা "
+"অনুভূমিক রেখার জন্য \"underline\"।"
+
+#: ../src/gnome-terminal.schemas.in.h:133
+msgid ""
+"The possible values are \"system\" to use the global cursor blinking "
+"settings, or \"on\" or \"off\" to set the mode explicitly."
+msgstr ""
+"সম্ভাব্য মানগুলি হল, কারসার ঝলকানির সার্বজনীন সেটিং প্রয়োগের জন্য \"system\", অথবা "
+"সুনির্দিষ্ট রপে সক্রিয় অথবা নিষ্ক্রিয় করার জন্য যথাক্রমে \"on\" অথবা \"off\"।"
+
+#: ../src/gnome-terminal.schemas.in.h:134
+msgid "Title for terminal"
+msgstr "টার্মিনালের শিরোনাম"
+
+#: ../src/gnome-terminal.schemas.in.h:135
+msgid ""
+"Title to display for the terminal window or tab. This title may be replaced "
+"by or combined with the title set by the application inside the terminal, "
+"depending on the title_mode setting."
+msgstr ""
+"টার্মিনাল উইন্ডো অথবা ট্যাবে প্রদর্শনের উদ্দেশ্যে শিরোনাম। এই শিরোনাম পরিবর্তন করা "
+"যাবে অথবা টার্মিনালে চলমান অ্যাপ্লিকেশনের দ্বারা নির্ধারিত নামের সাথে যুক্ত করা "
+"যাবে। title_mode সেটিং এর উপর এটি নির্ভরশীল।"
+
+#: ../src/gnome-terminal.schemas.in.h:136
+msgid ""
+"True if the menubar should be shown in new windows, for windows/tabs with "
+"this profile."
+msgstr ""
+"চিহ্নিত প্রোফাইলের উইন্ডো/ট্যাবের ক্ষেত্রে মেনুবার নতুন উইন্ডোতে প্রদর্শন করা হলে মান "
+"true (সত্য)।"
+
+#: ../src/gnome-terminal.schemas.in.h:137
+msgid ""
+"Type of terminal background. May be \"solid\" for a solid color, \"image\" "
+"for an image, or \"transparent\" for either real transparency if a "
+"compositing window manager is running, or pseudo-transparency otherwise."
+msgstr ""
+"টার্মিনাল পটভূমির ধরণ। সম্ভাব্য মান, গাঢ় রঙের জন্য \"solid\", চিত্রের জন্য \"image"
+"\"। কম্পোসিটিং উইন্ডো ব্যবস্থাপনার ক্ষেত্রে প্রকৃত স্বচ্ছ পটভূমি অন্যথা কৃত্রিম স্বচ্ছতার "
+"জন্য  \"transparent\"।"
+
+#: ../src/gnome-terminal.schemas.in.h:138
+msgid "What to do with dynamic title"
+msgstr "পরিবরতনশীল শিরোনামের ক্ষেত্রে করণীয় কর্ম"
+
+#: ../src/gnome-terminal.schemas.in.h:139
+msgid "What to do with the terminal when the child command exits"
+msgstr "চাইল্ড কমান্ড বন্ধ করা হলে টার্মিনালের ক্ষেত্রে করণীয় কর্ম"
+
+#: ../src/gnome-terminal.schemas.in.h:140
+msgid ""
+"When selecting text by word, sequences of these characters are considered "
+"single words. Ranges can be given as \"A-Z\". Literal hyphen (not expressing "
+"a range) should be the first character given."
+msgstr ""
+"শব্দ অনুযায়ী টেক্সট নির্বাচনের সময় এই অক্ষরগুলি একটি পৃথক শব্দ হিসাবে গণ্য করা হবে। "
+"\"A-Z\" হিসাবে অক্ষরের সীমা উল্লেখ করা যাবে। প্রথম অক্ষর হিসাবে হাইফেন (অক্ষরের "
+"সীমা উল্লেখ না করার জন্য) উল্লেখ করা হবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:141
+msgid ""
+"Where to put the terminal scrollbar. Possibilities are \"left\", \"right\", "
+"and \"disabled\"."
+msgstr ""
+"টার্মিনাল স্ক্রলবারের অবস্থান। সম্ভাব্য মান হল \"left (বাদিকে)\", \"right (ডানদিকে)"
+"\" ও \"disabled (নিষ্ক্রিয়)\"।"
+
+# Translated by sadia
+#: ../src/gnome-terminal.schemas.in.h:142
+msgid "Whether an unlimited number of lines should be kept in scrollback"
+msgstr "স্ক্রলব্যাকে অসীম সংখ্যক রেখা রাখা উচিত কিনা"
+
+#: ../src/gnome-terminal.schemas.in.h:143
+msgid "Whether bold text should use the same color as normal text"
+msgstr "গাঢ় টেক্সটে সাধারণ টেক্সটের অনুরূপ রং ব্যবহার করা হবে কিনা"
+
+#: ../src/gnome-terminal.schemas.in.h:144
+msgid "Whether the menubar has access keys"
+msgstr "মেনুবারের মধ্যে অ্যাকসেস-কী উপস্থিত রয়েছে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:145
+msgid "Whether the standard GTK shortcut for menubar access is enabled"
+msgstr "মেনুবার ব্যবহারের উদ্দেশ্যে আদর্শ GTK শর্টকাট সক্রিয় করা রয়েছে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:146
+msgid "Whether to allow bold text"
+msgstr "গাঢ় পাঠ্য ব্যবহার করা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:147
+msgid ""
+"Whether to ask for confirmation when closing a terminal window which has "
+"more than one open tab."
+msgstr ""
+"একাধিক খোলা ট্যাব সমেত টার্মিনাল উইন্ডো বন্ধ করার সময় ব্যবহারকারীর সম্মতি নেওয়া "
+"হবে কি না।"
+
+#: ../src/gnome-terminal.schemas.in.h:148
+msgid "Whether to ask for confirmation when closing terminal windows"
+msgstr "টার্মিনালের উইন্ডো বন্ধ করার পূর্বে ব্যবহারকারীর সম্মতি নেওয়া হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:149
+msgid "Whether to blink the cursor"
+msgstr "কারসার ঝলকানো হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:150
+msgid ""
+"Whether to have Alt+letter access keys for the menubar. They may interfere "
+"with some applications run inside the terminal so it's possible to turn them "
+"off."
+msgstr ""
+"মেনুবারের ক্ষেত্রে Alt+অক্ষর বিশিষ্ট অ্যাকসেস কী সক্রিয় করা হবে কি না। টার্মিনালে "
+"চলমান কিছু অ্যাপ্লিকেশনের কর্মে এর ফলে ব্যাঘাত ঘটার আশঙ্কায় এই বৈশিষ্ট্য নিষ্ক্রিয় করা "
+"যাবে।"
+
+#: ../src/gnome-terminal.schemas.in.h:151
+msgid "Whether to launch the command in the terminal as a login shell"
+msgstr "টার্মিনালের মধ্যে কমান্ডটি লগইন শেল রূপে আরম্ভ করা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:152
+msgid "Whether to run a custom command instead of the shell"
+msgstr "শেলের পরিবর্তে নিজস্ব পছন্দ অনুসারে কোনো কমান্ড চালানো হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:153
+msgid "Whether to scroll background image"
+msgstr "পটভূমির চিত্র স্ক্রোল করা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:154
+msgid "Whether to scroll to the bottom when a key is pressed"
+msgstr "কী চাপা হলে নীচের প্রান্ত অবধি স্ক্রল করা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:155
+msgid "Whether to scroll to the bottom when there's new output"
+msgstr "নতুন ফলাফল উৎ‌পন্ন হলে নীচের প্রান্ত অবধি স্ক্রল করা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:156
+msgid "Whether to show menubar in new windows/tabs"
+msgstr "নতুন উইন্ডো/ট্যাবের মধ্যে মেনুবার প্রদর্শন করা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:157
+msgid "Whether to silence terminal bell"
+msgstr "টার্মিনালের ঘন্টি নিঃশব্দ অবস্থায় রাখা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:158
+msgid "Whether to update login records when launching terminal command"
+msgstr "টার্মিনালের কমান্ড আরম্ভ করার সময় লগইন সংক্রান্ত তথ্য হালনাগাদ করা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:159
+msgid "Whether to use the colors from the theme for the terminal widget"
+msgstr "টার্মিনাল উইজেটের ক্ষেত্রে সক্রিয় থিমের রং প্রয়োগ করা হবে কি না"
+
+#: ../src/gnome-terminal.schemas.in.h:160
+msgid "Whether to use the system font"
+msgstr "সিস্টেমের ফন্ট প্রয়োগ করা হবে কি না"
+
+#. Translators: Please note that this has to be a list of
+#. valid encodings (which are to be taken from the list in src/encoding.c).
+#. It has to include UTF-8 and the word 'current', which is not to be
+#. translated. This is provided for customization of the default encoding
+#. menu; see bug 144810 for an use case. In most cases, this should be
+#. left alone.
+#: ../src/gnome-terminal.schemas.in.h:167
+msgid "[UTF-8,current]"
+msgstr "[UTF-8,current]"
+
+#: ../src/keybinding-editor.glade.h:1
+msgid "Enable the _menu shortcut key (F10 by default)"
+msgstr "মেনু শর্টকাট কী (ডিফল্টরূপে F10) নিষ্ক্রিয় করা হবে (_m)"
+
+#: ../src/keybinding-editor.glade.h:2
+msgid "Keyboard Shortcuts"
+msgstr "কীবোর্ড শর্টকাট"
+
+#: ../src/keybinding-editor.glade.h:3
+msgid "_Enable menu access keys (such as Alt+F to open the File menu)"
+msgstr ""
+"সমস্ত মেনু অ্যাকসেস কী (উদাহরণ, ফাইল নামক মেনুর জন্য Alt+f) সক্রিয় করা হবে (_E)"
+
+# Translated by sadia
+#: ../src/keybinding-editor.glade.h:4
+msgid "_Shortcut keys:"
+msgstr "শর্টকাট কী: (_S)"
+
+#: ../src/profile-editor.c:42
+msgid "Black on light yellow"
+msgstr "হাল্কা হলুদের উপরে কালো"
+
+#: ../src/profile-editor.c:44
+msgid "Black on white"
+msgstr "সাদার উপরে কালো"
+
+#: ../src/profile-editor.c:46
+msgid "Gray on black"
+msgstr "কালোর উপরে ছাইরঙা"
+
+#: ../src/profile-editor.c:48
+msgid "Green on black"
+msgstr "কালোর উপরে সবুজ"
+
+#: ../src/profile-editor.c:50
+msgid "White on black"
+msgstr "কালোর উপরে সাদা"
+
+#: ../src/profile-editor.c:472
+#, c-format
+msgid "Error parsing command: %s"
+msgstr "কমান্ড পার্স করতে সমস্যা: %s"
+
+#: ../src/profile-editor.c:490
+#, c-format
+msgid "Editing Profile “%s”"
+msgstr "\"%s\" প্রোফাইল সম্পাদনা করা হচ্ছে"
+
+#: ../src/profile-editor.c:628
+msgid "Images"
+msgstr "চিত্র"
+
+#: ../src/profile-editor.c:754
+#, c-format
+msgid "Choose Palette Color %d"
+msgstr "প্যালেটের রং নির্বাচন করুন %d"
+
+#: ../src/profile-editor.c:758
+#, c-format
+msgid "Palette entry %d"
+msgstr "প্যালেটের ভুক্তি %d"
+
+#: ../src/profile-manager.glade.h:1
+msgid "Profiles"
+msgstr "প্রোফাইল"
+
+# Translated by sadia
+#: ../src/profile-manager.glade.h:2
+msgid "_Profile used when launching a new terminal:"
+msgstr "নতুন টার্মিনাল আরম্ভ করার সময় ব্যবহৃত প্রোফাইল: (_P)"
+
+#: ../src/profile-new-dialog.glade.h:1
+msgid "C_reate"
+msgstr "নির্মাণ করুন (_r)"
+
+#: ../src/profile-new-dialog.glade.h:2 ../src/terminal-accels.c:125
+msgid "New Profile"
+msgstr "নতুন প্রোফাইল"
+
+# Translated by sadia
+#: ../src/profile-new-dialog.glade.h:3
+msgid "Profile _name:"
+msgstr "প্রোফাইলের নাম: (_n)"
+
+# Translated by sadia
+#: ../src/profile-new-dialog.glade.h:4
+msgid "_Base on:"
+msgstr "চিহ্নিত বস্তুর উপর ভিত্তি করে: (_B)"
+
+#: ../src/profile-preferences.glade.h:1
+msgid "<b>Command</b>"
+msgstr "<b>কমান্ড</b>"
+
+#: ../src/profile-preferences.glade.h:2
+msgid "<b>Foreground, Background, and Bold</b>"
+msgstr "<b>পুরোভূমি, পটভূমি, এবং গাঢ়</b>"
+
+#: ../src/profile-preferences.glade.h:3
+msgid "<b>Palette</b>"
+msgstr "<b>প্যালেট</b>"
+
+#: ../src/profile-preferences.glade.h:4
+msgid "<b>Title</b>"
+msgstr "<b>শিরোনাম</b>"
+
+#: ../src/profile-preferences.glade.h:5
+msgid ""
+"<small><i><b>Note:</b> Terminal applications have these colors available to "
+"them.</i></small>"
+msgstr ""
+"<small><i><b>উল্লেখ্য:</b> টার্মিন্যাল অ্যাপ্লিকেশনের জন্য নিম্নলিখিত রং-গুলি ব্যবহার "
+"করা সম্ভব।</i></small>"
+
+#: ../src/profile-preferences.glade.h:6
+msgid ""
+"<small><i><b>Note:</b> These options may cause some applications to behave "
+"incorrectly.  They are only here to allow you to work around certain "
+"applications and operating systems that expect different terminal behavior.</"
+"i></small>"
+msgstr ""
+"<small><i><b>উল্লেখ্য:</b> এই অপশনগুলি ব্যবহারের দরুন কিছু অ্যাপ্লিকেশন সঠিকভাবে "
+"চলতে সক্ষম না হতে পারে। টার্মিন্যালের ভিন্ন আচরণ প্রত্যাশাকারী কয়েকটি অ্যাপ্লিকেশন "
+"এবং অপারেটিং সিস্টেমের সাথে ব্যবহারের জন্য এই অপশনগুলির সাহায্য নেওয়া হয়।</i></"
+"small>"
+
+#: ../src/profile-preferences.glade.h:7
+msgid "<small><i>Maximum</i></small>"
+msgstr "<small><i>সর্বোচ্চ</i></small>"
+
+#: ../src/profile-preferences.glade.h:8
+msgid "<small><i>None</i></small>"
+msgstr "<small><i>কোনোটি নয়</i></small>"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:9
+msgid ""
+"Automatic\n"
+"Control-H\n"
+"ASCII DEL\n"
+"Escape sequence"
+msgstr "Automatic\nControl-H\nASCII DEL\nEscape sequence"
+
+#: ../src/profile-preferences.glade.h:13
+msgid "Background"
+msgstr "পটভূমি"
+
+#: ../src/profile-preferences.glade.h:14
+msgid "Background image _scrolls"
+msgstr "পটভূমির চিত্র স্ক্রল করা হবে (_s)"
+
+#: ../src/profile-preferences.glade.h:15
+msgid ""
+"Block\n"
+"I-Beam\n"
+"Underline"
+msgstr "Block(ঘনক)\nI-Beam(উলম্ব রেখা)\nUnderline(অনুভূমিক রেখা)"
+
+#: ../src/profile-preferences.glade.h:18
+msgid "Bol_d color:"
+msgstr "ভরাট রং: (_d)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:19
+msgid "Built-in _schemes:"
+msgstr "বিল্টইন স্কীম: (_s)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:20
+msgid "Built-in sche_mes:"
+msgstr "বিল্টইন স্কীম: (_m)"
+
+#: ../src/profile-preferences.glade.h:21
+msgid "Choose A Terminal Font"
+msgstr "টার্মিনালের ফন্ট নির্বাচন করুন"
+
+#: ../src/profile-preferences.glade.h:22
+msgid "Choose Terminal Background Color"
+msgstr "টার্মিনালের পটভূমির রং নির্বাচন করুন"
+
+#: ../src/profile-preferences.glade.h:23
+msgid "Choose Terminal Text Color"
+msgstr "টার্মিনালে ব্যবহৃত পাঠ্যের রং নির্বাচন করুন"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:24
+msgid "Color p_alette:"
+msgstr "রঙের প্যালেট: (_a)"
+
+#: ../src/profile-preferences.glade.h:25
+msgid "Colors"
+msgstr "রঙ"
+
+#: ../src/profile-preferences.glade.h:26
+msgid "Compatibility"
+msgstr "উপযুক্ততা"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:27
+msgid "Cursor _shape:"
+msgstr "কারসারের আকৃতি: (_s)"
+
+#. Translators: This is the name of a colour scheme
+#: ../src/profile-preferences.glade.h:28 ../src/extra-strings.c:71
+msgid "Custom"
+msgstr "স্বনির্বাচিত"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:29
+msgid "Custom co_mmand:"
+msgstr "স্বনির্বাচিত কমান্ড: (_m)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:30
+msgid "Default si_ze:"
+msgstr "পূর্বনির্ধারিত আকার: (_z)"
+
+#: ../src/profile-preferences.glade.h:31
+msgid ""
+"Exit the terminal\n"
+"Restart the command\n"
+"Hold the terminal open"
+msgstr ""
+"টার্মিনাল থেকে প্রস্থান করুন\n"
+"কমান্ড পুনরায় আরম্ভ করুন\n"
+"টার্মিনাল খোলা অবস্থায় রাখা হবে"
+
+#: ../src/profile-preferences.glade.h:34
+msgid "General"
+msgstr "সাধারণ"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:35
+msgid "Image _file:"
+msgstr "ছবির ফাইল: (_f)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:36
+msgid "Initial _title:"
+msgstr "প্রারম্ভিক শিরোনাম: (_t)"
+
+#: ../src/profile-preferences.glade.h:37
+msgid ""
+"On the left side\n"
+"On the right side\n"
+"Disabled"
+msgstr ""
+"বাঁদিকে\n"
+"ডানদিকে\n"
+"নিষ্ক্রিয়"
+
+#: ../src/profile-preferences.glade.h:40
+msgid "Profile Editor"
+msgstr "প্রোফাইল সম্পাদক"
+
+#: ../src/profile-preferences.glade.h:41
+msgid ""
+"Replace initial title\n"
+"Append initial title\n"
+"Prepend initial title\n"
+"Keep initial title"
+msgstr ""
+"প্রারম্ভিক শিরোনামের পরিবর্তে লেখা হবে\n"
+"প্রারম্ভিক শিরোনামের পূর্বে লেখা হবে\n"
+"প্রারম্ভিক শিরোনামের পরে লেখা হবে\n"
+"প্রারম্ভিক শিরোনাম অপরিবর্তিত রাখা হবে"
+
+#: ../src/profile-preferences.glade.h:45
+msgid "Ru_n a custom command instead of my shell"
+msgstr "ব্যবহারকারীর শেলের পরিবর্তে স্বনির্বাচিত কোনো কমান্ড চালানো হবে (_n)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:46
+msgid "S_hade transparent or image background:"
+msgstr "স্বচ্ছ অথবা চিত্র সমেত পটভূমি ছায়া আচ্ছন্ন করা হবে: (_h)"
+
+#: ../src/profile-preferences.glade.h:47
+msgid "Scroll on _keystroke"
+msgstr "কী চাপা হলে স্ক্রল করা হবে (_k)"
+
+#: ../src/profile-preferences.glade.h:48
+msgid "Scroll on _output"
+msgstr "উৎ‌পন্ন আউটপুট স্ক্রল করা হবে (_o)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:49
+msgid "Scroll_back:"
+msgstr "বিপরীত দিকে স্ক্রল করা হবে: (_b)"
+
+#: ../src/profile-preferences.glade.h:50
+msgid "Scrolling"
+msgstr "স্ক্রল করা হচ্ছে"
+
+#: ../src/profile-preferences.glade.h:51
+msgid "Select Background Image"
+msgstr "পটভূমির চিত্র নির্বাচন করুন"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:52
+msgid "Select-by-_word characters:"
+msgstr "শব্দে ব্যবহৃত অক্ষর দ্বারা নির্বাচিত হবে: (_w)"
+
+#: ../src/profile-preferences.glade.h:53
+msgid "Show _menubar by default in new terminals"
+msgstr "নতুন টার্মিনালে ডিফল্টরূপে মেনুবার প্রদর্শন করা হবে (_m)"
+
+#: ../src/profile-preferences.glade.h:54
+msgid ""
+"Tango\n"
+"Linux console\n"
+"XTerm\n"
+"Rxvt\n"
+"Custom"
+msgstr ""
+"Tango\n"
+"Linux console\n"
+"XTerm\n"
+"Rxvt\n"
+"Custom"
+
+#: ../src/profile-preferences.glade.h:59
+msgid "Terminal _bell"
+msgstr "টার্মিনালের ঘন্টি (_b)"
+
+#: ../src/profile-preferences.glade.h:60
+msgid "Title and Command"
+msgstr "শিরোনাম এবং কমান্ড"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:61
+msgid "When command _exits:"
+msgstr "কমান্ড বন্ধ করা হলে: (_e)"
+
+#: ../src/profile-preferences.glade.h:62
+msgid "When terminal commands set their o_wn titles:"
+msgstr "টার্মিনাল কমান্ড দ্বারা নিজস্ব শিরোনাম যদি নির্ধারণ করা হয় (_w):"
+
+#: ../src/profile-preferences.glade.h:63
+msgid "_Allow bold text"
+msgstr "গাঢ় পাঠ্য ব্যবহার করা হবে (_A)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:64
+msgid "_Background color:"
+msgstr "পটভূমির রং: (_B)"
+
+#: ../src/profile-preferences.glade.h:65
+msgid "_Background image"
+msgstr "পটভূমির চিত্র (_B)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:66
+msgid "_Backspace key generates:"
+msgstr "Backspace কী দ্বারা উৎ‌পন্ন হয়: (_B)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:67
+msgid "_Delete key generates:"
+msgstr "Delete কী দ্বারা উৎ‌পন্ন হয়: (_D)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:68
+msgid "_Font:"
+msgstr "ফন্ট: (_F)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:69
+msgid "_Profile name:"
+msgstr "প্রোফাইলের নাম: (_P)"
+
+#: ../src/profile-preferences.glade.h:70
+msgid "_Reset Compatibility Options to Defaults"
+msgstr "উপযুক্ততা সংক্রান্ত অপশনের জন্য ডিফল্ট মান ধার্য করা হবে (_R)"
+
+#: ../src/profile-preferences.glade.h:71
+msgid "_Run command as a login shell"
+msgstr "লগইন শেলে কমান্ড চালানো হবে (_R)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:72
+msgid "_Same as text color"
+msgstr "পাঠ্য রঙের অনুরূপ (_S)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:73
+msgid "_Scrollbar is:"
+msgstr "স্ক্রলবার হল: (_S)"
+
+#: ../src/profile-preferences.glade.h:74
+msgid "_Solid color"
+msgstr "ভরাট রঙ (_S)"
+
+# Translated by sadia
+#: ../src/profile-preferences.glade.h:75
+msgid "_Text color:"
+msgstr "পাঠ্যের রং: (_T)"
+
+#: ../src/profile-preferences.glade.h:76
+msgid "_Transparent background"
+msgstr "স্বচ্ছ পটভূমি (_T)"
+
+#: ../src/profile-preferences.glade.h:77
+msgid "_Unlimited"
+msgstr "অসীম (_U)"
+
+#: ../src/profile-preferences.glade.h:78
+msgid "_Update login records when command is launched"
+msgstr "কমান্ড চালানো হলে লগইন সংক্রান্ত তথ্য হালনাগাদ করুন (_U)"
+
+#: ../src/profile-preferences.glade.h:79
+msgid "_Use colors from system theme"
+msgstr "সিস্টেমে ব্যবহৃত থীম থেকে রঙ প্রয়োগ করা হবে (_U)"
+
+#: ../src/profile-preferences.glade.h:80
+msgid "_Use the system fixed width font"
+msgstr "সিস্টেমের অপরিবর্তনযোগ্য প্রস্থের ফন্ট ব্যবহার করা হবে (_U)"
+
+#: ../src/profile-preferences.glade.h:81
+msgid "columns"
+msgstr "কলাম"
+
+#: ../src/profile-preferences.glade.h:82
+msgid "lines"
+msgstr "রেখা"
+
+#: ../src/profile-preferences.glade.h:83
+msgid "rows"
+msgstr "সারি"
+
+#: ../src/skey-challenge.glade.h:1
+msgid "S/Key Challenge Response"
+msgstr "S/Key চ্যালেঞ্জ প্রতিক্রিয়া"
+
+# Translated by sadia
+#: ../src/skey-challenge.glade.h:2
+msgid "_Password:"
+msgstr "পাসওয়ার্ড: (_P)"
+
+#: ../src/skey-popup.c:164
+msgid "The text you clicked on doesn't seem to be a valid S/Key challenge."
+msgstr "ক্লিক করা টেক্সট সম্ভবত কার্যকর S/Key চ্যালেঞ্জ নয়।"
+
+#: ../src/skey-popup.c:175
+msgid "The text you clicked on doesn't seem to be a valid OTP challenge."
+msgstr "ক্লিক করা টেক্সট সম্ভবত কার্যকর OTP চ্যালেঞ্জ নয়।"
+
+#: ../src/terminal-accels.c:121
+msgid "New Tab"
+msgstr "নতুন ট্যাব"
+
+#: ../src/terminal-accels.c:123
+msgid "New Window"
+msgstr "নতুন উইন্ডো"
+
+#: ../src/terminal-accels.c:128
+msgid "Save Contents"
+msgstr "বিষয়বস্তু সংরক্ষণ"
+
+#: ../src/terminal-accels.c:131
+msgid "Close Tab"
+msgstr "ট্যাব বন্ধ করুন"
+
+#: ../src/terminal-accels.c:133
+msgid "Close Window"
+msgstr "উইন্ডো বন্ধ করুন"
+
+#: ../src/terminal-accels.c:139
+msgid "Copy"
+msgstr "অনুলিপি করুন"
+
+#: ../src/terminal-accels.c:141
+msgid "Paste"
+msgstr "প্রতিলেপন করুন"
+
+#: ../src/terminal-accels.c:147
+msgid "Hide and Show menubar"
+msgstr "মেনুবার আড়াল ও প্রদর্শন করুন"
+
+#: ../src/terminal-accels.c:149
+msgid "Full Screen"
+msgstr "সম্পূর্ণ পর্দা জুড়ে প্রদর্শন"
+
+#: ../src/terminal-accels.c:151
+msgid "Zoom In"
+msgstr "বড় করে প্রদর্শন"
+
+#: ../src/terminal-accels.c:153
+msgid "Zoom Out"
+msgstr "ছোট করে প্রদর্শন"
+
+#: ../src/terminal-accels.c:155
+msgid "Normal Size"
+msgstr "স্বাভাবিক আকার"
+
+#: ../src/terminal-accels.c:161 ../src/terminal-window.c:3487
+msgid "Set Title"
+msgstr "শিরোনাম নির্ধারণ করুন"
+
+#: ../src/terminal-accels.c:163
+msgid "Reset"
+msgstr "রিসেট"
+
+#: ../src/terminal-accels.c:165
+msgid "Reset and Clear"
+msgstr "রিসেট করুন এবং মুছে ফেলুন"
+
+#: ../src/terminal-accels.c:171
+msgid "Switch to Previous Tab"
+msgstr "পূর্ববর্তী ট্যাবে স্থানান্তর করুন"
+
+#: ../src/terminal-accels.c:173
+msgid "Switch to Next Tab"
+msgstr "পরবর্তী ট্যাবে স্থানান্তর করুন"
+
+#: ../src/terminal-accels.c:175
+msgid "Move Tab to the Left"
+msgstr "ট্যাব বাদিকে সরিয়ে নিন"
+
+#: ../src/terminal-accels.c:177
+msgid "Move Tab to the Right"
+msgstr "ট্যাব ডানদিকে সরিয়ে নিন"
+
+#: ../src/terminal-accels.c:179
+msgid "Detach Tab"
+msgstr "ট্যাব বিচ্ছিন্ন করুন"
+
+#: ../src/terminal-accels.c:181
+msgid "Switch to Tab 1"
+msgstr "ট্যাব ১-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:184
+msgid "Switch to Tab 2"
+msgstr "ট্যাব ২-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:187
+msgid "Switch to Tab 3"
+msgstr "ট্যাব ৩-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:190
+msgid "Switch to Tab 4"
+msgstr "ট্যাব ৪-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:193
+msgid "Switch to Tab 5"
+msgstr "ট্যাব ৫-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:196
+msgid "Switch to Tab 6"
+msgstr "ট্যাব ৬-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:199
+msgid "Switch to Tab 7"
+msgstr "ট্যাব ৭-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:202
+msgid "Switch to Tab 8"
+msgstr "ট্যাব ৮-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:205
+msgid "Switch to Tab 9"
+msgstr "ট্যাব ৯-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:208
+msgid "Switch to Tab 10"
+msgstr "ট্যাব ১০-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:211
+msgid "Switch to Tab 11"
+msgstr "ট্যাব ১১-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:214
+msgid "Switch to Tab 12"
+msgstr "ট্যাব ১২-এ পরিবর্তন করুন"
+
+#: ../src/terminal-accels.c:220
+msgid "Contents"
+msgstr "বিষয়বস্তু"
+
+#: ../src/terminal-accels.c:225
+msgid "File"
+msgstr "ফাইল"
+
+#: ../src/terminal-accels.c:226
+msgid "Edit"
+msgstr "সম্পাদনা"
+
+#: ../src/terminal-accels.c:227
+msgid "View"
+msgstr "প্রদর্শন"
+
+#: ../src/terminal-accels.c:229
+msgid "Tabs"
+msgstr "ট্যাব"
+
+#: ../src/terminal-accels.c:230
+msgid "Help"
+msgstr "সাহায্য"
+
+#. Translators: Scrollbar is: ...
+#: ../src/terminal-accels.c:287 ../src/extra-strings.c:51
+msgid "Disabled"
+msgstr "নিষ্ক্রিয়"
+
+#: ../src/terminal-accels.c:759
+#, c-format
+msgid "The shortcut key “%s” is already bound to the “%s” action"
+msgstr "“%s” শর্টকাট কী বর্তমানে “%s” কর্মের সাথে যুক্ত রয়েছে"
+
+#: ../src/terminal-accels.c:917
+msgid "_Action"
+msgstr "কর্ম (_A)"
+
+#: ../src/terminal-accels.c:936
+msgid "Shortcut _Key"
+msgstr "শর্টকাট কী (_K)"
+
+#: ../src/terminal-app.c:482
+msgid "Click button to choose profile"
+msgstr "বোতাম ক্লিক করে প্রোফাইল নির্বাচন করুন"
+
+#: ../src/terminal-app.c:567
+msgid "Profile list"
+msgstr "প্রোফাইল তালিকা"
+
+#: ../src/terminal-app.c:628
+#, c-format
+msgid "Delete profile “%s”?"
+msgstr "“%s” প্রোফাইলটি মুছে ফেলা হবে কি?"
+
+#: ../src/terminal-app.c:644
+msgid "Delete Profile"
+msgstr "প্রোফাইল মুছে ফেলুন"
+
+#: ../src/terminal-app.c:958
+msgid "User Defined"
+msgstr "ব্যবহারকারীর দ্বারা নির্দিষ্ট"
+
+#: ../src/terminal-app.c:1113
+#, c-format
+msgid ""
+"You already have a profile called “%s”. Do you want to create another "
+"profile with the same name?"
+msgstr ""
+"“%s” নামক একটি প্রোফাইল বর্তমানে উপস্থিত রয়েছে। আপনি কি একই নামের দুটি প্রোফাইল "
+"নির্মাণ করতে ইচ্ছুক?"
+
+#: ../src/terminal-app.c:1215
+msgid "Choose base profile"
+msgstr "ভিত্তি রূপে চিহ্নিত প্রোফাইল নির্বাচন করুন"
+
+#: ../src/terminal-app.c:1800
+#, c-format
+msgid "No such profile \"%s\", using default profile\n"
+msgstr "\"%s\" নামক কোনো প্রোফাইল উপস্থিত নেই, ডিফল্ট প্রোফাইল ব্যবহার করা হবে\n"
+
+#: ../src/terminal-app.c:1824
+#, c-format
+msgid "Invalid geometry string \"%s\"\n"
+msgstr "অকার্যকর জ্যামিতিক স্ট্রিল \"%s\"\n"
+
+#: ../src/terminal.c:195
+msgid "Could not open link"
+msgstr "লিংক খুলতে ব্যর্থ"
+
+#: ../src/terminal.c:299
+#, c-format
+msgid "Failed to parse arguments: %s\n"
+msgstr "আর্গুমেন্ট পার্স করতে ব্যর্থ: %s\n"
+
+#. Incompatible factory version, fall back, to new instance
+#: ../src/terminal.c:423
+#, c-format
+msgid "Incompatible factory version; creating a new instance.\n"
+msgstr "অসংগত ফ্যাক্টরি সংস্করণ; নতুন ইনস্ট্যান্স তৈরি করা হচ্ছে।\n"
+
+#: ../src/terminal.c:429
+#, c-format
+msgid "Factory error: %s\n"
+msgstr "ফ্যাক্টরি সংক্রান্ত ত্রুটি: %s\n"
+
+#. { "UTF-8",	N_("Current Locale") },
+#: ../src/terminal-encoding.c:52 ../src/terminal-encoding.c:65
+#: ../src/terminal-encoding.c:79 ../src/terminal-encoding.c:101
+#: ../src/terminal-encoding.c:112
+msgid "Western"
+msgstr "পাশ্চাত্য"
+
+#: ../src/terminal-encoding.c:53 ../src/terminal-encoding.c:80
+#: ../src/terminal-encoding.c:91 ../src/terminal-encoding.c:110
+msgid "Central European"
+msgstr "মধ্য ইউরোপীয়"
+
+#: ../src/terminal-encoding.c:54
+msgid "South European"
+msgstr "দক্ষিণ ইউরোপীয়"
+
+#: ../src/terminal-encoding.c:55 ../src/terminal-encoding.c:63
+#: ../src/terminal-encoding.c:117
+msgid "Baltic"
+msgstr "বল্টিক"
+
+#: ../src/terminal-encoding.c:56 ../src/terminal-encoding.c:81
+#: ../src/terminal-encoding.c:87 ../src/terminal-encoding.c:88
+#: ../src/terminal-encoding.c:93 ../src/terminal-encoding.c:111
+msgid "Cyrillic"
+msgstr "সিরিলিক"
+
+#: ../src/terminal-encoding.c:57 ../src/terminal-encoding.c:84
+#: ../src/terminal-encoding.c:90 ../src/terminal-encoding.c:116
+msgid "Arabic"
+msgstr "আরবী"
+
+#: ../src/terminal-encoding.c:58 ../src/terminal-encoding.c:96
+#: ../src/terminal-encoding.c:113
+msgid "Greek"
+msgstr "গ্রিক"
+
+#: ../src/terminal-encoding.c:59
+msgid "Hebrew Visual"
+msgstr "হিব্রু ভিজুয়াল"
+
+#: ../src/terminal-encoding.c:60 ../src/terminal-encoding.c:83
+#: ../src/terminal-encoding.c:99 ../src/terminal-encoding.c:115
+msgid "Hebrew"
+msgstr "হিব্রু"
+
+#: ../src/terminal-encoding.c:61 ../src/terminal-encoding.c:82
+#: ../src/terminal-encoding.c:103 ../src/terminal-encoding.c:114
+msgid "Turkish"
+msgstr "তুর্কি"
+
+#: ../src/terminal-encoding.c:62
+msgid "Nordic"
+msgstr "নর্ডিক"
+
+#: ../src/terminal-encoding.c:64
+msgid "Celtic"
+msgstr "সেল্টিক"
+
+#: ../src/terminal-encoding.c:66 ../src/terminal-encoding.c:102
+msgid "Romanian"
+msgstr "রোমেনিয়ান"
+
+# Translated by sadia
+#. These encodings do NOT pass-through ASCII, so are always rejected.
+#. * FIXME: why are they in this table; or rather why do we need
+#. * the ASCII pass-through requirement?
+#.
+#: ../src/terminal-encoding.c:67 ../src/terminal-encoding.c:124
+#: ../src/terminal-encoding.c:125 ../src/terminal-encoding.c:126
+#: ../src/terminal-encoding.c:127
+msgid "Unicode"
+msgstr "ইউনিকোড"
+
+#: ../src/terminal-encoding.c:68
+msgid "Armenian"
+msgstr "আর্মেনিয়ান"
+
+#: ../src/terminal-encoding.c:69 ../src/terminal-encoding.c:70
+#: ../src/terminal-encoding.c:74
+msgid "Chinese Traditional"
+msgstr "সনাতন চীনা"
+
+#: ../src/terminal-encoding.c:71
+msgid "Cyrillic/Russian"
+msgstr "সিরিলিক/রুশি"
+
+#: ../src/terminal-encoding.c:72 ../src/terminal-encoding.c:85
+#: ../src/terminal-encoding.c:105
+msgid "Japanese"
+msgstr "জাপানি"
+
+#: ../src/terminal-encoding.c:73 ../src/terminal-encoding.c:86
+#: ../src/terminal-encoding.c:108 ../src/terminal-encoding.c:128
+msgid "Korean"
+msgstr "কোরিয়"
+
+#: ../src/terminal-encoding.c:75 ../src/terminal-encoding.c:76
+#: ../src/terminal-encoding.c:77
+msgid "Chinese Simplified"
+msgstr "সরলীকৃত চীনা"
+
+#: ../src/terminal-encoding.c:78
+msgid "Georgian"
+msgstr "জর্জিয়ান"
+
+#: ../src/terminal-encoding.c:89 ../src/terminal-encoding.c:104
+msgid "Cyrillic/Ukrainian"
+msgstr "সিরিলিক/ইউক্রেনিয়ান"
+
+#: ../src/terminal-encoding.c:92
+msgid "Croatian"
+msgstr "ক্রোয়েশিয়ান"
+
+#: ../src/terminal-encoding.c:94
+msgid "Hindi"
+msgstr "হিন্দি"
+
+#: ../src/terminal-encoding.c:95
+msgid "Persian"
+msgstr "ফার্সি"
+
+#: ../src/terminal-encoding.c:97
+msgid "Gujarati"
+msgstr "গুজরাতি"
+
+#: ../src/terminal-encoding.c:98
+msgid "Gurmukhi"
+msgstr "গুরুমুখী"
+
+#: ../src/terminal-encoding.c:100
+msgid "Icelandic"
+msgstr "আইসল্যান্ডিক"
+
+#: ../src/terminal-encoding.c:106 ../src/terminal-encoding.c:109
+#: ../src/terminal-encoding.c:118
+msgid "Vietnamese"
+msgstr "ভিয়েতনামিস"
+
+#: ../src/terminal-encoding.c:107
+msgid "Thai"
+msgstr "থাই"
+
+#: ../src/terminal-encoding.c:480 ../src/terminal-encoding.c:505
+msgid "_Description"
+msgstr "বিবরণ (_D)"
+
+#: ../src/terminal-encoding.c:489 ../src/terminal-encoding.c:514
+msgid "_Encoding"
+msgstr "এনকোডিং (_E)"
+
+#: ../src/terminal-encoding.c:574
+msgid "Current Locale"
+msgstr "বর্তমান লোকেল"
+
+#: ../src/terminal-options.c:175
+#, c-format
+msgid ""
+"Option \"%s\" is no longer supported in this version of gnome-terminal; you "
+"might want to create a profile with the desired setting, and use the new '--"
+"profile' option\n"
+msgstr ""
+"gnome-terminal-র বর্তমান সংস্করণে \"%s\" অপশনটি সমর্থিত হয় না; পছন্দসই বৈশিষ্ট্য "
+"সহ আপনি নতুন প্রোফাইল নির্মাণ নতুন '--profile' অপশনটি ব্যবহার করতে পারেন\n"
+
+#: ../src/terminal-options.c:188 ../src/terminal-window.c:3708
+msgid "GNOME Terminal"
+msgstr "GNOME Terminal"
+
+#: ../src/terminal-options.c:208
+#, c-format
+msgid "Argument to \"%s\" is not a valid command: %s"
+msgstr "\"%s\"-র জন্য উল্লিখিত আর্গুমেন্ট কার্যকর কমান্ড নয়: %s"
+
+#: ../src/terminal-options.c:343
+msgid "Two roles given for one window"
+msgstr "একটি উইন্ডোর জন্য দুটি ভূমিকা প্রদান করা হয়েছে"
+
+#: ../src/terminal-options.c:364 ../src/terminal-options.c:397
+#, c-format
+msgid "\"%s\" option given twice for the same window\n"
+msgstr "একই উইন্ডোর জন্য \"%s\" অপশন দুইবার উল্লেখ করা হয়েছে\n"
+
+#: ../src/terminal-options.c:596
+#, c-format
+msgid "\"%s\" is not a valid zoom factor"
+msgstr "প্রদর্শনের মাত্রা বিবর্ধনের উদ্দেশ্যে \"%s\" কার্যকর মান নয়"
+
+#: ../src/terminal-options.c:603
+#, c-format
+msgid "Zoom factor \"%g\" is too small, using %g\n"
+msgstr "জুম ফ্যাক্টর \"%g\" অত্যন্ত ক্ষুদ্র, %g ব্যবহার করা হবে\n"
+
+#: ../src/terminal-options.c:611
+#, c-format
+msgid "Zoom factor \"%g\" is too large, using %g\n"
+msgstr "জুম ফ্যাক্টর \"%g\" অত্যাধিক বড়, %g ব্যবহার করা হবে\n"
+
+#: ../src/terminal-options.c:646
+#, c-format
+msgid ""
+"Option \"%s\" requires specifying the command to run on the rest of the "
+"command line"
+msgstr ""
+"অবশিষ্ট কমান্ড লাইনে চালানোর জন্য \"%s\" অপশন ক্ষেত্রে কমান্ড উল্লেখ করা আবশ্যক"
+
+#: ../src/terminal-options.c:807
+msgid "Not a valid terminal config file."
+msgstr "কার্যকর টার্মিনাল কনফিগারেশন ফাইল নয়।"
+
+#: ../src/terminal-options.c:820
+msgid "Incompatible terminal config file version."
+msgstr "টার্মিনাল কনফিগারেশন ফাইলের অসংগত সংস্করণ।"
+
+#: ../src/terminal-options.c:947
+msgid ""
+"Do not register with the activation nameserver, do not re-use an active "
+"terminal"
+msgstr ""
+"অ্যাকটিভেশন nameserver-র সাথে নিবন্ধিত করা হবে না, সক্রিয় টার্মিনাল পুনরায় ব্যবহার "
+"করা হবে না"
+
+#: ../src/terminal-options.c:956
+msgid "Load a terminal configuration file"
+msgstr "একটি টার্মিনাল কনফিগারেশন ফাইল লোড করুন"
+
+#: ../src/terminal-options.c:965
+msgid "Save the terminal configuration to a file"
+msgstr "টার্মিনালের কনফিগারেশন একটি ফাইলের মধ্যে সংরক্ষণ করুন"
+
+#: ../src/terminal-options.c:979
+msgid "Open a new window containing a tab with the default profile"
+msgstr "ডিফল্ট প্রোফাইল প্রয়োগ করে নতুন উইন্ডোর মধ্যে একটি ট্যাব খোলা হবে।"
+
+#: ../src/terminal-options.c:988
+msgid "Open a new tab in the last-opened window with the default profile"
+msgstr "ডিফল্ট প্রোফাইল প্রয়োগ করে সর্বশেষ উইন্ডোর মধ্যে একটি ট্যাব খোলা হবে।"
+
+#: ../src/terminal-options.c:1001
+msgid "Turn on the menubar"
+msgstr "মেনুবার সক্রিয় করুন"
+
+#: ../src/terminal-options.c:1010
+msgid "Turn off the menubar"
+msgstr "মেনুবার নিষ্ক্রিয় করুন"
+
+#: ../src/terminal-options.c:1019
+msgid "Maximise the window"
+msgstr "উইন্ডোর সর্বাধিক মাপে ধার্য করুন"
+
+#: ../src/terminal-options.c:1028
+msgid "Full-screen the window"
+msgstr "সম্পূর্ণ পর্দায় উইন্ডো প্রদর্শন"
+
+#: ../src/terminal-options.c:1037
+msgid ""
+"Set the window size; for example: 80x24, or 80x24+200+200 (ROWSxCOLS+X+Y)"
+msgstr ""
+"উইন্ডোর আকার নির্ধারণ করুন; উদাহরণস্বরূপ: 80x24, বা 80x24+200+200 (ROWSxCOLS+X+Y)"
+
+# Translated by sadia
+#: ../src/terminal-options.c:1038
+msgid "GEOMETRY"
+msgstr "জ্যামিতি"
+
+#: ../src/terminal-options.c:1046
+msgid "Set the window role"
+msgstr "উইন্ডোর ভূমিকা নির্ধারণ করুন"
+
+# Translated by sadia
+#: ../src/terminal-options.c:1047
+msgid "ROLE"
+msgstr "ভূমিকা"
+
+#: ../src/terminal-options.c:1055
+msgid "Set the last specified tab as the active one in its window"
+msgstr "বর্তমান উইন্ডোর সর্বশেষ ট্যাবটি সক্রিয় ট্যাব রূপে নির্ধারণ করা হবে"
+
+#: ../src/terminal-options.c:1068
+msgid "Execute the argument to this option inside the terminal"
+msgstr "এই অপশনের জন্য নির্ধারিত আর্গুমেন্ট টার্মিনালের মধ্যে চালানো হবে"
+
+#: ../src/terminal-options.c:1077
+msgid "Use the given profile instead of the default profile"
+msgstr "ডিফল্ট প্রোফাইলের পরিবর্তে, উল্লিখিত প্রোফাইল প্রয়োগ করা হবে"
+
+# Translated by sadia
+#: ../src/terminal-options.c:1078
+msgid "PROFILE-NAME"
+msgstr "প্রোফাইলের নাম"
+
+#: ../src/terminal-options.c:1086
+msgid "Set the terminal title"
+msgstr "টার্মিনালের শিরোনাম নির্ধারণ করুন"
+
+# Translated by sadia
+#: ../src/terminal-options.c:1087
+msgid "TITLE"
+msgstr "শিরোনাম"
+
+#: ../src/terminal-options.c:1095
+msgid "Set the working directory"
+msgstr "সক্রিয় ডিরেক্টরি নির্ধারণ করুন"
+
+#: ../src/terminal-options.c:1096
+msgid "DIRNAME"
+msgstr "DIRNAME"
+
+# Translated by sadia
+#: ../src/terminal-options.c:1104
+msgid "Set the terminal's zoom factor (1.0 = normal size)"
+msgstr ""
+"টার্মিনালের বড় আকারে প্রদর্শনের মাত্রা নির্ধারণ করা হবে (১.0 = স্বাভাবিক আকার)"
+
+# Translated by sadia
+#: ../src/terminal-options.c:1105
+msgid "ZOOM"
+msgstr "বড় আকারে প্রদর্শন "
+
+# Translated by sadia
+#: ../src/terminal-options.c:1355 ../src/terminal-options.c:1358
+msgid "GNOME Terminal Emulator"
+msgstr "জিনোম টার্মিনাল এমুলেটর"
+
+# Translated by sadia
+#: ../src/terminal-options.c:1359
+msgid "Show GNOME Terminal options"
+msgstr "জিনোম টার্মিনাল সংক্রান্ত অপশন প্রদর্শন করা হবে"
+
+#: ../src/terminal-options.c:1369
+msgid ""
+"Options to open new windows or terminal tabs; more than one of these may be "
+"specified:"
+msgstr ""
+"নতুন উইন্ডো অথবা টার্মিনাল ট্যাব প্রদর্শনের জন্য প্রযোজ্য অপশন; এর মধ্যে একাধিক "
+"নির্ধারণ করা যাবে:"
+
+#: ../src/terminal-options.c:1370
+msgid "Show terminal options"
+msgstr "টার্মিনাল সংক্রান্ত অপশন প্রদর্শন করা হবে"
+
+#: ../src/terminal-options.c:1378
+msgid ""
+"Window options; if used before the first --window or --tab argument, sets "
+"the default for all windows:"
+msgstr ""
+"উইন্ডো সংক্রান্ত অপশন; প্রথম --window অথবা --tab আর্গুমেন্টের পূর্বে ব্যবহার করা হলে, "
+"সকল উইন্ডোর জন্য ডিফল্ট মান নির্ধারণ করা হয়:"
+
+#: ../src/terminal-options.c:1379
+msgid "Show per-window options"
+msgstr "প্রতি উইন্ডোর জন্য অপশন প্রদর্শন করা হবে"
+
+#: ../src/terminal-options.c:1387
+msgid ""
+"Terminal options; if used before the first --window or --tab argument, sets "
+"the default for all terminals:"
+msgstr ""
+"টার্মিনাল সংক্রান্ত অপশন; প্রথম --window অথবা --tab আর্গুমেন্টের পূর্বে ব্যবহার করা "
+"হলে, সকল উইন্ডোর জন্য ডিফল্ট মান নির্ধারণ করা হয়:"
+
+#: ../src/terminal-options.c:1388
+msgid "Show per-terminal options"
+msgstr "প্রতি টার্মিনালের জন্য অপশন প্রদর্শন করা হবে"
+
+# Translated by sadia
+#: ../src/terminal-profile.c:164
+msgid "Unnamed"
+msgstr "নামহীন"
+
+#: ../src/terminal-screen.c:1309
+msgid "There was a problem with the command for this terminal"
+msgstr "চিহ্নিত টার্মিনালের ক্ষেত্রে কমান্ডটি প্রয়োগ করতে সমস্যা"
+
+#: ../src/terminal-screen.c:1513
+msgid "There was an error creating the child process for this terminal"
+msgstr "বর্তমান টার্মিনালের চাইল্ড প্রসেস নির্মাণ করতে সমস্যা"
+
+#: ../src/terminal-tab-label.c:151
+msgid "Close tab"
+msgstr "ট্যাব বন্ধ করুন"
+
+#: ../src/terminal-tabs-menu.c:198
+msgid "Switch to this tab"
+msgstr "বর্তমান ট্যাবে স্থানান্তর করুন"
+
+#: ../src/terminal-util.c:185
+msgid "There was an error displaying help"
+msgstr "সহায়িকা প্রদর্শন করতে ত্রুটি"
+
+#: ../src/terminal-util.c:258
+#, c-format
+msgid "Could not open the address “%s”"
+msgstr "“%s” ঠিকানা খোলা যায়নি"
+
+# Translated by sadia
+#: ../src/terminal-util.c:365
+msgid ""
+"GNOME Terminal is free software; you can redistribute it and/or modify it "
+"under the terms of the GNU General Public License as published by the Free "
+"Software Foundation; either version 2 of the License, or (at your option) "
+"any later version."
+msgstr ""
+"জিনোম টার্মিনাল একটি মুক্ত সফ্টওয়্যার; মুক্ত সফটওয়্যার ফাউন্ডেশন দ্বারা প্রকাশিত GNU "
+"General Public License-র শর্তানুযায়ী এটি বিতরণ ও পরিবর্তন করা যাবে; লাইসেন্সের "
+"সংস্করণ ২ অথবা (আপনার সুবিধানুযায়ী) ঊর্ধ্বতন কোনো সংস্করণের অধীন।"
+
+# Translated by sadia
+#: ../src/terminal-util.c:369
+msgid ""
+"GNOME Terminal is distributed in the hope that it will be useful, but "
+"WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY "
+"or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for "
+"more details."
+msgstr ""
+"জিনোম টার্মিনাল বিতরণ করার মূল উদ্দেশ্য যে ব্যবহারকারীরা এর দ্বারা উপকৃত হবেন, কিন্তু "
+"এটির জন্য কোনো সুস্পষ্ট ওয়ারেন্টি উপস্থিত নেই; বাণিজ্যিক ও কোনো সুনির্দিষ্ট কর্ম সাধনের "
+"জন্য অন্তর্নিহীত ওয়ারেন্টিও অনুপস্থিত। অধিক জানতে GNU General Public License পড়ুন।"
+
+# Translated by sadia
+#: ../src/terminal-util.c:373
+msgid ""
+"You should have received a copy of the GNU General Public License along with "
+"GNOME Terminal; if not, write to the Free Software Foundation, Inc., 51 "
+"Franklin St, Fifth Floor, Boston, MA  02110-1301 USA"
+msgstr ""
+"জিনোম টার্মিনাল এর সাথে GNU General Public License-র একটি প্রতিলিপি উপলব্ধ হওয়া "
+"উচিত; না থাকলে নিম্নলিখিত ঠিকানায় লিখে তা সংগ্রহ করুন Free Software Foundation, "
+"Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA"
+
+# msgstr "টার্মিন্যালের প্রোফাইল তালিকা পড়তে সমস্যা হয়েছে।(%s)\n"
+#. Translators: This is the label of a menu item to choose a profile.
+#. * _%d is used as the accelerator (with d between 1 and 9), and
+#. * the %s is the name of the terminal profile.
+#.
+#: ../src/terminal-window.c:436
+#, c-format
+msgid "_%d. %s"
+msgstr "_%d. %s"
+
+#. Translators: This is the label of a menu item to choose a profile.
+#. * _%c is used as the accelerator (it will be a character between A and Z),
+#. * and the %s is the name of the terminal profile.
+#.
+#: ../src/terminal-window.c:442
+#, c-format
+msgid "_%c. %s"
+msgstr "_%c. %s"
+
+#. Toplevel
+#: ../src/terminal-window.c:1709
+msgid "_File"
+msgstr "ফাইল (_F)"
+
+#. File menu
+#: ../src/terminal-window.c:1710 ../src/terminal-window.c:1721
+#: ../src/terminal-window.c:1848
+msgid "Open _Terminal"
+msgstr "টার্মিনাল খুলুন (_T)"
+
+#: ../src/terminal-window.c:1711 ../src/terminal-window.c:1724
+#: ../src/terminal-window.c:1851
+msgid "Open Ta_b"
+msgstr "ট্যাব খুলুন (_b)"
+
+#: ../src/terminal-window.c:1712
+msgid "_Edit"
+msgstr "সম্পাদনা (_E)"
+
+#: ../src/terminal-window.c:1713
+msgid "_View"
+msgstr "প্রদর্শন (_V)"
+
+#: ../src/terminal-window.c:1714
+msgid "_Terminal"
+msgstr "টার্মিনাল (_T)"
+
+#: ../src/terminal-window.c:1715
+msgid "Ta_bs"
+msgstr "ট্যাব (_b)"
+
+#: ../src/terminal-window.c:1716
+msgid "_Help"
+msgstr "সাহায্য (_H)"
+
+#: ../src/terminal-window.c:1727
+msgid "New _Profile…"
+msgstr "নতুন প্রোফাইল...(_P)"
+
+#: ../src/terminal-window.c:1731
+msgid "_Save Contents"
+msgstr "বিষয়বস্তু সংরক্ষণ (_S)"
+
+#: ../src/terminal-window.c:1735 ../src/terminal-window.c:1857
+msgid "C_lose Tab"
+msgstr "ট্যাব বন্ধ করুন (_l)"
+
+#: ../src/terminal-window.c:1738
+msgid "_Close Window"
+msgstr "উইন্ডো বন্ধ করুন (_C)"
+
+#: ../src/terminal-window.c:1749 ../src/terminal-window.c:1845
+msgid "Paste _Filenames"
+msgstr "ফাইলের নাম প্রতিলেপন করা হবে (_F)"
+
+#: ../src/terminal-window.c:1755
+msgid "P_rofiles…"
+msgstr "প্রোফাইল...(_r)"
+
+#: ../src/terminal-window.c:1758
+msgid "_Keyboard Shortcuts…"
+msgstr "কীবোর্ড শর্টকাট...(_K)"
+
+#: ../src/terminal-window.c:1761
+msgid "Pr_ofile Preferences"
+msgstr "প্রোফাইল সংক্রান্ত পছন্দ (_o)"
+
+#. Terminal menu
+#: ../src/terminal-window.c:1777
+msgid "Change _Profile"
+msgstr "প্রোফাইল পরিবর্তন করুন (_P)"
+
+#: ../src/terminal-window.c:1778
+msgid "_Set Title…"
+msgstr "শিরোনাম নির্ধারণ করুন...(_S)"
+
+#: ../src/terminal-window.c:1781
+msgid "Set _Character Encoding"
+msgstr "ক্যারেক্টার এনকোডিং নির্ধারণ করুন (_C)"
+
+#: ../src/terminal-window.c:1782
+msgid "_Reset"
+msgstr "রিসেট (_R)"
+
+#: ../src/terminal-window.c:1785
+msgid "Reset and C_lear"
+msgstr "রিসেট ও পরিস্কার করুন (_l)"
+
+#. Terminal/Encodings menu
+#: ../src/terminal-window.c:1790
+msgid "_Add or Remove…"
+msgstr "যোগ করুন অথবা মুছে ফেলুন... (_A)"
+
+#. Tabs menu
+#: ../src/terminal-window.c:1795
+msgid "_Previous Tab"
+msgstr "পূর্ববর্তী ট্যাব (_P)"
+
+#: ../src/terminal-window.c:1798
+msgid "_Next Tab"
+msgstr "পরবর্তী ট্যাব (_N)"
+
+#: ../src/terminal-window.c:1801
+msgid "Move Tab _Left"
+msgstr "ট্যাব বাদিকে স্থানান্তর করুন (_L)"
+
+#: ../src/terminal-window.c:1804
+msgid "Move Tab _Right"
+msgstr "ট্যাব ডান দিকে স্থানান্তর করুন (_R)"
+
+#: ../src/terminal-window.c:1807
+msgid "_Detach tab"
+msgstr "ট্যাব বিচ্ছিন্ন করুন (_D)"
+
+#. Help menu
+#: ../src/terminal-window.c:1812
+msgid "_Contents"
+msgstr "বিষয়বস্তু (_C)"
+
+#: ../src/terminal-window.c:1815
+msgid "_About"
+msgstr "পরিচিতি (_A)"
+
+#. Popup menu
+#: ../src/terminal-window.c:1820
+msgid "_Send Mail To…"
+msgstr "মেইল প্রেরণের গন্তব্যস্থল...(_S)"
+
+#: ../src/terminal-window.c:1823
+msgid "_Copy E-mail Address"
+msgstr "ইমেইল ঠিকানা অনুলিপি করুন (_C)"
+
+#: ../src/terminal-window.c:1826
+msgid "C_all To…"
+msgstr "চিহ্নিত স্থানে কল করুন...(_a)"
+
+#: ../src/terminal-window.c:1829
+msgid "_Copy Call Address"
+msgstr "কলের ঠিকানা অনুলিপি করুন (_C)"
+
+#: ../src/terminal-window.c:1832
+msgid "_Open Link"
+msgstr "লিংক খুলুন (_O)"
+
+#: ../src/terminal-window.c:1835
+msgid "_Copy Link Address"
+msgstr "লিংকের ঠিকানা অনুলিপি করুন (_C)"
+
+#: ../src/terminal-window.c:1838
+msgid "P_rofiles"
+msgstr "প্রোফাইল (_r)"
+
+#: ../src/terminal-window.c:1854 ../src/terminal-window.c:3049
+msgid "C_lose Window"
+msgstr "উইন্ডো বন্ধ করুন (_l)"
+
+#: ../src/terminal-window.c:1860
+msgid "L_eave Full Screen"
+msgstr "সম্পূর্ণ পর্দা জুড়ে প্রদর্শন বন্ধ করুন (_e)"
+
+#: ../src/terminal-window.c:1863
+msgid "_Input Methods"
+msgstr "ইনপুট মেথড (_I)"
+
+#. View Menu
+#: ../src/terminal-window.c:1869
+msgid "Show _Menubar"
+msgstr "মেনুবার প্রদর্শন করা হবে (_M)"
+
+#: ../src/terminal-window.c:1873
+msgid "_Full Screen"
+msgstr "সম্পূর্ণ পর্দা জুড়ে প্রদর্শন (_F)"
+
+#: ../src/terminal-window.c:3036
+msgid "Close this window?"
+msgstr "এই উইন্ডো বন্ধ করা হবে কি?"
+
+#: ../src/terminal-window.c:3036
+msgid "Close this terminal?"
+msgstr "এই টার্মিনাল বন্ধ করা হবে কি?"
+
+#: ../src/terminal-window.c:3040
+msgid ""
+"There are still processes running in some terminals in this window. Closing "
+"the window will kill all of them."
+msgstr ""
+"এই উইন্ডোর মধ্যে উপস্থিত কয়েকটি টার্মিন্যালে এখনো কাজ চালানো হচ্ছে। উইন্ডো বন্ধ করা "
+"হলে এই সকল প্রসেস বন্ধ (kill) হয়ে যাবে।"
+
+#: ../src/terminal-window.c:3044
+msgid ""
+"There is still a process running in this terminal. Closing the terminal will "
+"kill it."
+msgstr ""
+"এই টার্মিনালের মধ্যে একটি প্রসেস বর্তমানে চলছে। টার্মিনাল বন্ধ করা হলে এটি বন্ধ "
+"(kill) হয়ে যাবে।"
+
+#: ../src/terminal-window.c:3049
+msgid "C_lose Terminal"
+msgstr "টার্মিনাল বন্ধ করুন (_l)"
+
+#: ../src/terminal-window.c:3122
+msgid "Could not save contents"
+msgstr "বিষয়বস্তু সংরক্ষণ করা যায়নি"
+
+#: ../src/terminal-window.c:3144
+msgid "Save as..."
+msgstr "নতুনভাবে সংরক্ষণ..."
+
+# Translated by sadia
+#: ../src/terminal-window.c:3504
+msgid "_Title:"
+msgstr "শিরোনাম: (_T)"
+
+#: ../src/terminal-window.c:3691
+msgid "Contributors:"
+msgstr "অংশগ্রহণকারী:"
+
+# Translated by sadia
+#: ../src/terminal-window.c:3710
+msgid "A terminal emulator for the GNOME desktop"
+msgstr "জিনোম ডেস্কটপে ব্যবহাযোগ্য একটি টার্মিনাল এমুলেটর"
+
+#: ../src/terminal-window.c:3717
+msgid "translator-credits"
+msgstr ""
+"অঙ্কুর প্রকল্পের পক্ষে, রুণা ভট্টাচার্য্য (runa@bengalinux.org)\n"
+"সাদিয়া আফরোজ <sadia@ankur.org.bd>\n"
+"ইসরাত জাহান <israt@ankur.org.bd>"
+
+#.
+#. * Copyright © 2009 Christian Persch
+#. *
+#. * Gnome-terminal is free software; you can redistribute it and/or modify
+#. * it under the terms of the GNU General Public License as published by
+#. * the Free Software Foundation; either version 2 of the License, or
+#. * (at your option) any later version.
+#. *
+#. * Gnome-terminal is distributed in the hope that it will be useful,
+#. * but WITHOUT ANY WARRANTY; without even the implied warranty of
+#. * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#. * GNU General Public License for more details.
+#. *
+#. * You should have received a copy of the GNU General Public License
+#. * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#.
+#. This file contains extra strings that need to be translated, but
+#. * can't be extracted by intltool since the ui files aren't in git, and
+#. * the glade files don't contain them in the right form. See bug #553357.
+#.
+#. Translators: This refers to the Delete keybinding option
+#: ../src/extra-strings.c:24
+msgid "Automatic"
+msgstr "স্বয়ংক্রিয়"
+
+#. Translators: This refers to the Delete keybinding option
+#: ../src/extra-strings.c:26
+msgid "Control-H"
+msgstr "Control-H"
+
+#. Translators: This refers to the Delete keybinding option
+#: ../src/extra-strings.c:28
+msgid "ASCII DEL"
+msgstr "ASCII DEL"
+
+#. Translators: This refers to the Delete keybinding option
+#: ../src/extra-strings.c:30
+msgid "Escape sequence"
+msgstr "Escape sequence"
+
+#. Translators: Cursor shape: ...
+#: ../src/extra-strings.c:33
+msgid "Block"
+msgstr "ব্লক"
+
+#. Translators: Cursor shape: ...
+#: ../src/extra-strings.c:35
+msgid "I-Beam"
+msgstr "I-Beam"
+
+#. Translators: Cursor shape: ...
+#: ../src/extra-strings.c:37
+msgid "Underline"
+msgstr "নিম্নরেখা"
+
+#. Translators: When command exits: ...
+#: ../src/extra-strings.c:40
+msgid "Exit the terminal"
+msgstr "টার্মিনাল থেকে প্রস্থান করুন"
+
+#. Translators: When command exits: ...
+#: ../src/extra-strings.c:42
+msgid "Restart the command"
+msgstr "কমান্ড পুনরারম্ভ করুন"
+
+#. Translators: When command exits: ...
+#: ../src/extra-strings.c:44
+msgid "Hold the terminal open"
+msgstr "টার্মিনালটি খুলে রাখা হবে"
+
+#. Translators: Scrollbar is: ...
+#: ../src/extra-strings.c:47
+msgid "On the left side"
+msgstr "বাদিকে"
+
+#. Translators: Scrollbar is: ...
+#: ../src/extra-strings.c:49
+msgid "On the right side"
+msgstr "ডানদিকে"
+
+#. Translators: When terminal commands set their own titles: ...
+#: ../src/extra-strings.c:54
+msgid "Replace initial title"
+msgstr "প্রারম্ভিক শিরোনাম প্রতিস্থাপন করুন"
+
+#. Translators: When terminal commands set their own titles: ...
+#: ../src/extra-strings.c:56
+msgid "Append initial title"
+msgstr "প্রারম্ভিক শিরোনাম সংযোজন করুন"
+
+#. Translators: When terminal commands set their own titles: ...
+#: ../src/extra-strings.c:58
+msgid "Prepend initial title"
+msgstr "প্রারম্ভিক শিরোনাম পূর্বে স্থাপন করা হবে"
+
+#. Translators: When terminal commands set their own titles: ...
+#: ../src/extra-strings.c:60
+msgid "Keep initial title"
+msgstr "প্রারম্ভিক শিরোনাম অপরিবর্তিত রাখা হবে"
+
+#. Translators: This is the name of a colour scheme
+#: ../src/extra-strings.c:63
+msgid "Tango"
+msgstr "ট্যাংগো"
+
+# Translated by sadia
+#. Translators: This is the name of a colour scheme
+#: ../src/extra-strings.c:65
+msgid "Linux console"
+msgstr "লিনাক্স কনসোল"
+
+#. Translators: This is the name of a colour scheme
+#: ../src/extra-strings.c:67
+msgid "XTerm"
+msgstr "XTerm"
+
+#. Translators: This is the name of a colour scheme
+#: ../src/extra-strings.c:69
+msgid "Rxvt"
+msgstr "Rxvt"
+
+#~ msgid "(about %s)"
+#~ msgstr "(%s পরিচিতি)"
+
+#~ msgid ""
+#~ "Set the window geometry from the provided X geometry specification; see "
+#~ "the \"X\" man page for more information"
+#~ msgstr ""
+#~ "প্রাপ্ত X জ্যামিতির মান অনুযায়ী উইন্ডোর জ্যামিতি নির্ধারণ করুন; অধিক বিবরণের জন্য "
+#~ "\"X\" এর man পৃষ্ঠা পড়ুন"
+
+msgid "_Search"
+msgstr "অনুসন্ধান (_S)"
+
+msgid "_Find..."
+msgstr "অনুসন্ধান (_F)..."
+
+msgid "Find Ne_xt"
+msgstr "পরবর্তী উপস্থিতি অনুসন্ধান করুন (_x)"
+
+msgid "Find Pre_vious"
+msgstr "পূর্ববর্তী উপস্থিতি অনুসন্ধান করুন (_v)"
+
+msgid "Find"
+msgstr "অনুসন্ধান"
+
+msgid "_Search for:"
+msgstr "অনুসন্ধান করা হবে (_S): "
+
+msgid "_Match case"
+msgstr "হরফের ছাঁদ মেলানো হবে (_M)"
+
+msgid "Match _entire word only"
+msgstr "শুধুমাত্র সম্পূর্ণ শব্দ অনুসন্ধান করা হবে (_e)"
+
+msgid "Search _backwards"
+msgstr "বিপরীত দিশায় অনুসন্ধান করা হবে (_b)"
+
+msgid "_Wrap around"
+msgstr "বিভাজন করা হবে (_W)"

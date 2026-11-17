@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcCameraPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">Cameras</property>
+    <property name="tag">camera</property>
+    <property name="child">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="AdwSwitchRow" id="camera_row">
+                    <property name="title" translatable="yes">_Camera Access</property>
+                    <property name="subtitle" translatable="yes">Allow permitted apps to use cameras</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes">Permitted Apps</property>
+                <property name="description" translatable="yes">The following sandboxed apps have been given permission to use cameras. Apps that are not sandboxed can use cameras without asking for permission.</property>
+                <child>
+                  <object class="GtkListBox" id="camera_apps_list_box">
+                    <property name="selection-mode">none</property>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+
+                    <child type="placeholder">
+                      <object class="GtkLabel">
+                        <property name="margin-start">18</property>
+                        <property name="margin-end">18</property>
+                        <property name="margin-top">18</property>
+                        <property name="margin-bottom">18</property>
+                        <property name="label" translatable="yes">No sandboxed apps have asked for camera access</property>
+                        <property name="wrap">true</property>
+                        <property name="max-width-chars">50</property>
+                        <style>
+                          <class name="dim-label" />
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

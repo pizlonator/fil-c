@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcKeyboardShortcutDialog" parent="AdwWindow">
+    <property name="modal">True</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <property name="default-width">600</property>
+    <property name="default-height">540</property>
+    <property name="title" translatable="yes">Keyboard Shortcuts</property>
+    <signal name="map" handler="gtk_widget_grab_focus" object="search_entry" swapped="yes"/>
+
+    <child>
+      <object class="AdwNavigationView" id="navigation_view">
+        <signal name="notify::visible-page" handler="shortcut_dialog_visible_page_changed_cb" swapped="yes"/>
+
+        <child>
+          <object class="AdwNavigationPage" id="main_page">
+            <property name="title" bind-source="CcKeyboardShortcutDialog" bind-flags="sync-create" bind-property="title"/>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+
+                <!-- Search Entry -->
+                <child type="top">
+                  <object class="GtkSearchBar">
+                    <property name="search-mode-enabled">True</property>
+                    <property name="key-capture-widget">CcKeyboardShortcutDialog</property>
+                    <property name="child">
+                      <!-- xxx: Pack the search entry inside a box so that Escape key won't hide the bar -->
+                      <object class="AdwClamp">
+                        <child>
+                          <object class="GtkSearchEntry" id="search_entry">
+                            <property name="placeholder_text" translatable="yes">Search shortcuts</property>
+                            <signal name="search-changed" handler="shortcut_search_entry_changed_cb" swapped="yes" />
+                            <signal name="stop-search" handler="shortcut_search_entry_stopped_cb" swapped="yes" />
+                            <accessibility>
+                              <property name="label" translatable="yes">Search Shortcuts</property>
+                            </accessibility>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <property name="content">
+                  <object class="GtkStack" id="section_stack">
+                    <property name="vhomogeneous">False</property>
+                    <property name="css-classes">shortcut-list</property>
+
+                    <!-- Shortcut section title rows -->
+                    <child>
+                      <object class="AdwPreferencesPage" id="section_list_page">
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <child>
+                              <object class="GtkListBox" id="section_list_box">
+                                <property name="selection-mode">none</property>
+                                <signal name="row-activated" handler="shortcut_section_row_activated_cb" swapped="yes"/>
+                                <style>
+                                  <class name="boxed-list"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwPreferencesGroup">
+                            <child>
+                              <object class="GtkButton" id="reset_all_button">
+                                <property name="label" translatable="yes">_Reset All…</property>
+                                <property name="use-underline">True</property>
+                                <property name="halign">center</property>
+                                <signal name="clicked" handler="reset_all_clicked_cb" swapped="yes" />
+                                <style>
+                                  <class name="destructive-action"/>
+                                  <class name="pill"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwPreferencesPage" id="search_result_page"/>
+                    </child>
+                    <child>
+                      <object class="AdwStatusPage" id="empty_results_page">
+                        <property name="vexpand">True</property>
+                        <property name="icon_name">edit-find-symbolic</property>
+                        <property name="title" translatable="yes">No keyboard shortcut found</property>
+                        <property name="description" translatable="yes">Try a different search</property>
+                      </object>
+                    </child>
+
+                  </object> <!-- ./GtkStack section_stack -->
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <child>
+          <object class="AdwNavigationPage" id="subview_page">
+            <property name="title"> </property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="GtkStack" id="subview_stack">
+
+                    <child>
+                      <object class="GtkStack" id="shortcut_list_stack">
+                        <property name="vhomogeneous">False</property>
+                      </object>
+                    </child>
+
+                    <child>
+                      <object class="AdwStatusPage" id="empty_custom_shortcut_page">
+                        <property name="vexpand">True</property>
+                        <property name="icon-name">input-keyboard-symbolic</property>
+                        <property name="title" translatable="yes">Add Custom Shortcuts</property>
+                        <property name="description" translatable="yes">Set up custom shortcuts for launching apps, running scripts, and more</property>
+                        <child>
+                          <object class="GtkButton">
+                            <property name="halign">center</property>
+                            <property name="use-underline">True</property>
+                            <property name="label" translatable="yes">_Add Shortcut…</property>
+                            <signal name="clicked" handler="add_custom_shortcut_clicked_cb" swapped="yes"/>
+                            <style>
+                              <class name="suggested-action"/>
+                              <class name="pill"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                  </object>  <!-- ./GtkStack subview_stack -->
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+
+      </object>  <!-- ./AdwNavigationView navigation_view-->
+    </child>
+
+  </template>
+  <object class="GtkSizeGroup" id="accelerator_size_group"/>
+</interface>

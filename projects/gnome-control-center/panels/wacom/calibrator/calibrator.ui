@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcCalibArea" parent="GtkWindow">
+    <property name="name">calibrator</property>
+    <property name="child">
+      <object class="GtkStack" id="stack">
+        <property name="transition_duration">0</property>
+        <child>
+          <object class="GtkGrid">
+            <property name="row_homogeneous">1</property>
+            <property name="column_homogeneous">1</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="column-span">8</property>
+                  <property name="row-span">8</property>
+                </layout>
+                <child>
+                  <object class="GtkBox" id="box1">
+                    <property name="orientation">vertical</property>
+                    <property name="vexpand">1</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="CcClock" id="clock"/>
+                </child>
+                <child>
+                  <object class="GtkBox" id="box2">
+                    <property name="orientation">vertical</property>
+                    <property name="vexpand">1</property>
+                    <child>
+                      <object class="GtkRevealer" id="title_revealer">
+                        <property name="transition_duration">300</property>
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="name">title</property>
+                            <property name="label" translatable="yes">Screen Calibration</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkRevealer" id="subtitle_revealer">
+                        <property name="transition_duration">300</property>
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="name">subtitle</property>
+                            <property name="label" translatable="yes">Please tap the target markers as they appear on screen to calibrate the tablet</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkRevealer" id="error_revealer">
+                        <property name="transition_type">crossfade</property>
+                        <property name="transition_duration">500</property>
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="name">error</property>
+                            <property name="label" translatable="yes">Mis-click detected, restarting…</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="target1">
+                <property name="name">target</property>
+                <property name="width_request">100</property>
+                <property name="height_request">100</property>
+                <property name="sensitive">0</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                  <property name="column-span">2</property>
+                  <property name="row-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="target2">
+                <property name="name">target</property>
+                <property name="width_request">100</property>
+                <property name="height_request">100</property>
+                <property name="sensitive">0</property>
+                <layout>
+                  <property name="column">6</property>
+                  <property name="row">0</property>
+                  <property name="column-span">2</property>
+                  <property name="row-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="target3">
+                <property name="name">target</property>
+                <property name="width_request">100</property>
+                <property name="height_request">100</property>
+                <property name="sensitive">0</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">6</property>
+                  <property name="column-span">2</property>
+                  <property name="row-span">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkImage" id="target4">
+                <property name="name">target</property>
+                <property name="width_request">100</property>
+                <property name="height_request">100</property>
+                <property name="sensitive">0</property>
+                <layout>
+                  <property name="column">6</property>
+                  <property name="row">6</property>
+                  <property name="column-span">2</property>
+                  <property name="row-span">2</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkImage" id="success_page">
+            <property name="pixel_size">300</property>
+            <property name="icon_name">emblem-ok-symbolic</property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+  <object class="GtkSizeGroup">
+    <property name="mode">vertical</property>
+    <widgets>
+      <widget name="box1"/>
+      <widget name="box2"/>
+    </widgets>
+  </object>
+</interface>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="CcWwanApnDialog" parent="GtkDialog">
+    <property name="default-height">480</property>
+    <property name="default-width">360</property>
+    <property name="hide-on-close">True</property>
+    <property name="title" translatable="yes">Access Points</property>
+    <property name="modal">True</property>
+
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+
+        <!-- Back button -->
+        <child type="start">
+          <object class="GtkButton" id="back_button">
+            <property name="use-underline">True</property>
+            <property name="icon-name">go-previous-symbolic</property>
+            <signal name="clicked" handler="cc_wwan_apn_back_clicked_cb" swapped="yes"/>
+            <accessibility>
+              <property name="label" translatable="yes">Back</property>
+            </accessibility>
+          </object>
+        </child>
+
+        <!-- Add button -->
+        <child type="end">
+          <object class="GtkButton" id="add_button">
+            <property name="use-underline">True</property>
+            <property name="icon-name">list-add-symbolic</property>
+            <signal name="clicked" handler="cc_wwan_apn_add_clicked_cb" swapped="yes"/>
+            <accessibility>
+              <property name="label" translatable="yes">Add</property>
+            </accessibility>
+          </object>
+        </child>
+
+        <!-- Save button -->
+        <child type="end">
+          <object class="GtkButton" id="save_button">
+            <property name="visible">False</property>
+            <property name="use-underline">True</property>
+            <property name="label" translatable="yes">_Save</property>
+            <signal name="clicked" handler="cc_wwan_apn_save_clicked_cb" swapped="yes"/>
+            <style>
+              <class name="default"/>
+            </style>
+          </object>
+        </child>
+
+      </object>
+    </child>
+
+    <child>
+      <object class="GtkStack" id="apn_settings_stack">
+        <property name="transition-type">slide-left-right</property>
+
+        <!-- Access Point List -->
+        <child>
+          <object class="AdwPreferencesPage" id="apn_list_view">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkListBox" id="apn_list">
+                    <property name="valign">start</property>
+                    <property name="selection-mode">none</property>
+                    <signal name="row-activated" handler="cc_wwan_apn_activated_cb" swapped="yes"/>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+        <child>
+          <object class="AdwPreferencesPage" id="apn_edit_view">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkGrid">
+                    <property name="orientation">vertical</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="row-spacing">6</property>
+                    <property name="column-spacing">12</property>
+
+                    <!-- Name -->
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="label" translatable="yes">Name</property>
+                        <property name="mnemonic_widget">name_entry</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="name_entry">
+                        <property name="hexpand">True</property>
+                        <signal name="changed" handler="cc_wwan_apn_entry_changed_cb" swapped="yes"/>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
+
+                    <!-- APN -->
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="label" translatable="yes">APN</property>
+                        <property name="mnemonic_widget">apn_entry</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="apn_entry">
+                        <property name="margin-bottom">12</property>
+                        <signal name="changed" handler="cc_wwan_apn_entry_changed_cb" swapped="yes"/>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+
+                    <!-- Username -->
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="label" translatable="yes">Username</property>
+                        <property name="mnemonic_widget">username_entry</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="username_entry">
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+
+                    <!-- Password -->
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                        <property name="label" translatable="yes">Password</property>
+                        <property name="mnemonic_widget">password_entry</property>
+                        <style>
+                          <class name="dim-label"/>
+                        </style>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">3</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="password_entry">
+                        <property name="margin-bottom">12</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">3</property>
+                        </layout>
+                      </object>
+                    </child>
+
+                  </object>
+                </child>
+              </object> <!-- ./AdwPreferencesGroup -->
+            </child>
+          </object>
+        </child>
+
+      </object> <!-- ./GtkStack apn_settings_stack -->
+    </child>
+  </template>
+
+  <!-- A simple hack to create a radio button group -->
+  <object class="GtkCheckButton" id="apn_radio_button"/>
+</interface>

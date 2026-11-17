@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!-- interface-requires gtk+ 3.0 -->
+  <template class="CcKeyboardShortcutRow" parent="AdwActionRow">
+    <property name="use-markup">False</property>
+    <property name="selectable">False</property>
+    <property name="activatable">True</property>
+    <child>
+      <object class="GtkLabel" id="accelerator_label">
+        <property name="xalign">1.0</property>
+        <style>
+          <class name="dim-label" />
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRevealer" id = "reset_revealer">
+        <property name="transition-type">slide-right</property>
+        <child>
+          <object class="GtkButton" id="reset_button">
+            <property name="valign">center</property>
+            <property name="icon-name">edit-clear-symbolic</property>
+            <property name="tooltip-text" translatable="yes">Reset the shortcut to its default value</property>
+            <accessibility>
+              <property name="label" translatable="yes">Reset</property>
+            </accessibility>
+            <signal name="clicked" handler="reset_shortcut_cb" swapped="true"/>
+            <style>
+              <class name="flat" />
+              <class name="circular" />
+              <class name="reset-shortcut-button" />
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

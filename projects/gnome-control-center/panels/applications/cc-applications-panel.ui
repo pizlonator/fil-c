@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="CcApplicationsPanel" parent="CcPanel">
+    <property name="child">
+      <object class="AdwNavigationView" id="navigation_view">
+
+        <!-- App Search Page (Main Landing Page) -->
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Apps</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+
+                <property name="content">
+                  <object class="AdwPreferencesPage" id="app_search_stack_page">
+                    <!-- Searchbar -->
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="AdwClamp">
+                            <property name="maximum-size">280</property>
+                            <child>
+                              <object class="GtkSearchEntry" id="app_search_entry">
+                                <property name="placeholder_text" translatable="yes">Search apps</property>
+                                <signal name="activate" handler="on_app_search_entry_activated_cb" object="CcApplicationsPanel" swapped="yes" />
+                                <signal name="search-changed" handler="on_app_search_entry_search_changed_cb" object="CcApplicationsPanel" swapped="yes" />
+                                <signal name="stop-search" handler="on_app_search_entry_search_stopped_cb" object="CcApplicationsPanel" swapped="yes" />
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <!-- Default Apps Row -->
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="CcListRow">
+                            <property name="title" translatable="yes">_Default Apps</property>
+                            <property name="show-arrow">True</property>
+                            <property name="action-name">navigation.push</property>
+                            <property name="action-target">'default-apps'</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <!-- Apps List -->
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <child>
+                          <object class="GtkStack" id="app_listbox_stack">
+                            <property name="vhomogeneous">False</property>
+                            <!-- Empty search results placeholder -->
+                            <child>
+                              <object class="AdwStatusPage" id="no_apps_page">
+                                <property name="icon-name">computer-fail-symbolic</property>
+                                <property name="title" translatable="yes">No Apps Found</property>
+                                <child>
+                                  <object class="GtkButton" id="install_button">
+                                    <property name="label" translatable="yes">_Find in Software</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="halign">center</property>
+                                    <signal name="clicked" handler="open_software_cb" object="CcApplicationsPanel" swapped="yes"/>
+                                    <style>
+                                      <class name="pill"/>
+                                      <class name="suggested-action"/>
+                                    </style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <!-- App List -->
+                            <child>
+                              <object class="GtkListBox" id="app_listbox">
+                                <property name="selection-mode">none</property>
+                                <style>
+                                  <class name="boxed-list" />
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <!-- Default Apps Page -->
+        <child>
+          <object class="AdwNavigationPage">
+            <property name="title" translatable="yes">Default Apps</property>
+            <property name="tag">default-apps</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+
+                <property name="content">
+                  <object class="AdwPreferencesPage">
+                    <!-- Default Apps Settings -->
+                    <child>
+                      <object class="CcDefaultAppsPage" id="default_apps_page" />
+                    </child>
+
+                    <!-- "Automatically Launch Apps" row -->
+                    <child>
+                      <object class="AdwPreferencesGroup">
+                        <property name="title" translatable="yes">Removable Media</property>
+                        <child>
+                          <object class="AdwSwitchRow" id="autorun_never_row">
+                            <property name="title" translatable="yes">Automat_ically Launch Apps</property>
+                            <property name="subtitle" translatable="yes">Start apps when media is connected or inserted</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+
+                    <!-- Removable Media Settings -->
+                    <child>
+                      <object class="CcRemovableMediaSettings" id="removable_media_settings" />
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <!-- App Settings Page -->
+        <child>
+          <object class="AdwNavigationPage" id="app_settings_page">
+            <property name="title" translatable="yes">App Settings</property>
+            <property name="tag">settings-box</property>
+            <property name="child">
+              <object class="AdwToolbarView">
+                <child type="top">
+                  <object class="AdwHeaderBar"/>
+                </child>
+                <property name="content">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="AdwBanner" id="sandbox_banner">
+                        <property name="visible">False</property>
+                        <property name="revealed">True</property>
+                        <child>
+                          <object class="CcListRowInfoButton" id="sandbox_info_button">
+                            <property name="visible" bind-source="sandbox_banner" bind-property="visible" bind-flags="sync-create|default"/>
+                            <property name="halign">end</property>
+                            <property name="valign">center</property>
+                            <property name="margin-end">3</property>
+                            <property name="text" translatable="yes">App settings cannot be fully enforced for apps which are not sandboxed. These apps may use permissions which are not shown.</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                    <object class="AdwPreferencesPage" id="settings_box">
+                        <!-- App icon & buttons -->
+                        <child>
+                          <object class="AdwPreferencesGroup">
+
+                            <child>
+                              <object class="GtkBox">
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">18</property>
+                                <child>
+                                  <object class="GtkImage" id="app_icon_image">
+                                    <property name="icon-name">org.gnome.Software</property>
+                                    <property name="pixel-size">96</property>
+                                    <style>
+                                      <class name="icon-dropshadow" />
+                                    </style>
+                                  </object>
+                                </child>
+
+                                <child>
+                                  <object class="GtkLabel" id="app_name_label">
+                                    <property name="wrap">True</property>
+                                    <style>
+                                      <class name="title" />
+                                      <class name="title-1" />
+                                    </style>
+                                  </object>
+                                </child>
+
+                                <child>
+                                  <object class="GtkBox">
+                                    <property name="halign">center</property>
+                                    <property name="margin-top">12</property>
+                                    <property name="margin-bottom">12</property>
+                                    <property name="spacing">18</property>
+                                    <child>
+                                      <object class="GtkButton" id="launch_button">
+                                        <property name="label" translatable="yes">_Open</property>
+                                        <property name="use-underline">True</property>
+                                        <property name="can-shrink">True</property>
+                                        <signal name="clicked" handler="on_launch_button_clicked_cb" object="CcApplicationsPanel" swapped="yes" />
+                                        <style>
+                                          <class name="pill" />
+                                          <class name="suggested-action" />
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton" id="view_details_button">
+                                        <property name="label" translatable="yes">App _Details</property>
+                                        <property name="use-underline">True</property>
+                                        <property name="can-shrink">True</property>
+                                        <style>
+                                          <class name="pill" />
+                                        </style>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="AdwPreferencesGroup" id="integration_section">
+                            <property name="title" translatable="yes">Permissions</property>
+                            <child>
+                              <object class="AdwSwitchRow" id="search">
+                                <property name="title" translatable="yes" comments="Translators: This row shows/sets whether the app shown in this page can add results to the GNOME Shell search results. Internally this enables/disables the app's Shell Search Provider">_Search</property>
+                                <property name="subtitle" translatable="yes">Receive system searches and send results</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="search_cb" object="CcApplicationsPanel" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="CcInfoRow" id="no_search">
+                                <property name="title" bind-source="search" bind-property="title" bind-flags="sync-create"/>
+                                <property name="subtitle" bind-source="search" bind-property="subtitle" bind-flags="sync-create"/>
+                                <property name="info" translatable="yes">Disabled</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="notification">
+                                <property name="title" translatable="yes">_Notifications</property>
+                                <property name="subtitle" translatable="yes">Show system notifications</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="notification_cb" object="CcApplicationsPanel" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="background">
+                                <property name="title" translatable="yes">_Run in Background</property>
+                                <property name="subtitle" translatable="yes">Allow activity when the app is closed</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="background_cb" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="screenshot">
+                                <property name="title" translatable="yes">Scr_eenshots</property>
+                                <property name="subtitle" translatable="yes">Take pictures of the screen at any time</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="screenshot_cb" object="CcApplicationsPanel" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="wallpaper">
+                                <property name="title" translatable="yes">Change _Wallpaper</property>
+                                <property name="subtitle" translatable="yes">Change the desktop wallpaper</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="wallpaper_cb" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="sound">
+                                <property name="title" translatable="yes">So_unds</property>
+                                <property name="subtitle" translatable="yes">Reproduce sounds</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="sound_cb" object="CcApplicationsPanel" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="CcInfoRow" id="no_sound">
+                                <property name="title" translatable="yes">So_unds</property>
+                                <property name="subtitle" translatable="yes">Reproduce sounds</property>
+                                <property name="info" translatable="yes">Disabled</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="shortcuts">
+                                <property name="title" translatable="yes">_Inhibit Shortcuts</property>
+                                <property name="subtitle" translatable="yes">Block standard keyboard shortcuts</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="shortcuts_cb" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="camera">
+                                <property name="title" translatable="yes">Camera</property>
+                                <property name="subtitle" translatable="yes">Take pictures with the camera</property>
+                                <signal name="notify::active" handler="camera_cb" object="CcApplicationsPanel" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="CcInfoRow" id="no_camera">
+                                <property name="title" translatable="yes">C_amera</property>
+                                <property name="subtitle" translatable="yes">Take pictures with the camera</property>
+                                <property name="info" translatable="yes">Disabled</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="microphone">
+                                <property name="title" translatable="yes">_Microphone</property>
+                                <property name="subtitle" translatable="yes">Record audio with the microphone</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="microphone_cb" object="CcApplicationsPanel" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="CcInfoRow" id="no_microphone">
+                                <property name="title" translatable="yes">_Microphone</property>
+                                <property name="subtitle" translatable="yes">Record audio with the microphone</property>
+                                <property name="info" translatable="yes">Disabled</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="location">
+                                <property name="title" translatable="yes">_Location Services</property>
+                                <property name="subtitle" translatable="yes">Access device location data</property>
+                                <property name="use-underline">True</property>
+                                <signal name="notify::active" handler="location_cb" object="CcApplicationsPanel" swapped="yes"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="CcInfoRow" id="no_location">
+                                <property name="title" translatable="yes">_Location Services</property>
+                                <property name="subtitle" translatable="yes">Access device location data</property>
+                                <property name="info" translatable="yes">Disabled</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="AdwPreferencesGroup" id="other_permissions_section">
+                            <child>
+                              <object class="CcInfoRow" id="builtin">
+                                <property name="title" translatable="yes">Re_quired Access</property>
+                                <property name="subtitle" translatable="yes">System access that is required by the app</property>
+                                <property name="has-expander">True</property>
+                                <property name="is-link">True</property>
+                                <signal name="activated" handler="on_builtin_row_activated_cb" object="CcApplicationsPanel" swapped="yes" />
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="AdwPreferencesGroup" id="usage_section">
+                            <property name="title" translatable="yes">General</property>
+                            <child>
+                              <object class="CcInfoRow" id="handler_row">
+                                <property name="title" translatable="yes">_File &amp;amp; Link Associations</property>
+                                <property name="has-expander">True</property>
+                                <property name="is-link">True</property>
+                                <signal name="activated" handler="on_handler_row_activated_cb" object="CcApplicationsPanel" swapped="yes" />
+                              </object>
+                            </child>
+                            <child>
+                              <object class="CcInfoRow" id="storage">
+                                <property name="title" translatable="yes">S_torage</property>
+                                <property name="has-expander">1</property>
+                                <property name="is-link">1</property>
+                                <signal name="activated" handler="on_storage_row_activated_cb" object="CcApplicationsPanel" swapped="yes" />
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+
+      </object>
+    </property>
+  </template>
+
+  <!-- Built-in Permissions dialog -->
+  <object class="AdwWindow" id="builtin_dialog">
+    <property name="title" translatable="yes">Required Access</property>
+    <property name="modal">1</property>
+    <property name="resizable">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="default-width">500</property>
+    <property name="default-height">400</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage" id="builtin_page">
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkListBox" id="builtin_list">
+                    <property name="selection-mode">none</property>
+                    <style>
+                      <class name="boxed-list"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+
+  <!-- File & Link handlers dialog -->
+  <object class="AdwWindow" id="handler_dialog">
+    <property name="title" translatable="yes">File &amp; Link Associations</property>
+    <property name="modal">1</property>
+    <property name="resizable">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="default-width">500</property>
+    <property name="default-height">400</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage" id="handler_page">
+
+            <child>
+              <object class="AdwPreferencesGroup" id="handler_file_group">
+                <property name="title" translatable="yes">File Types</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup" id="handler_link_group">
+                <property name="title" translatable="yes">Link Types</property>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkButton" id="handler_reset">
+                    <property name="valign">center</property>
+                    <property name="margin-top">12</property>
+                    <property name="label" translatable="yes">_Reset</property>
+                    <property name="use-underline">True</property>
+                    <property name="halign">center</property>
+                    <signal name="clicked" handler="handler_reset_cb" object="CcApplicationsPanel" swapped="yes"/>
+                    <style>
+                      <class name="destructive-action" />
+                      <class name="pill" />
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+
+  <!-- Storage dialog -->
+  <object class="AdwWindow" id="storage_dialog">
+    <property name="title" translatable="yes">Storage</property>
+    <property name="modal">1</property>
+    <property name="resizable">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="default-width">420</property>
+    <property name="width-request">360</property>
+    <property name="height-request">294</property>
+    <child>
+      <object class="GtkShortcutController">
+        <property name="scope">managed</property>
+        <child>
+          <object class="GtkShortcut">
+            <property name="trigger">Escape</property>
+            <property name="action">action(window.close)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="AdwPreferencesPage">
+            <property name="description" translatable="yes">How much disk space this app is occupying with app data and caches</property>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="CcInfoRow" id="app">
+                    <property name="title" translatable="yes">App</property>
+                    <property name="info">Unknown</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="CcInfoRow" id="data">
+                    <property name="title" translatable="yes">Data</property>
+                    <property name="info">Unknown</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="CcInfoRow" id="cache">
+                    <property name="title" translatable="yes">Cache</property>
+                    <property name="info">Unknown</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="CcInfoRow" id="total">
+                    <property name="title" translatable="yes">&lt;b&gt;Total&lt;/b&gt;</property>
+                    <property name="info">Unknown</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwPreferencesGroup">
+                <child>
+                  <object class="GtkButton" id="clear_cache_button">
+                    <property name="label" translatable="yes">_Clear Cache</property>
+                    <property name="use-underline">True</property>
+                    <property name="halign">center</property>
+                    <signal name="clicked" handler="clear_cache_cb" object="CcApplicationsPanel" swapped="yes"/>
+                    <style>
+                      <class name="pill" />
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </object>
+
+  <object class="GtkSizeGroup">
+    <property name="mode">horizontal</property>
+    <widgets>
+      <widget name="launch_button" />
+      <widget name="view_details_button" />
+    </widgets>
+  </object>
+</interface>

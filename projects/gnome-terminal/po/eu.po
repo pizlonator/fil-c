@@ -1,0 +1,2402 @@
+# Basque translation of gnome-terminal.
+# This file is distributed under the same license as the PACKAGE package.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER.
+#
+#
+# Hizkuntza Politikarako Sailburuordetza <hizpol@ej-gv.es>, 2004.
+# Iñaki Larrañaga Murgoitio <dooteo@zundan.com>, 2004, 2006, 2007, 2008, 2009, 2010.
+# Iñaki Larrañaga Murgoitio <dooteo@zundan.com>, 2011, 2013, 2014, 2015, 2016, 2017.
+# Asier Sarasua Garmendia  <asiersarasua@ni.eus>, 2019, 2020, 2021, 2022, 2023.
+#
+msgid ""
+msgstr "Project-Id-Version: gnome-terminal master\n"
+"Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gnome-terminal/issues\n"
+"POT-Creation-Date: 2023-08-27 18:46+0000\n"
+"PO-Revision-Date: 2023-09-12 19:007+0100\n"
+"Last-Translator: Asier Sarasua Garmendia <asiersarasua@ni.eus>\n"
+"Language-Team: Basque <librezale@librezale.eus>\n"
+"Language: eu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"\n"
+
+#: data/org.gnome.Terminal.desktop.in:3
+#: data/org.gnome.Terminal.metainfo.xml.in:37 src/server.cc:184
+#: src/terminal-accels.cc:232 src/terminal-menubar.ui.in:144
+#: src/terminal-tab-label.cc:81 src/terminal-window.cc:1903
+#: src/terminal-window.cc:2207 src/terminal-window.cc:2522 src/terminal.cc:598
+msgid "Terminal"
+msgstr "Terminala"
+
+#: data/org.gnome.Terminal.desktop.in:4
+#: data/org.gnome.Terminal.metainfo.xml.in:38
+msgid "Use the command line"
+msgstr "Erabili komando-lerroa"
+
+#: data/org.gnome.Terminal.desktop.in:5
+#: data/org.gnome.Terminal.Preferences.desktop.in:8
+msgid "shell;prompt;command;commandline;cmd;"
+msgstr "shell;gonbitea;komandoa;komando-lerroa;kmd;"
+
+#: data/org.gnome.Terminal.desktop.in:18 src/terminal-accels.cc:127
+msgid "New Window"
+msgstr "Leiho berria"
+
+#: data/org.gnome.Terminal.desktop.in:22 src/terminal-accels.cc:146
+msgid "Preferences"
+msgstr "Hobespenak"
+
+#: data/org.gnome.Terminal.Preferences.desktop.in:4
+msgid "Configure the command line"
+msgstr "Konfiguratu komando-lerroa"
+
+#: data/org.gnome.Terminal.Preferences.desktop.in:9 src/prefs-main.cc:143
+msgid "Terminal Preferences"
+msgstr "Terminalaren hobespenak"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:34
+#: data/org.gnome.Terminal.metainfo.xml.in:63
+msgid "org.gnome.Terminal.desktop"
+msgstr "org.gnome.Terminal.desktop"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:35
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:36
+msgid "GPL-3.0+ or GFDL-1.3-only"
+msgstr "GPL-3.0+ edo GFDL-1.3 soilik"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:36
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:37
+msgid "GPL-3.0+"
+msgstr "GPL 3.0"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:40
+msgid ""
+"GNOME Terminal is a terminal emulator application for accessing a UNIX shell "
+"environment which can be used to run programs available on your system."
+msgstr "GNOMEren Terminala terminal bat emulatzen duen aplikazio bat da UNIXeko shell-aren ingurunea atzitzeko. Sistemako aplikazioak exekutatzeko erabil daiteke."
+
+#: data/org.gnome.Terminal.metainfo.xml.in:41
+msgid ""
+"It supports several profiles, multiple tabs and implements several keyboard "
+"shortcuts."
+msgstr "Hainbat profil eta fitxa onartzen ditu, horrez gain hainbat laster-tekla ditu."
+
+#: data/org.gnome.Terminal.metainfo.xml.in:44
+msgid "console"
+msgstr "kontsola"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:45
+msgid "keyboard"
+msgstr "teklatua"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:46
+msgid "pointing"
+msgstr "hona zuzentzen du"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:50
+msgid ""
+"https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal.png"
+msgstr "https://help.gnome.org/users/gnome-terminal/stable/figures/gnome-terminal.png"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:54
+msgid "HiDpiIcon"
+msgstr "HiDpiIcon"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:55
+msgid "HighContrast"
+msgstr "HighContrast"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:56
+msgid "ModernToolkit"
+msgstr "ModernToolkit"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:57
+msgid "SearchProvider"
+msgstr "SearchProvider"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:58
+msgid "UserDocs"
+msgstr "UserDocs"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:60
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:43
+msgid "https://wiki.gnome.org/Apps/Terminal"
+msgstr "https://wiki.gnome.org/Apps/Terminal"
+
+#. This is the name of a colour scheme
+#: data/org.gnome.Terminal.metainfo.xml.in:61
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:44 src/preferences.ui:214
+msgid "GNOME"
+msgstr "GNOME"
+
+#: data/org.gnome.Terminal.metainfo.xml.in:62
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:45
+msgid "https://wiki.gnome.org/Apps/Terminal/ReportingBugs"
+msgstr "https://wiki.gnome.org/Apps/Terminal/ReportingBugs"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:34
+msgid "org.gnome.Terminal.Nautilus"
+msgstr "org.gnome.Terminal.Nautilus"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:35
+msgid "org.gnome.Nautilus.desktop"
+msgstr "org.gnome.Nautilus.desktop"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:38
+msgid "Terminal plugin for Files"
+msgstr "Terminalaren osagarria Fitxategientzako"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:39
+msgid "Open a terminal from Files"
+msgstr "Ireki terminal bat Fitxategietatik"
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:41
+msgid ""
+"Open Terminal is a plugin for the Files application that adds a menu item to "
+"the context menu to open a terminal in the currently browsed directory."
+msgstr "'Ireki terminala' Fitxategiak aplikazioarentzako osagarri bat da. Testuinguruko menuari elementu bat gehitzen dio terminal bat irekitzeko (uneko direktorioan kokatuta)."
+
+#: data/org.gnome.Terminal.Nautilus.metainfo.xml.in:46
+msgid "gnome-terminal"
+msgstr "gnome-terminal"
+
+#. Translators: This needs to be parsed as a GVariant string, so keep the regular single quotes around the string as-is, and do not add extra quotes.
+#: src/org.gnome.Terminal.gschema.xml:133
+msgctxt "visible-name"
+msgid "'Unnamed'"
+msgstr "'Izengabea'"
+
+#: src/org.gnome.Terminal.gschema.xml:134
+msgid "Human-readable name of the profile"
+msgstr "Profilaren izen ulergarria."
+
+#: src/org.gnome.Terminal.gschema.xml:135
+msgid "Human-readable name of the profile."
+msgstr "Profilaren izen ulergarria."
+
+#: src/org.gnome.Terminal.gschema.xml:139
+msgid "Default color of text in the terminal"
+msgstr "Terminaleko testuaren kolore lehenetsia"
+
+#: src/org.gnome.Terminal.gschema.xml:140
+msgid ""
+"Default color of text in the terminal, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr "Terminaleko testuaren kolore lehenetsia, kolore-zehaztapen gisa (HTML estiloko digitu hamaseitarretan, edo kolore-izena emanda, adib. “red“)."
+
+#: src/org.gnome.Terminal.gschema.xml:144
+msgid "Default color of terminal background"
+msgstr "Terminalaren atzeko planoko kolore lehenetsia"
+
+#: src/org.gnome.Terminal.gschema.xml:145
+msgid ""
+"Default color of terminal background, as a color specification (can be HTML-"
+"style hex digits, or a color name such as “red”)."
+msgstr "Atzeko planoko kolore lehenetsia, kolore-zehaztapen gisa (HTML estiloko digitu hamaseitarretan, edo kolore-izena emanda, adib. “red“)."
+
+#: src/org.gnome.Terminal.gschema.xml:149
+msgid "Default color of bold text in the terminal"
+msgstr "Terminaleko testu lodiaren kolore lehenetsia"
+
+#: src/org.gnome.Terminal.gschema.xml:150
+msgid ""
+"Default color of bold text in the terminal, as a color specification (can be "
+"HTML-style hex digits, or a color name such as “red”). This is ignored if "
+"bold-color-same-as-fg is true."
+msgstr "Terminaleko testu lodiaren kolore lehenetsia, kolore-zehaztapen gisa (HTML estiloko digitu hamaseitarretan, edo kolore-izena emanda, adib. “red“). Honi ezikusi egingo zaio bold-color-same-as-fg TRUE (egia) bada."
+
+#: src/org.gnome.Terminal.gschema.xml:154
+msgid "Whether bold text should use the same color as normal text"
+msgstr "Testu lodiak testu arruntaren kolore berdina erabiliko duen ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:155
+msgid ""
+"If true, boldface text will be rendered using the same color as normal text."
+msgstr "TRUE (egia) bada, letra lodiko testua errendatuko da testu arruntaren kolore berdina erabiliz."
+
+#: src/org.gnome.Terminal.gschema.xml:160
+msgid ""
+"Scale factor for the cell height to increase line spacing. (Does not "
+"increase the font’s height.)"
+msgstr "Eskala-faktorea gelaxkaren altuerarako, lerroartea handitzeko. (Ez du letra-tipoen altuera handitzen.)"
+
+#: src/org.gnome.Terminal.gschema.xml:165
+msgid ""
+"Scale factor for the cell width to increase letter spacing. (Does not "
+"increase the font’s width.)"
+msgstr "Eskala-faktorea gelaxkaren zabalerarako, lertra arteko tartea handitzeko. (Ez du letra-tipoen zabalera handitzen.)"
+
+#: src/org.gnome.Terminal.gschema.xml:169
+msgid "Whether to use custom cursor colors"
+msgstr "Kurtsorearen kolore pertsonalizatuak erabiliko diren ala ez adierazten du"
+
+#: src/org.gnome.Terminal.gschema.xml:170
+msgid "If true, use the cursor colors from the profile."
+msgstr "TRUE (egia) bada, kurtsorearen kolore pertsonalizatuak profiletik erabiliko ditu."
+
+#: src/org.gnome.Terminal.gschema.xml:174
+msgid "Cursor background color"
+msgstr "Kurtsorearen atzeko planoaren kolorea"
+
+#: src/org.gnome.Terminal.gschema.xml:175
+msgid ""
+"Custom color of the background of the terminal’s cursor, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if cursor-colors-set is false."
+msgstr "Terminaleko kurtsorearen atzeko planoaren kolore pertsonalizatua, kolore-zehaztapen gisa (HTML estiloko digitu hamaseitarretan, edo kolore-izena emanda, adib. “red“). Honi ez ikusi egingo zaio cursor-colors-set FALSE (faltsua) bada."
+
+#: src/org.gnome.Terminal.gschema.xml:179
+msgid "Cursor foreground colour"
+msgstr "Kurtsorearen aurreko planoaren kolorea"
+
+#: src/org.gnome.Terminal.gschema.xml:180
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"cursor position, as a color specification (can be HTML-style hex digits, or "
+"a color name such as “red”). This is ignored if cursor-colors-set is false."
+msgstr "Terminalean kurtsorea kokatuta dagoen testu-karakterearen aurreko planoaren kolore pertsonalizatua, kolore-zehaztapen gisa (HTML estiloko digitu hamaseitarretan, edo kolore-izena emanda, adib. “red“). Honi ez ikusi egingo zaio cursor-colors-set FALSE (faltsua) bada."
+
+#: src/org.gnome.Terminal.gschema.xml:184
+msgid "Whether to use custom highlight colors"
+msgstr "Nabarmentzeko kolore pertsonalizatuak erabili ala ez adierazten du"
+
+#: src/org.gnome.Terminal.gschema.xml:185
+msgid "If true, use the highlight colors from the profile."
+msgstr "TRUE (egia) bada, nabarmentzeko kolore pertsonalizatuak profiletik erabiliko ditu."
+
+#: src/org.gnome.Terminal.gschema.xml:189
+msgid "Highlight background color"
+msgstr "Nabarmentzearen atzeko planoko kolorea"
+
+#: src/org.gnome.Terminal.gschema.xml:190
+msgid ""
+"Custom color of the background of the terminal’s highlight, as a color "
+"specification (can be HTML-style hex digits, or a color name such as “red”). "
+"This is ignored if highlight-colors-set is false."
+msgstr "Terminaleko nabarmentzearen atzeko planoaren kolore pertsonalizatua, kolore-zehaztapen gisa (HTML estiloko digitu hamaseitarretan, edo kolore-izena emanda, adib. “red“). Honi ez ikusi egingo zaio highlight-colors-set FALSE (faltsua) bada."
+
+#: src/org.gnome.Terminal.gschema.xml:194
+msgid "Highlight foreground colour"
+msgstr "Nabarmentzearen aurreko planoko kolorea"
+
+#: src/org.gnome.Terminal.gschema.xml:195
+msgid ""
+"Custom color for the foreground of the text character at the terminal’s "
+"highlight position, as a color specification (can be HTML-style hex digits, "
+"or a color name such as “red”). This is ignored if highlight-colors-set is "
+"false."
+msgstr "Terminalean nabarmentzea kokatuta dagoen testu-karakterearen aurreko planoaren kolore pertsonalizatua, kolore-zehaztapen gisa (HTML estiloko digitu hamaseitarretan, edo kolore-izena emanda, adib. “red“). Honi ez ikusi egingo zaio highlight-colors-set FALSE (faltsua) bada."
+
+#: src/org.gnome.Terminal.gschema.xml:199
+msgid "Whether to perform bidirectional text rendering"
+msgstr "Testu-errendatze bidirekzionala sortuko den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:200
+msgid "If true, perform bidirectional text rendering (“BiDi”)."
+msgstr "Egia bada, sortu testu-errendatze bidirekzionala (“BiDi”)."
+
+#: src/org.gnome.Terminal.gschema.xml:204
+msgid "Whether to perform Arabic shaping"
+msgstr "Arabiar formak sortuko diren ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:205
+msgid "If true, shape Arabic text."
+msgstr "Egia bada, sortu arabiar testua."
+
+#: src/org.gnome.Terminal.gschema.xml:209
+msgid "Whether to enable SIXEL images"
+msgstr "SIXEL irudiak gaituko diren ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:210
+msgid "If true, SIXEL sequences are parsed and images are rendered."
+msgstr "Egia bada, SIXEL sekuentziak analizatuko dira eta irudiak errendatuko dira."
+
+#: src/org.gnome.Terminal.gschema.xml:214
+msgid "Whether bold is also bright"
+msgstr "Lodia distiratsua ere baden"
+
+#: src/org.gnome.Terminal.gschema.xml:215
+msgid ""
+"If true, setting bold on the first 8 colors also switches to their bright "
+"variants."
+msgstr "Egia bada, lehen 8 koloreetan lodia ezarrita haien aldaera distiratsua ere aldatzen du."
+
+#: src/org.gnome.Terminal.gschema.xml:219
+msgid "Whether to ring the terminal bell"
+msgstr "Terminal-soinua jo behar den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:223
+msgid ""
+"List of ASCII punctuation characters that are not to be treated as part of a "
+"word when doing word-wise selection"
+msgstr "Hitz baten zati gisa erabiltzen ez diren ASCII puntuazioko karaktereen zerrenda hitzak hautatzean"
+
+#: src/org.gnome.Terminal.gschema.xml:228
+msgid "Default number of columns"
+msgstr "Zutabeen kopuru lehenetsia"
+
+#: src/org.gnome.Terminal.gschema.xml:229
+msgid ""
+"Number of columns in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr "Terminalaren leiho berriko zutabeen kopurua. Eraginik ez dauka use_custom_default_size ez bada gaitu."
+
+#: src/org.gnome.Terminal.gschema.xml:234
+msgid "Default number of rows"
+msgstr "Errenkaden kopuru lehenetsia"
+
+#: src/org.gnome.Terminal.gschema.xml:235
+msgid ""
+"Number of rows in newly created terminal windows. Has no effect if "
+"use_custom_default_size is not enabled."
+msgstr "Terminalaren leiho berriko errenkaden kopurua. Eraginik ez dauka use_custom_default_size ez bada gaitu."
+
+#: src/org.gnome.Terminal.gschema.xml:239
+msgid "When to show the scrollbar"
+msgstr "Korritze-barraren erakutsiko den edo ez"
+
+#: src/org.gnome.Terminal.gschema.xml:243
+msgid "Number of lines to keep in scrollback"
+msgstr "Korritze-barran mantentzeko lerro-kopurua"
+
+#: src/org.gnome.Terminal.gschema.xml:244
+msgid ""
+"Number of scrollback lines to keep around. You can scroll back in the "
+"terminal by this number of lines; lines that don’t fit in the scrollback are "
+"discarded. If scrollback_unlimited is true, this value is ignored."
+msgstr "Korritze-barran zenbat lerro mantendu. Lerro horiek izango dituzu atzera korritu ahal izateko; kopuru hori gainditu ahala, lerroak galduz joango dira. “scrollback_unlimited” TRUE (egia) bada, balio honi ezikusi egingo zaio."
+
+#: src/org.gnome.Terminal.gschema.xml:248
+msgid "Whether an unlimited number of lines should be kept in scrollback"
+msgstr "Korritze-barran mugarik gabeko lerro-kopurua mantenduko diren ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:249
+msgid ""
+"If true, scrollback lines will never be discarded. The scrollback history is "
+"stored on disk temporarily, so this may cause the system to run out of disk "
+"space if there is a lot of output to the terminal."
+msgstr "TRUE (egia) bada, korritze-barrako lerroak ez dira inoiz baztertuko. Korritze-barraren historia aldi baterako diskoan gordeko denez, honek diskoan lekurik gabe gelditzea eragin dezake terminaleko irteera ugaria izanez gero."
+
+#: src/org.gnome.Terminal.gschema.xml:253
+msgid "Whether to scroll to the bottom when a key is pressed"
+msgstr "Tekla bat sakatutakoan beheraino korritu behar den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:254
+msgid "If true, pressing a key jumps the scrollbar to the bottom."
+msgstr "Hautatzen bada, tekla bat sakatzean korritze-barra beheraino joango da."
+
+#: src/org.gnome.Terminal.gschema.xml:258
+msgid "Whether to scroll to the bottom when there’s new output"
+msgstr "Irteera berri bat dagoenean beheraino korritu behar den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:259
+msgid ""
+"If true, whenever there’s new output the terminal will scroll to the bottom."
+msgstr "Hautatzen bada, irteera berri bat dagoenean terminala beheraino korrituko da."
+
+#: src/org.gnome.Terminal.gschema.xml:263
+msgid "What to do with the terminal when the child command exits"
+msgstr "Zer egin terminalarekin komando haurrak amaitzen duenean"
+
+#: src/org.gnome.Terminal.gschema.xml:264
+msgid ""
+"Possible values are “close” to close the terminal, “restart” to restart the "
+"command, and “hold” to keep the terminal open with no command running inside."
+msgstr "Balio erabilgarriak: “close” terminala ixteko, eta “restart” komandoa berrabiarazteko, eta “hold” terminala irekita edukitzeko (bertan komandorik exekutatzen eduki gabe)."
+
+#: src/org.gnome.Terminal.gschema.xml:268
+msgid "Whether to launch the command in the terminal as a login shell"
+msgstr "Terminaleko komandoa saioa hasteko shell gisa abiarazi behar den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:269
+msgid ""
+"If true, the command inside the terminal will be launched as a login shell "
+"(argv[0] will have a hyphen in front of it)."
+msgstr "TRUE (egia) bada, terminaleko komandoa saioa hasteko shell gisa abiaraziko da. (marratxo bat izango du argv[0] katearen aurretik)."
+
+#: src/org.gnome.Terminal.gschema.xml:273
+msgid "Whether to preserve the working directory when opening a new terminal"
+msgstr "Laneko direktorioa mantenduko den ala ez terminal berria irekitzean"
+
+#: src/org.gnome.Terminal.gschema.xml:274
+msgid ""
+"Controls when opening a new terminal from a previous one carries over the "
+"working directory of the opening terminal to the new one."
+msgstr "Terminal berria beste batetik irekitzean, laneko direktorioari eutsiko zaion ala ez kontrolatzen du"
+
+#: src/org.gnome.Terminal.gschema.xml:280
+msgid "Whether to run a custom command instead of the shell"
+msgstr "Shell-aren ordez komando pertsonalizatu bat exekutatu behar den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:281
+msgid ""
+"If true, the value of the custom_command setting will be used in place of "
+"running a shell."
+msgstr "Hautatzen bada, custom_command ezarpenaren balioa erabiliko da, shell bat exekutatu beharrean."
+
+#: src/org.gnome.Terminal.gschema.xml:285
+msgid "Whether to blink the cursor"
+msgstr "Kurtsorea keinuka egongo den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:286
+msgid ""
+"The possible values are “system” to use the global cursor blinking settings, "
+"or “on” or “off” to set the mode explicitly."
+msgstr "Balio erabilgarriak: “system“, kurtsore globala ezarpen keinukariak erabiltzeko; “on” edo “off” modua esplizitoki ezartzeko."
+
+#: src/org.gnome.Terminal.gschema.xml:290
+msgid "The cursor appearance"
+msgstr "Kurtsorearen itxura"
+
+#: src/org.gnome.Terminal.gschema.xml:294
+msgid ""
+"Possible values are “always” or “never” allow blinking text, or only when "
+"the terminal is “focused” or “unfocused”."
+msgstr "Balio erabilgarriak: “always” edo “never” testuak keinuka egitea ahalbidetzeko, edo “focused” edo “unfocused” terminala fokatuta egoteko."
+
+#: src/org.gnome.Terminal.gschema.xml:298
+msgid "Custom command to use instead of the shell"
+msgstr "Shell-aren ordez erabiltzeko komando pertsonalizatua"
+
+#: src/org.gnome.Terminal.gschema.xml:299
+msgid "Run this command in place of the shell, if use_custom_command is true."
+msgstr "Exekutatu hau komando hau shell-aren ordez, use_custom_command egiazkoa bada."
+
+#: src/org.gnome.Terminal.gschema.xml:318
+msgid "Palette for terminal applications"
+msgstr "Terminaleko aplikazioentzako paleta"
+
+#: src/org.gnome.Terminal.gschema.xml:322
+msgid "A Pango font name and size"
+msgstr "Pango letra-tipoa eta tamaina"
+
+#: src/org.gnome.Terminal.gschema.xml:326
+msgid "The code sequence the Backspace key generates"
+msgstr "Atzera-tekla sakatzean sortzen den kode-sekuentzia"
+
+#: src/org.gnome.Terminal.gschema.xml:330
+msgid "The code sequence the Delete key generates"
+msgstr "'Ezabatu' tekla sakatzean sortzen den kode-sekuentzia"
+
+#: src/org.gnome.Terminal.gschema.xml:334
+msgid "Whether to use the colors from the theme for the terminal widget"
+msgstr "Terminalean gaiaren koloreak erabili behar diren ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:338
+msgid "Whether to use the system monospace font"
+msgstr "Sistemaren tarte bakarreko letra-tipoa erabili edo ez"
+
+#: src/org.gnome.Terminal.gschema.xml:342
+msgid "Whether to rewrap the terminal contents on window resize"
+msgstr "Leihoaren tamaina aldatzea terminalaren edukia egokitzea edo ez"
+
+#: src/org.gnome.Terminal.gschema.xml:346
+msgid "Which encoding to use"
+msgstr "Zein kodeketa erabili"
+
+#: src/org.gnome.Terminal.gschema.xml:350
+msgid ""
+"Whether ambiguous-width characters are narrow or wide when using UTF-8 "
+"encoding"
+msgstr "Karaktereen zabalera anbiguoak estuak edo zabalak diren UTF-8 kodeketa erabiltzean"
+
+#: src/org.gnome.Terminal.gschema.xml:359
+msgid "Keyboard shortcut to open a new tab"
+msgstr "Fitxa berria irekitzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:363
+msgid "Keyboard shortcut to open a new window"
+msgstr "Leiho berria irekitzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:367
+msgid "Keyboard shortcut to save the current tab contents to file"
+msgstr "Uneko fitxako edukia fitxategi batean gordetzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:371
+msgid ""
+"Keyboard shortcut to export the current tab contents to file in various "
+"formats"
+msgstr "Uneko fitxako edukia fitxategi batera esportatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:375
+msgid "Keyboard shortcut to print the current tab contents to printer or file"
+msgstr "Uneko fitxako edukia inprimagailura edo fitxategira inprimatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:379
+msgid "Keyboard shortcut to close a tab"
+msgstr "Fitxa ixteko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:383
+msgid "Keyboard shortcut to close a window"
+msgstr "Leihoa ixteko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:387
+msgid "Keyboard shortcut to copy text"
+msgstr "Testua kopiatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:391
+msgid "Keyboard shortcut to copy text as HTML"
+msgstr "Testua HTML gisa kopiatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:395
+msgid "Keyboard shortcut to paste text"
+msgstr "Testua itsasteko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:399
+msgid "Keyboard shortcut to select all text"
+msgstr "Testu guztia hautatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:403
+msgid "Keyboard shortcut to open the Preferences dialog"
+msgstr "Hobespenak elkarrizketa-koadroa irekitzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:407
+msgid "Keyboard shortcut to toggle full screen mode"
+msgstr "Pantaila osoko modua jarri eta kentzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:411
+msgid "Keyboard shortcut to toggle the visibility of the menubar"
+msgstr "Menu-barra erakutsi eta ezkutatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:415
+msgid "Keyboard shortcut to toggle the read-only state"
+msgstr "'Irakurtzeko soilik' egoera txandakatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:419
+msgid "Keyboard shortcut to reset the terminal"
+msgstr "Terminala berrezartzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:423
+msgid "Keyboard shortcut to reset and clear the terminal"
+msgstr "Terminala berrezarri eta garbitzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:427
+msgid "Keyboard shortcut to open the search dialog"
+msgstr "Bilaketaren elkarrizketa-koadroa irekitzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:431
+msgid "Keyboard shortcut to find the next occurrence of the search term"
+msgstr "Bilaketaren terminoaren hurrengo agerraldia bilatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:435
+msgid "Keyboard shortcut to find the previous occurrence of the search term"
+msgstr "Bilaketaren terminoaren aurreko agerraldia bilatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:439
+msgid "Keyboard shortcut to clear the find highlighting"
+msgstr "Bilaketaren nabarmentzea garbitzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:443
+msgid "Keyboard shortcut to switch to the previous tab"
+msgstr "Aurreko fitxara joateko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:447
+msgid "Keyboard shortcut to switch to the next tab"
+msgstr "Hurrengo fitxara joateko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:451
+msgid "Keyboard shortcut to move the current tab to the left"
+msgstr "Uneko fitxa ezkerrera eramateko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:455
+msgid "Keyboard shortcut to move the current tab to the right"
+msgstr "Uneko fitxa eskuinera eramateko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:459
+msgid "Keyboard shortcut to detach current tab"
+msgstr "Uneko fitxa askatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:463
+#: src/org.gnome.Terminal.gschema.xml:467
+#: src/org.gnome.Terminal.gschema.xml:471
+#: src/org.gnome.Terminal.gschema.xml:475
+#: src/org.gnome.Terminal.gschema.xml:479
+#: src/org.gnome.Terminal.gschema.xml:483
+#: src/org.gnome.Terminal.gschema.xml:487
+#: src/org.gnome.Terminal.gschema.xml:491
+#: src/org.gnome.Terminal.gschema.xml:495
+#: src/org.gnome.Terminal.gschema.xml:499
+#: src/org.gnome.Terminal.gschema.xml:503
+#: src/org.gnome.Terminal.gschema.xml:507
+#: src/org.gnome.Terminal.gschema.xml:511
+#: src/org.gnome.Terminal.gschema.xml:515
+#: src/org.gnome.Terminal.gschema.xml:519
+#: src/org.gnome.Terminal.gschema.xml:523
+#: src/org.gnome.Terminal.gschema.xml:527
+#: src/org.gnome.Terminal.gschema.xml:531
+#: src/org.gnome.Terminal.gschema.xml:535
+#: src/org.gnome.Terminal.gschema.xml:539
+#: src/org.gnome.Terminal.gschema.xml:543
+#: src/org.gnome.Terminal.gschema.xml:547
+#: src/org.gnome.Terminal.gschema.xml:551
+#: src/org.gnome.Terminal.gschema.xml:555
+#: src/org.gnome.Terminal.gschema.xml:559
+#: src/org.gnome.Terminal.gschema.xml:563
+#: src/org.gnome.Terminal.gschema.xml:567
+#: src/org.gnome.Terminal.gschema.xml:571
+#: src/org.gnome.Terminal.gschema.xml:575
+#: src/org.gnome.Terminal.gschema.xml:579
+#: src/org.gnome.Terminal.gschema.xml:583
+#: src/org.gnome.Terminal.gschema.xml:587
+#: src/org.gnome.Terminal.gschema.xml:591
+#: src/org.gnome.Terminal.gschema.xml:595
+#: src/org.gnome.Terminal.gschema.xml:599
+msgid "Keyboard shortcut to switch to the numbered tab"
+msgstr "Zenbatutako fitxara aldatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:603
+msgid "Keyboard shortcut to switch to the last tab"
+msgstr "Azken fitxara aldatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:607
+msgid "Keyboard shortcut to launch help"
+msgstr "Laguntza abiatzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:611
+msgid "Keyboard shortcut to make font larger"
+msgstr "Letra handiagotzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:615
+msgid "Keyboard shortcut to make font smaller"
+msgstr "Letra txikiagotzeko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:619
+msgid "Keyboard shortcut to make font normal-size"
+msgstr "Letra-tamaina normala ikusteko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:623
+msgid "Keyboard shortcut to show the primary menu"
+msgstr "Menu nagusia erakusteko laster-tekla"
+
+#: src/org.gnome.Terminal.gschema.xml:633
+msgid "Whether the menubar has access keys"
+msgstr "Menu-barrak sarbide-teklarik duen"
+
+#: src/org.gnome.Terminal.gschema.xml:634
+msgid ""
+"Whether to have Alt+letter access keys for the menubar. They may interfere "
+"with some applications run inside the terminal so it’s possible to turn them "
+"off."
+msgstr "Menu-barran Alt+letra bizkortzailerik eduki behar den. Terminalean exekutatzen diren aplikazioekin interferentzia egin lezakete, eta horregatik ematen da desaktibatzeko aukera."
+
+#: src/org.gnome.Terminal.gschema.xml:643
+msgid "Whether shortcuts are enabled"
+msgstr "Laster-teklak gaituta dauden ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:644
+msgid ""
+"Whether shortcuts are enabled. They may interfere with some applications run "
+"inside the terminal so it’s possible to turn them off."
+msgstr "Laster-teklak gaituta dauden ala ez. Terminalean exekutatzen diren aplikazioekin interferentzia egin lezakete, eta horregatik ematen da desaktibatzeko aukera."
+
+#: src/org.gnome.Terminal.gschema.xml:653
+msgid "Whether the standard GTK shortcut for menubar access is enabled"
+msgstr "Menu-barra bistaratzeko GTKren laster-tekla estandarra gaituta dagoen"
+
+#: src/org.gnome.Terminal.gschema.xml:654
+msgid ""
+"Normally you can access the menubar with F10. This can also be customized "
+"via gtkrc (gtk-menu-bar-accel = \"whatever\"). This option allows the "
+"standard menubar accelerator to be disabled."
+msgstr "Normalean, F10 sakatuta menu-barra bistaratzen da. Nahi izanez gero, pertsonaliza daiteke gtkrc-ren bidez (gtk-menu-bar-accel = \"nahiduzuna\"). Aukera honekin menu-barraren ohiko laster-tekla desgai daiteke."
+
+#: src/org.gnome.Terminal.gschema.xml:664
+msgid "Whether the shell integration is enabled"
+msgstr "Shell-arekin bateragarritasuna gaituta dagoen edo ez"
+
+#: src/org.gnome.Terminal.gschema.xml:669
+msgid "Whether to ask for confirmation before closing a terminal"
+msgstr "Terminal baten ixtean baieztapena eskatu behar den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:674
+msgid "Additional info section items to appear in the context menu"
+msgstr "Laster-menuan agertuko diren informazio gehigarriko sekzioko elementuak"
+
+#: src/org.gnome.Terminal.gschema.xml:679
+msgid "Whether to show the menubar in new windows"
+msgstr "Leiho berrietan menu-barra erakutsi behar den ala ez"
+
+#: src/org.gnome.Terminal.gschema.xml:684
+msgid "Whether to open new terminals as windows or tabs"
+msgstr "Terminal berriak leihotan edo fitxetan ireki"
+
+#: src/org.gnome.Terminal.gschema.xml:689
+msgid "When to show the tabs bar"
+msgstr "Fitxen barra erakutsiko den edo ez"
+
+#: src/org.gnome.Terminal.gschema.xml:694
+msgid "The position of the tab bar"
+msgstr "Fitxa-barraren posizioa"
+
+#: src/org.gnome.Terminal.gschema.xml:699
+msgid "Which theme variant to use"
+msgstr "Gaiaren zer aldaera erabili"
+
+#: src/org.gnome.Terminal.gschema.xml:704
+msgid ""
+"Whether new tabs should open next to the current one or at the last position"
+msgstr "Fitxa berriak uneko fitxaren alboan ala azken aldean irekiko diren"
+
+#: src/org.gnome.Terminal.gschema.xml:711
+msgid "Always check whether GNOME Terminal is the default terminal"
+msgstr "Begiratu beti GNOME Terminala terminal lehenetsia den ala ez"
+
+#. Open new terminal in new window
+#: src/preferences.ui:14
+msgid "Window"
+msgstr "Leihoa"
+
+#. Open new terminal in new tab
+#: src/preferences.ui:18
+msgid "Tab"
+msgstr "Tabulazioa"
+
+#. New tab opens at the last position
+#: src/preferences.ui:32
+msgid "Last"
+msgstr "Azkena"
+
+#. New tab opens next to current tab
+#: src/preferences.ui:36
+msgid "Next"
+msgstr "Hurrengoa"
+
+#: src/preferences.ui:50
+msgctxt "theme variant"
+msgid "Follow system style"
+msgstr "Jarraitu sistemaren estiloa"
+
+#: src/preferences.ui:54
+msgctxt "theme variant"
+msgid "Light style"
+msgstr "Estilo argia"
+
+#: src/preferences.ui:58
+msgctxt "theme variant"
+msgid "Dark style"
+msgstr "Estilo iluna"
+
+#. ambiguous-width characers are
+#: src/preferences.ui:107
+msgid "Narrow"
+msgstr "Estua"
+
+#. ambiguous-width characers are
+#: src/preferences.ui:111
+msgid "Wide"
+msgstr "Zabala"
+
+#. Cursor shape
+#: src/preferences.ui:123
+msgid "Block"
+msgstr "Blokea"
+
+#. Cursor shape
+#: src/preferences.ui:126
+msgid "I-Beam"
+msgstr "Marra bertikala"
+
+#. Cursor shape
+#: src/preferences.ui:129
+msgid "Underline"
+msgstr "Azpimarratua"
+
+#. Cursor blink mode
+#: src/preferences.ui:140
+msgid "Default"
+msgstr "Lehenetsia"
+
+#. Cursor blink mode
+#: src/preferences.ui:143
+msgid "Enabled"
+msgstr "Gaituta"
+
+#. Cursor blink mode
+#: src/preferences.ui:146
+msgid "Disabled"
+msgstr "Desgaituta"
+
+#. Text blink mode
+#. Preserve working directory
+#: src/preferences.ui:157 src/preferences.ui:268
+msgid "Never"
+msgstr "Inoiz ere ez"
+
+#. Text blink mode
+#: src/preferences.ui:160
+msgid "When focused"
+msgstr "Fokua duenean"
+
+#. Text blink mode
+#: src/preferences.ui:163
+msgid "When unfocused"
+msgstr "Fokua ez duenean"
+
+#. Text blink mode
+#. Preserve working directory
+#: src/preferences.ui:166 src/preferences.ui:276
+msgid "Always"
+msgstr "Beti"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:177
+msgid "Replace initial title"
+msgstr "Ordeztu hasierako titulua"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:180
+msgid "Append initial title"
+msgstr "Erantsi hasierako titulua"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:183
+msgid "Prepend initial title"
+msgstr "Jarri hasierako titulua aurrean"
+
+#. When terminal commands set their own titles
+#: src/preferences.ui:186
+msgid "Keep initial title"
+msgstr "Mantendu hasierako titulua"
+
+#. When command exits
+#: src/preferences.ui:197
+msgid "Exit the terminal"
+msgstr "Irten terminaletik"
+
+#. When command exits
+#: src/preferences.ui:200
+msgid "Restart the command"
+msgstr "Berrabiarazi komandoa"
+
+#. When command exits
+#: src/preferences.ui:203
+msgid "Hold the terminal open"
+msgstr "Utzi terminala irekita"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:217
+msgid "Tango"
+msgstr "Tango"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:220
+msgid "Linux console"
+msgstr "Linux kontsola"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:223
+msgid "XTerm"
+msgstr "XTerm"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:226
+msgid "Rxvt"
+msgstr "Rxvt"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:229
+msgid "Solarized"
+msgstr "Solarizatuta"
+
+#. This is the name of a colour scheme
+#: src/preferences.ui:232 src/profile-editor.cc:719
+msgid "Custom"
+msgstr "Pertsonalizatua"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:243
+msgid "Automatic"
+msgstr "Automatikoa"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:246
+msgid "Control-H"
+msgstr "Kontrol+H"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:249
+msgid "ASCII DEL"
+msgstr "ASCII EZAB"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:252
+msgid "Escape sequence"
+msgstr "Ihes-sekuentzia"
+
+#. This refers to the Delete keybinding option
+#: src/preferences.ui:255
+msgid "TTY Erase"
+msgstr "TTY ezabatzea"
+
+#. Preserve working directory
+#: src/preferences.ui:272
+msgid "Shell only"
+msgstr "Shell-a soilik"
+
+#: src/preferences.ui:340
+msgid "_Show menubar by default in new terminals"
+msgstr "Erakutsi _menu-barra lehenespenez terminal berrietan"
+
+#: src/preferences.ui:356
+msgid "_Enable mnemonics (such as Alt+F to open the File menu)"
+msgstr "_Gaitu mnemoteknikoak (adibidez Alt+F 'Fitxategia' menua irekitzeko)"
+
+#: src/preferences.ui:373
+msgid "Enable the _menu accelerator key (F10 by default)"
+msgstr "Gaitu _menuaren lasterbidea (lehenespenez F10)"
+
+#: src/preferences.ui:398
+msgid "Theme _variant:"
+msgstr "Gaiaren _aldaera:"
+
+#: src/preferences.ui:430
+msgid "Open _new terminals in:"
+msgstr "Ireki terminal _berriak hemen:"
+
+#: src/preferences.ui:462
+msgid "New tab _position:"
+msgstr "Fitxa berriaren _posizioa:"
+
+#: src/preferences.ui:499
+msgid "_Always check if default terminal"
+msgstr "Egiaztatu _beti terminal lehenetsia den"
+
+#: src/preferences.ui:516
+msgid "_Set as default terminal"
+msgstr "E_zarri terminal lehenetsi gisa"
+
+#: src/preferences.ui:556
+msgid "_Enable shortcuts"
+msgstr "_Gaitu laster-teklak"
+
+#: src/preferences.ui:622
+msgid "Text Appearance"
+msgstr "Testuaren itxura"
+
+#: src/preferences.ui:639
+msgid "Initial terminal si_ze:"
+msgstr "Hasierako terminalaren _tamaina:"
+
+#: src/preferences.ui:672
+msgid "columns"
+msgstr "zutabeak"
+
+#: src/preferences.ui:709
+msgid "rows"
+msgstr "errenkadak"
+
+#: src/preferences.ui:730 src/preferences.ui:876
+msgid "Rese_t"
+msgstr "_Leheneratu"
+
+#: src/preferences.ui:751
+msgid "Custom _font:"
+msgstr "Letra-tipo _pertsonalizatua:"
+
+#: src/preferences.ui:772
+msgid "Choose A Terminal Font"
+msgstr "Aukeratu terminalaren letra-tipoa"
+
+#: src/preferences.ui:785
+msgid "Cell spaci_ng:"
+msgstr "Gelaxkaren _tartea:"
+
+#: src/preferences.ui:900
+msgid "Allow b_linking text:"
+msgstr "Onartu testu _keinukaria:"
+
+#: src/preferences.ui:934
+msgid "Cursor"
+msgstr "Kurtsorea"
+
+#: src/preferences.ui:951
+msgid "Cursor _shape:"
+msgstr "Kurtsorearen _forma:"
+
+#: src/preferences.ui:985
+msgid "Cursor blin_king:"
+msgstr "Kurtsore ke_inukaria:"
+
+#: src/preferences.ui:1019
+msgid "Sound"
+msgstr "Soinua"
+
+#: src/preferences.ui:1033
+msgid "Terminal _bell"
+msgstr "Terminal-_soinua"
+
+#: src/preferences.ui:1059
+msgid "Profile ID:"
+msgstr "Profilaren IDa:"
+
+#: src/preferences.ui:1099 src/preferences.ui:1216
+msgid "Text"
+msgstr "Testua"
+
+#: src/preferences.ui:1122
+msgid "Text and Background Color"
+msgstr "Testu eta atzeko planoaren kolorea"
+
+#: src/preferences.ui:1146
+msgid "_Use colors from system theme"
+msgstr "Erabili _sistemaren gaiaren koloreak"
+
+#: src/preferences.ui:1175
+msgid "Built-in sche_mes:"
+msgstr "_Eskema inkorporatuak:"
+
+#: src/preferences.ui:1228
+msgid "Background"
+msgstr "Atzeko planoa"
+
+#: src/preferences.ui:1241
+msgid "_Default color:"
+msgstr "_Kolore lehenetsia:"
+
+#: src/preferences.ui:1258
+msgid "Choose Terminal Text Color"
+msgstr "Aukeratu terminalaren testuaren kolorea"
+
+#: src/preferences.ui:1272
+msgid "Choose Terminal Background Color"
+msgstr "Aukeratu terminalaren atzeko planoko kolorea"
+
+#: src/preferences.ui:1282
+msgid "Bo_ld color:"
+msgstr "_Lodiaren kolorea:"
+
+#: src/preferences.ui:1302
+msgid "Choose Terminal Bold Text Color"
+msgstr "Aukeratu terminalaren testu lodiaren kolorea"
+
+#: src/preferences.ui:1312
+msgid "_Underline color:"
+msgstr "_Azpimarraren kolorea:"
+
+#: src/preferences.ui:1330
+msgid "Choose Terminal Underlined Text Color"
+msgstr "Aukeratu terminalaren testu azpimarratuaren kolorea"
+
+#: src/preferences.ui:1339
+msgid "Cu_rsor color:"
+msgstr "_Kurtsorearen kolorea:"
+
+#: src/preferences.ui:1359
+msgid "Choose Terminal Cursor Foreground Color"
+msgstr "Aukeratu terminalaren kurtsorearen aurreko planoko kolorea"
+
+#: src/preferences.ui:1373
+msgid "Choose Terminal Cursor Background Color"
+msgstr "Aukeratu terminalaren kurtsorearen atzeko planoko kolorea"
+
+#: src/preferences.ui:1383
+msgid "_Highlight color:"
+msgstr "_Nabarmentzearen kolorea:"
+
+#: src/preferences.ui:1402
+msgid "Choose Terminal Highlight Foreground Color"
+msgstr "Aukeratu terminalaren nabarmentzearen aurreko planoko kolorea"
+
+#: src/preferences.ui:1416
+msgid "Choose Terminal Highlight Background Color"
+msgstr "Aukeratu terminalaren nabarmentzearen atzeko planoko kolorea"
+
+#: src/preferences.ui:1463
+msgid "Palette"
+msgstr "Paleta"
+
+#: src/preferences.ui:1495
+msgid "Built-in _schemes:"
+msgstr "Eskema _inkorporatuak:"
+
+#: src/preferences.ui:1528
+msgid "Color p_alette:"
+msgstr "Kolore-_paleta:"
+
+#: src/preferences.ui:1769
+msgid "Show _bold text in bright colors"
+msgstr "Erakutsi testu _lodia kolore distiratsuetan"
+
+#: src/preferences.ui:1808
+msgid "Colors"
+msgstr "Koloreak"
+
+#: src/preferences.ui:1826
+msgid "_Show scrollbar"
+msgstr "_Erakutsi korritze-barra"
+
+#: src/preferences.ui:1843
+msgid "Scroll on _output"
+msgstr "Ko_rritu irteeran"
+
+#: src/preferences.ui:1860
+msgid "Scroll on _keystroke"
+msgstr "Korritu _tekla sakatutakoan"
+
+#: src/preferences.ui:1877
+msgid "_Limit scrollback to:"
+msgstr "Atzera korritzearen _muga:"
+
+#: src/preferences.ui:1915
+msgid "lines"
+msgstr "lerroz behin"
+
+#: src/preferences.ui:1941
+msgid "Scrolling"
+msgstr "Korritzea"
+
+#: src/preferences.ui:1958
+msgid "_Run command as a login shell"
+msgstr "_Exekutatu komandoa saioa hasteko shell gisa"
+
+#: src/preferences.ui:1973
+msgid "Ru_n a custom command instead of my shell"
+msgstr "E_xekutatu komando pertsonalizatua shell-aren ordez"
+
+#: src/preferences.ui:1990
+msgid "Custom co_mmand:"
+msgstr "Ko_mando pertsonalizatua:"
+
+#: src/preferences.ui:2016
+msgid "_Preserve working directory:"
+msgstr "M_antendu laneko direktorioa:"
+
+#: src/preferences.ui:2050
+msgid "When command _exits:"
+msgstr "Komandoak amait_zen duenean:"
+
+#: src/preferences.ui:2088
+msgid "Command"
+msgstr "Komandoa"
+
+#: src/preferences.ui:2108
+msgid "_Backspace key generates:"
+msgstr "_Atzera-tekla sakatutakoan:"
+
+#: src/preferences.ui:2141
+msgid "_Delete key generates:"
+msgstr "'_Ezabatu' tekla sakatutakoan:"
+
+#: src/preferences.ui:2174
+msgid "_Encoding:"
+msgstr "_Kodeketa:"
+
+#: src/preferences.ui:2206
+msgid "Ambiguous-_width characters:"
+msgstr "_Zabalera anbiguoko karaktereak:"
+
+#: src/preferences.ui:2238
+msgid "Enable _SIXEL images"
+msgstr "Gaitu _SIXEL irudiak"
+
+#: src/preferences.ui:2254
+msgid "_Reset Compatibility Options to Defaults"
+msgstr "_Berrezarri bateragarritasun-aukerak lehenetsietara"
+
+#: src/preferences.ui:2277
+msgid "Compatibility"
+msgstr "Bateragarritasuna"
+
+#: src/preferences.ui:2356
+msgid "Clone…"
+msgstr "Klonatu…"
+
+#: src/preferences.ui:2363
+msgid "Rename…"
+msgstr "Aldatu izena…"
+
+#: src/preferences.ui:2370
+msgid "Delete…"
+msgstr "Ezabatu…"
+
+#: src/preferences.ui:2383
+msgid "Set as default"
+msgstr "Ezarri lehenetsi gisa"
+
+#: src/preferences.ui:2447
+msgid "Cancel"
+msgstr "Utzi"
+
+#: src/profile-editor.cc:157
+msgid "Black on light yellow"
+msgstr "Beltza hori argiaren gainean"
+
+#: src/profile-editor.cc:161
+msgid "Black on white"
+msgstr "Beltza zuriaren gainean"
+
+#: src/profile-editor.cc:165
+msgid "Gray on black"
+msgstr "Grisa beltzaren gainean"
+
+#: src/profile-editor.cc:169
+msgid "Green on black"
+msgstr "Berdea beltzaren gainean"
+
+#: src/profile-editor.cc:173
+msgid "White on black"
+msgstr "Zuria beltzaren gainean"
+
+#. Translators: "GNOME" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:178
+msgid "GNOME light"
+msgstr "GNOME argia"
+
+#. Translators: "GNOME" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:183
+msgid "GNOME dark"
+msgstr "GNOME iluna"
+
+#. Translators: "Tango" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:188
+msgid "Tango light"
+msgstr "Tango argia"
+
+#. Translators: "Tango" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:193
+msgid "Tango dark"
+msgstr "Tango iluna"
+
+#. Translators: "Solarized" is the name of a colour scheme, "light" can be translated
+#: src/profile-editor.cc:198
+msgid "Solarized light"
+msgstr "Argi solarizatua"
+
+#. Translators: "Solarized" is the name of a colour scheme, "dark" can be translated
+#: src/profile-editor.cc:203
+msgid "Solarized dark"
+msgstr "Iluntasun solarizatua"
+
+#: src/profile-editor.cc:587
+#, c-format
+msgid "Error parsing command: %s"
+msgstr "Errorea komandoa analizatzean: %s"
+
+#: src/profile-editor.cc:744 src/profile-editor.cc:745
+#: src/profile-editor.cc:749
+msgid "Chinese Traditional"
+msgstr "Txinera tradizionala"
+
+#: src/profile-editor.cc:746
+msgid "Cyrillic/Russian"
+msgstr "Zirilikoa/Errusiarra"
+
+#: src/profile-editor.cc:747 src/profile-editor.cc:786
+msgid "Japanese"
+msgstr "Japoniera"
+
+#: src/profile-editor.cc:748 src/profile-editor.cc:788
+msgid "Korean"
+msgstr "Koreera"
+
+#: src/profile-editor.cc:750 src/profile-editor.cc:751
+#: src/profile-editor.cc:752
+msgid "Chinese Simplified"
+msgstr "Txinatar soildua"
+
+#: src/profile-editor.cc:753 src/profile-editor.cc:759
+#: src/profile-editor.cc:763 src/profile-editor.cc:782
+#: src/profile-editor.cc:792
+msgid "Western"
+msgstr "Mendebalekoa"
+
+#: src/profile-editor.cc:754 src/profile-editor.cc:765
+#: src/profile-editor.cc:778 src/profile-editor.cc:790
+msgid "Central European"
+msgstr "Europako Erdialdekoa"
+
+#: src/profile-editor.cc:755 src/profile-editor.cc:768
+#: src/profile-editor.cc:774 src/profile-editor.cc:776
+#: src/profile-editor.cc:791
+msgid "Cyrillic"
+msgstr "Zirilikoa"
+
+#: src/profile-editor.cc:756 src/profile-editor.cc:773
+#: src/profile-editor.cc:784 src/profile-editor.cc:794
+msgid "Turkish"
+msgstr "Turkiera"
+
+#: src/profile-editor.cc:757 src/profile-editor.cc:772
+#: src/profile-editor.cc:781 src/profile-editor.cc:795
+msgid "Hebrew"
+msgstr "Hebreera"
+
+#: src/profile-editor.cc:758 src/profile-editor.cc:769
+#: src/profile-editor.cc:777 src/profile-editor.cc:796
+msgid "Arabic"
+msgstr "Arabiera"
+
+#: src/profile-editor.cc:760
+msgid "Nordic"
+msgstr "Nordikoa"
+
+#: src/profile-editor.cc:761 src/profile-editor.cc:767
+#: src/profile-editor.cc:797
+msgid "Baltic"
+msgstr "Baltikoa"
+
+#: src/profile-editor.cc:762
+msgid "Celtic"
+msgstr "Zeltiarra"
+
+#: src/profile-editor.cc:764 src/profile-editor.cc:783
+msgid "Romanian"
+msgstr "Errumaniera"
+
+#: src/profile-editor.cc:766
+msgid "South European"
+msgstr "Europako Hegoaldekoa"
+
+#: src/profile-editor.cc:770 src/profile-editor.cc:780
+#: src/profile-editor.cc:793
+msgid "Greek"
+msgstr "Greziera"
+
+#: src/profile-editor.cc:771
+msgid "Hebrew Visual"
+msgstr "Hebrear bisuala"
+
+#: src/profile-editor.cc:775 src/profile-editor.cc:785
+msgid "Cyrillic/Ukrainian"
+msgstr "Zirilikoa/Ukrainarra"
+
+#: src/profile-editor.cc:779
+msgid "Croatian"
+msgstr "Kroaziera"
+
+#: src/profile-editor.cc:787
+msgid "Thai"
+msgstr "Thailandiera"
+
+#: src/profile-editor.cc:789 src/profile-editor.cc:805
+msgid "Unicode"
+msgstr "Unicode"
+
+#: src/profile-editor.cc:798
+msgid "Vietnamese"
+msgstr "Vietnamera"
+
+#: src/profile-editor.cc:806
+msgid "Legacy CJK Encodings"
+msgstr "CJK kodeketa zaharrak"
+
+#: src/profile-editor.cc:807
+msgid "Obsolete Encodings"
+msgstr "Kodeketa zaharkituak"
+
+#. Translators: Appears as: [numeric entry] × width
+#: src/profile-editor.cc:1011
+msgid "width"
+msgstr "zabalera"
+
+#. Translators: Appears as: [numeric entry] × height
+#: src/profile-editor.cc:1016
+msgid "height"
+msgstr "altuera"
+
+#: src/profile-editor.cc:1064
+#, c-format
+msgid "Choose Palette Color %u"
+msgstr "Aukeratu %u paleta-kolorea"
+
+#: src/profile-editor.cc:1068
+#, c-format
+msgid "Palette entry %u"
+msgstr "%u paleta-sarrera"
+
+#: src/search-popover.ui:7 src/search-popover.ui:37 src/terminal-accels.cc:150
+#: src/terminal-headerbar.ui:118
+msgid "Find"
+msgstr "Bilatu"
+
+#: src/search-popover.ui:51
+msgid "Find previous occurrence"
+msgstr "Aurkitu aurreko agerraldia"
+
+#: src/search-popover.ui:73
+msgid "Find next occurrence"
+msgstr "Aurkitu hurrengo agerraldia"
+
+#: src/search-popover.ui:104
+msgid "Toggle search options"
+msgstr "Txandakatu bilaketaren aukerak"
+
+#: src/search-popover.ui:167
+msgid "_Match case"
+msgstr "_Maiuskula/minuskula"
+
+#: src/search-popover.ui:186
+msgid "Match _entire word only"
+msgstr "_Hitz osoak soilik"
+
+#: src/search-popover.ui:204
+msgid "Match as _regular expression"
+msgstr "Bat etorri _adierazpen erregularrarekin"
+
+#: src/search-popover.ui:222
+msgid "_Wrap around"
+msgstr "_Bilaketa jarraitua"
+
+#: src/terminal-accels.cc:126 src/terminal-headerbar.ui:48
+msgid "New Tab"
+msgstr "Fitxa berria"
+
+#: src/terminal-accels.cc:129
+msgid "Save Contents"
+msgstr "Gorde edukia"
+
+#: src/terminal-accels.cc:132
+msgid "Export"
+msgstr "Esportatu"
+
+#: src/terminal-accels.cc:135
+msgid "Print"
+msgstr "Inprimatu"
+
+#: src/terminal-accels.cc:137
+msgid "Close Tab"
+msgstr "Itxi fitxa"
+
+#: src/terminal-accels.cc:138
+msgid "Close Window"
+msgstr "Itxi leihoa"
+
+#: src/terminal-accels.cc:142
+msgid "Copy"
+msgstr "Kopiatu"
+
+#: src/terminal-accels.cc:143
+msgid "Copy as HTML"
+msgstr "Kopiatu HTML gisa"
+
+#: src/terminal-accels.cc:144
+msgid "Paste"
+msgstr "Itsatsi"
+
+#: src/terminal-accels.cc:145
+msgid "Select All"
+msgstr "Hautatu dena"
+
+#: src/terminal-accels.cc:151
+msgid "Find Next"
+msgstr "Bilatu hurrengoa"
+
+#: src/terminal-accels.cc:152
+msgid "Find Previous"
+msgstr "Bilatu aurrekoa"
+
+#: src/terminal-accels.cc:153
+msgid "Clear Highlight"
+msgstr "Garbitu nabarmentzea"
+
+#: src/terminal-accels.cc:157
+msgid "Hide and Show Menubar"
+msgstr "Ezkutatu eta erakutsi menu-barra"
+
+#: src/terminal-accels.cc:158
+msgid "Full Screen"
+msgstr "Pantaila osoa"
+
+#: src/terminal-accels.cc:159
+msgid "Zoom In"
+msgstr "Handiagotu"
+
+#: src/terminal-accels.cc:160
+msgid "Zoom Out"
+msgstr "Txikiagotu"
+
+#: src/terminal-accels.cc:161
+msgid "Normal Size"
+msgstr "Tamaina normala"
+
+#: src/terminal-accels.cc:165
+msgid "Read-Only"
+msgstr "Irakurtzeko soilik"
+
+#: src/terminal-accels.cc:166
+msgid "Reset"
+msgstr "Berrezarri"
+
+#: src/terminal-accels.cc:167
+msgid "Reset and Clear"
+msgstr "Berrezarri eta garbitu"
+
+#: src/terminal-accels.cc:171
+msgid "Switch to Previous Tab"
+msgstr "Aldatu aurreko fitxara"
+
+#: src/terminal-accels.cc:172
+msgid "Switch to Next Tab"
+msgstr "Aldatu hurrengo fitxara"
+
+#: src/terminal-accels.cc:173
+msgid "Move Tab to the Left"
+msgstr "Mugitu fitxa ezkerrera"
+
+#: src/terminal-accels.cc:174
+msgid "Move Tab to the Right"
+msgstr "Mugitu fitxa eskuinera"
+
+#: src/terminal-accels.cc:175
+msgid "Detach Tab"
+msgstr "Desuztartu fitxa"
+
+#: src/terminal-accels.cc:211
+msgid "Switch to Last Tab"
+msgstr "Aldatu azken fitxara"
+
+#: src/terminal-accels.cc:215
+msgid "Contents"
+msgstr "Edukia"
+
+#: src/terminal-accels.cc:219
+msgid "Show Primary Menu"
+msgstr "Erakutsi menu nagusia"
+
+#: src/terminal-accels.cc:228 src/terminal-menubar.ui.in:22
+msgid "File"
+msgstr "Fitxategia"
+
+#: src/terminal-accels.cc:229 src/terminal-menubar.ui.in:56
+msgid "Edit"
+msgstr "Editatu"
+
+#: src/terminal-accels.cc:230 src/terminal-menubar.ui.in:93
+msgid "View"
+msgstr "Ikusi"
+
+#: src/terminal-accels.cc:231 src/terminal-menubar.ui.in:122
+msgid "Search"
+msgstr "Bilatu"
+
+#: src/terminal-accels.cc:233 src/terminal-menubar.ui.in:196
+msgid "Tabs"
+msgstr "Fitxak"
+
+#: src/terminal-accels.cc:234 src/terminal-menubar.ui.in:228
+msgid "Help"
+msgstr "Laguntza"
+
+#: src/terminal-accels.cc:235 src/terminal-prefs.cc:645
+msgid "Global"
+msgstr "Globala"
+
+#: src/terminal-accels.cc:361
+#, c-format
+msgid "Switch to Tab %u"
+msgstr "Aldatu %u. fitxara"
+
+#: src/terminal-accels.cc:551
+msgid "_Action"
+msgstr "_Ekintza"
+
+#: src/terminal-accels.cc:570
+msgid "Shortcut _Key"
+msgstr "_Laster-teklak"
+
+#: src/terminal-app.cc:580
+msgid "New Terminal"
+msgstr "Terminal berria"
+
+#: src/terminal-app.cc:590 src/terminal-window.cc:1804
+msgid "New _Terminal"
+msgstr "_Terminal berria"
+
+#: src/terminal-app.cc:592 src/terminal-window.cc:1813
+msgid "New _Tab"
+msgstr "_Fitxa berria"
+
+#: src/terminal-app.cc:593 src/terminal-headermenu.ui:39
+#: src/terminal-window.cc:1809
+msgid "New _Window"
+msgstr "Leiho _berria"
+
+#: src/terminal-app.cc:642
+msgid "Change _Profile"
+msgstr "Aldatu p_rofila"
+
+#: src/terminal-app.cc:655
+msgid "_Profile"
+msgstr "_Profila"
+
+#: src/terminal-headerbar.ui:72 src/terminal-prefs.cc:657
+msgid "Profiles"
+msgstr "Profilak"
+
+#: src/terminal-headermenu.ui:23 src/terminal-menubar.ui.in:115
+msgid "Zoom _Out"
+msgstr "_Txikiagotu"
+
+#: src/terminal-headermenu.ui:32 src/terminal-menubar.ui.in:107
+msgid "Zoom _In"
+msgstr "_Zooma handiagotu"
+
+#: src/terminal-headermenu.ui:44 src/terminal-menubar.ui.in:101
+msgid "_Full Screen"
+msgstr "_Pantaila osoa"
+
+#: src/terminal-headermenu.ui:50 src/terminal-menubar.ui.in:155
+#: src/terminal-window.cc:1785
+msgid "Read-_Only"
+msgstr "Irakurtzeko _soilik"
+
+#: src/terminal-headermenu.ui:54 src/terminal-menubar.ui.in:148
+#: src/terminal-notebook-menu.ui:36
+msgid "Set _Title…"
+msgstr "Ezarri _titulua…"
+
+#: src/terminal-headermenu.ui:60
+msgid "_Advanced"
+msgstr "_Aurreratua"
+
+#: src/terminal-headermenu.ui:63 src/terminal-menubar.ui.in:161
+msgid "_Reset"
+msgstr "_Berrezarri"
+
+#: src/terminal-headermenu.ui:68 src/terminal-menubar.ui.in:166
+msgid "Reset and C_lear"
+msgstr "Berrezarri eta ga_rbitu"
+
+#: src/terminal-headermenu.ui:75 src/terminal-menubar.ui.in:173
+msgid "_1. 80×24"
+msgstr "_1. 80×24"
+
+#: src/terminal-headermenu.ui:80 src/terminal-menubar.ui.in:178
+msgid "_2. 80×43"
+msgstr "_2. 80×43"
+
+#: src/terminal-headermenu.ui:85 src/terminal-menubar.ui.in:183
+msgid "_3. 132×24"
+msgstr "_3. 132×24"
+
+#: src/terminal-headermenu.ui:90 src/terminal-menubar.ui.in:188
+msgid "_4. 132×43"
+msgstr "_4. 132×43"
+
+#: src/terminal-headermenu.ui:97 src/terminal-menubar.ui.in:241
+msgid "_Inspector"
+msgstr "_Ikuskatzailea"
+
+#: src/terminal-headermenu.ui:106 src/terminal-screen.cc:1542
+#: src/terminal-window.cc:1797
+msgid "_Preferences"
+msgstr "_Hobespenak"
+
+#: src/terminal-headermenu.ui:110 src/terminal-menubar.ui.in:227
+msgid "_Help"
+msgstr "_Laguntza"
+
+#: src/terminal-headermenu.ui:114 src/terminal-menubar.ui.in:235
+msgid "_About"
+msgstr "Honi _buruz"
+
+#: src/terminal-menubar.ui.in:21
+msgid "_File"
+msgstr "_Fitxategia"
+
+#: src/terminal-menubar.ui.in:26
+msgid "_Save Contents…"
+msgstr "_Gorde edukiak…"
+
+#: src/terminal-menubar.ui.in:31
+msgid "_Export…"
+msgstr "_Esportatu…"
+
+#: src/terminal-menubar.ui.in:36
+msgid "_Print…"
+msgstr "_Inprimatu…"
+
+#: src/terminal-menubar.ui.in:43
+msgid "C_lose Tab"
+msgstr "I_txi fitxa"
+
+#: src/terminal-menubar.ui.in:48
+msgid "_Close Window"
+msgstr "_Itxi leihoa"
+
+#: src/terminal-menubar.ui.in:55
+msgid "_Edit"
+msgstr "_Editatu"
+
+#: src/terminal-menubar.ui.in:59 src/terminal-window.cc:1775
+msgid "_Copy"
+msgstr "_Kopiatu"
+
+#: src/terminal-menubar.ui.in:64 src/terminal-window.cc:1776
+msgid "Copy as _HTML"
+msgstr "Kopiatu _HTML gisa"
+
+#: src/terminal-menubar.ui.in:69 src/terminal-window.cc:1777
+msgid "_Paste"
+msgstr "_Itsatsi"
+
+#: src/terminal-menubar.ui.in:73 src/terminal-window.cc:1779
+msgid "Paste as _Filenames"
+msgstr "Itsatsi _fitxategi-izen gisa"
+
+#: src/terminal-menubar.ui.in:80
+msgid "Select _All"
+msgstr "Hautatu _dena"
+
+#: src/terminal-menubar.ui.in:86
+msgid "P_references"
+msgstr "H_obespenak"
+
+#: src/terminal-menubar.ui.in:92
+msgid "_View"
+msgstr "_Ikusi"
+
+#: src/terminal-menubar.ui.in:96 src/terminal-window.cc:1825
+msgid "Show _Menubar"
+msgstr "Erakutsi _menu-barra"
+
+#: src/terminal-menubar.ui.in:111
+msgid "_Normal Size"
+msgstr "Tamaina _normala"
+
+#: src/terminal-menubar.ui.in:121
+msgid "_Search"
+msgstr "_Bilatu"
+
+#: src/terminal-menubar.ui.in:125
+msgid "_Find…"
+msgstr "_Bilatu…"
+
+#: src/terminal-menubar.ui.in:129
+msgid "Find _Next"
+msgstr "Bilatu _hurrengoa"
+
+#: src/terminal-menubar.ui.in:133
+msgid "Find _Previous"
+msgstr "Bilatu _aurrekoa"
+
+#: src/terminal-menubar.ui.in:137
+msgid "_Clear Highlight"
+msgstr "_Garbitu nabarmentzea"
+
+#: src/terminal-menubar.ui.in:143
+msgid "_Terminal"
+msgstr "_Terminala"
+
+#: src/terminal-menubar.ui.in:195
+msgid "Ta_bs"
+msgstr "_Fitxak"
+
+#: src/terminal-menubar.ui.in:201
+msgid "_Previous Tab"
+msgstr "A_urreko fitxa"
+
+#: src/terminal-menubar.ui.in:205
+msgid "_Next Tab"
+msgstr "_Hurrengo fitxa"
+
+#: src/terminal-menubar.ui.in:211 src/terminal-notebook-menu.ui:22
+msgid "Move Terminal _Left"
+msgstr "Eraman terminala e_zkerrera"
+
+#: src/terminal-menubar.ui.in:215 src/terminal-notebook-menu.ui:26
+msgid "Move Terminal _Right"
+msgstr "Eraman terminala e_skuinera"
+
+#: src/terminal-menubar.ui.in:221 src/terminal-notebook-menu.ui:32
+msgid "_Detach Terminal"
+msgstr "_Desuztartu terminala"
+
+#: src/terminal-menubar.ui.in:231
+msgid "_Contents"
+msgstr "_Edukia"
+
+#: src/terminal-nautilus.cc:542
+msgid "Open in _Remote Terminal"
+msgstr "Ireki _urruneko terminalean"
+
+#: src/terminal-nautilus.cc:544
+msgid "Open in _Local Terminal"
+msgstr "Ireki _lokaleko terminalean"
+
+#: src/terminal-nautilus.cc:548 src/terminal-nautilus.cc:559
+msgid "Open the currently selected folder in a terminal"
+msgstr "Ireki unean hautatutako karpeta terminal batean"
+
+#: src/terminal-nautilus.cc:550 src/terminal-nautilus.cc:561
+msgid "Open the currently open folder in a terminal"
+msgstr "Ireki unean irekitako karpeta terminalean"
+
+#: src/terminal-nautilus.cc:556
+msgid "Open in T_erminal"
+msgstr "Ireki _terminalean"
+
+#: src/terminal-nautilus.cc:566
+msgid "Open T_erminal"
+msgstr "Ireki _terminala"
+
+#: src/terminal-nautilus.cc:567
+msgid "Open a terminal"
+msgstr "Ireki terminala"
+
+#: src/terminal-notebook-menu.ui:43 src/terminal-window.cc:3336
+msgid "C_lose Terminal"
+msgstr "_Itxi terminala"
+
+#: src/terminal-options.cc:332
+#, c-format
+msgid ""
+"Option “%s” is deprecated and might be removed in a later version of gnome-"
+"terminal."
+msgstr "“%s” aukera zaharkitua dago, eta Terminalaren azken bertsioan kenduta egon daiteke."
+
+#. %s is being replaced with "-- " (without quotes), which must be used literally, not translatable
+#: src/terminal-options.cc:343
+#, c-format
+msgid ""
+"Use “%s” to terminate the options and put the command line to execute after "
+"it."
+msgstr "Erabili “%s” aukerak amaitzeko eta jarri komando-lerroa honen ondoren exekutatzeko"
+
+#: src/terminal-options.cc:353 src/terminal-options.cc:366
+#, c-format
+msgid "Option “%s” is no longer supported in this version of gnome-terminal."
+msgstr "“%s” aukera ez da gnome-terminal bertsio honetan gehiago onartuko."
+
+#: src/terminal-options.cc:438
+#, c-format
+msgid "Argument to “%s” is not a valid command: %s"
+msgstr "“%s”(r)en argumentua ez da baliozko komandoa: %s"
+
+#: src/terminal-options.cc:611
+msgid "Two roles given for one window"
+msgstr "Bi portaera eman zaizkio leiho bati"
+
+#: src/terminal-options.cc:632 src/terminal-options.cc:665
+#, c-format
+msgid "“%s” option given twice for the same window\n"
+msgstr "“%s” aukera bi aldiz eman da leiho bererako\n"
+
+#: src/terminal-options.cc:884
+#, c-format
+msgid "Cannot pass FD %d twice"
+msgstr "Ezin da %d FD birritan igorri"
+
+#: src/terminal-options.cc:946
+#, c-format
+msgid "“%s” is not a valid zoom factor"
+msgstr "“%s” ez da baliozko zoom-faktorea"
+
+#: src/terminal-options.cc:953
+#, c-format
+msgid "Zoom factor “%g” is too small, using %g\n"
+msgstr "“%g” zoom-faktorea txikiegia da, %g erabiliko da\n"
+
+#: src/terminal-options.cc:961
+#, c-format
+msgid "Zoom factor “%g” is too large, using %g\n"
+msgstr "“%g” zoom-faktorea handiegia da, %g erabiliko da\n"
+
+#: src/terminal-options.cc:999
+#, c-format
+msgid ""
+"Option “%s” requires specifying the command to run on the rest of the "
+"command line"
+msgstr "“%s” aukerak komando-lerroaren gainerako zatian exekutatu beharreko komandoa zehaztea eskatzen du"
+
+#: src/terminal-options.cc:1160
+msgid "Can only use --wait once"
+msgstr "Behin bakarrik erabili daiteke --wait"
+
+#: src/terminal-options.cc:1196
+msgid "Not a valid terminal config file."
+msgstr "Ez da terminalaren baliozko konfigurazio-fitxategia."
+
+#: src/terminal-options.cc:1209
+msgid "Incompatible terminal config file version."
+msgstr "Terminalaren konfigurazio-fitxategi bertsioa bateraezina."
+
+#: src/terminal-options.cc:1368
+msgid ""
+"Do not register with the activation nameserver, do not re-use an active "
+"terminal"
+msgstr "Ez da erregistratzen aktibazioko izen-zerbitzarian, ez du berrerabiltzen terminal aktiborik"
+
+#: src/terminal-options.cc:1377
+msgid "Load a terminal configuration file"
+msgstr "Kargatu terminalaren konfigurazio-fitxategia"
+
+#: src/terminal-options.cc:1378
+msgid "FILE"
+msgstr "FITXATEGIA"
+
+#: src/terminal-options.cc:1394
+msgid "Do not pass the environment"
+msgstr "Ez pasatu ingurunea"
+
+#: src/terminal-options.cc:1403
+msgid "Show preferences window"
+msgstr "Erakutsi hobespenen leihoa"
+
+#: src/terminal-options.cc:1412
+msgid "Print environment variables to interact with the terminal"
+msgstr "Inprimatu terminalarekin elkarrekiteko ingurune-aldagaiak"
+
+#: src/terminal-options.cc:1430
+msgid "Increase diagnostic verbosity"
+msgstr "Handitu diagnostikoaren xehetasun-maila"
+
+#: src/terminal-options.cc:1439
+msgid "Suppress output"
+msgstr "Kendu irteera"
+
+#: src/terminal-options.cc:1452
+msgid "Open a new window containing a tab with the default profile"
+msgstr "Leiho berri bat irekitzen du profil lehenetsiko fitxa batekin"
+
+#: src/terminal-options.cc:1461
+msgid "Open a new tab in the last-opened window with the default profile"
+msgstr "Fitxa berri bat irekitzen du profil lehenetsian azkena irekitako leihoan"
+
+#: src/terminal-options.cc:1474
+msgid "Turn on the menubar"
+msgstr "Aktibatu menu-barra"
+
+#: src/terminal-options.cc:1483
+msgid "Turn off the menubar"
+msgstr "Desaktibatu menu-barra"
+
+#: src/terminal-options.cc:1492
+msgid "Maximize the window"
+msgstr "Maximizatu leihoa"
+
+#: src/terminal-options.cc:1501
+msgid "Full-screen the window"
+msgstr "Pantaila osoko leihoa"
+
+#: src/terminal-options.cc:1510
+msgid ""
+"Set the window size; for example: 80x24, or 80x24+200+200 (COLSxROWS+X+Y)"
+msgstr "Ezarri leihoaren tamaina. Adib: 80x24, edo 80x24+200+200 (ERRENxZUTAB+X+Y)"
+
+#: src/terminal-options.cc:1511
+msgid "GEOMETRY"
+msgstr "GEOMETRIA"
+
+#: src/terminal-options.cc:1519
+msgid "Set the window role"
+msgstr "Ezarri leihoaren portaera"
+
+#: src/terminal-options.cc:1520
+msgid "ROLE"
+msgstr "EGITEKOA"
+
+#: src/terminal-options.cc:1528
+msgid "Set the last specified tab as the active one in its window"
+msgstr "Azkena zehaztutako fitxa leiho honetako fitxa aktibo gisa ezartzen du"
+
+#: src/terminal-options.cc:1541
+msgid "Execute the argument to this option inside the terminal"
+msgstr "Exekutatu aukera honen argumentua terminalaren barruan"
+
+#: src/terminal-options.cc:1550
+msgid "Use the given profile instead of the default profile"
+msgstr "Erabili emandako profila profil lehenetsiaren ordez"
+
+#: src/terminal-options.cc:1551
+msgid "PROFILE-NAME"
+msgstr "PROFIL-IZENA"
+
+#: src/terminal-options.cc:1559
+msgid "Set the initial terminal title"
+msgstr "Ezarri terminalaren hasierako izenburua"
+
+#: src/terminal-options.cc:1560
+msgid "TITLE"
+msgstr "TITULUA"
+
+#: src/terminal-options.cc:1568
+msgid "Set the working directory"
+msgstr "Ezarri laneko direktorioa"
+
+#: src/terminal-options.cc:1569
+msgid "DIRNAME"
+msgstr "DIRIZENA"
+
+#: src/terminal-options.cc:1577
+msgid "Wait until the child exits"
+msgstr "Itxaron haurrak amaitu arte"
+
+#: src/terminal-options.cc:1586
+msgid "Forward file descriptor"
+msgstr "Aurrera fitxategi-deskriptorea"
+
+#. FD = file descriptor
+#: src/terminal-options.cc:1588
+msgid "FD"
+msgstr "FD"
+
+#: src/terminal-options.cc:1596
+msgid "Set the terminal’s zoom factor (1.0 = normal size)"
+msgstr "Ezarri terminalaren zoom-faktorea (1.0 = tamaina normala)"
+
+#: src/terminal-options.cc:1597
+msgid "ZOOM"
+msgstr "ZOOMA"
+
+#: src/terminal-options.cc:1693
+msgid "COMMAND"
+msgstr "KOMANDOA"
+
+#: src/terminal-options.cc:1701
+msgid "GNOME Terminal Emulator"
+msgstr "GNOME Terminalaren emulatzailea"
+
+#: src/terminal-options.cc:1702
+msgid "Show GNOME Terminal options"
+msgstr "Erakutsi GNOME Terminalaren aukerak"
+
+#: src/terminal-options.cc:1712
+msgid ""
+"Options to open new windows or terminal tabs; more than one of these may be "
+"specified:"
+msgstr "Aukerak leiho edo terminalaren fitxa berriak irekitzeko; hauetariko bat baino gehiago zehatz daiteke:"
+
+#: src/terminal-options.cc:1713
+msgid "Show terminal options"
+msgstr "Erakutsi terminalaren aukerak"
+
+#: src/terminal-options.cc:1721
+msgid ""
+"Window options; if used before the first --window or --tab argument, sets "
+"the default for all windows:"
+msgstr "Leihoaren aukerak; aurreneko --window edo --tab argumentuak baino lehenago erabiltzen bada, lehenetsia ezartzen du leiho guztientzako:"
+
+#: src/terminal-options.cc:1722
+msgid "Show per-window options"
+msgstr "Erakutsi aukerak leihoko"
+
+#: src/terminal-options.cc:1730
+msgid ""
+"Terminal options; if used before the first --window or --tab argument, sets "
+"the default for all terminals:"
+msgstr "Terminalaren aukerak; aurreneko --window edo --tab argumentuak baino lehenago erabiltzen bada, lehenetsia ezartzen du terminal guztientzako:"
+
+#: src/terminal-options.cc:1731
+msgid "Show per-terminal options"
+msgstr "Erakutsi aukerak terminaleko"
+
+#: src/terminal-prefs.cc:130
+#, c-format
+msgid "Profile “%s”"
+msgstr "“%s” profila"
+
+#: src/terminal-prefs.cc:133
+#, c-format
+msgid "Preferences – %s"
+msgstr "Hobespenak – %s"
+
+#: src/terminal-prefs.cc:368
+msgid "New Profile"
+msgstr "Profil berria"
+
+#: src/terminal-prefs.cc:369
+msgid "Enter name for new profile with default settings:"
+msgstr "Sartu izen bat ezarpen lehenetsiak izango dituen profil berrirako:"
+
+#: src/terminal-prefs.cc:371
+msgid "Create"
+msgstr "Sorrera"
+
+#: src/terminal-prefs.cc:383
+#, c-format
+msgid "Enter name for new profile based on “%s”:"
+msgstr "Sartu izen bat “%s” profilean oinarritutako profil berrirako:"
+
+#: src/terminal-prefs.cc:384
+#, c-format
+msgid "%s (Copy)"
+msgstr "%s (Kopia)"
+
+#: src/terminal-prefs.cc:387
+msgid "Clone Profile"
+msgstr "Klonatu profila"
+
+#: src/terminal-prefs.cc:390
+msgid "Clone"
+msgstr "Klonatu"
+
+#: src/terminal-prefs.cc:405
+#, c-format
+msgid "Enter new name for profile “%s”:"
+msgstr "Sartu izen berria “%s” profilerako:"
+
+#: src/terminal-prefs.cc:408
+msgid "Rename Profile"
+msgstr "Aldatu profilaren izena"
+
+#: src/terminal-prefs.cc:411
+msgid "Rename"
+msgstr "Aldatu izena"
+
+#: src/terminal-prefs.cc:426
+#, c-format
+msgid "Really delete profile “%s”?"
+msgstr "Benetan ezabatu “%s” profila?"
+
+#: src/terminal-prefs.cc:429
+msgid "Delete Profile"
+msgstr "Ezabatu profila"
+
+#: src/terminal-prefs.cc:432
+msgid "Delete"
+msgstr "Ezabatu"
+
+#: src/terminal-prefs.cc:491
+msgid "This is the default profile"
+msgstr "Hau da profil lehenetsia"
+
+#: src/terminal-prefs.cc:515
+msgid "General"
+msgstr "Orokorra"
+
+#: src/terminal-prefs.cc:520
+msgid "Shortcuts"
+msgstr "Lasterbideak"
+
+#: src/terminal-screen.cc:1405
+msgid "No command supplied nor shell requested"
+msgstr "Ez da komandorik eman edo shell-ik eskatu"
+
+#: src/terminal-screen.cc:1543 src/terminal-screen.cc:1890
+msgid "_Relaunch"
+msgstr "_Berriro abiarazi"
+
+#: src/terminal-screen.cc:1546
+msgid "There was an error creating the child process for this terminal"
+msgstr "Errorea gertatu da terminal honetako prozesu haurra sortzean"
+
+#: src/terminal-screen.cc:1894
+#, c-format
+msgid "The child process exited normally with status %d."
+msgstr "Prozesu haurra normal irten da %d egoerarekin."
+
+#: src/terminal-screen.cc:1897
+#, c-format
+msgid "The child process was aborted by signal %d."
+msgstr "Prozesu haurra %d seinalearekin abortatu da."
+
+#: src/terminal-screen.cc:1900
+msgid "The child process was aborted."
+msgstr "Prozesu haurra abortatu egin da."
+
+#: src/terminal-tab-label.cc:206
+msgid "Close tab"
+msgstr "Itxi fitxa"
+
+#: src/terminal-util.cc:156
+msgid "There was an error displaying help"
+msgstr "Errorea gertatu da laguntza bistaratzean"
+
+#: src/terminal-util.cc:214
+msgid "Contributors:"
+msgstr "Laguntzaileak:"
+
+#: src/terminal-util.cc:235
+#, c-format
+msgid "Version %s for GNOME %d"
+msgstr "%s bertsioa GNOME %d bertsiorako"
+
+#: src/terminal-util.cc:239
+#, c-format
+msgid "Using VTE version %u.%u.%u"
+msgstr "VTE %u.%u.%u bertsioa erabiltzen"
+
+#: src/terminal-util.cc:245
+msgid "A terminal emulator for the GNOME desktop"
+msgstr "Terminalaren emuladorea GNOMEren mahaigainerako"
+
+#: src/terminal-util.cc:252
+msgid "GNOME Terminal"
+msgstr "GNOME terminala"
+
+#: src/terminal-util.cc:262
+msgid "translator-credits"
+msgstr "translator-credits"
+
+#: src/terminal-util.cc:337
+#, c-format
+msgid "Could not open the address “%s”"
+msgstr "Ezin izan da '%s' helbidea ireki"
+
+#: src/terminal-util.cc:406
+msgid ""
+"GNOME Terminal is free software: you can redistribute it and/or modify it "
+"under the terms of the GNU General Public License as published by the Free "
+"Software Foundation, either version 3 of the License, or (at your option) "
+"any later version."
+msgstr "GNOME Terminal librea da; birbana eta/edo alda dezakezu Software Foundation-ek argitaratutako GNU Lizentzia Publiko Orokorraren 3. bertsioan, edo (nahiago baduzu) beste berriago batean, jasotako baldintzak betez gero."
+
+#: src/terminal-util.cc:410
+msgid ""
+"GNOME Terminal is distributed in the hope that it will be useful, but "
+"WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY "
+"or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for "
+"more details."
+msgstr "GNOME Terminal erabilgarria izango delakoan banatzen da, baina, INOLAKO BERMERIK GABE; era berean, ez da bermatzen beraren EGOKITASUNA MERKATURATZEKO edo HELBURU PARTIKULARRETARAKO ERABILTZEKO. Argibide gehiago nahi izanez gero, ikus GNU Lizentzia Publiko Orokorra."
+
+#: src/terminal-util.cc:414
+msgid ""
+"You should have received a copy of the GNU General Public License along with "
+"GNOME Terminal.  If not, see <http://www.gnu.org/licenses/>."
+msgstr "GNOME Terminal programarekin batera GNU Lizentzia Publiko Orokorraren kopia bat jasoko zenuen; hala ez bada, ikusi <http://www.gnu.org/licenses/>."
+
+#: src/terminal-util.cc:1149
+msgid "“file” scheme with remote hostname not supported"
+msgstr "\"file\" eskema urruneko ostalari-izenarekin ez dago onartuta"
+
+#: src/terminal-window.cc:474
+msgid "Could not save contents"
+msgstr "Ezin izan da edukia gorde"
+
+#: src/terminal-window.cc:494
+msgid "Save as…"
+msgstr "Gorde honela…"
+
+#: src/terminal-window.cc:497
+msgid "_Cancel"
+msgstr "_Utzi"
+
+#: src/terminal-window.cc:498
+msgid "_Save"
+msgstr "_Gorde"
+
+#: src/terminal-window.cc:1714
+msgid "Open _Hyperlink"
+msgstr "Ireki _hiperesteka"
+
+#: src/terminal-window.cc:1715
+msgid "Copy Hyperlink _Address"
+msgstr "Kopiatu hiperestekaren h_elbidea"
+
+#: src/terminal-window.cc:1725
+msgid "Send Mail _To…"
+msgstr "Bidali mezua h_oni…"
+
+#: src/terminal-window.cc:1726
+msgid "Copy Mail _Address"
+msgstr "Kopiatu _posta-helbidea"
+
+#: src/terminal-window.cc:1729
+msgid "Call _To…"
+msgstr "Deitu ho_ni…"
+
+#: src/terminal-window.cc:1730
+msgid "Copy Call _Address "
+msgstr "Kopiatu deiaren he_lbidea "
+
+#: src/terminal-window.cc:1735
+msgid "_Open Link"
+msgstr "_Ireki esteka"
+
+#: src/terminal-window.cc:1736
+msgid "Copy _Link"
+msgstr "Kopiatu _esteka"
+
+#: src/terminal-window.cc:1792
+msgid "P_rofiles"
+msgstr "_Profilak"
+
+#: src/terminal-window.cc:1827
+msgid "L_eave Full Screen"
+msgstr "_Irten pantaila osotik"
+
+#: src/terminal-window.cc:2291
+msgid "Set GNOME Terminal as your default terminal?"
+msgstr "Ezarri GNOME Terminala zure terminal lehenetsi gisa?"
+
+#: src/terminal-window.cc:2297
+msgid "_Yes"
+msgstr "_Bai"
+
+#: src/terminal-window.cc:2298
+msgid "_No"
+msgstr "_Ez"
+
+#: src/terminal-window.cc:3323
+msgid "Close this window?"
+msgstr "Itxi leiho hau?"
+
+#: src/terminal-window.cc:3323
+msgid "Close this terminal?"
+msgstr "Itxi terminal hau?"
+
+#: src/terminal-window.cc:3327
+msgid ""
+"There are still processes running in some terminals in this window. Closing "
+"the window will kill all of them."
+msgstr "Oraindik prozesu batzuk exekutatzen ari dira leiho honetako terminal batzuetan. Leiho hau ixtean prozesu guzti horiek hilko dira."
+
+#: src/terminal-window.cc:3331
+msgid ""
+"There is still a process running in this terminal. Closing the terminal will "
+"kill it."
+msgstr "Oraindik prozesu bat exekutatzen ari da terminal honetan. Terminal hau ixtean prozesu hori hilko da."
+
+#: src/terminal-window.cc:3336
+msgid "C_lose Window"
+msgstr "It_xi leihoa"
+
+#: src/terminal.cc:594
+#, c-format
+msgid "Failed to parse arguments: %s\n"
+msgstr "Huts egin du argumentuak analizatzean: %s\n"
+
+#~ msgctxt "theme variant"
+#~ msgid "Default"
+#~ msgstr "Lehenetsia"
+
+#~ msgctxt "theme variant"
+#~ msgid "Dark"
+#~ msgstr "Iluna"
+
+#~ msgid "org.gnome.Terminal"
+#~ msgstr "org.gnome.Terminal"
+
+#~ msgid "Armenian"
+#~ msgstr "Armeniera"
+
+#~ msgid "Georgian"
+#~ msgstr "Georgiera"
+
+#~ msgid "Whether to allow bold text"
+#~ msgstr "Testu-formatu lodia onartzen den"
+
+#~ msgid "If true, allow applications in the terminal to make text boldface."
+#~ msgstr ""
+#~ "Hautatzen bada, terminaleko aplikazioek testu-formatu lodia erabili ahal "
+#~ "izango dute."
+
+#~ msgid "Hindi"
+#~ msgstr "Hindiera"
+
+#~ msgid "Persian"
+#~ msgstr "Persiera"
+
+#~ msgid "Gujarati"
+#~ msgstr "Gujaratiera"
+
+#~ msgid "Gurmukhi"
+#~ msgstr "Gurmukhia"
+
+#~ msgid "Icelandic"
+#~ msgstr "Islandiera"
+
+#~ msgid "Set _Character Encoding"
+#~ msgstr "Ezarri _karaktere-kodeketa"
+
+#~ msgid "Move Tab _Left"
+#~ msgstr "Eraman fitxa e_zkerrera"
+
+#~ msgid "Move Tab _Right"
+#~ msgstr "Eraman fitxa e_skuinera"
+
+#~ msgid "_Detach Tab"
+#~ msgstr "_Desuztartu fitxa"

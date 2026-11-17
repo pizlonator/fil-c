@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.14"/>
+  <object class="GtkListStore" id="devices_liststore">
+    <columns>
+      <!-- column-name device_gicon -->
+      <column type="GIcon"/>
+      <!-- column-name device_name -->
+      <column type="gchararray"/>
+      <!-- column-name device_display_name -->
+      <column type="gchararray"/>
+      <!-- column-name device_description -->
+      <column type="gchararray"/>
+      <!-- column-name server_needs_authentication -->
+      <column type="gboolean"/>
+      <!-- column-name device_visible -->
+      <column type="gboolean"/>
+      <!-- column-name device -->
+      <column type="PpPrintDevice"/>
+    </columns>
+  </object>
+  <object class="GtkTreeModelFilter" id="devices_model_filter">
+    <property name="child_model">devices_liststore</property>
+  </object>
+  <template class="PpNewPrinterDialog" parent="AdwWindow">
+    <property name="width_request">480</property>
+    <property name="height_request">490</property>
+    <property name="title" translatable="yes" comments="Translators: This is the title presented at top of the dialog.">Add Printer</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="destroy_with_parent">True</property>
+    <style>
+      <class name="view"/>
+    </style>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar" id="headerbar">
+            <property name="show-start-title-buttons">False</property>
+            <property name="show-end-title-buttons">False</property>
+            <property name="title-widget">
+              <object class="AdwWindowTitle" id="header_title">
+                <property name="title" translatable="yes" comments="Translators: This is the title presented at top of the dialog.">Add Printer</property>
+              </object>
+            </property>
+            <child>
+              <object class="GtkStack" id="headerbar_topleft_buttons">
+
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">addprinter-page</property>
+                    <property name="child">
+                      <object class="GtkButton" id="new_printer_cancel_button">
+                        <property name="label" translatable="yes">_Cancel</property>
+                        <property name="use_underline">True</property>
+                        <signal name="clicked" handler="cancel_cb" swapped="yes"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">authentication-page</property>
+                    <property name="child">
+                      <object class="GtkButton" id="go_back_button">
+                        <property name="tooltip-text" translatable="yes">Back</property>
+                        <property name="icon-name">go-previous-symbolic</property>
+                        <property name="halign">start</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkStack" id="headerbar_topright_buttons">
+
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">addprinter-page</property>
+                    <property name="child">
+                      <object class="GtkButton" id="new_printer_add_button">
+                        <property name="label" translatable="yes">_Add</property>
+                        <property name="sensitive">False</property>
+                        <property name="use_underline">True</property>
+                        <signal name="clicked" handler="add_cb" swapped="yes"/>
+                        <style>
+                          <class name="suggested-action"/>
+                        </style>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">unlock_button</property>
+                    <property name="child">
+                      <object class="GtkButton" id="unlock_button">
+                        <property name="label" translatable="yes" comments="Translators: This button opens authentication dialog for selected server.">_Unlock</property>
+                        <property name="use_underline">True</property>
+                        <style>
+                          <class name="suggested-action"/>
+                        </style>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">authentication-page</property>
+                    <property name="child">
+                      <object class="GtkButton" id="authenticate_button">
+                        <property name="label" translatable="yes" comments="Translators: This buttons submits the credentials for the selected server.">_Unlock</property>
+                        <property name="use_underline">True</property>
+                        <style>
+                          <class name="suggested-action"/>
+                        </style>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkStack" id="dialog_stack">
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">addprinter-page</property>
+                <property name="child">
+                  <object class="AdwToolbarView">
+                    <property name="content">
+                      <object class="GtkStack" id="stack">
+                        <property name="transition-type">none</property>
+
+                        <child>
+                          <object class="GtkStackPage">
+                            <property name="name">standard-page</property>
+                            <property name="child">
+                              <object class="GtkScrolledWindow" id="scrolledwindow1">
+                                <child>
+                                  <object class="GtkTreeView" id="devices_treeview">
+                                    <property name="model">devices_model_filter</property>
+                                    <property name="headers_visible">False</property>
+                                    <property name="enable-grid-lines">GTK_TREE_VIEW_GRID_LINES_HORIZONTAL</property>
+                                    <child internal-child="selection">
+                                      <object class="GtkTreeSelection" id="treeview-selection"/>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="GtkStackPage">
+                            <property name="name">no-printers-page</property>
+                            <property name="child">
+                              <object class="AdwStatusPage">
+                                <property name="icon-name">printer-symbolic</property>
+                                <property name="title" translatable="yes" comments="Translators: No printers were detected">No Printers Found</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+
+                        <child>
+                          <object class="GtkStackPage">
+                            <property name="name">loading-page</property>
+                            <property name="child">
+                              <object class="GtkBox">
+                                <child>
+                                  <object class="GtkSpinner" id="spinner">
+                                    <property name="spinning">True</property>
+                                    <property name="hexpand">True</property>
+                                    <property name="vexpand">True</property>
+                                    <property name="halign">center</property>
+                                    <property name="valign">center</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="opacity">0.6</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+
+                      </object>
+                    </property>
+                    <child type="bottom">
+                      <object class="AdwBin">
+                        <style>
+                          <class name="toolbar"/>
+                        </style>
+                        <child>
+                          <object class="GtkSearchEntry" id="search_entry">
+                            <property name="has_tooltip">True</property>
+                            <property name="placeholder_text" translatable="yes" comments="Translators: The entered text should contain network address of a printer or a text which will filter found devices (their names and locations)">Enter a network address or search for a printer</property>
+                            <property name="margin_start">40</property>
+                            <property name="margin_end">40</property>
+                            <property name="hexpand">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">authentication-page</property>
+                <property name="child">
+                  <object class="GtkGrid">
+                    <property name="margin-top">20</property>
+                    <property name="margin-bottom">20</property>
+                    <property name="margin-start">20</property>
+                    <property name="margin-end">20</property>
+                    <property name="row_spacing">10</property>
+                    <property name="column_spacing">15</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <style>
+                      <class name="background"/>
+                    </style>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="pixel_size">48</property>
+                        <property name="icon_name">dialog-password-symbolic</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                          <property name="row-span">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="authentication_title">
+                        <property name="label" translatable="yes">Authentication Required</property>
+                        <property name="xalign">0</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="authentication_text">
+                        <property name="wrap">True</property>
+                        <property name="max_width_chars">36</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Enter username and password to view printers on Print Server</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Username</property>
+                        <property name="mnemonic_widget">username_entry</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="username_entry">
+                        <property name="invisible_char">●</property>
+                        <property name="activates_default">True</property>
+                        <property name="hexpand">True</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">2</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Password</property>
+                        <property name="mnemonic_widget">password_entry</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">3</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkEntry" id="password_entry">
+                        <property name="visibility">False</property>
+                        <property name="invisible_char">●</property>
+                        <property name="activates_default">True</property>
+                        <property name="hexpand">True</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">3</property>
+                        </layout>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="new_printer_cancel_button"/>
+      <widget name="headerbar_topright_buttons"/>
+    </widgets>
+  </object>
+</interface>

@@ -1,0 +1,201 @@
+<?xml version="1.0"?>
+<interface>
+  <template class="CcSystemDetailsWindow" parent="AdwWindow">
+    <property name="title" translatable="yes">System Details</property>
+    <property name="modal">True</property>
+    <property name="resizable">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="width-request">360</property>
+    <property name="height-request">200</property>
+    <property name="default-width">640</property>
+    <property name="default-height">420</property>
+    <child>
+      <object class="AdwBreakpoint">
+        <condition>max-width: 500sp</condition>
+        <setter object="box" property="orientation">vertical</setter>
+        <setter object="box" property="spacing">12</setter>
+      </object>
+    </child>
+    <property name="content">
+      <object class="AdwToastOverlay" id="toast_overlay">
+        <property name="child">
+          <object class="AdwToolbarView">
+            <child type="top">
+              <object class="AdwHeaderBar">
+                <child type="start">
+                  <object class="GtkButton" id="details_copy_button">
+                    <child>
+                      <object class="AdwButtonContent">
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <property name="label" translatable="yes">_Copy</property>
+                        <property name="use-underline">True</property>
+                      </object>
+                    </child>
+                    <signal name="clicked" handler="on_copy_button_clicked_cb" swapped="no" />
+                  </object>
+                </child>
+              </object>
+            </child>
+            <property name="content">
+              <object class="GtkScrolledWindow">
+                <child>
+                  <object class="GtkBox" id="box">
+                    <property name="margin-bottom">18</property>
+                    <property name="margin-end">18</property>
+                    <property name="margin-start">18</property>
+                    <property name="margin-top">18</property>
+                    <property name="spacing">18</property>
+
+                    <!-- Hardware Information -->
+                    <child>
+                      <object class="GtkBox">
+                        <property name="accessible-role">group</property>
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">12</property>
+                        <property name="hexpand">True</property>
+                        <accessibility>
+                          <relation name="labelled-by">hardware_info_label</relation>
+                        </accessibility>
+
+                        <child>
+                          <object class="GtkLabel" id="hardware_info_label">
+                            <property name="label" translatable="yes">Hardware Information</property>
+                            <property name="halign">start</property>
+                            <style>
+                              <class name="title-2"/>
+                            </style>
+                          </object>
+                        </child>
+
+                        <!-- Hardware Model -->
+                        <child>
+                          <object class="CcInfoEntry" id="hardware_model_row">
+                            <property name="label" translatable="yes">Model</property>
+                          </object>
+                        </child>
+
+                        <!-- Memory -->
+                        <child>
+                          <object class="CcInfoEntry" id="memory_row">
+                            <property name="label" translatable="yes">Memory</property>
+                          </object>
+                        </child>
+
+                        <!-- Processor -->
+                        <child>
+                          <object class="CcInfoEntry" id="processor_row">
+                            <property name="label" translatable="yes">Processor</property>
+                          </object>
+                        </child>
+
+                        <!-- Graphics -->
+                        <child>
+                          <object class="GtkBox" id="graphics_row">
+                            <property name="spacing">12</property>
+                            <property name="orientation">vertical</property>
+                          </object>
+                        </child>
+
+                        <!-- Storage -->
+                        <child>
+                          <object class="CcInfoEntry" id="disk_row">
+                            <property name="label" translatable="yes">Disk Capacity</property>
+                          </object>
+                        </child>
+
+                      </object>
+                    </child>
+
+                    <!-- Software Information -->
+                    <child>
+                      <object class="GtkBox">
+                        <property name="accessible-role">group</property>
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">12</property>
+                        <property name="hexpand">True</property>
+                        <accessibility>
+                          <relation name="labelled-by">software_info_label</relation>
+                        </accessibility>
+
+                        <child>
+                          <object class="GtkLabel" id="software_info_label">
+                            <property name="label" translatable="yes">Software Information</property>
+                            <property name="halign">start</property>
+                            <style>
+                              <class name="title-2"/>
+                            </style>
+                          </object>
+                        </child>
+
+                        <!-- Firmware Version -->
+                        <child>
+                          <object class="CcInfoEntry" id="firmware_version_row">
+                            <property name="label" translatable="yes">Firmware Version</property>
+                          </object>
+                        </child>
+
+                        <!-- OS Name -->
+                        <child>
+                          <object class="CcInfoEntry" id="os_name_row">
+                            <property name="label" translatable="yes"
+                                      comments="translators: this field contains the distro name and version">OS Name</property>
+                          </object>
+                        </child>
+
+                        <!-- OS Build -->
+                        <child>
+                          <object class="CcInfoEntry" id="os_build_row">
+                            <property name="label" translatable="yes"
+                                      comments="translators: this field contains the distro build">OS Build</property>
+                          </object>
+                        </child>
+
+                        <!-- OS Type -->
+                        <child>
+                          <object class="CcInfoEntry" id="os_type_row">
+                            <property name="label" translatable="yes"
+                                      comments="translators: this field contains the distro type">OS Type</property>
+                          </object>
+                        </child>
+
+                        <!-- GNOME Version -->
+                        <child>
+                          <object class="CcInfoEntry" id="gnome_version_row">
+                            <property name="label" translatable="yes">GNOME Version</property>
+                          </object>
+                        </child>
+
+                        <!-- Windowing System -->
+                        <child>
+                          <object class="CcInfoEntry" id="windowing_system_row">
+                            <property name="label" translatable="yes">Windowing System</property>
+                          </object>
+                        </child>
+
+                        <!-- Virtualization -->
+                        <child>
+                          <object class="CcInfoEntry" id="virtualization_row">
+                            <property name="label" translatable="yes">Virtualization</property>
+                          </object>
+                        </child>
+
+                        <!-- Kernel version -->
+                        <child>
+                          <object class="CcInfoEntry" id="kernel_row">
+                            <property name="label" translatable="yes">Kernel Version</property>
+                          </object>
+                        </child>
+
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>
