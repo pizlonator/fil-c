@@ -31,7 +31,7 @@ ulimit -c unlimited
 
 if test -z "$1"
 then
-    TARBALL=lfs-postlc8.tar.gz
+    TARBALL=lfs-postlc9.tar.gz
 else
     TARBALL=$1
 fi
