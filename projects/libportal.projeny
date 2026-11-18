@@ -1,0 +1,95 @@
+URL: https://github.com/flatpak/libportal/releases/download/0.9.1/libportal-0.9.1.tar.xz 09c21716ce92738fe5bc35d2f9b9f38937781602caba240aadb86599d1e507de
+Origname: libportal-0.9.1
+Name: libportal
+
+    libportal 0.9.1 (flatpak portal access library, the GTK4 plumbing
+    that GNOME apps use for portals).  Builds with meson.
+    Fil-C changes: the once-init pairs in libportal/portal.c converted to
+    the GLib 2.80 g_once_init_enter_pointer / g_once_init_leave_pointer
+    forms.  portal_get_bus_name's static is a pointer (const char *): the
+    plain g_once_init_leave stores the pointer value as an integer gsize,
+    which under fil-C leaves the pointer metadata stale and trips the
+    pointer load on return; the xdp_portal_running_under_flatpak gsize
+    pair is converted too for house consistency with the epiphany/vte
+    pair-conversion idiom.
+diff --git a/libportal/libportal/portal-enums.c.template b/libportal/libportal/portal-enums.c.template
+--- a/libportal/libportal/portal-enums.c.template
++++ b/libportal/libportal/portal-enums.c.template
+@@ -14,11 +14,15 @@
+ GType
+ @enum_name@_get_type (void)
+ {
+-  static gsize g_define_type_id__volatile = 0;
++  /* Fil-C: GType is a pointer in the pizlonated glib, so the once-init
++   * static must be pointer-typed and the g_once_init_enter_pointer /
++   * g_once_init_leave_pointer variants must be used (the plain functions
++   * access the location through a gsize view, which fil-C rejects as a
++   * type confusion). */
++  static gpointer g_define_type_id__volatile = 0;
+
+-  if (g_once_init_enter (&g_define_type_id__volatile))
+-    {
+-      static const G@Type@Value values[] = {
++  if (g_once_init_enter_pointer (&g_define_type_id__volatile)) {
++    static const G@Type@Value values[] = {
+ /*** END value-header ***/
+
+ /*** BEGIN value-production ***/
+@@ -28,12 +32,13 @@
+ /*** BEGIN value-tail ***/
+         { 0, NULL, NULL }
+       };
+-      GType g_define_type_id =
++      GType type_id = \
+         g_@type@_register_static (g_intern_static_string ("@EnumName@"), values);
+-      g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
++
++      g_once_init_leave_pointer (&g_define_type_id__volatile, type_id);
+     }
+
+-  return g_define_type_id__volatile;
++  return (GType) g_define_type_id__volatile;
+ }
+
+ /*** END value-tail ***/
+diff --git a/libportal/libportal/portal.c b/libportal/libportal/portal.c
+--- a/libportal/libportal/portal.c
++++ b/libportal/libportal/portal.c
+@@ -43,10 +43,14 @@
+ {
+   static const char *busname = NULL;
+
+-  if (g_once_init_enter (&busname))
++  /* Fil-C: busname is a pointer static, so this once-init pair must use
++     the GLib 2.80 _pointer forms.  The plain g_once_init_leave stores
++     the pointer value as an integer gsize, which under fil-C leaves the
++     pointer metadata stale and trips the pointer load on return. */
++  if (g_once_init_enter_pointer (&busname))
+     {
+       const char *env = g_getenv ("LIBPORTAL_PORTAL_BUS_NAME");
+-      g_once_init_leave (&busname, env ?: "org.freedesktop.portal.Desktop");
++      g_once_init_leave_pointer (&busname, env ?: "org.freedesktop.portal.Desktop");
+     }
+
+   return busname;
+@@ -494,13 +498,17 @@
+     IS_FLATPAK  = 2
+   };
+
+-  if (g_once_init_enter (&under_flatpak))
++  /* Fil-C: convert the pair to the GLib 2.80 _pointer forms (the house
++     pattern: this gsize flag reads back with the same value either way,
++     but the pair form matches the pizlonated glib's pointer-based
++     once-init idiom used by the G_DEFINE_TYPE boilerplate). */
++  if (g_once_init_enter_pointer (&under_flatpak))
+     {
+       gboolean flatpak_info_exists = g_file_test ("/.flatpak-info", G_FILE_TEST_EXISTS);
+       if (flatpak_info_exists)
+-        g_once_init_leave (&under_flatpak, IS_FLATPAK);
++        g_once_init_leave_pointer (&under_flatpak, IS_FLATPAK);
+       else
+-        g_once_init_leave (&under_flatpak, NOT_FLATPAK);
++        g_once_init_leave_pointer (&under_flatpak, NOT_FLATPAK);
+     }
+
+   return under_flatpak == IS_FLATPAK;

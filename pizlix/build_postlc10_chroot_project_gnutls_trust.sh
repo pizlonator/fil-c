@@ -1,0 +1,64 @@
+#!/bin/bash
+
+set -e
+set -x
+
+ulimit -c unlimited
+
+# Sprint W3 of the Epiphany-on-Pizlix port: GnuTLS system trust wiring.
+#
+# The live pre-check of the W3 epiphany build found that every https fetch
+# failed with glib-networking's "System trust contains zero trusted
+# certificates".  The cause: the chroot's GnuTLS (built in postlc5) got
+# its default trust store ONLY through PKCS#11
+# (--with-default-trust-store-pkcs11="pkcs11:"), i.e. through the
+# p11-kit-trust module, and that module serves zero objects even with the
+# anchor files in place (its configured trust path /etc/pki/anchors was
+# empty until this sprint's pre-seed, and after the pre-seed populates it
+# the token still initializes with no objects -- the p11-kit trust module
+# 0.26.5 in this system does not currently load them; left as a W4 item).
+#
+# Fix: rebuild GnuTLS with --with-default-trust-store-file=/etc/ssl/ca-
+# bundle.crt ADDED to the existing pkcs11 setting.  add_system_trust()
+# (lib/system/certs.c) loads BOTH stores, so the PEM bundle (the same
+# Mozilla CA bundle the pre-seed script installs) reaches every GnuTLS
+# consumer -- glib-networking, gnutls-cli -- regardless of the p11-kit
+# state.  Same source tarball, same configure line as postlc5 plus the
+# one new flag; the soname does not change, so nothing needs relinking.
+#
+# The bundle is installed by pizlix/build_preseed_pizlix.sh (host side),
+# which also splits it into /etc/ssl/certs + the p11-kit anchors dir and
+# seeds the ssh keys.  That script runs before this stage in the
+# recovery-based chain test, and its output is carried by the stage
+# snapshot.
+
+cd /sources
+rm -rf pizlonated-gnutls
+tar -xf pizlonated-gnutls.tar.gz
+cd pizlonated-gnutls
+./configure --prefix=/usr \
+            --docdir=/usr/share/doc/gnutls-3.8.7.1 \
+            --with-default-trust-store-pkcs11="pkcs11:" \
+            --with-default-trust-store-file=/etc/ssl/ca-bundle.crt \
+            --disable-hardware-acceleration
+make
+make install
+cd ..
+rm -rf pizlonated-gnutls
+hash -r
+
+# --- gates ---------------------------------------------------------------------
+
+echo "=== gate: gnutls system trust is non-empty (gnutls-cli) ==="
+echo | timeout 25 gnutls-cli --port 443 --print-cert www.google.com 2>&1 | grep -E "Processed [0-9]+ CA certificate" || true
+N=`echo | timeout 25 gnutls-cli --port 443 www.google.com 2>&1 | grep -oE "Processed [0-9]+ CA certificate\(s\)" | grep -oE "[0-9]+" || echo 0`
+test "$N" -gt 0 || { echo "FATAL: gnutls still sees zero system CAs" >&2; exit 1; }
+echo "gnutls system trust: $N CA certificates"
+
+echo "=== gate: gnutls-cli TLS handshake to a live host ==="
+H=`echo | timeout 25 gnutls-cli --port 443 www.google.com 2>&1 | grep -E "Handshake was completed|Processed" | head -2`
+echo "$H"
+echo "$H" | grep -q "Handshake was completed" || { echo "FATAL: TLS handshake failed" >&2; exit 1; }
+echo "TLS handshake: OK"
+
+echo "postlc10 gnutls-trust: ALL GATES GREEN"

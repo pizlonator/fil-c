@@ -1,0 +1,168 @@
+URL: https://download.gnome.org/sources/epiphany/46/epiphany-46.5.tar.xz fdd11f8912110c3b65b4019b0b9bf192a048620c99217b8789cb5bdb73021262
+URL: https://ftp.gnome.org/pub/GNOME/sources/epiphany/46/epiphany-46.5.tar.xz fdd11f8912110c3b65b4019b0b9bf192a048620c99217b8789cb5bdb73021262
+Origname: epiphany-46.5
+Name: epiphany
+
+    epiphany 46.5 (GNOME's Web browser; the GNOME Web app for Pizlix).
+    Built with meson against the Fil-C webkitgtk-6.0 API (the postlc10
+    WebKitGTK build) + gtk4/libadwaita.
+    Fil-C changes: (1) GLIB_VERSION_MAX_ALLOWED 2_74 -> 2_80 (the
+    established house pattern -- GType is a pointer in the pizlonated
+    glib); (2) subdir('help') dropped (itstool is not in the chroot and
+    the docs are not needed); (3) the once-init pair in
+    lib/ephy-flatpak-utils.c converted to the GLib 2.80
+    g_once_init_enter_pointer / g_once_init_leave_pointer forms (the
+    house pattern for g_once_init sites); (4) the nine
+    G_TYPE_* | G_SIGNAL_TYPE_STATIC_SCOPE signal-argument sites
+    (lib/history/ephy-history-service.c x5, lib/contrib/dzl-suggestion.c
+    x2, embed/ephy-download.c x1, embed/ephy-web-view.c x1) computed in
+    uintptr_t arithmetic and cast back to GType (the mutter/clutter
+    pattern -- GType is a pointer in the pizlonated glib, so the plain
+    integer OR does not compile under clang 20's default error).
+diff --git a/epiphany/embed/ephy-download.c b/epiphany/embed/ephy-download.c
+--- a/epiphany/embed/ephy-download.c
++++ b/epiphany/embed/ephy-download.c
+@@ -553,7 +553,9 @@
+                                               NULL, NULL,
+                                               G_TYPE_BOOLEAN,
+                                               1,
+-                                              G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
++                                              /* Fil-C: GType is a pointer in the pizlonated glib, so G_TYPE_* | G_SIGNAL_TYPE_STATIC_SCOPE
++                 is computed in uintptr_t arithmetic and cast back (the mutter/clutter pattern). */
++                                              (GType) ((uintptr_t) G_TYPE_STRING | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
+
+   /**
+    * EphyDownload::completed:
+diff --git a/epiphany/embed/ephy-web-view.c b/epiphany/embed/ephy-web-view.c
+--- a/epiphany/embed/ephy-web-view.c
++++ b/epiphany/embed/ephy-web-view.c
+@@ -3986,7 +3986,9 @@
+                 3,
+                 EPHY_TYPE_PERMISSION_TYPE,
+                 WEBKIT_TYPE_PERMISSION_REQUEST,
+-                G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
++                /* Fil-C: GType is a pointer in the pizlonated glib, so G_TYPE_* | G_SIGNAL_TYPE_STATIC_SCOPE
++                 is computed in uintptr_t arithmetic and cast back (the mutter/clutter pattern). */
++                (GType) ((uintptr_t) G_TYPE_STRING | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
+ }
+
+ /**
+diff --git a/epiphany/lib/contrib/dzl-suggestion.c b/epiphany/lib/contrib/dzl-suggestion.c
+--- a/epiphany/lib/contrib/dzl-suggestion.c
++++ b/epiphany/lib/contrib/dzl-suggestion.c
+@@ -238,7 +238,9 @@
+                   G_SIGNAL_RUN_LAST,
+                   G_STRUCT_OFFSET (DzlSuggestionClass, replace_typed_text),
+                   g_signal_accumulator_first_wins, NULL, NULL,
+-                  G_TYPE_STRING, 1, G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
++                  /* Fil-C: GType is a pointer in the pizlonated glib, so G_TYPE_* | G_SIGNAL_TYPE_STATIC_SCOPE
++                 is computed in uintptr_t arithmetic and cast back (the mutter/clutter pattern). */
++                  G_TYPE_STRING, 1, (GType) ((uintptr_t) G_TYPE_STRING | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
+
+   signals [SUGGEST_SUFFIX] =
+     g_signal_new ("suggest-suffix",
+@@ -246,7 +248,7 @@
+                   G_SIGNAL_RUN_LAST,
+                   G_STRUCT_OFFSET (DzlSuggestionClass, suggest_suffix),
+                   g_signal_accumulator_first_wins, NULL, NULL,
+-                  G_TYPE_STRING, 1, G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
++                  G_TYPE_STRING, 1, (GType) ((uintptr_t) G_TYPE_STRING | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
+ }
+
+ static void
+diff --git a/epiphany/lib/ephy-flatpak-utils.c b/epiphany/lib/ephy-flatpak-utils.c
+--- a/epiphany/lib/ephy-flatpak-utils.c
++++ b/epiphany/lib/ephy-flatpak-utils.c
+@@ -142,7 +142,11 @@
+     LAUNCHER_PORTAL_FOUND = 2
+   };
+
+-  if (g_once_init_enter (&portal_available)) {
++  /* Fil-C: use the GLib 2.80 _pointer forms of the once-init pair (the
++     static is a boolean-ish flag; the plain forms do integer-typed
++     loads/stores on a gsize location, the house pattern converts the
++     pair for consistency with the pizlonated glib's pointer GType). */
++  if (g_once_init_enter_pointer (&portal_available)) {
+     g_autoptr (GDBusProxy) proxy = NULL;
+     g_autoptr (GVariant) version = NULL;
+     g_autoptr (GVariant) version_child = NULL;
+@@ -162,9 +166,9 @@
+       version_child = g_variant_get_child_value (version, 0);
+       version_grandchild = g_variant_get_child_value (version_child, 0);
+       g_debug ("Found version %d of the dynamic launcher portal", g_variant_get_uint32 (version_grandchild));
+-      g_once_init_leave (&portal_available, LAUNCHER_PORTAL_FOUND);
++      g_once_init_leave_pointer (&portal_available, LAUNCHER_PORTAL_FOUND);
+     } else {
+-      g_once_init_leave (&portal_available, LAUNCHER_PORTAL_MISSING);
++      g_once_init_leave_pointer (&portal_available, LAUNCHER_PORTAL_MISSING);
+     }
+   }
+
+diff --git a/epiphany/lib/history/ephy-history-service.c b/epiphany/lib/history/ephy-history-service.c
+--- a/epiphany/lib/history/ephy-history-service.c
++++ b/epiphany/lib/history/ephy-history-service.c
+@@ -235,7 +235,9 @@
+                   0, NULL, NULL, NULL,
+                   G_TYPE_NONE,
+                   1,
+-                  G_TYPE_POINTER | G_SIGNAL_TYPE_STATIC_SCOPE);
++                  /* Fil-C: GType is a pointer in the pizlonated glib, so G_TYPE_* | G_SIGNAL_TYPE_STATIC_SCOPE
++                 is computed in uintptr_t arithmetic and cast back (the mutter/clutter pattern). */
++                  (GType) ((uintptr_t) G_TYPE_POINTER | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
+
+ /**
+  * EphyHistoryService::urls-visited:
+@@ -270,8 +272,8 @@
+                   0, NULL, NULL, NULL,
+                   G_TYPE_NONE,
+                   2,
+-                  G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE,
+-                  G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
++                  (GType) ((uintptr_t) G_TYPE_STRING | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE),
++                  (GType) ((uintptr_t) G_TYPE_STRING | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
+
+   signals[URL_DELETED] =
+     g_signal_new ("url-deleted",
+@@ -280,7 +282,7 @@
+                   0, NULL, NULL, NULL,
+                   G_TYPE_NONE,
+                   1,
+-                  G_TYPE_POINTER | G_SIGNAL_TYPE_STATIC_SCOPE);
++                  (GType) ((uintptr_t) G_TYPE_POINTER | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
+
+   signals[HOST_DELETED] =
+     g_signal_new ("host-deleted",
+@@ -289,7 +291,7 @@
+                   0, NULL, NULL, NULL,
+                   G_TYPE_NONE,
+                   1,
+-                  G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
++                  (GType) ((uintptr_t) G_TYPE_STRING | (uintptr_t) G_SIGNAL_TYPE_STATIC_SCOPE));
+
+   obj_properties[PROP_HISTORY_FILENAME] =
+     g_param_spec_string ("history-filename",
+diff --git a/epiphany/meson.build b/epiphany/meson.build
+--- a/epiphany/meson.build
++++ b/epiphany/meson.build
+@@ -76,7 +76,10 @@
+ webkitgtk_requirement = '>= 2.43.4'
+
+ conf.set('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_2_74')
+-conf.set('GLIB_VERSION_MAX_ALLOWED', 'GLIB_VERSION_2_74')
++# Fil-C: GType is a pointer in the pizlonated glib, so the max allowed
++# GLib API level must be 2.80 or newer (the established house pattern;
++# this also enables the GLib 2.80 g_once_init_enter_pointer used below).
++conf.set('GLIB_VERSION_MAX_ALLOWED', 'GLIB_VERSION_2_80')
+ conf.set('GDK_VERSION_MIN_REQUIRED', 'GDK_VERSION_4_10')
+ conf.set('GDK_VERSION_MAX_ALLOWED', 'GDK_VERSION_4_12')
+ conf.set('ADW_VERSION_MIN_REQUIRED', 'ADW_VERSION_1_4')
+@@ -158,7 +161,8 @@
+                       language: 'c')
+
+ subdir('data')
+-subdir('help')
++# Fil-C: the help docs need itstool, which the Pizlix chroot does not
++# carry (docs are not needed), so the help subdir is dropped here.
+ subdir('po')
+ subdir('third-party')
+ subdir('lib')
