@@ -149,10 +149,10 @@ inline void mem_get_taint(uint64_t addr, size_t size, Taint& out) {
 
 // Called after a successful store of a value with taint t to
 // [addr,size): the destination bytes gain the value's taint bits
-// (plus the matching clear-on-store bit, so a later store clears the
-// taint). If the destination already carries a clear-on-store bit for a
-// tainted value, that value bit is cleared instead (store sanitizes).
-// Load/store poison bits and clear bits are sticky.
+// plus the matching clear-on-store bits. For each dimension that is clean
+// in t, a matching clear-on-store bit on the destination clears its taint.
+// Without that clear bit, existing taint remains. Load/store poison bits
+// and clear bits are sticky.
 void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t);
 
 // Poisoning client request (magic call 0x1410141014101410):
