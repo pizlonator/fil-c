@@ -25,7 +25,13 @@ set -x
 # Dependencies: gtk4, libadwaita-1, gnome-desktop-4/gnome-bg-4/gnome-rr-4,
 # gsettings-desktop-schemas, polkit-gobject-1, accountsservice, colord,
 # upower-glib, gudev, libpulse(+mainloop-glib, for the bundled gvc
-# subproject), x11/xi, epoxy, gcr-4, ibus-1.0, libxml2 - all in the chroot.
+# subproject), x11/xi, epoxy, gcr-4, ibus-1.0, libxml2 - all in the chroot
+# by the time this runs (the audio/policy stack -- libpulse via
+# libsndfile+pulseaudio, duktape+polkit, gcr, ibus, accountsservice,
+# upower -- is built earlier in this stage, see
+# build_postlc7_sub2_chroot.sh; it used to be a postlc8 thing, which
+# broke from-scratch builds because the vendored gvc subproject executes
+# BEFORE every other dependency check and dies on libpulse).
 # The bundled gvc (gnome-volume-control) subproject builds with alsa=false.
 #
 # Fil-C notes (see the projeny patch):

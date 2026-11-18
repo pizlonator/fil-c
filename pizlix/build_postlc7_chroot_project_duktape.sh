@@ -8,6 +8,17 @@ set -x
 # (polkit 0.121+ dropped the bundled copy; the polkit-126 meson.build wants
 # duktape >= 2.2.0 via pkg-config or duktape.h + -lduktape).
 #
+# Built in postlc7 (moved from postlc8): polkit 126 -- which
+# gnome-control-center (later in this stage) hard-requires via
+# polkit-gobject-1 -- needs duktape, and polkit's meson.build makes the
+# duktape lookup mandatory (pkg-config first, then a required
+# cc.find_library fallback).  Built immediately before the polkit script.
+
+# duktape 2.7.0 (embeddable JS engine) — required by polkit 126, whose JS rule
+# authority (polkitbackendduktapeauthority.c) links against a SYSTEM duktape
+# (polkit 0.121+ dropped the bundled copy; the polkit-126 meson.build wants
+# duktape >= 2.2.0 via pkg-config or duktape.h + -lduktape).
+#
 # Build with the bundled Makefile.sharedlibrary: one amalgamated duktape.c
 # compiled -shared, headers + duktape.pc installed.  INSTALL_PREFIX=/usr with
 # LIBDIR=/lib puts libduktape.so in /usr/lib and duktape.pc (libdir=/usr/lib)

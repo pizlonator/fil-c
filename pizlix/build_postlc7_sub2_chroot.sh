@@ -84,6 +84,50 @@ hash -r
 ./build_postlc4_chroot_project_gtk4.sh
 hash -r
 
+# The audio / policy / input-method stack gnome-control-center needs at
+# meson setup (moved here from postlc8, which built them AFTER g-c-c --
+# the cross-stage ordering bug a from-scratch build exposed).  g-c-c's
+# vendored gvc subproject (executed at meson.build line 118, before any
+# other dependency check) hard-requires libpulse + libpulse-mainloop-glib
+# (pkg-config AND cmake), and the top-level meson.build then hard-requires
+# accountsservice, upower-glib, gcr-4, polkit-gobject-1 and (with the ibus
+# option on, which it is) ibus-1.0.  gnome-shell (postlc8) needs the same
+# set (gvc again, polkit-agent, Gcr-4, IBus-1.0, AccountsService-1.0,
+# UPowerGlib-1.0 typelibs), so building it all here keeps both consumers
+# fed.  Internal order: libsndfile is a hard dep of pulseaudio even for
+# the client-only build (meson.build's dependency('sndfile') is
+# unconditional); duktape is a hard dep of polkit 126 (the JS rule
+# authority); polkit must precede accountsservice (its meson.build
+# requires polkit-gobject-1) and upower (polkit=auto picks up the daemon
+# policy actions); the GL/EGL rebuild above must precede gcr-4 (its ui
+# bits link gtk4); elogind earlier in this stage provides libelogind
+# (polkit's session_tracking, accountsservice's sd-login) and libudev.pc
+# (upower's os_backend); dbus at the top of this stage provides dbus-1
+# (polkit/accountsservice hard-require it, pulseaudio/ibus auto-need it).
+./build_postlc7_chroot_project_duktape.sh
+hash -r
+
+./build_postlc7_chroot_project_libsndfile.sh
+hash -r
+
+./build_postlc7_chroot_project_pulseaudio.sh
+hash -r
+
+./build_postlc7_chroot_project_polkit.sh
+hash -r
+
+./build_postlc7_chroot_project_gcr.sh
+hash -r
+
+./build_postlc7_chroot_project_ibus.sh
+hash -r
+
+./build_postlc7_chroot_project_accountsservice.sh
+hash -r
+
+./build_postlc7_chroot_project_upower.sh
+hash -r
+
 # xkbcommon rebuilt with -D enable-x11=true (installs over the postlc3
 # build which had X11 disabled).
 ./build_postlc7_chroot_project_xkbcommon.sh
@@ -132,7 +176,10 @@ hash -r
 
 # Sprint 8: the desktop applications' shells.  vte first (the terminal
 # widget library), then gnome-terminal (needs vte-2.91), then
-# gnome-control-center (standalone; needs nothing from the two above).
+# gnome-control-center (needs the audio/policy stack built earlier in this
+# stage: libpulse for the vendored gvc subproject, plus accountsservice,
+# upower-glib, gcr-4, polkit-gobject-1 and ibus-1.0 -- see the block after
+# the GL/EGL rebuild above).
 # All three go after the existing apps (gnome-text-editor /
 # gnome-font-viewer) and before the icon theme (pure data).
 ./build_postlc7_chroot_project_vte.sh

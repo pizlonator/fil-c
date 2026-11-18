@@ -3,6 +3,15 @@
 set -e
 set -x
 
+# Built in postlc7 (moved from postlc8): gnome-control-center (later in this
+# stage) hard-requires accountsservice >= 0.6.39 at meson setup; gnome-shell
+# (postlc8) needs the AccountsService-1.0 typelib too.  Its own hard deps
+# are all earlier-or-in-stage: polkit-gobject-1 (built just before this
+# script -- accountsservice's meson.build requires it with no
+# required:false), dbus-1 (the dbus build at the top of this stage),
+# libelogind (-Delogind=true; the elogind build earlier in this stage),
+# glib (postlc3).
+
 # accountsservice 23.13.9 (D-Bus user-account service + AccountsService-1.0
 # gir for gnome-shell's user menu).
 #

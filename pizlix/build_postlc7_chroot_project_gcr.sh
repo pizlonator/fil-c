@@ -3,6 +3,12 @@
 set -e
 set -x
 
+# Built in postlc7 (moved from postlc8): gnome-control-center (later in this
+# stage) hard-requires gcr-4 >= 4.1.0 at meson setup; gnome-shell (postlc8)
+# needs it (and the Gcr-4 typelib) too.  Its own deps are all
+# earlier-or-in-stage: p11-kit (postlc2), libgcrypt (postlc5), gtk4 (the
+# GL/EGL rebuild earlier in this stage), glib (postlc3).
+
 # gcr-4 4.3.0 (GCR certificate/crypto widgets + Gcr-4 gir for gnome-shell's
 # certificate chooser / key prompts).
 #

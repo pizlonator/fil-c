@@ -3,6 +3,12 @@
 set -e
 set -x
 
+# Built in postlc7 (moved from postlc8): gnome-control-center (later in this
+# stage) hard-requires ibus-1.0 (the ibus option is left enabled);
+# gnome-shell (postlc8) needs the IBus-1.0 typelib too.  Its own hard deps
+# are all earlier-or-in-stage: glib/gio (postlc3), dbus-1 (the dbus build
+# at the top of this stage), iso-codes (postlc4).
+
 # ibus 1.5.30 (input-method framework; gnome-shell imports IBus-1.0 for its
 # keyboard/input-method integration).
 #

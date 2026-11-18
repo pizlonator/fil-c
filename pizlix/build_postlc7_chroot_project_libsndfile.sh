@@ -5,6 +5,12 @@ set -x
 
 # libsndfile 1.2.2 — required by pulseaudio even for the client-only build
 # (libpulsecommon links pulsecore/sound-file.c, and pacat/pactl link sndfile).
+# Built in postlc7 (moved from postlc8), immediately before the (also moved)
+# pulseaudio client build: pulseaudio's meson.build probes sndfile
+# unconditionally (dependency('sndfile') with no required: argument).
+
+# libsndfile 1.2.2 — required by pulseaudio even for the client-only build
+# (libpulsecommon links pulsecore/sound-file.c, and pacat/pactl link sndfile).
 #
 # Flags (./configure --help):
 # --disable-external-libs: no FLAC/Ogg/Vorbis in the chroot (WAV/AIFF/AU

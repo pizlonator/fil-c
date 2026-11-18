@@ -3,6 +3,14 @@
 set -e
 set -x
 
+# Built in postlc7 (moved from postlc8): gnome-control-center (later in this
+# stage) hard-requires upower-glib >= 0.99.8 at meson setup; gnome-shell
+# (postlc8) needs the UPowerGlib-1.0 typelib too.  Its own deps are all
+# earlier-or-in-stage: glib (postlc3), gudev-1.0 (postlc4), polkit-gobject-1
+# (polkit=auto; found from the polkit build earlier in this stage),
+# udev/libudev.pc (systemd from the postlc stage / elogind earlier in this
+# stage), gobject-introspection (postlc3).
+
 # upower 1.90.9 (power/battery D-Bus service + libupower-glib +
 # UPowerGlib-1.0 gir for gnome-shell's power quick-settings).
 #

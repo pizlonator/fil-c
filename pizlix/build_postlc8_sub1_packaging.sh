@@ -24,17 +24,23 @@ rm -vf projects/*/pizlonated-*.tar.gz
 # tool).  The one exception is at-spi2-core, which is not a projeny project:
 # it is packaged from its checked-in source directory with package-source.sh
 # (same pattern as postlc4's packaging, which produced the atk_only build).
+#
+# NOTE: duktape, libsndfile, pulseaudio, polkit, gcr, ibus, upower and
+# accountsservice were packaged (and built) here until the cross-stage
+# ordering bug surfaced: gnome-control-center (postlc7) hard-requires all
+# of them at meson setup (gvc->libpulse, plus accountsservice/upower-glib/
+# gcr-4/polkit-gobject-1/ibus-1.0), so they moved to postlc7's packaging
+# and chroot build.  gnome-shell (this stage) still consumes them from the
+# postlc7 snapshot.
 
 # The Shell runtime: mozjs (the JS engine) and gjs (the JS bindings).
 filc/projeny package projects/mozjs.projeny projects/mozjs/pizlonated-mozjs.tar.gz
 filc/projeny package projects/gjs.projeny projects/gjs/pizlonated-gjs.tar.gz
 
-# Session/policy services.
-filc/projeny package projects/polkit.projeny projects/polkit/pizlonated-polkit.tar.gz
-filc/projeny package projects/gcr.projeny projects/gcr/pizlonated-gcr.tar.gz
-filc/projeny package projects/ibus.projeny projects/ibus/pizlonated-ibus.tar.gz
-filc/projeny package projects/upower.projeny projects/upower/pizlonated-upower.tar.gz
-filc/projeny package projects/accountsservice.projeny projects/accountsservice/pizlonated-accountsservice.tar.gz
+# Session/policy service still built in this stage: geoclue (the location
+# service; gnome-shell's weather/location quick settings read
+# Geoclue-2.0).  The other former members of this block (polkit, gcr,
+# ibus, upower, accountsservice) moved to postlc7 -- see the NOTE above.
 filc/projeny package projects/geoclue.projeny projects/geoclue/pizlonated-geoclue.tar.gz
 
 # Location stack (libgweather's meson setup runs python3 'import gi', which
@@ -42,14 +48,9 @@ filc/projeny package projects/geoclue.projeny projects/geoclue/pizlonated-geoclu
 filc/projeny package projects/geocode-glib.projeny projects/geocode-glib/pizlonated-geocode-glib.tar.gz
 filc/projeny package projects/libgweather.projeny projects/libgweather/pizlonated-libgweather.tar.gz
 
-# Menus, audio, archive helpers.
+# Menus and archive helpers.
 filc/projeny package projects/gnome-menus.projeny projects/gnome-menus/pizlonated-gnome-menus.tar.gz
-filc/projeny package projects/libsndfile.projeny projects/libsndfile/pizlonated-libsndfile.tar.gz
-filc/projeny package projects/pulseaudio.projeny projects/pulseaudio/pizlonated-pulseaudio.tar.gz
 filc/projeny package projects/gnome-autoar.projeny projects/gnome-autoar-0.4.4/pizlonated-gnome-autoar.tar.gz
-
-# polkit 126's JS rule authority (system duktape; 0.116 bundled its own).
-filc/projeny package projects/duktape.projeny projects/duktape/pizlonated-duktape.tar.gz
 
 # pygobject: Sprint 3 brought the Sprint 4 build under projeny to carry the
 # Fil-C import-gi fix (PyGObject_MetaType is still NULL while the _gi module

@@ -4,10 +4,21 @@ set -e
 set -x
 
 # pulseaudio 17.0 — CLIENT-ONLY build (libpulse + libpulse-mainloop-glib) for
-# gnome-shell's vendored gvc (libgvc) subproject.  gnome-shell only ever
-# speaks the client API (it connects to a pipewire-pulse/daemon over the
+# the vendored gvc (libgvc) subproject that BOTH gnome-control-center
+# (postlc7, its meson.build executes subproject('gvc') before any other
+# dependency check) and gnome-shell (postlc8) pull in.  They only ever
+# speak the client API (they connect to a pipewire-pulse/daemon over the
 # native protocol), so -Ddaemon=false skips the whole server side (which
 # would pull in alsa/webrtc-audio-processing/orc and a much bigger port).
+#
+# Built in postlc7 (moved from postlc8, which built it after g-c-c): g-c-c
+# hard-requires libpulse + libpulse-mainloop-glib at meson setup, so the
+# client libraries must exist before this stage's gnome-control-center
+# build.  Its own hard deps are all earlier-or-in-stage: glib
+# (-Dglib=enabled; postlc3), libsndfile (the dependency('sndfile') probe
+# is unconditional even for the client build; built just before this
+# script), dbus-1 (auto feature; postlc7's dbus build runs first in the
+# stage), x11-xcb (auto; postlc6).
 #
 # Flags (checked against meson_options.txt):
 # -D daemon=false: client libraries only.

@@ -42,6 +42,40 @@ filc/projeny package projects/libei.projeny projects/libei/pizlonated-libei.tar.
 filc/projeny package projects/libxmlb.projeny projects/libxmlb/pizlonated-libxmlb.tar.gz
 filc/projeny package projects/appstream.projeny projects/appstream/pizlonated-appstream.tar.gz
 filc/projeny package projects/elogind.projeny projects/elogind/pizlonated-elogind.tar.gz
+
+# The audio / policy / input-method stack that gnome-control-center (built
+# later in this stage) hard-requires at meson setup, and gnome-shell
+# (postlc8) needs too.  These were packaged (and built) in postlc8 until
+# the cross-stage ordering bug surfaced: g-c-c's vendored gvc subproject
+# hard-requires libpulse (+mainloop-glib) and its top-level meson.build
+# hard-requires accountsservice, upower-glib, gcr-4, polkit-gobject-1 and
+# ibus-1.0, so a from-scratch build died in g-c-c's meson setup.  Moved
+# here (packaging AND chroot build) so postlc7's snapshot carries them
+# before g-c-c runs; see build_postlc7_sub2_chroot.sh for the build order
+# and the transitive-dependency rationale (libsndfile->pulseaudio,
+# duktape->polkit, polkit->accountsservice/upower).
+
+# polkit 126's JS rule authority (system duktape; 0.116 bundled its own).
+filc/projeny package projects/duktape.projeny projects/duktape/pizlonated-duktape.tar.gz
+
+# libsndfile 1.2.2: a hard dep of pulseaudio even for the client-only
+# build (libpulsecommon links pulsecore/sound-file.c; pacat/pactl link
+# sndfile).  FLAC/Ogg/Vorbis/mpeg/alsa/sqlite are all disabled.
+filc/projeny package projects/libsndfile.projeny projects/libsndfile/pizlonated-libsndfile.tar.gz
+
+# pulseaudio 17.0, CLIENT-ONLY (libpulse + libpulse-mainloop-glib): the
+# gvc subproject bundled by gnome-control-center AND gnome-shell links
+# against both.
+filc/projeny package projects/pulseaudio.projeny projects/pulseaudio/pizlonated-pulseaudio.tar.gz
+
+# Session/policy services (g-c-c's power/sharing/keyboard panels and
+# gnome-shell's quick settings / user menu / certificate chooser):
+filc/projeny package projects/polkit.projeny projects/polkit/pizlonated-polkit.tar.gz
+filc/projeny package projects/gcr.projeny projects/gcr/pizlonated-gcr.tar.gz
+filc/projeny package projects/ibus.projeny projects/ibus/pizlonated-ibus.tar.gz
+filc/projeny package projects/upower.projeny projects/upower/pizlonated-upower.tar.gz
+filc/projeny package projects/accountsservice.projeny projects/accountsservice/pizlonated-accountsservice.tar.gz
+
 filc/projeny package projects/libXfixes.projeny projects/libXfixes/pizlonated-libXfixes.tar.gz
 filc/projeny package projects/libXcomposite.projeny projects/libXcomposite/pizlonated-libXcomposite.tar.gz
 filc/projeny package projects/libXcursor.projeny projects/libXcursor/pizlonated-libXcursor.tar.gz
