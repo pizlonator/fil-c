@@ -49,7 +49,10 @@ void JSAPIWrapperGlobalObjectHandleOwner::finalize(JSC::Handle<JSC::Unknown> han
     if (!wrapperObject->wrappedObject())
         return;
 
-    JSC::Heap::heap(wrapperObject)->releaseSoon(std::unique_ptr<JSC::JSCGLibWrapperObject>(wrapperObject->wrappedObject()));
+    /* Fil-C: Heap::heap(cell) is stubbed UNREACHABLE_FOR_PLATFORM in this
+     * port; reach the heap through the cell's structure's VM (see
+     * JSAPIWrapperObjectGLib.cpp). */
+    wrapperObject->structure()->vm().heap.releaseSoon(std::unique_ptr<JSC::JSCGLibWrapperObject>(wrapperObject->wrappedObject()));
     JSC::WeakSet::deallocate(JSC::WeakImpl::asWeakImpl(handle.slot()));
 }
 

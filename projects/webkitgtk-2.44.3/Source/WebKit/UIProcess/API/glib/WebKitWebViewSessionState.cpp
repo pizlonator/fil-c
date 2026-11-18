@@ -142,17 +142,26 @@ static inline void encodeHTTPBody(GVariantBuilder* sessionBuilder, const HTTPBod
             if (fileData->fileLength)
                 g_variant_builder_add(sessionBuilder, "mx", TRUE, fileData->fileLength.value());
             else
-                g_variant_builder_add(sessionBuilder, "mx", FALSE);
+                /* Fil-C: the GVariant format-string contract requires the
+                 * arguments of the enclosed type to be collected even when
+                 * the maybe is FALSE ("the collected arguments are ignored",
+                 * docs/reference/glib/gvariant-format-strings.md "Maybe
+                 * Types").  g_variant_builder_add walks them with
+                 * va_arg even in the Nothing case, so omitting them is a
+                 * phantom va_arg read -- which fil-C's bounds-checked
+                 * va_list rejects at runtime (filc panic: cannot read
+                 * pointer with ptr >= upper).  Pass the ignored dummies. */
+                g_variant_builder_add(sessionBuilder, "mx", FALSE, (guint64) 0);
             if (fileData->expectedFileModificationTime)
                 g_variant_builder_add(sessionBuilder, "md", TRUE, fileData->expectedFileModificationTime.value());
             else
-                g_variant_builder_add(sessionBuilder, "md", FALSE);
+                g_variant_builder_add(sessionBuilder, "md", FALSE, (gdouble) 0);
         } else {
             g_variant_builder_add(sessionBuilder, "s", "");
             int64_t fileStart { 0 };
             g_variant_builder_add(sessionBuilder, "x", fileStart);
-            g_variant_builder_add(sessionBuilder, "mx", FALSE);
-            g_variant_builder_add(sessionBuilder, "md", FALSE);
+            g_variant_builder_add(sessionBuilder, "mx", FALSE, (guint64) 0);
+            g_variant_builder_add(sessionBuilder, "md", FALSE, (gdouble) 0);
         }
 
         if (auto* blobURLString = std::get_if<String>(&element.data))
@@ -177,7 +186,11 @@ static inline void encodeFrameState(GVariantBuilder* sessionBuilder, const Frame
         g_variant_builder_add(sessionBuilder, "s", state.string().utf8().data());
     g_variant_builder_close(sessionBuilder);
     if (!frameState.stateObjectData)
-        g_variant_builder_add(sessionBuilder, "may", FALSE);
+        /* Fil-C: "may" is the nnp form ('a' is a pointer format), so the
+         * maybe carries a single gpointer argument (NULL = Nothing, per
+         * the format-string docs); FALSE is an int, not the required
+         * pointer. */
+        g_variant_builder_add(sessionBuilder, "may", static_cast<gpointer>(nullptr));
     else {
         g_variant_builder_open(sessionBuilder, G_VARIANT_TYPE("may"));
         g_variant_builder_open(sessionBuilder, G_VARIANT_TYPE("ay"));
@@ -191,7 +204,12 @@ static inline void encodeFrameState(GVariantBuilder* sessionBuilder, const Frame
     g_variant_builder_add(sessionBuilder, "(ii)", frameState.scrollPosition.x(), frameState.scrollPosition.y());
     g_variant_builder_add(sessionBuilder, "d", static_cast<gdouble>(frameState.pageScaleFactor));
     if (!frameState.httpBody)
-        g_variant_builder_add(sessionBuilder, HTTP_BODY_TYPE_STRING_V1, FALSE);
+        /* Fil-C: same maybe-contract fix as above -- the "m(sa(...))"
+         * Nothing case still walks the enclosed 's' (one pointer) and
+         * 'a' (one pointer) arguments with va_arg, so they must be
+         * passed even though they are ignored (this site is the one the
+         * epiphany session-save filc panic tripped on). */
+        g_variant_builder_add(sessionBuilder, HTTP_BODY_TYPE_STRING_V1, FALSE, "", static_cast<gpointer>(nullptr));
     else {
         g_variant_builder_open(sessionBuilder, G_VARIANT_TYPE(HTTP_BODY_TYPE_STRING_V1));
         encodeHTTPBody(sessionBuilder, frameState.httpBody.value());
@@ -233,7 +251,9 @@ static inline void encodeBackForwardListState(GVariantBuilder* sessionBuilder, c
     if (backForwardListState.currentIndex)
         g_variant_builder_add(sessionBuilder, "mu", TRUE, backForwardListState.currentIndex.value());
     else
-        g_variant_builder_add(sessionBuilder, "mu", FALSE);
+        /* Fil-C: maybe-contract fix (the Nothing case still va_arg-walks
+         * the enclosed 'u', an int-sized slot). */
+        g_variant_builder_add(sessionBuilder, "mu", FALSE, (guint32) 0);
 }
 
 static GBytes* encodeSessionState(const SessionState& sessionState)

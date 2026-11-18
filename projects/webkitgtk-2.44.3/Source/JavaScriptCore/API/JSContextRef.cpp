@@ -163,7 +163,14 @@ JSGlobalContextRef JSGlobalContextRetain(JSGlobalContextRef ctx)
     VM& vm = globalObject->vm();
     JSLockHolder locker(vm);
 
-    gcProtect(globalObject);
+    /* Fil-C: gcProtect goes through Heap::heap(cell), which this port
+     * stubs UNREACHABLE_FOR_PLATFORM (the cell->heap marker arithmetic is
+     * not fil-C-expressible) -- retaining the context would filc-panic on
+     * every call, which is exactly what the epiphany SharedJSContext hit
+     * on the first page load (jsc_context_new -> JSGlobalContextCreateInGroup
+     * -> JSGlobalContextRetain).  Use the VM& in scope instead, the same
+     * shape JSGlobalContextRelease below already uses for its unprotect. */
+    vm.heap.protect(globalObject);
     vm.ref();
     return ctx;
 }

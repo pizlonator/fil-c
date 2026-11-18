@@ -52,7 +52,11 @@ void JSAPIWrapperObjectHandleOwner::finalize(JSC::Handle<JSC::Unknown> handle, v
     if (!wrapperObject->wrappedObject())
         return;
 
-    JSC::Heap::heap(wrapperObject)->releaseSoon(std::unique_ptr<JSC::JSCGLibWrapperObject>(static_cast<JSC::JSCGLibWrapperObject*>(wrapperObject->wrappedObject())));
+    /* Fil-C: Heap::heap(cell) is stubbed UNREACHABLE_FOR_PLATFORM in this
+     * port, so the heap is reached through the cell's structure instead
+     * (Structure stores its VM& directly, and the structure outlives the
+     * finalized wrapper). */
+    wrapperObject->structure()->vm().heap.releaseSoon(std::unique_ptr<JSC::JSCGLibWrapperObject>(static_cast<JSC::JSCGLibWrapperObject*>(wrapperObject->wrappedObject())));
     JSC::WeakSet::deallocate(JSC::WeakImpl::asWeakImpl(handle.slot()));
 }
 

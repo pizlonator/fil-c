@@ -499,7 +499,10 @@ void JSValueProtect(JSContextRef ctx, JSValueRef value)
     JSLockHolder locker(globalObject);
 
     JSValue jsValue = toJSForGC(globalObject, value);
-    gcProtect(jsValue);
+    /* Fil-C: gcProtect/gcUnprotect go through Heap::heap(cell), which this
+     * port stubs UNREACHABLE_FOR_PLATFORM; derive the Heap from the global
+     * object's VM instead (the JSGlobalContextRelease pattern). */
+    globalObject->vm().heap.protect(jsValue);
 }
 
 void JSValueUnprotect(JSContextRef ctx, JSValueRef value)
@@ -508,5 +511,6 @@ void JSValueUnprotect(JSContextRef ctx, JSValueRef value)
     JSLockHolder locker(globalObject);
 
     JSValue jsValue = toJSForGC(globalObject, value);
-    gcUnprotect(jsValue);
+    /* Fil-C: see JSValueProtect above. */
+    globalObject->vm().heap.unprotect(jsValue);
 }
