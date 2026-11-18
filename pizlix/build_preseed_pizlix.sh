@@ -24,8 +24,6 @@ set -x
 # 3. /etc/ssl/certs/: the bundle split into individual PEM files plus the
 #    openssl hash symlinks (openssl rehash, run inside the chroot), so
 #    OpenSSL-based consumers find the same trust.
-# 4. /root/.ssh/authorized_keys + /home/pizlo/.ssh/authorized_keys: the
-#    t800 key (root and pizlo carry the same single key).
 #
 # Runs as root on the host with the repo as CWD.  Safe to re-run.
 
@@ -52,10 +50,6 @@ awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' $SRCDIR/pizlix/etc/ssl/ca-bundle.crt
 chmod 644 $LFS/etc/ssl/certs/cert-*.pem
 chroot $LFS /usr/bin/openssl rehash /etc/ssl/certs
 
-# 4. the ssh key for root and pizlo
-install -vDm600 $SRCDIR/pizlix/etc/authorized_keys $LFS/root/.ssh/authorized_keys
-install -vDm600 -o 1000 -g 1000 $SRCDIR/pizlix/etc/authorized_keys $LFS/home/pizlo/.ssh/authorized_keys
-
 # 5. DNS for the chroot-side gates (and as a sane default for the boot):
 #    dhcpcd rewrites /etc/resolv.conf at every Pizlix boot (and empties it
 #    again on shutdown), but the chroot-side builds run without dhcpcd, so
@@ -65,5 +59,4 @@ printf 'nameserver 10.0.2.3\n' > $LFS/etc/resolv.conf
 echo "== pre-seed summary:"
 ls -la $LFS/etc/ssl/ca-bundle.crt $LFS/etc/pki/anchors/
 ls $LFS/etc/ssl/certs | wc -l
-ls -la $LFS/root/.ssh/authorized_keys $LFS/home/pizlo/.ssh/authorized_keys
 echo "pre-seed OK"

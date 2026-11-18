@@ -58,11 +58,13 @@ Pizlix by default has the following configuration:
 
 Please change the passwords, or better yet, replace the `pizlo` user with some other user, if your Pizlix install will face the network!
 
-Once you get your internet to work (it will "just work" if `eth0` is DHCP capable), you'll need to run:
+Once you get your internet to work (it will "just work" if `eth0` is DHCP capable), HTTPS works right away, without any setup: the CA bundle is checked into the repo (`etc/ssl/ca-bundle.crt`), the build installs it into `/etc/ssl` (along with the split `/etc/ssl/certs` directory and the `/etc/pki/anchors` p11-kit trust path), and GnuTLS is built with that bundle as its default trust store. So `curl` and `wget` (and everything Glib-based, like Epiphany) can validate certificates from the first boot.
+
+You can still run:
 
     make-ca -g
 
-As `root`. Without this, `curl` and `wget` will have problems with HTTPS.
+As `root` to refresh the bundle with the latest certificate data, but it's no longer required.
 
 To see what this thing is really capable of, do:
 
