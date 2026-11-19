@@ -22,9 +22,12 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
+template<typename TaintT>
 struct CPU;
 struct Emulator;
 
@@ -41,6 +44,8 @@ constexpr size_t MAX_VEC_BYTES = 64;
 // instruction's execution time data-dependent (other than through branching
 // or indexing, which have their own bits).
 struct Taint {
+    // Trait flag: plain taint carries no poison-history trail (--history off).
+    static constexpr bool has_history = false;
     bool cannot_branch = false;
     bool cannot_index = false;
     bool cannot_var_time_op = false;
@@ -78,35 +83,153 @@ struct Taint {
     bool operator!=(const Taint& o) const { return !(*this == o); }
 };
 
+// Current instruction's guest PC, for --history poison-history recording.
+// Set at exec_one entry (pre-RIP-advance); read by HistoryTaint's recording.
+// Declared before HistoryTaint: its recording reads it.
+extern thread_local uint64_t zeg_history_pc;
+
+// --history mode taint: the same three enforcement bits plus a bounded
+// history of the guest PCs of the operations that produced or consumed the
+// poison (loads from poisoned memory, moves/merges into the value's
+// sidecar, stores of the value). Recording is driven by the value-assignment
+// operations themselves (operator=/operator|=) plus mem_get_taint (taint
+// from poisoned memory) and the engine's note_store wrapper (stores),
+// against the thread-local current-instruction PC set at exec_one entry.
+// Recording spans memory too: the poison map carries a per-byte trail that
+// poisoning requests union their call site into and stores of tainted
+// values rewrite, and a load seeds the value's trail from the set-unioned
+// per-byte trails of the bytes it reads (plus the load PC), so the
+// provenance survives memory round trips.
+// The history is printed (BFD-symbolicated) when a taint check faults.
+
+// Trail append with set-union semantics, shared by every site that puts a
+// PC into a trail (HistoryTaint::note_op_pc/merge below, and the memory-side
+// per-byte trails in mem.cpp). Defined after HistoryTaint (it needs
+// kMaxHistory); forward-declared here so the member bodies below can use it.
+inline void zeg_trail_add(std::vector<uint64_t>& trail, uint64_t pc);
+
+struct HistoryTaint {
+    static constexpr bool has_history = true;
+    bool cannot_branch = false;
+    bool cannot_index = false;
+    bool cannot_var_time_op = false;
+    std::vector<uint64_t> history; // guest PCs, oldest first
+    // Trail capacity: when full, adding a new PC drops the OLDEST entry, so
+    // the trail keeps the MOST RECENT operations (the faulting site is never
+    // silently frozen out).
+    static constexpr size_t kMaxHistory = 4096;
+    HistoryTaint() = default;
+    bool any() const {
+        return cannot_branch || cannot_index || cannot_var_time_op;
+    }
+    bool empty() const { return !any(); }
+    void clear() {
+        cannot_branch = false;
+        cannot_index = false;
+        cannot_var_time_op = false;
+        history.clear();
+    }
+    // Record the current instruction's PC if this taint is poisoned (union
+    // semantics via zeg_trail_add: a PC already present anywhere in the
+    // trail is not re-added, which collapses repeats from loops; the cap
+    // keeps the most recent entries).
+    void note_op_pc() {
+        if (!any())
+            return;
+        zeg_trail_add(history, zeg_history_pc);
+    }
+    void merge(const HistoryTaint& o) {
+        cannot_branch = cannot_branch || o.cannot_branch;
+        cannot_index = cannot_index || o.cannot_index;
+        cannot_var_time_op = cannot_var_time_op || o.cannot_var_time_op;
+        // Set-union the other trail in: two operands with the same
+        // provenance (or N bytes loaded from identically-provenanced bytes)
+        // merge to the distinct set of operations instead of N concatenated
+        // copies.
+        for (uint64_t pc : o.history)
+            zeg_trail_add(history, pc);
+    }
+    HistoryTaint operator|(const HistoryTaint& o) const {
+        HistoryTaint r = *this;
+        r.merge(o);
+        return r; // temp only: the op PC is noted when this is assigned
+    }
+    HistoryTaint& operator|=(const HistoryTaint& o) {
+        merge(o);
+        note_op_pc();
+        return *this;
+    }
+    // Assignment into a value's sidecar: adopt the source's provenance and
+    // record this operation's PC (the move/math that produced the value).
+    HistoryTaint& operator=(const HistoryTaint& o) {
+        cannot_branch = o.cannot_branch;
+        cannot_index = o.cannot_index;
+        cannot_var_time_op = o.cannot_var_time_op;
+        history = o.history;
+        note_op_pc();
+        return *this;
+    }
+};
+
+// Append pc to a poison trail unless it is already present anywhere in it
+// (union semantics; first-occurrence order preserves the chronology of
+// first use). This is what keeps merged trails from inflating: N bytes with
+// identical provenance, or two operands with the same provenance, merge to
+// the distinct set of operations instead of N concatenated copies. When the
+// trail is saturated it keeps the MOST RECENT entries: adding a new PC drops
+// the oldest one (so the faulting site is never silently frozen out).
+inline void zeg_trail_add(std::vector<uint64_t>& trail, uint64_t pc) {
+    if (std::find(trail.begin(), trail.end(), pc) != trail.end())
+        return;
+    if (trail.size() >= HistoryTaint::kMaxHistory)
+        trail.erase(trail.begin());
+    trail.push_back(pc);
+}
+
 // Common memory pipeline. Guest VA == host VA, so the fast path is memcpy,
 // but every access goes through here so poisoning / fault translation can
-// hook in one place. All functions take CPU* for future per-thread checks.
+// hook in one place. All functions take a CPU* for future per-thread checks.
+// The API is templated on the taint sidecar type (Taint, or HistoryTaint in
+// --history mode); both instantiations are explicitly defined in mem.cpp.
 //
 // Faults (host SIGSEGV/SIGBUS on the access) are translated into a guest
 // core dump via the fault-recovery mechanism (see mem.cpp); they never
 // propagate as host crashes.
 
 // Scalar loads/stores.
-uint8_t mem_load8(CPU* cpu, uint64_t addr);
-uint16_t mem_load16(CPU* cpu, uint64_t addr);
-uint32_t mem_load32(CPU* cpu, uint64_t addr);
-uint64_t mem_load64(CPU* cpu, uint64_t addr);
-void mem_store8(CPU* cpu, uint64_t addr, uint8_t v);
-void mem_store16(CPU* cpu, uint64_t addr, uint16_t v);
-void mem_store32(CPU* cpu, uint64_t addr, uint32_t v);
-void mem_store64(CPU* cpu, uint64_t addr, uint64_t v);
+template<typename TaintT>
+uint8_t mem_load8(CPU<TaintT>* cpu, uint64_t addr);
+template<typename TaintT>
+uint16_t mem_load16(CPU<TaintT>* cpu, uint64_t addr);
+template<typename TaintT>
+uint32_t mem_load32(CPU<TaintT>* cpu, uint64_t addr);
+template<typename TaintT>
+uint64_t mem_load64(CPU<TaintT>* cpu, uint64_t addr);
+template<typename TaintT>
+void mem_store8(CPU<TaintT>* cpu, uint64_t addr, uint8_t v);
+template<typename TaintT>
+void mem_store16(CPU<TaintT>* cpu, uint64_t addr, uint16_t v);
+template<typename TaintT>
+void mem_store32(CPU<TaintT>* cpu, uint64_t addr, uint32_t v);
+template<typename TaintT>
+void mem_store64(CPU<TaintT>* cpu, uint64_t addr, uint64_t v);
 
 // Wide vector loads/stores.
-void mem_load_bytes(CPU* cpu, uint64_t addr, uint8_t* out, size_t n);
-void mem_store_bytes(CPU* cpu, uint64_t addr, const uint8_t* in, size_t n);
+template<typename TaintT>
+void mem_load_bytes(CPU<TaintT>* cpu, uint64_t addr, uint8_t* out, size_t n);
+template<typename TaintT>
+void mem_store_bytes(CPU<TaintT>* cpu, uint64_t addr, const uint8_t* in,
+                     size_t n);
 
 // Fetch up to 15 bytes of guest code at rip into buf. Returns number of
 // bytes that could be read (caller needs >= 1; short reads only happen if
 // the page tail is unmapped, in which case a fault is raised).
-size_t mem_read_code(CPU* cpu, uint64_t rip, uint8_t* buf);
+template<typename TaintT>
+size_t mem_read_code(CPU<TaintT>* cpu, uint64_t rip, uint8_t* buf);
 
 // Raw byte copy helpers used by string ops (rep movs etc.).
-void mem_copy(CPU* cpu, uint64_t dst, uint64_t src, size_t n);
+template<typename TaintT>
+void mem_copy(CPU<TaintT>* cpu, uint64_t dst, uint64_t src, size_t n);
 
 // Guarded host read for core dumps: copy [src,src+n) to dst, returning false
 // (with the failed tail zeroed) instead of raising on an unmapped page.
@@ -136,14 +259,21 @@ void mem_watch_hint(uint64_t base, uint64_t len);
 void mem_unpoison_range(Emulator* emu, uint64_t addr, size_t size);
 
 // Per-access poison checks. Throw (via guest_error) on violation.
-void mem_check_load(CPU* cpu, uint64_t addr, size_t size);
-void mem_check_store(CPU* cpu, uint64_t addr, size_t size);
+template<typename TaintT>
+void mem_check_load(CPU<TaintT>* cpu, uint64_t addr, size_t size);
+template<typename TaintT>
+void mem_check_store(CPU<TaintT>* cpu, uint64_t addr, size_t size);
 
 // Taint side of poisoning: OR the taint bits (cannot-branch, cannot-index,
 // cannot-var-time-op) of [addr,size) into *out (cleared if unpoisoned). Used
-// to taint loaded register values.
-void mem_get_taint(uint64_t addr, size_t size, Taint* out);
-inline void mem_get_taint(uint64_t addr, size_t size, Taint& out) {
+// to taint loaded register values. In --history mode the out taint's trail
+// is seeded from the set-unioned per-byte poison history over the loaded
+// range (see mem_note_store) plus the current instruction (the load site); a
+// clean value (no bits) carries no trail.
+template<typename TaintT>
+void mem_get_taint(uint64_t addr, size_t size, TaintT* out);
+template<typename TaintT>
+inline void mem_get_taint(uint64_t addr, size_t size, TaintT& out) {
     mem_get_taint(addr, size, &out);
 }
 
@@ -153,13 +283,22 @@ inline void mem_get_taint(uint64_t addr, size_t size, Taint& out) {
 // taint). If the destination already carries a clear-on-store bit for a
 // tainted value, that value bit is cleared instead (store sanitizes).
 // Load/store poison bits and clear bits are sticky.
-void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t);
+// In --history mode the destination bytes' poison history is rewritten too:
+// a store of a tainted value records the stored value's trail plus the
+// store PC into each destination byte (the stored value's provenance now
+// owns those bytes), a store that zeroes a byte's last taint bit erases the
+// byte's history with its bits entry, and a clean store leaves the history
+// alone (the sticky CANNOT_LOAD/CANNOT_STORE bits keep the original poison
+// provenance meaningful).
+template<typename TaintT>
+void mem_note_store(CPU<TaintT>* cpu, uint64_t addr, size_t size, TaintT t);
 
 // Poisoning client request (magic call 0x1410141014101410):
 //   RDI=op, RSI=ptr, RDX=size, RCX=flags.
 // op 0 = no-op/query (returns 0); op 1 = poison with flags bitmask
 // (POISON_* bits 1:1); op 2 = unpoison range. Returns the RAX result.
-uint64_t mem_client_request(Emulator* emu, CPU* cpu, uint64_t op,
+template<typename TaintT>
+uint64_t mem_client_request(Emulator* emu, CPU<TaintT>* cpu, uint64_t op,
                             uint64_t ptr, uint64_t size, uint64_t flags);
 
 // Install host SIGSEGV/SIGBUS/SIGILL/SIGFPE handler that redirects
@@ -182,10 +321,12 @@ void mem_set_dumping(bool v);
 bool mem_dumping();
 
 // Fault recovery scope: set around the interpreter loop body per instruction.
+// (The stored pointer is only null-checked by the fault handler; it is
+// type-erased so the scope works for either CPU instantiation.)
 struct FaultScope {
-    CPU* cpu;
+    const void* cpu;
     bool armed = false;
-    FaultScope(CPU* c);
+    FaultScope(const void* c);
     ~FaultScope();
 };
 
@@ -193,10 +334,10 @@ struct FaultScope {
 // SIGSEGV/SIGBUS/SIGILL/SIGFPE raised outside a mem accessor (or inside one
 // for ILL/FPE) become guest errors at the current guest RIP.
 struct LoopScope {
-    CPU* cpu = nullptr;
+    const void* cpu = nullptr;
     bool prev_armed = false;
-    CPU* prev_cpu = nullptr;
-    LoopScope(CPU* c);
+    const void* prev_cpu = nullptr;
+    LoopScope(const void* c);
     ~LoopScope();
 };
 
@@ -205,10 +346,16 @@ struct LoopScope {
 bool mem_loop_fault(int* signo, uint64_t* addr);
 
 // Raised on any fatal guest error; caught at the top of the thread loop
-// which then dumps core.
+// which then dumps core. Templated on the taint type; carries the offending
+// value's poison history (--history mode; empty for plain Taint).
+template<typename TaintT>
 struct GuestError {
-    CPU* cpu;
+    CPU<TaintT>* cpu;
     uint64_t fault_addr = 0;
     const char* reason = nullptr;
+    std::vector<uint64_t> poison_history; // offending value's --history trail
 };
-[[noreturn]] void guest_error(CPU* cpu, const char* reason, uint64_t fault_addr = 0);
+template<typename TaintT>
+[[noreturn]] void guest_error(CPU<TaintT>* cpu, const char* reason,
+                              uint64_t fault_addr = 0,
+                              std::vector<uint64_t> poison_history = {});

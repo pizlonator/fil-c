@@ -34,6 +34,11 @@
 #include "cpu.h"
 #include "emulator.h"
 
+// Current instruction's guest PC for --history poison-history recording
+// (see HistoryTaint in mem.h). Set once per instruction by the engine's
+// exec_one entry (pre-RIP-advance); only HistoryTaint ever reads it.
+thread_local uint64_t zeg_history_pc = 0;
+
 // --- fault recovery --------------------------------------------------------
 // Each emulator thread arms a thread_local recovery point while it touches
 // guest memory. A host SIGSEGV/SIGBUS on that thread longjmps back out and
@@ -49,7 +54,9 @@ thread_local uint64_t t_recovery_fault = 0;
 // inline asm like RDRAND) and routes them to the guest core-dump path.
 thread_local sigjmp_buf t_loop_buf;
 thread_local bool t_loop_armed = false;
-thread_local CPU* t_loop_cpu = nullptr;
+// Type-erased CPU pointer (CPU<Taint> or CPU<HistoryTaint>): the fault
+// handler only null-checks it, never dereferences it.
+thread_local const void* t_loop_cpu = nullptr;
 thread_local int t_loop_sig = 0;
 thread_local uint64_t t_loop_addr = 0;
 thread_local bool t_loop_pending = false;
@@ -116,7 +123,7 @@ void mem_install_fault_handler() {
     sigaction(SIGFPE, &sa, nullptr);
 }
 
-LoopScope::LoopScope(CPU* c) : cpu(c) {
+LoopScope::LoopScope(const void* c) : cpu(c) {
     prev_armed = t_loop_armed;
     prev_cpu = t_loop_cpu;
     if (sigsetjmp(t_loop_buf, 1))
@@ -143,14 +150,18 @@ bool mem_loop_fault(int* signo, uint64_t* addr) {
     return true;
 }
 
-FaultScope::FaultScope(CPU* c) : cpu(c) {}
+FaultScope::FaultScope(const void* c) : cpu(c) {}
 FaultScope::~FaultScope() {}
 
-[[noreturn]] void guest_error(CPU* cpu, const char* reason, uint64_t fault_addr) {
-    GuestError e;
+template<typename TaintT>
+[[noreturn]] void guest_error(CPU<TaintT>* cpu, const char* reason,
+                              uint64_t fault_addr,
+                              std::vector<uint64_t> poison_history) {
+    GuestError<TaintT> e;
     e.cpu = cpu;
     e.reason = reason;
     e.fault_addr = fault_addr;
+    e.poison_history = std::move(poison_history);
     throw e;
 }
 
@@ -165,6 +176,18 @@ FaultScope::~FaultScope() {}
 
 static std::mutex g_poison_mu;
 static std::map<uint64_t, uint8_t> g_poison; // key: byte address
+
+// --history: per-byte poison provenance (only populated when a HistoryTaint
+// instantiation is running; plain mode never touches it). Each poisoned
+// byte carries the trail of the operations that poisoned it: the poisoning
+// client request unions the magic CALL's PC into it (only for ranges
+// poisoned with a value-taint flag; a byte erased by unpoison starts fresh),
+// a store of a tainted value replaces it with the stored value's trail plus
+// the store PC, a clean store leaves it alone (the CANNOT_LOAD/CANNOT_STORE
+// bits are sticky, so the original poison provenance stays meaningful), and
+// unpoison erases it. mem_get_taint seeds the loaded value's trail from the
+// set-unioned per-byte trails over the loaded range, plus the load PC.
+static std::map<uint64_t, std::vector<uint64_t>> g_poison_hist; // key: byte address
 
 void mem_poison_range(Emulator*, uint64_t addr, size_t size, unsigned kind) {
     if (!size)
@@ -188,15 +211,41 @@ void mem_unpoison_range(Emulator*, uint64_t addr, size_t size) {
         end = UINT64_MAX;
     while (it != g_poison.end() && it->first < end)
         it = g_poison.erase(it);
+    // --history: erase the bytes' poison provenance too (a no-op on an
+    // empty map in plain mode).
+    auto hit = g_poison_hist.lower_bound(addr);
+    while (hit != g_poison_hist.end() && hit->first < end)
+        hit = g_poison_hist.erase(hit);
 }
 
-uint64_t mem_client_request(Emulator* emu, CPU* cpu, uint64_t op,
+template<typename TaintT>
+uint64_t mem_client_request(Emulator* emu, CPU<TaintT>* cpu, uint64_t op,
                             uint64_t ptr, uint64_t size, uint64_t flags) {
     (void)cpu;
     if (op == 0)
         return 0; // no-op/query
     if (op == 1) {
         mem_poison_range(emu, ptr, (size_t)size, (unsigned)flags);
+        if constexpr (TaintT::has_history) {
+            // Seed each byte's provenance with the poisoning call site: the
+            // magic CALL's own RIP (exec_one sets zeg_history_pc pre-advance
+            // and exec_call intercepts the magic target before advancing).
+            // Only ranges poisoned with a value-taint flag ever produce
+            // tainted values (CANNOT_LOAD/CANNOT_STORE-only or CLEAR_*-only
+            // ranges never set a taint bit), so skip the seeding for those.
+            // Union semantics: re-poisoning a byte ORs the new poison site
+            // into its provenance instead of replacing it, matching
+            // mem_poison_range's bit-OR; a byte erased by op 2 starts fresh
+            // with the new call site.
+            unsigned kind = (unsigned)flags & 0xff;
+            if (size && (kind & (POISON_CANNOT_BRANCH |
+                                 POISON_CANNOT_INDEX |
+                                 POISON_CANNOT_VAR_TIME_OP))) {
+                std::lock_guard<std::mutex> l(g_poison_mu);
+                for (size_t i = 0; i < (size_t)size; i++)
+                    zeg_trail_add(g_poison_hist[ptr + i], zeg_history_pc);
+            }
+        }
         return 0;
     }
     if (op == 2) {
@@ -216,7 +265,8 @@ void mem_watch_hint(uint64_t base, uint64_t len) {
 }
 
 static uint64_t g_watch_vlo = 0, g_watch_vhi = 0;
-static inline void watch_check(CPU* cpu, uint64_t addr, size_t size,
+template<typename TaintT>
+static inline void watch_check(CPU<TaintT>* cpu, uint64_t addr, size_t size,
                                uint64_t val) {
     if (g_watch_init && g_watch_vlo == 0) {
         const char* e = getenv("ZEG_WATCH_VAL");
@@ -274,20 +324,72 @@ static unsigned poison_lookup(uint64_t addr, size_t size) {
     return bits;
 }
 
-void mem_get_taint(uint64_t addr, size_t size, Taint* out) {
-    unsigned bits = poison_lookup(addr, size);
+// Bits plus the set-unioned per-byte poison history over [addr, addr+size),
+// under one lock. hist_out may be null (plain mode). Unlike poison_lookup
+// there is no early break: every byte's trail is needed for the merged
+// provenance.
+static unsigned poison_lookup_hist(uint64_t addr, size_t size,
+                                   std::vector<uint64_t>* hist_out) {
+    uint64_t end = addr + size;
+    if (end < addr)
+        end = UINT64_MAX;
+    std::lock_guard<std::mutex> l(g_poison_mu);
+    unsigned bits = 0;
+    if (hist_out)
+        hist_out->clear();
+    for (auto it = g_poison.lower_bound(addr);
+         it != g_poison.end() && it->first < end; ++it) {
+        bits |= it->second;
+        if (hist_out) {
+            auto hit = g_poison_hist.find(it->first);
+            if (hit != g_poison_hist.end()) {
+                // Set-union the byte's trail into the merged provenance
+                // (same rule as HistoryTaint::merge): N bytes with identical
+                // provenance yield the distinct set of operations, not N
+                // concatenated copies.
+                for (uint64_t pc : hit->second)
+                    zeg_trail_add(*hist_out, pc);
+            }
+        }
+    }
+    return bits;
+}
+
+template<typename TaintT>
+void mem_get_taint(uint64_t addr, size_t size, TaintT* out) {
+    std::vector<uint64_t> mem_hist;
+    unsigned bits = poison_lookup_hist(addr, size,
+                                       TaintT::has_history ? &mem_hist
+                                                           : nullptr);
     if (!out)
         return;
     out->cannot_branch = (bits & POISON_CANNOT_BRANCH) != 0;
     out->cannot_index = (bits & POISON_CANNOT_INDEX) != 0;
     out->cannot_var_time_op = (bits & POISON_CANNOT_VAR_TIME_OP) != 0;
+    if constexpr (TaintT::has_history) {
+        out->history.clear();
+        if (out->any()) {
+            // The value inherits the poison provenance of the memory it was
+            // loaded from (merged per-byte trails), plus this load's PC.
+            out->history = std::move(mem_hist);
+            out->note_op_pc();
+        }
+    }
 }
 
 // Store taint semantics (see mem.h): the destination bytes gain the stored
 // value's taint bits plus the matching clear-on-store bit, so
 // a later store to a clear-on-store location sanitizes the value (and the
 // memory). Load/store poison bits and clear bits are sticky.
-void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t) {
+// --history: a store of a tainted value also records the stored value's
+// trail plus the store PC into the destination bytes' poison history (the
+// stored value's provenance now owns those bytes), and a store that clears
+// a byte's last taint bit (its bits reach 0) erases the byte's history with
+// the bits entry; a clean store leaves the history alone (the sticky
+// CANNOT_LOAD/CANNOT_STORE bits keep the original poison provenance
+// meaningful).
+template<typename TaintT>
+void mem_note_store(CPU<TaintT>* cpu, uint64_t addr, size_t size, TaintT t) {
     (void)cpu;
     bool cb = t.cannot_branch, ci = t.cannot_index;
     bool cvt = t.cannot_var_time_op;
@@ -311,16 +413,28 @@ void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t) {
             if (old & POISON_CLEAR_VAR_TIME_OP_ON_STORE)
                 nu &= ~(uint8_t)POISON_CANNOT_VAR_TIME_OP;
             if (nu != old) {
-                if (nu)
+                if (nu) {
                     it->second = nu;
-                else
+                } else {
+                    uint64_t a = it->first;
                     it = g_poison.erase(it);
+                    if constexpr (TaintT::has_history)
+                        g_poison_hist.erase(a);
+                }
                 if (!nu)
                     continue;
             }
             ++it;
         }
         return;
+    }
+    std::vector<uint64_t> stored_hist;
+    if constexpr (TaintT::has_history) {
+        stored_hist = t.history;
+        // note_store_op already appended the store PC to the sidecar it
+        // copied from; be robust to direct callers too (union semantics:
+        // the add is a no-op when the PC is already present).
+        zeg_trail_add(stored_hist, zeg_history_pc);
     }
     std::lock_guard<std::mutex> l(g_poison_mu);
     for (size_t i = 0; i < size; i++) {
@@ -349,20 +463,27 @@ void mem_note_store(CPU* cpu, uint64_t addr, size_t size, Taint t) {
                 nu |= (uint8_t)(POISON_CANNOT_VAR_TIME_OP |
                                 POISON_CLEAR_VAR_TIME_OP_ON_STORE);
         }
-        if (nu)
+        if (nu) {
             g_poison[a] = nu;
-        else if (it != g_poison.end())
+            if constexpr (TaintT::has_history)
+                g_poison_hist[a] = stored_hist;
+        } else if (it != g_poison.end()) {
             g_poison.erase(it);
+            if constexpr (TaintT::has_history)
+                g_poison_hist.erase(a);
+        }
     }
 }
 
-void mem_check_load(CPU* cpu, uint64_t addr, size_t size) {
+template<typename TaintT>
+void mem_check_load(CPU<TaintT>* cpu, uint64_t addr, size_t size) {
     unsigned bits = poison_lookup(addr, size);
     if (bits & POISON_CANNOT_LOAD)
         guest_error(cpu, "load from poisoned (cannot-load) memory", addr);
 }
 
-void mem_check_store(CPU* cpu, uint64_t addr, size_t size) {
+template<typename TaintT>
+void mem_check_store(CPU<TaintT>* cpu, uint64_t addr, size_t size) {
     unsigned bits = poison_lookup(addr, size);
     if (bits & POISON_CANNOT_STORE)
         guest_error(cpu, "store to poisoned (cannot-store) memory", addr);
@@ -393,7 +514,8 @@ template <typename T> static inline void raw_store(uint64_t addr, T v) {
         return _v;                                                                     \
     })()
 
-uint8_t mem_load8(CPU* cpu, uint64_t addr) {
+template<typename TaintT>
+uint8_t mem_load8(CPU<TaintT>* cpu, uint64_t addr) {
     mem_check_load(cpu, addr, 1);
     t_recovery_armed = true;
     uint8_t v = 0;
@@ -406,7 +528,8 @@ uint8_t mem_load8(CPU* cpu, uint64_t addr) {
     return v;
 }
 
-uint16_t mem_load16(CPU* cpu, uint64_t addr) {
+template<typename TaintT>
+uint16_t mem_load16(CPU<TaintT>* cpu, uint64_t addr) {
     mem_check_load(cpu, addr, 2);
     t_recovery_armed = true;
     uint16_t v = 0;
@@ -419,7 +542,8 @@ uint16_t mem_load16(CPU* cpu, uint64_t addr) {
     return v;
 }
 
-uint32_t mem_load32(CPU* cpu, uint64_t addr) {
+template<typename TaintT>
+uint32_t mem_load32(CPU<TaintT>* cpu, uint64_t addr) {
     mem_check_load(cpu, addr, 4);
     t_recovery_armed = true;
     uint32_t v = 0;
@@ -432,7 +556,8 @@ uint32_t mem_load32(CPU* cpu, uint64_t addr) {
     return v;
 }
 
-uint64_t mem_load64(CPU* cpu, uint64_t addr) {
+template<typename TaintT>
+uint64_t mem_load64(CPU<TaintT>* cpu, uint64_t addr) {
     mem_check_load(cpu, addr, 8);
     t_recovery_armed = true;
     uint64_t v = 0;
@@ -445,7 +570,8 @@ uint64_t mem_load64(CPU* cpu, uint64_t addr) {
     return v;
 }
 
-void mem_store8(CPU* cpu, uint64_t addr, uint8_t v) {
+template<typename TaintT>
+void mem_store8(CPU<TaintT>* cpu, uint64_t addr, uint8_t v) {
     watch_check(cpu, addr, 1, v);
     mem_check_store(cpu, addr, 1);
     t_recovery_armed = true;
@@ -457,7 +583,8 @@ void mem_store8(CPU* cpu, uint64_t addr, uint8_t v) {
     t_recovery_armed = false;
 }
 
-void mem_store16(CPU* cpu, uint64_t addr, uint16_t v) {
+template<typename TaintT>
+void mem_store16(CPU<TaintT>* cpu, uint64_t addr, uint16_t v) {
     watch_check(cpu, addr, 2, v);
     mem_check_store(cpu, addr, 2);
     t_recovery_armed = true;
@@ -469,7 +596,8 @@ void mem_store16(CPU* cpu, uint64_t addr, uint16_t v) {
     t_recovery_armed = false;
 }
 
-void mem_store32(CPU* cpu, uint64_t addr, uint32_t v) {
+template<typename TaintT>
+void mem_store32(CPU<TaintT>* cpu, uint64_t addr, uint32_t v) {
     watch_check(cpu, addr, 4, v);
     mem_check_store(cpu, addr, 4);
     t_recovery_armed = true;
@@ -481,7 +609,8 @@ void mem_store32(CPU* cpu, uint64_t addr, uint32_t v) {
     t_recovery_armed = false;
 }
 
-void mem_store64(CPU* cpu, uint64_t addr, uint64_t v) {
+template<typename TaintT>
+void mem_store64(CPU<TaintT>* cpu, uint64_t addr, uint64_t v) {
     watch_check(cpu, addr, 8, v);
     mem_check_store(cpu, addr, 8);
     t_recovery_armed = true;
@@ -493,7 +622,8 @@ void mem_store64(CPU* cpu, uint64_t addr, uint64_t v) {
     t_recovery_armed = false;
 }
 
-void mem_load_bytes(CPU* cpu, uint64_t addr, uint8_t* out, size_t n) {
+template<typename TaintT>
+void mem_load_bytes(CPU<TaintT>* cpu, uint64_t addr, uint8_t* out, size_t n) {
     mem_check_load(cpu, addr, n);
     t_recovery_armed = true;
     if (sigsetjmp(t_recovery_buf, 1)) {
@@ -504,7 +634,8 @@ void mem_load_bytes(CPU* cpu, uint64_t addr, uint8_t* out, size_t n) {
     t_recovery_armed = false;
 }
 
-void mem_store_bytes(CPU* cpu, uint64_t addr, const uint8_t* in, size_t n) {
+template<typename TaintT>
+void mem_store_bytes(CPU<TaintT>* cpu, uint64_t addr, const uint8_t* in, size_t n) {
     if (n <= 8) {
         uint64_t v = 0;
         memcpy(&v, in, n);
@@ -522,13 +653,14 @@ void mem_store_bytes(CPU* cpu, uint64_t addr, const uint8_t* in, size_t n) {
     t_recovery_armed = false;
 }
 
-void mem_copy(CPU* cpu, uint64_t dst, uint64_t src, size_t n) {
+template<typename TaintT>
+void mem_copy(CPU<TaintT>* cpu, uint64_t dst, uint64_t src, size_t n) {
     if (!n)
         return;
     watch_check(cpu, dst, n, 0xccccccccccccccccULL);
     mem_check_load(cpu, src, n);
     mem_check_store(cpu, dst, n);
-    Taint t;
+    TaintT t;
     mem_get_taint(src, n, &t);
     t_recovery_armed = true;
     if (sigsetjmp(t_recovery_buf, 1)) {
@@ -569,7 +701,8 @@ bool mem_copy_guarded(uint64_t src, void* dst, size_t n) {
     return ok;
 }
 
-size_t mem_read_code(CPU* cpu, uint64_t rip, uint8_t* buf) {
+template<typename TaintT>
+size_t mem_read_code(CPU<TaintT>* cpu, uint64_t rip, uint8_t* buf) {
     // Code fetch: try to copy 15 bytes; on fault, copy byte-by-byte to find
     // how much is readable, then raise if nothing is.
     t_recovery_armed = true;
@@ -594,3 +727,61 @@ size_t mem_read_code(CPU* cpu, uint64_t rip, uint8_t* buf) {
     t_recovery_armed = false;
     return 15;
 }
+
+// --- explicit instantiations -----------------------------------------------
+// The whole mem API is templated on the taint sidecar type so the engine can
+// run with plain Taint (default) or --history's HistoryTaint. Both
+// instantiations are defined here once; no other TU instantiates them.
+
+template uint8_t mem_load8<Taint>(CPU<Taint>*, uint64_t);
+template uint8_t mem_load8<HistoryTaint>(CPU<HistoryTaint>*, uint64_t);
+template uint16_t mem_load16<Taint>(CPU<Taint>*, uint64_t);
+template uint16_t mem_load16<HistoryTaint>(CPU<HistoryTaint>*, uint64_t);
+template uint32_t mem_load32<Taint>(CPU<Taint>*, uint64_t);
+template uint32_t mem_load32<HistoryTaint>(CPU<HistoryTaint>*, uint64_t);
+template uint64_t mem_load64<Taint>(CPU<Taint>*, uint64_t);
+template uint64_t mem_load64<HistoryTaint>(CPU<HistoryTaint>*, uint64_t);
+template void mem_store8<Taint>(CPU<Taint>*, uint64_t, uint8_t);
+template void mem_store8<HistoryTaint>(CPU<HistoryTaint>*, uint64_t, uint8_t);
+template void mem_store16<Taint>(CPU<Taint>*, uint64_t, uint16_t);
+template void mem_store16<HistoryTaint>(CPU<HistoryTaint>*, uint64_t, uint16_t);
+template void mem_store32<Taint>(CPU<Taint>*, uint64_t, uint32_t);
+template void mem_store32<HistoryTaint>(CPU<HistoryTaint>*, uint64_t, uint32_t);
+template void mem_store64<Taint>(CPU<Taint>*, uint64_t, uint64_t);
+template void mem_store64<HistoryTaint>(CPU<HistoryTaint>*, uint64_t, uint64_t);
+template void mem_load_bytes<Taint>(CPU<Taint>*, uint64_t, uint8_t*, size_t);
+template void mem_load_bytes<HistoryTaint>(CPU<HistoryTaint>*, uint64_t,
+                                           uint8_t*, size_t);
+template void mem_store_bytes<Taint>(CPU<Taint>*, uint64_t, const uint8_t*,
+                                     size_t);
+template void mem_store_bytes<HistoryTaint>(CPU<HistoryTaint>*, uint64_t,
+                                            const uint8_t*, size_t);
+template size_t mem_read_code<Taint>(CPU<Taint>*, uint64_t, uint8_t*);
+template size_t mem_read_code<HistoryTaint>(CPU<HistoryTaint>*, uint64_t,
+                                            uint8_t*);
+template void mem_copy<Taint>(CPU<Taint>*, uint64_t, uint64_t, size_t);
+template void mem_copy<HistoryTaint>(CPU<HistoryTaint>*, uint64_t, uint64_t,
+                                     size_t);
+template void mem_check_load<Taint>(CPU<Taint>*, uint64_t, size_t);
+template void mem_check_load<HistoryTaint>(CPU<HistoryTaint>*, uint64_t,
+                                           size_t);
+template void mem_check_store<Taint>(CPU<Taint>*, uint64_t, size_t);
+template void mem_check_store<HistoryTaint>(CPU<HistoryTaint>*, uint64_t,
+                                            size_t);
+template void mem_get_taint<Taint>(uint64_t, size_t, Taint*);
+template void mem_get_taint<HistoryTaint>(uint64_t, size_t, HistoryTaint*);
+template void mem_note_store<Taint>(CPU<Taint>*, uint64_t, size_t, Taint);
+template void mem_note_store<HistoryTaint>(CPU<HistoryTaint>*, uint64_t,
+                                           size_t, HistoryTaint);
+template uint64_t mem_client_request<Taint>(Emulator*, CPU<Taint>*, uint64_t,
+                                            uint64_t, uint64_t, uint64_t);
+template uint64_t mem_client_request<HistoryTaint>(Emulator*,
+                                                   CPU<HistoryTaint>*, uint64_t,
+                                                   uint64_t, uint64_t,
+                                                   uint64_t);
+template [[noreturn]] void guest_error<Taint>(CPU<Taint>*, const char*,
+                                              uint64_t,
+                                              std::vector<uint64_t>);
+template [[noreturn]] void guest_error<HistoryTaint>(CPU<HistoryTaint>*,
+                                                     const char*, uint64_t,
+                                                     std::vector<uint64_t>);

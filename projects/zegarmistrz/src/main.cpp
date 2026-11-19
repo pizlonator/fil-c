@@ -44,33 +44,17 @@
 #include <signal.h>
 
 static Emulator* g_sig_emu = nullptr;
-// SIGUSR1: dump guest backtraces (async-signal-safe-ish, debug only).
-static void sigusr1_handler(int) {
-    Emulator* emu = g_sig_emu;
-    if (!emu)
-        return;
-    {
-        FILE* mf = fopen("/proc/self/maps", "r");
-        if (mf) {
-            char line[512];
-            while (fgets(line, sizeof(line), mf)) {
-                if (strstr(line, "pizfix") || strstr(line, "hello"))
-                    fprintf(stderr, "[zegarmistrz] map %s", line);
-            }
-            fclose(mf);
-            fflush(stderr);
-        }
-    }
+
+// Per-thread dump for the SIGUSR1 handler. thread_cpus is type-erased
+// (CPU<Taint> or CPU<HistoryTaint> depending on history_mode), so the
+// per-thread print is templated on the taint type and dispatched below.
+template<typename TaintT>
+static void sigusr1_dump_cpus(Emulator* emu,
+                              const std::vector<void*>& snapshot) {
+    (void)emu;
     char buf[256];
-    // Copy the live-thread list under lock; entries are erased (never left
-    // dangling) on thread exit, but the handler still skips nulls.
-    std::vector<CPU*> snapshot;
-    {
-        std::lock_guard<std::mutex> l(emu->thread_mu);
-        snapshot = emu->thread_cpus;
-    }
     for (size_t t = 0; t < snapshot.size(); t++) {
-        CPU* cpu = snapshot[t];
+        CPU<TaintT>* cpu = (CPU<TaintT>*)snapshot[t];
         if (!cpu)
             continue;
         int n = snprintf(buf, sizeof(buf),
@@ -88,6 +72,36 @@ static void sigusr1_handler(int) {
         }
         fflush(stderr);
     }
+}
+
+// SIGUSR1: dump guest backtraces (async-signal-safe-ish, debug only).
+static void sigusr1_handler(int) {
+    Emulator* emu = g_sig_emu;
+    if (!emu)
+        return;
+    {
+        FILE* mf = fopen("/proc/self/maps", "r");
+        if (mf) {
+            char line[512];
+            while (fgets(line, sizeof(line), mf)) {
+                if (strstr(line, "pizfix") || strstr(line, "hello"))
+                    fprintf(stderr, "[zegarmistrz] map %s", line);
+            }
+            fclose(mf);
+            fflush(stderr);
+        }
+    }
+    // Copy the live-thread list under lock; entries are erased (never left
+    // dangling) on thread exit, but the handler still skips nulls.
+    std::vector<void*> snapshot;
+    {
+        std::lock_guard<std::mutex> l(emu->thread_mu);
+        snapshot = emu->thread_cpus;
+    }
+    if (emu->history_mode)
+        sigusr1_dump_cpus<HistoryTaint>(emu, snapshot);
+    else
+        sigusr1_dump_cpus<Taint>(emu, snapshot);
 }
 #include "decode_exec.h"
 #include "elf_loader.h"
@@ -107,6 +121,10 @@ static void usage(const char* argv0) {
             "  --no-core, --passthrough-signals\n"
             "                    do not install host signal handlers and do not\n"
             "                    write core dumps (guest errors just print)\n"
+            "  --history         record a per-value poison history trail (the\n"
+            "                    guest PCs of the operations that produced or\n"
+            "                    consumed poison) and print it, BFD-symbolicated,\n"
+            "                    when a taint check faults\n"
             "  --var-time-op=known|plausible|everything\n"
             "                    cannot-var-time-op checking level: known traps\n"
             "                    only on documented data-dependent instructions\n"
@@ -278,6 +296,37 @@ static uint64_t build_stack(Emulator* emu, const std::vector<std::string>& args)
     return rsp;
 }
 
+// Set up the initial CPU for one taint type and run the interpreter loop
+// on it. run_cpu_loop never returns: the process exits via the exit/exit_group
+// syscall handler or through a fatal guest error's dump + _exit path.
+template<typename TaintT>
+static int run_guest(Emulator& emu, uint64_t entry, uint64_t rsp) {
+    CPU<TaintT> cpu;
+    cpu.emu = &emu;
+    {
+        std::lock_guard<std::mutex> l(emu.thread_mu);
+        emu.thread_cpus.push_back((void*)&cpu);
+    }
+    cpu.rip = entry;
+    cpu.gpr[ZG_RSP].val = rsp;
+    cpu.gpr[ZG_RDX].val = 0; // no DT_FINI atexit function at startup
+    cpu.rflags = 0x2;
+    cpu.tid = (int)::syscall(SYS_gettid);
+    emu.main_tid = cpu.tid;
+    {
+        std::lock_guard<std::mutex> l(emu.thread_mu);
+        emu.thread_tids.push_back((uint64_t)cpu.tid);
+    }
+
+    if (emu.trace_syscall) {
+        fprintf(stderr, "[zegarmistrz] entry=%#lx rsp=%#lx exe_base=%#lx interp_base=%#lx\n",
+                entry, rsp, emu.exe_base, emu.interp_base);
+        fflush(stderr);
+    }
+    run_cpu_loop<TaintT>(&cpu);
+    return 0; // unreachable (exit via syscall handler)
+}
+
 int main(int argc, char** argv) {
     Emulator emu;
     g_sig_emu = &emu;
@@ -299,6 +348,8 @@ int main(int argc, char** argv) {
             emu.stack_trace = true;
         } else if (a == "--no-stack-trace") {
             emu.stack_trace = false;
+        } else if (a == "--history") {
+            emu.history_mode = true;
         } else if (a.rfind("--var-time-op=", 0) == 0) {
             std::string v = a.substr(sizeof("--var-time-op=") - 1);
             if (v == "known")
@@ -342,28 +393,8 @@ int main(int argc, char** argv) {
 
     uint64_t rsp = build_stack(&emu, guest_args);
 
-    CPU cpu;
-    cpu.emu = &emu;
-    {
-        std::lock_guard<std::mutex> l(emu.thread_mu);
-        emu.thread_cpus.push_back(&cpu);
-    }
-    cpu.rip = entry;
-    cpu.gpr[ZG_RSP].val = rsp;
-    cpu.gpr[ZG_RDX].val = 0; // no DT_FINI atexit function at startup
-    cpu.rflags = 0x2;
-    cpu.tid = (int)::syscall(SYS_gettid);
-    emu.main_tid = cpu.tid;
-    {
-        std::lock_guard<std::mutex> l(emu.thread_mu);
-        emu.thread_tids.push_back((uint64_t)cpu.tid);
-    }
-
-    if (emu.trace_syscall) {
-        fprintf(stderr, "[zegarmistrz] entry=%#lx rsp=%#lx exe_base=%#lx interp_base=%#lx\n",
-                entry, rsp, emu.exe_base, emu.interp_base);
-        fflush(stderr);
-    }
-    run_cpu_loop(&cpu);
-    return 0; // unreachable (exit via syscall handler)
+    // --history runs the whole engine with HistoryTaint sidecars (poison
+    // provenance recorded per value); the default runs plain Taint.
+    return emu.history_mode ? run_guest<HistoryTaint>(emu, entry, rsp)
+                            : run_guest<Taint>(emu, entry, rsp);
 }

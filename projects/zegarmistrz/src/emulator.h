@@ -22,8 +22,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-struct CPU;
-
 // NOTE: sys/syscall.h must come before <atomic>: libstdc++'s atomic_wait.h
 // uses SYS_futex and relies on it being declared already.
 #include <sys/syscall.h>
@@ -42,6 +40,7 @@ struct Emulator {
     bool trace_syscall = false; // --trace-syscalls (implied by -v)
     bool no_core = false; // --no-core / --passthrough-signals: no core dumps
     bool stack_trace = true; // --no-stack-trace disables the crash-time guest backtrace
+    bool history_mode = false; // --history: HistoryTaint engine + poison-history dumps
 
     // CANNOT_VAR_TIME_OP checking level (--var-time-op=):
     //   known      - trap only on instructions the doc lists as known data-dependent (§4)
@@ -58,6 +57,7 @@ struct Emulator {
         int prot = 0; // PROT_* bits
         std::string path; // object path (may be empty)
         uint64_t bias = 0; // load bias (guest VA - ELF vaddr); for stack traces
+        bool bias_valid = false; // path names a real ELF64 object and bias is its load bias
     };
     std::mutex maps_mu;
     std::vector<GuestMap> guest_maps;
@@ -83,7 +83,9 @@ struct Emulator {
     // Live guest threads (for joining/debug).
     std::mutex thread_mu;
     std::vector<uint64_t> thread_tids;
-    std::vector<CPU*> thread_cpus;
+    // Type-erased CPU pointers (CPU<Taint> or CPU<HistoryTaint> depending
+    // on history_mode) so both engine instantiations can register here.
+    std::vector<void*> thread_cpus;
 
     // Guest executable info for auxv.
     uint64_t exe_base = 0;

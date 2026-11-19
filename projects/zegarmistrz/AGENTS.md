@@ -32,19 +32,26 @@ implementation details, invariants, and gotchas.
 
 - `src/main.cpp` — CLI (`-v`, `--trace-syscalls`, `--stack-trace`/
   `--no-stack-trace`, `--no-core`/`--passthrough-signals`,
-  `--var-time-op=`), Linux-ABI initial stack (argc/argv/envp/auxv,
-  16-byte aligned), main-thread CPU, interpreter loop. `SIGUSR1` dumps a
-  guest backtrace (debug aid).
+  `--var-time-op=`, `--history`), Linux-ABI initial stack
+  (argc/argv/envp/auxv, 16-byte aligned), main-thread CPU, interpreter
+  loop. `SIGUSR1` dumps a guest backtrace (debug aid).
 - `src/elf_loader.{h,cpp}` — ELF64 loader: maps each object's `PT_LOAD`s,
   loads `PT_INTERP` first, exposes entry/`AT_PHDR`/`AT_ENTRY`/`AT_BASE`.
 - `src/mem.{h,cpp}` — the one memory pipeline + the per-byte poison map +
-  host-fault recovery (`sigsetjmp`-based).
+  host-fault recovery (`sigsetjmp`-based). The taint sidecar types also
+  live here: plain `Taint` and `--history`'s `HistoryTaint` (see the
+  taint propagation rules + the --history section below); the mem API is
+  templated on the taint sidecar type (both instantiations explicitly
+  defined in `mem.cpp`).
 - `src/cpu.h` — `GPRValue` (value + `Taint` sidecar), `XMMValue`
   (ZMM-width bytes + sidecar), `CPU` (gpr[16], xmm[32], opmask[8],
   x87 st[8], RFLAGS bits, fs/gs base, per-register x87/opmask taint
   sidecars, RFLAGS taint, thread bookkeeping).
 - `src/decode_exec.{h,cpp}` — fetch/decode/dispatch/execute (~11.8k
-  lines; Zydis-based). All the taint checking lives here.
+  lines; Zydis-based). All the taint checking lives here. The engine is
+  `template<typename TaintT> struct Engine` with exactly two explicit
+  instantiations — plain `Taint`, and `HistoryTaint` under `--history` —
+  with byte-identical bodies (only the sidecar type differs).
 - `src/syscall.{h,cpp}` — `SYSCALL` emulation (number `RAX`, args
   `RDI,RSI,RDX,R10,R8,R9`, return negative errno in `RAX`,
   `RCX`=`RIP`/`R11`=`RFLAGS` clobber) with the virtualized list below.
@@ -126,8 +133,53 @@ How cases work:
   (skipped if it is not an ELF, e.g. a Cosmopolitan APE image).
 - `core-gdb` runs `gdb -batch -ex bt` on a produced core and asserts the
   backtrace shows the guest's `boom` → `main` and **no** interpreter
-  frames. `stack-trace*` check the banner/trace/core ordering; `no-core`
-  checks `--no-core`.
+  frames. `stack-trace*` check the banner/trace/core ordering;
+  `stack-trace-shlib` additionally asserts a fault inside a shared
+  library the guest ld.so mapped symbolicates with the .so's function
+  name + source file, and `stack-trace-inline` asserts the DWARF inline
+  chain expands (innermost inlined function first, marked `(inline)`);
+  `no-core` checks `--no-core`.
+- `history-math` runs the `--history` poison-provenance guest
+  (`tests/history_math.c`: poison cannot-index, load, math-derive an
+  address from the loaded value, index memory with it) and asserts the
+  usual exit-139 + core PLUS the poison-history block with >= 2
+  `in main ()` entries, at least one naming `history_math.c` — the
+  history section is extracted for the count so the stack trace's own
+  `in main ()` frames do not count toward the minimum.
+- `history-store` runs the store-recording guest (`tests/history_store.c`:
+  poison cannot-index, load through an xmm register, store back from the
+  xmm — the durable store-note path — copy to a GPR, index memory with it)
+  and asserts the usual exit-139 + core PLUS the poison-history block with
+  >= 3 `in main ()` entries and >= 3 `history_store.c` lines (the load,
+  the store and the copy PCs; the store PC present is the point — the
+  section is extracted for the count as above).
+- `history-memcopy` runs the memory-side provenance guest
+  (`tests/history_memcopy.c`: poison a buffer, copy it byte by byte to a
+  second buffer — load+store round trips — reload from the copy, index
+  memory with the reloaded value) and asserts the usual exit-139 + core
+  PLUS the poison-history block with >= 8 entries, >= 3 `in main ()`
+  entries, >= 3 `history_memcopy.c` lines, and specific pinned lines: the
+  poisoning-call line (`:22`), a copy-loop line (`:24`) and the reload
+  line (`:25`) — without memory-side poison history (the per-byte trails
+  in `mem.cpp`) the trail would shrink to the reload + fault-use PCs
+  because the poison/copy PCs live only in the value sidecars the copy
+  overwrote (the section is extracted for the counts as above). It also
+  pins NON-duplication: the number of `#N` STEP lines must EQUAL the
+  number of distinct PC addresses (each recorded PC prints exactly one
+  step line and its inline stack is unnumbered continuation lines) —
+  the union-dedup (`zeg_trail_add`) must collapse the identical per-byte
+  sub-trails of the 64 copied bytes, which consecutive-duplicate-only
+  dedup concatenates into hundreds of repeated ops.
+- `history-off` runs the SAME guest WITHOUT `--history`: usual fault +
+  core, and the poison-history block must NOT appear (default-mode
+  invariance).
+- `history-clean` re-runs the whole poison-ortho orthogonality battery
+  under `--history`: semantics must be unchanged in history mode (every
+  subtest exits 0 and prints `ortho-ok` with `HistoryTaint` sidecars).
+- `history-syscall` mirrors `poison-syscall` with `--history` added:
+  exit 139 + core, the `tainted value passed to syscall` reason, AND
+  the poison-history block (the syscall boundary attaches the offending
+  register's trail).
 
 `./check-isa.sh [binary...]` objdumps binaries (default: `./hello`, the
 test guests, system libc/ld.so, the Fil-C loader + libc, all
@@ -227,6 +279,36 @@ else.
   FXSAVE/XSAVE/FXRSTOR/XRSTOR snapshots** (those save/restore values
   only).
 
+Under `--history` the sidecar is `HistoryTaint` instead — the same three
+bits plus a bounded trail of guest PCs (the poison provenance of the
+value). Recording rules: taint loaded from poisoned memory is seeded from
+the set-unioned per-byte poison history of the loaded range plus the load
+PC (`mem_get_taint`); every assignment/merge into a sidecar
+(`operator=`/`operator|=`) records the move/math PC with set-union dedup
+(`zeg_trail_add` in `mem.h`: a PC already present anywhere in the trail is
+not re-added, so loop iterations and merges of same-provenance operands
+do not inflate the trail); stores record the store PC into the sidecar
+passed at each store site, by mutable reference through the engine's
+`note_store_op` wrapper — where the site stages a copy of the value
+(scalar `op_store`'s `Val`, `push64`'s parameter, staged vector results)
+the note lands on that staging object and is transient with it (the
+scalar reg->mem store path's note is transient by design: the staged
+`Val` dies at the end of the handler), and a durable store note happens
+only where the sidecar is a live register sidecar (vector stores from
+xmm registers — `tests/history_store.c` pins this) — AND into the
+destination bytes' per-byte poison history, which always survives the
+staging question (see [--history: poison
+provenance](#--history-poison-provenance)); `clear()` wipes the trail.
+Caps: a trail holds at most 4096 entries and keeps the MOST RECENT ones
+(adding a new PC to a full trail drops the oldest, so the faulting site
+is never silently frozen out); the dump prints the most recent 128.
+Memory carries the provenance too: each poisoned byte owns a per-byte
+trail (the poisoning request unions its call site into it, stores of
+tainted values rewrite it, and unpoison and stores that zero a byte's
+last taint bit erase it), so a value that round trips through memory
+keeps the whole journey in its trail — `tests/history_memcopy.c` pins
+the poison → copy → reload → use chain.
+
 ## Store laundering and clear-on-store
 
 Precise semantics of `mem_note_store` (this is the valgrind-flavored
@@ -268,6 +350,90 @@ Syscall arguments (RAX number + RDI,RSI,RDX,R10,R8,R9) reject
 cannot-branch and cannot-index taint ("tainted value passed to
 syscall") — including the syscall number itself. cannot-var-time-op is
 deliberately not checked there: syscall timing is the kernel's.
+
+## --history: poison provenance
+
+`--history` (`src/main.cpp` sets `emu.history_mode`) runs the whole
+engine on the `HistoryTaint` sidecar instead of plain `Taint`: `main`
+calls `run_guest<HistoryTaint>` vs `run_guest<Taint>`, and
+`decode_exec.cpp`'s `template<typename TaintT> struct Engine` has
+exactly two explicit instantiations (`Taint`, and `HistoryTaint` under
+`--history`; the bodies are unchanged — only the sidecar type
+differs). `HistoryTaint` (in `src/mem.h`) is the three taint bits plus
+`std::vector<uint64_t> history` of guest PCs, oldest first; what
+records and what does not is listed in the taint propagation rules
+above. The current instruction's PC comes from the thread-local
+`zeg_history_pc`, set at `exec_one` entry to the instruction's own
+pre-advance RIP.
+
+- **What is attached at fault time**: the offending value's trail rides
+  out in `GuestError::poison_history`, and `run_cpu_loop` hands it to
+  `dump_core`. The taint check sites in `decode_exec.cpp` attach it
+  (via the engine's `poison_history_of` helper) and the syscall
+  boundary does too (the arg check in `syscall.cpp`). The var-time
+  operand report attaches its first offending operand's sidecar:
+  `check_var_time` threads it out as `vt_off` — the operand scan, the
+  implicit-GPR cases, the hidden x87 stack slots and the XRSTOR memory
+  header all record into it, and for memory operands the trail is the
+  merged per-byte poison history of the loaded range plus the load PC
+  via `mem_get_taint`. The poison-map load/store faults in
+  `mem.cpp` have no value to attach (the fault is about the memory, not
+  a register value).
+- **Memory-side provenance (per-byte poison history)**: the poison map is
+  paired by byte address with a second map (`g_poison_hist`, same mutex)
+  that carries each poisoned byte's trail. The poisoning client request
+  (op 1) unions the magic CALL's own RIP into every byte it poisons with
+  a value-taint flag (CANNOT_BRANCH/CANNOT_INDEX/CANNOT_VAR_TIME_OP —
+  CANNOT_LOAD/CANNOT_STORE-only or CLEAR_*-only ranges never produce
+  value taints, so they skip the seeding): re-poisoning a byte ORs the
+  new poison site into its provenance instead of replacing it (matching
+  `mem_poison_range`'s bit-OR), and a byte erased by op 2 starts fresh;
+  `mem_note_store` replaces a destination byte's trail with the stored
+  value's trail plus the store PC whenever the store writes taint bits
+  there (and erases trail + bits together when a store zeroes a byte's
+  last taint bit), while a clean store leaves the trail alone (the
+  sticky CANNOT_LOAD/CANNOT_STORE bits keep the original poison
+  provenance meaningful); `mem_unpoison_range` erases trail with bits;
+  and `mem_get_taint` seeds the loaded value's trail from the
+  set-unioned per-byte trails of the loaded range plus the load PC (only
+  for values that actually carry bits — a clean load from
+  sticky-poisoned memory stays trail-free). The unions are set-unions
+  (`zeg_trail_add`): a PC already present anywhere in a trail is not
+  re-added, so N bytes with identical provenance merge to the distinct
+  set of operations instead of N concatenated copies. This is what makes
+  the trail survive memory round trips end to end: the key→key_copy
+  memcpy in the openssl tests, a spill/reload through a stack slot, or
+  any glibc internal buffer copy now records every hop.
+  `tests/history_memcopy.c` pins the poison → byte-copy → reload → use
+  chain. Plain mode never touches the second map (it stays empty).
+- **Dump-time print**: `dump_core` calls `print_poison_history`
+  (`stack_trace.cpp`) after the guest stack trace and before the core
+  is written. The block is
+  `zegarmistrz: poison history of the offending value (N steps, oldest
+  first):` followed by the BFD-symbolicated trail, where each recorded
+  PC prints exactly ONE numbered
+  `  #N 0x0123... in <func> () at <file>:<line>` STEP line — N is the
+  sequence of recorded operations, oldest first, and the step line
+  carries the innermost frame of the PC's inline chain (where the
+  instruction physically is), marked `(inline)` when the chain
+  continues outward. The rest of that inline stack prints as indented
+  continuation lines below the step line (`in <func> () at
+  <file>:<line>` each, synthetic frames marked `(inline)`, the real
+  physically-containing function last and unmarked) that do NOT consume
+  step numbers: the history numbering counts recorded PCs, not frames —
+  unlike the guest stack trace, whose gdb-style numbering has inline
+  frames consume numbers (matching `bt`). Same module table and BFD
+  machinery as the stack trace, capped at the most recent 128 steps
+  with the omitted older count noted up front. In default mode (no
+  `--history`) the block NEVER appears (`poison_history` is empty for
+  plain `Taint`).
+- **Performance**: `HistoryTaint` copies its trail on every merge
+  (`operator=`/`operator|=` deep-copy the vector) — extremely expensive
+  by design; only enable it under `--history`. Memory cost is heavy too:
+  in `--history` mode every poisoned byte carries a poison-map node plus
+  a trail vector, so large poison ranges with long trails cost
+  significant memory (debug-only — poison a narrow range, not the whole
+  heap).
 
 ## The cannot-index / cannot-branch orthogonality invariant
 
@@ -492,18 +658,31 @@ validating every frame against the guest memory map (return addresses
 must land in guest-executable mappings, frame pointers in read/write
 mappings or the guest stack). If the chain is unusable
 (`-fomit-frame-pointer`), it falls back to an approximate scan of the
-guest stack for slots holding plausible return addresses (bytes before
-the target look like a `call`); those frames print marked
-`(approximate)`.
+guest stack for slots holding plausible return addresses — bytes before
+the target look like a `call`: direct `E8 rel32` with an executable
+target, or the full `FF /2` indirect-call family (optional REX, SIB,
+disp8/disp32 including the RIP-relative mod==0 rm==5 form), matched by
+exact encoding length; those frames print marked `(approximate)`.
 
 **Symbolization**: BFD (`bfd_find_nearest_line`, plus `__cxa_demangle`
-for C++ names) against the ELF objects the emulator itself loaded — the
+for C++ names) against the ELF objects recorded in `guest_maps` — the
 main executable and the `PT_INTERP` interpreter (each `PT_LOAD` records
-its load bias; `guest VA - bias == ELF vaddr`). Addresses in objects
-ld.so mapped later (mmap/brk tag entries, no file path) print raw;
+its load bias; `guest VA - bias == ELF vaddr`) plus file-backed guest
+mmaps: shared libraries the guest ld.so maps (and dlopen'd objects)
+record the real path + ELF load bias (`do_mmap` matches the mapping's
+file offset against `p_offset - (p_vaddr & 0xfff)` of a PT_LOAD), so
+those frames symbolicate like the main executable. Anonymous mappings
+and the "guest-mmap"/"guest-brk"/"guest-mremap" tag entries, and file
+mappings whose offset does not match a segment start (no exact bias),
+still print raw — `module+0xOFFSET` is not available for them either;
 addresses in a known object that do not symbolize print
 `module+0xOFFSET`; stripped binaries usually print `module+0xOFFSET`
-(the dynamic symbol table is a names-only last resort).
+(the dynamic symbol table is a names-only last resort). Inline frames
+expand: `bfd_find_nearest_line` returns the innermost inlined frame
+and repeated `bfd_find_inliner_info` calls walk the DWARF chain
+outward, so each physical frame prints its inline chain
+innermost-first, the synthetic frames marked `(inline)` and scan-guessed
+frames marked `(approximate)`.
 
 **Core layout** (`core_dump.cpp`): `ET_CORE` with `NT_PRSTATUS` (guest
 GPRs), `NT_PRPSINFO` (process name), `NT_AUXV` (the auxv placed on the

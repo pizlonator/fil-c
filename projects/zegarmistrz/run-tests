@@ -14,7 +14,10 @@
 # battery (poison-ortho; wrong-dimension uses must run clean), the LEA /
 # multi-byte-NOP cannot-index exemption guests and the test.c/test2.c
 # mirror combos, core-dump gdb check, crash-time stack traces
-# (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag.
+# (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag,
+# and the --history poison-provenance tests (--history trail symbolication on
+# a math-derived index fault, default-mode invariance without the flag,
+# clean-run + syscall-fault semantics unchanged in history mode).
 # Does not touch filc/tests or filc/run-tests.
 set -u
 cd "$(dirname "$0")"
@@ -115,6 +118,36 @@ EOF
 gcc -O0 -g -o "$OUTDIR/crash" "$OUTDIR/crash.c" || { log "guest compile failed: crash"; exit 1; }
 gcc -O2 -g -o "$OUTDIR/crash_o2" "$OUTDIR/crash.c" || { log "guest compile failed: crash_o2"; exit 1; }
 
+# Stack-trace guests: shlib symbolication + inline frame expansion.
+# NOTE: the guest binary's RUNPATH must be absolute, not '$ORIGIN' -- the
+# guest ld.so resolves ORIGIN from /proc/self/exe, which under the emulator
+# is the zegarmistrz binary itself, so $ORIGIN would point at the emulator's
+# directory and the .so would never be found.
+gcc -O2 -g -fPIC -shared -Wl,-soname,stack_trace_shlib.so \
+    -o "$OUTDIR/stack_trace_shlib.so" tests/stack_trace_shlib_helper.c \
+    || { log "guest compile failed: stack_trace_shlib.so"; exit 1; }
+gcc -O2 -g -o "$OUTDIR/stack_trace_shlib" tests/stack_trace_shlib.c \
+    "$OUTDIR/stack_trace_shlib.so" -Wl,-rpath,"$(pwd)/$OUTDIR" \
+    || { log "guest compile failed: stack_trace_shlib"; exit 1; }
+gcc -O2 -g -o "$OUTDIR/stack_trace_inline" tests/stack_trace_inline.c \
+    || { log "guest compile failed: stack_trace_inline"; exit 1; }
+# --history poison-provenance guest: poison a value, load it, derive an
+# address from it with arithmetic, then index memory with it -> fault. The
+# -g matters: the recorded trail PCs must BFD-symbolicate to source lines.
+gcc -O2 -g -o "$OUTDIR/history_math" tests/history_math.c \
+    || { log "guest compile failed: history_math"; exit 1; }
+# --history store-recording guest: poison a value, load it through an xmm
+# register, store it back from the xmm (the durable store-note path), copy
+# the value to a GPR and index memory with it -> fault.
+gcc -O2 -g -o "$OUTDIR/history_store" tests/history_store.c \
+    || { log "guest compile failed: history_store"; exit 1; }
+# --history memory-side provenance guest: poison a buffer, copy it to a
+# second buffer byte by byte (load+store round trips), reload from the
+# copy, then index memory with the reloaded value -> fault. The -g matters:
+# the recorded trail PCs must BFD-symbolicate to source lines.
+gcc -O2 -g -o "$OUTDIR/history_memcopy" tests/history_memcopy.c \
+    || { log "guest compile failed: history_memcopy"; exit 1; }
+
 # AVX512/AES differentials: compile only if the host supports them.
 HAVE_AVX512=""
 if gcc -O2 -mavx2 -mbmi -mbmi2 -msse4.2 -c -o /dev/null -x c /dev/null 2>/dev/null; then
@@ -189,6 +222,14 @@ echo "stack-trace"
 echo "stack-trace-off"
 echo "stack-trace-o2"
 echo "stack-trace-fault"
+echo "stack-trace-shlib"
+echo "stack-trace-inline"
+echo "history-math"
+echo "history-store"
+echo "history-memcopy"
+echo "history-off"
+echo "history-clean"
+echo "history-syscall"
 echo "no-core"
 } | xargs -P "$JOBS" -I{} bash -c '
 set -u
@@ -749,6 +790,220 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
           test-output/stack-trace-fault/core* \
           test-output/stack-trace-fault/trace.err
     ;;
+  stack-trace-shlib)
+    # A fatal error inside a shared library (mapped by the guest ld.so at
+    # runtime) must symbolicate: the trace shows the function from the .so
+    # with its source file, not just a raw address.
+    mkdir -p test-output/stack-trace-shlib
+    rm -f test-output/stack-trace-shlib/zegarmistrz.core.stack_trace_shlib.*
+    (cd test-output/stack-trace-shlib && timeout 60 ../../zegarmistrz ../stack_trace_shlib >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/stack-trace-shlib/zegarmistrz.core.stack_trace_shlib.* 2>/dev/null | head -1)
+    err=test-output/stack-trace-shlib/trace.err
+    boom=$(grep -c "in shlib_boom ()" "$err" 2>/dev/null || true)
+    srcline=$(grep -c "stack_trace_shlib_helper\.c" "$err" 2>/dev/null || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && [ "${boom:-0}" -ge 1 ] && [ "${srcline:-0}" -ge 1 ]; then
+      echo "PASS stack-trace-shlib"
+    else
+      echo "FAIL stack-trace-shlib: ec=$ec core=[$core] shlib_boom=$boom helper=$srcline"
+      head -20 "$err"
+    fi
+    rm -f test-output/stack-trace-shlib/zegarmistrz.core.stack_trace_shlib.* test-output/stack-trace-shlib/trace.err
+    ;;
+
+  stack-trace-inline)
+    # Inlined calls expand: inner_boom is always-inlined into outer_boom, so
+    # the trace must show both names, inner first, marked (inline).
+    mkdir -p test-output/stack-trace-inline
+    rm -f test-output/stack-trace-inline/zegarmistrz.core.stack_trace_inline.*
+    (cd test-output/stack-trace-inline && timeout 60 ../../zegarmistrz ../stack_trace_inline >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/stack-trace-inline/zegarmistrz.core.stack_trace_inline.* 2>/dev/null | head -1)
+    err=test-output/stack-trace-inline/trace.err
+    inner=$(grep -c "in inner_boom ()" "$err" 2>/dev/null || true)
+    outer=$(grep -c "in outer_boom ()" "$err" 2>/dev/null || true)
+    mark=$(grep -c "(inline)" "$err" 2>/dev/null || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && [ "${inner:-0}" -ge 1 ] && [ "${outer:-0}" -ge 1 ] \
+       && [ "${mark:-0}" -ge 1 ]; then
+      echo "PASS stack-trace-inline"
+    else
+      echo "FAIL stack-trace-inline: ec=$ec core=[$core] inner=$inner outer=$outer inline-mark=$mark"
+      head -20 "$err"
+    fi
+    rm -f test-output/stack-trace-inline/zegarmistrz.core.stack_trace_inline.* test-output/stack-trace-inline/trace.err
+    ;;
+
+  history-math)
+    # --history records a per-value trail of guest PCs (the ops that
+    # produced or consumed a poisoned value). This guest poisons a value
+    # (cannot-index), loads it, derives an address from it with arithmetic,
+    # then indexes memory with it: the dump must carry the poison-history
+    # block with at least the load and the math PCs, BFD-symbolicated to
+    # main + the guest source file (an in main () line naming the source
+    # file proves the trail is symbolicated, not raw addresses). The
+    # history SECTION is extracted so the stack traces own in main ()
+    # frames do not count toward the minimums.
+    mkdir -p test-output/history-math
+    rm -f test-output/history-math/zegarmistrz.core.history_math.*
+    (cd test-output/history-math && timeout 60 ../../zegarmistrz --history ../history_math >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-math/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    err=test-output/history-math/trace.err
+    hist=$(sed -n "/poison history/,/zegarmistrz: \[core/p" "$err" 2>/dev/null)
+    mains=$(echo "$hist" | grep -c "in main ()" || true)
+    srcs=$(echo "$hist" | grep -c "history_math\.c" || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && echo "$hist" | grep -q "poison history of the offending value" \
+       && [ "${mains:-0}" -ge 2 ] && [ "${srcs:-0}" -ge 1 ]; then
+      echo "PASS history-math"
+    else
+      echo "FAIL history-math: ec=$ec core=[$core] mains=$mains srcs=$srcs"
+      head -20 "$err"
+    fi
+    rm -f test-output/history-math/zegarmistrz.core.history_math.* test-output/history-math/trace.err
+    ;;
+
+  history-off)
+    # Default-mode invariance: the SAME guest run WITHOUT --history must
+    # still fault with a core, and the poison-history block must NEVER
+    # appear (the trail only exists in history mode).
+    mkdir -p test-output/history-off
+    rm -f test-output/history-off/zegarmistrz.core.history_math.*
+    (cd test-output/history-off && timeout 60 ../../zegarmistrz ../history_math >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-off/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && ! grep -q "poison history" test-output/history-off/trace.err; then
+      echo "PASS history-off"
+    else
+      echo "FAIL history-off: ec=$ec core=[$core]"
+      head -20 test-output/history-off/trace.err 2>/dev/null
+    fi
+    rm -f test-output/history-off/zegarmistrz.core.history_math.* test-output/history-off/trace.err
+    ;;
+
+  history-clean)
+    # The poison-ortho orthogonality battery under --history: history mode
+    # must not change semantics -- a cannot-index value through the
+    # control-flow sites and a cannot-branch value through the memory sites
+    # must still run clean (exit 0, ortho-ok) with HistoryTaint sidecars.
+    mkdir -p test-output/history-clean
+    for which in jcc jcxz loop rep-movs indirect-call ret deref-cbranch index-cbranch; do
+      rm -f "test-output/history-clean/poison_ortho.$which.err.txt"
+      out=$(cd test-output/history-clean && timeout 60 ../../zegarmistrz --history ../poison_ortho $which 2>poison_ortho.$which.err.txt); ec=$?
+      if [ "$ec" = 0 ] && [ "$out" = "ortho-ok" ]; then
+        echo "PASS history-clean-$which"
+      else
+        echo "FAIL history-clean-$which: exit=$ec out=[$out]"
+        head -5 "test-output/history-clean/poison_ortho.$which.err.txt" 2>/dev/null
+      fi
+      rm -f "test-output/history-clean/poison_ortho.$which.err.txt"
+    done
+    ;;
+
+  history-syscall)
+    # The syscall-arg fault under --history: the trail of the offending
+    # register is attached at the syscall boundary, so the dump must carry
+    # the poison-history block too (plus the fault + core, as without it).
+    mkdir -p test-output/history-syscall
+    rm -f test-output/history-syscall/zegarmistrz.core.poison_syscall.*
+    (cd test-output/history-syscall && timeout 60 ../../zegarmistrz --history ../poison_syscall >/dev/null 2>poison_syscall.err.txt); ec=$?
+    core=$(ls test-output/history-syscall/zegarmistrz.core.poison_syscall.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "tainted value passed to syscall" "test-output/history-syscall/poison_syscall.err.txt" \
+       && grep -q "poison history" "test-output/history-syscall/poison_syscall.err.txt"; then
+      echo "PASS history-syscall"
+    else
+      echo "FAIL history-syscall: exit=$ec core=[$core]"
+      head -5 "test-output/history-syscall/poison_syscall.err.txt" 2>/dev/null
+    fi
+    rm -f test-output/history-syscall/zegarmistrz.core.poison_syscall.* test-output/history-syscall/poison_syscall.err.txt
+    ;;
+
+  history-store)
+    # The durable store-note path: storing a poisoned value from a live xmm
+    # register records the store PC on that register sidecar (MOVQ xmm->mem
+    # goes through note_store_op with cpu->xmm[vi].taint). The guest loads a
+    # poisoned value through an xmm (MOVQ), stores it back from the xmm
+    # (MOVQ), copies it to a GPR (CVTTSD2SI) and indexes memory with it: the
+    # dumped trail must carry the load, the store (pinned at
+    # history_store.c:34) AND the copy PCs. The history SECTION is extracted
+    # so the stack traces own in main () frames do not count toward the
+    # minimums, and the :34 grep is what guards store-side recording: if the
+    # store note lands on a staging copy instead of the live xmm sidecar the
+    # trail still shows the load and copy PCs (so the >=3 minimums still
+    # hold) but never the store PC.
+    mkdir -p test-output/history-store
+    rm -f test-output/history-store/zegarmistrz.core.history_store.*
+    (cd test-output/history-store && timeout 60 ../../zegarmistrz --history ../history_store >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-store/zegarmistrz.core.history_store.* 2>/dev/null | head -1)
+    err=test-output/history-store/trace.err
+    hist=$(sed -n "/poison history/,/zegarmistrz: \[core/p" "$err" 2>/dev/null)
+    mains=$(echo "$hist" | grep -c "in main ()" || true)
+    srcs=$(echo "$hist" | grep -c "history_store\.c" || true)
+    storeline=$(echo "$hist" | grep -c "history_store\.c:34" || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && echo "$hist" | grep -q "poison history of the offending value" \
+       && [ "${mains:-0}" -ge 3 ] && [ "${srcs:-0}" -ge 3 ] \
+       && [ "${storeline:-0}" -ge 1 ]; then
+      echo "PASS history-store"
+    else
+      echo "FAIL history-store: ec=$ec core=[$core] mains=$mains srcs=$srcs storeline=$storeline"
+      head -20 "$err"
+    fi
+    rm -f test-output/history-store/zegarmistrz.core.history_store.* test-output/history-store/trace.err
+    ;;
+
+  history-memcopy)
+    # Memory-side poison provenance: the per-byte poison history seeded by
+    # the poisoning client request and rewritten by stores of tainted values
+    # (mem_note_store) must let a value that travels THROUGH memory keep its
+    # trail. The guest poisons a buffer (the magic CALL PC seeds every byte),
+    # copies it byte by byte (each byte round trips through a load and a
+    # store), reloads 8 bytes from the copy, then indexes memory with the
+    # reloaded value -> fault. The dumped trail must span the whole journey:
+    # the poisoning call line, a copy loop line (the load and store PCs) and
+    # the reload line -- NOT just the final load + fault use. Without
+    # memory-side history the trail would shrink to the reload + use PCs
+    # (the copy and poison PCs die with the value sidecars that held them).
+    # The history SECTION is extracted so the stack traces own in main ()
+    # frames do not count toward the minimums. The trail is also pinned for
+    # NON-duplication: every PC entering the trail is union-deduped
+    # (zeg_trail_add in mem.h), so N bytes with identical provenance merge
+    # to the distinct set of operations instead of N concatenated copies.
+    # Under the step-based history format every recorded PC prints exactly
+    # ONE #N step line (its inline stack is indented continuation lines
+    # that carry no step number and no address), and the trail PCs are
+    # distinct by construction, so hlines -eq dpcs (step lines vs
+    # distinct PC addresses) exactly: a duplicated build (concatenated
+    # sub-trails) would print hundreds of steps over a handful of distinct
+    # PCs and break the equality.
+    mkdir -p test-output/history-memcopy
+    rm -f test-output/history-memcopy/zegarmistrz.core.history_memcopy.*
+    (cd test-output/history-memcopy && timeout 60 ../../zegarmistrz --history ../history_memcopy >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-memcopy/zegarmistrz.core.history_memcopy.* 2>/dev/null | head -1)
+    err=test-output/history-memcopy/trace.err
+    hist=$(sed -n "/poison history/,/zegarmistrz: \[core/p" "$err" 2>/dev/null)
+    mains=$(echo "$hist" | grep -c "in main ()" || true)
+    srcs=$(echo "$hist" | grep -c "history_memcopy\.c" || true)
+    poisoncall=$(echo "$hist" | grep -c "history_memcopy\.c:22" || true)
+    copyline=$(echo "$hist" | grep -c "history_memcopy\.c:24" || true)
+    reload=$(echo "$hist" | grep -c "history_memcopy\.c:25" || true)
+    entries=$(echo "$hist" | grep -c "^  #" || true)
+    hlines=$(echo "$hist" | grep -c "^  #[0-9]" || true)
+    dpcs=$(echo "$hist" | grep -oE "0x[0-9a-f]{16}" | sort -u | wc -l || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && echo "$hist" | grep -q "poison history of the offending value" \
+       && [ "${mains:-0}" -ge 3 ] && [ "${srcs:-0}" -ge 3 ] \
+       && [ "${poisoncall:-0}" -ge 1 ] && [ "${copyline:-0}" -ge 1 ] \
+       && [ "${reload:-0}" -ge 1 ] && [ "${entries:-0}" -ge 8 ] \
+       && [ "${hlines:-0}" -eq "${dpcs:-0}" ]; then
+      echo "PASS history-memcopy"
+    else
+      echo "FAIL history-memcopy: ec=$ec core=[$core] mains=$mains srcs=$srcs poisoncall=$poisoncall copyline=$copyline reload=$reload entries=$entries hlines=$hlines dpcs=$dpcs"
+      head -20 "$err"
+    fi
+    rm -f test-output/history-memcopy/zegarmistrz.core.history_memcopy.* test-output/history-memcopy/trace.err
+    ;;
+
   no-core)
     # --no-core disables core dumps; use a poisoning guest (GuestError path
     # without host signal): expect the "disabled" message, no core file.

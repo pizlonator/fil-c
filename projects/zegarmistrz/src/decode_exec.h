@@ -22,23 +22,33 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+#include <cstdint>
+#include <vector>
+
+template<typename TaintT>
 struct CPU;
 
-// Execute one guest instruction at cpu->rip (advancing RIP as appropriate).
-// Raises GuestError on any fatal fault.
-void exec_one(CPU* cpu);
+// The engine lives in decode_exec.cpp as Engine<TaintT>, a class template
+// over the taint sidecar type (Taint by default, HistoryTaint with
+// --history). Only the two entry points below are exported, explicitly
+// instantiated for both types in decode_exec.cpp.
 
 // Thread entry: interpreter loop until exit syscall or fatal error.
 // Fatal errors dump core and terminate the process.
-void run_cpu_loop(CPU* cpu);
+template<typename TaintT>
+void run_cpu_loop(CPU<TaintT>* cpu);
 
 // Write an ELF core dump for a fatal guest error, formatted so gdb/lldb
 // show guest state (registers, memory, auxv) rather than the interpreter.
 // Filename: zegarmistrz.core.<processname>.<pid> in the current directory.
 // signo optionally records the host signal being converted (0 = guess from
-// the reason string). Returns the dump path. With --no-core, only prints.
-const char* dump_core(CPU* cpu, const char* reason, unsigned long fault_addr,
-                      int signo = 0);
+// the reason string). poison_history (--history mode) is the offending
+// value's recorded poison trail; it is printed BFD-symbolicated after the
+// guest stack trace. Returns the dump path. With --no-core, only prints.
+template<typename TaintT>
+const char* dump_core(CPU<TaintT>* cpu, const char* reason,
+                      unsigned long fault_addr, int signo = 0,
+                      const std::vector<uint64_t>& poison_history = {});
 
 // Map a fatal guest error to the signal in NT_PRSTATUS and the exit status
 // (exit code is 128+signo). hint != 0 wins; otherwise guessed from reason:

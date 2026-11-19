@@ -55,6 +55,7 @@ make -j$(nproc)          # builds ./zegarmistrz
 ./zegarmistrz <program> [args...]        # run a guest
 ./zegarmistrz -v ./hello                 # disassemble each instruction
 ./zegarmistrz --trace-syscalls ./hello   # trace syscalls
+./zegarmistrz --history ./crypto-guest   # record + dump poison provenance
 ./zegarmistrz --help                     # full usage + poisoning ABI + modes
 ```
 
@@ -62,7 +63,10 @@ make -j$(nproc)          # builds ./zegarmistrz
 runs every case in parallel (`xargs -P`; `JOBS=8 ./run-tests` to tune):
 basic guests, native-vs-emulated SIMD differentials, the poisoning
 battery (faults, laundering, clear-on-store, var-time mode gating, the
-per-check-site cannot-index battery), core dumps, and stack traces.
+per-check-site cannot-index battery), core dumps, stack traces, and the
+`--history` poison-provenance checks (trail symbolication on a fault,
+default-mode invariance without the flag, semantics unchanged in history
+mode).
 `./build_zegarmistrz.sh` (repo root) rebuilds and installs the binary at
 `filc/zegarmistrz`.
 
@@ -203,6 +207,65 @@ own bits and win when both would apply. Three modes via `--var-time-op=`:
 kernel's and is never checked; syscall *arguments* reject cannot-branch
 and cannot-index values.
 
+### Poison provenance: --history
+
+`--history` records, for every poisoned value, which guest PCs produced
+or consumed it (fresh loads from poisoned memory, moves/merges into the
+value's sidecar, and stores of the value where the sidecar carrying it is
+handed to the store path by mutable reference; first-occurrence order,
+bounded, set-union deduped — a PC already present anywhere in the trail
+is never re-added, so N identical provenances merge to the distinct set
+of operations and the cap keeps the most recent entries) and, when a
+poison fault kills the
+process, prints that trail BFD-symbolicated right after the guest stack
+trace:
+
+```
+zegarmistrz: poison history of the offending value (6 steps, oldest first):
+  #0  0x00007de2d3f738f1 in zegarmistrz_client_request () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests//../../projects/zegarmistrz/include/zegarmistrz.h:160  (inline)
+                         in zegarmistrz_client_request () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests//../../projects/zegarmistrz/include/zegarmistrz.h:146  (inline)
+                         in zegarmistrz_poison_range () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests//../../projects/zegarmistrz/include/zegarmistrz.h:181  (inline)
+                         in poison_range () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests/poisoning.c:89  (inline)
+                         in poison_alloc () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests/poisoning.c:102
+  #1  0x00007de2d3f72502 in memcpy () at /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29  (inline)
+                         in test_fetched_kats () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests/test_aes_cbc.c:251  (inline)
+                         in main () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests/test_aes_cbc.c:429
+  #2  0x00007de2d3f72507 in memcpy () at /usr/include/x86_64-linux-gnu/bits/string_fortified.h:29  (inline)
+                         in test_fetched_kats () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests/test_aes_cbc.c:251  (inline)
+                         in main () at /home/pizlo/Programs/fil-c-2/projects/simple-openssl-tests/test_aes_cbc.c:429
+  #3  0x00007de312d08cd9 in AES_set_encrypt_key ()
+  #4  0x00007de312d08ce4 in AES_set_encrypt_key ()
+  #5  0x00007de312d08cf1 in AES_set_encrypt_key ()
+```
+
+The trail answers "where did this tainted value come from": each
+recorded PC is ONE numbered step — the step line names the innermost
+frame of the PC's inline chain (where the instruction physically is) —
+and the rest of that inline stack prints as indented continuation lines
+below the step line that do not consume step numbers (the guest stack
+trace keeps its gdb-style numbering, where inline frames DO consume
+numbers). Store PCs
+are recorded into the sidecar the store site passes by mutable
+reference: where the site stages a copy of the value (scalar reg->mem
+stores via `op_store`'s `Val`, `push64`'s parameter, staged vector
+results) the note dies with that staging object — transient by design —
+while a store from a live register sidecar (vector stores from xmm
+registers, e.g. the `tests/history_store.c` MOVQ) records durably. The
+provenance also lives in the memory itself: every poisoned byte carries
+the trail of the operations that poisoned it — the poisoning request
+seeds it with the call site, a store of a tainted value rewrites the
+destination bytes with the stored value's trail plus the store PC, and a
+load seeds the loaded value's trail from the merged per-byte trails plus
+the load PC — so every value-carrying load/store round trip (a memcpy of
+poisoned key material, a spill/reload through a stack slot) is recorded
+end to end and the trail never restarts at a reload; `tests/history_memcopy.c`
+pins a poison → byte-copy → reload → use journey. Only the most recent
+128 steps of a huge trail are printed. It is heavy (the per-value
+sidecar copies its trail on every merge, and every poisoned byte carries
+a trail vector, so large poison ranges with long trails cost significant
+memory) and therefore off by default;
+enable it when debugging a found fault, not for steady-state runs.
+
 ## Design in brief
 
 - **Zydis-based interpreter.** Fetch/decode/execute with the vendored Zydis
@@ -223,9 +286,12 @@ and cannot-index values.
   are emulated, the rest pass through to the host; tainted syscall
   arguments are rejected.
 - **Fatal errors are first-class.** Symbolized guest stack traces (BFD
-  against the loaded objects; RBP-chain walk with an approximate-scan
-  fallback for `-fomit-frame-pointer` code) print before an `ET_CORE`
-  dump that gdb/lldb read as pure guest state.
+  against the loaded objects — the executable, its interpreter, and the
+  file-backed guest mmaps like the shared libraries the guest ld.so
+  loads; DWARF inline frames expand via `bfd_find_inliner_info`;
+  RBP-chain walk with an approximate-scan fallback for
+  `-fomit-frame-pointer` code) print before an `ET_CORE` dump that
+  gdb/lldb read as pure guest state.
 - **CPUID presence.** The hypervisor bit (CPUID.1:ECX bit 31) plus
   hypervisor leaf `0x40000000` with vendor string `"Zegarmistrz"`;
   leaves `0x40000001`+ read zero.

@@ -87,7 +87,8 @@ int guest_fatal_signo(const char* reason, int hint) {
 // Guest general registers in elf_gregset_t order (x86-64):
 // R15,R14,R13,R12,RBP,RBX,R11,R10,R9,R8,RAX,RCX,RDX,RSI,RDI,ORIG_RAX,
 // RIP,CS,EFLAGS,RSP,SS,FS_BASE,GS_BASE,DS,ES,FS,GS.
-static void fill_gregs(const CPU* cpu, elf_gregset_t& regs) {
+template<typename TaintT>
+static void fill_gregs(const CPU<TaintT>* cpu, elf_gregset_t& regs) {
     memset(regs, 0, sizeof(regs));
     regs[0] = cpu->gpr[ZG_R15].val;
     regs[1] = cpu->gpr[ZG_R14].val;
@@ -138,8 +139,13 @@ static void append_note(std::vector<uint8_t>& out, uint32_t type,
     memcpy(out.data() + base + sizeof(nhdr) + 8, desc, len);
 }
 
-const char* dump_core(CPU* cpu, const char* reason, unsigned long fault_addr,
-                      int signo) {
+// Templated on the taint type so both engine instantiations dump identically
+// (the core contents never depend on the taint sidecar; only the optional
+// --history poison-history block does).
+template<typename TaintT>
+const char* dump_core(CPU<TaintT>* cpu, const char* reason,
+                      unsigned long fault_addr, int signo,
+                      const std::vector<uint64_t>& poison_history) {
     // A host fault while producing the dump (e.g. inside BFD parsing)
     // must kill the process, not longjmp back into run_cpu_loop: the
     // LoopScope recovery is still armed in the caller, so the jump would
@@ -171,6 +177,11 @@ const char* dump_core(CPU* cpu, const char* reason, unsigned long fault_addr,
 
     if (cpu->emu->stack_trace)
         print_guest_stack_trace(cpu);
+
+    // --history: the offending value's recorded poison trail (oldest first),
+    // symbolicated with the same BFD machinery as the stack trace.
+    if (!poison_history.empty())
+        print_poison_history(cpu->emu, poison_history);
 
     if (mem_passthrough()) {
         // --no-core: report without writing anything.
@@ -354,3 +365,12 @@ const char* dump_core(CPU* cpu, const char* reason, unsigned long fault_addr,
     fflush(stderr);
     return path;
 }
+
+// Explicit instantiations: run_cpu_loop (decode_exec.cpp) dumps for either
+// taint type.
+template const char* dump_core<Taint>(CPU<Taint>*, const char*,
+                                      unsigned long, int,
+                                      const std::vector<uint64_t>&);
+template const char* dump_core<HistoryTaint>(CPU<HistoryTaint>*, const char*,
+                                             unsigned long, int,
+                                             const std::vector<uint64_t>&);

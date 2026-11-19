@@ -48,24 +48,28 @@ enum : uint64_t {
 };
 
 // A general-purpose register value with Fil-C-style sidecar taint.
+// Templated on the taint type: Taint (default) or HistoryTaint (--history).
+template<typename TaintT>
 struct GPRValue {
     uint64_t val = 0;
-    Taint taint;
+    TaintT taint;
 };
 
 // A vector register value: MAX_VEC_BYTES bytes of storage (ZMM width) plus taint.
+template<typename TaintT>
 struct XMMValue {
     uint8_t bytes[MAX_VEC_BYTES];
-    Taint taint;
+    TaintT taint;
     XMMValue() { memset(bytes, 0, sizeof(bytes)); }
 };
 
 // General vector temporary: bytes + taint. Sized by MAX_VEC_BYTES so wider
 // vectors only require bumping the constant. Provides byte access plus
 // helpers to keep decode_exec free of raw [MAX_VEC_BYTES] arrays.
+template<typename TaintT>
 struct VecVal {
     uint8_t bytes[MAX_VEC_BYTES];
-    Taint taint;
+    TaintT taint;
     VecVal() { memset(bytes, 0, sizeof(bytes)); }
     uint8_t& operator[](size_t i) { return bytes[i]; }
     const uint8_t& operator[](size_t i) const { return bytes[i]; }
@@ -84,12 +88,14 @@ struct VecVal {
 
 struct Emulator; // forward
 
-// Per-thread guest CPU state.
+// Per-thread guest CPU state. Templated on the taint sidecar type so the
+// whole engine can run with either Taint or --history's HistoryTaint.
+template<typename TaintT>
 struct CPU {
-    GPRValue gpr[16];
+    GPRValue<TaintT> gpr[16];
     uint64_t rip = 0;
     uint64_t rflags = 0x2; // bit 1 always set
-    XMMValue xmm[32];
+    XMMValue<TaintT> xmm[32];
     uint32_t mxcsr = 0x1f80;
 
     uint64_t fs_base = 0;
@@ -103,8 +109,8 @@ struct CPU {
 
     // Taint sidecars for x87 stack registers and AVX-512 opmask registers
     // (indexed exactly like st[] / opmask[]; see fpu_st()/kstore()).
-    Taint st_taint[8];
-    Taint opmask_taint[8];
+    TaintT st_taint[8];
+    TaintT opmask_taint[8];
 
     // AVX512 opmask registers k0..k7. Only the low N bits are used where N
 
@@ -118,7 +124,7 @@ struct CPU {
 
     // flags consumes a tainted input. Checked on Jcc/JCXZ/LOOP.
 
-    Taint flags_taint;
+    TaintT flags_taint;
 
     // Thread bookkeeping for clone emulation.
     int tid = 0;                 // guest tid (== host gettid())
@@ -131,7 +137,7 @@ struct CPU {
     Emulator* emu = nullptr;
 
     uint64_t rsp() const { return gpr[ZG_RSP].val; }
-    void set_rsp(uint64_t v, Taint t = Taint()) {
+    void set_rsp(uint64_t v, TaintT t = TaintT()) {
         gpr[ZG_RSP].val = v;
         gpr[ZG_RSP].taint = t;
     }

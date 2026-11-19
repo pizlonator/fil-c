@@ -47,27 +47,19 @@
 #include "mem.h"
 #include "syscall.h"
 
+// --- engine-wide, taint-free state (moved out of the former anonymous
+// namespaces; shared verbatim by both Engine instantiations) ------
+namespace {
 // Magic client-request call target (see zegarmistrz.txt: poisoning).
 static const uint64_t kMagicAddr = 0x1410141014101410ULL;
 
-namespace {
-
 thread_local ZydisDecoder t_decoder;
-thread_local bool t_decoder_init = false;
-thread_local ZydisFormatter t_formatter;
-thread_local bool t_formatter_init = false;
 
-void ensure_decoder() {
-    if (!t_decoder_init) {
-        ZydisDecoderInit(&t_decoder, ZYDIS_MACHINE_MODE_LONG_64,
-                         ZYDIS_STACK_WIDTH_64);
-        t_decoder_init = true;
-    }
-    if (!t_formatter_init) {
-        ZydisFormatterInit(&t_formatter, ZYDIS_FORMATTER_STYLE_INTEL);
-        t_formatter_init = true;
-    }
-}
+thread_local bool t_decoder_init = false;
+
+thread_local ZydisFormatter t_formatter;
+
+thread_local bool t_formatter_init = false;
 
 struct Dec {
     ZydisDecodedInstruction insn;
@@ -81,7 +73,6 @@ struct Dec {
 // of (RIP, bytes), so a byte-validated hit is exact, and self-modifying or
 // rewritten code (byte mismatch, unmapped page) falls back to a full Zydis
 // decode automatically.
-namespace {
 struct DecCacheEntry {
     uint64_t rip = 0;
     size_t len = 0;
@@ -89,17 +80,142 @@ struct DecCacheEntry {
     bool filled = false;
     Dec dec;
 };
+
 constexpr unsigned kDecCacheBits = 12;
+
 constexpr size_t kDecCacheSize = 1u << kDecCacheBits;
+
 // Heap-allocated (lazily, per thread): the cache is 4K entries of 1176
 // bytes each (~4.6MB per guest thread; a thread_local TLS block that size
 // would blow the emulator's per-thread TLS budget and break guest thread
 // creation).  4K slots are enough: the working set of even a hot loop over
 // hundreds of functions fits, and misses only cost a full Zydis decode.
 thread_local DecCacheEntry* t_dec_cache = nullptr;
+
+// zegarmistrz presence (see cpuid.txt): guests detect us via the CPUID
+// hypervisor convention — CPUID.1:ECX bit 31 ("hypervisor present", which
+// real silicon reserves as zero) plus the software-reserved hypervisor leaf
+// range 0x40000000-0x4000FFFF, where leaf 0x40000000 reports the max
+// hypervisor leaf in EAX and the 12-byte vendor signature "Zegarmistrz\0"
+// in EBX:ECX:EDX. Our leaves shadow the host's, so guests never see the
+// host hypervisor's signature through us; undefined leaves in the range
+// read as zero.
+static const unsigned kZegHypLeafBase = 0x40000000;
+
+static const unsigned kZegHypLeafEnd = 0x40010000;
+
+static const unsigned kZegSigEbx = 0x6167655Au; // "Zega"
+
+static const unsigned kZegSigEcx = 0x73696D72u; // "rmis"
+
+static const unsigned kZegSigEdx = 0x007A7274u; // "trz\0"
+
+// === dispatcher / loop / core dump ==========================================
+
+
+std::mutex g_bus_lock; // emulates the x86 bus lock for LOCK-prefixed insns
+
+// --- cannot-var-time-op: data-dependent execution-time checks ---------------
+// Classification follows x86_64_data_dependent_timing.md (repo root):
+// §4 known var-time => KNOWN, §5 suspects => PLAUSIBLE, §6+§7 => GUARANTEED.
+// Everything else => OTHER (only mode "everything" traps). Branch (CTRL) and
+// address (ADDR) dependencies are the existing cannot-branch / cannot-index
+// checks and are deliberately NOT re-checked here.
+//
+// Only mnemonics zegarmistrz actually implements are listed; an unimplemented
+// mnemonic classifies as OTHER but never dispatches (it fails later with an
+// "unimplemented" guest error -- in "everything" mode such an instruction
+// with a tainted operand reports var-time first; both are fatal guest errors).
+
+
+enum class VarTimeClass { GUARANTEED, KNOWN, PLAUSIBLE, OTHER };
+
+static uint64_t dbg_lo = 0, dbg_hi = 0, dbg_base = 0;
+
+static uint64_t dbg2_lo = 0, dbg2_hi = 0, dbg2_base = 0;
+
+static bool dbg_init = false;
+
+static char dbg_needle[128] = {0};
+
+static char dbg2_needle[128] = {0};
+
 } // namespace
 
-const Dec& fetch_decode(CPU* cpu) {
+// The whole engine below is a class template over the taint sidecar type:
+// Taint (plain, default) or HistoryTaint (--history: the same three
+// enforcement bits plus a bounded trail of the guest PCs that produced or
+// consumed the poison). Every former file-scope/anonymous-namespace function
+// became a static member and runs for either type; the bodies AND the
+// comments are carried over from the pre-templating file (member definitions
+// kept at their original indentation). Only run_cpu_loop is exported (see
+// the explicit instantiations after the class); nothing else here emits
+// external symbols. The intentional edits relative to the pre-templating
+// file are: the static-member conversion itself, note_store_op (store-PC
+// recording on the sidecar passed by mutable reference), the
+// poison_history_of(...) argument added to the taint-fault guest_error
+// calls, exec_one's zeg_history_pc set, the catch sites passing
+// e.poison_history, check_var_time's offending-operand threading (vt_off),
+// the run_cpu_loop wrapper, and the removal of two in-class forward
+// declarations (exec_evex_pcmpeq, exec_evex_movd), plus two compile-warning
+// cleanups (an unused local in exec_vpermd and %lx formats in the IFMA
+// debug print).
+template<typename TaintT>
+struct Engine {
+    using Taint = TaintT;
+    using CPU = ::CPU<TaintT>;
+    using GPRValue = ::GPRValue<TaintT>;
+    using XMMValue = ::XMMValue<TaintT>;
+    using VecVal = ::VecVal<TaintT>;
+    using GuestError = ::GuestError<TaintT>;
+
+    // Offending value's poison trail for GuestError ({} for plain Taint).
+    static std::vector<uint64_t> poison_history_of(const Taint& t) {
+        if constexpr (TaintT::has_history)
+            return t.history;
+        else
+            return {};
+    }
+
+    // Store-side history recording + poison-map folding. The engine's
+    // mem_note_store call sites go through this so the sidecar carrying the
+    // stored value's provenance records the store PC. Where the site stages
+    // a copy of the value (scalar stores via op_store's Val, push64's
+    // parameter, staged vector results), the note lands on that staging
+    // object and is transient with it; where the sidecar is a live register
+    // sidecar (e.g. the vector-store sites pass cpu->xmm[i].taint) the note
+    // is durable. The store lands durably in the destination bytes' poison
+    // history too: mem_note_store writes the stored value's trail (which
+    // ends with this store PC) plus the store PC into each destination
+    // byte, so later loads inherit the whole journey through memory
+    // (see mem_note_store).
+    static void note_store_op(CPU* cpu, uint64_t addr, size_t size, Taint& t) {
+        if constexpr (TaintT::has_history)
+            t.note_op_pc();
+        mem_note_store(cpu, addr, size, t);
+    }
+
+
+// --- operand access --------------------------------------------------------
+
+struct Val {
+    uint64_t v = 0;
+    Taint taint;
+};
+
+static void ensure_decoder() {
+    if (!t_decoder_init) {
+        ZydisDecoderInit(&t_decoder, ZYDIS_MACHINE_MODE_LONG_64,
+                         ZYDIS_STACK_WIDTH_64);
+        t_decoder_init = true;
+    }
+    if (!t_formatter_init) {
+        ZydisFormatterInit(&t_formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+        t_formatter_init = true;
+    }
+}
+
+static const Dec& fetch_decode(CPU* cpu) {
     ensure_decoder();
     uint8_t raw[15];
     size_t n = mem_read_code(cpu, cpu->rip, raw);
@@ -128,7 +244,8 @@ const Dec& fetch_decode(CPU* cpu) {
 // skipping hidden ones (RFLAGS, implicit RSP/RIP snapshots, ...). All
 // exec_* handlers index d.ops[] in this space, e.g. `test al, 1` is
 // op0=AL(implicit), op1=imm(explicit).
-int explicit_ops(const Dec& d) {
+
+static int explicit_ops(const Dec& d) {
     int n = 0;
     for (int i = 0; i < d.insn.operand_count; i++) {
         if (d.ops[i].visibility != ZYDIS_OPERAND_VISIBILITY_HIDDEN)
@@ -140,7 +257,7 @@ int explicit_ops(const Dec& d) {
 // --- register mapping ------------------------------------------------------
 // GPR: returns index 0..15, size in bytes (1/2/4/8), shift in bits (0 or 8
 // for AH/CH/DH/BH).
-bool reg_to_gpr(ZydisRegister r, int& idx, int& size, int& shift) {
+static bool reg_to_gpr(ZydisRegister r, int& idx, int& size, int& shift) {
     shift = 0;
     if (r >= ZYDIS_REGISTER_AL && r <= ZYDIS_REGISTER_R15B) {
         size = 1;
@@ -179,7 +296,7 @@ bool reg_to_gpr(ZydisRegister r, int& idx, int& size, int& shift) {
 }
 
 // Vector register: index 0..31, width in bytes (16/32/64).
-bool reg_to_vec(ZydisRegister r, int& idx, int& width) {
+static bool reg_to_vec(ZydisRegister r, int& idx, int& width) {
     if (r >= ZYDIS_REGISTER_XMM0 && r <= ZYDIS_REGISTER_XMM31) {
         idx = r - ZYDIS_REGISTER_XMM0;
         width = 16;
@@ -200,20 +317,20 @@ bool reg_to_vec(ZydisRegister r, int& idx, int& width) {
 
 // --- flags -----------------------------------------------------------------
 
-bool parity8(uint8_t v) {
+static bool parity8(uint8_t v) {
     v ^= v >> 4;
     v ^= v >> 2;
     v ^= v >> 1;
     return (v & 1) == 0;
 }
 
-uint64_t mask_for(int w) {
+static uint64_t mask_for(int w) {
     if (w == 8)
         return ~0ULL;
     return (w == 4) ? 0xffffffffULL : (w == 2) ? 0xffffULL : 0xffULL;
 }
 
-void flags_add(CPU* cpu, int w, uint64_t a, uint64_t b, uint64_t r) {
+static void flags_add(CPU* cpu, int w, uint64_t a, uint64_t b, uint64_t r) {
     uint64_t m = mask_for(w);
     a &= m;
     b &= m;
@@ -229,7 +346,7 @@ void flags_add(CPU* cpu, int w, uint64_t a, uint64_t b, uint64_t r) {
     cpu->set_flag(FLAG_AF, ((a ^ b ^ r) & 0x10) != 0);
 }
 
-void flags_sub(CPU* cpu, int w, uint64_t a, uint64_t b, uint64_t r) {
+static void flags_sub(CPU* cpu, int w, uint64_t a, uint64_t b, uint64_t r) {
     uint64_t m = mask_for(w);
     a &= m;
     b &= m;
@@ -245,7 +362,7 @@ void flags_sub(CPU* cpu, int w, uint64_t a, uint64_t b, uint64_t r) {
     cpu->set_flag(FLAG_AF, ((a ^ b ^ r) & 0x10) != 0);
 }
 
-void flags_logic(CPU* cpu, int w, uint64_t r) {
+static void flags_logic(CPU* cpu, int w, uint64_t r) {
     r &= mask_for(w);
     cpu->set_flag(FLAG_CF, false);
     cpu->set_flag(FLAG_OF, false);
@@ -256,7 +373,7 @@ void flags_logic(CPU* cpu, int w, uint64_t r) {
 }
 
 // Condition codes shared by Jcc/SETcc/CMOVcc.
-bool eval_cond(CPU* cpu, ZydisMnemonic m) {
+static bool eval_cond(CPU* cpu, ZydisMnemonic m) {
     bool cf = cpu->cf(), pf = cpu->pf(), zf = cpu->zf(), sf = cpu->sf(),
          of = cpu->of();
     switch (m) {
@@ -312,7 +429,7 @@ bool eval_cond(CPU* cpu, ZydisMnemonic m) {
     }
 }
 
-bool is_jcc(ZydisMnemonic m) {
+static bool is_jcc(ZydisMnemonic m) {
     switch (m) {
     case ZYDIS_MNEMONIC_JO:
     case ZYDIS_MNEMONIC_JNO:
@@ -334,7 +451,7 @@ bool is_jcc(ZydisMnemonic m) {
     }
 }
 
-bool is_setcc(ZydisMnemonic m) {
+static bool is_setcc(ZydisMnemonic m) {
     switch (m) {
     case ZYDIS_MNEMONIC_SETO:
     case ZYDIS_MNEMONIC_SETNO:
@@ -356,7 +473,7 @@ bool is_setcc(ZydisMnemonic m) {
     }
 }
 
-bool is_cmovcc(ZydisMnemonic m) {
+static bool is_cmovcc(ZydisMnemonic m) {
     switch (m) {
     case ZYDIS_MNEMONIC_CMOVO:
     case ZYDIS_MNEMONIC_CMOVNO:
@@ -378,19 +495,13 @@ bool is_cmovcc(ZydisMnemonic m) {
     }
 }
 
-// --- operand access --------------------------------------------------------
-
-struct Val {
-    uint64_t v = 0;
-    Taint taint;
-};
 
 // Compute linear address of a memory operand WITHOUT any cannot-index
 // checks. next_rip = address of the following instruction (for
 // RIP-relative). Only callers that never actually access memory (LEA,
 // which is pure address arithmetic) may use this directly; anything that
 // touches memory must go through resolve_mem below.
-uint64_t compute_ea(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip) {
+static uint64_t compute_ea(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip) {
     uint64_t base = 0, index = 0, scale = op.mem.scale ? op.mem.scale : 1;
     bool has_base = false;
     if (op.mem.base != ZYDIS_REGISTER_NONE) {
@@ -434,21 +545,23 @@ uint64_t compute_ea(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip) 
 // computes an address without ever touching memory. Unlike compute_ea
 // (which computes the offset only, ignoring segment overrides like real
 // LEA), this adds the fs/gs segment base for actual accesses.
-uint64_t resolve_mem(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip) {
+static uint64_t resolve_mem(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip) {
     if (op.mem.base != ZYDIS_REGISTER_NONE &&
         op.mem.base != ZYDIS_REGISTER_RIP) {
         int idx, size, shift;
         if (!reg_to_gpr(op.mem.base, idx, size, shift))
             guest_error(cpu, "unsupported base register in memory operand");
         if (cpu->gpr[idx].taint.cannot_index)
-            guest_error(cpu, "tainted (cannot-index) value used as address base");
+            guest_error(cpu, "tainted (cannot-index) value used as address base",
+                        0, poison_history_of(cpu->gpr[idx].taint));
     }
     if (op.mem.index != ZYDIS_REGISTER_NONE) {
         int idx, size, shift;
         if (!reg_to_gpr(op.mem.index, idx, size, shift))
             guest_error(cpu, "unsupported index register in memory operand");
         if (cpu->gpr[idx].taint.cannot_index)
-            guest_error(cpu, "tainted (cannot-index) value used as address index");
+            guest_error(cpu, "tainted (cannot-index) value used as address index",
+                        0, poison_history_of(cpu->gpr[idx].taint));
     }
     uint64_t addr = compute_ea(cpu, op, next_rip);
     if (op.mem.segment == ZYDIS_REGISTER_FS)
@@ -459,7 +572,7 @@ uint64_t resolve_mem(CPU* cpu, const ZydisDecodedOperand& op, uint64_t next_rip)
 }
 
 // Load an explicit operand as an integer of its operand size.
-Val op_load(CPU* cpu, const Dec& d, int oi) {
+static Val op_load(CPU* cpu, const Dec& d, int oi) {
     const auto& op = d.ops[oi];
     Val r;
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
@@ -500,7 +613,7 @@ Val op_load(CPU* cpu, const Dec& d, int oi) {
 }
 
 // Store an integer to an explicit register/memory operand.
-void op_store(CPU* cpu, const Dec& d, int oi, Val v) {
+static void op_store(CPU* cpu, const Dec& d, int oi, Val v) {
     const auto& op = d.ops[oi];
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
         int idx, size, shift;
@@ -531,7 +644,7 @@ void op_store(CPU* cpu, const Dec& d, int oi, Val v) {
         default: guest_error(cpu, "unsupported memory operand size");
         }
         // Poisoning: a stored tainted value poisons the destination.
-        mem_note_store(cpu, addr, bytes, v.taint);
+        note_store_op(cpu, addr, bytes, v.taint);
         return;
     }
     guest_error(cpu, "cannot store to non-register/memory operand");
@@ -541,7 +654,7 @@ void op_store(CPU* cpu, const Dec& d, int oi, Val v) {
 // cannot-branch/index taint of the loaded bytes (register sidecar or memory
 // poison); vec_store_bytes takes the stored value's taint for mem_note_store
 // and propagates register sidecars.
-void vec_load_bytes(CPU* cpu, const Dec& d, int oi, uint8_t* out, unsigned n,
+static void vec_load_bytes(CPU* cpu, const Dec& d, int oi, uint8_t* out, unsigned n,
                     Taint* t = nullptr) {
     const auto& op = d.ops[oi];
     if (t)
@@ -570,7 +683,7 @@ void vec_load_bytes(CPU* cpu, const Dec& d, int oi, uint8_t* out, unsigned n,
     guest_error(cpu, "unsupported vector operand");
 }
 
-void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const uint8_t* in, unsigned n,
+static void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const uint8_t* in, unsigned n,
                      bool zero_upper, unsigned total_width, Taint t = Taint()) {
     const auto& op = d.ops[oi];
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
@@ -597,7 +710,7 @@ void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const uint8_t* in, unsigned
     if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
         uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
         mem_store_bytes(cpu, addr, in, n);
-        mem_note_store(cpu, addr, n, t);
+        note_store_op(cpu, addr, n, t);
         return;
     }
     guest_error(cpu, "cannot store vector to operand");
@@ -605,7 +718,7 @@ void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const uint8_t* in, unsigned
 
 // VecVal overloads: taint lives in VecVal.taint. Raw-pointer overloads
 // above (for sub-vectors) use Taint as well (no bool pairs).
-void vec_load_bytes(CPU* cpu, const Dec& d, int oi, VecVal& out, unsigned n) {
+static void vec_load_bytes(CPU* cpu, const Dec& d, int oi, VecVal& out, unsigned n) {
     const auto& op = d.ops[oi];
     out.taint.clear();
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
@@ -625,7 +738,7 @@ void vec_load_bytes(CPU* cpu, const Dec& d, int oi, VecVal& out, unsigned n) {
     guest_error(cpu, "unsupported vector operand");
 }
 
-void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const VecVal& in, unsigned n,
+static void vec_store_bytes(CPU* cpu, const Dec& d, int oi, VecVal& in, unsigned n,
                      bool zero_upper, unsigned total_width) {
     const auto& op = d.ops[oi];
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
@@ -644,7 +757,7 @@ void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const VecVal& in, unsigned 
     if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
         uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
         mem_store_bytes(cpu, addr, in.bytes, n);
-        mem_note_store(cpu, addr, n, in.taint);
+        note_store_op(cpu, addr, n, in.taint);
         return;
     }
     guest_error(cpu, "cannot store vector to operand");
@@ -655,31 +768,32 @@ void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const VecVal& in, unsigned 
 // cannot-index, cannot-var-time-op as whole Taint values), except self-xor
 // (and self-sub) of the same register, which produce untagged zero.
 
-void flags_taint2(CPU* cpu, Val a, Val b) {
+static void flags_taint2(CPU* cpu, Val a, Val b) {
     cpu->flags_taint = a.taint | b.taint;
 }
 
-void flags_taint1(CPU* cpu, Val a) {
+static void flags_taint1(CPU* cpu, Val a) {
     cpu->flags_taint = a.taint;
 }
 
-void flags_clear(CPU* cpu) {
+static void flags_clear(CPU* cpu) {
     cpu->flags_taint.clear();
 }
 
-void check_flags_taint(CPU* cpu, const char* what) {
+static void check_flags_taint(CPU* cpu, const char* what) {
     // Orthogonality invariant: branch conditions are the cannot-branch
     // dimension. cannot-index NEVER fires here -- it only guards memory
     // address computations, so branching on a cannot-index-poisoned value
     // (e.g. a key byte compared inside libc) must run.
     if (cpu->flags_taint.cannot_branch)
-        guest_error(cpu, "tainted (cannot-branch) value used in branch condition");
+        guest_error(cpu, "tainted (cannot-branch) value used in branch condition",
+                    0, poison_history_of(cpu->flags_taint));
     (void)what;
 }
 
 // True when all explicit register vector operands denote the same register
 // (self-xor idiom: result is zero regardless of input, taint clears).
-bool vec_self_op(const Dec& d) {
+static bool vec_self_op(const Dec& d) {
     int first = -1;
     for (int i = 0; i < d.insn.operand_count; i++) {
         if (d.ops[i].visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN)
@@ -697,16 +811,17 @@ bool vec_self_op(const Dec& d) {
     return first >= 0;
 }
 
-uint64_t next_rip(CPU* cpu, const Dec& d) { return cpu->rip + d.insn.length; }
+static uint64_t next_rip(CPU* cpu, const Dec& d) { return cpu->rip + d.insn.length; }
 
-void push64(CPU* cpu, uint64_t v, Taint t = Taint()) {
+static void push64(CPU* cpu, uint64_t v, Taint t = Taint()) {
     uint64_t rsp = cpu->gpr[ZG_RSP].val - 8;
     if (cpu->gpr[ZG_RSP].taint.cannot_index)
-        guest_error(cpu, "tainted RSP used by push");
+        guest_error(cpu, "tainted RSP used by push",
+                    0, poison_history_of(cpu->gpr[ZG_RSP].taint));
     mem_store64(cpu, rsp, v);
     // Record the stored value's taint on the new stack slot: a clean push
     // clears stale poison (via clear-on-store), a tainted push poisons it.
-    mem_note_store(cpu, rsp, 8, t);
+    note_store_op(cpu, rsp, 8, t);
     // RSP taint tracks the pointer only: it keeps its old taint (normally
     // clean) and must NOT OR in the stored value's taint. Otherwise every
     // push of a tainted value would taint RSP and all later RSP-relative
@@ -716,10 +831,11 @@ void push64(CPU* cpu, uint64_t v, Taint t = Taint()) {
 
 // Pop preserving the stack slot's taint (loaded bytes' poison sidecar).
 // RSP itself keeps its old taint; only .val advances.
-Val pop64(CPU* cpu) {
+static Val pop64(CPU* cpu) {
     uint64_t rsp = cpu->gpr[ZG_RSP].val;
     if (cpu->gpr[ZG_RSP].taint.cannot_index)
-        guest_error(cpu, "tainted RSP used by pop");
+        guest_error(cpu, "tainted RSP used by pop",
+                    0, poison_history_of(cpu->gpr[ZG_RSP].taint));
     uint64_t v = mem_load64(cpu, rsp);
     Val r;
     r.v = v;
@@ -728,7 +844,7 @@ Val pop64(CPU* cpu) {
     return r;
 }
 
-void trace_insn(CPU* cpu, const Dec& d) {
+static void trace_insn(CPU* cpu, const Dec& d) {
     char buf[256];
     if (ZYAN_SUCCESS(ZydisFormatterFormatInstruction(
             &t_formatter, &d.insn, d.ops, d.insn.operand_count_visible, buf,
@@ -740,21 +856,18 @@ void trace_insn(CPU* cpu, const Dec& d) {
     fflush(stderr);
 }
 
-[[noreturn]] void unimplemented(CPU* cpu, const Dec& d, const char* what) {
+[[noreturn]] static void unimplemented(CPU* cpu, const Dec& d, const char* what) {
     static thread_local char msg[256];
     const char* m = ZydisMnemonicGetString(d.insn.mnemonic);
     snprintf(msg, sizeof(msg), "unimplemented %s (%s)", m ? m : "?", what);
     guest_error(cpu, msg, cpu->rip);
 }
 
-} // namespace
 
 // === integer ALU / data movement ============================================
 // All exec_* take (CPU*, const Dec&) and update RIP on success.
 
-namespace {
-
-int common_int_width(const Dec& d) {
+static int common_int_width(const Dec& d) {
     // Width from first explicit operand with nonzero size.
     for (int i = 0; i < d.insn.operand_count; i++) {
         if (d.ops[i].visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN)
@@ -777,12 +890,12 @@ int common_int_width(const Dec& d) {
                 return d.ops[i].size / 8;
         }
     }
-    guest_error(nullptr, "cannot determine operand width");
+    guest_error<Taint>(nullptr, "cannot determine operand width");
 }
 
 
 // Target of a near branch/call operand (relative imm or absolute reg/mem).
-uint64_t branch_target(CPU* cpu, const Dec& d, int oi) {
+static uint64_t branch_target(CPU* cpu, const Dec& d, int oi) {
     const auto& op = d.ops[oi];
     if (op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE) {
         uint64_t base = cpu->rip + d.insn.length;
@@ -797,17 +910,18 @@ uint64_t branch_target(CPU* cpu, const Dec& d, int oi) {
     // the cannot-branch dimension applies. It is not a memory address --
     // cannot-index never fires here.
     if (v.taint.cannot_branch)
-        guest_error(cpu, "tainted (cannot-branch) branch target");
+        guest_error(cpu, "tainted (cannot-branch) branch target",
+                    0, poison_history_of(v.taint));
     return v.v;
 }
 
-void exec_mov(CPU* cpu, const Dec& d) {
+static void exec_mov(CPU* cpu, const Dec& d) {
     Val s = op_load(cpu, d, 1);
     op_store(cpu, d, 0, s);
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_lea(CPU* cpu, const Dec& d) {
+static void exec_lea(CPU* cpu, const Dec& d) {
     // LEA computes an address but never accesses memory: it is pure
     // arithmetic (compilers emit it for ordinary adds like `x = y + 42`),
     // so it must NOT trip the cannot-index checks, which only apply to
@@ -837,7 +951,7 @@ void exec_lea(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_xchg(CPU* cpu, const Dec& d) {
+static void exec_xchg(CPU* cpu, const Dec& d) {
     Val a = op_load(cpu, d, 0);
     Val b = op_load(cpu, d, 1);
     op_store(cpu, d, 0, b);
@@ -845,19 +959,19 @@ void exec_xchg(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_push(CPU* cpu, const Dec& d) {
+static void exec_push(CPU* cpu, const Dec& d) {
     Val v = op_load(cpu, d, 0);
     push64(cpu, v.v, v.taint);
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pop(CPU* cpu, const Dec& d) {
+static void exec_pop(CPU* cpu, const Dec& d) {
     Val val = pop64(cpu);
     op_store(cpu, d, 0, val);
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_leave(CPU* cpu, const Dec& d) {
+static void exec_leave(CPU* cpu, const Dec& d) {
     // MOV RSP,RBP semantics: RSP takes RBP's value and pointer taint.
     cpu->gpr[ZG_RSP].val = cpu->gpr[ZG_RBP].val;
     cpu->gpr[ZG_RSP].taint = cpu->gpr[ZG_RBP].taint;
@@ -867,7 +981,7 @@ void exec_leave(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_enter(CPU* cpu, const Dec& d) {
+static void exec_enter(CPU* cpu, const Dec& d) {
     // ENTER imm16, imm8. Rare; implement the general form.
     Val alloc = op_load(cpu, d, 0); // bytes to allocate
     Val nesting = op_load(cpu, d, 1);
@@ -886,7 +1000,8 @@ void exec_enter(CPU* cpu, const Dec& d) {
             // taint on RBP must fault here (like the RSP checks in
             // push/pop/ret).
             if (cpu->gpr[ZG_RBP].taint.cannot_index)
-                guest_error(cpu, "tainted RBP used by enter");
+                guest_error(cpu, "tainted RBP used by enter",
+                            0, poison_history_of(cpu->gpr[ZG_RBP].taint));
             uint64_t w = mem_load64(cpu, a);
             Taint t;
             mem_get_taint(a, 8, &t);
@@ -910,7 +1025,7 @@ void exec_enter(CPU* cpu, const Dec& d) {
 }
 
 // ADD/SUB/ADC/SBB/CMP/AND/OR/XOR/TEST shared core.
-void exec_alu(CPU* cpu, const Dec& d, ZydisMnemonic m) {
+static void exec_alu(CPU* cpu, const Dec& d, ZydisMnemonic m) {
     int n = explicit_ops(d);
     if (n < 2)
         guest_error(cpu, "alu needs 2 operands");
@@ -1036,7 +1151,7 @@ void exec_alu(CPU* cpu, const Dec& d, ZydisMnemonic m) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_incdec(CPU* cpu, const Dec& d, bool is_inc) {
+static void exec_incdec(CPU* cpu, const Dec& d, bool is_inc) {
     Val v = op_load(cpu, d, 0);
     int w = common_int_width(d);
     uint64_t m = mask_for(w);
@@ -1056,7 +1171,7 @@ void exec_incdec(CPU* cpu, const Dec& d, bool is_inc) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_neg(CPU* cpu, const Dec& d) {
+static void exec_neg(CPU* cpu, const Dec& d) {
     Val v = op_load(cpu, d, 0);
     int w = common_int_width(d);
     uint64_t m = mask_for(w);
@@ -1071,7 +1186,7 @@ void exec_neg(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_not(CPU* cpu, const Dec& d) {
+static void exec_not(CPU* cpu, const Dec& d) {
     Val v = op_load(cpu, d, 0);
     int w = common_int_width(d);
     Val out;
@@ -1081,7 +1196,7 @@ void exec_not(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_shift(CPU* cpu, const Dec& d, ZydisMnemonic m) {
+static void exec_shift(CPU* cpu, const Dec& d, ZydisMnemonic m) {
     Val dst = op_load(cpu, d, 0);
     Val cnt = op_load(cpu, d, 1);
     int w = common_int_width(d);
@@ -1161,7 +1276,7 @@ void exec_shift(CPU* cpu, const Dec& d, ZydisMnemonic m) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_imul(CPU* cpu, const Dec& d) {
+static void exec_imul(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     int w = common_int_width(d);
     Val out;
@@ -1241,7 +1356,7 @@ void exec_imul(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_mul(CPU* cpu, const Dec& d) {
+static void exec_mul(CPU* cpu, const Dec& d) {
     Val src = op_load(cpu, d, 0);
     int w = common_int_width(d);
     if (w == 1) {
@@ -1276,7 +1391,7 @@ void exec_mul(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_div(CPU* cpu, const Dec& d, bool is_signed) {
+static void exec_div(CPU* cpu, const Dec& d, bool is_signed) {
     Val src = op_load(cpu, d, 0);
     int w = common_int_width(d);
     if (w == 1) {
@@ -1367,7 +1482,7 @@ void exec_div(CPU* cpu, const Dec& d, bool is_signed) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movzx(CPU* cpu, const Dec& d) {
+static void exec_movzx(CPU* cpu, const Dec& d) {
     Val s = op_load(cpu, d, 1);
     Val out;
     out.v = s.v; // op_load already masks to source width; zero-extend is free
@@ -1376,7 +1491,7 @@ void exec_movzx(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movsx(CPU* cpu, const Dec& d) {
+static void exec_movsx(CPU* cpu, const Dec& d) {
     Val s = op_load(cpu, d, 1);
     int sw = d.ops[1].size / 8;
     int64_t sv;
@@ -1393,7 +1508,7 @@ void exec_movsx(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_setcc(CPU* cpu, const Dec& d) {
+static void exec_setcc(CPU* cpu, const Dec& d) {
     // SETcc materializes the flag condition as 0/1: the output is derived
     // from flags, so the flags taint propagates (like Jcc, but as data
     // rather than a fault).
@@ -1404,7 +1519,7 @@ void exec_setcc(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cmovcc(CPU* cpu, const Dec& d) {
+static void exec_cmovcc(CPU* cpu, const Dec& d) {
     // CMOVcc leaks the flag condition into the destination whether or not
     // the move happens, so flags taint propagates on both paths.
     bool take = eval_cond(cpu, d.insn.mnemonic);
@@ -1422,7 +1537,7 @@ void exec_cmovcc(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cbw(CPU* cpu, const Dec& d) {
+static void exec_cbw(CPU* cpu, const Dec& d) {
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_CBW:
         cpu->gpr[ZG_RAX].val = (cpu->gpr[ZG_RAX].val & ~0xffffULL) |
@@ -1456,7 +1571,7 @@ void exec_cbw(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_bswap(CPU* cpu, const Dec& d) {
+static void exec_bswap(CPU* cpu, const Dec& d) {
     Val v = op_load(cpu, d, 0);
     Val out;
     out.v = __builtin_bswap64(v.v) >> (64 - 8 * common_int_width(d));
@@ -1467,7 +1582,7 @@ void exec_bswap(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_bit_test(CPU* cpu, const Dec& d) {
+static void exec_bit_test(CPU* cpu, const Dec& d) {
     // BT/BTS/BTR/BTC.
     Val base = op_load(cpu, d, 0);
     Val off = op_load(cpu, d, 1);
@@ -1482,7 +1597,8 @@ void exec_bit_test(CPU* cpu, const Dec& d) {
         // The bit offset is an address component for the memory form
         // (address = m + (r >> 3), doc 3.1): cannot-index, not var-time.
         if (off.taint.cannot_index)
-            guest_error(cpu, "tainted (cannot-index) value used as BT bit offset");
+            guest_error(cpu, "tainted (cannot-index) value used as BT bit offset",
+                        0, poison_history_of(off.taint));
         int64_t byte_off;
         unsigned bit_in_byte;
         if (bit >= 0) {
@@ -1528,7 +1644,7 @@ void exec_bit_test(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_bsfbsr(CPU* cpu, const Dec& d, bool is_bsr) {
+static void exec_bsfbsr(CPU* cpu, const Dec& d, bool is_bsr) {
     Val s = op_load(cpu, d, 1);
     int w = common_int_width(d);
     uint64_t v = s.v & mask_for(w);
@@ -1555,7 +1671,7 @@ void exec_bsfbsr(CPU* cpu, const Dec& d, bool is_bsr) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_popcnt(CPU* cpu, const Dec& d) {
+static void exec_popcnt(CPU* cpu, const Dec& d) {
     Val s = op_load(cpu, d, 1);
     int w = common_int_width(d);
     Val out;
@@ -1571,7 +1687,7 @@ void exec_popcnt(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_tzcnt_lzcnt(CPU* cpu, const Dec& d, bool is_tzcnt) {
+static void exec_tzcnt_lzcnt(CPU* cpu, const Dec& d, bool is_tzcnt) {
     Val s = op_load(cpu, d, 1);
     int w = common_int_width(d);
     uint64_t v = s.v & mask_for(w);
@@ -1591,7 +1707,7 @@ void exec_tzcnt_lzcnt(CPU* cpu, const Dec& d, bool is_tzcnt) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cmpxchg(CPU* cpu, const Dec& d) {
+static void exec_cmpxchg(CPU* cpu, const Dec& d) {
     Val dst = op_load(cpu, d, 0);
     Val src = op_load(cpu, d, 1);
     int w = common_int_width(d);
@@ -1630,7 +1746,7 @@ void exec_cmpxchg(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_xadd(CPU* cpu, const Dec& d) {
+static void exec_xadd(CPU* cpu, const Dec& d) {
     Val dst = op_load(cpu, d, 0);
     Val src = op_load(cpu, d, 1);
     int w = common_int_width(d);
@@ -1648,7 +1764,7 @@ void exec_xadd(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_lahf_sahf(CPU* cpu, const Dec& d) {
+static void exec_lahf_sahf(CPU* cpu, const Dec& d) {
     if (d.insn.mnemonic == ZYDIS_MNEMONIC_LAHF) {
         uint8_t ah = 0;
         if (cpu->cf())
@@ -1674,7 +1790,7 @@ void exec_lahf_sahf(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_flag_simple(CPU* cpu, const Dec& d) {
+static void exec_flag_simple(CPU* cpu, const Dec& d) {
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_STC: cpu->set_flag(FLAG_CF, true); break;
     case ZYDIS_MNEMONIC_CLC: cpu->set_flag(FLAG_CF, false); break;
@@ -1686,7 +1802,7 @@ void exec_flag_simple(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movbe(CPU* cpu, const Dec& d) {
+static void exec_movbe(CPU* cpu, const Dec& d) {
     Val s = op_load(cpu, d, 1);
     int w = common_int_width(d);
     Val out;
@@ -1703,14 +1819,12 @@ void exec_movbe(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-} // namespace
 
 // === control flow / strings / system ========================================
 
-namespace {
 
 // Poison client request via magic call target.
-void handle_magic_call(CPU* cpu, const Dec& d) {
+static void handle_magic_call(CPU* cpu, const Dec& d) {
     // Convention: ((uint64_t(*)(uint64_t, void*, size_t, uint64_t))magic)(
     //     op, ptr, size, flags)
     // op 0 = no-op/query (returns 0), op 1 = poison with flags as a direct
@@ -1727,7 +1841,7 @@ void handle_magic_call(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_call(CPU* cpu, const Dec& d) {
+static void exec_call(CPU* cpu, const Dec& d) {
     // Far calls (ptr operands) are unsupported.
     if (d.ops[0].type == ZYDIS_OPERAND_TYPE_POINTER)
         guest_error(cpu, "far call unsupported");
@@ -1740,10 +1854,11 @@ void exec_call(CPU* cpu, const Dec& d) {
     cpu->rip = target;
 }
 
-void exec_ret(CPU* cpu, const Dec& d) {
+static void exec_ret(CPU* cpu, const Dec& d) {
     uint64_t rsp = cpu->gpr[ZG_RSP].val;
     if (cpu->gpr[ZG_RSP].taint.cannot_index)
-        guest_error(cpu, "tainted RSP used by ret");
+        guest_error(cpu, "tainted RSP used by ret",
+                    0, poison_history_of(cpu->gpr[ZG_RSP].taint));
     uint64_t target = mem_load64(cpu, rsp);
     Taint t;
     mem_get_taint(rsp, 8, &t);
@@ -1751,7 +1866,8 @@ void exec_ret(CPU* cpu, const Dec& d) {
     // the cannot-branch dimension applies. (The RSP check above stays: RSP
     // IS a memory address.)
     if (t.cannot_branch)
-        guest_error(cpu, "tainted (cannot-branch) return address");
+        guest_error(cpu, "tainted (cannot-branch) return address",
+                    0, poison_history_of(t));
     cpu->gpr[ZG_RSP].val = rsp + 8;
     int n = explicit_ops(d);
     if (n >= 1) {
@@ -1761,11 +1877,11 @@ void exec_ret(CPU* cpu, const Dec& d) {
     cpu->rip = target;
 }
 
-void exec_jmp(CPU* cpu, const Dec& d) {
+static void exec_jmp(CPU* cpu, const Dec& d) {
     cpu->rip = branch_target(cpu, d, 0);
 }
 
-void exec_jcc(CPU* cpu, const Dec& d) {
+static void exec_jcc(CPU* cpu, const Dec& d) {
     Val c = op_load(cpu, d, 0); // target (also validates taint via branch_target below)
     (void)c;
     check_flags_taint(cpu, "jcc");
@@ -1776,7 +1892,7 @@ void exec_jcc(CPU* cpu, const Dec& d) {
         cpu->rip = next_rip(cpu, d);
 }
 
-void exec_jcxz(CPU* cpu, const Dec& d) {
+static void exec_jcxz(CPU* cpu, const Dec& d) {
     int w = (d.insn.mnemonic == ZYDIS_MNEMONIC_JCXZ)    ? 2
             : (d.insn.mnemonic == ZYDIS_MNEMONIC_JECXZ) ? 4
                                                        : 8;
@@ -1784,7 +1900,8 @@ void exec_jcxz(CPU* cpu, const Dec& d) {
     // Orthogonality invariant: RCX here is a branch condition (CTRL), not a
     // memory address, so only the cannot-branch dimension applies.
     if (cpu->gpr[ZG_RCX].taint.cannot_branch)
-        guest_error(cpu, "tainted (cannot-branch) RCX in jcxz");
+        guest_error(cpu, "tainted (cannot-branch) RCX in jcxz",
+                    0, poison_history_of(cpu->gpr[ZG_RCX].taint));
     uint64_t cx = cpu->gpr[ZG_RCX].val & m;
     if (cx == 0)
         cpu->rip = branch_target(cpu, d, 0);
@@ -1792,12 +1909,13 @@ void exec_jcxz(CPU* cpu, const Dec& d) {
         cpu->rip = next_rip(cpu, d);
 }
 
-void exec_loop(CPU* cpu, const Dec& d) {
+static void exec_loop(CPU* cpu, const Dec& d) {
     int w = (d.insn.attributes & ZYDIS_ATTRIB_HAS_ADDRESSSIZE) ? 4 : 8;
     // Orthogonality invariant: RCX here is a loop counter (control flow),
     // not a memory address, so only the cannot-branch dimension applies.
     if (cpu->gpr[ZG_RCX].taint.cannot_branch)
-        guest_error(cpu, "tainted (cannot-branch) RCX in loop");
+        guest_error(cpu, "tainted (cannot-branch) RCX in loop",
+                    0, poison_history_of(cpu->gpr[ZG_RCX].taint));
     check_flags_taint(cpu, "loop");
     if (w != 8) {
         uint64_t m = mask_for(w);
@@ -1822,32 +1940,34 @@ void exec_loop(CPU* cpu, const Dec& d) {
 
 // --- string ops ------------------------------------------------------------
 
-uint64_t rep_count(CPU* cpu, const Dec& d) {
+static uint64_t rep_count(CPU* cpu, const Dec& d) {
     // Address-size determines counter width; assume 64-bit (ABI default).
     if (d.insn.attributes & ZYDIS_ATTRIB_HAS_ADDRESSSIZE)
         return cpu->gpr[ZG_RCX].val & 0xffffffffULL;
     return cpu->gpr[ZG_RCX].val;
 }
 
-void rep_set_count(CPU* cpu, const Dec& d, uint64_t v) {
+static void rep_set_count(CPU* cpu, const Dec& d, uint64_t v) {
     if (d.insn.attributes & ZYDIS_ATTRIB_HAS_ADDRESSSIZE)
         cpu->gpr[ZG_RCX].val = (cpu->gpr[ZG_RCX].val & ~0xffffffffULL) | (v & 0xffffffffULL);
     else
         cpu->gpr[ZG_RCX].val = v;
 }
 
-bool has_rep(const Dec& d) {
+static bool has_rep(const Dec& d) {
     return (d.insn.attributes & (ZYDIS_ATTRIB_HAS_REP | ZYDIS_ATTRIB_HAS_REPE |
                                  ZYDIS_ATTRIB_HAS_REPNE)) != 0;
 }
-bool has_repe(const Dec& d) {
+
+static bool has_repe(const Dec& d) {
     return (d.insn.attributes & (ZYDIS_ATTRIB_HAS_REP | ZYDIS_ATTRIB_HAS_REPE)) != 0;
 }
-bool has_repne(const Dec& d) {
+
+static bool has_repne(const Dec& d) {
     return (d.insn.attributes & ZYDIS_ATTRIB_HAS_REPNE) != 0;
 }
 
-int string_width(ZydisMnemonic m) {
+static int string_width(ZydisMnemonic m) {
     switch (m) {
     case ZYDIS_MNEMONIC_MOVSB:
     case ZYDIS_MNEMONIC_CMPSB:
@@ -1875,12 +1995,15 @@ int string_width(ZydisMnemonic m) {
     return 0;
 }
 
-void check_si_di_taint(CPU* cpu) {
+static void check_si_di_taint(CPU* cpu) {
     if (cpu->gpr[ZG_RSI].taint.cannot_index || cpu->gpr[ZG_RDI].taint.cannot_index)
-        guest_error(cpu, "tainted (cannot-index) RSI/RDI in string op");
+        guest_error(cpu, "tainted (cannot-index) RSI/RDI in string op", 0,
+                    poison_history_of(cpu->gpr[ZG_RSI].taint.cannot_index
+                                          ? cpu->gpr[ZG_RSI].taint
+                                          : cpu->gpr[ZG_RDI].taint));
 }
 
-void check_rep_taint(CPU* cpu, const Dec& d) {
+static void check_rep_taint(CPU* cpu, const Dec& d) {
     if (!has_rep(d))
         return;
     // Orthogonality invariant: the rep count is a loop counter (control
@@ -1888,7 +2011,8 @@ void check_rep_taint(CPU* cpu, const Dec& d) {
     // applies to RCX here (compare data of CMPS/SCAS is checked in
     // exec_string with cannot-branch too; addresses stay on check_si_di_taint).
     if (cpu->gpr[ZG_RCX].taint.cannot_branch)
-        guest_error(cpu, "tainted (cannot-branch) RCX in rep string op");
+        guest_error(cpu, "tainted (cannot-branch) RCX in rep string op",
+                    0, poison_history_of(cpu->gpr[ZG_RCX].taint));
     // Doc 4.4: for REP MOVS/STOS/LODS the RCX iteration count is a VAL
     // dependency (microcode picks among ERMSB/FSRM/fast paths by count), so
     // a cannot-var-time-op-poisoned count makes the instruction's execution
@@ -1907,10 +2031,11 @@ void check_rep_taint(CPU* cpu, const Dec& d) {
     if (count_is_val && cpu->gpr[ZG_RCX].taint.cannot_var_time_op)
         guest_error(cpu,
                     "tainted (cannot-var-time-op) RCX in rep MOVS/STOS/LODS "
-                    "(count is a data-dependent timing operand)");
+                    "(count is a data-dependent timing operand)",
+                    0, poison_history_of(cpu->gpr[ZG_RCX].taint));
 }
 
-void exec_string(CPU* cpu, const Dec& d) {
+static void exec_string(CPU* cpu, const Dec& d) {
     int w = string_width(d.insn.mnemonic);
     if (!w) {
         // Generic form: size from first explicit mem operand.
@@ -1952,7 +2077,8 @@ void exec_string(CPU* cpu, const Dec& d) {
     // whose iteration count depends on the data (doc 4.4 CTRL), so a tainted
     // (cannot-branch) AL/AX/EAX/RAX leaks through the loop trip count.
     if (rep && is_scas && ax_taint.cannot_branch)
-        guest_error(cpu, "tainted (cannot-branch) value in rep CMPS/SCAS");
+        guest_error(cpu, "tainted (cannot-branch) value in rep CMPS/SCAS",
+                    0, poison_history_of(ax_taint));
     uint64_t done = 0;
     for (uint64_t i = 0; i < count; i++) {
         if (is_movs) {
@@ -1971,7 +2097,7 @@ void exec_string(CPU* cpu, const Dec& d) {
             case 4: mem_store32(cpu, di, (uint32_t)v); break;
             default: mem_store64(cpu, di, v); break;
             }
-            mem_note_store(cpu, di, w, mtaint);
+            note_store_op(cpu, di, w, mtaint);
             si += step;
             di += step;
             done++;
@@ -1982,7 +2108,7 @@ void exec_string(CPU* cpu, const Dec& d) {
             case 4: mem_store32(cpu, di, (uint32_t)ax); break;
             default: mem_store64(cpu, di, ax); break;
             }
-            mem_note_store(cpu, di, w, ax_taint);
+            note_store_op(cpu, di, w, ax_taint);
             di += step;
             done++;
         } else if (is_lods) {
@@ -2006,7 +2132,8 @@ void exec_string(CPU* cpu, const Dec& d) {
                     mem_get_taint(si, w, &cbt);
                 mem_get_taint(di, w, &cbt);
                 if (cbt.cannot_branch)
-                    guest_error(cpu, "tainted (cannot-branch) value in rep CMPS/SCAS");
+                    guest_error(cpu, "tainted (cannot-branch) value in rep CMPS/SCAS",
+                                0, poison_history_of(cbt));
             }
             uint64_t b;
             Taint sctaint;
@@ -2073,25 +2200,11 @@ void exec_string(CPU* cpu, const Dec& d) {
 
 // --- system ---------------------------------------------------------------
 
-void exec_syscall(CPU* cpu, const Dec& d) {
+static void exec_syscall(CPU* cpu, const Dec& d) {
     emulate_syscall(cpu, d.insn.length);
 }
 
-// zegarmistrz presence (see cpuid.txt): guests detect us via the CPUID
-// hypervisor convention — CPUID.1:ECX bit 31 ("hypervisor present", which
-// real silicon reserves as zero) plus the software-reserved hypervisor leaf
-// range 0x40000000-0x4000FFFF, where leaf 0x40000000 reports the max
-// hypervisor leaf in EAX and the 12-byte vendor signature "Zegarmistrz\0"
-// in EBX:ECX:EDX. Our leaves shadow the host's, so guests never see the
-// host hypervisor's signature through us; undefined leaves in the range
-// read as zero.
-static const unsigned kZegHypLeafBase = 0x40000000;
-static const unsigned kZegHypLeafEnd = 0x40010000;
-static const unsigned kZegSigEbx = 0x6167655Au; // "Zega"
-static const unsigned kZegSigEcx = 0x73696D72u; // "rmis"
-static const unsigned kZegSigEdx = 0x007A7274u; // "trz\0"
-
-void exec_cpuid(CPU* cpu, const Dec& d) {
+static void exec_cpuid(CPU* cpu, const Dec& d) {
     unsigned leaf = (unsigned)cpu->gpr[ZG_RAX].val;
     unsigned sub = (unsigned)cpu->gpr[ZG_RCX].val;
     unsigned a = 0, b = 0, c = 0, e = 0;
@@ -2131,7 +2244,7 @@ void exec_cpuid(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_xgetbv(CPU* cpu, const Dec& d) {
+static void exec_xgetbv(CPU* cpu, const Dec& d) {
     unsigned leaf = (unsigned)cpu->gpr[ZG_RCX].val;
     unsigned a = 0, e = 0;
     asm volatile("xgetbv" : "=a"(a), "=d"(e) : "c"(leaf));
@@ -2140,7 +2253,7 @@ void exec_xgetbv(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_rdtsc(CPU* cpu, const Dec& d, bool tscp) {
+static void exec_rdtsc(CPU* cpu, const Dec& d, bool tscp) {
     unsigned aux = 0;
     uint64_t t = __rdtsc();
     if (tscp)
@@ -2152,7 +2265,7 @@ void exec_rdtsc(CPU* cpu, const Dec& d, bool tscp) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pushf(CPU* cpu, const Dec& d) {
+static void exec_pushf(CPU* cpu, const Dec& d) {
     int w = d.insn.stack_width / 8;
     if (w != 2 && w != 8)
         w = 8;
@@ -2168,7 +2281,7 @@ void exec_pushf(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_popf(CPU* cpu, const Dec& d) {
+static void exec_popf(CPU* cpu, const Dec& d) {
     Val v = pop64(cpu);
     // Only user-modifiable bits.
     const uint64_t mask = FLAG_CF | FLAG_PF | FLAG_AF | FLAG_ZF | FLAG_SF |
@@ -2179,32 +2292,30 @@ void exec_popf(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-} // namespace
 
 // === vectors (SSE/AVX) ======================================================
 
-namespace {
-
-bool is_vex(const Dec& d) {
+static bool is_vex(const Dec& d) {
     return (d.insn.attributes & ZYDIS_ATTRIB_HAS_VEX) != 0;
 }
-bool is_evex(const Dec& d) {
+
+static bool is_evex(const Dec& d) {
     return (d.insn.attributes & ZYDIS_ATTRIB_HAS_EVEX) != 0;
 }
 
 // Destination vector width in bytes for a vec op (16 or 32). EVEX is
 // rejected by the dispatcher before we get here.
-unsigned vec_width(const Dec& d) {
+static unsigned vec_width(const Dec& d) {
     unsigned bytes = d.ops[0].size / 8;
     if (bytes != 16 && bytes != 32 && bytes != 64)
-        guest_error(nullptr, "bad vector width");
+        guest_error<Taint>(nullptr, "bad vector width");
     return bytes;
 }
 
 // Load the two sources for a 2-operand legacy op (a=dst, b=src) or a
 // 3-operand VEX op (a=src1, b=src2). Returns width in bytes. Optional
 // cb/ci receive the OR of both sources' cannot-branch/index taint.
-unsigned vec_sources(CPU* cpu, const Dec& d, VecVal& a, VecVal& b) {
+static unsigned vec_sources(CPU* cpu, const Dec& d, VecVal& a, VecVal& b) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     if (is_vex(d) && n >= 3) {
@@ -2217,7 +2328,7 @@ unsigned vec_sources(CPU* cpu, const Dec& d, VecVal& a, VecVal& b) {
     return w;
 }
 
-void vec_store_dst(CPU* cpu, const Dec& d, const VecVal& out, unsigned w) {
+static void vec_store_dst(CPU* cpu, const Dec& d, const VecVal& out, unsigned w) {
     int n = explicit_ops(d);
     bool vex = is_vex(d);
     if (vex && n >= 3)
@@ -2226,7 +2337,7 @@ void vec_store_dst(CPU* cpu, const Dec& d, const VecVal& out, unsigned w) {
         vec_store_bytes(cpu, d, 0, out, w, false, w);
 }
 
-bool is_aligned_move(ZydisMnemonic m) {
+static bool is_aligned_move(ZydisMnemonic m) {
     switch (m) {
     case ZYDIS_MNEMONIC_MOVAPS:
     case ZYDIS_MNEMONIC_MOVAPD:
@@ -2247,7 +2358,7 @@ bool is_aligned_move(ZydisMnemonic m) {
     }
 }
 
-void exec_vec_move(CPU* cpu, const Dec& d) {
+static void exec_vec_move(CPU* cpu, const Dec& d) {
     unsigned w = vec_width(d);
     int n = explicit_ops(d);
     // Direction: dst is op0. Source may be reg or mem.
@@ -2278,7 +2389,7 @@ void exec_vec_move(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vec_logic(CPU* cpu, const Dec& d, int kind) {
+static void exec_vec_logic(CPU* cpu, const Dec& d, int kind) {
     // kind: 0=AND 1=OR 2=XOR 3=ANDN
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
@@ -2306,7 +2417,7 @@ void exec_vec_logic(CPU* cpu, const Dec& d, int kind) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pcmpeq(CPU* cpu, const Dec& d, unsigned lane, bool gt) {
+static void exec_pcmpeq(CPU* cpu, const Dec& d, unsigned lane, bool gt) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     memset(o, 0, w);
@@ -2334,7 +2445,7 @@ void exec_pcmpeq(CPU* cpu, const Dec& d, unsigned lane, bool gt) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_padd(CPU* cpu, const Dec& d, unsigned lane, bool sub) {
+static void exec_padd(CPU* cpu, const Dec& d, unsigned lane, bool sub) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     for (unsigned i = 0; i < w; i += lane) {
@@ -2349,7 +2460,7 @@ void exec_padd(CPU* cpu, const Dec& d, unsigned lane, bool sub) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pmull(CPU* cpu, const Dec& d, unsigned lane) {
+static void exec_pmull(CPU* cpu, const Dec& d, unsigned lane) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     for (unsigned i = 0; i < w; i += lane) {
@@ -2370,7 +2481,7 @@ void exec_pmull(CPU* cpu, const Dec& d, unsigned lane) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pminmax(CPU* cpu, const Dec& d, unsigned lane, bool is_signed, bool is_max) {
+static void exec_pminmax(CPU* cpu, const Dec& d, unsigned lane, bool is_signed, bool is_max) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     for (unsigned i = 0; i < w; i += lane) {
@@ -2394,7 +2505,7 @@ void exec_pminmax(CPU* cpu, const Dec& d, unsigned lane, bool is_signed, bool is
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pmovmskb(CPU* cpu, const Dec& d) {
+static void exec_pmovmskb(CPU* cpu, const Dec& d) {
     unsigned w = d.ops[1].size / 8;
     if (w != 16 && w != 32 && w != 64)
         guest_error(cpu, "bad pmovmskb width");
@@ -2412,7 +2523,7 @@ void exec_pmovmskb(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movmskps(CPU* cpu, const Dec& d, bool is_pd) {
+static void exec_movmskps(CPU* cpu, const Dec& d, bool is_pd) {
     unsigned w = d.ops[1].size / 8;
     unsigned lane = is_pd ? 8 : 4;
     VecVal b;
@@ -2429,7 +2540,7 @@ void exec_movmskps(CPU* cpu, const Dec& d, bool is_pd) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pshift_dq(CPU* cpu, const Dec& d, bool left) {
+static void exec_pshift_dq(CPU* cpu, const Dec& d, bool left) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     VecVal a, o;
@@ -2457,7 +2568,7 @@ void exec_pshift_dq(CPU* cpu, const Dec& d, bool left) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pshift_bits(CPU* cpu, const Dec& d, unsigned lane, int kind) {
+static void exec_pshift_bits(CPU* cpu, const Dec& d, unsigned lane, int kind) {
     // kind: 0=left logical 1=right logical 2=right arithmetic
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
@@ -2499,7 +2610,7 @@ void exec_pshift_bits(CPU* cpu, const Dec& d, unsigned lane, int kind) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pshufd(CPU* cpu, const Dec& d) {
+static void exec_pshufd(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     VecVal a, o;
@@ -2516,7 +2627,7 @@ void exec_pshufd(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pshufb(CPU* cpu, const Dec& d) {
+static void exec_pshufb(CPU* cpu, const Dec& d) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     for (unsigned lane = 0; lane < w; lane += 16) {
@@ -2530,7 +2641,7 @@ void exec_pshufb(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_shufpd(CPU* cpu, const Dec& d, bool is_ps) {
+static void exec_shufpd(CPU* cpu, const Dec& d, bool is_ps) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     VecVal a, b, o;
@@ -2557,7 +2668,7 @@ void exec_shufpd(CPU* cpu, const Dec& d, bool is_ps) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pshuflw(CPU* cpu, const Dec& d, bool high) {
+static void exec_pshuflw(CPU* cpu, const Dec& d, bool high) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     VecVal a, o;
@@ -2576,7 +2687,7 @@ void exec_pshuflw(CPU* cpu, const Dec& d, bool high) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_punpck(CPU* cpu, const Dec& d, unsigned lane, bool high) {
+static void exec_punpck(CPU* cpu, const Dec& d, unsigned lane, bool high) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     // Legacy PUNPCK interleaves within each 128-bit lane: dst = a, src = b.
@@ -2594,7 +2705,7 @@ void exec_punpck(CPU* cpu, const Dec& d, unsigned lane, bool high) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_ptest(CPU* cpu, const Dec& d) {
+static void exec_ptest(CPU* cpu, const Dec& d) {
     unsigned w = d.ops[0].size / 8;
     if (w != 16 && w != 32)
         guest_error(cpu, "bad ptest width");
@@ -2618,7 +2729,7 @@ void exec_ptest(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
+static void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
     // MOVD/MOVQ between GPR and XMM.
     // Legacy SSE MOVD/MOVQ clears the rest of the 128-bit XMM only; the
     // VEX.128 (and EVEX.128) forms additionally clear the upper 128 bits of
@@ -2662,7 +2773,7 @@ void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
         else
             mem_store32(cpu, addr, *(uint32_t*)cpu->xmm[vi].bytes);
         // Poisoning: the stored (clean or tainted) value follows the bytes.
-        mem_note_store(cpu, addr, is_q ? 8 : 4, cpu->xmm[vi].taint);
+        note_store_op(cpu, addr, is_q ? 8 : 4, cpu->xmm[vi].taint);
     } else {
         // load: xmm <- mem
         int vi = -1, vw = 0;
@@ -2681,18 +2792,19 @@ void exec_movd(CPU* cpu, const Dec& d, bool is_q) {
 }
 
 // Scalar single/double helpers.
-double vec_f64(const uint8_t* b) {
+static double vec_f64(const uint8_t* b) {
     double v;
     memcpy(&v, b, 8);
     return v;
 }
-float vec_f32(const uint8_t* b) {
+
+static float vec_f32(const uint8_t* b) {
     float v;
     memcpy(&v, b, 4);
     return v;
 }
 
-void exec_sse_scalar(CPU* cpu, const Dec& d, int kind) {
+static void exec_sse_scalar(CPU* cpu, const Dec& d, int kind) {
     // kind: 0=ADD 1=MUL 2=SUB 3=DIV 4=SQRT 5=MAX 6=MIN 7=CMP
     // dst is xmm (op0), src is xmm/mem (op1, maybe op2 for VEX).
     bool is_sd = (d.insn.mnemonic == ZYDIS_MNEMONIC_ADDSD ||
@@ -2805,7 +2917,7 @@ void exec_sse_scalar(CPU* cpu, const Dec& d, int kind) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_ucomi(CPU* cpu, const Dec& d) {
+static void exec_ucomi(CPU* cpu, const Dec& d) {
     bool is_sd = (d.insn.mnemonic == ZYDIS_MNEMONIC_UCOMISD ||
                   d.insn.mnemonic == ZYDIS_MNEMONIC_COMISD ||
                   d.insn.mnemonic == ZYDIS_MNEMONIC_VUCOMISD ||
@@ -2848,7 +2960,7 @@ void exec_ucomi(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cvtsi2s(CPU* cpu, const Dec& d, bool to_sd) {
+static void exec_cvtsi2s(CPU* cpu, const Dec& d, bool to_sd) {
     int n = explicit_ops(d);
     Val s = op_load(cpu, d, n - 1);
     int sw = d.ops[n - 1].size / 8;
@@ -2867,7 +2979,7 @@ void exec_cvtsi2s(CPU* cpu, const Dec& d, bool to_sd) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cvtts2si(CPU* cpu, const Dec& d, bool from_sd) {
+static void exec_cvtts2si(CPU* cpu, const Dec& d, bool from_sd) {
     int n = explicit_ops(d);
     VecVal b;
     vec_load_bytes(cpu, d, n - 1, b, 16);
@@ -2896,7 +3008,7 @@ void exec_cvtts2si(CPU* cpu, const Dec& d, bool from_sd) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cvtss2sd(CPU* cpu, const Dec& d, bool to_sd) {
+static void exec_cvtss2sd(CPU* cpu, const Dec& d, bool to_sd) {
     int n = explicit_ops(d);
     VecVal b;
     vec_load_bytes(cpu, d, n - 1, b, 16);
@@ -2914,7 +3026,7 @@ void exec_cvtss2sd(CPU* cpu, const Dec& d, bool to_sd) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_packed_fp(CPU* cpu, const Dec& d, int kind) {
+static void exec_packed_fp(CPU* cpu, const Dec& d, int kind) {
     // kind: 0=ADD 1=MUL 2=SUB 3=DIV 4=SQRT 5=MAX 6=MIN
     bool is_pd = (d.insn.mnemonic == ZYDIS_MNEMONIC_ADDPD ||
                   d.insn.mnemonic == ZYDIS_MNEMONIC_MULPD ||
@@ -2971,7 +3083,7 @@ void exec_packed_fp(CPU* cpu, const Dec& d, int kind) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movsd_sse(CPU* cpu, const Dec& d) {
+static void exec_movsd_sse(CPU* cpu, const Dec& d) {
     // Distinguish load/store/reg forms by operand types.
     int dsti = -1, dstw = 0, srci = -1, srcw = 0;
     bool dst_is_vec = (d.ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
@@ -3012,12 +3124,12 @@ void exec_movsd_sse(CPU* cpu, const Dec& d) {
         uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
         mem_store64(cpu, addr, *(uint64_t*)cpu->xmm[srci].bytes);
         // Poisoning: the stored value's taint follows the bytes.
-        mem_note_store(cpu, addr, 8, cpu->xmm[srci].taint);
+        note_store_op(cpu, addr, 8, cpu->xmm[srci].taint);
     }
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movss_sse(CPU* cpu, const Dec& d) {
+static void exec_movss_sse(CPU* cpu, const Dec& d) {
     int dsti = -1, dstw = 0, srci = -1, srcw = 0;
     bool dst_is_vec = (d.ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                        reg_to_vec(d.ops[0].reg.value, dsti, dstw));
@@ -3053,12 +3165,12 @@ void exec_movss_sse(CPU* cpu, const Dec& d) {
     } else {
         uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
         mem_store32(cpu, addr, *(uint32_t*)cpu->xmm[srci].bytes);
-        mem_note_store(cpu, addr, 4, cpu->xmm[srci].taint);
+        note_store_op(cpu, addr, 4, cpu->xmm[srci].taint);
     }
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movlp(CPU* cpu, const Dec& d, bool high, bool is_pd) {
+static void exec_movlp(CPU* cpu, const Dec& d, bool high, bool is_pd) {
     (void)is_pd;
     if (d.ops[0].type == ZYDIS_OPERAND_TYPE_MEMORY) {
         // store form: m64 <- xmm low/high half.
@@ -3069,7 +3181,7 @@ void exec_movlp(CPU* cpu, const Dec& d, bool high, bool is_pd) {
         uint64_t v;
         memcpy(&v, cpu->xmm[srci].bytes + (high ? 8 : 0), 8);
         mem_store64(cpu, addr, v);
-        mem_note_store(cpu, addr, 8, cpu->xmm[srci].taint);
+        note_store_op(cpu, addr, 8, cpu->xmm[srci].taint);
     } else if (d.ops[1].type == ZYDIS_OPERAND_TYPE_MEMORY) {
         int dsti = -1, dstw = 0;
         if (!reg_to_vec(d.ops[0].reg.value, dsti, dstw))
@@ -3094,7 +3206,7 @@ void exec_movlp(CPU* cpu, const Dec& d, bool high, bool is_pd) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movhlps(CPU* cpu, const Dec& d, bool hl) {
+static void exec_movhlps(CPU* cpu, const Dec& d, bool hl) {
     int dsti = -1, dstw = 0, srci = -1, srcw = 0;
     reg_to_vec(d.ops[0].reg.value, dsti, dstw);
     reg_to_vec(d.ops[1].reg.value, srci, srcw);
@@ -3110,7 +3222,7 @@ void exec_movhlps(CPU* cpu, const Dec& d, bool hl) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_ldmxcsr(CPU* cpu, const Dec& d, bool load) {
+static void exec_ldmxcsr(CPU* cpu, const Dec& d, bool load) {
     uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
     if (load)
         cpu->mxcsr = mem_load32(cpu, addr);
@@ -3119,7 +3231,7 @@ void exec_ldmxcsr(CPU* cpu, const Dec& d, bool load) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_rdrand(CPU* cpu, const Dec& d, bool seed) {
+static void exec_rdrand(CPU* cpu, const Dec& d, bool seed) {
     // Host passthrough with retry; CF=1 on success.
     Val out;
     bool ok = false;
@@ -3161,7 +3273,7 @@ void exec_rdrand(CPU* cpu, const Dec& d, bool seed) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_crc32(CPU* cpu, const Dec& d) {
+static void exec_crc32(CPU* cpu, const Dec& d) {
     Val acc = op_load(cpu, d, 0);
     Val src = op_load(cpu, d, 1);
     int sw = d.ops[1].size / 8;
@@ -3187,7 +3299,7 @@ void exec_crc32(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vzero(CPU* cpu, const Dec& d, bool all) {
+static void exec_vzero(CPU* cpu, const Dec& d, bool all) {
     (void)all; // VZEROUPPER and VZEROALL both just clear upper lanes here
     for (int i = 0; i < 32; i++)
         memset(cpu->xmm[i].bytes + 16, 0, 48);
@@ -3195,7 +3307,7 @@ void exec_vzero(CPU* cpu, const Dec& d, bool all) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vbroadcast(CPU* cpu, const Dec& d) {
+static void exec_vbroadcast(CPU* cpu, const Dec& d) {
     // VBROADCASTSS/SD/F128 + VPBROADCASTB/W/D/Q.
     unsigned w = vec_width(d);
     int n = explicit_ops(d);
@@ -3233,7 +3345,7 @@ void exec_vbroadcast(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vextract(CPU* cpu, const Dec& d, bool insert) {
+static void exec_vextract(CPU* cpu, const Dec& d, bool insert) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d); // dest width for extract (16), src for insert
     Val imm = op_load(cpu, d, n - 1);
@@ -3262,7 +3374,7 @@ void exec_vextract(CPU* cpu, const Dec& d, bool insert) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vperm2(CPU* cpu, const Dec& d) {
+static void exec_vperm2(CPU* cpu, const Dec& d) {
     // VPERM2F128 / VPERM2I128.
     int n = explicit_ops(d);
     VecVal a, b, o;
@@ -3283,7 +3395,7 @@ void exec_vperm2(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vpermil(CPU* cpu, const Dec& d, bool is_pd, bool var) {
+static void exec_vpermil(CPU* cpu, const Dec& d, bool is_pd, bool var) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     if (n == 3 && d.ops[2].type == ZYDIS_OPERAND_TYPE_REGISTER)
@@ -3311,7 +3423,7 @@ void exec_vpermil(CPU* cpu, const Dec& d, bool is_pd, bool var) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vpermpd(CPU* cpu, const Dec& d) {
+static void exec_vpermpd(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     VecVal a, o;
     vec_load_bytes(cpu, d, n - 2, a, 32);
@@ -3325,7 +3437,7 @@ void exec_vpermpd(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vpermq(CPU* cpu, const Dec& d) {
+static void exec_vpermq(CPU* cpu, const Dec& d) {
     // VPERMQ ymm, ymm/mem, imm.
     int n = explicit_ops(d);
     VecVal a, o;
@@ -3340,11 +3452,10 @@ void exec_vpermq(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vpermd(CPU* cpu, const Dec& d, unsigned elem) {
+static void exec_vpermd(CPU* cpu, const Dec& d, unsigned elem) {
     // VPERMD/VPERMPS ymm1, ymm2, ymm3/m256: dst[i] = src3[idx[i]], where the
     // index vector is the FIRST source (op1) and the data is op2.  Indices
     // are taken modulo the lane count (hw ignores high bits).
-    int n = explicit_ops(d);
     VecVal a, b, o;
     vec_load_bytes(cpu, d, 1, a, 32);
     vec_load_bytes(cpu, d, 2, b, 32);
@@ -3360,8 +3471,7 @@ void exec_vpermd(CPU* cpu, const Dec& d, unsigned elem) {
     cpu->rip = next_rip(cpu, d);
 }
 
-
-void exec_pblendvb(CPU* cpu, const Dec& d) {
+static void exec_pblendvb(CPU* cpu, const Dec& d) {
     // PBLENDVB / VPBLENDVB: mask from XMM0 (implicit) or op2 (VEX).
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
@@ -3383,7 +3493,7 @@ void exec_pblendvb(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_blendps(CPU* cpu, const Dec& d, bool is_pd) {
+static void exec_blendps(CPU* cpu, const Dec& d, bool is_pd) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     unsigned lane = is_pd ? 8 : 4;
@@ -3399,7 +3509,7 @@ void exec_blendps(CPU* cpu, const Dec& d, bool is_pd) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pblendw(CPU* cpu, const Dec& d) {
+static void exec_pblendw(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
@@ -3413,28 +3523,25 @@ void exec_pblendw(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-} // namespace
+static long double& fpu_st(CPU* cpu, int i) { return cpu->st[(cpu->fpu_top + i) & 7]; }
 
 // === x87 FPU ================================================================
 
-namespace {
-
-long double& fpu_st(CPU* cpu, int i) { return cpu->st[(cpu->fpu_top + i) & 7]; }
 
 // Taint sidecar for x87 stack registers, indexed exactly like fpu_st() (i is
 // relative to TOP). x87 taint is per-register (no byte granularity) and does
 // not survive FXSAVE/XSAVE snapshots (xsave_legacy_read clears it).
-Taint& fpu_st_taint(CPU* cpu, int i) {
+static Taint& fpu_st_taint(CPU* cpu, int i) {
     return cpu->st_taint[(cpu->fpu_top + i) & 7];
 }
 
-void fpu_push(CPU* cpu, long double v, Taint t = Taint()) {
+static void fpu_push(CPU* cpu, long double v, Taint t = Taint()) {
     cpu->fpu_top = (cpu->fpu_top - 1) & 7;
     cpu->st[cpu->fpu_top] = v;
     cpu->st_taint[cpu->fpu_top] = t;
 }
 
-long double fpu_pop(CPU* cpu) {
+static long double fpu_pop(CPU* cpu) {
     long double v = cpu->st[cpu->fpu_top];
     // The popped register becomes empty: drop its taint so a later push (or
     // a stray read of the empty slot) cannot resurrect it.
@@ -3443,7 +3550,7 @@ long double fpu_pop(CPU* cpu) {
     return v;
 }
 
-long double x87_mem_load(CPU* cpu, const Dec& d, int oi, Taint* t = nullptr) {
+static long double x87_mem_load(CPU* cpu, const Dec& d, int oi, Taint* t = nullptr) {
     unsigned bytes = d.ops[oi].size / 8;
     uint64_t addr = resolve_mem(cpu, d.ops[oi], cpu->rip + d.insn.length);
     if (t)
@@ -3472,7 +3579,7 @@ long double x87_mem_load(CPU* cpu, const Dec& d, int oi, Taint* t = nullptr) {
     guest_error(cpu, "bad x87 mem size");
 }
 
-void x87_mem_store(CPU* cpu, const Dec& d, int oi, long double v, Taint t = Taint()) {
+static void x87_mem_store(CPU* cpu, const Dec& d, int oi, long double v, Taint t = Taint()) {
     unsigned bytes = d.ops[oi].size / 8;
     uint64_t addr = resolve_mem(cpu, d.ops[oi], cpu->rip + d.insn.length);
     if (bytes == 4) {
@@ -3489,10 +3596,10 @@ void x87_mem_store(CPU* cpu, const Dec& d, int oi, long double v, Taint t = Tain
         guest_error(cpu, "bad x87 mem size");
     }
     // Poisoning: the stored ST(0) value's taint follows the bytes.
-    mem_note_store(cpu, addr, bytes, t);
+    note_store_op(cpu, addr, bytes, t);
 }
 
-void x87_compare(CPU* cpu, long double a, long double b, bool to_eflags) {
+static void x87_compare(CPU* cpu, long double a, long double b, bool to_eflags) {
     // C0->CF, C2->PF, C3->ZF.
     bool c0 = false, c2 = false, c3 = false;
     if (a != a || b != b) {
@@ -3515,14 +3622,14 @@ void x87_compare(CPU* cpu, long double a, long double b, bool to_eflags) {
     }
 }
 
-int x87_st_index(CPU* cpu, const Dec& d, int oi) {
+static int x87_st_index(CPU* cpu, const Dec& d, int oi) {
     ZydisRegister r = d.ops[oi].reg.value;
     if (r < ZYDIS_REGISTER_ST0 || r > ZYDIS_REGISTER_ST7)
         guest_error(cpu, "bad x87 stack register");
     return r - ZYDIS_REGISTER_ST0;
 }
 
-void exec_x87(CPU* cpu, const Dec& d) {
+static void exec_x87(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_FLD: {
@@ -3586,7 +3693,7 @@ void exec_x87(CPU* cpu, const Dec& d) {
         else
             guest_error(cpu, "bad FIST size");
         // Poisoning: the stored (converted) ST(0) value keeps ST(0)'s taint.
-        mem_note_store(cpu, addr, bytes, t0);
+        note_store_op(cpu, addr, bytes, t0);
         if (d.insn.mnemonic != ZYDIS_MNEMONIC_FIST)
             fpu_pop(cpu);
         break;
@@ -3966,7 +4073,7 @@ void exec_x87(CPU* cpu, const Dec& d) {
             bcd[9] |= 0x80;
         mem_store_bytes(cpu, addr, bcd, 10);
         // Poisoning: the converted ST(0) value keeps ST(0)'s taint.
-        mem_note_store(cpu, addr, 10, t0);
+        note_store_op(cpu, addr, 10, t0);
         break;
     }
     default:
@@ -3977,7 +4084,7 @@ void exec_x87(CPU* cpu, const Dec& d) {
 
 // === misc integer/SIMD odds and ends ========================================
 
-void exec_shld_shrd(CPU* cpu, const Dec& d, bool is_shld) {
+static void exec_shld_shrd(CPU* cpu, const Dec& d, bool is_shld) {
     int n = explicit_ops(d);
     Val dst = op_load(cpu, d, 0);
     Val src = op_load(cpu, d, 1);
@@ -4011,7 +4118,7 @@ void exec_shld_shrd(CPU* cpu, const Dec& d, bool is_shld) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cmpxchg8b(CPU* cpu, const Dec& d) {
+static void exec_cmpxchg8b(CPU* cpu, const Dec& d) {
     uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
     uint64_t rax = cpu->gpr[ZG_RAX].val & 0xffffffffULL;
     uint64_t rdx = cpu->gpr[ZG_RDX].val & 0xffffffffULL;
@@ -4030,7 +4137,7 @@ void exec_cmpxchg8b(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cmpxchg16b(CPU* cpu, const Dec& d) {
+static void exec_cmpxchg16b(CPU* cpu, const Dec& d) {
     uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
     if (addr & 15)
         guest_error(cpu, "guest SIGSEGV (unaligned cmpxchg16b)", addr);
@@ -4051,13 +4158,13 @@ void exec_cmpxchg16b(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movnti(CPU* cpu, const Dec& d) {
+static void exec_movnti(CPU* cpu, const Dec& d) {
     Val s = op_load(cpu, d, 1);
     op_store(cpu, d, 0, s);
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_bmi_simple(CPU* cpu, const Dec& d) {
+static void exec_bmi_simple(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     Val s0 = op_load(cpu, d, n == 3 ? 1 : 0);
     Val s1 = op_load(cpu, d, n == 3 ? 2 : (n == 2 ? 1 : 0));
@@ -4228,7 +4335,7 @@ void exec_bmi_simple(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pinsr(CPU* cpu, const Dec& d, bool insert) {
+static void exec_pinsr(CPU* cpu, const Dec& d, bool insert) {
     int n = explicit_ops(d);
     unsigned lane = 1;
     switch (d.insn.mnemonic) {
@@ -4292,7 +4399,7 @@ void exec_pinsr(CPU* cpu, const Dec& d, bool insert) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pmovsx(CPU* cpu, const Dec& d, unsigned s_lane, unsigned d_lane, bool is_signed) {
+static void exec_pmovsx(CPU* cpu, const Dec& d, unsigned s_lane, unsigned d_lane, bool is_signed) {
     VecVal a, o;
     unsigned w = d.ops[1].size / 8; // source mem/xmm width (8 or 16)
     vec_load_bytes(cpu, d, 1, a, w);
@@ -4319,7 +4426,7 @@ void exec_pmovsx(CPU* cpu, const Dec& d, unsigned s_lane, unsigned d_lane, bool 
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pack(CPU* cpu, const Dec& d, bool is_ss, unsigned lane) {
+static void exec_pack(CPU* cpu, const Dec& d, bool is_ss, unsigned lane) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     unsigned half = (lane == 2) ? 1 : (lane == 4 ? 2 : 4);
@@ -4365,7 +4472,7 @@ void exec_pack(CPU* cpu, const Dec& d, bool is_ss, unsigned lane) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_padds(CPU* cpu, const Dec& d, unsigned lane, bool is_signed, bool add) {
+static void exec_padds(CPU* cpu, const Dec& d, unsigned lane, bool is_signed, bool add) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     for (unsigned i = 0; i < w; i += lane) {
@@ -4397,7 +4504,7 @@ void exec_padds(CPU* cpu, const Dec& d, unsigned lane, bool is_signed, bool add)
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_palignr(CPU* cpu, const Dec& d) {
+static void exec_palignr(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
@@ -4419,7 +4526,7 @@ void exec_palignr(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cvtdq2ps(CPU* cpu, const Dec& d, int kind) {
+static void exec_cvtdq2ps(CPU* cpu, const Dec& d, int kind) {
     // kind 0: DQ2PS, 1: TTPS2DQ, 2: TPS2DQ
     VecVal a, o;
     unsigned w = vec_width(d);
@@ -4447,7 +4554,7 @@ void exec_cvtdq2ps(CPU* cpu, const Dec& d, int kind) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_cvtpd(CPU* cpu, const Dec& d, bool to_ps) {
+static void exec_cvtpd(CPU* cpu, const Dec& d, bool to_ps) {
     VecVal a, o;
     unsigned w = vec_width(d);
     if (to_ps) {
@@ -4474,7 +4581,7 @@ void exec_cvtpd(CPU* cpu, const Dec& d, bool to_ps) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_round(CPU* cpu, const Dec& d, bool is_pd, bool scalar) {
+static void exec_round(CPU* cpu, const Dec& d, bool is_pd, bool scalar) {
     int n = explicit_ops(d);
     unsigned w = scalar ? 16 : vec_width(d);
     VecVal a, o;
@@ -4526,7 +4633,7 @@ void exec_round(CPU* cpu, const Dec& d, bool is_pd, bool scalar) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vtest(CPU* cpu, const Dec& d) {
+static void exec_vtest(CPU* cpu, const Dec& d) {
     unsigned w = vec_width(d);
     VecVal a, b;
     vec_load_bytes(cpu, d, 0, a, w);
@@ -4553,7 +4660,7 @@ void exec_vtest(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_blendv(CPU* cpu, const Dec& d, bool is_pd) {
+static void exec_blendv(CPU* cpu, const Dec& d, bool is_pd) {
     unsigned w = vec_width(d);
     unsigned lane = is_pd ? 8 : 4;
     VecVal a, b, o;
@@ -4567,7 +4674,7 @@ void exec_blendv(CPU* cpu, const Dec& d, bool is_pd) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_movdup(CPU* cpu, const Dec& d, bool high) {
+static void exec_movdup(CPU* cpu, const Dec& d, bool high) {
     VecVal a, o;
     unsigned w = vec_width(d);
     vec_load_bytes(cpu, d, explicit_ops(d) - 1, a, w);
@@ -4580,7 +4687,7 @@ void exec_movdup(CPU* cpu, const Dec& d, bool high) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_vpternlog(CPU* cpu, const Dec& d) {
+static void exec_vpternlog(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     unsigned w = vec_width(d);
     VecVal a, b, c, o;
@@ -4608,15 +4715,12 @@ void exec_vpternlog(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-} // namespace
 
 // === phase 2: EVEX/AVX512 framework ========================================
 // Helpers for masked ({k}{z}) vector execution. Opmask state lives in
 // CPU::opmask[8]; k0 as a mask means "no masking".
 
-namespace {
-
-bool reg_to_opmask(ZydisRegister r, int& k) {
+static bool reg_to_opmask(ZydisRegister r, int& k) {
     if (r >= ZYDIS_REGISTER_K0 && r <= ZYDIS_REGISTER_K7) {
         k = (int)(r - ZYDIS_REGISTER_K0);
         return true;
@@ -4625,7 +4729,7 @@ bool reg_to_opmask(ZydisRegister r, int& k) {
 }
 
 // Destination width for an EVEX op in bytes (16/32/64).
-unsigned evex_width(CPU* cpu, const Dec& d) {
+static unsigned evex_width(CPU* cpu, const Dec& d) {
     unsigned vl = d.insn.avx.vector_length; // bits (128/256/512)
     if (vl == 128 || vl == 256 || vl == 512)
         return vl / 8;
@@ -4636,7 +4740,7 @@ unsigned evex_width(CPU* cpu, const Dec& d) {
 }
 
 // Mask bits + zeroing flag for an EVEX op with `lanes` elements.
-uint64_t evex_mask(CPU* cpu, const Dec& d, unsigned lanes, bool& zeroing) {
+static uint64_t evex_mask(CPU* cpu, const Dec& d, unsigned lanes, bool& zeroing) {
     zeroing = false;
     uint64_t all = (lanes >= 64) ? ~0ULL : ((lanes == 0) ? 0 : ((1ULL << lanes) - 1));
     if (d.insn.avx.mask.mode == ZYDIS_MASK_MODE_DISABLED)
@@ -4649,14 +4753,14 @@ uint64_t evex_mask(CPU* cpu, const Dec& d, unsigned lanes, bool& zeroing) {
     return cpu->opmask[k] & all;
 }
 
-bool evex_broadcasting(const Dec& d) {
+static bool evex_broadcasting(const Dec& d) {
     return (d.insn.attributes & ZYDIS_ATTRIB_HAS_EVEX_B) != 0;
 }
 
 // Taint of the active EVEX write mask ({k1}-style), if any: masked-off
 // result lanes merge with the old destination mask, so its taint flows into
 // mask-producing results too. k0 (no masking) is clean.
-Taint evex_write_mask_taint(CPU* cpu, const Dec& d) {
+static Taint evex_write_mask_taint(CPU* cpu, const Dec& d) {
     if (d.insn.avx.mask.mode == ZYDIS_MASK_MODE_DISABLED ||
         d.insn.avx.mask.mode == ZYDIS_MASK_MODE_INVALID)
         return Taint();
@@ -4671,7 +4775,7 @@ Taint evex_write_mask_taint(CPU* cpu, const Dec& d) {
 // tainted (cannot-var-time-op) value in the active mask register is therefore
 // a var-time leak. Callers only invoke this on genuine MEMORY operations: a
 // {k}-masked register-form op is value-independent.
-void check_evex_mem_mask(CPU* cpu, const Dec& d) {
+static void check_evex_mem_mask(CPU* cpu, const Dec& d) {
     if (d.insn.avx.mask.mode == ZYDIS_MASK_MODE_DISABLED ||
         d.insn.avx.mask.mode == ZYDIS_MASK_MODE_INVALID)
         return;
@@ -4681,7 +4785,8 @@ void check_evex_mem_mask(CPU* cpu, const Dec& d) {
     if (cpu->opmask_taint[k].cannot_var_time_op)
         guest_error(cpu,
                     "tainted (cannot-var-time-op) value in EVEX mask register "
-                    "(masked memory op has data-dependent timing)");
+                    "(masked memory op has data-dependent timing)",
+                    0, poison_history_of(cpu->opmask_taint[k]));
 }
 
 // Load an EVEX vector source with broadcast + taint handling. `elem` is the
@@ -4695,7 +4800,7 @@ void check_evex_mem_mask(CPU* cpu, const Dec& d) {
 // VecVal overloads for EVEX helpers (preferred): per-byte/per-element precise.
 // evex_load only touches enabled lanes for faults/taint; evex_store merges
 // old taint for merging-masked reg dests and only stores enabled lanes.
-void evex_load(CPU* cpu, const Dec& d, int oi, VecVal& out, unsigned w,
+static void evex_load(CPU* cpu, const Dec& d, int oi, VecVal& out, unsigned w,
                unsigned elem) {
     out.taint.clear();
     memset(out.bytes, 0, w);
@@ -4752,7 +4857,7 @@ void evex_load(CPU* cpu, const Dec& d, int oi, VecVal& out, unsigned w,
     guest_error(cpu, "unsupported EVEX source operand");
 }
 
-void evex_store(CPU* cpu, const Dec& d, int oi, const VecVal& res,
+static void evex_store(CPU* cpu, const Dec& d, int oi, VecVal& res,
                 const VecVal& old, unsigned w, unsigned elem, uint64_t kbits,
                 bool zeroing) {
     const auto& op = d.ops[oi];
@@ -4795,7 +4900,7 @@ void evex_store(CPU* cpu, const Dec& d, int oi, const VecVal& res,
         uint64_t all = (lanes >= 64) ? ~0ULL : ((lanes == 0) ? 0 : ((1ULL << lanes) - 1));
         if ((kbits & all) == all) {
             mem_store_bytes(cpu, addr, res.bytes, w);
-            mem_note_store(cpu, addr, w, res.taint);
+            note_store_op(cpu, addr, w, res.taint);
         } else {
             for (unsigned i = 0; i < lanes; i++) {
                 if ((kbits >> i) & 1) {
@@ -4803,7 +4908,7 @@ void evex_store(CPU* cpu, const Dec& d, int oi, const VecVal& res,
                     // Per-element precise: only enabled bytes gain taint.
                     // With whole-vector Taint, apply res taint only to
                     // enabled lanes (disabled untouched).
-                    mem_note_store(cpu, addr + i * elem, elem, res.taint);
+                    note_store_op(cpu, addr + i * elem, elem, res.taint);
                 }
             }
         }
@@ -4812,7 +4917,7 @@ void evex_store(CPU* cpu, const Dec& d, int oi, const VecVal& res,
     guest_error(cpu, "cannot store EVEX result to operand");
 }
 
-void evex_old(CPU* cpu, const Dec& d, int oi, VecVal& old, unsigned w) {
+static void evex_old(CPU* cpu, const Dec& d, int oi, VecVal& old, unsigned w) {
     old.taint.clear();
     memset(old.bytes, 0, MAX_VEC_BYTES);
     const auto& op = d.ops[oi];
@@ -4835,7 +4940,7 @@ void evex_old(CPU* cpu, const Dec& d, int oi, VecVal& old, unsigned w) {
 // d.insn.avx.mask, so skip non-destination explicit operands that equal the
 // mask register. (True k-reg data sources, e.g. VPMOVM2B's source, differ
 // from the mask register and are kept.)
-int evex_explicit(const Dec& d, int list[5]) {
+static int evex_explicit(const Dec& d, int list[5]) {
     int n = 0;
     bool evex = is_evex(d);
     for (int i = 0; i < d.insn.operand_count && n < 5; i++) {
@@ -4853,25 +4958,22 @@ int evex_explicit(const Dec& d, int list[5]) {
     return n;
 }
 
-} // namespace
 
 // === XSAVE / FXSAVE =========================================================
 
-namespace {
-
-uint64_t host_xcr0() {
+static uint64_t host_xcr0() {
     unsigned a = 0, d = 0;
     asm volatile("xgetbv" : "=a"(a), "=d"(d) : "c"(0));
     return ((uint64_t)d << 32) | a;
 }
 
-void cpuid_d(uint32_t sub, uint32_t& eax, uint32_t& ebx, uint32_t& ecx,
+static void cpuid_d(uint32_t sub, uint32_t& eax, uint32_t& ebx, uint32_t& ecx,
              uint32_t& edx) {
     __cpuid_count(0xd, sub, eax, ebx, ecx, edx);
 }
 
 // Write the 512-byte legacy FXSAVE area at addr from CPU state.
-void xsave_legacy_write(CPU* cpu, uint64_t addr) {
+static void xsave_legacy_write(CPU* cpu, uint64_t addr) {
     uint8_t area[512];
     memset(area, 0, sizeof(area));
     *(uint16_t*)(area + 0) = cpu->fcw;
@@ -4890,7 +4992,7 @@ void xsave_legacy_write(CPU* cpu, uint64_t addr) {
     mem_store_bytes(cpu, addr, area, 512);
 }
 
-void xsave_legacy_read(CPU* cpu, uint64_t addr) {
+static void xsave_legacy_read(CPU* cpu, uint64_t addr) {
     uint8_t area[512];
     mem_load_bytes(cpu, addr, area, 512);
     cpu->fcw = *(uint16_t*)(area + 0);
@@ -4908,7 +5010,7 @@ void xsave_legacy_read(CPU* cpu, uint64_t addr) {
         memcpy(cpu->xmm[i].bytes, area + 160 + i * 16, 16);
 }
 
-void exec_fxsave(CPU* cpu, const Dec& d, bool save) {
+static void exec_fxsave(CPU* cpu, const Dec& d, bool save) {
     uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
     if (addr & 15)
         guest_error(cpu, "guest SIGSEGV (unaligned fxsave)", addr);
@@ -4919,7 +5021,7 @@ void exec_fxsave(CPU* cpu, const Dec& d, bool save) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_xsave(CPU* cpu, const Dec& d, bool save, bool compacted) {
+static void exec_xsave(CPU* cpu, const Dec& d, bool save, bool compacted) {
     uint64_t addr = resolve_mem(cpu, d.ops[0], cpu->rip + d.insn.length);
     if (addr & 63)
         guest_error(cpu, "guest SIGSEGV (unaligned xsave)", addr);
@@ -5034,14 +5136,12 @@ void exec_xsave(CPU* cpu, const Dec& d, bool save, bool compacted) {
     cpu->rip = next_rip(cpu, d);
 }
 
-} // namespace
 // === phase 2: EVEX op handlers ============================================
 
-namespace {
 
 // --- opmask (K) instructions ----------------------------------------------
 
-unsigned kmask_width(ZydisMnemonic m) {
+static unsigned kmask_width(ZydisMnemonic m) {
     switch (m) {
     case ZYDIS_MNEMONIC_KADDB:
     case ZYDIS_MNEMONIC_KANDB:
@@ -5083,14 +5183,14 @@ unsigned kmask_width(ZydisMnemonic m) {
     }
 }
 
-uint64_t kmask(uint64_t v, unsigned bits) {
+static uint64_t kmask(uint64_t v, unsigned bits) {
     if (bits >= 64)
         return v;
     return v & ((1ULL << bits) - 1);
 }
 
 // Load a K operand (register k, GPR, or memory) as low `bits` bits.
-uint64_t kload(CPU* cpu, const Dec& d, int oi, unsigned bits) {
+static uint64_t kload(CPU* cpu, const Dec& d, int oi, unsigned bits) {
     const auto& op = d.ops[oi];
     uint64_t v = 0;
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
@@ -5117,7 +5217,7 @@ uint64_t kload(CPU* cpu, const Dec& d, int oi, unsigned bits) {
 // Taint sidecar of a K operand source (k register, GPR, or memory; clean for
 // immediates). kload() above loads the value; this mirrors it taint-only so
 // kstore can propagate the source taint into the destination sidecar.
-Taint kload_taint(CPU* cpu, const Dec& d, int oi, unsigned bits) {
+static Taint kload_taint(CPU* cpu, const Dec& d, int oi, unsigned bits) {
     const auto& op = d.ops[oi];
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
         int k;
@@ -5142,7 +5242,7 @@ Taint kload_taint(CPU* cpu, const Dec& d, int oi, unsigned bits) {
 // source taint t (OR of the inputs' taints) lands in cpu->opmask_taint[k]
 // for k-register destinations, in the GPR sidecar via op_store, or in the
 // stored memory bytes via mem_note_store.
-void kstore(CPU* cpu, const Dec& d, int oi, uint64_t v, unsigned bits,
+static void kstore(CPU* cpu, const Dec& d, int oi, uint64_t v, unsigned bits,
             Taint t = Taint()) {
     const auto& op = d.ops[oi];
     v = kmask(v, bits);
@@ -5163,7 +5263,7 @@ void kstore(CPU* cpu, const Dec& d, int oi, uint64_t v, unsigned bits,
         uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
         unsigned bytes = (bits + 7) / 8;
         mem_store_bytes(cpu, addr, (uint8_t*)&v, bytes);
-        mem_note_store(cpu, addr, bytes, t);
+        note_store_op(cpu, addr, bytes, t);
         return;
     }
     guest_error(cpu, "cannot store K result to operand");
@@ -5181,7 +5281,7 @@ static bool is_knot_mn(ZydisMnemonic m) {
            m == ZYDIS_MNEMONIC_KNOT;
 }
 
-void exec_kop(CPU* cpu, const Dec& d) {
+static void exec_kop(CPU* cpu, const Dec& d) {
     ZydisMnemonic m = d.insn.mnemonic;
     unsigned bits = kmask_width(m);
     int ex[5];
@@ -5328,7 +5428,7 @@ void exec_kop(CPU* cpu, const Dec& d) {
 
 // --- EVEX masked moves / logic --------------------------------------------
 
-unsigned evex_move_elem(ZydisMnemonic m) {
+static unsigned evex_move_elem(ZydisMnemonic m) {
     switch (m) {
     case ZYDIS_MNEMONIC_VMOVDQA64:
     case ZYDIS_MNEMONIC_VMOVDQU64:
@@ -5345,7 +5445,7 @@ unsigned evex_move_elem(ZydisMnemonic m) {
     }
 }
 
-void exec_evex_move(CPU* cpu, const Dec& d) {
+static void exec_evex_move(CPU* cpu, const Dec& d) {
     unsigned w = evex_width(cpu, d);
     unsigned elem = evex_move_elem(d.insn.mnemonic);
     int ex[5];
@@ -5361,7 +5461,7 @@ void exec_evex_move(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_logic(CPU* cpu, const Dec& d, int kind) {
+static void exec_evex_logic(CPU* cpu, const Dec& d, int kind) {
     // kind: 0=AND 1=OR 2=XOR 3=ANDN. Covers VPANDD/Q, VPORD/Q, VPXORD/Q,
     // VPANDND/Q and unsuffixed EVEX VPAND/VPOR/VPXOR/VPANDN.  The write-mask
     // granularity is per ELEMENT: qword for the Q-suffixed forms (and for
@@ -5424,7 +5524,7 @@ void exec_evex_logic(CPU* cpu, const Dec& d, int kind) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_ternlog(CPU* cpu, const Dec& d) {
+static void exec_evex_ternlog(CPU* cpu, const Dec& d) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -5466,7 +5566,7 @@ void exec_evex_ternlog(CPU* cpu, const Dec& d) {
 // --- EVEX compares ----------------------------------------------------------
 // VPCMPB/W/D/Q + unsigned variants: imm8 predicate, k-reg destination.
 
-unsigned evex_cmp_elem(ZydisMnemonic m) {
+static unsigned evex_cmp_elem(ZydisMnemonic m) {
     switch (m) {
     case ZYDIS_MNEMONIC_VPCMPB:
     case ZYDIS_MNEMONIC_VPCMPUB: return 1;
@@ -5483,7 +5583,7 @@ static bool evex_cmp_unsigned(ZydisMnemonic m) {
            m == ZYDIS_MNEMONIC_VPCMPUD || m == ZYDIS_MNEMONIC_VPCMPUQ;
 }
 
-void exec_evex_vpcmp_core(CPU* cpu, const Dec& d, unsigned elem, bool us,
+static void exec_evex_vpcmp_core(CPU* cpu, const Dec& d, unsigned elem, bool us,
                             unsigned pred) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -5569,7 +5669,7 @@ void exec_evex_vpcmp_core(CPU* cpu, const Dec& d, unsigned elem, bool us,
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_vpcmp(CPU* cpu, const Dec& d) {
+static void exec_evex_vpcmp(CPU* cpu, const Dec& d) {
     unsigned elem = evex_cmp_elem(d.insn.mnemonic);
     bool us = evex_cmp_unsigned(d.insn.mnemonic);
     exec_evex_vpcmp_core(cpu, d, elem, us, 0xffffffffu);
@@ -5578,8 +5678,7 @@ void exec_evex_vpcmp(CPU* cpu, const Dec& d) {
 // EVEX VPCMPEQB/W/D/Q and VPCMPGTB/W/D/Q have two forms: a mask-producing
 // form (k destination, like VPCMPB with EQ/GT) and the legacy vector form.
 // Dispatch on the destination register kind.
-void exec_evex_pcmpeq(CPU* cpu, const Dec& d, unsigned elem, bool gt);
-void exec_evex_pcmpeq_auto(CPU* cpu, const Dec& d, unsigned elem, bool gt) {
+static void exec_evex_pcmpeq_auto(CPU* cpu, const Dec& d, unsigned elem, bool gt) {
     int ex[5];
     int n = evex_explicit(d, ex);
     int dk = -1;
@@ -5592,7 +5691,7 @@ void exec_evex_pcmpeq_auto(CPU* cpu, const Dec& d, unsigned elem, bool gt) {
 }
 
 // EVEX-encoded VPCMPEQB/W/D/Q and VPCMPGTB/W/D/Q: vector destination.
-void exec_evex_pcmpeq(CPU* cpu, const Dec& d, unsigned elem, bool gt) {
+static void exec_evex_pcmpeq(CPU* cpu, const Dec& d, unsigned elem, bool gt) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -5630,7 +5729,7 @@ void exec_evex_pcmpeq(CPU* cpu, const Dec& d, unsigned elem, bool gt) {
 }
 
 // VPTESTMB/W/D/Q and VPTESTNMB/...: k destination.
-void exec_evex_vptestm(CPU* cpu, const Dec& d, bool is_n) {
+static void exec_evex_vptestm(CPU* cpu, const Dec& d, bool is_n) {
     unsigned elem = 1;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_VPTESTMW:
@@ -5686,7 +5785,7 @@ void exec_evex_vptestm(CPU* cpu, const Dec& d, bool is_n) {
 
 // --- EVEX integer arithmetic -----------------------------------------------
 
-void exec_evex_padd(CPU* cpu, const Dec& d, unsigned elem, bool sub) {
+static void exec_evex_padd(CPU* cpu, const Dec& d, unsigned elem, bool sub) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -5710,7 +5809,7 @@ void exec_evex_padd(CPU* cpu, const Dec& d, unsigned elem, bool sub) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_pmull(CPU* cpu, const Dec& d, unsigned elem) {
+static void exec_evex_pmull(CPU* cpu, const Dec& d, unsigned elem) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -5746,7 +5845,7 @@ void exec_evex_pmull(CPU* cpu, const Dec& d, unsigned elem) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_pminmax(CPU* cpu, const Dec& d, unsigned elem, bool is_signed,
+static void exec_evex_pminmax(CPU* cpu, const Dec& d, unsigned elem, bool is_signed,
                        bool is_max) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -5790,7 +5889,7 @@ void exec_evex_pminmax(CPU* cpu, const Dec& d, unsigned elem, bool is_signed,
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_pavg_psad(CPU* cpu, const Dec& d, bool is_sad, unsigned elem) {
+static void exec_evex_pavg_psad(CPU* cpu, const Dec& d, bool is_sad, unsigned elem) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -5829,7 +5928,7 @@ void exec_evex_pavg_psad(CPU* cpu, const Dec& d, bool is_sad, unsigned elem) {
 
 // EVEX shifts: immediate (VPSLLW/D/Q, VPSRLW/D/Q, VPSRAW/D/Q, VPSLLDQ/SRLDQ)
 // and variable (VPSLLVW/D/Q, VPSRLVW/D/Q, VPSRAVW/D/Q).
-void exec_evex_shift(CPU* cpu, const Dec& d, unsigned elem, int kind,
+static void exec_evex_shift(CPU* cpu, const Dec& d, unsigned elem, int kind,
                      bool variable) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -5929,7 +6028,7 @@ void exec_evex_shift(CPU* cpu, const Dec& d, unsigned elem, int kind,
 
 // --- EVEX broadcast / permute / blend ---------------------------------------
 
-void exec_evex_broadcast(CPU* cpu, const Dec& d) {
+static void exec_evex_broadcast(CPU* cpu, const Dec& d) {
     unsigned w = evex_width(cpu, d);
     ZydisMnemonic m = d.insn.mnemonic;
     unsigned srcn = 4, elem = 4;
@@ -6019,7 +6118,7 @@ void exec_evex_broadcast(CPU* cpu, const Dec& d) {
 }
 
 // VPERMB/W/D/Q + VPERMILPS/PD (EVEX) + VPERMPD/Q + VPSHUFD + VSHUFPS/PD.
-void exec_evex_perm(CPU* cpu, const Dec& d, int kind) {
+static void exec_evex_perm(CPU* cpu, const Dec& d, int kind) {
     // kind 0=VPERMB 1=VPERMW 2=VPERMD/Q(idx vec) 3=VPERMIL 4=VPERMPD/Q(imm)
     // 5=VPSHUFD 6=VSHUF
     unsigned w = evex_width(cpu, d);
@@ -6124,7 +6223,7 @@ void exec_evex_perm(CPU* cpu, const Dec& d, int kind) {
 }
 
 // VPBLENDMB/W/D/Q + VBLENDMPS/MPD.
-void exec_evex_blend(CPU* cpu, const Dec& d) {
+static void exec_evex_blend(CPU* cpu, const Dec& d) {
     unsigned w = evex_width(cpu, d);
     unsigned elem = 1;
     switch (d.insn.mnemonic) {
@@ -6162,7 +6261,7 @@ void exec_evex_blend(CPU* cpu, const Dec& d) {
 
 // --- EVEX converts / misc ----------------------------------------------------
 
-void exec_evex_pmovsx(CPU* cpu, const Dec& d, unsigned s_lane, unsigned d_lane,
+static void exec_evex_pmovsx(CPU* cpu, const Dec& d, unsigned s_lane, unsigned d_lane,
                       bool is_signed) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -6200,7 +6299,7 @@ void exec_evex_pmovsx(CPU* cpu, const Dec& d, unsigned s_lane, unsigned d_lane,
 
 // Down-convert with truncation (VPMOVDB/DW/QB/QD/QW) or saturation
 // (VPMOVSDB/SDW/SQB/SQD/SQW signed, VPMOVUSDB/... unsigned).
-void exec_evex_pmov_down(CPU* cpu, const Dec& d, unsigned s_lane,
+static void exec_evex_pmov_down(CPU* cpu, const Dec& d, unsigned s_lane,
                          unsigned d_lane, int sat) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -6270,7 +6369,7 @@ void exec_evex_pmov_down(CPU* cpu, const Dec& d, unsigned s_lane,
 }
 
 // VPMOVM2B/W/D/Q (mask -> vector) and VPMOVB2M/W2M/D2M/Q2M (vector -> mask).
-void exec_evex_movm(CPU* cpu, const Dec& d, bool to_vec) {
+static void exec_evex_movm(CPU* cpu, const Dec& d, bool to_vec) {
     unsigned elem = 1;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_VPMOVM2W:
@@ -6347,7 +6446,7 @@ void exec_evex_movm(CPU* cpu, const Dec& d, bool to_vec) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_popcnt_lzcnt(CPU* cpu, const Dec& d, bool is_lzcnt) {
+static void exec_evex_popcnt_lzcnt(CPU* cpu, const Dec& d, bool is_lzcnt) {
     unsigned elem = 4;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_VPOPCNTB: elem = 1; break;
@@ -6389,7 +6488,7 @@ void exec_evex_popcnt_lzcnt(CPU* cpu, const Dec& d, bool is_lzcnt) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_vpabs(CPU* cpu, const Dec& d) {
+static void exec_evex_vpabs(CPU* cpu, const Dec& d) {
     unsigned elem = 1;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_VPABSW: elem = 2; break;
@@ -6428,7 +6527,7 @@ void exec_evex_vpabs(CPU* cpu, const Dec& d) {
 
 // VP2INTERSECTD/Q: second result goes to the write-mask register (the {k}
 // operand, k0 = discard). Explicit ops are [k-dst, src1, src2].
-void exec_evex_p2intersect(CPU* cpu, const Dec& d) {
+static void exec_evex_p2intersect(CPU* cpu, const Dec& d) {
     unsigned elem = (d.insn.mnemonic == ZYDIS_MNEMONIC_VP2INTERSECTQ) ? 8 : 4;
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -6460,7 +6559,7 @@ void exec_evex_p2intersect(CPU* cpu, const Dec& d) {
 }
 
 // EVEX punpck/pshufb/palignr/pblendvb forms (element-wise, masked).
-void exec_evex_unpack(CPU* cpu, const Dec& d, int kind) {
+static void exec_evex_unpack(CPU* cpu, const Dec& d, int kind) {
     // kind 0=punpckl/h (elem from mnemonic) 1=pshufb 2=palignr 3=pblendvb
     unsigned elem = 1;
     bool high = false;
@@ -6544,27 +6643,29 @@ static bool mn_starts_with(ZydisMnemonic m, const char* prefix) {
 }
 
 // Shared VSIB address computation. Returns base; fills index vector id.
-uint64_t vsib_base(CPU* cpu, const ZydisDecodedOperand& mop, int& vidx) {
+static uint64_t vsib_base(CPU* cpu, const ZydisDecodedOperand& mop, int& vidx) {
     if (mop.mem.index == ZYDIS_REGISTER_NONE)
         guest_error(cpu, "gather/scatter needs a vector index");
     int vw;
     if (!reg_to_vec(mop.mem.index, vidx, vw))
         guest_error(cpu, "bad gather/scatter index register");
     if (cpu->xmm[vidx].taint.cannot_index)
-        guest_error(cpu, "tainted (cannot-index) gather/scatter index");
+        guest_error(cpu, "tainted (cannot-index) gather/scatter index",
+                    0, poison_history_of(cpu->xmm[vidx].taint));
     uint64_t base = 0;
     if (mop.mem.base != ZYDIS_REGISTER_NONE) {
         int idx, size, shift;
         if (!reg_to_gpr(mop.mem.base, idx, size, shift))
             guest_error(cpu, "bad gather/scatter base register");
         if (cpu->gpr[idx].taint.cannot_index)
-            guest_error(cpu, "tainted (cannot-index) gather/scatter base");
+            guest_error(cpu, "tainted (cannot-index) gather/scatter base",
+                        0, poison_history_of(cpu->gpr[idx].taint));
         base = cpu->gpr[idx].val;
     }
     return base;
 }
 
-void exec_evex_gather(CPU* cpu, const Dec& d, unsigned idx_elem,
+static void exec_evex_gather(CPU* cpu, const Dec& d, unsigned idx_elem,
                       unsigned data_elem) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -6646,7 +6747,7 @@ void exec_evex_gather(CPU* cpu, const Dec& d, unsigned idx_elem,
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_evex_scatter(CPU* cpu, const Dec& d, unsigned idx_elem,
+static void exec_evex_scatter(CPU* cpu, const Dec& d, unsigned idx_elem,
                        unsigned data_elem) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -6695,7 +6796,7 @@ void exec_evex_scatter(CPU* cpu, const Dec& d, unsigned idx_elem,
                 ix = (uint64_t)(int64_t)ix;
             uint64_t addr = base + ix * scale + (uint64_t)disp;
             mem_store_bytes(cpu, addr, src + i * data_elem, data_elem);
-            mem_note_store(cpu, addr, data_elem, src.taint);
+            note_store_op(cpu, addr, data_elem, src.taint);
         }
     }
     cpu->rip = next_rip(cpu, d);
@@ -6703,7 +6804,7 @@ void exec_evex_scatter(CPU* cpu, const Dec& d, unsigned idx_elem,
 
 // VEX legacy gathers: VGATHERDPS/DPD/QPS/QPD (mask in a vector register,
 // MSB per mask element; completed elements clear their mask bit).
-void exec_vex_gather(CPU* cpu, const Dec& d, unsigned idx_elem,
+static void exec_vex_gather(CPU* cpu, const Dec& d, unsigned idx_elem,
                      unsigned data_elem) {
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -6769,7 +6870,7 @@ void exec_vex_gather(CPU* cpu, const Dec& d, unsigned idx_elem,
 
 // VMASKMOVPS/PD + VPMASKMOVD/Q (VEX). Masked element MSB decides;
 // faults only on enabled elements; no fault for disabled ones.
-void exec_maskmov(CPU* cpu, const Dec& d) {
+static void exec_maskmov(CPU* cpu, const Dec& d) {
     unsigned elem = 4;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_VMASKMOVPD:
@@ -6799,7 +6900,7 @@ void exec_maskmov(CPU* cpu, const Dec& d) {
             memcpy(&mv, mask + i, elem);
             if ((mv >> (elem * 8 - 1)) & 1) {
                 mem_store_bytes(cpu, addr + i, data + i, elem);
-                mem_note_store(cpu, addr + i, elem, src_taint);
+                note_store_op(cpu, addr + i, elem, src_taint);
             }
         }
     } else {
@@ -7151,7 +7252,7 @@ static bool is_aes_mn(ZydisMnemonic m) {
 
 // Legacy 128-bit AES (2 operands: dst/state, key) and VAES (VEX/EVEX,
 // 3 operands: dst,state,key; EVEX supports 512-bit + masking).
-__attribute__((target("sse4.1,aes,avx2"))) void exec_aes(CPU* cpu,
+static __attribute__((target("sse4.1,aes,avx2"))) void exec_aes(CPU* cpu,
                                                         const Dec& d) {
     ZydisMnemonic m = d.insn.mnemonic;
     bool is_vaes = m == ZYDIS_MNEMONIC_VAESDEC ||
@@ -7235,7 +7336,7 @@ __attribute__((target("sse4.1,pclmul"))) static inline __m128i pclmul_lane(
     }
 }
 
-__attribute__((target("sse4.1,pclmul,avx2"))) void exec_pclmul(CPU* cpu,
+static __attribute__((target("sse4.1,pclmul,avx2"))) void exec_pclmul(CPU* cpu,
                                                              const Dec& d) {
     bool is_v = (d.insn.mnemonic == ZYDIS_MNEMONIC_VPCLMULQDQ);
     unsigned w = 16;
@@ -7324,7 +7425,7 @@ static uint8_t gf_inv(uint8_t x) {
 
 // GF2P8AFFINEQB/INVQB (+VEX/EVEX V forms) and GF2P8MULB (+V form).
 // y = A*x+b (b = imm8 broadcast); INV applies the GF inverse to x first.
-void exec_gfni(CPU* cpu, const Dec& d) {
+static void exec_gfni(CPU* cpu, const Dec& d) {
     ZydisMnemonic m = d.insn.mnemonic;
     bool is_mul = (m == ZYDIS_MNEMONIC_GF2P8MULB || m == ZYDIS_MNEMONIC_VGF2P8MULB);
     bool is_inv = (m == ZYDIS_MNEMONIC_GF2P8AFFINEINVQB ||
@@ -7420,7 +7521,7 @@ void exec_gfni(CPU* cpu, const Dec& d) {
 }
 
 // SHA1/SHA256 via host SHA-NI intrinsics.
-__attribute__((target("sse4.1,sha"))) void exec_sha(CPU* cpu, const Dec& d) {
+static __attribute__((target("sse4.1,sha"))) void exec_sha(CPU* cpu, const Dec& d) {
     ZydisMnemonic m = d.insn.mnemonic;
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -7551,7 +7652,7 @@ __attribute__((target("sse4.1,sha"))) void exec_sha(CPU* cpu, const Dec& d) {
 // --- VEX classic gaps (phase 1 omissions) --------------------------------------
 // All use vec_sources/vec_store_dst, so legacy + VEX forms share one path.
 
-void exec_pmadd(CPU* cpu, const Dec& d, bool is_ubsw) {
+static void exec_pmadd(CPU* cpu, const Dec& d, bool is_ubsw) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     if (!is_ubsw) {
@@ -7579,7 +7680,7 @@ void exec_pmadd(CPU* cpu, const Dec& d, bool is_ubsw) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pavg(CPU* cpu, const Dec& d, unsigned elem) {
+static void exec_pavg(CPU* cpu, const Dec& d, unsigned elem) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     for (unsigned i = 0; i < w; i += elem) {
@@ -7594,7 +7695,7 @@ void exec_pavg(CPU* cpu, const Dec& d, unsigned elem) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_psadbw(CPU* cpu, const Dec& d) {
+static void exec_psadbw(CPU* cpu, const Dec& d) {
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
     memset(o, 0, w);
@@ -7610,7 +7711,7 @@ void exec_psadbw(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_pmulh(CPU* cpu, const Dec& d, int kind) {
+static void exec_pmulh(CPU* cpu, const Dec& d, int kind) {
     // kind 0=PMULHUW 1=PMULHW 2=PMULUDQ 3=PMULDQ
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
@@ -7643,7 +7744,7 @@ void exec_pmulh(CPU* cpu, const Dec& d, int kind) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_phadd(CPU* cpu, const Dec& d, int kind) {
+static void exec_phadd(CPU* cpu, const Dec& d, int kind) {
     // kind 0=PHADDW 1=PHADDD 2=PHSUBW 3=PHSUBD 4=PHADDSW 5=PHSUBSW
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
@@ -7699,7 +7800,7 @@ void exec_phadd(CPU* cpu, const Dec& d, int kind) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_mpsadbw(CPU* cpu, const Dec& d) {
+static void exec_mpsadbw(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
@@ -7734,7 +7835,7 @@ void exec_mpsadbw(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_extractps(CPU* cpu, const Dec& d, bool insert) {
+static void exec_extractps(CPU* cpu, const Dec& d, bool insert) {
     int n = explicit_ops(d);
     if (!insert) {
         VecVal a;
@@ -7778,7 +7879,7 @@ void exec_extractps(CPU* cpu, const Dec& d, bool insert) {
 }
 
 // HADDPS/PD, HSUBPS/PD, ADDSUBPS/PD (legacy + VEX).
-void exec_hadd_fp(CPU* cpu, const Dec& d, int kind) {
+static void exec_hadd_fp(CPU* cpu, const Dec& d, int kind) {
     // kind 0=haddps 1=haddpd 2=hsubps 3=hsubpd 4=addsubps 5=addsubpd
     VecVal a, b, o;
     unsigned w = vec_sources(cpu, d, a, b);
@@ -7836,7 +7937,7 @@ void exec_hadd_fp(CPU* cpu, const Dec& d, int kind) {
 }
 
 // BEXTR (BMI1): dst = (src >> start) & ((1<<len)-1).
-void exec_bextr(CPU* cpu, const Dec& d) {
+static void exec_bextr(CPU* cpu, const Dec& d) {
     int n = explicit_ops(d);
     if (n < 3)
         guest_error(cpu, "bextr needs 3 operands");
@@ -7871,7 +7972,7 @@ void exec_bextr(CPU* cpu, const Dec& d) {
 // polarity per imm[5:4], output per imm[6] (index vs mask), index edge per
 // imm[7] (lsb vs msb). Widths 16 (and 32 for VEX256 forms, per 128-bit lane
 // with OR-ed masks / first-lane index, documented approximation).
-void exec_pcmpestri(CPU* cpu, const Dec& d, bool want_index) {
+static void exec_pcmpestri(CPU* cpu, const Dec& d, bool want_index) {
     int n = explicit_ops(d);
     unsigned w = d.ops[1].size / 8; // source width
     if (w != 16 && w != 32)
@@ -8130,7 +8231,7 @@ static bool fma_info(ZydisMnemonic m, bool& is_pd, bool& scalar, bool& negate,
     return true;
 }
 
-void exec_fma(CPU* cpu, const Dec& d) {
+static void exec_fma(CPU* cpu, const Dec& d) {
     bool is_pd, scalar, negate, sub, addsub;
     int form;
     if (!fma_info(d.insn.mnemonic, is_pd, scalar, negate, sub, addsub, form))
@@ -8231,7 +8332,7 @@ void exec_fma(CPU* cpu, const Dec& d) {
 
 // --- F16C: VCVTPH2PS / VCVTPS2PH (VEX + EVEX) -----------------------------------
 
-__attribute__((target("avx,f16c"))) void exec_cvtph(CPU* cpu, const Dec& d) {
+static __attribute__((target("avx,f16c"))) void exec_cvtph(CPU* cpu, const Dec& d) {
     bool to_ps = (d.insn.mnemonic == ZYDIS_MNEMONIC_VCVTPH2PS);
     unsigned w = 16;
     if (is_evex(d)) {
@@ -8289,7 +8390,7 @@ __attribute__((target("avx,f16c"))) void exec_cvtph(CPU* cpu, const Dec& d) {
 }
 
 // BF16: VCVTNE2PS2BF16 / VCVTNEPS2BF16 (RNE float32 -> bf16).
-void exec_cvtnebf16(CPU* cpu, const Dec& d) {
+static void exec_cvtnebf16(CPU* cpu, const Dec& d) {
     bool pair = (d.insn.mnemonic == ZYDIS_MNEMONIC_VCVTNE2PS2BF16);
     unsigned w = 16;
     if (is_evex(d))
@@ -8356,7 +8457,7 @@ void exec_cvtnebf16(CPU* cpu, const Dec& d) {
 }
 
 // VPCOMPRESSB/W/D/Q + VPEXPANDB/W/D/Q.
-void exec_evex_compress(CPU* cpu, const Dec& d, bool expand) {
+static void exec_evex_compress(CPU* cpu, const Dec& d, bool expand) {
     unsigned elem = 1;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_VPCOMPRESSW:
@@ -8403,7 +8504,7 @@ void exec_evex_compress(CPU* cpu, const Dec& d, bool expand) {
             uint64_t addr = resolve_mem(cpu, dop, cpu->rip + d.insn.length);
             mem_store_bytes(cpu, addr, o, out * elem);
             // Only bytes actually written gain taint (enabled lanes only).
-            mem_note_store(cpu, addr, out * elem, o.taint);
+            note_store_op(cpu, addr, out * elem, o.taint);
         }
     } else {
         // Expand: contiguous (reg low / mem) loaded into enabled lanes.
@@ -8456,7 +8557,7 @@ void exec_evex_compress(CPU* cpu, const Dec& d, bool expand) {
 }
 
 // VALIGND/Q: double-shift of concatenated (a:b) by imm elements.
-void exec_evex_align(CPU* cpu, const Dec& d) {
+static void exec_evex_align(CPU* cpu, const Dec& d) {
     unsigned elem = (d.insn.mnemonic == ZYDIS_MNEMONIC_VALIGNQ) ? 8 : 4;
     unsigned w = evex_width(cpu, d);
     int ex[5];
@@ -8484,7 +8585,7 @@ void exec_evex_align(CPU* cpu, const Dec& d) {
 }
 
 // Masked packed-float converts (EVEX forms of the phase-1 CVT handlers).
-void exec_evex_cvt(CPU* cpu, const Dec& d, int kind) {
+static void exec_evex_cvt(CPU* cpu, const Dec& d, int kind) {
     // kind 0=dq2ps 1=tt_ps2dq 2=ps2dq 3=pd2ps 4=ps2pd
     unsigned elem = 4;
     if (kind == 3 || kind == 4)
@@ -8563,7 +8664,7 @@ void exec_evex_cvt(CPU* cpu, const Dec& d, int kind) {
 }
 
 // VINSERTF32X4/F64X2/I32X4/I64X2/F32X8/F64X4 + VEXTRACTF32X4/... (EVEX).
-void exec_evex_ins_extract(CPU* cpu, const Dec& d, bool insert) {
+static void exec_evex_ins_extract(CPU* cpu, const Dec& d, bool insert) {
     unsigned sub = 16;
     switch (d.insn.mnemonic) {
     case ZYDIS_MNEMONIC_VINSERTF32X8:
@@ -8624,7 +8725,7 @@ void exec_evex_ins_extract(CPU* cpu, const Dec& d, bool insert) {
 // the two source elements multiply; the low (LUQ) or high (HUQ) 52 bits of
 // the product add into the accumulator's low 52 bits; the result's bits
 // 63:52 are zero.  Scalar implementation: no host IFMA dependency.
-void exec_vpmadd52(CPU* cpu, const Dec& d, bool high) {
+static void exec_vpmadd52(CPU* cpu, const Dec& d, bool high) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -8649,7 +8750,7 @@ void exec_vpmadd52(CPU* cpu, const Dec& d, bool high) {
         uint64_t add = high ? (uint64_t)(prod >> 52) : (uint64_t)prod & m52;
         uint64_t r = acc + add;
         if (dbg52)
-            fprintf(stderr, "[ifma] %s lane%u acc=%016llx x=%016llx y=%016llx r=%016llx\n",
+            fprintf(stderr, "[ifma] %s lane%u acc=%016lx x=%016lx y=%016lx r=%016lx\n",
                     high ? "HUQ" : "LUQ", lane / 8, acc, x, y, r);
         memcpy(o + lane, &r, 8);
     }
@@ -8664,7 +8765,7 @@ void exec_vpmadd52(CPU* cpu, const Dec& d, bool high) {
 // left/right by imm8 & (elem*8 - 1); masked-off lanes merge with the old
 // destination (or zero with {z}); embedded 32/64-bit broadcast sources are
 // handled by evex_load.
-void exec_evex_rol(CPU* cpu, const Dec& d, unsigned elem, bool left) {
+static void exec_evex_rol(CPU* cpu, const Dec& d, unsigned elem, bool left) {
     unsigned w = evex_width(cpu, d);
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -8694,7 +8795,7 @@ void exec_evex_rol(CPU* cpu, const Dec& d, unsigned elem, bool left) {
 }
 
 // VSHUFF32X4/64X2/I32X4/I64X2 (EVEX lane shuffle by imm pairs).
-void exec_evex_shufx(CPU* cpu, const Dec& d) {
+static void exec_evex_shufx(CPU* cpu, const Dec& d) {
     // VSHUFF64X2/VSHUFI64X2/VSHUFF32X4/VSHUFI32X4 shuffle 128-bit lanes
     // between the two sources (verified against hardware):
     //   EVEX.512: dst[0:256]   lanes come from SRC1's four 128-bit lanes,
@@ -8742,8 +8843,7 @@ void exec_evex_shufx(CPU* cpu, const Dec& d) {
 // Master EVEX entry: handles every EVEX-encoded instruction we support.
 // Also serves VEX-encoded VAES/VPCLMULQDQ/VGFNI (via their exec_* which
 // accept both encodings) and VEX legacy gathers.
-void exec_evex_movd(CPU* cpu, const Dec& d, bool is_q);
-void exec_evex(CPU* cpu, const Dec& d) {
+static void exec_evex(CPU* cpu, const Dec& d) {
     ZydisMnemonic m = d.insn.mnemonic;
     // Gather/scatter prefetch hints: architecturally NOP.
     if (mn_starts_with(m, "VGATHERPF") || mn_starts_with(m, "VSCATTERPF")) {
@@ -9165,7 +9265,7 @@ void exec_evex(CPU* cpu, const Dec& d) {
 
 
 // EVEX VMOVD/VMOVQ: low-element moves between GPR, vector, and memory.
-void exec_evex_movd(CPU* cpu, const Dec& d, bool is_q) {
+static void exec_evex_movd(CPU* cpu, const Dec& d, bool is_q) {
     unsigned elem = is_q ? 8 : 4;
     int ex[5];
     int n = evex_explicit(d, ex);
@@ -9271,7 +9371,7 @@ void exec_evex_movd(CPU* cpu, const Dec& d, bool is_q) {
             uint64_t addr = resolve_mem(cpu, dop, cpu->rip + d.insn.length);
             if (enabled) {
                 mem_store_bytes(cpu, addr, tmp, elem);
-                mem_note_store(cpu, addr, elem, t);
+                note_store_op(cpu, addr, elem, t);
             }
         } else {
             guest_error(cpu, "bad evex movd dest");
@@ -9282,7 +9382,7 @@ void exec_evex_movd(CPU* cpu, const Dec& d, bool is_q) {
 
 
 // RDPKRU/WRPKRU: user-mode PKRU access via host instructions.
-void exec_pkru(CPU* cpu, const Dec& d, bool write) {
+static void exec_pkru(CPU* cpu, const Dec& d, bool write) {
     if (write) {
         unsigned lo = (unsigned)cpu->gpr[ZG_RAX].val;
         unsigned hi = (unsigned)cpu->gpr[ZG_RDX].val;
@@ -9304,16 +9404,7 @@ void exec_pkru(CPU* cpu, const Dec& d, bool write) {
     cpu->rip = next_rip(cpu, d);
 }
 
-} // namespace
-
-
-// === dispatcher / loop / core dump ==========================================
-
-namespace {
-
-std::mutex g_bus_lock; // emulates the x86 bus lock for LOCK-prefixed insns
-
-bool has_vec_reg_operand(const Dec& d) {
+static bool has_vec_reg_operand(const Dec& d) {
     for (int i = 0; i < d.insn.operand_count; i++) {
         if (d.ops[i].visibility != ZYDIS_OPERAND_VISIBILITY_EXPLICIT)
             continue;
@@ -9326,13 +9417,13 @@ bool has_vec_reg_operand(const Dec& d) {
     return false;
 }
 
-bool is_seg_reg(ZydisRegister r) {
+static bool is_seg_reg(ZydisRegister r) {
     return r == ZYDIS_REGISTER_ES || r == ZYDIS_REGISTER_CS ||
            r == ZYDIS_REGISTER_SS || r == ZYDIS_REGISTER_DS ||
            r == ZYDIS_REGISTER_FS || r == ZYDIS_REGISTER_GS;
 }
 
-bool touches_seg_or_sysreg(const Dec& d) {
+static bool touches_seg_or_sysreg(const Dec& d) {
     for (int i = 0; i < d.insn.operand_count; i++) {
         if (d.ops[i].visibility != ZYDIS_OPERAND_VISIBILITY_EXPLICIT)
             continue;
@@ -9351,12 +9442,16 @@ bool touches_seg_or_sysreg(const Dec& d) {
     return false;
 }
 
-void exec_xlat(CPU* cpu, const Dec& d) {
+static void exec_xlat(CPU* cpu, const Dec& d) {
     // XLAT's address is RBX + zero-extended AL: both are address components
     // (doc 3.1), so they are cannot-index (not cannot-var-time-op) values.
     if (cpu->gpr[ZG_RBX].taint.cannot_index ||
         cpu->gpr[ZG_RAX].taint.cannot_index)
-        guest_error(cpu, "tainted (cannot-index) value used as XLAT table index/base");
+        guest_error(cpu, "tainted (cannot-index) value used as XLAT table index/base",
+                    0,
+                    poison_history_of(cpu->gpr[ZG_RBX].taint.cannot_index
+                                          ? cpu->gpr[ZG_RBX].taint
+                                          : cpu->gpr[ZG_RAX].taint));
     uint64_t addr = cpu->gpr[ZG_RBX].val + (cpu->gpr[ZG_RAX].val & 0xff);
     uint8_t v = mem_load8(cpu, addr);
     cpu->gpr[ZG_RAX].val = (cpu->gpr[ZG_RAX].val & ~0xffULL) | v;
@@ -9367,7 +9462,7 @@ void exec_xlat(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_fsbase(CPU* cpu, const Dec& d) {
+static void exec_fsbase(CPU* cpu, const Dec& d) {
     bool is_fs = (d.insn.mnemonic == ZYDIS_MNEMONIC_RDFSBASE ||
                   d.insn.mnemonic == ZYDIS_MNEMONIC_WRFSBASE);
     bool is_read = (d.insn.mnemonic == ZYDIS_MNEMONIC_RDFSBASE ||
@@ -9384,7 +9479,7 @@ void exec_fsbase(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-void exec_nop_like(CPU* cpu, const Dec& d) {
+static void exec_nop_like(CPU* cpu, const Dec& d) {
     // Cache-control / prefetch hints perform no data access, but their
     // effective address is an ADDR timing dependency (doc 3.1), so it must
     // go through resolve_mem for the cannot-index base/index checks even
@@ -9415,41 +9510,24 @@ void exec_nop_like(CPU* cpu, const Dec& d) {
     cpu->rip = next_rip(cpu, d);
 }
 
-} // namespace
-
-// --- cannot-var-time-op: data-dependent execution-time checks ---------------
-// Classification follows x86_64_data_dependent_timing.md (repo root):
-// §4 known var-time => KNOWN, §5 suspects => PLAUSIBLE, §6+§7 => GUARANTEED.
-// Everything else => OTHER (only mode "everything" traps). Branch (CTRL) and
-// address (ADDR) dependencies are the existing cannot-branch / cannot-index
-// checks and are deliberately NOT re-checked here.
-//
-// Only mnemonics zegarmistrz actually implements are listed; an unimplemented
-// mnemonic classifies as OTHER but never dispatches (it fails later with an
-// "unimplemented" guest error -- in "everything" mode such an instruction
-// with a tainted operand reports var-time first; both are fatal guest errors).
-
-namespace {
-
-enum class VarTimeClass { GUARANTEED, KNOWN, PLAUSIBLE, OTHER };
 
 // FMA family via mnemonic-string prefix (precedent: fma_info): every
 // VFMADD*/VFNMADD*/VFMSUB*/VFNMSUB* form (132/213/231 and the 4-operand
 // forms, PS/PD/SS/SD, plus VFMADDSUB*/VFMSUBADD*) can hit subnormal
 // assists (§4.5a) => KNOWN.
-bool mn_is_fma(ZydisMnemonic m) {
+static bool mn_is_fma(ZydisMnemonic m) {
     return mn_starts_with(m, "VFMADD") || mn_starts_with(m, "VFNMADD") ||
            mn_starts_with(m, "VFMSUB") || mn_starts_with(m, "VFNMSUB");
 }
 
 // All implemented opmask instructions: every x86-64 mnemonic starting with
 // "K" operates on k registers (doc 7.1 "all K* operations") => GUARANTEED.
-bool mn_is_kop(ZydisMnemonic m) {
+static bool mn_is_kop(ZydisMnemonic m) {
     const char* s = ZydisMnemonicGetString(m);
     return s && s[0] == 'K';
 }
 
-VarTimeClass var_time_class(ZydisMnemonic m) {
+static VarTimeClass var_time_class(ZydisMnemonic m) {
     if (mn_is_fma(m))
         return VarTimeClass::KNOWN;
     if (mn_is_kop(m))
@@ -10351,25 +10429,45 @@ VarTimeClass var_time_class(ZydisMnemonic m) {
 
 // Operand taint probe: true when the operand carries cannot_var_time_op.
 // Taint-only: no value loads (register sidecars / memory poison bits).
-bool var_time_operand_tainted(CPU* cpu, const Dec& d, int oi) {
+// When `offender` is non-null it receives the sidecar the probe read (the
+// register sidecar, or the memory poison read via mem_get_taint, whose
+// HistoryTaint trail already carries the load PC) so check_var_time can
+// attach the offending value's --history trail to its report.
+static bool var_time_operand_tainted(CPU* cpu, const Dec& d, int oi,
+                                     Taint* offender = nullptr) {
     const auto& op = d.ops[oi];
     if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
         int idx, size, shift;
-        if (reg_to_gpr(op.reg.value, idx, size, shift))
-            return cpu->gpr[idx].taint.cannot_var_time_op;
+        if (reg_to_gpr(op.reg.value, idx, size, shift)) {
+            bool tainted = cpu->gpr[idx].taint.cannot_var_time_op;
+            if (tainted && offender)
+                *offender = cpu->gpr[idx].taint;
+            return tainted;
+        }
         int vidx, width;
-        if (reg_to_vec(op.reg.value, vidx, width))
-            return cpu->xmm[vidx].taint.cannot_var_time_op;
+        if (reg_to_vec(op.reg.value, vidx, width)) {
+            bool tainted = cpu->xmm[vidx].taint.cannot_var_time_op;
+            if (tainted && offender)
+                *offender = cpu->xmm[vidx].taint;
+            return tainted;
+        }
         int k;
-        if (reg_to_opmask(op.reg.value, k))
-            return cpu->opmask_taint[k].cannot_var_time_op;
+        if (reg_to_opmask(op.reg.value, k)) {
+            bool tainted = cpu->opmask_taint[k].cannot_var_time_op;
+            if (tainted && offender)
+                *offender = cpu->opmask_taint[k];
+            return tainted;
+        }
         if (op.reg.value >= ZYDIS_REGISTER_ST0 &&
             op.reg.value <= ZYDIS_REGISTER_ST7) {
             // Same index math as fpu_st(): the register denotes a TOP-relative
             // slot.
-            return cpu->st_taint[(cpu->fpu_top +
-                                  (op.reg.value - ZYDIS_REGISTER_ST0)) & 7]
-                .cannot_var_time_op;
+            const Taint& st =
+                cpu->st_taint[(cpu->fpu_top +
+                               (op.reg.value - ZYDIS_REGISTER_ST0)) & 7];
+            if (st.cannot_var_time_op && offender)
+                *offender = st;
+            return st.cannot_var_time_op;
         }
         return false;
     }
@@ -10380,12 +10478,14 @@ bool var_time_operand_tainted(CPU* cpu, const Dec& d, int oi) {
         size_t bytes = op.size / 8;
         Taint t;
         mem_get_taint(ea, bytes ? bytes : 1, &t);
+        if (offender)
+            *offender = t;
         return t.cannot_var_time_op;
     }
     return false; // immediates are clean
 }
 
-void check_var_time(CPU* cpu, const Dec& d) {
+static void check_var_time(CPU* cpu, const Dec& d) {
     ZydisMnemonic m = d.insn.mnemonic;
     // 1. Branch family: CTRL dependencies are the existing cannot-branch
     //    checks (flags_taint on Jcc/JCXZ/LOOP, branch_target on indirect
@@ -10418,14 +10518,23 @@ void check_var_time(CPU* cpu, const Dec& d) {
         return;
     if (cls == VarTimeClass::OTHER && mode < Emulator::ZG_VAR_TIME_EVERYTHING)
         return;
-    // 4. Collect tainted operands.
+    // 4. Collect tainted operands. vt_off accumulates the first offending
+    // operand's sidecar for the --history trail.
     bool tainted = false;
+    Taint vt_off;
+    // First offending operand's taint, for the --history trail.
+    auto found = [&vt_off](const Taint& t) {
+        if (!t.cannot_var_time_op)
+            return false;
+        vt_off = t;
+        return true;
+    };
     if (m == ZYDIS_MNEMONIC_PDEP || m == ZYDIS_MNEMONIC_PEXT) {
         // §4.2: only the mask (operand 2) is timing-relevant; the value
         // operand is not (doc 4.2).
         if (d.insn.operand_count > 2 &&
             d.ops[2].visibility != ZYDIS_OPERAND_VISIBILITY_HIDDEN)
-            tainted = var_time_operand_tainted(cpu, d, 2);
+            tainted = var_time_operand_tainted(cpu, d, 2, &vt_off);
     } else {
         // Generic read-operand scan (same visibility filter the handlers
         // use; write-only operands skipped; the VSIB memory operand of
@@ -10459,7 +10568,7 @@ void check_var_time(CPU* cpu, const Dec& d) {
                 continue;
             if (xsave_side && op.type == ZYDIS_OPERAND_TYPE_MEMORY)
                 continue;
-            tainted = var_time_operand_tainted(cpu, d, i);
+            tainted = var_time_operand_tainted(cpu, d, i, &vt_off);
         }
     }
     // 4c. Implicit extra GPR operands not visible in the operand list.
@@ -10467,15 +10576,15 @@ void check_var_time(CPU* cpu, const Dec& d) {
         switch (m) {
         case ZYDIS_MNEMONIC_DIV:
         case ZYDIS_MNEMONIC_IDIV: // dividend in RDX:RAX (§4.1)
-            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
-                      cpu->gpr[ZG_RDX].taint.cannot_var_time_op;
+            tainted = found(cpu->gpr[ZG_RAX].taint) ||
+                      found(cpu->gpr[ZG_RDX].taint);
             break;
         case ZYDIS_MNEMONIC_CPUID: // leaf/subleaf select the output (§4.9)
-            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
-                      cpu->gpr[ZG_RCX].taint.cannot_var_time_op;
+            tainted = found(cpu->gpr[ZG_RAX].taint) ||
+                      found(cpu->gpr[ZG_RCX].taint);
             break;
         case ZYDIS_MNEMONIC_XGETBV: // XCR index in ECX (§5)
-            tainted = cpu->gpr[ZG_RCX].taint.cannot_var_time_op;
+            tainted = found(cpu->gpr[ZG_RCX].taint);
             break;
         case ZYDIS_MNEMONIC_XSAVE:
         case ZYDIS_MNEMONIC_XSAVE64:
@@ -10491,8 +10600,8 @@ void check_var_time(CPU* cpu, const Dec& d) {
         case ZYDIS_MNEMONIC_XRSTORS64: {
             // Request bitmap in EDX:EAX (§4.9) -- read by the whole family
             // (XSAVE consults it to decide which components to save).
-            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
-                      cpu->gpr[ZG_RDX].taint.cannot_var_time_op;
+            tainted = found(cpu->gpr[ZG_RAX].taint) ||
+                      found(cpu->gpr[ZG_RDX].taint);
             if (!tainted &&
                 (m == ZYDIS_MNEMONIC_XRSTOR || m == ZYDIS_MNEMONIC_XRSTOR64 ||
                  m == ZYDIS_MNEMONIC_XRSTORS || m == ZYDIS_MNEMONIC_XRSTORS64)) {
@@ -10504,23 +10613,23 @@ void check_var_time(CPU* cpu, const Dec& d) {
                 uint64_t ea = resolve_mem(cpu, d.ops[0], next_rip(cpu, d));
                 Taint t;
                 mem_get_taint(ea + 512, 16, &t);
-                tainted = t.cannot_var_time_op;
+                tainted = found(t);
             }
             break;
         }
         case ZYDIS_MNEMONIC_CMPXCHG: // implicit comparand RAX (§5; only the
                                      // memory form reaches classification)
-            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op;
+            tainted = found(cpu->gpr[ZG_RAX].taint);
             break;
         case ZYDIS_MNEMONIC_CMPXCHG8B: // implicit comparand RDX:RAX (§5)
-            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
-                      cpu->gpr[ZG_RDX].taint.cannot_var_time_op;
+            tainted = found(cpu->gpr[ZG_RAX].taint) ||
+                      found(cpu->gpr[ZG_RDX].taint);
             break;
         case ZYDIS_MNEMONIC_CMPXCHG16B: // comparand RCX:RBX vs RDX:RAX (§5)
-            tainted = cpu->gpr[ZG_RAX].taint.cannot_var_time_op ||
-                      cpu->gpr[ZG_RDX].taint.cannot_var_time_op ||
-                      cpu->gpr[ZG_RCX].taint.cannot_var_time_op ||
-                      cpu->gpr[ZG_RBX].taint.cannot_var_time_op;
+            tainted = found(cpu->gpr[ZG_RAX].taint) ||
+                      found(cpu->gpr[ZG_RDX].taint) ||
+                      found(cpu->gpr[ZG_RCX].taint) ||
+                      found(cpu->gpr[ZG_RBX].taint);
             break;
         default: break;
         }
@@ -10532,7 +10641,9 @@ void check_var_time(CPU* cpu, const Dec& d) {
     // no explicit-operand encoding at all, via the same index math as
     // fpu_st()/fpu_st_taint()); the PLAUSIBLE compare set checks the hidden
     // ST(0) (plus the hidden ST(1) of the compare-everything encodings) --
-    // it only reaches here under --var-time-op=plausible and above.
+    // it only reaches here under --var-time-op=plausible and above. Each
+    // assignment also records the offending sidecar in vt_off (ST(0)
+    // preferred, matching the bool logic).
     if (!tainted) {
         bool st0 = cpu->st_taint[cpu->fpu_top].cannot_var_time_op;
         bool st1 = cpu->st_taint[(cpu->fpu_top + 1) & 7].cannot_var_time_op;
@@ -10546,6 +10657,8 @@ void check_var_time(CPU* cpu, const Dec& d) {
         case ZYDIS_MNEMONIC_FPATAN:
         case ZYDIS_MNEMONIC_FYL2X:
             tainted = st0 || st1;
+            if (tainted)
+                vt_off = cpu->st_taint[(cpu->fpu_top + (st0 ? 0 : 1)) & 7];
             break;
         // KNOWN, two-operand forms with mem/explicit-register encodings
         // (FADDP's no-operand encoding names ST(1) explicitly): the value
@@ -10563,6 +10676,8 @@ void check_var_time(CPU* cpu, const Dec& d) {
         case ZYDIS_MNEMONIC_FDIVR:
         case ZYDIS_MNEMONIC_FDIVRP:
             tainted = st0;
+            if (tainted)
+                vt_off = cpu->st_taint[cpu->fpu_top];
             break;
         // KNOWN, single-operand forms (ST(0) only; FBLD's input is memory
         // and is covered by the scan).
@@ -10579,6 +10694,8 @@ void check_var_time(CPU* cpu, const Dec& d) {
         case ZYDIS_MNEMONIC_FRNDINT:
         case ZYDIS_MNEMONIC_FBSTP:
             tainted = st0;
+            if (tainted)
+                vt_off = cpu->st_taint[cpu->fpu_top];
             break;
         // PLAUSIBLE compares / class tests (§5). FCOM/FCOMP/FUCOM/FUCOMP
         // always name their compared operand explicitly (the assembler's
@@ -10594,6 +10711,8 @@ void check_var_time(CPU* cpu, const Dec& d) {
         case ZYDIS_MNEMONIC_FCOMPP:
         case ZYDIS_MNEMONIC_FUCOMPP:
             tainted = st0 || (explicit_ops(d) == 0 && st1);
+            if (tainted)
+                vt_off = cpu->st_taint[(cpu->fpu_top + (st0 ? 0 : 1)) & 7];
             break;
         case ZYDIS_MNEMONIC_FICOM:
         case ZYDIS_MNEMONIC_FICOMP: // memory operand is covered by the scan
@@ -10604,6 +10723,8 @@ void check_var_time(CPU* cpu, const Dec& d) {
         case ZYDIS_MNEMONIC_FTST:
         case ZYDIS_MNEMONIC_FXAM:
             tainted = st0;
+            if (tainted)
+                vt_off = cpu->st_taint[cpu->fpu_top];
             break;
         default: break;
         }
@@ -10617,16 +10738,11 @@ void check_var_time(CPU* cpu, const Dec& d) {
              "tainted (cannot-var-time-op) value in variable-time operand of "
              "%s (data-dependent timing)",
              mn ? mn : "?");
-    guest_error(cpu, msg, cpu->rip);
+    // --history: the trail is the first offending operand's (its own
+    // provenance chain; for memory operands the load PC via mem_get_taint).
+    guest_error(cpu, msg, cpu->rip, poison_history_of(vt_off));
 }
 
-} // namespace
-
-static uint64_t dbg_lo = 0, dbg_hi = 0, dbg_base = 0;
-static uint64_t dbg2_lo = 0, dbg2_hi = 0, dbg2_base = 0;
-static bool dbg_init = false;
-static char dbg_needle[128] = {0};
-static char dbg2_needle[128] = {0};
 static void dbg_check() {
     if (!dbg_init) {
         dbg_init = true;
@@ -10670,8 +10786,11 @@ static void dbg_check() {
     }
 }
 
-void exec_one(CPU* cpu) {
+static void exec_one(CPU* cpu) {
     const Dec& d = fetch_decode(cpu);
+    // --history: record ops against this instruction's PC (pre-advance; RIP
+    // is only advanced by the handlers' trailing next_rip assignments).
+    zeg_history_pc = cpu->rip;
     if (cpu->emu->trace_insn)
         trace_insn(cpu, d);
     dbg_check();
@@ -11801,14 +11920,15 @@ void exec_one(CPU* cpu) {
     unimplemented(cpu, d, "opcode");
 }
 
-void run_cpu_loop(CPU* cpu) {
+static void run_cpu_loop(CPU* cpu) {
     while (!cpu->emu->exiting) {
         LoopScope loop(cpu);
         try {
             exec_one(cpu);
         } catch (GuestError& e) {
             int eff = guest_fatal_signo(e.reason, 0);
-            dump_core(e.cpu ? e.cpu : cpu, e.reason, e.fault_addr);
+            dump_core(e.cpu ? e.cpu : cpu, e.reason, e.fault_addr, eff,
+                      e.poison_history);
             fflush(stdout);
             fflush(stderr);
             _exit(128 + eff);
@@ -11831,7 +11951,8 @@ void run_cpu_loop(CPU* cpu) {
                 guest_error(cpu, reason, faddr);
             } catch (GuestError& e) {
                 int eff = signo ? signo : guest_fatal_signo(e.reason, 0);
-                dump_core(e.cpu ? e.cpu : cpu, e.reason, e.fault_addr, eff);
+                dump_core(e.cpu ? e.cpu : cpu, e.reason, e.fault_addr, eff,
+                          e.poison_history);
                 fflush(stdout);
                 fflush(stderr);
                 _exit(128 + eff);
@@ -11843,3 +11964,14 @@ void run_cpu_loop(CPU* cpu) {
     }
 }
 
+}; // Engine<TaintT>
+
+// Thread entry: interpreter loop until exit syscall or fatal error (see
+// decode_exec.h). Forwarders over the Engine template with explicit
+// instantiations for both taint types; all engine code is generated here.
+template<typename TaintT>
+void run_cpu_loop(CPU<TaintT>* cpu) {
+    Engine<TaintT>::run_cpu_loop(cpu);
+}
+template void run_cpu_loop<Taint>(CPU<Taint>* cpu);
+template void run_cpu_loop<HistoryTaint>(CPU<HistoryTaint>* cpu);

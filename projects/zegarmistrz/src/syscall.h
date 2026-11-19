@@ -22,6 +22,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+template<typename TaintT>
 struct CPU;
 
 // Emulate the guest SYSCALL instruction. Reads number from RAX and args
@@ -29,7 +30,10 @@ struct CPU;
 // RAX (negative errno style), clobbers RCX (=post-syscall RIP) and R11
 // (=RFLAGS), and advances RIP past the instruction (insn_len bytes).
 // May create host threads (clone), and may not return (exit/exit_group).
-void emulate_syscall(CPU* cpu, unsigned insn_len);
+// Templated on the taint sidecar type; instantiated for Taint and
+// HistoryTaint in syscall.cpp.
+template<typename TaintT>
+void emulate_syscall(CPU<TaintT>* cpu, unsigned insn_len);
 
 // Name for tracing.
 const char* syscall_name(long num);

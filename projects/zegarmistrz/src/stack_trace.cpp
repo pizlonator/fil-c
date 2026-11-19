@@ -23,7 +23,10 @@
 
 // Crash-time guest stack traces: walk the guest stack (RBP chain, with an
 // approximate scan fallback for -fomit-frame-pointer code) and symbolize
-// guest addresses with BFD against the ELF objects the emulator loaded.
+// guest addresses with BFD against the ELF objects recorded in the guest
+// memory map: the loader's own objects plus file-backed guest mmaps (shared
+// libraries the guest ld.so mapped, dlopen'd objects). Each physical frame
+// expands its DWARF inline chain (innermost inlined function first).
 
 #include "stack_trace.h"
 
@@ -108,10 +111,18 @@ struct SymInfo {
     bool have = false;
 };
 
-SymInfo symbolize(SymTab* t, uint64_t file_vaddr) {
-    SymInfo info;
+// Symbolize a file vaddr into a frame chain, innermost first: the function
+// whose code the address lands in (which may be an inlined
+// DW_TAG_inlined_subroutine), followed by its inline callers outward to the
+// real, physically-containing function. bfd_find_nearest_line returns the
+// innermost inline frame; repeated bfd_find_inliner_info calls walk the
+// DWARF chain outward (it reads per-abfd state seeded by the most recent
+// find_nearest_line call, so the loop must run immediately after it, under
+// the BFD lock). Empty when the address does not symbolicate.
+std::vector<SymInfo> symbolize(SymTab* t, uint64_t file_vaddr) {
+    std::vector<SymInfo> chain;
     if (!t || !t->usable)
-        return info;
+        return chain;
     for (asection* sec = t->abfd->sections; sec; sec = sec->next) {
         if (!(bfd_section_flags(sec) & SEC_ALLOC))
             continue;
@@ -124,27 +135,37 @@ SymInfo symbolize(SymTab* t, uint64_t file_vaddr) {
         unsigned line = 0;
         if (bfd_find_nearest_line(t->abfd, sec, t->syms,
                                   (bfd_vma)(file_vaddr - vma), &file, &func,
-                                  &line) &&
-            func && *func) {
-            info.have = true;
-            int dem_st = 0;
-            char* dem = (func[0] == '_')
-                            ? abi::__cxa_demangle(func, nullptr, nullptr, &dem_st)
-                            : nullptr;
-            info.func = dem ? dem : func;
-            free(dem);
-            if (file && *file)
-                info.file = file;
-            info.line = line;
+                                  &line)) {
+            for (int depth = 0; depth < 64; depth++) {
+                if (!func || !*func)
+                    break;
+                SymInfo info;
+                int dem_st = 0;
+                char* dem = (func[0] == '_')
+                                ? abi::__cxa_demangle(func, nullptr, nullptr,
+                                                      &dem_st)
+                                : nullptr;
+                info.func = dem ? dem : func;
+                free(dem);
+                if (file && *file)
+                    info.file = file;
+                info.line = line;
+                info.have = true;
+                chain.push_back(std::move(info));
+                if (!bfd_find_inliner_info(t->abfd, &file, &func, &line))
+                    break;
+            }
         }
         break; // first containing section wins
     }
-    return info;
+    return chain;
 }
 
 // An ELF object the guest code address belongs to (from the loader's map
-// snapshot). Paths that are not real files (syscall tag strings like
-// "guest-mmap") are skipped.
+// snapshot). Entries without an exact load bias are skipped: tag entries
+// like "guest-mmap"/"guest-brk"/"guest-mremap" name no file, and file
+// mappings with unknown bias would symbolicate at the wrong offset --
+// symbolication needs an exact load bias (guest VA - ELF vaddr).
 struct Module {
     bool found = false;
     std::string path;
@@ -153,7 +174,8 @@ struct Module {
 
 Module find_module(const std::vector<Emulator::GuestMap>& maps, uint64_t addr) {
     for (const auto& m : maps) {
-        if (m.path.empty() || !(m.start <= addr && addr < m.end))
+        if (!m.bias_valid || m.path.empty() ||
+            !(m.start <= addr && addr < m.end))
             continue;
         if (access(m.path.c_str(), R_OK) != 0)
             continue;
@@ -175,27 +197,67 @@ bool in_ranges(const std::vector<std::pair<uint64_t, uint64_t>>& rs,
     return false;
 }
 
-// True if the bytes ending exactly at `ret` look like a CALL targeting it
-// (direct E8 rel32, or a 2-byte FF /2 register form). Best effort: the
-// window may start mid-instruction.
-bool plausible_call_before(uint64_t ret) {
-    uint8_t b[5];
-    if (!mem_copy_guarded(ret - 5, b, 5))
+// True if the bytes ending exactly at `ret` look like a CALL targeting it:
+// direct E8 rel32, or any FF /2 indirect-call encoding (optional REX
+// prefix, ModRM reg field 2, SIB byte, disp8/disp32 including the
+// mod==0 rm==5 RIP-relative GOT-indirect form). The direct-call target is
+// checked for executability (cheap false-positive filter; a call whose
+// target faults still leaves a valid return slot, so no other validation).
+// Best effort: the window may start mid-instruction, so indirect forms are
+// accepted only when the trailing bytes decode exactly as a complete call
+// of the length their ModRM implies.
+bool plausible_call_before(
+    uint64_t ret,
+    const std::vector<std::pair<uint64_t, uint64_t>>& exec_ranges) {
+    uint8_t b[8];
+    if (!mem_copy_guarded(ret - 8, b, 8))
         return false;
-    if (b[0] == 0xE8)
-        return true; // call rel32
-    if (b[3] == 0xFF) {
-        uint8_t m = b[4];
-        if ((m & 0x38) == 0x10) { // FF /2 = call r/m64
-            uint8_t mod = (m >> 6) & 3, rm = m & 7;
-            if (mod != 0 || (rm != 4 && rm != 5)) // exclude SIB/disp forms
-                return true;
+    // Direct call rel32: opcode at ret-5, exactly 5 bytes (no prefixes).
+    if (b[3] == 0xE8) {
+        int32_t rel = (int32_t)((uint32_t)b[4] | ((uint32_t)b[5] << 8) |
+                                ((uint32_t)b[6] << 16) |
+                                ((uint32_t)b[7] << 24));
+        if (in_ranges(exec_ranges, ret + (uint64_t)(int64_t)rel))
+            return true;
+    }
+    // Indirect FF /2 (call r/m64): match every trailing length the encoding
+    // can have and require the ModRM to imply exactly that length.
+    for (size_t len = 2; len <= 7; len++) {
+        const uint8_t* w = b + (8 - len); // bytes [ret-len, ret)
+        if (w[0] != 0xFF)
+            continue;
+        uint8_t modrm = w[1];
+        if (((modrm >> 3) & 7) != 2)
+            continue; // not /2 = CALL
+        uint8_t mod = modrm >> 6, rm = modrm & 7;
+        if (rm == 4 && mod == 3)
+            continue; // FF /2 with SIB in mod==3 is not a real encoding
+        if (rm == 4 && len < 3)
+            continue; // SIB byte would lie beyond a 2-byte instruction
+        size_t need = 2; // opcode + modrm
+        if (rm == 4 && mod != 3) {
+            need = 3; // + SIB
+            if (mod == 1)
+                need += 1;
+            else if (mod == 2 || (mod == 0 && (w[2] & 7) == 5))
+                need += 4;
+        } else {
+            if (mod == 1)
+                need += 1;
+            else if (mod == 2 || (mod == 0 && rm == 5))
+                need += 4;
         }
+        if (need != len)
+            continue;
+        // An optional REX prefix (0x40-0x4f) before the FF is fine either
+        // way; the FF... portion alone already decodes as a full call.
+        return true;
     }
     return false;
 }
 
-void collect_frames(CPU* cpu,
+template<typename TaintT>
+void collect_frames(CPU<TaintT>* cpu,
                     const std::vector<std::pair<uint64_t, uint64_t>>& exec_ranges,
                     const std::vector<std::pair<uint64_t, uint64_t>>& data_ranges,
                     std::vector<Frame>& out) {
@@ -237,7 +299,7 @@ void collect_frames(CPU* cpu,
                 uint64_t v = 0;
                 if (!read_u64(a, &v))
                     break;
-                if (!exec_addr(v) || !plausible_call_before(v))
+                if (!exec_addr(v) || !plausible_call_before(v, exec_ranges))
                     continue;
                 out.push_back(Frame{v, false});
                 approx++;
@@ -248,7 +310,10 @@ void collect_frames(CPU* cpu,
 
 } // namespace
 
-void print_guest_stack_trace(CPU* cpu) {
+// Templated on the taint sidecar type: the walk only reads non-taint state
+// (rip, gpr values, emu, tid), so both instantiations behave identically.
+template<typename TaintT>
+void print_guest_stack_trace(CPU<TaintT>* cpu) {
     Emulator* emu = cpu->emu;
 
     fprintf(stderr, "Guest stack trace (tid=%d):\n", cpu->tid);
@@ -294,15 +359,19 @@ void print_guest_stack_trace(CPU* cpu) {
         collect_frames(cpu, exec_ranges, data_ranges, frames);
     }
 
-    for (size_t i = 0; i < frames.size(); i++) {
-        const Frame& f = frames[i];
+    // One gdb-style global frame counter: inline frames consume numbers
+    // (each physical frame may print a whole chain, innermost first).
+    size_t printed = 0;
+    size_t fi = 0;
+    for (; fi < frames.size() && printed < 256; fi++) {
+        const Frame& f = frames[fi];
         Module mod = find_module(maps, f.addr);
-        SymInfo info;
+        std::vector<SymInfo> chain;
         std::string modstr;
         if (mod.found) {
             std::lock_guard<std::mutex> l(g_bfd_mu);
-            info = symbolize(get_sym_tab(mod.path), f.addr - mod.bias);
-            if (!info.have) {
+            chain = symbolize(get_sym_tab(mod.path), f.addr - mod.bias);
+            if (chain.empty()) {
                 const char* slash = strrchr(mod.path.c_str(), '/');
                 modstr = (slash ? slash + 1 : mod.path.c_str());
                 char off[32];
@@ -311,23 +380,143 @@ void print_guest_stack_trace(CPU* cpu) {
                 modstr += off;
             }
         }
-        fprintf(stderr, "  #%-2zu 0x%016lx", i, (unsigned long)f.addr);
-        if (info.have) {
-            fprintf(stderr, " in %s ()", info.func.c_str());
-            if (!info.file.empty()) {
-                if (info.line)
-                    fprintf(stderr, " at %s:%u", info.file.c_str(), info.line);
-                else
-                    fprintf(stderr, " at %s", info.file.c_str());
+        auto print_line = [&](const SymInfo* info, bool inline_frame) {
+            fprintf(stderr, "  #%-2zu 0x%016lx", printed,
+                    (unsigned long)f.addr);
+            if (info) {
+                fprintf(stderr, " in %s ()", info->func.c_str());
+                if (!info->file.empty()) {
+                    if (info->line)
+                        fprintf(stderr, " at %s:%u", info->file.c_str(),
+                                info->line);
+                    else
+                        fprintf(stderr, " at %s", info->file.c_str());
+                }
+            } else if (!modstr.empty()) {
+                fprintf(stderr, " in %s", modstr.c_str());
             }
-        } else if (!modstr.empty()) {
-            fprintf(stderr, " in %s", modstr.c_str());
+            if (inline_frame && !f.exact)
+                fprintf(stderr, "  (inline, approximate)");
+            else if (inline_frame)
+                fprintf(stderr, "  (inline)");
+            else if (!f.exact)
+                fprintf(stderr, "  (approximate)");
+            fprintf(stderr, "\n");
+            printed++;
+        };
+        if (chain.empty()) {
+            print_line(nullptr, false);
+        } else {
+            for (size_t j = 0; j < chain.size() && printed < 256; j++)
+                print_line(&chain[j], j + 1 < chain.size());
         }
-        if (!f.exact)
-            fprintf(stderr, "  (approximate)");
-        fprintf(stderr, "\n");
     }
-    if (frames.size() >= 256)
+    if (frames.size() >= 256 || fi < frames.size())
         fprintf(stderr, "  ... (truncated at 256 frames)\n");
     fflush(stderr);
 }
+
+// Poison-history trail (--history mode): symbolize each recorded guest PC
+// with the same BFD machinery as the stack trace and print it oldest first.
+// Reuses the anonymous-namespace helpers above; no guest memory is read, so
+// this is safe in every mode. One numbered STEP line per recorded PC: the
+// step line carries the innermost frame of the PC's inline chain (where the
+// instruction physically is) and the rest of that inline stack prints as
+// indented continuation lines below the step line that do not consume step
+// numbers -- the numbering counts recorded PCs (operations), not frames,
+// unlike the guest stack trace's gdb-style numbering above. Output is
+// capped at the most recent 128 steps (kMaxPrint) with the omitted older
+// count noted up front.
+void print_poison_history(Emulator* emu, const std::vector<uint64_t>& pcs) {
+    constexpr size_t kMaxPrint = 128;
+    size_t omit = pcs.size() > kMaxPrint ? pcs.size() - kMaxPrint : 0;
+    fprintf(stderr,
+            "zegarmistrz: poison history of the offending value "
+            "(%zu steps, oldest first):\n",
+            pcs.size());
+    if (omit)
+        fprintf(stderr, "  ... (%zu older entries omitted)\n", omit);
+
+    // Snapshot the guest memory map once (symbolication needs each module's
+    // path + load bias).
+    std::vector<Emulator::GuestMap> maps;
+    {
+        std::lock_guard<std::mutex> l(emu->maps_mu);
+        maps = emu->guest_maps;
+    }
+
+    // Shared "in <func> () at <file>:<line>" body for the step line and its
+    // continuation lines.
+    auto print_loc = [](const SymInfo& info) {
+        fprintf(stderr, "in %s ()", info.func.c_str());
+        if (!info.file.empty()) {
+            if (info.line)
+                fprintf(stderr, " at %s:%u", info.file.c_str(), info.line);
+            else
+                fprintf(stderr, " at %s", info.file.c_str());
+        }
+    };
+
+    size_t printed = 0;
+    for (size_t i = omit; i < pcs.size(); i++) {
+        uint64_t pc = pcs[i];
+        Module mod = find_module(maps, pc);
+        std::vector<SymInfo> chain;
+        std::string modstr;
+        if (mod.found) {
+            std::lock_guard<std::mutex> l(g_bfd_mu);
+            chain = symbolize(get_sym_tab(mod.path), pc - mod.bias);
+            if (chain.empty()) {
+                const char* slash = strrchr(mod.path.c_str(), '/');
+                modstr = (slash ? slash + 1 : mod.path.c_str());
+                char off[32];
+                snprintf(off, sizeof(off), "+0x%lx",
+                         (unsigned long)(pc - mod.bias));
+                modstr += off;
+            }
+        }
+        // Step prefix: "  #N 0x<16 hex digits>". printed stays below
+        // kMaxPrint, so the number is at most 3 digits and the buffer is
+        // ample. Continuation lines indent by prefix width + 1 (the
+        // separator space) so their "in" aligns under the step line's "in".
+        char prefix[64];
+        int plen = snprintf(prefix, sizeof(prefix), "  #%-2zu 0x%016lx",
+                            printed, (unsigned long)pc);
+        if (chain.empty()) {
+            // Nothing symbolicated: the address alone, or the
+            // module+offset fallback (same as the stack trace's
+            // unsymbolicated frames); no continuation lines.
+            if (modstr.empty())
+                fprintf(stderr, "%s\n", prefix);
+            else
+                fprintf(stderr, "%s in %s\n", prefix, modstr.c_str());
+        } else {
+            // Step line: the innermost frame of the chain (where the
+            // instruction physically is); it is an inlined frame whenever
+            // the chain continues outward.
+            fprintf(stderr, "%s ", prefix);
+            print_loc(chain[0]);
+            if (chain.size() > 1)
+                fprintf(stderr, "  (inline)");
+            fprintf(stderr, "\n");
+            // The rest of the inline stack, walking outward to the real,
+            // physically-containing function (the last entry, unmarked):
+            // indented continuation lines carrying no step number and no
+            // address.
+            for (size_t j = 1; j < chain.size(); j++) {
+                fprintf(stderr, "%*s", plen + 1, "");
+                print_loc(chain[j]);
+                if (j + 1 < chain.size())
+                    fprintf(stderr, "  (inline)");
+                fprintf(stderr, "\n");
+            }
+        }
+        printed++;
+    }
+    fflush(stderr);
+}
+
+// Explicit instantiations: dump_core (core_dump.cpp) traces for either
+// taint type.
+template void print_guest_stack_trace<Taint>(CPU<Taint>*);
+template void print_guest_stack_trace<HistoryTaint>(CPU<HistoryTaint>*);

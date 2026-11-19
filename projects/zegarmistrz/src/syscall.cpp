@@ -24,6 +24,7 @@
 #include "syscall.h"
 
 #include <asm/prctl.h>
+#include <elf.h>
 #include <errno.h>
 #include <linux/futex.h>
 #include <pthread.h>
@@ -39,6 +40,8 @@
 #include <condition_variable>
 #include <cstdint>
 #include <mutex>
+#include <string>
+#include <vector>
 
 #include "cpu.h"
 #include "decode_exec.h"
@@ -62,10 +65,12 @@
 #endif
 
 // Forward declarations for guest_maps helpers defined below (do_brk needs
-// them before their definitions).
+// them before their definitions; the defaulted bias params live here so
+// every call site can use them).
 struct Emulator;
 static void maps_add(Emulator* emu, uint64_t start, uint64_t end, int prot,
-                     const char* path);
+                     const char* path, uint64_t bias = 0,
+                     bool bias_valid = false);
 static void maps_remove_range(Emulator* emu, uint64_t start, uint64_t len);
 
 const char* syscall_name(long num) {
@@ -124,7 +129,8 @@ const char* syscall_name(long num) {
 
 // --- brk virtualization ----------------------------------------------------
 
-static uint64_t do_brk(CPU* cpu, uint64_t addr) {
+template<typename TaintT>
+static uint64_t do_brk(CPU<TaintT>* cpu, uint64_t addr) {
     Emulator* emu = cpu->emu;
     std::lock_guard<std::mutex> l(emu->brk_mu);
     if (addr == 0)
@@ -204,8 +210,56 @@ static bool maps_covers_locked(Emulator* emu, uint64_t addr, uint64_t len) {
     return true;
 }
 
+// Resolve the file path of fd (via /proc/self/fd) and compute the load bias
+// (guest VA - ELF vaddr) for a mapping placed at `base` covering file
+// offset `off`. ld.so maps ELF objects so each segment's mapping starts at
+// page_align_down(vaddr) with file offset p_offset - (p_vaddr & 0xfff)
+// (glibc's single whole-span map satisfies this for the first PT_LOAD too,
+// since p_offset ≡ p_vaddr mod page size). When off matches that layout for
+// some PT_LOAD, the bias is exact: bias = base - off + p_offset - p_vaddr.
+// Returns false for non-files, non-ELF64-x86-64 images, and mappings whose
+// offset does not match a segment start (bias unknown).
+static bool file_mapping_info(int fd, uint64_t base, uint64_t off,
+                              std::string* path, uint64_t* bias) {
+    if (fd < 0)
+        return false;
+    char fdpath[64];
+    snprintf(fdpath, sizeof(fdpath), "/proc/self/fd/%d", fd);
+    char link[4096];
+    ssize_t n = readlink(fdpath, link, sizeof(link) - 1);
+    if (n <= 0)
+        return false;
+    link[n] = '\0';
+    Elf64_Ehdr eh;
+    if (pread(fd, &eh, sizeof(eh), 0) != (ssize_t)sizeof(eh))
+        return false;
+    if (memcmp(eh.e_ident, ELFMAG, SELFMAG) != 0 ||
+        eh.e_ident[EI_CLASS] != ELFCLASS64 ||
+        eh.e_ident[EI_DATA] != ELFDATA2LSB ||
+        eh.e_machine != EM_X86_64 ||
+        eh.e_phentsize != sizeof(Elf64_Phdr) || eh.e_phnum == 0 ||
+        eh.e_phnum > 4096)
+        return false;
+    std::vector<Elf64_Phdr> ph(eh.e_phnum);
+    if (pread(fd, ph.data(), ph.size() * sizeof(Elf64_Phdr), eh.e_phoff) !=
+        (ssize_t)(ph.size() * sizeof(Elf64_Phdr)))
+        return false;
+    for (const auto& p : ph) {
+        if (p.p_type != PT_LOAD)
+            continue;
+        // p_offset ≡ p_vaddr (mod page size), so the underhangs agree.
+        if (off == p.p_offset - (p.p_vaddr & 0xfff)) {
+            *bias = (uint64_t)((int64_t)base - (int64_t)off +
+                               (int64_t)p.p_offset - (int64_t)p.p_vaddr);
+            *path = link;
+            return true;
+        }
+    }
+    return false;
+}
+
 static void maps_add(Emulator* emu, uint64_t start, uint64_t end, int prot,
-                     const char* path) {
+                     const char* path, uint64_t bias, bool bias_valid) {
     if (end <= start)
         return;
     std::lock_guard<std::mutex> l(emu->maps_mu);
@@ -215,6 +269,8 @@ static void maps_add(Emulator* emu, uint64_t start, uint64_t end, int prot,
     gm.prot = prot;
     if (path)
         gm.path = path;
+    gm.bias = bias;
+    gm.bias_valid = bias_valid;
     emu->guest_maps.push_back(gm);
 }
 
@@ -315,7 +371,17 @@ static bool fixed_allowed(Emulator* emu, uint64_t addr, uint64_t len) {
 // Mapping faults are deliberately left to the host kernel (EFAULT), so only
 // poison bits are checked here.
 
-static void sys_check_mem(CPU* cpu, uint64_t addr, size_t len, bool want_write) {
+// Offending value's poison trail for GuestError ({} for plain Taint).
+template<typename TaintT>
+static std::vector<uint64_t> poison_history_of(const TaintT& t) {
+    if constexpr (TaintT::has_history)
+        return t.history;
+    else
+        return {};
+}
+
+template<typename TaintT>
+static void sys_check_mem(CPU<TaintT>* cpu, uint64_t addr, size_t len, bool want_write) {
     if (!len)
         return;
     if (want_write)
@@ -324,7 +390,8 @@ static void sys_check_mem(CPU* cpu, uint64_t addr, size_t len, bool want_write) 
         mem_check_load(cpu, addr, len);
 }
 
-static void sys_check_cstr(CPU* cpu, uint64_t addr) {
+template<typename TaintT>
+static void sys_check_cstr(CPU<TaintT>* cpu, uint64_t addr) {
     // NUL-terminated path: poison-check page by page until NUL (bounded by
     // PATH_MAX+1). mem_load8 converts unmapped pages to GuestError.
     for (size_t i = 0; i < 4097; i++) {
@@ -337,7 +404,8 @@ static void sys_check_cstr(CPU* cpu, uint64_t addr) {
 
 // Validate known buffer layouts for passthrough syscalls. Unknown syscalls
 // keep raw passthrough (their layouts are not modeled).
-static void syscall_check_buffers(CPU* cpu, uint64_t n, uint64_t a1,
+template<typename TaintT>
+static void syscall_check_buffers(CPU<TaintT>* cpu, uint64_t n, uint64_t a1,
                                   uint64_t a2, uint64_t a3, uint64_t a4,
                                   uint64_t a5, uint64_t a6) {
     (void)a4;
@@ -448,7 +516,8 @@ static void syscall_check_buffers(CPU* cpu, uint64_t n, uint64_t a1,
 }
 
 // Guest mmap with guest_maps tracking + MAP_FIXED policy (see above).
-static uint64_t do_mmap(CPU* cpu, uint64_t addr, uint64_t len, uint64_t prot,
+template<typename TaintT>
+static uint64_t do_mmap(CPU<TaintT>* cpu, uint64_t addr, uint64_t len, uint64_t prot,
                         uint64_t flags, uint64_t fd, uint64_t off) {
     Emulator* emu = cpu->emu;
     if (!len)
@@ -469,7 +538,20 @@ static uint64_t do_mmap(CPU* cpu, uint64_t addr, uint64_t len, uint64_t prot,
     uint64_t aligned = page_align_up(len);
     // Replace any overlapped guest range (MAP_FIXED semantics), then record.
     maps_remove_range(emu, base, aligned);
-    maps_add(emu, base, base + aligned, (int)prot, "guest-mmap");
+    // File-backed mappings: record the real path + ELF load bias so the
+    // crash-time stack trace can symbolicate shared libraries loaded by the
+    // guest ld.so (and dlopen'd objects). Anonymous mappings keep the
+    // "guest-mmap" tag; non-ELF or oddly-offset file mappings keep it too
+    // (their bias would be a guess).
+    std::string fpath;
+    uint64_t bias = 0;
+    if (!(flags & MAP_ANONYMOUS) &&
+        file_mapping_info((int)fd, base, off, &fpath, &bias)) {
+        maps_add(emu, base, base + aligned, (int)prot, fpath.c_str(), bias,
+                 true);
+    } else {
+        maps_add(emu, base, base + aligned, (int)prot, "guest-mmap");
+    }
     return base;
 }
 
@@ -480,9 +562,11 @@ struct CloneArgs {
         stack_size, tls, set_tid, set_tid_size, cgroup;
 };
 
-// Extended ChildStart with tid addresses.
+// Extended ChildStart with tid addresses. Templated on the taint type (it
+// carries a full child CPU).
+template<typename TaintT>
 struct ChildStart2 {
-    CPU child_cpu;
+    CPU<TaintT> child_cpu;
     uint64_t parent_tid_addr = 0;
     uint64_t child_tid_addr = 0;
     std::mutex mu;
@@ -491,21 +575,23 @@ struct ChildStart2 {
     int child_tid = 0;
 };
 
-static void thread_register_tid(CPU* cpu, int tid) {
+template<typename TaintT>
+static void thread_register_tid(CPU<TaintT>* cpu, int tid) {
     cpu->tid = tid;
     Emulator* emu = cpu->emu;
     std::lock_guard<std::mutex> l(emu->thread_mu);
     emu->thread_tids.push_back((uint64_t)tid);
-    emu->thread_cpus.push_back(cpu);
+    emu->thread_cpus.push_back((void*)cpu);
 }
 
 // Remove a CPU from the live-thread vectors (no dangling pointers). Both
 // vectors are indexed in lockstep; the entries are erased, not just nulled.
-static void thread_unregister_cpu(CPU* cpu) {
+template<typename TaintT>
+static void thread_unregister_cpu(CPU<TaintT>* cpu) {
     Emulator* emu = cpu->emu;
     std::lock_guard<std::mutex> l(emu->thread_mu);
     for (size_t i = 0; i < emu->thread_cpus.size(); i++) {
-        if (emu->thread_cpus[i] == cpu) {
+        if (emu->thread_cpus[i] == (void*)cpu) {
             emu->thread_cpus.erase(emu->thread_cpus.begin() + (ptrdiff_t)i);
             if (i < emu->thread_tids.size())
                 emu->thread_tids.erase(emu->thread_tids.begin() +
@@ -519,7 +605,8 @@ static void thread_unregister_cpu(CPU* cpu) {
 
 // Clear CLONE_CHILD_CLEARTID word + futex wake (both flavors: glibc may wait
 // with or without PRIVATE).
-static void thread_clear_ctid(CPU* cpu) {
+template<typename TaintT>
+static void thread_clear_ctid(CPU<TaintT>* cpu) {
     if (!cpu->clear_ctid_addr)
         return;
     *(volatile int*)(uintptr_t)cpu->clear_ctid_addr = 0;
@@ -529,9 +616,10 @@ static void thread_clear_ctid(CPU* cpu) {
               FUTEX_WAKE | FUTEX_PRIVATE_FLAG, 1, nullptr, nullptr, 0);
 }
 
+template<typename TaintT>
 static void* child_thread_main2(void* arg) {
-    ChildStart2* st = (ChildStart2*)arg;
-    CPU* cpu = new CPU(st->child_cpu);
+    ChildStart2<TaintT>* st = (ChildStart2<TaintT>*)arg;
+    CPU<TaintT>* cpu = new CPU<TaintT>(st->child_cpu);
     uint64_t paddr = st->parent_tid_addr;
     uint64_t caddr = st->child_tid_addr;
     (void)caddr;
@@ -564,7 +652,8 @@ static void* child_thread_main2(void* arg) {
     return nullptr;
 }
 
-static uint64_t do_clone3(CPU* cpu, uint64_t uaddr, uint64_t usize) {
+template<typename TaintT>
+static uint64_t do_clone3(CPU<TaintT>* cpu, uint64_t uaddr, uint64_t usize) {
     if (usize < 88) // sizeof(struct clone_args) canonical
         return (uint64_t)(-(long)EINVAL);
     CloneArgs ca;
@@ -572,7 +661,7 @@ static uint64_t do_clone3(CPU* cpu, uint64_t uaddr, uint64_t usize) {
     mem_load_bytes(cpu, uaddr, (uint8_t*)&ca, usize < sizeof(ca) ? usize : sizeof(ca));
     uint64_t flags = ca.flags;
 
-    ChildStart2* st = new ChildStart2();
+    ChildStart2<TaintT>* st = new ChildStart2<TaintT>();
     st->child_cpu = *cpu; // copies regs incl. already-advanced RIP
     st->child_cpu.gpr[ZG_RAX].val = 0;
     st->child_cpu.gpr[ZG_RAX].taint.clear();
@@ -593,7 +682,7 @@ static uint64_t do_clone3(CPU* cpu, uint64_t uaddr, uint64_t usize) {
     pthread_attr_init(&attr);
     // 8MB host stack for interpreter recursion depth.
     pthread_attr_setstacksize(&attr, 8 << 20);
-    if (pthread_create(&th, &attr, child_thread_main2, st) != 0) {
+    if (pthread_create(&th, &attr, child_thread_main2<TaintT>, st) != 0) {
         pthread_attr_destroy(&attr);
         delete st;
         return (uint64_t)(-(long)EAGAIN);
@@ -613,11 +702,12 @@ static uint64_t do_clone3(CPU* cpu, uint64_t uaddr, uint64_t usize) {
     return (uint64_t)(int64_t)tid;
 }
 
-static uint64_t do_clone(CPU* cpu, uint64_t flags, uint64_t stack,
+template<typename TaintT>
+static uint64_t do_clone(CPU<TaintT>* cpu, uint64_t flags, uint64_t stack,
                          uint64_t parent_tid, uint64_t tls, uint64_t child_tid) {
     if (!(flags & CLONE_THREAD))
         return (uint64_t)(-(long)ENOSYS); // no fork support in phase 1
-    ChildStart2* st = new ChildStart2();
+    ChildStart2<TaintT>* st = new ChildStart2<TaintT>();
     st->child_cpu = *cpu;
     st->child_cpu.gpr[ZG_RAX].val = 0;
     st->child_cpu.gpr[ZG_RAX].taint.clear();
@@ -637,7 +727,7 @@ static uint64_t do_clone(CPU* cpu, uint64_t flags, uint64_t stack,
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setstacksize(&attr, 8 << 20);
-    if (pthread_create(&th, &attr, child_thread_main2, st) != 0) {
+    if (pthread_create(&th, &attr, child_thread_main2<TaintT>, st) != 0) {
         pthread_attr_destroy(&attr);
         delete st;
         return (uint64_t)(-(long)EAGAIN);
@@ -657,7 +747,8 @@ static uint64_t do_clone(CPU* cpu, uint64_t flags, uint64_t stack,
 
 // --- main entry ------------------------------------------------------------
 
-void emulate_syscall(CPU* cpu, unsigned insn_len) {
+template<typename TaintT>
+void emulate_syscall(CPU<TaintT>* cpu, unsigned insn_len) {
     uint64_t n = cpu->gpr[ZG_RAX].val;
     uint64_t a1 = cpu->gpr[ZG_RDI].val;
     uint64_t a2 = cpu->gpr[ZG_RSI].val;
@@ -674,7 +765,8 @@ void emulate_syscall(CPU* cpu, unsigned insn_len) {
                              ZG_R10, ZG_R8, ZG_R9};
         for (int i = 0; i < 7; i++) {
             if (cpu->gpr[regs[i]].taint.cannot_branch || cpu->gpr[regs[i]].taint.cannot_index)
-                guest_error(cpu, "tainted value passed to syscall");
+                guest_error(cpu, "tainted value passed to syscall", 0,
+                            poison_history_of(cpu->gpr[regs[i]].taint));
         }
     }
 
@@ -915,3 +1007,9 @@ void emulate_syscall(CPU* cpu, unsigned insn_len) {
         fflush(stderr);
     }
 }
+
+// Explicit instantiations: the engine (decode_exec.cpp) dispatches syscalls
+// for either taint type.
+template void emulate_syscall<Taint>(CPU<Taint>* cpu, unsigned insn_len);
+template void emulate_syscall<HistoryTaint>(CPU<HistoryTaint>* cpu,
+                                            unsigned insn_len);
