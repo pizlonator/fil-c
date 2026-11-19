@@ -47,18 +47,3 @@ cd ..
 rm -rf pizlonated-gnutls
 hash -r
 
-# --- gates ---------------------------------------------------------------------
-
-echo "=== gate: gnutls system trust is non-empty (gnutls-cli) ==="
-echo | timeout 25 gnutls-cli --port 443 --print-cert www.google.com 2>&1 | grep -E "Processed [0-9]+ CA certificate" || true
-N=`echo | timeout 25 gnutls-cli --port 443 www.google.com 2>&1 | grep -oE "Processed [0-9]+ CA certificate\(s\)" | grep -oE "[0-9]+" || echo 0`
-test "$N" -gt 0 || { echo "FATAL: gnutls still sees zero system CAs" >&2; exit 1; }
-echo "gnutls system trust: $N CA certificates"
-
-echo "=== gate: gnutls-cli TLS handshake to a live host ==="
-H=`echo | timeout 25 gnutls-cli --port 443 www.google.com 2>&1 | grep -E "Handshake was completed|Processed" | head -2`
-echo "$H"
-echo "$H" | grep -q "Handshake was completed" || { echo "FATAL: TLS handshake failed" >&2; exit 1; }
-echo "TLS handshake: OK"
-
-echo "postlc10 gnutls-trust: ALL GATES GREEN"

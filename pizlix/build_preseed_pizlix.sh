@@ -50,12 +50,6 @@ awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' $SRCDIR/pizlix/etc/ssl/ca-bundle.crt
 chmod 644 $LFS/etc/ssl/certs/cert-*.pem
 chroot $LFS /usr/bin/openssl rehash /etc/ssl/certs
 
-# 5. DNS for the chroot-side gates (and as a sane default for the boot):
-#    dhcpcd rewrites /etc/resolv.conf at every Pizlix boot (and empties it
-#    again on shutdown), but the chroot-side builds run without dhcpcd, so
-#    seed the QEMU user-net resolver address, which is stable for this VM.
-printf 'nameserver 10.0.2.3\n' > $LFS/etc/resolv.conf
-
 echo "== pre-seed summary:"
 ls -la $LFS/etc/ssl/ca-bundle.crt $LFS/etc/pki/anchors/
 ls $LFS/etc/ssl/certs | wc -l
