@@ -11,6 +11,11 @@
 
 volatile int __thread_list_lock;
 
+/* Some thread on the thread list, guarded by the thread list lock. Threads
+ * created with pthread_create are linked next to their creator, but threads
+ * attached with pthread_attach_current_np have no libc thread to start from. */
+struct pthread *volatile __thread_list_anchor;
+
 int __init_tp(void *p)
 {
 	pthread_t td = p;
@@ -25,6 +30,7 @@ int __init_tp(void *p)
 	td->robust_list.head = &td->robust_list.head;
 	td->sysinfo = __sysinfo;
 	td->next = td->prev = td;
+	__thread_list_anchor = td;
 	return 0;
 }
 
