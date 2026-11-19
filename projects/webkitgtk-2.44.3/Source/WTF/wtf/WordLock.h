@@ -53,7 +53,7 @@ public:
 
     void lock()
     {
-        if (LIKELY(m_word.compareExchangeWeak(0, isLockedBit, std::memory_order_acquire))) {
+        if (LIKELY(m_word.compareExchangeWeak(nullptr, bitwise_cast<void*>(isLockedBit), std::memory_order_acquire))) {
             // WordLock acquired!
             return;
         }
@@ -63,7 +63,7 @@ public:
 
     void unlock()
     {
-        if (LIKELY(m_word.compareExchangeWeak(isLockedBit, 0, std::memory_order_release))) {
+        if (LIKELY(m_word.compareExchangeWeak(bitwise_cast<void*>(isLockedBit), nullptr, std::memory_order_release))) {
             // WordLock released, and nobody was waiting!
             return;
         }
@@ -73,7 +73,7 @@ public:
 
     bool isHeld() const
     {
-        return m_word.load(std::memory_order_acquire) & isLockedBit;
+        return reinterpret_cast<uintptr_t>(m_word.load(std::memory_order_acquire)) & isLockedBit;
     }
 
     bool isLocked() const
@@ -94,10 +94,14 @@ protected:
     // Method used for testing only.
     bool isFullyReset() const
     {
-        return !m_word.load();
+        return m_word.load() == nullptr;
     }
 
-    Atomic<uintptr_t> m_word { 0 };
+    // The word packs the isLockedBit and isQueueLockedBit flag bits into its low bits and the
+    // queue head pointer into its remaining bits. It is a void* rather than a uintptr_t so that
+    // the pointer-preserving bit tagging from StdLibExtras.h can be used to preserve the queue
+    // head's capability in ports that check pointer capabilities (Fil-C).
+    Atomic<void*> m_word { nullptr };
 };
 
 using WordLockHolder = Locker<WordLock>;

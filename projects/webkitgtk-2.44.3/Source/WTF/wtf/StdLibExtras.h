@@ -52,6 +52,10 @@ static inline void* zandptr(void* ptr, unsigned long bits)
 {
     return (void*)((unsigned long)ptr & bits);
 }
+static inline void* zretagptr(void* newptr, void* oldptr, unsigned long mask)
+{
+    return (void*)((unsigned long)newptr | ((unsigned long)oldptr & ~mask));
+}
 #endif
 
 // Use this macro to declare and define a debug-only global variable that may have a

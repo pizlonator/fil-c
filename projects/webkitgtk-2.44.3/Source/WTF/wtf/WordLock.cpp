@@ -28,6 +28,7 @@
 
 #include <condition_variable>
 #include <mutex>
+#include <wtf/StdLibExtras.h>
 #include <wtf/Threading.h>
 
 namespace WTF {
@@ -67,21 +68,21 @@ NEVER_INLINE void WordLock::lockSlow()
     const unsigned spinLimit = 40;
     
     for (;;) {
-        uintptr_t currentWordValue = m_word.load();
+        void* currentWordValue = m_word.load();
         
-        if (!(currentWordValue & isLockedBit)) {
+        if (!(reinterpret_cast<uintptr_t>(currentWordValue) & isLockedBit)) {
             // It's not possible for someone to hold the queue lock while the lock itself is no longer
             // held, since we will only attempt to acquire the queue lock when the lock is held and
             // the queue lock prevents unlock.
-            ASSERT(!(currentWordValue & isQueueLockedBit));
-            if (m_word.compareExchangeWeak(currentWordValue, currentWordValue | isLockedBit)) {
+            ASSERT(!(reinterpret_cast<uintptr_t>(currentWordValue) & isQueueLockedBit));
+            if (m_word.compareExchangeWeak(currentWordValue, zorptr(currentWordValue, isLockedBit))) {
                 // Success! We acquired the lock.
                 return;
             }
         }
 
         // If there is no queue and we haven't spun too much, we can just try to spin around again.
-        if (!(currentWordValue & ~queueHeadMask) && spinCount < spinLimit) {
+        if (!(reinterpret_cast<uintptr_t>(currentWordValue) & ~queueHeadMask) && spinCount < spinLimit) {
             spinCount++;
             Thread::yield();
             continue;
@@ -97,9 +98,9 @@ NEVER_INLINE void WordLock::lockSlow()
 
         // We proceed only if the queue lock is not held, the WordLock is held, and we succeed in
         // acquiring the queue lock.
-        if ((currentWordValue & isQueueLockedBit)
-            || !(currentWordValue & isLockedBit)
-            || !m_word.compareExchangeWeak(currentWordValue, currentWordValue | isQueueLockedBit)) {
+        if ((reinterpret_cast<uintptr_t>(currentWordValue) & isQueueLockedBit)
+            || !(reinterpret_cast<uintptr_t>(currentWordValue) & isLockedBit)
+            || !m_word.compareExchangeWeak(currentWordValue, zorptr(currentWordValue, isQueueLockedBit))) {
             Thread::yield();
             continue;
         }
@@ -108,7 +109,7 @@ NEVER_INLINE void WordLock::lockSlow()
 
         // We own the queue. Nobody can enqueue or dequeue until we're done. Also, it's not possible
         // to release the WordLock while we hold the queue lock.
-        ThreadData* queueHead = bitwise_cast<ThreadData*>(currentWordValue & ~queueHeadMask);
+        ThreadData* queueHead = static_cast<ThreadData*>(zandptr(currentWordValue, ~queueHeadMask));
         if (queueHead) {
             // Put this thread at the end of the queue.
             queueHead->queueTail->nextInQueue = &me;
@@ -116,10 +117,10 @@ NEVER_INLINE void WordLock::lockSlow()
 
             // Release the queue lock.
             currentWordValue = m_word.load();
-            ASSERT(currentWordValue & ~queueHeadMask);
-            ASSERT(currentWordValue & isQueueLockedBit);
-            ASSERT(currentWordValue & isLockedBit);
-            m_word.store(currentWordValue & ~isQueueLockedBit);
+            ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & ~queueHeadMask);
+            ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isQueueLockedBit);
+            ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isLockedBit);
+            m_word.store(zandptr(currentWordValue, ~isQueueLockedBit));
         } else {
             // Make this thread be the queue-head.
             queueHead = &me;
@@ -128,13 +129,16 @@ NEVER_INLINE void WordLock::lockSlow()
             // Release the queue lock and install ourselves as the head. No need for a CAS loop, since
             // we own the queue lock.
             currentWordValue = m_word.load();
-            ASSERT(~(currentWordValue & ~queueHeadMask));
-            ASSERT(currentWordValue & isQueueLockedBit);
-            ASSERT(currentWordValue & isLockedBit);
-            uintptr_t newWordValue = currentWordValue;
-            newWordValue |= bitwise_cast<uintptr_t>(queueHead);
-            newWordValue &= ~isQueueLockedBit;
-            m_word.store(newWordValue);
+            ASSERT(~(reinterpret_cast<uintptr_t>(currentWordValue) & ~queueHeadMask));
+            ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isQueueLockedBit);
+            ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isLockedBit);
+            // This is the pointer-tagging spelling of:
+            //     newWordValue = currentWordValue | bitwise_cast<uintptr_t>(queueHead);
+            //     newWordValue &= ~isQueueLockedBit;
+            // The queue head supplies the address bits and the old word supplies the isLockedBit.
+            m_word.store(zretagptr(queueHead,
+                                   zandptr(currentWordValue, ~isQueueLockedBit),
+                                   ~queueHeadMask));
         }
 
         // At this point everyone who acquires the queue lock will see me on the queue, and anyone who
@@ -166,12 +170,12 @@ NEVER_INLINE void WordLock::unlockSlow()
     // fast path's weak CAS spuriously failed and it handles queue lock acquisition if there is
     // actually something interesting on the queue.
     for (;;) {
-        uintptr_t currentWordValue = m_word.load();
+        void* currentWordValue = m_word.load();
 
-        ASSERT(currentWordValue & isLockedBit);
+        ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isLockedBit);
         
-        if (currentWordValue == isLockedBit) {
-            if (m_word.compareExchangeWeak(isLockedBit, 0)) {
+        if (reinterpret_cast<uintptr_t>(currentWordValue) == isLockedBit) {
+            if (m_word.compareExchangeWeak(bitwise_cast<void*>(isLockedBit), nullptr)) {
                 // The fast path's weak CAS had spuriously failed, and now we succeeded. The lock is
                 // unlocked and we're done!
                 return;
@@ -181,27 +185,27 @@ NEVER_INLINE void WordLock::unlockSlow()
             continue;
         }
         
-        if (currentWordValue & isQueueLockedBit) {
+        if (reinterpret_cast<uintptr_t>(currentWordValue) & isQueueLockedBit) {
             Thread::yield();
             continue;
         }
 
         // If it wasn't just a spurious weak CAS failure and if the queue lock is not held, then there
         // must be an entry on the queue.
-        ASSERT(currentWordValue & ~queueHeadMask);
+        ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & ~queueHeadMask);
 
-        if (m_word.compareExchangeWeak(currentWordValue, currentWordValue | isQueueLockedBit))
+        if (m_word.compareExchangeWeak(currentWordValue, zorptr(currentWordValue, isQueueLockedBit)))
             break;
     }
 
-    uintptr_t currentWordValue = m_word.load();
+    void* currentWordValue = m_word.load();
         
     // After we acquire the queue lock, the WordLock must still be held and the queue must be
     // non-empty. The queue must be non-empty since only the lockSlow() method could have held the
     // queue lock and if it did then it only releases it after putting something on the queue.
-    ASSERT(currentWordValue & isLockedBit);
-    ASSERT(currentWordValue & isQueueLockedBit);
-    ThreadData* queueHead = bitwise_cast<ThreadData*>(currentWordValue & ~queueHeadMask);
+    ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isLockedBit);
+    ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isQueueLockedBit);
+    ThreadData* queueHead = static_cast<ThreadData*>(zandptr(currentWordValue, ~queueHeadMask));
     ASSERT(queueHead);
 
     ThreadData* newQueueHead = queueHead->nextInQueue;
@@ -214,14 +218,14 @@ NEVER_INLINE void WordLock::unlockSlow()
     // since we hold the queue lock and the lock itself so nothing about the lock can change right
     // now.
     currentWordValue = m_word.load();
-    ASSERT(currentWordValue & isLockedBit);
-    ASSERT(currentWordValue & isQueueLockedBit);
-    ASSERT((currentWordValue & ~queueHeadMask) == bitwise_cast<uintptr_t>(queueHead));
-    uintptr_t newWordValue = currentWordValue;
-    newWordValue &= ~isLockedBit; // Release the WordLock.
-    newWordValue &= ~isQueueLockedBit; // Release the queue lock.
-    newWordValue &= queueHeadMask; // Clear out the old queue head.
-    newWordValue |= bitwise_cast<uintptr_t>(newQueueHead); // Install new queue head.
+    ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isLockedBit);
+    ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isQueueLockedBit);
+    ASSERT((reinterpret_cast<uintptr_t>(currentWordValue) & ~queueHeadMask) == reinterpret_cast<uintptr_t>(queueHead));
+    void* newWordValue = currentWordValue;
+    newWordValue = zandptr(newWordValue, ~isLockedBit); // Release the WordLock.
+    newWordValue = zandptr(newWordValue, ~isQueueLockedBit); // Release the queue lock.
+    newWordValue = zandptr(newWordValue, queueHeadMask); // Clear out the old queue head.
+    newWordValue = zretagptr(newQueueHead, newWordValue, ~queueHeadMask); // Install new queue head.
     m_word.store(newWordValue);
 
     // Now the lock is available for acquisition. But we just have to wake up the old queue head.
