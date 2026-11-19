@@ -1,4 +1,4 @@
-#include "poisoning.h"
+#include "test_common.h"
 
 #include <openssl/evp.h>
 
@@ -22,75 +22,6 @@
  * the sibling program); there is no independent large-size KAT -- the
  * one-shot output IS the oracle the chunked runs are compared against.
  */
-
-/* Labeled allocation wrappers (house rule: every buffer handed to OpenSSL
- * comes from one of these; see poisoning.h for why). */
-static void *ALLOCATE_KEY(size_t n)    { return poison_alloc(POISON_KEY, n); }
-static void *ALLOCATE_IV(size_t n)     { return poison_alloc(POISON_IV, n); }
-static void *ALLOCATE_AAD(size_t n)    { return poison_alloc(POISON_AAD, n); }
-static void *ALLOCATE_INPUT(size_t n)  { return poison_alloc(POISON_INPUT, n); }
-static void *ALLOCATE_OUTPUT(size_t n) { return poison_alloc(POISON_OUTPUT, n); }
-static void *ALLOCATE_TAG(size_t n)    { return poison_alloc(POISON_TAG, n); }
-
-static unsigned g_checks = 0;
-
-static void test_failed(const char *msg)
-{
-    fprintf(stderr, "FAIL test_chacha20_poly1305_large: %s\n", msg);
-    exit(1);
-}
-
-#define CHECK(cond, msg)                      \
-    do {                                      \
-        if (!(cond))                          \
-            test_failed(msg);                 \
-        g_checks++;                           \
-    } while (0)
-
-static int hexval(char c)
-{
-    if (c >= '0' && c <= '9') return c - '0';
-    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-    return -1;
-}
-
-/* Copies a hex constant into a buffer allocated by an ALLOCATE_* function
- * (house rule: constants live in the source as hex strings, but are copied
- * into labeled working buffers before use).  Returns the byte length. */
-static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
-{
-    size_t n = strlen(hex) / 2;
-    size_t i;
-    if (strlen(hex) % 2 != 0)
-        test_failed("odd-length hex constant");
-    if (n > dstcap)
-        test_failed("hex constant larger than its destination buffer");
-    for (i = 0; i < n; i++) {
-        int hi = hexval(hex[2 * i]);
-        int lo = hexval(hex[2 * i + 1]);
-        if (hi < 0 || lo < 0)
-            test_failed("bad hex digit in constant");
-        dst[i] = (unsigned char)((hi << 4) | lo);
-    }
-    return n;
-}
-
-/* Length-and-content comparison of two working buffers.  memcmp() cannot be
- * run on poisoned data: it branches on the compared bytes, which fatally
- * faults under the emulator when the data is tainted (directly or via
- * downstream propagation).  Unpoison everything poison_alloc() handed out,
- * compare, then restore the poison. */
-static void expect_equal(const char *what, const unsigned char *got, size_t gotlen,
-                         const unsigned char *want, size_t wantlen)
-{
-    CHECK(gotlen == wantlen, what);
-    if (wantlen > 0) {
-        unpoison_all();
-        CHECK(memcmp(got, want, wantlen) == 0, what);
-        repoison_all();
-    }
-}
 
 /* RFC 8439 2.8.2 key and nonce. */
 static const char *const KEY_HEX =
@@ -355,12 +286,12 @@ static void test_tamper(void)
 
 int main(int argc, char **argv)
 {
-    poison_parse_args(argc, argv);
+    test_parse_args(argc, argv);
 
     test_one_megabyte();
     test_aad_sizes();
     test_tamper();
 
-    printf("test_chacha20_poly1305_large: all %u checks passed\n", g_checks);
+    test_report_pass();
     return 0;
 }

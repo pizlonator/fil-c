@@ -1,4 +1,4 @@
-#include "poisoning.h"
+#include "test_common.h"
 
 #include <openssl/core_names.h>
 #include <openssl/evp.h>
@@ -88,32 +88,6 @@
  * in our code.
 
  */
-
-
-/* Labeled allocation wrappers (house rule: every buffer handed to OpenSSL
- * comes from one of these; see poisoning.h for why). */
-
-static void *ALLOCATE_KEY(size_t n)    { return poison_alloc(POISON_KEY, n); }
-static void *ALLOCATE_INPUT(size_t n)  { return poison_alloc(POISON_INPUT, n); }
-static void *ALLOCATE_OUTPUT(size_t n) { return poison_alloc(POISON_OUTPUT, n); }
-
-
-static unsigned g_checks = 0;
-
-
-static void test_failed(const char *msg)
-{
-    fprintf(stderr, "FAIL test_sm2: %s\n", msg);
-    exit(1);
-}
-
-
-#define CHECK(cond, msg)                      \
-    do {                                      \
-        if (!(cond))                          \
-            test_failed(msg);                 \
-        g_checks++;                           \
-    } while (0)
 
 
 /* Generates a fresh SM2 key pair. */
@@ -409,12 +383,12 @@ static void test_cipher_digest_param(void)
 
 int main(int argc, char **argv)
 {
-    poison_parse_args(argc, argv);
+    test_parse_args(argc, argv);
 
     test_sign_verify();
     test_encrypt_decrypt();
     test_cipher_digest_param();
 
-    printf("test_sm2: all %u checks passed\n", g_checks);
+    test_report_pass();
     return 0;
 }

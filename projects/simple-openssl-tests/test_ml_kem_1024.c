@@ -1,0 +1,163 @@
+#include "test_common.h"
+#include "test_ml_kem_common.h"
+
+#include <openssl/evp.h>
+
+/*
+ * test_ml_kem_1024 -- ML-KEM-1024 (FIPS 203) tests: deterministic seed
+ * keygen, encapsulation/decapsulation known answers, implicit rejection of
+ * tampered ciphertexts, and raw private-key import/export -- one binary per
+ * parameter set (the shared ML-KEM machinery, the determinism hooks, the
+ * KAT provenance and the version gate live in test_ml_kem_common.c).
+ *
+ * Known-answer provenance (ML-KEM-1024), from the same scratch probe as the
+ * sibling binaries:
+ *
+ *   - SEED_1024_HEX:    the key-derivation seed 0x80,0x81,...,0xbf (64
+ *                       bytes, the FIPS 203 (d, z) seed length).
+ *   - KAT_PUB_1024_HEX: the raw encapsulation key exported from that seed
+ *                       (1568 bytes, the FIPS 203 ek size).
+ *   - KAT_CT_1024_HEX:  the ciphertext produced by encapsulating against
+ *                       that public key with the fixed ephemeral IKME
+ *                       (1568 bytes, the FIPS 203 ct size).
+ *   - KAT_SS_1024_HEX:  the shared secret paired with that ciphertext (32
+ *                       bytes, the FIPS 203 ss size).
+ *
+ * The private key is not embedded as hex; its correctness is pinned by the
+ * embedded (ct, ss) pair and its raw size is checked against FIPS 203
+ * (3168 bytes for ML-KEM-1024).
+ */
+
+/* This parameter set's KAT constants (the fixed IKME is family-wide and
+ * lives in test_ml_kem_common.c). */
+static const char SEED_1024_HEX[] =
+    "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f"
+    "a0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebf";
+
+static const char KAT_PUB_1024_HEX[] =
+    "3b5a9e810b752ddb869f2a75eeaba8fd12ae67e6702bb12c6b6a48cd65915ab4"
+    "4d84d74f5d9b0a6179c4f8d795243932e5b3298e6043bbf21d7746cb94d04696"
+    "2104e99555d653c5b5fcb4fbe072c6708d53b479e8a12400e3889a38951ecc86"
+    "0f241aaf46266bd535de7b0fbd677bc4ec7497462687060eaf179d81a965079c"
+    "3635c52c6795915e634e42ba14373c5d5f22bf8cd54ad7d94cf71a528d06c6aa"
+    "5aabaa4a4dab217aa71b6d95d4074c32899066296f21b65b6038e9761875d52e"
+    "d271ad127611a9f14eab1558bfd5a9e4b6849b54cedd5a2afbd6518af6ca5130"
+    "0ee5f1bbeb7786e69c7cec338330e29c32a50c660ba44b773dff764c33f3505e"
+    "502be0ebca96790b46fb40527129766802e5082ee8877437945e234cb1a39888"
+    "3a98b1e70421bc4095e8a349010c12efd06d9b76ae67aa3e4835709014494318"
+    "172b0c197718074dea49192a717106c862c854e4519727f7bcb40bb365824031"
+    "d88bce84835eac834288a0b95366ecf859871845e587b33078053a0571caacb7"
+    "3e2c173f7b5a8c05b3d5f874e6eab51943bee83b25d4bba8bf9a44eb90c26063"
+    "99016c21c81cbe0415aacba08f4392a5761b423d0b03a3b15109e76dddb1865f"
+    "45446bc914650353651b6228592c7fb515cc08ae794a44cb0b001f1c5c3392b2"
+    "80e185321c1598ecaaeeec18d8662b8eba72272bb63f173d33c67dc0814bc9a2"
+    "881258b60928274ba055a0e587399199927b1e76761b49440c891acb24db1680"
+    "7b5872ca18ebd40de4288914e68a9c207e3285a57aa61ed8491a18681749e326"
+    "dc20a20d552eeb532289cb0587e6b33071441f65b2636a332c32c4ca217557e6"
+    "2dba7657aaf50ec063ab0d4c50fdf45abaa7076dc7595b4108ff8735c97880fd"
+    "e34369829e9aa120ab564eef42b455b2787097bc262a5054529044373a76f76f"
+    "07f40f28eb0bd9f1afb343beb22ba17b7aa59ab219f1f7cd6640a027620dcb7a"
+    "45d8b19db123ab934aa3e9a22440723e61cacb4e38626f5b4fe1f041e5c5a923"
+    "fc8041b36314611d862c362e2b85bc277897271e53b70badc08313b0c4535a6c"
+    "40b7b4e3573bb9a08723c10bd0e748a6d45ad02022cb53194b814c07068704d1"
+    "0d403b5122f98a3062628aa9336ae252a296a8ad9061957378deb99d3895a8a9"
+    "242c0d14658143c9d34466fc4474ffeb28e3b89eadb76d287b6908cc8e9e8176"
+    "4a668f3c0990699037d0d247d6ec4a04b8267e63327ae8567ada2e06e2b9dc91"
+    "151c52c283e51a55e1887c69c463fc534a128fd6d55d8d6557f61b5ce3b1277f"
+    "d53988fb240544bb668a29c6e9bbaa354fb72a8408f69a28278585471c87b513"
+    "949a96ff87857c6a39fd173c1e782a65e1251dab21cc09725a2a9cf0844b2eb4"
+    "05cde1022fa022208671ede258afe796a4c71c2a718aad26bfbfd09607416349"
+    "6a8f5ed1416ad332fd31cb1b4ac218c74976b34e9af929088816dad887f6155b"
+    "debaa282808ebbe754551084f1f47547308b66437ff8fb0871c75c6f27ad0179"
+    "80fe9c2442f4c71c63ad542681bc263bd0820ba3fa0c05097ae663b4d48488ed"
+    "706382a890a8a157deba58b9f59f0a30748b292c35a040ec9b0c30a05db18265"
+    "a79989f2f72089041e9445b1e1737fdc206a75e648dd1b25412238a3581e2613"
+    "99e51a71527c254bdc253c82af8c0c2a71d553e9aba02eb850c5e658742b02fe"
+    "c6413bd94d26d41b34eb7bed821f6ec27f119907a6088cdd8c898b11100f9065"
+    "4af6b64f76b2ef7389838bc35f81763af4778301a78f799a91ca1f82a0c70ab1"
+    "75e5cb3c2ee31f84d6c78baa02051a38746c057b36735f9c62e1c790da7a857f"
+    "368230662c19a98cd2d58b6abb010211b947298f421a0f7bd05d3a940a65f0cf"
+    "895ca75e145d9e25639fdb2a1ba7397998b85cf75114203219895b47d25be6a0"
+    "69c1a91ceb225954676925ea2c3fb26776dbbc23e38476ecb146d7507c8542c6"
+    "480e7c850bf83aa1dc062a34441134fb837e2c06ff1190a95c6262f971ba2139"
+    "fe920ad3ca2eb9d77e666402b3047ec0231548b04eae7a800d3470fb95700f59"
+    "b0db125402998432a08f12f81f307422d04336ff1a66e5284d18a9945ee1ce3c"
+    "d500127b7011c791fa04c5ed90ba7c90a728c955ab442aecd3ce3c0c8cb9787a"
+    "0aebbae06f27696726ff083f8bde5c026fc329fb5156214cab0ded86d91d8c33";
+
+static const char KAT_CT_1024_HEX[] =
+    "bf3360b50390ae4a5fac6a48cc714a3cdd38a351f932dcea571d330f5bdf550c"
+    "3bc927ee69d853d26393a2384784cd534466d01406deeb8a7290f2d79e28e3e5"
+    "3c4126cc4e33703febe69de23bb582db63dd3fbcd26274a2ced48ef7eba8fd63"
+    "884d4b67ed53311e99038ab318265eb52d1d7e30a1bfc63be3d0aa5e943bc126"
+    "4ebfed38fe61a95a0399e9141aa88436a6511e02253105b6a828a5c4944965c7"
+    "8450b2bbc5e4f09f8ad516d12aeed7d746c0994464f03035895ab6f105ba679b"
+    "fc35c6ac1966a750fb74a8603ba3f673d75577f6804f2e845d125e81de43c008"
+    "36a239d8f943fd416e1ecc5286e8db257d8e6c615e4fd149459d41f969672288"
+    "e010acfc4684c37dedc2249102eae904c33bc3351e610945b902ff95f6921fa9"
+    "85766e9eef3df25672e2633bd226ee3143919b3620d1b31f131258c69198697f"
+    "17c9882195d61dfc70da531ff15a01166e330c9a28432318a61f8627fda652e1"
+    "eddf1457a4f30c661bb0a17b175afa83175b5e90a281c685746c796f57563d81"
+    "eb5fa5fd702f90bb4e8109ed671e59f9d798f35d6ed97b2d760149925656d349"
+    "abccce6c104d9ad1970605f5ca5b87cd7f8c3092aaa6646ff8f16096fe8a5b43"
+    "56f074245c1f8ff545bebd9b5905d045123dd8c13be8edd37c200e2e6a8786ce"
+    "015722a286b0cb034476b6ea3dff5fb7a9c71554900ecb5f3aeec04e1771c361"
+    "b92399c3e5ccc1fed0a32c4eae88678b84096e18596dc6d8d658bf03881345aa"
+    "8a33e3ab50fb82d4595269b0700fb6e537d5e02c9f4e0e9f7747bb59c3a231d8"
+    "f5f433688a83605f89f6577ceee9f79f70e93248371ccabefeb95980a2a8232f"
+    "27e6a83afcdd849de7490ab08fa406ceba76c7ad2fa141f1a9c42aa307aa9c07"
+    "123826158af86ba756cbaa9cf67f802ee0f9d51e546422e81498c74dc68eed3b"
+    "3c457b2c8d68e91a59f4e64d449bb702cbac5c5e3b2c727577122efbb991bd73"
+    "3988bb921e2f63c9fde8325146c0ee52ed4b282fbaf3ee473e13c24f7405e058"
+    "9783e5f6a645e79628f546357582a84b8368c97a10fcb425f20ff74f528d30f8"
+    "f1686f86bfa483bd6245402cd5c25ec902bbb330a2d922fc5670c55f277afbe9"
+    "f5c58fc71fa1d10fb70e78a1003019cdd738aa63d90a9ebbc5f35c389260446c"
+    "8c03cf28ddd26c1cad599de39cd58bfc94005a57cc4aaaf2bea159dd2ade6a29"
+    "86a12971e7ca83ef19cc7dc8fd429116d618ddc4266bddd837152290083c7a71"
+    "2a45c0ffa136b5ec25e2e3dd1b4a85973d0aa388b701645fb74b702f4b67ca67"
+    "c6d9cf1951dd7099d84b9c0190632b41a024eb74b98450c2f80ebb24f4991cfa"
+    "aa725d10ceedd7d1f94b5f1e02abfcfc4ffc6abb832f7417637fe8c9000a0393"
+    "c489eaba5f046154253fa6a3e814b3a9c2ed34153e0898a9e3154b36cda74b3c"
+    "d2bfe7b44a6fbcce79ad5eec34279a973507dadfbd7ac368399c83bb10a030c0"
+    "f62691015d7eb4a7f9788c5dd56b3047bd774471687e31f266602dff387081cd"
+    "43229867d20ab9c9f421f93bf85db62339d99f55494087516ea46028fcd39014"
+    "6d27924087df628497b89e69f2770a2539998ec330b25ea7005c2fdd2900d678"
+    "28503565f077410e40a342c4d7fce4d63283b04c72879625912a36e5bdba491c"
+    "b8f0531b8478adb224c2af389ce3d01c7dd3a0138d8388f5cc798fc11c7f93ed"
+    "401a1c441f58d501a9e5f1ae3da2f719142aa3d2bad9b3e8f7ea4541e01f518e"
+    "0abbddad6c9440d7ce46a88ccd33f590ec66885cdf3cb3e43add0b96d9fd3563"
+    "433dd661a18a5beae9f5b688a9fef5b21e01ebf61a3d6f6e8543f1a88be9ac81"
+    "02e30db16e85dcb4f836b8677d0d009fd2cfbcb06cc0cb7b3262694766530fae"
+    "e4e9b3e2f40ca50d2993d466fa78c86c4708863d04b9be728e36d8c57a8027c2"
+    "5a1b6cad593adb4603985184d67171a7ecae1105924797cbc89ffd7531a5354a"
+    "e60508bc8bbd9f75b9f856b2cba654fb5f228a4a4b6ec097154f735879972bbf"
+    "b68947c243c75ab5e56504c8ad84250e1ee5db3e273ea22240952600159d404e"
+    "273fdf4659298c68ad773de9fbf8cb350ee4be057c34e194c1332cc2fbc7d046"
+    "d8fd9b3cbdb09bb96b1304f63a7903ce35a3ed9ffb7f46e7001357f5aeeb2865"
+    "005a0669cf54c3a2db3f9aa06415c50d3c5dd8f635f9c929903bb7ad43d84351";
+
+static const char KAT_SS_1024_HEX[] =
+    "a1b75b4f796679173738226a65abdb0a360a7b027503dbb39f9af37be149627f";
+
+/* This parameter set's FIPS 203 row. */
+static const struct ml_kem_set set = {
+    "ML-KEM-1024", 64, 1568, 3168, 1568, 32,
+    SEED_1024_HEX, KAT_PUB_1024_HEX, KAT_CT_1024_HEX, KAT_SS_1024_HEX,
+};
+
+int main(int argc, char **argv)
+{
+    test_parse_args(argc, argv);
+
+    /* ML-KEM is version-gated (OpenSSL 3.5+): if this parameter set is not
+     * provided by this OpenSSL, take the SKIP path and exit 0. */
+    ml_kem_test_gate(&set);
+
+    ml_kem_test_seed_keygen_kat(&set);
+    ml_kem_test_encap_kat(&set);
+    ml_kem_test_tampered_ciphertext(&set);
+    ml_kem_test_privkey_import(&set);
+
+    test_report_pass();
+    return 0;
+}

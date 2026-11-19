@@ -295,7 +295,7 @@ dereferenced or used as an address. The regression case: glibc's
 `__memcmp_evex_movbe` kmovd's a compare mask from poisoned ciphertext and
 does `test %eax,%eax; jne` — before the orthogonality fix that trapped as
 "tainted (cannot-index) value used in branch condition" and broke
-`projects/simple-openssl-tests/test_aes_cbc --poison-variants=cannot-index`.
+`projects/simple-openssl-tests/test_aes_128_cbc --poison-variants=cannot-index`.
 `tests/poison_ortho.c` pins both directions; `tests/poison_index_addr.c`
 and `tests/poison_branch_ctrl.c` pin the faulting side of each dimension.
 

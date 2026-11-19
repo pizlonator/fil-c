@@ -330,9 +330,23 @@ classify_bin() {
     printf '%s\t%s\n' "$group" "$dir"
 }
 
-# Which libcrypto the tests currently bind to (the resolved path).
+# Which libcrypto the tests currently bind to (the resolved path).  Probes
+# the test binaries dynamically rather than by a fixed name: the suite is
+# one binary per cipher, so the binary set changes (the test_aes_cbc
+# monolith this probe once relied on was split into per-cipher binaries).
+# The first existing binary whose ldd output resolves a libcrypto wins;
+# every binary links libcrypto via the generic Makefile link rule, so in
+# practice this is just the first binary alphabetically.
 crypto_probe() {
-    ldd ./test_aes_cbc 2>/dev/null | awk '$2 == "=>" && $3 ~ /libcrypto/ {print $3; exit}'
+    local f res
+    for f in $(list_bins); do
+        res="$(bin_libcrypto "$f")"
+        if [ -n "$res" ]; then
+            printf '%s\n' "$res"
+            return 0
+        fi
+    done
+    return 0
 }
 
 # The file-safe slug for a group display name: every character outside
@@ -361,9 +375,18 @@ slug_for() {
 }
 
 # Does the dynamic-linker resolution mention any pizfix path?  Expected (and
-# fine) for the Fil-C flavors; a pizfix leak in a yolo build.
+# fine) for the Fil-C flavors; a pizfix leak in a yolo build.  Scans the test
+# binaries dynamically (no fixed binary name: the set is one binary per
+# cipher and changes as ciphers are added), reporting whether ANY of them
+# resolves a pizfix path.
 ldd_mentions_pizfix() {
-    ldd ./test_aes_cbc 2>/dev/null | grep -q '/pizfix/'
+    local f
+    for f in $(list_bins); do
+        if ldd "./$f" 2>/dev/null | grep -q '/pizfix/'; then
+            return 0
+        fi
+    done
+    return 1
 }
 
 # One test under one (group, variant).  Runs via xargs -P; writes a result

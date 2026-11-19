@@ -1,4 +1,4 @@
-#include "poisoning.h"
+#include "test_common.h"
 
 #include <openssl/core_names.h>
 #include <openssl/evp.h>
@@ -64,60 +64,6 @@
  * a development-time check only: the suite's programs do no file I/O.
 
  */
-
-
-/* Labeled allocation wrappers (house rule: every buffer handed to OpenSSL
- * comes from one of these; see poisoning.h for why). */
-
-static void *ALLOCATE_KEY(size_t n)    { return poison_alloc(POISON_KEY, n); }
-static void *ALLOCATE_INPUT(size_t n)  { return poison_alloc(POISON_INPUT, n); }
-static void *ALLOCATE_OUTPUT(size_t n) { return poison_alloc(POISON_OUTPUT, n); }
-
-
-static unsigned g_checks = 0;
-
-
-static void test_failed(const char *msg)
-{
-    fprintf(stderr, "FAIL test_ecdsa: %s\n", msg);
-    exit(1);
-}
-
-
-#define CHECK(cond, msg)                      \
-    do {                                      \
-        if (!(cond))                          \
-            test_failed(msg);                 \
-        g_checks++;                           \
-    } while (0)
-
-
-static int hexval(char c)
-{
-    if (c >= '0' && c <= '9') return c - '0';
-    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-    return -1;
-}
-
-
-static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
-{
-    size_t n = strlen(hex) / 2;
-    size_t i;
-    if (strlen(hex) % 2 != 0)
-        test_failed("odd-length hex constant");
-    if (n > dstcap)
-        test_failed("hex constant larger than its destination buffer");
-    for (i = 0; i < n; i++) {
-        int hi = hexval(hex[2 * i]);
-        int lo = hexval(hex[2 * i + 1]);
-        if (hi < 0 || lo < 0)
-            test_failed("bad hex digit in constant");
-        dst[i] = (unsigned char)((hi << 4) | lo);
-    }
-    return n;
-}
 
 
 /* OSSL_PARAM integers are native-endian (OSSL_PARAM(3)); see
@@ -388,8 +334,8 @@ static void test_rfc6979_deterministic(void)
           "reading back nonce-type failed");
     if (nonce_back != 1) {
         /* OpenSSL 3.0/3.1 ignore the parameter (random k); skip gracefully. */
-        printf("SKIP test_ecdsa: deterministic ECDSA (nonce-type/RFC 6979) "
-               "is unavailable\n");
+        printf("SKIP %s: deterministic ECDSA (nonce-type/RFC 6979) "
+               "is unavailable\n", test_prog_name());
         EVP_MD_CTX_free(mctx);
         EVP_PKEY_free(key);
 
@@ -416,13 +362,13 @@ static void test_rfc6979_deterministic(void)
 
 int main(int argc, char **argv)
 {
-    poison_parse_args(argc, argv);
+    test_parse_args(argc, argv);
 
     test_keygen_sign_verify();
     test_streaming();
     test_negative();
     test_rfc6979_deterministic();
 
-    printf("test_ecdsa: all %u checks passed\n", g_checks);
+    test_report_pass();
     return 0;
 }

@@ -1,4 +1,4 @@
-#include "poisoning.h"
+#include "test_common.h"
 
 #include <openssl/core_names.h>
 #include <openssl/evp.h>
@@ -46,59 +46,6 @@
  *     fails).
 
  */
-
-
-/* Labeled allocation wrappers (house rule: every buffer handed to OpenSSL
- * comes from one of these; see poisoning.h for why). */
-
-static void *ALLOCATE_KEY(size_t n)    { return poison_alloc(POISON_KEY, n); }
-static void *ALLOCATE_OUTPUT(size_t n) { return poison_alloc(POISON_OUTPUT, n); }
-
-
-static unsigned g_checks = 0;
-
-
-static void test_failed(const char *msg)
-{
-    fprintf(stderr, "FAIL test_ecdh: %s\n", msg);
-    exit(1);
-}
-
-
-#define CHECK(cond, msg)                      \
-    do {                                      \
-        if (!(cond))                          \
-            test_failed(msg);                 \
-        g_checks++;                           \
-    } while (0)
-
-
-static int hexval(char c)
-{
-    if (c >= '0' && c <= '9') return c - '0';
-    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-    return -1;
-}
-
-
-static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
-{
-    size_t n = strlen(hex) / 2;
-    size_t i;
-    if (strlen(hex) % 2 != 0)
-        test_failed("odd-length hex constant");
-    if (n > dstcap)
-        test_failed("hex constant larger than its destination buffer");
-    for (i = 0; i < n; i++) {
-        int hi = hexval(hex[2 * i]);
-        int lo = hexval(hex[2 * i + 1]);
-        if (hi < 0 || lo < 0)
-            test_failed("bad hex digit in constant");
-        dst[i] = (unsigned char)((hi << 4) | lo);
-    }
-    return n;
-}
 
 
 /* OSSL_PARAM integers are native-endian (OSSL_PARAM(3)); see
@@ -278,7 +225,7 @@ static void test_cross_curve(void)
 
 int main(int argc, char **argv)
 {
-    poison_parse_args(argc, argv);
+    test_parse_args(argc, argv);
 
     test_group("prime256v1", P256_DA_HEX, P256_QAX_HEX, P256_QAY_HEX,
                P256_DB_HEX, P256_QBX_HEX, P256_QBY_HEX, P256_Z_HEX, 32);
@@ -286,6 +233,6 @@ int main(int argc, char **argv)
                P384_DB_HEX, P384_QBX_HEX, P384_QBY_HEX, P384_Z_HEX, 48);
     test_cross_curve();
 
-    printf("test_ecdh: all %u checks passed\n", g_checks);
+    test_report_pass();
     return 0;
 }

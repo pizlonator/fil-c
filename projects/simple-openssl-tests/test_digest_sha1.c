@@ -1,4 +1,4 @@
-#include "poisoning.h"
+#include "test_common.h"
 
 #include <openssl/evp.h>
 
@@ -18,61 +18,10 @@
  * EVP_sha1() route; EVP_get_digestbyname("sha1"); chunked-vs-one-shot
  * equality for input lengths around the 64-byte block boundary; and
  * EVP_MD_get_size() == 20.
+ *
+ * The shared boilerplate (the ALLOCATE_* wrappers, CHECK/from_hex, and the
+ * FAIL/SKIP/pass reporting) lives in test_common.h.
  */
-
-/* Labeled allocation wrappers (house rule: every buffer handed to OpenSSL
- * comes from one of these; see poisoning.h for why). */
-
-static void *ALLOCATE_INPUT(size_t n)  { return poison_alloc(POISON_INPUT, n); }
-
-static void *ALLOCATE_OUTPUT(size_t n) { return poison_alloc(POISON_OUTPUT, n); }
-
-static void *ALLOCATE_OTHER(size_t n)  { return poison_alloc(POISON_OTHER, n); }
-
-static unsigned g_checks = 0;
-
-static void test_failed(const char *msg)
-{
-    fprintf(stderr, "FAIL test_digest_sha1: %s\n", msg);
-    exit(1);
-}
-
-#define CHECK(cond, msg)                      \
-    do {                                      \
-        if (!(cond))                          \
-            test_failed(msg);                 \
-        g_checks++;                           \
-    } while (0)
-
-static int hexval(char c)
-{
-    if (c >= '0' && c <= '9') return c - '0';
-    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-    return -1;
-}
-
-/* Copies a hex constant into a buffer allocated by an ALLOCATE_* function
- * (house rule: constants live in the source as hex strings, but are copied
- * into labeled working buffers before use).  Returns the byte length. */
-
-static size_t from_hex(const char *hex, unsigned char *dst, size_t dstcap)
-{
-    size_t n = strlen(hex) / 2;
-    size_t i;
-    if (strlen(hex) % 2 != 0)
-        test_failed("odd-length hex constant");
-    if (n > dstcap)
-        test_failed("hex constant larger than its destination buffer");
-    for (i = 0; i < n; i++) {
-        int hi = hexval(hex[2 * i]);
-        int lo = hexval(hex[2 * i + 1]);
-        if (hi < 0 || lo < 0)
-            test_failed("bad hex digit in constant");
-        dst[i] = (unsigned char)((hi << 4) | lo);
-    }
-    return n;
-}
 
 /* One-shot digest via EVP_Digest.  `out` must have room for
 
@@ -283,14 +232,14 @@ static void test_msg56_chunked(void)
 
 int main(int argc, char **argv)
 {
-    poison_parse_args(argc, argv);
+    test_parse_args(argc, argv);
 
     test_kats();
     test_routes();
     test_chunked_equality();
     test_msg56_chunked();
 
-    printf("test_digest_sha1: all %u checks passed\n", g_checks);
+    test_report_pass();
     return 0;
 }
 
