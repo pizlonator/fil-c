@@ -124,6 +124,13 @@ PAS_API void verse_heap_thread_local_cache_node_stop_local_allocators(pas_thread
 																	  uint64_t expected_version);
 
 PAS_API uintptr_t verse_heap_find_allocated_object_start(uintptr_t inner_ptr);
+/* Stops counting the large object that contains object_begin as live bytes, and does not count it as
+   swept bytes when it dies. Use it for objects that reserve address space: their size says nothing about
+   the memory that the program uses, and counting them lets the garbage grow to half of their size before
+   the collector runs. Returns false if there is no large object there, or if the function excluded it
+   already. */
+PAS_API bool verse_heap_exclude_large_object_from_live_bytes(uintptr_t object_begin);
+
 PAS_API size_t verse_heap_get_allocation_size(uintptr_t inner_ptr);
 
 PAS_API bool verse_heap_owns_address(uintptr_t ptr);
@@ -314,6 +321,20 @@ PAS_API pas_allocation_result verse_heap_allocate(pas_heap* heap, size_t size);
 
 /* This is mean to be called as the fast case of aligned allocation. */
 PAS_API pas_allocation_result verse_heap_try_allocate_with_alignment(pas_heap* heap, size_t size, size_t alignment);
+
+/* Allocates a large object whose allocation starts exactly at begin, or fails without side effects.
+
+   The object occupies all the chunks from the one that contains begin to the one that contains the last
+   byte of the object. The function claims those chunks from the OS with MAP_FIXED_NOREPLACE, so the
+   whole span must be free. The first page of the first chunk holds the mark bits, so begin must not be
+   in it. Begin and size must be aligned to VERSE_HEAP_PAGE_SIZE.
+
+   On failure, *error holds an errno value: EINVAL if the function cannot place begin and size, EEXIST
+   if the span is in use, ENOMEM otherwise. The memory is fresh anonymous memory. When the object dies,
+   the sweep keeps its chunks in a list of retired spans, and a later allocation at an exact address
+   can reuse them. */
+PAS_API pas_allocation_result verse_heap_try_allocate_large_exact(
+    pas_heap* heap, uintptr_t begin, size_t size, int* error);
 PAS_API pas_allocation_result verse_heap_allocate_with_alignment(pas_heap* heap, size_t size, size_t alignment);
 
 PAS_END_EXTERN_C;

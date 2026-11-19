@@ -19,3 +19,4 @@ hidden void __ldso_atfork(int);
 hidden void __pthread_key_atfork(int);
 
 hidden void __post_Fork(int);
+hidden int __Fork_flags(int);

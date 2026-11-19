@@ -26,16 +26,23 @@ void __post_Fork(int ret)
 	if (!ret) __aio_atfork(1);
 }
 
-pid_t _Fork(void)
+/* Like _Fork, but also creates the child in new namespaces. The flags are clone flags
+   (CLONE_NEWPID, ...) that this adds to the exit signal SIGCHLD. */
+pid_t __Fork_flags(int flags)
 {
 	pid_t ret;
 	sigset_t set;
 	__block_all_sigs(&set);
 	LOCK(__abort_lock);
-	ret = zsys_fork();
+	ret = flags ? zsys_fork_flags(flags) : zsys_fork();
 	int saved_errno = errno;
 	__post_Fork(ret);
 	__restore_sigs(&set);
 	errno = saved_errno;
 	return ret;
+}
+
+pid_t _Fork(void)
+{
+	return __Fork_flags(0);
 }

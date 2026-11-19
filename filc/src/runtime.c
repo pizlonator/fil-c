@@ -366,6 +366,14 @@ int zsys_fork(void)
     return result;
 }
 
+int zsys_fork_flags(int flags)
+{
+    lock_table();
+    int result = zsys_fork_flags_impl(flags);
+    unlock_table();
+    return result;
+}
+
 #if !defined(__COSMOPOLITAN__)
 /* The cosmo flavor doesn't expose epoll at all: the zsys_epoll_* forwarders
    panic under PAS_COSMO, the usercosmo shims trap, and <sys/epoll.h> doesn't
@@ -612,6 +620,34 @@ long zsys_syscall(long n, ...)
 
     case SYS_pidfd_open:
         callee = zsys_pidfd_open;
+        break;
+
+    case SYS_pidfd_getfd:
+        callee = zsys_pidfd_getfd;
+        break;
+
+    case SYS_pidfd_send_signal:
+        callee = zsys_pidfd_send_signal;
+        break;
+
+    case SYS_unshare:
+        callee = zsys_unshare;
+        break;
+
+    case SYS_setns:
+        callee = zsys_setns;
+        break;
+
+    case SYS_syncfs:
+        callee = zsys_syncfs;
+        break;
+
+    case SYS_capget:
+        callee = zsys_capget;
+        break;
+
+    case SYS_capset:
+        callee = zsys_capset;
         break;
 
     case SYS_setreuid:

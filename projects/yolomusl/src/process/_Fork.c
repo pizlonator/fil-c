@@ -26,18 +26,26 @@ void __post_Fork(int ret)
 	if (!ret) __aio_atfork(1);
 }
 
-pid_t _Fork(void)
+/* Like _Fork, but can also make the child a member of new namespaces. The flags are clone flags
+   (CLONE_NEWPID, ...) that this adds to the exit signal SIGCHLD. The Fil-C runtime calls this. */
+pid_t __Fork_flags(int flags)
 {
 	pid_t ret;
 	sigset_t set;
 	__block_all_sigs(&set);
 	LOCK(__abort_lock);
 #ifdef SYS_fork
-	ret = __syscall(SYS_fork);
-#else
-	ret = __syscall(SYS_clone, SIGCHLD, 0);
+	if (!flags)
+		ret = __syscall(SYS_fork);
+	else
 #endif
+		ret = __syscall(SYS_clone, SIGCHLD | flags, 0, 0, 0, 0);
 	__post_Fork(ret);
 	__restore_sigs(&set);
 	return __syscall_ret(ret);
+}
+
+pid_t _Fork(void)
+{
+	return __Fork_flags(0);
 }

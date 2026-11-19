@@ -1,8 +1,9 @@
 #define _GNU_SOURCE
 #include <sched.h>
 #include "syscall.h"
+#include <stdfil.h>
 
 int unshare(int flags)
 {
-	return syscall(SYS_unshare, flags);
+	return zsys_unshare(flags);
 }

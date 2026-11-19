@@ -1788,6 +1788,16 @@ PAS_API filc_stack_limit filc_try_compute_stack_limit(void);
 
 PAS_API filc_stack_limit filc_compute_stack_limit(void);
 
+/* The limits of a stack that the program runs on, which is not the stack of a thread. */
+PAS_API filc_stack_limit filc_compute_stack_limit_for_stack_and_size(char* stack, size_t stack_size);
+
+/* Maps a stack of the size that `ulimit -s` gives, and returns its limits. */
+PAS_API filc_stack_limit filc_map_program_stack(char** stack_out, size_t* stack_size_out);
+
+/* Switches this thread to the stack and calls the function there. Does not return. */
+PAS_API void filc_hop_to_stack(char* stack, size_t stack_size, void (*function)(void* arg),
+                               void* arg) __attribute__((noreturn));
+
 static inline bool filc_stack_limit_did_succeed(filc_stack_limit stack_limit)
 {
     return !!stack_limit.stack_limit;
