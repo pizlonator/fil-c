@@ -111,3 +111,23 @@ diff --git a/util-linux/configure b/util-linux/configure
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  int show, hide;
+diff --git a/util-linux/libmount/src/hook_mount.c b/util-linux/libmount/src/hook_mount.c
+--- a/util-linux/libmount/src/hook_mount.c
++++ b/util-linux/libmount/src/hook_mount.c
+@@ -580,7 +580,15 @@
+ 	int dummy, rc = 1;
+
+ 	errno = 0;
+-	dummy = fsopen(NULL, FSOPEN_CLOEXEC);
++	/* Probe with an empty name instead of NULL.  The kernel answers ENOSYS
++	 * for an unsupported syscall either way, so this has the same meaning as
++	 * the old fsopen(NULL, ...) probe; but fsopen(NULL, ...) asks the
++	 * filesystem-name copy to read from NULL, which is unsafe C (a
++	 * segmentation fault on a kernel without the safety checks that Fil-C
++	 * enforces), so NULL is not a legal argument to pass here.  An empty
++	 * name is a valid string and yields EINVAL rather than ENOSYS when the
++	 * syscall is supported, which is all this probe cares about. */
++	dummy = fsopen("", FSOPEN_CLOEXEC);
+
+ 	if (errno == ENOSYS)
+ 		rc = 0;
