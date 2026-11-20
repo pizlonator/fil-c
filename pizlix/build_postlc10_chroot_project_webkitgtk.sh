@@ -94,7 +94,74 @@ ninja -j$NINJAJOB
 
 ninja -j$NINJAJOB install
 
-# --- INSTALL GATES ---------------------------------------------------------------
+# --- STRIP the installed artifacts (sprint S2) -----------------------------------
+# RelWithDebInfo ships ~1.24 GB of NON-ALLOC debug+symbol sections inside the
+# 3.4 GB libwebkitgtk-6.0.so.4.5.7 (.debug_* ~1.11 GB + .strtab 90 MB +
+# .symtab 18 MB) and ~165 MB of the same in libjavascriptcoregtk-6.0.so.1.2.7
+# (measured: prof-out/s2/sections-BEFORE2.txt).  Strip them in place so the
+# installed tree is what a distro would ship; the warm build dir keeps the
+# unstripped copies for future incremental runs, so nothing is lost for
+# debugging (the build-tree binaries still have full debug info).
+#
+# HONEST-SCOPE NOTE (the measurement that motivated this): strip shrinks the
+# FILE but NOT the loaded footprint.  In libwebkitgtk-6.0.so.4.5.7 the
+# PT_LOAD segments sum to 2.158 GB and the debug/symtab sections are OUTSIDE
+# the LOAD segments, so after stripping: file 3.395 GB -> ~2.16 GB, PT_LOAD
+# sum UNCHANGED at 2.158 GB.  Cold-start paging reads PT_LOAD pages (the
+# 821 MB .rela.dyn + 562 MB .data.rel.ro + text that the 44.9M Fil-C
+# relocations force ld.so to touch), so this is a DISK-footprint fix, not a
+# cold-start fix; the cold-start fix remains boot-time page-cache prewarm.
+#
+# Strip the real files only (stripping a symlink would replace the symlink
+# with a regular file and break the .so -> .so.N -> .so.N.N.N chain).
+strip_installed() {
+    for f in "$@"; do
+        if test -f "$f"; then
+            before=`stat -c%s "$f"`
+            strip --strip-unneeded "$f"
+            after=`stat -c%s "$f"`
+            echo "strip: $f: $before -> $after bytes"
+        fi
+    done
+}
+loadsum() {
+    readelf -lW "$1" | awk -v fn="$1" '$1 == "LOAD" { fs += strtonum($5); ms += strtonum($6); n++ }
+                            END { printf "%s: %d LOAD segs, filesz=%.3fGB memsz=%.3fGB\n", fn, n, fs/1e9, ms/1e9 }'
+}
+# Capture the pre-strip PT_LOAD memsz sums so the post-strip gate can prove
+# the LOADED footprint is unchanged (the honest-scope note above).
+big_libs="/usr/lib/libwebkitgtk-6.0.so.4.5.7 /usr/lib/libjavascriptcoregtk-6.0.so.1.2.7"
+loadsum_before=""
+for f in $big_libs; do
+    loadsum_before="$loadsum_before$(readelf -lW "$f" | awk '$1 == "LOAD" { s += strtonum($6) } END { print s }')
+"
+done
+for f in $big_libs /usr/libexec/webkitgtk-6.0/WebKitWebProcess /usr/libexec/webkitgtk-6.0/WebKitNetworkProcess \
+         /usr/libexec/webkitgtk-6.0/jsc /usr/libexec/webkitgtk-6.0/MiniBrowser \
+         /usr/lib/webkitgtk-6.0/injected-bundle/libwebkitgtkinjectedbundle.so; do
+    loadsum "$f"
+done
+strip_installed $big_libs
+strip_installed /usr/libexec/webkitgtk-6.0/WebKitWebProcess /usr/libexec/webkitgtk-6.0/WebKitNetworkProcess \
+                /usr/libexec/webkitgtk-6.0/jsc /usr/libexec/webkitgtk-6.0/MiniBrowser
+strip_installed /usr/lib/webkitgtk-6.0/injected-bundle/libwebkitgtkinjectedbundle.so
+echo "=== gate: strip shrank the files, loaded footprint unchanged ==="
+du -shc $big_libs /usr/libexec/webkitgtk-6.0/WebKitWebProcess /usr/libexec/webkitgtk-6.0/WebKitNetworkProcess \
+        /usr/libexec/webkitgtk-6.0/jsc /usr/libexec/webkitgtk-6.0/MiniBrowser \
+        /usr/lib/webkitgtk-6.0/injected-bundle/libwebkitgtkinjectedbundle.so | tail -1
+i=0
+for f in $big_libs; do
+    i=`expr $i + 1`
+    after_sum=`readelf -lW "$f" | awk '$1 == "LOAD" { s += strtonum($6) } END { print s }'`
+    before_sum=`echo "$loadsum_before" | sed -n "${i}p"`
+    echo "strip gate: $f PT_LOAD memsz sum: $before_sum -> $after_sum (must be equal)"
+    test "x$before_sum" = "x$after_sum"
+done
+for f in $big_libs /usr/libexec/webkitgtk-6.0/jsc /usr/libexec/webkitgtk-6.0/MiniBrowser; do
+    loadsum "$f"
+done
+
+# --- INSTALL GATES (run POST-strip: they double as the "stripped binaries still work" gate) ---
 
 echo "=== gate: libwebkitgtk-6.0 installed ==="
 ls -la /usr/lib/libwebkitgtk-6.0.so*
