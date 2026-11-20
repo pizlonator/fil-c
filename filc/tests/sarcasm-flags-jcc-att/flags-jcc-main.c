@@ -4,6 +4,7 @@
 long flagjcc(long* b, long n);
 long flagbits(long* b, long x, long y, long sub);
 long flagadx(long* b, long flags);
+void fencestores(long* b, long n);
 int main() {
     long* buf = malloc(16);
     buf[0] = 7;
@@ -49,5 +50,8 @@ int main() {
             }
         printf("dual carry chains ok\n");
     }
+    fencestores(buf, 123);
+    if (buf[0] != 123 || buf[1] != 1)
+        return 1;
     return 0;
 }
