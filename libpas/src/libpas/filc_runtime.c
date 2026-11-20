@@ -566,6 +566,96 @@ static filc_signal_handler* install_dummy_signal_handler(int signum)
     return handler;
 }
 
+/* Allocation-site profiler.
+ *
+ * The FilPizlonator's -filc-log-allocations option emits a filc_log_allocate call before every
+ * GC-heap allocation it lowers (zgc_alloc/malloc rewrites and alloca lowerings alike), passing the
+ * allocation site's origin (file:line:col plus the inline stack). Logging one line per allocation
+ * is useless at scale, so this profiler aggregates instead: when FILC_ALLOC_STATS=1 is set in the
+ * environment, each filc_log_allocate call bumps a count/bytes pair keyed by the origin's address
+ * (origin globals are uniqued by the compiler, so the pointer is a stable key), and an atexit hook
+ * dumps the table sorted by allocation count. This requires no changes to the target program
+ * beyond compiling it with -mllvm -filc-log-allocations. */
+typedef struct {
+    const filc_origin* origin;
+    uint64_t count;
+    uint64_t bytes;
+} filc_alloc_stat_entry;
+
+#define FILC_ALLOC_STAT_TABLE_SIZE 65536 /* Must be a power of two. */
+
+static filc_alloc_stat_entry* filc_alloc_stat_table;
+static size_t filc_alloc_stat_table_capacity;
+static pas_lock filc_alloc_stat_lock = PAS_LOCK_INITIALIZER;
+static bool filc_alloc_stats_enabled;
+static bool filc_log_allocations_verbose;
+static uint64_t filc_alloc_stat_total_count;
+static uint64_t filc_alloc_stat_total_bytes;
+
+static size_t filc_alloc_stat_hash(const filc_origin* origin)
+{
+    size_t value = (size_t)origin >> 4;
+    value ^= value >> 17;
+    value *= (size_t)0x9e3779b97f4a7c15lu;
+    value ^= value >> 29;
+    return value;
+}
+
+static void filc_alloc_stat_dump(void)
+{
+    if (!filc_alloc_stats_enabled)
+        return;
+    pas_lock_lock(&filc_alloc_stat_lock);
+    pas_log("=== Fil-C allocation stats (sites by allocation count; from -filc-log-allocations) ===\n");
+    pas_log("total: %llu allocations, %llu bytes\n",
+            (unsigned long long)filc_alloc_stat_total_count,
+            (unsigned long long)filc_alloc_stat_total_bytes);
+    /* Copy the occupied entries into a flat array and insertion-sort by count, descending. The
+       table is bounded, so a quadratic sort would be fine, but insertion sort on mostly-sorted
+       short prefixes is cheaper in practice. */
+    size_t num_entries = 0;
+    for (size_t index = 0; index < filc_alloc_stat_table_capacity; ++index) {
+        if (filc_alloc_stat_table[index].origin)
+            num_entries++;
+    }
+    filc_alloc_stat_entry* entries = NULL;
+    if (num_entries) {
+        size_t entries_size;
+        PAS_ASSERT(!pas_mul_uintptr_overflow(
+                       sizeof(filc_alloc_stat_entry), num_entries, &entries_size));
+        entries = (filc_alloc_stat_entry*)bmalloc_allocate(entries_size);
+        size_t out = 0;
+        for (size_t index = 0; index < filc_alloc_stat_table_capacity; ++index) {
+            if (filc_alloc_stat_table[index].origin)
+                entries[out++] = filc_alloc_stat_table[index];
+        }
+        /* Insertion sort by count descending, then by bytes descending. */
+        for (size_t index = 1; index < num_entries; ++index) {
+            filc_alloc_stat_entry entry = entries[index];
+            size_t position = index;
+            while (position
+                   && (entries[position - 1].count < entry.count
+                       || (entries[position - 1].count == entry.count
+                           && entries[position - 1].bytes < entry.bytes))) {
+                entries[position] = entries[position - 1];
+                position--;
+            }
+            entries[position] = entry;
+        }
+        pas_log("%12s %14s  site\n", "count", "bytes");
+        for (size_t index = 0; index < num_entries; ++index) {
+            pas_log("%12llu %14llu  ",
+                    (unsigned long long)entries[index].count,
+                    (unsigned long long)entries[index].bytes);
+            filc_origin_dump_all_inline(entries[index].origin, " <- ", pas_log_stream);
+            pas_log("\n");
+        }
+        bmalloc_deallocate(entries);
+    }
+    pas_log("=== end Fil-C allocation stats ===\n");
+    pas_lock_unlock(&filc_alloc_stat_lock);
+}
+
 void filc_initialize(filc_stack_limit stack_limit)
 {
     bool should_log_to_file = false;
@@ -631,6 +721,19 @@ void filc_initialize(filc_stack_limit stack_limit)
     filc_get_bool_env("FILC_VERBOSE_STW", &filc_verbose_stop_the_world);
     filc_get_unsigned_env("FILC_DUMP_HEAP_ON_SIGNAL", &filc_dump_heap_on_signal);
     filc_get_unsigned_env("FILC_DUMP_STACKS_ON_SIGNAL", &filc_dump_stacks_on_signal);
+
+    filc_get_bool_env("FILC_ALLOC_STATS", &filc_alloc_stats_enabled);
+    filc_get_bool_env("FILC_LOG_ALLOCATIONS", &filc_log_allocations_verbose);
+    if (filc_alloc_stats_enabled) {
+        size_t table_size;
+        PAS_ASSERT(!pas_mul_uintptr_overflow(
+                       (size_t)FILC_ALLOC_STAT_TABLE_SIZE,
+                       sizeof(filc_alloc_stat_entry),
+                       &table_size));
+        filc_alloc_stat_table = (filc_alloc_stat_entry*)bmalloc_allocate_zeroed(table_size);
+        filc_alloc_stat_table_capacity = FILC_ALLOC_STAT_TABLE_SIZE;
+        PAS_ASSERT(!atexit(filc_alloc_stat_dump));
+    }
 
     filc_override_settings_if_appropriate();
     
@@ -3921,6 +4024,36 @@ void filc_log_allocate(filc_thread* my_thread, const filc_origin* origin, size_t
                        size_t alignment)
 {
     PAS_UNUSED_PARAM(my_thread);
+    if (filc_alloc_stats_enabled) {
+        pas_lock_lock(&filc_alloc_stat_lock);
+        filc_alloc_stat_total_count++;
+        filc_alloc_stat_total_bytes += size;
+        if (filc_alloc_stat_table) {
+            size_t mask = filc_alloc_stat_table_capacity - 1;
+            size_t slot = filc_alloc_stat_hash(origin) & mask;
+            for (size_t probe = 0; probe < filc_alloc_stat_table_capacity; ++probe) {
+                filc_alloc_stat_entry* entry = filc_alloc_stat_table + slot;
+                if (!entry->origin) {
+                    entry->origin = origin;
+                    entry->count = 1;
+                    entry->bytes = size;
+                    break;
+                }
+                if (entry->origin == origin) {
+                    entry->count++;
+                    entry->bytes += size;
+                    break;
+                }
+                slot = (slot + 1) & mask;
+            }
+        }
+        pas_lock_unlock(&filc_alloc_stat_lock);
+        return;
+    }
+    /* The old one-line-per-allocation behavior is opt-in now (FILC_LOG_ALLOCATIONS=1), because
+       -filc-log-allocations builds are otherwise unusable for anything that allocates at all. */
+    if (!filc_log_allocations_verbose)
+        return;
     pas_log("Allocating %zu bytes ", size);
     if (alignment > 1)
         pas_log("(%zu alignment) ", alignment);
