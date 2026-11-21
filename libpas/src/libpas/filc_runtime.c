@@ -572,67 +572,118 @@ static filc_signal_handler* install_dummy_signal_handler(int signum)
  * GC-heap allocation it lowers (zgc_alloc/malloc rewrites and alloca lowerings alike), passing the
  * allocation site's origin (file:line:col plus the inline stack). Logging one line per allocation
  * is useless at scale, so this profiler aggregates instead: when FILC_ALLOC_STATS=1 is set in the
- * environment, each filc_log_allocate call bumps a count/bytes pair keyed by the origin's address
- * (origin globals are uniqued by the compiler, so the pointer is a stable key), and an atexit hook
- * dumps the table sorted by allocation count. This requires no changes to the target program
- * beyond compiling it with -mllvm -filc-log-allocations. */
+ * environment, each filc_log_allocate call bumps a count/bytes pair in a pas_hashtable keyed by
+ * the origin's address (origin globals are uniqued by the compiler, so the pointer is a stable
+ * key), and the exit path (at_exit_hook, called by both zsys exit natives) dumps the table sorted
+ * by allocation count. This requires no changes to the target program beyond compiling it with
+ * -mllvm -filc-log-allocations. */
 typedef struct {
     const filc_origin* origin;
     uint64_t count;
     uint64_t bytes;
-} filc_alloc_stat_entry;
+} alloc_stat_entry;
 
-#define FILC_ALLOC_STAT_TABLE_SIZE 65536 /* Must be a power of two. */
+typedef const filc_origin* alloc_stat_key;
 
-static filc_alloc_stat_entry* filc_alloc_stat_table;
-static size_t filc_alloc_stat_table_capacity;
-static pas_lock filc_alloc_stat_lock = PAS_LOCK_INITIALIZER;
-static bool filc_alloc_stats_enabled;
-static bool filc_log_allocations_verbose;
-static uint64_t filc_alloc_stat_total_count;
-static uint64_t filc_alloc_stat_total_bytes;
-
-static size_t filc_alloc_stat_hash(const filc_origin* origin)
+static inline alloc_stat_entry alloc_stat_entry_create_empty(void)
 {
-    size_t value = (size_t)origin >> 4;
-    value ^= value >> 17;
-    value *= (size_t)0x9e3779b97f4a7c15lu;
-    value ^= value >> 29;
-    return value;
+    alloc_stat_entry result;
+    result.origin = (const filc_origin*)1;
+    result.count = 0;
+    result.bytes = 0;
+    return result;
 }
 
-static void filc_alloc_stat_dump(void)
+static inline alloc_stat_entry alloc_stat_entry_create_deleted(void)
 {
-    if (!filc_alloc_stats_enabled)
+    alloc_stat_entry result;
+    result.origin = (const filc_origin*)2;
+    result.count = 0;
+    result.bytes = 0;
+    return result;
+}
+
+static inline bool alloc_stat_entry_is_empty_or_deleted(alloc_stat_entry entry)
+{
+    return entry.origin == (const filc_origin*)1
+        || entry.origin == (const filc_origin*)2;
+}
+
+static inline bool alloc_stat_entry_is_empty(alloc_stat_entry entry)
+{
+    return entry.origin == (const filc_origin*)1;
+}
+
+static inline bool alloc_stat_entry_is_deleted(alloc_stat_entry entry)
+{
+    return entry.origin == (const filc_origin*)2;
+}
+
+static inline alloc_stat_key alloc_stat_entry_get_key(alloc_stat_entry entry)
+{
+    return entry.origin;
+}
+
+static inline unsigned alloc_stat_key_get_hash(alloc_stat_key key)
+{
+    return pas_hash_ptr(key);
+}
+
+static inline bool alloc_stat_key_is_equal(alloc_stat_key a, alloc_stat_key b)
+{
+    return a == b;
+}
+
+PAS_CREATE_HASHTABLE(alloc_stat_table,
+                     alloc_stat_entry,
+                     alloc_stat_key);
+
+static alloc_stat_table alloc_stat_table_instance;
+static pas_lock alloc_stat_lock = PAS_LOCK_INITIALIZER;
+static bool alloc_stats_enabled;
+static bool log_allocations_verbose;
+static bool alloc_stat_dumped;
+static uint64_t alloc_stat_total_count;
+static uint64_t alloc_stat_total_bytes;
+
+static void alloc_stat_dump(void)
+{
+    if (!alloc_stats_enabled)
         return;
-    pas_lock_lock(&filc_alloc_stat_lock);
+    pas_lock_lock(&alloc_stat_lock);
+    /* Both zsys exit natives call at_exit_hook, and exit_soft can run before more exit_soft/
+       exit_hard calls (exit() handlers may exit again), so make the dump one-shot. */
+    if (alloc_stat_dumped) {
+        pas_lock_unlock(&alloc_stat_lock);
+        return;
+    }
+    alloc_stat_dumped = true;
     pas_log("=== Fil-C allocation stats (sites by allocation count; from -filc-log-allocations) ===\n");
     pas_log("total: %llu allocations, %llu bytes\n",
-            (unsigned long long)filc_alloc_stat_total_count,
-            (unsigned long long)filc_alloc_stat_total_bytes);
+            (unsigned long long)alloc_stat_total_count,
+            (unsigned long long)alloc_stat_total_bytes);
     /* Copy the occupied entries into a flat array and insertion-sort by count, descending. The
-       table is bounded, so a quadratic sort would be fine, but insertion sort on mostly-sorted
-       short prefixes is cheaper in practice. */
-    size_t num_entries = 0;
-    for (size_t index = 0; index < filc_alloc_stat_table_capacity; ++index) {
-        if (filc_alloc_stat_table[index].origin)
-            num_entries++;
-    }
-    filc_alloc_stat_entry* entries = NULL;
+       table is bounded by the number of allocation sites, so a quadratic sort would be fine, but
+       insertion sort on mostly-sorted short prefixes is cheaper in practice. */
+    unsigned num_entries = alloc_stat_table_instance.key_count;
+    alloc_stat_entry* entries = NULL;
     if (num_entries) {
         size_t entries_size;
         PAS_ASSERT(!pas_mul_uintptr_overflow(
-                       sizeof(filc_alloc_stat_entry), num_entries, &entries_size));
-        entries = (filc_alloc_stat_entry*)bmalloc_allocate(entries_size);
-        size_t out = 0;
-        for (size_t index = 0; index < filc_alloc_stat_table_capacity; ++index) {
-            if (filc_alloc_stat_table[index].origin)
-                entries[out++] = filc_alloc_stat_table[index];
+                       sizeof(alloc_stat_entry), num_entries, &entries_size));
+        entries = (alloc_stat_entry*)bmalloc_allocate(entries_size);
+        unsigned out = 0;
+        for (unsigned index = alloc_stat_table_instance.table_size; index--;) {
+            alloc_stat_entry entry = alloc_stat_table_instance.table[index];
+            if (alloc_stat_entry_is_empty_or_deleted(entry))
+                continue;
+            PAS_ASSERT(out < num_entries);
+            entries[out++] = entry;
         }
         /* Insertion sort by count descending, then by bytes descending. */
-        for (size_t index = 1; index < num_entries; ++index) {
-            filc_alloc_stat_entry entry = entries[index];
-            size_t position = index;
+        for (unsigned index = 1; index < num_entries; ++index) {
+            alloc_stat_entry entry = entries[index];
+            unsigned position = index;
             while (position
                    && (entries[position - 1].count < entry.count
                        || (entries[position - 1].count == entry.count
@@ -643,7 +694,7 @@ static void filc_alloc_stat_dump(void)
             entries[position] = entry;
         }
         pas_log("%12s %14s  site\n", "count", "bytes");
-        for (size_t index = 0; index < num_entries; ++index) {
+        for (unsigned index = 0; index < num_entries; ++index) {
             pas_log("%12llu %14llu  ",
                     (unsigned long long)entries[index].count,
                     (unsigned long long)entries[index].bytes);
@@ -653,7 +704,19 @@ static void filc_alloc_stat_dump(void)
         bmalloc_deallocate(entries);
     }
     pas_log("=== end Fil-C allocation stats ===\n");
-    pas_lock_unlock(&filc_alloc_stat_lock);
+    pas_lock_unlock(&alloc_stat_lock);
+}
+
+/* Called on the exit path (both the soft and the hard one) so that the profilers report exactly
+   once per process regardless of how the program exits. exit_soft runs this before exit(3), and
+   exit_hard before _Exit(2); the latter used to skip the allocation dump entirely, since atexit
+   handlers do not run on _Exit. The sampling profiler report is first, preserving the order that
+   exit_soft/exit_hard always used. */
+
+static void at_exit_hook(void)
+{
+    filc_sampling_profiler_report();
+    alloc_stat_dump();
 }
 
 void filc_initialize(filc_stack_limit stack_limit)
@@ -722,18 +785,10 @@ void filc_initialize(filc_stack_limit stack_limit)
     filc_get_unsigned_env("FILC_DUMP_HEAP_ON_SIGNAL", &filc_dump_heap_on_signal);
     filc_get_unsigned_env("FILC_DUMP_STACKS_ON_SIGNAL", &filc_dump_stacks_on_signal);
 
-    filc_get_bool_env("FILC_ALLOC_STATS", &filc_alloc_stats_enabled);
-    filc_get_bool_env("FILC_LOG_ALLOCATIONS", &filc_log_allocations_verbose);
-    if (filc_alloc_stats_enabled) {
-        size_t table_size;
-        PAS_ASSERT(!pas_mul_uintptr_overflow(
-                       (size_t)FILC_ALLOC_STAT_TABLE_SIZE,
-                       sizeof(filc_alloc_stat_entry),
-                       &table_size));
-        filc_alloc_stat_table = (filc_alloc_stat_entry*)bmalloc_allocate_zeroed(table_size);
-        filc_alloc_stat_table_capacity = FILC_ALLOC_STAT_TABLE_SIZE;
-        PAS_ASSERT(!atexit(filc_alloc_stat_dump));
-    }
+    filc_get_bool_env("FILC_ALLOC_STATS", &alloc_stats_enabled);
+    filc_get_bool_env("FILC_LOG_ALLOCATIONS", &log_allocations_verbose);
+    if (alloc_stats_enabled)
+        alloc_stat_table_construct(&alloc_stat_table_instance);
 
     filc_override_settings_if_appropriate();
     
@@ -4024,35 +4079,27 @@ void filc_log_allocate(filc_thread* my_thread, const filc_origin* origin, size_t
                        size_t alignment)
 {
     PAS_UNUSED_PARAM(my_thread);
-    if (filc_alloc_stats_enabled) {
-        pas_lock_lock(&filc_alloc_stat_lock);
-        filc_alloc_stat_total_count++;
-        filc_alloc_stat_total_bytes += size;
-        if (filc_alloc_stat_table) {
-            size_t mask = filc_alloc_stat_table_capacity - 1;
-            size_t slot = filc_alloc_stat_hash(origin) & mask;
-            for (size_t probe = 0; probe < filc_alloc_stat_table_capacity; ++probe) {
-                filc_alloc_stat_entry* entry = filc_alloc_stat_table + slot;
-                if (!entry->origin) {
-                    entry->origin = origin;
-                    entry->count = 1;
-                    entry->bytes = size;
-                    break;
-                }
-                if (entry->origin == origin) {
-                    entry->count++;
-                    entry->bytes += size;
-                    break;
-                }
-                slot = (slot + 1) & mask;
-            }
+    if (alloc_stats_enabled) {
+        pas_allocation_config allocation_config;
+        bmalloc_initialize_allocation_config(&allocation_config);
+        pas_lock_lock(&alloc_stat_lock);
+        alloc_stat_total_count++;
+        alloc_stat_total_bytes += size;
+        alloc_stat_table_add_result add_result = alloc_stat_table_add(
+            &alloc_stat_table_instance, origin, NULL, &allocation_config);
+        if (add_result.is_new_entry) {
+            add_result.entry->origin = origin;
+            add_result.entry->count = 0;
+            add_result.entry->bytes = 0;
         }
-        pas_lock_unlock(&filc_alloc_stat_lock);
+        add_result.entry->count++;
+        add_result.entry->bytes += size;
+        pas_lock_unlock(&alloc_stat_lock);
         return;
     }
     /* The old one-line-per-allocation behavior is opt-in now (FILC_LOG_ALLOCATIONS=1), because
        -filc-log-allocations builds are otherwise unusable for anything that allocates at all. */
-    if (!filc_log_allocations_verbose)
+    if (!log_allocations_verbose)
         return;
     pas_log("Allocating %zu bytes ", size);
     if (alignment > 1)
@@ -8839,7 +8886,7 @@ void filc_native_zsys_exit_soft(filc_thread* my_thread, int return_code)
         pas_log("%d: Soft exiting!\n", getpid());
         filc_thread_dump_stack(my_thread, pas_log_stream);
     }
-    filc_sampling_profiler_report();
+    at_exit_hook();
     filc_exit(my_thread);
     exit(return_code);
     PAS_ASSERT(!"Should not be reached");
@@ -8852,7 +8899,7 @@ void filc_native_zsys_exit_hard(filc_thread* my_thread, int return_code)
         pas_log("%d: Hard exiting!\n", getpid());
         filc_thread_dump_stack(my_thread, pas_log_stream);
     }
-    filc_sampling_profiler_report();
+    at_exit_hook();
     filc_exit(my_thread);
     _Exit(return_code);
     PAS_ASSERT(!"Should not be reached");
