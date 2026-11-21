@@ -1,0 +1,48 @@
+URL: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10070/ghostscript-10.07.0.tar.xz eb07a569c5d2c704d4befcb0708136bb7d4e7af94f17a7b109b447cf545d35d6
+Origname: ghostscript-10.07.0
+Name: ghostscript
+
+diff --git a/ghostscript/configure b/ghostscript/configure
+--- a/ghostscript/configure
++++ b/ghostscript/configure
+@@ -8173,7 +8173,7 @@
+
+         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking supported C++ compiler flags" >&5
+ printf %s "checking supported C++ compiler flags... " >&6; }
+-        for flag in "-std=c++17 -stdlib=libstdc++" "-std=c++17" "-stdlib=libstdc++" ; do
++        for flag in "-std=c++17" ; do
+           CXXFLAGS="$CXXFLAGS $flag"
+
+           cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+@@ -8814,7 +8814,7 @@
+       OCR_DEVS_WARNING_LINE1="Disabling tesseract (OCR devices) as no working C++ compiler"
+     else
+       save_cxxflags="$CXXFLAGS"
+-      cxxflags_to_try="-stdlib=libstdc++"
++      cxxflags_to_try=""
+       CXXFLAGS_TO_USE=""
+
+       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking supported C++ compiler flags" >&5
+diff --git a/ghostscript/tesseract/src/arch/simddetect.cpp b/ghostscript/tesseract/src/arch/simddetect.cpp
+--- a/ghostscript/tesseract/src/arch/simddetect.cpp
++++ b/ghostscript/tesseract/src/arch/simddetect.cpp
+@@ -25,6 +25,8 @@
+ #include "simddetect.h"
+ #include "tprintf.h" // for tprintf
+
++#include <stdfil.h>
++
+ #if !defined(__clang__) && defined(__GNUC__) && (__GNUC__ < 12)
+ // The GNU compiler g++ fails to compile with the Accelerate framework
+ // (tested with versions 10 and 11), so unconditionally disable it.
+@@ -163,9 +165,7 @@
+ #    endif
+ #    if defined(HAVE_AVX) || defined(HAVE_AVX2) || defined(HAVE_FMA)
+     auto xgetbv = []() {
+-      uint32_t xcr0;
+-      __asm__("xgetbv" : "=a"(xcr0) : "c"(0) : "%edx");
+-      return xcr0;
++      return zxgetbv();
+     };
+     if ((ecx & 0x08000000) && ((xgetbv() & 6) == 6)) {
+       // OSXSAVE bit is set, XMM state and YMM state are fine.
