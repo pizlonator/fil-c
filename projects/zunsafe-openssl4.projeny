@@ -1,12 +1,12 @@
-URL: https://github.com/openssl/openssl/releases/download/openssl-3.6.5/openssl-3.6.5.tar.gz 1f7fe0f6b2d9c46f70eee94d4e8700cf754623e9764af424e3eb9a9127d77999
-URL: https://www.openssl.org/source/openssl-3.6.5.tar.gz 1f7fe0f6b2d9c46f70eee94d4e8700cf754623e9764af424e3eb9a9127d77999
-Origname: openssl-3.6.5
-Name: zunsafe-openssl
+URL: https://github.com/openssl/openssl/releases/download/openssl-4.0.3/openssl-4.0.3.tar.gz 92a6d5e2e74a989c1405de8a7770c7fb469ddcf9c9ed74b768d51c274af6487b
+URL: https://www.openssl.org/source/openssl-4.0.3.tar.gz 92a6d5e2e74a989c1405de8a7770c7fb469ddcf9c9ed74b768d51c274af6487b
+Origname: openssl-4.0.3
+Name: zunsafe-openssl4
 
     openssl with the Fil-C port (constant-time crypto and assembly-call changes; see https://fil-c.org/constant_time_crypto).
-diff --git a/zunsafe-openssl/Configurations/shared-info.pl b/zunsafe-openssl/Configurations/shared-info.pl
---- a/zunsafe-openssl/Configurations/shared-info.pl
-+++ b/zunsafe-openssl/Configurations/shared-info.pl
+diff --git a/zunsafe-openssl4/Configurations/shared-info.pl b/zunsafe-openssl4/Configurations/shared-info.pl
+--- a/zunsafe-openssl4/Configurations/shared-info.pl
++++ b/zunsafe-openssl4/Configurations/shared-info.pl
 @@ -31,7 +31,7 @@
      'linux-shared' => sub {
          return {
@@ -25,10 +25,10 @@ diff --git a/zunsafe-openssl/Configurations/shared-info.pl b/zunsafe-openssl/Con
          };
      },
      'darwin-shared' => {
-diff --git a/zunsafe-openssl/crypto/aes/aes_asm_forward.c b/zunsafe-openssl/crypto/aes/aes_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/aes_asm_forward.c b/zunsafe-openssl4/crypto/aes/aes_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/aes_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/aes_asm_forward.c
 @@ -0,0 +1,83 @@
 +#include "internal/deprecated.h"
 +
@@ -113,10 +113,10 @@ new file mode 100644
 +    zcheck(ivp, 16);
 +    zunsafe_buf_call(length, "AES_cbc_encrypt", in, out, length, key, ivp, enc);
 +}
-diff --git a/zunsafe-openssl/crypto/aes/aes_cfb_asm_forward.c b/zunsafe-openssl/crypto/aes/aes_cfb_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/aes_cfb_asm_forward.c b/zunsafe-openssl4/crypto/aes/aes_cfb_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/aes_cfb_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/aes_cfb_asm_forward.c
 @@ -0,0 +1,38 @@
 +#include "internal/deprecated.h"
 +
@@ -156,10 +156,10 @@ new file mode 100644
 +    zcheck(num, sizeof(ossl_ssize_t));
 +    zunsafe_buf_call(len, "ossl_aes_cfb128_vaes_dec", in, out, len, ks, ivec, num);
 +}
-diff --git a/zunsafe-openssl/crypto/aes/aes_v8_asm_forward.c b/zunsafe-openssl/crypto/aes/aes_v8_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/aes_v8_asm_forward.c b/zunsafe-openssl4/crypto/aes/aes_v8_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/aes_v8_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/aes_v8_asm_forward.c
 @@ -0,0 +1,123 @@
 +#include "internal/deprecated.h"
 +
@@ -284,10 +284,10 @@ new file mode 100644
 +    zunsafe_buf_call(length, "aes_v8_xts_decrypt", in, out, length, key1, key2,
 +                     iv);
 +}
-diff --git a/zunsafe-openssl/crypto/aes/aesni_asm_forward.c b/zunsafe-openssl/crypto/aes/aesni_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/aesni_asm_forward.c b/zunsafe-openssl4/crypto/aes/aesni_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/aesni_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/aesni_asm_forward.c
 @@ -0,0 +1,239 @@
 +#include "internal/deprecated.h"
 +
@@ -528,10 +528,10 @@ new file mode 100644
 +    zunsafe_buf_call(blocks, "aesni_ccm64_decrypt_blocks", in, out, blocks, key, ivec, cmac);
 +}
 +
-diff --git a/zunsafe-openssl/crypto/aes/aesni_mb_asm_forward.c b/zunsafe-openssl/crypto/aes/aesni_mb_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/aesni_mb_asm_forward.c b/zunsafe-openssl4/crypto/aes/aesni_mb_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/aesni_mb_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/aesni_mb_asm_forward.c
 @@ -0,0 +1,40 @@
 +#include "internal/deprecated.h"
 +
@@ -573,10 +573,10 @@ new file mode 100644
 +    zunsafe_buf_call(total, "aesni_multi_cbc_encrypt", d, key, n4x);
 +}
 +
-diff --git a/zunsafe-openssl/crypto/aes/aesni_sha1_asm_forward.c b/zunsafe-openssl/crypto/aes/aesni_sha1_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/aesni_sha1_asm_forward.c b/zunsafe-openssl4/crypto/aes/aesni_sha1_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/aesni_sha1_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/aesni_sha1_asm_forward.c
 @@ -0,0 +1,48 @@
 +#include "internal/deprecated.h"
 +
@@ -626,10 +626,10 @@ new file mode 100644
 +}
 +#endif
 +
-diff --git a/zunsafe-openssl/crypto/aes/aesni_sha256_asm_forward.c b/zunsafe-openssl/crypto/aes/aesni_sha256_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/aesni_sha256_asm_forward.c b/zunsafe-openssl4/crypto/aes/aesni_sha256_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/aesni_sha256_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/aesni_sha256_asm_forward.c
 @@ -0,0 +1,36 @@
 +#include "internal/deprecated.h"
 +
@@ -667,10 +667,10 @@ new file mode 100644
 +}
 +
 +
-diff --git a/zunsafe-openssl/crypto/aes/aesni_xts_avx512_asm_forward.c b/zunsafe-openssl/crypto/aes/aesni_xts_avx512_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/aesni_xts_avx512_asm_forward.c b/zunsafe-openssl4/crypto/aes/aesni_xts_avx512_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/aesni_xts_avx512_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/aesni_xts_avx512_asm_forward.c
 @@ -0,0 +1,70 @@
 +#include "internal/deprecated.h"
 +
@@ -742,10 +742,10 @@ new file mode 100644
 +    zcheck_readonly(iv, 16);
 +    zunsafe_buf_call(len, "aesni_xts_256_decrypt_avx512", in, out, len, key1, key2, iv);
 +}
-diff --git a/zunsafe-openssl/crypto/aes/bsaes_asm_forward.c b/zunsafe-openssl/crypto/aes/bsaes_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/bsaes_asm_forward.c b/zunsafe-openssl4/crypto/aes/bsaes_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/bsaes_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/bsaes_asm_forward.c
 @@ -0,0 +1,85 @@
 +#include "internal/deprecated.h"
 +
@@ -832,9 +832,9 @@ new file mode 100644
 +    zunsafe_buf_call(len, "ossl_bsaes_xts_decrypt", inp, out, len, key1, key2, iv);
 +}
 +
-diff --git a/zunsafe-openssl/crypto/aes/build.info b/zunsafe-openssl/crypto/aes/build.info
---- a/zunsafe-openssl/crypto/aes/build.info
-+++ b/zunsafe-openssl/crypto/aes/build.info
+diff --git a/zunsafe-openssl4/crypto/aes/build.info b/zunsafe-openssl4/crypto/aes/build.info
+--- a/zunsafe-openssl4/crypto/aes/build.info
++++ b/zunsafe-openssl4/crypto/aes/build.info
 @@ -8,9 +8,13 @@
    $AESDEF_x86_sse2=VPAES_ASM OPENSSL_IA32_SSE2
 
@@ -883,10 +883,10 @@ diff --git a/zunsafe-openssl/crypto/aes/build.info b/zunsafe-openssl/crypto/aes/
 
  GENERATE[aes-armv4.S]=asm/aes-armv4.pl
  INCLUDE[aes-armv4.o]=..
-diff --git a/zunsafe-openssl/crypto/aes/vpaes_asm_forward.c b/zunsafe-openssl/crypto/aes/vpaes_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/aes/vpaes_asm_forward.c b/zunsafe-openssl4/crypto/aes/vpaes_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/aes/vpaes_asm_forward.c
++++ b/zunsafe-openssl4/crypto/aes/vpaes_asm_forward.c
 @@ -0,0 +1,73 @@
 +#include "internal/deprecated.h"
 +
@@ -961,10 +961,10 @@ new file mode 100644
 +    zcheck(ivp, 16);
 +    zunsafe_buf_call(length, "vpaes_cbc_encrypt", in, out, length, key, ivp, enc);
 +}
-diff --git a/zunsafe-openssl/crypto/arm64cpuid.pl b/zunsafe-openssl/crypto/arm64cpuid.pl
---- a/zunsafe-openssl/crypto/arm64cpuid.pl
-+++ b/zunsafe-openssl/crypto/arm64cpuid.pl
-@@ -136,37 +136,10 @@
+diff --git a/zunsafe-openssl4/crypto/arm64cpuid.pl b/zunsafe-openssl4/crypto/arm64cpuid.pl
+--- a/zunsafe-openssl4/crypto/arm64cpuid.pl
++++ b/zunsafe-openssl4/crypto/arm64cpuid.pl
+@@ -144,37 +144,10 @@
  	ret
  .size	_armv8_sm3_probe,.-_armv8_sm3_probe
 
@@ -1006,18 +1006,20 @@ diff --git a/zunsafe-openssl/crypto/arm64cpuid.pl b/zunsafe-openssl/crypto/arm64
 
  .globl	CRYPTO_memcmp
  .type	CRYPTO_memcmp,%function
-diff --git a/zunsafe-openssl/crypto/armcap.c b/zunsafe-openssl/crypto/armcap.c
---- a/zunsafe-openssl/crypto/armcap.c
-+++ b/zunsafe-openssl/crypto/armcap.c
-@@ -24,11 +24,22 @@
- #include <unistd.h>
+diff --git a/zunsafe-openssl4/crypto/armcap.c b/zunsafe-openssl4/crypto/armcap.c
+--- a/zunsafe-openssl4/crypto/armcap.c
++++ b/zunsafe-openssl4/crypto/armcap.c
+@@ -27,6 +27,7 @@
+ #ifdef __aarch64__
+ #include <stdint.h>
  #endif
- #include "arm_arch.h"
 +#include <stdfil.h>
 
  unsigned int OPENSSL_armcap_P = 0;
  unsigned int OPENSSL_arm_midr = 0;
- unsigned int OPENSSL_armv8_rsa_neonized = 0;
+@@ -36,6 +37,16 @@
+ uint64_t _armv8_sve_get_vl_bytes(void);
+ #endif
 
 +#if defined(__FILC__) && defined(__aarch64__)
 +/*
@@ -1032,7 +1034,7 @@ diff --git a/zunsafe-openssl/crypto/armcap.c b/zunsafe-openssl/crypto/armcap.c
  #ifdef _WIN32
  void OPENSSL_cpuid_setup(void)
  {
-@@ -106,6 +117,17 @@
+@@ -113,6 +124,17 @@
  #endif
 
  /*
@@ -1050,7 +1052,7 @@ diff --git a/zunsafe-openssl/crypto/armcap.c b/zunsafe-openssl/crypto/armcap.c
   * ARM puts the feature bits for Crypto Extensions in AT_HWCAP2, whereas
   * AArch64 used AT_HWCAP.
   */
-@@ -145,22 +167,87 @@
+@@ -152,22 +174,87 @@
  #define OSSL_HWCAP2_RNG (1 << 16)
  #endif
 
@@ -1142,7 +1144,7 @@ diff --git a/zunsafe-openssl/crypto/armcap.c b/zunsafe-openssl/crypto/armcap.c
 
  static size_t OPENSSL_rndr_wrapper(size_t (*func)(unsigned char *, size_t), unsigned char *buf, size_t len)
  {
-@@ -178,15 +265,38 @@
+@@ -185,15 +272,38 @@
 
  size_t OPENSSL_rndr_bytes(unsigned char *buf, size_t len)
  {
@@ -1183,7 +1185,7 @@ diff --git a/zunsafe-openssl/crypto/armcap.c b/zunsafe-openssl/crypto/armcap.c
  #if !defined(__APPLE__) && !defined(OSSL_IMPLEMENT_GETAUXVAL)
  static sigset_t all_masked;
 
-@@ -220,6 +330,17 @@
+@@ -227,6 +337,17 @@
  /* We only call _armv8_cpuid_probe() if (OPENSSL_armcap_P & ARMV8_CPUID) != 0 */
  unsigned int _armv8_cpuid_probe(void);
 
@@ -1201,7 +1203,7 @@ diff --git a/zunsafe-openssl/crypto/armcap.c b/zunsafe-openssl/crypto/armcap.c
  #if defined(__APPLE__)
  /*
   * Checks the specified integer sysctl, returning `value` if it's 1, otherwise returning 0.
-@@ -406,7 +527,7 @@
+@@ -413,7 +534,7 @@
 
  #ifdef __aarch64__
      if (OPENSSL_armcap_P & ARMV8_CPUID)
@@ -1210,9 +1212,9 @@ diff --git a/zunsafe-openssl/crypto/armcap.c b/zunsafe-openssl/crypto/armcap.c
 
      if ((OPENSSL_armcap_P & ARMV7_NEON)
          && (MIDR_IS_CPU_MODEL(OPENSSL_arm_midr, ARM_CPU_IMP_ARM, ARM_CPU_PART_CORTEX_A72)
-diff --git a/zunsafe-openssl/crypto/async/arch/async_posix.h b/zunsafe-openssl/crypto/async/arch/async_posix.h
---- a/zunsafe-openssl/crypto/async/arch/async_posix.h
-+++ b/zunsafe-openssl/crypto/async/arch/async_posix.h
+diff --git a/zunsafe-openssl4/crypto/async/arch/async_posix.h b/zunsafe-openssl4/crypto/async/arch/async_posix.h
+--- a/zunsafe-openssl4/crypto/async/arch/async_posix.h
++++ b/zunsafe-openssl4/crypto/async/arch/async_posix.h
 @@ -26,7 +26,7 @@
  #define ASYNC_POSIX
  #define ASYNC_ARCH
@@ -1230,9 +1232,9 @@ diff --git a/zunsafe-openssl/crypto/async/arch/async_posix.h b/zunsafe-openssl/c
   */
  #define USE_SWAPCONTEXT
  #endif
-diff --git a/zunsafe-openssl/crypto/bn/bn_asm.c b/zunsafe-openssl/crypto/bn/bn_asm.c
---- a/zunsafe-openssl/crypto/bn/bn_asm.c
-+++ b/zunsafe-openssl/crypto/bn/bn_asm.c
+diff --git a/zunsafe-openssl4/crypto/bn/bn_asm.c b/zunsafe-openssl4/crypto/bn/bn_asm.c
+--- a/zunsafe-openssl4/crypto/bn/bn_asm.c
++++ b/zunsafe-openssl4/crypto/bn/bn_asm.c
 @@ -11,6 +11,7 @@
  #include <openssl/crypto.h>
  #include "internal/cryptlib.h"
@@ -1244,7 +1246,7 @@ diff --git a/zunsafe-openssl/crypto/bn/bn_asm.c b/zunsafe-openssl/crypto/bn/bn_a
 @@ -1079,3 +1080,21 @@
  #endif
 
- #endif /* !BN_MUL_COMBA */
+ #endif /* !OPENSSL_SMALL_FOOTPRINT */
 +
 +#ifndef OPENSSL_NO_ASM
 +int bn_mul_mont(BN_ULONG *rp, const BN_ULONG *ap, const BN_ULONG *bp,
@@ -1263,9 +1265,9 @@ diff --git a/zunsafe-openssl/crypto/bn/bn_asm.c b/zunsafe-openssl/crypto/bn/bn_a
 +    return zunsafe_buf_call(num, "bn_mul_mont", rp, ap, bp, np, n0, num);
 +}
 +#endif
-diff --git a/zunsafe-openssl/crypto/bn/bn_div.c b/zunsafe-openssl/crypto/bn/bn_div.c
---- a/zunsafe-openssl/crypto/bn/bn_div.c
-+++ b/zunsafe-openssl/crypto/bn/bn_div.c
+diff --git a/zunsafe-openssl4/crypto/bn/bn_div.c b/zunsafe-openssl4/crypto/bn/bn_div.c
+--- a/zunsafe-openssl4/crypto/bn/bn_div.c
++++ b/zunsafe-openssl4/crypto/bn/bn_div.c
 @@ -159,7 +159,7 @@
  }
 
@@ -1275,9 +1277,9 @@ diff --git a/zunsafe-openssl/crypto/bn/bn_div.c b/zunsafe-openssl/crypto/bn/bn_d
  #if defined(__GNUC__) && __GNUC__ >= 2
  #if defined(__i386) || defined(__i386__)
  /*-
-diff --git a/zunsafe-openssl/crypto/bn/build.info b/zunsafe-openssl/crypto/bn/build.info
---- a/zunsafe-openssl/crypto/bn/build.info
-+++ b/zunsafe-openssl/crypto/bn/build.info
+diff --git a/zunsafe-openssl4/crypto/bn/build.info b/zunsafe-openssl4/crypto/bn/build.info
+--- a/zunsafe-openssl4/crypto/bn/build.info
++++ b/zunsafe-openssl4/crypto/bn/build.info
 @@ -22,16 +22,19 @@
    $BNDEF_x86=OPENSSL_BN_ASM_PART_WORDS OPENSSL_BN_ASM_MONT OPENSSL_BN_ASM_GF2m
    $BNDEF_x86_sse2=OPENSSL_IA32_SSE2
@@ -1308,9 +1310,9 @@ diff --git a/zunsafe-openssl/crypto/bn/build.info b/zunsafe-openssl/crypto/bn/bu
    $BNDEF_x86_64_sse2=OPENSSL_IA32_SSE2
 
    IF[{- $config{target} !~ /^VC/ -}]
-diff --git a/zunsafe-openssl/crypto/bn/rsaz_exp.h b/zunsafe-openssl/crypto/bn/rsaz_exp.h
---- a/zunsafe-openssl/crypto/bn/rsaz_exp.h
-+++ b/zunsafe-openssl/crypto/bn/rsaz_exp.h
+diff --git a/zunsafe-openssl4/crypto/bn/rsaz_exp.h b/zunsafe-openssl4/crypto/bn/rsaz_exp.h
+--- a/zunsafe-openssl4/crypto/bn/rsaz_exp.h
++++ b/zunsafe-openssl4/crypto/bn/rsaz_exp.h
 @@ -16,7 +16,11 @@
  #define OSSL_CRYPTO_BN_RSAZ_EXP_H
 
@@ -1324,9 +1326,9 @@ diff --git a/zunsafe-openssl/crypto/bn/rsaz_exp.h b/zunsafe-openssl/crypto/bn/rs
  #define RSAZ_ENABLED
 
  #include <openssl/bn.h>
-diff --git a/zunsafe-openssl/crypto/camellia/build.info b/zunsafe-openssl/crypto/camellia/build.info
---- a/zunsafe-openssl/crypto/camellia/build.info
-+++ b/zunsafe-openssl/crypto/camellia/build.info
+diff --git a/zunsafe-openssl4/crypto/camellia/build.info b/zunsafe-openssl4/crypto/camellia/build.info
+--- a/zunsafe-openssl4/crypto/camellia/build.info
++++ b/zunsafe-openssl4/crypto/camellia/build.info
 @@ -3,7 +3,7 @@
  $CMLLASM=camellia.c cmll_misc.c cmll_cbc.c
  IF[{- !$disabled{asm} -}]
@@ -1336,10 +1338,10 @@ diff --git a/zunsafe-openssl/crypto/camellia/build.info b/zunsafe-openssl/crypto
    $CMLLASM_sparcv9=camellia.c cmll_misc.c cmll_cbc.c cmllt4-sparcv9.S
 
    # Now that we have defined all the arch specific variables, use the
-diff --git a/zunsafe-openssl/crypto/camellia/camellia_asm_forward.c b/zunsafe-openssl/crypto/camellia/camellia_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/camellia/camellia_asm_forward.c b/zunsafe-openssl4/crypto/camellia/camellia_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/camellia/camellia_asm_forward.c
++++ b/zunsafe-openssl4/crypto/camellia/camellia_asm_forward.c
 @@ -0,0 +1,79 @@
 +#include "internal/deprecated.h"
 +
@@ -1420,9 +1422,9 @@ new file mode 100644
 +    zcheck(ivec, 16);
 +    zunsafe_buf_call(len, "Camellia_cbc_encrypt", in, out, len, key, ivec, enc);
 +}
-diff --git a/zunsafe-openssl/crypto/chacha/build.info b/zunsafe-openssl/crypto/chacha/build.info
---- a/zunsafe-openssl/crypto/chacha/build.info
-+++ b/zunsafe-openssl/crypto/chacha/build.info
+diff --git a/zunsafe-openssl4/crypto/chacha/build.info b/zunsafe-openssl4/crypto/chacha/build.info
+--- a/zunsafe-openssl4/crypto/chacha/build.info
++++ b/zunsafe-openssl4/crypto/chacha/build.info
 @@ -3,14 +3,16 @@
  $CHACHAASM=chacha_enc.c
  IF[{- !$disabled{asm} -}]
@@ -1442,10 +1444,10 @@ diff --git a/zunsafe-openssl/crypto/chacha/build.info b/zunsafe-openssl/crypto/c
 
    $CHACHAASM_loongarch64=chacha-loongarch64.S
 
-diff --git a/zunsafe-openssl/crypto/chacha/chacha_asm_forward.c b/zunsafe-openssl/crypto/chacha/chacha_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/chacha/chacha_asm_forward.c b/zunsafe-openssl4/crypto/chacha/chacha_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/chacha/chacha_asm_forward.c
++++ b/zunsafe-openssl4/crypto/chacha/chacha_asm_forward.c
 @@ -0,0 +1,16 @@
 +#include <string.h>
 +
@@ -1463,9 +1465,9 @@ new file mode 100644
 +    zcheck_readonly(counter, 4 * sizeof(unsigned int));
 +    zunsafe_buf_call(len, "ChaCha20_ctr32", out, inp, len, key, counter);
 +}
-diff --git a/zunsafe-openssl/crypto/cpuid.c b/zunsafe-openssl/crypto/cpuid.c
---- a/zunsafe-openssl/crypto/cpuid.c
-+++ b/zunsafe-openssl/crypto/cpuid.c
+diff --git a/zunsafe-openssl4/crypto/cpuid.c b/zunsafe-openssl4/crypto/cpuid.c
+--- a/zunsafe-openssl4/crypto/cpuid.c
++++ b/zunsafe-openssl4/crypto/cpuid.c
 @@ -9,6 +9,7 @@
 
  #include "internal/e_os.h"
@@ -1535,9 +1537,9 @@ diff --git a/zunsafe-openssl/crypto/cpuid.c b/zunsafe-openssl/crypto/cpuid.c
  }
  #else
  unsigned int OPENSSL_ia32cap_P[OPENSSL_IA32CAP_P_MAX_INDEXES];
-diff --git a/zunsafe-openssl/crypto/des/des_local.h b/zunsafe-openssl/crypto/des/des_local.h
---- a/zunsafe-openssl/crypto/des/des_local.h
-+++ b/zunsafe-openssl/crypto/des/des_local.h
+diff --git a/zunsafe-openssl4/crypto/des/des_local.h b/zunsafe-openssl4/crypto/des/des_local.h
+--- a/zunsafe-openssl4/crypto/des/des_local.h
++++ b/zunsafe-openssl4/crypto/des/des_local.h
 @@ -103,7 +103,7 @@
  #define ROTATE(a, n) (_lrotr(a, n))
  #elif defined(__ICC)
@@ -1547,9 +1549,9 @@ diff --git a/zunsafe-openssl/crypto/des/des_local.h b/zunsafe-openssl/crypto/des
  #if defined(__i386) || defined(__i386__) || defined(__x86_64) || defined(__x86_64__)
  #define ROTATE(a, n) ({        \
      register unsigned int ret; \
-diff --git a/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-armv8.pl b/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-armv8.pl
---- a/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-armv8.pl
-+++ b/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-armv8.pl
+diff --git a/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-armv8.pl b/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-armv8.pl
+--- a/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-armv8.pl
++++ b/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-armv8.pl
 @@ -60,48 +60,53 @@
  ########################################################################
  # Convert ecp_nistz256_table.c to layout expected by ecp_nistz_gather_w7
@@ -1640,9 +1642,9 @@ diff --git a/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-armv8.pl b/zunsafe-opens
  .align	5
  .Lpoly:
  .quad	0xffffffffffffffff,0x00000000ffffffff,0x0000000000000000,0xffffffff00000001
-diff --git a/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl b/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl
---- a/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl
-+++ b/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl
+diff --git a/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl b/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl
+--- a/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl
++++ b/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl
 @@ -4716,36 +4716,36 @@
  ___
  }
@@ -1710,9 +1712,9 @@ diff --git a/zunsafe-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl b/zunsafe-open
  $code =~ s/\`([^\`]*)\`/eval $1/gem;
  print $code;
  close STDOUT or die "error closing STDOUT: $!";
-diff --git a/zunsafe-openssl/crypto/ec/build.info b/zunsafe-openssl/crypto/ec/build.info
---- a/zunsafe-openssl/crypto/ec/build.info
-+++ b/zunsafe-openssl/crypto/ec/build.info
+diff --git a/zunsafe-openssl4/crypto/ec/build.info b/zunsafe-openssl4/crypto/ec/build.info
+--- a/zunsafe-openssl4/crypto/ec/build.info
++++ b/zunsafe-openssl4/crypto/ec/build.info
 @@ -3,7 +3,7 @@
    $ECASM_x86=ecp_nistz256.c ecp_nistz256-x86.S
    $ECDEF_x86=ECP_NISTZ256_ASM
@@ -1734,9 +1736,9 @@ diff --git a/zunsafe-openssl/crypto/ec/build.info b/zunsafe-openssl/crypto/ec/bu
    $ECDEF_aarch64=ECP_NISTZ256_ASM
    IF[{- !$disabled{'sm2'} -}]
      $ECASM_aarch64=$ECASM_aarch64 ecp_sm2p256.c ecp_sm2p256-armv8.S
-diff --git a/zunsafe-openssl/crypto/ec/curve25519.c b/zunsafe-openssl/crypto/ec/curve25519.c
---- a/zunsafe-openssl/crypto/ec/curve25519.c
-+++ b/zunsafe-openssl/crypto/ec/curve25519.c
+diff --git a/zunsafe-openssl4/crypto/ec/curve25519.c b/zunsafe-openssl4/crypto/ec/curve25519.c
+--- a/zunsafe-openssl4/crypto/ec/curve25519.c
++++ b/zunsafe-openssl4/crypto/ec/curve25519.c
 @@ -20,6 +20,7 @@
  #include <openssl/sha.h>
 
@@ -1838,9 +1840,9 @@ diff --git a/zunsafe-openssl/crypto/ec/curve25519.c b/zunsafe-openssl/crypto/ec/
  #define fe51_mul x25519_fe51_mul
  #define fe51_sq x25519_fe51_sqr
  #define fe51_mul121666 x25519_fe51_mul121666
-diff --git a/zunsafe-openssl/crypto/ec/ecp_nistz256.c b/zunsafe-openssl/crypto/ec/ecp_nistz256.c
---- a/zunsafe-openssl/crypto/ec/ecp_nistz256.c
-+++ b/zunsafe-openssl/crypto/ec/ecp_nistz256.c
+diff --git a/zunsafe-openssl4/crypto/ec/ecp_nistz256.c b/zunsafe-openssl4/crypto/ec/ecp_nistz256.c
+--- a/zunsafe-openssl4/crypto/ec/ecp_nistz256.c
++++ b/zunsafe-openssl4/crypto/ec/ecp_nistz256.c
 @@ -30,6 +30,7 @@
  #include "crypto/bn.h"
  #include "ec_local.h"
@@ -1849,15 +1851,15 @@ diff --git a/zunsafe-openssl/crypto/ec/ecp_nistz256.c b/zunsafe-openssl/crypto/e
 
  #if BN_BITS2 != 64
  #define TOBN(hi, lo) lo, hi
-@@ -39,6 +40,7 @@
+@@ -38,6 +39,7 @@
+ #endif
 
- #define ALIGNPTR(p, N) ((unsigned char *)p + N - (size_t)p % N)
  #define P256_LIMBS (256 / BN_BITS2)
 +#define P256_BYTES (256 / 8)
 
  typedef unsigned short u16;
 
-@@ -87,47 +89,125 @@
+@@ -86,47 +88,125 @@
   * in all cases so far...
   */
  /* Modular add: res = a+b mod P   */
@@ -2013,7 +2015,7 @@ diff --git a/zunsafe-openssl/crypto/ec/ecp_nistz256.c b/zunsafe-openssl/crypto/e
 
  /* One converted into the Montgomery domain */
  static const BN_ULONG ONE[P256_LIMBS] = {
-@@ -140,6 +220,43 @@
+@@ -139,6 +219,43 @@
  /* Precomputed tables for the default generator */
  extern const PRECOMP256_ROW ecp_nistz256_precomputed[37];
 
@@ -2057,7 +2059,7 @@ diff --git a/zunsafe-openssl/crypto/ec/ecp_nistz256.c b/zunsafe-openssl/crypto/e
  /* Recode window to a signed digit, see ecp_nistputil.c for details */
  static unsigned int _booth_recode_w5(unsigned int in)
  {
-@@ -246,12 +363,29 @@
+@@ -245,12 +362,29 @@
   * ecp_nistz256 module is ECP_NISTZ256_ASM.)
   */
  #ifndef ECP_NISTZ256_REFERENCE_IMPLEMENTATION
@@ -2142,9 +2144,9 @@ diff --git a/zunsafe-openssl/crypto/ec/ecp_nistz256.c b/zunsafe-openssl/crypto/e
 
  static int ecp_nistz256_inv_mod_ord(const EC_GROUP *group, BIGNUM *r,
      const BIGNUM *x, BN_CTX *ctx)
-diff --git a/zunsafe-openssl/crypto/ec/ecp_nistz256_table.c b/zunsafe-openssl/crypto/ec/ecp_nistz256_table.c
---- a/zunsafe-openssl/crypto/ec/ecp_nistz256_table.c
-+++ b/zunsafe-openssl/crypto/ec/ecp_nistz256_table.c
+diff --git a/zunsafe-openssl4/crypto/ec/ecp_nistz256_table.c b/zunsafe-openssl4/crypto/ec/ecp_nistz256_table.c
+--- a/zunsafe-openssl4/crypto/ec/ecp_nistz256_table.c
++++ b/zunsafe-openssl4/crypto/ec/ecp_nistz256_table.c
 @@ -21,15 +21,16 @@
   * appears to lead to invalid ELF files being produced.
   */
@@ -2165,9 +2167,9 @@ diff --git a/zunsafe-openssl/crypto/ec/ecp_nistz256_table.c b/zunsafe-openssl/cr
            { TOBN(0x79e730d4, 0x18a9143c), TOBN(0x75ba95fc, 0x5fedb601),
                TOBN(0x79fb732b, 0x77622510), TOBN(0x18905f76, 0xa53755c6),
                TOBN(0xddf25357, 0xce95560a), TOBN(0x8b4ab8e4, 0xba19e45c),
-diff --git a/zunsafe-openssl/crypto/ec/ecp_sm2p256.c b/zunsafe-openssl/crypto/ec/ecp_sm2p256.c
---- a/zunsafe-openssl/crypto/ec/ecp_sm2p256.c
-+++ b/zunsafe-openssl/crypto/ec/ecp_sm2p256.c
+diff --git a/zunsafe-openssl4/crypto/ec/ecp_sm2p256.c b/zunsafe-openssl4/crypto/ec/ecp_sm2p256.c
+--- a/zunsafe-openssl4/crypto/ec/ecp_sm2p256.c
++++ b/zunsafe-openssl4/crypto/ec/ecp_sm2p256.c
 @@ -18,6 +18,7 @@
  #include <openssl/err.h>
  #include "crypto/bn.h"
@@ -2277,139 +2279,9 @@ diff --git a/zunsafe-openssl/crypto/ec/ecp_sm2p256.c b/zunsafe-openssl/crypto/ec
 
  static ossl_inline BN_ULONG is_zeros(const BN_ULONG *a)
  {
-diff --git a/zunsafe-openssl/crypto/evp/e_aes_cbc_hmac_sha1.c b/zunsafe-openssl/crypto/evp/e_aes_cbc_hmac_sha1.c
---- a/zunsafe-openssl/crypto/evp/e_aes_cbc_hmac_sha1.c
-+++ b/zunsafe-openssl/crypto/evp/e_aes_cbc_hmac_sha1.c
-@@ -27,6 +27,7 @@
- #include "crypto/evp.h"
- #include "internal/constant_time.h"
- #include "evp_local.h"
-+#include <stdfil.h>
-
- typedef struct {
-     AES_KEY ks;
-@@ -97,7 +98,16 @@
- #define aes_off 0
- #endif
-
--void sha1_block_data_order(void *c, const void *p, size_t len);
-+void sha1_block_data_order(void *c, const void *p, size_t len)
-+{
-+    /* Given no blocks, the assembly would still process one and go on from
-+       there. */
-+    if (len == 0)
-+        return;
-+    zcheck(c, sizeof(SHA_CTX));
-+    zcheck_readonly(p, zchecked_mul(len, SHA_CBLOCK));
-+    zunsafe_buf_call(zchecked_mul(len, SHA_CBLOCK), "sha1_block_data_order", c, p, len);
-+}
-
- static void sha1_update(SHA_CTX *c, const void *data, size_t len)
- {
-@@ -145,7 +155,23 @@
-     int blocks;
- } HASH_DESC;
-
--void sha1_multi_block(SHA1_MB_CTX *, const HASH_DESC *, int);
-+/* The assembly reads the descriptors itself, so it is given copies that
-+   nothing can change once they are checked. */
-+void sha1_multi_block(SHA1_MB_CTX *ctx, const HASH_DESC *inp, int n4x)
-+{
-+    zcheck(ctx, sizeof(SHA1_MB_CTX));
-+    ZSAFETY_CHECK(n4x == 1 || n4x == 2);
-+    unsigned len = n4x * 4;
-+    HASH_DESC d[8];
-+    unsigned i;
-+    unsigned total = 0;
-+    for (i = len; i--;) {
-+        d[i] = inp[i];
-+        zcheck_readonly(d[i].ptr, zchecked_mul(d[i].blocks, 64));
-+        total += zchecked_mul(d[i].blocks, 64);
-+    }
-+    zunsafe_buf_call(total, "sha1_multi_block", ctx, d, n4x);
-+}
-
- typedef struct {
-     const unsigned char *inp;
-diff --git a/zunsafe-openssl/crypto/evp/e_aes_cbc_hmac_sha256.c b/zunsafe-openssl/crypto/evp/e_aes_cbc_hmac_sha256.c
---- a/zunsafe-openssl/crypto/evp/e_aes_cbc_hmac_sha256.c
-+++ b/zunsafe-openssl/crypto/evp/e_aes_cbc_hmac_sha256.c
-@@ -27,6 +27,7 @@
- #include "internal/constant_time.h"
- #include "crypto/evp.h"
- #include "evp_local.h"
-+#include <stdfil.h>
-
- typedef struct {
-     AES_KEY ks;
-@@ -139,7 +140,23 @@
-     int blocks;
- } HASH_DESC;
-
--void sha256_multi_block(SHA256_MB_CTX *, const HASH_DESC *, int);
-+/* The assembly reads the descriptors itself, so it is given copies that
-+   nothing can change once they are checked. */
-+void sha256_multi_block(SHA256_MB_CTX *ctx, const HASH_DESC *inp, int n4x)
-+{
-+    zcheck(ctx, sizeof(SHA256_MB_CTX));
-+    ZSAFETY_CHECK(n4x == 1 || n4x == 2);
-+    unsigned len = n4x * 4;
-+    HASH_DESC d[8];
-+    unsigned i;
-+    unsigned total = 0;
-+    for (i = len; i--;) {
-+        d[i] = inp[i];
-+        zcheck_readonly(d[i].ptr, zchecked_mul(d[i].blocks, 64));
-+        total += zchecked_mul(d[i].blocks, 64);
-+    }
-+    zunsafe_buf_call(total, "sha256_multi_block", ctx, d, n4x);
-+}
-
- typedef struct {
-     const unsigned char *inp;
-diff --git a/zunsafe-openssl/crypto/evp/e_chacha20_poly1305.c b/zunsafe-openssl/crypto/evp/e_chacha20_poly1305.c
---- a/zunsafe-openssl/crypto/evp/e_chacha20_poly1305.c
-+++ b/zunsafe-openssl/crypto/evp/e_chacha20_poly1305.c
-@@ -18,6 +18,7 @@
- #include "crypto/evp.h"
- #include "evp_local.h"
- #include "crypto/chacha.h"
-+# include <stdfil.h>
-
- typedef struct {
-     union {
-@@ -206,8 +207,26 @@
-
- #if defined(POLY1305_ASM) && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64))
- #define XOR128_HELPERS
--void *xor128_encrypt_n_pad(void *out, const void *inp, void *otp, size_t len);
--void *xor128_decrypt_n_pad(void *out, const void *inp, void *otp, size_t len);
-+/* Given no bytes, the assembly would still process one and go on from
-+   there. */
-+void *xor128_encrypt_n_pad(void *out, const void *inp, void *otp, size_t len)
-+{
-+    if (len == 0)
-+        return otp;
-+    zcheck(out, len);
-+    zcheck_readonly(inp, len);
-+    zcheck(otp, (len + 15) & -16);
-+    return zmkptr(otp, zunsafe_buf_call(len, "xor128_encrypt_n_pad", out, inp, otp, len));
-+}
-+void *xor128_decrypt_n_pad(void *out, const void *inp, void *otp, size_t len)
-+{
-+    if (len == 0)
-+        return otp;
-+    zcheck(out, len);
-+    zcheck_readonly(inp, len);
-+    zcheck(otp, (len + 15) & -16);
-+    return zmkptr(otp, zunsafe_buf_call(len, "xor128_decrypt_n_pad", out, inp, otp, len));
-+}
- static const unsigned char zero[4 * CHACHA_BLK_SIZE] = { 0 };
- #else
- static const unsigned char zero[2 * CHACHA_BLK_SIZE] = { 0 };
-diff --git a/zunsafe-openssl/crypto/md5/md5_dgst.c b/zunsafe-openssl/crypto/md5/md5_dgst.c
---- a/zunsafe-openssl/crypto/md5/md5_dgst.c
-+++ b/zunsafe-openssl/crypto/md5/md5_dgst.c
+diff --git a/zunsafe-openssl4/crypto/md5/md5_dgst.c b/zunsafe-openssl4/crypto/md5/md5_dgst.c
+--- a/zunsafe-openssl4/crypto/md5/md5_dgst.c
++++ b/zunsafe-openssl4/crypto/md5/md5_dgst.c
 @@ -16,6 +16,7 @@
  #include <stdio.h>
  #include "md5_local.h"
@@ -2435,9 +2307,9 @@ diff --git a/zunsafe-openssl/crypto/md5/md5_dgst.c b/zunsafe-openssl/crypto/md5/
 +    zunsafe_buf_call(num, "ossl_md5_block_asm_data_order", c, data_, num);
  }
  #endif
-diff --git a/zunsafe-openssl/crypto/mem_sec.c b/zunsafe-openssl/crypto/mem_sec.c
---- a/zunsafe-openssl/crypto/mem_sec.c
-+++ b/zunsafe-openssl/crypto/mem_sec.c
+diff --git a/zunsafe-openssl4/crypto/mem_sec.c b/zunsafe-openssl4/crypto/mem_sec.c
+--- a/zunsafe-openssl4/crypto/mem_sec.c
++++ b/zunsafe-openssl4/crypto/mem_sec.c
 @@ -86,6 +86,8 @@
  #define MAP_ANON MAP_ANONYMOUS
  #endif
@@ -2455,10 +2327,10 @@ diff --git a/zunsafe-openssl/crypto/mem_sec.c b/zunsafe-openssl/crypto/mem_sec.c
  #ifndef OPENSSL_NO_SECURE_MEMORY
      int ret = 0;
 
-diff --git a/zunsafe-openssl/crypto/modes/aesni_gcm_asm_forward.c b/zunsafe-openssl/crypto/modes/aesni_gcm_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/modes/aesni_gcm_asm_forward.c b/zunsafe-openssl4/crypto/modes/aesni_gcm_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/modes/aesni_gcm_asm_forward.c
++++ b/zunsafe-openssl4/crypto/modes/aesni_gcm_asm_forward.c
 @@ -0,0 +1,47 @@
 +#include "internal/deprecated.h"
 +
@@ -2507,10 +2379,10 @@ new file mode 100644
 +    return zunsafe_buf_call(len, "aesni_gcm_decrypt", in, out, len, key, ivec, Xi);
 +}
 +
-diff --git a/zunsafe-openssl/crypto/modes/armv8_gcm_asm_forward.c b/zunsafe-openssl/crypto/modes/armv8_gcm_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/modes/armv8_gcm_asm_forward.c b/zunsafe-openssl4/crypto/modes/armv8_gcm_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/modes/armv8_gcm_asm_forward.c
++++ b/zunsafe-openssl4/crypto/modes/armv8_gcm_asm_forward.c
 @@ -0,0 +1,52 @@
 +#include "internal/deprecated.h"
 +
@@ -2564,9 +2436,9 @@ new file mode 100644
 +WRAP_KERNEL(unroll8_eor3_aes_gcm_dec_128_kernel)
 +WRAP_KERNEL(unroll8_eor3_aes_gcm_dec_192_kernel)
 +WRAP_KERNEL(unroll8_eor3_aes_gcm_dec_256_kernel)
-diff --git a/zunsafe-openssl/crypto/modes/build.info b/zunsafe-openssl/crypto/modes/build.info
---- a/zunsafe-openssl/crypto/modes/build.info
-+++ b/zunsafe-openssl/crypto/modes/build.info
+diff --git a/zunsafe-openssl4/crypto/modes/build.info b/zunsafe-openssl4/crypto/modes/build.info
+--- a/zunsafe-openssl4/crypto/modes/build.info
++++ b/zunsafe-openssl4/crypto/modes/build.info
 @@ -4,7 +4,7 @@
  IF[{- !$disabled{asm} -}]
    $MODESASM_x86=ghash-x86.S
@@ -2586,9 +2458,9 @@ diff --git a/zunsafe-openssl/crypto/modes/build.info b/zunsafe-openssl/crypto/mo
    $MODESDEF_aarch64=
 
    $MODESASM_parisc11=ghash-parisc.s
-diff --git a/zunsafe-openssl/crypto/modes/gcm128.c b/zunsafe-openssl/crypto/modes/gcm128.c
---- a/zunsafe-openssl/crypto/modes/gcm128.c
-+++ b/zunsafe-openssl/crypto/modes/gcm128.c
+diff --git a/zunsafe-openssl4/crypto/modes/gcm128.c b/zunsafe-openssl4/crypto/modes/gcm128.c
+--- a/zunsafe-openssl4/crypto/modes/gcm128.c
++++ b/zunsafe-openssl4/crypto/modes/gcm128.c
 @@ -12,6 +12,7 @@
  #include "internal/cryptlib.h"
  #include "internal/endian.h"
@@ -2733,9 +2605,9 @@ diff --git a/zunsafe-openssl/crypto/modes/gcm128.c b/zunsafe-openssl/crypto/mode
  #endif
  #elif defined(__sparc__) || defined(__sparc)
  #include "crypto/sparc_arch.h"
-diff --git a/zunsafe-openssl/crypto/modes/ocb128.c b/zunsafe-openssl/crypto/modes/ocb128.c
---- a/zunsafe-openssl/crypto/modes/ocb128.c
-+++ b/zunsafe-openssl/crypto/modes/ocb128.c
+diff --git a/zunsafe-openssl4/crypto/modes/ocb128.c b/zunsafe-openssl4/crypto/modes/ocb128.c
+--- a/zunsafe-openssl4/crypto/modes/ocb128.c
++++ b/zunsafe-openssl4/crypto/modes/ocb128.c
 @@ -337,11 +337,13 @@
 
      if (num_blocks && all_num_blocks == (size_t)all_num_blocks
@@ -2766,9 +2638,9 @@ diff --git a/zunsafe-openssl/crypto/modes/ocb128.c b/zunsafe-openssl/crypto/mode
           */
          while (top >>= 1)
              max_idx++;
-diff --git a/zunsafe-openssl/crypto/poly1305/asm/poly1305-x86_64.pl b/zunsafe-openssl/crypto/poly1305/asm/poly1305-x86_64.pl
---- a/zunsafe-openssl/crypto/poly1305/asm/poly1305-x86_64.pl
-+++ b/zunsafe-openssl/crypto/poly1305/asm/poly1305-x86_64.pl
+diff --git a/zunsafe-openssl4/crypto/poly1305/asm/poly1305-x86_64.pl b/zunsafe-openssl4/crypto/poly1305/asm/poly1305-x86_64.pl
+--- a/zunsafe-openssl4/crypto/poly1305/asm/poly1305-x86_64.pl
++++ b/zunsafe-openssl4/crypto/poly1305/asm/poly1305-x86_64.pl
 @@ -102,6 +102,11 @@
  	}
  }
@@ -2781,9 +2653,9 @@ diff --git a/zunsafe-openssl/crypto/poly1305/asm/poly1305-x86_64.pl b/zunsafe-op
  open OUT,"| \"$^X\" \"$xlate\" $flavour \"$output\""
      or die "can't call $xlate: $!";
  *STDOUT=*OUT;
-diff --git a/zunsafe-openssl/crypto/poly1305/poly1305.c b/zunsafe-openssl/crypto/poly1305/poly1305.c
---- a/zunsafe-openssl/crypto/poly1305/poly1305.c
-+++ b/zunsafe-openssl/crypto/poly1305/poly1305.c
+diff --git a/zunsafe-openssl4/crypto/poly1305/poly1305.c b/zunsafe-openssl4/crypto/poly1305/poly1305.c
+--- a/zunsafe-openssl4/crypto/poly1305/poly1305.c
++++ b/zunsafe-openssl4/crypto/poly1305/poly1305.c
 @@ -12,6 +12,7 @@
  #include <openssl/crypto.h>
 
@@ -2865,9 +2737,9 @@ diff --git a/zunsafe-openssl/crypto/poly1305/poly1305.c b/zunsafe-openssl/crypto
      size_t num;
 
      if ((num = ctx->num)) {
-diff --git a/zunsafe-openssl/crypto/rc4/build.info b/zunsafe-openssl/crypto/rc4/build.info
---- a/zunsafe-openssl/crypto/rc4/build.info
-+++ b/zunsafe-openssl/crypto/rc4/build.info
+diff --git a/zunsafe-openssl4/crypto/rc4/build.info b/zunsafe-openssl4/crypto/rc4/build.info
+--- a/zunsafe-openssl4/crypto/rc4/build.info
++++ b/zunsafe-openssl4/crypto/rc4/build.info
 @@ -3,7 +3,7 @@
  $RC4ASM=rc4_enc.c rc4_skey.c
  IF[{- !$disabled{asm} -}]
@@ -2886,10 +2758,10 @@ diff --git a/zunsafe-openssl/crypto/rc4/build.info b/zunsafe-openssl/crypto/rc4/
      $RC4DEF=RC4_ASM
    ENDIF
  ENDIF
-diff --git a/zunsafe-openssl/crypto/rc4/rc4_asm_forward.c b/zunsafe-openssl/crypto/rc4/rc4_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/rc4/rc4_asm_forward.c b/zunsafe-openssl4/crypto/rc4/rc4_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/rc4/rc4_asm_forward.c
++++ b/zunsafe-openssl4/crypto/rc4/rc4_asm_forward.c
 @@ -0,0 +1,40 @@
 +#include "internal/deprecated.h"
 +
@@ -2931,10 +2803,10 @@ new file mode 100644
 +    zcheck(outdata, len);
 +    zunsafe_buf_call(len, "RC4", key, len, indata, outdata);
 +}
-diff --git a/zunsafe-openssl/crypto/rc4/rc4_md5_asm_forward.c b/zunsafe-openssl/crypto/rc4/rc4_md5_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/rc4/rc4_md5_asm_forward.c b/zunsafe-openssl4/crypto/rc4/rc4_md5_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/rc4/rc4_md5_asm_forward.c
++++ b/zunsafe-openssl4/crypto/rc4/rc4_md5_asm_forward.c
 @@ -0,0 +1,28 @@
 +#include "internal/deprecated.h"
 +
@@ -2964,9 +2836,9 @@ new file mode 100644
 +    zunsafe_call("rc4_md5_enc", key, in0, out, ctx, inp, blocks);
 +}
 +
-diff --git a/zunsafe-openssl/crypto/sha/build.info b/zunsafe-openssl/crypto/sha/build.info
---- a/zunsafe-openssl/crypto/sha/build.info
-+++ b/zunsafe-openssl/crypto/sha/build.info
+diff --git a/zunsafe-openssl4/crypto/sha/build.info b/zunsafe-openssl4/crypto/sha/build.info
+--- a/zunsafe-openssl4/crypto/sha/build.info
++++ b/zunsafe-openssl4/crypto/sha/build.info
 @@ -75,7 +75,7 @@
    # Now that we have defined all the arch specific variables, use the
    # appropriate one, and define the appropriate macros
@@ -2976,10 +2848,10 @@ diff --git a/zunsafe-openssl/crypto/sha/build.info b/zunsafe-openssl/crypto/sha/
      $KECCAK1600DEF=KECCAK1600_ASM
    ENDIF
  ENDIF
-diff --git a/zunsafe-openssl/crypto/sha/keccak1600_asm_forward.c b/zunsafe-openssl/crypto/sha/keccak1600_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/sha/keccak1600_asm_forward.c b/zunsafe-openssl4/crypto/sha/keccak1600_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/sha/keccak1600_asm_forward.c
++++ b/zunsafe-openssl4/crypto/sha/keccak1600_asm_forward.c
 @@ -0,0 +1,47 @@
 +#include <openssl/e_os2.h>
 +#include <string.h>
@@ -3028,9 +2900,9 @@ new file mode 100644
 +}
 +
 +
-diff --git a/zunsafe-openssl/crypto/sha/sha1dgst.c b/zunsafe-openssl/crypto/sha/sha1dgst.c
---- a/zunsafe-openssl/crypto/sha/sha1dgst.c
-+++ b/zunsafe-openssl/crypto/sha/sha1dgst.c
+diff --git a/zunsafe-openssl4/crypto/sha/sha1dgst.c b/zunsafe-openssl4/crypto/sha/sha1dgst.c
+--- a/zunsafe-openssl4/crypto/sha/sha1dgst.c
++++ b/zunsafe-openssl4/crypto/sha/sha1dgst.c
 @@ -25,6 +25,26 @@
  #include "sha_local.h"
  #include "crypto/sha.h"
@@ -3058,9 +2930,9 @@ diff --git a/zunsafe-openssl/crypto/sha/sha1dgst.c b/zunsafe-openssl/crypto/sha/
  int ossl_sha1_ctrl(SHA_CTX *sha1, int cmd, int mslen, void *ms)
  {
      unsigned char padtmp[40];
-diff --git a/zunsafe-openssl/crypto/sha/sha256.c b/zunsafe-openssl/crypto/sha/sha256.c
---- a/zunsafe-openssl/crypto/sha/sha256.c
-+++ b/zunsafe-openssl/crypto/sha/sha256.c
+diff --git a/zunsafe-openssl4/crypto/sha/sha256.c b/zunsafe-openssl4/crypto/sha/sha256.c
+--- a/zunsafe-openssl4/crypto/sha/sha256.c
++++ b/zunsafe-openssl4/crypto/sha/sha256.c
 @@ -23,6 +23,7 @@
  #include <openssl/opensslv.h>
  #include "internal/endian.h"
@@ -3069,7 +2941,7 @@ diff --git a/zunsafe-openssl/crypto/sha/sha256.c b/zunsafe-openssl/crypto/sha/sh
 
  int SHA224_Init(SHA256_CTX *c)
  {
-@@ -131,6 +132,19 @@
+@@ -132,6 +133,19 @@
  #endif /* INCLUDE_C_SHA256 */
  #endif /* SHA256_ASM */
      void sha256_block_data_order(SHA256_CTX *ctx, const void *in, size_t num);
@@ -3088,11 +2960,11 @@ diff --git a/zunsafe-openssl/crypto/sha/sha256.c b/zunsafe-openssl/crypto/sha/sh
 +#endif
 
  #include "crypto/md32_common.h"
-
-diff --git a/zunsafe-openssl/crypto/sha/sha512.c b/zunsafe-openssl/crypto/sha/sha512.c
---- a/zunsafe-openssl/crypto/sha/sha512.c
-+++ b/zunsafe-openssl/crypto/sha/sha512.c
-@@ -58,6 +58,7 @@
+ #undef HASH_UPDATE_THUNK
+diff --git a/zunsafe-openssl4/crypto/sha/sha512.c b/zunsafe-openssl4/crypto/sha/sha512.c
+--- a/zunsafe-openssl4/crypto/sha/sha512.c
++++ b/zunsafe-openssl4/crypto/sha/sha512.c
+@@ -59,6 +59,7 @@
 
  #include "internal/cryptlib.h"
  #include "crypto/sha.h"
@@ -3100,7 +2972,7 @@ diff --git a/zunsafe-openssl/crypto/sha/sha512.c b/zunsafe-openssl/crypto/sha/sh
 
  #if defined(__i386) || defined(__i386__) || defined(_M_IX86) || defined(__x86_64) || defined(_M_AMD64) || defined(_M_X64) || defined(__s390__) || defined(__s390x__) || defined(__aarch64__) || defined(SHA512_ASM)
  #define SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
-@@ -151,6 +152,19 @@
+@@ -154,6 +155,19 @@
  #endif
  #endif
      void sha512_block_data_order(SHA512_CTX *ctx, const void *in, size_t num);
@@ -3118,11 +2990,11 @@ diff --git a/zunsafe-openssl/crypto/sha/sha512.c b/zunsafe-openssl/crypto/sha/sh
 +}
 +#endif
 
- int SHA512_Final(unsigned char *md, SHA512_CTX *c)
- {
-diff --git a/zunsafe-openssl/crypto/sm3/build.info b/zunsafe-openssl/crypto/sm3/build.info
---- a/zunsafe-openssl/crypto/sm3/build.info
-+++ b/zunsafe-openssl/crypto/sm3/build.info
+ #define OUTPUT_RESULT(md, len)      \
+     for (n = 0; n < (len / 8); n++) \
+diff --git a/zunsafe-openssl4/crypto/sm3/build.info b/zunsafe-openssl4/crypto/sm3/build.info
+--- a/zunsafe-openssl4/crypto/sm3/build.info
++++ b/zunsafe-openssl4/crypto/sm3/build.info
 @@ -2,13 +2,14 @@
 
  IF[{- !$disabled{sm3} -}]
@@ -3140,10 +3012,10 @@ diff --git a/zunsafe-openssl/crypto/sm3/build.info b/zunsafe-openssl/crypto/sm3/
      $SM3DEF_x86_64=OPENSSL_SM3_ASM
 
      # Now that we have defined all the arch specific variables, use the
-diff --git a/zunsafe-openssl/crypto/sm3/sm3_asm_forward.c b/zunsafe-openssl/crypto/sm3/sm3_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/sm3/sm3_asm_forward.c b/zunsafe-openssl4/crypto/sm3/sm3_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/sm3/sm3_asm_forward.c
++++ b/zunsafe-openssl4/crypto/sm3/sm3_asm_forward.c
 @@ -0,0 +1,10 @@
 +#include <stddef.h>
 +#include "internal/sm3.h"
@@ -3155,9 +3027,9 @@ new file mode 100644
 +    zcheck_readonly(p, zchecked_mul(num, SM3_CBLOCK));
 +    zunsafe_buf_call(zchecked_mul(num, SM3_CBLOCK), "ossl_hwsm3_block_data_order", c, p, num);
 +}
-diff --git a/zunsafe-openssl/crypto/sm4/build.info b/zunsafe-openssl/crypto/sm4/build.info
---- a/zunsafe-openssl/crypto/sm4/build.info
-+++ b/zunsafe-openssl/crypto/sm4/build.info
+diff --git a/zunsafe-openssl4/crypto/sm4/build.info b/zunsafe-openssl4/crypto/sm4/build.info
+--- a/zunsafe-openssl4/crypto/sm4/build.info
++++ b/zunsafe-openssl4/crypto/sm4/build.info
 @@ -1,14 +1,17 @@
  LIBS=../../libcrypto
 
@@ -3179,10 +3051,10 @@ diff --git a/zunsafe-openssl/crypto/sm4/build.info b/zunsafe-openssl/crypto/sm4/
 
    # Now that we have defined all the arch specific variables, use the
    # appropriate one, and define the appropriate macros
-diff --git a/zunsafe-openssl/crypto/sm4/sm4_armv8_asm_forward.c b/zunsafe-openssl/crypto/sm4/sm4_armv8_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/sm4/sm4_armv8_asm_forward.c b/zunsafe-openssl4/crypto/sm4/sm4_armv8_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/sm4/sm4_armv8_asm_forward.c
++++ b/zunsafe-openssl4/crypto/sm4/sm4_armv8_asm_forward.c
 @@ -0,0 +1,78 @@
 +#include <stdlib.h>
 +#include <openssl/crypto.h>
@@ -3262,10 +3134,10 @@ new file mode 100644
 +    zunsafe_buf_call(blocks, "sm4_v8_ctr32_encrypt_blocks", in, out, blocks,
 +                     key, ivec);
 +}
-diff --git a/zunsafe-openssl/crypto/sm4/sm4_asm_forward.c b/zunsafe-openssl/crypto/sm4/sm4_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/sm4/sm4_asm_forward.c b/zunsafe-openssl4/crypto/sm4/sm4_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/sm4/sm4_asm_forward.c
++++ b/zunsafe-openssl4/crypto/sm4/sm4_asm_forward.c
 @@ -0,0 +1,29 @@
 +#include <stdlib.h>
 +#include <openssl/crypto.h>
@@ -3296,9 +3168,9 @@ new file mode 100644
 +    zcheck_readonly(key, sizeof(SM4_KEY));
 +    zunsafe_fast_call("hw_x86_64_sm4_decrypt", in, out, key);
 +}
-diff --git a/zunsafe-openssl/crypto/whrlpool/build.info b/zunsafe-openssl/crypto/whrlpool/build.info
---- a/zunsafe-openssl/crypto/whrlpool/build.info
-+++ b/zunsafe-openssl/crypto/whrlpool/build.info
+diff --git a/zunsafe-openssl4/crypto/whrlpool/build.info b/zunsafe-openssl4/crypto/whrlpool/build.info
+--- a/zunsafe-openssl4/crypto/whrlpool/build.info
++++ b/zunsafe-openssl4/crypto/whrlpool/build.info
 @@ -6,7 +6,7 @@
      $WPASM_x86=wp_block.c wp-mmx.S
      $WPDEF_x86=WHIRLPOOL_ASM
@@ -3308,10 +3180,10 @@ diff --git a/zunsafe-openssl/crypto/whrlpool/build.info b/zunsafe-openssl/crypto
    $WPDEF_x86_64=WHIRLPOOL_ASM
 
    # Now that we have defined all the arch specific variables, use the
-diff --git a/zunsafe-openssl/crypto/whrlpool/wp_asm_forward.c b/zunsafe-openssl/crypto/whrlpool/wp_asm_forward.c
+diff --git a/zunsafe-openssl4/crypto/whrlpool/wp_asm_forward.c b/zunsafe-openssl4/crypto/whrlpool/wp_asm_forward.c
 new file mode 100644
 --- /dev/null
-+++ b/zunsafe-openssl/crypto/whrlpool/wp_asm_forward.c
++++ b/zunsafe-openssl4/crypto/whrlpool/wp_asm_forward.c
 @@ -0,0 +1,18 @@
 +#include "internal/deprecated.h"
 +
@@ -3331,9 +3203,9 @@ new file mode 100644
 +    zcheck_readonly(inp, zchecked_mul(n, WHIRLPOOL_BBLOCK / 8));
 +    zunsafe_buf_call(zchecked_mul(n, WHIRLPOOL_BBLOCK / 8), "whirlpool_block", ctx, inp, n);
 +}
-diff --git a/zunsafe-openssl/crypto/x86_64cpuid.pl b/zunsafe-openssl/crypto/x86_64cpuid.pl
---- a/zunsafe-openssl/crypto/x86_64cpuid.pl
-+++ b/zunsafe-openssl/crypto/x86_64cpuid.pl
+diff --git a/zunsafe-openssl4/crypto/x86_64cpuid.pl b/zunsafe-openssl4/crypto/x86_64cpuid.pl
+--- a/zunsafe-openssl4/crypto/x86_64cpuid.pl
++++ b/zunsafe-openssl4/crypto/x86_64cpuid.pl
 @@ -28,13 +28,6 @@
 
  print<<___;
@@ -3393,124 +3265,9 @@ diff --git a/zunsafe-openssl/crypto/x86_64cpuid.pl b/zunsafe-openssl/crypto/x86_
 
  .globl  CRYPTO_memcmp
  .type   CRYPTO_memcmp,\@abi-omnipotent
-diff --git a/zunsafe-openssl/engines/e_padlock.c b/zunsafe-openssl/engines/e_padlock.c
---- a/zunsafe-openssl/engines/e_padlock.c
-+++ b/zunsafe-openssl/engines/e_padlock.c
-@@ -24,6 +24,7 @@
- #include <openssl/rand.h>
- #include <openssl/err.h>
- #include <openssl/modes.h>
-+#include <stdfil.h>
-
- #ifndef OPENSSL_NO_PADLOCKENG
-
-@@ -212,23 +213,86 @@
- };
-
- /* Interface to assembler module */
--unsigned int padlock_capability(void);
--void padlock_key_bswap(AES_KEY *key);
--void padlock_verify_context(struct padlock_cipher_data *ctx);
--void padlock_reload_key(void);
--void padlock_aes_block(void *out, const void *inp,
--    struct padlock_cipher_data *ctx);
--int padlock_ecb_encrypt(void *out, const void *inp,
--    struct padlock_cipher_data *ctx, size_t len);
--int padlock_cbc_encrypt(void *out, const void *inp,
--    struct padlock_cipher_data *ctx, size_t len);
--int padlock_cfb_encrypt(void *out, const void *inp,
--    struct padlock_cipher_data *ctx, size_t len);
--int padlock_ofb_encrypt(void *out, const void *inp,
--    struct padlock_cipher_data *ctx, size_t len);
--int padlock_ctr32_encrypt(void *out, const void *inp,
--    struct padlock_cipher_data *ctx, size_t len);
--int padlock_xstore(void *out, int edx);
-+static unsigned int padlock_capability(void)
-+{
-+    return zunsafe_fast_call("padlock_capability");
-+}
-+
-+static void padlock_key_bswap(AES_KEY *key)
-+{
-+    zcheck(key, sizeof(AES_KEY));
-+    /* The assembly takes the number of round keys to swap from the key. */
-+    ZSAFETY_CHECK((unsigned)key->rounds <= 14);
-+    zunsafe_fast_call("padlock_key_bswap", key);
-+}
-+
-+static void padlock_reload_key(void)
-+{
-+    zunsafe_fast_call("padlock_reload_key");
-+}
-+
-+static void padlock_aes_block(void *out, const void *inp,
-+                              struct padlock_cipher_data *ctx)
-+{
-+    zcheck(out, AES_BLOCK_SIZE);
-+    zcheck_readonly(inp, AES_BLOCK_SIZE);
-+    zcheck(ctx, sizeof(struct padlock_cipher_data));
-+    zunsafe_fast_call("padlock_aes_block", out, inp, ctx);
-+}
-+
-+static int padlock_ecb_encrypt(void *out, const void *inp,
-+                               struct padlock_cipher_data *ctx, size_t len)
-+{
-+    zcheck(out, len);
-+    zcheck_readonly(inp, len);
-+    zcheck(ctx, sizeof(struct padlock_cipher_data));
-+    return zunsafe_buf_call(len, "padlock_ecb_encrypt", out, inp, ctx, len);
-+}
-+
-+static int padlock_cbc_encrypt(void *out, const void *inp,
-+                               struct padlock_cipher_data *ctx, size_t len)
-+{
-+    zcheck(out, len);
-+    zcheck_readonly(inp, len);
-+    zcheck(ctx, sizeof(struct padlock_cipher_data));
-+    return zunsafe_buf_call(len, "padlock_cbc_encrypt", out, inp, ctx, len);
-+}
-+
-+static int padlock_cfb_encrypt(void *out, const void *inp,
-+                               struct padlock_cipher_data *ctx, size_t len)
-+{
-+    zcheck(out, len);
-+    zcheck_readonly(inp, len);
-+    zcheck(ctx, sizeof(struct padlock_cipher_data));
-+    return zunsafe_buf_call(len, "padlock_cfb_encrypt", out, inp, ctx, len);
-+}
-+
-+static int padlock_ofb_encrypt(void *out, const void *inp,
-+                               struct padlock_cipher_data *ctx, size_t len)
-+{
-+    zcheck(out, len);
-+    zcheck_readonly(inp, len);
-+    zcheck(ctx, sizeof(struct padlock_cipher_data));
-+    return zunsafe_buf_call(len, "padlock_ofb_encrypt", out, inp, ctx, len);
-+}
-+
-+static int padlock_ctr32_encrypt(void *out, const void *inp,
-+                                 struct padlock_cipher_data *ctx, size_t len)
-+{
-+    zcheck(out, len);
-+    zcheck_readonly(inp, len);
-+    zcheck(ctx, sizeof(struct padlock_cipher_data));
-+    return zunsafe_buf_call(len, "padlock_ctr32_encrypt", out, inp, ctx, len);
-+}
-+
-+static int padlock_xstore(void *out, int edx)
-+{
-+    zcheck(out, 8); /* Really, the xstore might be requested to store only 4 bytes and out may point
-+                       at an int. But we don't have to be so precise since an int in Fil-C is really
-+                       16 bytes. */
-+    return zunsafe_fast_call("padlock_xstore", out, edx);
-+}
-+
- void padlock_sha1_oneshot(void *ctx, const void *inp, size_t len);
- void padlock_sha1(void *ctx, const void *inp, size_t len);
- void padlock_sha256_oneshot(void *ctx, const void *inp, size_t len);
-diff --git a/zunsafe-openssl/include/crypto/aes_platform.h b/zunsafe-openssl/include/crypto/aes_platform.h
---- a/zunsafe-openssl/include/crypto/aes_platform.h
-+++ b/zunsafe-openssl/include/crypto/aes_platform.h
+diff --git a/zunsafe-openssl4/include/crypto/aes_platform.h b/zunsafe-openssl4/include/crypto/aes_platform.h
+--- a/zunsafe-openssl4/include/crypto/aes_platform.h
++++ b/zunsafe-openssl4/include/crypto/aes_platform.h
 @@ -116,7 +116,11 @@
  #define HWAES_CBC_HMAC_SHA1_ETM_CAPABLE (HWAES_CAPABLE && (OPENSSL_armcap_P & ARMV8_SHA1))
  #define HWAES_CBC_HMAC_SHA256_ETM_CAPABLE (HWAES_CAPABLE && (OPENSSL_armcap_P & ARMV8_SHA256))
@@ -3524,9 +3281,9 @@ diff --git a/zunsafe-openssl/include/crypto/aes_platform.h b/zunsafe-openssl/inc
  #define AES_CBC_HMAC_SHA_ETM_CAPABLE 1
  #endif
  #endif
-diff --git a/zunsafe-openssl/include/crypto/md32_common.h b/zunsafe-openssl/include/crypto/md32_common.h
---- a/zunsafe-openssl/include/crypto/md32_common.h
-+++ b/zunsafe-openssl/include/crypto/md32_common.h
+diff --git a/zunsafe-openssl4/include/crypto/md32_common.h b/zunsafe-openssl4/include/crypto/md32_common.h
+--- a/zunsafe-openssl4/include/crypto/md32_common.h
++++ b/zunsafe-openssl4/include/crypto/md32_common.h
 @@ -104,7 +104,7 @@
  #define ROTATE(a, n) (((a) << (n)) | (((a) & 0xffffffff) >> (32 - (n))))
 
@@ -3536,9 +3293,9 @@ diff --git a/zunsafe-openssl/include/crypto/md32_common.h b/zunsafe-openssl/incl
  #if defined(__riscv_zbb) || defined(__riscv_zbkb)
  #if __riscv_xlen == 64
  #undef ROTATE
-diff --git a/zunsafe-openssl/include/crypto/modes.h b/zunsafe-openssl/include/crypto/modes.h
---- a/zunsafe-openssl/include/crypto/modes.h
-+++ b/zunsafe-openssl/include/crypto/modes.h
+diff --git a/zunsafe-openssl4/include/crypto/modes.h b/zunsafe-openssl4/include/crypto/modes.h
+--- a/zunsafe-openssl4/include/crypto/modes.h
++++ b/zunsafe-openssl4/include/crypto/modes.h
 @@ -34,7 +34,7 @@
  #endif
  #endif
@@ -3548,9 +3305,9 @@ diff --git a/zunsafe-openssl/include/crypto/modes.h b/zunsafe-openssl/include/cr
  #if defined(__GNUC__) && __GNUC__ >= 2
  #if defined(__x86_64) || defined(__x86_64__)
  #define BSWAP8(x) ({ u64 ret_=(x);                   \
-diff --git a/zunsafe-openssl/include/crypto/poly1305.h b/zunsafe-openssl/include/crypto/poly1305.h
---- a/zunsafe-openssl/include/crypto/poly1305.h
-+++ b/zunsafe-openssl/include/crypto/poly1305.h
+diff --git a/zunsafe-openssl4/include/crypto/poly1305.h b/zunsafe-openssl4/include/crypto/poly1305.h
+--- a/zunsafe-openssl4/include/crypto/poly1305.h
++++ b/zunsafe-openssl4/include/crypto/poly1305.h
 @@ -24,11 +24,12 @@
  typedef void (*poly1305_emit_f)(void *ctx, unsigned char mac[16],
      const unsigned int nonce[4]);
@@ -3568,9 +3325,110 @@ diff --git a/zunsafe-openssl/include/crypto/poly1305.h b/zunsafe-openssl/include
      unsigned int nonce[4];
      unsigned char data[POLY1305_BLOCK_SIZE];
      size_t num;
-diff --git a/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw.c b/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw.c
---- a/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw.c
-+++ b/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw.c
+diff --git a/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha1_hw.c b/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha1_hw.c
+--- a/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha1_hw.c
++++ b/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha1_hw.c
+@@ -31,12 +31,29 @@
+ #include <openssl/rand.h>
+ #include "crypto/evp.h"
+ #include "internal/constant_time.h"
++#include <stdfil.h>
+
+-void sha1_block_data_order(void *c, const void *p, size_t len);
+ void aesni_cbc_sha1_enc(const void *inp, void *out, size_t blocks,
+     const AES_KEY *key, unsigned char iv[16],
+     SHA_CTX *ctx, const void *in0);
+
++/*
++ * Fil-C: pizlonated code cannot call the raw sha1_block_data_order assembler
++ * routine directly, so define the pizlonated forwarder here (in 3.x this
++ * wrapper lived in crypto/evp/e_aes_cbc_hmac_sha1.c, which no longer carries
++ * the stitched implementation in 4.x).
++ */
++void sha1_block_data_order(void *c, const void *p, size_t len)
++{
++    /* Given no blocks, the assembly would still process one and go on from
++       there. */
++    if (len == 0)
++        return;
++    zcheck(c, sizeof(SHA_CTX));
++    zcheck_readonly(p, zchecked_mul(len, SHA_CBLOCK));
++    zunsafe_buf_call(zchecked_mul(len, SHA_CBLOCK), "sha1_block_data_order", c, p, len);
++}
++
+ int ossl_cipher_capable_aes_cbc_hmac_sha1(void)
+ {
+     return AESNI_CBC_HMAC_SHA_CAPABLE;
+@@ -115,7 +132,26 @@
+     u64 iv[2];
+ } CIPH_DESC;
+
+-void sha1_multi_block(SHA1_MB_CTX *, const HASH_DESC *, int);
++/*
++ * Fil-C: the assembly reads the descriptors itself, so it is given copies
++ * that nothing can change once they are checked (this wrapper lived in
++ * crypto/evp/e_aes_cbc_hmac_sha1.c in 3.x).
++ */
++void sha1_multi_block(SHA1_MB_CTX *ctx, const HASH_DESC *inp, int n4x)
++{
++    zcheck(ctx, sizeof(SHA1_MB_CTX));
++    ZSAFETY_CHECK(n4x == 1 || n4x == 2);
++    unsigned len = n4x * 4;
++    HASH_DESC d[8];
++    unsigned i;
++    unsigned total = 0;
++    for (i = len; i--;) {
++        d[i] = inp[i];
++        zcheck_readonly(d[i].ptr, zchecked_mul(d[i].blocks, 64));
++        total += zchecked_mul(d[i].blocks, 64);
++    }
++    zunsafe_buf_call(total, "sha1_multi_block", ctx, d, n4x);
++}
+ void aesni_multi_cbc_encrypt(CIPH_DESC *, void *, int);
+
+ static size_t tls1_multi_block_encrypt(void *vctx,
+diff --git a/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha256_hw.c b/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha256_hw.c
+--- a/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha256_hw.c
++++ b/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_cbc_hmac_sha256_hw.c
+@@ -31,6 +31,7 @@
+ #include <openssl/rand.h>
+ #include "crypto/evp.h"
+ #include "internal/constant_time.h"
++#include <stdfil.h>
+
+ void sha256_block_data_order(void *c, const void *p, size_t len);
+ int aesni_cbc_sha256_enc(const void *inp, void *out, size_t blocks,
+@@ -119,7 +120,26 @@
+     u64 iv[2];
+ } CIPH_DESC;
+
+-void sha256_multi_block(SHA256_MB_CTX *, const HASH_DESC *, int);
++/*
++ * Fil-C: the assembly reads the descriptors itself, so it is given copies
++ * that nothing can change once they are checked (this wrapper lived in
++ * crypto/evp/e_aes_cbc_hmac_sha256.c in 3.x).
++ */
++void sha256_multi_block(SHA256_MB_CTX *ctx, const HASH_DESC *inp, int n4x)
++{
++    zcheck(ctx, sizeof(SHA256_MB_CTX));
++    ZSAFETY_CHECK(n4x == 1 || n4x == 2);
++    unsigned len = n4x * 4;
++    HASH_DESC d[8];
++    unsigned i;
++    unsigned total = 0;
++    for (i = len; i--;) {
++        d[i] = inp[i];
++        zcheck_readonly(d[i].ptr, zchecked_mul(d[i].blocks, 64));
++        total += zchecked_mul(d[i].blocks, 64);
++    }
++    zunsafe_buf_call(total, "sha256_multi_block", ctx, d, n4x);
++}
+ void aesni_multi_cbc_encrypt(CIPH_DESC *, void *, int);
+
+ static size_t tls1_multi_block_encrypt(void *vctx,
+diff --git a/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_gcm_hw.c b/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_gcm_hw.c
+--- a/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_gcm_hw.c
++++ b/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_gcm_hw.c
 @@ -16,6 +16,7 @@
  #include "internal/deprecated.h"
 
@@ -3579,9 +3437,9 @@ diff --git a/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw
 
  static int aes_gcm_initkey(PROV_GCM_CTX *ctx, const unsigned char *key,
      size_t keylen)
-diff --git a/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw_vaes_avx512.inc b/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw_vaes_avx512.inc
---- a/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw_vaes_avx512.inc
-+++ b/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw_vaes_avx512.inc
+diff --git a/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_gcm_hw_vaes_avx512.inc b/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_gcm_hw_vaes_avx512.inc
+--- a/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_gcm_hw_vaes_avx512.inc
++++ b/zunsafe-openssl4/providers/implementations/ciphers/cipher_aes_gcm_hw_vaes_avx512.inc
 @@ -19,27 +19,77 @@
  # define VAES_GCM_ENABLED
 
@@ -3669,9 +3527,54 @@ diff --git a/zunsafe-openssl/providers/implementations/ciphers/cipher_aes_gcm_hw
 
  static int vaes_gcm_setkey(PROV_GCM_CTX *ctx, const unsigned char *key,
                             size_t keylen)
-diff --git a/zunsafe-openssl/providers/implementations/rands/seeding/rand_cpu_x86.c b/zunsafe-openssl/providers/implementations/rands/seeding/rand_cpu_x86.c
---- a/zunsafe-openssl/providers/implementations/rands/seeding/rand_cpu_x86.c
-+++ b/zunsafe-openssl/providers/implementations/rands/seeding/rand_cpu_x86.c
+diff --git a/zunsafe-openssl4/providers/implementations/ciphers/cipher_chacha20_poly1305_hw.c b/zunsafe-openssl4/providers/implementations/ciphers/cipher_chacha20_poly1305_hw.c
+--- a/zunsafe-openssl4/providers/implementations/ciphers/cipher_chacha20_poly1305_hw.c
++++ b/zunsafe-openssl4/providers/implementations/ciphers/cipher_chacha20_poly1305_hw.c
+@@ -11,6 +11,7 @@
+
+ #include "internal/endian.h"
+ #include "cipher_chacha20_poly1305.h"
++#include <stdfil.h>
+
+ static int chacha_poly1305_tls_init(PROV_CIPHER_CTX *bctx,
+     unsigned char *aad, size_t alen)
+@@ -106,8 +107,31 @@
+
+ #if defined(POLY1305_ASM) && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64))
+ #define XOR128_HELPERS
+-void *xor128_encrypt_n_pad(void *out, const void *inp, void *otp, size_t len);
+-void *xor128_decrypt_n_pad(void *out, const void *inp, void *otp, size_t len);
++/*
++ * Fil-C: pizlonated code cannot call these raw assembler routines directly
++ * (in 3.x these wrappers lived in crypto/evp/e_chacha20_poly1305.c, which no
++ * longer carries the implementation in 4.x).
++ */
++/* Given no bytes, the assembly would still process one and go on from
++   there. */
++void *xor128_encrypt_n_pad(void *out, const void *inp, void *otp, size_t len)
++{
++    if (len == 0)
++        return otp;
++    zcheck(out, len);
++    zcheck_readonly(inp, len);
++    zcheck(otp, (len + 15) & -16);
++    return zmkptr(otp, zunsafe_buf_call(len, "xor128_encrypt_n_pad", out, inp, otp, len));
++}
++void *xor128_decrypt_n_pad(void *out, const void *inp, void *otp, size_t len)
++{
++    if (len == 0)
++        return otp;
++    zcheck(out, len);
++    zcheck_readonly(inp, len);
++    zcheck(otp, (len + 15) & -16);
++    return zmkptr(otp, zunsafe_buf_call(len, "xor128_decrypt_n_pad", out, inp, otp, len));
++}
+ static const unsigned char zero[4 * CHACHA_BLK_SIZE] = { 0 };
+ #else
+ static const unsigned char zero[2 * CHACHA_BLK_SIZE] = { 0 };
+diff --git a/zunsafe-openssl4/providers/implementations/rands/seeding/rand_cpu_x86.c b/zunsafe-openssl4/providers/implementations/rands/seeding/rand_cpu_x86.c
+--- a/zunsafe-openssl4/providers/implementations/rands/seeding/rand_cpu_x86.c
++++ b/zunsafe-openssl4/providers/implementations/rands/seeding/rand_cpu_x86.c
 @@ -11,6 +11,7 @@
  #include <openssl/opensslconf.h>
  #include "crypto/rand_pool.h"
@@ -3680,9 +3583,9 @@ diff --git a/zunsafe-openssl/providers/implementations/rands/seeding/rand_cpu_x8
 
  #ifdef OPENSSL_RAND_SEED_RDCPU
  #if defined(OPENSSL_SYS_TANDEM) && defined(_TNS_X_TARGET)
-diff --git a/zunsafe-openssl/test/recipes/01-test_symbol_presence.t b/zunsafe-openssl/test/recipes/01-test_symbol_presence.t
+diff --git a/zunsafe-openssl4/test/recipes/01-test_symbol_presence.t b/zunsafe-openssl4/test/recipes/01-test_symbol_presence.t
 deleted file mode 100644
---- a/zunsafe-openssl/test/recipes/01-test_symbol_presence.t
+--- a/zunsafe-openssl4/test/recipes/01-test_symbol_presence.t
 +++ /dev/null
 @@ -1,247 +0,0 @@
 -#! /usr/bin/env perl
@@ -3932,20 +3835,25 @@ deleted file mode 100644
 -           "check that there are no missing symbols in $_");
 -    }
 -}
-diff --git a/zunsafe-openssl/test/recipes/02-test_mem_alloc.t b/zunsafe-openssl/test/recipes/02-test_mem_alloc.t
+diff --git a/zunsafe-openssl4/test/recipes/02-test_mem_alloc.t b/zunsafe-openssl4/test/recipes/02-test_mem_alloc.t
 deleted file mode 100644
---- a/zunsafe-openssl/test/recipes/02-test_mem_alloc.t
+--- a/zunsafe-openssl4/test/recipes/02-test_mem_alloc.t
 +++ /dev/null
-@@ -1,16 +0,0 @@
+@@ -1,21 +0,0 @@
 -#! /usr/bin/env perl
--# Copyright 2025 The OpenSSL Project Authors. All Rights Reserved.
+-# Copyright 2025-2026 The OpenSSL Project Authors. All Rights Reserved.
 -#
 -# Licensed under the Apache License 2.0 (the "License").  You may not use
 -# this file except in compliance with the License.  You can obtain a copy
 -# in the file LICENSE in the source distribution or at
 -# https://www.openssl.org/source/license.html
 -
+-use OpenSSL::Test;
+-use OpenSSL::Test::Utils;
 -use OpenSSL::Test::Simple;
+-
+-plan skip_all => "This test should not be run under valgrind"
+-    if ( defined $ENV{OSSL_USE_VALGRIND} );
 -
 -{
 -    local $ENV{"ASAN_OPTIONS"} = "allocator_may_return_null=true";
@@ -3953,20 +3861,25 @@ deleted file mode 100644
 -
 -    simple_test("test_mem_alloc", "mem_alloc_test");
 -}
-diff --git a/zunsafe-openssl/test/recipes/02-test_mem_alloc_custom_fns.t b/zunsafe-openssl/test/recipes/02-test_mem_alloc_custom_fns.t
+diff --git a/zunsafe-openssl4/test/recipes/02-test_mem_alloc_custom_fns.t b/zunsafe-openssl4/test/recipes/02-test_mem_alloc_custom_fns.t
 deleted file mode 100644
---- a/zunsafe-openssl/test/recipes/02-test_mem_alloc_custom_fns.t
+--- a/zunsafe-openssl4/test/recipes/02-test_mem_alloc_custom_fns.t
 +++ /dev/null
-@@ -1,16 +0,0 @@
+@@ -1,21 +0,0 @@
 -#! /usr/bin/env perl
--# Copyright 2025 The OpenSSL Project Authors. All Rights Reserved.
+-# Copyright 2025-2026 The OpenSSL Project Authors. All Rights Reserved.
 -#
 -# Licensed under the Apache License 2.0 (the "License").  You may not use
 -# this file except in compliance with the License.  You can obtain a copy
 -# in the file LICENSE in the source distribution or at
 -# https://www.openssl.org/source/license.html
 -
+-use OpenSSL::Test;
+-use OpenSSL::Test::Utils;
 -use OpenSSL::Test::Simple;
+-
+-plan skip_all => "This test should not be run under valgrind"
+-    if ( defined $ENV{OSSL_USE_VALGRIND} );
 -
 -{
 -    local $ENV{"ASAN_OPTIONS"} = "allocator_may_return_null=true";
@@ -3974,26 +3887,9 @@ deleted file mode 100644
 -
 -    simple_test("test_mem_alloc_custom_fns", "mem_alloc_custom_fns_test");
 -}
-diff --git a/zunsafe-openssl/test/recipes/04-test_bioprint.t b/zunsafe-openssl/test/recipes/04-test_bioprint.t
+diff --git a/zunsafe-openssl4/test/recipes/04-test_param_build.t b/zunsafe-openssl4/test/recipes/04-test_param_build.t
 deleted file mode 100644
---- a/zunsafe-openssl/test/recipes/04-test_bioprint.t
-+++ /dev/null
-@@ -1,12 +0,0 @@
--#! /usr/bin/env perl
--# Copyright 2016 The OpenSSL Project Authors. All Rights Reserved.
--#
--# Licensed under the Apache License 2.0 (the "License").  You may not use
--# this file except in compliance with the License.  You can obtain a copy
--# in the file LICENSE in the source distribution or at
--# https://www.openssl.org/source/license.html
--
--
--use OpenSSL::Test::Simple;
--
--simple_test("test_bioprint", "bioprinttest");
-diff --git a/zunsafe-openssl/test/recipes/04-test_param_build.t b/zunsafe-openssl/test/recipes/04-test_param_build.t
-deleted file mode 100644
---- a/zunsafe-openssl/test/recipes/04-test_param_build.t
+--- a/zunsafe-openssl4/test/recipes/04-test_param_build.t
 +++ /dev/null
 @@ -1,15 +0,0 @@
 -#! /usr/bin/env perl
@@ -4011,9 +3907,9 @@ deleted file mode 100644
 -setup("test_param_build");
 -
 -simple_test("test_param_build", "param_build_test");
-diff --git a/zunsafe-openssl/test/recipes/20-test_speed.t b/zunsafe-openssl/test/recipes/20-test_speed.t
---- a/zunsafe-openssl/test/recipes/20-test_speed.t
-+++ b/zunsafe-openssl/test/recipes/20-test_speed.t
+diff --git a/zunsafe-openssl4/test/recipes/20-test_speed.t b/zunsafe-openssl4/test/recipes/20-test_speed.t
+--- a/zunsafe-openssl4/test/recipes/20-test_speed.t
++++ b/zunsafe-openssl4/test/recipes/20-test_speed.t
 @@ -93,11 +93,10 @@
  }
 
@@ -4029,35 +3925,9 @@ diff --git a/zunsafe-openssl/test/recipes/20-test_speed.t b/zunsafe-openssl/test
  }
 
  #We don't expect these options to have an effect in testmode but we at least
-diff --git a/zunsafe-openssl/test/recipes/30-test_afalg.t b/zunsafe-openssl/test/recipes/30-test_afalg.t
-deleted file mode 100644
---- a/zunsafe-openssl/test/recipes/30-test_afalg.t
-+++ /dev/null
-@@ -1,21 +0,0 @@
--#! /usr/bin/env perl
--# Copyright 2015-2020 The OpenSSL Project Authors. All Rights Reserved.
--#
--# Licensed under the Apache License 2.0 (the "License").  You may not use
--# this file except in compliance with the License.  You can obtain a copy
--# in the file LICENSE in the source distribution or at
--# https://www.openssl.org/source/license.html
--
--use strict;
--use OpenSSL::Test qw/:DEFAULT/;
--use OpenSSL::Test::Utils;
--
--my $test_name = "test_afalg";
--setup($test_name);
--
--plan skip_all => "$test_name not supported for this build"
--    if disabled("afalgeng");
--
--plan tests => 1;
--
--ok(run(test(["afalgtest"])), "running afalgtest");
-diff --git a/zunsafe-openssl/test/recipes/70-test_quic_radix.t b/zunsafe-openssl/test/recipes/70-test_quic_radix.t
---- a/zunsafe-openssl/test/recipes/70-test_quic_radix.t
-+++ b/zunsafe-openssl/test/recipes/70-test_quic_radix.t
+diff --git a/zunsafe-openssl4/test/recipes/70-test_quic_radix.t b/zunsafe-openssl4/test/recipes/70-test_quic_radix.t
+--- a/zunsafe-openssl4/test/recipes/70-test_quic_radix.t
++++ b/zunsafe-openssl4/test/recipes/70-test_quic_radix.t
 @@ -11,6 +11,8 @@
 
  setup("test_quic_radix");
@@ -4067,9 +3937,9 @@ diff --git a/zunsafe-openssl/test/recipes/70-test_quic_radix.t b/zunsafe-openssl
  plan skip_all => "QUIC protocol is not supported by this OpenSSL build"
      if disabled('quic');
 
-diff --git a/zunsafe-openssl/test/recipes/90-test_secmem.t b/zunsafe-openssl/test/recipes/90-test_secmem.t
+diff --git a/zunsafe-openssl4/test/recipes/90-test_secmem.t b/zunsafe-openssl4/test/recipes/90-test_secmem.t
 deleted file mode 100644
---- a/zunsafe-openssl/test/recipes/90-test_secmem.t
+--- a/zunsafe-openssl4/test/recipes/90-test_secmem.t
 +++ /dev/null
 @@ -1,12 +0,0 @@
 -#! /usr/bin/env perl
@@ -4084,13 +3954,13 @@ deleted file mode 100644
 -use OpenSSL::Test::Simple;
 -
 -simple_test("test_secmem", "secmemtest");
-diff --git a/zunsafe-openssl/test/recipes/90-test_shlibload.t b/zunsafe-openssl/test/recipes/90-test_shlibload.t
+diff --git a/zunsafe-openssl4/test/recipes/90-test_shlibload.t b/zunsafe-openssl4/test/recipes/90-test_shlibload.t
 deleted file mode 100644
---- a/zunsafe-openssl/test/recipes/90-test_shlibload.t
+--- a/zunsafe-openssl4/test/recipes/90-test_shlibload.t
 +++ /dev/null
-@@ -1,75 +0,0 @@
+@@ -1,42 +0,0 @@
 -#! /usr/bin/env perl
--# Copyright 2016-2024 The OpenSSL Project Authors. All Rights Reserved.
+-# Copyright 2016-2026 The OpenSSL Project Authors. All Rights Reserved.
 -#
 -# Licensed under the Apache License 2.0 (the "License").  You may not use
 -# this file except in compliance with the License.  You can obtain a copy
@@ -4114,53 +3984,20 @@ deleted file mode 100644
 -plan skip_all => "Test is disabled on NonStop" if config('target') =~ m|^nonstop|;
 -plan skip_all => "Test only supported in a dso build" if disabled("dso");
 -plan skip_all => "Test is disabled in an address sanitizer build" unless disabled("asan");
--plan skip_all => "Test is disabled in no-atexit build" if disabled("atexit");
 -
--plan tests => 10;
+-plan tests => 4;
 -
 -my $libcrypto = platform->sharedlib('libcrypto');
 -my $libssl = platform->sharedlib('libssl');
--my $atexit_outfile;
 -
--$atexit_outfile = 'atexit-cryptofirst.txt';
--1 while unlink $atexit_outfile;
--ok(run(test(["shlibloadtest", "-crypto_first", $libcrypto, $libssl, $atexit_outfile])),
--   "running shlibloadtest -crypto_first $atexit_outfile");
--ok(check_atexit($atexit_outfile));
+-ok(run(test(["shlibloadtest", "-crypto_first", $libcrypto, $libssl])),
+-   "running shlibloadtest -crypto_first");
 -
--$atexit_outfile = 'atexit-sslfirst.txt';
--1 while unlink $atexit_outfile;
--ok(run(test(["shlibloadtest", "-ssl_first", $libcrypto, $libssl, $atexit_outfile])),
--   "running shlibloadtest -ssl_first $atexit_outfile");
--ok(check_atexit($atexit_outfile));
+-ok(run(test(["shlibloadtest", "-ssl_first", $libcrypto, $libssl])),
+-   "running shlibloadtest -ssl_first");
 -
--$atexit_outfile = 'atexit-justcrypto.txt';
--1 while unlink $atexit_outfile;
--ok(run(test(["shlibloadtest", "-just_crypto", $libcrypto, $libssl, $atexit_outfile])),
--   "running shlibloadtest -just_crypto $atexit_outfile");
--ok(check_atexit($atexit_outfile));
+-ok(run(test(["shlibloadtest", "-just_crypto", $libcrypto, $libssl])),
+-   "running shlibloadtest -just_crypto");
 -
--$atexit_outfile = 'atexit-dsoref.txt';
--1 while unlink $atexit_outfile;
--ok(run(test(["shlibloadtest", "-dso_ref", $libcrypto, $libssl, $atexit_outfile])),
--   "running shlibloadtest -dso_ref $atexit_outfile");
--ok(check_atexit($atexit_outfile));
--
--$atexit_outfile = 'atexit-noatexit.txt';
--1 while unlink $atexit_outfile;
--ok(run(test(["shlibloadtest", "-no_atexit", $libcrypto, $libssl, $atexit_outfile])),
--   "running shlibloadtest -no_atexit $atexit_outfile");
--ok(!check_atexit($atexit_outfile));
--
--sub check_atexit {
--    my $filename = shift;
--
--    open my $fh, '<', $filename;
--    return 0 unless defined $fh;
--
--    my $data = <$fh>;
--
--    return 1 if (defined $data && $data =~ m/atexit\(\) run/);
--
--    return 0;
--}
+-ok(run(test(["shlibloadtest", "-dso_ref", $libcrypto, $libssl])),
+-   "running shlibloadtest -dso_ref");

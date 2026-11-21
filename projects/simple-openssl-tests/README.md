@@ -230,7 +230,7 @@ libcrypto that also lives in `pizfix/lib` is therefore shadowed at runtime.
 ### As-built recipe for the yolo OpenSSL 3.6.5
 
 Source: **pristine** OpenSSL 3.6.5 — either `projects/.openssl-3.6.5.tar.gz.snapshot`
-or the extracted tree `projects/zunsafe-openssl`.  **Do not** Configure out-of-tree
+or the extracted tree `projects/zunsafe-openssl3`.  **Do not** Configure out-of-tree
 from `projects/openssl-build/extracted-source`: that tree carries ~6000
 stale in-tree build artifacts (`Makefile`, `configdata.pm`, `.o`/`.d`
 files) from the pizfix build, which break a fresh out-of-tree Configure.
@@ -381,7 +381,7 @@ libcrypto `ldd` resolves it to.  `--build` opts into building first:
 
 * (no `--build`, the default) prebuilt mode: sweep the existing `test_*`
   executables, classified via `ldd`: a pizfix libcrypto → `zunsafe`, a
-  libcrypto under projects/sarcastic-openssl → `sarcastic`, a system
+  libcrypto under projects/sarcastic-openssl3 → `sarcastic`, a system
   libcrypto → `yolo`, and anything else → an `other` group keyed by that
   libcrypto's directory (those binaries are run too, and the directory is
   called out in the report).  Every non-empty group gets its own sweep
@@ -391,7 +391,7 @@ libcrypto `ldd` resolves it to.  `--build` opts into building first:
   `--build`).
 * `--build` (default: none) builds before sweeping: `zunsafe` = Fil-C's
   `build/bin/filcc` + the pizfix OpenSSL, `sarcastic` = filcc + the in-tree
-  projects/sarcastic-openssl, `yolo` = the system compiler (gcc) + the
+  projects/sarcastic-openssl3, `yolo` = the system compiler (gcc) + the
   system OpenSSL, `both` = `zunsafe sarcastic`, and `all` = `zunsafe
   sarcastic yolo`.  Multiple builds rebuild and clean (exact binary names
   only) in between.  Each group's report section records the exact make

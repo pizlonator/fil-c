@@ -28,8 +28,10 @@
 set -e
 set -x
 
-# Builds OpenSSL 3.6.5 (projeny checkout at projects/sarcastic-openssl, so unlike
-# build_zunsafe_openssl.sh there is no extract_source step and the relative paths go
+filc/projeny setup projects/sarcastic-openssl3.projeny
+
+# Builds OpenSSL 3.6.5 (projeny checkout at projects/sarcastic-openssl3, so unlike
+# build_zunsafe_openssl3.sh there is no extract_source step and the relative paths go
 # up two levels, not three) with assembly enabled: the perlasm generators
 # emit sarcasm annotations (gated on SARCASM=1) and Fil-C clang assembles the
 # generated .s/.S files with sarcasm (no -yolo-assembler!).
@@ -38,8 +40,8 @@ set -x
 # instructions are unmodelable in sarcasm (documented decision).
 #
 # This deliberately does NOT run make install: OpenSSL 3.6.5 (built by
-# build_zunsafe_openssl.sh) still owns pizfix's libcrypto.so.3/libssl.so.3.
-cd projects/sarcastic-openssl
+# build_zunsafe_openssl3.sh) still owns pizfix's libcrypto.so.3/libssl.so.3.
+cd projects/sarcastic-openssl3
 
 # If a previous configure (e.g. a no-asm one) left configdata.pm behind,
 # distclean it away so that everything, including the perlasm-generated

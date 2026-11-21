@@ -83,11 +83,13 @@ AVOID EDITING THE CONTENTS OF SOURCE DISTRIBUTION TARBALLS. Do not unpack them, 
 
 AVOID SOURCE DISTRIBUTION TARBALLS THAT ARE RAW REPOSITORY SNAPSHOTS - ESPECIALLY for projects that use autoconf. If a project is autoconf based, make sure that it comes with a configure script, rather than being a repository snapshot, which doesn't!
 
-Note that OpenSSL is especially special: there are two versions, both projeny-managed:
-- projects/sarcastic-openssl.projeny and its checkout, projects/sarcastic-openssl. This is OpenSSL 3.6.5 (rebased from a 3.6.4 base), and it's a work-in-progress port of OpenSSL to sarcasm (see projects/sarcasm).
-- projects/zunsafe-openssl.projeny and its checkout, projects/zunsafe-openssl. This is also OpenSSL 3.6.5, but it's using zunsafe crypto (see https://fil-c.org/constant_time_crypto).
+Note that OpenSSL is especially special: there are two port styles, sarcasm and zunsafe, and each style comes in a 3-series and a 4-series, all four projeny-managed:
+- projects/sarcastic-openssl3.projeny and its checkout, projects/sarcastic-openssl3. This is OpenSSL 3.6.5, and it's a port of OpenSSL to sarcasm (see projects/sarcasm).
+- projects/sarcastic-openssl4.projeny and its checkout, projects/sarcastic-openssl4. This is OpenSSL 4.0.3, also ported to sarcasm.
+- projects/zunsafe-openssl3.projeny and its checkout, projects/zunsafe-openssl3. This is also OpenSSL 3.6.5, but it's using zunsafe crypto (see https://fil-c.org/constant_time_crypto). This is the version that gets installed into pizfix (by build_zunsafe_openssl3.sh) and packaged by the optfil and pizlix builds.
+- projects/zunsafe-openssl4.projeny and its checkout, projects/zunsafe-openssl4. This is OpenSSL 4.0.3 with zunsafe crypto. It is built and tested by build_all_glibc.sh (via build_zunsafe_openssl4.sh), but it is deliberately not installed: until the 4-series is ready to take over, the 3-series still owns pizfix's libcrypto.so.3/libssl.so.3 and include/openssl headers, and optfil/pizlix still package the 3-series.
 
-IF you decide to rebase OpenSSL, then it's only meaningful to rebase the zunsafe version (projects/zunsafe-openssl aka projects/zunsafe-openssl.projeny). DO NOT update OpenSSL to the 4-series yet; stick to the latest release in the 3-series.
+IF you decide to rebase OpenSSL, keep both series: the -openssl3 files track the latest 3-series release and the -openssl4 files track the latest 4-series release, for both the sarcasm and zunsafe flavors.
 
 What success looks like:
     - There's a commit of the projects/projectname.projeny file. There is not commit of any tarball, because the projeny file points at a URL where the tarball can be fetched.

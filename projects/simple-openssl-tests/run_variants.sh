@@ -40,7 +40,7 @@
 #                   exist, without building anything.  Each binary is
 #                   classified by the libcrypto ldd resolves it to:
 #                   a pizfix libcrypto -> zunsafe, a libcrypto under
-#                   projects/sarcastic-openssl -> sarcastic, a system
+#                   projects/sarcastic-openssl3 -> sarcastic, a system
 #                   libcrypto -> yolo, and anything else -> an "other"
 #                   group keyed by that libcrypto's directory (those
 #                   binaries are run too, and the directory is called out
@@ -52,7 +52,7 @@
 #                   or --build=sarcastic.
 #   --build         build before sweeping: zunsafe (Fil-C's filcc + the
 #                   pizfix OpenSSL), sarcastic (filcc + the in-tree
-#                   projects/sarcastic-openssl), yolo (the system compiler,
+#                   projects/sarcastic-openssl3), yolo (the system compiler,
 #                   gcc, + the system OpenSSL), both (= zunsafe sarcastic),
 #                   or all (= zunsafe sarcastic yolo).  Multiple builds
 #                   rebuild and clean (exact binary names only) in between.
@@ -212,7 +212,7 @@ if [ -n "$YOLO_OPENSSL_PREFIX" ]; then
             fi
         done
         # The Makefile also handles an in-tree OpenSSL whose libcrypto sits
-        # at the top of the prefix (that is how projects/sarcastic-openssl
+        # at the top of the prefix (that is how projects/sarcastic-openssl3
         # is laid out), so accept that too.
         if [ -z "$yolo_prefix_libdir" ] && \
            [ -e "$YOLO_OPENSSL_PREFIX/libcrypto.so.3" ]; then
@@ -308,7 +308,7 @@ bin_libcrypto() {
 
 # Classify one binary by the libcrypto ldd resolves it to.  Prints
 # "<group><TAB><libcrypto directory>": zunsafe for a pizfix libcrypto,
-# sarcastic for projects/sarcastic-openssl, yolo for a system libcrypto,
+# sarcastic for projects/sarcastic-openssl3, yolo for a system libcrypto,
 # and "other" for anything else (the directory then keys the group; such
 # binaries are still swept and reported, with the directory called out).
 classify_bin() {
@@ -322,7 +322,7 @@ classify_bin() {
     case "$res" in
     */pizfix/lib/*) group=zunsafe ;;
     */pizfix/lib64/*) group=zunsafe ;;
-    *projects/sarcastic-openssl*) group=sarcastic ;;
+    *projects/sarcastic-openssl3*) group=sarcastic ;;
     /lib/* | /usr/lib/* | /lib64/* | /usr/lib64/* | \
     /usr/local/lib/* | /usr/local/lib64/*) group=yolo ;;
     *) group=other ;;
@@ -700,7 +700,7 @@ else
         zunsafe) cc="$REPO_ROOT/build/bin/filcc" ;;
         sarcastic)
             cc="$REPO_ROOT/build/bin/filcc"
-            openssl_home="$REPO_ROOT/projects/sarcastic-openssl"
+            openssl_home="$REPO_ROOT/projects/sarcastic-openssl3"
             ;;
         yolo)
             cc="gcc"
@@ -738,9 +738,9 @@ else
             fi
             ;;
         sarcastic)
-            if ! printf '%s' "$crypto_line" | grep -q "sarcastic-openssl/libcrypto.so.3"; then
-                echo "WARNING: sarcastic flavor did not bind sarcastic-openssl/libcrypto.so.3!" >&2
-                crypto_line="$crypto_line [WARNING: NOT sarcastic-openssl!]"
+            if ! printf '%s' "$crypto_line" | grep -q "sarcastic-openssl3/libcrypto.so.3"; then
+                echo "WARNING: sarcastic flavor did not bind sarcastic-openssl3/libcrypto.so.3!" >&2
+                crypto_line="$crypto_line [WARNING: NOT sarcastic-openssl3!]"
             fi
             ;;
         yolo)

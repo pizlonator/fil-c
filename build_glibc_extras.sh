@@ -59,3 +59,7 @@ set -x
 # build_rustc-notes.md.
 ./build_rustc.sh
 
+./build_sarcastic_openssl3.sh
+./build_sarcastic_openssl4.sh
+./build_zunsafe_openssl4.sh
+

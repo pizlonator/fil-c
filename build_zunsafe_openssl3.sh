@@ -12,7 +12,7 @@
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY FILIP PZILO ``AS IS AND ANY
+# THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 # PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
@@ -30,13 +30,13 @@ set -e
 set -x
 
 cd projects
-# Extract the projeny source OUTSIDE the projeny workdir (projects/zunsafe-openssl):
+# Extract the projeny source OUTSIDE the projeny workdir (projects/zunsafe-openssl3):
 # the configured build tree has to stay behind after this script finishes
 # (build_perl.sh regenerates der_digests.h from it with pizfix perl), and
 # keeping the projeny workdir pristine keeps `projeny rebase` usable.
 rm -rf openssl-build/extracted-source
 mkdir -p openssl-build
-../filc/projeny extract zunsafe-openssl.projeny openssl-build/extracted-source
+../filc/projeny extract zunsafe-openssl3.projeny openssl-build/extracted-source
 cd openssl-build/extracted-source
 OPENSSL_ARGS="zlib"
 CC="$PWD/../../../build/bin/clang -g -O2 -yolo-assembler" ./Configure \

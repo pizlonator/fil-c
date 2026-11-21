@@ -38,8 +38,8 @@ OPENSSL_HOME ?= $(DEFAULT_OPENSSL_HOME)
 
 ifneq ($(OPENSSL_HOME),)
 # OpenSSL's layout varies: an installed prefix keeps libraries in lib/, but
-# an in-tree build (e.g. projects/sarcastic-openssl, which is deliberately
-# never installed; see build_sarcastic_openssl.sh) puts libcrypto.so.3 at the
+# an in-tree build (e.g. projects/sarcastic-openssl3, which is deliberately
+# never installed; see build_sarcastic_openssl3.sh) puts libcrypto.so.3 at the
 # top of the tree.  Prefer lib/ when it exists, else the prefix itself.
 OPENSSL_LIBDIR := $(if $(wildcard $(OPENSSL_HOME)/lib/.),$(OPENSSL_HOME)/lib,$(OPENSSL_HOME))
 CPPFLAGS += -I$(OPENSSL_HOME)/include
@@ -68,7 +68,7 @@ CPPFLAGS += -I$(REPO_ROOT)/projects/zegarmistrz/include
 # rebuilds correct even if the .d files are ever deleted.
 CPPFLAGS += -MMD -MP
 
-# An in-tree OpenSSL flavor (e.g. projects/sarcastic-openssl) ships
+# An in-tree OpenSSL flavor (e.g. projects/sarcastic-openssl3) ships
 # libcrypto.so.3 without the libcrypto.so development symlink, so -lcrypto
 # links (and filcc's default RUNPATH finds) the pizfix libcrypto at runtime.
 # After linking, reorder the RUNPATH so the flavor's directory is searched

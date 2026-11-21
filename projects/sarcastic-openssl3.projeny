@@ -1,12 +1,12 @@
 URL: https://github.com/openssl/openssl/releases/download/openssl-3.6.5/openssl-3.6.5.tar.gz 1f7fe0f6b2d9c46f70eee94d4e8700cf754623e9764af424e3eb9a9127d77999
 URL: https://www.openssl.org/source/openssl-3.6.5.tar.gz 1f7fe0f6b2d9c46f70eee94d4e8700cf754623e9764af424e3eb9a9127d77999
 Origname: openssl-3.6.5
-Name: sarcastic-openssl
+Name: sarcastic-openssl3
 
     openssl with the Fil-C port (constant-time crypto and assembly handled by the sarcasm assembler, so it is completely memory safe; does not rely on any zunsafe API).
-diff --git a/sarcastic-openssl/Configurations/shared-info.pl b/sarcastic-openssl/Configurations/shared-info.pl
---- a/sarcastic-openssl/Configurations/shared-info.pl
-+++ b/sarcastic-openssl/Configurations/shared-info.pl
+diff --git a/sarcastic-openssl3/Configurations/shared-info.pl b/sarcastic-openssl3/Configurations/shared-info.pl
+--- a/sarcastic-openssl3/Configurations/shared-info.pl
++++ b/sarcastic-openssl3/Configurations/shared-info.pl
 @@ -31,7 +31,11 @@
      'linux-shared' => sub {
          return {
@@ -34,9 +34,9 @@ diff --git a/sarcastic-openssl/Configurations/shared-info.pl b/sarcastic-openssl
          };
      },
      'darwin-shared' => {
-diff --git a/sarcastic-openssl/Configure b/sarcastic-openssl/Configure
---- a/sarcastic-openssl/Configure
-+++ b/sarcastic-openssl/Configure
+diff --git a/sarcastic-openssl3/Configure b/sarcastic-openssl3/Configure
+--- a/sarcastic-openssl3/Configure
++++ b/sarcastic-openssl3/Configure
 @@ -1742,8 +1742,11 @@
      disable('unavailable', 'makedepend') unless $config{makedep_scheme};
  }
@@ -50,9 +50,9 @@ diff --git a/sarcastic-openssl/Configure b/sarcastic-openssl/Configure
      if ($predefined_C{__clang__}) {
          # clang has builtin assembler, which doesn't recognize --help,
          # but it apparently recognizes the option in question on all
-diff --git a/sarcastic-openssl/crypto/aes/asm/aes-cfb-avx512.pl b/sarcastic-openssl/crypto/aes/asm/aes-cfb-avx512.pl
---- a/sarcastic-openssl/crypto/aes/asm/aes-cfb-avx512.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/aes-cfb-avx512.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/aes-cfb-avx512.pl b/sarcastic-openssl3/crypto/aes/asm/aes-cfb-avx512.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/aes-cfb-avx512.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/aes-cfb-avx512.pl
 @@ -84,11 +84,11 @@
  .type    ossl_aes_cfb128_vaes_eligible,\@abi-omnipotent
  .balign  64
@@ -112,9 +112,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/aes-cfb-avx512.pl b/sarcastic-open
      xor %eax,%eax
      ret
  .size ossl_aes_cfb128_vaes_eligible, .-ossl_aes_cfb128_vaes_eligible
-diff --git a/sarcastic-openssl/crypto/aes/asm/aes-x86_64.pl b/sarcastic-openssl/crypto/aes/asm/aes-x86_64.pl
---- a/sarcastic-openssl/crypto/aes/asm/aes-x86_64.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/aes-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/aes-x86_64.pl b/sarcastic-openssl3/crypto/aes/asm/aes-x86_64.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/aes-x86_64.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/aes-x86_64.pl
 @@ -324,6 +324,8 @@
  	$code.="\n";
  }
@@ -748,9 +748,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/aes-x86_64.pl b/sarcastic-openssl/
  .Lcbc_epilogue:
  	ret
  .cfi_endproc
-diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl b/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl
---- a/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/aesni-mb-x86_64.pl b/sarcastic-openssl3/crypto/aes/asm/aesni-mb-x86_64.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/aesni-mb-x86_64.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/aesni-mb-x86_64.pl
 @@ -111,6 +111,7 @@
  ($counters,$mask,$zero)=map("%xmm$_",(10..12));
 
@@ -1516,9 +1516,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-mb-x86_64.pl b/sarcastic-ope
  $code =~ s/\`([^\`]*)\`/eval($1)/gem;
  $code =~ s/\b(aes.*%xmm[0-9]+).*$/aesni($1)/gem;
 
-diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-sha1-x86_64.pl b/sarcastic-openssl/crypto/aes/asm/aesni-sha1-x86_64.pl
---- a/sarcastic-openssl/crypto/aes/asm/aesni-sha1-x86_64.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/aesni-sha1-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/aesni-sha1-x86_64.pl b/sarcastic-openssl3/crypto/aes/asm/aesni-sha1-x86_64.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/aesni-sha1-x86_64.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/aesni-sha1-x86_64.pl
 @@ -137,11 +137,11 @@
  .globl	aesni_cbc_sha1_enc
  .type	aesni_cbc_sha1_enc,\@abi-omnipotent
@@ -1668,9 +1668,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-sha1-x86_64.pl b/sarcastic-o
  .cfi_startproc
  	mov	`($win64?56:8)`(%rsp),$inp	# load 7th argument
  ___
-diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-sha256-x86_64.pl b/sarcastic-openssl/crypto/aes/asm/aesni-sha256-x86_64.pl
---- a/sarcastic-openssl/crypto/aes/asm/aesni-sha256-x86_64.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/aesni-sha256-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/aesni-sha256-x86_64.pl b/sarcastic-openssl3/crypto/aes/asm/aesni-sha256-x86_64.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/aesni-sha256-x86_64.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/aesni-sha256-x86_64.pl
 @@ -84,6 +84,7 @@
 
  $shaext=$avx;	### set to zero if compiling for 1.0.1
@@ -1748,9 +1748,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-sha256-x86_64.pl b/sarcastic
  .cfi_startproc
  	mov	`($win64?56:8)`(%rsp),$inp	# load 7th argument
  ___
-diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-x86_64.pl b/sarcastic-openssl/crypto/aes/asm/aesni-x86_64.pl
---- a/sarcastic-openssl/crypto/aes/asm/aesni-x86_64.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/aesni-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/aesni-x86_64.pl b/sarcastic-openssl3/crypto/aes/asm/aesni-x86_64.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/aesni-x86_64.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/aesni-x86_64.pl
 @@ -275,7 +275,7 @@
  .globl	${PREFIX}_encrypt
  .type	${PREFIX}_encrypt,\@abi-omnipotent
@@ -1904,9 +1904,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-x86_64.pl b/sarcastic-openss
  	lea	16($key),%rax		# %rax is used as modifiable copy of $key
  	cmp	\$256,$bits
  	je	.L14rounds
-diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-xts-avx512.pl b/sarcastic-openssl/crypto/aes/asm/aesni-xts-avx512.pl
---- a/sarcastic-openssl/crypto/aes/asm/aesni-xts-avx512.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/aesni-xts-avx512.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/aesni-xts-avx512.pl b/sarcastic-openssl3/crypto/aes/asm/aesni-xts-avx512.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/aesni-xts-avx512.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/aesni-xts-avx512.pl
 @@ -82,7 +82,12 @@
    # right now, >= 0x80 (128) is used for expanded keys. all usages of
    # rsp should be invoked via $TW, not shadowed by any other name or
@@ -2061,9 +2061,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/aesni-xts-avx512.pl b/sarcastic-op
      xor	%eax,%eax
      ret
      .size   aesni_xts_avx512_eligible, .-aesni_xts_avx512_eligible
-diff --git a/sarcastic-openssl/crypto/aes/asm/bsaes-x86_64.pl b/sarcastic-openssl/crypto/aes/asm/bsaes-x86_64.pl
---- a/sarcastic-openssl/crypto/aes/asm/bsaes-x86_64.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/bsaes-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/bsaes-x86_64.pl b/sarcastic-openssl3/crypto/aes/asm/bsaes-x86_64.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/bsaes-x86_64.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/bsaes-x86_64.pl
 @@ -1166,6 +1166,17 @@
  my ($arg1,$arg2,$arg3,$arg4,$arg5,$arg6)=$win64	? ("%rcx","%rdx","%r8","%r9","%r10","%r11d")
  						: ("%rdi","%rsi","%rdx","%rcx","%r8","%r9d");
@@ -3322,9 +3322,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/bsaes-x86_64.pl b/sarcastic-openss
  .cfi_def_cfa_register	%rsp
  .Lxts_dec_epilogue:
  	ret
-diff --git a/sarcastic-openssl/crypto/aes/asm/vpaes-x86_64.pl b/sarcastic-openssl/crypto/aes/asm/vpaes-x86_64.pl
---- a/sarcastic-openssl/crypto/aes/asm/vpaes-x86_64.pl
-+++ b/sarcastic-openssl/crypto/aes/asm/vpaes-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/aes/asm/vpaes-x86_64.pl b/sarcastic-openssl3/crypto/aes/asm/vpaes-x86_64.pl
+--- a/sarcastic-openssl3/crypto/aes/asm/vpaes-x86_64.pl
++++ b/sarcastic-openssl3/crypto/aes/asm/vpaes-x86_64.pl
 @@ -696,7 +696,7 @@
  .globl	${PREFIX}_set_encrypt_key
  .type	${PREFIX}_set_encrypt_key,\@function,3
@@ -3370,9 +3370,9 @@ diff --git a/sarcastic-openssl/crypto/aes/asm/vpaes-x86_64.pl b/sarcastic-openss
  .cfi_startproc
  	endbranch
  	xchg	$key,$len
-diff --git a/sarcastic-openssl/crypto/async/arch/async_posix.h b/sarcastic-openssl/crypto/async/arch/async_posix.h
---- a/sarcastic-openssl/crypto/async/arch/async_posix.h
-+++ b/sarcastic-openssl/crypto/async/arch/async_posix.h
+diff --git a/sarcastic-openssl3/crypto/async/arch/async_posix.h b/sarcastic-openssl3/crypto/async/arch/async_posix.h
+--- a/sarcastic-openssl3/crypto/async/arch/async_posix.h
++++ b/sarcastic-openssl3/crypto/async/arch/async_posix.h
 @@ -26,7 +26,7 @@
  #define ASYNC_POSIX
  #define ASYNC_ARCH
@@ -3390,9 +3390,9 @@ diff --git a/sarcastic-openssl/crypto/async/arch/async_posix.h b/sarcastic-opens
   */
  #define USE_SWAPCONTEXT
  #endif
-diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avx512.pl b/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avx512.pl
---- a/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avx512.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avx512.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/rsaz-2k-avx512.pl b/sarcastic-openssl3/crypto/bn/asm/rsaz-2k-avx512.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/rsaz-2k-avx512.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/rsaz-2k-avx512.pl
 @@ -83,8 +83,8 @@
  .globl  ossl_rsaz_avx512ifma_eligible
  .type   ossl_rsaz_avx512ifma_eligible,\@abi-omnipotent
@@ -3440,9 +3440,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avx512.pl b/sarcastic-opens
      xor     %eax,%eax
      ret
  .size   ossl_rsaz_avx512ifma_eligible, .-ossl_rsaz_avx512ifma_eligible
-diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avxifma.pl b/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avxifma.pl
---- a/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avxifma.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avxifma.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/rsaz-2k-avxifma.pl b/sarcastic-openssl3/crypto/bn/asm/rsaz-2k-avxifma.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/rsaz-2k-avxifma.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/rsaz-2k-avxifma.pl
 @@ -65,8 +65,8 @@
  .globl  ossl_rsaz_avxifma_eligible
  .type   ossl_rsaz_avxifma_eligible,\@abi-omnipotent
@@ -3490,9 +3490,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-2k-avxifma.pl b/sarcastic-open
      xor     %eax,%eax
      ret
  .size   ossl_rsaz_avxifma_eligible, .-ossl_rsaz_avxifma_eligible
-diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avx512.pl b/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avx512.pl
---- a/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avx512.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avx512.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/rsaz-3k-avx512.pl b/sarcastic-openssl3/crypto/bn/asm/rsaz-3k-avx512.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/rsaz-3k-avx512.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/rsaz-3k-avx512.pl
 @@ -379,7 +379,7 @@
  .globl  ossl_rsaz_amm52x30_x1_ifma256
  .type   ossl_rsaz_amm52x30_x1_ifma256,\@function,5
@@ -3598,9 +3598,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avx512.pl b/sarcastic-opens
  .cfi_startproc
      endbranch
      vmovdqa64   .Lones(%rip), $ones         # broadcast ones
-diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avxifma.pl b/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avxifma.pl
---- a/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avxifma.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avxifma.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/rsaz-3k-avxifma.pl b/sarcastic-openssl3/crypto/bn/asm/rsaz-3k-avxifma.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/rsaz-3k-avxifma.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/rsaz-3k-avxifma.pl
 @@ -434,7 +434,7 @@
  .globl  ossl_rsaz_amm52x30_x1_avxifma256
  .type   ossl_rsaz_amm52x30_x1_avxifma256,\@function,5
@@ -3628,9 +3628,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-3k-avxifma.pl b/sarcastic-open
  .cfi_startproc
      endbranch
  ___
-diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avx512.pl b/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avx512.pl
---- a/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avx512.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avx512.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/rsaz-4k-avx512.pl b/sarcastic-openssl3/crypto/bn/asm/rsaz-4k-avx512.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/rsaz-4k-avx512.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/rsaz-4k-avx512.pl
 @@ -418,7 +418,7 @@
  .globl  ossl_rsaz_amm52x40_x1_ifma256
  .type   ossl_rsaz_amm52x40_x1_ifma256,\@function,5
@@ -3736,9 +3736,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avx512.pl b/sarcastic-opens
  .cfi_startproc
      endbranch
      vmovdqa64   .Lones(%rip), $ones         # broadcast ones
-diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avxifma.pl b/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avxifma.pl
---- a/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avxifma.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avxifma.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/rsaz-4k-avxifma.pl b/sarcastic-openssl3/crypto/bn/asm/rsaz-4k-avxifma.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/rsaz-4k-avxifma.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/rsaz-4k-avxifma.pl
 @@ -522,7 +522,7 @@
  .globl  ossl_rsaz_amm52x40_x1_avxifma256
  .type   ossl_rsaz_amm52x40_x1_avxifma256,\@function,5
@@ -3766,9 +3766,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-4k-avxifma.pl b/sarcastic-open
  .cfi_startproc
      endbranch
  ___
-diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-avx2.pl b/sarcastic-openssl/crypto/bn/asm/rsaz-avx2.pl
---- a/sarcastic-openssl/crypto/bn/asm/rsaz-avx2.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/rsaz-avx2.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/rsaz-avx2.pl b/sarcastic-openssl3/crypto/bn/asm/rsaz-avx2.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/rsaz-avx2.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/rsaz-avx2.pl
 @@ -139,7 +139,7 @@
  .globl	rsaz_1024_sqr_avx2
  .type	rsaz_1024_sqr_avx2,\@function,5
@@ -3993,9 +3993,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-avx2.pl b/sarcastic-openssl/cr
  	xor	%eax,%eax
  	ret
  .size	rsaz_avx2_eligible,.-rsaz_avx2_eligible
-diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-x86_64.pl b/sarcastic-openssl/crypto/bn/asm/rsaz-x86_64.pl
---- a/sarcastic-openssl/crypto/bn/asm/rsaz-x86_64.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/rsaz-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/rsaz-x86_64.pl b/sarcastic-openssl3/crypto/bn/asm/rsaz-x86_64.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/rsaz-x86_64.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/rsaz-x86_64.pl
 @@ -109,8 +109,13 @@
  .globl	rsaz_512_sqr
  .type	rsaz_512_sqr,\@function,5
@@ -4689,9 +4689,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/rsaz-x86_64.pl b/sarcastic-openssl/
  .cfi_startproc
  ___
  $code.=<<___	if ($win64);
-diff --git a/sarcastic-openssl/crypto/bn/asm/x86_64-gcc.c b/sarcastic-openssl/crypto/bn/asm/x86_64-gcc.c
---- a/sarcastic-openssl/crypto/bn/asm/x86_64-gcc.c
-+++ b/sarcastic-openssl/crypto/bn/asm/x86_64-gcc.c
+diff --git a/sarcastic-openssl3/crypto/bn/asm/x86_64-gcc.c b/sarcastic-openssl3/crypto/bn/asm/x86_64-gcc.c
+--- a/sarcastic-openssl3/crypto/bn/asm/x86_64-gcc.c
++++ b/sarcastic-openssl3/crypto/bn/asm/x86_64-gcc.c
 @@ -8,10 +8,13 @@
   */
 
@@ -4707,9 +4707,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/x86_64-gcc.c b/sarcastic-openssl/cr
  #else
  /*-
   * x86_64 BIGNUM accelerator version 0.1, December 2002.
-diff --git a/sarcastic-openssl/crypto/bn/asm/x86_64-gf2m.pl b/sarcastic-openssl/crypto/bn/asm/x86_64-gf2m.pl
---- a/sarcastic-openssl/crypto/bn/asm/x86_64-gf2m.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/x86_64-gf2m.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/x86_64-gf2m.pl b/sarcastic-openssl3/crypto/bn/asm/x86_64-gf2m.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/x86_64-gf2m.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/x86_64-gf2m.pl
 @@ -126,19 +126,19 @@
  	 and	$b,$i1
  	 shr	\$4,$b
@@ -4755,9 +4755,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/x86_64-gf2m.pl b/sarcastic-openssl/
  	bt	\$33,%r10
  	jnc	.Lvanilla_mul_2x2
 
-diff --git a/sarcastic-openssl/crypto/bn/asm/x86_64-mont.pl b/sarcastic-openssl/crypto/bn/asm/x86_64-mont.pl
---- a/sarcastic-openssl/crypto/bn/asm/x86_64-mont.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/x86_64-mont.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/x86_64-mont.pl b/sarcastic-openssl3/crypto/bn/asm/x86_64-mont.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/x86_64-mont.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/x86_64-mont.pl
 @@ -104,6 +104,21 @@
  $m0="%rbx";
  $m1="%rbp";
@@ -5489,9 +5489,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/x86_64-mont.pl b/sarcastic-openssl/
  .cfi_def_cfa	%rsi,8
  	jmp	.Lmulx4x_cond_copy
 
-diff --git a/sarcastic-openssl/crypto/bn/asm/x86_64-mont5.pl b/sarcastic-openssl/crypto/bn/asm/x86_64-mont5.pl
---- a/sarcastic-openssl/crypto/bn/asm/x86_64-mont5.pl
-+++ b/sarcastic-openssl/crypto/bn/asm/x86_64-mont5.pl
+diff --git a/sarcastic-openssl3/crypto/bn/asm/x86_64-mont5.pl b/sarcastic-openssl3/crypto/bn/asm/x86_64-mont5.pl
+--- a/sarcastic-openssl3/crypto/bn/asm/x86_64-mont5.pl
++++ b/sarcastic-openssl3/crypto/bn/asm/x86_64-mont5.pl
 @@ -76,6 +76,78 @@
  	}
  }
@@ -6948,9 +6948,9 @@ diff --git a/sarcastic-openssl/crypto/bn/asm/x86_64-mont5.pl b/sarcastic-openssl
  .LSEH_end_bn_gather5:
  .cfi_endproc
  .size	bn_gather5,.-bn_gather5
-diff --git a/sarcastic-openssl/crypto/camellia/asm/cmll-x86_64.pl b/sarcastic-openssl/crypto/camellia/asm/cmll-x86_64.pl
---- a/sarcastic-openssl/crypto/camellia/asm/cmll-x86_64.pl
-+++ b/sarcastic-openssl/crypto/camellia/asm/cmll-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/camellia/asm/cmll-x86_64.pl b/sarcastic-openssl3/crypto/camellia/asm/cmll-x86_64.pl
+--- a/sarcastic-openssl3/crypto/camellia/asm/cmll-x86_64.pl
++++ b/sarcastic-openssl3/crypto/camellia/asm/cmll-x86_64.pl
 @@ -125,7 +125,7 @@
  .globl	Camellia_EncryptBlock
  .type	Camellia_EncryptBlock,\@abi-omnipotent
@@ -7165,9 +7165,9 @@ diff --git a/sarcastic-openssl/crypto/camellia/asm/cmll-x86_64.pl b/sarcastic-op
  .Lcbc_abort:
  	ret
  .cfi_endproc
-diff --git a/sarcastic-openssl/crypto/chacha/asm/chacha-x86_64.pl b/sarcastic-openssl/crypto/chacha/asm/chacha-x86_64.pl
---- a/sarcastic-openssl/crypto/chacha/asm/chacha-x86_64.pl
-+++ b/sarcastic-openssl/crypto/chacha/asm/chacha-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/chacha/asm/chacha-x86_64.pl b/sarcastic-openssl3/crypto/chacha/asm/chacha-x86_64.pl
+--- a/sarcastic-openssl3/crypto/chacha/asm/chacha-x86_64.pl
++++ b/sarcastic-openssl3/crypto/chacha/asm/chacha-x86_64.pl
 @@ -105,6 +105,9 @@
  # input parameter block
  ($out,$inp,$len,$key,$counter)=("%rdi","%rsi","%rdx","%rcx","%r8");
@@ -7424,9 +7424,9 @@ diff --git a/sarcastic-openssl/crypto/chacha/asm/chacha-x86_64.pl b/sarcastic-op
  	lea		1(%r10),%r10
  	xor		%ecx,%eax
  	mov		%al,-1($out,%r10)
-diff --git a/sarcastic-openssl/crypto/des/des_local.h b/sarcastic-openssl/crypto/des/des_local.h
---- a/sarcastic-openssl/crypto/des/des_local.h
-+++ b/sarcastic-openssl/crypto/des/des_local.h
+diff --git a/sarcastic-openssl3/crypto/des/des_local.h b/sarcastic-openssl3/crypto/des/des_local.h
+--- a/sarcastic-openssl3/crypto/des/des_local.h
++++ b/sarcastic-openssl3/crypto/des/des_local.h
 @@ -104,7 +104,7 @@
  #elif defined(__ICC)
  #define ROTATE(a, n) (_rotr(a, n))
@@ -7445,9 +7445,9 @@ diff --git a/sarcastic-openssl/crypto/des/des_local.h b/sarcastic-openssl/crypto
  #elif defined(__riscv_zbb) || defined(__riscv_zbkb)
  #if __riscv_xlen == 64
  #define ROTATE(x, n) ({ register unsigned int ret; \
-diff --git a/sarcastic-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl b/sarcastic-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl
---- a/sarcastic-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl
-+++ b/sarcastic-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/ec/asm/ecp_nistz256-x86_64.pl b/sarcastic-openssl3/crypto/ec/asm/ecp_nistz256-x86_64.pl
+--- a/sarcastic-openssl3/crypto/ec/asm/ecp_nistz256-x86_64.pl
++++ b/sarcastic-openssl3/crypto/ec/asm/ecp_nistz256-x86_64.pl
 @@ -132,7 +132,7 @@
  .globl	ecp_nistz256_mul_by_2
  .type	ecp_nistz256_mul_by_2,\@function,2
@@ -8734,9 +8734,9 @@ diff --git a/sarcastic-openssl/crypto/ec/asm/ecp_nistz256-x86_64.pl b/sarcastic-
  .cfi_def_cfa	%rsi,8
  	mov	-48(%rsi),%r15
  .cfi_restore	%r15
-diff --git a/sarcastic-openssl/crypto/ec/asm/x25519-x86_64.pl b/sarcastic-openssl/crypto/ec/asm/x25519-x86_64.pl
---- a/sarcastic-openssl/crypto/ec/asm/x25519-x86_64.pl
-+++ b/sarcastic-openssl/crypto/ec/asm/x25519-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/ec/asm/x25519-x86_64.pl b/sarcastic-openssl3/crypto/ec/asm/x25519-x86_64.pl
+--- a/sarcastic-openssl3/crypto/ec/asm/x25519-x86_64.pl
++++ b/sarcastic-openssl3/crypto/ec/asm/x25519-x86_64.pl
 @@ -110,7 +110,7 @@
  .globl	x25519_fe51_mul
  .type	x25519_fe51_mul,\@function,3
@@ -8858,9 +8858,9 @@ diff --git a/sarcastic-openssl/crypto/ec/asm/x25519-x86_64.pl b/sarcastic-openss
  .cfi_startproc
  	.byte	0x0f,0x0b	# ud2
  	ret
-diff --git a/sarcastic-openssl/crypto/md5/asm/md5-x86_64.pl b/sarcastic-openssl/crypto/md5/asm/md5-x86_64.pl
---- a/sarcastic-openssl/crypto/md5/asm/md5-x86_64.pl
-+++ b/sarcastic-openssl/crypto/md5/asm/md5-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/md5/asm/md5-x86_64.pl b/sarcastic-openssl3/crypto/md5/asm/md5-x86_64.pl
+--- a/sarcastic-openssl3/crypto/md5/asm/md5-x86_64.pl
++++ b/sarcastic-openssl3/crypto/md5/asm/md5-x86_64.pl
 @@ -140,7 +140,7 @@
 
  .globl ossl_md5_block_asm_data_order
@@ -8888,9 +8888,9 @@ diff --git a/sarcastic-openssl/crypto/md5/asm/md5-x86_64.pl b/sarcastic-openssl/
 
  .Lend:
  	mov	%eax,		0*4(%rbp)	# ctx->A = A
-diff --git a/sarcastic-openssl/crypto/mem_sec.c b/sarcastic-openssl/crypto/mem_sec.c
---- a/sarcastic-openssl/crypto/mem_sec.c
-+++ b/sarcastic-openssl/crypto/mem_sec.c
+diff --git a/sarcastic-openssl3/crypto/mem_sec.c b/sarcastic-openssl3/crypto/mem_sec.c
+--- a/sarcastic-openssl3/crypto/mem_sec.c
++++ b/sarcastic-openssl3/crypto/mem_sec.c
 @@ -106,6 +106,17 @@
 
  int CRYPTO_secure_malloc_init(size_t size, size_t minsize)
@@ -8909,9 +8909,9 @@ diff --git a/sarcastic-openssl/crypto/mem_sec.c b/sarcastic-openssl/crypto/mem_s
  #ifndef OPENSSL_NO_SECURE_MEMORY
      int ret = 0;
 
-diff --git a/sarcastic-openssl/crypto/modes/asm/aes-gcm-avx512.pl b/sarcastic-openssl/crypto/modes/asm/aes-gcm-avx512.pl
---- a/sarcastic-openssl/crypto/modes/asm/aes-gcm-avx512.pl
-+++ b/sarcastic-openssl/crypto/modes/asm/aes-gcm-avx512.pl
+diff --git a/sarcastic-openssl3/crypto/modes/asm/aes-gcm-avx512.pl b/sarcastic-openssl3/crypto/modes/asm/aes-gcm-avx512.pl
+--- a/sarcastic-openssl3/crypto/modes/asm/aes-gcm-avx512.pl
++++ b/sarcastic-openssl3/crypto/modes/asm/aes-gcm-avx512.pl
 @@ -91,8 +91,12 @@
  .globl  ossl_vaes_vpclmulqdq_capable
  .type   ossl_vaes_vpclmulqdq_capable,\@abi-omnipotent
@@ -9103,9 +9103,9 @@ diff --git a/sarcastic-openssl/crypto/modes/asm/aes-gcm-avx512.pl b/sarcastic-op
  ossl_aes_gcm_setiv_avx512:
  ossl_aes_gcm_update_aad_avx512:
  ossl_aes_gcm_encrypt_avx512:
-diff --git a/sarcastic-openssl/crypto/modes/asm/aesni-gcm-x86_64.pl b/sarcastic-openssl/crypto/modes/asm/aesni-gcm-x86_64.pl
---- a/sarcastic-openssl/crypto/modes/asm/aesni-gcm-x86_64.pl
-+++ b/sarcastic-openssl/crypto/modes/asm/aesni-gcm-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/modes/asm/aesni-gcm-x86_64.pl b/sarcastic-openssl3/crypto/modes/asm/aesni-gcm-x86_64.pl
+--- a/sarcastic-openssl3/crypto/modes/asm/aesni-gcm-x86_64.pl
++++ b/sarcastic-openssl3/crypto/modes/asm/aesni-gcm-x86_64.pl
 @@ -421,7 +421,7 @@
  .globl	aesni_gcm_decrypt
  .type	aesni_gcm_decrypt,\@function,6
@@ -9218,9 +9218,9 @@ diff --git a/sarcastic-openssl/crypto/modes/asm/aesni-gcm-x86_64.pl b/sarcastic-
  .cfi_startproc
  	xor	%eax,%eax
  	ret
-diff --git a/sarcastic-openssl/crypto/modes/asm/ghash-x86_64.pl b/sarcastic-openssl/crypto/modes/asm/ghash-x86_64.pl
---- a/sarcastic-openssl/crypto/modes/asm/ghash-x86_64.pl
-+++ b/sarcastic-openssl/crypto/modes/asm/ghash-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/modes/asm/ghash-x86_64.pl b/sarcastic-openssl3/crypto/modes/asm/ghash-x86_64.pl
+--- a/sarcastic-openssl3/crypto/modes/asm/ghash-x86_64.pl
++++ b/sarcastic-openssl3/crypto/modes/asm/ghash-x86_64.pl
 @@ -246,9 +246,19 @@
  .globl	gcm_gmult_4bit
  .type	gcm_gmult_4bit,\@function,2
@@ -9504,9 +9504,9 @@ diff --git a/sarcastic-openssl/crypto/modes/asm/ghash-x86_64.pl b/sarcastic-open
  .cfi_startproc
  	endbranch
  ___
-diff --git a/sarcastic-openssl/crypto/perlasm/x86_64-xlate.pl b/sarcastic-openssl/crypto/perlasm/x86_64-xlate.pl
---- a/sarcastic-openssl/crypto/perlasm/x86_64-xlate.pl
-+++ b/sarcastic-openssl/crypto/perlasm/x86_64-xlate.pl
+diff --git a/sarcastic-openssl3/crypto/perlasm/x86_64-xlate.pl b/sarcastic-openssl3/crypto/perlasm/x86_64-xlate.pl
+--- a/sarcastic-openssl3/crypto/perlasm/x86_64-xlate.pl
++++ b/sarcastic-openssl3/crypto/perlasm/x86_64-xlate.pl
 @@ -121,6 +121,25 @@
      $gnuas=1;
  }
@@ -9715,9 +9715,9 @@ diff --git a/sarcastic-openssl/crypto/perlasm/x86_64-xlate.pl b/sarcastic-openss
  }
 
  print "$cet_property"			if ($cet_property);
-diff --git a/sarcastic-openssl/crypto/poly1305/asm/poly1305-x86_64.pl b/sarcastic-openssl/crypto/poly1305/asm/poly1305-x86_64.pl
---- a/sarcastic-openssl/crypto/poly1305/asm/poly1305-x86_64.pl
-+++ b/sarcastic-openssl/crypto/poly1305/asm/poly1305-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/poly1305/asm/poly1305-x86_64.pl b/sarcastic-openssl3/crypto/poly1305/asm/poly1305-x86_64.pl
+--- a/sarcastic-openssl3/crypto/poly1305/asm/poly1305-x86_64.pl
++++ b/sarcastic-openssl3/crypto/poly1305/asm/poly1305-x86_64.pl
 @@ -176,7 +176,7 @@
 
  .type	poly1305_init,\@function,3
@@ -9998,9 +9998,9 @@ diff --git a/sarcastic-openssl/crypto/poly1305/asm/poly1305-x86_64.pl b/sarcasti
  .cfi_startproc
  	sub	$otp,$inp
  	sub	$otp,$out
-diff --git a/sarcastic-openssl/crypto/rc4/asm/rc4-md5-x86_64.pl b/sarcastic-openssl/crypto/rc4/asm/rc4-md5-x86_64.pl
---- a/sarcastic-openssl/crypto/rc4/asm/rc4-md5-x86_64.pl
-+++ b/sarcastic-openssl/crypto/rc4/asm/rc4-md5-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/rc4/asm/rc4-md5-x86_64.pl b/sarcastic-openssl3/crypto/rc4/asm/rc4-md5-x86_64.pl
+--- a/sarcastic-openssl3/crypto/rc4/asm/rc4-md5-x86_64.pl
++++ b/sarcastic-openssl3/crypto/rc4/asm/rc4-md5-x86_64.pl
 @@ -74,12 +74,15 @@
  if ($rc4 && !$md5) {
    ($dat,$len,$in0,$out) = ("%rdi","%rsi","%rdx","%rcx");
@@ -10097,9 +10097,9 @@ diff --git a/sarcastic-openssl/crypto/rc4/asm/rc4-md5-x86_64.pl b/sarcastic-open
  	lea	.Lopts(%rip),%rax
  	ret
  .align	64
-diff --git a/sarcastic-openssl/crypto/rc4/asm/rc4-x86_64.pl b/sarcastic-openssl/crypto/rc4/asm/rc4-x86_64.pl
---- a/sarcastic-openssl/crypto/rc4/asm/rc4-x86_64.pl
-+++ b/sarcastic-openssl/crypto/rc4/asm/rc4-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/rc4/asm/rc4-x86_64.pl b/sarcastic-openssl3/crypto/rc4/asm/rc4-x86_64.pl
+--- a/sarcastic-openssl3/crypto/rc4/asm/rc4-x86_64.pl
++++ b/sarcastic-openssl3/crypto/rc4/asm/rc4-x86_64.pl
 @@ -140,7 +140,7 @@
  .globl	RC4
  .type	RC4,\@function,4
@@ -10271,9 +10271,9 @@ diff --git a/sarcastic-openssl/crypto/rc4/asm/rc4-x86_64.pl b/sarcastic-openssl/
  ___
 
  # EXCEPTION_DISPOSITION handler (EXCEPTION_RECORD *rec,ULONG64 frame,
-diff --git a/sarcastic-openssl/crypto/sha/asm/keccak1600-x86_64.pl b/sarcastic-openssl/crypto/sha/asm/keccak1600-x86_64.pl
---- a/sarcastic-openssl/crypto/sha/asm/keccak1600-x86_64.pl
-+++ b/sarcastic-openssl/crypto/sha/asm/keccak1600-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/sha/asm/keccak1600-x86_64.pl b/sarcastic-openssl3/crypto/sha/asm/keccak1600-x86_64.pl
+--- a/sarcastic-openssl3/crypto/sha/asm/keccak1600-x86_64.pl
++++ b/sarcastic-openssl3/crypto/sha/asm/keccak1600-x86_64.pl
 @@ -350,7 +350,7 @@
 
  .type	KeccakF1600,\@abi-omnipotent
@@ -10323,9 +10323,9 @@ diff --git a/sarcastic-openssl/crypto/sha/asm/keccak1600-x86_64.pl b/sarcastic-o
  	mov	$A_flat,%r9
  	mov	$bsz,%rcx
  	jmp	.Loop_squeeze
-diff --git a/sarcastic-openssl/crypto/sha/asm/sha1-mb-x86_64.pl b/sarcastic-openssl/crypto/sha/asm/sha1-mb-x86_64.pl
---- a/sarcastic-openssl/crypto/sha/asm/sha1-mb-x86_64.pl
-+++ b/sarcastic-openssl/crypto/sha/asm/sha1-mb-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/sha/asm/sha1-mb-x86_64.pl b/sarcastic-openssl3/crypto/sha/asm/sha1-mb-x86_64.pl
+--- a/sarcastic-openssl3/crypto/sha/asm/sha1-mb-x86_64.pl
++++ b/sarcastic-openssl3/crypto/sha/asm/sha1-mb-x86_64.pl
 @@ -377,9 +377,9 @@
  .globl	sha1_multi_block
  .type	sha1_multi_block,\@function,3
@@ -10443,9 +10443,9 @@ diff --git a/sarcastic-openssl/crypto/sha/asm/sha1-mb-x86_64.pl b/sarcastic-open
  	# number of blocks
  	mov	`$inp_elm_size*$i+$ptr_size`($inp),%ecx
  	cmp	$num,%ecx
-diff --git a/sarcastic-openssl/crypto/sha/asm/sha1-x86_64.pl b/sarcastic-openssl/crypto/sha/asm/sha1-x86_64.pl
---- a/sarcastic-openssl/crypto/sha/asm/sha1-x86_64.pl
-+++ b/sarcastic-openssl/crypto/sha/asm/sha1-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/sha/asm/sha1-x86_64.pl b/sarcastic-openssl3/crypto/sha/asm/sha1-x86_64.pl
+--- a/sarcastic-openssl3/crypto/sha/asm/sha1-x86_64.pl
++++ b/sarcastic-openssl3/crypto/sha/asm/sha1-x86_64.pl
 @@ -267,11 +267,11 @@
  .globl	sha1_block_data_order
  .type	sha1_block_data_order,\@function,3
@@ -10498,9 +10498,9 @@ diff --git a/sarcastic-openssl/crypto/sha/asm/sha1-x86_64.pl b/sarcastic-openssl
  _avx2_shortcut:
  .cfi_startproc
  	mov	%rsp,$fp
-diff --git a/sarcastic-openssl/crypto/sha/asm/sha256-mb-x86_64.pl b/sarcastic-openssl/crypto/sha/asm/sha256-mb-x86_64.pl
---- a/sarcastic-openssl/crypto/sha/asm/sha256-mb-x86_64.pl
-+++ b/sarcastic-openssl/crypto/sha/asm/sha256-mb-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/sha/asm/sha256-mb-x86_64.pl b/sarcastic-openssl3/crypto/sha/asm/sha256-mb-x86_64.pl
+--- a/sarcastic-openssl3/crypto/sha/asm/sha256-mb-x86_64.pl
++++ b/sarcastic-openssl3/crypto/sha/asm/sha256-mb-x86_64.pl
 @@ -258,9 +258,13 @@
  .globl	sha256_multi_block
  .type	sha256_multi_block,\@function,3
@@ -10613,9 +10613,9 @@ diff --git a/sarcastic-openssl/crypto/sha/asm/sha256-mb-x86_64.pl b/sarcastic-op
  	# number of blocks
  	mov	`$inp_elm_size*$i+$ptr_size`($inp),%ecx
  	cmp	$num,%ecx
-diff --git a/sarcastic-openssl/crypto/sha/asm/sha512-x86_64.pl b/sarcastic-openssl/crypto/sha/asm/sha512-x86_64.pl
---- a/sarcastic-openssl/crypto/sha/asm/sha512-x86_64.pl
-+++ b/sarcastic-openssl/crypto/sha/asm/sha512-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/sha/asm/sha512-x86_64.pl b/sarcastic-openssl3/crypto/sha/asm/sha512-x86_64.pl
+--- a/sarcastic-openssl3/crypto/sha/asm/sha512-x86_64.pl
++++ b/sarcastic-openssl3/crypto/sha/asm/sha512-x86_64.pl
 @@ -283,11 +283,11 @@
  .globl	$func
  .type	$func,\@function,3
@@ -10723,9 +10723,9 @@ diff --git a/sarcastic-openssl/crypto/sha/asm/sha512-x86_64.pl b/sarcastic-opens
  .cfi_startproc
      endbranch
  .Lsha512ext_shortcut:
-diff --git a/sarcastic-openssl/crypto/sm3/asm/sm3-x86_64.pl b/sarcastic-openssl/crypto/sm3/asm/sm3-x86_64.pl
---- a/sarcastic-openssl/crypto/sm3/asm/sm3-x86_64.pl
-+++ b/sarcastic-openssl/crypto/sm3/asm/sm3-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/sm3/asm/sm3-x86_64.pl b/sarcastic-openssl3/crypto/sm3/asm/sm3-x86_64.pl
+--- a/sarcastic-openssl3/crypto/sm3/asm/sm3-x86_64.pl
++++ b/sarcastic-openssl3/crypto/sm3/asm/sm3-x86_64.pl
 @@ -101,7 +101,7 @@
  .globl	ossl_hwsm3_block_data_order
  .type	ossl_hwsm3_block_data_order,\@function,3
@@ -10744,9 +10744,9 @@ diff --git a/sarcastic-openssl/crypto/sm3/asm/sm3-x86_64.pl b/sarcastic-openssl/
      .byte   0x0f,0x0b    # ud2
      ret
  .size   ossl_hwsm3_block_data_order, .-ossl_hwsm3_block_data_order
-diff --git a/sarcastic-openssl/crypto/sm4/asm/sm4-x86_64.pl b/sarcastic-openssl/crypto/sm4/asm/sm4-x86_64.pl
---- a/sarcastic-openssl/crypto/sm4/asm/sm4-x86_64.pl
-+++ b/sarcastic-openssl/crypto/sm4/asm/sm4-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/sm4/asm/sm4-x86_64.pl b/sarcastic-openssl3/crypto/sm4/asm/sm4-x86_64.pl
+--- a/sarcastic-openssl3/crypto/sm4/asm/sm4-x86_64.pl
++++ b/sarcastic-openssl3/crypto/sm4/asm/sm4-x86_64.pl
 @@ -102,7 +102,7 @@
  .globl    ${prefix}_set_key
  .type     ${prefix}_set_key,\@function,2
@@ -10799,9 +10799,9 @@ diff --git a/sarcastic-openssl/crypto/sm4/asm/sm4-x86_64.pl b/sarcastic-openssl/
      .byte   0x0f,0x0b    # ud2
      ret
  .size     ${prefix}_decrypt, .-${prefix}_decrypt
-diff --git a/sarcastic-openssl/crypto/whrlpool/asm/wp-x86_64.pl b/sarcastic-openssl/crypto/whrlpool/asm/wp-x86_64.pl
---- a/sarcastic-openssl/crypto/whrlpool/asm/wp-x86_64.pl
-+++ b/sarcastic-openssl/crypto/whrlpool/asm/wp-x86_64.pl
+diff --git a/sarcastic-openssl3/crypto/whrlpool/asm/wp-x86_64.pl b/sarcastic-openssl3/crypto/whrlpool/asm/wp-x86_64.pl
+--- a/sarcastic-openssl3/crypto/whrlpool/asm/wp-x86_64.pl
++++ b/sarcastic-openssl3/crypto/whrlpool/asm/wp-x86_64.pl
 @@ -67,7 +67,7 @@
  .globl	$func
  .type	$func,\@function,3
@@ -10901,9 +10901,9 @@ diff --git a/sarcastic-openssl/crypto/whrlpool/asm/wp-x86_64.pl b/sarcastic-open
  .cfi_endproc
  .size	$func,.-$func
 
-diff --git a/sarcastic-openssl/crypto/x86_64cpuid.pl b/sarcastic-openssl/crypto/x86_64cpuid.pl
---- a/sarcastic-openssl/crypto/x86_64cpuid.pl
-+++ b/sarcastic-openssl/crypto/x86_64cpuid.pl
+diff --git a/sarcastic-openssl3/crypto/x86_64cpuid.pl b/sarcastic-openssl3/crypto/x86_64cpuid.pl
+--- a/sarcastic-openssl3/crypto/x86_64cpuid.pl
++++ b/sarcastic-openssl3/crypto/x86_64cpuid.pl
 @@ -31,7 +31,7 @@
  .extern		OPENSSL_cpuid_setup
  .hidden		OPENSSL_cpuid_setup
@@ -11038,9 +11038,9 @@ diff --git a/sarcastic-openssl/crypto/x86_64cpuid.pl b/sarcastic-openssl/crypto/
  .cfi_startproc
  	endbranch
  	xor	%rax, %rax	# return value
-diff --git a/sarcastic-openssl/test/bioprinttest.c b/sarcastic-openssl/test/bioprinttest.c
---- a/sarcastic-openssl/test/bioprinttest.c
-+++ b/sarcastic-openssl/test/bioprinttest.c
+diff --git a/sarcastic-openssl3/test/bioprinttest.c b/sarcastic-openssl3/test/bioprinttest.c
+--- a/sarcastic-openssl3/test/bioprinttest.c
++++ b/sarcastic-openssl3/test/bioprinttest.c
 @@ -326,6 +326,22 @@
      const char *s;
  };
@@ -11121,9 +11121,9 @@ diff --git a/sarcastic-openssl/test/bioprinttest.c b/sarcastic-openssl/test/biop
          }                                                                  \
          n.val = n.field_;                                                  \
          std_n.val = std_n.field_;                                          \
-diff --git a/sarcastic-openssl/test/mem_alloc_test.c b/sarcastic-openssl/test/mem_alloc_test.c
---- a/sarcastic-openssl/test/mem_alloc_test.c
-+++ b/sarcastic-openssl/test/mem_alloc_test.c
+diff --git a/sarcastic-openssl3/test/mem_alloc_test.c b/sarcastic-openssl3/test/mem_alloc_test.c
+--- a/sarcastic-openssl3/test/mem_alloc_test.c
++++ b/sarcastic-openssl3/test/mem_alloc_test.c
 @@ -78,7 +78,13 @@
 
      { 1, 1, EXP_NONNULL, EXP_NONNULL },
@@ -11182,9 +11182,9 @@ diff --git a/sarcastic-openssl/test/mem_alloc_test.c b/sarcastic-openssl/test/me
  };
 
  static int secure_memory_is_secure;
-diff --git a/sarcastic-openssl/test/recipes/01-test_symbol_presence.t b/sarcastic-openssl/test/recipes/01-test_symbol_presence.t
+diff --git a/sarcastic-openssl3/test/recipes/01-test_symbol_presence.t b/sarcastic-openssl3/test/recipes/01-test_symbol_presence.t
 deleted file mode 100644
---- a/sarcastic-openssl/test/recipes/01-test_symbol_presence.t
+--- a/sarcastic-openssl3/test/recipes/01-test_symbol_presence.t
 +++ /dev/null
 @@ -1,247 +0,0 @@
 -#! /usr/bin/env perl
@@ -11434,9 +11434,9 @@ deleted file mode 100644
 -           "check that there are no missing symbols in $_");
 -    }
 -}
-diff --git a/sarcastic-openssl/test/recipes/20-test_speed.t b/sarcastic-openssl/test/recipes/20-test_speed.t
---- a/sarcastic-openssl/test/recipes/20-test_speed.t
-+++ b/sarcastic-openssl/test/recipes/20-test_speed.t
+diff --git a/sarcastic-openssl3/test/recipes/20-test_speed.t b/sarcastic-openssl3/test/recipes/20-test_speed.t
+--- a/sarcastic-openssl3/test/recipes/20-test_speed.t
++++ b/sarcastic-openssl3/test/recipes/20-test_speed.t
 @@ -93,11 +93,10 @@
  }
 
@@ -11452,9 +11452,9 @@ diff --git a/sarcastic-openssl/test/recipes/20-test_speed.t b/sarcastic-openssl/
  }
 
  #We don't expect these options to have an effect in testmode but we at least
-diff --git a/sarcastic-openssl/test/recipes/30-test_afalg.t b/sarcastic-openssl/test/recipes/30-test_afalg.t
+diff --git a/sarcastic-openssl3/test/recipes/30-test_afalg.t b/sarcastic-openssl3/test/recipes/30-test_afalg.t
 deleted file mode 100644
---- a/sarcastic-openssl/test/recipes/30-test_afalg.t
+--- a/sarcastic-openssl3/test/recipes/30-test_afalg.t
 +++ /dev/null
 @@ -1,21 +0,0 @@
 -#! /usr/bin/env perl
@@ -11478,9 +11478,9 @@ deleted file mode 100644
 -plan tests => 1;
 -
 -ok(run(test(["afalgtest"])), "running afalgtest");
-diff --git a/sarcastic-openssl/test/recipes/90-test_secmem.t b/sarcastic-openssl/test/recipes/90-test_secmem.t
+diff --git a/sarcastic-openssl3/test/recipes/90-test_secmem.t b/sarcastic-openssl3/test/recipes/90-test_secmem.t
 deleted file mode 100644
---- a/sarcastic-openssl/test/recipes/90-test_secmem.t
+--- a/sarcastic-openssl3/test/recipes/90-test_secmem.t
 +++ /dev/null
 @@ -1,12 +0,0 @@
 -#! /usr/bin/env perl
