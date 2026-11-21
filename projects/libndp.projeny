@@ -1,0 +1,12 @@
+URL: https://deb.debian.org/debian/pool/main/libn/libndp/libndp_1.9.orig.tar.gz 0513735875ae68578895d5892312d9c4c417782b98f825d94d472f2c43a25a03
+Origname: libndp-1.9
+Name: libndp
+    libndp 1.9 (IPv6 Neighbor Discovery Protocol library; NetworkManager
+    1.48.4 declares it as an unconditional dependency,
+    meson.build:257).  The Debian pool .orig tarball is the upstream
+    git tag archive (configure.ac + autogen.sh, no generated
+    configure), so the chroot script runs `autoreconf --force
+    --install -I m4` first (autoconf 2.72/automake 1.17/libtool 2.4.7
+    in the chroot).  Fil-C changes: none -- built clean on the first
+    try; ndptool (the one binary) runs under fil-C.
+

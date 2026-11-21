@@ -702,6 +702,27 @@ long zsys_syscall(long n, ...)
         callee = zsys_listmount;
         break;
 
+    /* Module loading and unloading.  The pizlonated kmod reaches finit_module
+       via the generic syscall() path (kmod's shared/missing.h wraps
+       finit_module as syscall(SYS_finit_module, ...)), so these have to be
+       routed here in zsys_syscall and not just exposed as direct zsys_*
+       wrappers.  The native implementations (filc_native_zsys_init_module,
+       filc_native_zsys_finit_module, filc_native_zsys_delete_module) already
+       existed in filc_runtime.c -- they validate the pointers and then call
+       the real syscall from the runtime. */
+
+    case SYS_init_module:
+        callee = zsys_init_module;
+        break;
+
+    case SYS_finit_module:
+        callee = zsys_finit_module;
+        break;
+
+    case SYS_delete_module:
+        callee = zsys_delete_module;
+        break;
+
 	/* FIXME: Implement more syscalls! */
 
     default:

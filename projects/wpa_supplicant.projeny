@@ -1,0 +1,18 @@
+URL: https://w1.fi/releases/wpa_supplicant-2.11.tar.gz 3b61ac45430831f5fdc4ef8d00b5415075a2f236f591213eca22c9c7312707c3
+Origname: wpa_supplicant-2.11
+Name: wpa_supplicant
+    wpa_supplicant 2.11 (the WiFi authentication daemon NetworkManager
+    D-Bus-activates; fi.w1.wpa_supplicant1).  The tarball is the whole
+    hostap archive (hostapd/, wpa_supplicant/, src/ shared); the chroot
+    script builds only the wpa_supplicant/ subdirectory from a
+    defconfig-derived .config with the NM options appended
+    (CONFIG_CTRL_IFACE_DBUS_NEW, CONFIG_CTRL_IFACE_DBUS_INTRO -- the
+    upstream option name, not ..._INTROSPECTION -- CONFIG_DRIVER_NL80211,
+    CONFIG_LIBNL32; CONFIG_TLS defaults to openssl).  Install is manual
+    per BLFS: the daemon to /usr/sbin, wpa_cli/wpa_passphrase to
+    /usr/bin, the generated fi.w1.wpa_supplicant1.service (Exec= uses
+    the make-time BINDIR) to /usr/share/dbus-1/system-services/ and the
+    dbus policy to /usr/share/dbus-1/system.d/.  Fil-C changes: none
+    expected beyond the usual; the eloop/os_unix/openssl-glue idioms
+    build clean.
+

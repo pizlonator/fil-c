@@ -1,0 +1,158 @@
+URL: https://github.com/thom311/libnl/releases/download/libnl3_11_0/libnl-3.11.0.tar.gz d5f094be7b0a2f594f2a636af21358974a743c51753c4f3c622275b0ee770b58
+Origname: libnl-3.11.0
+Name: libnl
+
+    libnl-3 3.11.0 (the netlink library wpa_supplicant's nl80211 driver
+    links; NetworkManager does NOT use libnl -- it has its own netlink
+    stack).  Builds with autotools, --disable-cli (the cli tools need
+    flex; wpa_supplicant needs only libnl-3/-genl-3/-route-3).
+    Fil-C changes: the seven linker version scripts (libnl-3.sym etc.)
+    each get a `pizlonated_*;` entry in the base tag's global: section.
+    With only `local: *;` the fil-C compiler's pizlonated_ function-
+    object forwarders were made local, but the sibling libraries
+    reference each other's functions through the pizlonated_ names
+    (every cross-object call is a pizlonated_ reference under fil-C),
+    so wpa_supplicant's link failed on pizlonated_nl_get_user_hz &
+    friends.  glib exports its forwarders by default (no version
+    script) -- 1860 pizlonated_g_* in libglib-2.0.so -- which is the
+    working pattern this matches.
+diff --git a/libnl/libnl-3.sym b/libnl/libnl-3.sym
+--- a/libnl/libnl-3.sym
++++ b/libnl/libnl-3.sym
+@@ -6,6 +6,16 @@
+ # the version tag for the next upcoming release.
+ libnl_3 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per
++	# exported function, emitted by the fil-C compiler) must be
++	# exported too -- the sibling libraries (libnl-route-3 etc.)
++	# reference each other's functions through the pizlonated_ names,
++	# and with `local: *;` they were hidden, leaving those references
++	# undefined at executable link time (wpa_supplicant's link failed
++	# on pizlonated_nl_get_user_hz).  glib, which has no version
++	# script, exports its forwarders by default -- that is the working
++	# pattern this matches.
++	pizlonated_*;
+ 	# these functions are in private header files and should have never
+ 	# been exported. We might hide them later.
+ 	nl_cache_parse;
+diff --git a/libnl/libnl-cli-3.sym b/libnl/libnl-cli-3.sym
+--- a/libnl/libnl-cli-3.sym
++++ b/libnl/libnl-cli-3.sym
+@@ -6,6 +6,16 @@
+ # the version tag for the next upcoming release.
+ libnl_3 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per
++	# exported function, emitted by the fil-C compiler) must be
++	# exported too -- the sibling libraries (libnl-route-3 etc.)
++	# reference each other's functions through the pizlonated_ names,
++	# and with `local: *;` they were hidden, leaving those references
++	# undefined at executable link time (wpa_supplicant's link failed
++	# on pizlonated_nl_get_user_hz).  glib, which has no version
++	# script, exports its forwarders by default -- that is the working
++	# pattern this matches.
++	pizlonated_*;
+ 	nl_cli_addr_alloc;
+ 	nl_cli_addr_parse;
+ 	nl_cli_addr_parse_broadcast;
+diff --git a/libnl/libnl-genl-3.sym b/libnl/libnl-genl-3.sym
+--- a/libnl/libnl-genl-3.sym
++++ b/libnl/libnl-genl-3.sym
+@@ -6,6 +6,16 @@
+ # the version tag for the next upcoming release.
+ libnl_3 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per
++	# exported function, emitted by the fil-C compiler) must be
++	# exported too -- the sibling libraries (libnl-route-3 etc.)
++	# reference each other's functions through the pizlonated_ names,
++	# and with `local: *;` they were hidden, leaving those references
++	# undefined at executable link time (wpa_supplicant's link failed
++	# on pizlonated_nl_get_user_hz).  glib, which has no version
++	# script, exports its forwarders by default -- that is the working
++	# pattern this matches.
++	pizlonated_*;
+ 	# these functions are in private header files and should have never
+ 	# been exported. We might hide them later.
+ 	genl_resolve_id;
+diff --git a/libnl/libnl-idiag-3.sym b/libnl/libnl-idiag-3.sym
+--- a/libnl/libnl-idiag-3.sym
++++ b/libnl/libnl-idiag-3.sym
+@@ -6,6 +6,16 @@
+ # the version tag for the next upcoming release.
+ libnl_3 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per
++	# exported function, emitted by the fil-C compiler) must be
++	# exported too -- the sibling libraries (libnl-route-3 etc.)
++	# reference each other's functions through the pizlonated_ names,
++	# and with `local: *;` they were hidden, leaving those references
++	# undefined at executable link time (wpa_supplicant's link failed
++	# on pizlonated_nl_get_user_hz).  glib, which has no version
++	# script, exports its forwarders by default -- that is the working
++	# pattern this matches.
++	pizlonated_*;
+ 	# ops structure
+ 	idiagnl_meminfo_obj_ops;
+ 	idiagnl_msg_obj_ops;
+diff --git a/libnl/libnl-nf-3.sym b/libnl/libnl-nf-3.sym
+--- a/libnl/libnl-nf-3.sym
++++ b/libnl/libnl-nf-3.sym
+@@ -6,6 +6,16 @@
+ # the version tag for the next upcoming release.
+ libnl_3 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per
++	# exported function, emitted by the fil-C compiler) must be
++	# exported too -- the sibling libraries (libnl-route-3 etc.)
++	# reference each other's functions through the pizlonated_ names,
++	# and with `local: *;` they were hidden, leaving those references
++	# undefined at executable link time (wpa_supplicant's link failed
++	# on pizlonated_nl_get_user_hz).  glib, which has no version
++	# script, exports its forwarders by default -- that is the working
++	# pattern this matches.
++	pizlonated_*;
+ 	# ops structure
+ 	ct_obj_ops;
+ 	exp_obj_ops;
+diff --git a/libnl/libnl-route-3.sym b/libnl/libnl-route-3.sym
+--- a/libnl/libnl-route-3.sym
++++ b/libnl/libnl-route-3.sym
+@@ -6,6 +6,16 @@
+ # the version tag for the next upcoming release.
+ libnl_3 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per
++	# exported function, emitted by the fil-C compiler) must be
++	# exported too -- the sibling libraries (libnl-route-3 etc.)
++	# reference each other's functions through the pizlonated_ names,
++	# and with `local: *;` they were hidden, leaving those references
++	# undefined at executable link time (wpa_supplicant's link failed
++	# on pizlonated_nl_get_user_hz).  glib, which has no version
++	# script, exports its forwarders by default -- that is the working
++	# pattern this matches.
++	pizlonated_*;
+ 	# these functions are in private header files and should have never
+ 	# been exported. We might hide them later.
+ 	rtnl_link_af_alloc;
+diff --git a/libnl/libnl-xfrm-3.sym b/libnl/libnl-xfrm-3.sym
+--- a/libnl/libnl-xfrm-3.sym
++++ b/libnl/libnl-xfrm-3.sym
+@@ -6,6 +6,16 @@
+ # the version tag for the next upcoming release.
+ libnl_3 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per
++	# exported function, emitted by the fil-C compiler) must be
++	# exported too -- the sibling libraries (libnl-route-3 etc.)
++	# reference each other's functions through the pizlonated_ names,
++	# and with `local: *;` they were hidden, leaving those references
++	# undefined at executable link time (wpa_supplicant's link failed
++	# on pizlonated_nl_get_user_hz).  glib, which has no version
++	# script, exports its forwarders by default -- that is the working
++	# pattern this matches.
++	pizlonated_*;
+ 	xfrmnl_ae_alloc;
+ 	xfrmnl_ae_build_get_request;
+ 	xfrmnl_ae_flags2str;

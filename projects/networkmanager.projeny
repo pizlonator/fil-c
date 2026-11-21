@@ -1,0 +1,800 @@
+URL: https://download.gnome.org/sources/NetworkManager/1.48/NetworkManager-1.48.4.tar.xz 80c1d0a2cd44da8f35f0c488c0c6ecd8c16badd88a24209711c62ca5da70351a
+Origname: NetworkManager-1.48.4
+Name: networkmanager
+
+    NetworkManager 1.48.4 (the network daemon behind the GNOME network
+    indicator; the GNOME 46-era release matching the chroot's stack).
+    Meson build with every optional dependency pinned to the chroot:
+    session_tracking/suspend_resume=elogind, polkit=true,
+    crypto=gnutls, dhcp=internal (vendored nettools, no external DHCP
+    client), dns rc-manager=auto (writes /etc/resolv.conf directly),
+    wifi=true wext=false iwd=false, ppp/ovs/modem_manager/teamdctl/
+    nmtui/nm_cloud_setup/ebpf/ifupdown/qt/bluez5_dun off, selinux/
+    libaudit/systemd_journal off, systemdsystemunitdir=no (sysvinit),
+    introspection=true (NM-1.0.gir/typelib for gjs), vapi/docs/tests
+    off, more_asserts=0, ld_gc=false (house pattern: no gc-sections
+    under fil-C).  jansson is probed required:false (absent OK).  NM
+    does NOT need libnl (own netlink stack in src/libnm-platform).
+    Fil-C changes: see the committed patch (vendored c-list/c-rbtree/
+    c-siphash/c-stdaux + the libnm-platform netlink parsers are the
+    first-time-compiled risk spots).
+diff --git a/networkmanager/linker-script-devices.ver b/networkmanager/linker-script-devices.ver
+--- a/networkmanager/linker-script-devices.ver
++++ b/networkmanager/linker-script-devices.ver
+@@ -1,5 +1,13 @@
+ {
+ global:
++	# Fil-C: the fil-C dlsym/g_module_symbol wrapper looks functions up
++	# under their pizlonated_ forwarder names, and fil-C objects
++	# reference the daemon/plugin's functions the same way -- with only
++	# `local: *;` the forwarders were hidden and the plugin failed to
++	# load (g_module_symbol("nm_device_factory_create") could not find
++	# pizlonated_nm_device_factory_create).  Export them (same house fix
++	# as the libnl *.sym files and libnm.ver).
++	pizlonated_*;
+ 	nm_device_factory_create;
+ local:
+ 	*;
+diff --git a/networkmanager/linker-script-settings.ver b/networkmanager/linker-script-settings.ver
+--- a/networkmanager/linker-script-settings.ver
++++ b/networkmanager/linker-script-settings.ver
+@@ -1,5 +1,13 @@
+ {
+ global:
++	# Fil-C: the fil-C dlsym/g_module_symbol wrapper looks functions up
++	# under their pizlonated_ forwarder names, and fil-C objects
++	# reference the daemon/plugin's functions the same way -- with only
++	# `local: *;` the forwarders were hidden and the plugin failed to
++	# load (g_module_symbol("nm_device_factory_create") could not find
++	# pizlonated_nm_device_factory_create).  Export them (same house fix
++	# as the libnl *.sym files and libnm.ver).
++	pizlonated_*;
+ 	nm_settings_plugin_factory;
+ local:
+ 	*;
+diff --git a/networkmanager/meson.build b/networkmanager/meson.build
+--- a/networkmanager/meson.build
++++ b/networkmanager/meson.build
+@@ -290,7 +290,17 @@
+   ],
+   compile_args: [
+     '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_42',
+-    '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_42',
++    # Fil-C: the pizlonated glib's gtype.h routes the G_DEFINE_TYPE /
++    # G_DEFINE_INTERFACE once-init boilerplate through the pointer-based
++    # _g_type_once_init_* forms only when GLIB_VERSION_MAX_ALLOWED >=
++    # 2.80; with the upstream 2.42 pin the macros fall back to gsize
++    # statics + plain g_once_init_enter/leave, and under fil-C GType is
++    # a pointer (struct _GTypeOpaque *), so every gdbus-codegen-generated
++    # type definition fails with int-to-pointer conversions.  Raise only
++    # the MAX_ALLOWED pin (the libportal house pattern: MIN_REQUIRED
++    # keeps upstream's 2.42 deprecation semantics; MAX_ALLOWED just
++    # selects the pointer-based boilerplate forms).
++    '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_80',
+   ]
+ )
+
+diff --git a/networkmanager/src/c-rbtree/src/c-rbtree-private.h b/networkmanager/src/c-rbtree/src/c-rbtree-private.h
+--- a/networkmanager/src/c-rbtree/src/c-rbtree-private.h
++++ b/networkmanager/src/c-rbtree/src/c-rbtree-private.h
+@@ -15,11 +15,16 @@
+  */
+
+ static inline void *c_rbnode_raw(CRBNode *n) {
+-        return (void *)(n->__parent_and_flags & ~C_RBNODE_FLAG_MASK);
++        /* Fil-C: return the raw pointer through the real pointer members
++         * (see the CRBNode comment in c-rbtree.h) -- when C_RBNODE_ROOT is
++         * set the union holds the CRBTree back-pointer, otherwise the
++         * parent node. */
++        return (n->__flags & C_RBNODE_ROOT) ? (void *)n->__tree
++                                            : (void *)n->__parent;
+ }
+
+ static inline unsigned long c_rbnode_flags(CRBNode *n) {
+-        return n->__parent_and_flags & C_RBNODE_FLAG_MASK;
++        return n->__flags & C_RBNODE_FLAG_MASK;
+ }
+
+ static inline _Bool c_rbnode_is_red(CRBNode *n) {
+diff --git a/networkmanager/src/c-rbtree/src/c-rbtree.c b/networkmanager/src/c-rbtree/src/c-rbtree.c
+--- a/networkmanager/src/c-rbtree/src/c-rbtree.c
++++ b/networkmanager/src/c-rbtree/src/c-rbtree.c
+@@ -407,7 +407,9 @@
+  * function is provided.
+  */
+ static inline void c_rbnode_set_parent_and_flags(CRBNode *n, CRBNode *p, unsigned long flags) {
+-        n->__parent_and_flags = (unsigned long)p | flags;
++        /* Fil-C: split parent pointer + flags (see c-rbtree.h). */
++        n->__parent = p;
++        n->__flags = flags;
+ }
+
+ /*
+@@ -435,8 +437,13 @@
+         CRBTree *t = NULL;
+
+         if (c_rbnode_is_root(n)) {
+-                t = c_rbnode_raw(n);
+-                n->__parent_and_flags = c_rbnode_flags(n) & ~C_RBNODE_ROOT;
++                /* Fil-C: fetch the tree back-pointer from the real pointer
++                 * member, then clear both the flag and the pointer (the
++                 * parent slot goes stale during rotation, exactly like
++                 * upstream where the raw pointer bits were dropped). */
++                t = n->__tree;
++                n->__parent = NULL;
++                n->__flags &= ~C_RBNODE_ROOT;
+         }
+
+         return t;
+@@ -445,10 +452,10 @@
+ /* counter-part to c_rbnode_pop_root() */
+ static inline CRBTree *c_rbnode_push_root(CRBNode *n, CRBTree *t) {
+         if (t) {
+-                if (n)
+-                        n->__parent_and_flags = (unsigned long)t
+-                                                | c_rbnode_flags(n)
+-                                                | C_RBNODE_ROOT;
++                if (n) {
++                        n->__tree = t;
++                        n->__flags |= C_RBNODE_ROOT;
++                }
+                 c_rbtree_store(&t->root, n);
+         }
+
+diff --git a/networkmanager/src/c-rbtree/src/c-rbtree.h b/networkmanager/src/c-rbtree/src/c-rbtree.h
+--- a/networkmanager/src/c-rbtree/src/c-rbtree.h
++++ b/networkmanager/src/c-rbtree/src/c-rbtree.h
+@@ -73,11 +73,24 @@
+ struct CRBNode {
+         /** Anonymous union for alignment guarantees */
+         union {
+-                /** Internal state encoding the parent pointer and state */
+-                unsigned long __parent_and_flags;
+-                /* enforce >=4-byte alignment for @__parent_and_flags */
+-                alignas(4) unsigned char __align_dummy;
++                /** Fil-C: upstream stores the parent pointer (or, when
++                 * C_RBNODE_ROOT is set, the CRBTree back-pointer) plus the
++                 * two flag bits packed into a single unsigned long
++                 * (__parent_and_flags), and round-trips that through
++                 * integer->pointer casts on every access.  Under fil-C an
++                 * integer->pointer cast yields a pointer with null
++                 * metadata, so every parent dereference panics ("cannot
++                 * read pointer with null object" -- observed in
++                 * c_rbnode_unlink_stale on n-acd's timer path right after
++                 * a DHCP lease is acquired).  Keep the pointers in real
++                 * pointer members and the flags in their own word: same
++                 * information, same semantics, provenance preserved. */
++                /** Parent node, or the CRBTree when C_RBNODE_ROOT is set */
++                CRBNode *__parent;
++                CRBTree *__tree;
+         };
++        /** Color (C_RBNODE_RED) and root (C_RBNODE_ROOT) flags */
++        unsigned long __flags;
+         /** Left child, or NULL */
+         CRBNode *left;
+         /** Right child, or NULL */
+@@ -93,7 +106,10 @@
+  *
+  * Return: Evaluates to the initializer for `_var`.
+  */
+-#define C_RBNODE_INIT(_var) { .__parent_and_flags = (unsigned long)&(_var) }
++/* Fil-C: parent = self (unlinked state), no flags (upstream packed the
++ * self-pointer into __parent_and_flags with no flag bits -- identical
++ * semantics with the split members). */
++#define C_RBNODE_INIT(_var) { .__parent = &(_var), .__flags = 0 }
+
+ CRBNode *c_rbnode_leftmost(CRBNode *n);
+ CRBNode *c_rbnode_rightmost(CRBNode *n);
+@@ -204,9 +220,9 @@
+  * Return: Pointer to parent.
+  */
+ static inline CRBNode *c_rbnode_parent(CRBNode *n) {
+-        return (n->__parent_and_flags & C_RBNODE_ROOT) ?
++        return (n->__flags & C_RBNODE_ROOT) ?
+                         NULL :
+-                        (void *)(n->__parent_and_flags & ~C_RBNODE_FLAG_MASK);
++                        n->__parent;
+ }
+
+ /**
+diff --git a/networkmanager/src/core/devices/nm-device-bridge.c b/networkmanager/src/core/devices/nm-device-bridge.c
+--- a/networkmanager/src/core/devices/nm-device-bridge.c
++++ b/networkmanager/src/core/devices/nm-device-bridge.c
+@@ -523,9 +523,15 @@
+             goto out;
+         }
+
+-        switch (pspec->value_type) {
+-        case G_TYPE_UINT64:
+-        case G_TYPE_UINT:
++            /* Fil-C: GType is a pointer in the pizlonated glib (struct
++     * _GTypeOpaque *), so the switch expression must go through an
++     * integer view ((gsize) cast) for the switch statement to be
++     * valid, and the case labels must be cast the same way -- the
++     * (gsize) form of a fundamental G_TYPE_* constant is an integer
++     * constant expression, verified live. */
++    switch ((gsize) pspec->value_type) {
++        case (gsize) G_TYPE_UINT64:
++        case (gsize) G_TYPE_UINT:
+         {
+             guint64 uvalue;
+
+@@ -550,7 +556,7 @@
+             else
+                 g_value_set_uint(&value, (guint) uvalue);
+         } break;
+-        case G_TYPE_BOOLEAN:
++        case (gsize) G_TYPE_BOOLEAN:
+         {
+             gboolean bvalue;
+
+@@ -561,7 +567,7 @@
+                                                   option->nm_default);
+             g_value_set_boolean(&value, bvalue);
+         } break;
+-        case G_TYPE_STRING:
++        case (gsize) G_TYPE_STRING:
+             g_value_set_string(&value, str);
+             break;
+         default:
+diff --git a/networkmanager/src/core/devices/wwan/libnm-wwan.ver b/networkmanager/src/core/devices/wwan/libnm-wwan.ver
+--- a/networkmanager/src/core/devices/wwan/libnm-wwan.ver
++++ b/networkmanager/src/core/devices/wwan/libnm-wwan.ver
+@@ -1,5 +1,13 @@
+ {
+ global:
++	# Fil-C: the fil-C dlsym/g_module_symbol wrapper looks functions up
++	# under their pizlonated_ forwarder names, and fil-C objects
++	# reference the daemon/plugin's functions the same way -- with only
++	# `local: *;` the forwarders were hidden and the plugin failed to
++	# load (g_module_symbol("nm_device_factory_create") could not find
++	# pizlonated_nm_device_factory_create).  Export them (same house fix
++	# as the libnl *.sym files and libnm.ver).
++	pizlonated_*;
+ 	nm_modem_act_stage1_prepare;
+ 	nm_modem_act_stage2_config;
+ 	nm_modem_check_connection_compatible;
+diff --git a/networkmanager/src/core/nm-config-data.c b/networkmanager/src/core/nm-config-data.c
+--- a/networkmanager/src/core/nm-config-data.c
++++ b/networkmanager/src/core/nm-config-data.c
+@@ -16,6 +16,31 @@
+
+ /*****************************************************************************/
+
++/* Fil-C: the NM_CON_DEFAULT() table (see nm-config-data.h).  Upstream
++ * populates it via pointer globals placed in the "connection_defaults"
++ * section and iterates the linker-provided __start/__stop boundaries;
++ * fil-C discards custom sections for pointer globals and renames
++ * cross-TU references, so the section cannot work.  Only the tests (not
++ * built) populate the table, so production runs with an empty table --
++ * exactly what this real fil-C global provides (begin == end). */
++static const char *const nm_connection_defaults_table[] = {
++    NULL,
++};
++
++const char *const *
++nm_connection_defaults_begin(void)
++{
++    return nm_connection_defaults_table;
++}
++
++const char *const *
++nm_connection_defaults_end(void)
++{
++    return nm_connection_defaults_table;
++}
++
++/*****************************************************************************/
++
+ typedef struct {
+     char    *group_name;
+     gboolean stop_match;
+@@ -1765,14 +1790,14 @@
+
+ #if NM_MORE_ASSERTS > 10
+     {
+-        const char **ptr;
++        const char *const *ptr;
+
+-        for (ptr = __start_connection_defaults; ptr < __stop_connection_defaults; ptr++) {
++        for (ptr = nm_connection_defaults_begin(); ptr < nm_connection_defaults_end(); ptr++) {
+             if (nm_streq(property, *ptr))
+                 break;
+         }
+
+-        nm_assert(ptr < __stop_connection_defaults);
++        nm_assert(ptr < nm_connection_defaults_end());
+     }
+ #endif
+
+diff --git a/networkmanager/src/core/nm-config-data.h b/networkmanager/src/core/nm-config-data.h
+--- a/networkmanager/src/core/nm-config-data.h
++++ b/networkmanager/src/core/nm-config-data.h
+@@ -197,8 +197,21 @@
+
+ const char *nm_config_data_get_iwd_config_path(const NMConfigData *self);
+
+-extern const char *__start_connection_defaults[];
+-extern const char *__stop_connection_defaults[];
++/* Fil-C: upstream declares the linker-provided section boundaries
++ * (__start_connection_defaults/__stop_connection_defaults, auto-created by
++ * ld for the orphan "connection_defaults" section that NM_CON_DEFAULT()
++ * populates) as extern arrays of pointers.  Two fil-C problems: (1) every
++ * cross-TU data reference goes through pizlonated_-prefixed metadata
++ * symbols, which the linker's auto-provisioning never creates, so the
++ * references stay undefined at link time; and (2) fil-C discards custom
++ * section placement for pointer-typed globals entirely (they become
++ * fil-C-managed globals with lazily-initialized metadata), so the section
++ * is empty anyway.  Production builds populate the table only via
++ * NM_CON_DEFAULT() in the tests (not built here), so the table is always
++ * empty: expose it as accessor functions over a real (empty) fil-C global
++ * table instead of linker-provided boundaries. */
++const char *const *nm_connection_defaults_begin(void);
++const char *const *nm_connection_defaults_end(void);
+
+ #define NM_CON_DEFAULT_NOP(name)                               \
+     static const char  *NM_UNIQ_T(connection_default, NM_UNIQ) \
+diff --git a/networkmanager/src/core/nm-config.c b/networkmanager/src/core/nm-config.c
+--- a/networkmanager/src/core/nm-config.c
++++ b/networkmanager/src/core/nm-config.c
+@@ -930,18 +930,17 @@
+ {
+     const ConfigGroup *g;
+     const char *const *k;
+-    const char       **ptr;
+
+ #if NM_MORE_ASSERTS > 10
+     {
+         static gboolean checked = FALSE;
+-        const char    **ptr1, **ptr2;
++        const char *const *ptr1, *const **ptr2;
+
+         /* check for duplicate elements in the static list */
+
+         if (!checked) {
+-            for (ptr1 = __start_connection_defaults; ptr1 < __stop_connection_defaults; ptr1++) {
+-                for (ptr2 = ptr1 + 1; ptr2 < __stop_connection_defaults; ptr2++)
++            for (ptr1 = nm_connection_defaults_begin(); ptr1 < nm_connection_defaults_end(); ptr1++) {
++                for (ptr2 = ptr1 + 1; ptr2 < nm_connection_defaults_end(); ptr2++)
+                     nm_assert(!nm_streq(*ptr1, *ptr2));
+             }
+             checked = TRUE;
+@@ -964,7 +963,9 @@
+     }
+
+     if (g->is_connection) {
+-        for (ptr = __start_connection_defaults; ptr < __stop_connection_defaults; ptr++) {
++        const char *const *ptr;
++
++        for (ptr = nm_connection_defaults_begin(); ptr < nm_connection_defaults_end(); ptr++) {
+             if (nm_streq(key, *ptr))
+                 return TRUE;
+         }
+diff --git a/networkmanager/src/core/ppp/nm-ppp-plugin.ver b/networkmanager/src/core/ppp/nm-ppp-plugin.ver
+--- a/networkmanager/src/core/ppp/nm-ppp-plugin.ver
++++ b/networkmanager/src/core/ppp/nm-ppp-plugin.ver
+@@ -1,5 +1,13 @@
+ {
+ global:
++	# Fil-C: the fil-C dlsym/g_module_symbol wrapper looks functions up
++	# under their pizlonated_ forwarder names, and fil-C objects
++	# reference the daemon/plugin's functions the same way -- with only
++	# `local: *;` the forwarders were hidden and the plugin failed to
++	# load (g_module_symbol("nm_device_factory_create") could not find
++	# pizlonated_nm_device_factory_create).  Export them (same house fix
++	# as the libnl *.sym files and libnm.ver).
++	pizlonated_*;
+ 	ppp_ops;
+ local:
+ 	*;
+diff --git a/networkmanager/src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c b/networkmanager/src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c
+--- a/networkmanager/src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c
++++ b/networkmanager/src/core/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c
+@@ -5852,8 +5852,14 @@
+         }
+
+         param_spec = g_object_class_find_property(G_OBJECT_GET_CLASS(setting), m[i].property_name);
+-        switch (param_spec->value_type) {
+-        case G_TYPE_BOOLEAN:
++            /* Fil-C: GType is a pointer in the pizlonated glib (struct
++     * _GTypeOpaque *), so the switch expression must go through an
++     * integer view ((gsize) cast) for the switch statement to be
++     * valid, and the case labels must be cast the same way -- the
++     * (gsize) form of a fundamental G_TYPE_* constant is an integer
++     * constant expression, verified live. */
++        switch ((gsize) param_spec->value_type) {
++        case (gsize) G_TYPE_BOOLEAN:
+             if (m[i].extended_bool) {
+                 if (!g_ascii_strcasecmp(value, "on") || !g_ascii_strcasecmp(value, "yes")
+                     || !strcmp(value, "1"))
+@@ -5876,7 +5882,7 @@
+                 goto warn;
+             }
+             return;
+-        case G_TYPE_UINT:
++        case (gsize) G_TYPE_UINT:
+             v = _nm_utils_ascii_str_to_int64(value, 10, 0, G_MAXUINT, -1);
+             if (v == -1) {
+                 error_message = nm_strerror_native(errno);
+@@ -5887,7 +5893,7 @@
+                 goto warn;
+             }
+             return;
+-        case G_TYPE_UINT64:
++        case (gsize) G_TYPE_UINT64:
+         {
+             guint64 vu64;
+
+@@ -5901,7 +5907,7 @@
+             }
+         }
+             return;
+-        case G_TYPE_STRING:
++        case (gsize) G_TYPE_STRING:
+             nm_g_object_set_property_string(G_OBJECT(setting), m[i].property_name, value, NULL);
+             return;
+         default:
+diff --git a/networkmanager/src/libnm-client-impl/libnm.ver b/networkmanager/src/libnm-client-impl/libnm.ver
+--- a/networkmanager/src/libnm-client-impl/libnm.ver
++++ b/networkmanager/src/libnm-client-impl/libnm.ver
+@@ -8,6 +8,15 @@
+ # version, at the bottom of the file.
+ libnm_1_0_0 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per exported
++	# function, emitted by the fil-C compiler) must be exported too --
++	# clients (nmcli, the introspection examples, gjs via the typelib's
++	# C symbols) reference libnm's functions through the pizlonated_
++	# names, and with `local: *` they were hidden, leaving those
++	# references undefined at executable link time.  glib, which has no
++	# version script, exports its forwarders by default -- the working
++	# pattern this matches (same fix as the libnl *.sym files).
++	pizlonated_*;
+ 	nm_802_11_ap_flags_get_type;
+ 	nm_802_11_ap_security_flags_get_type;
+ 	nm_802_11_mode_get_type;
+diff --git a/networkmanager/src/libnm-client-public/nm-enum-types.c.template b/networkmanager/src/libnm-client-public/nm-enum-types.c.template
+--- a/networkmanager/src/libnm-client-public/nm-enum-types.c.template
++++ b/networkmanager/src/libnm-client-public/nm-enum-types.c.template
+@@ -14,9 +14,14 @@
+ GType
+ @enum_name@_get_type (void)
+ {
+-  static volatile gsize g_define_type_id__volatile = 0;
++  /* Fil-C: GType is a pointer in the pizlonated glib, so the once-init
++   * static must be pointer-typed and the g_once_init_enter_pointer /
++   * g_once_init_leave_pointer variants must be used (the plain functions
++   * access the location through a gsize view, which fil-C rejects as a
++   * type confusion).  Same conversion as the libportal enum template. */
++  static gpointer g_define_type_id__volatile = 0;
+
+-  if (g_once_init_enter (&g_define_type_id__volatile))
++  if (g_once_init_enter_pointer (&g_define_type_id__volatile))
+     {
+       static const G@Type@Value values[] = {
+ /*** END value-header ***/
+@@ -30,10 +35,10 @@
+       };
+       GType g_define_type_id =
+         g_@type@_register_static (g_intern_static_string ("@EnumName@"), values);
+-      g_once_init_leave (&g_define_type_id__volatile, g_define_type_id);
++      g_once_init_leave_pointer (&g_define_type_id__volatile, g_define_type_id);
+     }
+
+-  return g_define_type_id__volatile;
++  return (GType) g_define_type_id__volatile;
+ }
+
+ /*** END value-tail ***/
+diff --git a/networkmanager/src/libnm-glib-aux/nm-hash-utils.h b/networkmanager/src/libnm-glib-aux/nm-hash-utils.h
+--- a/networkmanager/src/libnm-glib-aux/nm-hash-utils.h
++++ b/networkmanager/src/libnm-glib-aux/nm-hash-utils.h
+@@ -138,7 +138,16 @@
+ /* NM_HASH_COMBINE_VALS() is faster then nm_hash_update_val() as it combines multiple
+  * calls to nm_hash_update() using a packed structure. */
+ #define NM_HASH_COMBINE_VALS(var, ...)                                         \
+-    const struct _nm_packed {                                                  \
++    /* Fil-C: upstream packs this combine-struct so that sizeof() covers the   \
++     * fields densely; under fil-C that creates unaligned 8-byte fields        \
++     * (e.g. guint8 + guint64 in a _nm_packed struct puts the guint64 at       \
++     * offset 1), and the initializer's 8-byte store then trips fil-C's        \
++     * alignment check ("expected 9 writable bytes with ptr aligned to 8       \
++     * bytes at offset 1").  Drop the packing: the struct only feeds a         \
++     * per-run randomized siphash via nm_hash_update(state, &_val,             \
++     * sizeof(_val)), so nothing depends on the byte layout or the hash        \
++     * values being stable across builds. */                                   \
++    const struct {                                                             \
+         NM_VA_ARGS_FOREACH(, , , _NM_HASH_COMBINE_VALS_TYPE_OP, , __VA_ARGS__) \
+     } var _nm_alignas(max_align_t) = {                                         \
+         NM_VA_ARGS_FOREACH(, , , _NM_HASH_COMBINE_VALS_INIT_OP, , __VA_ARGS__)}
+diff --git a/networkmanager/src/libnm-glib-aux/nm-random-utils.c b/networkmanager/src/libnm-glib-aux/nm-random-utils.c
+--- a/networkmanager/src/libnm-glib-aux/nm-random-utils.c
++++ b/networkmanager/src/libnm-glib-aux/nm-random-utils.c
+@@ -183,9 +183,8 @@
+ static void
+ _bad_random_init_seed(BadRandSeed *seed)
+ {
+-    const guint8 *p_at_random;
+-    int           seed_idx;
+-    GRand        *rand;
++    int    seed_idx;
++    GRand *rand;
+
+     /* g_rand_new() reads /dev/urandom too, but we already know that
+      * /dev/urandom fails to give us good randomness (which is why
+@@ -205,10 +204,20 @@
+     g_rand_free(rand);
+
+     /* Add the per-process, random number. */
+-    p_at_random = ((gpointer) getauxval(AT_RANDOM));
+-    if (p_at_random) {
++    /* Fil-C: getauxval(AT_RANDOM) returns the AT_RANDOM address as an
++     * integer; casting it to a pointer yields null metadata, and the
++     * memcpy from it panics under fil-C ("cannot read pointer with null
++     * object").  Fill the slot from getrandom(2) instead (same purpose:
++     * seed material; sys/random.h is already included for
++     * _getrandom_best_effort).  This whole function is the
++     * bad-randomness fallback anyway -- if getrandom() fails here, the
++     * slot stays as-is, like upstream's when AT_RANDOM is absent. */
++    {
++        guint8 random_bytes[16];
++
+         G_STATIC_ASSERT(sizeof(seed->auxval) == 16);
+-        memcpy(&seed->auxval, p_at_random, 16);
++        if (getrandom(random_bytes, sizeof(random_bytes), 0) == (gssize) sizeof(random_bytes))
++            memcpy(&seed->auxval, random_bytes, sizeof(random_bytes));
+     }
+
+     _getrandom_best_effort(seed->getrandom_buf, sizeof(seed->getrandom_buf));
+diff --git a/networkmanager/src/libnm-systemd-shared/src/basic/random-util.c b/networkmanager/src/libnm-systemd-shared/src/basic/random-util.c
+--- a/networkmanager/src/libnm-systemd-shared/src/basic/random-util.c
++++ b/networkmanager/src/libnm-systemd-shared/src/basic/random-util.c
+@@ -11,6 +11,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <sys/ioctl.h>
++#include <sys/random.h>
+ #include <sys/time.h>
+
+ #if HAVE_SYS_AUXV_H
+@@ -55,7 +56,17 @@
+         };
+
+ #if HAVE_SYS_AUXV_H
+-        memcpy(state.auxval, ULONG_TO_PTR(getauxval(AT_RANDOM)), sizeof(state.auxval));
++        /* Fil-C: upstream memcpy()s the 16 AT_RANDOM bytes through
++         * ULONG_TO_PTR(getauxval(AT_RANDOM)) -- a provenance-less
++         * pointer under fil-C (the address as an integer), which panics
++         * ("cannot read pointer with null object").  Source the same
++         * seed material from getrandom(2) instead (sys/random.h included
++         * above).  This is the FALLBACK random path (getrandom already
++         * failed for the caller), so if it fails again the slot just
++         * stays zeroed -- the hash still mixes label/counter/stamps/
++         * pids, matching upstream's fallback spirit. */
++        if (getrandom(state.auxval, sizeof(state.auxval), 0) < 0)
++                memset(state.auxval, 0, sizeof(state.auxval));
+ #endif
+
+         while (n > 0) {
+diff --git a/networkmanager/src/libnmc-setting/nm-meta-setting-desc.c b/networkmanager/src/libnmc-setting/nm-meta-setting-desc.c
+--- a/networkmanager/src/libnmc-setting/nm-meta-setting-desc.c
++++ b/networkmanager/src/libnmc-setting/nm-meta-setting-desc.c
+@@ -969,18 +969,24 @@
+     g_value_init(&gval, pspec->value_type);
+     g_object_get_property(G_OBJECT(setting), property_info->property_name, &gval);
+     NM_SET_OUT(out_is_default, g_param_value_defaults(pspec, &gval));
+-    switch (pspec->value_type) {
+-    case G_TYPE_INT:
++        /* Fil-C: GType is a pointer in the pizlonated glib (struct
++     * _GTypeOpaque *), so the switch expression must go through an
++     * integer view ((gsize) cast) for the switch statement to be
++     * valid, and the case labels must be cast the same way -- the
++     * (gsize) form of a fundamental G_TYPE_* constant is an integer
++     * constant expression, verified live. */
++    switch ((gsize) pspec->value_type) {
++    case (gsize) G_TYPE_INT:
+         v.i64 = g_value_get_int(&gval);
+         break;
+-    case G_TYPE_UINT:
++    case (gsize) G_TYPE_UINT:
+         v.u64     = g_value_get_uint(&gval);
+         is_uint64 = TRUE;
+         break;
+-    case G_TYPE_INT64:
++    case (gsize) G_TYPE_INT64:
+         v.i64 = g_value_get_int64(&gval);
+         break;
+-    case G_TYPE_UINT64:
++    case (gsize) G_TYPE_UINT64:
+         v.u64     = g_value_get_uint64(&gval);
+         is_uint64 = TRUE;
+         break;
+@@ -1210,20 +1216,26 @@
+         return TRUE;
+     }
+
+-    switch (pspec->value_type) {
+-    case G_TYPE_UINT:
++        /* Fil-C: GType is a pointer in the pizlonated glib (struct
++     * _GTypeOpaque *), so the switch expression must go through an
++     * integer view ((gsize) cast) for the switch statement to be
++     * valid, and the case labels must be cast the same way -- the
++     * (gsize) form of a fundamental G_TYPE_* constant is an integer
++     * constant expression, verified live. */
++    switch ((gsize) pspec->value_type) {
++    case (gsize) G_TYPE_UINT:
+         out_min->u64 = ((GParamSpecUInt *) pspec)->minimum;
+         out_max->u64 = ((GParamSpecUInt *) pspec)->maximum;
+         return out_min->u64 != 0 || out_max->u64 != G_MAXUINT;
+-    case G_TYPE_UINT64:
++    case (gsize) G_TYPE_UINT64:
+         out_min->u64 = ((GParamSpecUInt64 *) pspec)->minimum;
+         out_max->u64 = ((GParamSpecUInt64 *) pspec)->maximum;
+         return out_min->u64 != 0 || out_max->u64 != G_MAXUINT64;
+-    case G_TYPE_INT:
++    case (gsize) G_TYPE_INT:
+         out_min->i64 = ((GParamSpecInt *) pspec)->minimum;
+         out_max->i64 = ((GParamSpecInt *) pspec)->maximum;
+         return out_min->i64 != G_MININT || out_max->i64 != G_MAXINT;
+-    case G_TYPE_INT64:
++    case (gsize) G_TYPE_INT64:
+         out_min->i64 = ((GParamSpecInt64 *) pspec)->minimum;
+         out_max->i64 = ((GParamSpecInt64 *) pspec)->maximum;
+         return out_min->i64 != G_MININT64 || out_max->i64 != G_MAXINT64;
+@@ -1457,17 +1469,23 @@
+ have_value_from_nick:
+
+     g_value_init(&gval, pspec->value_type);
+-    switch (pspec->value_type) {
+-    case G_TYPE_INT:
++        /* Fil-C: GType is a pointer in the pizlonated glib (struct
++     * _GTypeOpaque *), so the switch expression must go through an
++     * integer view ((gsize) cast) for the switch statement to be
++     * valid, and the case labels must be cast the same way -- the
++     * (gsize) form of a fundamental G_TYPE_* constant is an integer
++     * constant expression, verified live. */
++    switch ((gsize) pspec->value_type) {
++    case (gsize) G_TYPE_INT:
+         g_value_set_int(&gval, v.i64);
+         break;
+-    case G_TYPE_UINT:
++    case (gsize) G_TYPE_UINT:
+         g_value_set_uint(&gval, v.u64);
+         break;
+-    case G_TYPE_INT64:
++    case (gsize) G_TYPE_INT64:
+         g_value_set_int64(&gval, v.i64);
+         break;
+-    case G_TYPE_UINT64:
++    case (gsize) G_TYPE_UINT64:
+         g_value_set_uint64(&gval, v.u64);
+         break;
+     default:
+diff --git a/networkmanager/src/n-acd/src/n-acd.c b/networkmanager/src/n-acd/src/n-acd.c
+--- a/networkmanager/src/n-acd/src/n-acd.c
++++ b/networkmanager/src/n-acd/src/n-acd.c
+@@ -62,6 +62,7 @@
+ #include <string.h>
+ #include <sys/auxv.h>
+ #include <sys/epoll.h>
++#include <sys/random.h>
+ #include <sys/socket.h>
+ #include <sys/types.h>
+ #include <unistd.h>
+@@ -80,7 +81,6 @@
+         };
+         CSipHash hash = C_SIPHASH_NULL;
+         struct timespec ts;
+-        const uint8_t *p;
+         int r;
+
+         /*
+@@ -94,9 +94,20 @@
+          */
+         c_siphash_init(&hash, hash_seed);
+
+-        p = (const uint8_t *)getauxval(AT_RANDOM);
+-        if (p)
+-                c_siphash_append(&hash, p, 16);
++        /* Fil-C: getauxval(AT_RANDOM) returns the address of the 16
++         * AT_RANDOM bytes as an integer; casting it to a pointer under
++         * fil-C yields a pointer with null metadata and hashing through
++         * it panics ("cannot read pointer with null object") as soon as
++         * the DHCP lease is acquired and the ACD probe starts.  Source
++         * the entropy from getrandom(2) instead -- same purpose (random
++         * jitter for probe timeouts, not a security measure), real
++         * pointer provenance. */
++        {
++                uint8_t random_bytes[16];
++
++                if (getrandom(random_bytes, sizeof(random_bytes), 0) == (ssize_t)sizeof(random_bytes))
++                        c_siphash_append(&hash, random_bytes, sizeof(random_bytes));
++        }
+
+         r = clock_gettime(CLOCK_MONOTONIC, &ts);
+         if (r < 0)
+diff --git a/networkmanager/src/n-dhcp4/src/n-dhcp4-c-probe.c b/networkmanager/src/n-dhcp4/src/n-dhcp4-c-probe.c
+--- a/networkmanager/src/n-dhcp4/src/n-dhcp4-c-probe.c
++++ b/networkmanager/src/n-dhcp4/src/n-dhcp4-c-probe.c
+@@ -16,6 +16,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <sys/auxv.h>
++#include <sys/random.h>
+ #include "n-dhcp4.h"
+ #include "n-dhcp4-private.h"
+
+@@ -328,7 +329,6 @@
+         };
+         CSipHash hash = C_SIPHASH_NULL;
+         unsigned short int seed16v[3];
+-        const uint8_t *p;
+         uint64_t u64;
+
+         /*
+@@ -358,9 +358,21 @@
+          */
+         c_siphash_init(&hash, hash_seed);
+
+-        p = (const uint8_t *)getauxval(AT_RANDOM);
+-        if (p)
+-                c_siphash_append(&hash, p, 16);
++        /* Fil-C: upstream sources the per-exec entropy from
++         * getauxval(AT_RANDOM) -- which returns the ADDRESS of the 16
++         * AT_RANDOM bytes as an integer; casting it to a pointer under
++         * fil-C yields a pointer with null metadata, and hashing through
++         * it panics ("cannot read pointer with null object" inside
++         * c_siphash_read_le64).  Source the entropy from getrandom(2)
++         * instead: same purpose (a unique-per-process seed to avoid
++         * ACCIDENTAL seed clashes, not a security measure -- see the
++         * comment above), real pointer provenance. */
++        {
++                uint8_t random_bytes[16];
++
++                if (getrandom(random_bytes, sizeof(random_bytes), 0) == (ssize_t)sizeof(random_bytes))
++                        c_siphash_append(&hash, random_bytes, sizeof(random_bytes));
++        }
+
+         u64 = n_dhcp4_gettime(CLOCK_MONOTONIC);
+         c_siphash_append(&hash, (const uint8_t *)&u64, sizeof(u64));
+diff --git a/networkmanager/tools/create-exports-NetworkManager.sh b/networkmanager/tools/create-exports-NetworkManager.sh
+--- a/networkmanager/tools/create-exports-NetworkManager.sh
++++ b/networkmanager/tools/create-exports-NetworkManager.sh
+@@ -60,6 +60,13 @@
+ }
+
+ get_symbols_missing() {
++    # Fil-C: with ppp=false and ifcfg_rh=false (the Pizlix chroot has no
++    # pppd and no Fedora ifcfg), NO plugin .so files are built at all, so
++    # the pipeline below feeds empty input to the two greps -- and a grep
++    # that selects zero lines exits 1, which under `set -e` +
++    # `set -o pipefail` kills this script silently.  The daemon of a
++    # plugin-less build exports nothing to plugins anyway, so an empty
++    # result is the correct answer: tolerate it with || true.
+     (for f in $(find ./src/core/settings/plugins/*/${libs} \
+                      ./src/core/devices/*/${libs} \
+                      ./src/core/ppp/${libs} -name '*.so' 2>/dev/null); do
+@@ -68,7 +75,7 @@
+     done) |
+         _sort |
+         grep -Fx -f <(get_symbols_explicit) -v |
+-        grep -Fx -f <(get_symbols_nm)
++        grep -Fx -f <(get_symbols_nm) || true
+ }
+
+ pretty() {
+@@ -105,6 +112,14 @@
+ # this file is generated by $0
+ {
+ global:
++	# Fil-C: the device plugins (libnm-device-plugin-wifi.so etc. in
++	# NMPLUGINDIR) are fil-C objects referencing the daemon's functions
++	# through pizlonated_-prefixed forwarders -- without this glob their
++	# dlopen() fails with undefined pizlonated_nm_* symbols and the
++	# manager logs "'wifi' plugin not available; creating generic
++	# device".  Same house fix as the libnl *.sym / libnm.ver files.
++	pizlonated_*;
++
+ $SYMBOLS_MISSING
+
+ $SYMBOLS_EXPLICIT
