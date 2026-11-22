@@ -174,6 +174,19 @@ hash -r
 ./build_postlc7_chroot_project_gnome_font_viewer.sh
 hash -r
 
+./build_postlc7_chroot_project_libnl.sh
+hash -r
+./build_postlc7_chroot_project_libndp.sh
+hash -r
+./build_postlc7_chroot_project_wpa_supplicant.sh
+hash -r
+./build_postlc7_chroot_project_networkmanager.sh
+hash -r
+./build_postlc7_chroot_project_dnsmasq.sh
+hash -r
+./build_postlc7_chroot_project_libnma.sh
+hash -r
+
 ./build_postlc7_chroot_project_vte.sh
 hash -r
 

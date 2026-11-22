@@ -65,6 +65,22 @@ filc/projeny package projects/ibus.projeny projects/ibus/pizlonated-ibus.tar.gz
 filc/projeny package projects/upower.projeny projects/upower/pizlonated-upower.tar.gz
 filc/projeny package projects/accountsservice.projeny projects/accountsservice/pizlonated-accountsservice.tar.gz
 
+# Sprint C of the WiFi-on-Pizlix port: the WiFi USERSPACE stack + libnma,
+# packaged here (they were postlc11 packages until Sprint C -- moved for
+# the ordering constraint documented in build_postlc7_sub2_chroot.sh:
+# g-c-c is built in THIS stage and links libnm + libnma-gtk4, gnome-shell
+# in postlc8 links libnm and loads the NMA4 typelib, so the stack must be
+# installed before either runs; postlc11 keeps only kernel + firmware +
+# boot wiring).  Internal build order is libnl -> libndp -> wpa_supplicant
+# -> NetworkManager -> libnma (see sub2 for the rationale); packaging
+# order is irrelevant (all five are packaged on the host).
+filc/projeny package projects/libnl.projeny projects/libnl/pizlonated-libnl.tar.gz
+filc/projeny package projects/libndp.projeny projects/libndp/pizlonated-libndp.tar.gz
+filc/projeny package projects/wpa_supplicant.projeny projects/wpa_supplicant/pizlonated-wpa_supplicant.tar.gz
+filc/projeny package projects/networkmanager.projeny projects/networkmanager/pizlonated-networkmanager.tar.gz
+filc/projeny package projects/dnsmasq.projeny projects/dnsmasq/pizlonated-dnsmasq.tar.gz
+filc/projeny package projects/libnma.projeny projects/libnma/pizlonated-libnma.tar.gz
+
 filc/projeny package projects/libXfixes.projeny projects/libXfixes/pizlonated-libXfixes.tar.gz
 filc/projeny package projects/libXcomposite.projeny projects/libXcomposite/pizlonated-libXcomposite.tar.gz
 filc/projeny package projects/libXcursor.projeny projects/libXcursor/pizlonated-libXcursor.tar.gz

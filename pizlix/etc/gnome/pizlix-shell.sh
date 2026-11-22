@@ -61,7 +61,15 @@ export MUTTER_DEBUG_DISABLE_HW_CURSORS=1
 # control to the next phase before the shell has bound a live one.
 rm -f "$XDG_RUNTIME_DIR"/wayland-*
 
-gnome-shell --wayland > /tmp/pizlix-shell-session.log 2>&1 &
+# The log file is per-session-mode: the same wrapper starts BOTH the user
+# session's shell (GNOME_SHELL_SESSION_MODE unset -> "session", the
+# historical /tmp/pizlix-shell-session.log name) and the GDM greeter's
+# shell (GNOME_SHELL_SESSION_MODE=gdm, set by gdm-launch-environment.c).
+# Writing to a shared path would have the greeter (uid gdm) fail its
+# redirection on the file the user session (uid pizlo) left behind --
+# a redirection failure kills the command before the shell even starts.
+SHELL_SESSION_MODE="${GNOME_SHELL_SESSION_MODE:-session}"
+gnome-shell --wayland > /tmp/pizlix-shell-$SHELL_SESSION_MODE.log 2>&1 &
 SHELL_PID=$!
 
 ready=0

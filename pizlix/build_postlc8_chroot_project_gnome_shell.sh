@@ -22,8 +22,16 @@ set -x
 #   would lock the user out, since it authenticates through Gdm).
 #
 # Flags (checked against meson_options.txt):
-# -D networkmanager=false: no NetworkManager (the js NM status/agent code is
-#   then compiled out via Config.HAVE_NETWORKMANAGER).
+# -D networkmanager=true (Sprint C of the WiFi-on-Pizlix port; was false):
+#   the shell's network indicator/agent code compiles in via
+#   Config.HAVE_NETWORKMANAGER (meson.build:97-105; js/misc/dependencies.js
+#   then gi.require()s NM 1.0 + NMA4 1.0 -- NM-1.0 comes from NetworkManager
+#   and NMA4-1.0 from libnma, both installed in postlc7 since Sprint C,
+#   because g-c-c there needs libnm + libnma-gtk4 before this stage runs).
+#   Build-time deps of the option: libnm >= 1.10.4 (1.48.4) + libsecret-1
+#   >= 0.18 (meson.build:36,99; libsecret was already in the chroot);
+#   src/meson.build adds shell-network-agent.c, the Shell gir's NM-1.0
+#   include and the gnome-shell-portal-helper when the option is on.
 # -D camera_monitor=false: no pipewire (the camera monitor is the only
 #   pipewire user in the shell).
 # -D systemd=false: no libsystemd/systemd unit dirs (elogind provides logind).
@@ -63,12 +71,41 @@ cd build
 # setup.
 export LDFLAGS="-enable-filc-jit"
 meson setup --prefix=/usr --buildtype=debugoptimized \
-  -Dnetworkmanager=false -Dcamera_monitor=false -Dsystemd=false \
+  -Dnetworkmanager=true -Dcamera_monitor=false -Dsystemd=false \
   -Dtests=false -Dman=false -Dgtk_doc=false \
   -Dextensions_app=false \
   ..
 ninja
 ninja install
+
+# --- gates ---------------------------------------------------------------------
+
+echo "=== gate: HAVE_NETWORKMANAGER in the built config.h ==="
+grep -E "HAVE_NETWORKMANAGER" config.h
+
+echo "=== gate: the shell binary links libnm (shell-network-agent.c) ==="
+ldd /usr/bin/gnome-shell | grep libnm || { echo "FATAL: gnome-shell does not link libnm" >&2; exit 1; }
+# gnome-shell-portal-helper is only BUILT when networkmanager is on (it is
+# the captive-portal window the network indicator opens); it links gio+gjs
+# (tools_deps), not libnm -- so the gate is existence, not an ldd match.
+test -e /usr/libexec/gnome-shell-portal-helper
+
+echo "=== gate: gjs loads the NM + NMA4 typelibs (the shell's import path) ==="
+gjs -c "const NM = imports.gi.NM; print('NM', NM.MAJOR_VERSION, NM.MINOR_VERSION);"
+gjs -c "const NMA4 = imports.gi.NMA4; print('NMA4 ok');"
+
+echo "=== gate: ldd of the installed binaries (no 'not found') ==="
+for f in /usr/bin/gnome-shell /usr/libexec/gnome-shell-portal-helper; do
+    if ldd $f 2>&1 | grep -q 'not found'; then
+        echo "FATAL: $f has unresolved shared libraries:" >&2
+        ldd $f 2>&1 | grep 'not found' >&2
+        exit 1
+    fi
+done
+echo "ldd: clean"
+
 cd ../..
 rm -rf pizlonated-gnome-shell
 hash -r
+
+echo "postlc8 gnome-shell: ALL GATES GREEN"

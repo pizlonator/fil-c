@@ -1,0 +1,5 @@
+URL: https://www.thekelleys.org.uk/dnsmasq/dnsmasq-2.90.tar.xz 08f7ca20c1ec6114456e71256b7923b8fc36f1e05d4dc179987559088eeeba86
+Origname: dnsmasq-2.90
+Name: dnsmasq
+
+    dnsmasq 2.90 (the lightweight DNS/DHCP server NetworkManager spawns in SHARED mode -- Wi-Fi hotspot/tethering and connection sharing; NM 1.48's shared-mode ip config logs 'could not start dnsmasq: Could not find dnsmasq binary' when it is absent, failing hotspot activation with 'IP configuration could not be reserved'). Classic single-Makefile build: make PREFIX=/usr + make install (lands in /usr/sbin/dnsmasq -- NM's binary search covers /usr/sbin), then the example config into /etc/dnsmasq.conf. No introspection, no dbus service needed (NM drives it by command line). Fil-C changes: none needed -- it compiled clean on the first try.

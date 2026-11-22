@@ -1,5 +1,19 @@
 # Begin /etc/inittab
-id:3:initdefault:
+# Sprint D of the WiFi/GDM port: boot to the GNOME login screen (GDM).
+#  - initdefault is now runlevel 5 (the graphical runlevel): runlevel 5 runs
+#    the rc5.d bootscripts (same service set as rc3.d -- dbus, elogind, sshd,
+#    NetworkManager, seatd; NM manages eth0+wifi in both) and then GDM.
+#  - tty1's getty is restricted to runlevels 2-4: in runlevel 5 tty1 is
+#    GDM's initial VT (-Dinitial-vt=1) -- a getty on tty1 would fight the
+#    greeter for the VT.
+#  - tty2-6 keep gettys in runlevels 2-5, so the rescue consoles survive
+#    alongside the greeter; runlevel 3 (`init 3`) remains the full text-mode
+#    path (six gettys, no display manager), and `init 5` brings GDM back.
+#  - x:5:respawn runs the blfs xdm bootscript, which execs the display
+#    manager from /etc/sysconfig/xdm (DISPLAY_MANAGER=/usr/sbin/gdm).  gdm
+#    46.2 runs FOREGROUND (no daemonize flag), so the respawned process is
+#    gdm itself; if it dies, init restarts it.
+id:5:initdefault:
 si::sysinit:/etc/rc.d/init.d/rc S
 l0:0:wait:/etc/rc.d/init.d/rc 0
 l1:S1:wait:/etc/rc.d/init.d/rc 1
@@ -11,10 +25,11 @@ l6:6:wait:/etc/rc.d/init.d/rc 6
 ca:12345:ctrlaltdel:/sbin/shutdown -t1 -a -r now
 su:S06:once:/sbin/sulogin
 s1:1:respawn:/sbin/sulogin
-1:2345:respawn:/sbin/agetty --noclear tty1 9600
-2:2345:respawn:/sbin/agetty tty2 9600
-3:2345:respawn:/sbin/agetty tty3 9600
-4:2345:respawn:/sbin/agetty tty4 9600
-5:2345:respawn:/sbin/agetty tty5 9600
-6:2345:respawn:/sbin/agetty tty6 9600
+1:234:respawn:/sbin/agetty --noclear tty1 9600
+2:345:respawn:/sbin/agetty tty2 9600
+3:345:respawn:/sbin/agetty tty3 9600
+4:345:respawn:/sbin/agetty tty4 9600
+5:345:respawn:/sbin/agetty tty5 9600
+6:345:respawn:/sbin/agetty tty6 9600
+x:5:respawn:/etc/rc.d/init.d/xdm
 # End /etc/inittab

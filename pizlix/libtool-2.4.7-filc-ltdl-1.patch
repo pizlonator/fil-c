@@ -1,0 +1,41 @@
+libtool 2.4.7: make libltdl's builtin-loader preloaded-symbols reference
+weak.  Submitted by the Pizlix project.
+
+Under Fil-C the standalone libltdl build is unshippable: ltdl.c declares
+the never-defined data symbol `lt_libltdl_LTX_preloaded_symbols` extern
+(it is only ever defined inside ltmain-generated convenience libraries
+that link ltdl statically) and references it from lt_dlinit's
+HAVE_LIBDLLOADER block.  The Fil-C compiler routes that reference through
+a pizlonated_ forwarder, so the built /usr/lib/libltdl.so carries a
+NON-WEAK undefined reference to `pizlonated_lt_libltdl_LTX_preloaded_
+symbols`, which (a) makes every -lltdl link of an EXECUTABLE fail at link
+time (the reference cannot be resolved from the executable), and (b)
+would make every load of the library fail at runtime.  With the reference
+weak, the reference resolves to NULL exactly as the dynamic-loader case
+always intended: lt_dlpreload(NULL) is the documented "clear the preloaded
+list" path (loaders/preopen.c:315 guards the NULL and falls back to its
+own default_preloaded_symbols), so behavior of the standalone library is
+unchanged -- the builtin loader vtable still gets installed, and nothing
+ever depended on the symbol being non-NULL in a standalone libltdl.
+
+diff --git a/libltdl/ltdl.c b/libltdl/ltdl.c
+--- a/libltdl/ltdl.c
++++ b/libltdl/ltdl.c
+@@ -219,7 +219,15 @@
+ LT_BEGIN_C_DECLS
+ LT_SCOPE const lt_dlvtable *	get_vtable (lt_user_data data);
+ LT_END_C_DECLS
+ #ifdef HAVE_LIBDLLOADER
+-extern LT_DLSYM_CONST lt_dlsymlist preloaded_symbols[];
++/* Fil-C: this list is only ever DEFINED inside ltmain-generated
++   convenience libraries that link ltdl statically; the standalone
++   libltdl build has always shipped an undefined reference here.  The
++   fil-C compiler routes the reference through a pizlonated_ forwarder,
++   which made the shared library unshippable (a hard undefined symbol
++   poisons every executable link and every load).  Declare it weak: the
++   reference then resolves to NULL, which is exactly what lt_dlpreload
++   (loaders/preopen.c) already handles -- "clear the preloaded list".  */
++extern LT_DLSYM_CONST lt_dlsymlist preloaded_symbols[] __attribute__((__weak__));
+ #endif
+
+ /* Initialize libltdl. */

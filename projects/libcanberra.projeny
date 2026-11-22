@@ -1,0 +1,137 @@
+URL: http://0pointer.de/lennart/projects/libcanberra/libcanberra-0.30.tar.xz ea02f4b5a00bfffce1d29ce73e1cf5351027208cbeb58bf9954e84ad120e6daa
+Origname: libcanberra-0.30
+Name: libcanberra
+
+    libcanberra 0.30 (the XDG event-sound library: libcanberra +
+    libcanberra-gtk3, the latter via the --enable-gtk3 backend).  Built
+    because gdm 46.2's meson.build declares libcanberra-gtk3 >= 0.4 as an
+    UNCONDITIONAL dependency (only utils/gdm-screenshot uses it, but the
+    dependency() call is not required:false, so without the library the
+    whole GDM meson setup dies).  Backends: pulse (libpulse 17.0 + the
+    mainloop-glib glue are in the chroot), null; the gtk2/gstreamer/alsa/
+    oss/tdb backends are disabled (not built here).  libltdl ships with
+    the chroot's libtool (/usr/lib/libltdl.so) for the dso backend;
+    vorbisfile (libvorbis, built earlier in the stage) is required by
+    configure unconditionally for the ogg sound-file reader.  The 2012
+    tarball ships a pre-generated configure; no autoreconf needed.
+    Fil-C fixes (see the patch): the pizlonated glib's GType is a pointer
+    and gtk's G_DEFINE_TYPE routes through the pointer-safe
+    g_once_init_enter_pointer only when GLIB_VERSION_MAX_ALLOWED >= 2.80
+    (house pattern), and the sound-theme-freedesktop dependency is a
+    runtime-only data file -- nothing to build.
+diff --git a/libcanberra/src/canberra-gtk-module.c b/libcanberra/src/canberra-gtk-module.c
+--- a/libcanberra/src/canberra-gtk-module.c
++++ b/libcanberra/src/canberra-gtk-module.c
+@@ -25,8 +25,13 @@
+ #endif
+
+ #include <gtk/gtk.h>
++/* Fil-C: see canberra-gtk.c -- the pizlonated gtk3 has no X11 backend, so
++   gdk/gdkx.h does not exist; the X11-only helpers below are guarded on
++   GDK_WINDOWING_X11 and degrade to their "unknown" returns on wayland.  */
++#ifdef GDK_WINDOWING_X11
+ #include <gdk/gdkx.h>
+ #include <X11/Xatom.h>
++#endif
+
+ #include "canberra-gtk.h"
+
+@@ -300,6 +305,7 @@
+ }
+
+ static gint window_get_desktop(GdkDisplay *d, GdkWindow *w) {
++#ifdef GDK_WINDOWING_X11
+         Atom type_return;
+         gint format_return;
+         gulong nitems_return;
+@@ -325,9 +331,13 @@
+                 XFree(data);
+
+         return ret;
++#else /* !GDK_WINDOWING_X11 */
++        return -1;
++#endif /* GDK_WINDOWING_X11 */
+ }
+
+ static gint display_get_desktop(GdkDisplay *d) {
++#ifdef GDK_WINDOWING_X11
+         Atom type_return;
+         gint format_return;
+         gulong nitems_return;
+@@ -354,9 +364,13 @@
+                 XFree(data);
+
+         return ret;
++#else /* !GDK_WINDOWING_X11 */
++        return -1;
++#endif /* GDK_WINDOWING_X11 */
+ }
+
+ static gboolean window_is_xembed(GdkDisplay *d, GdkWindow *w) {
++#ifdef GDK_WINDOWING_X11
+         Atom type_return;
+         gint format_return;
+         gulong nitems_return;
+@@ -394,6 +408,9 @@
+                 XFree(data);
+
+         return ret;
++#else /* !GDK_WINDOWING_X11 */
++        return FALSE;
++#endif /* GDK_WINDOWING_X11 */
+ }
+
+ static void dispatch_sound_event(SoundEventData *d) {
+diff --git a/libcanberra/src/canberra-gtk.c b/libcanberra/src/canberra-gtk.c
+--- a/libcanberra/src/canberra-gtk.c
++++ b/libcanberra/src/canberra-gtk.c
+@@ -26,8 +26,15 @@
+
+ #include <gtk/gtk.h>
+ #include <gdk/gdk.h>
++/* Fil-C: Pizlix's gtk3 is built with targets=broadway,wayland only (no X11
++   backend), so gdk/gdkx.h does not exist here.  The X11 code below only
++   fills in optional X11 metadata props for the event sound; guard it all
++   on GDK_WINDOWING_X11 (defined by gdkconfig.h when the X11 backend is
++   compiled in) and let the wayland build skip it.  */
++#ifdef GDK_WINDOWING_X11
+ #include <gdk/gdkx.h>
+ #include <X11/Xatom.h>
++#endif
+
+ #include "canberra.h"
+ #include "canberra-gtk.h"
+@@ -178,6 +185,7 @@
+ }
+
+ static gint window_get_desktop(GdkDisplay *d, GdkWindow *w) {
++#ifdef GDK_WINDOWING_X11
+         Atom type_return;
+         gint format_return;
+         gulong nitems_return;
+@@ -203,6 +211,9 @@
+                 XFree(data);
+
+         return ret;
++#else /* !GDK_WINDOWING_X11 */
++        return -1;
++#endif /* GDK_WINDOWING_X11 */
+ }
+
+ /**
+@@ -258,9 +269,14 @@
+                 GdkDisplay *display = NULL;
+                 gint x = -1, y = -1, width = -1, height = -1, screen_width = -1, screen_height = -1;
+
+-                if ((dw = gtk_widget_get_window(GTK_WIDGET(w))))
++                if ((dw = gtk_widget_get_window(GTK_WIDGET(w)))) {
++/* Fil-C: GDK_WINDOW_XID is gdkx.h-only (the X11 backend); without it the
++   window's X11 metadata props are simply not filled in.  */
++#ifdef GDK_WINDOWING_X11
+                         if ((ret = ca_proplist_setf(p, CA_PROP_WINDOW_X11_XID, "%lu", (unsigned long) GDK_WINDOW_XID(dw))) < 0)
+                                 return ret;
++#endif
++                }
+
+                 if ((display = gtk_widget_get_display(GTK_WIDGET(w)))) {
+                         if ((t = gdk_display_get_name(display)))

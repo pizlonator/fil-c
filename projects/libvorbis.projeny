@@ -1,0 +1,11 @@
+URL: https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz c67f3f74ec26d93a5571c4404a64eb6e6587d7d77b46b552f7b410f5bc5b1f03
+Origname: libvorbis-1.3.7
+Name: libvorbis
+
+    libvorbis 1.3.7 (the Vorbis codec: vorbisfile/vorbisenc/vorbis).
+    Built for libcanberra (postlc12), whose configure hard-requires
+    vorbisfile (PKG_CHECK_MODULES(VORBIS, [vorbisfile]), and whose
+    src/read-sound-file.c calls the ca_vorbis_* reader unconditionally --
+    there is no --disable-vorbis switch).  Classic autotools, plain C
+    float DSP -- zero Fil-C patches expected.  Depends on libogg 1.3.5
+    (built first in the same stage).

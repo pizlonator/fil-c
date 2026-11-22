@@ -1,0 +1,391 @@
+URL: https://download.gnome.org/sources/gdm/46/gdm-46.2.tar.xz 8612f39802037a0737a683c12bf59229fa800a03fd8d1b72a4ebac9148019136
+Origname: gdm-46.2
+Name: gdm
+
+    gdm 46.2 (the GNOME Display Manager: the login screen).  Runs as the
+    FOREGROUND root process (daemon/main.c has no daemonize flag -- only
+    --fatal-warnings/--timed-exit/--version), which is exactly the shape
+    inittab respawn wants: runlevel 5 launches /etc/rc.d/init.d/xdm (the
+    blfs-bootscripts xdm script) with DISPLAY_MANAGER=/usr/sbin/gdm, and
+    init restarts it if it dies.  The greeter session is
+    gnome-session --autostart /usr/share/gdm/greeter/autostart with
+    DCONF_PROFILE=gdm, whose locked dconf key
+    org.gnome.desktop.session session-name='gnome-login' selects the
+    gnome-login.session file GDM installs -- so that session file's
+    RequiredComponents MUST be satisfiable (patch #1 below).  User
+    sessions come from /usr/share/wayland-sessions/*.desktop
+    (pizlix-gnome.desktop, Exec=/usr/bin/pizlix-gnome, installed by the
+    postlc12 setup script); gdm-wayland-session wraps the chosen Exec
+    with a private session bus exactly like the existing
+    dbus-run-session launcher.  The greeter's shell is the SAME
+    /usr/bin/pizlix-shell wrapper: GDM exports
+    GNOME_SHELL_SESSION_MODE=gdm (gdm-launch-environment.c) and
+    gnome-shell reads it (src/main.c:624), and the wrapper's log file
+    was made per-session-mode so the gdm user can open it (patch to
+    pizlix/etc/gnome/pizlix-shell.sh, not this package).  Meson flags:
+    -Dlogind-provider=elogind (libelogind.pc), -Dplymouth=disabled,
+    -Dlibaudit=disabled, -Dselinux=disabled, -Dxdmcp=disabled,
+    -Dipv6=false, -Dprofiling=false, -Dtcp-wrappers=false,
+    -Dsolaris=false, -Dsystemd-journal=false,
+    -Dsystemdsystemunitdir=no -Dsystemduserunitdir=no (string 'no' is
+    handled: data/meson.build:164-181 skips the unit installs; pizlix is
+    sysvinit), -Ddefault-pam-config=lfs (installs data/pam-lfs/*.pam as
+    /etc/pam.d/gdm-*), -Dpam-mod-dir=/usr/lib/security (where the
+    pizlonated Linux-PAM lives), -Ddbus-sys=/usr/share/dbus-1/system.d,
+    -Dgdm-xsession=false (no X11 session wrapper), -Dinitial-vt=1 (the
+    default; tty1 is freed for the greeter in runlevel 5 by the inittab).
+    Every hard dependency is in the chroot: udev 256, gudev-1.0 238,
+    libpam 1.7.2, glib 2.80.4, gtk3 3.24.52, dconf 0.40.0 (the `dconf`
+    CLI compiles the greeter dconf db at build time), accountsservice
+    23.13.9 (+ AccountsService-1.0 typelib for the user list), xcb/x11/
+    xau, libcanberra-gtk3 0.30 (built earlier in the stage),
+    libelogind 255.27.  PAM_BINARY_PROMPT is absent from the pizlonated
+    pam_appl.h so pam_extensions/json-glib stay off.  The docs/ subdir is
+    skipped in the patch (the gnome.yelp manual needs itstool, which is not
+    built; nothing consumes the compiled manual).
+    Fil-C patches (all house patterns):
+    #1 data/meson.build: the greeter session's RequiredComponents list
+       drops the ~14 org.gnome.SettingsDaemon.* entries (gnome-settings-
+       daemon is not built in Pizlix) and keeps only org.gnome.Shell,
+       which resolves through the existing
+       /etc/xdg/autostart/org.gnome.Shell.desktop -> /usr/bin/pizlix-shell.
+       Without this the greeter's gnome-session hits the fail whale.
+    #2 data/pam-lfs/{gdm-password,gdm-autologin,gdm-launch-environment,
+       gdm-fingerprint,gdm-smartcard}.pam: upstream's lfs set includes
+       system-account/system-password/system-session (files the pizlonated
+       PAM setup does not ship -- only system-auth exists) and
+       pam_gnome_keyring.so (gnome-keyring is not built) and
+       pam_systemd.so (systemd!).  Rewritten to the house module set
+       (pam_env/pam_unix mirroring /etc/pam.d/login and system-auth, plus
+       pam_elogind.so for the session registration -- the seat/DRM access
+       both the greeter shell and the user session get through their
+       elogind sessions).  gdm-launch-environment's -session optional
+       pam_systemd.so becomes session required pam_elogind.so: the greeter
+       session MUST register with elogind or its mutter gets no seat.
+diff --git a/gdm/daemon/gdm-local-display-factory.c b/gdm/daemon/gdm-local-display-factory.c
+--- a/gdm/daemon/gdm-local-display-factory.c
++++ b/gdm/daemon/gdm-local-display-factory.c
+@@ -245,7 +245,18 @@
+         const char *session_type;
+ } display_server_configuration[] = {
+ #ifdef ENABLE_WAYLAND_SUPPORT
+-        { "wayland", GDM_KEY_WAYLAND_ENABLE, "/usr/bin/Xwayland", "wayland" },
++        /* Fil-C: upstream probes for /usr/bin/Xwayland here -- that binary
++           is the X11-app compatibility server for wayland sessions, and the
++           probe is what decides whether the WAYLAND session type is offered
++           at all (display_server_enabled below g_file_tests it; the wayland
++           greeter itself is gnome-shell --wayland via gdm-wayland-session
++           and never runs Xwayland).  Pizlix has no X11 apps at all (the
++           pizlonated gtk3 is built targets=broadway,wayland), so Xwayland
++           is not built and nothing needs it; probe for gnome-shell instead
++           (the actual wayland display server of this system), so the
++           wayland greeter is offered and gdm does not fall back to an Xorg
++           path that cannot exist ("Unable to run X server").  */
++        { "wayland", GDM_KEY_WAYLAND_ENABLE, "/usr/bin/gnome-shell", "wayland" },
+ #endif
+         { "xorg", GDM_KEY_XORG_ENABLE, "/usr/bin/Xorg", "x11" },
+         { NULL, NULL, NULL },
+diff --git a/gdm/data/dconf/defaults/00-upstream-settings b/gdm/data/dconf/defaults/00-upstream-settings
+--- a/gdm/data/dconf/defaults/00-upstream-settings
++++ b/gdm/data/dconf/defaults/00-upstream-settings
+@@ -34,6 +34,17 @@
+ [org/gnome/desktop/sound]
+ event-sounds=true
+
++[org/gnome/desktop/session]
++# Fil-C: Pizlix is a single-seat QEMU system -- the greeter idling into a
++# DPMS blank after 5 minutes made the login screen hard to reach after any
++# pause (and nothing here supports suspend anyway); keep the login window
++# always visible, and make sure the power plugin never tries to sleep.
++idle-delay=uint32 0
++
++[org/gnome/settings-daemon/plugins/power]
++sleep-inactive-ac-type='nothing'
++sleep-inactive-battery-type='nothing'
++
+ [org/gnome/settings-daemon/plugins/media-keys]
+ calculator=''
+ eject=''
+diff --git a/gdm/data/dconf/defaults/locks/00-upstream-settings-locks b/gdm/data/dconf/defaults/locks/00-upstream-settings-locks
+--- a/gdm/data/dconf/defaults/locks/00-upstream-settings-locks
++++ b/gdm/data/dconf/defaults/locks/00-upstream-settings-locks
+@@ -26,3 +26,6 @@
+ /org/gnome/settings-daemon/plugins/media-keys/search
+ /org/gnome/settings-daemon/plugins/media-keys/stop
+ /org/gnome/settings-daemon/plugins/media-keys/www
++/org/gnome/desktop/session/idle-delay
++/org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type
++/org/gnome/settings-daemon/plugins/power/sleep-inactive-battery-type
+diff --git a/gdm/data/meson.build b/gdm/data/meson.build
+--- a/gdm/data/meson.build
++++ b/gdm/data/meson.build
+@@ -63,22 +63,20 @@
+ )
+
+ gdm_gnome_shell_component = 'org.gnome.Shell'
+-gdm_gnome_session_required_components = [
+-  'org.gnome.SettingsDaemon.A11ySettings',
+-  'org.gnome.SettingsDaemon.Color',
+-  'org.gnome.SettingsDaemon.Datetime',
+-  'org.gnome.SettingsDaemon.Housekeeping',
+-  'org.gnome.SettingsDaemon.Keyboard',
+-  'org.gnome.SettingsDaemon.MediaKeys',
+-  'org.gnome.SettingsDaemon.Power',
+-  'org.gnome.SettingsDaemon.PrintNotifications',
+-  'org.gnome.SettingsDaemon.Rfkill',
+-  'org.gnome.SettingsDaemon.ScreensaverProxy',
+-  'org.gnome.SettingsDaemon.Sharing',
+-  'org.gnome.SettingsDaemon.Smartcard',
+-  'org.gnome.SettingsDaemon.Sound',
+-  'org.gnome.SettingsDaemon.Wacom',
+-]
++# Fil-C: upstream requires ~14 org.gnome.SettingsDaemon.* components in the
++# greeter session; gnome-settings-daemon is not built in Pizlix (the
++# pizlonated system runs the shell without the settings daemons -- see
++# pizlix-gnome.session), so the greeter's gnome-login.session must require
++# org.gnome.Shell ONLY: gnome-session resolves the required component by
++# desktop-file id through the existing
++# /etc/xdg/autostart/org.gnome.Shell.desktop -> /usr/bin/pizlix-shell, which
++# runs the shell in GDM greeter mode via the GNOME_SHELL_SESSION_MODE=gdm
++# environment GDM exports.  A required component that does not resolve makes
++# gnome-session hit the fail whale instead of starting the greeter.
++# (The wanted-components list below only feeds systemd USER units, which are
++# not installed here -- systemdsystemunitdir/systemduserunitdir are both
++# 'no'.)
++gdm_gnome_session_required_components = []
+
+ gdm_gnome_user_session_wanted_components = gdm_gnome_session_required_components
+ gdm_gnome_user_session_wanted_components += [
+diff --git a/gdm/data/pam-lfs/gdm-autologin.pam b/gdm/data/pam-lfs/gdm-autologin.pam
+--- a/gdm/data/pam-lfs/gdm-autologin.pam
++++ b/gdm/data/pam-lfs/gdm-autologin.pam
+@@ -1,19 +1,22 @@
+ # Begin /etc/pam.d/gdm-autologin
+
+-auth     requisite      pam_nologin.so
+-auth     required       pam_env.so
++# Fil-C: rewritten for the pizlonated PAM stack (see gdm-password for the
++# full rationale: no system-account/system-password/system-session includes,
++# no pam_gnome_keyring.so, and pam_elogind.so registers the session with
++# elogind, the seat manager).  pam_gdm.so is GDM's own module (built by this
++# package into pam-mod-dir); it resolves the autologin user from the
++# kernel command line / greeter when keyutils is available.
+
++auth     requisite      pam_nologin.so
+ auth     required       pam_succeed_if.so uid >= 1000 quiet
+ auth     optional       pam_gdm.so
+-auth     optional       pam_gnome_keyring.so
+ auth     required       pam_permit.so
+
+-account  include        system-account
+-password include        system-password
++account  required       pam_unix.so
+
+ session  optional       pam_keyinit.so revoke
+ session  required       pam_limits.so
+-session  include        system-session
+-session  optional       pam_gnome_keyring.so auto_start
++session  required       pam_elogind.so
++session  required       pam_unix.so
+
+ # End /etc/pam.d/gdm-autologin
+diff --git a/gdm/data/pam-lfs/gdm-fingerprint.pam b/gdm/data/pam-lfs/gdm-fingerprint.pam
+--- a/gdm/data/pam-lfs/gdm-fingerprint.pam
++++ b/gdm/data/pam-lfs/gdm-fingerprint.pam
+@@ -1,18 +1,26 @@
+ # Begin /etc/pam.d/gdm-fingerprint
+
++# Fil-C: rewritten for the pizlonated PAM stack (see gdm-password).  This
++# service is never used on Pizlix (no fingerprint reader, no pam_fprintd),
++# but the lfs set installs it, so it stays consistent: the nonexistent
++# system-* includes are inlined, pam_gnome_keyring.so is dropped, and
++# pam_elogind.so registers the session.  With pam_fprintd.so REQUIRED and
++# absent, authentication simply fails -- which is the correct outcome for
++# a fingerprint login on a machine that cannot do fingerprint logins.
++
+ auth     requisite      pam_nologin.so
+ auth     required       pam_env.so
+
+ auth     required       pam_succeed_if.so uid >= 1000 quiet
+ auth     required       pam_fprintd.so
+-auth     optional       pam_gnome_keyring.so
+
+-account  include        system-account
++account  required       pam_unix.so
++
+ password required       pam_fprintd.so
+
+ session  optional       pam_keyinit.so revoke
+ session  required       pam_limits.so
+-session  include        system-session
+-session  optional       pam_gnome_keyring.so auto_start
++session  required       pam_elogind.so
++session  required       pam_unix.so
+
+ # End /etc/pam.d/gdm-fingerprint
+diff --git a/gdm/data/pam-lfs/gdm-launch-environment.pam b/gdm/data/pam-lfs/gdm-launch-environment.pam
+--- a/gdm/data/pam-lfs/gdm-launch-environment.pam
++++ b/gdm/data/pam-lfs/gdm-launch-environment.pam
+@@ -1,16 +1,29 @@
+ # Begin /etc/pam.d/gdm-launch-environment
+
++# Fil-C: rewritten for the pizlonated PAM stack (see gdm-password for the
++# full rationale).  THE IMPORTANT CHANGE: upstream's
++#   -session optional pam_systemd.so
++# becomes
++#   session required  pam_elogind.so
++# The greeter session (the gnome-session + gnome-shell instance that GDM
++# starts as the gdm user) MUST register with elogind: the registration is
++# what creates /run/user/<uid> (XDG_RUNTIME_DIR -- gnome-session and the
++# greeter shell need it) and what gives the greeter's mutter its seat0
++# session (DRM master, input devices).  Without it the greeter compositor
++# has no seat and the login screen never comes up.  The include of
++# system-account (which does not exist here) is inlined as pam_unix.
++
+ auth     required       pam_succeed_if.so audit quiet_success user = gdm
+ auth     required       pam_env.so
+ auth     optional       pam_permit.so
+
+ account  required       pam_succeed_if.so audit quiet_success user = gdm
+-account  include        system-account
++account  required       pam_unix.so
+
+ password required       pam_deny.so
+
+ session  required       pam_succeed_if.so audit quiet_success user = gdm
+--session optional       pam_systemd.so
++session  required       pam_elogind.so
+ session  optional       pam_keyinit.so force revoke
+ session  optional       pam_permit.so
+
+diff --git a/gdm/data/pam-lfs/gdm-password.pam b/gdm/data/pam-lfs/gdm-password.pam
+--- a/gdm/data/pam-lfs/gdm-password.pam
++++ b/gdm/data/pam-lfs/gdm-password.pam
+@@ -1,17 +1,26 @@
+ # Begin /etc/pam.d/gdm-password
+
++# Fil-C: rewritten for the pizlonated PAM stack.  Upstream's lfs variant
++# includes system-account / system-password / system-session (files the
++# pizlonated PAM setup does not ship -- /etc/pam.d only has system-auth)
++# and pam_gnome_keyring.so (gnome-keyring is not built).  The module set
++# below mirrors /etc/pam.d/system-auth + /etc/pam.d/login, with
++# pam_elogind.so registering the session: elogind is the seat manager, and
++# the GNOME session's mutter gets its DRM/input device access through the
++# elogind session this creates.
++
+ auth     requisite      pam_nologin.so
++auth     required       pam_succeed_if.so uid >= 1000 quiet
+ auth     required       pam_env.so
++auth     required       pam_unix.so     nullok
+
+-auth     required       pam_succeed_if.so uid >= 1000 quiet
+-auth     include        system-auth
+-auth     optional       pam_gnome_keyring.so
++account  required       pam_unix.so
+
+-account  include        system-account
+-password include        system-password
++password required       pam_unix.so     shadow nullok
+
++session  required       pam_env.so
+ session  required       pam_limits.so
+-session  include        system-session
+-session  optional       pam_gnome_keyring.so auto_start
++session  required       pam_elogind.so
++session  required       pam_unix.so
+
+ # End /etc/pam.d/gdm-password
+diff --git a/gdm/data/pam-lfs/gdm-smartcard.pam b/gdm/data/pam-lfs/gdm-smartcard.pam
+--- a/gdm/data/pam-lfs/gdm-smartcard.pam
++++ b/gdm/data/pam-lfs/gdm-smartcard.pam
+@@ -1,17 +1,25 @@
+ # Begin /etc/pam.d/gdm-smartcard
+
++# Fil-C: rewritten for the pizlonated PAM stack (see gdm-password).  This
++# service is never used on Pizlix (no smart card reader, no pam_pkcs11),
++# but the lfs set installs it, so it stays consistent: the nonexistent
++# system-* includes are inlined, pam_gnome_keyring.so is dropped, and
++# pam_elogind.so registers the session.  With pam_pkcs11.so REQUIRED and
++# absent, authentication simply fails -- the correct outcome for a smart
++# card login on a machine that cannot do smart card logins.
++
+ auth     requisite      pam_nologin.so
+ auth     required       pam_env.so
+
+ auth     required       pam_succeed_if.so uid >= 1000 quiet
+ auth     required       pam_pkcs11.so wait_for_card card_only
+-auth     optional       pam_gnome_keyring.so
+
+-account  include        system-account
++account  required       pam_unix.so
++
+ password required       pam_pkcs11.so
+
+ session  required       pam_limits.so
+-session  include        system-session
+-session  optional       pam_gnome_keyring.so auto_start
++session  required       pam_elogind.so
++session  required       pam_unix.so
+
+ # End /etc/pam.d/gdm-smartcard
+diff --git a/gdm/meson.build b/gdm/meson.build
+--- a/gdm/meson.build
++++ b/gdm/meson.build
+@@ -312,7 +312,11 @@
+ if xdmcp_dep.found()
+   subdir('chooser')
+ endif
+-subdir('docs')
++# Fil-C: the manual (gnome.yelp) needs itstool, which is not built in
++# Pizlix; the compiled manual is runtime documentation and nothing on the
++# system consumes it, so the docs subdir is skipped entirely.
++# subdir('docs')
++
+
+ gnome.post_install(
+   glib_compile_schemas: true,
+diff --git a/gdm/utils/meson.build b/gdm/utils/meson.build
+--- a/gdm/utils/meson.build
++++ b/gdm/utils/meson.build
+@@ -11,20 +11,27 @@
+   install: true,
+ )
+
+-# gdm-screenshot
+-gdm_screenshot_deps = [
+-  glib_dep,
+-  gtk_dep,
+-  x_deps,
+-  libcanberra_gtk_dep,
+-]
+-
+-gdm_screenshot = executable('gdm-screenshot',
+-  'gdm-screenshot.c',
+-  dependencies: gdm_screenshot_deps,
+-  include_directories: config_h_dir,
+-  install: true,
+-)
++# Fil-C: gdm-screenshot is patched OUT of the build.  It includes
++# <gdk/gdkx.h> (the X11-only GDK backend header -- the pizlonated gtk3 is
++# built targets=broadway,wayland) and uses GDK_WINDOW_XID/XChangeProperty
++# to screenshot the greeter through X11; on this wayland-only system the
++# utility could not run either.  It is a debug tool and nothing references
++# it (GDM's screenshot-dir config only names the directory gdm-runtime-
++# config manages).  libcanberra-gtk3 remains installed (built in this
++# stage) so the top-level dependency('libcanberra-gtk3') still resolves.
++# gdm_screenshot_deps = [
++#   glib_dep,
++#   gtk_dep,
++#   x_deps,
++#   libcanberra_gtk_dep,
++# ]
++#
++# gdm_screenshot = executable('gdm-screenshot',
++#   'gdm-screenshot.c',
++#   dependencies: gdm_screenshot_deps,
++#   include_directories: config_h_dir,
++#   install: true,
++# )
+
+ # gdm-runtime-config
+ gdm_runtime_config_deps = [

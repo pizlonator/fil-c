@@ -138,36 +138,39 @@ diff --git a/gnome-control-center/meson.build b/gnome-control-center/meson.build
 
  # IBus support
  enable_ibus = get_option('ibus')
-@@ -280,47 +324,26 @@
+@@ -280,47 +324,37 @@
               description: 'Whether location services is enabled')
 
  if host_is_linux
 -  # ModemManager
 -  mm_dep =  dependency('mm-glib', version: '>= 0.7')
 -  # NetworkManager
--  network_manager_deps = [
--    dependency('libnm', version: '>= 1.24.0'),
--    dependency('libnma-gtk4', version: '>= 1.10.2'),
--    mm_dep,
--  ]
-+  # Fil-C: NetworkManager and ModemManager are not part of the pizlonated
-+  # system; the network and wwan panels are dropped (see panels/meson.build)
-+  # and the BUILD_*/HAVE_* network config macros stay undefined so the
-+  # panel-loader entries vanish.  mm-glib is still probed (optionally) for
-+  # the applications panel.
++  # Fil-C, Sprint C of the WiFi-on-Pizlix port: NetworkManager 1.48.4 and
++  # libnma-gtk4 1.10.6 ARE part of the pizlonated system now (both built in
++  # postlc7 before this package -- that stage move is exactly why they can
++  # be here), so the network panel is back.  ModemManager (mm-glib) is NOT:
++  # the mobile-broadband rows of the network panel are patched out (see the
++  # panels/network hunks in the projeny patch) and the wwan panel stays
++  # dropped, so BUILD_WWAN / HAVE_WWAN remain undefined.  mm-glib stays an
++  # OPTIONAL probe (absent here): panels/applications/meson.build checks
++  # mm_dep.found() for its (BUILD_WWAN-gated, hence inert) modem rows.
 +  mm_dep = dependency('mm-glib', version: '>= 0.7', required: false)
-+  network_manager_deps = []
+   network_manager_deps = [
+     dependency('libnm', version: '>= 1.24.0'),
+     dependency('libnma-gtk4', version: '>= 1.10.2'),
+-    mm_dep,
+   ]
  endif
--config_h.set('BUILD_NETWORK', host_is_linux,
--             description: 'Define to 1 to build the Network panel')
--config_h.set('HAVE_NETWORK_MANAGER', host_is_linux,
--             description: 'Define to 1 if NetworkManager is available')
+ config_h.set('BUILD_NETWORK', host_is_linux,
+              description: 'Define to 1 to build the Network panel')
+ config_h.set('HAVE_NETWORK_MANAGER', host_is_linux,
+              description: 'Define to 1 if NetworkManager is available')
 -config_h.set('BUILD_WWAN', host_is_linux,
 -             description: 'Define to 1 to build the WWan panel')
 -config_h.set('HAVE_WWAN', host_is_linux,
 -             description: 'Define to 1 if WWan is available')
-+# Fil-C: BUILD_NETWORK / HAVE_NETWORK_MANAGER / BUILD_WWAN / HAVE_WWAN are
-+# intentionally not defined.
++# Fil-C: BUILD_WWAN / HAVE_WWAN are intentionally not defined (the wwan
++# panel stays dropped -- ModemManager is not part of the pizlonated system).
 
  if host_is_linux_not_s390
 -  # gnome-bluetooth
@@ -451,7 +454,7 @@ diff --git a/gnome-control-center/panels/common/gsd-input-helper.c b/gnome-contr
 diff --git a/gnome-control-center/panels/meson.build b/gnome-control-center/panels/meson.build
 --- a/gnome-control-center/panels/meson.build
 +++ b/gnome-control-center/panels/meson.build
-@@ -1,36 +1,29 @@
+@@ -1,36 +1,33 @@
  subdir('common')
 
 +# Fil-C: panels whose external dependencies are not part of the pizlonated
@@ -463,7 +466,10 @@ diff --git a/gnome-control-center/panels/meson.build b/gnome-control-center/pane
 +# - privacy           (libgtop-2.0)
 +# - sound             (gsound)
 +# - system            (libgtop-2.0, udisks2, libpwquality, krb5)
-+# - wwan / network    (libnm, libnma-gtk4, mm-glib)
++# - wwan              (mm-glib -- ModemManager is not pizlonated; the
++#                      network panel is BACK since Sprint C: libnm +
++#                      libnma-gtk4 are, with the panel's mobile-broadband
++#                      rows patched out)
 +# - bluetooth / wacom (gnome-bluetooth-ui-3.0, libwacom)
  panels = [
    'applications',
@@ -473,6 +479,7 @@ diff --git a/gnome-control-center/panels/meson.build b/gnome-control-center/pane
    'keyboard',
    'mouse',
    'multitasking',
++  'network',
    'notifications',
 -  'online-accounts',
    'power',
@@ -570,6 +577,246 @@ diff --git a/gnome-control-center/panels/mouse/cc-mouse-caps-helper.c b/gnome-co
          return have_synaptics;
 +#endif /* GDK_WINDOWING_X11 */
  }
+diff --git a/gnome-control-center/panels/network/cc-network-panel.c b/gnome-control-center/panels/network/cc-network-panel.c
+--- a/gnome-control-center/panels/network/cc-network-panel.c
++++ b/gnome-control-center/panels/network/cc-network-panel.c
+@@ -34,7 +34,6 @@
+ #include "cc-net-proxy-page.h"
+ #include "net-device-bluetooth.h"
+ #include "net-device-ethernet.h"
+-#include "net-device-mobile.h"
+ #include "net-device-wifi.h"
+ #include "net-vpn.h"
+
+@@ -43,7 +42,11 @@
+ #include "network-dialogs.h"
+ #include "connection-editor/net-connection-editor.h"
+
+-#include <libmm-glib.h>
++/* Fil-C: <libmm-glib.h> is gone -- ModemManager is not part of the
++ * pizlonated system, and the panel's mobile-broadband support (the
++ * NetDeviceMobile device page + the MmManager client) is patched out
++ * with it.  The panel serves wired + wifi + vpn + bluetooth, which is
++ * everything NM can present on this system. */
+
+ typedef enum {
+         OPERATION_NULL,
+@@ -57,12 +60,10 @@
+
+         GPtrArray        *bluetooth_devices;
+         GPtrArray        *ethernet_devices;
+-        GPtrArray        *mobile_devices;
+         GPtrArray        *vpns;
+         GHashTable       *nm_device_to_device;
+
+         NMClient         *client;
+-        MMManager        *modem_manager;
+         gboolean          updating_device;
+
+         /* widgets */
+@@ -208,11 +209,9 @@
+         CcNetworkPanel *self = CC_NETWORK_PANEL (object);
+
+         g_clear_object (&self->client);
+-        g_clear_object (&self->modem_manager);
+
+         g_clear_pointer (&self->bluetooth_devices, g_ptr_array_unref);
+         g_clear_pointer (&self->ethernet_devices, g_ptr_array_unref);
+-        g_clear_pointer (&self->mobile_devices, g_ptr_array_unref);
+         g_clear_pointer (&self->vpns, g_ptr_array_unref);
+         g_clear_pointer (&self->nm_device_to_device, g_hash_table_destroy);
+
+@@ -257,11 +256,6 @@
+                 g_ptr_array_add (ndarray, device);
+                 g_ptr_array_add (nmdarray, net_device_ethernet_get_device (device));
+         }
+-        for (i = 0; i < self->mobile_devices->len; i++) {
+-                NetDeviceMobile *device = g_ptr_array_index (self->mobile_devices, i);
+-                g_ptr_array_add (ndarray, device);
+-                g_ptr_array_add (nmdarray, net_device_mobile_get_device (device));
+-        }
+
+         if (ndarray->len == 0)
+                 return;
+@@ -276,8 +270,6 @@
+                         adw_preferences_row_set_title (ADW_PREFERENCES_ROW (devices[i]), nm_device_bt_get_name (NM_DEVICE_BT (nm_devices[i])));
+                 else if (NET_IS_DEVICE_ETHERNET (devices[i]))
+                         adw_preferences_group_set_title (ADW_PREFERENCES_GROUP (devices[i]), titles[i]);
+-                else if (NET_IS_DEVICE_MOBILE (devices[i]))
+-                        net_device_mobile_set_title (NET_DEVICE_MOBILE (devices[i]), titles[i]);
+         }
+ }
+
+@@ -341,11 +333,6 @@
+                 if (handle_argv_for_device (self, net_device_ethernet_get_device (device)))
+                         return;
+         }
+-        for (i = 0; i < self->mobile_devices->len; i++) {
+-                NetDeviceMobile *device = g_ptr_array_index (self->mobile_devices, i);
+-                if (handle_argv_for_device (self, net_device_mobile_get_device (device)))
+-                        return;
+-        }
+         for (i = 0; i < self->vpns->len; i++) {
+                 NetVpn *vpn = g_ptr_array_index (self->vpns, i);
+                 if (handle_argv_for_connection (self, net_vpn_get_connection (vpn)))
+@@ -368,35 +355,17 @@
+         gtk_widget_set_visible (self->container_bluetooth, self->bluetooth_devices->len > 0);
+ }
+
+-static gboolean
+-wwan_panel_supports_modem (GDBusObject *object)
+-{
+-        MMObject *mm_object;
+-        MMModem *modem;
+-        MMModemCapability capability, supported_capabilities;
++/* Fil-C: wwan_panel_supports_modem() is gone with the mobile-broadband
++ * support (it typed its argument through MMObject/MMModem from
++ * libmm-glib).  Modem devices are simply skipped in panel_add_device
++ * below -- without ModemManager on the bus there is nothing to show. */
+
+-        g_assert (G_IS_DBUS_OBJECT (object));
+-
+-        supported_capabilities = MM_MODEM_CAPABILITY_GSM_UMTS | MM_MODEM_CAPABILITY_LTE;
+-#if MM_CHECK_VERSION (1,14,0)
+-        supported_capabilities |= MM_MODEM_CAPABILITY_5GNR;
+-#endif
+-
+-        mm_object = MM_OBJECT (object);
+-        modem = mm_object_get_modem (mm_object);
+-        capability = mm_modem_get_current_capabilities (modem);
+-
+-        return capability & supported_capabilities;
+-}
+-
+ static void
+ panel_add_device (CcNetworkPanel *self, NMDevice *device)
+ {
+         NMDeviceType type;
+         NetDeviceEthernet *device_ethernet;
+-        NetDeviceMobile *device_mobile;
+         NetDeviceBluetooth *device_bluetooth;
+-        g_autoptr(GDBusObject) modem_object = NULL;
+
+         /* does already exist */
+         if (g_hash_table_lookup (self->nm_device_to_device, device) != NULL)
+@@ -417,31 +386,12 @@
+                 g_hash_table_insert (self->nm_device_to_device, device, device_ethernet);
+                 break;
+         case NM_DEVICE_TYPE_MODEM:
+-                if (g_str_has_prefix (nm_device_get_udi (device), "/org/freedesktop/ModemManager1/Modem/")) {
+-                        if (self->modem_manager == NULL) {
+-                                g_warning ("Cannot grab information for modem at %s: No ModemManager support",
+-                                           nm_device_get_udi (device));
+-                                return;
+-                        }
+-
+-                        modem_object = g_dbus_object_manager_get_object (G_DBUS_OBJECT_MANAGER (self->modem_manager),
+-                                                                         nm_device_get_udi (device));
+-                        if (modem_object == NULL) {
+-                                g_warning ("Cannot grab information for modem at %s: Not found",
+-                                           nm_device_get_udi (device));
+-                                return;
+-                        }
+-
+-                        /* This will be handled by cellular panel */
+-                        if (wwan_panel_supports_modem (modem_object))
+-                                return;
+-                }
+-
+-                device_mobile = net_device_mobile_new (self->client, device, modem_object);
+-                gtk_box_append (GTK_BOX (self->box_wired), GTK_WIDGET (device_mobile));
+-                g_ptr_array_add (self->mobile_devices, device_mobile);
+-                g_hash_table_insert (self->nm_device_to_device, device, device_mobile);
+-                break;
++                /* Fil-C: mobile-broadband support is patched out
++                 * (ModemManager is not part of the pizlonated system, so
++                 * there is no MmManager client to ask and no
++                 * NetDeviceMobile page to build).  Modem devices are
++                 * ignored -- NM never exposes any here anyway. */
++                return;
+         case NM_DEVICE_TYPE_BT:
+                 device_bluetooth = net_device_bluetooth_new (self->client, device);
+                 gtk_list_box_append (GTK_LIST_BOX (self->box_bluetooth), GTK_WIDGET (device_bluetooth));
+@@ -476,7 +426,6 @@
+
+         g_ptr_array_remove (self->bluetooth_devices, net_device);
+         g_ptr_array_remove (self->ethernet_devices, net_device);
+-        g_ptr_array_remove (self->mobile_devices, net_device);
+         g_hash_table_remove (self->nm_device_to_device, device);
+
+         if (nm_device_get_device_type (device) == NM_DEVICE_TYPE_BT)
+@@ -747,8 +696,6 @@
+ static void
+ cc_network_panel_init (CcNetworkPanel *self)
+ {
+-        g_autoptr(GDBusConnection) system_bus = NULL;
+-        g_autoptr(GError) error = NULL;
+         const GPtrArray *connections;
+         guint i;
+
+@@ -758,7 +705,6 @@
+
+         self->bluetooth_devices = g_ptr_array_new ();
+         self->ethernet_devices = g_ptr_array_new ();
+-        self->mobile_devices = g_ptr_array_new ();
+         self->vpns = g_ptr_array_new ();
+         self->nm_device_to_device = g_hash_table_new (g_direct_hash, g_direct_equal);
+
+@@ -782,20 +728,9 @@
+         g_signal_connect_object (self->client, "device-removed",
+                                  G_CALLBACK (device_removed_cb), self, G_CONNECT_SWAPPED);
+
+-        /* Setup ModemManager client */
+-        system_bus = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
+-        if (system_bus == NULL) {
+-                g_warning ("Error connecting to system D-Bus: %s",
+-                           error->message);
+-        } else {
+-                self->modem_manager = mm_manager_new_sync (system_bus,
+-                                                            G_DBUS_OBJECT_MANAGER_CLIENT_FLAGS_NONE,
+-                                                            NULL,
+-                                                            &error);
+-                if (self->modem_manager == NULL)
+-                        g_warning ("Error connecting to ModemManager: %s",
+-                                   error->message);
+-        }
++        /* Fil-C: the ModemManager client setup is gone (mm_manager_new_sync
++         * + the MmManager member).  NM devices of type MODEM are skipped
++         * in panel_add_device instead. */
+
+         /* add remote settings such as VPN settings as virtual devices */
+         g_signal_connect_object (self->client, NM_CLIENT_CONNECTION_ADDED,
+diff --git a/gnome-control-center/panels/network/cc-wifi-hotspot-dialog.c b/gnome-control-center/panels/network/cc-wifi-hotspot-dialog.c
+--- a/gnome-control-center/panels/network/cc-wifi-hotspot-dialog.c
++++ b/gnome-control-center/panels/network/cc-wifi-hotspot-dialog.c
+@@ -27,7 +27,9 @@
+
+ #include <config.h>
+ #include <glib/gi18n.h>
+-#include <libmm-glib.h>
++/* Fil-C: the <libmm-glib.h> include is gone -- ModemManager is not part of
++ * the pizlonated system and nothing in this file referenced it (the include
++ * was riding in on the network panel's upstream mm_dep). */
+
+ #include "cc-wifi-hotspot-dialog.h"
+ #include "cc-network-resources.h"
+diff --git a/gnome-control-center/panels/network/meson.build b/gnome-control-center/panels/network/meson.build
+--- a/gnome-control-center/panels/network/meson.build
++++ b/gnome-control-center/panels/network/meson.build
+@@ -39,7 +39,12 @@
+   'cc-wifi-hotspot-dialog.c',
+   'net-device-bluetooth.c',
+   'net-device-ethernet.c',
+-  'net-device-mobile.c',
++  # Fil-C: net-device-mobile.c is dropped -- it is the mobile-broadband
++  # device page and hard-depends on libmm-glib (ModemManager is not part
++  # of the pizlonated system); cc-network-panel.c's modem/mobile-device
++  # handling is patched out with it.  Pizlix has no modems: the panel
++  # serves wired + wifi + vpn + bluetooth, which is everything NM can
++  # present here.  net-device-mobile.ui/h stay on disk (unreferenced).
+   'net-device-wifi.c',
+   'net-vpn.c',
+   'network-dialogs.c',
 diff --git a/gnome-control-center/shell/cc-object-storage.c b/gnome-control-center/shell/cc-object-storage.c
 --- a/gnome-control-center/shell/cc-object-storage.c
 +++ b/gnome-control-center/shell/cc-object-storage.c

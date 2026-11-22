@@ -5,6 +5,7 @@ set -x
 
 ulimit -c unlimited
 
+# Sprint C of the WiFi-on-Pizlix port: moved here (postlc7, the GNOME desktop stage) from postlc11 -- gnome-control-center (postlc7) links libnm + libnma-gtk4 and gnome-shell (postlc8) loads the NMA4 typelib, so the whole WiFi userspace stack must be installed BEFORE g-c-c runs; postlc11 keeps only the kernel rebuild, the firmware and the boot wiring.
 # Sprint B of the WiFi-on-Pizlix port: libndp 1.9 -- the IPv6 Neighbor
 # Discovery Protocol library.  NetworkManager 1.48.4 declares it as an
 # UNCONDITIONAL dependency (meson.build:257 `libndp_dep =
@@ -65,4 +66,4 @@ echo "ldd: clean"
 rm -rf pizlonated-libndp
 hash -r
 
-echo "postlc11 libndp: ALL GATES GREEN"
+echo "postlc7 libndp: ALL GATES GREEN"

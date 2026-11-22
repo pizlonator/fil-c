@@ -5,6 +5,7 @@ set -x
 
 ulimit -c unlimited
 
+# Sprint C of the WiFi-on-Pizlix port: the WiFi userspace stack lives in the postlc7 (GNOME desktop) stage -- gnome-control-center (postlc7) links libnm + libnma-gtk4 and gnome-shell (postlc8) links libnm + loads the NMA4 typelib, so the stack must be installed BEFORE g-c-c runs; postlc11 keeps only the kernel rebuild + the firmware + the boot wiring.
 # Sprint B of the WiFi-on-Pizlix port: NetworkManager 1.48.4 -- the network
 # daemon the GNOME shell talks to (libnm + NM-1.0 typelib for the network
 # indicator/quick settings; the wifi backend is wpa_supplicant over dbus).
@@ -156,4 +157,4 @@ echo "ldd: clean"
 rm -rf pizlonated-networkmanager
 hash -r
 
-echo "postlc11 networkmanager: ALL GATES GREEN"
+echo "postlc7 networkmanager: ALL GATES GREEN"

@@ -45,15 +45,13 @@ su $FILCOWNER ./build_postlc11_sub1_packaging.sh
 cp -v build_postlc11_sub2_chroot.sh $LFS/sources
 cp -v build_postlc11_chroot_project_*.sh $LFS/sources
 
-# Sprint B of the WiFi-on-Pizlix port: the WiFi userspace stack.  The four
-# projeny-packaged tarballs (libnl -> libndp -> wpa_supplicant ->
-# NetworkManager) plus the boot-wiring setup script (the blfs
-# networkmanager bootscript + the rcN.d wiring) and the tracked
-# blfs-bootscripts tarball the setup script installs the bootscript from.
-cp -v $FILCSRC/projects/libnl/pizlonated-libnl.tar.gz $LFS/sources
-cp -v $FILCSRC/projects/libndp/pizlonated-libndp.tar.gz $LFS/sources
-cp -v $FILCSRC/projects/wpa_supplicant/pizlonated-wpa_supplicant.tar.gz $LFS/sources
-cp -v $FILCSRC/projects/networkmanager/pizlonated-networkmanager.tar.gz $LFS/sources
+# Sprint C of the WiFi-on-Pizlix port: the WiFi userspace stack tarballs
+# (libnl / libndp / wpa_supplicant / NetworkManager) are now POSTLC7
+# packages -- they moved there because g-c-c (postlc7) links libnm +
+# libnma-gtk4 and gnome-shell (postlc8) needs libnm + the NMA4 typelib;
+# build_postlc7.sh copies them via its projects/*/pizlonated-*.tar.gz
+# wildcard.  This stage keeps only the boot wiring (setup) script and the
+# blfs-bootscripts tarball it installs the bootscript from.
 cp -v build_postlc11_chroot_setup_scripts_for_networkmanager.sh $LFS/sources
 cp -v blfs-bootscripts-20240416.tar.xz $LFS/sources
 

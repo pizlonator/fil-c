@@ -87,31 +87,18 @@ download_tarball "https://git.kernel.org/pub/scm/linux/kernel/git/wens/wireless-
     "wireless-regdb-master-2024-10-07.tar.gz" \
     "e0b60c2947125ac81ef7818c5667ef93ef3a275c0e417cf36db6793a4c2ae415"
 
-# Sprint B of the WiFi-on-Pizlix port: the WiFi USERSPACE stack, as regular
-# projeny packages (packaged with `filc/projeny package`, each setting its
-# checkout up first if needed; the URL+blake3 headers live in the .projeny
-# files):
-#
-# 1. libnl 3.11.0 -- the netlink library wpa_supplicant's nl80211 driver
-#    builds against (NetworkManager does NOT use libnl; it has its own
-#    netlink stack in src/libnm-platform).
-# 2. libndp 1.9 -- NetworkManager's unconditional IPv6 neighbor discovery
-#    dependency (meson.build:257).
-# 3. wpa_supplicant 2.11 -- the WiFi auth daemon NM D-Bus-activates
-#    (fi.w1.wpa_supplicant1); the tarball is the whole hostap archive,
-#    the chroot script builds the wpa_supplicant/ subdirectory.
-# 4. NetworkManager 1.48.4 -- the network daemon behind the GNOME network
-#    indicator (libnm + NM-1.0 typelib for gjs).
-#
-# The pizlonated-*.tar.gz outputs are copied into $LFS/sources by
-# build_postlc11.sh and built by build_postlc11_sub2_chroot.sh through
-# the per-package chroot scripts.
-filc/projeny package projects/libnl.projeny projects/libnl/pizlonated-libnl.tar.gz
-filc/projeny package projects/libndp.projeny projects/libndp/pizlonated-libndp.tar.gz
-filc/projeny package projects/wpa_supplicant.projeny projects/wpa_supplicant/pizlonated-wpa_supplicant.tar.gz
-filc/projeny package projects/networkmanager.projeny projects/networkmanager/pizlonated-networkmanager.tar.gz
+# Sprint C of the WiFi-on-Pizlix port: the WiFi USERSPACE stack packages
+# (libnl / libndp / wpa_supplicant / NetworkManager) moved to the postlc7
+# stage (packaging AND chroot build) -- gnome-control-center (postlc7)
+# links libnm + libnma-gtk4 and gnome-shell (postlc8) loads the NMA4
+# typelib, so the stack must be installed before those stages run; see
+# build_postlc7_sub1_packaging.sh / build_postlc7_sub2_chroot.sh.  libnma
+# 1.10.6 (the NMA-1.0/NMA4-1.0 UI libs the two consumers use) is packaged
+# there too.  What REMAINS in the postlc11 stage: the kernel rebuild with
+# CONFIG_MAC80211_HWSIM=m, the iwlwifi firmware subset + the wens-signed
+# regulatory db (runtime data -- any stage works for those, they stay
+# here for historical reasons), and the networkmanager boot wiring setup
+# script (S33networkmanager, run at the end of sub2 -- the full chain
+# reaches postlc11 after postlc7/postlc8).
 
-ls -la pizlix/linux-firmware-20241017.tar.xz pizlix/wireless-regdb-master-2024-10-07.tar.gz \
-       projects/libnl/pizlonated-libnl.tar.gz projects/libndp/pizlonated-libndp.tar.gz \
-       projects/wpa_supplicant/pizlonated-wpa_supplicant.tar.gz \
-       projects/networkmanager/pizlonated-networkmanager.tar.gz
+ls -la pizlix/linux-firmware-20241017.tar.xz pizlix/wireless-regdb-master-2024-10-07.tar.gz

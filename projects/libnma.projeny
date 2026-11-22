@@ -1,0 +1,60 @@
+URL: https://download.gnome.org/sources/libnma/1.10/libnma-1.10.6.tar.xz 2bf132bddfc5502f10ac90648eb15d05eab29a231f08ab0c994c83540cbf6c50
+Origname: libnma-1.10.6
+Name: libnma
+
+    libnma 1.10.6 (NetworkManager UI utilities: libnma for gtk3 + libnma-gtk4 for gtk4; NMA-1.0/NMA4-1.0 girs). Needed by gnome-shell (NMA4 typelib at runtime for the network indicator's static gi://NMA4 import) and gnome-control-center (libnma-gtk4 for the restored network panel). Meson build: -Dlibnma_gtk4=true (default false), -Dgcr=true (gcr-4 4.3.0 in the chroot; the gcr_api_check_src probe picks gcr4_deps), -Diso_codes=true (iso-codes present), -Dmobile_broadband_provider_info=false (absent), -Dintrospection=true (NMA4-1.0 typelib), -Dvapi=false -Dgtk_doc=false -Dmore_asserts=0 -Dld_gc=false (house: no gc-sections under fil-C). Deps: libnm >= 1.7 (1.48.4, postlc7), gtk3 >= 3.12, gtk4 >= 4.0, gio, gmodule-export-2.0 -- all present. Fil-C changes (see the patch): GLIB_VERSION_MAX_ALLOWED bumped 2.38 -> 2.80 (the pizlonated glib's GType is a pointer; G_DEFINE_TYPE only routes through the pointer-safe g_once_init_enter_pointer/leave_pointer at >= 2.80, gobject/gtype.h gate), and both linker version scripts (linker-script-binary.ver + src/libnma.ver) get pizlonated*; in global: (house pattern: with only local: *; the fil-C pizlonated_ forwarders are hidden and any cross-object reference into the libs fails).
+diff --git a/libnma/linker-script-binary.ver b/libnma/linker-script-binary.ver
+--- a/libnma/linker-script-binary.ver
++++ b/libnma/linker-script-binary.ver
+@@ -1,5 +1,12 @@
+ {
+ global:
++	# Fil-C: the fil-C compiler wraps every function definition in a
++	# pizlonated_ function object and references functions through
++	# pizlonated_ forwarders; with only `local: *;` the forwarders were
++	# hidden and anything linking against the libs failed on the missing
++	# pizlonated_* symbols (house pattern: same fix as libnm.ver,
++	# libnl's *.sym files and NM's linker-script-*.ver).
++	pizlonated_*;
+ 	_IO_stdin_used;
+ local:
+ 	*;
+diff --git a/libnma/meson.build b/libnma/meson.build
+--- a/libnma/meson.build
++++ b/libnma/meson.build
+@@ -175,7 +175,14 @@
+
+ cflags = [
+   '-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_38',
+-  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_38',
++  # Fil-C: upstream caps MAX_ALLOWED at 2.38, but the pizlonated glib's
++  # GType is a pointer and G_DEFINE_TYPE only routes through the
++  # pointer-safe g_once_init_enter_pointer/g_once_init_leave_pointer when
++  # GLIB_VERSION_MAX_ALLOWED >= 2.80 (gobject/gtype.h gate) -- with the
++  # classic gsize-based once-init the GType pointer round-trips through a
++  # size_t and breaks provenance.  House pattern (same fix as every other
++  # glib consumer in this port).
++  '-DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_80',
+   '-DNM_VERSION_MIN_REQUIRED=NM_VERSION_1_8',
+   '-DNM_VERSION_MAX_ALLOWED=NM_VERSION_1_8'
+ ]
+diff --git a/libnma/src/libnma.ver b/libnma/src/libnma.ver
+--- a/libnma/src/libnma.ver
++++ b/libnma/src/libnma.ver
+@@ -1,5 +1,16 @@
+ libnma_1_2_0 {
+ global:
++	# Fil-C: the pizlonated_ function-object forwarders (one per exported
++	# function, emitted by the fil-C compiler) must be exported too --
++	# clients (g-c-c's network panel, the shell's agent, the introspection
++	# machinery) reference libnma's functions through the pizlonated_
++	# names, and with `local: *` they were hidden, leaving those
++	# references undefined at executable link time.  glib, which has no
++	# version script, exports its forwarders by default -- the working
++	# pattern this matches (same fix as NM's libnm.ver and the libnl
++	# *.sym files).  The later version tags inherit the base tag's
++	# globals, so one entry here covers every libnma_1_* release node.
++	pizlonated_*;
+ 	nma_country_info_get_country_code;
+ 	nma_country_info_get_country_name;
+ 	nma_country_info_get_providers;
