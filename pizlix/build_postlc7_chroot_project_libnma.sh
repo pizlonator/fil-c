@@ -105,8 +105,17 @@ test -e /usr/lib/girepository-1.0/NMA4-1.0.typelib
 ls -la /usr/share/gir-1.0/NMA*.gir /usr/lib/girepository-1.0/NMA*.typelib
 
 echo "=== gate: gjs can load BOTH typelibs ==="
-gjs -c "const NM = imports.gi.NM; print('NM', NM.MAJOR_VERSION, NM.MINOR_VERSION);"
-gjs -c "const NMA4 = imports.gi.NMA4; print('NMA4 loaded, WifiDialog ctor:', typeof NMA4.WifiDialog, NMA4.WifiDialog.\$gtype);"
+# gjs is a postlc PART 8 product.  libnma must build in part 7 (before
+# gnome-control-center links libnma-gtk4), so when this script runs, gjs
+# is not in the chroot yet.  Run the gates when gjs exists; otherwise
+# defer them to build_postlc8_sub2_chroot.sh, which re-runs them right
+# after gjs is built.
+if command -v gjs >/dev/null 2>&1; then
+    gjs -c "const NM = imports.gi.NM; print('NM', NM.MAJOR_VERSION, NM.MINOR_VERSION);"
+    gjs -c "const NMA4 = imports.gi.NMA4; print('NMA4 loaded, WifiDialog ctor:', typeof NMA4.WifiDialog, NMA4.WifiDialog.\$gtype);"
+else
+    echo "gjs not in the chroot yet (postlc part 8 product) -- libnma typelib gates deferred to part 8"
+fi
 
 echo "=== gate: the pizlonated_ forwarders are exported ==="
 nm -D --defined-only /usr/lib/libnma-gtk4.so | grep -c pizlonated_nma_
