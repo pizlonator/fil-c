@@ -40,6 +40,15 @@ cp -v build_postlc12_sub2_chroot.sh $LFS/sources
 cp -v build_postlc12_chroot_project_*.sh $LFS/sources
 cp -v build_postlc12_chroot_setup_scripts_for_gdm.sh $LFS/sources
 
+# The four projeny/packaging products sub1 just built (libogg, libvorbis,
+# libcanberra, gdm) must ride along: the chroot scripts below untar them
+# out of /sources (FIX 2026-11-22: the one-shot chain died here before --
+# sub1 packaged the tarballs into projects/ but this script never copied
+# them into $LFS/sources, so build_postlc12_chroot_project_libogg.sh's
+# tar -xf died with "Cannot open: No such file or directory".  Parts 8 and
+# 10 have the same copy line; this stage self-contains its own).
+cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
+
 # The libtool rebuild needs its Fil-C patch next to the tarball in /sources.
 cp -v libtool-2.4.7-filc-ltdl-1.patch $LFS/sources
 
