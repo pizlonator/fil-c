@@ -42,11 +42,9 @@
  * 2560/4032/4896 bytes) and the exact KAT signature bytes are asserted
  * below; keygen is additionally required to be reproducible run-to-run.
  *
- * Version gate: ML-DSA is version-gated (OpenSSL 3.5+).  The original
- * monolith probed all three parameter sets before its first test and took
- * the SKIP path on the first unavailable one; each per-set binary now
- * probes its own parameter set right after test_parse_args() and exits
- * through test_skip() with the original reason text (e.g. the system
+ * Version gate: ML-DSA is version-gated (OpenSSL 3.5+).  Each per-set
+ * binary probes its own parameter set right after test_parse_args() and
+ * exits through test_skip() with the original reason text (e.g. the system
  * OpenSSL 3.0.13 provides no ML-DSA at all).
  */
 

@@ -22,14 +22,6 @@
  * (pass = "password", salt = "salt"; the hex* prefixes make the CLI decode
  * the octet-string parameter values from hex).
  *
- * Distribution decisions (carried out of the monolith): the KAT rows are
- * digest-specific and moved to their own binaries (the three SHA-1 id 1/2/3
- * rows for test_kdf_pkcs12kdf_sha1.c; the three SHA-256 id rows plus the
- * iteration-count-of-1 row for test_kdf_pkcs12kdf_sha256.c), while the
- * id-distinctness and the missing-pass/missing-salt negatives generalize
- * and run in every binary for its own digest, with the digest name
- * parameterized into the CHECK messages (the monolith ran both sections on
- * SHA-256 only).
  */
 
 #include "test_kdf_pkcs12kdf_common.h"
@@ -124,9 +116,7 @@ void pkcs12_test_kats(const struct pkcs12_family *fam,
 }
 
 /* (2) The three material ids (key / IV / MAC secret) must all be derived
- * from the same pass and salt yet produce different output.  The monolith
- * ran this on SHA-256 as the representative; every binary now runs it for
- * its own digest. */
+ * from the same pass and salt yet produce different output. */
 void pkcs12_test_ids_differ(const struct pkcs12_family *fam)
 {
     unsigned char *pass = ALLOCATE_KEY(PASS_CAP);
@@ -158,9 +148,7 @@ void pkcs12_test_ids_differ(const struct pkcs12_family *fam)
     free_poison_allocations();
 }
 
-/* (3) The pass and the salt are both mandatory: omitting either must fail.
- * The monolith ran this on SHA-256 as the representative; every binary now
- * runs it for its own digest. */
+/* (3) The pass and the salt are both mandatory: omitting either must fail. */
 void pkcs12_test_missing_inputs(const struct pkcs12_family *fam)
 {
     unsigned char *pass = ALLOCATE_KEY(PASS_CAP);

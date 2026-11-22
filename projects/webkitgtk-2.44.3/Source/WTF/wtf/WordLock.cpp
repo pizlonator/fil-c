@@ -222,10 +222,10 @@ NEVER_INLINE void WordLock::unlockSlow()
     ASSERT(reinterpret_cast<uintptr_t>(currentWordValue) & isQueueLockedBit);
     ASSERT((reinterpret_cast<uintptr_t>(currentWordValue) & ~queueHeadMask) == reinterpret_cast<uintptr_t>(queueHead));
     void* newWordValue = currentWordValue;
-    newWordValue = zandptr(newWordValue, ~isLockedBit); // Release the WordLock.
-    newWordValue = zandptr(newWordValue, ~isQueueLockedBit); // Release the queue lock.
-    newWordValue = zandptr(newWordValue, queueHeadMask); // Clear out the old queue head.
-    newWordValue = zretagptr(newQueueHead, newWordValue, ~queueHeadMask); // Install new queue head.
+    newWordValue = zandptr(newWordValue, ~isLockedBit);
+    newWordValue = zandptr(newWordValue, ~isQueueLockedBit);
+    newWordValue = zandptr(newWordValue, queueHeadMask);
+    newWordValue = zretagptr(newQueueHead, newWordValue, ~queueHeadMask);
     m_word.store(newWordValue);
 
     // Now the lock is available for acquisition. But we just have to wake up the old queue head.

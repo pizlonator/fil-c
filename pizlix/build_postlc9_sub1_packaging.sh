@@ -13,7 +13,7 @@ test $EUID -eq `stat -c %u $FILCSRC`
 
 cd $FILCSRC
 
-# Sprint S1 of the librsvg-via-Fil-Rust port: package the two Rust
+# Package the two Rust
 # toolchains the chroot needs.  Neither is a projeny project: both are
 # packaged straight from build products into rust-build/ (the
 # untracked rust build-output directory, so the tarballs stay out of git,

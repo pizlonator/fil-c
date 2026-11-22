@@ -218,12 +218,6 @@ int main(int argc, char** argv)
     // inherit the blocked mask (see install_signal_cleanup above).
     install_signal_cleanup();
 
-    // Belt-and-suspenders for every exit path of main — the normal returns
-    // and the catch clauses alike (those also sweep themselves): remove
-    // anything still registered. Every TempDir has destroyed itself by now
-    // on every path, so this is a no-op unless something registered a dir
-    // it never cleaned up; cheap insurance either way, and it is a no-op
-    // when the registry is empty.
     struct FinalTempdirSweep {
         ~FinalTempdirSweep()
         {

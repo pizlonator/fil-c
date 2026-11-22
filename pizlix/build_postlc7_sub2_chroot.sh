@@ -174,14 +174,6 @@ hash -r
 ./build_postlc7_chroot_project_gnome_font_viewer.sh
 hash -r
 
-# Sprint 8: the desktop applications' shells.  vte first (the terminal
-# widget library), then gnome-terminal (needs vte-2.91), then
-# gnome-control-center (needs the audio/policy stack built earlier in this
-# stage: libpulse for the vendored gvc subproject, plus accountsservice,
-# upower-glib, gcr-4, polkit-gobject-1 and ibus-1.0 -- see the block after
-# the GL/EGL rebuild above).
-# All three go after the existing apps (gnome-text-editor /
-# gnome-font-viewer) and before the icon theme (pure data).
 ./build_postlc7_chroot_project_vte.sh
 hash -r
 

@@ -16,10 +16,7 @@
  *   112-byte "abcdefgh...nopqrstu" -- the two-block SHA-512 vector
  *
  * Each per-digest binary carries its own digest's rows of that table and
- * runs the routes/chunking/size sections for its own digest (a coverage
- * increase over the monolith, which exercised the static/byname routes on
- * SHA2-256 only and the block-boundary chunking on SHA2-256 and SHA2-512
- * only).
+ * runs the routes/chunking/size sections for its own digest.
  *
  * Version gates: SHA2-256/192 is genuinely version-gated -- no current
  * OpenSSL 3.x release ships it, so test_digest_sha2_256_192.c takes the

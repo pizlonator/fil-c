@@ -632,7 +632,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_arit_overflow.c b/mesa/sr
 diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c b/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c
 --- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c
 +++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c
-@@ -77,17 +77,20 @@
+@@ -77,17 +77,19 @@
 
     LLVMTypeRef function_type = LLVMFunctionType(ret_type, arg_types, 2, 0);
 
@@ -640,9 +640,8 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_assert.c b/mesa/src/galli
 -                                          func_to_pointer((func_pointer)lp_assert),
 -                                          function_type,
 -                                          "assert");
-+   /* Fil-C: this used to build an inttoptr-of-constant "function pointer
-+    * constant" for lp_assert, which MCJIT resolved by raw address.  The
-+    * JIT cannot bless such a constant (capability-less pointer), so declare
++   /* Fil-C: the JIT cannot bless an inttoptr-of-constant "function pointer
++    * constant" (capability-less pointer), so declare
 +    * a named extern and map it at compile time instead (see
 +    * lp_build_decl_mapped_fn). */
 +   function = lp_build_decl_mapped_fn(gallivm, "lp_assert_hook",
@@ -686,7 +685,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_coro.c b/mesa/src/gallium
 diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp b/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp
 --- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp
 +++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp
-@@ -26,28 +26,25 @@
+@@ -26,28 +26,16 @@
   **************************************************************************/
 
  #include <stddef.h>
@@ -712,20 +711,11 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp b/mesa/src/gall
 
  #include "lp_bld_debug.h"
 
-+/*
-+ * Fil-C port: the LLVM-C disassembler (LLVMCreateDisasm &
-+ * LLVMDisasmInstruction, fed from LLVM_HOST_TRIPLE) is not in the curated
-+ * LLVM-C subset, and its only consumer was the GALLIVM_DEBUG_ASM loop that
-+ * the JIT compile path no longer has.  lp_disassemble/lp_profile are gone;
-+ * lp_check_alignment and lp_debug_dump_value stay (the latter over the
-+ * copy-returning LLVMPrintValueToString -- no LLVMDisposeMessage exists or
-+ * is needed).
-+ */
 +
  #ifdef __linux__
  #include <sys/stat.h>
  #include <fcntl.h>
-@@ -77,187 +74,10 @@
+@@ -77,187 +65,10 @@
  extern "C" void
  lp_debug_dump_value(LLVMValueRef value)
  {
@@ -918,7 +908,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.cpp b/mesa/src/gall
 diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h b/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h
 --- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h
 +++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h
-@@ -84,12 +84,9 @@
+@@ -84,12 +84,6 @@
  lp_check_alignment(const void *ptr, unsigned alignment);
 
 
@@ -928,9 +918,6 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_debug.h b/mesa/src/galliu
 -
 -void
 -lp_profile(LLVMValueRef func, const void *code);
-+/* Fil-C: lp_disassemble/lp_profile are gone -- the LLVM-C disassembler is
-+ * not in the curated API and the JIT compile path has no engine to walk
-+ * (see lp_bld_debug.cpp). */
 
 
  #ifdef __cplusplus
@@ -1099,7 +1086,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
 
  unsigned gallivm_perf = 0;
 
-@@ -99,155 +85,41 @@
+@@ -99,155 +85,33 @@
   *
   * See also CodeGenOpt::Level in llvm/Target/TargetMachine.h
   */
@@ -1109,27 +1096,20 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
 -   Default,     // -O2, -Os
 -   Aggressive   // -O3
 -};
--
+
 -
 -/**
 - * Create the LLVM (optimization) pass manager and install
 - * relevant optimization passes.
 - * \return  TRUE for success, FALSE for failure
-+/*
-+ * Fil-C: the LLVM_CodeGenOpt_Level enum and create_pass_manager() (and the
-+ * legacy pass-manager plumbing it drove) are gone entirely.  The Fil-C JIT
-+ * runs the full optimization pipeline (default<O2> plus the Fil-C passes)
-+ * inside CompileModule, and there is no pass manager in the curated LLVM-C
-+ * subset.  GALLIVM_PERF_NOPT maps to
-+ * FilLLVMJIT_SetOption(jit, "opt-level", "0") instead.
-  */
+- */
 -static bool
 -create_pass_manager(struct gallivm_state *gallivm)
 -{
 -#if GALLIVM_USE_NEW_PASS == 0
 -   assert(!gallivm->passmgr);
 -   assert(gallivm->target);
-
+-
 -   gallivm->passmgr = LLVMCreateFunctionPassManagerForModule(gallivm->module);
 -   if (!gallivm->passmgr)
 -      return false;
@@ -1271,7 +1251,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
  }
 
 
-@@ -258,62 +130,32 @@
+@@ -258,62 +122,32 @@
  gallivm_free_code(struct gallivm_state *gallivm)
  {
     assert(!gallivm->module);
@@ -1349,7 +1329,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
     }
 
     return true;
-@@ -337,7 +179,15 @@
+@@ -337,7 +171,15 @@
     if (!lp_build_init())
        return false;
 
@@ -1366,7 +1346,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
     gallivm->cache = cache;
     if (!gallivm->context)
        goto fail;
-@@ -356,61 +206,21 @@
+@@ -356,61 +198,21 @@
     if (!gallivm->module)
        goto fail;
 
@@ -1435,7 +1415,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
     lp_build_coro_declare_malloc_hooks(gallivm);
     return true;
 
-@@ -441,12 +251,8 @@
+@@ -441,12 +243,8 @@
        return true;
 
 
@@ -1450,7 +1430,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
     gallivm_debug = debug_get_option_gallivm_debug();
 
     gallivm_perf = debug_get_flags_option("GALLIVM_PERF", lp_bld_perf_flags, 0 );
-@@ -524,15 +330,10 @@
+@@ -524,15 +322,10 @@
  gallivm_verify_function(struct gallivm_state *gallivm,
                          LLVMValueRef func)
  {
@@ -1470,7 +1450,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
     if (gallivm_debug & GALLIVM_DEBUG_IR) {
        /* Print the LLVM IR to stderr */
        lp_debug_dump_value(func);
-@@ -561,89 +362,35 @@
+@@ -561,89 +354,29 @@
     assert(!gallivm->compiled);
 
     if (gallivm->builder) {
@@ -1514,12 +1494,6 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
 -#if GALLIVM_USE_NEW_PASS == 1
 -   char passes[1024];
 -   passes[0] = 0;
-+   /* Fil-C: the optimization pass runs (new-PM LLVMRunPasses / legacy
-+    * function pass manager) are gone -- CompileModule runs the full
-+    * pipeline (default<O2> + Fil-C passes) inside the shim.  The shader
-+    * disk cache is likewise inert under the JIT (no object cache), so the
-+    * cache short-circuit and the GALLIVM_DEBUG_DUMP_BC bitcode dump went
-+    * away with them. */
 
 -   /*
 -    * there should be some way to combine these two pass runs but I'm not seeing it,
@@ -1577,7 +1551,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
     if (gallivm_debug & GALLIVM_DEBUG_PERF) {
        int64_t time_end = os_time_get();
        int time_msec = (int)((time_end - time_begin) / 1000);
-@@ -652,69 +399,10 @@
+@@ -652,69 +385,10 @@
                     gallivm->module_name, time_msec);
     }
 
@@ -1649,7 +1623,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_init.c b/mesa/src/gallium
  func_pointer
  gallivm_jit_function(struct gallivm_state *gallivm,
                       LLVMValueRef func)
-@@ -724,12 +412,18 @@
+@@ -724,12 +398,18 @@
     int64_t time_begin = 0;
 
     assert(gallivm->compiled);
@@ -1786,15 +1760,14 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_jit_types.c b/mesa/src/ga
     LP_CHECK_MEMBER_OFFSET(struct vertex_header, clip_pos,
                            target, vertex_header,
                            LP_JIT_VERTEX_HEADER_CLIP_POS);
-@@ -729,8 +728,9 @@
+@@ -729,8 +728,8 @@
                            target, vertex_header,
                            LP_JIT_VERTEX_HEADER_DATA);
 
 -   assert(LLVMABISizeOfType(target, vertex_header) ==
 -          offsetof(struct vertex_header, data[data_elems]));
-+   /* Fil-C: the LLVMABISizeOfType assert that used to live here went away
-+    * with the TargetData (see lp_bld_struct.h).  The JIT pins the standard
-+    * x86_64 layout, and offsetof(data[data_elems]) matches it. */
++   /* Fil-C: the JIT pins the standard
++    * x86_64 layout, and offsetof(data[data_elems]) matches it (see lp_bld_struct.h). */
 
     return vertex_header;
  }
@@ -1802,7 +1775,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.c b/mesa/src/gallium
 new file mode 100644
 --- /dev/null
 +++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.c
-@@ -0,0 +1,213 @@
+@@ -0,0 +1,197 @@
 +/**************************************************************************
 + *
 + * Copyright 2010 VMware, Inc.
@@ -1831,22 +1804,6 @@ new file mode 100644
 + **************************************************************************/
 +
 +
-+/*
-+ * Fil-C port: this used to be lp_bld_misc.cpp, the only C++ file in
-+ * gallivm, which drove MCJIT through the LLVM C++ API (EngineBuilder,
-+ * MAttrs/MCPU, SectionMemoryManager, LPObjectCache, ...).  Under the
-+ * Fil-C LLVM JIT none of that machinery exists or is needed:
-+ *
-+ * - the JIT targets detectHost() (march=native) itself, so the MAttrs /
-+ *   MCPU logic is gone;
-+ * - code sections are allocated by the Fil-C runtime (GC-visible),
-+ *   so the memory manager / lp_generated_code bookkeeping is gone;
-+ * - there is no object cache: lp_cached_code stays structurally but is
-+ *   always empty and mesa's shader disk cache silently disables;
-+ * - the LLVM C++ API cannot be reached from Fil-C code, so this file is
-+ *   now plain C speaking only the curated LLVM-C subset from
-+ *   filc_llvm_jit.h plus the FilLLVMJIT_* session API.
-+ */
 +
 +#include <stdio.h>
 +#include <string.h>
@@ -2677,7 +2634,7 @@ deleted file mode 100644
 diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h b/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h
 --- a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h
 +++ b/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h
-@@ -31,20 +31,26 @@
+@@ -31,20 +31,22 @@
 
 
  #include "lp_bld.h"
@@ -2693,10 +2650,6 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h b/mesa/src/gallium
 +struct gallivm_state;
 +
  /*
-+ * Fil-C port: this used to declare the MCJIT glue (engine builder,
-+ * memory managers, object cache).  It now declares the small shim between
-+ * gallivm and the Fil-C LLVM JIT session API (filc_llvm_jit.h).
-+ *
   * some shaders use function pointers incorrectly so can't be relinked
   * properly. (mostly the fallback fetch shaders).
   * We should fix them, but the dont_cache flag can be set for now,
@@ -2708,7 +2661,7 @@ diff --git a/mesa/src/gallium/auxiliary/gallivm/lp_bld_misc.h b/mesa/src/gallium
   */
  struct lp_cached_code {
     void *data;
-@@ -55,39 +61,41 @@
+@@ -55,39 +57,41 @@
 
  struct lp_generated_code;
 

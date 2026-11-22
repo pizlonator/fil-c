@@ -26,20 +26,6 @@
  * accepted deterministically (verified identically on 3.0.13 and 3.6.5);
  * only a missing H, a missing session id or a bad type are rejected.
  *
- * Distribution decisions (carried out of the monolith): the KAT rows are
- * digest-specific and moved to their own binaries (the six SHA-1 type A..F
- * rows for test_kdf_sshkdf_sha1.c; the SHA-256 type A/C rows and their
- * 32-byte digest-sized H for test_kdf_sshkdf_sha256.c), while the six-type
- * distinctness and the negatives (a bad type, a missing xcghhash, a missing
- * session id, the wrong-length-xcghhash acceptance) generalize and run in
- * every binary for its own digest, with the digest name parameterized into
- * the CHECK messages -- each binary's sections run over its own
- * digest-sized H, with the shared 20-byte CAVS set 1 session id.  Where the
- * monolith verified a wrong-length-xcghhash output for one digest only
- * (SHA-1, the 8-byte dd8c1159... value, which that binary passes in), the
- * digest without such a constant verifies the same deterministic acceptance
- * relatively -- by deriving twice and requiring identical output -- instead
- * of dropping the check.
  */
 
 #include "test_kdf_sshkdf_common.h"
@@ -146,8 +132,7 @@ void sshkdf_test_kats(const struct sshkdf_family *fam,
 }
 
 /* (2) The six types produce six pairwise-distinct outputs, over the
- * binary's own digest and digest-sized H.  The monolith ran this on SHA-1
- * as the representative; every binary now runs it for its own digest. */
+ * binary's own digest and digest-sized H. */
 void sshkdf_test_types_differ(const struct sshkdf_family *fam)
 {
     unsigned char *key = ALLOCATE_KEY(K_CAP);
@@ -186,11 +171,10 @@ void sshkdf_test_types_differ(const struct sshkdf_family *fam)
     free_poison_allocations();
 }
 
-/* (3) Error paths and the wrong-length xcghhash behavior.  The monolith
- * ran this on SHA-1 (whose wrong-length output it had verified); every
- * binary now runs it for its own digest, comparing the wrong-length output
- * against its verified constant where one exists and against a second
- * derive where none does. */
+/* (3) Error paths and the wrong-length xcghhash behavior.  Every binary
+ * runs it for its own digest, comparing the wrong-length output against
+ * its verified constant where one exists and against a second derive where
+ * none does. */
 void sshkdf_test_negative(const struct sshkdf_family *fam,
                           const char *short_h_out_hex)
 {

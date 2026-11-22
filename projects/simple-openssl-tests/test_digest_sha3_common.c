@@ -20,9 +20,7 @@
  * rates are 144/136/104/72 bytes for 224/256/384/512, and the KECCAK rates
  * equal the SHA3 rates at each output size) -- {rate-1, rate, rate+1}
  * splits plus a byte-at-a-time pass.  The byname route ("sha3-256") is a
- * SHA3-256-only section and belongs to test_digest_sha3_256.c (a coverage
- * note: the monolith exercised every digest's rate boundaries and the
- * byname route on sha3-256 only; the split keeps the byname route there).
+ * SHA3-256-only section and belongs to test_digest_sha3_256.c.
  *
  * Version gates: the KECCAK-* digests are absent from OpenSSL 3.0.x's
  * default provider (EVP_MD_fetch fails there) and present in newer

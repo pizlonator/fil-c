@@ -35,22 +35,6 @@
  *   TLS 1.2, SHA-256, same shape
  *     -> 202c88c00f84a17a2002707960478746...51288bf
  *
- * (The task brief's "202c88c2f1816c92..." memory was a typo: the real
- * SHA-256 output starts 202c88c0..., as both CLI builds and OpenSSL's own
- * test data agree.)
- *
- * Distribution decisions (carried out of the monolith): the two digests'
- * NIST master-secret KAT rows are digest-specific and moved to their own
- * binaries, which also carry the digest-bound edge cases (the odd-length
- * secret for MD5-SHA1 and the explicitly empty secret for SHA-256 -- each
- * has a verified output constant for one digest only); the three-chunk KAT
- * derive, the 16-byte prefix property, the concatenated-seed equality and
- * the missing-input negatives generalize and run in every binary for its
- * own digest, with the digest name parameterized into the CHECK messages.
- * The monolith ran the 16-byte truncation and the concatenation section on
- * its MD5-SHA1 KAT and the missing-input section on SHA-256 only;
- * generalizing them reuses each binary's own verified KAT constants, so no
- * new vectors were invented.
  */
 
 #include "test_kdf_tls1prf_common.h"

@@ -312,7 +312,7 @@ int main(int argc, char **argv)
           "(%.3f ms/frame)\n",
           force ? force : "default", ms, ms / 100.0);
 
-   /* ---- indexed draw matrix (sprint 3) ----
+   /* ---- indexed draw matrix ----
     * Exercises the draw module's index-buffer fetch (gallivm's AVX2 gather
     * path, which the shim lowers into predicated plain loads) plus
     * multi-input/multi-output shader variants.  Every case binds its

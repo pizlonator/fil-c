@@ -24,9 +24,7 @@
  * Each per-MAC binary carries its own MAC's rows of that sample table
  * (the sample numbers of the original nine-row table are preserved in the
  * rows for the failure messages) and runs the absent-custom equivalence,
- * the chunked updates and the output-size parameter for its own MAC (the
- * monolith ran the size-param section on KMAC-256 only; the split runs it
- * per binary, on both MACs).
+ * the chunked updates and the output-size parameter for its own MAC.
  *
  * Portability note: the "custom" parameter must be passed as an
  * OCTET_STRING whose data_size is exactly strlen(custom) (no trailing

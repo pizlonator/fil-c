@@ -3,7 +3,6 @@
 set -e
 set -x
 
-# Sprint S2 of the librsvg-via-Fil-Rust port: the two-compiler dispatch.
 
 # The Fil-C rustc (exposed as /usr/bin/rustc by build_postlc9_chroot_project_rust.sh)
 # builds every TARGET crate (cargo is always invoked with an explicit
@@ -15,7 +14,7 @@ set -x
 # /usr/lib/rust/yolo.  Rationale:
 #
 # - proc-macro crates compiled by the upstream rustc are accepted by the
-#   Fil-C rustc thanks to the S1 metadata-version normalization (E0514 fix);
+#   Fil-C rustc thanks to the metadata-version normalization (E0514 fix);
 #   both rustcs report "1.90.0 (1159e78c4 2025-09-14)" after the strip.
 # - the upstream rustc's std is glibc-ABI.  Host units must therefore link
 #   against the yolo glibc, not the Fil-C libc: this script completes the

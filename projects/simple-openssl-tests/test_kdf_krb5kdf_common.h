@@ -84,8 +84,7 @@ void krb5kdf_test_negative_output_length(const struct krb5_family *fam,
 /* (3b) An explicitly-set zero-length constant: rejected from OpenSSL 3.1
  * on ("invalid constant length"); 3.0.x only rejects an absent constant
  * and accepts the empty one, so the check is adaptive (a note, not a
- * failure, on the old behavior).  The monolith's gate ran inside its
- * negative section, which this split keeps in the AES-128-CBC binary. */
+ * failure, on the old behavior). */
 void krb5kdf_test_negative_empty_constant(const struct krb5_family *fam,
                                           const struct krb5_kat *kat);
 

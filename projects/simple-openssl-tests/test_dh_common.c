@@ -22,8 +22,7 @@
  * /tmp; the suite's programs do no file I/O) and matches the embedded Z.
  *
  * Behavior verified empirically on OpenSSL 3.0.13 and 3.6.5 and asserted
- * below (every binary asserts it for its own flavor; the monolith ran the
- * bad-peer checks on the "DH" flavor only):
+ * below:
  *
  *   - Both "DH" and "DHX" import the fixed keys and derive the same KAT Z;
  *     the derived secret is exactly 256 bytes (the group size).

@@ -23,9 +23,8 @@
  *
  * and the same command under the system OpenSSL 3.0.13.
  *
- * This is also the digest the monolith verified the multi-chunk info OKM
- * for, so its multi-info section compares the five-chunk derive against
- * that 32-byte constant; the SHA-1 binary checks the same behavior
+ * Its multi-info section compares the five-chunk derive against the
+ * verified 32-byte constant; the SHA-1 binary checks the same behavior
  * relatively, against a single-info reference derive.
  */
 

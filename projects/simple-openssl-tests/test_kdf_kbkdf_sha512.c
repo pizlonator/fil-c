@@ -16,9 +16,8 @@
  * cross-checked under the system OpenSSL 3.0.13 (see
  * test_kdf_kbkdf_common.c for the command).
  *
- * Parameterization notes for this digest: the monolith verified the switch
- * and feedback KAT values for SHA-256 only, so this binary checks the same
- * switch and feedback behavior for its own digest by difference and against
+ * Parameterization notes for this digest: this binary checks the switch
+ * and feedback behavior for its own digest by difference and against
  * a reference derive (see test_kdf_kbkdf_common.c); the digest-independent
  * CMAC-AES128 and KMAC128 PRF checks run in the representative SHA-256
  * binary, and the three-chunk concatenation vector -- whose PRF is this

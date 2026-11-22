@@ -16,8 +16,7 @@
  *
  * Each per-MAC binary carries its own MAC's rows of the size-sweep and
  * key-length-variant table and runs the chunked-updates and negative
- * sections for its own MAC (the monolith ran every section for both
- * MACs, so the split preserves coverage exactly, once per binary).
+ * sections for its own MAC.
  *
  * Coverage: output size sweeps via the "size" parameter ({64,32,20,1} for
  * BLAKE2BMAC, {32,16,1} for BLAKE2SMAC) with an EVP_MAC_CTX_get_mac_size

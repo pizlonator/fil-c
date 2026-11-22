@@ -483,26 +483,16 @@ void print_poison_history(Emulator* emu, const std::vector<uint64_t>& pcs) {
         int plen = snprintf(prefix, sizeof(prefix), "  #%-2zu 0x%016lx",
                             printed, (unsigned long)pc);
         if (chain.empty()) {
-            // Nothing symbolicated: the address alone, or the
-            // module+offset fallback (same as the stack trace's
-            // unsymbolicated frames); no continuation lines.
             if (modstr.empty())
                 fprintf(stderr, "%s\n", prefix);
             else
                 fprintf(stderr, "%s in %s\n", prefix, modstr.c_str());
         } else {
-            // Step line: the innermost frame of the chain (where the
-            // instruction physically is); it is an inlined frame whenever
-            // the chain continues outward.
             fprintf(stderr, "%s ", prefix);
             print_loc(chain[0]);
             if (chain.size() > 1)
                 fprintf(stderr, "  (inline)");
             fprintf(stderr, "\n");
-            // The rest of the inline stack, walking outward to the real,
-            // physically-containing function (the last entry, unmarked):
-            // indented continuation lines carrying no step number and no
-            // address.
             for (size_t j = 1; j < chain.size(); j++) {
                 fprintf(stderr, "%*s", plen + 1, "");
                 print_loc(chain[j]);

@@ -5,46 +5,6 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint W3 of the Epiphany-on-Pizlix port: Epiphany 46.5 (GNOME Web).
-#
-# The browser itself.  Built with meson against the webkitgtk-6.0 API
-# (2.44.3, the postlc10 WebKitGTK build -- USE_GTK4=ON) + gtk4/libadwaita/
-# gcr-4/nettle/libarchive/gsettings-desktop-schemas/iso-codes/... (every
-# .pc dependency probed in the chroot before this script was written:
-# gtk4-unix-print 4.14.5, gcr-4 4.3.0, nettle+hogweed 3.10, libarchive
-# 3.7.4, json-glib 1.10.6, libsecret 0.21.4, libsoup-3.0 3.4.4, sqlite3
-# 3.46.1, iso-codes 4.16.0, gstreamer-1.0 1.24.7).  libportal-gtk4 comes
-# from the libportal build earlier in this stage (build_postlc10_
-# chroot_project_libportal.sh); desktop-file-validate (an optional epiphany
-# test runner) from build_postlc10_chroot_project_desktop_file_utils.sh.
-#
-# LDFLAGS="-enable-filc-jit": the Fil-C JIT gate (house pattern from the
-# gnome-text-editor build, build_postlc7_chroot_project_gnome_text_
-# editor.sh).  GTK4's GSK GL renderer loads swrast_dri.so and runs
-# llvmpipe shader compilation in-process, so the GUI executables must
-# carry the JIT-enabled Fil-C CRT (filc_jit_crt.o swaps in at link time).
-# The flag applies to executables; shared libraries warn-and-ignore it
-# (verified driver behavior from the mutter/gnome-shell relink sprint), so
-# exporting it for the whole build is safe: the headless helpers (ephy-
-# profile-migrator, epiphany-search-provider, epiphany-webapp-provider)
-# get the JIT CRT harmlessly, libephymain.so / the web-process-extension
-# modules ignore it.  meson only reads LDFLAGS at setup.
-#
-# Fil-C notes (see projects/epiphany.projeny -- the 3-hunk patch applied by
-# projeny setup):
-# 1. meson.build: GLIB_VERSION_MAX_ALLOWED pinned to GLIB_VERSION_2_80
-#    (house pattern: GType is a pointer in the pizlonated glib; the
-#    gtype.h boilerplate then routes G_DEFINE_TYPE through the pointer-
-#    based _g_type_once_init_* forms, and the GLib 2.80
-#    g_once_init_enter_pointer used by hunk 3 is declared).
-# 2. meson.build: subdir('help') dropped (itstool is not in the chroot;
-#    the docs are not needed).
-# 3. lib/ephy-flatpak-utils.c: the once-init pair converted to
-#    g_once_init_enter_pointer / g_once_init_leave_pointer (the plain
-#    forms do integer-typed stores that break the pointer location under
-#    the pizlonated glib).
-# No version scripts (.map files) ship with epiphany, so no symbol-table
-# surgery is needed (contrast gcr in postlc7).
 
 cd /sources
 rm -rf pizlonated-epiphany

@@ -13,10 +13,9 @@
  * Known-answer provenance (SHA-1): the CAVS HMAC-SHA1 r=8 counter vector
  * below is a NIST CAVS value as distributed in OpenSSL's own test data.
  *
- * Parameterization notes for this digest: the monolith verified the switch
- * and feedback KAT values for SHA-256 only, so this binary checks the same
- * switch and feedback behavior for its own digest by difference and against
- * a reference derive (see test_kdf_kbkdf_common.c); the digest-independent
+ * Parameterization notes for this digest: this binary checks the switch
+ * and feedback behavior for its own digest by difference and against a
+ * reference derive (see test_kdf_kbkdf_common.c); the digest-independent
  * CMAC-AES128 and KMAC128 PRF checks run in the representative SHA-256
  * binary.
  */

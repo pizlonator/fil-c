@@ -45,11 +45,9 @@
  * correctness is pinned by the embedded (ct, ss) pairs and their raw
  * sizes are checked against FIPS 203 (1632 / 2400 / 3168 bytes).
  *
- * Version gate: ML-KEM is version-gated (OpenSSL 3.5+).  The original
- * monolith probed all three parameter sets before its first test and took
- * the SKIP path on the first unavailable one; each per-set binary now
- * probes its own parameter set right after test_parse_args() and exits
- * through test_skip() with the original reason text (e.g. the system
+ * Version gate: ML-KEM is version-gated (OpenSSL 3.5+).  Each per-set
+ * binary probes its own parameter set right after test_parse_args() and
+ * exits through test_skip() with the original reason text (e.g. the system
  * OpenSSL 3.0.13 provides no ML-KEM at all).
  */
 

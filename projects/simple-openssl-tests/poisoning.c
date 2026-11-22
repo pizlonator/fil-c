@@ -45,9 +45,9 @@ static unsigned g_poison_variants = 0;
 
 /* One tracked poison_alloc() allocation. */
 typedef struct {
-    void *ptr;      /* the malloc() result */
-    size_t size;    /* the size the caller asked for */
-    int poisoned;   /* nonzero if poison_range() was applied to it */
+    void *ptr;
+    size_t size;
+    int poisoned;
 } poison_allocation;
 
 /* Every allocation poison_alloc() has handed out, poisoned or not. */

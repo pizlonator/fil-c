@@ -5,34 +5,6 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint W3 of the Epiphany-on-Pizlix port: libportal 0.9.1.
-#
-# The flatpak portal access library (XDG desktop portal client).  Epiphany
-# 46 links libportal-gtk4 (meson dependency libportal-gtk4 >= 0.6) for the
-# dynamic-launcher portal (web app install) and the open-uri portal.
-#
-# Backends (meson_options.txt: backend-gtk3/-gtk4/-qt5/-qt6, all 'auto'):
-# gtk3 and gtk4 are in the chroot so both auto-enable (Epiphany needs the
-# gtk4 one); qt5/qt6 auto-disable (no Qt in the chroot, and meson's qt5
-# module import at the top of libportal's meson.build is lazy -- it does
-# not probe for Qt tools until a Qt backend is enabled, so the import is
-# safe without Qt).
-#
-# Flags:
-# -D tests=false: the unit tests want a portal backend / mock dbus and the
-#   build-time check_programs would pull extra bits; nothing needs them.
-# -D vapi=false: no vala/vapigen in the chroot (house pattern, cf. gcr).
-# -D docs=false: gi-docgen is not vendored in the chroot.
-# introspection stays on (default true): g-ir-scanner + the Gtk-3.0/Gtk-4.0
-# girs are installed, so XdpGtk3-2.0/XdpGtk4-2.0 girs + typelibs build --
-# same house pattern as gcr-4 in postlc7.
-#
-# Fil-C notes: libportal has no version scripts (.map files) and no
-# GLIB_VERSION_* pinning of its own (so GLIB_VERSION_MAX_ALLOWED defaults
-# to the pizlonated glib's latest = 2.80, which routes the G_DEFINE_TYPE
-# boilerplate through the pointer-based _g_type_once_init_* forms).  The
-# two hand-rolled once-init pairs in libportal/portal.c are FIXED here by
-# the projeny patch (see below); no other Fil-C changes were needed.
 
 cd /sources
 rm -rf pizlonated-libportal

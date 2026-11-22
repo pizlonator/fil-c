@@ -36,9 +36,6 @@
 
  * runs the routes and the chunked-vs-one-shot equality for its own digest
 
- * (a coverage increase over the monolith, which exercised the routes on
-
- * MD5 and MD4 only and the block-boundary chunking on MD5 only).
 
  *
 

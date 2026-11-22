@@ -5,40 +5,6 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint W2 of the Epiphany-on-Pizlix port: build WebKitGTK 2.44.3 in the
-# Pizlix chroot and install it (the webkitgtk-6.0 API: USE_GTK4=ON, so
-# libwebkitgtk-6.0.so + the libexec helpers webkitgtk-6.0/{WebProcess,
-# NetworkProcess,jsc,MiniBrowser}; Epiphany 46 links exactly this API).
-#
-# Source: /sources/pizlonated-webkitgtk.tar.gz (package-source.sh over the
-# checked-in projects/webkitgtk-2.44.3 tree; the same 61-commit Fil-C tree
-# the recon validated: configure 38.8s + the first 651 ninja steps ran
-# inside this chroot).  Runs INSIDE the chroot via build_chroot_late.sh.
-#
-# The cmake line is the recon-validated one, with one flip: ENABLE_XSLT=ON
-# (libxslt 1.1.42 was built in postlc6; the recon line had it OFF only
-# because it mirrored the dev-container script do_cmake_yolo_simpler.sh).
-#
-# The Fil-C JIT gate: any process that loads swrast_dri.so and compiles
-# llvmpipe shaders must link filc_jit_crt.o via LDFLAGS="-enable-filc-jit"
-# (cmake reads LDFLAGS only at configure time; executables get it, shared
-# libs warn-and-ignore it -- the verified driver behavior from the mutter/
-# gnome-shell relink sprint).  GUI processes here: MiniBrowser, WebProcess;
-# NetworkProcess is safe; jsc is headless so the flag is harmless there.
-#
-# Warm build dir: the build tree lives at /hostbuild/webkitgtk-build (the
-# snapshot excludes hostbuild/*, and Fil-C TUs spike >1.5-2GB each so the
-# object tree is big).  The extracted source tree and build dir survive
-# re-runs (keyed on the tarball hash), so fix iterations re-run ninja
-# incrementally instead of rebuilding ~2h from zero.  After the stage
-# driver's own (sealing) run the script removes both -- see the cleanup
-# gate on lfsbuildstate at the bottom (piecewise runs during iteration
-# leave the warm dir in place for the sealing run; the sealing run is the
-# one that runs with lfsbuildstate == "postlc10-part").
-#
-# ninja -j24 explicitly (MAKEFLAGS does not affect ninja; 59G RAM with
-# Fil-C TUs spiking: j24 is the safe parallelism; drop to -j16 and resume
-# if the box OOMs -- ninja resumes incrementally, no reconfigure needed).
 
 NINJAJOB=24
 
@@ -78,10 +44,6 @@ time cmake /sources/pizlonated-webkitgtk -DPORT=GTK -DCMAKE_BUILD_TYPE=RelWithDe
 grep -q 'ENABLE_C_LOOP:BOOL=ON' CMakeCache.txt
 echo "GATE A (configure + CLoop): OK"
 
-# --- GATE B: the CLoop jsc smoke (in the build tree) ---------------------------
-# Mirrors the port's proven state: jsc runs headless on the pure-C
-# interpreter.  ~15-30 min on this box (WTF + JavaScriptCore + the LLInt
-# codegen all build as dependencies of jsc).
 ninja -j$NINJAJOB jsc
 
 test -x bin/jsc
@@ -94,7 +56,7 @@ ninja -j$NINJAJOB
 
 ninja -j$NINJAJOB install
 
-# --- STRIP the installed artifacts (sprint S2) -----------------------------------
+# --- STRIP the installed artifacts -----------------------------------
 # RelWithDebInfo ships ~1.24 GB of NON-ALLOC debug+symbol sections inside the
 # 3.4 GB libwebkitgtk-6.0.so.4.5.7 (.debug_* ~1.11 GB + .strtab 90 MB +
 # .symtab 18 MB) and ~165 MB of the same in libjavascriptcoregtk-6.0.so.1.2.7
@@ -212,8 +174,6 @@ for f in WebKitWebProcess WebKitNetworkProcess jsc MiniBrowser; do
         echo "$f: plain CRT (no jit marker)"
     fi
 done
-# MiniBrowser is the GUI process that will load swrast_dri.so -- its JIT
-# marker is the build-side gate (the llvmpipe sprint's verified marker).
 nm -D /usr/libexec/webkitgtk-6.0/MiniBrowser | grep -q filc_start_program_with_jit
 echo "MiniBrowser JIT-CRT marker: OK"
 

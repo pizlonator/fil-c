@@ -30,7 +30,7 @@
 
  * the fetch-route KATs for its own digest; WHIRLPOOL also carries the
 
- * byname route, which the monolith ran for WHIRLPOOL only.
+ * byname route.
 
  *
 

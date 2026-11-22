@@ -90,36 +90,6 @@ JIT_OWN = [
     ("LLVMBool", "ShimValueExtractMDNodeOK", "(LLVMValueRef Val)"),
     ("LLVMBool", "ShimValueIsMDNodeOrValueAsMetadata", "(LLVMValueRef Val)"),
     ("LLVMBool", "ShimValueIsLocalAsMetadataValue", "(LLVMValueRef Val)"),
-    # Predicates for the runtime's semantic (cross-argument) checks.  These
-    # cover the cases the LLVM C API cannot ask about: whether an attribute
-    # kind is a constant-range kind (the enum is LLVM-internal), whether an
-    # attribute kind is a type kind (also LLVM-internal; Attribute::get
-    # asserts "Not a type attribute" for anything else), whether an
-    # attribute kind/val pair is one Attribute::get accepts, whether an
-    # inline-asm constraint string parses against a function type
-    # (InlineAsm::get cantFails on a bad one), whether a struct body would
-    # make the struct recursive (StructType::setBody cantFails), whether a
-    # struct still accepts a body at all (setBody asserts isOpaque), whether a
-    # data layout string parses (Module::setDataLayout aborts on the Error
-    # that the graceful DataLayout::parse returns), whether an APInt or
-    # APFloat string parse would pass the assertions in APInt::fromString and
-    # the APFloat(StringRef) ctor, whether an APInt constant's value
-    # would get past the "Too many bits" assertions in APInt::getSExtValue
-    # and APInt::getZExtValue (a multi-word constant's fit cannot be asked
-    # about through the C API), whether an intrinsic id is in range (the
-    # llvm_map_to_intrinsic_id assert is LLVM-internal), whether the
-    # intrinsic type-table decode behind LLVMGetIntrinsicDeclaration and
-    # LLVMIntrinsicGetType would complete without tripping one of its many
-    # assertions (the decode indexes the Tys array through ArrayRef,
-    # cast<>s its inputs, bounds vector shapes, and finishes into a
-    # FunctionType constructor; none of that is graceful), whether an
-    # instruction is atomic (the wrapper row only pins the Instruction
-    # subclass), whether a shuffle-vector mask is one the shuffle-vector
-    # constructors accept (isValidOperands takes the mask as ints after
-    # getShuffleMask decodes it, neither of which the C API exposes), and
-    # whether a target extension type allows a zeroinitializer (the property
-    # is LLVM-internal).  All of them are graceful: they never
-    # assert on an odd input.
     ("LLVMBool", "ShimKindIsConstantRangeAttr", "(unsigned KindID)"),
     ("LLVMBool", "ShimKindIsTypeAttr", "(unsigned KindID)"),
     ("LLVMBool", "ShimEnumAttributeArgsOK", "(unsigned KindID, unsigned long long Val)"),

@@ -101,19 +101,16 @@ diff --git a/librsvg/Makefile.am b/librsvg/Makefile.am
 
  CARGO_VERBOSE = $(cargo_verbose_$(V))
  cargo_verbose_ = $(cargo_verbose_$(AM_DEFAULT_VERBOSITY))
-@@ -180,7 +191,10 @@
+@@ -180,7 +191,7 @@
  cargo_verbose_1 = --verbose
 
  LIBRSVG_BUILD_DIR=@abs_top_builddir@
 -CARGO_TARGET_DIR=$(LIBRSVG_BUILD_DIR)/target
-+# Fil-C port: honor CARGO_TARGET_DIR from the environment (?=) so the build
-+# reuses the warm S2 target dir (/hostbuild/librsvg-target) instead of a
-+# fresh ./target inside the chroot.
 +CARGO_TARGET_DIR ?= $(LIBRSVG_BUILD_DIR)/target
 
  RUST_LIB=$(CARGO_TARGET_DIR)/$(RUST_TARGET_SUBDIR)/liblibrsvg_c.a
 
-@@ -229,12 +243,22 @@
+@@ -229,12 +240,22 @@
  gc_linked_library_args="-Wl,--gc-sections"
  endif
 
@@ -140,7 +137,7 @@ diff --git a/librsvg/Makefile.am b/librsvg/Makefile.am
 diff --git a/librsvg/Makefile.in b/librsvg/Makefile.in
 --- a/librsvg/Makefile.in
 +++ b/librsvg/Makefile.in
-@@ -655,14 +655,30 @@
+@@ -655,14 +655,27 @@
  	$(NULL)
 
  @DEBUG_RELEASE_FALSE@CARGO_RELEASE_ARGS = --release
@@ -168,14 +165,11 @@ diff --git a/librsvg/Makefile.in b/librsvg/Makefile.in
  cargo_verbose_1 = --verbose
  LIBRSVG_BUILD_DIR = @abs_top_builddir@
 -CARGO_TARGET_DIR = $(LIBRSVG_BUILD_DIR)/target
-+# Fil-C port: honor CARGO_TARGET_DIR from the environment (?=) so the build
-+# reuses the warm S2 target dir (/hostbuild/librsvg-target) instead of a
-+# fresh ./target inside the chroot.
 +CARGO_TARGET_DIR ?= $(LIBRSVG_BUILD_DIR)/target
  RUST_LIB = $(CARGO_TARGET_DIR)/$(RUST_TARGET_SUBDIR)/liblibrsvg_c.a
  librsvg_@RSVG_API_MAJOR_VERSION@_la_CPPFLAGS = $(AM_CPPFLAGS)
  librsvg_@RSVG_API_MAJOR_VERSION@_la_CFLAGS = $(AM_CFLAGS)
-@@ -674,9 +690,19 @@
+@@ -674,9 +687,19 @@
  #
  # This will no longer be needed when we switch to cargo-cbuild, which does this automatically.
  @OS_DARWIN_TRUE@gc_linked_library_args = "-Wl,-dead_strip"
@@ -286,7 +280,7 @@ diff --git a/librsvg/configure b/librsvg/configure
 +	  # empty, breaking every -export-symbols-regex link with
 +	  # "syntax error near unexpected token `|'" (an empty
 +	  # $global_symbol_pipe segment inside libtool's export_symbols_cmds).
-+	  # Phase 1 above already proves that nm + the symbol pipe extract
++	  # The check above already proves that nm + the symbol pipe extract
 +	  # the symbols the probe needs; accept the pipe without the link
 +	  # phase.
 +	  pipe_works=yes

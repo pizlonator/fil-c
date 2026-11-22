@@ -23,7 +23,7 @@
  *       -kdfopt iter:2048 -kdfopt id:<1|2|3> PKCS12KDF
  *
  * The id-distinctness and missing-pass/missing-salt negatives run for this
- * digest too (the monolith ran them on SHA-256 only).
+ * digest too.
  */
 
 /* This digest's family row: the OSSL_KDF_PARAM_DIGEST value. */

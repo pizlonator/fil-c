@@ -220,9 +220,6 @@ bool isPoolSection(const Section &Sec) {
         Sec.getName() == GOTSectionName;
 }
 
-// ---------------------------------------------------------------------------
-// Memory manager: one AllocateSection call per section, no ownership retained.
-// ---------------------------------------------------------------------------
 class HostSectionAllocator final : public JITLinkMemoryManager {
     class InFlight final : public InFlightAlloc {
         LinkGraph &G;
@@ -309,9 +306,6 @@ public:
     }
 };
 
-// ---------------------------------------------------------------------------
-// Graph passes.
-// ---------------------------------------------------------------------------
 
 // Nothing registers unwind info (no ORC platform), so .eh_frame and LSDAs are
 // dead weight -- and they carry 32-bit pcrel fixups into code. Drop them.
@@ -386,9 +380,6 @@ Error verifyFarReach(LinkGraph &G) {
     return Error::success();
 }
 
-// ---------------------------------------------------------------------------
-// Link context.
-// ---------------------------------------------------------------------------
 struct LinkOutput {
     Error Err = Error::success();
     bool Finalized = false;
@@ -496,17 +487,9 @@ void precheckGlobalMapping(Module &M, FilJITConfiguration &filConfig) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Pipeline.
-// ---------------------------------------------------------------------------
 void optimize(Module &M, TargetMachine &TM, OptimizationLevel Level, FilJITConfiguration& filConfig) {
     CHECK(!verifyModule(M, &errs()));
 
-    // Reject unmapped declarations before the FilPizlonator pass runs: the
-    // pass's HandleDeclaration aborts on them, and "unmapped declaration" is
-    // not a verifier error, so this pre-check is the only guard.  It runs
-    // after the verifier so that modules with verifier errors keep reporting
-    // the verifier's message, exactly as before.
     precheckGlobalMapping(M, filConfig);
     
     LoopAnalysisManager LAM;

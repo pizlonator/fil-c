@@ -38,7 +38,7 @@ tar -xf pizlonated-mutter.tar.gz
 cd pizlonated-mutter
 mkdir -v build
 cd build
-# llvmpipe-on-JIT (sprint 3): mutter itself is a process that loads
+# llvmpipe-on-JIT: mutter itself is a process that loads
 # swrast_dri.so and runs llvmpipe shader compilation, so the mutter binary
 # (and every other executable this build links) must carry the JIT-enabled
 # Fil-C CRT: -enable-filc-jit at LINK time swaps filc_jit_crt.o in.  The flag

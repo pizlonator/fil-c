@@ -58,14 +58,6 @@ endif
 # keeps gcc/clang/yolo builds self-contained.
 CPPFLAGS += -I$(REPO_ROOT)/projects/zegarmistrz/include
 
-# Per-object automatic header dependencies: each compile writes a .d file
-# recording the exact headers its object includes (-MP also emits phony
-# targets for the headers, so deleting one doesn't break the build).  The
-# .d files are included at the bottom of this Makefile, so editing a family
-# header rebuilds exactly the objects that include it -- and nothing else.
-# The compile rule also names poisoning.h as an explicit prerequisite, belt
-# and braces: the .d files record it too, but the explicit entry keeps
-# rebuilds correct even if the .d files are ever deleted.
 CPPFLAGS += -MMD -MP
 
 # An in-tree OpenSSL flavor (e.g. projects/sarcastic-openssl3) ships
@@ -104,23 +96,12 @@ all: $(PROGRAMS)
 %.o: %.c poisoning.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
-# Generic link rule: every program links its own object plus the shared
-# poisoning.o and test_common.o.  The family rules below add each family's
-# common objects to the prerequisites, which $^ then picks up.
 $(PROGRAMS): %: %.o poisoning.o test_common.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 ifneq ($(OPENSSL_FLAVOR_RPATH),)
 	patchelf --set-rpath '$(OPENSSL_FLAVOR_RPATH)' $@
 endif
 
-# Family common modules: prerequisite-only rules; the generic link rule
-# above supplies the recipe, these lines add each family's common objects.
-# Every line below is live: its binaries and its *_common.c source all
-# exist (e.g. test_rc4_common.c backs test_rc4, test_rc4_40, and
-# test_rc4_large; the last lines, the mac and kdf families, split the
-# former monoliths into per-instantiation binaries backed by new modules).
-# There are no dormant lines and no empty placeholder modules left over
-# from the monolith era.
 
 test_aes_128_cbc test_aes_192_cbc test_aes_256_cbc: test_aes_cbc_common.o
 test_aes_128_ecb test_aes_192_ecb test_aes_256_ecb: test_aes_ecb_common.o
@@ -176,9 +157,6 @@ test_kdf_pkcs12kdf_sha1 test_kdf_pkcs12kdf_sha256: test_kdf_pkcs12kdf_common.o
 test_kdf_tls1prf_md5_sha1 test_kdf_tls1prf_sha256: test_kdf_tls1prf_common.o
 test_kdf_krb5kdf_aes_128_cbc test_kdf_krb5kdf_aes_256_cbc: test_kdf_krb5kdf_common.o
 
-# Auto-generated header dependencies: each compile above (-MMD -MP) writes
-# a .d file next to its object; include the ones that exist so make knows
-# which objects a header edit must rebuild.
 -include $(wildcard *.d)
 
 check test: all

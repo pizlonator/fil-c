@@ -22,11 +22,10 @@
  *
  * and the same command under the system OpenSSL 3.0.13.
  *
- * The monolith had a verified full-block-constant KAT for AES-128-CBC only,
- * so its blocksize-constant section ran there; this binary checks the same
- * behavior for its own cipher relatively, against the in-test zero-IV
- * encryption-chain reference (see test_kdf_krb5kdf_common.c), instead of
- * dropping it.  Its negative sections run the monolith's output-length and
+ * This binary checks the blocksize-constant behavior for its own cipher
+ * relatively, against the in-test zero-IV encryption-chain reference (see
+ * test_kdf_krb5kdf_common.c).  Its negative sections run the monolith's
+ * output-length and
  * mandatory-input checks for this cipher too (24 bytes is wrong for the
  * 32-byte key as well, and the block-size constant-length ceiling is the
  * same 16 bytes); the adaptive explicitly-empty-constant gate stays with

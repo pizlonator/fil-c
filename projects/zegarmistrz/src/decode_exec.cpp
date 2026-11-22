@@ -142,24 +142,6 @@ static char dbg2_needle[128] = {0};
 
 } // namespace
 
-// The whole engine below is a class template over the taint sidecar type:
-// Taint (plain, default) or HistoryTaint (--history: the same three
-// enforcement bits plus a bounded trail of the guest PCs that produced or
-// consumed the poison). Every former file-scope/anonymous-namespace function
-// became a static member and runs for either type; the bodies AND the
-// comments are carried over from the pre-templating file (member definitions
-// kept at their original indentation). Only run_cpu_loop is exported (see
-// the explicit instantiations after the class); nothing else here emits
-// external symbols. The intentional edits relative to the pre-templating
-// file are: the static-member conversion itself, note_store_op (store-PC
-// recording on the sidecar passed by mutable reference), the
-// poison_history_of(...) argument added to the taint-fault guest_error
-// calls, exec_one's zeg_history_pc set, the catch sites passing
-// e.poison_history, check_var_time's offending-operand threading (vt_off),
-// the run_cpu_loop wrapper, and the removal of two in-class forward
-// declarations (exec_evex_pcmpeq, exec_evex_movd), plus two compile-warning
-// cleanups (an unused local in exec_vpermd and %lx formats in the IFMA
-// debug print).
 template<typename TaintT>
 struct Engine {
     using Taint = TaintT;
@@ -2273,10 +2255,6 @@ static void exec_pushf(CPU* cpu, const Dec& d) {
     if (w == 2)
         push64(cpu, v & 0xffff);
     else
-        // Push the user-visible flags: CF, PF, AF, ZF, SF, DF, OF (plus the
-        // always-one bit 1).  The old mask (0x00fcfffe) dropped CF, which
-        // broke flag save/restore via pushfq/popfq in guests that use it
-        // (e.g. the SARCASM-annotated OpenSSL assembly).
         push64(cpu, v & 0x00fcffff); // mask reserved bits
     cpu->rip = next_rip(cpu, d);
 }

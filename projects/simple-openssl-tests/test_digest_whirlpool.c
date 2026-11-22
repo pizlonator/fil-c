@@ -38,9 +38,7 @@
 
  * digest" and empty-message KATs through EVP_MD_fetch with the 64-byte
 
- * size check, and the EVP_get_digestbyname("whirlpool") route (which the
-
- * monolith ran for WHIRLPOOL only).
+ * size check, and the EVP_get_digestbyname("whirlpool") route.
 
  */
 

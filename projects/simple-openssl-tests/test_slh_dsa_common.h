@@ -57,9 +57,7 @@ extern const char slh_ctxstr[];
 
 /* The whole-program availability gate: SLH-DSA arrived in OpenSSL 3.5, so a
  * parameter set this OpenSSL does not provide takes the SKIP path with the
- * original reason text (the original monolith probed all three sets and
- * skipped on the first unavailable one; each binary now probes its own).
- * Call right after test_parse_args(). */
+ * original reason text.  Call right after test_parse_args(). */
 void slh_test_gate(const struct slh_dsa_set *set);
 
 /* Sets the integer "deterministic" signature parameter

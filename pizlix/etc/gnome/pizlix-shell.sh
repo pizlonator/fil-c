@@ -14,13 +14,6 @@
 #   hardware and EGL later dereferences a null
 #   queryCompatibleRenderOnlyDeviceFd pointer.
 #
-# - NIR_DEBUG=novalidate used to be exported here (the NIR validator
-#   bit-tags nir_src::_parent and tripped over the provenance-carrying
-#   _parent_p field).  Sprint 3 verified the validator runs clean on the
-#   current runtime (llvmpipe FS compiles in the chroot and on the live
-#   desktop, hundreds of shader compiles, no validator panic), so the
-#   crutch is GONE: the validator runs by default now.
-#
 # - GI_TYPELIB_PATH/LD_LIBRARY_PATH: the shell's introspection data lives
 #   outside the default girepository dir (Shell-14/St-14/Gvc-1.0 in
 #   /usr/lib/gnome-shell, Meta-14/Cogl-14/... in /usr/lib/mutter-14).  The

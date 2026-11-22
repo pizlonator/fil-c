@@ -5,23 +5,6 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint W3 of the Epiphany-on-Pizlix port: desktop-file-utils 0.28.
-#
-# desktop-file-validate (the .desktop linter) + desktop-file-install +
-# update-desktop-database -- the .desktop file tooling the app grid needs.
-# Epiphany's build and this sprint's epiphany gate both want
-# desktop-file-validate (epiphany's data/meson.build uses it as an optional
-# test runner; our install gate runs it on the installed .desktop file), so
-# this is the first of the three W3 builds.
-#
-# Deps: glib-2.0 + gio-2.0 only (both in the chroot since postlc3) -- no
-# Fil-C issues expected for a glib-only C tool, and none needed so far.
-# No LDFLAGS: the binaries are headless CLI tools (they never load
-# swrast_dri.so, so no Fil-C JIT CRT is needed).
-#
-# Options (meson_options.txt has only ansi/gcov, both default false --
-# nothing to turn off).  Man pages install via install_man (plain roff, no
-# xsltproc needed); the misc/ dir installs an emacs site-lisp file.
 
 cd /sources
 rm -rf pizlonated-desktop-file-utils

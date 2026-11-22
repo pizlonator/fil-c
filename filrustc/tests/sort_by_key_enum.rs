@@ -1,5 +1,5 @@
 // sort_by_key / sort_unstable_by_key on pointer-maybe enums at -O: the
-// reviewer's miscompile (round 3).
+// reviewer's miscompile.
 //
 // The bug: `Vec<E>::sort_by_key(|e| match e { E::A(_) => 0, E::B(a, _) => *a })`
 // with `#[repr(u64)] enum E { A(Box<String>), B(u32, u32) }` corrupted the

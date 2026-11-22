@@ -28,11 +28,6 @@
  * as the TLS 1.1 vector (48-byte secret, seed = "master secret" ||
  * client_random || server_random, 48 bytes out)
  * -> 202c88c00f84a17a2002707960478746...51288bf.
- *
- * (The task brief's "202c88c2f1816c92..." memory was a typo: the real
- * SHA-256 output starts 202c88c0..., as both CLI builds and OpenSSL's own
- * test data agree.)
-
  */
 
 

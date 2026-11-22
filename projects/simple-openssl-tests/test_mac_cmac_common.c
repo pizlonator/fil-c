@@ -14,14 +14,10 @@
  * per-cipher binaries).
  *
  * Each per-cipher binary runs every section for its own cipher: the
- * one-shot KATs; the partial-update chunked pass == the KAT (the monolith
- * ran it on AES-128-CBC only, splitting the 40-byte example 3 message as
- * {17, 23}; the DES-EDE3-CBC binary splits its 16-byte message as {7, 9});
- * the EVP_MAC_CTX_get_mac_size read-back (the monolith checked it for
- * DES-EDE3-CBC only; the split checks it per cipher -- 16 for the AES-CBC
- * ciphers, 8 for DES-EDE3-CBC -- as the monolith's coverage note already
- * claimed); and the wrong-cipher negative, parameterized per cipher (the
- * monolith ran it with the AES-128-CBC key and an AES-256-CBC cipher only).
+ * one-shot KATs; the partial-update chunked pass == the KAT (the
+ * DES-EDE3-CBC binary splits its 16-byte message as {7, 9}); the
+ * EVP_MAC_CTX_get_mac_size read-back (16 for the AES-CBC ciphers, 8 for
+ * DES-EDE3-CBC); and the wrong-cipher negative, parameterized per cipher.
  *
  * Wrong-cipher note: a wrong cipher is rejected at init when its key
  * length differs from the key given (an AES-256-CBC cipher with a 16-byte

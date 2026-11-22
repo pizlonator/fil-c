@@ -194,9 +194,7 @@ void argon2_test_variants_distinct(const struct argon2_variant *v)
 }
 
 /* (4) Validation: a missing salt, lanes=0, memcost<8, iter=0, a short salt
- * and a too-short output must all fail.  The original monolith ran these
- * on Argon2d as the representative; every binary runs them for its own
- * variant (v->algname). */
+ * and a too-short output must all fail. */
 void argon2_test_validation(const struct argon2_variant *v)
 {
     unsigned char *pass = ALLOCATE_KEY(PASS_CAP);

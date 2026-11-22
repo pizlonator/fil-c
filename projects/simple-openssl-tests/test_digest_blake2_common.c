@@ -30,9 +30,6 @@
 
  * runs the byname route and the block-boundary chunking for its own digest
 
- * (the monolith ran the same sections for both digests, so the split
-
- * preserves coverage exactly, once per binary).
 
  *
 

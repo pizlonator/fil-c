@@ -20,13 +20,12 @@
  * uses data longer than one block.
  *
  * Each per-digest binary runs every section for its own digest: the
- * mac-size probe (the monolith ran it for the RFC 4231 digests only); the
- * one-shot KATs; the chunked {1, 17} updates == one-shot (the monolith ran
- * chunked updates for the RFC 4231 digests only); the key-size section --
- * empty key == the 32-zero-byte and 64-zero-byte keys -- which the
- * monolith ran for SHA256 only, anchored to its empty-key KAT (the other
- * digests have no published empty-key vector, so their equivalence anchors
- * on the empty-key result itself); and the nonexistent-digest negative.
+ * mac-size probe; the one-shot KATs; the chunked {1, 17} updates ==
+ * one-shot; the key-size section -- empty key == the 32-zero-byte and
+ * 64-zero-byte keys -- anchored to the empty-key KAT where one exists (the
+ * other digests have no published empty-key vector, so their equivalence
+ * anchors on the empty-key result itself); and the nonexistent-digest
+ * negative.
  */
 
 #include "test_mac_hmac_common.h"
@@ -34,10 +33,8 @@
 #include <openssl/core_names.h>
 
 /* The RFC 4231/2202 "larger than block-size" ASCII data (the TC6 and TC7
- * test strings), shared by the RFC 4231 and RFC 2202 sections (the
- * monolith carried two identical copies; the split keeps one, with the
- * length-drift checks where the monolith had them -- in the RFC 4231
- * material builder). */
+ * test strings), shared by the RFC 4231 and RFC 2202 sections; the
+ * length-drift checks live in the RFC 4231 material builder. */
 static const char tc6[] =
     "Test Using Larger Than Block-Size Key - Hash Key First";
 static const char tc7[] =
@@ -247,11 +244,8 @@ void hmac_test_rfc4231(const struct hmac_family *fam,
 }
 
 /* (2) RFC 2202 test cases 1-4, 6 and 7 for fam's digest: one-shot == KAT,
- * plus the chunked {1, 17} pass == one-shot (added by the split; the
- * monolith ran chunked updates for the RFC 4231 digests only).  The
- * TC1/TC3/TC4 keys are basekeylen bytes (20 for SHA1, 16 for MD5); TC6/TC7
- * use 80-byte keys.  The monolith built the TC6/TC7 data inline in its RFC
- * 2202 section, without the RFC 4231 drift checks; kept as-is. */
+ * plus the chunked {1, 17} pass == one-shot.  The TC1/TC3/TC4 keys are
+ * basekeylen bytes (20 for SHA1, 16 for MD5); TC6/TC7 use 80-byte keys. */
 void hmac_test_rfc2202(const struct hmac_family *fam,
                        const struct hmac_kat *kats, size_t nkats,
                        size_t basekeylen)

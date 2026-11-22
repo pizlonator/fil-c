@@ -14,13 +14,12 @@
  * monolith's "TC1 inputs with the SHA-1 and SHA-512 digests" row,
  * CLI-verified on both the pizfix 3.6.5 and the system 3.0.13 builds.
  *
- * Parameterization notes for this digest: the original monolith carried no
- * verified SHA-1 PRK constant (its EXTRACT_ONLY KATs are all SHA-256), so
- * this binary's EXTRACT_ONLY row checks the mode, the PRK size and the
- * derive success without a value comparison, and its EXPAND_ONLY check
- * derives the PRK with EXTRACT_ONLY first; there is no verified TC2 OKM
- * either, so the multi-info check compares the five-chunk derive against a
- * single-info reference derive.  There is no concrete HKDF-SHA1 name to
+ * Parameterization notes for this digest: this binary's EXTRACT_ONLY row
+ * checks the mode, the PRK size and the derive success without a value
+ * comparison, and its EXPAND_ONLY check derives the PRK with EXTRACT_ONLY
+ * first; there is no verified TC2 OKM, so the multi-info check compares
+ * the five-chunk derive against a single-info reference derive.  There is
+ * no concrete HKDF-SHA1 name to
  * check (the 3.5+ concrete names are SHA-256/384/512 only), so this binary
  * runs no concrete-name section.
  */

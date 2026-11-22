@@ -24,7 +24,7 @@ tar -xf pizlonated-gnome-font-viewer.tar.gz
 cd pizlonated-gnome-font-viewer
 mkdir -v build
 cd build
-# llvmpipe-on-JIT (sprint 3): GTK4's GSK GL renderer loads swrast_dri.so and
+# llvmpipe-on-JIT: GTK4's GSK GL renderer loads swrast_dri.so and
 # runs llvmpipe shader compilation in-process, so this executable must carry
 # the JIT-enabled Fil-C CRT: -enable-filc-jit at LINK time swaps
 # filc_jit_crt.o in.  The flag is ignored (with a warning) for -shared links.

@@ -46,9 +46,7 @@
 bool filc_allow_jit = false;
 
 /* We only support the LLVM JIT in glibc, because otherwise, there's no way to load the LLVM so,
-   which is built against glibc.
-
-   What a hack LMAO! */
+   which is built against glibc. */
 #if PAS_GLIBC
 
 #include "../../../filc/llvmjit/filc_llvm_jit_api.h"
@@ -194,15 +192,6 @@ static filc_llvm_jit_object* unwrap_obj(filc_thread* my_thread, filc_ptr ptr,
     filc_llvm_jit_object* payload = (filc_llvm_jit_object*)filc_ptr_ptr(ptr);
     FILC_CHECK(payload->kind == expected, NULL,
                "Fil-C LLVM JIT API: object kind mismatch.");
-    /* Fil-C: compare contexts/modules by their RAW LLVM handles, not by
-     * wrapper-object identity.  The runtime wraps every returned handle in
-     * a fresh GC object (see wrap_handle), so two calls that return the
-     * same LLVM module (e.g. LLVMGetGlobalParent over and over in mesa's
-     * lp_build_intrinsic) yield different wrappers for one module; the
-     * wrapper-pointer comparison turned that into a spurious "mixing
-     * objects from different LLVM modules" panic (first hit by llvmpipe's
-     * first shader build).  Raw handles preserve the check's purpose:
-     * catching genuinely different modules/contexts in one call. */
     if (!*context_inout)
         *context_inout = payload->context;
     else {
@@ -494,7 +483,6 @@ filc_ptr filc_native_FilLLVMJIT_CompileModule(filc_thread* my_thread, filc_ptr j
         unwrap_obj(my_thread, module_ptr, FILC_LLVM_JIT_KIND_MODULE,
                    &context, NULL);
     PAS_ASSERT(context);
-    /* FIXME: Would be cool if we exited around the compile. */
     pas_lock_lock(&session->lock);
     pas_lock_lock(&context->lock);
 
@@ -3011,9 +2999,6 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
                "be a valid llvm::LLVMModuleFlagBehavior.", fname);
 }
 
-/* Row-level clause macros.  Each takes the wrapper name and the descriptor
- * names, stringifies the name, and fetches raw handles from the descriptor
- * objects. */
 
 #define sem_int_binop(fname, lhs, rhs) \
     sem_check_int_binop_impl(#fname, (lhs##_obj)->handle, (rhs##_obj)->handle);
@@ -4281,11 +4266,6 @@ FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetTarget, FILC_LLVM_JIT_KIND_MODULE)
 FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetTargetExtTypeName, FILC_LLVM_JIT_KIND_TYPE,
                                     TargetExtTypeKind)
 FILC_LLVM_JIT_DEFINE_BORROWED_CSTR0(LLVMGetValueName, FILC_LLVM_JIT_KIND_VALUE)
-/* Fil-C: added for mesa/llvmpipe's debug dumps.  These C APIs return a
- * malloc'd string that the caller would free with LLVMDisposeMessage; the
- * wrappers copy the bytes into fresh Fil-C memory (filc_strdup) and then
- * dispose the LLVM-side original -- the LLVM-allocated string does not
- * leak. */
 FILC_LLVM_JIT_DEFINE_OWNED_CSTR0(LLVMPrintModuleToString, FILC_LLVM_JIT_KIND_MODULE)
 FILC_LLVM_JIT_DEFINE_OWNED_CSTR0(LLVMPrintValueToString, FILC_LLVM_JIT_KIND_VALUE)
 
@@ -4628,9 +4608,6 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
 #define FILC_LLVM_JIT_SCALAR_RETURN_NO_LOCK(name, ret_ty, args) \
     return (ret_ty)api->name args;
 
-/* The DEFINE macros are variadic: a row may carry one trailing semantic-check
- * clause (a bare helper invocation, see the semantic-check section), which
- * expands inside the locked region, after VALIDATE and before the api-> call. */
 
 #define FILC_LLVM_JIT_DEFINE_VOID_1(name, lock, d0, ...) \
 void filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0)) \

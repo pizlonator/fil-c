@@ -10,8 +10,8 @@
  * shared KBKDF machinery, the CAVS vector provenance, the parameter naming
  * quirk and the distribution decisions live in test_kdf_kbkdf_common.c).
  *
- * This binary is the family's representative digest (the one the original
- * monolith's parameterized sections ran on), so besides its own HMAC-SHA256
+ * This binary is the family's representative digest, so besides its own
+ * HMAC-SHA256
  * KAT rows it also carries the digest-independent CMAC-AES128 and KMAC128
  * PRF checks (those PRFs take a cipher or a MAC rather than a digest).
  *

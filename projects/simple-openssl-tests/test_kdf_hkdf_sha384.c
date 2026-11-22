@@ -13,9 +13,8 @@
  * Known-answer provenance (SHA-384): RFC 5869 publishes vectors for the
  * SHA-1 and SHA-256 digests only, and the original monolith carried no
  * "TC1 inputs with the SHA-384 digest" row either; the TC1 OKM and PRK
- * below are the values of the HKDF-SHA384 concrete-name row (which lived
- * in test_kdf_hkdf_sha256.c while SHA-384 had no per-digest binary, and
- * moved here when this binary was added), CLI-verified on both the pizfix
+ * below are the values of the HKDF-SHA384 concrete-name row, CLI-verified
+ * on both the pizfix
  * 3.6.5 and the system 3.0.13 builds through both routes -- the concrete
  * name itself and the bare-HKDF form with -kdfopt digest:SHA2-384 (both
  * routes resolve to the same HKDF provider code, so the bare-HKDF route

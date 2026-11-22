@@ -47,7 +47,7 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/builder.rs b/rust/compiler/rus
  impl<'a, 'll, 'tcx> BuilderMethods<'a, 'tcx> for Builder<'a, 'll, 'tcx> {
      type CodegenCx = CodegenCx<'ll, 'tcx>;
 
-@@ -605,6 +630,93 @@
+@@ -605,6 +630,91 @@
          }
      }
 
@@ -66,7 +66,7 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/builder.rs b/rust/compiler/rus
 +    /// may-contain-pointers test and keep the byte-array alloca, so this
 +    /// cannot add pointer checks to numeric code.
 +    ///
-+    /// Since the known-issue #13 fix (clang-parity union handling) the
++    /// The
 +    /// all-pointer struct type itself is belt-and-braces rather than the
 +    /// load-bearing mechanism: every pointer-maybe aggregate alloca is ALSO
 +    /// annotated with a `zhas_union` call below, which makes the alloca an
@@ -117,9 +117,7 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/builder.rs b/rust/compiler/rus
 +            // payload + capability shadow together while typed (especially
 +            // integer-typed) accesses move only the payload, and a
 +            // pointer-typed widening could manufacture capability accesses at
-+            // non-word-aligned offsets.  This is what broke
-+            // UnixListener::bind/TcpListener::accept at -O (known-issue #13 in
-+            // build_rustc-notes.md); the pizlonator's own escape analysis
++            // non-word-aligned offsets.  The pizlonator's own escape analysis
 +            // deliberately ignores these calls (FilPizlonator.cpp), so they
 +            // only block the LLVM optimizations and cost nothing at run time.
 +            // The >= 8 bytes test mirrors clang's
@@ -141,7 +139,7 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/builder.rs b/rust/compiler/rus
      fn load(&mut self, ty: &'ll Type, ptr: &'ll Value, align: Align) -> &'ll Value {
          unsafe {
              let load = llvm::LLVMBuildLoad2(self.llbuilder, ty, ptr, UNNAMED);
-@@ -1121,6 +1233,47 @@
+@@ -1121,6 +1231,47 @@
                  is_volatile,
              );
          }
@@ -242,7 +240,7 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/type_of.rs b/rust/compiler/rus
  use rustc_abi::{Align, BackendRepr, FieldsShape, Scalar, Size, Variants};
  use rustc_codegen_ssa::traits::*;
  use rustc_middle::bug;
-@@ -137,6 +137,181 @@
+@@ -137,6 +137,178 @@
          debug!("struct_llfields: offset: {:?} stride: {:?}", offset, layout.size);
      }
      (result, packed)
@@ -322,10 +320,7 @@ diff --git a/rust/compiler/rustc_codegen_llvm/src/type_of.rs b/rust/compiler/rus
 +    // have `Variants::Empty`: their layout has no fields, and
 +    // `TyAndLayout::field` panics on them ("there is no field in
 +    // Variants::Empty types").  A value of an uninhabited type never exists,
-+    // so no alloca of this type can ever hold a pointer.  (change #21 never
-+    // noticed this because `filc_ptr_struct_type`'s zero-size guard rejected
-+    // these layouts before the predicate ran; the zhas_union annotation
-+    // queries the predicate for every alloca, including uninhabited locals.)
++    // so no alloca of this type can ever hold a pointer.
 +    if matches!(layout.variants, Variants::Empty) {
 +        return false;
 +    }
@@ -611,13 +606,12 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/back/linker.rs b/rust/compiler/
 diff --git a/rust/compiler/rustc_codegen_ssa/src/back/write.rs b/rust/compiler/rustc_codegen_ssa/src/back/write.rs
 --- a/rust/compiler/rustc_codegen_ssa/src/back/write.rs
 +++ b/rust/compiler/rustc_codegen_ssa/src/back/write.rs
-@@ -131,7 +131,13 @@
+@@ -131,7 +131,12 @@
          }
 
          let sess = tcx.sess;
 -        let opt_level_and_size = if_regular!(Some(sess.opts.optimize), None);
-+        // Fil-C: allocator shim modules used to get `None` here, which made
-+        // rustc skip LLVMRustOptimize for them entirely.  Under Fil-C every
++        // Fil-C: every
 +        // module must go through the pipeline so that the FilPizlonator runs
 +        // (the pizlonator also switches the module to its "after Fil-C"
 +        // DataLayout, which the backend requires), so allocator modules get
@@ -644,15 +638,11 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/block.rs b/rust/compiler/ru
                      bx.lifetime_start(scratch.llval, arg.layout.size);
                      op.val.store(bx, scratch.with_type(arg.layout));
                      lifetime_ends_after_call.push((scratch.llval, arg.layout.size));
-@@ -1547,7 +1553,14 @@
+@@ -1547,7 +1553,10 @@
                          // For `foo(packed.large_field)`, and types with <4 byte alignment on x86,
                          // alignment requirements may be higher than the type's alignment, so copy
                          // to a higher-aligned alloca.
 -                        let scratch = PlaceValue::alloca(bx, arg.layout.size, required_align);
-+                        // Fil-C: pass arg.layout so pointer-maybe aggregates
-+                        // can get a typed (all-pointer struct) alloca; see
-+                        // the Fil-C comments in
-+                        // rustc_codegen_llvm/src/type_of.rs.
 +                        let scratch = PlaceValue::new_sized(
 +                            bx.alloca_for_layout(arg.layout.size, required_align, arg.layout),
 +                            required_align,
@@ -660,7 +650,7 @@ diff --git a/rust/compiler/rustc_codegen_ssa/src/mir/block.rs b/rust/compiler/ru
                          bx.lifetime_start(scratch.llval, arg.layout.size);
                          bx.typed_place_copy(scratch, op_place_val, op.layout);
                          lifetime_ends_after_call.push((scratch.llval, arg.layout.size));
-@@ -1594,14 +1607,32 @@
+@@ -1594,14 +1603,32 @@
                  let llscratch = bx.alloca(scratch_size, scratch_align);
                  bx.lifetime_start(llscratch, scratch_size);
                  // ...memcpy the value...
@@ -958,52 +948,16 @@ diff --git a/rust/compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp b/rust/compil
    PipelineTuningOptions PTO;
    PTO.LoopUnrolling = UnrollLoops;
    PTO.LoopInterleaving = UnrollLoops;
-@@ -821,6 +836,44 @@
+@@ -821,6 +836,8 @@
        OptimizerLastEPCallbacks;
  #endif
 
-+  // Fil-C: pizlonate everything.  The Fil-C pipeline (KillUB, the Fil-C early
-+  // simplification and inlining pipeline, C++20 coroutine lowering, the
-+  // FilPizlonator on every path, and the OptimizerLast
-+  // DeleteRedundantPollchecks) is owned by LLVM's RegisterFilPasses
-+  // (llvm/lib/Passes/RegisterFilPasses.cpp) and registered here, exactly
-+  // like clang/lib/CodeGen/BackendUtil.cpp and filc's LLVM JIT shim register
-+  // it, so rust-compiled modules -- including std itself -- get the same
-+  // pipeline-start block (pre-pizlonation simplification and inlining
-+  // included, above O0) as clang-compiled ones.  That block used to be gated
-+  // off for rustc (an IsRust parameter in RegisterFilPasses, now gone)
-+  // because it miscompiled rustc-shaped IR in two classes, both since fixed
-+  // at their sources: the spawn+join shape, closed by the rustc-side typed
-+  // allocas (below -- aggregates that may contain pointers get typed allocas
-+  // with all-pointer struct types, see filc_ptr_struct_type in
-+  // rustc_codegen_llvm/src/type_of.rs, mirroring clang's union representation
-+  // hack from CGRecordLayoutBuilder.cpp commit 4a54ae4076b4), and the
-+  // mem::swap class (std::mem::swap of pointer-containing elements at -O),
-+  // closed in std itself: swap_nonoverlapping_chunks used to move the bytes
-+  // of swapped pointer-containing elements through MaybeUninit<[u8; N]>
-+  // block buffers -- NUMERIC-typed allocas -- and upstream SROA widened their
-+  // typed byte copies into integer load/store pairs, which under GIMSO
-+  // semantics drop the capabilities that copies carry in the shadow of the
-+  // copied bytes (a Vec of pointer-containing structs shuffled with
-+  // mem::swap miscompiled at -O in Vec::clone -> String::clone, and even a
-+  // bare mem::swap::<String> miscompiled).  std's swap_nonoverlapping_bytes
-+  // now swaps pointer-aligned regions in pointer-typed
-+  // MaybeUninit<*const ()> chunks, so the swap's copies stay
-+  // capability-preserving however far the pre-pizlonation pipeline reshapes
-+  // them.  (The SROA-side guard that would have closed the mem::swap class
-+  // without the std change was rejected for performance -- ~1.4x on simdutf
-+  // -- and lives on the fil/fixed_sroa branch; see RegisterFilPasses.cpp.)
-+  // The callbacks run on every path through this function -- O0 via
-+  // buildO0DefaultPipeline, the prepopulated per-module/ThinLTO/fat-LTO
-+  // pipelines, and (via FilCAddPipelineStartPasses in the NoPrepopulatePasses
-+  // branch below) the no-prepopulate pipeline -- so every module that rustc
-+  // compiles gets pizlonated, at every optimization level.
 +  RegisterFilPasses(PB, nullptr);
 +
    if (!IsLinkerPluginLTO && SanitizerOptions && SanitizerOptions->SanitizeCFI &&
        !NoPrepopulatePasses) {
      PipelineStartEPCallbacks.push_back(
-@@ -1025,8 +1078,20 @@
+@@ -1025,8 +1042,20 @@
    } else {
      // We're not building any of the default pipelines but we still want to
      // add the verifier, instrumentation, etc passes if they were requested
@@ -1234,7 +1188,7 @@ diff --git a/rust/compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_g
 +    // /opt/fil/bin in optfil mode), else by walking up from the rustc binary
 +    // for <checkout>/build/bin/filcc, else /opt/fil/bin/filcc, and only then
 +    // falls back to the PATH (pizlix mode).  Putting Fil-C's build/bin on
-+    // PATH still works too, it just no longer has to be the mechanism.
++    // PATH still works too.
 +    base.linker = Some("filcc".into());
 +
 +    // Fil-C: unwinding is implemented on the Fil-C runtime's unwinder.
@@ -1352,7 +1306,7 @@ diff --git a/rust/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gn
 +    // /opt/fil/bin in optfil mode), else by walking up from the rustc binary
 +    // for <checkout>/build/bin/filcc, else /opt/fil/bin/filcc, and only then
 +    // falls back to the PATH (pizlix mode).  Putting Fil-C's build/bin on
-+    // PATH still works too, it just no longer has to be the mechanism.
++    // PATH still works too.
 +    base.linker = Some("filcc".into());
 +    // Fil-C: unwinding is implemented on the Fil-C runtime's unwinder.
 +    // libpizlo (the Fil-C runtime that filcc links into every binary) provides
@@ -2140,7 +2094,7 @@ diff --git a/rust/library/compiler-builtins/libm/src/math/arch/x86/detect.rs b/r
 diff --git a/rust/library/core/src/hint.rs b/rust/library/core/src/hint.rs
 --- a/rust/library/core/src/hint.rs
 +++ b/rust/library/core/src/hint.rs
-@@ -291,8 +291,18 @@
+@@ -291,8 +291,17 @@
 
      #[cfg(any(target_arch = "aarch64", target_arch = "arm64ec"))]
      {
@@ -2152,8 +2106,7 @@ diff --git a/rust/library/core/src/hint.rs b/rust/library/core/src/hint.rs
 +        // futex mutex, condvar or mpmc channel (anything whose slow path
 +        // spins via lock_contended) aborted at run time with
 +        // "filc safety error: Unhandled intrinsic: call void
-+        // @llvm.aarch64.isb(i32 15)" -- the threads, thread_local_cells and
-+        // mpsc_large_messages tests all died this way.  spin_loop! is a pure
++        // @llvm.aarch64.isb(i32 15)".  spin_loop! is a pure
 +        // performance hint with no semantic effect, so under Fil-C it is a
 +        // no-op on aarch64.  (The x86_64 arm's _mm_pause is fine: the
 +        // Pizlonator handles llvm.x86.pause.  The arm32 __yield arm is not

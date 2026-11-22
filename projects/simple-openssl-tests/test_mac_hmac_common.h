@@ -45,8 +45,7 @@ void hmac_test_rfc4231(const struct hmac_family *fam,
 
 /* (2) RFC 2202 test cases 1-4, 6 and 7 for fam's digest: one-shot == KAT
  * (basekeylen is the TC1/TC3/TC4 key length: 20 for SHA1, 16 for MD5),
- * plus the chunked {1, 17} pass == one-shot for each row (added by the
- * split; the monolith ran chunked updates for the RFC 4231 digests only). */
+ * plus the chunked {1, 17} pass == one-shot for each row. */
 void hmac_test_rfc2202(const struct hmac_family *fam,
                        const struct hmac_kat *kats, size_t nkats,
                        size_t basekeylen);

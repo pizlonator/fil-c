@@ -29,22 +29,6 @@
  * skipped (with a note) where it is absent; KMAC support (3.1+) is
  * detected via EVP_MAC_fetch().
  *
- * Distribution decisions (carried out of the monolith): the CMAC-AES128 and
- * KMAC128 PRFs take a cipher or a MAC rather than a digest, so their checks
- * (the counter CMAC KAT, the CMAC r=8 KAT, the CMAC feedback KAT and the
- * KMAC128 PRF KAT) are digest-independent and run in the SHA-256 binary --
- * the representative digest the monolith's parameterized sections (the
- * switch KATs, the feedback section and the negatives) ran on, which also
- * carries their constants.  The digest-specific CAVS rows moved to their own
- * binaries (the HMAC-SHA1 r=8 vector to the SHA-1 binary, the three-chunk
- * HMAC-SHA512 r=32 vector to the SHA-512 binary); the switch, feedback,
- * r-width and negative behavior runs in every binary for its own digest,
- * with the digest name parameterized into the CHECK messages.  The digests
- * without a verified KAT constant for a generalized check (the monolith
- * verified the switch and feedback values for SHA-256 only) verify the same
- * behavior by difference or against a reference derive instead -- never by
- * dropping it -- and every such property was re-verified with the CLI on
- * the 3.0.13 and 3.6.5 builds for all three digests.
  */
 
 #include "test_kdf_kbkdf_common.h"

@@ -46,11 +46,9 @@
  * EVP_DigestSign call, and run-to-run signing determinism is asserted per
  * parameter set.
  *
- * Version gate: SLH-DSA is version-gated (OpenSSL 3.5+).  The original
- * monolith probed all three parameter sets before its first test and took
- * the SKIP path on the first unavailable one; each per-set binary now
- * probes its own parameter set right after test_parse_args() and exits
- * through test_skip() with the original reason text (e.g. the system
+ * Version gate: SLH-DSA is version-gated (OpenSSL 3.5+).  Each per-set
+ * binary probes its own parameter set right after test_parse_args() and
+ * exits through test_skip() with the original reason text (e.g. the system
  * OpenSSL 3.0.13 provides no SLH-DSA at all).
  */
 

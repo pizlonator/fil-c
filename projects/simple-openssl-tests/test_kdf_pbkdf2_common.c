@@ -29,21 +29,6 @@
  *
  * The c=16777216 RFC 6070 vector is deliberately not run: it costs minutes.
  *
- * Distribution decisions (carried out of the monolith): the KAT rows are
- * digest-specific and moved to their own binaries (the four RFC 6070 rows
- * for test_kdf_pbkdf2_sha1.c; the four CLI/test-data rows -- including the
- * 70-byte block-size-crossing password -- for test_kdf_pbkdf2_sha256.c),
- * while the SP 800-132 "pkcs5" bounds generalize and run in every binary
- * for its own digest, with the digest name parameterized into the CHECK
- * messages.  Where the monolith verified a pkcs5 value for one digest only,
- * the value comparison follows the constant: the SHA-256 binary compares
- * its CLI-verified pkcs5=0 value (25eb86ac...) and the well-known pkcs5=1
- * c=1 prefix (120fb6cf..., the first 16 bytes of its c=1 KAT), and the
- * SHA-1 binary compares the pkcs5=1 c=1 derive against the first 16 bytes
- * of its own RFC 6070 c=1 KAT (the same prefix construction the monolith
- * used for SHA-256; pkcs5 only toggles the SP 800-132 checks, never the
- * derivation) -- but it has no verified pkcs5=0 value, so there only the
- * compliant-derive acceptance is checked.
  */
 
 #include "test_kdf_pbkdf2_common.h"
@@ -142,9 +127,7 @@ void pbkdf2_test_kats(const struct pbkdf2_family *fam,
  * salt >= 128 bits, derived key >= 112 bits.  With pkcs5=1 (the default)
  * the same weak inputs are accepted.  On 3.0.x the bound is enforced while
  * the params are set (inside derive); on 3.1+ during derive itself -- the
- * observable behavior (EVP_KDF_derive fails) is the same.  The monolith
- * ran this section on SHA-256 (whose pkcs5 values it had verified); every
- * binary now runs it for its own digest. */
+ * observable behavior (EVP_KDF_derive fails) is the same. */
 void pbkdf2_test_pkcs5_bounds(const struct pbkdf2_family *fam,
                               const char *strong_hex, const char *weak_hex)
 {

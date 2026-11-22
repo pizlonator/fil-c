@@ -5,18 +5,18 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint W3 of the Epiphany-on-Pizlix port: GnuTLS system trust wiring.
+# GnuTLS system trust wiring.
 #
-# The live pre-check of the W3 epiphany build found that every https fetch
+# The live pre-check of the epiphany build found that every https fetch
 # failed with glib-networking's "System trust contains zero trusted
 # certificates".  The cause: the chroot's GnuTLS (built in postlc5) got
 # its default trust store ONLY through PKCS#11
 # (--with-default-trust-store-pkcs11="pkcs11:"), i.e. through the
 # p11-kit-trust module, and that module serves zero objects even with the
 # anchor files in place (its configured trust path /etc/pki/anchors was
-# empty until this sprint's pre-seed, and after the pre-seed populates it
+# empty before the pre-seed, and after the pre-seed populates it
 # the token still initializes with no objects -- the p11-kit trust module
-# 0.26.5 in this system does not currently load them; left as a W4 item).
+# 0.26.5 in this system does not currently load them).
 #
 # Fix: rebuild GnuTLS with --with-default-trust-store-file=/etc/ssl/ca-
 # bundle.crt ADDED to the existing pkcs11 setting.  add_system_trust()

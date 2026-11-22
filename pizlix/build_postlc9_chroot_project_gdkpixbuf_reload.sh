@@ -3,7 +3,7 @@
 set -e
 set -x
 
-# Sprint S4 of the librsvg-via-Fil-Rust port, support build: rebuild
+# Rebuild
 # gdk-pixbuf with the queryloaders.c RTLD_LOCAL patch and reinstall it, then
 # regenerate the loaders.cache.
 #

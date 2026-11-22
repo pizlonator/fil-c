@@ -121,10 +121,7 @@ this machine (Ubuntu 24.04, x86_64), each with `make clean`, a full build
 | Fil-C (primary) | `./build_filc.sh` | `build/bin/filcc` (Fil-C 0.686, clang 20.1.8) | pizfix 3.6.5 | 275 built; 272 passed, 3 whole-program SKIPs |
 
 The Fil-C binaries were additionally swept with `./run_all.sh --poison-all`
-(275 passed, 0 failed).  (The pre-split monolith tree had also been
-verified with `/opt/fil/bin/filcc` and with Yolo-C — see
-[Yolo-C](#yolo-c) for that configuration's build recipe; those two have not
-been re-run since the split.)  Fil-C programs are built with `-g -O2` per
+(275 passed, 0 failed).  Fil-C programs are built with `-g -O2` per
 repo convention (the Makefile default).
 
 The 33 gcc SKIPs and 3 filc SKIPs are whole-program version gates (exit 0,

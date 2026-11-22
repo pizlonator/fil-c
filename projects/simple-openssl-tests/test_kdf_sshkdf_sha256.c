@@ -20,9 +20,9 @@
  * compare the full 32 bytes.
  *
  * The distinctness and negative sections run over this binary's own
- * digest-sized H (the monolith ran them on SHA-1 only); the wrong-length
- * xcghhash acceptance is checked relatively (two derives must agree), as
- * no wrong-length output constant was verified for SHA-256.
+ * digest-sized H; the wrong-length xcghhash acceptance is checked
+ * relatively (two derives must agree), as no wrong-length output constant
+ * was verified for SHA-256.
  */
 
 /* This digest's digest-sized xcghhash -- the original monolith's

@@ -949,8 +949,6 @@ TempDir::TempDir(const std::string& parent, const std::string& prefix)
 TempDir::TempDir(TempDir&& other) noexcept
     : path(std::move(other.path)), lock_fd_(other.lock_fd_)
 {
-    // The source is left empty (see the class comment in util.h): it owns
-    // nothing anymore, so destroying it is a no-op.
     other.path.clear();
     other.lock_fd_ = -1;
 }
@@ -958,10 +956,6 @@ TempDir::TempDir(TempDir&& other) noexcept
 TempDir& TempDir::operator=(TempDir&& other) noexcept
 {
     if (this != &other) {
-        // Move-assignment targets an empty TempDir (see the class comment in
-        // util.h): the dir the source owns becomes this object's dir, and
-        // the source is left empty. Nothing here cleans up a dir the target
-        // might already hold — a live dir is never overwritten.
         path = std::move(other.path);
         lock_fd_ = other.lock_fd_;
         other.path.clear();
@@ -1259,11 +1253,6 @@ int reap_scratch_sweep(const std::string& dir,
 
 void reap_stale_scratch(const std::string& pdir)
 {
-    // Once per directory per process: parallel workers of one multi-project
-    // command share a pdir, and every make_scratch call would otherwise
-    // rescan (and re-report) the same directory. A path is remembered even
-    // when it holds nothing (or does not exist yet), so the sweep cost is
-    // paid at most once per directory per process.
     static std::mutex mu;
     static std::set<std::string> reaped;
     bool first;

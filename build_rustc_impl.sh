@@ -336,20 +336,6 @@ do_build_rustc() {
         echo "the updated LLVM archives (touched compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp)." >&2
     fi
 
-    # compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp: the Fil-C pipeline
-    # comes from LLVM's RegisterFilPasses -- registered on the PassBuilder
-    # with no extra arguments, exactly like clang/lib/CodeGen/BackendUtil.cpp
-    # and filc's LLVM JIT shim register it (which also registers the
-    # OptimizerLast DeleteRedundantPollchecks), and applied directly to the
-    # fresh pipeline in the NoPrepopulatePasses path (there is no
-    # PassBuilder-built pipeline there to run the extension-point callbacks)
-    # -- plus the "after Fil-C" DataLayout setup.  The IsRust parameter that
-    # used to gate the pre-pizlonation simplification and inlining block off
-    # for rustc is gone: the rustc-shaped miscompiles it existed for are
-    # fixed at their sources (the rustc-side typed allocas below for the
-    # spawn+join shape; the std swap fix below for the mem::swap class), so
-    # the full Fil-C pipeline runs for every frontend.  See
-    # llvm/lib/Passes/RegisterFilPasses.cpp.
     check_grep "RegisterFilPasses(PB, nullptr)" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
     check_grep "llvm::FilCAddPipelineStartPasses(MPM, OptLevel);" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
     check_grep "setDataLayoutAfterFilC" compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp
@@ -433,9 +419,6 @@ do_build_rustc() {
     check_grep "SanitizerSet::empty()" compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
     check_grep "unwinding is implemented on the Fil-C runtime's unwinder" compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs
 
-    # ...and the spec must NOT force the abort panic strategy any more (that
-    # would break unwinding, which now works: see the personality routine).
-    # This is a block-scoped inverse check, like the unwind-crate one below.
     if grep -q 'PanicStrategy' "$RUST_SRC/compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs"; then
         echo "ERROR: projeny patch missing filc change: PanicStrategy still" >&2
         echo "       appears in compiler/rustc_target/src/spec/targets/x86_64_unknown_linux_gnu.rs." >&2

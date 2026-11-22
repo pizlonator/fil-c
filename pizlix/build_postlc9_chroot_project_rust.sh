@@ -3,7 +3,7 @@
 set -e
 set -x
 
-# Sprint S1 of the librsvg-via-Fil-Rust port: install the Rust toolchains
+# Install the Rust toolchains
 # into the chroot and verify the Fil-C one end to end.
 #
 # (a) The Fil-C rustc (built on the host by ./build_rustc.sh from
@@ -20,7 +20,7 @@ set -x
 # (b) The upstream dist rustc 1.90.0 + cargo (rust-yolo-1.90.0.tar.gz) at
 #     /usr/lib/rust/yolo, patchelfed the same way, but NOT exposed on PATH:
 #     cargo needs an upstream rustc for its proc-macro crates, and the
-#     compiler dispatch shim (Sprint S2) decides how it is reached.  The
+#     compiler dispatch shim decides how it is reached.  The
 #     tarball ships the compat libraries the yolo loader cannot find in the
 #     chroot (libgcc_s.so.1, libz.so.1, and the glibc libdl/librt/libpthread
 #     stubs), because the yolo ld.so's only default search directory is

@@ -4097,8 +4097,6 @@ void filc_log_allocate(filc_thread* my_thread, const filc_origin* origin, size_t
         pas_lock_unlock(&alloc_stat_lock);
         return;
     }
-    /* The old one-line-per-allocation behavior is opt-in now (FILC_LOG_ALLOCATIONS=1), because
-       -filc-log-allocations builds are otherwise unusable for anything that allocates at all. */
     if (!log_allocations_verbose)
         return;
     pas_log("Allocating %zu bytes ", size);

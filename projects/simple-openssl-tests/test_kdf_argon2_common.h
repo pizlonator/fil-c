@@ -36,8 +36,7 @@ extern const char argon2_rfc_secret_hex[];
 extern const char argon2_rfc_ad_hex[];
 
 /* The whole-program availability gate: Argon2 is newer than the OpenSSL
- * 3.0 series (the original monolith probed ARGON2ID; each per-variant
- * binary now probes its own algorithm name), so on older releases (e.g.
+ * 3.0 series, so on older releases (e.g.
  * the system OpenSSL 3.0.13) the fetch fails and the binary takes the SKIP
  * path with the original reason text. */
 void argon2_test_gate(const struct argon2_variant *v);
@@ -61,9 +60,7 @@ void argon2_test_rfc_kat(const struct argon2_variant *v);
 void argon2_test_variants_distinct(const struct argon2_variant *v);
 
 /* (4) Validation for v's variant: a missing salt, lanes=0, memcost<8,
- * iter=0, a short salt and a too-short output must all fail.  (The
- * original monolith ran these on Argon2d as the representative; every
- * binary now runs them for its own variant.) */
+ * iter=0, a short salt and a too-short output must all fail. */
 void argon2_test_validation(const struct argon2_variant *v);
 
 #endif /* TEST_KDF_ARGON2_COMMON_H */

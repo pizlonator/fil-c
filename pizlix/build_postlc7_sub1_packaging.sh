@@ -43,17 +43,6 @@ filc/projeny package projects/libxmlb.projeny projects/libxmlb/pizlonated-libxml
 filc/projeny package projects/appstream.projeny projects/appstream/pizlonated-appstream.tar.gz
 filc/projeny package projects/elogind.projeny projects/elogind/pizlonated-elogind.tar.gz
 
-# The audio / policy / input-method stack that gnome-control-center (built
-# later in this stage) hard-requires at meson setup, and gnome-shell
-# (postlc8) needs too.  These were packaged (and built) in postlc8 until
-# the cross-stage ordering bug surfaced: g-c-c's vendored gvc subproject
-# hard-requires libpulse (+mainloop-glib) and its top-level meson.build
-# hard-requires accountsservice, upower-glib, gcr-4, polkit-gobject-1 and
-# ibus-1.0, so a from-scratch build died in g-c-c's meson setup.  Moved
-# here (packaging AND chroot build) so postlc7's snapshot carries them
-# before g-c-c runs; see build_postlc7_sub2_chroot.sh for the build order
-# and the transitive-dependency rationale (libsndfile->pulseaudio,
-# duktape->polkit, polkit->accountsservice/upower).
 
 # polkit 126's JS rule authority (system duktape; 0.116 bundled its own).
 filc/projeny package projects/duktape.projeny projects/duktape/pizlonated-duktape.tar.gz
@@ -96,10 +85,6 @@ filc/projeny package projects/adwaita-icon-theme.projeny projects/adwaita-icon-t
 filc/projeny package projects/dconf.projeny projects/dconf/pizlonated-dconf.tar.gz
 filc/projeny package projects/gnome-text-editor.projeny projects/gnome-text-editor/pizlonated-gnome-text-editor.tar.gz
 filc/projeny package projects/gnome-font-viewer.projeny projects/gnome-font-viewer/pizlonated-gnome-font-viewer.tar.gz
-# Sprint 8: the GNOME applications that need the desktop to feel complete:
-# vte (terminal widget library), gnome-terminal (on top of vte), and
-# gnome-control-center (standalone; most heavily-dep-ended panels dropped,
-# see the projeny patch).
 filc/projeny package projects/vte.projeny projects/vte/pizlonated-vte.tar.gz
 filc/projeny package projects/gnome-terminal.projeny projects/gnome-terminal/pizlonated-gnome-terminal.tar.gz
 filc/projeny package projects/gnome-control-center.projeny projects/gnome-control-center/pizlonated-gnome-control-center.tar.gz

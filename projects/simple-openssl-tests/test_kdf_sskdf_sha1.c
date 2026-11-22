@@ -24,8 +24,8 @@
  *   info=b117255ab5f1b6b96fc434b0 -> b5a3c52e97ae6e8c5069954354eab3c7
  *
  * The key/secret alias and the missing-key negative run over this row's
- * z/info; the multi-chunk info section has no verified SHA-1 OKM constant
- * (the monolith verified only the SHA-256 value), so it checks the
+ * z/info; the multi-chunk info section has no verified SHA-1 OKM constant,
+ * so it checks the
  * concatenation behavior relatively, against a single-info reference
  * derive.
  */

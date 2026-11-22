@@ -55,7 +55,7 @@ tar -xf pizlonated-gnome-shell.tar.gz
 cd pizlonated-gnome-shell
 mkdir build
 cd build
-# llvmpipe-on-JIT (sprint 3): gnome-shell loads swrast_dri.so (via libmutter)
+# llvmpipe-on-JIT: gnome-shell loads swrast_dri.so (via libmutter)
 # and runs llvmpipe shader compilation, so the executable must carry the
 # JIT-enabled Fil-C CRT: -enable-filc-jit at LINK time swaps filc_jit_crt.o
 # in.  The flag is ignored (with a warning) for -shared links, so exporting it

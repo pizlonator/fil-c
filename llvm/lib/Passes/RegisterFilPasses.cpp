@@ -153,16 +153,6 @@ void llvm::FilCAddPipelineStartPasses(ModulePassManager &MPM,
                                       FilJITConfiguration *jitConfig) {
   if (FilCKillUB)
     MPM.addPass(KillUBPass());
-  // Fil-C: above O0 clang also runs its "Fil-C optimization" pipeline here
-  // (an early SimplifyCFG/SROA/EarlyCSE, then -- under FilCInline -- a full
-  // inliner invocation whose per-CGSCC pipeline is SROA/EarlyCSE/
-  // JumpThreading/CVP/SimplifyCFG/InstCombine/GVN/SCCP/ADCE/InstCombine), to
-  // create inlining opportunities before pizlonation.  This runs for every
-  // frontend: the rustc-shaped miscompiles that used to justify keeping it
-  // off for rustc (the IsRust gate) are fixed at their sources -- see the
-  // FilCAddPipelineStartPasses comment above (the rustc-side typed allocas
-  // for the spawn+join shape; std's pointer-typed swap chunk buffers for the
-  // mem::swap class).
   if (Level != OptimizationLevel::O0 && FilCOptimize) {
     FunctionPassManager EarlyFPM;
     EarlyFPM.addPass(LowerExpectIntrinsicPass());

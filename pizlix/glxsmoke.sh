@@ -1,5 +1,5 @@
 #!/bin/bash
-# Fil-C llvmpipe smoke: build + run inside the chroot (Gate 4 of sprint 2).
+# Fil-C llvmpipe smoke: build + run inside the chroot.
 set -e
 set -x
 cd /sources

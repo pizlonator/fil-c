@@ -18,9 +18,8 @@
  * additionally matched against OpenSSL's own test data
  * (test/recipes/30-test_evp_data/evpkdf_pbkdf2.txt).
  *
- * This is also the digest the monolith verified the pkcs5 values for, so
- * its pkcs5 section compares the compliant pkcs5=0 derive and the pkcs5=1
- * c=1 derive against those CLI-verified constants; the SHA-1 binary checks
+ * Its pkcs5 section compares the compliant pkcs5=0 derive and the pkcs5=1
+ * c=1 derive against the CLI-verified constants; the SHA-1 binary checks
  * the same bounds with acceptance checks only (plus its own c=1 prefix).
  */
 

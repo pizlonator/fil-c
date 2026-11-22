@@ -24,23 +24,11 @@ rm -vf projects/*/pizlonated-*.tar.gz
 # tool).  The one exception is at-spi2-core, which is not a projeny project:
 # it is packaged from its checked-in source directory with package-source.sh
 # (same pattern as postlc4's packaging, which produced the atk_only build).
-#
-# NOTE: duktape, libsndfile, pulseaudio, polkit, gcr, ibus, upower and
-# accountsservice were packaged (and built) here until the cross-stage
-# ordering bug surfaced: gnome-control-center (postlc7) hard-requires all
-# of them at meson setup (gvc->libpulse, plus accountsservice/upower-glib/
-# gcr-4/polkit-gobject-1/ibus-1.0), so they moved to postlc7's packaging
-# and chroot build.  gnome-shell (this stage) still consumes them from the
-# postlc7 snapshot.
 
 # The Shell runtime: mozjs (the JS engine) and gjs (the JS bindings).
 filc/projeny package projects/mozjs.projeny projects/mozjs/pizlonated-mozjs.tar.gz
 filc/projeny package projects/gjs.projeny projects/gjs/pizlonated-gjs.tar.gz
 
-# Session/policy service still built in this stage: geoclue (the location
-# service; gnome-shell's weather/location quick settings read
-# Geoclue-2.0).  The other former members of this block (polkit, gcr,
-# ibus, upower, accountsservice) moved to postlc7 -- see the NOTE above.
 filc/projeny package projects/geoclue.projeny projects/geoclue/pizlonated-geoclue.tar.gz
 
 # Location stack (libgweather's meson setup runs python3 'import gi', which

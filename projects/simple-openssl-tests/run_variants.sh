@@ -332,8 +332,7 @@ classify_bin() {
 
 # Which libcrypto the tests currently bind to (the resolved path).  Probes
 # the test binaries dynamically rather than by a fixed name: the suite is
-# one binary per cipher, so the binary set changes (the test_aes_cbc
-# monolith this probe once relied on was split into per-cipher binaries).
+# one binary per cipher, so the binary set changes.
 # The first existing binary whose ldd output resolves a libcrypto wins;
 # every binary links libcrypto via the generic Makefile link rule, so in
 # practice this is just the first binary alphabetically.

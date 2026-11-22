@@ -999,7 +999,7 @@ diff --git a/zunsafe-openssl4/crypto/arm64cpuid.pl b/zunsafe-openssl4/crypto/arm
 -	cbnz	x1,.Little	// len!=0?
 -	ret
 -.size	OPENSSL_cleanse,.-OPENSSL_cleanse
-+# FIXME: OPENSSL_cleanse was removed from here by the Fil-C port: pizlonated C
++# NOTE: pizlonated C
 +# cannot call yolo assembler directly, and OPENSSL_cleanse is used on arbitrary
 +# object pointers, so a C implementation using zmemset() lives in armcap.c
 +# instead (mirroring the x86_64 treatment in x86_64cpuid.pl/cpuid.c).
@@ -1333,13 +1333,11 @@ diff --git a/zunsafe-openssl4/crypto/bn/build.info b/zunsafe-openssl4/crypto/bn/
 diff --git a/zunsafe-openssl4/crypto/bn/rsaz_exp.h b/zunsafe-openssl4/crypto/bn/rsaz_exp.h
 --- a/zunsafe-openssl4/crypto/bn/rsaz_exp.h
 +++ b/zunsafe-openssl4/crypto/bn/rsaz_exp.h
-@@ -16,7 +16,11 @@
+@@ -16,7 +16,9 @@
  #define OSSL_CRYPTO_BN_RSAZ_EXP_H
 
  #undef RSAZ_ENABLED
 -#if defined(OPENSSL_BN_ASM_MONT) && (defined(__x86_64) || defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64))
-+/* FIXME: No reason why we can't enable these for Fil-C at some point. My understanding is that these
-+   code paths are just an optimization and they're not meant to be anything but that. */
 +#if !defined(__FILC__) && defined(OPENSSL_BN_ASM_MONT) &&  \
 +        (defined(__x86_64) || defined(__x86_64__) || \
 +         defined(_M_AMD64) || defined(_M_X64))
@@ -1665,7 +1663,7 @@ diff --git a/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-armv8.pl b/zunsafe-open
 diff --git a/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl b/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl
 --- a/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl
 +++ b/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl
-@@ -4716,36 +4716,36 @@
+@@ -4716,36 +4716,6 @@
  ___
  }
 
@@ -1699,36 +1697,6 @@ diff --git a/zunsafe-openssl4/crypto/ec/asm/ecp_nistz256-x86_64.pl b/zunsafe-ope
 -.size	ecp_nistz256_precomputed,.-ecp_nistz256_precomputed
 -___
 -
-+# ########################################################################
-+# # Convert ecp_nistz256_table.c to layout expected by ecp_nistz_gather_w7
-+# #
-+# open TABLE,"<ecp_nistz256_table.c"		or
-+# open TABLE,"<${dir}../ecp_nistz256_table.c"	or
-+# die "failed to open ecp_nistz256_table.c:",$!;
-+# 
-+# use integer;
-+# 
-+# foreach(<TABLE>) {
-+# 	s/TOBN\(\s*(0x[0-9a-f]+),\s*(0x[0-9a-f]+)\s*\)/push @arr,hex($2),hex($1)/geo;
-+# }
-+# close TABLE;
-+# 
-+# die "insane number of elements" if ($#arr != 64*16*37-1);
-+# 
-+# print <<___;
-+# .section .rodata align=4096
-+# .globl	ecp_nistz256_precomputed
-+# .type	ecp_nistz256_precomputed,\@object
-+# .align	4096
-+# ecp_nistz256_precomputed:
-+# ___
-+# while (@line=splice(@arr,0,16)) {
-+# 	print ".long\t",join(',',map { sprintf "0x%08x",$_} @line),"\n";
-+# }
-+# print <<___;
-+# .size	ecp_nistz256_precomputed,.-ecp_nistz256_precomputed
-+# ___
-+# 
  $code =~ s/\`([^\`]*)\`/eval $1/gem;
  print $code;
  close STDOUT or die "error closing STDOUT: $!";

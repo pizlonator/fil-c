@@ -31,17 +31,6 @@
  * pointing at the cipher were probed and EVP_KDF_derive fails either way.
  * The digest-based and HMAC modes fully cover the two KDF branches.
  *
- * Distribution decisions (carried out of the monolith): the KAT rows are
- * digest-specific and moved to their own binaries (the SHA-1 row for
- * test_kdf_sskdf_sha1.c; the 32/64-byte digest-mode rows and the HMAC row
- * for test_kdf_sskdf_sha256.c), while the key/secret alias, the multi-chunk
- * info handling and the missing-key negative generalize and run in every
- * binary for its own digest, with the digest name parameterized into the
- * CHECK messages.  Where the monolith verified a multi-info OKM for one
- * digest only (SHA-256, the 32-byte fb9ee554... value, which that binary
- * passes in), the digest without such a constant verifies the same
- * concatenation behavior relatively -- against a single-info reference
- * derive -- instead of dropping the check.
  */
 
 #include "test_kdf_sskdf_common.h"
@@ -145,9 +134,7 @@ void sskdf_test_kats(const struct sskdf_family *fam,
 }
 
 /* (2) The "secret" parameter is an alias of "key": both routes must give
- * the identical output.  The monolith ran this on SHA-1 as the
- * representative; every binary now runs it for its own digest, over its
- * own first KAT row's z/info. */
+ * the identical output, over the binary's own first KAT row's z/info. */
 void sskdf_test_key_secret_alias(const struct sskdf_family *fam,
                                  const struct ss_kat *kat)
 {
@@ -178,10 +165,9 @@ void sskdf_test_key_secret_alias(const struct sskdf_family *fam,
  * concatenate repeated info params (3.2+), five chunks (8+8+8+8+16 bytes)
  * equal the single 48-byte info.  On 3.0.x only the first chunk is used;
  * the program prints a note instead of failing.  A sixth chunk is rejected
- * outright (SSKDF_MAX_INFOS == 5).  The monolith ran this section on
- * SHA-256 (whose 32-byte fb9ee554... OKM it had verified); every binary now
- * runs it for its own digest -- SHA-256 against its verified constant, the
- * other digests against a single-info reference derive. */
+ * outright (SSKDF_MAX_INFOS == 5).  Every binary runs it for its own
+ * digest -- SHA-256 against its verified constant, the other digests
+ * against a single-info reference derive. */
 void sskdf_test_multi_info(const struct sskdf_family *fam, const char *okmhex)
 {
     unsigned char *z = ALLOCATE_KEY(Z_CAP);
@@ -264,9 +250,8 @@ void sskdf_test_multi_info(const struct sskdf_family *fam, const char *okmhex)
     free_poison_allocations();
 }
 
-/* (4) Deriving without the shared secret must fail.  The monolith ran this
- * on SHA-1 as the representative; every binary now runs it for its own
- * digest, over its own first KAT row's info. */
+/* (4) Deriving without the shared secret must fail.  Every binary runs it
+ * for its own digest, over its own first KAT row's info. */
 void sskdf_test_missing_key(const struct sskdf_family *fam,
                             const struct ss_kat *kat)
 {

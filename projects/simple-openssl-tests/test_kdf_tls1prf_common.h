@@ -120,8 +120,7 @@ int tls1prf_derive(const char *digest, const unsigned char *secret,
 
  * seed delivered as three chunks (label, client_random, server_random) --
  * TLS1-PRF accepts up to six seed chunks (TLSPRF_MAX_SEEDS) -- plus the
- * same KAT truncated to 16 bytes (prefix property; generalized from the
- * monolith, which ran the truncation only on its MD5-SHA1 KAT). */
+ * same KAT truncated to 16 bytes (prefix property). */
 
 void tls1prf_test_kat_multi_seed(const struct tls1prf_family *fam,
 
@@ -172,10 +171,8 @@ void tls1prf_test_empty_secret(const struct tls1prf_family *fam,
 /* (5) Omitting the secret or the seed must fail.  The provider's
 
  * missing-input checks are digest-independent, so every binary runs this
- * section for its own digest (generalized from the monolith, which ran it
- * on SHA-256 only); secrethex is the binary's own KAT secret, whose value
- * is irrelevant to the must-fail assertions (the monolith used its first
- * KAT secret for the same purpose). */
+ * section for its own digest; secrethex is the binary's own KAT secret,
+ * whose value is irrelevant to the must-fail assertions. */
 
 void tls1prf_test_missing_inputs(const struct tls1prf_family *fam,
 

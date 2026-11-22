@@ -41,16 +41,6 @@ hash -r
 ./build_postlc8_chroot_project_at_spi.sh
 hash -r
 
-# NOTE: duktape, libsndfile, pulseaudio, polkit, gcr, ibus,
-# accountsservice and upower used to be built here (Sprint 3 wiring) but
-# are now built in the postlc7 stage, BEFORE gnome-control-center: g-c-c's
-# vendored gvc subproject hard-requires libpulse (+mainloop-glib) and its
-# top-level meson.build hard-requires accountsservice, upower-glib,
-# gcr-4, polkit-gobject-1 and ibus-1.0, so a from-scratch run failed in
-# g-c-c's meson setup (the gvc subproject executes before every other
-# dependency check and dies on libpulse).  See the block after the GL/EGL
-# rebuild in build_postlc7_sub2_chroot.sh.  gnome-shell (below) still
-# gets all of them, since postlc7 precedes this stage.
 
 # Location: geoclue first, then geocode-glib, then libgweather (its meson
 # setup runs python3 'import gi', proving the pygobject import-gi fix

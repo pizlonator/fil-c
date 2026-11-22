@@ -96,7 +96,7 @@ diff --git a/gnome-terminal/src/meson.build b/gnome-terminal/src/meson.build
 diff --git a/gnome-terminal/src/server.cc b/gnome-terminal/src/server.cc
 --- a/gnome-terminal/src/server.cc
 +++ b/gnome-terminal/src/server.cc
-@@ -48,34 +48,13 @@
+@@ -48,35 +48,6 @@
  #define INACTIVITY_TIMEOUT (100 /* ms */)
 
 
@@ -128,16 +128,10 @@ diff --git a/gnome-terminal/src/server.cc b/gnome-terminal/src/server.cc
 -
 -  return _g_module_open(file_name, flags);
 -}
-+/* Fil-C: this used to interpose g_module_open with a dlsym(RTLD_NEXT)
-+ * wrapper to blocklist the pk-gtk module (which tries to automagically
-+ * install fonts).  The pizlonated libc's dlsym goes through zsys_dlsym,
-+ * which rejects the RTLD_NEXT pseudo-handle ("cannot access pointer with
-+ * null object (ptr = 0xffffffffffffffff,<null>)" filc panic), and there is
-+ * no pk-gtk module in the pizlonated system anyway, so the interposer is
-+ * removed and g_module_open calls go straight to libgmodule. */
-
+-
  static gboolean
  option_app_id_cb (const gchar *option_name,
+                     const gchar *value,
 diff --git a/gnome-terminal/src/terminal-app.cc b/gnome-terminal/src/terminal-app.cc
 --- a/gnome-terminal/src/terminal-app.cc
 +++ b/gnome-terminal/src/terminal-app.cc
@@ -161,7 +155,7 @@ diff --git a/gnome-terminal/src/terminal-app.cc b/gnome-terminal/src/terminal-ap
    gboolean ask_default;
    gboolean xte_is_default;
    gboolean unified_menu;
-@@ -393,30 +393,16 @@
+@@ -393,30 +393,13 @@
  {
    auto const theme = TerminalThemeVariant(g_settings_get_enum(settings, key));
 
@@ -189,9 +183,6 @@ diff --git a/gnome-terminal/src/terminal-app.cc b/gnome-terminal/src/terminal-ap
 -                   theme == TERMINAL_THEME_VARIANT_DARK,
 -                   nullptr);
 -  }
-+  /* Fil-C: without libhandy's HdyStyleManager, the color scheme is applied
-+   * through GtkSettings:gtk-application-prefer-dark-theme (the former
-+   * non-libhandy fallback path). */
 +  if (theme == TERMINAL_THEME_VARIANT_SYSTEM)
 +    gtk_settings_reset_property(gtk_settings, GTK_SETTING_PREFER_DARK_THEME);
 +  else
@@ -202,7 +193,7 @@ diff --git a/gnome-terminal/src/terminal-app.cc b/gnome-terminal/src/terminal-ap
  }
 
  /* Submenus for New Terminal per profile, and to change profiles */
-@@ -948,7 +934,7 @@
+@@ -948,7 +931,7 @@
  terminal_app_init (TerminalApp* app)
  {
  #ifdef TERMINAL_SERVER
@@ -211,7 +202,7 @@ diff --git a/gnome-terminal/src/terminal-app.cc b/gnome-terminal/src/terminal-ap
 
    g_weak_ref_init(&app->prefs_process_ref, nullptr);
 
-@@ -1036,8 +1022,8 @@
+@@ -1036,8 +1019,8 @@
 
  #endif /* TERMINAL_SERVER */
 
@@ -222,7 +213,7 @@ diff --git a/gnome-terminal/src/terminal-app.cc b/gnome-terminal/src/terminal-ap
    auto const gtk_settings = gtk_settings_get_default ();
    terminal_app_theme_variant_changed_cb (app->global_settings,
                                           TERMINAL_SETTING_THEME_VARIANT_KEY, gtk_settings);
-@@ -1046,10 +1032,8 @@
+@@ -1046,10 +1029,8 @@
                      "changed::" TERMINAL_SETTING_THEME_VARIANT_KEY,
                      G_CALLBACK (terminal_app_theme_variant_changed_cb),
                      gtk_settings);

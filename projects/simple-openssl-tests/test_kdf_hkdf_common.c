@@ -37,21 +37,6 @@
  * instead (both routes resolve to the same HKDF provider code, so the
  * values must agree).
  *
- * Distribution decisions (carried out of the monolith): the RFC 5869 TC1-3
- * OKM and PRK rows are digest-specific and moved to their own binaries
- * (TC1-3 for SHA-256, the monolith's "TC1 inputs with the SHA-1 and SHA-512
- * digests" rows for the others); the extract-only/expand-only modes, the
- * multi-info concatenation and the missing-input negatives generalize and
- * run in every binary for its own digest, with the digest name parameterized
- * into the CHECK messages.  Where the monolith verified a KAT value for one
- * digest only (the TC2 OKM and the switch-independent PRKs), the digests
- * without such a constant verify the same behavior relatively -- against a
- * single-info reference derive or by extracting the PRK first -- instead of
- * dropping the check; the SHA-512 binary reuses the monolith's verified
- * TC1 SHA-512 PRK (the concrete HKDF-SHA512 EXTRACT_ONLY value, which the
- * bare-HKDF route must agree with).  The concrete-name rows go to their own
- * digests' binaries (the HKDF-SHA384 row stayed with the representative
- * digest, SHA-256, until the test_kdf_hkdf_sha384 sibling was added).
  */
 
 #include "test_kdf_hkdf_common.h"

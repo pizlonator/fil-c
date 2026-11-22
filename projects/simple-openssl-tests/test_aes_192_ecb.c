@@ -36,8 +36,6 @@ int main(int argc, char **argv)
     test_parse_args(argc, argv);
 
     ecb_test_fetched_kat(&kat);
-    /* The by-name spelling is the uppercase one the original AES-192 route
-     * used (both spellings work; see the common module). */
     ecb_test_alternate_routes(&kat, EVP_aes_192_ecb(), "AES-192-ECB");
     ecb_test_streaming(&kat);
     ecb_test_padding(&kat);

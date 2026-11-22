@@ -34,11 +34,6 @@ cd pizlonated-mesa
 # pointers, EGLDevice handle zptrtable encoding, glsl_type name_id decoding,
 # nir_src tagged-pointer removal, queryobj buffer pointer handling, and the
 # older asm-disabling (meson.build, blake3) + glibc once_flag fixes.
-# Sprint 2 (llvmpipe-on-Fil-C-JIT): gallivm converted from MCJIT to the
-# FilLLVMJIT_* session API (lp_bld_misc.cpp -> lp_bld_misc.c), the pass
-# manager / disposal / target-data paths deleted, function-pointer
-# constants converted to named mapped hooks, and u_cpu_detect AVX
-# detection restored via __cpu_indicator_init + __builtin_cpu_supports.
 mkdir -v build
 cd build
 meson setup ..                 \

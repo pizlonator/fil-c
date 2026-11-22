@@ -52,8 +52,7 @@ void legacy_block_load_providers(void);
  * ciphers (IDEA is absent from Ubuntu's 3.0.13, which compiles it out),
  * so a binary whose cipher does not fetch SKIPs right after
  * test_parse_args() with the documented reason ("%s is unavailable"),
- * per the house SKIP contract -- the monolith used to skip just its row
- * and keep going. */
+ * per the house SKIP contract. */
 void legacy_block_probe_or_skip(const char *ciphername);
 
 /* The data-driven sweep for one row (the row is passed in per binary):

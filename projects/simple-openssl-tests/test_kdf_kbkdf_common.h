@@ -10,12 +10,6 @@
  * the parameter naming quirk, the CLI verification commands and the
  * distribution decisions) lives in test_kdf_kbkdf_common.c.
  *
- * Distribution rule (carried out of the monolith): the CMAC-AES128 and
- * KMAC128 PRFs take a cipher or a MAC rather than a digest, so their checks
- * are digest-independent and run in ONE binary -- the representative digest
- * the monolith's parameterized sections ran on (SHA-256), whose binary also
- * carries their constants.  The "r" width behavior and the missing-input
- * negatives generalize and run in every binary for its own digest.
  */
 
 #ifndef TEST_KDF_KBKDF_COMMON_H

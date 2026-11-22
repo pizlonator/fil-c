@@ -18,12 +18,8 @@
  * chains and OpenSSL's own test data
  * (test/recipes/30-test_evp_data/evpkdf_hkdf.txt).
  *
- * This binary is the family's representative digest (the one the original
- * monolith's parameterized sections ran on).  It carries only its own
- * digest's rows: the HKDF-SHA384 concrete-name row that used to live here
- * (SHA-384 then had no per-digest binary in this family, so its row stayed
- * with the representative digest rather than being dropped) moved to the
- * test_kdf_hkdf_sha384 sibling when that binary was added.
+ * This binary is the family's representative digest.  It carries only its
+ * own digest's rows.
  */
 
 /* This digest's family row: the bare-HKDF digest param, its prose name for

@@ -50,17 +50,6 @@
  * AES-256-CBC path relatively, computing the reference in-test instead of
  * inventing a vector.
  *
- * Distribution decisions (carried out of the monolith): the KAT rows are
- * cipher-specific and moved to their own binaries (the three AES-128-CBC
- * rows and the full-block-constant KAT for test_kdf_krb5kdf_aes_128_cbc.c,
- * the AES-256-CBC row for test_kdf_krb5kdf_aes_256_cbc.c); the
- * blocksize-constant section runs in every binary for its own cipher
- * (against its verified KAT where one exists, relatively otherwise); and
- * the negative checks are parameterized per cipher: both binaries check
- * the output length, the constant-length ceiling and the mandatory
- * cipher/key/constant, while the adaptive explicitly-empty-constant gate
- * (with its pre-3.1 note) stays with the negative section it belonged to
- * in the monolith, in the AES-128-CBC binary.
  */
 
 #include "test_kdf_krb5kdf_common.h"

@@ -23,9 +23,8 @@
  *       -kdfopt hexpass:70617373776f7264 -kdfopt hexsalt:73616c74 \
  *       -kdfopt iter:<2048|1> -kdfopt id:<1|2|3> PKCS12KDF
  *
- * This is the digest the monolith's parameterized sections ran on, so the
- * id-distinctness and missing-pass/missing-salt negatives were already
- * SHA-256 checks; they now run in every binary of the family.
+ * The id-distinctness and missing-pass/missing-salt negatives run in every
+ * binary of the family.
  */
 
 /* This digest's family row: the OSSL_KDF_PARAM_DIGEST value. */

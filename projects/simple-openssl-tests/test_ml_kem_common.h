@@ -48,9 +48,7 @@ extern const char ml_kem_ikme_hex[];
 
 /* The whole-program availability gate: ML-KEM arrived in OpenSSL 3.5, so a
  * parameter set this OpenSSL does not provide takes the SKIP path with the
- * original reason text (the original monolith probed all three sets and
- * skipped on the first unavailable one; each binary now probes its own).
- * Call right after test_parse_args(). */
+ * original reason text.  Call right after test_parse_args(). */
 void ml_kem_test_gate(const struct ml_kem_set *set);
 
 /* Deterministic key generation from the FIPS 203 (d, z) seed via the

@@ -58,9 +58,6 @@ Ctx resolve_ctx(const std::string& projeny_arg)
     Ctx c;
     c.projeny_arg = projeny_arg;
     c.pdir = dirname_of(projeny_arg);
-    // The .projeny file's own basename: scratch dirs are hidden siblings of
-    // the file (".<filebase>.<role>.XXXXXX", see make_scratch below), so
-    // every command needs this alongside pdir.
     c.filebase = basename_of(projeny_arg);
     // Canonical, dot-prefixed status file: ".<f>.projeny.status" next to the
     // .projeny file. Older projenies wrote "<f>.projeny.status"; when only
@@ -203,11 +200,6 @@ TempDir make_scratch(const std::string& pdir, const std::string& filebase,
     reap_stale_scratch(pdir);
     const std::string prefix = "." + filebase + "." + role + ".";
 
-    // Memo of the pdirs this process has already found unwritable
-    // (thread-safe: parallel workers of one multi-project command share
-    // pdirs, and every worker would otherwise repeat the failing attempt —
-    // and, without the insert().second check, re-warn — for the same
-    // directory).
     static std::mutex mu;
     static std::set<std::string> unwritable;
     std::string err;
@@ -993,9 +985,6 @@ void merge_user_diff_onto(const std::string& base_tree, const std::string& fresh
     if (bad.empty())
         return;
     // For each failed block, do a 3-way merge of base/ours(=fresh)/theirs.
-    // The merge scratch dirs live next to the .projeny file like every
-    // other scratch dir (the (pdir, filebase) pair is threaded from the
-    // caller's Ctx).
     for (const auto& f : bad) {
         std::vector<std::string> touched =
             failure_paths_or_die(f, "merge local changes");

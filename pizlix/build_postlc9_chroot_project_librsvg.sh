@@ -4,22 +4,22 @@ set -e
 set -x
 
 # librsvg-via-Fil-Rust port:
-#   S2 (already landed): cargo builds the librsvg workspace for Pizlix with
+#   The cargo stage builds the librsvg workspace for Pizlix with
 #     the two-compiler dispatch (RUSTC_WRAPPER shim); gate artifact is the
 #     staticlib liblibrsvg_c.a in the warm target dir
 #     /hostbuild/librsvg-target/x86_64-unknown-linux-gnu/release/.
-#   S3 (this script): the autotools build on top -- ./configure + make +
+#   The autotools stage (this script): the autotools build on top -- ./configure + make +
 #     make install produce librsvg-2.so (the Fil-C link of the S2 staticlib),
 #     Rsvg-2.0.gir + .typelib (g-ir-scanner), and rsvg-convert (a Fil-C
 #     binary straight out of cargo); gates verify exports, ldd, and SVG->PNG
 #     rendering.
-#   S4 (this script): the gdk-pixbuf SVG loader (libpixbufloader-svg.so,
+#   The gdk-pixbuf stage (this script): the gdk-pixbuf SVG loader (libpixbufloader-svg.so,
 #     plain C) built+installed by the same make, the loaders.cache refresh,
 #     and the end-to-end gdk_pixbuf_new_from_file smoke (normal + symbolic
 #     SVG).
 #
 # Source: /sources/pizlonated-librsvg.tar.gz (the projeny package of
-# projects/librsvg.projeny -- since S3 its patch carries the Makefile.am /
+# projects/librsvg.projeny -- its patch carries the Makefile.am /
 # Makefile.in Fil-C fixes: unconditional CARGO_TARGET_ARGS=--target +
 # pinned RUST_TARGET/RUST_TARGET_SUBDIR, environment-honoring
 # CARGO_TARGET_DIR, and the -export-symbols-regex extended to the
@@ -38,9 +38,7 @@ set -x
 # as their own projeny tarballs (sub1_packaging packages them; the stage
 # driver copies them into /sources).  They are unpacked NEXT TO the librsvg
 # tree so the workspace's [patch.crates-io] relative paths (../glib-sys
-# etc.) resolve, and cargo builds them as part of the librsvg graph -- this
-# is the principled replacement for the old vendor-patch hack (no more
-# patching the vendored tree / refreshing .cargo-checksum.json), and it is
+# etc.) resolve, and cargo builds them as part of the librsvg graph -- and it is
 # how the Fil-C GType-as-pointer fix reaches the build: glib-sys declares
 # GType as a pointer, so GTypes crossing the C<->Rust FFI keep their filc
 # capabilities and glib itself needs no changes (it was built in postlc3 and
