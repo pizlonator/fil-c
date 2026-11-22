@@ -193,6 +193,17 @@ DOCKERFILE_PATH="${SCRIPT_DIR}/.dockerfile-${IMAGE_TAG}"
 
 echo "Generating Dockerfile at ${DOCKERFILE_PATH}..."
 
+# libtool is vendored as a projeny package (projects/libtool.projeny --
+# no tarball checked in).  The pizlonated package tarball is an untracked
+# build product, so make sure it exists before the Dockerfile COPYs it:
+# on a fresh clone this downloads the upstream tarball and applies the
+# projeny patch body (the Fil-C libltdl weak-symbol fix, inert for a
+# plain-GCC build).  The pizlonated build replaces the old COPY of the
+# checked-in pizlix/libtool-2.4.7.tar.xz.
+if [ ! -e "${SCRIPT_DIR}/projects/libtool/pizlonated-libtool.tar.gz" ]; then
+    (cd "${SCRIPT_DIR}" && filc/projeny package projects/libtool.projeny projects/libtool/pizlonated-libtool.tar.gz)
+fi
+
 # Write the common Dockerfile header
 # NOTE: We're using the single-quote here document, so that things like $(nproc) are literal.
 cat > "${DOCKERFILE_PATH}" <<'DOCKERFILE_END'
@@ -242,15 +253,15 @@ RUN cd /usr/local/src && \
     cd /usr/local/src && \
     rm -rf automake-1.17 automake-1.17.tar.xz
 
-COPY pizlix/libtool-2.4.7.tar.xz /usr/local/src/
+COPY projects/libtool/pizlonated-libtool.tar.gz /usr/local/src/
 RUN cd /usr/local/src && \
-    tar -xf libtool-2.4.7.tar.xz && \
-    cd libtool-2.4.7 && \
+    tar -xf pizlonated-libtool.tar.gz && \
+    cd pizlonated-libtool && \
     ./configure --prefix=/usr/local && \
     make -j $(nproc) && \
     make -j $(nproc) install && \
     cd /usr/local/src && \
-    rm -rf libtool-2.4.7 libtool-2.4.7.tar.xz
+    rm -rf pizlonated-libtool pizlonated-libtool.tar.gz
 
 COPY pizlix/intltool-0.51.0.tar.gz /usr/local/src/
 RUN cd /usr/local/src && \

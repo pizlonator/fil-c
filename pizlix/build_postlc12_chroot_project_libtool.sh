@@ -3,35 +3,38 @@
 set -e
 set -x
 
-# libtool 2.4.7 rebuild -- the libltdl Fil-C fix.  The part2 build of
-# libtool produced a /usr/lib/libltdl.so whose only undefined symbol is
-# `pizlonated_lt_libltdl_LTX_preloaded_symbols` (ltdl.c references the
-# never-defined, ltmain-convenience-only data symbol from lt_dlinit's
-# HAVE_LIBDLLOADER block, and the fil-C compiler routes the reference
-# through a pizlonated_ forwarder).  A NON-WEAK undefined reference in a
-# shared library poisons every executable link against it
-# ("undefined reference to pizlonated_lt_libltdl_LTX_preloaded_symbols")
-# and would poison every runtime load.  Nothing in the base system links
-# libltdl, so the breakage hid until postlc12's libcanberra -- whose
-# configure probes libltdl with an AC_CHECK_LIB link test -- became the
-# first consumer.
+# libtool 2.4.7 rebuild -- the libltdl Fil-C fix.  The libtool source now
+# comes from the projeny package (projects/libtool.projeny), whose patch
+# body carries the weak-symbol fix for ltdl.c's preloaded-symbols
+# reference: ltdl.c declares the never-defined data symbol
+# lt_libltdl_LTX_preloaded_symbols extern (it is only ever defined inside
+# ltmain-generated convenience libraries that link ltdl statically) and
+# references it from lt_dlinit's HAVE_LIBDLLOADER block; the fil-C
+# compiler routes that reference through a pizlonated_ forwarder, so an
+# unpatched build's /usr/lib/libltdl.so carries a NON-WEAK undefined
+# reference to `pizlonated_lt_libltdl_LTX_preloaded_symbols`, which (a)
+# makes every -lltdl link of an EXECUTABLE fail at link time and (b) would
+# make every load of the library fail at runtime.  Nothing in the base
+# system links libltdl, so the breakage hid until postlc12's libcanberra
+# -- whose configure probes libltdl with an AC_CHECK_LIB link test --
+# became the first consumer.
 #
-# This is a same-version drop-in rebuild of part2's libtool block with
-# pizlix/libtool-2.4.7-filc-ltdl-1.patch applied (the patch declares the
-# reference weak; lt_dlpreload(NULL) -- which is what the standalone
-# library then passes -- is the documented "clear the preloaded list"
-# path, so the standalone library's behavior is unchanged).  It lives in
-# postlc12 (not part2) because the recovery chain
+# This is a same-version drop-in rebuild of part2's libtool block.  It
+# lives in postlc12 (not part2) because the recovery chain
 # (build_recover_postlc9 -> postlc10 -> postlc11 -> postlc12) starts from
 # a snapshot whose libltdl predates the fix, and postlc12 is the stage
 # that first NEEDS libltdl; a from-scratch chain reaches postlc12 after
-# part2, so it gets the fixed library either way.
+# part2, and since the projeny conversion (2026-11-22) part2 builds the
+# FIXED libtool from the same package, so this rebuild is an idempotent
+# re-verification there.  The patch used to be the checked-in side file
+# pizlix/libtool-2.4.7-filc-ltdl-1.patch applied here by hand; it now
+# rides in the projeny patch body (house rule: Fil-C fixes live in the
+# projeny file, never in side patch files).
 
 cd /sources
-rm -rf libtool-2.4.7
-tar -xf libtool-2.4.7.tar.xz
-cd libtool-2.4.7
-patch -Np1 -i ../libtool-2.4.7-filc-ltdl-1.patch
+rm -rf pizlonated-libtool
+tar -xf pizlonated-libtool.tar.gz
+cd pizlonated-libtool
 # M4 is preset so configure's AC_PROG_M4-style search runs at all: the
 # search loop probes each candidate m4 with `m4 -F conftest.m4f` and a
 # --trace snippet and REQUIRES both to produce empty output.  Under fil-C
@@ -50,7 +53,7 @@ make
 make install
 rm -fv /usr/lib/libltdl.a
 cd ..
-rm -rf libtool-2.4.7
+rm -rf pizlonated-libtool
 hash -r
 
 # --- gates ---------------------------------------------------------------------

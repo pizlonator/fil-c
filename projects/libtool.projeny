@@ -1,0 +1,47 @@
+URL: https://mirrors.kernel.org/gnu/libtool/libtool-2.4.7.tar.xz 2ea6756908621775a2466f58d79095fb42e6fb6aa599c3a334f3c688781e00e3
+URL: https://ftp.gnu.org/gnu/libtool/libtool-2.4.7.tar.xz 2ea6756908621775a2466f58d79095fb42e6fb6aa599c3a334f3c688781e00e3
+Origname: libtool-2.4.7
+Name: libtool
+
+    libtool 2.4.7 (the GNU libtool script + the libltdl shared library).
+    The base-system libtool build of the postlc chain (part2) and the
+    same-version drop-in rebuild that the postlc12 login-manager stage
+    runs (idempotent in a from-scratch chain, the actual libltdl fixer
+    for recovery chains that start from pre-fix snapshots).  Everything
+    in the chroot that dlopens plugins (libcanberra's dso backend) goes
+    through /usr/lib/libltdl.so from this package.
+    Fil-C fix (see the patch): ltdl.c declares the never-defined data
+    symbol lt_libltdl_LTX_preloaded_symbols extern (it is only ever
+    defined inside ltmain-generated convenience libraries that link
+    ltdl statically) and references it from lt_dlinit's HAVE_LIBDLLOADER
+    block; the fil-C compiler routes that reference through a
+    pizlonated_ forwarder, so the built /usr/lib/libltdl.so carries a
+    NON-WEAK undefined reference to pizlonated_lt_libltdl_LTX_preloaded_
+    symbols, which poisons every -lltdl link of an executable and every
+    runtime load.  Declaring the reference weak makes it resolve to
+    NULL -- lt_dlpreload(NULL) is the documented "clear the preloaded
+    list" path (loaders/preopen.c guards the NULL and falls back to its
+    own default_preloaded_symbols) -- so the standalone library's
+    behavior is unchanged and the builtin loader vtable still gets
+    installed.  This patch was previously checked in as the side file
+    pizlix/libtool-2.4.7-filc-ltdl-1.patch; it now lives here.
+diff --git a/libtool/libltdl/ltdl.c b/libtool/libltdl/ltdl.c
+--- a/libtool/libltdl/ltdl.c
++++ b/libtool/libltdl/ltdl.c
+@@ -218,7 +218,15 @@
+ LT_SCOPE const lt_dlvtable *	get_vtable (lt_user_data data);
+ LT_END_C_DECLS
+ #ifdef HAVE_LIBDLLOADER
+-extern LT_DLSYM_CONST lt_dlsymlist preloaded_symbols[];
++/* Fil-C: this list is only ever DEFINED inside ltmain-generated
++   convenience libraries that link ltdl statically; the standalone
++   libltdl build has always shipped an undefined reference here.  The
++   fil-C compiler routes the reference through a pizlonated_ forwarder,
++   which made the shared library unshippable (a hard undefined symbol
++   poisons every executable link and every load).  Declare it weak: the
++   reference then resolves to NULL, which is exactly what lt_dlpreload
++   (loaders/preopen.c) already handles -- "clear the preloaded list".  */
++extern LT_DLSYM_CONST lt_dlsymlist preloaded_symbols[] __attribute__((__weak__));
+ #endif
+
+ /* Initialize libltdl. */

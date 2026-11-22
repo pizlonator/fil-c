@@ -33,14 +33,27 @@ ln -sv bash /bin/sh
 cd ..
 rm -rf pizlonated-bash
 
-tar -xf libtool-2.4.7.tar.xz
-cd libtool-2.4.7
+# libtool comes from the projeny package (projects/libtool.projeny), whose
+# patch body carries the Fil-C fix that makes the standalone libltdl
+# shippable: ltdl.c's extern reference to the never-defined
+# lt_libltdl_LTX_preloaded_symbols data symbol is declared weak (the
+# fil-C compiler routes it through a pizlonated_ forwarder, so an
+# unpatched build's /usr/lib/libltdl.so carries a hard undefined
+# pizlonated_lt_libltdl_LTX_preloaded_symbols reference that poisons every
+# -lltdl executable link and every runtime load).  Since the projeny
+# conversion (2026-11-22) the part2 build is itself the fixed build --
+# before that this block built the unpatched tarball and the postlc12
+# stage re-built libtool with a checked-in side patch; the postlc12
+# same-version rebuild remains for recovery chains that start from
+# pre-fix snapshots (and as an idempotent gate re-run otherwise).
+tar -xf pizlonated-libtool.tar.gz
+cd pizlonated-libtool
 ./configure --prefix=/usr
 make
 make install
 rm -fv /usr/lib/libltdl.a
 cd ..
-rm -rf libtool-2.4.7
+rm -rf pizlonated-libtool
 hash -r
 
 tar -xf gdbm-1.24.tar.gz

@@ -240,6 +240,12 @@ void configure_easy(CURL* c, const std::string& url, std::string* data)
     curl_easy_setopt(c, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(c, CURLOPT_FAILONERROR, 1L);
     curl_easy_setopt(c, CURLOPT_NOSIGNAL, 1L);
+    // Say who we are.  libcurl sends no User-Agent header at all by
+    // default, and some hosts reject UA-less requests outright with a
+    // 403 -- git.kernel.org's cgit frontend (the wireless-regdb
+    // snapshot URLs) does exactly that.  Any non-empty UA passes there,
+    // so identify the tool honestly.
+    curl_easy_setopt(c, CURLOPT_USERAGENT, "projeny/1.0");
     // Bound the transfer so a hung mirror cannot stall setup/commit
     // forever: give up on a connection that cannot be established within
     // 30 seconds, and on any transfer that stays below 1 byte/sec for 60

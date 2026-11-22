@@ -1,0 +1,5 @@
+URL: https://git.kernel.org/pub/scm/linux/kernel/git/wens/wireless-regdb.git/snapshot/wireless-regdb-master-2024-10-07.tar.gz 0f71bfa029cc4199825664b2952e59573e4efaf897adfe0f126aac842b3779bc
+Origname: wireless-regdb-master-2024-10-07
+Name: wireless-regdb
+
+    wireless-regdb master-2024-10-07 (the wens repo's regulatory database: the prebuilt wens-signed regulatory.db + regulatory.db.p7s, plus the db.txt source, the per-country LVS files, and the Makefile that builds the db from db.txt).  Installed into /lib/firmware by the postlc11 firmware script; the kernel has CONFIG_CFG80211_REQUIRE_SIGNED_REGDB=y + CONFIG_CFG80211_USE_KERNEL_REGDB_KEYS=y and 6.10.5 embeds BOTH sforshee.hex and wens.hex as trusted regdb signing keys (net/wireless/certs/), and this db is wens-signed, so it validates against the kernel's key.  linux-firmware does NOT ship regulatory.db, so this package is the only source of the runtime regdb.  Data-only package: zero Fil-C patches.  This was previously the git-tracked tarball pizlix/wireless-regdb-master-2024-10-07.tar.gz.

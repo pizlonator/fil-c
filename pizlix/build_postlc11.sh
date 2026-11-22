@@ -55,11 +55,14 @@ cp -v build_postlc11_chroot_project_*.sh $LFS/sources
 cp -v build_postlc11_chroot_setup_scripts_for_networkmanager.sh $LFS/sources
 cp -v blfs-bootscripts-20240416.tar.xz $LFS/sources
 
-# The two firmware tarballs (downloaded into pizlix/ by sub1_packaging --
-# too big to commit to git) staged into /sources for the chroot firmware
-# script.
+# The firmware inputs (staged into /sources for the chroot firmware
+# script): the 379MB linux-firmware tarball (downloaded into pizlix/ by
+# sub1_packaging -- too big to commit to git) and, since the 2026-11-22
+# projeny conversion, the wireless-regdb package tarball (built by sub1
+# from projects/wireless-regdb.projeny -- the git-tracked
+# pizlix/wireless-regdb-master-2024-10-07.tar.gz is gone).
 cp -v $FILCSRC/pizlix/linux-firmware-20241017.tar.xz $LFS/sources
-cp -v $FILCSRC/pizlix/wireless-regdb-master-2024-10-07.tar.gz $LFS/sources
+cp -v $FILCSRC/projects/wireless-regdb/pizlonated-wireless-regdb.tar.gz $LFS/sources
 
 # The tracked kernel config, copied next to the kernel script that consumes
 # it: the full chain already gets it from build_copy_stuff.sh, but the

@@ -30,23 +30,30 @@ ulimit -c unlimited
 #    + CONFIG_CFG80211_USE_KERNEL_REGDB_KEYS=y mean cfg80211 wants this db at
 #    runtime, signature checked against the keys embedded in the kernel
 #    (net/wireless/certs/sforshee.hex + wens.hex in 6.10.5); the wens repo
-#    snapshot is wens-signed, so it validates.
+#    snapshot is wens-signed, so it validates.  Since the 2026-11-22 projeny
+#    conversion the regdb comes from pizlonated-wireless-regdb.tar.gz (the
+#    pizlonated-wireless-regdb/ checkout of projects/wireless-regdb.projeny;
+#    the git-tracked pizlix/wireless-regdb-master-2024-10-07.tar.gz is
+#    gone) -- same bytes, see the projeny file's blake3.
 #
-# The tarballs are staged in /sources by build_postlc11.sh (downloaded by
-# build_postlc11_sub1_packaging.sh with sha256 verification).  The extracted
-# trees are deleted after the install so the stage snapshot stays small (the
-# tarballs stay in /sources; the installed subset is ~195MB).
+# The inputs are staged in /sources by build_postlc11.sh: the linux-firmware
+# tarball (downloaded by build_postlc11_sub1_packaging.sh with sha256
+# verification) and pizlonated-wireless-regdb.tar.gz (packaged by
+# build_postlc11_sub1_packaging.sh from projects/wireless-regdb.projeny,
+# whose blake3 pins the exact snapshot bytes).  The extracted trees are
+# deleted after the install so the stage snapshot stays small (the tarballs
+# stay in /sources; the installed subset is ~195MB).
 
 cd /sources
-rm -rf linux-firmware-20241017 wireless-regdb-master-2024-10-07
+rm -rf linux-firmware-20241017 pizlonated-wireless-regdb
 
 tar -xf linux-firmware-20241017.tar.xz
-tar -xf wireless-regdb-master-2024-10-07.tar.gz
+tar -xf pizlonated-wireless-regdb.tar.gz
 
 test -d linux-firmware-20241017
-test -d wireless-regdb-master-2024-10-07
-test -e wireless-regdb-master-2024-10-07/regulatory.db
-test -e wireless-regdb-master-2024-10-07/regulatory.db.p7s
+test -d pizlonated-wireless-regdb
+test -e pizlonated-wireless-regdb/regulatory.db
+test -e pizlonated-wireless-regdb/regulatory.db.p7s
 test -e /lib/modules/6.10.5/modules.builtin.modinfo
 
 # --- the manifest-driven subset ---------------------------------------------
@@ -95,8 +102,8 @@ done < /sources/iwlwifi-prefixes.txt
 
 # 3. the regulatory database (wens-signed; the kernel's embedded wens.hex
 #    key validates it at reg-set time)
-cp -v -a wireless-regdb-master-2024-10-07/regulatory.db /lib/firmware/
-cp -v -a wireless-regdb-master-2024-10-07/regulatory.db.p7s /lib/firmware/
+cp -v -a pizlonated-wireless-regdb/regulatory.db /lib/firmware/
+cp -v -a pizlonated-wireless-regdb/regulatory.db.p7s /lib/firmware/
 
 # --- gates --------------------------------------------------------------------
 
@@ -151,7 +158,7 @@ test `find /lib/firmware -name 'iwlwifi-*' ! -perm -004 | wc -l` -eq 0
 # --- cleanup (keep the snapshot small) ----------------------------------------
 
 cd /sources
-rm -rf linux-firmware-20241017 wireless-regdb-master-2024-10-07 /sources/iwlwifi-prefixes.txt
+rm -rf linux-firmware-20241017 pizlonated-wireless-regdb /sources/iwlwifi-prefixes.txt
 hash -r
 
 echo "postlc11 firmware: ALL GATES GREEN"

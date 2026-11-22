@@ -55,7 +55,8 @@ filc/projeny package \
     projects/gzip.projeny projects/gzip/pizlonated-gzip.tar.gz \
     projects/patch.projeny projects/patch/pizlonated-patch.tar.gz \
     projects/zlib.projeny projects/zlib/pizlonated-zlib.tar.gz \
-    projects/lz4.projeny projects/lz4/pizlonated-lz4.tar.gz
+    projects/lz4.projeny projects/lz4/pizlonated-lz4.tar.gz \
+    projects/libtool.projeny projects/libtool/pizlonated-libtool.tar.gz
 
 ./package-source.sh projects/lfs-bootscripts-20240825 pizlonated-lfs-bootscripts
 ./package-source.sh projects/kbd-2.6.4 pizlonated-kbd

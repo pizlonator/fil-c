@@ -74,7 +74,6 @@ cp -v \
     libcap-2.70.tar.xz \
     libffi-3.8.0.tar.gz \
     libpipeline-1.5.7.tar.gz \
-    libtool-2.4.7.tar.xz \
     libxcrypt-4.5.2.tar.xz \
     m4-1.4.21.tar.xz \
     make-4.4.1.tar.gz \
