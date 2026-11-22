@@ -75,5 +75,11 @@ hash -r
 ./build_postlc8_chroot_project_gjs.sh
 hash -r
 
+# Deferred NM gate: part 7 must build NetworkManager before
+# gnome-control-center links libnm + libnma-gtk4, but gjs is only built
+# here in part 8 -- so the networkmanager script's "gjs can load the NM
+# typelib" gate is deferred to this point, now that gjs exists.
+gjs -c "const NM = imports.gi.NM; print('NM', NM.MAJOR_VERSION, NM.MINOR_VERSION);"
+
 ./build_postlc8_chroot_project_gnome_shell.sh
 hash -r

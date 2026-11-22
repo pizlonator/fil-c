@@ -142,7 +142,16 @@ test -d /etc/NetworkManager
 ls -la /etc/NetworkManager/
 
 echo "=== gate: gjs can load the NM typelib ==="
-gjs -c "const NM = imports.gi.NM; print('NM', NM.MAJOR_VERSION, NM.MINOR_VERSION);"
+# gjs is a postlc PART 8 product.  NM must build in part 7 (before
+# gnome-control-center links libnm + libnma-gtk4), so when this script
+# runs, gjs is not in the chroot yet.  Run the gate when gjs exists;
+# otherwise defer it to build_postlc8_sub2_chroot.sh, which re-runs it
+# right after gjs is built.
+if command -v gjs >/dev/null 2>&1; then
+    gjs -c "const NM = imports.gi.NM; print('NM', NM.MAJOR_VERSION, NM.MINOR_VERSION);"
+else
+    echo "gjs not in the chroot yet (postlc part 8 product) -- NM typelib gate deferred to part 8"
+fi
 
 echo "=== gate: ldd of the binaries (no 'not found') ==="
 for f in /usr/sbin/NetworkManager /usr/bin/nmcli /usr/bin/nm-online /usr/lib/libnm.so; do
