@@ -110,4 +110,6 @@ void repoison_all(void);
  * the end of main. */
 void free_poison_allocations(void);
 
+void unpoison(void* data, size_t size);
+
 #endif /* POISONING_H */

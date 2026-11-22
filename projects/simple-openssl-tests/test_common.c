@@ -65,6 +65,7 @@ void test_skip(const char *reason)
 
 void test_report_pass(void)
 {
+    unpoison(&g_checks, sizeof(g_checks));
     printf("%s: all %u checks passed\n", test_prog_name(), g_checks);
 }
 

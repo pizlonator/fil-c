@@ -305,3 +305,8 @@ void poison_parse_args(int argc, char **argv)
         exit(2);
     }
 }
+
+void unpoison(void* data, size_t size)
+{
+    zegarmistrz_unpoison_range(data, size);
+}
