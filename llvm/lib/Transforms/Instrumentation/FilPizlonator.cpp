@@ -10101,16 +10101,25 @@ class Pizlonator {
           Reason = "xgetbv takes no operands";
           return false;
         }
+        // XGETBV reads the extended-control register indexed by ECX into
+        // EDX:EAX. ECX must be declared as an input because it selects which
+        // XCR is read (reading the XCR index is harmless, but the asm is only
+        // safe if the asm author actually chose it); a clobber cannot stand
+        // in for that input. Reading the XCR itself is harmless, but both EAX
+        // and EDX must be declared as outputs or clobbers: callers that only
+        // want the low half of the XCR discard the EDX half, so a ~{edx}
+        // clobber (as written by common code like glibc's get_xcr0) is just
+        // as valid as an output constraint.
         if (!InputFamilies.count("cx")) {
           Reason = "xgetbv input ecx not covered by input constraint";
           return false;
         }
-        if (!OutputFamilies.count("ax")) {
-          Reason = "xgetbv output eax not covered by output constraint";
+        if (!isOutputOrClobber("ax")) {
+          Reason = "xgetbv output eax not covered by output constraint or clobber";
           return false;
         }
-        if (!OutputFamilies.count("dx")) {
-          Reason = "xgetbv output edx not covered by output constraint";
+        if (!isOutputOrClobber("dx")) {
+          Reason = "xgetbv output edx not covered by output constraint or clobber";
           return false;
         }
         continue;
