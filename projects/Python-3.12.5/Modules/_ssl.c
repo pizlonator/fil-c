@@ -126,6 +126,16 @@ static void _PySSLFixErrno(void) {
 #include "_ssl_data.h"
 #endif
 
+#if (OPENSSL_VERSION_NUMBER >= 0x40000000L)
+/* OpenSSL 4.0 removed SSLv3 and the version-specific methods,
+ * but TLS 1.0, 1.1 and 1.2 are still available via TLS_method(). */
+#  define OPENSSL_NO_SSL3
+#  define OPENSSL_NO_SSL3_METHOD
+#  define OPENSSL_NO_TLS1_METHOD
+#  define OPENSSL_NO_TLS1_1_METHOD
+#  define OPENSSL_NO_TLS1_2_METHOD
+#endif
+
 /* OpenSSL API 1.1.0+ does not include version methods */
 #ifndef OPENSSL_NO_SSL3_METHOD
 extern const SSL_METHOD *SSLv3_method(void);
@@ -1329,14 +1339,16 @@ _get_peer_alt_names (_sslmodulestate *state, X509 *certificate) {
                 }
                 PyTuple_SET_ITEM(t, 0, v);
 
-                if (name->d.ip->length == 4) {
-                    unsigned char *p = name->d.ip->data;
+                /* OpenSSL 4 made ASN1_STRING opaque: use the public
+                 * accessors instead of ->length and ->data. */
+                if (ASN1_STRING_length(name->d.ip) == 4) {
+                    const unsigned char *p = ASN1_STRING_get0_data(name->d.ip);
                     v = PyUnicode_FromFormat(
                         "%d.%d.%d.%d",
                         p[0], p[1], p[2], p[3]
                     );
-                } else if (name->d.ip->length == 16) {
-                    unsigned char *p = name->d.ip->data;
+                } else if (ASN1_STRING_length(name->d.ip) == 16) {
+                    const unsigned char *p = ASN1_STRING_get0_data(name->d.ip);
                     v = PyUnicode_FromFormat(
                         "%X:%X:%X:%X:%X:%X:%X:%X",
                         p[0] << 8 | p[1],
@@ -1467,8 +1479,9 @@ _get_aia_uri(X509 *certificate, int nid) {
             continue;
         }
         uri = ad->location->d.uniformResourceIdentifier;
-        ostr = PyUnicode_FromStringAndSize((char *)uri->data,
-                                           uri->length);
+        ostr = PyUnicode_FromStringAndSize(
+            (char *)ASN1_STRING_get0_data(uri),
+            ASN1_STRING_length(uri));
         if (ostr == NULL) {
             goto fail;
         }
@@ -1534,8 +1547,9 @@ _get_crl_dp(X509 *certificate) {
                 continue;
             }
             uri = gn->d.uniformResourceIdentifier;
-            ouri = PyUnicode_FromStringAndSize((char *)uri->data,
-                                               uri->length);
+            ouri = PyUnicode_FromStringAndSize(
+                (char *)ASN1_STRING_get0_data(uri),
+                ASN1_STRING_length(uri));
             if (ouri == NULL)
                 goto done;
 

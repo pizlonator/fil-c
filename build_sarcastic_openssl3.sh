@@ -39,8 +39,9 @@ filc/projeny setup projects/sarcastic-openssl3.projeny
 # no-padlockeng: the padlock engine's rep-movsq/xcrypt implicit-memory
 # instructions are unmodelable in sarcasm (documented decision).
 #
-# This deliberately does NOT run make install: OpenSSL 3.6.5 (built by
-# build_zunsafe_openssl3.sh) still owns pizfix's libcrypto.so.3/libssl.so.3.
+# This deliberately does NOT run make install: pizfix's OpenSSL is owned by
+# the zunsafe 4-series build (build_zunsafe_openssl4.sh), and the sarcasm
+# builds never install.
 cd projects/sarcastic-openssl3
 
 # If a previous configure (e.g. a no-asm one) left configdata.pm behind,

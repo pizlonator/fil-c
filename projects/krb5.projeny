@@ -1,0 +1,67 @@
+URL: https://kerberos.org/dist/krb5/1.22/krb5-1.22.3.tar.gz c91555750bf733aec4ecb9d804c7fd302fb7f26eb9f83c188ba9b65f8157f80a
+URL: https://web.mit.edu/kerberos/dist/krb5/1.22/krb5-1.22.3.tar.gz c91555750bf733aec4ecb9d804c7fd302fb7f26eb9f83c188ba9b65f8157f80a
+Origname: krb5-1.22.3
+Name: krb5
+
+    kerberos 5 with the Fil-C port (link shared libraries with --version-script= for binutils 2.47 ld compatibility, and use zfence() for verto's ev.c memory fences). This is 1.22.3, which includes upstream OpenSSL 4 compatibility for the PKINIT and TLS plugins.
+diff --git a/krb5/src/config/shlib.conf b/krb5/src/config/shlib.conf
+--- a/krb5/src/config/shlib.conf
++++ b/krb5/src/config/shlib.conf
+@@ -276,7 +276,7 @@
+ 	LDCOMBINE='$(CC) -shared -fPIC -Wl,-z,nodelete -Wl,-h,$(LIBPREFIX)$(LIBBASE)$(SHLIBSEXT) $(UNDEF_CHECK)'
+ 	UNDEF_CHECK='-Wl,--no-undefined'
+ 	# $(EXPORT_CHECK) runs export-check.pl when in maintainer mode.
+-	LDCOMBINE_TAIL='-Wl,--version-script binutils.versions $(EXPORT_CHECK)'
++	LDCOMBINE_TAIL='--version-script=binutils.versions $(EXPORT_CHECK)'
+ 	SHLIB_EXPORT_FILE_DEP=binutils.versions
+ 	RPATH_FLAG='-Wl,--enable-new-dtags -Wl,-rpath -Wl,'
+ 	# For cases where we do have dependencies on other libraries
+diff --git a/krb5/src/plugins/tls/k5tls/openssl.c b/krb5/src/plugins/tls/k5tls/openssl.c
+--- a/krb5/src/plugins/tls/k5tls/openssl.c
++++ b/krb5/src/plugins/tls/k5tls/openssl.c
+@@ -162,7 +162,9 @@
+ get_cert_sans(const X509 *x)
+ {
+     int ext;
+-    X509_EXTENSION *san_ext;
++    /* OpenSSL 4.0 constifies the result of X509_get_ext().  We don't
++     * modify the extension, so a const pointer is all we need. */
++    const X509_EXTENSION *san_ext;
+
+     ext = X509_get_ext_by_NID(x, NID_subject_alt_name, -1);
+     if (ext < 0)
+@@ -178,7 +180,9 @@
+ static int
+ get_cert_cn(const X509 *x, char *buf, size_t bufsize)
+ {
+-    X509_NAME *name;
++    /* OpenSSL 4.0 constifies the result of X509_get_subject_name().  We
++     * don't modify the name, so a const pointer is all we need. */
++    const X509_NAME *name;
+
+     name = X509_get_subject_name(x);
+     if (name == NULL)
+diff --git a/krb5/src/util/verto/ev.c b/krb5/src/util/verto/ev.c
+--- a/krb5/src/util/verto/ev.c
++++ b/krb5/src/util/verto/ev.c
+@@ -179,6 +179,8 @@
+
+ #include <signal.h>
+
++#include <stdfil.h>
++
+ #ifdef EV_H
+ # include EV_H
+ #else
+@@ -652,6 +654,11 @@
+ #if 1400 <= _MSC_VER
+   #include <intrin.h> /* fence functions _ReadBarrier, also bit search functions _BitScanReverse */
+ #endif
++
++/* Let's play it safe with fences. There's no point in being fancy. */
++#define ECB_MEMORY_FENCE zfence()
++#define ECB_MEMORY_FENCE_ACQUIRE zfence()
++#define ECB_MEMORY_FENCE_RELEASE zfence()
+
+ #ifndef ECB_MEMORY_FENCE
+   #if ECB_GCC_VERSION(2,5) || defined __INTEL_COMPILER || (__llvm__ && __GNUC__) || __SUNPRO_C >= 0x5110 || __SUNPRO_CC >= 0x5110

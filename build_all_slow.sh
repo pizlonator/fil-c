@@ -57,11 +57,12 @@ test ! -d projects/pizfix
 ./build_openjpeg.sh
 ./build_ncurses.sh
 ./build_libedit.sh
-./build_zunsafe_openssl3.sh
+./build_zunsafe_openssl4.sh
 
-# This is omitted from the default corpus because the sarcastic openssl test
-# suite only passes on glibc; the sarcastic openssl builds (3- and 4-series)
-# and the zunsafe openssl 4 build are run by build_all_glibc.sh instead (see
+# The zunsafe openssl 4 build runs here because it installs pizfix's
+# libcrypto.so.4/libssl.so.4 for the rest of the corpus. The sarcastic openssl
+# builds are omitted from the default corpus because their test suites only
+# pass on glibc, and are run by build_glibc_extras.sh instead (see
 # build_sarcastic_openssl3.sh).
 # ./build_sarcastic_openssl3.sh
 

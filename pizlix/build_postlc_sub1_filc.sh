@@ -47,7 +47,7 @@ filc/projeny package \
     projects/m4.projeny projects/m4/pizlonated-m4.tar.gz \
     projects/pkgconf.projeny projects/pkgconf/pizlonated-pkgconf.tar.gz \
     projects/attr.projeny projects/attr/pizlonated-attr.tar.gz \
-    projects/zunsafe-openssl3.projeny projects/zunsafe-openssl3/pizlonated-openssl.tar.gz \
+    projects/zunsafe-openssl4.projeny projects/zunsafe-openssl4/pizlonated-openssl.tar.gz \
     projects/libffi.projeny projects/libffi/pizlonated-libffi.tar.gz \
     projects/util-linux.projeny projects/util-linux/pizlonated-util-linux.tar.gz \
     projects/coreutils.projeny projects/coreutils/pizlonated-coreutils.tar.gz \

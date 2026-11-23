@@ -323,14 +323,14 @@ matches_subject_alternative_name(const char *hostname, const char *ipaddr, const
 #endif
 
             /* IPV4 address */
-            if(current_name->d.iPAddress->length == 4) {
+            if(ASN1_STRING_length(current_name->d.iPAddress) == 4) {
                 if (inet_ntop(AF_INET, san_ip, san_ip_str, INET_ADDRSTRLEN) == NULL) {
                     result = MalformedCertificate;
                     break;
                 }
 #if defined(HAVE_STRUCT_IN6_ADDR)
             /* IPV6 address */
-            } else if (current_name->d.iPAddress->length == 16) {
+            } else if (ASN1_STRING_length(current_name->d.iPAddress) == 16) {
                 if (inet_ntop(AF_INET6, san_ip, san_ip_str, INET6_ADDRSTRLEN) == NULL) {
                     result = MalformedCertificate;
                     break;

@@ -24,15 +24,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Builds the OpenSSL 4.0.3 zunsafe port (projects/zunsafe-openssl4.projeny)
-# and runs its test suite. This is the 4-series parallel track: it builds
-# and tests only, and does not install. OpenSSL 3.6.5, built by
-# build_zunsafe_openssl3.sh, still owns pizfix's libcrypto.so.3/libssl.so.3
-# and the include/openssl headers, and optfil/pizlix still package the
-# 3-series. Although OpenSSL 4 has its own sonames (libcrypto.so.4 and
-# libssl.so.4), installing it would still clobber pizfix's include/openssl
-# headers with the 4.x ones and break the corpus that is built against
-# 3.6.5, so the 4-series is build+test only for now.
+# Builds the OpenSSL 4.0.3 zunsafe port (projects/zunsafe-openssl4.projeny),
+# runs its test suite, and INSTALLS it into pizfix: this build owns pizfix's
+# libcrypto.so.4/libssl.so.4 and the include/openssl headers, and it is what
+# optfil/pizlix package (see optfil/build_filc_packages.sh and
+# pizlix/build_postlc_sub1_filc.sh). This is the primary OpenSSL track. The
+# 3-series (build_zunsafe_openssl3.sh) is the retained previous track: it
+# still builds and tests OpenSSL 3.6.5, but it no longer installs.
 
 . libpas/common.sh
 
@@ -40,14 +38,14 @@ set -e
 set -x
 
 cd projects
-# Extract the projeny source OUTSIDE the projeny workdir (projects/zunsafe-openssl4),
-# and into its own openssl-build4 tree (openssl-build keeps holding the 3.6.5
-# tree, since build_perl.sh regenerates der_digests.h from it with pizfix
-# perl). Keeping the projeny workdir pristine keeps `projeny rebase` usable.
-rm -rf openssl-build4/extracted-source
-mkdir -p openssl-build4
-../filc/projeny extract zunsafe-openssl4.projeny openssl-build4/extracted-source
-cd openssl-build4/extracted-source
+# Extract the projeny source OUTSIDE the projeny workdir (projects/zunsafe-openssl4):
+# the configured build tree stays behind after this script finishes, because
+# build_perl.sh regenerates der_digests.h from it with pizfix perl, and
+# keeping the projeny workdir pristine keeps `projeny rebase` usable.
+rm -rf openssl-build/extracted-source
+mkdir -p openssl-build
+../filc/projeny extract zunsafe-openssl4.projeny openssl-build/extracted-source
+cd openssl-build/extracted-source
 OPENSSL_ARGS="zlib"
 CC="$PWD/../../../build/bin/clang -g -O2 -yolo-assembler" ./Configure \
     $OPENSSL_ARGS --prefix=$PWD/../../../pizfix --libdir=lib
@@ -63,3 +61,6 @@ if test -e ../../../pizfix/lib/libc.so.6666
 then
     HARNESS_JOBS=$NCPU make test || HARNESS_JOBS=$NCPU make test
 fi
+
+make -j $NCPU install_sw
+make -j $NCPU install_ssldirs

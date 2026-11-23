@@ -24,20 +24,30 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
+# Builds and tests the OpenSSL 3.6.5 zunsafe port
+# (projects/zunsafe-openssl3.projeny). This deliberately does NOT install:
+# pizfix's OpenSSL (libcrypto.so.4/libssl.so.4 and the include/openssl
+# headers) is owned by the 4-series build (build_zunsafe_openssl4.sh), which
+# is also what optfil/pizlix package. The 3-series is retained as the previous
+# track, so this build stays around to keep testing the 3.6.5 port.
+
 . libpas/common.sh
 
 set -e
 set -x
 
 cd projects
-# Extract the projeny source OUTSIDE the projeny workdir (projects/zunsafe-openssl3):
-# the configured build tree has to stay behind after this script finishes
-# (build_perl.sh regenerates der_digests.h from it with pizfix perl), and
-# keeping the projeny workdir pristine keeps `projeny rebase` usable.
-rm -rf openssl-build/extracted-source
-mkdir -p openssl-build
-../filc/projeny extract zunsafe-openssl3.projeny openssl-build/extracted-source
-cd openssl-build/extracted-source
+# Extract the projeny source OUTSIDE the projeny workdir (projects/zunsafe-openssl3)
+# and into its own openssl-build3 tree: openssl-build belongs to the 4-series
+# installer (build_zunsafe_openssl4.sh), since build_perl.sh regenerates
+# der_digests.h from it with pizfix perl. Keeping the projeny workdir pristine
+# keeps `projeny rebase` usable.
+rm -rf openssl-build3/extracted-source
+mkdir -p openssl-build3
+../filc/projeny extract zunsafe-openssl3.projeny openssl-build3/extracted-source
+cd openssl-build3/extracted-source
+# Vestigial prefix: this build never installs (pizfix's OpenSSL is owned by
+# build_zunsafe_openssl4.sh); Configure just requires a --prefix.
 OPENSSL_ARGS="zlib"
 CC="$PWD/../../../build/bin/clang -g -O2 -yolo-assembler" ./Configure \
     $OPENSSL_ARGS --prefix=$PWD/../../../pizfix --libdir=lib
@@ -53,6 +63,3 @@ if test -e ../../../pizfix/lib/libc.so.6666
 then
     HARNESS_JOBS=$NCPU make test || HARNESS_JOBS=$NCPU make test
 fi
-
-make -j $NCPU install_sw
-make -j $NCPU install_ssldirs

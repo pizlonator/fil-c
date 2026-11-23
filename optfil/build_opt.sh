@@ -493,7 +493,7 @@ cd ..
 rm -rf pizlonated-zsh
 hash -r
 
-tar -xf $FILCSRC/projects/zunsafe-openssl3/pizlonated-openssl.tar.gz
+tar -xf $FILCSRC/projects/zunsafe-openssl4/pizlonated-openssl.tar.gz
 cd pizlonated-openssl
 CC='/opt/fil/bin/filcc -yolo-assembler' CXX=/opt/fil/bin/fil++ ./config --prefix=/opt/fil \
     --openssldir=/etc/ssl \
@@ -503,8 +503,8 @@ CC='/opt/fil/bin/filcc -yolo-assembler' CXX=/opt/fil/bin/fil++ ./config --prefix
 make -j `nproc`
 sed -i '/INSTALL_LIBS/s/libcrypto.a libssl.a//' Makefile
 make -j `nproc` MANSUFFIX=ssl install
-mv -v /opt/fil/share/doc/openssl /opt/fil/share/doc/openssl-3.6.5
-cp -vfr doc/* /opt/fil/share/doc/openssl-3.6.5
+mv -v /opt/fil/share/doc/openssl /opt/fil/share/doc/openssl-4.0.3
+cp -vfr doc/* /opt/fil/share/doc/openssl-4.0.3
 cd ..
 rm -rf pizlonated-openssl
 hash -r
@@ -616,7 +616,7 @@ cd ..
 rm -rf pizlonated-dummy-pam-ecryptfs
 hash -r
 
-tar -xf $FILCSRC/projects/krb5-1.22.2/pizlonated-krb5.tar.gz
+tar -xf $FILCSRC/projects/krb5/pizlonated-krb5.tar.gz
 cd pizlonated-krb5/src
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --with-readline --with-crypto-impl=openssl --sysconfdir=/etc --localstatedir=/var/lib --runstatedir=/run
 make -j `nproc`
@@ -900,7 +900,11 @@ hash -r
 
 tar -xf $FILCSRC/pizlix/wget-1.25.0.tar.gz
 cd wget-1.25.0
-CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --sysconfdir=/etc --with-ssl=openssl
+# OpenSSL 4.0 removed SSLv3_client_method(); the same treatment Python gets
+# (see projects/Python-3.12.5/Modules/_ssl.c) makes wget's
+# #ifndef OPENSSL_NO_SSL3_METHOD guard skip the SSLv3 case, whose NULL
+# meth wget already handles gracefully.
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ CPPFLAGS='-DOPENSSL_NO_SSL3_METHOD' ./configure --prefix=/opt/fil --sysconfdir=/etc --with-ssl=openssl
 make -j `nproc`
 make -j `nproc` install
 cd ..

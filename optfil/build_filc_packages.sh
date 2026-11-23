@@ -68,7 +68,7 @@ filc/projeny package \
     projects/xz.projeny projects/xz/pizlonated-xz.tar.gz \
     projects/pkgconf.projeny projects/pkgconf/pizlonated-pkgconf.tar.gz \
     projects/coreutils.projeny projects/coreutils/pizlonated-coreutils.tar.gz \
-    projects/zunsafe-openssl3.projeny projects/zunsafe-openssl3/pizlonated-openssl.tar.gz \
+    projects/zunsafe-openssl4.projeny projects/zunsafe-openssl4/pizlonated-openssl.tar.gz \
     projects/libffi.projeny projects/libffi/pizlonated-libffi.tar.gz \
     projects/icu.projeny projects/icu/pizlonated-icu.tar.gz \
     projects/tmux.projeny projects/tmux/pizlonated-tmux.tar.gz \
@@ -92,6 +92,7 @@ filc/projeny package \
     projects/nghttp2.projeny projects/nghttp2/pizlonated-nghttp2.tar.gz \
     projects/mg.projeny projects/mg/pizlonated-mg.tar.gz \
     projects/Linux-PAM.projeny projects/Linux-PAM/pizlonated-pam.tar.gz \
+    projects/krb5.projeny projects/krb5/pizlonated-krb5.tar.gz \
     projects/libuv.projeny projects/libuv/pizlonated-libuv.tar.gz \
     projects/pcre2.projeny projects/pcre2/pizlonated-pcre2.tar.gz \
     projects/openssh.projeny projects/openssh/pizlonated-openssh.tar.gz \
@@ -104,7 +105,6 @@ filc/projeny package \
 ./package-source.sh projects/audit-userspace-4.2.1 pizlonated-audit
 ./package-source.sh projects/keyutils-1.6.3 pizlonated-keyutils
 ./package-source.sh projects/dummy-pam-ecryptfs pizlonated-dummy-pam-ecryptfs
-./package-source.sh projects/krb5-1.22.2 pizlonated-krb5
 ./package-source.sh projects/libsepol-3.11 pizlonated-sepol
 ./package-source.sh projects/libselinux-3.11 pizlonated-selinux
 ./package-source.sh projects/sudo-1.9.17p2 pizlonated-sudo

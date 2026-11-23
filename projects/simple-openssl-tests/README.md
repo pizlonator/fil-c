@@ -71,7 +71,7 @@ The compiler is chosen with `CC` and, if needed, the OpenSSL prefix with
 ```sh
 make CC=gcc                                    # system gcc + system OpenSSL
 make CC=clang                                  # system clang + system OpenSSL
-make CC=<repo>/build/bin/filcc                 # Fil-C + pizfix OpenSSL 3
+make CC=<repo>/build/bin/filcc                 # Fil-C + pizfix OpenSSL 4
 make CC=gcc OPENSSL_HOME=/some/openssl/prefix  # any compiler + any OpenSSL 3
 ```
 
@@ -118,10 +118,38 @@ this machine (Ubuntu 24.04, x86_64), each with `make clean`, a full build
 | Configuration | Command | Compiler | OpenSSL linked | Result |
 |---|---|---|---|---|
 | gcc (normal compiler) | `./build_yolo.sh` (= `make CC=gcc`) | gcc 12.4.0 | system 3.0.13 | 275 built; 242 passed, 33 whole-program SKIPs |
-| Fil-C (primary) | `./build_filc.sh` | `build/bin/filcc` (Fil-C 0.686, clang 20.1.8) | pizfix 3.6.5 | 275 built; 272 passed, 3 whole-program SKIPs |
+| Fil-C (primary) | `./build_filc.sh` | `build/bin/filcc` (Fil-C 0.686, clang 20.1.8) | pizfix 4.0.3 | 275 built; 270 passed, 2 failed, 3 whole-program SKIPs |
+
+The 2 failures under pizfix OpenSSL 4.0.3 are OpenSSL 4.0 behavior changes,
+not Fil-C regressions: `test_sm2` (OpenSSL 4 substitutes the GM/T 0009-2012
+default distinguishing ID `1234567812345678` where OpenSSL 3 kept an empty
+default ID, so a signature made under the explicit GM/T ID also verifies as a
+default-ID signature — `crypto/sm2/sm2_sign.c` now substitutes
+`default_sm2_id` when no ID is set) and `test_chacha20_poly1305_small`
+(OpenSSL 4's AEAD decrypt `Final` fails with `PROV_R_TAG_NOT_SET` when no tag
+was set, where OpenSSL 3 skipped verification —
+`cipher_chacha20_poly1305_final` now rejects `tag_len == 0` on decrypt).
 
 The Fil-C binaries were additionally swept with `./run_all.sh --poison-all`
-(275 passed, 0 failed).  Fil-C programs are built with `-g -O2` per
+and with the zegarmistrz poisoning-variant sweep
+`./run_variants.sh --build=zunsafe` (defaults otherwise).  Natively all 275
+binaries ran and the `run_all.sh` summary line read `273 passed, 2 failed`;
+that summary counts every exit-0 program as passed, the three ETM
+whole-program SKIPs included, so by the support matrix's convention the
+native `--poison-all` sweep was 270 passed, 3 whole-program SKIPs, with the
+same two OpenSSL 4 behavior changes as the only failures.  The control
+variant of the zegarmistrz sweep reports 261 PASS, 9 TIMEOUT, 3 SKIP and
+2 FAIL out of 275, where the 9 TIMEOUT rows are wall-clock timeouts of the
+default 120s per-test emulator timeout, not failures — re-running each of
+those tests under the emulator with a 3600s-7200s timeout passes all of
+them (`test_x448` needs the full 7200s under emulation; natively every one
+of them passes in about a second) — so counting those 9 as passed gives the
+support matrix's 270 passed, with the same 3 whole-program SKIPs and the
+same 2 failures.
+(The pre-split monolith tree had
+also been verified with `/opt/fil/bin/filcc` and with Yolo-C — see
+[Yolo-C](#yolo-c) for that configuration's build recipe; those two have not
+been re-run since the split.)  Fil-C programs are built with `-g -O2` per
 repo convention (the Makefile default).
 
 The 33 gcc SKIPs and 3 filc SKIPs are whole-program version gates (exit 0,
@@ -170,9 +198,11 @@ SKIP inventory (all exit-0; the rest of each program still runs):
   `test_aes_256_siv` (an empty payload leaves the tag unset on 3.0.x),
   `test_ed448` (the `context-string` parameter, 3.2+) and
   `test_rand_test_rand` (TEST-RAND's `generate` mode, 3.6+).
-* **On the pizfix 3.6.5 configuration** the only whole-program SKIPs are
-  the same three ETM binaries — the ETM AES-CBC-HMAC-SHA* ciphers are only
-  registered on ARM64 builds.
+* **On the pizfix OpenSSL 4.0.3 configuration** the only whole-program SKIPs
+  are still the same three ETM binaries — the ETM AES-CBC-HMAC-SHA* ciphers
+  are only registered on ARM64 builds (the SKIP set is unchanged from the
+  3.6.5-era record above; what did change under OpenSSL 4 is the two
+  behavior-change FAILs described in the support matrix).
 
 Additional verified invariants:
 
@@ -247,7 +277,8 @@ make -j && make install_sw
 `/tmp/yolocc` is the wrapper described above.  `install_sw` produces
 `/tmp/yolo-openssl-install/{include,bin,lib64}`; the `lib -> lib64` symlink
 in that prefix exists so the Makefile's plain `-L<prefix>/lib` also works.
-Both the pizfix build and the yolo build report `OpenSSL 3.6.5 29 Sep 2026`.
+The pizfix build reports `OpenSSL 4.0.3 29 Sep 2026`; the yolo build reports
+`OpenSSL 3.6.5 29 Sep 2026`.
 
 
 ## Poison options
@@ -459,7 +490,7 @@ large binary per cipher: the six AES-GCM binaries (`test_aes_128_gcm_small`,
 `test_rc4_large`; other binaries combine the regimes in one file when
 they fit.  The regimes below were
 read out of the OpenSSL 3.6.5 sources in
-`projects/openssl-build/extracted-source` and each is exercised by the
+`projects/openssl-build3/extracted-source` and each is exercised by the
 corresponding tests:
 
 | Implementation | Size-dependent behavior | Evidence (3.6.5) |
@@ -486,7 +517,12 @@ All 275 binaries, grouped into families.  Each family's shared
 `test_<family>_common` module is named (binaries with no family module are
 marked as such; they link only `test_common.o` and `poisoning.o`).  The two
 count columns are the checks each binary prints under gcc + system OpenSSL
-3.0.13 and under filcc + pizfix OpenSSL 3.6.5; `skip` marks a whole-program
+3.0.13 and under filcc + pizfix OpenSSL 3.6.5 (as recorded while pizfix held
+3.6.5; a fresh per-binary check-count pass against pizfix OpenSSL 4.0.3
+reproduced every one of these numbers exactly — the only 4.0.3 differences
+are `test_sm2` and `test_chacha20_poly1305_small`, which fail outright on
+the OpenSSL 4 behavior changes described in the support matrix);
+`skip` marks a whole-program
 version-gated SKIP on that toolchain (the reasons are inventoried
 [above](#compiler-support-matrix-verified)).  The columns differ only where
 a documented version gate exists — lower on 3.0.13 where a gated subtest
@@ -1348,7 +1384,7 @@ modules.  House rules:
 9. OSSL_PARAM integer parameters are native-endian: byte-swap big-endian
    constants (e.g. fixed RSA/DH keys) before `EVP_PKEY_fromdata`.
 10. Known-answer vectors must be verified against the authoritative build
-   before being embedded: use `pizfix/bin/openssl` (OpenSSL 3.6.5) in /tmp
+   before being embedded: use `pizfix/bin/openssl` (OpenSSL 4.0.3) in /tmp
    scratch, e.g. `printf 'abc' | pizfix/bin/openssl dgst -sha256` or
    `printf '<hex>' | xxd -r -p | pizfix/bin/openssl enc -aes-128-cbc -nopad
    -K <keyhex> -iv <ivhex>`.  Note that `openssl enc` cannot do AEAD or XTS

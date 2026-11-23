@@ -193,6 +193,7 @@ have_func("TS_VERIFY_CTX_add_flags(NULL, 0)", ts_h)
 have_func("TS_RESP_CTX_set_time_cb(NULL, NULL, NULL)", ts_h)
 have_func("EVP_PBE_scrypt(\"\", 0, (unsigned char *)\"\", 0, 0, 0, 0, 0, NULL, 0)", evp_h)
 have_func("SSL_CTX_set_post_handshake_auth(NULL, 0)", ssl_h)
+have_func("ASN1_STRING_get0_data(NULL)", "openssl/asn1.h")
 
 # added in 1.1.1
 have_func("EVP_PKEY_check(NULL)", evp_h)
@@ -209,6 +210,9 @@ have_func("EVP_MD_CTX_get0_md(NULL)", evp_h)
 have_func("EVP_MD_CTX_get_pkey_ctx(NULL)", evp_h)
 have_func("EVP_PKEY_eq(NULL, NULL)", evp_h)
 have_func("EVP_PKEY_dup(NULL)", evp_h)
+
+# added in 4.0.0
+have_func("ASN1_BIT_STRING_set1(NULL, NULL, 0, 0)", "openssl/asn1.h")
 
 Logging::message "=== Checking done. ===\n"
 
