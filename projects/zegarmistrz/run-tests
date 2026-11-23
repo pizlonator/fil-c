@@ -17,8 +17,9 @@
 # (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag,
 # and the --history poison-provenance tests (--history trail symbolication on
 # a math-derived index fault in every flag spelling -- bare --history, =yes,
-# =1, =no, =0, =N, =full -- the dump prints every recorded frame with its PC,
-# numbered per step under step N: headers -- default-mode invariance without
+# =1, =no, =0, =N, =full -- the dump numbers every displayed line gdb-style
+# (inline frames consume numbers and repeat their recorded PC), numbering
+# restarting per step under step N: headers -- default-mode invariance without
 # the flag, clean-run + syscall-fault semantics unchanged in history mode,
 # and the bad-value rejection), plus the kernel-write extent modeling tests
 # (syscall-unpoison: kernel-written bytes inside a poisoned buffer must come
@@ -1054,13 +1055,17 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     # NON-duplication: every PC entering the trail is union-deduped
     # (zeg_trail_add in mem.h), so N bytes with identical provenance merge
     # to the distinct set of operations instead of N concatenated copies.
-    # The dump prints every recorded frame with its own PC, numbered per
-    # step under step N: headers, and in mode 1 each step records exactly
-    # one frame, so the frame-line count EQUALS the distinct-PC count: the
-    # trail PCs are distinct by construction and the inline continuation
-    # lines repeat only already-counted PCs, so a duplicated build
-    # (concatenated sub-trails) would print hundreds of steps over a
-    # handful of distinct PCs and break the equality.
+    # The dump numbers every displayed line gdb-style -- inline frames
+    # consume numbers and repeat their recorded PC -- so the numbered-line
+    # count exceeds the distinct-PC count and the non-duplication pin is
+    # the STEP count instead: in mode 1 one step header is printed per
+    # recorded PC (each recorded PC produces exactly one step, which may
+    # still print several numbered lines when its frame has an inline
+    # chain), the trail PCs are distinct by construction and the
+    # inline lines only repeat already-counted PCs, so the step count
+    # EQUALS the distinct-PC count; a duplicated build (concatenated
+    # sub-trails) would print hundreds of steps over a handful of distinct
+    # PCs and break the equality.
     mkdir -p test-output/history-memcopy
     rm -f test-output/history-memcopy/zegarmistrz.core.history_memcopy.*
     (cd test-output/history-memcopy && timeout 60 ../../zegarmistrz --history ../history_memcopy >/dev/null 2>trace.err); ec=$?
@@ -1073,17 +1078,16 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     copyline=$(echo "$hist" | grep -c "history_memcopy\.c:24" || true)
     reload=$(echo "$hist" | grep -c "history_memcopy\.c:25" || true)
     steps=$(echo "$hist" | grep -cE "^step [0-9]+:" || true)
-    flines=$(echo "$hist" | grep -cE "#[0-9]+ +0x[0-9a-f]{16}" || true)
     dpcs=$(echo "$hist" | grep -oE "0x[0-9a-f]{16}" | sort -u | wc -l || true)
     if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
        && echo "$hist" | grep -q "poison history of the offending value" \
        && [ "${mains:-0}" -ge 3 ] && [ "${srcs:-0}" -ge 3 ] \
        && [ "${poisoncall:-0}" -ge 1 ] && [ "${copyline:-0}" -ge 1 ] \
        && [ "${reload:-0}" -ge 1 ] && [ "${steps:-0}" -ge 8 ] \
-       && [ "${flines:-0}" -eq "${dpcs:-0}" ]; then
+       && [ "${steps:-0}" -eq "${dpcs:-0}" ]; then
       echo "PASS history-memcopy"
     else
-      echo "FAIL history-memcopy: ec=$ec core=[$core] mains=$mains srcs=$srcs poisoncall=$poisoncall copyline=$copyline reload=$reload steps=$steps flines=$flines dpcs=$dpcs"
+      echo "FAIL history-memcopy: ec=$ec core=[$core] mains=$mains srcs=$srcs poisoncall=$poisoncall copyline=$copyline reload=$reload steps=$steps dpcs=$dpcs"
       head -20 "$err"
     fi
     rm -f test-output/history-memcopy/zegarmistrz.core.history_memcopy.* test-output/history-memcopy/trace.err
@@ -1177,10 +1181,14 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     # in main called from __libc_start_call_main, so the second recorded
     # frame of every step names libc_start -- proof that each step carries a
     # caller frame, not just the op PC. Every recorded frame prints its own
-    # numbered frame line (carrying the PC) under the step N: header, so
-    # the frame-line count must be at least 2 per step: a step that lost
-    # its caller frame (a recorder that stopped at the op PC) would print
-    # only the #0 lines and break the bound.
+    # numbered frame line (carrying the PC) under the step N: header, and
+    # the flines grep counts the numbered inline lines TOO -- every
+    # displayed line carries the PC -- so the flines -ge 2 per step lower
+    # bound is only partly a recorded-frame count: a deep inline chain on
+    # the op frame alone could satisfy it. The caller-frame pin is the
+    # libc grep instead: a step that lost its caller frame (a recorder
+    # that stopped at the op PC) prints no libc_start line and fails
+    # libc -ge 1.
     mkdir -p test-output/history-2
     rm -f test-output/history-2/zegarmistrz.core.history_math.*
     (cd test-output/history-2 && timeout 60 ../../zegarmistrz --history=2 ../history_math >/dev/null 2>trace.err); ec=$?
@@ -1211,9 +1219,12 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     # printed as a numbered frame line (carrying the PC) under the step N:
     # header. Full stacks always reach at least the op frame plus its three
     # callers (main here), __libc_start_call_main,
-    # __libc_start_main_impl and _start, so the frame-line count must be at
-    # least 4 per step -- more libc_start-named lines than history-2: the
-    # whole __libc_start_main chain down to _start.
+    # __libc_start_main_impl and _start, so the flines -ge 4 per step lower
+    # bound is only partly a recorded-frame count -- the flines grep
+    # counts the numbered inline lines too, so inline-chain length could
+    # satisfy part of it -- while the libc -ge 1 grep is what actually
+    # pins caller-frame presence (more libc_start-named lines than
+    # history-2: the whole __libc_start_main chain down to _start).
     mkdir -p test-output/history-full
     rm -f test-output/history-full/zegarmistrz.core.history_math.*
     (cd test-output/history-full && timeout 60 ../../zegarmistrz --history=full ../history_math >/dev/null 2>trace.err); ec=$?

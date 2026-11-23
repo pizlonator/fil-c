@@ -183,11 +183,12 @@ How cases work:
   in `mem.cpp`) the trail would shrink to the reload + fault-use PCs
   because the poison/copy PCs live only in the value sidecars the copy
   overwrote (the section is extracted for the counts as above). It also
-  pins NON-duplication: the number of numbered frame lines (each carries
-  its PC under a `step N:` header) must EQUAL the number of distinct PC
-  addresses — in mode 1 each step records exactly one frame and the
-  inline continuation lines repeat only already-counted PCs, so the
-  frame-line count tracks the distinct-PC count —
+  pins NON-duplication: the number of `step N:` headers must EQUAL the
+  number of distinct PC addresses — in mode 1 one step header is printed
+  per recorded PC (each recorded PC produces exactly one step, which may
+  still print several numbered lines when its frame has an inline chain),
+  and the numbered inline lines repeat only already-counted PCs, so the
+  step count tracks the distinct-PC count —
   the union-dedup (`zeg_trail_add`) must collapse the identical per-byte
   sub-trails of the 64 copied bytes, which consecutive-duplicate-only
   dedup concatenates into hundreds of repeated ops.
@@ -211,12 +212,13 @@ How cases work:
   `--history=full` (`DeepHistoryTaint`, stacks recorded per step via
   `zeg_history_record_stack`, frame cap 2 / whole stack): the history
   block must name `libc_start` in a recorded frame line (proof each step
-  carries caller frames, not just the op PC) and the numbered frame-line
-  count must be at least 2 (history-2) / 4 (history-full — full stacks
-  always reach the op frame plus `__libc_start_call_main`,
-  `__libc_start_main_impl` and `_start`) per step-line: every recorded
-  frame prints its own PC-carrying frame line under its `step N:`
-  header, so a recorder that stopped at the op PC would break the bound.
+  carries caller frames, not just the op PC) and the numbered-line count
+  (recorded frame lines plus their numbered inline lines) must be at
+  least 2 (history-2) / 4 (history-full — full stacks always reach the
+  op frame plus `__libc_start_call_main`, `__libc_start_main_impl` and
+  `_start`) per step line: every recorded frame prints its own
+  PC-carrying numbered line under its `step N:` header, so a recorder
+  that stopped at the op PC would break the bound.
 - `history-bad` runs `--history=wat`: a usage error — exit 1 before any
   guest runs, the message names the flag, and no core is produced.
 
@@ -483,35 +485,33 @@ per-step frame cap once via `zeg_set_history_frames` (`=N` -> N,
   first):` followed by the BFD-symbolicated trail. Steps are labeled
   `step N:` (1-based over the whole trail, oldest first; when older
   entries are omitted by the 128-step cap, the printed steps keep their
-  true position numbers) and the frames RECORDED in each step are
-  numbered `#0`, `#1`, ... restarting at `#0` within the step, under the
-  step label — the step's first frame line opens with the step label and
-  each further recorded frame prints under it, its `#K` aligned under
-  the step line's `#0`. EVERY line of the block carries a PC: a frame
-  line prints `#%-2zu 0x0123... ` (rendered with the `%-2zu` pad space
-  plus one literal space, so a 1-digit `#K` shows two spaces before the
-  PC) followed by `in <func> () at <file>:<line>` — marked `  (inline)`
-  when the frame's symbolized chain has more than one entry (the
-  innermost symbol is an inlined instance) — and the rest of that chain
-  prints as continuation lines below the frame line that repeat the
-  frame's own recorded PC, indented so their `0x` aligns under the frame
-  line's `0x` (the fixed-width PC field aligns the `in` columns too),
-  synthetic frames marked `(inline)`, the real physically-containing
-  function last and unmarked. A deep-history step's further recorded
-  caller frames print below that as more numbered frame lines under the
-  same `step N:` header (those frames are return addresses and
-  symbolicate at address - 1 like the stack trace's caller frames; the
-  step PC itself symbolicates unchanged). A frame that does not
-  symbolicate falls back to the module+offset string on a frame line
-  that still carries the PC; a frame in no known module prints just its
-  bare PC prefix. The history numbers the frames WITHIN each step,
-  under its `step N:` header, because its numbering unit is the
-  recorded operation —
-  unlike the guest stack trace, whose gdb-style numbering consumes one
-  number per displayed (possibly inline) frame across the whole trace
-  (matching `bt`). Same module table and BFD machinery as the stack
-  trace, capped at the most recent 128 steps with the omitted older
-  count noted up front. In default mode (no
+  true position numbers) and EVERY displayed line of a step is numbered
+  `#0`, `#1`, ... gdb-style — a continuous per-step counter over ALL
+  displayed lines, restarting at `#0` under the step label — the step's
+  first line opens with the step label and every further line prints
+  under it, its `#K` (and so its PC and `in` columns) aligned under the
+  step line's `#0` (while the per-step numbers stay at most two digits —
+  below `#100` the `%-2zu` pad stops and a step exceeding 99 displayed
+  lines shifts the PC and `in` columns). A recorded frame's symbolized
+  chain prints one
+  numbered line per entry, all repeating the frame's own recorded PC:
+  the frame line prints `#%-2zu 0x0123... ` (rendered with the `%-2zu`
+  pad space plus one literal space, so a 1-digit `#K` shows two spaces
+  before the PC) followed by `in <func> () at <file>:<line>`, and the
+  rest of the chain (its inline expansion) follows below — inline frames
+  consume numbers exactly like the guest stack trace's inline frames do
+  (which repeat the physical address; the trace's one counter runs over
+  the whole trace instead of restarting per step) — marked `  (inline)`
+  on all but the chain's last, physically-containing entry. A
+  deep-history step's further recorded caller frames print below that as
+  more numbered chains under the same `step N:` header (those frames are
+  return addresses and symbolicate at address - 1 like the stack trace's
+  caller frames; the step PC itself symbolicates unchanged). A frame
+  that does not symbolicate falls back to the module+offset string on a
+  numbered line that still carries the PC; a frame in no known module
+  prints just its bare numbered PC prefix. Same module table and BFD
+  machinery as the stack trace, capped at the most recent 128 steps with
+  the omitted older count noted up front. In default mode (no
   `--history`) the block NEVER appears (`poison_history` is empty for
   plain `Taint`).
 - **Performance**: `HistoryTaint` copies its trail on every merge

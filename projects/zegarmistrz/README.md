@@ -329,24 +329,31 @@ happen at print time (`demo_index` from above under bare `--history`):
 
 ```
 zegarmistrz: poison history of the offending value (2 steps, oldest first):
-step 1:  #0  0x00007170f50370f7 in zegarmistrz_client_request () at /home/pizlo/Programs/llvm-project-deluge/projects/zegarmistrz/include/zegarmistrz.h:160  (inline)
-             0x00007170f50370f7 in zegarmistrz_poison_range () at /home/pizlo/Programs/llvm-project-deluge/projects/zegarmistrz/include/zegarmistrz.h:181  (inline)
-             0x00007170f50370f7 in main () at /tmp/zegdemo/demo_index.c:11
-step 2:  #0  0x00007170f5037110 in main () at /tmp/zegdemo/demo_index.c:13
+step 1:  #0  0x000076803dcc11f0 in zegarmistrz_client_request () at /home/pizlo/Programs/llvm-project-deluge/projects/zegarmistrz/include/zegarmistrz.h:160  (inline)
+         #1  0x000076803dcc11f0 in zegarmistrz_poison_range () at /home/pizlo/Programs/llvm-project-deluge/projects/zegarmistrz/include/zegarmistrz.h:181  (inline)
+         #2  0x000076803dcc11f0 in main () at /tmp/zegdemo/demo_index.c:11
+step 2:  #0  0x000076803dcc1201 in main () at /tmp/zegdemo/demo_index.c:13
 ```
 
-Steps are labeled `step N:` (1-based, oldest first) and the frames
-RECORDED in each step are numbered `#0`, `#1`, ... restarting at `#0`
-within the step, under the step label. Every line of the block carries a
-PC: each recorded frame prints one numbered frame line — `#K  0x<PC>` plus
-the location (`in <func> () at <file>:<line>`, marked `  (inline)` when the
-frame's symbolized chain continues outward, i.e. the innermost symbol is an
-inlined instance) — and the rest of that chain prints as continuation lines
-below the frame line that repeat the frame's own recorded PC, indented so
-their `0x` aligns under the frame line's `0x` (the physically-containing
-function is last and unmarked). In the deep modes (`=N`/`=full`) each
-step's further recorded caller frames print below that, as more numbered
-frame lines under the same `step N:` header. Recording unwinds with
+Steps are labeled `step N:` (1-based, oldest first) and every displayed
+line of a step is numbered `#0`, `#1`, ... gdb-style — a continuous
+per-step counter over ALL displayed lines, restarting at `#0` under the
+step label — exactly like the crash-time guest stack trace numbers its
+displayed lines, except the trace's one counter runs over the whole trace
+instead of restarting per step. Every line carries a PC and prints
+`#K  0x<PC>` plus the location (`in <func> () at <file>:<line>`), and
+every line after the step's first aligns its `#K` — and so its PC and
+`in` columns — under the step line's `#0` (while the per-step numbers
+stay at most two digits — below `#100` the `%-2zu` pad stops and a step
+exceeding 99 displayed lines shifts the PC and `in` columns). A recorded
+frame prints its
+symbolized chain one numbered line per entry, all repeating the frame's
+own recorded PC (as the stack trace's inline frames repeat the physical
+address): the innermost symbol first, the physically-containing function
+last and unmarked, every inlined instance marked `  (inline)`. In the
+deep modes (`=N`/`=full`) each step's further recorded caller frames
+print below that, as more numbered chains under the same `step N:`
+header. Recording unwinds with
 the emulator's DWARF CFI unwinder (`zeg_history_record_stack` in
 `src/dwarf_unwind.cpp`), so `-fomit-frame-pointer` guests record correct
 stacks; deep history runs the whole engine on a third taint sidecar type
@@ -355,20 +362,20 @@ stacks; deep history runs the whole engine on a third taint sidecar type
 
 ```
 zegarmistrz: poison history of the offending value (2 steps, oldest first):
-step 1:  #0  0x00007e1c88c490f7 in zegarmistrz_client_request () at /home/pizlo/Programs/llvm-project-deluge/projects/zegarmistrz/include/zegarmistrz.h:160  (inline)
-             0x00007e1c88c490f7 in zegarmistrz_poison_range () at /home/pizlo/Programs/llvm-project-deluge/projects/zegarmistrz/include/zegarmistrz.h:181  (inline)
-             0x00007e1c88c490f7 in main () at /tmp/zegdemo/demo_index.c:11
-         #1  0x00007e1cc7d67d90 in __libc_start_call_main () at ./csu/../sysdeps/nptl/libc_start_call_main.h:58
-         #2  0x00007e1cc7d67e40 in __libc_start_main_impl () at ./csu/../csu/libc-start.c:392
-         #3  0x00007e1c88c49195 in _start ()
-step 2:  #0  0x00007e1c88c49110 in main () at /tmp/zegdemo/demo_index.c:13
-         #1  0x00007e1cc7d67d90 in __libc_start_call_main () at ./csu/../sysdeps/nptl/libc_start_call_main.h:58
-         #2  0x00007e1cc7d67e40 in __libc_start_main_impl () at ./csu/../csu/libc-start.c:392
-         #3  0x00007e1c88c49195 in _start ()
+step 1:  #0  0x0000742f124181f0 in zegarmistrz_client_request () at /home/pizlo/Programs/llvm-project-deluge/projects/zegarmistrz/include/zegarmistrz.h:160  (inline)
+         #1  0x0000742f124181f0 in zegarmistrz_poison_range () at /home/pizlo/Programs/llvm-project-deluge/projects/zegarmistrz/include/zegarmistrz.h:181  (inline)
+         #2  0x0000742f124181f0 in main () at /tmp/zegdemo/demo_index.c:11
+         #3  0x0000742f51367d90 in __libc_start_call_main () at ./csu/../sysdeps/nptl/libc_start_call_main.h:58
+         #4  0x0000742f51367e40 in __libc_start_main_impl () at ./csu/../csu/libc-start.c:392
+         #5  0x0000742f124180a5 in _start ()
+step 2:  #0  0x0000742f12418201 in main () at /tmp/zegdemo/demo_index.c:13
+         #1  0x0000742f51367d90 in __libc_start_call_main () at ./csu/../sysdeps/nptl/libc_start_call_main.h:58
+         #2  0x0000742f51367e40 in __libc_start_main_impl () at ./csu/../csu/libc-start.c:392
+         #3  0x0000742f124180a5 in _start ()
 ```
 
 The trail answers "where did this tainted value come from": the steps
-are the operations, oldest first, and the numbered frame lines show where
+are the operations, oldest first, and the numbered lines show where
 each recorded frame sits. Store PCs
 are recorded into the sidecar the store site passes by mutable
 reference: where the site stages a copy of the value (scalar reg->mem

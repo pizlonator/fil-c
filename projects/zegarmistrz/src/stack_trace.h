@@ -59,21 +59,25 @@ void print_guest_stack_trace(CPU<TaintT>* cpu);
 
 // Print a BFD-symbolicated poison-history trail (oldest first) for the
 // --history dump path. Steps are labeled "step N:" (1-based over the whole
-// trail, oldest first) and each step's recorded frames are numbered "#0",
-// "#1", ... restarting at #0 within the step, under the step label. Every
-// line of the block carries a PC: a frame line prints "#%-2zu 0x%016lx "
-// plus its location ("in <func> () at <file>:<line>", marked "  (inline)"
-// when its symbolized chain continues outward), and the rest of that chain
-// prints as continuation lines that repeat the frame's own recorded PC,
-// indented so their "0x" aligns under the frame line's "0x" (the
-// physically-containing function is last and unmarked). A step holds one
+// trail, oldest first) and EVERY displayed line of a step is numbered
+// "#0", "#1", ... gdb-style -- a continuous per-step counter over ALL
+// displayed lines, restarting at #0 under the step label -- exactly like
+// the guest stack trace numbers its displayed lines, except the trace's
+// one counter runs over the whole trace instead of restarting per step.
+// A frame's symbolized chain prints one numbered line per entry, all
+// repeating the frame's own recorded PC: the frame line is the innermost
+// location and the rest of the chain (its inline expansion) follows, so
+// inline frames consume numbers exactly like the trace's inline frames do
+// (which repeat the physical address instead). Every line prints
+// "#%-2zu 0x%016lx " plus its location ("in <func> () at <file>:<line>",
+// marked "  (inline)" on all but the chain's last -- physically-containing
+// -- entry). A step holds one
 // PC (--history=1) or a recorded stack (--history=N/full): its frame 0 is
 // the recorded instruction's own PC and its further frames are return
 // addresses, which symbolicate at address minus one like the stack trace's
 // caller frames. A frame that does not symbolicate falls back to the
-// module+offset string (the frame line still carries the PC); a frame in
-// no known module prints just its bare PC prefix. Caps output at the most
-// recent 128 steps (the step numbers keep each printed step's position in
-// the whole trail).
+// module+offset string; a frame in no known module prints just its bare
+// numbered PC prefix. Caps output at the most recent 128 steps (the step
+// numbers keep each printed step's position in the whole trail).
 void print_poison_history(Emulator* emu,
                           const std::vector<std::vector<uint64_t>>& steps);

@@ -504,32 +504,30 @@ static void symbolize_hist_pc(const std::vector<Emulator::GuestMap>& maps,
 // the same BFD machinery as the stack trace and print it oldest first. A
 // step is one PC (--history=1) or a recorded guest stack, innermost PC
 // first (--history=N/full). Steps are labeled "step N:" (1-based over the
-// whole trail, oldest first) and the frames RECORDED in each step are
-// numbered "#0", "#1", ... restarting at #0 within the step: the step's
-// first frame line opens with the step label and each further recorded
-// frame prints under it, its "#K" aligned under the step line's "#0".
-// EVERY line of the block carries a PC. A frame line prints
-// "#%-2zu 0x%016lx " followed by the location ("in <func> () at
-// <file>:<line>", marked "  (inline)" when the frame's symbolized chain
-// has more than one entry, i.e. the innermost symbol is an inlined
-// instance); the rest of that chain prints as continuation lines below the
-// frame line, each repeating the frame's own recorded PC, indented so its
-// "0x" aligns under the frame line's "0x" (the fixed-width PC field also
-// aligns the "in" columns), with "  (inline)" on all but the chain's last
-// -- physically-containing -- entry. step[0] is the recorded instruction's
-// own PC and symbolicates at it unchanged; a step's further recorded
-// frames are return addresses and symbolicate at address - 1 like the
-// stack trace's caller frames (see symbolize_hist_pc). A frame that does
-// not symbolicate falls back to the module+offset string ("in
-// <module+0xoff>", the recorded PC's own offset, on a frame line that
-// still carries the PC); a frame in no known module prints just its bare
-// PC prefix. Unlike the guest stack trace -- whose gdb-style numbering
-// consumes one number per displayed (possibly inline) frame across the
-// whole trace -- the history numbers the frames WITHIN each step under
-// its "step N:" header, because its numbering unit is the recorded
-// operation. Output is capped at the most recent 128 steps (kMaxPrint)
-// with the omitted older count noted up front; the step numbers still
-// reflect each printed step's position in the whole trail.
+// whole trail, oldest first) and EVERY displayed line of a step is
+// numbered "#0", "#1", ... gdb-style: a continuous per-step counter over
+// all displayed lines, restarting at #0 under the step's header -- the
+// step's first line opens with the step label and every further line
+// prints under it, its "#K" aligned under the step line's "#0". A frame's
+// symbolized chain prints one numbered line per entry: the frame's own
+// line is the chain's innermost location and the rest of the chain (its
+// inline expansion) follows below, ALL of the lines repeating the frame's
+// own recorded PC -- inline frames consume numbers exactly like the guest
+// stack trace's inline frames do (which repeat the physical address; the
+// trace's one counter runs over the whole trace instead of restarting
+// per step). Every line carries a PC and prints "#%-2zu 0x%016lx "
+// followed by the location ("in <func> () at <file>:<line>", marked
+// "  (inline)" on all but the chain's last -- physically-containing --
+// entry). step[0] is the recorded instruction's own PC and symbolicates
+// at it unchanged; a step's further recorded frames are return addresses
+// and symbolicate at address - 1 like the stack trace's caller frames
+// (see symbolize_hist_pc). A frame that does not symbolicate falls back
+// to the module+offset string ("in <module+0xoff>", the recorded PC's own
+// offset, on a numbered line that still carries the PC); a frame in no
+// known module prints just its bare numbered PC prefix. Output is capped
+// at the most recent 128 steps (kMaxPrint) with the omitted older count
+// noted up front; the step numbers still reflect each printed step's
+// position in the whole trail.
 void print_poison_history(Emulator* emu,
                           const std::vector<std::vector<uint64_t>>& steps) {
     constexpr size_t kMaxPrint = 128;
@@ -549,8 +547,8 @@ void print_poison_history(Emulator* emu,
         maps = emu->guest_maps;
     }
 
-    // Shared "in <func> () at <file>:<line>" body for every frame line and
-    // inline continuation line.
+    // Shared "in <func> () at <file>:<line>" body for every displayed
+    // line.
     auto print_loc = [](const SymInfo& info) {
         fprintf(stderr, "in %s ()", info.func.c_str());
         if (!info.file.empty()) {
@@ -561,57 +559,19 @@ void print_poison_history(Emulator* emu,
         }
     };
 
-    // One recorded frame of the current step. lead prefixes the frame
-    // number: "step N:  " for the step's first frame (k == 0), or the
-    // blank indent that aligns the further frames' "#K" under the step
-    // line's "#0". The frame line is lead + "#%-2zu 0x%016lx " + the
-    // innermost location (or the module+offset fallback, or nothing at all
-    // when the PC is in no known module -- like the old bare line, the PC
-    // is all there is). The rest of the frame's inline chain prints as
-    // continuation lines that repeat the frame's own recorded PC, indented
-    // so their "0x" aligns under the frame line's "0x": snprintf computes
-    // the frame prefix's width (plen) so the alignment is exact for any
-    // lead and 1-3 digit frame numbers.
-    auto print_frame = [&](const std::vector<uint64_t>& step, size_t k,
-                           const char* lead) {
-        uint64_t pc = step[k];
-        char prefix[128];
-        // "#%-2zu 0x%016lx ": the %-2zu pad space plus the literal one put
-        // two spaces between a 1-digit "#K" and the PC and one between a
-        // 2-digit "#K" and it, so the PC column is fixed-width either way
-        // (same visual as the guest stack trace's frame lines).
-        int plen = snprintf(prefix, sizeof(prefix),
-                            "%s#%-2zu 0x%016lx ", lead, k,
-                            (unsigned long)pc);
-        std::vector<SymInfo> chain;
-        std::string modstr;
-        // k == 0 is the recorded instruction's own PC -- symbolize at it
-        // unchanged; the further recorded frames are return addresses and
-        // symbolicate at address - 1 (see symbolize_hist_pc).
-        symbolize_hist_pc(maps, pc, k > 0, chain, modstr);
-        if (chain.empty()) {
-            if (!modstr.empty())
-                fprintf(stderr, "%sin %s\n", prefix, modstr.c_str());
-            else
-                fprintf(stderr, "%s\n", prefix);
-            return;
-        }
-        fprintf(stderr, "%s", prefix);
-        print_loc(chain[0]);
-        if (chain.size() > 1)
-            fprintf(stderr, "  (inline)");
-        fprintf(stderr, "\n");
-        // Continuations carry the frame's own PC, indented so their "0x"
-        // lands in the frame line's PC column (the prefix ends with the PC
-        // field's separator space, hence the - 18 - 1).
-        for (size_t j = 1; j < chain.size(); j++) {
-            fprintf(stderr, "%*s0x%016lx ", plen - 18 - 1, "",
-                    (unsigned long)pc);
-            print_loc(chain[j]);
-            if (j + 1 < chain.size())
-                fprintf(stderr, "  (inline)");
-            fprintf(stderr, "\n");
-        }
+    // One displayed line of the current step. lead prefixes the line's
+    // frame number: "step N:  " for the step's very first displayed line,
+    // or the blank indent that aligns every further line's "#K" under the
+    // step line's "#0". "#%-2zu 0x%016lx ": the %-2zu pad space plus the
+    // literal one put two spaces between a 1-digit "#K" and the PC and
+    // one between a 2-digit "#K" and it, so the PC column is fixed-width
+    // either way and the "in" columns align across all lines of the step
+    // while the per-step numbers stay at most two digits (below #100 --
+    // %-2zu stops padding at 3 digits, so a step exceeding 99 displayed
+    // lines shifts the PC and "in" columns; same visual as the guest
+    // stack trace's frame lines).
+    auto print_line = [](const char* lead, size_t n, uint64_t pc) {
+        fprintf(stderr, "%s#%-2zu 0x%016lx ", lead, n, (unsigned long)pc);
     };
 
     for (size_t i = omit; i < steps.size(); i++) {
@@ -621,12 +581,55 @@ void print_poison_history(Emulator* emu,
         if (step.empty())
             continue;
         // Step label; the same width, as blanks, is the indent that puts
-        // each further frame's "#K" under the step line's "#0".
+        // every further displayed line's "#K" under the step line's "#0".
         char lead[32];
         int llen = snprintf(lead, sizeof(lead), "step %zu:  ", i + 1);
         std::string findent((size_t)llen, ' ');
-        for (size_t k = 0; k < step.size(); k++)
-            print_frame(step, k, k ? findent.c_str() : lead);
+        // gdb-style numbering over the whole step: one continuous per-step
+        // counter over ALL displayed lines, restarting at #0 under the
+        // step label. A recorded frame's symbolized chain prints one
+        // numbered line per entry, all repeating the frame's own recorded
+        // PC, so inline frames consume numbers exactly like the guest
+        // stack trace's inline frames (which repeat the physical frame's
+        // address).
+        size_t printed = 0;
+        // The step label opens the step's very first DISPLAYED line (the
+        // numbering counter says which that is); every further line
+        // aligns its "#K" under the step line's "#0" instead. Evaluated
+        // per displayed line: a frame's chain continuation lines print
+        // under the same step with numbers the frame line consumed.
+        auto line_lead = [&]() {
+            return printed ? findent.c_str() : lead;
+        };
+        for (size_t k = 0; k < step.size(); k++) {
+            uint64_t pc = step[k];
+            std::vector<SymInfo> chain;
+            std::string modstr;
+            // k == 0 is the recorded instruction's own PC -- symbolize at
+            // it unchanged; the further recorded frames are return
+            // addresses and symbolicate at address - 1 (see
+            // symbolize_hist_pc).
+            symbolize_hist_pc(maps, pc, k > 0, chain, modstr);
+            if (chain.empty()) {
+                // Fallbacks, still numbered: the module+offset string (the
+                // recorded PC's own offset), or nothing but the bare PC
+                // when the address is in no known module.
+                print_line(line_lead(), printed, pc);
+                if (!modstr.empty())
+                    fprintf(stderr, "in %s", modstr.c_str());
+                fprintf(stderr, "\n");
+                printed++;
+                continue;
+            }
+            for (size_t j = 0; j < chain.size(); j++) {
+                print_line(line_lead(), printed, pc);
+                print_loc(chain[j]);
+                if (j + 1 < chain.size())
+                    fprintf(stderr, "  (inline)");
+                fprintf(stderr, "\n");
+                printed++;
+            }
+        }
     }
     fflush(stderr);
 }
