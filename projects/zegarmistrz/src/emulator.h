@@ -40,7 +40,10 @@ struct Emulator {
     bool trace_syscall = false; // --trace-syscalls (implied by -v)
     bool no_core = false; // --no-core / --passthrough-signals: no core dumps
     bool stack_trace = true; // --no-stack-trace disables the crash-time guest backtrace
-    bool history_mode = false; // --history: HistoryTaint engine + poison-history dumps
+    // --history: 0 = off (plain Taint sidecars), 1 = one guest PC per history
+    // step (HistoryTaint), N > 1 = N stack frames per step, SIZE_MAX
+    // (= --history=full) = whole stacks (DeepHistoryTaint).
+    size_t history_frames = 0;
 
     // CANNOT_VAR_TIME_OP checking level (--var-time-op=):
     //   known      - trap only on instructions the doc lists as known data-dependent (§4)
@@ -83,8 +86,9 @@ struct Emulator {
     // Live guest threads (for joining/debug).
     std::mutex thread_mu;
     std::vector<uint64_t> thread_tids;
-    // Type-erased CPU pointers (CPU<Taint> or CPU<HistoryTaint> depending
-    // on history_mode) so both engine instantiations can register here.
+    // Type-erased CPU pointers (CPU<Taint>, CPU<HistoryTaint>, or
+    // CPU<DeepHistoryTaint> depending on history_frames) so every engine
+    // instantiation can register here.
     std::vector<void*> thread_cpus;
 
     // Guest executable info for auxv.

@@ -46,8 +46,9 @@
 static Emulator* g_sig_emu = nullptr;
 
 // Per-thread dump for the SIGUSR1 handler. thread_cpus is type-erased
-// (CPU<Taint> or CPU<HistoryTaint> depending on history_mode), so the
-// per-thread print is templated on the taint type and dispatched below.
+// (CPU<Taint>, CPU<HistoryTaint>, or CPU<DeepHistoryTaint> depending on
+// history_frames), so the per-thread print is templated on the taint type
+// and dispatched below.
 template<typename TaintT>
 static void sigusr1_dump_cpus(Emulator* emu,
                               const std::vector<void*>& snapshot) {
@@ -98,7 +99,9 @@ static void sigusr1_handler(int) {
         std::lock_guard<std::mutex> l(emu->thread_mu);
         snapshot = emu->thread_cpus;
     }
-    if (emu->history_mode)
+    if (emu->history_frames > 1)
+        sigusr1_dump_cpus<DeepHistoryTaint>(emu, snapshot);
+    else if (emu->history_frames == 1)
         sigusr1_dump_cpus<HistoryTaint>(emu, snapshot);
     else
         sigusr1_dump_cpus<Taint>(emu, snapshot);
@@ -121,10 +124,13 @@ static void usage(const char* argv0) {
             "  --no-core, --passthrough-signals\n"
             "                    do not install host signal handlers and do not\n"
             "                    write core dumps (guest errors just print)\n"
-            "  --history         record a per-value poison history trail (the\n"
-            "                    guest PCs of the operations that produced or\n"
-            "                    consumed poison) and print it, BFD-symbolicated,\n"
-            "                    when a taint check faults\n"
+            "  --history[=VALUE]  record a per-value poison history trail (the guest\n"
+            "                     operations that produced or consumed poison) and print\n"
+            "                     it, BFD-symbolicated, when a taint check faults. VALUE:\n"
+            "                     yes or 1 (or bare --history) records one guest PC per\n"
+            "                     step; no or 0 (the default) records nothing; an integer\n"
+            "                     N > 1 records N stack frames per step; full or all\n"
+            "                     records the whole stack per step\n"
             "  --var-time-op=known|plausible|everything\n"
             "                    cannot-var-time-op checking level: known traps\n"
             "                    only on documented data-dependent instructions\n"
@@ -349,7 +355,32 @@ int main(int argc, char** argv) {
         } else if (a == "--no-stack-trace") {
             emu.stack_trace = false;
         } else if (a == "--history") {
-            emu.history_mode = true;
+            emu.history_frames = 1;
+        } else if (a.rfind("--history=", 0) == 0) {
+            std::string v = a.substr(sizeof("--history=") - 1);
+            if (v == "yes")
+                emu.history_frames = 1;
+            else if (v == "no")
+                emu.history_frames = 0;
+            else if (v == "full" || v == "all")
+                emu.history_frames = SIZE_MAX;
+            else if (!v.empty() &&
+                     v.find_first_not_of("0123456789") == std::string::npos) {
+                errno = 0;
+                unsigned long long n = strtoull(v.c_str(), nullptr, 10);
+                if (errno || n > SIZE_MAX) {
+                    fprintf(stderr, "zegarmistrz: bad --history value '%s' (expected "
+                                    "yes, no, full, all, or an integer)\n",
+                            v.c_str());
+                    return 1;
+                }
+                emu.history_frames = (size_t)n;
+            } else {
+                fprintf(stderr, "zegarmistrz: bad --history value '%s' (expected "
+                                "yes, no, full, all, or an integer)\n",
+                        v.c_str());
+                return 1;
+            }
         } else if (a.rfind("--var-time-op=", 0) == 0) {
             std::string v = a.substr(sizeof("--var-time-op=") - 1);
             if (v == "known")
@@ -393,8 +424,15 @@ int main(int argc, char** argv) {
 
     uint64_t rsp = build_stack(&emu, guest_args);
 
-    // --history runs the whole engine with HistoryTaint sidecars (poison
-    // provenance recorded per value); the default runs plain Taint.
-    return emu.history_mode ? run_guest<HistoryTaint>(emu, entry, rsp)
-                            : run_guest<Taint>(emu, entry, rsp);
+    // --history selects the engine's taint sidecar: plain Taint (off/--history=
+    // no/0), HistoryTaint (--history/=yes/=1: one PC per step), or
+    // DeepHistoryTaint (--history=N for N > 1 and --history=full: recorded
+    // stacks per step, capped at N frames).
+    if (!emu.history_frames)
+        return run_guest<Taint>(emu, entry, rsp);
+    if (emu.history_frames == 1)
+        return run_guest<HistoryTaint>(emu, entry, rsp);
+    zeg_set_history_frames(emu.history_frames == SIZE_MAX ? 0
+                                                          : emu.history_frames);
+    return run_guest<DeepHistoryTaint>(emu, entry, rsp);
 }

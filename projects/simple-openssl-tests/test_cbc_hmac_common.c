@@ -439,7 +439,7 @@ void cbhmac_test_composition_and_roundtrip(const struct cbhmac_spec *spec)
         snprintf(msg, sizeof(msg),
                  "%s: the composed record differs from the stitched "
                  "record (L=%zu)",
-                 spec->ciphername, L);
+                 spec->ciphername, unpoisoned(L));
         expect_equal(msg, record, bodylen, composed, bodylen);
 
         stitch_decrypt_tls12(cipher, spec, enckey, mackey, 16, iv, L,
@@ -447,7 +447,7 @@ void cbhmac_test_composition_and_roundtrip(const struct cbhmac_spec *spec)
         snprintf(msg, sizeof(msg),
                  "%s: decrypting the record did not recover the payload "
                  "(L=%zu)",
-                 spec->ciphername, L);
+                 spec->ciphername, unpoisoned(L));
         unpoison_all();
         CHECK(memcmp(record + 16, payload, L) == 0, msg);
         repoison_all();

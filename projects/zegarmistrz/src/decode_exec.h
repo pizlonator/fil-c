@@ -30,8 +30,9 @@ struct CPU;
 
 // The engine lives in decode_exec.cpp as Engine<TaintT>, a class template
 // over the taint sidecar type (Taint by default, HistoryTaint with
-// --history). Only the two entry points below are exported, explicitly
-// instantiated for both types in decode_exec.cpp.
+// --history, DeepHistoryTaint with --history=N/full). Only the two entry
+// points below are exported, explicitly instantiated for all three types in
+// decode_exec.cpp.
 
 // Thread entry: interpreter loop until exit syscall or fatal error.
 // Fatal errors dump core and terminate the process.
@@ -43,12 +44,14 @@ void run_cpu_loop(CPU<TaintT>* cpu);
 // Filename: zegarmistrz.core.<processname>.<pid> in the current directory.
 // signo optionally records the host signal being converted (0 = guess from
 // the reason string). poison_history (--history mode) is the offending
-// value's recorded poison trail; it is printed BFD-symbolicated after the
-// guest stack trace. Returns the dump path. With --no-core, only prints.
+// value's recorded poison trail -- one step per recorded operation (a single
+// PC per step for --history=1, a recorded stack per step for
+// --history=N/full); it is printed BFD-symbolicated after the guest stack
+// trace. Returns the dump path. With --no-core, only prints.
 template<typename TaintT>
 const char* dump_core(CPU<TaintT>* cpu, const char* reason,
                       unsigned long fault_addr, int signo = 0,
-                      const std::vector<uint64_t>& poison_history = {});
+                      const std::vector<std::vector<uint64_t>>& poison_history = {});
 
 // Map a fatal guest error to the signal in NT_PRSTATUS and the exit status
 // (exit code is 128+signo). hint != 0 wins; otherwise guessed from reason:

@@ -95,7 +95,13 @@ $(error BFD not found: install binutils-dev, e.g. sudo apt-get install -y binuti
 endif
 $(shell rm -f $(BFD_TMP))
 
-SRCS := src/main.cpp src/mem.cpp src/elf_loader.cpp src/syscall.cpp src/decode_exec.cpp src/core_dump.cpp src/stack_trace.cpp
+# dwarf_unwind.cpp is the primary crash-time unwinder (DWARF CFI read
+
+# straight from the guest ELF files); it needs no bfd.h, so it takes the
+
+# generic rule below and no BFD_CFLAGS.
+
+SRCS := src/main.cpp src/mem.cpp src/elf_loader.cpp src/syscall.cpp src/decode_exec.cpp src/core_dump.cpp src/stack_trace.cpp src/dwarf_unwind.cpp
 OBJS := $(SRCS:.cpp=.o)
 
 .PHONY: all clean test

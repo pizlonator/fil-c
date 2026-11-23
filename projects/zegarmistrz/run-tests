@@ -16,8 +16,15 @@
 # mirror combos, core-dump gdb check, crash-time stack traces
 # (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag,
 # and the --history poison-provenance tests (--history trail symbolication on
-# a math-derived index fault, default-mode invariance without the flag,
-# clean-run + syscall-fault semantics unchanged in history mode).
+# a math-derived index fault in every flag spelling -- bare --history, =yes,
+# =1, =no, =0, =N, =full -- the dump prints every recorded frame with its PC,
+# numbered per step under step N: headers -- default-mode invariance without
+# the flag, clean-run + syscall-fault semantics unchanged in history mode,
+# and the bad-value rejection), plus the kernel-write extent modeling tests
+# (syscall-unpoison: kernel-written bytes inside a poisoned buffer must come
+# back clean, plain and under --history=full, now covering recvfrom and
+# timerfd_settime; syscall-unpoison-ctl: the kernel-untouched timerfd_settime
+# new_value input must STAY poisoned and branching on it must fault).
 # Does not touch filc/tests or filc/run-tests.
 set -u
 cd "$(dirname "$0")"
@@ -147,6 +154,19 @@ gcc -O2 -g -o "$OUTDIR/history_store" tests/history_store.c \
 # the recorded trail PCs must BFD-symbolicate to source lines.
 gcc -O2 -g -o "$OUTDIR/history_memcopy" tests/history_memcopy.c \
     || { log "guest compile failed: history_memcopy"; exit 1; }
+# Kernel-write extent modeling guests: poison a static buffer with
+# cannot-branch poison, then let the kernel write into it (fstat struct
+# stat, ioctl FIONREAD, read, getrandom, recvfrom data bytes + sockaddr +
+# socklen word, timerfd_settime old-value itimerspec) and branch on the
+# kernel-written bytes. The ctl guest is the soundness half: the
+# kernel-untouched timerfd_settime new_value INPUT must STAY poisoned, so
+# branching on it must fault (core + cannot-branch reason). The -g is not
+# needed here (only the ctl guest faults, and its trail is not checked)
+# but keeps the suite uniform.
+gcc -O2 -g -o "$OUTDIR/syscall_unpoison" tests/syscall_unpoison.c \
+    || { log "guest compile failed: syscall_unpoison"; exit 1; }
+gcc -O2 -g -o "$OUTDIR/syscall_unpoison_ctl" tests/syscall_unpoison_ctl.c \
+    || { log "guest compile failed: syscall_unpoison_ctl"; exit 1; }
 
 # AVX512/AES differentials: compile only if the host supports them.
 HAVE_AVX512=""
@@ -225,11 +245,20 @@ echo "stack-trace-fault"
 echo "stack-trace-shlib"
 echo "stack-trace-inline"
 echo "history-math"
+echo "syscall-unpoison"
+echo "syscall-unpoison-ctl"
 echo "history-store"
 echo "history-memcopy"
 echo "history-off"
 echo "history-clean"
 echo "history-syscall"
+echo "history-yes"
+echo "history-one"
+echo "history-no"
+echo "history-zero"
+echo "history-2"
+echo "history-full"
+echo "history-bad"
 echo "no-core"
 } | xargs -P "$JOBS" -I{} bash -c '
 set -u
@@ -862,6 +891,62 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     rm -f test-output/history-math/zegarmistrz.core.history_math.* test-output/history-math/trace.err
     ;;
 
+  syscall-unpoison)
+    # Kernel-write extent modeling: the syscall_unpoison guest poisons a
+    # static buffer with cannot-branch poison and then lets the kernel
+    # write into it (fstat struct stat, ioctl FIONREAD int, read bytes,
+    # getrandom bytes, recvfrom data bytes + sockaddr + socklen word, and
+    # timerfd_settime old-value itimerspec) before branching on the
+    # kernel-written bytes. Every extent the model misses leaves poison on
+    # kernel-fresh bytes and the next branch faults, so the WHOLE guest
+    # must exit 0 with the ok line and no core -- in default mode AND
+    # under --history=full (the extents apply in history mode too, where
+    # DeepHistoryTaint sidecars carry the same cannot-branch bit).
+    mkdir -p test-output/syscall-unpoison
+    rm -f test-output/syscall-unpoison/zegarmistrz.core.syscall_unpoison.*
+    out=$(cd test-output/syscall-unpoison && timeout 60 ../../zegarmistrz ../syscall_unpoison 2>plain.err); ec=$?
+    core=$(ls test-output/syscall-unpoison/zegarmistrz.core.syscall_unpoison.* 2>/dev/null | head -1)
+    if [ "$ec" = 0 ] && [ "$out" = "unpoison-ok" ] && [ -z "$core" ]; then
+      echo "PASS syscall-unpoison"
+    else
+      echo "FAIL syscall-unpoison: exit=$ec out=[$out] core=[$core]"
+      head -5 test-output/syscall-unpoison/plain.err 2>/dev/null
+    fi
+    rm -f test-output/syscall-unpoison/zegarmistrz.core.syscall_unpoison.* test-output/syscall-unpoison/plain.err
+    mkdir -p test-output/syscall-unpoison-hist
+    rm -f test-output/syscall-unpoison-hist/zegarmistrz.core.syscall_unpoison.*
+    out=$(cd test-output/syscall-unpoison-hist && timeout 60 ../../zegarmistrz --history=full ../syscall_unpoison 2>hist.err); ec=$?
+    core=$(ls test-output/syscall-unpoison-hist/zegarmistrz.core.syscall_unpoison.* 2>/dev/null | head -1)
+    if [ "$ec" = 0 ] && [ "$out" = "unpoison-ok" ] && [ -z "$core" ]; then
+      echo "PASS syscall-unpoison-full"
+    else
+      echo "FAIL syscall-unpoison-full: exit=$ec out=[$out] core=[$core]"
+      head -5 test-output/syscall-unpoison-hist/hist.err 2>/dev/null
+    fi
+    rm -f test-output/syscall-unpoison-hist/zegarmistrz.core.syscall_unpoison.* test-output/syscall-unpoison-hist/hist.err
+    ;;
+
+  syscall-unpoison-ctl)
+    # The soundness half of the timerfd_settime extent fix: the kernel
+    # only READS the new_value input and writes nothing when old_value is
+    # NULL, so the input must STAY poisoned and branching on it must fault
+    # with the cannot-branch reason (exit 139 + core). Clearing the input
+    # would launder kernel-untouched poison; the old broken model did
+    # exactly that.
+    mkdir -p test-output/syscall-unpoison-ctl
+    rm -f test-output/syscall-unpoison-ctl/zegarmistrz.core.syscall_unpoison_ctl.*
+    (cd test-output/syscall-unpoison-ctl && timeout 60 ../../zegarmistrz ../syscall_unpoison_ctl >/dev/null 2>ctl.err); ec=$?
+    core=$(ls test-output/syscall-unpoison-ctl/zegarmistrz.core.syscall_unpoison_ctl.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-branch" "test-output/syscall-unpoison-ctl/ctl.err"; then
+      echo "PASS syscall-unpoison-ctl"
+    else
+      echo "FAIL syscall-unpoison-ctl: exit=$ec core=[$core]"
+      head -5 test-output/syscall-unpoison-ctl/ctl.err 2>/dev/null
+    fi
+    rm -f test-output/syscall-unpoison-ctl/zegarmistrz.core.syscall_unpoison_ctl.* test-output/syscall-unpoison-ctl/ctl.err
+    ;;
+
   history-off)
     # Default-mode invariance: the SAME guest run WITHOUT --history must
     # still fault with a core, and the poison-history block must NEVER
@@ -969,13 +1054,13 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     # NON-duplication: every PC entering the trail is union-deduped
     # (zeg_trail_add in mem.h), so N bytes with identical provenance merge
     # to the distinct set of operations instead of N concatenated copies.
-    # Under the step-based history format every recorded PC prints exactly
-    # ONE #N step line (its inline stack is indented continuation lines
-    # that carry no step number and no address), and the trail PCs are
-    # distinct by construction, so hlines -eq dpcs (step lines vs
-    # distinct PC addresses) exactly: a duplicated build (concatenated
-    # sub-trails) would print hundreds of steps over a handful of distinct
-    # PCs and break the equality.
+    # The dump prints every recorded frame with its own PC, numbered per
+    # step under step N: headers, and in mode 1 each step records exactly
+    # one frame, so the frame-line count EQUALS the distinct-PC count: the
+    # trail PCs are distinct by construction and the inline continuation
+    # lines repeat only already-counted PCs, so a duplicated build
+    # (concatenated sub-trails) would print hundreds of steps over a
+    # handful of distinct PCs and break the equality.
     mkdir -p test-output/history-memcopy
     rm -f test-output/history-memcopy/zegarmistrz.core.history_memcopy.*
     (cd test-output/history-memcopy && timeout 60 ../../zegarmistrz --history ../history_memcopy >/dev/null 2>trace.err); ec=$?
@@ -987,21 +1072,185 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     poisoncall=$(echo "$hist" | grep -c "history_memcopy\.c:22" || true)
     copyline=$(echo "$hist" | grep -c "history_memcopy\.c:24" || true)
     reload=$(echo "$hist" | grep -c "history_memcopy\.c:25" || true)
-    entries=$(echo "$hist" | grep -c "^  #" || true)
-    hlines=$(echo "$hist" | grep -c "^  #[0-9]" || true)
+    steps=$(echo "$hist" | grep -cE "^step [0-9]+:" || true)
+    flines=$(echo "$hist" | grep -cE "#[0-9]+ +0x[0-9a-f]{16}" || true)
     dpcs=$(echo "$hist" | grep -oE "0x[0-9a-f]{16}" | sort -u | wc -l || true)
     if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
        && echo "$hist" | grep -q "poison history of the offending value" \
        && [ "${mains:-0}" -ge 3 ] && [ "${srcs:-0}" -ge 3 ] \
        && [ "${poisoncall:-0}" -ge 1 ] && [ "${copyline:-0}" -ge 1 ] \
-       && [ "${reload:-0}" -ge 1 ] && [ "${entries:-0}" -ge 8 ] \
-       && [ "${hlines:-0}" -eq "${dpcs:-0}" ]; then
+       && [ "${reload:-0}" -ge 1 ] && [ "${steps:-0}" -ge 8 ] \
+       && [ "${flines:-0}" -eq "${dpcs:-0}" ]; then
       echo "PASS history-memcopy"
     else
-      echo "FAIL history-memcopy: ec=$ec core=[$core] mains=$mains srcs=$srcs poisoncall=$poisoncall copyline=$copyline reload=$reload entries=$entries hlines=$hlines dpcs=$dpcs"
+      echo "FAIL history-memcopy: ec=$ec core=[$core] mains=$mains srcs=$srcs poisoncall=$poisoncall copyline=$copyline reload=$reload steps=$steps flines=$flines dpcs=$dpcs"
       head -20 "$err"
     fi
     rm -f test-output/history-memcopy/zegarmistrz.core.history_memcopy.* test-output/history-memcopy/trace.err
+    ;;
+
+  history-yes)
+    # --history=yes is the explicit spelling of bare --history (mode 1):
+    # one guest PC per history step, HistoryTaint sidecars. Same guest and
+    # same minimums as history-math.
+    mkdir -p test-output/history-yes
+    rm -f test-output/history-yes/zegarmistrz.core.history_math.*
+    (cd test-output/history-yes && timeout 60 ../../zegarmistrz --history=yes ../history_math >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-yes/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    err=test-output/history-yes/trace.err
+    hist=$(sed -n "/poison history/,/zegarmistrz: \[core/p" "$err" 2>/dev/null)
+    mains=$(echo "$hist" | grep -c "in main ()" || true)
+    srcs=$(echo "$hist" | grep -c "history_math\.c" || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && echo "$hist" | grep -q "poison history of the offending value" \
+       && [ "${mains:-0}" -ge 2 ] && [ "${srcs:-0}" -ge 1 ]; then
+      echo "PASS history-yes"
+    else
+      echo "FAIL history-yes: ec=$ec core=[$core] mains=$mains srcs=$srcs"
+      head -20 "$err"
+    fi
+    rm -f test-output/history-yes/zegarmistrz.core.history_math.* test-output/history-yes/trace.err
+    ;;
+
+  history-one)
+    # --history=1 is the numeric spelling of bare --history (mode 1): one
+    # guest PC per history step. Same guest and same minimums as
+    # history-math.
+    mkdir -p test-output/history-one
+    rm -f test-output/history-one/zegarmistrz.core.history_math.*
+    (cd test-output/history-one && timeout 60 ../../zegarmistrz --history=1 ../history_math >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-one/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    err=test-output/history-one/trace.err
+    hist=$(sed -n "/poison history/,/zegarmistrz: \[core/p" "$err" 2>/dev/null)
+    mains=$(echo "$hist" | grep -c "in main ()" || true)
+    srcs=$(echo "$hist" | grep -c "history_math\.c" || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && echo "$hist" | grep -q "poison history of the offending value" \
+       && [ "${mains:-0}" -ge 2 ] && [ "${srcs:-0}" -ge 1 ]; then
+      echo "PASS history-one"
+    else
+      echo "FAIL history-one: ec=$ec core=[$core] mains=$mains srcs=$srcs"
+      head -20 "$err"
+    fi
+    rm -f test-output/history-one/zegarmistrz.core.history_math.* test-output/history-one/trace.err
+    ;;
+
+  history-no)
+    # --history=no is the explicit spelling of the default: plain Taint
+    # sidecars, no trail at all. Same shape as history-off (usual fault +
+    # core, and the poison-history block must NEVER appear).
+    mkdir -p test-output/history-no
+    rm -f test-output/history-no/zegarmistrz.core.history_math.*
+    (cd test-output/history-no && timeout 60 ../../zegarmistrz --history=no ../history_math >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-no/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && ! grep -q "poison history" test-output/history-no/trace.err; then
+      echo "PASS history-no"
+    else
+      echo "FAIL history-no: ec=$ec core=[$core]"
+      head -20 test-output/history-no/trace.err 2>/dev/null
+    fi
+    rm -f test-output/history-no/zegarmistrz.core.history_math.* test-output/history-no/trace.err
+    ;;
+
+  history-zero)
+    # --history=0 lands in the integer branch of the flag parser and means
+    # off, exactly like --history=no (plain Taint sidecars, no trail).
+    mkdir -p test-output/history-zero
+    rm -f test-output/history-zero/zegarmistrz.core.history_math.*
+    (cd test-output/history-zero && timeout 60 ../../zegarmistrz --history=0 ../history_math >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-zero/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && ! grep -q "poison history" test-output/history-zero/trace.err; then
+      echo "PASS history-zero"
+    else
+      echo "FAIL history-zero: ec=$ec core=[$core]"
+      head -20 test-output/history-zero/trace.err 2>/dev/null
+    fi
+    rm -f test-output/history-zero/zegarmistrz.core.history_math.* test-output/history-zero/trace.err
+    ;;
+
+  history-2)
+    # --history=2 (DeepHistoryTaint): each history step records TWO stack
+    # frames (the op PC plus its caller, unwound with DWARF CFI at
+    # recording time via zeg_history_record_stack). This guest runs entirely
+    # in main called from __libc_start_call_main, so the second recorded
+    # frame of every step names libc_start -- proof that each step carries a
+    # caller frame, not just the op PC. Every recorded frame prints its own
+    # numbered frame line (carrying the PC) under the step N: header, so
+    # the frame-line count must be at least 2 per step: a step that lost
+    # its caller frame (a recorder that stopped at the op PC) would print
+    # only the #0 lines and break the bound.
+    mkdir -p test-output/history-2
+    rm -f test-output/history-2/zegarmistrz.core.history_math.*
+    (cd test-output/history-2 && timeout 60 ../../zegarmistrz --history=2 ../history_math >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-2/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    err=test-output/history-2/trace.err
+    hist=$(sed -n "/poison history/,/zegarmistrz: \[core/p" "$err" 2>/dev/null)
+    mains=$(echo "$hist" | grep -c "in main ()" || true)
+    srcs=$(echo "$hist" | grep -c "history_math\.c" || true)
+    libc=$(echo "$hist" | grep -c "libc_start" || true)
+    steps=$(echo "$hist" | grep -cE "^step [0-9]+:" || true)
+    flines=$(echo "$hist" | grep -cE "#[0-9]+ +0x[0-9a-f]{16}" || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && echo "$hist" | grep -q "poison history of the offending value" \
+       && [ "${mains:-0}" -ge 2 ] && [ "${srcs:-0}" -ge 1 ] \
+       && [ "${libc:-0}" -ge 1 ] && [ "${flines:-0}" -ge $((2 * steps)) ]; then
+      echo "PASS history-2"
+    else
+      echo "FAIL history-2: ec=$ec core=[$core] mains=$mains srcs=$srcs libc=$libc steps=$steps flines=$flines"
+      head -20 "$err"
+    fi
+    rm -f test-output/history-2/zegarmistrz.core.history_math.* test-output/history-2/trace.err
+    ;;
+
+  history-full)
+    # --history=full (DeepHistoryTaint, per-step cap 0 = unlimited, bounded
+    # at 256 like the crash-time stack trace): each history step records the
+    # WHOLE guest stack. Same checks as history-2, with every recorded frame
+    # printed as a numbered frame line (carrying the PC) under the step N:
+    # header. Full stacks always reach at least the op frame plus its three
+    # callers (main here), __libc_start_call_main,
+    # __libc_start_main_impl and _start, so the frame-line count must be at
+    # least 4 per step -- more libc_start-named lines than history-2: the
+    # whole __libc_start_main chain down to _start.
+    mkdir -p test-output/history-full
+    rm -f test-output/history-full/zegarmistrz.core.history_math.*
+    (cd test-output/history-full && timeout 60 ../../zegarmistrz --history=full ../history_math >/dev/null 2>trace.err); ec=$?
+    core=$(ls test-output/history-full/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    err=test-output/history-full/trace.err
+    hist=$(sed -n "/poison history/,/zegarmistrz: \[core/p" "$err" 2>/dev/null)
+    mains=$(echo "$hist" | grep -c "in main ()" || true)
+    srcs=$(echo "$hist" | grep -c "history_math\.c" || true)
+    libc=$(echo "$hist" | grep -c "libc_start" || true)
+    steps=$(echo "$hist" | grep -cE "^step [0-9]+:" || true)
+    flines=$(echo "$hist" | grep -cE "#[0-9]+ +0x[0-9a-f]{16}" || true)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && echo "$hist" | grep -q "poison history of the offending value" \
+       && [ "${mains:-0}" -ge 2 ] && [ "${srcs:-0}" -ge 1 ] \
+       && [ "${libc:-0}" -ge 1 ] && [ "${flines:-0}" -ge $((4 * steps)) ]; then
+      echo "PASS history-full"
+    else
+      echo "FAIL history-full: ec=$ec core=[$core] mains=$mains srcs=$srcs libc=$libc steps=$steps flines=$flines"
+      head -20 "$err"
+    fi
+    rm -f test-output/history-full/zegarmistrz.core.history_math.* test-output/history-full/trace.err
+    ;;
+
+  history-bad)
+    # A value that is neither a keyword nor an integer (--history=wat) is a
+    # usage error: exit 1 before any guest runs, the message names the flag,
+    # and no core is produced.
+    mkdir -p test-output/history-bad
+    rm -f test-output/history-bad/zegarmistrz.core.history_math.*
+    out=$(cd test-output/history-bad && timeout 60 ../../zegarmistrz --history=wat ../history_math 2>&1 >/dev/null); ec=$?
+    core=$(ls test-output/history-bad/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 1 ] && echo "$out" | grep -q "bad --history" && [ -z "$core" ]; then
+      echo "PASS history-bad"
+    else
+      echo "FAIL history-bad: ec=$ec core=[$core] out=[$out]"
+    fi
+    rm -f test-output/history-bad/zegarmistrz.core.history_math.*
     ;;
 
   no-core)

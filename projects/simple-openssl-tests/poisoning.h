@@ -112,4 +112,10 @@ void free_poison_allocations(void);
 
 void unpoison(void* data, size_t size);
 
+#define unpoisoned(value) ({ \
+        typeof(value) value_copy = (value); \
+        unpoison(&value_copy, sizeof(value_copy)); \
+        value_copy; \
+    })
+
 #endif /* POISONING_H */

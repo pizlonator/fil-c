@@ -48,7 +48,8 @@ enum : uint64_t {
 };
 
 // A general-purpose register value with Fil-C-style sidecar taint.
-// Templated on the taint type: Taint (default) or HistoryTaint (--history).
+// Templated on the taint type: Taint (default), HistoryTaint (--history),
+// or DeepHistoryTaint (--history=N/full).
 template<typename TaintT>
 struct GPRValue {
     uint64_t val = 0;
@@ -89,7 +90,8 @@ struct VecVal {
 struct Emulator; // forward
 
 // Per-thread guest CPU state. Templated on the taint sidecar type so the
-// whole engine can run with either Taint or --history's HistoryTaint.
+// whole engine can run with Taint, --history's HistoryTaint, or
+// --history=N/full's DeepHistoryTaint.
 template<typename TaintT>
 struct CPU {
     GPRValue<TaintT> gpr[16];

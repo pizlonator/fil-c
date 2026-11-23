@@ -46,6 +46,8 @@ constexpr size_t MAX_VEC_BYTES = 64;
 struct Taint {
     // Trait flag: plain taint carries no poison-history trail (--history off).
     static constexpr bool has_history = false;
+    // Trait flag: plain taint never records stack frames (--history off).
+    static constexpr bool records_frames = false;
     bool cannot_branch = false;
     bool cannot_index = false;
     bool cannot_var_time_op = false;
@@ -84,9 +86,29 @@ struct Taint {
 };
 
 // Current instruction's guest PC, for --history poison-history recording.
-// Set at exec_one entry (pre-RIP-advance); read by HistoryTaint's recording.
-// Declared before HistoryTaint: its recording reads it.
+// Set at exec_one entry (pre-RIP-advance); read by HistoryTaint's recording
+// (as the step PC) and by zeg_history_record_stack (as each deep-history
+// step's frame 0). Declared before HistoryTaint: its recording reads it.
 extern thread_local uint64_t zeg_history_pc;
+
+// --history=N/full: GPR snapshot (ZG_* order, cpu.h) + Emulator pointer +
+// instruction PC of the instruction currently being executed, filled at
+// exec_one entry by instantiations whose taint records frames, read by
+// zeg_history_record_stack().
+extern thread_local uint64_t zeg_history_regs[16];
+extern thread_local Emulator* zeg_history_emu;
+
+// Record the current instruction's stack for a --history=N/full history
+// step: frame 0 is always the instruction's own PC (zeg_history_pc);
+// further frames are unwound with zeg_unwind_step (DWARF CFI). The per-step
+// frame count is capped by zeg_set_history_frames (0 = full, cap 256).
+// Only callable while no fault-recovery window is armed on the calling
+// thread (every taint-recording site is between guest-memory accesses).
+void zeg_history_record_stack(std::vector<uint64_t>& out);
+
+// Set the per-step frame cap for --history=N (N > 1); 0 = full/unlimited
+// (--history=full). Called once from main before the engine starts.
+void zeg_set_history_frames(size_t n);
 
 // --history mode taint: the same three enforcement bits plus a bounded
 // history of the guest PCs of the operations that produced or consumed the
@@ -110,6 +132,8 @@ inline void zeg_trail_add(std::vector<uint64_t>& trail, uint64_t pc);
 
 struct HistoryTaint {
     static constexpr bool has_history = true;
+    // Trait flag: mode-1 history records one PC per step, no stack frames.
+    static constexpr bool records_frames = false;
     bool cannot_branch = false;
     bool cannot_index = false;
     bool cannot_var_time_op = false;
@@ -170,6 +194,90 @@ struct HistoryTaint {
         return *this;
     }
 };
+
+// --history=N (N > 1) / --history=full taint: the same three enforcement
+// bits plus a bounded history of STEPS, where each step is the recorded
+// guest stack (innermost PC first, via zeg_history_record_stack) of the
+// operation that produced or consumed the poison. Same recording rules and
+// memory-side per-byte provenance as HistoryTaint (the poison map stores
+// steps for every history mode). Recorded PCs are raw and pre-symbolication;
+// BFD symbolication and DWARF inline reconstruction happen at print time.
+// The per-step frame cap is runtime (--history=N; 0 = full).
+
+// Trail append with set-union semantics for DeepHistoryTaint (a step already
+// present anywhere in the trail is not re-added; cap keeps most recent).
+inline void zeg_trail_add_step(std::vector<std::vector<uint64_t>>& trail,
+                               std::vector<uint64_t> step);
+
+struct DeepHistoryTaint {
+    static constexpr bool has_history = true;
+    static constexpr bool records_frames = true;
+    bool cannot_branch = false;
+    bool cannot_index = false;
+    bool cannot_var_time_op = false;
+    std::vector<std::vector<uint64_t>> history; // steps, oldest first; each step = recorded stack, innermost PC first
+    // Step capacity: when full, adding a new step drops the OLDEST step.
+    static constexpr size_t kMaxHistory = 4096;
+    DeepHistoryTaint() = default;
+    bool any() const {
+        return cannot_branch || cannot_index || cannot_var_time_op;
+    }
+    bool empty() const { return !any(); }
+    void clear() {
+        cannot_branch = false;
+        cannot_index = false;
+        cannot_var_time_op = false;
+        history.clear();
+    }
+    // Record the current instruction's stack if this taint is poisoned.
+    void note_op_pc() {
+        if (!any())
+            return;
+        std::vector<uint64_t> step;
+        zeg_history_record_stack(step);
+        zeg_trail_add_step(history, std::move(step));
+    }
+    void merge(const DeepHistoryTaint& o) {
+        cannot_branch = cannot_branch || o.cannot_branch;
+        cannot_index = cannot_index || o.cannot_index;
+        cannot_var_time_op = cannot_var_time_op || o.cannot_var_time_op;
+        // Set-union the other trail's steps in: two operands with the same
+        // provenance (or N bytes loaded from identically-provenanced bytes)
+        // merge to the distinct set of operations instead of N concatenated
+        // copies.
+        for (const std::vector<uint64_t>& step : o.history)
+            zeg_trail_add_step(history, step);
+    }
+    DeepHistoryTaint operator|(const DeepHistoryTaint& o) const {
+        DeepHistoryTaint r = *this;
+        r.merge(o);
+        return r; // temp only: the op stack is recorded when this is assigned
+    }
+    DeepHistoryTaint& operator|=(const DeepHistoryTaint& o) {
+        merge(o);
+        note_op_pc();
+        return *this;
+    }
+    // Assignment into a value's sidecar: adopt the source's provenance and
+    // record this operation's stack (the move/math that produced the value).
+    DeepHistoryTaint& operator=(const DeepHistoryTaint& o) {
+        cannot_branch = o.cannot_branch;
+        cannot_index = o.cannot_index;
+        cannot_var_time_op = o.cannot_var_time_op;
+        history = o.history;
+        note_op_pc();
+        return *this;
+    }
+};
+
+inline void zeg_trail_add_step(std::vector<std::vector<uint64_t>>& trail,
+                               std::vector<uint64_t> step) {
+    if (std::find(trail.begin(), trail.end(), step) != trail.end())
+        return;
+    if (trail.size() >= DeepHistoryTaint::kMaxHistory)
+        trail.erase(trail.begin());
+    trail.push_back(std::move(step));
+}
 
 // Append pc to a poison trail unless it is already present anywhere in it
 // (union semantics; first-occurrence order preserves the chronology of
@@ -257,6 +365,19 @@ void mem_poison_range(Emulator* emu, uint64_t addr, size_t size, unsigned kind);
 // Debug: watch stores to [base, base+len) (enabled by ZEG_WATCH_TLS).
 void mem_watch_hint(uint64_t base, uint64_t len);
 void mem_unpoison_range(Emulator* emu, uint64_t addr, size_t size);
+// True when the poison map has any entries. Used to gate kernel-write
+// modeling in syscall.cpp: a kernel overwrite can only launder taint that
+// exists, so poison-free runs skip the whole extent-computation step (and
+// can never hit its reject-by-crash path) at zero cost.
+bool mem_poison_any();
+// mremap support: the guest data at [old_addr, old_addr+old_size) MOVED to
+// [new_addr, new_addr+new_size) (old_size == new_size for the move part of
+// mremap; growth beyond it is fresh and callers clear it separately). The
+// poison must move with the data: erase the old range, erase any stale
+// poison at the destination, then reinsert each old entry shifted to the
+// new base with its bits AND its poison-history trail intact.
+void mem_move_poison(Emulator* emu, uint64_t old_addr, size_t old_size,
+                     uint64_t new_addr, size_t new_size);
 
 // Per-access poison checks. Throw (via guest_error) on violation.
 template<typename TaintT>
@@ -353,9 +474,11 @@ struct GuestError {
     CPU<TaintT>* cpu;
     uint64_t fault_addr = 0;
     const char* reason = nullptr;
-    std::vector<uint64_t> poison_history; // offending value's --history trail
+    // The offending value's recorded trail, one step per recorded operation
+    // (--history mode; empty for plain Taint).
+    std::vector<std::vector<uint64_t>> poison_history;
 };
 template<typename TaintT>
 [[noreturn]] void guest_error(CPU<TaintT>* cpu, const char* reason,
                               uint64_t fault_addr = 0,
-                              std::vector<uint64_t> poison_history = {});
+                              std::vector<std::vector<uint64_t>> poison_history = {});

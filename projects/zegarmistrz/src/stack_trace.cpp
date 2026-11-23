@@ -21,12 +21,24 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Crash-time guest stack traces: walk the guest stack (RBP chain, with an
-// approximate scan fallback for -fomit-frame-pointer code) and symbolize
-// guest addresses with BFD against the ELF objects recorded in the guest
-// memory map: the loader's own objects plus file-backed guest mmaps (shared
+// Crash-time guest stack traces. The walk starts at the exact faulting RIP,
+// then unwinds primarily with DWARF CFI (.eh_frame/.debug_frame, the same
+// mechanism gdb uses on the core: see dwarf_unwind.cpp), which also works
+// for guests built with -fomit-frame-pointer. Guest addresses are
+// symbolized with BFD against the ELF objects recorded in the guest memory
+// map: the loader's own objects plus file-backed guest mmaps (shared
 // libraries the guest ld.so mapped, dlopen'd objects). Each physical frame
 // expands its DWARF inline chain (innermost inlined function first).
+//
+// When a module has no usable CFI (e.g. freestanding guests), the legacy
+// unwinders still apply, in order: the guest RBP frame chain, then an
+// approximate scan of the guest stack for plausible return addresses.
+//
+// Symbolization follows gdb's line attribution: a return-address frame
+// (every frame after 0, however it was unwound) symbolicates at its
+// address MINUS ONE -- gdb's "address in block" -- so the reported line
+// is the call's own line rather than the first line after the call. The
+// printed address stays the raw return address.
 
 #include "stack_trace.h"
 
@@ -47,6 +59,7 @@
 #include <bfd.h>
 
 #include "cpu.h"
+#include "dwarf_unwind.h"
 #include "emulator.h"
 #include "mem.h"
 
@@ -258,6 +271,7 @@ bool plausible_call_before(
 
 template<typename TaintT>
 void collect_frames(CPU<TaintT>* cpu,
+                    const std::vector<Emulator::GuestMap>& maps,
                     const std::vector<std::pair<uint64_t, uint64_t>>& exec_ranges,
                     const std::vector<std::pair<uint64_t, uint64_t>>& data_ranges,
                     std::vector<Frame>& out) {
@@ -269,40 +283,72 @@ void collect_frames(CPU<TaintT>* cpu,
 
     out.push_back(Frame{cpu->rip, true});
 
-    // Walk the RBP frame chain. Each frame: [rbp] = caller rbp,
-    // [rbp+8] = return address.
-    uint64_t rbp = cpu->gpr[ZG_RBP].val;
-    for (int i = 0; i < 256 && out.size() < 256; i++) {
-        if (!rbp || (rbp & 7) || !data_addr(rbp))
-            break;
-        uint64_t next = 0, ret = 0;
-        if (!read_u64(rbp, &next) || !read_u64(rbp + 8, &ret))
-            break;
-        if (!ret || !exec_addr(ret))
-            break;
-        out.push_back(Frame{ret, true});
-        if (!next || next <= rbp || (next & 7) || !data_addr(next))
-            break;
-        rbp = next;
+    // Primary: DWARF CFI unwinding (.eh_frame/.debug_frame), like gdb on
+    // the same core. zeg_unwind_step refuses to run in passthrough mode
+    // (its guarded reads would not be guarded there), but collect_frames is
+    // not even called in that mode -- print_guest_stack_trace prints frame
+    // 0 only.
+    size_t cfi_frames = 0;
+    {
+        ZegUnwindState st;
+        for (int i = 0; i < 16; i++)
+            st.gpr[i] = cpu->gpr[i].val;
+        st.rip = cpu->rip;
+        bool ra_adj = false; // frame 0: rip is the faulting PC, not an RA
+        while (out.size() < 256) {
+            ZegUnwindState caller;
+            if (!zeg_unwind_step(maps, st, caller, ra_adj))
+                break;
+            ra_adj = true;
+            if (!caller.rip || caller.rip == st.rip ||
+                !exec_addr(caller.rip))
+                break;
+            out.push_back(Frame{caller.rip, true});
+            st = caller;
+            cfi_frames++;
+        }
     }
 
-    // Frame-pointer-less guests (-fomit-frame-pointer) break the chain:
-    // scan the stack for slots holding plausible return addresses.
-    if (out.size() <= 1) {
-        uint64_t sp = cpu->gpr[ZG_RSP].val;
-        if (sp && !(sp & 7) && data_addr(sp)) {
-            size_t approx = 0;
-            for (uint64_t a = sp;
-                 a + 8 <= sp + (64ULL << 10) && out.size() < 256 &&
-                 approx < 64;
-                 a += 8) {
-                uint64_t v = 0;
-                if (!read_u64(a, &v))
-                    break;
-                if (!exec_addr(v) || !plausible_call_before(v, exec_ranges))
-                    continue;
-                out.push_back(Frame{v, false});
-                approx++;
+    // Legacy fallbacks, only when CFI produced nothing beyond frame 0 (a
+    // guest without usable .eh_frame/.debug_frame).
+
+    // Walk the RBP frame chain. Each frame: [rbp] = caller rbp,
+    // [rbp+8] = return address.
+    if (cfi_frames == 0) {
+        uint64_t rbp = cpu->gpr[ZG_RBP].val;
+        for (int i = 0; i < 256 && out.size() < 256; i++) {
+            if (!rbp || (rbp & 7) || !data_addr(rbp))
+                break;
+            uint64_t next = 0, ret = 0;
+            if (!read_u64(rbp, &next) || !read_u64(rbp + 8, &ret))
+                break;
+            if (!ret || !exec_addr(ret))
+                break;
+            out.push_back(Frame{ret, true});
+            if (!next || next <= rbp || (next & 7) || !data_addr(next))
+                break;
+            rbp = next;
+        }
+
+        // Frame-pointer-less guests (-fomit-frame-pointer) break the chain:
+        // scan the stack for slots holding plausible return addresses.
+        if (out.size() <= 1) {
+            uint64_t sp = cpu->gpr[ZG_RSP].val;
+            if (sp && !(sp & 7) && data_addr(sp)) {
+                size_t approx = 0;
+                for (uint64_t a = sp;
+                     a + 8 <= sp + (64ULL << 10) && out.size() < 256 &&
+                     approx < 64;
+                     a += 8) {
+                    uint64_t v = 0;
+                    if (!read_u64(a, &v))
+                        break;
+                    if (!exec_addr(v) ||
+                        !plausible_call_before(v, exec_ranges))
+                        continue;
+                    out.push_back(Frame{v, false});
+                    approx++;
+                }
             }
         }
     }
@@ -356,7 +402,7 @@ void print_guest_stack_trace(CPU<TaintT>* cpu) {
         // needs no guest-memory access.
         frames.push_back(Frame{cpu->rip, true});
     } else {
-        collect_frames(cpu, exec_ranges, data_ranges, frames);
+        collect_frames(cpu, maps, exec_ranges, data_ranges, frames);
     }
 
     // One gdb-style global frame counter: inline frames consume numbers
@@ -365,12 +411,20 @@ void print_guest_stack_trace(CPU<TaintT>* cpu) {
     size_t fi = 0;
     for (; fi < frames.size() && printed < 256; fi++) {
         const Frame& f = frames[fi];
+        // Frame 0 is the faulting RIP; every later frame is a RETURN
+        // ADDRESS (CFI, RBP-chain, and scan frames alike), so it
+        // symbolicates at address - 1 -- gdb's "address in block", which
+        // lands on the line the call sits on instead of the line after
+        // it. The printed address stays the raw f.addr, and the
+        // module+offset fallback keeps the raw offset so it matches the
+        // shown address.
+        uint64_t sym_addr = fi ? f.addr - 1 : f.addr;
         Module mod = find_module(maps, f.addr);
         std::vector<SymInfo> chain;
         std::string modstr;
         if (mod.found) {
             std::lock_guard<std::mutex> l(g_bfd_mu);
-            chain = symbolize(get_sym_tab(mod.path), f.addr - mod.bias);
+            chain = symbolize(get_sym_tab(mod.path), sym_addr - mod.bias);
             if (chain.empty()) {
                 const char* slash = strrchr(mod.path.c_str(), '/');
                 modstr = (slash ? slash + 1 : mod.path.c_str());
@@ -416,24 +470,74 @@ void print_guest_stack_trace(CPU<TaintT>* cpu) {
     fflush(stderr);
 }
 
-// Poison-history trail (--history mode): symbolize each recorded guest PC
-// with the same BFD machinery as the stack trace and print it oldest first.
-// Reuses the anonymous-namespace helpers above; no guest memory is read, so
-// this is safe in every mode. One numbered STEP line per recorded PC: the
-// step line carries the innermost frame of the PC's inline chain (where the
-// instruction physically is) and the rest of that inline stack prints as
-// indented continuation lines below the step line that do not consume step
-// numbers -- the numbering counts recorded PCs (operations), not frames,
-// unlike the guest stack trace's gdb-style numbering above. Output is
-// capped at the most recent 128 steps (kMaxPrint) with the omitted older
-// count noted up front.
-void print_poison_history(Emulator* emu, const std::vector<uint64_t>& pcs) {
+// Symbolize one recorded poison-history PC with the same BFD machinery as
+// the stack trace: chain receives the PC's inline chain (innermost first,
+// empty when nothing symbolicated) and modstr the "module+0xoff" fallback
+// string (empty when the PC is in no known module at all). A step's frame
+// 0 is the recorded instruction's own PC (return_addr=false); a step's
+// further recorded frames are RETURN ADDRESSES and symbolicate at address
+// - 1 like the stack trace's caller frames (return_addr=true) -- the
+// module+offset fallback keeps the raw pc so the offset matches the shown
+// address. No guest memory is read, so this is safe in every mode.
+static void symbolize_hist_pc(const std::vector<Emulator::GuestMap>& maps,
+                              uint64_t pc, bool return_addr,
+                              std::vector<SymInfo>& chain,
+                              std::string& modstr) {
+    chain.clear();
+    modstr.clear();
+    Module mod = find_module(maps, pc);
+    if (!mod.found)
+        return;
+    uint64_t sym_pc = return_addr ? pc - 1 : pc;
+    std::lock_guard<std::mutex> l(g_bfd_mu);
+    chain = symbolize(get_sym_tab(mod.path), sym_pc - mod.bias);
+    if (chain.empty()) {
+        const char* slash = strrchr(mod.path.c_str(), '/');
+        modstr = (slash ? slash + 1 : mod.path.c_str());
+        char off[32];
+        snprintf(off, sizeof(off), "+0x%lx", (unsigned long)(pc - mod.bias));
+        modstr += off;
+    }
+}
+
+// Poison-history trail (--history mode): symbolize each recorded step with
+// the same BFD machinery as the stack trace and print it oldest first. A
+// step is one PC (--history=1) or a recorded guest stack, innermost PC
+// first (--history=N/full). Steps are labeled "step N:" (1-based over the
+// whole trail, oldest first) and the frames RECORDED in each step are
+// numbered "#0", "#1", ... restarting at #0 within the step: the step's
+// first frame line opens with the step label and each further recorded
+// frame prints under it, its "#K" aligned under the step line's "#0".
+// EVERY line of the block carries a PC. A frame line prints
+// "#%-2zu 0x%016lx " followed by the location ("in <func> () at
+// <file>:<line>", marked "  (inline)" when the frame's symbolized chain
+// has more than one entry, i.e. the innermost symbol is an inlined
+// instance); the rest of that chain prints as continuation lines below the
+// frame line, each repeating the frame's own recorded PC, indented so its
+// "0x" aligns under the frame line's "0x" (the fixed-width PC field also
+// aligns the "in" columns), with "  (inline)" on all but the chain's last
+// -- physically-containing -- entry. step[0] is the recorded instruction's
+// own PC and symbolicates at it unchanged; a step's further recorded
+// frames are return addresses and symbolicate at address - 1 like the
+// stack trace's caller frames (see symbolize_hist_pc). A frame that does
+// not symbolicate falls back to the module+offset string ("in
+// <module+0xoff>", the recorded PC's own offset, on a frame line that
+// still carries the PC); a frame in no known module prints just its bare
+// PC prefix. Unlike the guest stack trace -- whose gdb-style numbering
+// consumes one number per displayed (possibly inline) frame across the
+// whole trace -- the history numbers the frames WITHIN each step under
+// its "step N:" header, because its numbering unit is the recorded
+// operation. Output is capped at the most recent 128 steps (kMaxPrint)
+// with the omitted older count noted up front; the step numbers still
+// reflect each printed step's position in the whole trail.
+void print_poison_history(Emulator* emu,
+                          const std::vector<std::vector<uint64_t>>& steps) {
     constexpr size_t kMaxPrint = 128;
-    size_t omit = pcs.size() > kMaxPrint ? pcs.size() - kMaxPrint : 0;
+    size_t omit = steps.size() > kMaxPrint ? steps.size() - kMaxPrint : 0;
     fprintf(stderr,
             "zegarmistrz: poison history of the offending value "
             "(%zu steps, oldest first):\n",
-            pcs.size());
+            steps.size());
     if (omit)
         fprintf(stderr, "  ... (%zu older entries omitted)\n", omit);
 
@@ -445,8 +549,8 @@ void print_poison_history(Emulator* emu, const std::vector<uint64_t>& pcs) {
         maps = emu->guest_maps;
     }
 
-    // Shared "in <func> () at <file>:<line>" body for the step line and its
-    // continuation lines.
+    // Shared "in <func> () at <file>:<line>" body for every frame line and
+    // inline continuation line.
     auto print_loc = [](const SymInfo& info) {
         fprintf(stderr, "in %s ()", info.func.c_str());
         if (!info.file.empty()) {
@@ -457,56 +561,78 @@ void print_poison_history(Emulator* emu, const std::vector<uint64_t>& pcs) {
         }
     };
 
-    size_t printed = 0;
-    for (size_t i = omit; i < pcs.size(); i++) {
-        uint64_t pc = pcs[i];
-        Module mod = find_module(maps, pc);
+    // One recorded frame of the current step. lead prefixes the frame
+    // number: "step N:  " for the step's first frame (k == 0), or the
+    // blank indent that aligns the further frames' "#K" under the step
+    // line's "#0". The frame line is lead + "#%-2zu 0x%016lx " + the
+    // innermost location (or the module+offset fallback, or nothing at all
+    // when the PC is in no known module -- like the old bare line, the PC
+    // is all there is). The rest of the frame's inline chain prints as
+    // continuation lines that repeat the frame's own recorded PC, indented
+    // so their "0x" aligns under the frame line's "0x": snprintf computes
+    // the frame prefix's width (plen) so the alignment is exact for any
+    // lead and 1-3 digit frame numbers.
+    auto print_frame = [&](const std::vector<uint64_t>& step, size_t k,
+                           const char* lead) {
+        uint64_t pc = step[k];
+        char prefix[128];
+        // "#%-2zu 0x%016lx ": the %-2zu pad space plus the literal one put
+        // two spaces between a 1-digit "#K" and the PC and one between a
+        // 2-digit "#K" and it, so the PC column is fixed-width either way
+        // (same visual as the guest stack trace's frame lines).
+        int plen = snprintf(prefix, sizeof(prefix),
+                            "%s#%-2zu 0x%016lx ", lead, k,
+                            (unsigned long)pc);
         std::vector<SymInfo> chain;
         std::string modstr;
-        if (mod.found) {
-            std::lock_guard<std::mutex> l(g_bfd_mu);
-            chain = symbolize(get_sym_tab(mod.path), pc - mod.bias);
-            if (chain.empty()) {
-                const char* slash = strrchr(mod.path.c_str(), '/');
-                modstr = (slash ? slash + 1 : mod.path.c_str());
-                char off[32];
-                snprintf(off, sizeof(off), "+0x%lx",
-                         (unsigned long)(pc - mod.bias));
-                modstr += off;
-            }
-        }
-        // Step prefix: "  #N 0x<16 hex digits>". printed stays below
-        // kMaxPrint, so the number is at most 3 digits and the buffer is
-        // ample. Continuation lines indent by prefix width + 1 (the
-        // separator space) so their "in" aligns under the step line's "in".
-        char prefix[64];
-        int plen = snprintf(prefix, sizeof(prefix), "  #%-2zu 0x%016lx",
-                            printed, (unsigned long)pc);
+        // k == 0 is the recorded instruction's own PC -- symbolize at it
+        // unchanged; the further recorded frames are return addresses and
+        // symbolicate at address - 1 (see symbolize_hist_pc).
+        symbolize_hist_pc(maps, pc, k > 0, chain, modstr);
         if (chain.empty()) {
-            if (modstr.empty())
-                fprintf(stderr, "%s\n", prefix);
+            if (!modstr.empty())
+                fprintf(stderr, "%sin %s\n", prefix, modstr.c_str());
             else
-                fprintf(stderr, "%s in %s\n", prefix, modstr.c_str());
-        } else {
-            fprintf(stderr, "%s ", prefix);
-            print_loc(chain[0]);
-            if (chain.size() > 1)
+                fprintf(stderr, "%s\n", prefix);
+            return;
+        }
+        fprintf(stderr, "%s", prefix);
+        print_loc(chain[0]);
+        if (chain.size() > 1)
+            fprintf(stderr, "  (inline)");
+        fprintf(stderr, "\n");
+        // Continuations carry the frame's own PC, indented so their "0x"
+        // lands in the frame line's PC column (the prefix ends with the PC
+        // field's separator space, hence the - 18 - 1).
+        for (size_t j = 1; j < chain.size(); j++) {
+            fprintf(stderr, "%*s0x%016lx ", plen - 18 - 1, "",
+                    (unsigned long)pc);
+            print_loc(chain[j]);
+            if (j + 1 < chain.size())
                 fprintf(stderr, "  (inline)");
             fprintf(stderr, "\n");
-            for (size_t j = 1; j < chain.size(); j++) {
-                fprintf(stderr, "%*s", plen + 1, "");
-                print_loc(chain[j]);
-                if (j + 1 < chain.size())
-                    fprintf(stderr, "  (inline)");
-                fprintf(stderr, "\n");
-            }
         }
-        printed++;
+    };
+
+    for (size_t i = omit; i < steps.size(); i++) {
+        const std::vector<uint64_t>& step = steps[i];
+        // Defensive: an empty step (no recorder produces one) carries no
+        // PC -- skip it rather than print a bare address.
+        if (step.empty())
+            continue;
+        // Step label; the same width, as blanks, is the indent that puts
+        // each further frame's "#K" under the step line's "#0".
+        char lead[32];
+        int llen = snprintf(lead, sizeof(lead), "step %zu:  ", i + 1);
+        std::string findent((size_t)llen, ' ');
+        for (size_t k = 0; k < step.size(); k++)
+            print_frame(step, k, k ? findent.c_str() : lead);
     }
     fflush(stderr);
 }
 
-// Explicit instantiations: dump_core (core_dump.cpp) traces for either
-// taint type.
+// Explicit instantiations: dump_core (core_dump.cpp) traces for any taint
+// type.
 template void print_guest_stack_trace<Taint>(CPU<Taint>*);
 template void print_guest_stack_trace<HistoryTaint>(CPU<HistoryTaint>*);
+template void print_guest_stack_trace<DeepHistoryTaint>(CPU<DeepHistoryTaint>*);

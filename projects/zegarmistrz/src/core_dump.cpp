@@ -145,7 +145,7 @@ static void append_note(std::vector<uint8_t>& out, uint32_t type,
 template<typename TaintT>
 const char* dump_core(CPU<TaintT>* cpu, const char* reason,
                       unsigned long fault_addr, int signo,
-                      const std::vector<uint64_t>& poison_history) {
+                      const std::vector<std::vector<uint64_t>>& poison_history) {
     // A host fault while producing the dump (e.g. inside BFD parsing)
     // must kill the process, not longjmp back into run_cpu_loop: the
     // LoopScope recovery is still armed in the caller, so the jump would
@@ -370,7 +370,10 @@ const char* dump_core(CPU<TaintT>* cpu, const char* reason,
 // taint type.
 template const char* dump_core<Taint>(CPU<Taint>*, const char*,
                                       unsigned long, int,
-                                      const std::vector<uint64_t>&);
+                                      const std::vector<std::vector<uint64_t>>&);
 template const char* dump_core<HistoryTaint>(CPU<HistoryTaint>*, const char*,
                                              unsigned long, int,
-                                             const std::vector<uint64_t>&);
+                                             const std::vector<std::vector<uint64_t>>&);
+template const char* dump_core<DeepHistoryTaint>(
+    CPU<DeepHistoryTaint>*, const char*, unsigned long, int,
+    const std::vector<std::vector<uint64_t>>&);

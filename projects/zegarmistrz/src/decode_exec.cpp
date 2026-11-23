@@ -142,6 +142,30 @@ static char dbg2_needle[128] = {0};
 
 } // namespace
 
+// The whole engine below is a class template over the taint sidecar type:
+// Taint (plain, default), HistoryTaint (--history: the same three
+// enforcement bits plus a bounded trail of the guest PCs that produced or
+// consumed the poison), or DeepHistoryTaint (--history=N/full: the trail's
+// steps are recorded guest stacks instead of single PCs). Every former
+// file-scope/anonymous-namespace function became a static member and runs
+// for any type; the bodies AND the comments are carried over from the
+// pre-templating file (member definitions kept at their original
+// indentation). Only run_cpu_loop is exported (see the explicit
+// instantiations after the class); nothing else here emits external
+// symbols. The intentional edits relative to the pre-templating file are:
+// the static-member conversion itself, note_store_op (store-PC recording on
+// the sidecar passed by mutable reference), the poison_history_of(...)
+// argument added to the taint-fault guest_error calls, exec_one's
+// zeg_history_pc set, exec_one's registers/emu snapshot for records_frames
+// taints (zeg_history_regs/zeg_history_emu feed --history=N/full stack
+// recording), the steps-valued poison_history_of (one step per recorded
+// operation: a single PC for --history=1, a recorded stack for
+// --history=N/full), the catch sites passing e.poison_history,
+// check_var_time's offending-operand threading (vt_off), the run_cpu_loop
+// wrapper (explicitly instantiated for Taint, HistoryTaint and
+// DeepHistoryTaint), and the removal of two in-class forward declarations
+// (exec_evex_pcmpeq, exec_evex_movd), plus two compile-warning cleanups (an
+// unused local in exec_vpermd and %lx formats in the IFMA debug print).
 template<typename TaintT>
 struct Engine {
     using Taint = TaintT;
@@ -151,11 +175,19 @@ struct Engine {
     using VecVal = ::VecVal<TaintT>;
     using GuestError = ::GuestError<TaintT>;
 
-    // Offending value's poison trail for GuestError ({} for plain Taint).
-    static std::vector<uint64_t> poison_history_of(const Taint& t) {
-        if constexpr (TaintT::has_history)
-                         return t.history;
-        else
+    // Offending value's poison trail for GuestError ({} for plain Taint): a
+    // list of STEPS, one per recorded operation. --history=1 steps hold the
+    // operation's PC; --history=N/full steps hold the recorded stack.
+    static std::vector<std::vector<uint64_t>> poison_history_of(const Taint& t) {
+        if constexpr (TaintT::records_frames)
+            return t.history;
+        else if constexpr (TaintT::has_history) {
+            std::vector<std::vector<uint64_t>> r;
+            r.reserve(t.history.size());
+            for (uint64_t pc : t.history)
+                r.push_back({pc});
+            return r;
+        } else
             return {};
     }
 
@@ -10773,6 +10805,13 @@ struct Engine {
         // --history: record ops against this instruction's PC (pre-advance; RIP
         // is only advanced by the handlers' trailing next_rip assignments).
         zeg_history_pc = cpu->rip;
+        if constexpr (TaintT::records_frames) {
+            // --history=N/full: snapshot the register state so taint recording can
+            // unwind the current stack (see zeg_history_record_stack).
+            for (int i = 0; i < 16; i++)
+                zeg_history_regs[i] = cpu->gpr[i].val;
+            zeg_history_emu = cpu->emu;
+        }
         if (cpu->emu->trace_insn)
             trace_insn(cpu, d);
         dbg_check();
@@ -11957,3 +11996,4 @@ void run_cpu_loop(CPU<TaintT>* cpu) {
 }
 template void run_cpu_loop<Taint>(CPU<Taint>* cpu);
 template void run_cpu_loop<HistoryTaint>(CPU<HistoryTaint>* cpu);
+template void run_cpu_loop<DeepHistoryTaint>(CPU<DeepHistoryTaint>* cpu);
