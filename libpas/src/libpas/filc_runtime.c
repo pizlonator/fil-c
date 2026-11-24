@@ -16058,6 +16058,40 @@ int filc_native_zmath_fetestexcept(filc_thread* my_thread, int excepts)
     return fetestexcept(excepts);
 }
 
+int filc_native_zmath_feraiseexcept(filc_thread* my_thread, int excepts)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return feraiseexcept(excepts);
+}
+
+int filc_native_zmath_fegetround(filc_thread* my_thread)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return fegetround();
+}
+
+int filc_native_zmath_fesetround(filc_thread* my_thread, int round)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    return fesetround(round);
+}
+
+int filc_native_zmath_fegetenv(filc_thread* my_thread, filc_ptr envp_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    filc_check_write(envp_ptr, sizeof(fenv_t));
+    return fegetenv((fenv_t*)filc_ptr_ptr(envp_ptr));
+}
+
+int filc_native_zmath_fesetenv(filc_thread* my_thread, filc_ptr envp_ptr)
+{
+    PAS_UNUSED_PARAM(my_thread);
+    if (filc_ptr_ptr(envp_ptr) == (const void*)FE_DFL_ENV && !filc_ptr_lower(envp_ptr))
+        return fesetenv(FE_DFL_ENV);
+    filc_check_read(envp_ptr, sizeof(fenv_t));
+    return fesetenv((const fenv_t*)filc_ptr_ptr(envp_ptr));
+}
+
 PAS_END_EXTERN_C;
 
 #endif /* PAS_ENABLE_FILC */
