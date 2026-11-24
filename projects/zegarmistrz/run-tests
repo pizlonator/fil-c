@@ -80,6 +80,8 @@ gcc -O2 -mavx -o "$OUTDIR/poison_vt_mode3" tests/poison_vt_mode3.c \
     || { log "guest compile failed: poison_vt_mode3"; exit 1; }
 gcc -O2 -mavx -mrdrnd -mrdseed -o "$OUTDIR/poison_vt_exempt" tests/poison_vt_exempt.c \
     || { log "guest compile failed: poison_vt_exempt"; exit 1; }
+gcc -O2 -mavx2 -o "$OUTDIR/poison_vex_vec" tests/poison_vex_vec.c \
+    || { log "guest compile failed: poison_vex_vec"; exit 1; }
 gcc -O2 -mavx512f -o "$OUTDIR/poison_vt_kmask" tests/poison_vt_kmask.c \
     || { log "guest compile failed: poison_vt_kmask"; exit 1; }
 # CPUID presence + header-only client library tests.
@@ -238,6 +240,7 @@ echo "poison-clear"
 echo "poison-launder-branch"
 echo "poison-launder-index"
 echo "poison-launder-clear"
+echo "poison-vex-vec"
 echo "poison-vt-div"
 echo "poison-vt-clear"
 echo "poison-vt-plausible"
@@ -475,6 +478,22 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
     ;;
 
+  poison-vex-vec)
+    # VEX vpcmpeqb + vpand through vec_store_dst must preserve taint into
+    # vpmovmskb -> branch (cannot-branch fault, exit 139).
+    name=poison_vex_vec
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-branch" "test-output/$name.err.txt"; then
+      echo "PASS poison-vex-vec"
+    else
+      echo "FAIL poison-vex-vec: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
   poison-launder-clear)
     # The complement: with clear-branch-on-store, the clean store DOES
     # sanitize, so the load is clean and the branch succeeds (exit 0).

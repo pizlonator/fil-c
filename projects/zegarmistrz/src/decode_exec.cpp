@@ -694,7 +694,7 @@ struct Engine {
     }
 
     static void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const uint8_t* in, unsigned n,
-                                bool zero_upper, unsigned total_width, Taint t = Taint()) {
+                                bool zero_upper, unsigned total_width, Taint t) {
         const auto& op = d.ops[oi];
         if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
             int idx, width;
@@ -748,7 +748,7 @@ struct Engine {
         guest_error(cpu, "unsupported vector operand");
     }
 
-    static void vec_store_bytes(CPU* cpu, const Dec& d, int oi, VecVal& in, unsigned n,
+    static void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const VecVal& in, unsigned n,
                                 bool zero_upper, unsigned total_width) {
         const auto& op = d.ops[oi];
         if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
@@ -767,7 +767,8 @@ struct Engine {
         if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
             uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
             mem_store_bytes(cpu, addr, in.bytes, n);
-            note_store_op(cpu, addr, n, in.taint);
+            Taint t = in.taint;
+            note_store_op(cpu, addr, n, t);
             return;
         }
         guest_error(cpu, "cannot store vector to operand");
