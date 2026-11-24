@@ -30,11 +30,11 @@ su $FILCOWNER ./build_postlc11_sub1_packaging.sh
 ./build_unmount.sh
 ./build_mount.sh
 
-# The WiFi stage's Sprint A: the kernel gets CONFIG_MAC80211_HWSIM=m (the
+# The kernel gets CONFIG_MAC80211_HWSIM=m (the
 # mac80211 hardware simulator -- virtual radios for QEMU testing of the
 # cfg80211/mac80211 stack; =m so real boots do not auto-create radios) and
 # the target gets the iwlwifi firmware subset + the wens-signed regulatory
-# db in /lib/firmware.  No new projeny packages in Sprint A; the two
+# db in /lib/firmware.  No new projeny packages here; the two
 # firmware tarballs come from sub1's download cache.
 ./build_preseed_pizlix.sh
 
@@ -45,7 +45,7 @@ su $FILCOWNER ./build_postlc11_sub1_packaging.sh
 cp -v build_postlc11_sub2_chroot.sh $LFS/sources
 cp -v build_postlc11_chroot_project_*.sh $LFS/sources
 
-# Sprint C of the WiFi-on-Pizlix port: the WiFi userspace stack tarballs
+# The WiFi userspace stack tarballs
 # (libnl / libndp / wpa_supplicant / NetworkManager) are now POSTLC7
 # packages -- they moved there because g-c-c (postlc7) links libnm +
 # libnma-gtk4 and gnome-shell (postlc8) needs libnm + the NMA4 typelib;

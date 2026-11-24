@@ -15,7 +15,7 @@ cd $FILCSRC
 
 rm -vf projects/*/pizlonated-*.tar.gz
 
-# Sprint 6: assemble the postlc8 stage (GNOME Shell).  Everything the
+# Assemble the postlc8 stage (GNOME Shell).  Everything the
 # postlc8 chroot scripts extract is packaged here, except two drop-in
 # same-version gir rebuilds that reuse the postlc7 tarballs already in
 # /sources from the recovered snapshot (mutter, gnome-desktop; see below).
@@ -40,7 +40,7 @@ filc/projeny package projects/libgweather.projeny projects/libgweather/pizlonate
 filc/projeny package projects/gnome-menus.projeny projects/gnome-menus/pizlonated-gnome-menus.tar.gz
 filc/projeny package projects/gnome-autoar.projeny projects/gnome-autoar-0.4.4/pizlonated-gnome-autoar.tar.gz
 
-# pygobject: Sprint 3 brought the Sprint 4 build under projeny to carry the
+# pygobject: the projeny package carries the
 # Fil-C import-gi fix (PyGObject_MetaType is still NULL while the _gi module
 # executes; the pizlonated CPython asserts zhasvalidcap() in Py_SET_TYPE).
 # Name is 'pygobject' (NOT 'pygobject-3.48.2'): the latter would collide with
@@ -63,7 +63,7 @@ filc/projeny package projects/gnome-shell.projeny projects/gnome-shell/pizlonate
 # stale copy in /sources.
 filc/projeny package projects/gnome-desktop.projeny projects/gnome-desktop/pizlonated-gnome-desktop.tar.gz
 
-# New in Sprint 6: hicolor-icon-theme (the default fallback icon theme;
+# hicolor-icon-theme (the default fallback icon theme;
 # fixes the icon-theme lookup chain, which Adwaita alone does not provide).
 filc/projeny package projects/hicolor-icon-theme.projeny projects/hicolor-icon-theme/pizlonated-hicolor-icon-theme.tar.gz
 

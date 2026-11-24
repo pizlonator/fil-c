@@ -3,7 +3,7 @@
 set -e
 set -x
 
-# at-spi2-core 2.60.5 full build (SPRINT SCRATCH / TEST of the gir path): the
+# at-spi2-core 2.60.5 full build (the gir path): the
 # postlc4 stage built it with -D atk_only=true (just the ATK stub library for
 # gtk3/gtk4).  gnome-shell needs the real thing: libatspi (Atspi-2.0 gir +
 # typelib for the shell's a11y D-Bus traffic) and the ATK bridge

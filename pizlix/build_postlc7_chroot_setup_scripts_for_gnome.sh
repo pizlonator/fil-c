@@ -3,7 +3,7 @@
 set -e
 set -x
 
-# Sprint 5: session wiring for the GNOME (Wayland) session.  Mirrors
+# Session wiring for the GNOME (Wayland) session.  Mirrors
 # build_postlc3_chroot_setup_scripts_for_weston.sh (files live in
 # /sources/etc and get copied into place, then rcN.d symlinks are made).
 
@@ -40,9 +40,9 @@ mkdir -pv /etc/xdg/autostart
 cp -v /sources/etc/xdg/autostart/org.gnome.Shell.desktop /etc/xdg/autostart/
 cp -v /sources/etc/xdg/autostart/pizlix-terminal.desktop /etc/xdg/autostart/
 
-# Sprint 4 wired standalone mutter into the session; Sprint 5 supersedes it
-# with gnome-shell (the same mutter-14 compositor with the shell UI on
-# top).  The session no longer references pizlix-mutter, and its autostart
+# gnome-shell supersedes the standalone mutter in the session (the same
+# mutter-14 compositor with the shell UI on top).  The session no longer
+# references pizlix-mutter, and its autostart
 # entry must not linger: a DisplayServer-phase entry in /etc/xdg/autostart
 # gets autostarted by every session and would fight the shell for the seat.
 rm -fv /etc/xdg/autostart/pizlix-mutter.desktop

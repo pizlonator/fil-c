@@ -5,7 +5,7 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint 11.1 of the WiFi-on-Pizlix port: the kernel rebuild with
+# The kernel rebuild with
 # CONFIG_MAC80211_HWSIM=m (the mac80211 hardware simulator -- virtual WiFi
 # radios for QEMU testing of the cfg80211/mac80211 stack before any real
 # hardware exists).  The iwlwifi stack itself (CONFIG_IWLWIFI=y,

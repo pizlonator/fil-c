@@ -62,11 +62,11 @@ hash -r
 ./build_postlc7_chroot_project_sassc.sh
 hash -r
 
-# Everything below is Sprint 3: the GNOME Wayland session stack.
+# The GNOME Wayland session stack.
 # Order: xkbcommon X11 rebuild first (mutter needs xkbcommon-x11), then
 # gnome-desktop (mutter needs gnome-desktop-4), then mutter itself.
 
-# Sprint 7a: rebuild the GL/EGL stack from the folded Fil-C fixes before
+# Rebuild the GL/EGL stack from the folded Fil-C fixes before
 # anything that compiles against it.  The postlc6 snapshot's mesa was built
 # before the fil-c-compat fixes were folded into projects/mesa.projeny (EGL
 # native handles as real pointers, dri.sym pizlonated* exports, xgetbv,
@@ -142,7 +142,7 @@ hash -r
 ./build_postlc7_chroot_project_mutter.sh
 hash -r
 
-# Everything below is Sprint 4: the session applications.
+# The session applications.
 # Order: gtksourceview first (standalone gtk4 library), then gnome-session
 # (only needs pre-existing libs), then libadwaita (needs sassc from /yolo),
 # then libeditorconfig (cmake), then the two apps that need all of the

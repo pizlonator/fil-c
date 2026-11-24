@@ -5,8 +5,8 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint C of the WiFi-on-Pizlix port: moved here (postlc7, the GNOME desktop stage) from postlc11 -- gnome-control-center (postlc7) links libnm + libnma-gtk4 and gnome-shell (postlc8) loads the NMA4 typelib, so the whole WiFi userspace stack must be installed BEFORE g-c-c runs; postlc11 keeps only the kernel rebuild, the firmware and the boot wiring.
-# Sprint B of the WiFi-on-Pizlix port: libnl-3 3.11.0 -- the netlink library
+# Moved here (postlc7, the GNOME desktop stage) from postlc11 -- gnome-control-center (postlc7) links libnm + libnma-gtk4 and gnome-shell (postlc8) loads the NMA4 typelib, so the whole WiFi userspace stack must be installed BEFORE g-c-c runs; postlc11 keeps only the kernel rebuild, the firmware and the boot wiring.
+# libnl-3 3.11.0 -- the netlink library
 # wpa_supplicant's nl80211 driver is built against (CONFIG_LIBNL32=y uses
 # pkg-config libnl-3.0).  NetworkManager does NOT need it (NM has its own
 # netlink stack in src/libnm-platform), so libnl exists here solely for the

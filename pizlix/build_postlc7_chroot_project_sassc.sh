@@ -3,7 +3,7 @@
 set -e
 set -x
 
-# libsass 3.6.6 + sassc 3.6.2 as build tools for libadwaita (later sprint).
+# libsass 3.6.6 + sassc 3.6.2 as build tools for libadwaita.
 # They are installed under /yolo, NOT /usr.
 #
 # NOTE: the yolo gcc (/yolo/bin/gcc) is a C-only toolchain - it has no

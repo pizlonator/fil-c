@@ -7,14 +7,14 @@ ulimit -c unlimited
 
 cd /sources
 
-# Sprint 6: the GNOME Shell stage.  Everything below was already installed
-# ad-hoc during the porting sprints and verified live; this stage wires the
+# The GNOME Shell stage.  The builds below were verified live on the
+# running system; this stage wires the
 # same builds into the chain idiomatically.  The two gir rebuilds (mutter,
 # gnome-desktop) are drop-in same-version rebuilds over the postlc7
 # installs, now with GObject introspection enabled, because gnome-shell's
 # JS needs their typelibs.
 
-# pygobject first: the Fil-C import-gi fix (the Sprint 4 build panicked on
+# pygobject first: the Fil-C import-gi fix (the postlc4 build panicked on
 # `python3 -c "import gi"`).  Everything below that runs g-ir-scanner or a
 # python gi module at build time (libgweather's gen_locations_variant.py)
 # depends on this rebuild.

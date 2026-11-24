@@ -13,12 +13,12 @@ test $EUID -eq `stat -c %u $FILCSRC`
 
 cd $FILCSRC
 
-# Sprint A of the WiFi-on-Pizlix port: the postlc11 stage packaging.
+# The postlc11 stage packaging.
 #
-# There are no new projeny packages in the WiFi stage's Sprint A (libnl /
-# libndp / wpa_supplicant / NetworkManager come later) -- what this stage
+# There are no new projeny packages here (the WiFi
+# userspace stack packages live in postlc7) -- what this stage
 # needs is the 379MB FIRMWARE tarball (too big to commit to git; see #1)
-# plus, since the 2026-11-22 projeny conversion, the wireless-regdb
+# plus the wireless-regdb
 # projeny package (#2; the git-tracked tarball that used to cover it is
 # gone):
 #
@@ -103,7 +103,7 @@ download_tarball "https://cdn.kernel.org/pub/linux/kernel/firmware/linux-firmwar
 
 filc/projeny package projects/wireless-regdb.projeny projects/wireless-regdb/pizlonated-wireless-regdb.tar.gz
 
-# Sprint C of the WiFi-on-Pizlix port: the WiFi USERSPACE stack packages
+# The WiFi USERSPACE stack packages
 # (libnl / libndp / wpa_supplicant / NetworkManager) moved to the postlc7
 # stage (packaging AND chroot build) -- gnome-control-center (postlc7)
 # links libnm + libnma-gtk4 and gnome-shell (postlc8) loads the NMA4

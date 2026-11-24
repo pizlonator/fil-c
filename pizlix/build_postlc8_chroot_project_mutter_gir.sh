@@ -3,8 +3,8 @@
 set -e
 set -x
 
-# mutter 46.9 rebuild WITH GObject introspection (SPRINT SCRATCH / TEST of the
-# gir path): gnome-shell needs the Meta/Clutter/Cally/Cogl/Mtk-14 typelibs, so
+# mutter 46.9 rebuild WITH GObject introspection (the gir path):
+# gnome-shell needs the Meta/Clutter/Cally/Cogl/Mtk-14 typelibs, so
 # this is the postlc7 mutter script with -Dintrospection=true instead of
 # -Dintrospection=false.  Everything else is identical; this is a drop-in
 # same-version rebuild (the installed mutter stays 46.9).

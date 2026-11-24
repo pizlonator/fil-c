@@ -3,7 +3,7 @@
 set -e
 set -x
 
-# pygobject 3.48.2 rebuild — the Sprint 4 build had a latent Fil-C bug that
+# pygobject 3.48.2 rebuild — the postlc4 build had a latent Fil-C bug that
 # made `python3 -c "import gi"` panic (blocking any meson project that
 # requires python3 module 'gi', e.g. libgweather's gen_locations_variant.py).
 #

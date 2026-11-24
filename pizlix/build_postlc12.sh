@@ -30,7 +30,7 @@ su $FILCOWNER ./build_postlc12_sub1_packaging.sh
 ./build_unmount.sh
 ./build_mount.sh
 
-# Sprint D of the WiFi/GDM port: postlc12 is "the login manager" stage --
+# postlc12 is "the login manager" stage --
 # libtool (the libltdl fix), libogg, libvorbis, libcanberra (the audio trio
 # gdm's unconditional libcanberra-gtk3 dependency pulls in) and gdm 46.2,
 # plus the boot-to-GNOME wiring (the gdm user, /var/lib/gdm, the blfs xdm

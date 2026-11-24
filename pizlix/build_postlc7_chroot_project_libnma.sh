@@ -5,7 +5,7 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint C of the WiFi-on-Pizlix port: libnma 1.10.6 -- the NetworkManager
+# libnma 1.10.6 -- the NetworkManager
 # UI utilities.  Two shared libraries come out of this build:
 #
 #   libnma      (NMA-1.0 gir/typelib, gtk3)  -- the gtk3 variant; nothing in
@@ -13,7 +13,7 @@ ulimit -c unlimited
 #              always builds the gtk3 variant and g-c-c's libnm.pc-style
 #              consumers may want it; building it costs little and keeps
 #              the install faithful.
-#   libnma-gtk4 (NMA4-1.0 gir/typelib, gtk4) -- the point of the sprint:
+#   libnma-gtk4 (NMA4-1.0 gir/typelib, gtk4) --
 #              gnome-control-center's network panel links it
 #              (dependency('libnma-gtk4', version: '>= 1.10.2')), and the
 #              NMA4-1.0 typelib is what gnome-shell's statically-imported
@@ -39,11 +39,11 @@ ulimit -c unlimited
 #   vapi=false, gtk_doc=false, more_asserts=0, ld_gc=false
 #                           no vala in the chroot; no gtk-doc; production
 #                           assert level; no -ffunction-sections
-#                           --gc-sections linking (house pattern from the
-#                           recon: avoid gc-sections quirks under Fil-C).
+#                           --gc-sections linking (house pattern: avoid
+#                           gc-sections quirks under Fil-C).
 #
 # Dependencies: libnm >= 1.7 (NetworkManager 1.48.4, built earlier in this
-# stage since Sprint C -- g-c-c and gnome-shell need libnm too, which is
+# stage -- g-c-c and gnome-shell need libnm too, which is
 # WHY the wifi userspace stack moved from postlc11 to postlc7), gtk+-3.0
 # >= 3.12 (3.24.52), gtk4 >= 4.0 (4.14.5, rebuilt in this stage before the
 # apps), gio, gmodule-export-2.0, gcr-4/gck-2 (4.3.0), iso-codes.

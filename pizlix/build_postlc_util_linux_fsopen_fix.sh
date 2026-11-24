@@ -5,7 +5,7 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint S3 of the Pizlix stability work: fix mount(8) aborting under Fil-C on
+# Fix mount(8) aborting under Fil-C on
 # any type-less mount (e.g. `mount /dev/sda2 /mnt/u`).  libmount's new-mount-API
 # probe fsopen_is_supported() called fsopen(NULL, FSOPEN_CLOEXEC); the Fil-C
 # fsopen wrapper read-checks the filesystem-name string and a NULL name is a

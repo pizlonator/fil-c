@@ -7,7 +7,7 @@ ulimit -c unlimited
 
 cd /sources
 
-# Sprint D of the WiFi/GDM port: the "login manager" stage.  Build order:
+# The "login manager" stage.  Build order:
 #
 # 1. libtool (the libltdl Fil-C fix: the weak preloaded-symbols reference).
 #    Must run FIRST -- libcanberra's configure probes libltdl with an

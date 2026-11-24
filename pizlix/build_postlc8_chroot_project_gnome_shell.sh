@@ -22,11 +22,11 @@ set -x
 #   would lock the user out, since it authenticates through Gdm).
 #
 # Flags (checked against meson_options.txt):
-# -D networkmanager=true (Sprint C of the WiFi-on-Pizlix port; was false):
+# -D networkmanager=true (was false):
 #   the shell's network indicator/agent code compiles in via
 #   Config.HAVE_NETWORKMANAGER (meson.build:97-105; js/misc/dependencies.js
 #   then gi.require()s NM 1.0 + NMA4 1.0 -- NM-1.0 comes from NetworkManager
-#   and NMA4-1.0 from libnma, both installed in postlc7 since Sprint C,
+#   and NMA4-1.0 from libnma, both installed in postlc7,
 #   because g-c-c there needs libnm + libnma-gtk4 before this stage runs).
 #   Build-time deps of the option: libnm >= 1.10.4 (1.48.4) + libsecret-1
 #   >= 0.18 (meson.build:36,99; libsecret was already in the chroot);

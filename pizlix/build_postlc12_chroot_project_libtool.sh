@@ -40,8 +40,8 @@ cd pizlonated-libtool
 # --trace snippet and REQUIRES both to produce empty output.  Under fil-C
 # that probe intermittently captures a foreign blob of xtrace-looking
 # bash output ("++ /bin/universe", "./configure: line 2284: /bin/universe:
-# No such file or directory") on m4's stdout -- observed 5 runs in a row
-# during Sprint D, then 45 consecutive clean runs with no repro and no
+# No such file or directory") on m4's stdout -- observed 5 runs in a row,
+# then 45 consecutive clean runs with no repro and no
 # writer visible under strace (zero write() syscalls in the trace, and
 # the string exists nowhere in the chroot's binaries).  With M4 preset,
 # configure takes it verbatim and skips both the search and the

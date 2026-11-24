@@ -34,7 +34,7 @@ cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
 cp -v build_postlc7_sub2_chroot.sh $LFS/sources
 cp -v build_postlc7_chroot_project_*.sh $LFS/sources
 cp -v build_postlc7_chroot_setup_scripts_for_gnome.sh $LFS/sources
-# Sprint 7a: the GL/EGL stack is rebuilt in this stage from the folded
+# The GL/EGL stack is rebuilt in this stage from the folded
 # Fil-C fixes (see build_postlc7_sub2_chroot.sh); copy its chroot scripts.
 cp -v build_postlc4_chroot_project_mesa.sh $LFS/sources
 cp -v build_postlc6_chroot_project_libepoxy.sh $LFS/sources
@@ -44,7 +44,7 @@ cp -v build_postlc4_chroot_project_gtk4.sh $LFS/sources
 # /sources from the earlier stage that built shadow without PAM).
 cp -v shadow-4.16.0.tar.xz $LFS/sources
 
-# Sprint 5: session wiring (dbus/elogind bootscripts, GNOME session file,
+# Session wiring (dbus/elogind bootscripts, GNOME session file,
 # autostart desktops, launchers).  build_postlc7_sub2_chroot.sh invokes
 # build_postlc7_chroot_setup_scripts_for_gnome.sh at the END of the chroot
 # phase; the setup script reads these from /sources/etc.

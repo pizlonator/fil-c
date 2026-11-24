@@ -5,7 +5,7 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint 11.2 of the WiFi-on-Pizlix port: the firmware.
+# The firmware.
 #
 # /lib/firmware is what the kernel's request_firmware() serves from (the
 # iwlwifi driver walks fw_name_pre-api.ucode FLAT in /lib/firmware -- see
@@ -136,7 +136,7 @@ test -e /lib/firmware/regulatory.db
 test -e /lib/firmware/regulatory.db.p7s
 head -c 2 /lib/firmware/regulatory.db; echo " <- regdb magic (op)"; true
 
-echo "=== gate: the AX200/AX210-era families the recon checked, spot check ==="
+echo "=== gate: the AX200/AX210-era families, spot check ==="
 test -e /lib/firmware/iwlwifi-cc-a0-50.ucode
 test -e /lib/firmware/iwlwifi-so-a0-jf-b0-77.ucode
 test -e /lib/firmware/iwlwifi-so-a0-hr-b0-89.ucode
@@ -146,7 +146,7 @@ test -e /lib/firmware/iwlwifi-QuZ-a0-hr-b0-77.ucode
 
 echo "=== gate: total size ==="
 du -sm /lib/firmware
-# ~166MB: 121 ucode + 5 pnvm; the recon's ~195MB figure was for the full
+# ~166MB: 121 ucode + 5 pnvm; the ~195MB estimate covered the full
 # 150-file iwlwifi set, 22+2 files of which belong to families the kernel
 # manifest does not declare (see the counts gate above).
 test `du -sm /lib/firmware | cut -f1` -ge 150

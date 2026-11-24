@@ -21,7 +21,7 @@ rm -vf projects/*/pizlonated-*.tar.gz
 # stage).  postlc7 rebuilds it with X11 support (xkbcommon-x11) for mutter.
 ./package-source.sh projects/libxkbcommon-xkbcommon-1.11.0 pizlonated-xkbcommon
 
-# Sprint 7a: the postlc6 snapshot's installed mesa/libepoxy/gtk4 predate the
+# The postlc6 snapshot's installed mesa/libepoxy/gtk4 predate the
 # folded Fil-C fixes (EGL native handles as real pointers, dri.sym
 # pizlonated* exports, xgetbv, sparse_array, glsl_types name_id, nir
 # _parent, queryobj), and postlc7 is the first stage to rebuild anything
@@ -65,8 +65,8 @@ filc/projeny package projects/ibus.projeny projects/ibus/pizlonated-ibus.tar.gz
 filc/projeny package projects/upower.projeny projects/upower/pizlonated-upower.tar.gz
 filc/projeny package projects/accountsservice.projeny projects/accountsservice/pizlonated-accountsservice.tar.gz
 
-# Sprint C of the WiFi-on-Pizlix port: the WiFi USERSPACE stack + libnma,
-# packaged here (they were postlc11 packages until Sprint C -- moved for
+# The WiFi USERSPACE stack + libnma,
+# packaged here (moved from postlc11 for
 # the ordering constraint documented in build_postlc7_sub2_chroot.sh:
 # g-c-c is built in THIS stage and links libnm + libnma-gtk4, gnome-shell
 # in postlc8 links libnm and loads the NMA4 typelib, so the stack must be

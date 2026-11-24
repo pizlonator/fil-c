@@ -5,10 +5,10 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint B of the WiFi-on-Pizlix port: wire NetworkManager into the boot.
+# Wire NetworkManager into the boot.
 #
-# The decision this script implements (see the recon §5.3 and the sprint
-# notes): NM takes over ALL devices -- eth0 AND the wifi radios.  That
+# The decision this script implements: NM takes over ALL devices -- eth0 AND
+# the wifi radios.  That
 # means the LFS `network` bootscript (dhcpcd on eth0 via
 # /etc/sysconfig/ifconfig.eth0) must NOT run alongside NM: two DHCP
 # clients on eth0 fight over the lease, the address and

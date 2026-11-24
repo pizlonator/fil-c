@@ -15,7 +15,7 @@ cd $FILCSRC
 
 rm -vf projects/*/pizlonated-*.tar.gz
 
-# Sprint D of the WiFi/GDM port (postlc12, "the login manager"): the five
+# postlc12, "the login manager": the five
 # projeny packages, all URL-style (no tarball checked into git).
 #
 # gdm 46.2 is the point of the stage: the GNOME Display Manager, so Pizlix

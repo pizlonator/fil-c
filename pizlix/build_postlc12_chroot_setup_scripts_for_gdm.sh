@@ -5,7 +5,7 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint D of the WiFi/GDM port: the boot-to-GNOME wiring.  This is the
+# The boot-to-GNOME wiring.  This is the
 # setup half of the postlc12 "login manager" stage (the build half is
 # libtool/libogg/libvorbis/libcanberra/gdm).  What it wires:
 #
@@ -44,8 +44,8 @@ ulimit -c unlimited
 # 5. THE USER-SESSION SIDE: /usr/share/wayland-sessions/pizlix-gnome.desktop
 #    (the wayland-sessions directory is where GDM discovers user sessions;
 #    Exec=/usr/bin/pizlix-gnome is the existing session launcher -- dbus-
-#    run-session + gnome-session --session=pizlix-gnome, the exact session
-#    that has been running since Sprint 5).  GDM wraps the chosen Exec with
+#    run-session + gnome-session --session=pizlix-gnome.  GDM wraps the
+#    chosen Exec with
 #    its own gdm-wayland-session + a private session bus
 #    (daemon/gdm-session.c:3212), so the launcher does not change.
 # 6. THE GREETER'S SHELL LOG: /etc/xdg/autostart/org.gnome.Shell.desktop ->
@@ -58,7 +58,7 @@ ulimit -c unlimited
 #    wrapper's redirection and kill the greeter's shell before it starts).
 #
 # rc5.d needs NO changes here: rc2-5 already carry S20dbus + S25elogind +
-# S33networkmanager (Sprint B's networkmanager boot wiring installs S33 in
+# S33networkmanager (the networkmanager boot wiring installs S33 in
 # rc2..rc5) + S30sshd + S80seatd, and the S20network (dhcpcd) symlinks are
 # already absent (NM manages eth0; the network script stays on disk for
 # rescue).  The greeter's network indicator runs over that same NM.
@@ -113,7 +113,7 @@ cat > /usr/share/wayland-sessions/pizlix-gnome.desktop << "EOF"
 Type=Application
 # Pizlix's GNOME (Wayland) session, started by GDM's gdm-wayland-session
 # (which wraps this Exec with its own private session bus).  Same launcher
-# the getty-login path has used since Sprint 5.
+# the getty-login path uses.
 Name=Pizlix GNOME
 Comment=This session logs you into the Pizlix GNOME desktop
 Exec=/usr/bin/pizlix-gnome
@@ -158,8 +158,8 @@ fi
 # gnome-session fail whale (verified live, /home/pizlo/.cache/gdm/session.log).
 # The greeter's session menu defaulted to the first alphabetical entry
 # ('gnome') and hit exactly that.  Remove the two broken entries --
-# /usr/share/wayland-sessions/pizlix-gnome.desktop (Exec=/usr/bin/pizlix-gnome,
-# the launcher that has carried the session since Sprint 5) becomes the only
+# /usr/share/wayland-sessions/pizlix-gnome.desktop (Exec=/usr/bin/pizlix-gnome)
+# becomes the only
 # GNOME wayland session and therefore the default; weston.desktop stays (it
 # works, as an alternative).
 for f in gnome.desktop gnome-wayland.desktop; do

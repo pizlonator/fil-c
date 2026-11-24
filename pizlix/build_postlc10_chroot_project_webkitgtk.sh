@@ -39,8 +39,8 @@ time cmake /sources/pizlonated-webkitgtk -DPORT=GTK -DCMAKE_BUILD_TYPE=RelWithDe
   -DENABLE_XSLT=ON -DENABLE_SPELLCHECK=ON -DUSE_JPEGXL=OFF -DUSE_AVIF=OFF -DENABLE_BUBBLEWRAP_SANDBOX=OFF \
   -DENABLE_INTROSPECTION=OFF -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib
 
-# GATE A: the CLoop configuration really took (the whole point of the
-# recon line: no JIT, no sampling profiler, pure C interpreter loop).
+# GATE A: the CLoop configuration really took (no JIT, no sampling
+# profiler, pure C interpreter loop).
 grep -q 'ENABLE_C_LOOP:BOOL=ON' CMakeCache.txt
 echo "GATE A (configure + CLoop): OK"
 

@@ -5,10 +5,10 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint C of the WiFi-on-Pizlix port: dnsmasq 2.90 -- the lightweight
+# dnsmasq 2.90 -- the lightweight
 # DNS/DHCP server NetworkManager spawns for SHARED-mode connections (Wi-Fi
-# hotspot/tethering, connection sharing).  Found live in the Sprint C
-# verification: `nmcli device wifi hotspot` got through the 802.11 part
+# hotspot/tethering, connection sharing).  A live `nmcli device wifi
+# hotspot` check got through the 802.11 part
 # (supplicant state inactive -> completed, "Started Wi-Fi Hotspot") but
 # died at IP config with:
 #

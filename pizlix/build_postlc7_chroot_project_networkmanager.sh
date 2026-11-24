@@ -5,13 +5,13 @@ set -x
 
 ulimit -c unlimited
 
-# Sprint C of the WiFi-on-Pizlix port: the WiFi userspace stack lives in the postlc7 (GNOME desktop) stage -- gnome-control-center (postlc7) links libnm + libnma-gtk4 and gnome-shell (postlc8) links libnm + loads the NMA4 typelib, so the stack must be installed BEFORE g-c-c runs; postlc11 keeps only the kernel rebuild + the firmware + the boot wiring.
-# Sprint B of the WiFi-on-Pizlix port: NetworkManager 1.48.4 -- the network
+# The WiFi userspace stack lives in the postlc7 (GNOME desktop) stage -- gnome-control-center (postlc7) links libnm + libnma-gtk4 and gnome-shell (postlc8) links libnm + loads the NMA4 typelib, so the stack must be installed BEFORE g-c-c runs; postlc11 keeps only the kernel rebuild + the firmware + the boot wiring.
+# NetworkManager 1.48.4 -- the network
 # daemon the GNOME shell talks to (libnm + NM-1.0 typelib for the network
 # indicator/quick settings; the wifi backend is wpa_supplicant over dbus).
 #
 # Meson flags, every optional dependency pinned to what the chroot has
-# (meson_options.txt read; the recon's flag set verified against it):
+# (meson_options.txt read; flags verified against it):
 #
 #   session_tracking/suspend_resume = elogind   chroot has libelogind.pc
 #     (elogind 255.27; the elogind branch asserts libelogind >= 229) --
@@ -33,8 +33,8 @@ ulimit -c unlimited
 #   qt=false                                    no Qt
 #   crypto=gnutls                               gnutls 3.8.7 (NM's cert/key
 #     handling for 802.1x; nss is the upstream default but absent here)
-#   wifi=true, wext=false                       the point of the sprint;
-#     wext (old wireless-extensions ioctls) is dead, nl80211 only
+#   wifi=true, wext=false                       wext (old wireless-extensions
+#     ioctls) is dead, nl80211 only
 #   concheck=true                               libcurl 8.23 present; NM's
 #     connectivity check (the GNOME portal-detection helper)
 #   dhcp=internal                               NM's vendored nettools DHCP --
@@ -48,8 +48,8 @@ ulimit -c unlimited
 #   docs=false, more_asserts=0                  no gtk-doc; production-like
 #     assert level (buildtype stays debugoptimized per house style)
 #   ld_gc=false                                 no -ffunction-sections
-#     --gc-sections linking (the house pattern from the libnma recon:
-#     avoid gc-sections quirks under Fil-C)
+#     --gc-sections linking (house pattern: avoid gc-sections quirks
+#     under Fil-C)
 #
 # perl + xsltproc are unconditional find_program()s in meson.build (man
 # page generation) -- both verified present in the chroot.  jansson is
