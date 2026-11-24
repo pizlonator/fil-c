@@ -571,27 +571,24 @@ void mem_note_store(CPU<TaintT>* cpu, uint64_t addr, size_t size, TaintT t) {
         auto it = g_poison.find(a);
         uint8_t old = (it == g_poison.end()) ? 0 : it->second;
         uint8_t nu = old;
-        if (cb) {
-            if (old & POISON_CLEAR_BRANCH_ON_STORE)
-                nu &= ~(uint8_t)POISON_CANNOT_BRANCH;
-            else
-                nu |= (uint8_t)(POISON_CANNOT_BRANCH |
-                                POISON_CLEAR_BRANCH_ON_STORE);
-        }
-        if (ci) {
-            if (old & POISON_CLEAR_INDEX_ON_STORE)
-                nu &= ~(uint8_t)POISON_CANNOT_INDEX;
-            else
-                nu |= (uint8_t)(POISON_CANNOT_INDEX |
-                                POISON_CLEAR_INDEX_ON_STORE);
-        }
-        if (cvt) {
-            if (old & POISON_CLEAR_VAR_TIME_OP_ON_STORE)
-                nu &= ~(uint8_t)POISON_CANNOT_VAR_TIME_OP;
-            else
-                nu |= (uint8_t)(POISON_CANNOT_VAR_TIME_OP |
-                                POISON_CLEAR_VAR_TIME_OP_ON_STORE);
-        }
+        auto update_dim = [&](bool has, uint8_t bit, uint8_t clear_bit) {
+            if (has) {
+                // Storing a tainted value keeps/sets the poison bit. If the
+                // byte did not already carry that poison bit, also mark it
+                // clear-on-store so a later clean store can sanitize it; if it
+                // already carried sticky user poison (without clear_bit),
+                // leave clear_bit unset.
+                if (!(old & bit))
+                    nu |= (uint8_t)(bit | clear_bit);
+            } else if (old & clear_bit) {
+                // Storing a value clean in this dimension honors clear-on-store.
+                nu &= (uint8_t)~bit;
+            }
+        };
+        update_dim(cb, POISON_CANNOT_BRANCH, POISON_CLEAR_BRANCH_ON_STORE);
+        update_dim(ci, POISON_CANNOT_INDEX, POISON_CLEAR_INDEX_ON_STORE);
+        update_dim(cvt, POISON_CANNOT_VAR_TIME_OP,
+                   POISON_CLEAR_VAR_TIME_OP_ON_STORE);
         if (nu) {
             g_poison[a] = nu;
             if constexpr (TaintT::has_history)

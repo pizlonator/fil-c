@@ -412,13 +412,13 @@ stack in `callers` in the deep modes; `callers` is empty in
 Precise semantics of `mem_note_store` (this is the valgrind-flavored
 part; `tests/poison_launder_*.c` pin it):
 
-- Storing a value whose taint bit B is set marks the destination bytes
-  with B **plus the matching clear-on-store bit** (so the poison is
-  self-describing: a later clean store can sanitize it).
-- If the destination already carries the matching clear-on-store bit,
-  the store instead **clears** B there (store sanitizes).
-- A clean store (no taint) still honors clear-on-store bits: it clears
-  any dimension the destination asked to have sanitized.
+- For each dimension B where the stored value is tainted, the destination
+  bytes keep/gain B (and gain the matching clear-on-store bit if B was not
+  already set, so a later clean store can sanitize a spill without weakening
+  sticky user poison).
+- For each dimension B where the stored value is clean, if the destination
+  carries the matching clear-on-store bit, the store clears B there (store
+  sanitizes).
 - cannot-load / cannot-store / clear bits are sticky — stores never
   remove them (only `zegarmistrz_unpoison_range` does).
 

@@ -65,7 +65,7 @@ gcc -O2 -static -o "$OUTDIR/static_hi" tests/static_hi.c || { log "guest compile
 for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall poison_launder_branch poison_launder_index poison_launder_clear \
          poison_vt_div poison_vt_clear poison_vt_plausible poison_vt_cmps poison_vt_cpuid poison_vt_rep \
          poison_index_lea poison_index_nop poison_index_lea_prop poison_combo \
-         poison_branch_ctrl poison_ortho; do
+         poison_branch_ctrl poison_ortho poison_respill; do
     gcc -O2 -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null || { log "guest compile failed: $t"; exit 1; }
 done
 # LEA/NOP cannot-index exemption guests + the cannot-index address battery
@@ -241,6 +241,7 @@ echo "poison-launder-branch"
 echo "poison-launder-index"
 echo "poison-launder-clear"
 echo "poison-vex-vec"
+echo "poison-respill"
 echo "poison-vt-div"
 echo "poison-vt-clear"
 echo "poison-vt-plausible"
@@ -478,6 +479,22 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
     ;;
 
+  poison-respill)
+    # Repeated tainted stores to the same slot must keep taint set rather than
+    # toggling it off through clear-on-store (cannot-branch fault, exit 139).
+    name=poison_respill
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-branch" "test-output/$name.err.txt"; then
+      echo "PASS poison-respill"
+    else
+      echo "FAIL poison-respill: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
   poison-vex-vec)
     # VEX vpcmpeqb + vpand through vec_store_dst must preserve taint into
     # vpmovmskb -> branch (cannot-branch fault, exit 139).

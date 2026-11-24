@@ -491,10 +491,11 @@ inline void mem_get_taint(uint64_t addr, size_t size, TaintT& out) {
 }
 
 // Called after a successful store of a value with taint t to
-// [addr,size): the destination bytes gain the value's taint bits
-// (plus the matching clear-on-store bit, so a later store clears the
-// taint). If the destination already carries a clear-on-store bit for a
-// tainted value, that value bit is cleared instead (store sanitizes).
+// [addr,size): for each taint dimension set in t, the destination bytes
+// keep/gain that poison bit (and gain the matching clear-on-store bit if
+// they were not already poisoned in that dimension, so a later clean store
+// can sanitize them). For each dimension clean in t, a clear-on-store bit
+// on the destination clears the corresponding poison bit.
 // Load/store poison bits and clear bits are sticky.
 // In --history mode the destination bytes' poison history is rewritten too:
 // a store of a tainted value records the stored value's trail plus the
