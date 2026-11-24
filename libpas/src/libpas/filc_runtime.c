@@ -719,6 +719,8 @@ static void at_exit_hook(void)
     alloc_stat_dump();
 }
 
+static filc_thread* filc_main_thread;
+
 void filc_initialize(filc_stack_limit stack_limit)
 {
     bool should_log_to_file = false;
@@ -836,6 +838,7 @@ void filc_initialize(filc_stack_limit stack_limit)
     thread->has_stopped = false;
     thread->thread = pthread_self();
     thread->tid = gettid();
+    filc_main_thread = thread;
     pas_fence();
     thread->has_initialized = true;
     thread->tlc_node = verse_heap_get_thread_local_cache_node();
@@ -12374,7 +12377,30 @@ int filc_native_zsys_prctl(filc_thread* my_thread, int option, filc_cc_cursor* a
     case PR_SET_NAME: {
         filc_ptr name_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
         char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
-        return FILC_SYSCALL(my_thread, prctl(PR_SET_NAME, name, 0, 0, 0));
+        int result = FILC_SYSCALL(my_thread, prctl(PR_SET_NAME, name, 0, 0, 0));
+#if !PAS_COSMO
+        if (!result && my_thread == filc_main_thread) {
+            pid_t pid = getpid();
+            if ((unsigned)pid != my_thread->tid) {
+                char comm_buf[16];
+                size_t comm_len = strnlen(name, 15);
+                memcpy(comm_buf, name, comm_len);
+                char comm_path[64];
+                snprintf(comm_path, sizeof(comm_path), "/proc/self/task/%d/comm", (int)pid);
+                int saved_errno = errno;
+                filc_exit(my_thread);
+                int fd = open(comm_path, O_WRONLY | O_CLOEXEC);
+                if (fd >= 0) {
+                    ssize_t ignored = write(fd, comm_buf, comm_len);
+                    PAS_UNUSED_PARAM(ignored);
+                    close(fd);
+                }
+                filc_enter(my_thread);
+                errno = saved_errno;
+            }
+        }
+#endif
+        return result;
     }
 
     case PR_GET_NAME: {
