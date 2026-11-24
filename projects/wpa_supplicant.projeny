@@ -1,6 +1,7 @@
 URL: https://w1.fi/releases/wpa_supplicant-2.11.tar.gz 3b61ac45430831f5fdc4ef8d00b5415075a2f236f591213eca22c9c7312707c3
 Origname: wpa_supplicant-2.11
 Name: wpa_supplicant
+
     wpa_supplicant 2.11 (the WiFi authentication daemon NetworkManager
     D-Bus-activates; fi.w1.wpa_supplicant1).  The tarball is the whole
     hostap archive (hostapd/, wpa_supplicant/, src/ shared); the chroot
@@ -15,4 +16,90 @@ Name: wpa_supplicant
     dbus policy to /usr/share/dbus-1/system.d/.  Fil-C changes: none
     expected beyond the usual; the eloop/os_unix/openssl-glue idioms
     build clean.
+diff --git a/wpa_supplicant/src/crypto/tls_openssl.c b/wpa_supplicant/src/crypto/tls_openssl.c
+--- a/wpa_supplicant/src/crypto/tls_openssl.c
++++ b/wpa_supplicant/src/crypto/tls_openssl.c
+@@ -1854,8 +1854,10 @@
+ 		gen = sk_GENERAL_NAME_value(ext, i);
+ 		if (gen->type != type)
+ 			continue;
+-		if (os_strlen((char *) gen->d.ia5->data) == len &&
+-		    os_memcmp(value, gen->d.ia5->data, len) == 0)
++		/* Fil-C: OpenSSL 4 made ASN1_STRING opaque; use the public
++		 * accessors instead of ->data and ->length. */
++		if (os_strlen((char *) ASN1_STRING_get0_data(gen->d.ia5)) == len &&
++		    os_memcmp(value, ASN1_STRING_get0_data(gen->d.ia5), len) == 0)
+ 			found++;
+ 	}
 
+@@ -2175,11 +2177,13 @@
+ 		if (gen->type != GEN_DNS)
+ 			continue;
+ 		dns_name++;
++		/* Fil-C: OpenSSL 4 made ASN1_STRING opaque; use the public
++		 * accessors instead of ->data and ->length. */
+ 		wpa_hexdump_ascii(MSG_DEBUG, "TLS: Certificate dNSName",
+-				  gen->d.dNSName->data,
+-				  gen->d.dNSName->length);
+-		if (domain_suffix_match(gen->d.dNSName->data,
+-					gen->d.dNSName->length,
++				  ASN1_STRING_get0_data(gen->d.dNSName),
++				  ASN1_STRING_length(gen->d.dNSName));
++		if (domain_suffix_match(ASN1_STRING_get0_data(gen->d.dNSName),
++					ASN1_STRING_length(gen->d.dNSName),
+ 					match, match_len, full) == 1) {
+ 			wpa_printf(MSG_DEBUG, "TLS: %s in dNSName found",
+ 				   full ? "Match" : "Suffix match");
+@@ -2209,9 +2213,13 @@
+ 		cn = X509_NAME_ENTRY_get_data(e);
+ 		if (cn == NULL)
+ 			continue;
++		/* Fil-C: OpenSSL 4 made ASN1_STRING opaque; use the public
++		 * accessors instead of ->data and ->length. */
+ 		wpa_hexdump_ascii(MSG_DEBUG, "TLS: Certificate commonName",
+-				  cn->data, cn->length);
+-		if (domain_suffix_match(cn->data, cn->length,
++				  ASN1_STRING_get0_data(cn),
++				  ASN1_STRING_length(cn));
++		if (domain_suffix_match(ASN1_STRING_get0_data(cn),
++					ASN1_STRING_length(cn),
+ 					match, match_len, full) == 1) {
+ 			wpa_printf(MSG_DEBUG, "TLS: %s in commonName found",
+ 				   full ? "Match" : "Suffix match");
+@@ -2420,7 +2428,9 @@
+ 		    gen->type != GEN_URI)
+ 			continue;
+
+-		pos = os_malloc(10 + gen->d.ia5->length + 1);
++		/* Fil-C: OpenSSL 4 made ASN1_STRING opaque; use the public
++		 * accessors instead of ->data and ->length. */
++		pos = os_malloc(10 + ASN1_STRING_length(gen->d.ia5) + 1);
+ 		if (pos == NULL)
+ 			break;
+ 		altsubject[num_altsubject++] = pos;
+@@ -2440,8 +2450,9 @@
+ 			break;
+ 		}
+
+-		os_memcpy(pos, gen->d.ia5->data, gen->d.ia5->length);
+-		pos += gen->d.ia5->length;
++		os_memcpy(pos, ASN1_STRING_get0_data(gen->d.ia5),
++			  ASN1_STRING_length(gen->d.ia5));
++		pos += ASN1_STRING_length(gen->d.ia5);
+ 		*pos = '\0';
+ 	}
+ 	sk_GENERAL_NAME_pop_free(ext, GENERAL_NAME_free);
+diff --git a/wpa_supplicant/src/crypto/tls_openssl_ocsp.c b/wpa_supplicant/src/crypto/tls_openssl_ocsp.c
+--- a/wpa_supplicant/src/crypto/tls_openssl_ocsp.c
++++ b/wpa_supplicant/src/crypto/tls_openssl_ocsp.c
+@@ -540,7 +540,9 @@
+ 		return OCSP_INVALID;
+ 	}
+
+-	basic_data = ASN1_STRING_data(bytes->response);
++	/* Fil-C: OpenSSL 4 removed ASN1_STRING_data(); ASN1_STRING_get0_data()
++	 * is the same pointer with a const qualifier (available since 1.1.0). */
++	basic_data = ASN1_STRING_get0_data(bytes->response);
+ 	basic_len = ASN1_STRING_length(bytes->response);
+ 	wpa_hexdump(MSG_DEBUG, "OpenSSL: BasicOCSPResponse",
+ 		    basic_data, basic_len);
