@@ -34,12 +34,31 @@
 #include "cpu.h"
 #include "emulator.h"
 
+#include <atomic>
+
 // Current instruction's guest PC for --history poison-history recording
 // (see HistoryTaint/DeepHistoryTaint in mem.h). Set once per instruction by
 // the engine's exec_one entry (pre-RIP-advance); only the history taint
 // types ever read it (HistoryTaint as the step PC, DeepHistoryTaint as each
 // step's frame 0).
 thread_local uint64_t zeg_history_pc = 0;
+
+// Current instruction's global execution sequence (see zeg_history_seq in
+// mem.h), set right next to zeg_history_pc by history-mode exec_one entries.
+// Trails stamp it on every step so the poison-history dump can restore
+// chronological order (set-union merges assemble trails out of execution
+// order). Plain mode never writes or reads it.
+thread_local uint64_t zeg_history_seq = 0;
+
+// The global counter behind zeg_history_seq_next(). Global (not
+// thread-local) on purpose: a trail can cross threads through the shared
+// poison map's per-byte trails, and sequences from different threads must
+// still compare consistently for the dump's chronological sort.
+static std::atomic<uint64_t> g_history_seq_counter{0};
+
+uint64_t zeg_history_seq_next() {
+    return g_history_seq_counter.fetch_add(1, std::memory_order_relaxed);
+}
 
 // --history=N/full stack recording inputs (see DeepHistoryTaint in mem.h):
 // the exec_one entry of a records_frames instantiation snapshots the guest
@@ -165,7 +184,7 @@ FaultScope::~FaultScope() {}
 template<typename TaintT>
 [[noreturn]] void guest_error(CPU<TaintT>* cpu, const char* reason,
                               uint64_t fault_addr,
-                              std::vector<std::vector<uint64_t>> poison_history) {
+                              std::vector<ZegHistStep> poison_history) {
     GuestError<TaintT> e;
     e.cpu = cpu;
     e.reason = reason;
@@ -197,9 +216,11 @@ static std::map<uint64_t, uint8_t> g_poison; // key: byte address
 // provenance stays meaningful), and unpoison erases it. mem_get_taint seeds
 // the loaded value's trail from the set-unioned per-byte trails over the
 // loaded range, plus the load PC's step. For every history mode each byte's
-// trail is a list of STEPS -- a step is a single PC for --history=1, or a
-// recorded stack for --history=N/full.
-static std::map<uint64_t, std::vector<std::vector<uint64_t>>> g_poison_hist; // key: byte address
+// trail is a list of ZegHistStep entries -- pc + recording seq, with the
+// recorded stack in callers for the deep modes (empty in --history=1). The
+// trail vector's order is merge order, not execution order; the dump sorts
+// by the steps' seq.
+static std::map<uint64_t, std::vector<ZegHistStep>> g_poison_hist; // key: byte address
 
 void mem_poison_range(Emulator*, uint64_t addr, size_t size, unsigned kind) {
     if (!size)
@@ -255,8 +276,7 @@ void mem_move_poison(Emulator*, uint64_t old_addr, size_t old_size,
         new_end = UINT64_MAX;
     // Snapshot the entries (bits + history trails) in the old range.
     std::vector<std::pair<uint64_t, uint8_t>> moved;
-    std::vector<std::pair<uint64_t, std::vector<std::vector<uint64_t>>>>
-        moved_hist;
+    std::vector<std::pair<uint64_t, std::vector<ZegHistStep>>> moved_hist;
     auto it = g_poison.lower_bound(old_addr);
     while (it != g_poison.end() && it->first < old_end) {
         moved.emplace_back(it->first, it->second);
@@ -311,14 +331,32 @@ uint64_t mem_client_request(Emulator* emu, CPU<TaintT>* cpu, uint64_t op,
             if (size && (kind & (POISON_CANNOT_BRANCH |
                                  POISON_CANNOT_INDEX |
                                  POISON_CANNOT_VAR_TIME_OP))) {
-                std::vector<uint64_t> step;
-                if constexpr (TaintT::records_frames)
-                    zeg_history_record_stack(step);
-                else
-                    step.push_back(zeg_history_pc);
+                // One step for the poisoning call site: the magic CALL's own
+                // RIP + its execution seq (exec_one sets both pre-advance and
+                // exec_call intercepts the magic target before advancing).
                 std::lock_guard<std::mutex> l(g_poison_mu);
-                for (size_t i = 0; i < (size_t)size; i++)
-                    zeg_trail_add_step(g_poison_hist[ptr + i], step);
+                if constexpr (TaintT::records_frames) {
+                    // Deep modes: the recorded stack, frame 0 =
+                    // zeg_history_pc (the step's pc) and the unwound callers
+                    // behind it.
+                    std::vector<uint64_t> stack;
+                    zeg_history_record_stack(stack);
+                    ZegHistStep step;
+                    if (!stack.empty()) {
+                        step.pc = stack.front();
+                        stack.erase(stack.begin());
+                    } else {
+                        step.pc = zeg_history_pc;
+                    }
+                    step.seq = zeg_history_seq;
+                    step.callers = std::move(stack);
+                    for (size_t i = 0; i < (size_t)size; i++)
+                        zeg_trail_add_stack(g_poison_hist[ptr + i], step);
+                } else {
+                    ZegHistStep step{zeg_history_pc, zeg_history_seq, {}};
+                    for (size_t i = 0; i < (size_t)size; i++)
+                        zeg_trail_add_pc(g_poison_hist[ptr + i], step);
+                }
             }
         }
         return 0;
@@ -402,9 +440,12 @@ static unsigned poison_lookup(uint64_t addr, size_t size) {
 // Bits plus the set-unioned per-byte poison history over [addr, addr+size),
 // under one lock. hist_out may be null (plain mode). Unlike poison_lookup
 // there is no early break: every byte's trail is needed for the merged
-// provenance.
+// provenance. Templated on the taint type only so the per-byte steps union
+// with the mode's identity rule (mode 1: the step's pc; deep modes: the
+// whole recorded stack -- the byte trails hold exactly the matching shape).
+template<typename TaintT>
 static unsigned poison_lookup_hist(uint64_t addr, size_t size,
-                                   std::vector<std::vector<uint64_t>>* hist_out) {
+                                   std::vector<ZegHistStep>* hist_out) {
     uint64_t end = addr + size;
     if (end < addr)
         end = UINT64_MAX;
@@ -421,9 +462,16 @@ static unsigned poison_lookup_hist(uint64_t addr, size_t size,
                 // Set-union the byte's trail into the merged provenance
                 // (same rule as the history taints' merge): N bytes with
                 // identical provenance yield the distinct set of
-                // operations, not N concatenated copies.
-                for (const std::vector<uint64_t>& step : hit->second)
-                    zeg_trail_add_step(*hist_out, step);
+                // operations, not N concatenated copies. The union is keyed
+                // on the steps' identity, so the merged vector's order is
+                // merge order -- the steps carry their recording seq and the
+                // dump sorts by it to restore chronology.
+                for (const ZegHistStep& step : hit->second) {
+                    if constexpr (TaintT::records_frames)
+                        zeg_trail_add_stack(*hist_out, step);
+                    else
+                        zeg_trail_add_pc(*hist_out, step);
+                }
             }
         }
     }
@@ -432,10 +480,10 @@ static unsigned poison_lookup_hist(uint64_t addr, size_t size,
 
 template<typename TaintT>
 void mem_get_taint(uint64_t addr, size_t size, TaintT* out) {
-    std::vector<std::vector<uint64_t>> mem_hist;
-    unsigned bits = poison_lookup_hist(addr, size,
-                                       TaintT::has_history ? &mem_hist
-                                                           : nullptr);
+    std::vector<ZegHistStep> mem_hist;
+    unsigned bits = poison_lookup_hist<TaintT>(addr, size,
+                                               TaintT::has_history ? &mem_hist
+                                                                   : nullptr);
     if (!out)
         return;
     out->cannot_branch = (bits & POISON_CANNOT_BRANCH) != 0;
@@ -444,18 +492,10 @@ void mem_get_taint(uint64_t addr, size_t size, TaintT* out) {
     if constexpr (TaintT::has_history) {
         out->history.clear();
         if (out->any()) {
-            if constexpr (TaintT::records_frames) {
-                // The value inherits the poison provenance of the memory it
-                // was loaded from (merged per-byte trails), plus this load's
-                // recorded stack.
-                out->history = std::move(mem_hist);
-            } else {
-                // --history=1: flatten the merged per-byte steps (each is one
-                // PC) into the sidecar's flat trail, order preserved.
-                for (const std::vector<uint64_t>& step : mem_hist)
-                    if (!step.empty())
-                        out->history.push_back(step[0]);
-            }
+            // The value inherits the poison provenance of the memory it was
+            // loaded from (the merged per-byte trails; every mode's trails
+            // are ZegHistSteps now), plus this load's recorded step.
+            out->history = std::move(mem_hist);
             out->note_op_pc();
         }
     }
@@ -512,20 +552,17 @@ void mem_note_store(CPU<TaintT>* cpu, uint64_t addr, size_t size, TaintT t) {
         }
         return;
     }
-    std::vector<std::vector<uint64_t>> stored_hist;
+    std::vector<ZegHistStep> stored_hist;
     if constexpr (TaintT::has_history) {
+        stored_hist = t.history;
+        // note_store_op already appended the store step to the sidecar it
+        // copied from; be robust to direct callers too (union semantics).
         if constexpr (TaintT::records_frames) {
-            stored_hist = t.history;
-            // note_store_op already appended the store step to the sidecar it
-            // copied from; be robust to direct callers too (union semantics).
-            std::vector<uint64_t> store_step;
-            zeg_history_record_stack(store_step);
-            zeg_trail_add_step(stored_hist, std::move(store_step));
+            std::vector<uint64_t> store_stack;
+            zeg_history_record_stack(store_stack);
+            zeg_trail_add_stack(stored_hist, std::move(store_stack));
         } else {
-            stored_hist.reserve(t.history.size());
-            for (uint64_t pc : t.history)
-                stored_hist.push_back({pc});
-            zeg_trail_add_step(stored_hist, {zeg_history_pc});
+            zeg_trail_add_pc(stored_hist, zeg_history_pc);
         }
     }
     std::lock_guard<std::mutex> l(g_poison_mu);
@@ -908,10 +945,9 @@ template uint64_t mem_client_request<DeepHistoryTaint>(
     Emulator*, CPU<DeepHistoryTaint>*, uint64_t, uint64_t, uint64_t, uint64_t);
 template [[noreturn]] void guest_error<Taint>(CPU<Taint>*, const char*,
                                               uint64_t,
-                                              std::vector<std::vector<uint64_t>>);
+                                              std::vector<ZegHistStep>);
 template [[noreturn]] void guest_error<HistoryTaint>(CPU<HistoryTaint>*,
                                                      const char*, uint64_t,
-                                                     std::vector<std::vector<uint64_t>>);
+                                                     std::vector<ZegHistStep>);
 template [[noreturn]] void guest_error<DeepHistoryTaint>(
-    CPU<DeepHistoryTaint>*, const char*, uint64_t,
-    std::vector<std::vector<uint64_t>>);
+    CPU<DeepHistoryTaint>*, const char*, uint64_t, std::vector<ZegHistStep>);

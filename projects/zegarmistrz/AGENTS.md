@@ -41,7 +41,9 @@ implementation details, invariants, and gotchas.
   host-fault recovery (`sigsetjmp`-based). The taint sidecar types also
   live here: plain `Taint`, `--history`'s `HistoryTaint` (one PC per
   step), and deep history's `DeepHistoryTaint` (recorded stacks per
-  step) (see the taint propagation rules + the --history section below);
+  step) — every trail entry is a `ZegHistStep` (pc + recording seq +
+  the recorded stack in `callers` for the deep modes; see the taint
+  propagation rules + the --history section below);
   the mem API is templated on the taint sidecar type (all three
   instantiations explicitly defined in `mem.cpp`).
 - `src/cpu.h` — `GPRValue` (value + sidecar), `XMMValue`
@@ -189,9 +191,25 @@ How cases work:
   still print several numbered lines when its frame has an inline chain),
   and the numbered inline lines repeat only already-counted PCs, so the
   step count tracks the distinct-PC count —
-  the union-dedup (`zeg_trail_add`) must collapse the identical per-byte
+  the union-dedup (`zeg_trail_add_pc`/`zeg_trail_add_stack`) must collapse
+  the identical per-byte
   sub-trails of the 64 copied bytes, which consecutive-duplicate-only
   dedup concatenates into hundreds of repeated ops.
+- `history-order` runs the trail-order guest (`tests/history_order.c`:
+  poison a value, load it, fork the provenance into two registers via
+  single-instruction asm on distinct source lines, derive an address
+  from each fork, merge the forks with an OR used as a memory index —
+  the stored trail is [poison-call, A, F, B, C, G, D, E, mask] in
+  MERGE order (op_load stamps the current op PC into each operand
+  sidecar copy before the union, so F lands before B/C and G before
+  D/E), while the printed trail is the chronological
+  [poison-call, A, B, C, D, E, F, G, mask]) under BOTH `--history` and
+  `--history=full` and asserts, for each mode, the usual exit-139 +
+  core PLUS that the first `history_order.c` line of steps 2..N
+  strictly increases (the seq sort restores true chronological order —
+  without the sort F prints before B/C and G prints before D/E) and
+  that all seven op lines still appear (the seq fix changes only the
+  printed order, never the recorded PC set).
 - `history-off` runs the SAME guest WITHOUT `--history`: usual fault +
   core, and the poison-history block must NOT appear (default-mode
   invariance).
@@ -329,14 +347,20 @@ stack recorded at the operation — frame 0 is the operation's own PC from
 the exec_one register snapshot (`zeg_history_pc`/`zeg_history_regs`/
 `zeg_history_emu`), further frames are unwound at recording time by
 `zeg_history_record_stack` (`dwarf_unwind.cpp`, the CFI unwinder),
-capped at N frames (0/unlimited for `=full`, hard cap 256). Recording
-rules: taint loaded from poisoned memory is seeded from
+capped at N frames (0/unlimited for `=full`, hard cap 256). Every trail
+entry is a `ZegHistStep`: the operation's PC plus the global execution
+SEQUENCE of the instruction that recorded it (`zeg_history_seq`, stamped
+by exec_one next to `zeg_history_pc`, `zeg_history_seq_next()` bumps a
+global atomic counter so sequences stay comparable across threads — a
+trail can cross threads through the shared poison map's per-byte trails).
+Recording rules: taint loaded from poisoned memory is seeded from
 the set-unioned per-byte poison history of the loaded range plus the load
 PC (`mem_get_taint`); every assignment/merge into a sidecar
-(`operator=`/`operator|=`) records the move/math PC with set-union dedup
-(`zeg_trail_add`/`zeg_trail_add_step` in `mem.h`: a PC or step already
-present anywhere in the trail is
-not re-added, so loop iterations and merges of same-provenance operands
+(`operator=`/`operator|=`) records the move/math PC with seq-aware
+set-union dedup (`zeg_trail_add_pc`/`zeg_trail_add_stack` in `mem.h`: a
+PC or step already present anywhere in the trail is
+not re-added — its seq is raised to the most recent execution — so loop
+iterations and merges of same-provenance operands
 do not inflate the trail); stores record the store PC into the sidecar
 passed at each store site, by mutable reference through the engine's
 `note_store_op` wrapper — where the site stages a copy of the value
@@ -350,16 +374,38 @@ destination bytes' per-byte poison history, which always survives the
 staging question (see [--history: poison
 provenance](#--history-poison-provenance)); `clear()` wipes the trail.
 Caps: a trail holds at most 4096 entries/steps and keeps the MOST RECENT
-ones (adding to a full trail drops the oldest, so the faulting site
-is never silently frozen out); the dump prints the most recent 128.
+ones (adding to a full trail evicts the entry with the SMALLEST seq — the
+true oldest execution, however merges ordered the vector — so the
+faulting site is never silently frozen out); the dump prints the most
+recent 128. The trail VECTOR's stored order is merge order, not execution
+order — merges assemble trails out of execution order (e.g. an
+`op_load` sidecar copy of a tainted operand records the current op PC
+into the copy before the union, so a two-operand merge interleaves the
+lineages) — and the dump restores chronology by sorting the steps by
+their seq before printing, so the printed trail reads in true
+chronological execution order (every step consumes values produced at
+earlier steps; consecutive steps may assign the same register when the
+program chains back-to-back operations on it — the later step then
+consumes that register's prior value (an rmw chain; the regression
+guest's own trail contains four such pairs), and what the chronological
+ordering eliminates is the scramble symptom from the original
+complaint: a trail that placed an independent overwrite of a register
+between its producer and the step that actually consumed that value;
+strict per-step chaining — step I+1 using
+exactly step I's value — is NOT guaranteed when provenance forks, since
+each merged trail is the union of its lineages — e.g. in
+`tests/history_order.c` the chronological step after the `and $0x2a` on
+b consumes a/c, not that b); `tests/history_order.c` pins the
+ascending-line ordering on a guest whose merge order scrambles.
 Memory carries the provenance too: each poisoned byte owns a per-byte
 trail (the poisoning request unions its call site into it, stores of
 tainted values rewrite it, and unpoison and stores that zero a byte's
 last taint bit erase it), so a value that round trips through memory
 keeps the whole journey in its trail — `tests/history_memcopy.c` pins
-the poison → copy → reload → use chain. The per-byte trails store STEPS
-in every history mode (a step is one PC in `--history=1`, a recorded
-stack in the deep modes).
+the poison → copy → reload → use chain. The per-byte trails store
+`ZegHistStep` entries in every history mode (pc + seq, with the recorded
+stack in `callers` in the deep modes; `callers` is empty in
+`--history=1`).
 
 ## Store laundering and clear-on-store
 
@@ -415,14 +461,22 @@ flag, `=no`, `=0` — off), `run_guest<HistoryTaint>` (bare `--history`,
 exactly three explicit instantiations (`Taint`, `HistoryTaint`,
 `DeepHistoryTaint`; the bodies are unchanged — only the sidecar type
 differs). `HistoryTaint` (in `src/mem.h`) is the three taint bits plus
-`std::vector<uint64_t> history` of guest PCs, oldest first;
-`DeepHistoryTaint` is the same three bits plus
-`std::vector<std::vector<uint64_t>> history` of STEPS, each step the
-recorded guest stack (innermost PC first) of the operation; what
+`std::vector<ZegHistStep> history` — one step per recorded operation,
+each carrying the operation's PC and its recording seq (`callers` is
+empty in mode 1); `DeepHistoryTaint` is the same three bits plus
+`std::vector<ZegHistStep> history` of STEPS, each step the recorded
+guest stack (the operation's PC in `pc`, the rest of the recorded stack,
+innermost first, in `callers`) of the operation plus its recording seq;
+what
 records and what does not is listed in the taint propagation rules
 above. The current instruction's PC comes from the thread-local
 `zeg_history_pc`, set at `exec_one` entry to the instruction's own
-pre-advance RIP; the deep modes additionally snapshot the GPRs and
+pre-advance RIP, and its global execution sequence comes from
+`zeg_history_seq` set right next to it (history taints only; plain Taint
+never touches the counter — `zeg_history_seq_next()` bumps a global
+atomic so sequences from different threads compare consistently, which
+matters because trails cross threads through the shared poison map);
+the deep modes additionally snapshot the GPRs and
 `Emulator*` there (`zeg_history_regs`/`zeg_history_emu`) for
 `zeg_history_record_stack` (the stack recorder in `dwarf_unwind.cpp`,
 which unwinds each step with the CFI engine), and `main` sets the
@@ -431,13 +485,15 @@ per-step frame cap once via `zeg_set_history_frames` (`=N` -> N,
 
 - **What is attached at fault time**: the offending value's trail rides
   out in `GuestError::poison_history` — a list of STEPS, one per
-  recorded operation (the operation's PC as a 1-element step for
-  `--history=1`, its recorded stack for the deep modes) — and
+  recorded operation (each a `ZegHistStep`: the operation's PC plus its
+  recording seq, with the recorded stack in `callers` for the deep
+  modes and an empty `callers` for `--history=1`) — and
   `run_cpu_loop` hands it to
   `dump_core`. The taint check sites in `decode_exec.cpp` attach it
-  (via the engine's `poison_history_of` helper, which wraps a flat
-  `HistoryTaint` trail into 1-element steps and passes
-  `DeepHistoryTaint`'s steps through, so every producer/consumer site is
+  (via the engine's `poison_history_of` helper, which passes the
+  history-carrying taints' `ZegHistStep` steps through unchanged and
+  returns an empty trail for plain `Taint`, so every producer/consumer
+  site is
   unchanged by the step format) and the syscall
   boundary does too (the arg check in `syscall.cpp`). The var-time
   operand report attaches its first offending operand's sidecar:
@@ -450,10 +506,12 @@ per-step frame cap once via `zeg_set_history_frames` (`=N` -> N,
   a register value).
 - **Memory-side provenance (per-byte poison history)**: the poison map is
   paired by byte address with a second map (`g_poison_hist`, same mutex)
-  that carries each poisoned byte's trail of STEPS (one PC per step in
-  mode 1, a recorded stack per step in the deep modes). The poisoning
+  that carries each poisoned byte's trail of `ZegHistStep` entries (pc +
+  seq, with the recorded stack in `callers` in the deep modes; empty
+  `callers` in mode 1). The poisoning
   client request
-  (op 1) unions the magic CALL's own RIP into every byte it poisons with
+  (op 1) unions the magic CALL's own RIP (with its execution seq) into
+  every byte it poisons with
   a value-taint flag (CANNOT_BRANCH/CANNOT_INDEX/CANNOT_VAR_TIME_OP —
   CANNOT_LOAD/CANNOT_STORE-only or CLEAR_*-only ranges never produce
   value taints, so they skip the seeding): re-poisoning a byte ORs the
@@ -468,10 +526,12 @@ per-step frame cap once via `zeg_set_history_frames` (`=N` -> N,
   and `mem_get_taint` seeds the loaded value's trail from the
   set-unioned per-byte trails of the loaded range plus the load PC (only
   for values that actually carry bits — a clean load from
-  sticky-poisoned memory stays trail-free). The unions are set-unions
-  (`zeg_trail_add`/`zeg_trail_add_step`): a PC or step already present
+  sticky-poisoned memory stays trail-free). The unions are seq-aware
+  set-unions
+  (`zeg_trail_add_pc`/`zeg_trail_add_stack`): a PC or step already present
   anywhere in a trail is not
-  re-added, so N bytes with identical provenance merge to the distinct
+  re-added (its seq is raised to the most recent execution), so N bytes
+  with identical provenance merge to the distinct
   set of operations instead of N concatenated copies. This is what makes
   the trail survive memory round trips end to end: the key→key_copy
   memcpy in the openssl tests, a spill/reload through a stack slot, or
@@ -480,10 +540,24 @@ per-step frame cap once via `zeg_set_history_frames` (`=N` -> N,
   chain. Plain mode never touches the second map (it stays empty).
 - **Dump-time print**: `dump_core` calls `print_poison_history`
   (`stack_trace.cpp`) after the guest stack trace and before the core
-  is written. The block is
+  is written. The trail vector arrives in merge order, which is NOT
+  execution order (set-union merges assemble trails out of execution
+  order), so the printer first sorts the steps by their recording seq
+  ascending — restoring true chronological execution order (every step
+  consumes values produced at earlier steps; consecutive steps may
+  assign the same register when the program chains back-to-back
+  operations on it — the later step then consumes that register's prior
+  value (an rmw chain; the regression guest's own trail contains four
+  such pairs), and what the chronological ordering eliminates is the
+  scramble symptom from the original complaint: a trail that placed an
+  independent overwrite of a register between its producer and the step
+  that actually consumed that value; strict per-step
+  chaining — step I+1 using exactly step I's value — is NOT guaranteed
+  when provenance forks, since each merged trail is the union of its
+  lineages; `tests/history_order.c` pins the ordering). The block is
   `zegarmistrz: poison history of the offending value (N steps, oldest
   first):` followed by the BFD-symbolicated trail. Steps are labeled
-  `step N:` (1-based over the whole trail, oldest first; when older
+  `step N:` (1-based over the whole SORTED trail, oldest first; when older
   entries are omitted by the 128-step cap, the printed steps keep their
   true position numbers) and EVERY displayed line of a step is numbered
   `#0`, `#1`, ... gdb-style — a continuous per-step counter over ALL
@@ -524,7 +598,9 @@ per-step frame cap once via `zeg_set_history_frames` (`=N` -> N,
   in `--history` mode every poisoned byte carries a poison-map node plus
   a trail (of steps), so large poison ranges with long trails cost
   significant memory (debug-only — poison a narrow range, not the whole
-  heap). The step trail caps at 4096, most recent kept.
+  heap). The step trail caps at 4096; when it is saturated, adding a new
+  step evicts the entry with the smallest seq (the most-recent-kept
+  rule), and the dump sorts by seq and prints the most recent 128.
 
 ## The cannot-index / cannot-branch orthogonality invariant
 

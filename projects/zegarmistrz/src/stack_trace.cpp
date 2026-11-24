@@ -501,10 +501,27 @@ static void symbolize_hist_pc(const std::vector<Emulator::GuestMap>& maps,
 }
 
 // Poison-history trail (--history mode): symbolize each recorded step with
-// the same BFD machinery as the stack trace and print it oldest first. A
-// step is one PC (--history=1) or a recorded guest stack, innermost PC
-// first (--history=N/full). Steps are labeled "step N:" (1-based over the
-// whole trail, oldest first) and EVERY displayed line of a step is
+// the same BFD machinery as the stack trace and print it in true
+// chronological order. The trail vector arrives in merge/insertion order
+// (set-union merges assemble steps out of execution order), so the steps
+// are first sorted by their recording-instruction sequence
+// (ZegHistStep::seq) ascending -- the seq is stamped by exec_one on every
+// recorded instruction, and sorting by it restores true chronological
+// execution order (every step consumes values produced at earlier steps;
+// consecutive steps may assign the same register when the program chains
+// back-to-back operations on it, the later step then consuming that
+// register's prior value -- an rmw chain (the regression guest's own
+// trail contains four such pairs); what the chronological ordering
+// eliminates is the scramble symptom from the original complaint: a trail
+// that placed an independent overwrite of a register between its producer
+// and the step that actually consumed that value; strict per-step
+// chaining -- step I+1 using exactly step I's value -- is NOT guaranteed
+// when provenance forks, since each merged trail is the union of its
+// lineages) regardless of how the merges
+// ordered the vector. A step is one PC (--history=1) or its
+// PC plus the rest of its recorded stack, innermost PC first
+// (--history=N/full). Steps are labeled "step N:" (1-based over the whole
+// SORTED trail, oldest first) and EVERY displayed line of a step is
 // numbered "#0", "#1", ... gdb-style: a continuous per-step counter over
 // all displayed lines, restarting at #0 under the step's header -- the
 // step's first line opens with the step label and every further line
@@ -518,24 +535,36 @@ static void symbolize_hist_pc(const std::vector<Emulator::GuestMap>& maps,
 // per step). Every line carries a PC and prints "#%-2zu 0x%016lx "
 // followed by the location ("in <func> () at <file>:<line>", marked
 // "  (inline)" on all but the chain's last -- physically-containing --
-// entry). step[0] is the recorded instruction's own PC and symbolicates
-// at it unchanged; a step's further recorded frames are return addresses
-// and symbolicate at address - 1 like the stack trace's caller frames
-// (see symbolize_hist_pc). A frame that does not symbolicate falls back
+// entry). The step's own PC symbolicates at it unchanged; the step's
+// further recorded frames (callers) are return addresses and symbolicate
+// at address - 1 like the stack trace's caller frames (see
+// symbolize_hist_pc). A frame that does not symbolicate falls back
 // to the module+offset string ("in <module+0xoff>", the recorded PC's own
 // offset, on a numbered line that still carries the PC); a frame in no
 // known module prints just its bare numbered PC prefix. Output is capped
-// at the most recent 128 steps (kMaxPrint) with the omitted older count
-// noted up front; the step numbers still reflect each printed step's
-// position in the whole trail.
+// at the most recent 128 steps (kMaxPrint -- the LAST 128 of the sorted
+// range) with the omitted older count noted up front; the step numbers
+// still reflect each printed step's position in the whole trail.
 void print_poison_history(Emulator* emu,
-                          const std::vector<std::vector<uint64_t>>& steps) {
+                          const std::vector<ZegHistStep>& steps) {
     constexpr size_t kMaxPrint = 128;
-    size_t omit = steps.size() > kMaxPrint ? steps.size() - kMaxPrint : 0;
+
+    // Restore chronological order before anything prints: the stored trail
+    // is insertion-ordered-then-merged (which is not execution order). Sort
+    // a copy -- the caller's trail stays untouched -- with stable_sort so
+    // equal seqs (a deduped step keeps the max seq of its executions) keep
+    // their stored relative order.
+    std::vector<ZegHistStep> sorted = steps;
+    std::stable_sort(sorted.begin(), sorted.end(),
+                     [](const ZegHistStep& a, const ZegHistStep& b) {
+                         return a.seq < b.seq;
+                     });
+
+    size_t omit = sorted.size() > kMaxPrint ? sorted.size() - kMaxPrint : 0;
     fprintf(stderr,
             "zegarmistrz: poison history of the offending value "
             "(%zu steps, oldest first):\n",
-            steps.size());
+            sorted.size());
     if (omit)
         fprintf(stderr, "  ... (%zu older entries omitted)\n", omit);
 
@@ -574,11 +603,11 @@ void print_poison_history(Emulator* emu,
         fprintf(stderr, "%s#%-2zu 0x%016lx ", lead, n, (unsigned long)pc);
     };
 
-    for (size_t i = omit; i < steps.size(); i++) {
-        const std::vector<uint64_t>& step = steps[i];
+    for (size_t i = omit; i < sorted.size(); i++) {
+        const ZegHistStep& step = sorted[i];
         // Defensive: an empty step (no recorder produces one) carries no
         // PC -- skip it rather than print a bare address.
-        if (step.empty())
+        if (!step.pc)
             continue;
         // Step label; the same width, as blanks, is the indent that puts
         // every further displayed line's "#K" under the step line's "#0".
@@ -601,15 +630,16 @@ void print_poison_history(Emulator* emu,
         auto line_lead = [&]() {
             return printed ? findent.c_str() : lead;
         };
-        for (size_t k = 0; k < step.size(); k++) {
-            uint64_t pc = step[k];
+        // One recorded frame: symbolize and print its chain (one numbered
+        // line per chain entry, all carrying the frame's own PC).
+        auto print_frame = [&](uint64_t pc, bool return_addr) {
             std::vector<SymInfo> chain;
             std::string modstr;
-            // k == 0 is the recorded instruction's own PC -- symbolize at
-            // it unchanged; the further recorded frames are return
+            // The step's own PC (return_addr=false) symbolizes at it
+            // unchanged; the further recorded frames (callers) are return
             // addresses and symbolicate at address - 1 (see
             // symbolize_hist_pc).
-            symbolize_hist_pc(maps, pc, k > 0, chain, modstr);
+            symbolize_hist_pc(maps, pc, return_addr, chain, modstr);
             if (chain.empty()) {
                 // Fallbacks, still numbered: the module+offset string (the
                 // recorded PC's own offset), or nothing but the bare PC
@@ -619,7 +649,7 @@ void print_poison_history(Emulator* emu,
                     fprintf(stderr, "in %s", modstr.c_str());
                 fprintf(stderr, "\n");
                 printed++;
-                continue;
+                return;
             }
             for (size_t j = 0; j < chain.size(); j++) {
                 print_line(line_lead(), printed, pc);
@@ -629,7 +659,10 @@ void print_poison_history(Emulator* emu,
                 fprintf(stderr, "\n");
                 printed++;
             }
-        }
+        };
+        print_frame(step.pc, false);
+        for (uint64_t caller : step.callers)
+            print_frame(caller, true);
     }
     fflush(stderr);
 }

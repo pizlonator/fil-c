@@ -145,7 +145,7 @@ static void append_note(std::vector<uint8_t>& out, uint32_t type,
 template<typename TaintT>
 const char* dump_core(CPU<TaintT>* cpu, const char* reason,
                       unsigned long fault_addr, int signo,
-                      const std::vector<std::vector<uint64_t>>& poison_history) {
+                      const std::vector<ZegHistStep>& poison_history) {
     // A host fault while producing the dump (e.g. inside BFD parsing)
     // must kill the process, not longjmp back into run_cpu_loop: the
     // LoopScope recovery is still armed in the caller, so the jump would
@@ -178,8 +178,9 @@ const char* dump_core(CPU<TaintT>* cpu, const char* reason,
     if (cpu->emu->stack_trace)
         print_guest_stack_trace(cpu);
 
-    // --history: the offending value's recorded poison trail (oldest first),
-    // symbolicated with the same BFD machinery as the stack trace.
+    // --history: the offending value's recorded poison trail, symbolicated
+    // with the same BFD machinery as the stack trace and sorted by each
+    // step's recording seq into true chronological order.
     if (!poison_history.empty())
         print_poison_history(cpu->emu, poison_history);
 
@@ -370,10 +371,10 @@ const char* dump_core(CPU<TaintT>* cpu, const char* reason,
 // taint type.
 template const char* dump_core<Taint>(CPU<Taint>*, const char*,
                                       unsigned long, int,
-                                      const std::vector<std::vector<uint64_t>>&);
+                                      const std::vector<ZegHistStep>&);
 template const char* dump_core<HistoryTaint>(CPU<HistoryTaint>*, const char*,
                                              unsigned long, int,
-                                             const std::vector<std::vector<uint64_t>>&);
+                                             const std::vector<ZegHistStep>&);
 template const char* dump_core<DeepHistoryTaint>(
     CPU<DeepHistoryTaint>*, const char*, unsigned long, int,
-    const std::vector<std::vector<uint64_t>>&);
+    const std::vector<ZegHistStep>&);

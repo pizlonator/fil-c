@@ -314,11 +314,25 @@ must STAY poisoned, so branching on it faults.
 operations produced or consumed it (fresh loads from poisoned memory,
 moves/merges into the value's sidecar, and stores of the value where the
 sidecar carrying it is handed to the store path by mutable reference;
-first-occurrence order, bounded, set-union deduped — a PC already present
-anywhere in the trail is never re-added, so N identical provenances merge
-to the distinct set of operations and the cap keeps the most recent
-entries) and, when a poison fault kills the process, prints that trail
-BFD-symbolicated right after the guest stack trace. VALUE picks how much
+bounded, set-union deduped — a PC already present anywhere in the trail
+is never re-added, so N identical provenances merge to the distinct set
+of operations and the cap keeps the most recent executions) and, when a
+poison fault kills the process, prints that trail BFD-symbolicated right
+after the guest stack trace. Every trail step records the global
+execution sequence of the instruction that recorded it, and the dump
+sorts the steps by it before printing: the trail is stored in
+merge order (set-union merges assemble it out of execution order), so
+the sort is what makes the printed trail a true chronological execution
+order — every step consumes values produced at earlier steps, and
+consecutive steps may assign the same register when the program chains
+back-to-back operations on it — the later step then consumes that
+register's prior value (an rmw chain; the regression guest's own trail
+contains four such pairs). What the chronological ordering eliminates is
+the scramble symptom from the original complaint: a trail that placed an
+independent overwrite of a register between its producer and the step
+that actually consumed that value. Strict per-step chaining — step I+1
+using exactly step I's value — is not guaranteed when provenance forks,
+since each merged trail is the union of its lineages. VALUE picks how much
 each recorded step carries: bare `--history`, `=yes`, or `=1` records one
 guest PC per step; `=no`, `=0`, or no flag at all records nothing; `=N`
 for an integer N > 1 records N stack frames per step; `=full` or `=all`
@@ -376,7 +390,24 @@ step 2:  #0  0x0000742f12418201 in main () at /tmp/zegdemo/demo_index.c:13
 
 The trail answers "where did this tainted value come from": the steps
 are the operations, oldest first, and the numbered lines show where
-each recorded frame sits. Store PCs
+each recorded frame sits. Each step carries the global execution
+sequence of the instruction that recorded it, and the dump sorts the
+steps by it before printing — the trail is stored in merge order (the
+set-union merges assemble it out of execution order), so the sort is
+what makes the printed trail a true chronological execution order:
+every step consumes values produced at earlier steps, and consecutive
+steps may assign the same register when the program chains
+back-to-back operations on it — the later step then consumes that
+register's prior value (an rmw chain; the regression guest's own trail
+contains four such pairs). What the chronological ordering eliminates is
+the scramble symptom from the original complaint: a trail that placed an
+independent overwrite of a register between its producer and the step
+that actually consumed that value. (Strict
+per-step chaining — step I+1 using exactly step I's value — is not
+guaranteed when provenance forks, since each merged trail is the union
+of its lineages: in `tests/history_order.c` the chronological
+`and $0x2a` step E on b is followed by step F `and %ecx,%ebx`, which
+consumes a/c, not E's b.) Store PCs
 are recorded into the sidecar the store site passes by mutable
 reference: where the site stages a copy of the value (scalar reg->mem
 stores via `op_store`'s `Val`, `push64`'s parameter, staged vector
@@ -391,7 +422,10 @@ load seeds the loaded value's trail from the merged per-byte trails plus
 the load PC — so every value-carrying load/store round trip (a memcpy of
 poisoned key material, a spill/reload through a stack slot) is recorded
 end to end and the trail never restarts at a reload; `tests/history_memcopy.c`
-pins a poison → byte-copy → reload → use journey. Only the most recent
+pins a poison → byte-copy → reload → use journey and
+`tests/history_order.c` pins the chronological ordering of the printed
+trail (strictly ascending source lines for a guest whose merge order
+scrambles). Only the most recent
 128 steps of a huge trail are printed. It is heavy (the per-value
 sidecar copies its trail on every merge, every poisoned byte carries a
 trail vector, and the deep modes additionally record a stack per

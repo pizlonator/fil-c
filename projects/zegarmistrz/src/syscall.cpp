@@ -407,19 +407,14 @@ static bool fixed_allowed(Emulator* emu, uint64_t addr, uint64_t len) {
 // poison bits are checked here.
 
 // Offending value's poison trail for GuestError ({} for plain Taint): a
-// list of STEPS, one per recorded operation. --history=1 steps hold the
-// operation's PC; --history=N/full steps hold the recorded stack.
+// list of ZegHistSteps, one per recorded operation (the operation's PC + its
+// recording seq; the deep modes keep the recorded stack in each step's
+// callers).
 template<typename TaintT>
-static std::vector<std::vector<uint64_t>> poison_history_of(const TaintT& t) {
-    if constexpr (TaintT::records_frames)
+static std::vector<ZegHistStep> poison_history_of(const TaintT& t) {
+    if constexpr (TaintT::has_history)
         return t.history;
-    else if constexpr (TaintT::has_history) {
-        std::vector<std::vector<uint64_t>> r;
-        r.reserve(t.history.size());
-        for (uint64_t pc : t.history)
-            r.push_back({pc});
-        return r;
-    } else
+    else
         return {};
 }
 

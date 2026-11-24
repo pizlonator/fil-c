@@ -156,11 +156,12 @@ static char dbg2_needle[128] = {0};
 // the static-member conversion itself, note_store_op (store-PC recording on
 // the sidecar passed by mutable reference), the poison_history_of(...)
 // argument added to the taint-fault guest_error calls, exec_one's
-// zeg_history_pc set, exec_one's registers/emu snapshot for records_frames
-// taints (zeg_history_regs/zeg_history_emu feed --history=N/full stack
-// recording), the steps-valued poison_history_of (one step per recorded
-// operation: a single PC for --history=1, a recorded stack for
-// --history=N/full), the catch sites passing e.poison_history,
+// zeg_history_pc/zeg_history_seq set, exec_one's registers/emu snapshot for
+// records_frames taints (zeg_history_regs/zeg_history_emu feed
+// --history=N/full stack recording), the ZegHistStep-valued poison_history_of
+// (both history taints store ZegHistStep steps directly: the operation's PC,
+// its recording seq, and the recorded stack in callers for the deep modes),
+// the catch sites passing e.poison_history,
 // check_var_time's offending-operand threading (vt_off), the run_cpu_loop
 // wrapper (explicitly instantiated for Taint, HistoryTaint and
 // DeepHistoryTaint), and the removal of two in-class forward declarations
@@ -175,19 +176,14 @@ struct Engine {
     using VecVal = ::VecVal<TaintT>;
     using GuestError = ::GuestError<TaintT>;
 
-    // Offending value's poison trail for GuestError ({} for plain Taint): a
-    // list of STEPS, one per recorded operation. --history=1 steps hold the
-    // operation's PC; --history=N/full steps hold the recorded stack.
-    static std::vector<std::vector<uint64_t>> poison_history_of(const Taint& t) {
-        if constexpr (TaintT::records_frames)
+    // Offending value's poison trail for GuestError ({} for plain Taint):
+    // a list of ZegHistSteps, one per recorded operation (the operation's PC
+    // + its recording seq; the deep modes keep the recorded stack in each
+    // step's callers).
+    static std::vector<ZegHistStep> poison_history_of(const Taint& t) {
+        if constexpr (TaintT::has_history)
             return t.history;
-        else if constexpr (TaintT::has_history) {
-            std::vector<std::vector<uint64_t>> r;
-            r.reserve(t.history.size());
-            for (uint64_t pc : t.history)
-                r.push_back({pc});
-            return r;
-        } else
+        else
             return {};
     }
 
@@ -10805,6 +10801,13 @@ struct Engine {
         // --history: record ops against this instruction's PC (pre-advance; RIP
         // is only advanced by the handlers' trailing next_rip assignments).
         zeg_history_pc = cpu->rip;
+        if constexpr (TaintT::has_history) {
+            // And stamp this instruction's global execution sequence: every
+            // trail step records it, and the dump sorts by it to restore
+            // chronological order (set-union merges assemble trails out of
+            // execution order). Plain Taint never touches the counter.
+            zeg_history_seq = zeg_history_seq_next();
+        }
         if constexpr (TaintT::records_frames) {
             // --history=N/full: snapshot the register state so taint recording can
             // unwind the current stack (see zeg_history_record_stack).

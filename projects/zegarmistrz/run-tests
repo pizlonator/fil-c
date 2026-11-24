@@ -21,7 +21,20 @@
 # (inline frames consume numbers and repeat their recorded PC), numbering
 # restarting per step under step N: headers -- default-mode invariance without
 # the flag, clean-run + syscall-fault semantics unchanged in history mode,
-# and the bad-value rejection), plus the kernel-write extent modeling tests
+# and the bad-value rejection), the trail-order regression (history-order:
+# the dump sorts the trail by the recording-instruction seq, so the printed
+# steps read in true chronological execution order (every step consumes
+# values produced at earlier steps; consecutive steps may assign the same
+# register when the program chains back-to-back operations on it -- the
+# later step then consumes the prior value of that register, an rmw chain;
+# the trail of the regression guest itself contains four such pairs; what
+# the chronological ordering eliminates is the scramble symptom from the
+# original complaint: a trail that placed an independent overwrite of a
+# register between its producer and the step that actually consumed that
+# value; strict per-step chaining is not
+# guaranteed when provenance forks) -- strictly ascending source lines for
+# a merge-scrambling guest -- in both mode 1 and =full, with the recorded
+# PC set unchanged), plus the kernel-write extent modeling tests
 # (syscall-unpoison: kernel-written bytes inside a poisoned buffer must come
 # back clean, plain and under --history=full, now covering recvfrom and
 # timerfd_settime; syscall-unpoison-ctl: the kernel-untouched timerfd_settime
@@ -155,6 +168,14 @@ gcc -O2 -g -o "$OUTDIR/history_store" tests/history_store.c \
 # the recorded trail PCs must BFD-symbolicate to source lines.
 gcc -O2 -g -o "$OUTDIR/history_memcopy" tests/history_memcopy.c \
     || { log "guest compile failed: history_memcopy"; exit 1; }
+# --history trail-ORDER guest: poison a value, load it, fork the provenance
+# into two registers, derive an address from each fork, merge the forks with
+# an OR used as a memory index -> fault. Every recorded op is one asm
+# instruction on its own source line (like history_store.c), so the dumped
+# trail symbolicates to distinct ascending line numbers and the chronological
+# ordering of the printed steps is checkable. The -g matters (see above).
+gcc -O2 -g -o "$OUTDIR/history_order" tests/history_order.c \
+    || { log "guest compile failed: history_order"; exit 1; }
 # Kernel-write extent modeling guests: poison a static buffer with
 # cannot-branch poison, then let the kernel write into it (fstat struct
 # stat, ioctl FIONREAD, read, getrandom, recvfrom data bytes + sockaddr +
@@ -250,6 +271,7 @@ echo "syscall-unpoison"
 echo "syscall-unpoison-ctl"
 echo "history-store"
 echo "history-memcopy"
+echo "history-order"
 echo "history-off"
 echo "history-clean"
 echo "history-syscall"
@@ -1053,8 +1075,9 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     # The history SECTION is extracted so the stack traces own in main ()
     # frames do not count toward the minimums. The trail is also pinned for
     # NON-duplication: every PC entering the trail is union-deduped
-    # (zeg_trail_add in mem.h), so N bytes with identical provenance merge
-    # to the distinct set of operations instead of N concatenated copies.
+    # (zeg_trail_add_pc/zeg_trail_add_stack in mem.h), so N bytes with
+    # identical provenance merge to the distinct set of operations instead
+    # of N concatenated copies.
     # The dump numbers every displayed line gdb-style -- inline frames
     # consume numbers and repeat their recorded PC -- so the numbered-line
     # count exceeds the distinct-PC count and the non-duplication pin is
@@ -1091,6 +1114,85 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
       head -20 "$err"
     fi
     rm -f test-output/history-memcopy/zegarmistrz.core.history_memcopy.* test-output/history-memcopy/trace.err
+    ;;
+
+  history-order)
+    # Trail ORDER: a trail is a SET of recorded PCs assembled by set-union
+    # merges that run out of execution order (an op_load sidecar copy of a
+    # tainted operand records the current op PC into the copy before the
+    # merge, so a merged trail interleaves the two operand lineages), so the
+    # dump sorts by the steps recording seq (the global execution sequence of
+    # the instruction that recorded each step) to print true chronological
+    # execution order: every step consumes values produced at EARLIER steps;
+    # consecutive steps may assign the same register when the program chains
+    # back-to-back operations on it -- the later step then consumes the prior
+    # value of that register, an rmw chain (the trail of this guest itself
+    # contains four such pairs). What the chronological ordering eliminates
+    # is the scramble symptom from the original complaint: a trail that
+    # placed an independent overwrite of a register between its producer and
+    # the step that actually consumed that value.
+    # Strict per-step chaining (each step consuming exactly
+    # what the previous step produced) is NOT guaranteed when provenance
+    # forks, since each merged trail is the union of its lineages -- this
+    # guest is the in-tree example: chronological step E (the andl $0x2a on
+    # b) is followed by step F (andl %k1,%k0), which consumes a/c, not the
+    # b that E just produced. The guest forks a tainted load into two
+    # registers, derives an address from each fork, and merges the forks
+    # with an OR used as a memory index -> fault; the stored trail is
+    # [poison-call, A, F, B, C, G, D, E, mask] in MERGE order, so without
+    # the seq sort the printed steps scramble (F prints before B/C and G
+    # prints before D/E) instead of the chronological
+    # [poison-call, A, B, C, D, E, F, G, mask]. Every
+    # recorded op is one asm instruction on its own source line (40..46), so
+    # the chronological trail reads as strictly ascending source lines.
+    # Both --history (mode 1) and --history=full (recorded stacks) must show
+    # it: the first history_order.c line of steps 2..N must strictly
+    # increase, the poison-call step (step 1) is excluded from the ordering
+    # walk (its guest line numbers come from the inline chain, not the op
+    # chain) but the block and the step count are required, and ALL seven op
+    # lines must still appear -- the seq fix changes only the printed ORDER,
+    # never the recorded PC set.
+    mkdir -p test-output/history-order
+    for mode in 1 full; do
+      if [ "$mode" = 1 ]; then flag=--history; else flag=--history=full; fi
+      rm -f test-output/history-order/zegarmistrz.core.history_order.* \
+            test-output/history-order/$mode.err
+      (cd test-output/history-order && timeout 60 ../../zegarmistrz $flag \
+           ../history_order >/dev/null 2>$mode.err); ec=$?
+      core=$(ls test-output/history-order/zegarmistrz.core.history_order.* 2>/dev/null | head -1)
+      err=test-output/history-order/$mode.err
+      hist=$(sed -n "/poison history/,/zegarmistrz: \[core/p" "$err" 2>/dev/null)
+      steps=$(echo "$hist" | grep -cE "^step [0-9]+:" || true)
+      # First history_order.c line of each step: it sits on the step N:
+      # header line itself (the header opens the step with frame 0, whose
+      # innermost symbol is the recorded instruction).
+      seqn=$(echo "$hist" | grep -E "^step [0-9]+:  #0" \
+             | sed -n "s/.*history_order\.c:\([0-9][0-9]*\).*/\1/p")
+      nseq=$(echo "$seqn" | grep -c . || true)
+      bad=0
+      prev=0
+      first=1
+      for n in $seqn; do
+        if [ "$first" = 1 ]; then first=0; prev=$n; continue; fi
+        [ "$n" -le "$prev" ] && bad=1
+        prev=$n
+      done
+      present=1
+      for l in 40 41 42 43 44 45 46; do
+        echo "$hist" | grep -qE "history_order\.c:$l([^0-9]|$)" || present=0
+      done
+      if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+         && echo "$hist" | grep -q "poison history of the offending value" \
+         && [ "${steps:-0}" -ge 8 ] && [ "${nseq:-0}" -eq "${steps:-0}" ] \
+         && [ "$bad" = 0 ] && [ "$present" = 1 ]; then
+        echo "PASS history-order-$mode"
+      else
+        echo "FAIL history-order-$mode: ec=$ec core=[$core] steps=$steps seq=[$seqn] bad=$bad present=$present"
+        head -20 "$err"
+      fi
+      rm -f test-output/history-order/zegarmistrz.core.history_order.* \
+            test-output/history-order/$mode.err
+    done
     ;;
 
   history-yes)

@@ -91,6 +91,33 @@ struct Taint {
 // step's frame 0). Declared before HistoryTaint: its recording reads it.
 extern thread_local uint64_t zeg_history_pc;
 
+// The global execution sequence of the instruction whose PC is in
+// zeg_history_pc: set right next to it at exec_one entry (history taints
+// only), incremented once per recorded instruction by a global counter so
+// sequences stay comparable across threads (trails can cross threads via
+// the shared poison map's per-byte trails and still sort correctly). Trails
+// record it with every step so the poison-history dump can restore true
+// chronological order -- set-union merges assemble trails out of execution
+// order (see ZegHistStep/zeg_trail_add_pc).
+extern thread_local uint64_t zeg_history_seq;
+
+// Bump and return the global execution-sequence counter (see zeg_history_seq).
+// Defined in mem.cpp; only history-mode exec_one entries call it (plain Taint
+// never touches the counter -- zero overhead in plain mode).
+uint64_t zeg_history_seq_next();
+
+// One recorded poison-history step. `pc` is the operation's instruction PC
+// (where the operation physically is); in deep history modes (--history=N/full)
+// `callers` holds the rest of the recorded stack, innermost first (empty in
+// --history=1). `seq` is the global execution sequence of the instruction that
+// recorded the step: trails are assembled by set-union merges that run out of
+// execution order, and the seq is what restores true chronological order.
+struct ZegHistStep {
+    uint64_t pc = 0;
+    uint64_t seq = 0;
+    std::vector<uint64_t> callers; // empty in --history=1
+};
+
 // --history=N/full: GPR snapshot (ZG_* order, cpu.h) + Emulator pointer +
 // instruction PC of the instruction currently being executed, filled at
 // exec_one entry by instantiations whose taint records frames, read by
@@ -111,24 +138,32 @@ void zeg_history_record_stack(std::vector<uint64_t>& out);
 void zeg_set_history_frames(size_t n);
 
 // --history mode taint: the same three enforcement bits plus a bounded
-// history of the guest PCs of the operations that produced or consumed the
-// poison (loads from poisoned memory, moves/merges into the value's
-// sidecar, stores of the value). Recording is driven by the value-assignment
-// operations themselves (operator=/operator|=) plus mem_get_taint (taint
-// from poisoned memory) and the engine's note_store wrapper (stores),
-// against the thread-local current-instruction PC set at exec_one entry.
-// Recording spans memory too: the poison map carries a per-byte trail that
-// poisoning requests union their call site into and stores of tainted
-// values rewrite, and a load seeds the value's trail from the set-unioned
-// per-byte trails of the bytes it reads (plus the load PC), so the
-// provenance survives memory round trips.
+// history of the operations (guest PCs, and each step's recording seq) that
+// produced or consumed the poison (loads from poisoned memory, moves/merges
+// into the value's sidecar, stores of the value). Recording is driven by the
+// value-assignment operations themselves (operator=/operator|=) plus
+// mem_get_taint (taint from poisoned memory) and the engine's note_store
+// wrapper (stores), against the thread-local current-instruction PC and its
+// execution seq set at exec_one entry. Recording spans memory too: the
+// poison map carries a per-byte trail that poisoning requests union their
+// call site into and stores of tainted values rewrite, and a load seeds the
+// value's trail from the set-unioned per-byte trails of the bytes it reads
+// (plus the load PC), so the provenance survives memory round trips. The
+// trail vector's order is merge/insertion order, not execution order; the
+// dump sorts by the steps' seq (the recording instruction's global execution
+// sequence) to print true chronological order.
 // The history is printed (BFD-symbolicated) when a taint check faults.
 
-// Trail append with set-union semantics, shared by every site that puts a
-// PC into a trail (HistoryTaint::note_op_pc/merge below, and the memory-side
-// per-byte trails in mem.cpp). Defined after HistoryTaint (it needs
-// kMaxHistory); forward-declared here so the member bodies below can use it.
-inline void zeg_trail_add(std::vector<uint64_t>& trail, uint64_t pc);
+// Trail append with seq-aware set-union semantics, shared by every site that
+// puts a step into a trail (HistoryTaint::note_op_pc/merge below, and the
+// memory-side per-byte trails in mem.cpp). Defined after HistoryTaint (it
+// needs kMaxHistory); forward-declared here so the member bodies below can
+// use it. Mode 1 trails hold single-PC steps: identity is the step's pc.
+inline void zeg_trail_add_pc(std::vector<ZegHistStep>& trail, uint64_t pc);
+// Same, unioning an already-recorded step (identity: step.pc; the step
+// carries its own recording seq).
+inline void zeg_trail_add_pc(std::vector<ZegHistStep>& trail,
+                             const ZegHistStep& step);
 
 struct HistoryTaint {
     static constexpr bool has_history = true;
@@ -137,9 +172,10 @@ struct HistoryTaint {
     bool cannot_branch = false;
     bool cannot_index = false;
     bool cannot_var_time_op = false;
-    std::vector<uint64_t> history; // guest PCs, oldest first
-    // Trail capacity: when full, adding a new PC drops the OLDEST entry, so
-    // the trail keeps the MOST RECENT operations (the faulting site is never
+    std::vector<ZegHistStep> history; // one step per recorded op (pc + seq)
+    // Trail capacity: when full, adding a new step drops the entry with the
+    // SMALLEST seq -- the true oldest, however merges ordered it -- so the
+    // trail keeps the MOST RECENT operations (the faulting site is never
     // silently frozen out).
     static constexpr size_t kMaxHistory = 4096;
     HistoryTaint() = default;
@@ -154,13 +190,14 @@ struct HistoryTaint {
         history.clear();
     }
     // Record the current instruction's PC if this taint is poisoned (union
-    // semantics via zeg_trail_add: a PC already present anywhere in the
-    // trail is not re-added, which collapses repeats from loops; the cap
-    // keeps the most recent entries).
+    // semantics via zeg_trail_add_pc: a PC already present anywhere in the
+    // trail is not re-added -- its seq is just refreshed to the most recent
+    // execution -- which collapses repeats from loops; the cap keeps the
+    // most recent entries).
     void note_op_pc() {
         if (!any())
             return;
-        zeg_trail_add(history, zeg_history_pc);
+        zeg_trail_add_pc(history, zeg_history_pc);
     }
     void merge(const HistoryTaint& o) {
         cannot_branch = cannot_branch || o.cannot_branch;
@@ -169,9 +206,11 @@ struct HistoryTaint {
         // Set-union the other trail in: two operands with the same
         // provenance (or N bytes loaded from identically-provenanced bytes)
         // merge to the distinct set of operations instead of N concatenated
-        // copies.
-        for (uint64_t pc : o.history)
-            zeg_trail_add(history, pc);
+        // copies. The union is keyed on the step PCs, so the merged vector's
+        // order is merge order -- NOT execution order -- and the dump sorts
+        // by the steps' seq to restore chronology.
+        for (const ZegHistStep& step : o.history)
+            zeg_trail_add_pc(history, step);
     }
     HistoryTaint operator|(const HistoryTaint& o) const {
         HistoryTaint r = *this;
@@ -204,10 +243,16 @@ struct HistoryTaint {
 // BFD symbolication and DWARF inline reconstruction happen at print time.
 // The per-step frame cap is runtime (--history=N; 0 = full).
 
-// Trail append with set-union semantics for DeepHistoryTaint (a step already
-// present anywhere in the trail is not re-added; cap keeps most recent).
-inline void zeg_trail_add_step(std::vector<std::vector<uint64_t>>& trail,
-                               std::vector<uint64_t> step);
+// Trail append with seq-aware set-union semantics for DeepHistoryTaint (a
+// step already present anywhere in the trail is not re-added -- its seq is
+// just refreshed; cap keeps the most recent seq). Deep steps are identified
+// by the whole recorded stack: pc plus callers.
+inline void zeg_trail_add_stack(std::vector<ZegHistStep>& trail,
+                                std::vector<uint64_t> pcs);
+// Same, unioning an already-recorded step (identity: pc + callers; the step
+// carries its own recording seq).
+inline void zeg_trail_add_stack(std::vector<ZegHistStep>& trail,
+                                const ZegHistStep& step);
 
 struct DeepHistoryTaint {
     static constexpr bool has_history = true;
@@ -215,8 +260,9 @@ struct DeepHistoryTaint {
     bool cannot_branch = false;
     bool cannot_index = false;
     bool cannot_var_time_op = false;
-    std::vector<std::vector<uint64_t>> history; // steps, oldest first; each step = recorded stack, innermost PC first
-    // Step capacity: when full, adding a new step drops the OLDEST step.
+    std::vector<ZegHistStep> history; // one step per recorded op (pc + callers + seq)
+    // Step capacity: when full, adding a new step drops the entry with the
+    // SMALLEST seq (the true oldest, however merges ordered it).
     static constexpr size_t kMaxHistory = 4096;
     DeepHistoryTaint() = default;
     bool any() const {
@@ -233,9 +279,9 @@ struct DeepHistoryTaint {
     void note_op_pc() {
         if (!any())
             return;
-        std::vector<uint64_t> step;
-        zeg_history_record_stack(step);
-        zeg_trail_add_step(history, std::move(step));
+        std::vector<uint64_t> stack;
+        zeg_history_record_stack(stack);
+        zeg_trail_add_stack(history, std::move(stack));
     }
     void merge(const DeepHistoryTaint& o) {
         cannot_branch = cannot_branch || o.cannot_branch;
@@ -244,9 +290,11 @@ struct DeepHistoryTaint {
         // Set-union the other trail's steps in: two operands with the same
         // provenance (or N bytes loaded from identically-provenanced bytes)
         // merge to the distinct set of operations instead of N concatenated
-        // copies.
-        for (const std::vector<uint64_t>& step : o.history)
-            zeg_trail_add_step(history, step);
+        // copies. The union is keyed on the whole recorded stacks, so the
+        // merged vector's order is merge order -- NOT execution order -- and
+        // the dump sorts by the steps' seq to restore chronology.
+        for (const ZegHistStep& step : o.history)
+            zeg_trail_add_stack(history, step);
     }
     DeepHistoryTaint operator|(const DeepHistoryTaint& o) const {
         DeepHistoryTaint r = *this;
@@ -270,28 +318,72 @@ struct DeepHistoryTaint {
     }
 };
 
-inline void zeg_trail_add_step(std::vector<std::vector<uint64_t>>& trail,
-                               std::vector<uint64_t> step) {
-    if (std::find(trail.begin(), trail.end(), step) != trail.end())
-        return;
-    if (trail.size() >= DeepHistoryTaint::kMaxHistory)
-        trail.erase(trail.begin());
-    trail.push_back(std::move(step));
+// Shared seq-aware union core (see the zeg_trail_add_pc/zeg_trail_add_stack
+// wrappers below): identity is (pc, callers). A step already present ANYWHERE
+// in the trail is not re-added; instead its seq is raised to the max of the
+// existing and the new seq -- the most recent execution of that operation in
+// this lineage, matching the trail's most-recent philosophy. Otherwise the
+// step is appended. This is what keeps merged trails from inflating: N bytes
+// with identical provenance, or two operands with the same provenance, merge
+// to the distinct set of operations instead of N concatenated copies. When
+// the trail is saturated it keeps the MOST RECENT executions: adding a new
+// step drops the entry with the SMALLEST seq -- the true oldest, even though
+// the vector's insertion order is merge order (merges assemble trails out of
+// execution order, which is exactly why the seq exists: the dump sorts by it
+// to restore chronology).
+inline void zeg_trail_add_seq(std::vector<ZegHistStep>& trail, uint64_t pc,
+                              std::vector<uint64_t>&& callers, uint64_t seq) {
+    for (ZegHistStep& st : trail) {
+        if (st.pc == pc && st.callers == callers) {
+            if (seq > st.seq)
+                st.seq = seq;
+            return;
+        }
+    }
+    if (trail.size() >= HistoryTaint::kMaxHistory) {
+        // Evict the smallest seq (the oldest execution); linear scan is fine
+        // here (crash-debug path, cap 4096).
+        size_t oldest = 0;
+        for (size_t i = 1; i < trail.size(); i++)
+            if (trail[i].seq < trail[oldest].seq)
+                oldest = i;
+        trail.erase(trail.begin() + (long)oldest);
+    }
+    trail.push_back(ZegHistStep{pc, seq, std::move(callers)});
 }
 
-// Append pc to a poison trail unless it is already present anywhere in it
-// (union semantics; first-occurrence order preserves the chronology of
-// first use). This is what keeps merged trails from inflating: N bytes with
-// identical provenance, or two operands with the same provenance, merge to
-// the distinct set of operations instead of N concatenated copies. When the
-// trail is saturated it keeps the MOST RECENT entries: adding a new PC drops
-// the oldest one (so the faulting site is never silently frozen out).
-inline void zeg_trail_add(std::vector<uint64_t>& trail, uint64_t pc) {
-    if (std::find(trail.begin(), trail.end(), pc) != trail.end())
+// Mode 1 (--history=1): a new step for the CURRENT instruction (pc with the
+// current zeg_history_seq, no callers).
+inline void zeg_trail_add_pc(std::vector<ZegHistStep>& trail, uint64_t pc) {
+    zeg_trail_add_seq(trail, pc, {}, zeg_history_seq);
+}
+
+// Mode 1: union an already-recorded single-PC step (identity: its pc; its
+// own recorded seq rides along).
+inline void zeg_trail_add_pc(std::vector<ZegHistStep>& trail,
+                             const ZegHistStep& step) {
+    zeg_trail_add_seq(trail, step.pc, {}, step.seq);
+}
+
+// Deep modes (--history=N/full): a new step for the CURRENT instruction.
+// `pcs` is the recorded stack, innermost PC first (frame 0 =
+// zeg_history_pc, as zeg_history_record_stack fills it); the step's pc is
+// frame 0 and callers holds the rest.
+inline void zeg_trail_add_stack(std::vector<ZegHistStep>& trail,
+                                std::vector<uint64_t> pcs) {
+    if (pcs.empty())
         return;
-    if (trail.size() >= HistoryTaint::kMaxHistory)
-        trail.erase(trail.begin());
-    trail.push_back(pc);
+    uint64_t pc = pcs.front();
+    pcs.erase(pcs.begin());
+    zeg_trail_add_seq(trail, pc, std::move(pcs), zeg_history_seq);
+}
+
+// Deep modes: union an already-recorded stack step (identity: pc + the whole
+// recorded stack; its own recorded seq rides along).
+inline void zeg_trail_add_stack(std::vector<ZegHistStep>& trail,
+                                const ZegHistStep& step) {
+    zeg_trail_add_seq(trail, step.pc,
+                      std::vector<uint64_t>(step.callers), step.seq);
 }
 
 // Common memory pipeline. Guest VA == host VA, so the fast path is memcpy,
@@ -475,10 +567,11 @@ struct GuestError {
     uint64_t fault_addr = 0;
     const char* reason = nullptr;
     // The offending value's recorded trail, one step per recorded operation
-    // (--history mode; empty for plain Taint).
-    std::vector<std::vector<uint64_t>> poison_history;
+    // (--history mode; empty for plain Taint). Steps carry their recording
+    // seq; the dump sorts by it to restore chronological order.
+    std::vector<ZegHistStep> poison_history;
 };
 template<typename TaintT>
 [[noreturn]] void guest_error(CPU<TaintT>* cpu, const char* reason,
                               uint64_t fault_addr = 0,
-                              std::vector<std::vector<uint64_t>> poison_history = {});
+                              std::vector<ZegHistStep> poison_history = {});
