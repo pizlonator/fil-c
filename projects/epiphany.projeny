@@ -18,7 +18,17 @@ Name: epiphany
     x2, embed/ephy-download.c x1, embed/ephy-web-view.c x1) computed in
     uintptr_t arithmetic and cast back to GType (the mutter/clutter
     pattern -- GType is a pointer in the pizlonated glib, so the plain
-    integer OR does not compile under clang 20's default error).
+    integer OR does not compile under clang 20's default error);
+    (5) the is_web_process one-way latches in
+    lib/ephy-flatpak-utils.c and lib/ephy-settings.c no longer
+    g_assert (!is_web_process): the web-process-extension entry point
+    (webkit_web_process_extension_initialize_with_user_data, exported by
+    BOTH web-process-extensions modules) can run more than once in one
+    WebProcess, and both setters bind the same shared libephymisc static,
+    so the second call tripped g_assertion_message_expr and aborted the
+    WebProcess (filc panic "user thwarted themselves"), which turned
+    into a WebProcess respawn loop -- pages never loaded. The flags are
+    one-way latches; re-setting is a no-op.
 diff --git a/epiphany/embed/ephy-download.c b/epiphany/embed/ephy-download.c
 --- a/epiphany/embed/ephy-download.c
 +++ b/epiphany/embed/ephy-download.c
@@ -73,7 +83,22 @@ diff --git a/epiphany/lib/contrib/dzl-suggestion.c b/epiphany/lib/contrib/dzl-su
 diff --git a/epiphany/lib/ephy-flatpak-utils.c b/epiphany/lib/ephy-flatpak-utils.c
 --- a/epiphany/lib/ephy-flatpak-utils.c
 +++ b/epiphany/lib/ephy-flatpak-utils.c
-@@ -142,7 +142,11 @@
+@@ -39,8 +39,12 @@
+ void
+ ephy_flatpak_utils_set_is_web_process_extension (void)
+ {
+-  g_assert (!is_web_process);
+-
++  /* Fil-C: the web-process-extension entry point can run more than once
++   * in one WebProcess, and every copy of it binds this same libephymisc
++   * static; treat re-setting as the no-op it is instead of tripping
++   * g_assert and aborting the WebProcess (that abort turned into a
++   * WebProcess respawn loop, so pages never loaded).
++   */
+   is_web_process = TRUE;
+ }
+
+@@ -142,7 +146,11 @@
      LAUNCHER_PORTAL_FOUND = 2
    };
 
@@ -86,7 +111,7 @@ diff --git a/epiphany/lib/ephy-flatpak-utils.c b/epiphany/lib/ephy-flatpak-utils
      g_autoptr (GDBusProxy) proxy = NULL;
      g_autoptr (GVariant) version = NULL;
      g_autoptr (GVariant) version_child = NULL;
-@@ -162,9 +166,9 @@
+@@ -162,9 +170,9 @@
        version_child = g_variant_get_child_value (version, 0);
        version_grandchild = g_variant_get_child_value (version_child, 0);
        g_debug ("Found version %d of the dynamic launcher portal", g_variant_get_uint32 (version_grandchild));
@@ -97,6 +122,23 @@ diff --git a/epiphany/lib/ephy-flatpak-utils.c b/epiphany/lib/ephy-flatpak-utils
 +      g_once_init_leave_pointer (&portal_available, LAUNCHER_PORTAL_MISSING);
      }
    }
+
+diff --git a/epiphany/lib/ephy-settings.c b/epiphany/lib/ephy-settings.c
+--- a/epiphany/lib/ephy-settings.c
++++ b/epiphany/lib/ephy-settings.c
+@@ -35,8 +35,11 @@
+ void
+ ephy_settings_set_is_web_process_extension (void)
+ {
+-  g_assert (!is_web_process);
+-
++  /* Fil-C: the web-process-extension entry point can run more than once
++   * in one WebProcess, and every copy of it binds this same libephymisc
++   * static; treat re-setting as the no-op it is instead of tripping
++   * g_assert and aborting the WebProcess.
++   */
+   is_web_process = TRUE;
+ }
 
 diff --git a/epiphany/lib/history/ephy-history-service.c b/epiphany/lib/history/ephy-history-service.c
 --- a/epiphany/lib/history/ephy-history-service.c
