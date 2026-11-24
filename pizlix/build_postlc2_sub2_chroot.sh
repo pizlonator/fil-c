@@ -190,7 +190,11 @@ hash -r
 
 tar -xf wget-1.25.0.tar.gz
 cd wget-1.25.0
-./configure --prefix=/usr      \
+# OpenSSL 4.0 removed SSLv3_client_method(); defining OPENSSL_NO_SSL3_METHOD
+# makes wget's #ifndef OPENSSL_NO_SSL3_METHOD guard skip the SSLv3 case, whose
+# NULL meth wget already handles gracefully (same treatment the /opt/fil wget
+# build gets in optfil/build_opt.sh).
+CPPFLAGS='-DOPENSSL_NO_SSL3_METHOD' ./configure --prefix=/usr      \
             --sysconfdir=/etc  \
             --with-ssl=openssl
 make
