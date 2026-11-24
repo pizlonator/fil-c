@@ -943,11 +943,11 @@ template uint64_t mem_client_request<HistoryTaint>(Emulator*,
                                                    uint64_t);
 template uint64_t mem_client_request<DeepHistoryTaint>(
     Emulator*, CPU<DeepHistoryTaint>*, uint64_t, uint64_t, uint64_t, uint64_t);
-template [[noreturn]] void guest_error<Taint>(CPU<Taint>*, const char*,
+template void guest_error<Taint>(CPU<Taint>*, const char*,
                                               uint64_t,
                                               std::vector<ZegHistStep>);
-template [[noreturn]] void guest_error<HistoryTaint>(CPU<HistoryTaint>*,
+template void guest_error<HistoryTaint>(CPU<HistoryTaint>*,
                                                      const char*, uint64_t,
                                                      std::vector<ZegHistStep>);
-template [[noreturn]] void guest_error<DeepHistoryTaint>(
+template void guest_error<DeepHistoryTaint>(
     CPU<DeepHistoryTaint>*, const char*, uint64_t, std::vector<ZegHistStep>);
