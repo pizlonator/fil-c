@@ -1148,8 +1148,15 @@ struct Engine {
         default: guest_error(cpu, "bad alu op");
         }
         // Taint propagation (except zero idiom handled above).
-        out.taint = dst.taint | src.taint;
-        flags_taint2(cpu, dst, src);
+        // ADC and SBB consume CF, so flags_taint flows into both result and flags.
+        if (m == ZYDIS_MNEMONIC_ADC || m == ZYDIS_MNEMONIC_SBB) {
+            Taint t = dst.taint | src.taint | cpu->flags_taint;
+            out.taint = t;
+            cpu->flags_taint = t;
+        } else {
+            out.taint = dst.taint | src.taint;
+            flags_taint2(cpu, dst, src);
+        }
         if (m == ZYDIS_MNEMONIC_CMP || m == ZYDIS_MNEMONIC_TEST) {
             cpu->rip = next_rip(cpu, d);
             return;
@@ -1270,6 +1277,7 @@ struct Engine {
             r = (uint64_t)big & mask_for(w);
             if (c == 1)
                 of = ((r >> (bits - 1)) & 1) ^ cf;
+            out.taint |= cpu->flags_taint;
         } else {
             guest_error(cpu, "bad shift op");
         }
@@ -1282,7 +1290,7 @@ struct Engine {
             cpu->set_flag(FLAG_PF, parity8((uint8_t)r));
         }
         out.v = r;
-        flags_taint2(cpu, dst, cnt);
+        cpu->flags_taint = out.taint;
         op_store(cpu, d, 0, out);
         cpu->rip = next_rip(cpu, d);
     }
@@ -1790,6 +1798,7 @@ struct Engine {
             if (cpu->sf())
                 ah |= 0x80;
             cpu->gpr[ZG_RAX].val = (cpu->gpr[ZG_RAX].val & ~0xff00ULL) | ((uint64_t)ah << 8);
+            cpu->gpr[ZG_RAX].taint |= cpu->flags_taint;
         } else {
             uint8_t ah = (cpu->gpr[ZG_RAX].val >> 8) & 0xff;
             cpu->set_flag(FLAG_CF, ah & 0x01);
@@ -1797,6 +1806,7 @@ struct Engine {
             cpu->set_flag(FLAG_AF, ah & 0x10);
             cpu->set_flag(FLAG_ZF, ah & 0x40);
             cpu->set_flag(FLAG_SF, ah & 0x80);
+            cpu->flags_taint |= cpu->gpr[ZG_RAX].taint;
         }
         cpu->rip = next_rip(cpu, d);
     }
@@ -2282,13 +2292,13 @@ struct Engine {
             w = 8;
         uint64_t v = cpu->rflags;
         if (w == 2)
-            push64(cpu, v & 0xffff);
+            push64(cpu, v & 0xffff, cpu->flags_taint);
         else
             // Push the user-visible flags: CF, PF, AF, ZF, SF, DF, OF (plus the
             // always-one bit 1).  The old mask (0x00fcfffe) dropped CF, which
             // broke flag save/restore via pushfq/popfq in guests that use it
             // (e.g. the SARCASM-annotated OpenSSL assembly).
-            push64(cpu, v & 0x00fcffff); // mask reserved bits
+            push64(cpu, v & 0x00fcffff, cpu->flags_taint); // mask reserved bits
         cpu->rip = next_rip(cpu, d);
     }
 
@@ -4187,6 +4197,7 @@ struct Engine {
         case ZYDIS_MNEMONIC_ANDN:
             out.v = (~(s0.v & m) & s1.v) & m;
             flags_logic(cpu, w, out.v);
+            cpu->flags_taint = out.taint;
             break;
         case ZYDIS_MNEMONIC_BLSI:
             out.v = ((-(int64_t)(s1.v & m))) & (s1.v & m) & m;
@@ -4194,6 +4205,7 @@ struct Engine {
             cpu->set_flag(FLAG_ZF, out.v == 0);
             cpu->set_flag(FLAG_SF, (out.v >> (w * 8 - 1)) & 1);
             cpu->set_flag(FLAG_OF, false);
+            cpu->flags_taint = out.taint;
             break;
         case ZYDIS_MNEMONIC_BLSMSK: {
             uint64_t t = s1.v & m;
@@ -4202,6 +4214,7 @@ struct Engine {
             cpu->set_flag(FLAG_ZF, false);
             cpu->set_flag(FLAG_SF, false);
             cpu->set_flag(FLAG_OF, false);
+            cpu->flags_taint = out.taint;
             break;
         }
         case ZYDIS_MNEMONIC_BLSR: {
@@ -4211,6 +4224,7 @@ struct Engine {
             cpu->set_flag(FLAG_ZF, out.v == 0);
             cpu->set_flag(FLAG_SF, (out.v >> (w * 8 - 1)) & 1);
             cpu->set_flag(FLAG_OF, false);
+            cpu->flags_taint = out.taint;
             break;
         }
         case ZYDIS_MNEMONIC_BZHI: {
@@ -4227,23 +4241,18 @@ struct Engine {
             // runs BZHI with index 0 for every length that is a multiple of 64,
             // so the bogus all-ones mask made the following vmovdqu8 store a full
             // 64 bytes past the end of the memset region.
-            if (k < bits)
+            out.taint |= idx.taint;
+            if (k < bits) {
                 out.v = (s0.v & m) & ((1ULL << k) - 1);
-            else {
+                cpu->set_flag(FLAG_CF, false);
+            } else {
                 out.v = s0.v & m;
                 cpu->set_flag(FLAG_CF, true);
-                cpu->set_flag(FLAG_ZF, out.v == 0);
-                cpu->set_flag(FLAG_SF, (out.v >> (bits - 1)) & 1);
-                cpu->set_flag(FLAG_OF, false);
-                op_store(cpu, d, 0, out);
-                cpu->rip = next_rip(cpu, d);
-                return;
             }
-            cpu->set_flag(FLAG_CF, false);
             cpu->set_flag(FLAG_ZF, out.v == 0);
             cpu->set_flag(FLAG_SF, (out.v >> (bits - 1)) & 1);
             cpu->set_flag(FLAG_OF, false);
-            out.taint |= idx.taint;
+            cpu->flags_taint = out.taint;
             break;
         }
         case ZYDIS_MNEMONIC_SHLX:
@@ -4279,12 +4288,15 @@ struct Engine {
         case ZYDIS_MNEMONIC_MULX: {
             // MULX r32a, r32b, r/m: r32a=high, r32b=low (implicit RDX).
             Val src = op_load(cpu, d, 2);
+            Taint mul_taint = cpu->gpr[ZG_RDX].taint | src.taint;
             if (w == 4) {
                 uint64_t r = (uint64_t)(uint32_t)(cpu->gpr[ZG_RDX].val & 0xffffffffULL) *
                     (uint32_t)(src.v & 0xffffffffULL);
                 Val hi, lo;
                 hi.v = (uint32_t)(r >> 32);
                 lo.v = (uint32_t)r;
+                hi.taint = mul_taint;
+                lo.taint = mul_taint;
                 op_store(cpu, d, 0, hi);
                 op_store(cpu, d, 1, lo);
             } else {
@@ -4292,6 +4304,8 @@ struct Engine {
                 Val hi, lo;
                 hi.v = (uint64_t)(r >> 64);
                 lo.v = (uint64_t)r;
+                hi.taint = mul_taint;
+                lo.taint = mul_taint;
                 op_store(cpu, d, 0, hi);
                 op_store(cpu, d, 1, lo);
             }
@@ -4337,6 +4351,8 @@ struct Engine {
                 cpu->set_flag(FLAG_CF, cout);
             else
                 cpu->set_flag(FLAG_OF, cout);
+            out.taint |= cpu->flags_taint;
+            cpu->flags_taint |= out.taint;
             break;
         }
         default:
