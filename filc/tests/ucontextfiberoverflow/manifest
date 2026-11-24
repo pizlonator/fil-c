@@ -1,0 +1,10 @@
+return:
+  failure
+output-includes:
+  - "filc safety error"
+  - "stack overflow"
+output-excludes:
+  - "UNEXPECTED_FIBER_OVERFLOW"
+only-on-platform:
+  x86_64
+unsupportedOnCOSMO: true
