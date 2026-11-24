@@ -4660,3 +4660,85 @@ diff -ruN '--exclude=config_host.mk' '--exclude=config_host' '--exclude=config_h
  }
  
  /* vim:set shiftwidth=4 softtabstop=4 expandtab: */
+diff -ruN '--exclude=config_host.mk' '--exclude=config_host' '--exclude=config_host_lang.mk' '--exclude=autogen.lastrun' '--exclude=autogen.lastrun.bak' '--exclude=Makefile' '--exclude=workdir' '--exclude=instdir' '--exclude=.vscode' '--exclude=*.o' '--exclude=*.a' '--exclude=*.so' '--exclude=*.d' '--exclude=*.stamp' '--exclude=config.log' '--exclude=config.status' '--exclude=config.warn' '--exclude=autom4te.cache' '--exclude=tarballs' '--exclude=src' '--exclude=test.cpp' '--exclude=test.cpp~' '--exclude=thetest' '--exclude=validator' '--exclude=officeotron' '--exclude=odfvalidator' '--exclude=fetch.log' '--exclude=configure' '--exclude=aclocal.m4' '--exclude=dictionaries' '--exclude=helpcontent2' '--exclude=translations' a/external/xmlsec/UnpackedTarball_xmlsec.mk b/external/xmlsec/UnpackedTarball_xmlsec.mk
+--- a/external/xmlsec/UnpackedTarball_xmlsec.mk	2026-07-06 15:51:59.030000000 -0700
++++ b/external/xmlsec/UnpackedTarball_xmlsec.mk	2026-11-24 00:30:00.000000000 -0800
+@@ -14,5 +14,8 @@
+ xmlsec_patches += BCryptKeyDerivation.patch.1
+ xmlsec_patches += fix-attribute-unused.patch.1
++# Fil-C (Pizlix): OpenSSL 4 made ASN1_STRING fully opaque, so the direct
++# ->data/->length accesses no longer compile; use the 1.1.0 accessors.
++xmlsec_patches += openssl4-asn1-string-opaque.patch.1
+ 
+ $(eval $(call gb_UnpackedTarball_UnpackedTarball,xmlsec))
+ 
+diff -ruN '--exclude=config_host.mk' '--exclude=config_host' '--exclude=config_host_lang.mk' '--exclude=autogen.lastrun' '--exclude=autogen.lastrun.bak' '--exclude=Makefile' '--exclude=workdir' '--exclude=instdir' '--exclude=.vscode' '--exclude=*.o' '--exclude=*.a' '--exclude=*.so' '--exclude=*.d' '--exclude=*.stamp' '--exclude=config.log' '--exclude=config.status' '--exclude=config.warn' '--exclude=autom4te.cache' '--exclude=tarballs' '--exclude=src' '--exclude=test.cpp' '--exclude=test.cpp~' '--exclude=thetest' '--exclude=validator' '--exclude=officeotron' '--exclude=odfvalidator' '--exclude=fetch.log' '--exclude=configure' '--exclude=aclocal.m4' '--exclude=dictionaries' '--exclude=helpcontent2' '--exclude=translations' a/external/openldap/UnpackedTarball_openldap.mk b/external/openldap/UnpackedTarball_openldap.mk
+--- a/external/openldap/UnpackedTarball_openldap.mk	2024-08-08 13:59:54.000000000 -0700
++++ b/external/openldap/UnpackedTarball_openldap.mk	2026-11-24 00:30:00.000000000 -0800
+@@ -21,5 +21,6 @@
+ 	$(eval $(call gb_UnpackedTarball_add_patches,openldap,\
+ 	external/openldap/openldap-2.4.44.patch.1 \
++	external/openldap/openssl4-asn1-string-opaque.patch.1 \
+ ))
+ 
+ # vim: set noet sw=4 ts=4:
+diff -ruN '--exclude=config_host.mk' '--exclude=config_host' '--exclude=config_host_lang.mk' '--exclude=autogen.lastrun' '--exclude=autogen.lastrun.bak' '--exclude=Makefile' '--exclude=workdir' '--exclude=instdir' '--exclude=.vscode' '--exclude=*.o' '--exclude=*.a' '--exclude=*.so' '--exclude=*.d' '--exclude=*.stamp' '--exclude=config.log' '--exclude=config.status' '--exclude=config.warn' '--exclude=autom4te.cache' '--exclude=tarballs' '--exclude=src' '--exclude=test.cpp' '--exclude=test.cpp~' '--exclude=thetest' '--exclude=validator' '--exclude=officeotron' '--exclude=odfvalidator' '--exclude=fetch.log' '--exclude=configure' '--exclude=aclocal.m4' '--exclude=dictionaries' '--exclude=helpcontent2' '--exclude=translations' a/external/xmlsec/openssl4-asn1-string-opaque.patch.1 b/external/xmlsec/openssl4-asn1-string-opaque.patch.1
+--- a/external/xmlsec/openssl4-asn1-string-opaque.patch.1	1969-12-31 16:00:00.000000000 -0800
++++ b/external/xmlsec/openssl4-asn1-string-opaque.patch.1	2026-11-24 00:30:00.000000000 -0800
+@@ -0,0 +1,14 @@
++--- a/src/openssl/x509vfy.c
+++++ b/src/openssl/x509vfy.c
++@@ -1537,7 +1537,10 @@
++     if(keyId == NULL) {
++         return(0);
++     }
++-    if((keyId->length != skiLen) || (memcmp(keyId->data, ski, (size_t)skiLen) != 0)) {
+++    /* Fil-C (Pizlix): OpenSSL 4 made ASN1_STRING fully opaque, so the
+++       direct ->length/->data pokes no longer compile; use the accessors
+++       that exist since 1.1.0 (the same fix as the wpa_supplicant port). */
+++    if((ASN1_STRING_length(keyId) != skiLen) || (memcmp(ASN1_STRING_get0_data(keyId), ski, (size_t)skiLen) != 0)) {
++         ASN1_OCTET_STRING_free(keyId);
++         return(0);
++     }
+diff -ruN '--exclude=config_host.mk' '--exclude=config_host' '--exclude=config_host_lang.mk' '--exclude=autogen.lastrun' '--exclude=autogen.lastrun.bak' '--exclude=Makefile' '--exclude=workdir' '--exclude=instdir' '--exclude=.vscode' '--exclude=*.o' '--exclude=*.a' '--exclude=*.so' '--exclude=*.d' '--exclude=*.stamp' '--exclude=config.log' '--exclude=config.status' '--exclude=config.warn' '--exclude=autom4te.cache' '--exclude=tarballs' '--exclude=src' '--exclude=test.cpp' '--exclude=test.cpp~' '--exclude=thetest' '--exclude=validator' '--exclude=officeotron' '--exclude=odfvalidator' '--exclude=fetch.log' '--exclude=configure' '--exclude=aclocal.m4' '--exclude=dictionaries' '--exclude=helpcontent2' '--exclude=translations' a/external/openldap/openssl4-asn1-string-opaque.patch.1 b/external/openldap/openssl4-asn1-string-opaque.patch.1
+--- a/external/openldap/openssl4-asn1-string-opaque.patch.1	1969-12-31 16:00:00.000000000 -0800
++++ b/external/openldap/openssl4-asn1-string-opaque.patch.1	2026-11-24 00:30:00.000000000 -0800
+@@ -0,0 +1,38 @@
++-*- Mode: diff -*-
++--- openldap.org/libraries/libldap/tls_o.c
+++++ openldap/libraries/libldap/tls_o.c
++@@ -991,11 +991,11 @@
++ 			ld->ld_error = LDAP_STRDUP(
++ 				_("TLS: unable to get CN from peer certificate"));
++ 
++-		} else if ( cn->length == nlen &&
++-			strncasecmp( name, (char *) cn->data, nlen ) == 0 ) {
+++		} else if ( ASN1_STRING_length( cn ) == nlen &&
+++			strncasecmp( name, (char *) ASN1_STRING_get0_data( cn ), nlen ) == 0 ) {
++ 			ret = LDAP_SUCCESS;
++ 
++-		} else if (( cn->data[0] == '*' ) && ( cn->data[1] == '.' )) {
+++		} else if (( ASN1_STRING_get0_data( cn )[0] == '*' ) && ( ASN1_STRING_get0_data( cn )[1] == '.' )) {
++ 			char *domain = strchr(name, '.');
++ 			if( domain ) {
++ 				int dlen;
++@@ -1003,8 +1003,8 @@
++ 				dlen = nlen - (domain-name);
++ 
++ 				/* Is this a wildcard match? */
++-				if ((dlen == cn->length-1) &&
++-					!strncasecmp(domain, (char *) &cn->data[1], dlen)) {
+++				if ((dlen == ASN1_STRING_length( cn )-1) &&
+++					!strncasecmp(domain, (char *) &ASN1_STRING_get0_data( cn )[1], dlen)) {
++ 					ret = LDAP_SUCCESS;
++ 				}
++ 			}
++@@ -1013,7 +1013,7 @@
++ 		if( ret == LDAP_LOCAL_ERROR ) {
++ 			Debug3( LDAP_DEBUG_ANY, "TLS: hostname (%s) does not match "
++ 				"common name in certificate (%.*s).\n", 
++-				name, cn->length, cn->data );
+++				name, ASN1_STRING_length( cn ), ASN1_STRING_get0_data( cn ) );
++ 			ret = LDAP_CONNECT_ERROR;
++ 			if ( ld->ld_error ) {
++ 				LDAP_FREE( ld->ld_error );

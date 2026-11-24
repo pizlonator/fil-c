@@ -21,7 +21,7 @@
 #include <openssl/bio.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
-#include <openssl/engine.h>
+#include <openssl/opensslv.h>
 
 /*
  * OpenSSL 3.0 deprecates the OpenSSL's ENGINE API.
@@ -29,6 +29,15 @@
  * Remove this if/when that API is no longer used
  */
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+/* Fil-C: OpenSSL 4 removed the ENGINE API from libcrypto entirely (the
+   header still ships declarations, so users of the API compile but fail
+   to link).  extract-cert only uses the API for the optional pkcs11:
+   certificate source, which the pizlix build never uses, so compile that
+   branch out on the 4 series. */
+#if OPENSSL_VERSION_NUMBER < 0x40000000L
+#include <openssl/engine.h>
+#endif
 
 #define PKEY_ID_PKCS7 2
 
@@ -122,6 +131,7 @@ int main(int argc, char **argv)
 		fclose(f);
 		exit(0);
 	} else if (!strncmp(cert_src, "pkcs11:", 7)) {
+#if OPENSSL_VERSION_NUMBER < 0x40000000L
 		ENGINE *e;
 		struct {
 			const char *cert_id;
@@ -144,6 +154,12 @@ int main(int argc, char **argv)
 		ENGINE_ctrl_cmd(e, "LOAD_CERT_CTRL", 0, &parms, NULL, 1);
 		ERR(!parms.cert, "Get X.509 from PKCS#11");
 		write_cert(parms.cert);
+#else
+		/* Fil-C: the ENGINE API went away in OpenSSL 4, so the optional
+		   pkcs11: certificate source is unavailable (the pizlix build
+		   only feeds extract-cert plain PEM files). */
+		ERR(1, "pkcs11: certificate sources need the OpenSSL ENGINE API (< 4)");
+#endif
 	} else {
 		BIO *b;
 		X509 *x509;
