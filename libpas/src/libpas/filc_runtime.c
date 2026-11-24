@@ -11425,9 +11425,19 @@ int filc_native_zsys_semctl(filc_thread* my_thread, int semid, int semnum, int c
     }
 
     case GETALL:
-    case SETALL:
-        filc_set_errno(ENOSYS);
-        return -1;
+    case SETALL: {
+        filc_ptr array_ptr = filc_cc_cursor_get_next_ptr(my_thread, args);
+        struct semid_ds stat_buf;
+        if (FILC_SYSCALL(my_thread, semctl(semid, 0, IPC_STAT, &stat_buf)) < 0)
+            return -1;
+        size_t byte_size = filc_mul_size((size_t)stat_buf.sem_nsems, sizeof(unsigned short));
+        if (cmd == GETALL)
+            filc_check_write(array_ptr, byte_size);
+        else
+            filc_check_read(array_ptr, byte_size);
+        return FILC_SYSCALL(
+            my_thread, semctl(semid, semnum, cmd, (unsigned short*)filc_ptr_ptr(array_ptr)));
+    }
 
     case SETVAL: {
         int val = filc_cc_cursor_get_next_int(my_thread, args);
