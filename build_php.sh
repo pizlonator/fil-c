@@ -40,8 +40,14 @@ PZ=$(cd $PWD/../../.. && echo $PWD/pizfix)
 #   fcontext assembly.
 # --without-pcre-jit, --disable-opcache-jit: both JITs emit machine code,
 #   which Fil-C cannot run.
+# --disable-huge-code-pages: OPcache, which PHP 8.5 always builds in, finds
+#   PHP's machine code with dl_iterate_phdr() to copy it into huge pages;
+#   Fil-C's libc lacks dl_iterate_phdr(), so PHP would not link.
 # ac_cv_have_decl_UFFDIO_WRITEPROTECT_MODE_WP=no: phpdbg watchpoints would
 #   use userfaultfd, which Fil-C does not support; phpdbg dies at startup.
+# ac_cv_have_decl_SYS_waitid=no: pcntl_waitid() fills its $rusage argument
+#   through syscall(SYS_waitid, ...), and Fil-C's syscall() does not support
+#   waitid, so PHP panicked; without it pcntl_waitid() leaves $rusage alone.
 # php_cv_have_fpu_inline_asm_x86=no: the x87 fnstcw/fldcw probe is a link-only
 #   test, and Fil-C compiles inline asm into a runtime panic instead of
 #   rejecting it, so the probe would falsely succeed and make zend_float.h
@@ -55,6 +61,7 @@ PATH=$PZ/bin:$PATH PKG_CONFIG="$PZ/bin/pkg-config --define-prefix" PKG_CONFIG_PA
     CC="$PWD/../../../build/bin/clang -g -O2" CXX="$PWD/../../../build/bin/clang++ -g -O2" \
     ./configure --prefix=$PZ \
     --disable-fiber-asm --without-pcre-jit --disable-opcache-jit \
+    --disable-huge-code-pages \
     --with-external-pcre \
     --enable-fpm \
     --with-openssl --with-zlib --with-bz2=$PZ --with-curl \
@@ -63,8 +70,9 @@ PATH=$PZ/bin:$PATH PKG_CONFIG="$PZ/bin/pkg-config --define-prefix" PKG_CONFIG_PA
     --enable-mbstring --disable-mbregex \
     --enable-gd --with-jpeg --with-webp \
     --enable-bcmath --enable-calendar --enable-exif \
-    --enable-pcntl --enable-sockets \
+    --enable-pcntl --enable-sockets --enable-shmop \
     ac_cv_have_decl_UFFDIO_WRITEPROTECT_MODE_WP=no \
+    ac_cv_have_decl_SYS_waitid=no \
     php_cv_have_fpu_inline_asm_x86=no
 make -j $NCPU
 make -j $NCPU install
@@ -72,7 +80,7 @@ make -j $NCPU install
 # Do a cheesy test of what the Fil-C patch touches: WeakMap keys, fibers and
 # their stack limit, Dom\HTMLDocument (lexbor name IDs), overflow arithmetic,
 # opcache, and the system allocator (Zend's counts real usage in 2 MiB chunks).
-$PZ/bin/php -n -d zend.assertions=1 -d zend_extension=opcache -d opcache.enable_cli=1 -r '
+$PZ/bin/php -n -d zend.assertions=1 -d opcache.enable_cli=1 -r '
     $m = new WeakMap; $o = new stdClass; $m[$o] = 1;
     foreach ($m as $k => $v) assert($k === $o && $v === 1);
     unset($o, $k); assert(count($m) === 0);
