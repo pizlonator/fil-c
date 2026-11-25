@@ -2873,6 +2873,18 @@ static void sem_check_ptr_diff2_impl(const char* fname, void* lhs, void* rhs)
                "operands must have the same type.", fname);
 }
 
+/* Intrinsic::lookupIntrinsicID -> findTargetSubtable asserts
+ * Name.starts_with("llvm.") (Intrinsics.cpp) and calls Name.drop_front(5),
+ * which underflows Length in NDEBUG builds for names shorter than 5 bytes. */
+static void sem_check_intrinsic_name_impl(const char* fname,
+                                          const char* name,
+                                          size_t len)
+{
+    FILC_CHECK(len >= 5 && memcmp(name, "llvm.", 5) == 0, NULL,
+               "Fil-C LLVM JIT API: wrong intrinsic name for %s: the name "
+               "must start with \"llvm.\".", fname);
+}
+
 /* The LLVM C API's intrinsic entry points map the id through
  * llvm_map_to_intrinsic_id, which asserts ID < Intrinsic::num_intrinsics
  * ("Intrinsic ID out of range", Core.cpp). */
@@ -3356,6 +3368,8 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
                "is not a valid floating-point literal for the type.");
 #define sem_ptr_diff2(fname, lhs, rhs) \
     sem_check_ptr_diff2_impl(#fname, (lhs##_obj)->handle, (rhs##_obj)->handle);
+#define sem_intrinsic_name(fname, name, len) \
+    sem_check_intrinsic_name_impl(#fname, (name##_obj), (len));
 #define sem_intrinsic_id(fname, id) \
     sem_check_intrinsic_id_impl(#fname, (id));
 #define sem_intrinsic_tys_exact(fname, id, count) \
@@ -5609,7 +5623,7 @@ FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsThreadLocal, LOCKED, bool, (REF, global_var,
 FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsTypeAttribute, LOCKED, bool, (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
 FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsUndef, LOCKED, bool, (REF, val, VALUE, LLVMValueRef))
 FILC_LLVM_JIT_DEFINE_REF_1(LLVMLabelTypeInContext, LOCKED, TYPE, (CTX, context))
-FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMLookupIntrinsicID, NO_LOCK, unsigned, (OPTSTR, name, name_len), (SCAL, name_len, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMLookupIntrinsicID, NO_LOCK, unsigned, (OPTSTR, name, name_len), (SCAL, name_len, size_t), sem_intrinsic_name(LLVMLookupIntrinsicID, name, name_len))
 /* The MDNode constructors accept null elements: LLVMMDNodeInContext maps a
    null element to null metadata (Core.cpp: "if (!V) MD = nullptr;"), and
    LLVMMDNodeInContext2 forwards nulls to MDNode::get (textual IR !{null} is
