@@ -1,4 +1,5 @@
-You're in a container that has a Fil-C git checkout. See README.md for a summary of Fil-C.
+You're in either a container or a VM that has a Fil-C git checkout. See README.md for a summary of
+Fil-C.
 
 The development flow is:
 
@@ -8,7 +9,14 @@ The development flow is:
 
 - `./build_all_fast.sh` builds Fil-C and runs tests. This can take a while; maybe up to an hour. This is what you usually run when you make a change and want to see if it works. After you complete any change, make sure you run `./build_all_fast.sh`! You're never done until you confirm that this runs to completion! Reason: this does a full build (equivalent to `./build_base.sh`) and a full test pass (equivalent to `filc/run-tests`).
 
-- There are other build scripts as well, but many of them will not run in your container environment, or are just not interesting for your workflow - so you should mostly ignore them. It might be worth your time to read how `build_base.sh` invokes other scripts and what those scripts do. Sometimes, if you know you only changed the compiler, you can just run `./build_clang.sh` to rebuild the compiler. Or, if you know you only changed the runtime, you can just run `./build_runtime.sh`.
+- There are other build scripts as well, but many of them will not run in acontainer environment, or
+  are just not interesting for your workflow. It might be worth your time to read how `build_base.sh`
+  invokes other scripts and what those scripts do. Sometimes, if you know you only changed the
+  compiler, you can just run `./build_clang.sh` to rebuild the compiler. Or, if you know you only
+  changed the runtime, you can just run `./build_runtime.sh`.
+
+- If you're in a VM and you're doing Pizlix development, you'll want to familiarize yourself with the
+  build scripts in pizlix/ and read pizlix/README.md.
 
 Make sure your container is set up the way `./enter_container.sh -n` would set it up. This matters if you want to run `./build_all_glibc.sh` or other glibc-flavored builds: that container setup has been updated to have gcc 12 (`gcc-12`/`g++-12` as the default `gcc`/`g++`) and newer binutils (binutils 2.47 built into /usr/local). If you only run `./build_all.sh` (the musl configuration), you most likely won't have to update anything. When in doubt, check what `enter_container.sh`'s generated Dockerfile installs and make your container match, either by installing the missing pieces or by starting a fresh container with `enter_container.sh -n`.
 
