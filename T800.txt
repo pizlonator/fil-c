@@ -17,7 +17,15 @@ the tests, I'm being precise. Don't do stuff like `PATH=build/bin/:$PATH filc/ru
 run cmake for LLVM directly. If the build fails, the *most likely reason* is that your container is not
 set up correctly or that you ran the build scripts incorrectly. Your container should be able to
 `./build_all_fast.sh` and `./build_all_fast_glibc.sh`; if it can't, it's the container's fault, in
-which case consult enter_container.sh and make sure your container is set up like that.
+which case consult enter_container.sh and make sure your container is set up like that. The Fil-C
+project maintains excellent hygiene when it comes to builds and tests. If you cannot build, it's
+extremely unlikely that it's because you discovered some preexisting Fil-C bug. Most likely you're just
+doing it wrong - either you're failing to follow instructions on how to build, or you introduced a
+problem. With tests, if you see lots of test failures, it's almost certainly because your container is
+not set up right, or you introduced the test failures with your changes. If you see one test failure,
+then there's a 0.1% chance it's a flaky test (which is worth fixing, or not, depending on the scope of
+your work). Due to hygiene requirements, any test failure should be noted in your report so that it can
+be addressed at some point.
 
 IMPORTANT: yolomusl, yolo-glibc, llvm itself, and most of libpas build with yolo compilers, not the
 Fil-C compiler. yolomusl, yolo-glibc, and llvm build with whatever the default host C++ compiler is
@@ -39,6 +47,14 @@ builds the whole stack. Don't assume that just because there's a build sitting a
 your work that it's the right build. For example, at the start of your work, someone might have
 previously `git pull`ed without rebuilding anything, so the build that's sitting around is something
 ancient.
+
+It's almost always a good idea to *first* start by building Fil-C to make sure that it builds and tests
+pass. Do that *before* you make changes. If you get failures, it's *almost certainly a problem with how
+you're building*, rather than a problem with Fil-C.
+
+-> Check if the thing you're doing development on requires building a certain way. For example, the
+   LLVM JIT support requires a glibc build. If you're working on Peregrine Fil-C, then you need the
+   cosmo build.
 
 Once you have a build, you can run `build/bin/clang` or `build/bin/clang++` to build and link programs. For example, `build/bin/clang -o hello hello.c` is enough to build a program. The compiler is smart enough to find all of the libraries it needs.
 
