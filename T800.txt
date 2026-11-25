@@ -12,6 +12,34 @@ The development flow is:
 
 Make sure your container is set up the way `./enter_container.sh -n` would set it up. This matters if you want to run `./build_all_glibc.sh` or other glibc-flavored builds: that container setup has been updated to have gcc 12 (`gcc-12`/`g++-12` as the default `gcc`/`g++`) and newer binutils (binutils 2.47 built into /usr/local). If you only run `./build_all.sh` (the musl configuration), you most likely won't have to update anything. When in doubt, check what `enter_container.sh`'s generated Dockerfile installs and make your container match, either by installing the missing pieces or by starting a fresh container with `enter_container.sh -n`.
 
+IMPORTANT: NEVER try to get creative with how you build. For example, when I say `filc/run-tests` runs
+the tests, I'm being precise. Don't do stuff like `PATH=build/bin/:$PATH filc/run-tests`. Don't try to
+run cmake for LLVM directly. If the build fails, the *most likely reason* is that your container is not
+set up correctly or that you ran the build scripts incorrectly. Your container should be able to
+`./build_all_fast.sh` and `./build_all_fast_glibc.sh`; if it can't, it's the container's fault, in
+which case consult enter_container.sh and make sure your container is set up like that.
+
+IMPORTANT: yolomusl, yolo-glibc, llvm itself, and most of libpas build with yolo compilers, not the
+Fil-C compiler. yolomusl, yolo-glibc, and llvm build with whatever the default host C++ compiler is
+(almost always g++). Most of libpas's C code builds with host clang (NOT the clang in build/bin, which
+is the Fil-C clang). There is *some* code in libpas that builds with Fil-C clang in build/bin. This
+means that C and C++ code in this project lives in two entirely different universes, depending on which
+file you're looking at: either it's in yololand (built with yolo C/C++ compilers, not the one in
+build/bin) or it's in userland (built with the Fil-C C/C++ compiler, i.e. the one in build/bin). It's
+important that you honor what the build scripts like `build_base.sh`, `build_all_fast.sh`, etc do
+precisely because those scripts correctly wire the right compiler to the right files. This is also why
+it's so important not to mess around with `$PATH` - putting `build/bin` in the path means that attempts
+to invoke the system's clang go to the Fil-C clang instead, which breaks everything. TL;DR: use the
+build scripts that are provided. Don't get creative unless you know *exactly* what you're doing.
+
+IMPORTANT: avoid trying to just rebuild parts of the stack, like running `./build_runtime.sh` or
+`./build_clang.sh` directly. Definitely don't do that if you haven't previously run `./build_all.sh`,
+`./build_all_glibc.sh`, `build_base.sh`, `./build_all_fast.sh`, or one of those other scripts that
+builds the whole stack. Don't assume that just because there's a build sitting around at the start of
+your work that it's the right build. For example, at the start of your work, someone might have
+previously `git pull`ed without rebuilding anything, so the build that's sitting around is something
+ancient.
+
 Once you have a build, you can run `build/bin/clang` or `build/bin/clang++` to build and link programs. For example, `build/bin/clang -o hello hello.c` is enough to build a program. The compiler is smart enough to find all of the libraries it needs.
 
 Sarcasm, the pizlonating assembler that clang uses for `.s` files by default (`-yolo-assembler` opts out), is developed in `projects/sarcasm/` (Luau sources, run by minilute), but it is installed into `pizfix/`: `./build_sarcasm.sh` copies the sources to `pizfix/lib/sarcasm/` and writes the `pizfix/bin/sarcasm` launcher, and that installed copy, not the sources in `projects/sarcasm/`, is what `build/bin/clang` and `filc/run-tests` actually execute. Therefore, after editing anything in `projects/sarcasm/`, you must run `./build_sarcasm.sh` before testing; just editing the sources is not enough. The sarcasm tests live in `filc/tests/sarcasm-*`; run them with `filc/run-tests -f sarcasm`, or `-t <testname>` for exactly one. If you only changed the compiler side (e.g. the driver's SarcasmAs tool), `./build_clang.sh` rebuilds just clang. As always, `./build_all_fast.sh` is the final gate for any change, including sarcasm changes.
