@@ -362,6 +362,30 @@ bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_fi
                         const std::string& theirs_file, const std::string& dst_path,
                         const std::string& dst_root);
 
+// Displacement detection for the moved-chain rebase fallback (cmd_rebase).
+// `base_bytes` is the reconstructed old side (a workdir copy with the patch
+// reverse-applied): byte-exact base content INSIDE the patch's hunk
+// pre-images, and the WORKDIR's own bytes outside them — uncommitted edits
+// there are indistinguishable from stale committed content. `merged_bytes`
+// is the tree file after the merge/application. `keep_ranges` are 0-based
+// [start, end) line ranges in BASE coordinates (the hunk pre-images: the
+// merge's resolutions and conflict markers live there).
+//
+// The function walks the same Myers script the three-way merge itself is
+// built from, taken between the reconstructed old side and the merged
+// result, and reports — writing and reverting NOTHING — whether any changed
+// old-side range lies OUTSIDE those keep ranges. Such a range is a region
+// where the merged content replaced the workdir's own bytes (the
+// "displacement" the caller must surface): outside the pre-images the
+// merge's base was really the workdir, the true old base is unreconstructable
+// there, and the changed range is as likely the upstream move as uncommitted
+// work — so the moved chain's content stands and the caller flags the file
+// for the user to inspect instead of restoring anything. Returns true when a
+// changed range outside the keep ranges exists.
+bool vcs_detect_displaced_regions(
+    const std::string& base_bytes, const std::string& merged_bytes,
+    const std::vector<std::pair<size_t, size_t>>& keep_ranges);
+
 // The frozen-mtime attributes recorded in `patch` (wid-label form):
 // workdir-relative path -> unix-epoch seconds. Only blocks carrying a
 // `frozen-mtime <ts>` extended header appear. Keys prefer the block's new

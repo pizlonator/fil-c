@@ -53,8 +53,12 @@ int usage(const char* arg0, bool err)
             "  rm <f.projeny|dir> <path>\n"
             "  mv <f.projeny|dir> <src> <dst>\n"
             "  resolve <f.projeny|dir> <path>\n"
+            "  rebase <f.projeny|dir>\n"
+            "  rebase <f.projeny|dir> <base.projeny>\n"
             "  rebase <f.projeny|dir> <new-tarball>\n"
             "  rebase <f.projeny|dir> <url> [<hash>] [<url> [<hash>]...]\n"
+            "  create <f.projeny> <base.projeny> [--comment <text>]\n"
+            "         [--origname <name>] [--force] [--erase-snapshots]\n"
             "  create <f.projeny> <new-tarball> [--comment <text>]\n"
             "         [--origname <name>] [--force] [--erase-snapshots]\n"
             "  create <f.projeny> <url> [<hash>] [<url> [<hash>]...]\n"
@@ -426,7 +430,10 @@ int main(int argc, char** argv)
             return cmd_resolve(args[1], args[2]);
         }
         if (cmd == "rebase") {
-            if (args.size() < 3)
+            // Two arguments (project only) are the zero-arg form: re-extract
+            // a Projeny:-based project's committed base (cmd_rebase refuses
+            // it for any other mode).
+            if (args.size() < 2)
                 return usage(arg0.c_str(), true);
             return cmd_rebase(args[1],
                               std::vector<std::string>(args.begin() + 2,

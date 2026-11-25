@@ -39,9 +39,12 @@ struct ProjenyUrl {
 //
 // Layout: "Key: value" headers at the top, terminated by a blank line,
 // then free text and a git-style patch. The required keys are Origname:,
-// Name:, and either Archive: (a tarball checked into git next to the
-// .projeny file) or one or more URL: lines (the tarball is downloaded and
-// verified); everything else is preserved verbatim:
+// Name:, and exactly one base header naming the tarball the project starts
+// from: Archive: (a tarball checked into git next to the .projeny file), one
+// or more URL: lines (the tarball is downloaded and verified against each
+// line's blake3 hash), or Projeny: (a plain filename of another .projeny
+// file in the same directory, whose committed extraction this project is
+// based on); everything else is preserved verbatim:
 //   head    = the header block (without the trailing blank line)
 //   patch   = everything from the "diff --git" block onward (may be empty)
 //   middle  = free text between the blank line and the first "diff --git"
@@ -53,17 +56,28 @@ struct ProjenyFile {
     std::string archive;
     std::string origname;
     std::string name;
+    // The "Projeny: <file>" value: a plain filename of another .projeny
+    // file, resolved in the same directory as the referencing file (the
+    // same search law as Archive: tarballs). Empty unless the file is
+    // Projeny:-based; exactly one of archive/urls/base names the base.
+    std::string base;
     // The "URL: <url> <blake3-hash>" headers, in file order. Empty for the
-    // classic Archive:-based form. When non-empty, Archive: is absent and
-    // `archive` holds the name derived from the FIRST URL's basename: the
-    // downloaded tarball is cached (and verified against the hashes) as the
-    // .<archive>.snapshot next to the .projeny file, exactly where a classic
-    // project's snapshot copy lives.
+    // classic Archive:-based and the Projeny:-based forms. When non-empty,
+    // Archive: and Projeny: are absent and `archive` holds the name derived
+    // from the FIRST URL's basename: the downloaded tarball is cached (and
+    // verified against the hashes) as the .<archive>.snapshot next to the
+    // .projeny file, exactly where a classic project's snapshot copy lives.
     std::vector<ProjenyUrl> urls;
 
-    // True when the tarball is fetched from URL: lines instead of a checked-in
-    // Archive: tarball.
+    // True when the tarball is fetched from URL: lines instead of a
+    // checked-in Archive: tarball or a Projeny: base file.
     bool is_url_based() const { return !urls.empty(); }
+    // True when the project is based on another .projeny file's committed
+    // extraction ("Projeny: <file>").
+    bool is_projeny_based() const { return !base.empty(); }
+    // True for the classic form: a checked-in Archive: tarball (no URL:
+    // lines, no Projeny: base).
+    bool is_archive_based() const { return urls.empty() && base.empty(); }
 
     static ProjenyFile parse(const std::string& path);
     static ProjenyFile parse_bytes(const std::string& data,
@@ -85,17 +99,28 @@ struct ProjenyFile {
 // file's embedded .projeny copy.
 std::string archive_name_from_url(const std::string& url);
 
+// Removes every Archive:, URL:, and Projeny: header line from `head` and
+// inserts `new_lines` (pre-formatted header lines, each '\n'-terminated)
+// where the FIRST removed line stood (or at the top of the head when none
+// were removed). This is the general form of replace_archive_url_headers:
+// it also supports converting to or from Projeny:-based files, which the
+// Archive:/URL:-only version could never express.
+std::string replace_base_headers(const std::string& head,
+                                 const std::string& new_lines);
+
 // Rewrite the archive-location headers of `head` (the header block — only
 // header lines, since parsing stops at the first blank line; scanning here
 // also stops at the first empty line, so only a mis-scoped `head` could ever
-// reach one) for a URL:-based form: every `Archive:` and `URL:` line is
-// removed, and one `URL: <url> <hash>` line per entry is inserted where the
-// FIRST removed line stood (at the top of the head when none were removed).
-// `replace_header_value`
+// reach one) for a URL:-based form: every `Archive:`, `URL:`, and `Projeny:`
+// line is removed, and one `URL: <url> <hash>` line per entry is inserted
+// where the FIRST removed line stood (at the top of the head when none were
+// removed). `replace_header_value`
 // cannot do this job: it rewrites every occurrence of a key in place, so it
 // could never collapse an Archive: line plus N URL: lines into exactly N new
 // URL: lines. The hashes are written as given — callers pass the lowercase
-// form a `URL:` header wants.
+// form a `URL:` header wants. This is replace_base_headers specialized to
+// URL: lines; see also replace_base_headers for converting to or from
+// Projeny:-based files.
 std::string replace_archive_url_headers(const std::string& head,
                                         const std::vector<ProjenyUrl>& urls);
 

@@ -311,14 +311,15 @@ std::string archive_name_from_url(const std::string& url)
     return name;
 }
 
-std::string replace_archive_url_headers(const std::string& head,
-                                        const std::vector<ProjenyUrl>& urls)
+std::string replace_base_headers(const std::string& head,
+                                 const std::string& new_lines)
 {
-    // Remove every Archive:/URL: line; remember where the first one stood.
-    // Scanning stops at the first empty line: that is where the header block
-    // ends, and callers pass only the header block (ProjenyFile::parse keeps
-    // the blank-line terminator out of head) — the guard just keeps a future
-    // caller from silently scanning into the file's body.
+    // Remove every Archive:/URL:/Projeny: line; remember where the first one
+    // stood. Scanning stops at the first empty line: that is where the
+    // header block ends, and callers pass only the header block
+    // (ProjenyFile::parse keeps the blank-line terminator out of head) — the
+    // guard just keeps a future caller from silently scanning into the
+    // file's body.
     std::vector<std::string> kept;
     size_t insert_at = 0; // the head's top when no line is removed
     bool removed = false;
@@ -328,7 +329,9 @@ std::string replace_archive_url_headers(const std::string& head,
         bool is_archive =
             l.size() > 8 && l.compare(0, 8, "Archive:") == 0;
         bool is_url = l.size() > 4 && l.compare(0, 4, "URL:") == 0;
-        if (!is_archive && !is_url) {
+        bool is_projeny =
+            l.size() > 8 && l.compare(0, 8, "Projeny:") == 0;
+        if (!is_archive && !is_url && !is_projeny) {
             kept.push_back(l);
             continue;
         }
@@ -337,11 +340,24 @@ std::string replace_archive_url_headers(const std::string& head,
             insert_at = kept.size();
         }
     }
-    // The new URL: lines take the removed lines' place (or lead the head).
-    kept.insert(kept.begin() + (long)insert_at, urls.size(), std::string());
-    for (size_t i = 0; i < urls.size(); ++i)
-        kept[insert_at + i] = "URL: " + urls[i].url + " " + urls[i].hash;
+    // The new lines take the removed lines' place (or lead the head).
+    std::vector<std::string> added = split_lines(new_lines);
+    kept.insert(kept.begin() + (long)insert_at, added.size(), std::string());
+    for (size_t i = 0; i < added.size(); ++i)
+        kept[insert_at + i] = added[i];
     return join_lines(kept);
+}
+
+std::string replace_archive_url_headers(const std::string& head,
+                                        const std::vector<ProjenyUrl>& urls)
+{
+    // The URL:-only form of replace_base_headers: pre-format one URL: line
+    // per entry and let the general version remove every Archive:/URL:/
+    // Projeny: line and insert them where the first removed line stood.
+    std::string new_lines;
+    for (const ProjenyUrl& u : urls)
+        new_lines += "URL: " + u.url + " " + u.hash + "\n";
+    return replace_base_headers(head, new_lines);
 }
 
 namespace {
@@ -379,8 +395,10 @@ std::string validate_projeny_bytes(const std::string& data)
     if (projeny_has_conflict_markers(data))
         return "contains git conflict markers";
     // Header sanity without dying: required Origname:/Name: plus exactly one
-    // of Archive: (checked-in tarball) or at least one URL: line (download).
-    bool archive = false, origname = false, name = false, url = false;
+    // base header — Archive: (checked-in tarball), at least one URL: line
+    // (download), or a Projeny: line (another .projeny file).
+    bool archive = false, origname = false, name = false, url = false,
+         projeny = false, projeny_empty_value = false;
     for (const std::string& line : split_lines(data)) {
         if (line.empty())
             break;
@@ -407,10 +425,23 @@ std::string validate_projeny_bytes(const std::string& data)
             name = true;
         else if (key == "URL")
             url = true;
+        else if (key == "Projeny") {
+            projeny = true;
+            // A Projeny: line with an empty value is its own mistake, and
+            // it must not masquerade as a missing header or as a valid
+            // Archive:/URL:-based file: report it specifically (the same
+            // detection ProjenyFile::parse_bytes dies with, ahead of the
+            // required/exclusivity checks there).
+            if (trim(line.substr(colon + 1)).empty())
+                projeny_empty_value = true;
+        }
     }
-    if (!origname || !name || (!archive && !url))
-        return "is missing a required header (need Archive: or at least one "
-               "URL: line, plus Origname: and Name:)";
+    if (projeny_empty_value)
+        return "has an empty Projeny: value (name the base .projeny file "
+               "after 'Projeny:')";
+    if (!origname || !name || (!archive && !url && !projeny))
+        return "is missing a required header (need Archive:, at least one "
+               "URL: line, or a Projeny: line, plus Origname: and Name:)";
     return "";
 }
 
@@ -527,6 +558,23 @@ ProjenyFile ProjenyFile::parse_bytes(const std::string& data,
     pf.archive = pf.header_value("Archive");
     pf.origname = pf.header_value("Origname");
     pf.name = pf.header_value("Name");
+    pf.base = pf.header_value("Projeny");
+
+    // A Projeny: line whose value is empty (or whitespace) is its own
+    // mistake and must be reported before the exclusivity/required checks
+    // below: with Archive: or URL: headers present it would otherwise pass
+    // as that mode (the exclusivity checks only fire on a NON-empty base),
+    // and without them it would die as a vague missing-required-header —
+    // even though the Projeny: line the user meant to write is right there.
+    for (const std::string& line : split_lines(pf.head)) {
+        if (line.size() < 8 || line.compare(0, 8, "Projeny:") != 0)
+            continue; // not a Projeny: header line
+        if (trim(line.substr(8)).empty()) {
+            die("file " + what_for_errors +
+                ": empty Projeny: value (name the base .projeny file after "
+                "'Projeny:')");
+        }
+    }
 
     // Collect every URL: header from the head (kept verbatim there; the
     // parsed copies drive URL-based setups). Each must be exactly
@@ -549,6 +597,20 @@ ProjenyFile ProjenyFile::parse_bytes(const std::string& data,
             ".projeny file and name it with Archive:, or fetch it with one "
             "or more URL: lines)");
     }
+    if (!pf.archive.empty() && !pf.base.empty()) {
+        die("file " + what_for_errors +
+            " has both Archive: and Projeny: headers; they are mutually "
+            "exclusive (either check the tarball into git next to the "
+            ".projeny file and name it with Archive:, or base the project "
+            "on another .projeny file with Projeny:)");
+    }
+    if (!pf.urls.empty() && !pf.base.empty()) {
+        die("file " + what_for_errors +
+            " has both URL: and Projeny: headers; they are mutually "
+            "exclusive (either fetch the tarball with one or more URL: "
+            "lines, or base the project on another .projeny file with "
+            "Projeny:)");
+    }
     if (!pf.urls.empty()) {
         // URL-based: the archive name comes from the first URL's basename,
         // and names the snapshot the download is cached as. Keep the
@@ -562,13 +624,17 @@ ProjenyFile ProjenyFile::parse_bytes(const std::string& data,
                 ".<archive>.snapshot download can be named after it)");
         }
     }
-    if (pf.archive.empty() || pf.origname.empty() || pf.name.empty()) {
+    if (pf.origname.empty() || pf.name.empty() ||
+        (pf.archive.empty() && pf.urls.empty() && pf.base.empty())) {
         die("file " + what_for_errors +
-            " is missing a required header (need Archive: or at least one "
-            "URL: line, plus Origname: and Name:)");
+            " is missing a required header (need Archive:, at least one "
+            "URL: line, or a Projeny: line, plus Origname: and Name:)");
     }
     if (pf.archive.find('/') != std::string::npos)
         die("file " + what_for_errors + ": Archive: must be a plain filename");
+    if (!pf.base.empty() && (pf.base.find('/') != std::string::npos ||
+                             pf.base == "." || pf.base == ".."))
+        die("file " + what_for_errors + ": Projeny: must be a plain filename");
     if (pf.origname.find('/') != std::string::npos ||
         pf.origname == "." || pf.origname == "..")
         die("file " + what_for_errors + ": bad Origname: header");

@@ -60,20 +60,32 @@ int cmd_mv(const std::string& projeny_arg, const std::string& src,
 int cmd_resolve(const std::string& projeny_arg, const std::string& path);
 
 // Move the project's patch onto a new base archive. `new_archive_args` is
-// the tail after the project argument: either exactly one local tarball
-// path (legacy rebase of an Archive:-based project), or one or more URLs
-// each optionally followed by its blake3 hash (the new URL: headers; also
-// converts an Archive:-based project to URL:-based). A URL:-based project
-// accepts only URLs.
+// the tail after the project argument, and the FIRST argument decides the
+// form: a name ending in ".projeny" is the projeny-base form (exactly one
+// such argument — another .projeny file in the SAME directory; the patch
+// moves onto its committed extraction and the Projeny:/Origname: headers
+// and the frozen snapshot are rewritten), an empty list is the zero-arg
+// form (valid only for a Projeny:-based project: re-extract what the base
+// file named by its Projeny: header holds NOW), one or more URLs each
+// optionally followed by its blake3 hash set the new URL: headers (also
+// converting an Archive:- or Projeny:-based project to URL:-based), and
+// exactly one local tarball path is the legacy rebase (also converting a
+// Projeny:-based project to Archive:-based). A URL:-based project accepts
+// only URLs.
 int cmd_rebase(const std::string& projeny_arg,
                const std::vector<std::string>& new_archive_args);
 
 // Create a brand-new .projeny file at `file_arg` (which must end in
 // ".projeny"; its pdir — the dirname — must exist) naming the archive in
-// `archive_args` — rebase's exact grammar: one local tarball path (copied
-// into the pdir) or one or more <url> [<blake3-hash>] pairs (downloaded,
-// verified, and recorded as URL: headers with the first verified download
-// cached as the snapshot) — and then run `setup` on it. `comment` is the
+// `archive_args` — rebase's exact grammar (parse_archive_args): one local
+// tarball path (copied into the pdir), one or more <url> [<blake3-hash>]
+// pairs (downloaded, verified, and recorded as URL: headers with the first
+// verified download cached as the snapshot), or exactly one <base.projeny>
+// in the SAME directory (the file gets a Projeny: header; Origname: comes
+// from the base file's own parse — so --origname must match the base
+// file's extraction, not an archive's top directory — and the final setup
+// freezes the base file's current bytes as the .<stem>.snapshot) — and
+// then run `setup` on it. `comment` is the
 // file's prose (--comment, empty when absent). `origname_opt` (--origname)
 // names the checkout directory: the file gets Name: <name> AND
 // Origname: <name>, which must match the archive's top-level directory.

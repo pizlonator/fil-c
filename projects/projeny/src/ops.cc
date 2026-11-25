@@ -256,6 +256,28 @@ std::string legacy_snapshot_path_for(const std::string& archive)
     return bare + ".snapshot";
 }
 
+// The frozen-base-snapshot path of a Projeny:-based .projeny file: the
+// hidden sibling ".<stem>.snapshot" (bar.projeny -> .bar.snapshot, stem
+// being the basename minus its trailing ".projeny"; a basename without the
+// suffix keeps its whole name: "weird" -> ".weird.snapshot"). The file holds
+// the BYTE-EXACT bytes of the base file as-of when this project adopted it,
+// and it is FROZEN: it never tracks the live base file, so every
+// setup/commit/status/diff/package/extract of the referencing project
+// reconstructs exactly the base it was set up from, even after the base
+// file is deleted from git. Only a missing snapshot (first use), an
+// adoption setup (a hand-edited Projeny: header naming a different base
+// file than the status records), or `rebase` ever (re)writes it — see
+// resolve_committed_base_bytes below.
+std::string projeny_snapshot_path_for(const std::string& projeny_path)
+{
+    std::string base = basename_of(projeny_path);
+    const std::string suffix = ".projeny";
+    std::string stem = ends_with(base, suffix)
+                           ? base.substr(0, base.size() - suffix.size())
+                           : base;
+    return join_path(dirname_of(projeny_path), "." + stem + ".snapshot");
+}
+
 // Move src to dst, tolerating a lost race against a parallel sibling that
 // moved src first: multi-project commands can legitimately have two workers
 // performing the same bookkeeping move on one shared path (the legacy
@@ -525,19 +547,27 @@ bool download_url_snapshot_sequential(const std::string& snap,
 // when it verifies against the plan's hashes (the package may have come
 // from a URL another contributing file listed — loudly warned during
 // planning), dies cleanly when the batch failed, and only a package the
-// plan cannot know about (a conflicted, therefore unparseable, .projeny
-// file) falls back to a serialized download here. Every snapshot in multi
+// plan cannot know about falls back to a serialized download here — a
+// conflicted (therefore unparseable) .projeny file, or a Projeny:-based
+// project's URL:-based chain base (chain bases are never batch
+// contributors; see run_multi's planning loop). `fallback_reason` is the
+// parenthetical the fallback note carries: it defaults to "conflicted
+// projeny file", and only the chain-bottom fetch (resolve_status_archive
+// under extract_committed_projeny) overrides it. Every snapshot in multi
 // mode is silent about the skip — including one whose bytes a fallback
 // download just wrote — while the "does not match any URL: hash;
 // re-downloading" warning prints in every mode.
 std::string ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
-                                const std::string& what, bool announce_skip);
+                                const std::string& what, bool announce_skip,
+                                const std::string& fallback_reason);
 
 // Non-dying variant for informational commands: returns true + *out = snapshot
 // path, or false + *err.
 bool try_ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
                              std::string* out, std::string* err,
-                             bool announce_skip)
+                             bool announce_skip,
+                             const std::string& fallback_reason =
+                                 "conflicted projeny file")
 {
     std::string snap = url_snapshot_path(pdir, pf);
     // The snapshot is the local cache of the downloaded archive: when it
@@ -593,21 +623,26 @@ bool try_ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
                     bullet_list(plan.errors));
             }
             // The batch succeeded (or never needed to run), but this
-            // project's directory holds no usable snapshot. Only a
-            // conflicted — therefore unparseable, therefore not a batch
-            // contributor, therefore not one of the pdirs the batch wrote
-            // its verified snapshot into — .projeny file can get here.
-            // Fall through to the serialized download below: it re-checks
-            // the snapshot under the fallback mutex (a worker that lost
-            // such a race may have just written one) and downloads only if
-            // none appeared.
+            // project's directory holds no usable snapshot. Two things can
+            // get here: a conflicted — therefore unparseable, therefore
+            // not a batch contributor, therefore not one of the pdirs the
+            // batch wrote its verified snapshot into — .projeny file, and
+            // a Projeny:-based project's URL:-based chain base (chain
+            // bases are never batch contributors by design: run_multi
+            // plans only direct URL: arguments, so the chain bottom's
+            // archive is fetched on demand right here). Fall through to
+            // the serialized download below: it re-checks the snapshot
+            // under the fallback mutex (a worker that lost such a race may
+            // have just written one) and downloads only if none appeared.
         }
         // Not in the plan (or in the plan without a usable local
-        // snapshot): only a conflicted (therefore deferred,
-        // unparseable) .projeny file gets here. Download serialized: never
-        // two concurrent downloads of the same package, and a worker that
-        // lost the race re-checks the snapshot another worker may have just
-        // written before going to the network itself.
+        // snapshot): a conflicted (therefore deferred, unparseable)
+        // .projeny file, or a Projeny:-based project's chain base (never a
+        // batch contributor by design — see run_multi's planning loop).
+        // Download serialized: never two concurrent downloads of the same
+        // package, and a worker that lost the race re-checks the snapshot
+        // another worker may have just written before going to the network
+        // itself.
         std::lock_guard<std::mutex> lk(g_fallback_download_mu);
         std::string rehave;
         bool re_readable = is_readable_file(snap);
@@ -623,7 +658,7 @@ bool try_ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
             warn("existing snapshot '" + snap +
                  "' does not match any URL: hash; re-downloading");
         note("downloading '" + pf.archive +
-             "' outside the batch download phase (conflicted projeny file)");
+             "' outside the batch download phase (" + fallback_reason + ")");
         return download_url_snapshot_sequential(snap, pf, out, err);
     }
     if (snapshot_readable)
@@ -635,11 +670,14 @@ bool try_ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
 // The dying wrapper: same behavior, but dies naming `what` when every URL
 // failed.
 std::string ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
-                                const std::string& what, bool announce_skip)
+                                const std::string& what, bool announce_skip,
+                                const std::string& fallback_reason =
+                                    "conflicted projeny file")
 {
     std::string out;
     std::string err;
-    if (!try_ensure_url_snapshot(pdir, pf, &out, &err, announce_skip))
+    if (!try_ensure_url_snapshot(pdir, pf, &out, &err, announce_skip,
+                                 fallback_reason))
         die(err + "; it is needed to " + what);
     return out;
 }
@@ -680,14 +718,16 @@ std::string materialize_archive(const std::string& pdir, const ProjenyFile& pf,
 // does match.
 std::string resolve_status_archive(const std::string& pdir,
                                    const ProjenyFile& pf,
-                                   const std::string& what)
+                                   const std::string& what,
+                                   const std::string& fallback_reason =
+                                       "conflicted projeny file")
 {
     if (pf.is_url_based())
         // announce_skip = false: read-only reconstruction (diff against the
         // recorded state, conflicted-merge side reads) must stay silent on
         // a snapshot that already matches — the user asked to inspect, not
         // to set up, and whatever announced this snapshot already ran.
-        return ensure_url_snapshot(pdir, pf, what, false);
+        return ensure_url_snapshot(pdir, pf, what, false, fallback_reason);
     std::string archive = join_path(pdir, pf.archive);
     migrate_snapshot(archive);
     std::string snap = snapshot_path_for(archive);
@@ -718,12 +758,19 @@ std::string resolve_status_archive(const std::string& pdir,
 // "Archive: <value>" — or, for a URL-based project, one or more
 // "URL: <url> <hash>" lines whose URL's basename names the archive.
 // Used only by the stale-state reconciliation to find the archive whose
-// snapshot belongs to the status being discarded.
+// snapshot belongs to the status being discarded. A Projeny:-based
+// embedded copy names no archive at all: *projeny_based (when non-null)
+// reports that mode instead, and the caller stales the project file's own
+// frozen base snapshot (projeny_snapshot_path_for) — the scanner only sees
+// the bytes, so it cannot spell that path itself.
 // Returns "" when the file is too garbled to tell — this must never die,
 // because an unparseable status file is renamed out of the way just the
 // same.
-std::string archive_from_status_bytes(const std::string& data)
+std::string archive_from_status_bytes(const std::string& data,
+                                      bool* projeny_based = nullptr)
 {
+    if (projeny_based != nullptr)
+        *projeny_based = false;
     size_t pos = data.find(kStatusDelim);
     if (pos == std::string::npos)
         return "";
@@ -737,6 +784,9 @@ std::string archive_from_status_bytes(const std::string& data)
     // (returning whatever we have) at anything else — patch bodies, garbage.
     // A URL-based project has no Archive: line; remember the first URL:
     // line's derived archive name and return it if no Archive: shows up.
+    // A Projeny:-based project has neither; remember that it is
+    // Projeny:-based (its base filename is NOT an archive name and is never
+    // returned here).
     std::string from_url;
     for (int scanned = 0; scanned < 16 && pos < data.size(); ++scanned) {
         size_t nl = data.find('\n', pos);
@@ -745,6 +795,8 @@ std::string archive_from_status_bytes(const std::string& data)
                                                      : nl - pos);
         if (starts_with(line, "Archive: "))
             return trim(line.substr(9));
+        if (starts_with(line, "Projeny: ") && projeny_based != nullptr)
+            *projeny_based = true;
         if (starts_with(line, "URL: ") && from_url.empty()) {
             // "URL: <url> <blake3-hash>": the archive name is the URL's
             // basename (best effort; a malformed line is simply ignored).
@@ -815,9 +867,16 @@ std::string journal_path_for(const Ctx& ctx);
 // This is the single-project mirror of the multi-project batch rule below:
 // a plan-verified snapshot must survive a workdir-less project's setup or
 // the batch's own download would be destroyed.
+//
+// `extra_files` (optional) lists FULL paths of further single-named files
+// to stale (no legacy form) — the frozen base snapshot of a Projeny:-based
+// project, which the callers add when the discarded status (or the current
+// file) is Projeny:-based: it is checkout bookkeeping exactly like the
+// archive snapshots are.
 void disregard_stale_state(const Ctx& ctx,
                            const std::vector<std::string>& archives,
-                           const std::set<std::string>* url_hashes = nullptr)
+                           const std::set<std::string>* url_hashes = nullptr,
+                           const std::vector<std::string>* extra_files = nullptr)
 {
     if (path_exists(journal_path_for(ctx)))
         return;
@@ -898,6 +957,155 @@ void disregard_stale_state(const Ctx& ctx,
         stale_pair(snapshot_path_for(archive),
                    legacy_snapshot_path_for(archive));
     }
+    // The callers' further single-named files (a Projeny:-based project's
+    // frozen base snapshot): staled under their own name, no legacy form.
+    if (extra_files != nullptr) {
+        for (const auto& f : *extra_files) {
+            if (f.empty())
+                continue;
+            stale_pair(f, "");
+        }
+    }
+}
+
+// disregard_stale_state for one parsed .projeny file's stale bookkeeping:
+// the given archive basenames (as the plain calls take) plus — for a
+// Projeny:-based file — the project file's own frozen base snapshot
+// (projeny_snapshot_path_for), which is checkout bookkeeping exactly like
+// the archive snapshots are. Used by the workdir-gone branches that hold
+// the parsed file (commit/add/rm/mv/resolve/diff/status); setup's branch
+// calls disregard_stale_state directly so it can also stale the snapshot
+// the OLD status records.
+void disregard_stale_state_for(const Ctx& ctx, const ProjenyFile& pf,
+                               std::vector<std::string> archives)
+{
+    std::vector<std::string> extra;
+    if (pf.is_projeny_based())
+        extra.push_back(projeny_snapshot_path_for(ctx.projeny_arg));
+    disregard_stale_state(ctx, archives, nullptr,
+                          extra.empty() ? nullptr : &extra);
+}
+
+// A patch application inside a Projeny: tree build failed. Thrown by
+// apply_fresh_patch under a TolerantPatchApply scope INSTEAD of dying: the
+// bare report is NOT printed, so the catching site decides — print it
+// verbatim (rethrow_patch_apply), replace it with recovery guidance (the
+// frozen-chain-moved die of every read-only consumer), or recover outright
+// (rebase's workdir fallback, setup's conflicted fresh setup). Derives from
+// ProjenyFatalError so an unhandled escape keeps the process's fatal-error
+// exit contract (every throw site is paired with a catch that prints
+// something, so an escape can only be a bug elsewhere).
+struct PatchApplyError final : ProjenyFatalError {
+    std::string detail; // the bullet report die() would have appended
+    PatchApplyError(std::string msg, std::string det)
+        : ProjenyFatalError(std::move(msg)), detail(std::move(det))
+    {
+    }
+};
+
+// Tolerant patch application is a scoped, thread-local flag: parallel
+// workers (multi setup, the erase-setup check phase) each build their own
+// trees, so one thread's scope never leaks into another's. RAII restores
+// the previous value through every unwind — including the PatchApplyError
+// throw itself.
+thread_local bool g_tolerant_patch_apply = false;
+
+class TolerantPatchApply
+{
+  public:
+    TolerantPatchApply() : prev_(g_tolerant_patch_apply)
+    {
+        g_tolerant_patch_apply = true;
+    }
+    ~TolerantPatchApply() { g_tolerant_patch_apply = prev_; }
+    TolerantPatchApply(const TolerantPatchApply&) = delete;
+    TolerantPatchApply& operator=(const TolerantPatchApply&) = delete;
+
+  private:
+    bool prev_;
+};
+
+// The bare behavior, for catch sites that decide not to recover: print the
+// report exactly like the die() this exception replaced and throw
+// ProjenyFatalError. die() prints the message line plus the detail verbatim
+// and throws ProjenyFatalError(msg), so this reproduces the original bytes
+// byte-identically.
+[[noreturn]] void rethrow_patch_apply(const PatchApplyError& e)
+{
+    die(e.message(), e.detail);
+}
+
+// The recovery guidance every frozen-chain tree build carries when the
+// chain no longer reconstructs the recorded base and a patch no longer
+// applies onto it: an upstream Projeny: link was rebased, so every tree
+// built through the frozen snapshots moved under the checkout. Worded per
+// command (`cmd_verb` — "set up", "status", "diff", ...) against the
+// .projeny path the user named. Both recoveries are working ones: `rebase`
+// rebuilds from the workdir as-is (cmd_rebase's fallback), and
+// erase-setup --force + setup re-extracts and re-applies with conflict
+// markers (setup's conflicted fresh setup).
+[[noreturn]] void die_projeny_chain_moved(const std::string& cmd_verb,
+                                          const std::string& file_arg)
+{
+    die("cannot " + cmd_verb + " '" + file_arg +
+        "': the frozen base chain no longer reconstructs the recorded base "
+        "(an upstream Projeny: link was rebased) and the patch does not "
+        "apply onto the new content; run 'projeny rebase " +
+        file_arg + "' to rebase from the workdir as-is, or 'projeny "
+                  "erase-setup --force " +
+        file_arg + "' followed by 'projeny setup " + file_arg +
+        "' to re-extract and re-apply with conflict markers");
+}
+
+// The fresh-setup flavor of the same failure: a chain link's own recorded
+// patch no longer applies to ITS frozen base (the checkout does not exist
+// yet, so neither the rebase fallback nor erase-setup applies). The
+// accurate recovery is snapshot-level: removing this project's frozen base
+// snapshot re-freezes it from the live base file the header names (whose
+// own chain is self-consistent), or the snapshot can be restored from git.
+[[noreturn]] void die_fresh_projeny_chain_broken(const Ctx& ctx)
+{
+    die("cannot set up '" + ctx.projeny_arg +
+        "': the frozen base chain no longer reconstructs a consistent base "
+        "(a link's recorded patch no longer applies to its own frozen base "
+        "— usually an upstream Projeny: link was rebased); remove '" +
+        projeny_snapshot_path_for(ctx.projeny_arg) +
+        "' to re-freeze this project's base from the live base file it "
+        "names, or restore that snapshot, then run 'projeny setup " +
+        ctx.projeny_arg + "' again");
+}
+
+// Apply `patch_wid` (wid `wid`) inside the freshly built tree `tree`, dying
+// with a per-file report when it does not apply (or throwing PatchApplyError
+// under a TolerantPatchApply scope — see above). Shared by
+// build_tree_from_patch (the archive unpack path) and the Projeny chain
+// below (each link's committed patch lands on the extracted tree).
+void apply_fresh_patch(const std::string& tree, const std::string& wid,
+                       const std::string& patch_wid, const std::string& what)
+{
+    if (normalize_patch_text(patch_wid).empty())
+        return;
+    if (!apply_patch_whole(tree, patch_wid, wid,
+                           VcsApplyMode::kFreshApply)) {
+        // Retry per-file to produce a precise error. Failures carry
+        // workdir-relative paths from the single patch parser (no second
+        // parser, so block counts cannot diverge into OOB/wrong names).
+        // kFreshApply: the tree was just built from its base content, so
+        // "already applied" is impossible and the reverse-match path is
+        // never consulted — a needed deletion cannot be silently dropped
+        // here.
+        std::vector<VcsFailure> bad = apply_patch_per_file(
+            tree, patch_wid, wid, VcsApplyMode::kFreshApply);
+        std::string msg =
+            "cannot apply " + what + ": patch does not apply cleanly";
+        std::string detail = bullet_list(bad);
+        if (g_tolerant_patch_apply)
+            // Tolerant scope: hand the failure to the caller unprinted (see
+            // PatchApplyError) — the caller prints it verbatim, replaces it
+            // with recovery guidance, or recovers outright.
+            throw PatchApplyError(msg, detail);
+        die(msg, detail);
+    }
 }
 
 // Unpack `archive` expecting top dir `origname`, then apply `patch_wid`
@@ -910,23 +1118,441 @@ std::string build_tree_from_patch(TempDir& tmp, const std::string& archive,
 {
     unpack_single_top(archive, tmp.path, origname);
     std::string tree = join_path(tmp.path, origname);
-    if (normalize_patch_text(patch_wid).empty())
-        return tree;
-    if (!apply_patch_whole(tree, patch_wid, wid,
-                           VcsApplyMode::kFreshApply)) {
-        // Retry per-file to produce a precise error. Failures carry
-        // workdir-relative paths from the single patch parser (no second
-        // parser, so block counts cannot diverge into OOB/wrong names).
-        // kFreshApply: the tree was just unpacked from the pristine tarball,
-        // so "already applied" is impossible and the reverse-match path is
-        // never consulted — a needed deletion cannot be silently dropped
-        // here.
-        std::vector<VcsFailure> bad = apply_patch_per_file(
-            tree, patch_wid, wid, VcsApplyMode::kFreshApply);
-        die("cannot apply " + what + ": patch does not apply cleanly",
-            bullet_list(bad));
-    }
+    apply_fresh_patch(tree, wid, patch_wid, what);
     return tree;
+}
+
+// ---- Projeny:-based projects ----
+//
+// A "Projeny: <file>" header bases a project on the COMMITTED EXTRACTION of
+// another .projeny file in the same directory: unpack the base file's
+// archive (snapshot-preferred) and apply the base file's committed patch.
+// The base file's own workdir — its checkout with uncommitted changes — is
+// ignored everywhere here. Chains work: a Projeny:-based base is itself
+// extracted through its own chain, each link resolving ITS base through its
+// OWN frozen snapshot (see resolve_committed_base_bytes).
+//
+// The frozen snapshot law: a Projeny:-based file X keeps the byte-exact
+// bytes of its base file as-of when X adopted it in ".<X-stem>.snapshot"
+// next to X (projeny_snapshot_path_for). The snapshot never tracks the live
+// base file: every read of the base goes through it when it exists, and
+// only a missing snapshot (first use), an adoption setup (a hand-edited
+// Projeny: header naming a different base file than the status records, or
+// a status-recorded base of ANOTHER mode — a hand-conversion into the
+// Projeny: form), or `rebase` ever (re)writes it.
+
+// Physical form of `path`, for the Projeny: chain's cycle identities, with
+// the lexical fallback for paths that do not exist (a base file whose
+// frozen snapshot survives it is a supported state, not a race): the whole
+// walk must key its visited set on ONE consistent spelling per file, and
+// physical_path — which dies on failure — is only guaranteed for paths
+// that exist. The existence pre-check keeps the fallback SILENT for a
+// missing base file (physical_path's die prints its error line before
+// throwing, and a healthy frozen-snapshot read must not print one).
+std::string physical_or_lexical(const std::string& path)
+{
+    if (!path_exists(path))
+        return normalize_lexical(absolutize(path));
+    try {
+        return physical_path(path);
+    } catch (const ProjenyFatalError&) {
+        return normalize_lexical(absolutize(path));
+    }
+}
+
+// The bytes of the base file that `referencing_path` (a Projeny:-based
+// file, parsed as `pf`) is based on: the frozen snapshot's bytes when the
+// snapshot exists, else the live bytes of the named base file — written
+// into the snapshot first (the sanctioned first-use freeze), so every later
+// read sees the same bytes even after the base file is deleted from git.
+// Never overwrites an existing snapshot. Dies with recovery guidance when
+// neither the snapshot nor the live base file exists. `what` is the
+// human-readable phrase for the error (e.g. "set up '<file>'").
+std::string resolve_committed_base_bytes(const std::string& referencing_path,
+                                         const ProjenyFile& pf,
+                                         const std::string& what)
+{
+    std::string snap = projeny_snapshot_path_for(referencing_path);
+    if (path_exists(snap))
+        return read_file_bytes(snap);
+    std::string base_path = join_path(dirname_of(referencing_path), pf.base);
+    if (!path_exists(base_path))
+        die("base file '" + base_path +
+            "' does not exist and neither does its snapshot '" + snap +
+            "'; it is needed to " + what +
+            ". This usually means the base file was deleted from git (for "
+            "example by a rebase). If the workdir has no local changes, "
+            "remove the status file and the workdir and run 'projeny setup' "
+            "again; otherwise restore the base file (for example 'git "
+            "checkout <commit> -- <file>') and run 'projeny setup' again");
+    // write_file_bytes is temp file + rename, so the snapshot switches
+    // atomically (the same protocol ensure_snapshot uses for archives).
+    std::string bytes = read_file_bytes(base_path);
+    write_file_bytes(snap, bytes);
+    return bytes;
+}
+
+// The single top-level directory name of the extraction directory `dir` —
+// the archive unpack and every chain link keep it at exactly one — checked
+// against `pf`'s Origname: with the hard error that surfaces a hand-edited
+// inconsistency. Organically create/rebase keep Origname synced with the
+// base extraction, so this cannot fire for an unedited file; `file_path`
+// names the file whose Origname: is wrong.
+std::string checked_extraction_top(const std::string& file_path,
+                                   const ProjenyFile& pf,
+                                   const std::string& dir)
+{
+    std::vector<std::string> tops = list_dir_names(dir);
+    std::string top = tops.size() == 1 ? tops[0] : "";
+    if (top != pf.origname)
+        die("file '" + file_path + "': Origname: is '" + pf.origname +
+            "' but the base extraction's top-level directory is '" + top +
+            "'; fix the Origname: header or rebase");
+    return top;
+}
+
+// Extract the committed content of the .projeny file whose bytes are
+// `bytes` and whose real path is `file_path` (the path is used for its
+// directory, for its own frozen-snapshot naming, and for cycle identities)
+// into a fresh ".chain.XXXXXX" directory inside `scratch_parent`, which the
+// CALLER makes with make_scratch next to the top-level .projeny file: every
+// link of the chain nests its extraction under that one directory, so the
+// whole chain dies with the caller's TempDir and the final rename into the
+// workdir never crosses filesystems. Returns the extraction directory,
+// which contains exactly one top-level directory named pf.origname. Recurses
+// through Projeny: chains (each link resolves its base through its OWN
+// snapshot via resolve_committed_base_bytes). `chain`/`visited` carry the
+// walk for cycle detection: chain is the file_path sequence (shown verbatim
+// in the cycle message, repeat included), visited holds physical paths; the
+// CALLER seeds both with the top-level project's own .projeny path. Dies on
+// cycles and on Origname: mismatches. `what` is the human phrase the error
+// messages name ("set up '<file>'").
+std::string extract_committed_projeny(const std::string& bytes,
+                                      const std::string& file_path,
+                                      std::vector<std::string>& chain,
+                                      std::set<std::string>& visited,
+                                      const std::string& what,
+                                      const std::string& scratch_parent)
+{
+    ProjenyFile pf = ProjenyFile::parse_bytes(bytes, "'" + file_path + "'");
+
+    // Cycle check at every entry: the seed already holds the top-level
+    // project, so a chain that walks back to any earlier file — a self-loop
+    // ("Projeny: <this file>") or a longer cycle — dies here with the whole
+    // walk shown.
+    std::string self = physical_or_lexical(file_path);
+    if (visited.count(self) != 0) {
+        std::string shown;
+        for (const std::string& step : chain) {
+            if (!shown.empty())
+                shown += " -> ";
+            shown += "'" + step + "'";
+        }
+        shown += " -> '" + file_path + "'";
+        die("the Projeny: base chain is circular: " + shown +
+            "; Projeny: chains must not contain cycles");
+    }
+    visited.insert(self);
+    chain.push_back(file_path);
+
+    if (pf.is_projeny_based()) {
+        // Recurse through this link's own frozen snapshot, then apply THIS
+        // file's committed patch on top of the returned tree (patch paths
+        // are relative to the tree contents, same as any checkout patch).
+        std::string base_bytes =
+            resolve_committed_base_bytes(file_path, pf, what);
+        std::string dir = extract_committed_projeny(
+            base_bytes, join_path(dirname_of(file_path), pf.base), chain,
+            visited, what, scratch_parent);
+        std::string top = checked_extraction_top(file_path, pf, dir);
+        apply_fresh_patch(join_path(dir, top), pf.name, pf.patch,
+                          "patch in '" + file_path + "'");
+        return dir;
+    }
+
+    // Chain bottom: an Archive:- or URL:-based file. Its committed
+    // extraction is the archive unpack (resolved snapshot-preferred,
+    // exactly like the status/expected-tree machinery: the snapshot
+    // survives git deleting the tarball) plus this file's committed patch.
+    std::string work = make_tempdir(scratch_parent, ".chain.");
+    std::string archive = resolve_status_archive(
+        dirname_of(file_path), pf, what,
+        "Projeny-based project: its base chain's archive is fetched on "
+        "demand");
+    unpack_single_top(archive, work, pf.origname);
+    apply_fresh_patch(join_path(work, pf.origname), pf.name, pf.patch,
+                      "patch in '" + file_path + "'");
+    return work;
+}
+
+// Build the tree a Projeny:-based `pf` records for its .projeny file at
+// `referencing_path`: the committed extraction of its base chain (see
+// extract_committed_projeny) plus `patch` — the referencing file's own
+// patch, applied with wid `pf.name` (empty for the callers that want the
+// bare committed base, i.e. commit's diff base). `base_bytes` carries the
+// already-resolved frozen base bytes (resolve_committed_base_bytes, or the
+// setup paths' status-aware resolution below). `scratch` is the caller's
+// make_scratch directory next to the .projeny file, so the result can be
+// renamed into the workdir without crossing filesystems. Returns the tree
+// path (inside scratch), mirroring build_tree_from_patch's contract.
+// `what` names the command for error messages; `patch_what` names the patch
+// for the apply-failure report.
+// The CHAIN part of build_projeny_tree, shared with the callers that need
+// the extraction tree BEFORE the referencing project's own patch lands on
+// it (the conflicted-fresh setup builder): seeds the cycle walk, extracts
+// the committed chain, and checks the referencing project's Origname:
+// against the extraction's top directory — everything except the patch
+// application.
+std::string extract_projeny_base_tree(const std::string& referencing_path,
+                                      const ProjenyFile& pf,
+                                      const std::string& base_bytes,
+                                      const std::string& scratch,
+                                      const std::string& what)
+{
+    std::vector<std::string> chain;
+    std::set<std::string> visited;
+    // Seed the cycle walk with the referencing project itself: a base chain
+    // that leads back here (most directly "Projeny: <this file>") is
+    // circular.
+    visited.insert(physical_or_lexical(referencing_path));
+    chain.push_back(referencing_path);
+    std::string dir = extract_committed_projeny(
+        base_bytes, join_path(dirname_of(referencing_path), pf.base), chain,
+        visited, what, scratch);
+    // The referencing project's own Origname: must match the extraction's
+    // top directory, exactly like every chain link's does.
+    std::string top = checked_extraction_top(referencing_path, pf, dir);
+    return join_path(dir, top);
+}
+
+std::string build_projeny_tree(const std::string& referencing_path,
+                               const ProjenyFile& pf,
+                               const std::string& base_bytes,
+                               const std::string& patch,
+                               const std::string& patch_what,
+                               const std::string& scratch,
+                               const std::string& what)
+{
+    std::string tree =
+        extract_projeny_base_tree(referencing_path, pf, base_bytes, scratch,
+                                  what);
+    apply_fresh_patch(tree, pf.name, patch, patch_what);
+    return tree;
+}
+
+// What the status file records about the base, for the status-aware base
+// resolution below: whether a status file exists at all (`has` — its
+// absence keeps the frozen-or-first-freeze law: a snapshot beside a
+// status-less project is a frozen base, never re-frozen by a hand edit),
+// whether the embedded copy is Projeny:-based (`projeny`), and the base
+// file it names (`base`, empty unless `projeny`). Only setup paths read
+// this, and each has either no status file or one that already parsed
+// successfully, so these parses cannot fail newly.
+struct StatusEmbeddedBase {
+    bool has = false;
+    bool projeny = false;
+    std::string base;
+};
+
+StatusEmbeddedBase status_projeny_base(const Ctx& ctx)
+{
+    StatusEmbeddedBase out;
+    if (!path_exists(ctx.statusfile))
+        return out;
+    out.has = true;
+    StatusData st = StatusData::parse(ctx.statusfile);
+    ProjenyFile emb = ProjenyFile::parse_bytes(
+        st.embedded, "embedded copy in '" + ctx.statusfile + "'");
+    out.projeny = emb.is_projeny_based();
+    out.base = emb.base;
+    return out;
+}
+
+// Adoption: a hand-edited Projeny: header is adopted by setup whenever the
+// status records a DIFFERENT base — an embedded copy that names a different
+// base FILE, or an embedded copy of ANOTHER MODE (an Archive:/URL: era the
+// file was rebased away from and then hand-converted back out of; without
+// this, the lingering frozen snapshot of the old Projeny: era would
+// silently supply a stale base while the header names a different one).
+// The live bytes of the newly named base OVERWRITE the frozen snapshot (the
+// sanctioned re-freeze besides `rebase`) and become the base the fresh tree
+// builds from. Called after the status-recorded trees are built (setup's
+// E-tree), so the reconstruction of what the last setup used still sees the
+// snapshot's old bytes. No adoption without a status file (`emb.has` false:
+// the frozen-or-first-freeze law governs, documented and tested).
+void adopt_projeny_base(const Ctx& ctx, const ProjenyFile& pf,
+                        const StatusEmbeddedBase& emb, const std::string& what)
+{
+    if (!emb.has)
+        return;
+    if (emb.projeny && emb.base == pf.base)
+        return;
+    std::string base_path = join_path(ctx.pdir, pf.base);
+    if (!path_exists(base_path))
+        die("base file '" + base_path + "' does not exist; it is needed to " +
+            what);
+    write_file_bytes(projeny_snapshot_path_for(ctx.projeny_arg),
+                     read_file_bytes(base_path));
+}
+
+// Setup's Projeny:-based tree builder: the committed extraction of the base
+// chain plus `patch`, with the base resolved under the status-aware law —
+// an adoption first (see adopt_projeny_base), then the frozen snapshot (or
+// its first-use freeze). `scratch` is the caller's make_scratch dir.
+std::string build_setup_projeny_tree(const Ctx& ctx, const ProjenyFile& pf,
+                                     const StatusEmbeddedBase& emb,
+                                     const std::string& patch,
+                                     const std::string& patch_what,
+                                     const std::string& scratch,
+                                     const std::string& what)
+{
+    adopt_projeny_base(ctx, pf, emb, what);
+    std::string bytes =
+        resolve_committed_base_bytes(ctx.projeny_arg, pf, what);
+    return build_projeny_tree(ctx.projeny_arg, pf, bytes, patch, patch_what,
+                              scratch, what);
+}
+
+// Setup's Projeny:-based tree builder, CONFLICTED-FRESH flavor: the same
+// status-aware base resolution, but the project's own patch lands with
+// inline conflict markers (vcs_apply_with_conflicts, kFreshApply — the
+// target is a freshly built chain extraction, so already-applied is
+// impossible by construction) and every conflicted workdir-relative path
+// is appended to *conflicts. This is what makes `erase-setup --force` +
+// `setup` a working recovery when the frozen chain moved under the
+// checkout (a patch that no longer applies produces a marker-bearing
+// checkout the user resolves, then commits). The chain itself must still
+// extract cleanly: a chain-internal patch failure dies with the
+// fresh-setup chain guidance (there is no checkout to merge and no status
+// to erase, so markers for a broken link have no recovery — see
+// die_fresh_projeny_chain_broken).
+std::string extract_projeny_base_tree(const std::string& referencing_path,
+                                      const ProjenyFile& pf,
+                                      const std::string& base_bytes,
+                                      const std::string& scratch,
+                                      const std::string& what);
+std::string build_setup_projeny_tree_with_conflicts(
+    const Ctx& ctx, const ProjenyFile& pf, const StatusEmbeddedBase& emb,
+    const std::string& patch, const std::string& what,
+    const std::string& scratch, std::vector<std::string>* conflicts)
+{
+    adopt_projeny_base(ctx, pf, emb, what);
+    std::string bytes =
+        resolve_committed_base_bytes(ctx.projeny_arg, pf, what);
+    std::string tree;
+    {
+        TolerantPatchApply tol;
+        try {
+            tree = extract_projeny_base_tree(ctx.projeny_arg, pf, bytes,
+                                             scratch, what);
+        } catch (const PatchApplyError& e) {
+            (void)e;
+            die_fresh_projeny_chain_broken(ctx);
+        }
+    }
+    if (!normalize_patch_text(patch).empty())
+        vcs_apply_with_conflicts(tree, patch, pf.name, conflicts,
+                                 VcsApplyMode::kFreshApply);
+    return tree;
+}
+
+// The "from '<X>'" tail of setup's progress lines: the archive name for the
+// classic/URL forms, the Projeny: base file for a Projeny:-based project
+// (whose archive field is empty by construction).
+std::string setup_from_name(const ProjenyFile& pf)
+{
+    return pf.is_projeny_based() ? pf.base : pf.archive;
+}
+
+// The committed-extraction TREE (the single top-level directory inside
+// extract_committed_projeny's result) of the .projeny file whose bytes are
+// `bytes` and whose real path is `file_path`: the bytes' own Origname: names
+// it (the extraction enforces that at every link). `rebase`'s engine works
+// on these trees directly and deliberately skips the REFERENCING project's
+// own Origname: check — a rebase self-heals a stale Origname: header — so
+// the callers go through here instead of build_projeny_tree, seeding
+// chain/visited with the referencing project themselves (cycle-checked:
+// a chain that reaches back to the project dies with the circular-chain
+// error).
+std::string extract_committed_projeny_tree(const std::string& bytes,
+                                           const std::string& file_path,
+                                           std::vector<std::string>& chain,
+                                           std::set<std::string>& visited,
+                                           const std::string& what,
+                                           const std::string& scratch_parent)
+{
+    ProjenyFile pf = ProjenyFile::parse_bytes(bytes, "'" + file_path + "'");
+    std::string dir = extract_committed_projeny(bytes, file_path, chain,
+                                                visited, what, scratch_parent);
+    return join_path(dir, pf.origname);
+}
+
+// Validate the .projeny-base form of rebase/create's base argument (the
+// parse_archive_args flavor whose FIRST argument ends in ".projeny") against
+// the TARGET .projeny file `target_path`:
+//
+//   - a plain filename resolves in the target's own directory (the Projeny:
+//     header stores a plain filename, so a base always lives next to the
+//     file that names it); an argument with a '/' resolves against the CWD
+//     and must then land in the target's directory anyway;
+//   - the base file must exist and parse (ProjenyFile::parse dies with its
+//     own messages);
+//   - the LIVE Projeny: chain walked FROM the base (each link's Projeny:
+//     header read from its live bytes, each base resolved against that
+//     link's own directory) must not reach the target or repeat a file —
+//     both are cycle refusals, checked BEFORE anything is touched.
+//
+// Returns the resolved base path and fills *out_pf with the base's parse
+// (create needs its Origname:; rebase needs it too). Every die is a pure
+// refusal: nothing has been read but these files.
+std::string validate_projeny_base_arg(const std::string& raw,
+                                      const std::string& target_path,
+                                      const char* cmd, ProjenyFile* out_pf)
+{
+    std::string pdir = dirname_of(target_path);
+    std::string resolved = raw.find('/') == std::string::npos
+                               ? join_path(pdir, raw)
+                               : absolutize(raw);
+    if (!path_exists(resolved))
+        die("base file '" + resolved + "' does not exist; it is needed to " +
+            std::string(cmd) + " '" + target_path + "'");
+    if (physical_or_lexical(dirname_of(resolved)) !=
+        physical_or_lexical(pdir))
+        die(std::string("cannot ") + cmd + " '" + target_path +
+            "' with base '" + raw +
+            "': the Projeny: base file must live in the same directory as '" +
+            target_path + "'");
+    *out_pf = ProjenyFile::parse(resolved);
+
+    // Cycle pre-check on the LIVE chain: the walk is seeded with the
+    // target's own physical path (lexical when it does not exist yet — a
+    // create), so reaching the target — most directly the self-loop
+    // "Projeny: <this file>" — or repeating any other file dies here.
+    std::string target_id = physical_or_lexical(target_path);
+    std::set<std::string> visited;
+    visited.insert(target_id);
+    std::string base = resolved;
+    for (;;) {
+        std::string self = physical_or_lexical(base);
+        if (visited.count(self) != 0) {
+            if (self == target_id)
+                die(std::string("cannot ") + cmd + " '" + target_path +
+                    "': basing it on '" + resolved +
+                    "' would create a cycle ('" + resolved +
+                    "' transitively depends on '" + target_path +
+                    "'); Projeny: chains must not contain cycles");
+            die(std::string("cannot ") + cmd + " '" + target_path +
+                "': basing it on '" + resolved + "' would create a cycle ('" +
+                base + "' is reached twice in the chain); Projeny: chains "
+                       "must not contain cycles");
+        }
+        visited.insert(self);
+        ProjenyFile pf = ProjenyFile::parse(base);
+        if (!pf.is_projeny_based())
+            break; // chain bottom: an Archive:/URL:-based file
+        base = join_path(dirname_of(base), pf.base);
+    }
+    return resolved;
 }
 
 // Merge user diff U (WID labels, wid `uwid`) onto fresh tree N (on-disk
@@ -1101,7 +1727,12 @@ void write_status(const Ctx& ctx, const StatusData& sd)
     // just obtained sd.embedded from a .projeny that already parsed.
     // URL-based projects have no checked-in archive: their snapshot is the
     // verified download (see ensure_url_snapshot), which is a no-op — no
-    // network — whenever it already matches a URL: hash.
+    // network — whenever it already matches a URL: hash. Projeny:-based
+    // projects have no archive either: their frozen base snapshot (see
+    // projeny_snapshot_path_for) is created-if-missing from the live base
+    // file's bytes here and never overwritten — the snapshot is frozen, and
+    // only an adoption setup (a hand-edited Projeny: header) or a rebase
+    // re-freezes it.
     if (!trim(sd.embedded).empty()) {
         ProjenyFile pf = ProjenyFile::parse_bytes(
             sd.embedded, "embedded copy for '" + ctx.statusfile + "'");
@@ -1113,23 +1744,47 @@ void write_status(const Ctx& ctx, const StatusData& sd)
                 ctx.pdir, pf,
                 "record which archive this setup used in the status file",
                 false);
+        else if (pf.is_projeny_based())
+            resolve_committed_base_bytes(
+                ctx.projeny_arg, pf,
+                "record which base file this setup used in the status file");
         else
             ensure_snapshot(join_path(ctx.pdir, pf.archive));
     }
     write_file_bytes(ctx.statusfile, sd.serialize());
 }
 
-// Build the fresh tree for `cur` inside `tmp`: unpack the current archive
-// and apply the current patch. Returns the tree path (inside tmp). Shared
-// by every fresh-setup flavor so they all see exactly the same set of
-// paths setup would write (tarball files, patch modifications, and
-// patch-added files alike). Unpacks before anything is touched (a bad
-// patch dies leaving the checkout intact). For a URL-based project the
-// "current archive" is the verified .snapshot download (materialized on
-// first use).
+// Build the fresh tree for `cur` inside `tmp`: the current base content
+// (the archive, or the committed extraction of the Projeny: base chain)
+// plus the current patch. Returns the tree path (inside tmp). Shared by
+// every fresh-setup flavor so they all see exactly the same set of paths
+// setup would write (tarball files, patch modifications, and patch-added
+// files alike). Unpacks before anything is touched (a bad patch dies
+// leaving the checkout intact). For a URL-based project the "current
+// archive" is the verified .snapshot download (materialized on first use).
+// For a Projeny:-based project the base is the frozen snapshot's committed
+// extraction, resolved under the status-aware law (an adoption of a
+// hand-edited Projeny: header — or of a status-recorded base of another
+// mode — included: a status file that records no Projeny: base keeps the
+// frozen-or-first-freeze law, the normal fresh-setup case). When
+// `out_conflicts` is non-null, a Projeny:-based project's patch lands with
+// inline conflict markers and its conflicted paths are appended there
+// (see build_setup_projeny_tree_with_conflicts); classic Archive:/URL:
+// projects keep the hard die on an unapplicable patch, byte-identically.
 std::string build_fresh_tree(const Ctx& ctx, const ProjenyFile& cur,
-                             TempDir& tmp)
+                             TempDir& tmp,
+                             std::vector<std::string>* out_conflicts = nullptr)
 {
+    if (cur.is_projeny_based()) {
+        if (out_conflicts != nullptr)
+            return build_setup_projeny_tree_with_conflicts(
+                ctx, cur, status_projeny_base(ctx), cur.patch,
+                "set up '" + ctx.projeny_arg + "'", tmp.path, out_conflicts);
+        return build_setup_projeny_tree(
+            ctx, cur, status_projeny_base(ctx), cur.patch,
+            "patch in '" + ctx.projeny_arg + "' (base '" + cur.base + "')",
+            tmp.path, "set up '" + ctx.projeny_arg + "'");
+    }
     return build_tree_from_patch(
         tmp,
         materialize_archive(ctx.pdir, cur,
@@ -1142,11 +1797,14 @@ std::string build_fresh_tree(const Ctx& ctx, const ProjenyFile& cur,
 // the result into place. Unpacks before touching the workdir (a bad patch
 // dies leaving the checkout intact), and carries untracked binaries across
 // the replacement so build junk and package tarballs survive.
-void do_fresh_setup(const Ctx& ctx, const ProjenyFile& cur)
+// `out_conflicts` (see build_fresh_tree) collects a Projeny:-based
+// project's conflict-markered paths; the caller records and reports them.
+void do_fresh_setup(const Ctx& ctx, const ProjenyFile& cur,
+                    std::vector<std::string>* out_conflicts = nullptr)
 {
     std::string workdir = join_path(ctx.pdir, cur.name);
     TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "setup"));
-    std::string fresh = build_fresh_tree(ctx, cur, tmp);
+    std::string fresh = build_fresh_tree(ctx, cur, tmp, out_conflicts);
     if (path_exists(workdir))
         reconcile_binaries(workdir, fresh, true);
     if (path_exists(workdir) && !remove_recursive(workdir))
@@ -1207,11 +1865,13 @@ void merge_tree_into(const std::string& from_dir, const std::string& to_dir)
 // directory where a file is needed — is a conflict. Anything already in
 // the directory that setup never touches (notes, VCS metadata, build
 // scripts) is kept as-is and rides along like a user-added file.
-void do_fresh_setup_into_existing(const Ctx& ctx, const ProjenyFile& cur)
+void do_fresh_setup_into_existing(
+    const Ctx& ctx, const ProjenyFile& cur,
+    std::vector<std::string>* out_conflicts = nullptr)
 {
     std::string workdir = join_path(ctx.pdir, cur.name);
     TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "setup"));
-    std::string fresh = build_fresh_tree(ctx, cur, tmp);
+    std::string fresh = build_fresh_tree(ctx, cur, tmp, out_conflicts);
 
     // Compatibility check: conflict iff a relative path exists in both
     // trees and the two entries are not both directories.
@@ -1953,13 +2613,37 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
     if (have_workdir && harder_base != nullptr) {
         // harder_base is status- or journal-derived, so its archive may
         // have been deleted from git since the last setup: use the
-        // snapshot when it exists.
-        Etree = build_tree_from_patch(
-            tE, resolve_status_archive(ctx.pdir, *harder_base,
-                                       "reconstruct the base tree for '" +
-                                           ctx.projeny_arg + "'"),
-            harder_base->origname, harder_base->name, harder_base->patch,
-            "embedded patch in '" + ctx.statusfile + "'");
+        // snapshot when it exists. A Projeny:-based harder base extracts
+        // its committed content from the project's frozen base snapshot
+        // instead (the same resolution every other read of this project's
+        // base uses).
+        if (harder_base->is_projeny_based()) {
+            // Tolerant: the frozen-chain-moved state (an upstream Projeny:
+            // link was rebased) bricks this reconstruction like any other;
+            // die with the recovery guidance instead of the bare apply
+            // report.
+            try {
+                TolerantPatchApply tol;
+                Etree = build_projeny_tree(
+                    ctx.projeny_arg, *harder_base,
+                    resolve_committed_base_bytes(
+                        ctx.projeny_arg, *harder_base,
+                        "reconstruct the base tree for '" + ctx.projeny_arg +
+                            "'"),
+                    harder_base->patch,
+                    "embedded patch in '" + ctx.statusfile + "'", tE.path,
+                    "reconstruct the base tree for '" + ctx.projeny_arg + "'");
+            } catch (const PatchApplyError&) {
+                die_projeny_chain_moved("set up", ctx.projeny_arg);
+            }
+        } else {
+            Etree = build_tree_from_patch(
+                tE, resolve_status_archive(ctx.pdir, *harder_base,
+                                           "reconstruct the base tree for '" +
+                                               ctx.projeny_arg + "'"),
+                harder_base->origname, harder_base->name, harder_base->patch,
+                "embedded patch in '" + ctx.statusfile + "'");
+        }
         U_unc = diff_trees(Etree, actual_workdir, harder_base->name);
         // Same accidental-deletion rule as normal setup: files that vanished
         // without an explicit rm/rename are restored, not deleted.
@@ -1983,30 +2667,82 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
     // Fresh local (ours) tree FIRST. The local side comes from a
     // git-conflicted .projeny (or the setup journal), so git may have just
     // deleted its archive (upstream rebase to a new tarball): read the
-    // snapshot when it exists. Resolve it exactly once, and BEFORE the
+    // snapshot when it exists. A Projeny:-based local side extracts its
+    // committed content from the project's frozen base snapshot (created
+    // from the local side's own base file when it is missing) plus its
+    // patch. Resolve it exactly once, and BEFORE the
     // upstream materialization below: when the two sides share the derived
     // archive name — the normal case when a git merge conflicts on the
     // URL: lines and both sides keep the same tarball filename — they also
     // share one .snapshot, and materializing the upstream side re-downloads
     // over it, so the local side must be reconstructed from the shared
     // snapshot before that can happen (mirrors setup_impl's
-    // E-tree-before-N-tree ordering).
-    std::string local_archive = resolve_status_archive(
-        ctx.pdir, local,
-        "reconstruct the local side of '" + ctx.projeny_arg + "'");
-    std::string Otree = build_tree_from_patch(
-        tO, local_archive, local.origname, local.name, local.patch,
-        "local side of '" + ctx.projeny_arg + "'");
+    // E-tree-before-N-tree ordering). The same applies to the Projeny:
+    // form's shared frozen snapshot: both conflict sides of one file
+    // resolve their base through the SAME .<stem>.snapshot (a base-switching
+    // conflict is the rare case where the second side then sees the first
+    // side's frozen bytes — fail-closed bookkeeping, never data loss; a
+    // later `rebase` re-freezes).
+    std::string Otree;
+    if (local.is_projeny_based()) {
+        // Tolerant with recovery guidance, like every frozen-chain build.
+        try {
+            TolerantPatchApply tol;
+            Otree = build_projeny_tree(
+                ctx.projeny_arg, local,
+                resolve_committed_base_bytes(
+                    ctx.projeny_arg, local,
+                    "reconstruct the local side of '" + ctx.projeny_arg + "'"),
+                local.patch, "local side of '" + ctx.projeny_arg + "'",
+                tO.path, "reconstruct the local side of '" + ctx.projeny_arg +
+                             "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("set up", ctx.projeny_arg);
+        }
+    } else {
+        std::string local_archive = resolve_status_archive(
+            ctx.pdir, local,
+            "reconstruct the local side of '" + ctx.projeny_arg + "'");
+        Otree = build_tree_from_patch(
+            tO, local_archive, local.origname, local.name, local.patch,
+            "local side of '" + ctx.projeny_arg + "'");
+    }
 
     // Merge base: the shared base archive when both sides name the same
-    // tarball and top dir (the common git-conflict case). Otherwise there
+    // tarball and top dir (the common git-conflict case) — or, for two
+    // Projeny:-based sides, the shared base file and top dir, extracted
+    // from the frozen snapshot with NEITHER side's patch. Otherwise there
     // is no common ancestor, so the base stays an empty dir (missing files):
     // anything both sides changed differently then conflicts instead of
     // silently picking a side. No data loss either way. Built from the same
-    // already-resolved local archive as Otree.
+    // already-resolved local base as Otree.
     std::string Btree = tB.path;
-    if (local.archive == cur.archive && local.origname == cur.origname) {
-        unpack_single_top(local_archive, tB.path, local.origname);
+    if (local.is_projeny_based() && cur.is_projeny_based()) {
+        if (local.base == cur.base && local.origname == cur.origname) {
+            // Tolerant with recovery guidance, like every frozen-chain
+            // build.
+            try {
+                TolerantPatchApply tol;
+                Btree = build_projeny_tree(
+                    ctx.projeny_arg, local,
+                    resolve_committed_base_bytes(
+                        ctx.projeny_arg, local,
+                        "reconstruct the shared base of '" + ctx.projeny_arg +
+                            "'"),
+                    "", "", tB.path,
+                    "reconstruct the shared base of '" + ctx.projeny_arg +
+                        "'");
+            } catch (const PatchApplyError&) {
+                die_projeny_chain_moved("set up", ctx.projeny_arg);
+            }
+        }
+    } else if (local.archive == cur.archive &&
+               local.origname == cur.origname) {
+        unpack_single_top(resolve_status_archive(
+                              ctx.pdir, local,
+                              "reconstruct the local side of '" +
+                                  ctx.projeny_arg + "'"),
+                          tB.path, local.origname);
         Btree = join_path(tB.path, local.origname);
     }
 
@@ -2014,13 +2750,35 @@ int setup_conflicted_merge(const Ctx& ctx, const std::string& local_text,
     // side re-fetches the shared .snapshot whenever its bytes do not match
     // the upstream URL: hashes (the local side normally holds them at this
     // point), overwriting it with the upstream bytes. That is safe only
-    // because both local trees above were already unpacked from it.
-    std::string Ntree = build_tree_from_patch(
-        tN, materialize_archive(ctx.pdir, cur,
-                                "check out the upstream side of '" +
-                                    ctx.projeny_arg + "'"),
-        cur.origname, cur.name, cur.patch,
-        "upstream side of '" + ctx.projeny_arg + "'");
+    // because both local trees above were already unpacked from it. A
+    // Projeny:-based upstream side extracts its committed content through
+    // the same frozen snapshot the local side used (resolve_committed_base_
+    // bytes never overwrites an existing snapshot).
+    std::string Ntree;
+    if (cur.is_projeny_based()) {
+        // Tolerant with recovery guidance, like every frozen-chain build.
+        try {
+            TolerantPatchApply tol;
+            Ntree = build_projeny_tree(
+                ctx.projeny_arg, cur,
+                resolve_committed_base_bytes(
+                    ctx.projeny_arg, cur,
+                    "check out the upstream side of '" + ctx.projeny_arg +
+                        "'"),
+                cur.patch, "upstream side of '" + ctx.projeny_arg + "'",
+                tN.path,
+                "check out the upstream side of '" + ctx.projeny_arg + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("set up", ctx.projeny_arg);
+        }
+    } else {
+        Ntree = build_tree_from_patch(
+            tN, materialize_archive(ctx.pdir, cur,
+                                    "check out the upstream side of '" +
+                                        ctx.projeny_arg + "'"),
+            cur.origname, cur.name, cur.patch,
+            "upstream side of '" + ctx.projeny_arg + "'");
+    }
 
     // Stage 1: merge the committed local patch onto the fresh upstream tree.
     std::vector<std::string> conflicts;
@@ -2530,11 +3288,22 @@ int setup_impl(const Ctx& ctx)
         // an unparseable status file is renamed just the same.
         std::vector<std::string> stale_archives;
         stale_archives.push_back(cur.archive);
+        // For a Projeny:-based file — the current one or the one the old
+        // status recorded — the frozen base snapshot next to the .projeny
+        // file is the same kind of checkout bookkeeping as the archive
+        // snapshots and goes stale with the rest.
+        std::vector<std::string> stale_extra;
+        if (cur.is_projeny_based())
+            stale_extra.push_back(projeny_snapshot_path_for(ctx.projeny_arg));
         {
             std::string old_status_raw;
             if (try_read_file_bytes(ctx.statusfile, &old_status_raw)) {
+                bool old_projeny = false;
                 std::string old_archive =
-                    archive_from_status_bytes(old_status_raw);
+                    archive_from_status_bytes(old_status_raw, &old_projeny);
+                if (old_projeny && stale_extra.empty())
+                    stale_extra.push_back(
+                        projeny_snapshot_path_for(ctx.projeny_arg));
                 if (!old_archive.empty() && old_archive != cur.archive)
                     stale_archives.push_back(old_archive);
             }
@@ -2546,14 +3315,35 @@ int setup_impl(const Ctx& ctx)
         for (const ProjenyUrl& u : cur.urls)
             url_hashes.insert(u.hash);
         disregard_stale_state(ctx, stale_archives,
-                              url_hashes.empty() ? nullptr : &url_hashes);
-        do_fresh_setup(ctx, cur);
+                              url_hashes.empty() ? nullptr : &url_hashes,
+                              stale_extra.empty() ? nullptr : &stale_extra);
+        // A Projeny:-based project whose patch no longer applies onto the
+        // (moved) chain extraction sets up WITH CONFLICT MARKERS here rather
+        // than dying: the fresh checkout carries <<<<<<< current /
+        // >>>>>>> patched regions the user resolves, then commits — the
+        // second working recovery for a chain an upstream rebase moved.
+        // Classic Archive:/URL: fresh setups keep the hard die
+        // (build_tree_from_patch), byte-identically.
+        std::vector<std::string> fresh_conflicts;
+        do_fresh_setup(ctx, cur, &fresh_conflicts);
         StatusData sd;
         sd.status = "setup";
+        sd.conflicts = fresh_conflicts;
+        sort_unique(&sd.conflicts);
         sd.embedded = cur.raw;
         write_status(ctx, sd);
+        if (!sd.conflicts.empty()) {
+            printf("projeny: set up '%s' from '%s' with %zu conflict(s):\n",
+                   rel_to_cwd(workdir).c_str(), setup_from_name(cur).c_str(),
+                   sd.conflicts.size());
+            for (auto& c : sd.conflicts)
+                printf("  %s\n", c.c_str());
+            printf("projeny: setup left conflicts (exit 1); fix them, then "
+                   "`resolve` each file and `commit`\n");
+            return 1;
+        }
         printf("projeny: set up '%s' from '%s'\n", rel_to_cwd(workdir).c_str(),
-               cur.archive.c_str());
+               setup_from_name(cur).c_str());
         return 0;
     }
     if (!is_dir(workdir))
@@ -2569,13 +3359,30 @@ int setup_impl(const Ctx& ctx)
     // way to merge, so overwriting any existing path could destroy the only
     // copy of it.
     if (!path_exists(ctx.statusfile)) {
-        do_fresh_setup_into_existing(ctx, cur);
+        // Conflict-markered fresh setup for a Projeny:-based project whose
+        // patch no longer applies (same recovery as above, into an
+        // existing directory).
+        std::vector<std::string> fresh_conflicts;
+        do_fresh_setup_into_existing(ctx, cur, &fresh_conflicts);
         StatusData sd;
         sd.status = "setup";
+        sd.conflicts = fresh_conflicts;
+        sort_unique(&sd.conflicts);
         sd.embedded = cur.raw;
         write_status(ctx, sd);
+        if (!sd.conflicts.empty()) {
+            printf("projeny: set up '%s' from '%s' (into existing directory) "
+                   "with %zu conflict(s):\n",
+                   rel_to_cwd(workdir).c_str(), setup_from_name(cur).c_str(),
+                   sd.conflicts.size());
+            for (auto& c : sd.conflicts)
+                printf("  %s\n", c.c_str());
+            printf("projeny: setup left conflicts (exit 1); fix them, then "
+                   "`resolve` each file and `commit`\n");
+            return 1;
+        }
         printf("projeny: set up '%s' from '%s' (into existing directory)\n",
-               rel_to_cwd(workdir).c_str(), cur.archive.c_str());
+               rel_to_cwd(workdir).c_str(), setup_from_name(cur).c_str());
         return 0;
     }
 
@@ -2588,15 +3395,44 @@ int setup_impl(const Ctx& ctx)
     // archive comes from the status file, so it may have been deleted from
     // git since (upstream rebase): read the snapshot copy when it exists.
     // A URL-based status copy verifies/re-fetches its snapshot instead (no
-    // network while the snapshot still matches a URL: hash).
+    // network while the snapshot still matches a URL: hash). A
+    // Projeny:-based status copy extracts its base's committed content from
+    // the FROZEN snapshot the status records (its snapshot when it exists,
+    // else the live base file named by the embedded copy, frozen into it on
+    // first use) plus the embedded patch — this runs BEFORE any adoption
+    // below, so the reconstruction still sees the snapshot's old bytes when
+    // the hand-edited header names a different base file.
     TempDir tE(make_scratch(ctx.pdir, ctx.filebase, "E"));
     TempDir tN(make_scratch(ctx.pdir, ctx.filebase, "N"));
-    std::string Etree = build_tree_from_patch(
-        tE, resolve_status_archive(ctx.pdir, oldpf,
-                                   "reconstruct the tree recorded by '" +
-                                       ctx.statusfile + "'"),
-        oldpf.origname, oldpf.name, oldpf.patch,
-        "embedded patch in '" + ctx.statusfile + "'");
+    std::string Etree;
+    if (oldpf.is_projeny_based()) {
+        // Tolerant: when the frozen chain no longer reconstructs the tree
+        // this status records (a patch no longer applies onto the moved
+        // chain), the merge cannot know the base — die with the recovery
+        // guidance instead of the bare apply report (rebase from the
+        // workdir, or erase-setup --force + setup with conflict markers).
+        try {
+            TolerantPatchApply tol;
+            Etree = build_projeny_tree(
+                ctx.projeny_arg, oldpf,
+                resolve_committed_base_bytes(
+                    ctx.projeny_arg, oldpf,
+                    "reconstruct the tree recorded by '" + ctx.statusfile +
+                        "'"),
+                oldpf.patch, "embedded patch in '" + ctx.statusfile + "'",
+                tE.path,
+                "reconstruct the tree recorded by '" + ctx.statusfile + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("set up", ctx.projeny_arg);
+        }
+    } else {
+        Etree = build_tree_from_patch(
+            tE, resolve_status_archive(ctx.pdir, oldpf,
+                                       "reconstruct the tree recorded by '" +
+                                           ctx.statusfile + "'"),
+            oldpf.origname, oldpf.name, oldpf.patch,
+            "embedded patch in '" + ctx.statusfile + "'");
+    }
 
     // User diff U = workdir vs E. Note diff direction: diff_trees(base,
     // workdir) so applying U to a fresh tree reproduces the workdir.
@@ -2670,25 +3506,55 @@ int setup_impl(const Ctx& ctx)
         if (!sd.conflicts.empty()) {
             printf("projeny: re-set up '%s' from '%s' (no local changes) but "
                    "%zu conflict(s) are still unresolved:\n",
-                   rel_to_cwd(workdir).c_str(), cur.archive.c_str(),
+                   rel_to_cwd(workdir).c_str(), setup_from_name(cur).c_str(),
                    sd.conflicts.size());
             for (auto& c : sd.conflicts)
                 printf("  %s\n", c.c_str());
             return 1;
         }
         printf("projeny: re-set up '%s' from '%s' (no local changes)\n",
-               rel_to_cwd(workdir).c_str(), cur.archive.c_str());
+               rel_to_cwd(workdir).c_str(), setup_from_name(cur).c_str());
         return 0;
     }
 
     // MERGE: fresh setup from current .projeny into a temp tree N, then apply
     // U onto N file-by-file, then move N into place. U carries the OLD wid
-    // (oldpf.name); N carries the CURRENT wid (cur.name).
-    std::string Ntree = build_tree_from_patch(
-        tN,
-        materialize_archive(ctx.pdir, cur,
-                            "set up '" + ctx.projeny_arg + "'"),
-        cur.origname, cur.name, cur.patch, "patch in '" + ctx.projeny_arg + "'");
+    // (oldpf.name); N carries the CURRENT wid (cur.name). A Projeny:-based
+    // current file builds N from its frozen base's committed extraction,
+    // under the status-aware law: a hand-edited Projeny: header naming a
+    // different base file than the status records is ADOPTED here (after E
+    // above, so E still reconstructed the old snapshot), and the newly
+    // named base's live bytes overwrite the frozen snapshot and become N's
+    // base — likewise a status-recorded base of ANOTHER mode (a
+    // hand-conversion into the Projeny: form): without the adoption, the
+    // lingering snapshot of the old era would silently supply a stale base.
+    std::string Ntree;
+    if (cur.is_projeny_based()) {
+        StatusEmbeddedBase emb;
+        emb.has = true;
+        emb.projeny = oldpf.is_projeny_based();
+        emb.base = oldpf.base;
+        // Tolerant with the same recovery as the E build above: the
+        // current patch failing onto the moved chain extraction is the
+        // same frozen-chain-moved state.
+        try {
+            TolerantPatchApply tol;
+            Ntree = build_setup_projeny_tree(
+                ctx, cur, emb, cur.patch,
+                "patch in '" + ctx.projeny_arg + "' (base '" + cur.base +
+                    "')",
+                tN.path, "set up '" + ctx.projeny_arg + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("set up", ctx.projeny_arg);
+        }
+    } else {
+        Ntree = build_tree_from_patch(
+            tN,
+            materialize_archive(ctx.pdir, cur,
+                                "set up '" + ctx.projeny_arg + "'"),
+            cur.origname, cur.name, cur.patch,
+            "patch in '" + ctx.projeny_arg + "'");
+    }
     std::vector<std::string> conflicts;
     merge_user_diff_onto(Etree, Ntree, actual_workdir, Ntree, cur.name,
                          oldpf.name, U, ctx.pdir, ctx.filebase, &conflicts);
@@ -2731,7 +3597,7 @@ int setup_impl(const Ctx& ctx)
             printf("projeny: re-set up '%s' from '%s' (no local changes; "
                    "kept %zu untracked file(s)) but %zu conflict(s) are "
                    "still unresolved:\n",
-                   rel_to_cwd(workdir).c_str(), cur.archive.c_str(), untracked,
+                   rel_to_cwd(workdir).c_str(), setup_from_name(cur).c_str(), untracked,
                    sd.conflicts.size());
             for (auto& c : sd.conflicts)
                 printf("  %s\n", c.c_str());
@@ -2739,7 +3605,7 @@ int setup_impl(const Ctx& ctx)
         }
         printf("projeny: re-set up '%s' from '%s' (no local changes; kept "
                "%zu untracked file(s))\n",
-               rel_to_cwd(workdir).c_str(), cur.archive.c_str(), untracked);
+               rel_to_cwd(workdir).c_str(), setup_from_name(cur).c_str(), untracked);
         return 0;
     }
     // Real local changes were merged: report what happened per file. Every
@@ -2777,7 +3643,7 @@ int cmd_commit(const std::string& projeny_arg)
         // The checkout directory is gone: the status and snapshot files are
         // stale state. Disregard them (warn + rename), then keep the hard
         // error — there is nothing to diff against.
-        disregard_stale_state(ctx, {cur.archive});
+        disregard_stale_state_for(ctx, cur, {cur.archive});
         die("workdir '" + workdir + "' is missing; run setup first");
     }
 
@@ -2799,10 +3665,35 @@ int cmd_commit(const std::string& projeny_arg)
     // Tolerate either state; the diff decides.
 
     TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "commit"));
-    unpack_single_top(
-        materialize_archive(ctx.pdir, cur, "commit '" + ctx.projeny_arg + "'"),
-        tmp.path, cur.origname);
-    std::string base = join_path(tmp.path, cur.origname);
+    std::string base;
+    if (cur.is_projeny_based()) {
+        // bar's patch is relative to the base file's FULL committed
+        // extraction, not to a raw tarball: diff against the extraction of
+        // the status-frozen base (its snapshot, else the live base file
+        // frozen into it — require_status_matches above guarantees the
+        // embedded copy and the live file agree, so either names the same
+        // base). No patch on top: the patch is what this commit
+        // regenerates. The extraction tree's own file mtimes are the
+        // frozen-mtime refresh source below (they stand in for the archive
+        // members). Tolerant: a chain whose patch no longer applies (an
+        // upstream link was rebased) cannot yield a diff base — die with
+        // the recovery guidance instead of the bare apply report.
+        try {
+            TolerantPatchApply tol;
+            base = build_projeny_tree(
+                ctx.projeny_arg, cur,
+                resolve_committed_base_bytes(
+                    ctx.projeny_arg, cur, "commit '" + ctx.projeny_arg + "'"),
+                "", "", tmp.path, "commit '" + ctx.projeny_arg + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("commit", ctx.projeny_arg);
+        }
+    } else {
+        unpack_single_top(
+            materialize_archive(ctx.pdir, cur, "commit '" + ctx.projeny_arg + "'"),
+            tmp.path, cur.origname);
+        base = join_path(tmp.path, cur.origname);
+    }
     // Binary files travel in the patch as base64 blocks (add/delete/modify),
     // so tracked-binary changes and explicitly added binaries commit like
     // text. Untracked binaries (never committed, never `add`ed — like a
@@ -2860,12 +3751,48 @@ int cmd_commit(const std::string& projeny_arg)
         // rename pairing can never attribute a disappearance to the wrong
         // source when several same-content files changed hands at once.
         TempDir tmpE(make_scratch(ctx.pdir, ctx.filebase, "commit-exp"));
-        std::string Etree = build_tree_from_patch(
-            tmpE,
-            materialize_archive(ctx.pdir, cur,
-                                "commit '" + ctx.projeny_arg + "'"),
-            cur.origname, cur.name, cur.patch,
-            "patch in '" + ctx.projeny_arg + "'");
+        std::string Etree;
+        if (cur.is_projeny_based()) {
+            // Expected tree for the disappeared check: the same frozen-base
+            // extraction as the diff base above, plus the current patch.
+            // Only the tree's PATHS feed the check (content is never
+            // compared), so when the frozen chain no longer reconstructs a
+            // clean base (an upstream link was rebased) the patch is
+            // re-applied under conflict markers instead: the path set is
+            // unchanged (failed blocks keep their files) and the commit
+            // still works, while the merge base above already carried the
+            // recovery.
+            try {
+                TolerantPatchApply tol;
+                Etree = build_projeny_tree(
+                    ctx.projeny_arg, cur,
+                    resolve_committed_base_bytes(
+                        ctx.projeny_arg, cur,
+                        "commit '" + ctx.projeny_arg + "'"),
+                    cur.patch,
+                    "patch in '" + ctx.projeny_arg + "' (base '" + cur.base +
+                        "')",
+                    tmpE.path, "commit '" + ctx.projeny_arg + "'");
+            } catch (const PatchApplyError&) {
+                std::string bytes = resolve_committed_base_bytes(
+                    ctx.projeny_arg, cur, "commit '" + ctx.projeny_arg + "'");
+                std::vector<std::string> ignored;
+                Etree = extract_projeny_base_tree(
+                    ctx.projeny_arg, cur, bytes, tmpE.path,
+                    "commit '" + ctx.projeny_arg + "'");
+                if (!normalize_patch_text(cur.patch).empty())
+                    vcs_apply_with_conflicts(Etree, cur.patch, cur.name,
+                                             &ignored,
+                                             VcsApplyMode::kFreshApply);
+            }
+        } else {
+            Etree = build_tree_from_patch(
+                tmpE,
+                materialize_archive(ctx.pdir, cur,
+                                    "commit '" + ctx.projeny_arg + "'"),
+                cur.origname, cur.name, cur.patch,
+                "patch in '" + ctx.projeny_arg + "'");
+        }
         std::vector<std::string> disappeared;
         std::vector<std::string> stack;
         stack.push_back("");
@@ -2980,7 +3907,7 @@ int cmd_add(const std::string& projeny_arg, const std::string& path)
         // The checkout directory is gone: the status and snapshot files are
         // stale state. Disregard them (warn + rename), then hard-error —
         // there is no workdir to add anything to.
-        disregard_stale_state(ctx, {cur.archive});
+        disregard_stale_state_for(ctx, cur, {cur.archive});
         die("workdir '" + workdir + "' is missing; run setup first");
     }
     std::string rel = normalize_workdir_rel(workdir, cur.name, path);
@@ -3019,7 +3946,7 @@ int cmd_rm(const std::string& projeny_arg, const std::string& path)
         // The checkout directory is gone: the status and snapshot files are
         // stale state. Disregard them (warn + rename), then hard-error —
         // there is no workdir to remove anything from.
-        disregard_stale_state(ctx, {cur.archive});
+        disregard_stale_state_for(ctx, cur, {cur.archive});
         die("workdir '" + workdir + "' is missing; run setup first");
     }
     std::string rel = normalize_workdir_rel(workdir, cur.name, path);
@@ -3063,7 +3990,7 @@ int cmd_mv(const std::string& projeny_arg, const std::string& src,
         // The checkout directory is gone: the status and snapshot files are
         // stale state. Disregard them (warn + rename), then hard-error —
         // there is no workdir to rename anything in.
-        disregard_stale_state(ctx, {cur.archive});
+        disregard_stale_state_for(ctx, cur, {cur.archive});
         die("workdir '" + workdir + "' is missing; run setup first");
     }
     std::string srel = normalize_workdir_rel(workdir, cur.name, src);
@@ -3122,7 +4049,7 @@ int cmd_resolve(const std::string& projeny_arg, const std::string& path)
         // The checkout directory is gone: the status and snapshot files are
         // stale state. Disregard them (warn + rename), then hard-error — a
         // conflict list about files that no longer exist is meaningless.
-        disregard_stale_state(ctx, {cur.archive});
+        disregard_stale_state_for(ctx, cur, {cur.archive});
         die("workdir '" + workdir + "' is missing; run setup first");
     }
     // Conflict entries are stored wid-relative (e.g. "src/a.c"), but users
@@ -3217,13 +4144,48 @@ namespace {
 // pairs. Anything else is the legacy form: exactly one local tarball path.
 // Every message words the command's own name, so rebase and create refuse
 // identical shapes identically.
+// The base-argument grammar shared by `rebase` and `create`: the FIRST
+// argument decides the mode. A name ending in ".projeny" selects the
+// projeny-base form (checked BEFORE the URL test — a URL can end in
+// ".projeny" too, and the projeny form wins): exactly one such argument,
+// with no hash pairs after it. Otherwise a string libcurl's URL parser
+// accepts (http://, https://, ftp://, ftps://, file://) starts URL mode,
+// and anything else is exactly one local tarball path. An EMPTY argument
+// list is the zero-arg form, which only `rebase` has (allow_empty: a
+// Projeny:-based project re-extracting its committed base — the caller
+// decides whether the project's mode allows it). The projeny form is
+// only parsed here: *projeny_base receives the RAW argument, and the
+// callers validate it against the target file (existence, the
+// same-directory law, the parse, and the live-chain cycle pre-check — see
+// validate_projeny_base_arg) once they know the target's path.
 void parse_archive_args(const std::vector<std::string>& archive_args,
                         std::vector<ProjenyUrl>* urls, std::string* tarball,
-                        const char* cmd)
+                        const char* cmd, std::string* projeny_base,
+                        bool allow_empty)
 {
     urls->clear();
     tarball->clear();
-    bool url_mode = !archive_args.empty() && arg_is_url(archive_args[0]);
+    projeny_base->clear();
+    if (archive_args.empty()) {
+        // The zero-arg form: `rebase` of a Projeny:-based project (the
+        // mode check lives with the caller's project parse). `create`
+        // has no zero-arg form: it must name a base.
+        if (!allow_empty)
+            die(std::string(cmd) +
+                " takes exactly one new tarball path (or URL(s): 'projeny " +
+                cmd + " <f.projeny> <url> [<blake3-hash>] [<url> "
+                      "[<blake3-hash>]...])'");
+        return;
+    }
+    if (ends_with(archive_args[0], ".projeny")) {
+        if (archive_args.size() != 1)
+            die(std::string(cmd) +
+                " takes exactly one .projeny base file (no hash pairs); '" +
+                archive_args[1] + "' is extra");
+        *projeny_base = archive_args[0];
+        return;
+    }
+    bool url_mode = arg_is_url(archive_args[0]);
     if (!url_mode) {
         if (archive_args.size() != 1)
             die(std::string(cmd) +
@@ -3352,16 +4314,421 @@ void verify_urls(std::vector<ProjenyUrl>* urls, std::string* verified_data,
 
 } // namespace
 
+// ---- reverse patch application (rebase's workdir fallback) ----
+//
+// When a Projeny: chain's frozen snapshots no longer reconstruct the base a
+// project's patch was diffed against (an upstream link was rebased), the
+// only local record of that base is the workdir itself: workdir = base +
+// patch. Reversing the patch onto a copy of the workdir therefore
+// reconstructs the base the merge engine needs. The transform below is a
+// line-level swap of every block's old/new sides: the diff --git labels,
+// the ---/+++ labels (with /dev/null sides and git-quoted paths), the @@
+// hunk ranges, the -/+ hunk body lines (the \ No newline markers stay in
+// place and flip sides with their lines), old/new mode, new/deleted file
+// mode, rename from/to, and similarity/index/frozen-mtime pass through.
+
+// Reverse one FileDiff block. Returns the block's reversed text, or "" when
+// the block cannot be reversed safely (with *unreversed carrying the
+// block's touched workdir-relative paths): a GIT binary patch literal (the
+// one-directional payload the internal format defines), a combined-diff
+// block (opaque), a payload-free binary stanza, or any block whose labels
+// or hunk headers do not parse. Unreversible blocks are simply left out of
+// the reversed patch text — the caller keeps those files at their workdir
+// bytes and reconciles them after the merge (see cmd_rebase).
+std::string reverse_file_diff(const FileDiff& b, const std::string& wid,
+                              const std::string& old_tree,
+                              std::vector<std::string>* unreversed)
+{
+    // Every failure exit funnels here: the block stays OUT of the reversed
+    // text and its touched paths are recorded so the caller keeps those
+    // files at their workdir bytes and reconciles them after the merge —
+    // an unrecorded failure would silently lose the file's committed
+    // change (the merge would see base == workdir content and take the
+    // upstream side wholesale).
+    std::string old_rel = wid_rel(b.a_path, wid);
+    std::string new_rel = wid_rel(b.b_path, wid);
+    auto fail = [&]() -> std::string {
+        if (!old_rel.empty())
+            unreversed->push_back(old_rel);
+        if (!new_rel.empty())
+            unreversed->push_back(new_rel);
+        return "";
+    };
+
+    // Split into lines (block text ends with '\n').
+    std::vector<std::string> lines;
+    {
+        size_t pos = 0;
+        while (pos < b.text.size()) {
+            size_t nl = b.text.find('\n', pos);
+            if (nl == std::string::npos) {
+                lines.push_back(b.text.substr(pos));
+                break;
+            }
+            lines.push_back(b.text.substr(pos, nl - pos));
+            pos = nl + 1;
+        }
+    }
+    if (lines.empty())
+        return fail();
+
+    // Combined diffs and blocks without a git header are opaque.
+    if (b.text.find("diff --git ") != 0)
+        return fail();
+
+    // The header line's two labels, parsed like the applier's: a quoted
+    // first token (git C-style) or an unquoted " b/" split.
+    std::string la, lb;
+    {
+        std::string rest = lines[0].substr(11); // after "diff --git "
+        auto qend = [](const std::string& s, size_t i) -> size_t {
+            size_t j = i + 1;
+            while (j < s.size()) {
+                if (s[j] == '\\') {
+                    j += 2;
+                    continue;
+                }
+                if (s[j] == '"')
+                    return j;
+                ++j;
+            }
+            return std::string::npos;
+        };
+        if (!rest.empty() && rest[0] == '"') {
+            size_t q = qend(rest, 0);
+            if (q == std::string::npos || q + 1 >= rest.size() ||
+                rest[q + 1] != ' ')
+                return fail();
+            la = rest.substr(0, q + 1);
+            lb = rest.substr(q + 2);
+        } else {
+            size_t pos = rest.find(" b/");
+            if (pos == std::string::npos)
+                return fail();
+            la = rest.substr(0, pos);
+            lb = rest.substr(pos + 1);
+        }
+    }
+    std::string ua = unquote_git_path(la);
+    std::string ub = unquote_git_path(lb);
+    // The differ's own labels: a/<wid>/<rel> and b/<wid>/<rel> (both live
+    // paths for adds/deletes, like git). Anything else is foreign.
+    if (ua.compare(0, 2, "a/") != 0 || ub.compare(0, 2, "b/") != 0)
+        return fail();
+    old_rel = wid_rel(ua.substr(2), wid);
+    new_rel = wid_rel(ub.substr(2), wid);
+
+    // A payload-bearing binary block cannot be reversed (the literal
+    // sections are one-directional per the internal format): the caller
+    // keeps the file at its workdir bytes. Payload-free blocks (pure
+    // renames, mode-only changes) are header-only and reverse fine.
+    if (b.text.find("GIT binary patch") != std::string::npos ||
+        b.text.find("Binary files ") != std::string::npos) {
+        return fail();
+    }
+
+    std::string out;
+    out += "diff --git " + quote_git_path("a/" + wid + "/" + new_rel) + " " +
+           quote_git_path("b/" + wid + "/" + old_rel) + "\n";
+    // Emit an already-key-swapped line, restoring git's canonical pair
+    // order: the transform turns (old mode/new mode) into (new mode/old
+    // mode) and (rename from/rename to) into (rename to/rename from), so a
+    // line whose transformed key is the pair's SECOND member swaps with the
+    // preceding counterpart line.
+    auto emit_swapped = [&](const std::string& transformed) {
+        if (out.size() >= 2 && out.back() == '\n') {
+            size_t p1 = out.rfind('\n', out.size() - 2);
+            if (p1 != std::string::npos) {
+                std::string prev = out.substr(p1 + 1); // includes its '\n'
+                if ((prev.compare(0, 9, "new mode ") == 0 &&
+                     transformed.compare(0, 9, "old mode ") == 0) ||
+                    (prev.compare(0, 10, "rename to ") == 0 &&
+                     transformed.compare(0, 12, "rename from ") == 0)) {
+                    out.resize(p1 + 1);
+                    out += transformed + "\n";
+                    out += prev;
+                    return;
+                }
+            }
+        }
+        out += transformed + "\n";
+    };
+    // Strictness gate state: the reversed block's PRE-IMAGE items (context
+    // and added lines of the ORIGINAL hunk bodies, in order) must exist
+    // verbatim in the workdir file for the reversal to be entrusted to the
+    // applier. The applier tolerates slid and fuzzed matches (by design, up
+    // to two context lines each side), which here would bake the workdir's
+    // uncommitted edits into the reconstructed base — and then silently
+    // drop them in the merge (base == theirs at the edited line lets the
+    // upstream side win). A block whose pre-image does not strictly match
+    // stays unreversed instead: the post-merge fixup keeps the workdir's
+    // bytes for it and flags the conflict.
+    // The gate applies to MODIFY-shaped blocks only (both --- and +++ sides
+    // live): the reversed application then must match a pre-image inside an
+    // existing workdir file — the one at the block's NEW-side path (for a
+    // rename-with-content that is where the post-rename content lives, and
+    // for a plain modify it is the same file). Pure adds (reversed: deletes)
+    // and pure deletes (reversed: re-creations of the file the committed
+    // patch removed — exactly the base content the merge needs) carry no
+    // pre-image to verify.
+    bool saw_minus_live = false;
+    bool saw_plus_live = false;
+    std::vector<std::vector<std::string>> gate_hunks;
+    std::vector<std::string> gate_cur;
+    bool in_hunk = false;
+    for (size_t i = 1; i < lines.size(); ++i) {
+        const std::string& l = lines[i];
+        if (l.compare(0, 10, "old mode ") == 0) {
+            out += "new mode " + l.substr(9) + "\n";
+            continue;
+        }
+        if (l.compare(0, 10, "new mode ") == 0) {
+            emit_swapped("old mode " + l.substr(9));
+            continue;
+        }
+        if (l.compare(0, 14, "new file mode ") == 0) {
+            out += "deleted file mode " + l.substr(14) + "\n";
+            continue;
+        }
+        if (l.compare(0, 17, "deleted file mode ") == 0) {
+            out += "new file mode " + l.substr(17) + "\n";
+            continue;
+        }
+        if (l.compare(0, 12, "rename from ") == 0) {
+            out += "rename to " + l.substr(12) + "\n";
+            continue;
+        }
+        if (l.compare(0, 10, "rename to ") == 0) {
+            emit_swapped("rename from " + l.substr(10));
+            continue;
+        }
+        if (l.compare(0, 17, "similarity index ") == 0 ||
+            l.compare(0, 21, "dissimilarity index ") == 0 ||
+            l.compare(0, 6, "index ") == 0 ||
+            l.compare(0, 13, "frozen-mtime ") == 0) {
+            out += l + "\n";
+            continue;
+        }
+        if (l.compare(0, 4, "--- ") == 0) {
+            // The original --- line is the reversed block's +++ side: the
+            // reversed NEW side is the original OLD side. A trailing
+            // tab-stamp rides with the side it decorated (the applier
+            // strips stamps, so this is cosmetic either way).
+            std::string rest = l.substr(4);
+            size_t tab = rest.find('\t');
+            std::string stamp = tab == std::string::npos ? "" : rest.substr(tab);
+            std::string body = tab == std::string::npos ? rest : rest.substr(0, tab);
+            if (body == "/dev/null") {
+                // The original was a pure add: the reversal deletes.
+                out += "+++ /dev/null" + stamp + "\n";
+                continue;
+            }
+            saw_minus_live = true;
+            std::string u = unquote_git_path(body);
+            if (u.compare(0, 2, "a/") != 0)
+                return fail();
+            out += "+++ " + quote_git_path("b/" + u.substr(2)) + stamp + "\n";
+            continue;
+        }
+        if (l.compare(0, 4, "+++ ") == 0) {
+            // The original +++ line is the reversed block's --- side: the
+            // reversed OLD side is the original NEW side.
+            std::string rest = l.substr(4);
+            size_t tab = rest.find('\t');
+            std::string stamp = tab == std::string::npos ? "" : rest.substr(tab);
+            std::string body = tab == std::string::npos ? rest : rest.substr(0, tab);
+            if (body == "/dev/null") {
+                out += "--- /dev/null" + stamp + "\n";
+                continue;
+            }
+            saw_plus_live = true;
+            std::string u = unquote_git_path(body);
+            if (u.compare(0, 2, "b/") != 0)
+                return fail();
+            out += "--- " + quote_git_path("a/" + u.substr(2)) + stamp + "\n";
+            continue;
+        }
+        if (l.compare(0, 4, "@@ -") == 0) {
+            if (in_hunk && !gate_cur.empty())
+                gate_hunks.push_back(gate_cur);
+            gate_cur.clear();
+            // "@@ -os[,oc] +ns[,nc] @@ section" -> swap the two ranges.
+            size_t sp1 = l.find(' ', 4);
+            if (sp1 == std::string::npos)
+                return fail();
+            std::string r1 = l.substr(4, sp1 - 4); // "-os[,oc]"
+            size_t sp2 = l.find(' ', sp1 + 1);
+            if (sp2 == std::string::npos)
+                return fail();
+            std::string r2 = l.substr(sp1 + 1, sp2 - sp1 - 1); // "+ns[,nc]"
+            if (r2.size() < 2 || r2[0] != '+')
+                return fail();
+            in_hunk = true;
+            // Reversed old range = the original new range, reversed new
+            // range = the original old range.
+            out += "@@ -" + r2.substr(1) + " +" + r1.substr(1) + " " +
+                   l.substr(sp2 + 1) + "\n";
+            continue;
+        }
+        if (in_hunk) {
+            if (l.empty()) {
+                out += "\n"; // blank context line
+                gate_cur.push_back("");
+                continue;
+            }
+            char c = l[0];
+            if (c == ' ') {
+                out += l + "\n";
+                gate_cur.push_back(l.substr(1));
+                continue;
+            }
+            if (c == '\\') {
+                out += l + "\n";
+                continue;
+            }
+            if (c == '-') {
+                out += "+" + l.substr(1) + "\n";
+                continue;
+            }
+            if (c == '+') {
+                out += "-" + l.substr(1) + "\n";
+                gate_cur.push_back(l.substr(1));
+                continue;
+            }
+            return fail(); // junk inside a hunk: refuse the block
+        }
+        // Anything else between the header and the hunks (or trailing
+        // after them): refuse rather than emit a block the applier would
+        // misread.
+        return fail();
+    }
+    if (in_hunk && !gate_cur.empty())
+        gate_hunks.push_back(gate_cur);
+    if (saw_minus_live && saw_plus_live && !gate_hunks.empty()) {
+        // The strict gate: every hunk's reversed pre-image (the original
+        // block's context + added lines, in order) must appear verbatim in
+        // the workdir file the reversal reads. No fuzz, no sliding past a
+        // mismatch: any miss leaves the block unreversed (fail above
+        // records the paths), so the fixup keeps the workdir's bytes.
+        std::string content;
+        if (!try_read_file_bytes(join_path(old_tree, new_rel), &content))
+            return fail();
+        std::vector<std::string> file_lines;
+        {
+            size_t pos = 0;
+            while (pos < content.size()) {
+                size_t nl = content.find('\n', pos);
+                if (nl == std::string::npos) {
+                    file_lines.push_back(content.substr(pos));
+                    break;
+                }
+                file_lines.push_back(content.substr(pos, nl - pos));
+                pos = nl + 1;
+            }
+        }
+        for (const auto& items : gate_hunks) {
+            if (items.empty())
+                continue;
+            bool found = false;
+            if (items.size() <= file_lines.size()) {
+                for (size_t p = 0; p + items.size() <= file_lines.size();
+                     ++p) {
+                    bool all = true;
+                    for (size_t k = 0; k < items.size(); ++k) {
+                        if (file_lines[p + k] != items[k]) {
+                            all = false;
+                            break;
+                        }
+                    }
+                    if (all) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found)
+                return fail();
+        }
+    }
+    return out;
+}
+
+// Reverse `patch` (wid-label form): every block's old/new sides are swapped
+// so applying the result to a base+patch tree reconstructs the base (see
+// reverse_file_diff). Blocks that cannot be reversed safely are LEFT OUT
+// and their touched workdir-relative paths are appended to *unreversed
+// (the caller sorts/uniques it); the reversed result is normalized like
+// every generated patch.
+std::string reverse_patch_text(const std::string& patch, const std::string& wid,
+                               const std::string& old_tree,
+                               std::vector<std::string>* unreversed)
+{
+    std::string out;
+    for (const FileDiff& b : split_file_diffs(patch)) {
+        std::string rb = reverse_file_diff(b, wid, old_tree, unreversed);
+        if (!rb.empty())
+            out += rb;
+    }
+    return normalize_patch_text(out);
+}
+
+namespace {
+
+// Whether the entry at workdir-relative path `rel` differs between the two
+// trees in any way the tree differ can see: presence, regular-vs-symlink
+// type, symlink target, exec bit (the differ's 100644/100755/120000 mode
+// triple), or content bytes. Two directories compare equal (a patch block
+// never names a directory as content; any file under it is its own touched
+// path), and a special file never matches anything but itself. This is the
+// state-(i) discriminator's atom: it compares the fallback's candidate old
+// side against the frozen chain's patch-free extraction restricted to the
+// files the embedded patch touches (see cmd_rebase).
+bool touched_entry_differs(const std::string& tree_a, const std::string& tree_b,
+                           const std::string& rel)
+{
+    std::string fa = join_path(tree_a, rel);
+    std::string fb = join_path(tree_b, rel);
+    struct stat sa, sb;
+    bool ea = lstat(fa.c_str(), &sa) == 0;
+    bool eb = lstat(fb.c_str(), &sb) == 0;
+    if (ea != eb)
+        return true; // present on one side only
+    if (!ea)
+        return false; // absent from both sides
+    if (S_ISDIR(sa.st_mode) && S_ISDIR(sb.st_mode))
+        return false; // both directories: nothing to compare here
+    bool la = S_ISLNK(sa.st_mode) != 0;
+    bool lb = S_ISLNK(sb.st_mode) != 0;
+    if (la != lb)
+        return true; // typechange
+    if (la)
+        return read_link_target(fa) != read_link_target(fb);
+    if (!S_ISREG(sa.st_mode) || !S_ISREG(sb.st_mode))
+        return true; // a special file matches no regular file
+    if (((sa.st_mode & 0111) != 0) != ((sb.st_mode & 0111) != 0))
+        return true; // exec-bit difference
+    return !files_equal(fa, fb);
+}
+
+} // namespace
+
 int cmd_rebase(const std::string& projeny_arg,
                const std::vector<std::string>& new_archive_args)
 {
     // Argument parsing, before anything is touched: see
-    // parse_archive_args — the FIRST argument decides the mode, URL list
-    // or exactly one local tarball path.
+    // parse_archive_args — the FIRST argument decides the mode, URL list,
+    // exactly one local tarball path, or exactly one .projeny base file.
+    // An EMPTY argument list is the zero-arg form: valid only for a
+    // Projeny:-based project (re-extract its committed base), refused
+    // below once the project file's own parse is in hand.
     std::vector<ProjenyUrl> urls;
     std::string new_tarball;
-    parse_archive_args(new_archive_args, &urls, &new_tarball, "rebase");
+    std::string projeny_base; // .projeny form: the RAW base argument
+    parse_archive_args(new_archive_args, &urls, &new_tarball, "rebase",
+                       &projeny_base, /* zero-arg form allowed */ true);
     bool url_mode = !urls.empty();
+    bool projeny_mode = !projeny_base.empty();
+    bool zero_arg_mode = new_archive_args.empty();
 
     // Absolutize up front: this command replaces the workdir, which can
     // delete the directory the process's CWD sits in (`projeny rebase ..`
@@ -3378,7 +4745,14 @@ int cmd_rebase(const std::string& projeny_arg,
     // require_status_matches below enforces that it is byte-identical to the
     // status copy this same file would be re-parsed from.
     ProjenyFile cur0 = ProjenyFile::parse(ctx.projeny_arg);
-    if (cur0.is_url_based() && !url_mode)
+    if (zero_arg_mode) {
+        if (!cur0.is_projeny_based())
+            die("cannot rebase '" + ctx.projeny_arg +
+                "' without a new base argument: it is not a Projeny-based "
+                "project (pass a tarball path or URL(s), or, for a "
+                "Projeny-based project, no argument at all to re-extract "
+                "its committed base)");
+    } else if (cur0.is_url_based() && !url_mode)
         die("cannot rebase '" + ctx.projeny_arg +
             "' with a tarball path: it is a URL-based project (URL: headers; "
             "no Archive: tarball is checked into git); rebase it with URL(s) "
@@ -3386,6 +4760,16 @@ int cmd_rebase(const std::string& projeny_arg,
             " <url> [<blake3-hash>] ... (when the hash is omitted, projeny "
             "downloads the tarball and computes the hash; 'projeny hash "
             "<file>' computes it for a local file)");
+
+    // The .projeny base form validates against the target file before
+    // anything is touched: the same-directory law, the base's existence and
+    // parse, and the live-chain cycle pre-check (a refusal must never cost
+    // a setup, let alone a merge).
+    ProjenyFile base_pf;
+    if (projeny_mode)
+        projeny_base = validate_projeny_base_arg(projeny_base,
+                                                 ctx.projeny_arg, "rebase",
+                                                 &base_pf);
 
     // If status/workdir are missing, do a setup first.
     std::string workdir0 = join_path(ctx.pdir, cur0.name);
@@ -3408,38 +4792,308 @@ int cmd_rebase(const std::string& projeny_arg,
     // Pending add/rm/mv ops are honored: the tree is "clean" when it matches
     // base+patch modulo exactly the recorded pending ops (verified below by
     // replaying the ops onto a fresh base+patch tree and diffing).
+    //
+    // FROZEN-CHAIN FALLBACK: when the Projeny:-based expected-tree build
+    // fails because a patch no longer applies onto the chain-composed
+    // extraction (an upstream link was rebased and the frozen snapshots now
+    // walk into the new content — every consumer of this tree bricks the
+    // same way), and the workdir is intact, the rebase proceeds FROM THE
+    // WORKDIR AS-IS instead of refusing: the old merge base is reconstructed
+    // by reverse-applying the embedded patch onto a copy of the workdir (see
+    // reverse_patch_text), the merge engine runs unchanged against it, and
+    // the uncommitted-changes check is intentionally skipped (local changes
+    // ride along — that is what "from the workdir as-is" means; the note
+    // below covers it). The preservation boundary that follows from the
+    // reconstruction: uncommitted edits INSIDE a hunk pre-image make the
+    // reverse gate refuse, and the post-merge fixup keeps that file's
+    // workdir bytes wholesale; edits OUTSIDE the pre-images — on touched or
+    // untouched files alike — are NOT distinguishable from stale committed
+    // content (the true old base is unreconstructable there), so the moved
+    // chain's content stands and the file is flagged as a conflict for the
+    // user to inspect (see vcs_detect_displaced_regions and the passes
+    // below). A build failure with NO
+    // workdir keeps the bare behavior: the setup-first fallback above has
+    // already tried to make the checkout, and it either died (nothing to
+    // rebase) or recorded conflicts (refused above).
+    //
+    // The fallback has a SECOND trigger: the expected tree may BUILD while
+    // the workdir still mismatches it (state (i) — the moved chain does not
+    // collide with the patch, so the mismatch is the upstream delta itself
+    // rather than a broken hunk). Refusing there would be wrong twice over
+    // — the decision tree at the mismatch site below explains — so the
+    // mismatch is classified first: when the fallback's candidate old side
+    // differs from the frozen chain's patch-free extraction on ANY file the
+    // patch touches, the recorded base moved under the patch and the
+    // fallback engages (identical machinery, so a clean workdir converges
+    // exactly where erase-setup --force + setup would have converged,
+    // without destroying anything); when every touched file matches, the
+    // mismatch lies entirely outside the patch's file set and the classic
+    // refusal stands (reworded, since neither half of the old advice held).
     require_no_conflicts(
         st, "workdir '" + workdir +
                 "' has unresolved conflicts; resolve them before rebasing");
+    bool workdir_fallback = false;
+    std::unique_ptr<TempDir> tFallback; // owns the fallback old tree
+    std::string fallback_old_tree;
+    std::vector<std::string> reverse_failed;
+    // The workdir-as-is note, printed once per fallback engagement (both
+    // triggers — the failed expected-tree build below, and the state-(i)
+    // decision tree — use the same machinery, and the note's clauses hold
+    // verbatim for both: the frozen chain no longer reconstructs the
+    // recorded base either way, and files the patch does not touch take the
+    // new base's content, flagged, either way).
+    auto note_workdir_as_is = [&ctx]() {
+        printf("projeny: the frozen base chain of '%s' no longer "
+               "reconstructs the recorded base (an upstream Projeny: "
+               "link was rebased); rebasing from the workdir as-is; "
+               "files the patch does not touch take the new base's "
+               "content (flagged as conflicts)\n",
+               ctx.projeny_arg.c_str());
+    };
+    // The fallback's old merge base, shared verbatim by both triggers: a
+    // copy of the workdir with the embedded patch reverse-applied, strictly
+    // per file (the gate in reverse_file_diff refuses a block whose
+    // pre-image the workdir no longer holds verbatim — uncommitted
+    // edits near a hunk region make it refuse, and the fixup below
+    // then keeps that file's workdir bytes wholesale). The
+    // reconstruction is byte-exact base content only INSIDE the
+    // patch's hunk pre-images; outside them the old side IS the
+    // workdir, so uncommitted edits there are indistinguishable
+    // from stale committed content — the true old base is
+    // unreconstructable there. The post-merge pass
+    // (vcs_detect_displaced_regions) therefore keeps the merged
+    // (moved-chain) content everywhere on such files and only REPORTS
+    // whether any outside-pre-image region was displaced, flagging the
+    // file for the user to inspect (see the passes below), and files
+    // the patch never mentions take the new base's content with a
+    // Conflict entry the same way.
+    auto build_fallback_old_side = [&]() {
+        tFallback.reset(
+            new TempDir(make_scratch(ctx.pdir, ctx.filebase,
+                                     "rebase-fallback")));
+        fallback_old_tree = join_path(tFallback->path, cur.name);
+        copy_recursive(workdir, fallback_old_tree);
+        std::string reversed =
+            reverse_patch_text(cur.patch, cur.name, fallback_old_tree,
+                               &reverse_failed);
+        if (!normalize_patch_text(reversed).empty()) {
+            // kAllowAlready: a file the user locally reverted to its
+            // base content is correctly skipped as already-reversed (it
+            // IS the base), not failed and flagged.
+            for (const VcsFailure& f :
+                 apply_patch_per_file(fallback_old_tree, reversed,
+                                      cur.name,
+                                      VcsApplyMode::kAllowAlready)) {
+                for (const std::string& p : f.paths)
+                    if (!p.empty())
+                        reverse_failed.push_back(p);
+            }
+        }
+        sort_unique(&reverse_failed);
+    };
     {
         TempDir tC(make_scratch(ctx.pdir, ctx.filebase, "rebase-clean"));
-        unpack_single_top(
-            materialize_archive(ctx.pdir, cur,
-                                "rebase '" + ctx.projeny_arg + "'"),
-            tC.path, cur.origname);
-        std::string expect = join_path(tC.path, cur.origname);
-        if (!normalize_patch_text(cur.patch).empty() &&
-            !apply_patch_whole(expect, cur.patch, cur.name,
-                               VcsApplyMode::kFreshApply))
-            die("patch in '" + ctx.projeny_arg +
-                "' does not apply to its own base archive '" + cur.archive +
-                "'; run setup to repair first");
-        // Replay recorded pending ops onto the expected tree, then require
-        // the workdir to match exactly: any other delta is uncommitted work.
-        replay_pending_ops(st, workdir, expect, "check for uncommitted work");
-        std::string U = diff_trees(expect, workdir, cur.name);
-        if (!normalize_patch_text(U).empty())
-            die("workdir '" + workdir +
-                "' has uncommitted changes; commit or revert before rebasing");
+        std::string expect;
+        bool built = false;
+        if (cur.is_projeny_based()) {
+            // Expected tree for a Projeny:-based project: the frozen base's
+            // committed extraction plus the current patch — the same source
+            // commit's diff base uses (the status-embedded == live
+            // guarantee above makes the simple frozen-snapshot law apply).
+            // Tolerant: a patch that no longer applies onto the moved chain
+            // extraction is the fallback trigger below, not a refusal.
+            try {
+                TolerantPatchApply tol;
+                expect = build_projeny_tree(
+                    ctx.projeny_arg, cur,
+                    resolve_committed_base_bytes(
+                        ctx.projeny_arg, cur,
+                        "rebase '" + ctx.projeny_arg + "'"),
+                    cur.patch,
+                    "patch in '" + ctx.projeny_arg + "' (base '" + cur.base +
+                        "')",
+                    tC.path, "rebase '" + ctx.projeny_arg + "'");
+                built = true;
+            } catch (const PatchApplyError& e) {
+                if (!is_dir(workdir))
+                    rethrow_patch_apply(e); // today's behavior, verbatim
+                workdir_fallback = true;
+            }
+        } else {
+            unpack_single_top(
+                materialize_archive(ctx.pdir, cur,
+                                    "rebase '" + ctx.projeny_arg + "'"),
+                tC.path, cur.origname);
+            expect = join_path(tC.path, cur.origname);
+            if (!normalize_patch_text(cur.patch).empty() &&
+                !apply_patch_whole(expect, cur.patch, cur.name,
+                                   VcsApplyMode::kFreshApply))
+                die("patch in '" + ctx.projeny_arg +
+                    "' does not apply to its own base archive '" + cur.archive +
+                    "'; run setup to repair first");
+            built = true;
+        }
+        if (built) {
+            // Replay recorded pending ops onto the expected tree, then
+            // require the workdir to match exactly: any other delta is
+            // uncommitted work.
+            replay_pending_ops(st, workdir, expect, "check for uncommitted work");
+            std::string U = diff_trees(expect, workdir, cur.name);
+            if (!normalize_patch_text(U).empty()) {
+                if (!cur.is_projeny_based()) {
+                    // Archive- and URL-based projects keep the classic
+                    // clean-tree law: their base bytes are frozen (the
+                    // archive is checked in, the URL snapshot is
+                    // hash-pinned), so the base cannot have moved under the
+                    // checkout and every mismatch is uncommitted work.
+                    die("workdir '" + workdir +
+                        "' has uncommitted changes; commit or revert before "
+                        "rebasing");
+                }
+                // STATE-(i) DECISION TREE: the expected tree BUILDS — the
+                // frozen chain is self-consistent and the patch applies
+                // onto it — yet the workdir mismatches it. Two shapes hide
+                // in that mismatch, and they need opposite handling:
+                //
+                //   - The recorded base MOVED UNDER THE PATCH'S FILES: an
+                //     upstream Projeny: link was rebased and its deltas
+                //     touch files this patch also touches (without
+                //     colliding — the build above succeeded, so this is not
+                //     the failed-build trigger). Refusing here would be
+                //     wrong twice over: `commit` would fold the upstream
+                //     deltas into this project's committed patch (the
+                //     README-documented corruption), and the refusal's only
+                //     other recovery — erase-setup --force + setup —
+                //     DESTROYS the uncommitted work. So the rebase takes
+                //     the workdir-as-is fallback: the candidate old side
+                //     reverses to exactly the recorded base, the merge
+                //     converges onto the moved chain, and the conflict
+                //     passes surface every region the fallback could not
+                //     reconstruct (touched files flagged when their
+                //     outside-pre-image bytes were displaced, untouched
+                //     files flagged when the new base replaced them). With
+                //     a clean workdir the reversal
+                //     is exact, so the outcome equals the erase-setup +
+                //     setup recovery's — without destroying anything.
+                //
+                //   - The mismatch lies entirely OUTSIDE the patch's file
+                //     set: uncommitted work on files the patch does not
+                //     touch, and/or upstream deltas on such files. The base
+                //     the patch was diffed against is intact exactly where
+                //     the patch needs it, so the classic refusal stands —
+                //     worded below so it does not misdiagnose: the mismatch
+                //     may be uncommitted work OR an upstream move under
+                //     files the patch does not touch, and the primary
+                //     recovery named is the one that works for both
+                //     (erase-setup --force + setup); committing is called
+                //     out only as the action that would fold upstream
+                //     deltas into the patch when a link did move, never as
+                //     the primary advice.
+                //
+                // The discriminator builds the fallback candidate old side
+                // (the exact construction the fallback uses, so a reverse
+                // failure here feeds the same conservative handling there)
+                // and compares it against the frozen chain's PATCH-FREE
+                // extraction — the base side the normal-path merge would
+                // use — restricted to the files the patch touches. The
+                // comparison counts presence, type, mode, and content (see
+                // touched_entry_differs): any touched-file difference means
+                // the recorded base moved under the patch.
+                build_fallback_old_side();
+                TempDir tFrozen(
+                    make_scratch(ctx.pdir, ctx.filebase, "rebase-frozen"));
+                std::string frozen_bytes = resolve_committed_base_bytes(
+                    ctx.projeny_arg, cur,
+                    "rebase '" + ctx.projeny_arg + "'");
+                std::vector<std::string> fchain;
+                std::set<std::string> fvisited;
+                fvisited.insert(physical_or_lexical(ctx.projeny_arg));
+                fchain.push_back(ctx.projeny_arg);
+                std::string frozen_base = extract_committed_projeny_tree(
+                    frozen_bytes, join_path(ctx.pdir, cur.base), fchain,
+                    fvisited, "rebase '" + ctx.projeny_arg + "'",
+                    tFrozen.path);
+                // The patch's touched-path set, keyed exactly like the
+                // fallback passes below key their per-file shapes:
+                // modifies (and renames) under every side they name, adds
+                // under the new path, deletes under the old path.
+                std::set<std::string> touched;
+                for (const FileDiff& b :
+                     split_file_diffs(normalize_patch_text(cur.patch))) {
+                    std::string orel = wid_rel(b.a_path, cur.name);
+                    std::string nrel = wid_rel(b.b_path, cur.name);
+                    if (block_is_pure_delete(b)) {
+                        if (!orel.empty())
+                            touched.insert(orel);
+                    } else if (block_is_pure_add(b)) {
+                        if (!nrel.empty())
+                            touched.insert(nrel);
+                    } else {
+                        if (!orel.empty())
+                            touched.insert(orel);
+                        if (!nrel.empty() && nrel != orel)
+                            touched.insert(nrel);
+                    }
+                }
+                bool base_moved = false;
+                for (const std::string& rel : touched) {
+                    if (touched_entry_differs(fallback_old_tree, frozen_base,
+                                              rel)) {
+                        base_moved = true;
+                        break;
+                    }
+                }
+                if (base_moved) {
+                    // The recorded base demonstrably moved under the patch's
+                    // files: take the workdir as-is.
+                    note_workdir_as_is();
+                    workdir_fallback = true;
+                } else {
+                    // The Projeny:-chain residual refusal. Unlike the
+                    // classic Archive:/URL: refusal above (whose base bytes
+                    // are frozen, so every mismatch there really is
+                    // uncommitted work), a Projeny: chain's base can move
+                    // under files this patch does not touch — and then
+                    // NOTHING is uncommitted. The message keeps both
+                    // hypotheses, refuses to prescribe "commit them" (the
+                    // fold the parenthetical warns against when a link did
+                    // move), names no `revert` (there is no such command),
+                    // and gives the recovery that works for both hypotheses.
+                    die("workdir '" + workdir +
+                        "' does not match the recorded base outside the "
+                        "files the patch touches: either it has uncommitted "
+                        "changes, or an upstream Projeny: link was rebased "
+                        "and the base chain moved under files the patch "
+                        "does not touch (committing would fold those "
+                        "upstream deltas into the patch); recover with "
+                        "'projeny erase-setup --force " +
+                        ctx.projeny_arg + "' followed by 'projeny setup " +
+                        ctx.projeny_arg + "'");
+                }
+            }
+        } else {
+            // The expected-tree build failed (state (ii)): the frozen chain
+            // is unusable, so the rebase proceeds from the workdir as-is.
+            note_workdir_as_is();
+            build_fallback_old_side();
+        }
     }
 
-    // The new archive: either the copied-in tarball (legacy) or the verified
+    // The new base: either the copied-in tarball (legacy), the verified
     // download (URL mode — its bytes stay in memory and are unpacked from a
     // scratch copy; the snapshot itself is written only at the very end, just
-    // before write_status).
+    // before write_status), or the .projeny form's LIVE base bytes (zero-arg
+    // and base-switch: what the base file holds NOW, not the frozen snapshot
+    // — picking up the base file's committed changes is the whole point of
+    // the projeny rebase forms).
     std::string dest_archive;
     std::string new_base;      // the new archive's basename (report + headers)
     std::string verified_data; // URL mode: the verified new tarball's bytes
+    std::string new_origname;  // the new base's single top-level directory
+    // .projeny mode: the new base file's LIVE bytes and its real path (the
+    // chain walk's second step, and the cycle identities' anchor).
+    std::string new_projeny_bytes;
+    std::string new_projeny_path;
     // URL mode's scratch home for those bytes (see below). It is created
     // only when URL mode actually runs — legacy rebases never write into
     // it — and lives to the end of the function: dest_archive names a file
@@ -3448,7 +5102,31 @@ int cmd_rebase(const std::string& projeny_arg,
     // scratch dir exists only while URL mode does, and no other member
     // state has to track "created or not".)
     std::unique_ptr<TempDir> tURL;
-    if (url_mode) {
+    if (projeny_mode || zero_arg_mode) {
+        // Zero-arg and base-switch: read the base file's LIVE bytes now.
+        // The base-switch path was validated above; the zero-arg path names
+        // cur.base and dies here when the file is gone — the frozen
+        // snapshot cannot serve: this form exists to pick up what the base
+        // file holds NOW.
+        if (zero_arg_mode) {
+            new_projeny_path = join_path(ctx.pdir, cur.base);
+            if (!path_exists(new_projeny_path))
+                die("base file '" + new_projeny_path +
+                    "' does not exist; it is needed to rebase '" +
+                    ctx.projeny_arg + "'");
+        } else {
+            new_projeny_path = projeny_base;
+        }
+        new_projeny_bytes = read_file_bytes(new_projeny_path);
+        // The new base's own parse names the extraction's top directory
+        // (and the rewritten Origname: below); the base's own
+        // Origname-vs-extraction consistency is enforced by the extraction
+        // itself, exactly like every chain link's.
+        ProjenyFile newpf = ProjenyFile::parse_bytes(
+            new_projeny_bytes, "'" + new_projeny_path + "'");
+        new_origname = newpf.origname;
+        new_base = basename_of(new_projeny_path);
+    } else if (url_mode) {
         // URL mode: download+verify EVERY listed URL before anything is
         // written, so a hard error below leaves the .projeny file, the
         // status file, the snapshot, and the workdir untouched (see
@@ -3473,7 +5151,8 @@ int cmd_rebase(const std::string& projeny_arg,
         // .projeny file and the workdir are final.
         dest_archive = join_path(tURL->path, new_base);
         write_file_bytes(dest_archive, verified_data);
-    } else {
+        new_origname = archive_single_top_name(dest_archive);
+    } else if (!zero_arg_mode) {
         if (!path_exists(new_tarball))
             die("new tarball '" + new_tarball + "' does not exist");
         new_base = basename_of(new_tarball);
@@ -3497,16 +5176,32 @@ int cmd_rebase(const std::string& projeny_arg,
         }
         if (new_abs != dest_abs)
             copy_file_bytes(new_tarball, dest_archive);
+        new_origname = archive_single_top_name(dest_archive);
     }
 
-    std::string new_origname = archive_single_top_name(dest_archive);
-
-    // Build the new tree: unpack new tarball, apply current patch, then
+    // Build the new tree: unpack the new base (or extract the .projeny
+    // form's committed base content), apply current patch, then
     // replay pending add/rm/mv ops so the result includes the pending intent
     // (the ops were validated against base+patch by the clean-check above).
     TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "rebase"));
-    unpack_single_top(dest_archive, tmp.path, new_origname);
-    std::string tree = join_path(tmp.path, new_origname);
+    std::string tree;
+    if (projeny_mode || zero_arg_mode) {
+        // The new base's COMMITTED EXTRACTION (its chain resolved through
+        // each link's OWN frozen snapshot), deliberately NOT routed through
+        // the project's own Origname: check — the header may still carry the
+        // old top dir, and the rebase self-heals it below. The chain walk is
+        // seeded with the project itself, so a chain that reaches back dies.
+        std::vector<std::string> nchain;
+        std::set<std::string> nvisited;
+        nvisited.insert(physical_or_lexical(ctx.projeny_arg));
+        nchain.push_back(ctx.projeny_arg);
+        tree = extract_committed_projeny_tree(
+            new_projeny_bytes, new_projeny_path, nchain, nvisited,
+            "rebase '" + ctx.projeny_arg + "'", tmp.path);
+    } else {
+        unpack_single_top(dest_archive, tmp.path, new_origname);
+        tree = join_path(tmp.path, new_origname);
+    }
     // Frozen mtimes must be REFRESHED from the new archive before the patch
     // is applied (application rewrites files with a "now" timestamp): the
     // frozen set of the current patch is re-valued against the freshly
@@ -3515,6 +5210,10 @@ int cmd_rebase(const std::string& projeny_arg,
     std::map<std::string, uint64_t> frozen =
         refresh_frozen_from_tree(vcs_frozen_mtimes(cur.patch, cur.name), tree);
     std::vector<std::string> conflicts;
+    // Workdir-relative paths the three-way merge below decided on (the files
+    // whose hunks failed onto the new base). The fallback preservation passes
+    // read this to tell merge-decided content from freshly applied content.
+    std::set<std::string> merged_rels;
     // kAllowAlready (not kFreshApply) for the application onto the NEW base:
     // the new tarball is pristine, but it is a DIFFERENT upstream snapshot
     // that may already contain the user's change (upstream incorporated it —
@@ -3533,11 +5232,38 @@ int cmd_rebase(const std::string& projeny_arg,
         // 3-way merge each failed file: base = OLD tree file, ours = new
         // tree file (patched except failed parts), theirs = old tree file.
         TempDir tO(make_scratch(ctx.pdir, ctx.filebase, "rebase-old"));
-        unpack_single_top(
-            materialize_archive(ctx.pdir, cur,
-                                "rebase '" + ctx.projeny_arg + "'"),
-            tO.path, cur.origname);
-        std::string old_tree = join_path(tO.path, cur.origname);
+        std::string old_tree;
+        if (workdir_fallback) {
+            // The frozen chain is unusable: the fallback old tree built
+            // during the clean-check phase above (the workdir copy with the
+            // embedded patch reverse-applied). tO stays unused.
+            old_tree = fallback_old_tree;
+        } else if (cur.is_projeny_based()) {
+            // The OLD base is the FROZEN snapshot's committed extraction —
+            // the FULL extraction (the base's own committed patch included),
+            // because the project's patch is relative to it. Like the new
+            // tree above, deliberately NOT routed through the project's own
+            // Origname: check (the header may carry the new base's top dir
+            // already when the rewrite below has not happened yet — the
+            // merge only needs the trees). Unreachable in fallback mode
+            // with this failure class: the fallback exists precisely
+            // because this extraction dies.
+            std::string frozen_bytes = resolve_committed_base_bytes(
+                ctx.projeny_arg, cur, "rebase '" + ctx.projeny_arg + "'");
+            std::vector<std::string> ochain;
+            std::set<std::string> ovisited;
+            ovisited.insert(physical_or_lexical(ctx.projeny_arg));
+            ochain.push_back(ctx.projeny_arg);
+            old_tree = extract_committed_projeny_tree(
+                frozen_bytes, join_path(ctx.pdir, cur.base), ochain, ovisited,
+                "rebase '" + ctx.projeny_arg + "'", tO.path);
+        } else {
+            unpack_single_top(
+                materialize_archive(ctx.pdir, cur,
+                                    "rebase '" + ctx.projeny_arg + "'"),
+                tO.path, cur.origname);
+            old_tree = join_path(tO.path, cur.origname);
+        }
         // Apply the old patch to the old tree to get the "theirs" content?
         // The old tree unpacked is the base; workdir == base+patch (clean
         // check above), so theirs-file == workdir file.
@@ -3551,9 +5277,341 @@ int cmd_rebase(const std::string& projeny_arg,
                                             join_path(tree, rel),
                                             join_path(workdir, rel),
                                             join_path(tree, rel), tree);
+                merged_rels.insert(rel);
                 if (!clean)
                     conflicts.push_back(rel);
             }
+        }
+    }
+    // Fallback preservation passes. The merge above three-ways every file
+    // whose hunks failed onto the new base — but its base is the
+    // RECONSTRUCTED old side: byte-exact base content inside the patch's
+    // hunk pre-images, and the workdir's own bytes outside them, where
+    // uncommitted edits are indistinguishable from stale committed content.
+    // Two consequences, closed by two passes (both run before the
+    // reverse-failed fixup below, which owns the files the gate refused):
+    //
+    // 1. DISPLACEMENT PASS — hunk-covered files. The merge sees uncommitted
+    //    edits outside the pre-images as base content, so the new side's
+    //    content there wins silently (feeding the workdir as the explicit
+    //    other side would not help: against the edit-bearing base the new
+    //    content reads as a deliberate one-sided edit and wins the same
+    //    way). Those outside-pre-image bytes cannot be told apart from
+    //    stale committed content — the true old base is unreconstructable
+    //    there — so the moved chain's content STANDS (symmetric with
+    //    untouched files, which take the new side's content wholesale) and
+    //    the file is FLAGGED when any changed old-side range lies outside
+    //    the pre-images (vcs_detect_displaced_regions): the displacement
+    //    must be visible, never silent. Restoring the workdir's bytes there
+    //    instead would revert the upstream move as often as it preserved
+    //    real uncommitted work — and the reversion would fold into the
+    //    regenerated committed patch through the resolve + commit flow,
+    //    silently and durably. Users who want uncommitted outside-pre-image
+    //    work kept must COMMIT it first: commit folds it into the project's
+    //    patch, where the strict reverse gate (it refuses a pre-image the
+    //    workdir no longer holds verbatim) and the three-way protect it.
+    //    Regions inside the pre-images keep
+    //    the merge's output (resolutions and conflict markers), so genuine
+    //    overlaps still conflict and clean resolutions still ride: the
+    //    reverse's success there is positive evidence the workdir matched
+    //    base+patch exactly, so the three-way is trusted. The classification
+    //    is anchored in old-side coordinates, so it runs identically for
+    //    files whose hunks failed onto the new base (merged_rels) and for
+    //    files whose hunks applied cleanly (the tree holds the applied patch;
+    //    the same classification covers the outside-hunk regions around it —
+    //    a changed base range covering the applied pre-image core always
+    //    intersects the pre-image ranges, so the committed change itself is
+    //    never a displacement candidate).
+    //
+    // 2. NEW-CONTENT PASS — files the patch does not touch (no hunk in the
+    //    project's patch names them). The merge never runs for them and the
+    //    tree holds the new base's content wholesale; the reconstructed old
+    //    side equals the workdir there, so any uncommitted edit is
+    //    indistinguishable from stale committed content and CANNOT be
+    //    separated from an upstream move. Convergence wins (the typical
+    //    bricked state's divergent untouched files are exactly the
+    //    upstream-moved ones), so the tree's content stays — but the
+    //    replacement is flagged with a Conflict entry so it is visible and
+    //    resolvable, mirroring the divergent-binary rule (the new side
+    //    wins, conflict recorded). This is the same policy pass 1 applies
+    //    to touched files outside their pre-images.
+    //
+    // Both passes skip files the reverse gate refused (reverse_failed: the
+    // fixup below keeps those at workdir bytes), rename-shaped and binary
+    // blocks (the merge and fixups above own them; no old-side anchor to
+    // classify against), and files absent from the workdir. Untracked workdir
+    // files are out of scope: they are not in the new tree, so the
+    // new-content pass never visits them.
+    if (workdir_fallback && !normalize_patch_text(cur.patch).empty()) {
+        // Per-file shape of the project's patch, aggregated over its blocks.
+        struct FallbackFile {
+            bool has_hunks = false;  // at least one text hunk names the file
+            bool text_modify = true; // every block is a same-path text
+                                     // modify: the shape the displacement
+                                     // analysis can classify
+            bool pure_add = true;    // every block is a pure add of the file
+            bool pure_delete = true; // every block is a pure delete
+            bool rename = false;     // any block moves the file
+            bool binary = false;     // any block is binary
+            std::vector<std::pair<size_t, size_t>> pre_ranges;
+        };
+        std::map<std::string, FallbackFile> ff;
+        for (const FileDiff& b :
+             split_file_diffs(normalize_patch_text(cur.patch))) {
+            std::string orel = wid_rel(b.a_path, cur.name);
+            std::string nrel = wid_rel(b.b_path, cur.name);
+            bool binary = b.text.find("GIT binary patch") != std::string::npos ||
+                          b.text.find("Binary files ") != std::string::npos;
+            bool add = block_is_pure_add(b);
+            bool del = block_is_pure_delete(b);
+            bool rename = !add && !del && !orel.empty() && !nrel.empty() &&
+                          orel != nrel;
+            std::vector<std::pair<size_t, size_t>> pre;
+            bool hunks_ok = !binary;
+            if (!binary) {
+                for (const std::string& l : split_lines(b.text)) {
+                    if (l.compare(0, 4, "@@ -") != 0)
+                        continue;
+                    // "@@ -os[,oc] +ns[,nc] @@ section": unified-diff
+                    // grammar, 1-based lines; a missing ,count means 1, and
+                    // count 0 puts the empty range AFTER the named line.
+                    // Only the OLD-side ranges are kept: the displacement
+                    // analysis is anchored in old-side coordinates (base =
+                    // the reconstructed old side).
+                    size_t os = 0, oc = 1, ns = 0, nc = 1;
+                    size_t i = 4; // after "@@ -"
+                    auto num = [&](size_t* v) {
+                        size_t r = 0;
+                        bool any = false;
+                        while (i < l.size() && l[i] >= '0' && l[i] <= '9') {
+                            r = r * 10 + (l[i] - '0');
+                            ++i;
+                            any = true;
+                        }
+                        if (any)
+                            *v = r;
+                        return any;
+                    };
+                    if (!num(&os)) {
+                        hunks_ok = false; // malformed header: do not trust
+                        break;
+                    }
+                    if (i < l.size() && l[i] == ',') {
+                        ++i;
+                        if (!num(&oc))
+                            hunks_ok = false;
+                    }
+                    if (i < l.size() && l[i] == ' ')
+                        ++i;
+                    if (i < l.size() && l[i] == '+')
+                        ++i;
+                    if (!num(&ns)) {
+                        hunks_ok = false;
+                        break;
+                    }
+                    if (i < l.size() && l[i] == ',') {
+                        ++i;
+                        if (!num(&nc))
+                            hunks_ok = false;
+                    }
+                    if (!hunks_ok)
+                        break;
+                    size_t ps = oc == 0 ? os : (os > 0 ? os - 1 : 0);
+                    pre.push_back({ps, ps + oc});
+                }
+            }
+            // Key the shapes: modifies under their (shared) path, adds under
+            // the new path, deletes under the old path, renames under both.
+            std::vector<std::string> keys;
+            if (del && !orel.empty())
+                keys.push_back(orel);
+            else if (add && !nrel.empty())
+                keys.push_back(nrel);
+            else {
+                if (!orel.empty())
+                    keys.push_back(orel);
+                if (!nrel.empty() && nrel != orel)
+                    keys.push_back(nrel);
+            }
+            for (const std::string& rel : keys) {
+                FallbackFile& info = ff[rel];
+                info.has_hunks =
+                    info.has_hunks || (!pre.empty() && hunks_ok);
+                info.text_modify = info.text_modify && hunks_ok && !binary &&
+                                  !rename && !add && !del && !orel.empty() &&
+                                  orel == nrel;
+                info.pure_add = info.pure_add && add && hunks_ok;
+                info.pure_delete = info.pure_delete && del && hunks_ok;
+                info.rename = info.rename || rename;
+                info.binary = info.binary || binary;
+                if (hunks_ok)
+                    info.pre_ranges.insert(info.pre_ranges.end(), pre.begin(),
+                                           pre.end());
+            }
+        }
+        auto in_reverse_failed = [&reverse_failed](const std::string& rel) {
+            return std::binary_search(reverse_failed.begin(),
+                                      reverse_failed.end(), rel);
+        };
+        auto flag_conflict = [&conflicts](const std::string& rel) {
+            if (std::find(conflicts.begin(), conflicts.end(), rel) ==
+                conflicts.end())
+                conflicts.push_back(rel);
+        };
+        // Pass 1: surface the outside-pre-image displacement of hunk-covered
+        // files (the merged content itself always stands — nothing is
+        // written back here; the structural add/delete/tree-missing shapes
+        // below are the only writers).
+        for (const auto& kv : ff) {
+            const std::string& rel = kv.first;
+            const FallbackFile& info = kv.second;
+            if (in_reverse_failed(rel))
+                continue; // the fixup below keeps the workdir bytes
+            std::string wf = join_path(workdir, rel);
+            struct stat ws;
+            if (lstat(wf.c_str(), &ws) != 0 || !S_ISREG(ws.st_mode))
+                continue; // nothing local to preserve (or a non-file)
+            if (info.has_hunks && info.pure_add && !info.rename &&
+                !info.binary) {
+                // The patch created the file; the workdir's bytes are the
+                // patch's content plus any uncommitted edit. When the add
+                // applied cleanly (the merge never ran for it) the tree
+                // holds the bare patch content — take the workdir's bytes so
+                // the edit rides. When the merge ran, its base-missing
+                // three-way already keeps or conflicts divergent content.
+                if (merged_rels.count(rel) != 0)
+                    continue;
+                std::string tf = join_path(tree, rel);
+                struct stat ts;
+                if (lstat(tf.c_str(), &ts) != 0 || !S_ISREG(ts.st_mode))
+                    continue;
+                if (files_equal(wf, tf))
+                    continue;
+                copy_path_preserving(wf, tf);
+                continue; // nothing was displaced and nothing staled: no flag
+            }
+            if (info.has_hunks && info.pure_delete && !info.rename &&
+                !info.binary) {
+                // The patch deleted the file; workdir bytes mean the user
+                // recreated it locally — uncommitted work the tree would
+                // otherwise silently drop. Keep it, flagged.
+                std::string tf = join_path(tree, rel);
+                if (path_exists(tf))
+                    continue; // the merge already placed content for it
+                make_dirs(dirname_of(tf));
+                copy_path_preserving(wf, tf);
+                flag_conflict(rel);
+                continue;
+            }
+            if (!info.has_hunks || !info.text_modify)
+                continue; // mode-only, rename, binary or mixed: no analysis
+            std::string of = join_path(fallback_old_tree, rel);
+            struct stat osd;
+            if (lstat(of.c_str(), &osd) != 0 || !S_ISREG(osd.st_mode))
+                continue; // no old-side anchor: nothing to classify against
+            std::string tf = join_path(tree, rel);
+            struct stat ts;
+            if (lstat(tf.c_str(), &ts) != 0 || !S_ISREG(ts.st_mode)) {
+                // The patch modifies the file but the merged tree lacks it,
+                // while the workdir holds content: keep the workdir's bytes,
+                // flagged, like the reverse-failed fixup.
+                make_dirs(dirname_of(tf));
+                copy_path_preserving(wf, tf);
+                flag_conflict(rel);
+                continue;
+            }
+            // The modify-shaped case, reverse-succeeded: the workdir's
+            // outside-pre-image bytes are indistinguishable from stale
+            // committed content (the true old base is unreconstructable
+            // there), so the merged (moved-chain) content STANDS as the
+            // file's content — nothing is written back — and the file is
+            // flagged when the merged content displaced any of those bytes
+            // (a changed old-side range outside the hunk pre-images). The
+            // flag is markerless, like pass 2's: the user inspects and
+            // either accepts the converged content or restores their own
+            // bytes via resolve before the commit folds the outcome into
+            // the regenerated patch. Inside the pre-images the merge's
+            // output (resolutions and markers) is trusted as produced: the
+            // strict reverse gate succeeded there, which is positive
+            // evidence the workdir matched base+patch exactly.
+            std::string old_bytes = read_file_bytes(of);
+            std::string tree_bytes = read_file_bytes(tf);
+            if (vcs_detect_displaced_regions(old_bytes, tree_bytes,
+                                             info.pre_ranges))
+                flag_conflict(rel);
+        }
+        // Pass 2: flag untouched files whose workdir content the new base's
+        // content replaced (the tree already holds the new side).
+        {
+            std::vector<std::string> stack;
+            stack.push_back("");
+            while (!stack.empty()) {
+                std::string d = stack.back();
+                stack.pop_back();
+                std::string abs = d.empty() ? tree : join_path(tree, d);
+                for (const std::string& name : list_dir_names(abs)) {
+                    std::string rel = d.empty() ? name : d + "/" + name;
+                    std::string tfull = join_path(tree, rel);
+                    struct stat tst;
+                    if (lstat(tfull.c_str(), &tst) != 0)
+                        continue;
+                    if (S_ISDIR(tst.st_mode)) {
+                        stack.push_back(rel);
+                        continue;
+                    }
+                    auto it = ff.find(rel);
+                    if (it != ff.end() &&
+                        (it->second.has_hunks || it->second.rename ||
+                         it->second.binary))
+                        continue; // patch-covered: pass 1 / the fixup own it
+                    if (in_reverse_failed(rel))
+                        continue; // the fixup below owns it
+                    std::string wfull = join_path(workdir, rel);
+                    struct stat wst;
+                    if (lstat(wfull.c_str(), &wst) != 0)
+                        continue; // not in the workdir: nothing was replaced
+                    bool t_link = S_ISLNK(tst.st_mode) != 0;
+                    bool w_link = S_ISLNK(wst.st_mode) != 0;
+                    if (!S_ISREG(tst.st_mode) && !t_link)
+                        continue;
+                    if (!S_ISREG(wst.st_mode) && !w_link)
+                        continue;
+                    bool same;
+                    if (t_link != w_link) {
+                        same = false;
+                    } else if (t_link) {
+                        same = read_link_target(tfull) ==
+                               read_link_target(wfull);
+                    } else {
+                        same = files_equal(wfull, tfull);
+                    }
+                    if (!same)
+                        flag_conflict(rel);
+                }
+            }
+        }
+    }
+    // Fallback fixup: files whose blocks could not be reversed (binary
+    // literals, opaque or unparseable blocks) keep their WORKDIR bytes —
+    // conservative, no markers: the merge above cannot know their true
+    // base, so where the merged content differs from what the workdir
+    // holds, the workdir wins and the file is flagged conflicted for the
+    // usual resolve + commit flow. (In fallback mode this runs even without
+    // merge failures: the fixup compares against the merged tree, whatever
+    // produced it.)
+    if (workdir_fallback) {
+        for (const std::string& rel : reverse_failed) {
+            std::string wf = join_path(workdir, rel);
+            struct stat ws;
+            if (lstat(wf.c_str(), &ws) != 0 || !S_ISREG(ws.st_mode))
+                continue; // nothing local to preserve (a rename source)
+            std::string tf = join_path(tree, rel);
+            struct stat ts;
+            if (lstat(tf.c_str(), &ts) == 0 && files_equal(wf, tf))
+                continue; // already matches: leave it
+            make_dirs(dirname_of(tf));
+            copy_path_preserving(wf, tf);
+            conflicts.push_back(rel);
         }
     }
 
@@ -3578,16 +5636,36 @@ int cmd_rebase(const std::string& projeny_arg,
         frozen[rn.second] = ts;
     }
 
-    // Update headers: the archive location (Archive: for a checked-in
-    // tarball; the URL: list for URL mode — replace_archive_url_headers
-    // swaps every Archive:/URL: line for the new URL: lines, so an
-    // Archive:-based project converts to URL:-based here) plus the new top
-    // dir. The patch body's wid labels already use Name (unchanged).
-    if (url_mode) {
+    // Update headers: the archive location (the Projeny: base file for a
+    // base-switch; Archive: for a checked-in tarball; the URL: list for URL
+    // mode — replace_archive_url_headers swaps every Archive:/URL:/Projeny:
+    // line for the new URL: lines, so any mode converts to URL:-based here;
+    // the Archive:-tarball conversion away from the Projeny: form goes
+    // through replace_base_headers for the same reason — replace_header_
+    // value could not remove the Projeny: line it replaces) plus the new top
+    // dir. The zero-arg form changes NO base header: it re-extracts the
+    // base the Projeny: header already names. The patch body's wid labels
+    // already use Name (unchanged).
+    if (projeny_mode && !zero_arg_mode) {
+        // Base-switch: the header stores a plain filename, and the
+        // same-directory law validated above guarantees the base lives next
+        // to the target — so the new line carries the bare basename.
+        cur.head = replace_base_headers(
+            cur.head, "Projeny: " + basename_of(new_projeny_path) + "\n");
+        cur.base = basename_of(new_projeny_path);
+    } else if (url_mode) {
         cur.head = replace_archive_url_headers(cur.head, urls);
         cur.urls = urls;
         cur.archive = new_base;
-    } else {
+    } else if (!projeny_mode && !zero_arg_mode && cur.is_projeny_based()) {
+        // Mode conversion away from the Projeny: form via a tarball: the
+        // Projeny: line is replaced by the new Archive: line (the old
+        // .<stem>.snapshot simply lingers as a stale file — stale snapshots
+        // are never auto-cleaned).
+        cur.head = replace_base_headers(cur.head,
+                                        "Archive: " + new_base + "\n");
+        cur.archive = new_base;
+    } else if (!projeny_mode && !zero_arg_mode) {
         cur.head = replace_header_value(cur.head, "Archive", new_base);
         cur.archive = new_base;
     }
@@ -3599,14 +5677,30 @@ int cmd_rebase(const std::string& projeny_arg,
     // blocks for frozen files the new base and the patched tree agree on.
     {
         TempDir tB(make_scratch(ctx.pdir, ctx.filebase, "rebase-base"));
-        unpack_single_top(dest_archive, tB.path, new_origname);
+        std::string base_only;
+        if (projeny_mode || zero_arg_mode) {
+            // The pristine committed extraction of the new base again (the
+            // working tree above was patched): the same bytes, resolved
+            // through the same snapshots, so the regenerated patch's hunk
+            // positions are exact.
+            std::vector<std::string> bchain;
+            std::set<std::string> bvisited;
+            bvisited.insert(physical_or_lexical(ctx.projeny_arg));
+            bchain.push_back(ctx.projeny_arg);
+            base_only = extract_committed_projeny_tree(
+                new_projeny_bytes, new_projeny_path, bchain, bvisited,
+                "rebase '" + ctx.projeny_arg + "'", tB.path);
+        } else {
+            unpack_single_top(dest_archive, tB.path, new_origname);
+            base_only = join_path(tB.path, new_origname);
+        }
         VcsDiffOpts ropts;
         ropts.frozen_mtimes = &frozen;
         ropts.frozen_attribute_blocks = true;
         // vcs_diff_trees_ex already returns canonical labels; normalize
         // ends with exactly one newline.
         std::string regen = normalize_patch_text(vcs_diff_trees_ex(
-            join_path(tB.path, new_origname), tree, cur.name, ropts));
+            base_only, tree, cur.name, ropts));
         cur.rebuild(regen);
     }
     write_file_bytes(ctx.projeny_arg, cur.raw);
@@ -3616,18 +5710,29 @@ int cmd_rebase(const std::string& projeny_arg,
         die("cannot remove existing workdir '" + workdir + "'");
     move_path(tree, workdir);
 
-    // NOW the URL snapshot: the .projeny file has been rewritten and the
+    // NOW the snapshots: the .projeny file has been rewritten and the
     // workdir swapped, so every die before this point left the .projeny
     // file, the status file, the snapshot, and the workdir exactly as they
-    // were. It must be in place before write_status, whose
-    // ensure_url_snapshot re-check takes a snapshot already matching a
-    // listed hash as the archive (one written here would otherwise be
-    // re-downloaded); both merge outcomes — a clean tree and conflicts left
-    // as markers — reach this line. write_file_bytes is temp file + rename,
-    // so the snapshot switches atomically.
+    // were. They must be in place before write_status, whose
+    // ensure_url_snapshot / resolve_committed_base_bytes re-check takes a
+    // snapshot already matching as the archive/base (one written here would
+    // otherwise be re-downloaded or re-frozen); both merge outcomes — a
+    // clean tree and conflicts left as markers — reach this line.
+    // write_file_bytes is temp file + rename, so the snapshot switches
+    // atomically. The URL snapshot holds the verified download; the
+    // Projeny: form's frozen snapshot is OVERWRITTEN with the new base's
+    // live bytes (the sanctioned re-freeze: the zero-arg form re-extracts
+    // what the base file holds now, the base-switch form switches the freeze
+    // to the newly named base). A conversion away from the Projeny: form
+    // leaves the old snapshot in place: stale snapshots are never
+    // auto-cleaned, and the new form's snapshot is managed by the existing
+    // flows.
     if (url_mode)
         write_file_bytes(snapshot_path_for(join_path(ctx.pdir, new_base)),
                          verified_data);
+    if (projeny_mode || zero_arg_mode)
+        write_file_bytes(projeny_snapshot_path_for(ctx.projeny_arg),
+                         new_projeny_bytes);
 
     StatusData sd;
     sd.status = "setup";
@@ -3684,7 +5789,14 @@ namespace {
 //                          snapshot that is missing or matches no URL:
 //                          hash is re-downloaded. It also prints status's
 //                          "(continuing ...)" warnings when the snapshot
-//                          cannot be settled.
+//                          cannot be settled. `cmd_verb` words the
+//                          frozen-chain-moved guidance die (status says
+//                          "cannot status", the erase-setup check phase
+//                          says "cannot erase-setup") — unless the caller
+//                          passes `tolerate_chain_moved` (only cmd_status's
+//                          conflicted-interim case does), which reports
+//                          that one failure class through
+//                          LiveDiff::chain_moved instead of dying.
 //
 // What is deliberately NOT shared: cmd_status's workdir-missing branch.
 // It calls disregard_stale_state, which RENAMES the status file and the
@@ -3704,6 +5816,9 @@ struct RecordedStatus {
                              // when that file is unreadable, conflicted, or
                              // invalid) — used only by status's stale-state
                              // bookkeeping
+    bool cur_projeny = false; // the CURRENT .projeny file is Projeny:-based
+                              // (used only by status's stale-state
+                              // bookkeeping, next to cur_archive)
 };
 
 RecordedStatus read_recorded_status(const std::string& pdir,
@@ -3728,6 +5843,7 @@ RecordedStatus read_recorded_status(const std::string& pdir,
             ProjenyFile curpf =
                 ProjenyFile::parse_bytes(cur_raw, "'" + projeny_arg + "'");
             rec.cur_archive = curpf.archive;
+            rec.cur_projeny = curpf.is_projeny_based();
             std::string curdir = join_path(pdir, curpf.name);
             if (!is_dir(rec.workdir) && is_dir(curdir))
                 rec.workdir = curdir;
@@ -3742,11 +5858,20 @@ RecordedStatus read_recorded_status(const std::string& pdir,
 // added/rename-destination sets). Pending ops themselves stay on their
 // Added:/Removed:/Renamed: lines (the recorded half) and are not repeated
 // here. `ran` is false — and every list empty — when the diff could not
-// run: a missing workdir, or no usable archive. `filebase` is the .projeny
+// run: a missing workdir, no usable archive, or (with `tolerate_chain_moved`)
+// the chain-moved build failure reported through `chain_moved` instead of
+// the guidance die. `filebase` is the .projeny
 // file's basename (Ctx::filebase), so the expected tree is built in a
 // scratch dir named after the file (see make_scratch).
 struct LiveDiff {
     bool ran = false;
+    // Set only when `tolerate_chain_moved` was passed: the expected-tree
+    // build failed with the chain-moved failure class (the recorded patch
+    // no longer applies onto the frozen base chain — an upstream Projeny:
+    // link was rebased). The caller owns the wording of the response;
+    // cmd_status's conflicted-interim case reports the recorded state and
+    // a live-diff-unavailable note instead of the guidance die.
+    bool chain_moved = false;
     std::vector<std::string> modified, disappeared, untracked;
 };
 
@@ -3754,7 +5879,9 @@ LiveDiff compute_live_diff(const std::string& pdir, const StatusData& st,
                            const ProjenyFile& emb,
                            const std::string& workdir,
                            const std::string& statusfile,
-                           const std::string& filebase)
+                           const std::string& filebase,
+                           const std::string& cmd_verb,
+                           bool tolerate_chain_moved = false)
 {
     LiveDiff live;
     if (!is_dir(workdir))
@@ -3799,7 +5926,24 @@ LiveDiff compute_live_diff(const std::string& pdir, const StatusData& st,
     // try_ensure_url_snapshot's own multi-mode locking: that only engages
     // when g_multi_plan is set, which neither caller (cmd_status, the
     // erase-setup check phase) ever is.
-    if (emb.is_url_based()) {
+    //
+    // A Projeny:-based status copy has no archive at all: its expected tree
+    // is the committed extraction of the FROZEN base (the status's
+    // snapshot, else the live base file frozen into it — see
+    // resolve_committed_base_bytes) plus the embedded patch. Resolving the
+    // base bytes is the one mutating step that branch adds (a missing
+    // snapshot is frozen here), so it runs under the same mutex as the
+    // archive materializations below; unlike them it DIES when neither the
+    // snapshot nor the live base file exists — the adapted missing-archive
+    // error of resolve_status_archive — so a checker never reports a
+    // Projeny:-based checkout clean when it could not know.
+    std::string projeny_bytes;
+    if (emb.is_projeny_based()) {
+        std::lock_guard<std::mutex> lk(g_fallback_download_mu);
+        projeny_bytes = resolve_committed_base_bytes(
+            join_path(pdir, filebase), emb,
+            "reconstruct the tree recorded by '" + statusfile + "'");
+    } else if (emb.is_url_based()) {
         std::string got, err;
         std::lock_guard<std::mutex> lk(g_fallback_download_mu);
         // announce_skip = false: status is informational and must print
@@ -3831,9 +5975,39 @@ LiveDiff compute_live_diff(const std::string& pdir, const StatusData& st,
         }
     }
     TempDir tmp(make_scratch(pdir, filebase, "status"));
-    std::string Etree = build_tree_from_patch(
-        tmp, archive_path, emb.origname, emb.name, emb.patch,
-        "embedded patch in '" + statusfile + "'");
+    std::string Etree;
+    if (emb.is_projeny_based()) {
+        // Tolerant: a patch that no longer applies onto the moved chain
+        // extraction means every read of this checkout is bricked the same
+        // way — die with the recovery guidance (worded for the calling
+        // command) instead of the bare apply report. `tolerate_chain_moved`
+        // (cmd_status's conflicted-interim case: conflicts are recorded and
+        // the recovery the guidance names — rebase, commit — is itself
+        // refused while conflicts are unresolved, so the guidance is
+        // circular there) reports the failure through `chain_moved`
+        // instead, leaving the response to the caller.
+        try {
+            TolerantPatchApply tol;
+            Etree = build_projeny_tree(join_path(pdir, filebase), emb,
+                                       projeny_bytes, emb.patch,
+                                       "embedded patch in '" + statusfile +
+                                           "'",
+                                       tmp.path,
+                                       "reconstruct the tree recorded by '" +
+                                           statusfile + "'");
+        } catch (const PatchApplyError&) {
+            if (tolerate_chain_moved) {
+                live.chain_moved = true;
+                return live;
+            }
+            die_projeny_chain_moved(cmd_verb, join_path(pdir, filebase));
+        }
+    } else {
+        Etree = build_tree_from_patch(tmp, archive_path, emb.origname, emb.name,
+                                      emb.patch,
+                                      "embedded patch in '" + statusfile +
+                                          "'");
+    }
 
     struct Entry {
         int kind = 0; // 0=regular, 1=symlink, 2=other
@@ -3943,7 +6117,9 @@ int cmd_status(const std::string& projeny_arg)
         // snapshots are stale state from the removed checkout. Disregard
         // them (warn + rename to '<name>.stale', '.stale2', ...), report the
         // recorded state below, and skip the live diff (nothing to diff).
-        // This renames files on purpose — which is exactly why it lives
+        // A Projeny:-based file — the status copy's or the current file's —
+        // adds its frozen base snapshot to the list. This renames files on
+        // purpose — which is exactly why it lives
         // here and not in the shared computation (see RecordedStatus
         // above): erase-setup's check phase reuses the computation without
         // ever staling anything.
@@ -3951,7 +6127,13 @@ int cmd_status(const std::string& projeny_arg)
         archives.push_back(rec.emb.archive);
         if (!rec.cur_archive.empty() && rec.cur_archive != rec.emb.archive)
             archives.push_back(rec.cur_archive);
-        disregard_stale_state(ctx, archives);
+        {
+            std::vector<std::string> extra;
+            if (rec.emb.is_projeny_based() || rec.cur_projeny)
+                extra.push_back(projeny_snapshot_path_for(ctx.projeny_arg));
+            disregard_stale_state(ctx, archives, nullptr,
+                                  extra.empty() ? nullptr : &extra);
+        }
     }
 
     printf("Status: %s\n", rec.st.status.c_str());
@@ -3969,14 +6151,33 @@ int cmd_status(const std::string& projeny_arg)
     // compute_live_diff is the exact section status has always run here
     // (see the comment above it), including its snapshot materialization
     // and its "(continuing ...)" warnings.
-    LiveDiff live = compute_live_diff(ctx.pdir, rec.st, rec.emb, rec.workdir,
-                                      ctx.statusfile, ctx.filebase);
+    //
+    // CONFLICTED-INTERIM TOLERANCE: when the recorded state carries
+    // unresolved conflicts AND the expected-tree build fails with the
+    // chain-moved failure class, the guidance the failure dies with is
+    // circular — it names `rebase` and `commit`, both of which refuse
+    // while conflicts are unresolved. So in that one state status prints
+    // the recorded state (already above, exactly like the classic
+    // conflicted state) plus a note that the live diff is unavailable,
+    // and exits 0: the recorded entries are the truth the user needs to
+    // resolve against. Every other failure class — and the chain-moved
+    // class with no conflicts recorded — keeps the guidance die, as do
+    // `diff` and every other compute_live_diff consumer (the erase-setup
+    // check phase keeps the guidance die too, and fail-closes on the
+    // no-diff classes it tolerates instead of reporting anything).
+    LiveDiff live = compute_live_diff(
+        ctx.pdir, rec.st, rec.emb, rec.workdir, ctx.statusfile, ctx.filebase,
+        "status", /*tolerate_chain_moved=*/!rec.st.conflicts.empty());
     for (auto& m : live.modified)
         printf("Modified: %s\n", m.c_str());
     for (auto& d : live.disappeared)
         printf("Disappeared: %s\n", d.c_str());
     for (auto& u : live.untracked)
         printf("Untracked: %s\n", u.c_str());
+    if (live.chain_moved)
+        printf("projeny: the live diff is unavailable while the recorded "
+               "patch does not apply onto the frozen base chain; resolve "
+               "the conflicts and commit\n");
     return 0;
 }
 
@@ -3993,7 +6194,7 @@ int cmd_diff_projeny(const std::string& projeny_arg)
         // The checkout directory is gone: the status and snapshot files are
         // stale state. Disregard them (warn + rename), then keep the hard
         // error — there is nothing to diff against.
-        disregard_stale_state(ctx, {cur.archive});
+        disregard_stale_state_for(ctx, cur, {cur.archive});
         die("workdir '" + workdir + "' is missing; run setup first");
     }
 
@@ -4017,13 +6218,35 @@ int cmd_diff_projeny(const std::string& projeny_arg)
     // snapshot — the byte-exact copy of what the last setup actually used,
     // which survives git deleting the archive — and fall back to the
     // archive itself, snapshotting it on the way. resolve_status_archive
-    // dies with recovery guidance when neither file exists.
-    std::string archive_path =
-        resolve_status_archive(ctx.pdir, cur, "diff '" + ctx.projeny_arg + "'");
+    // dies with recovery guidance when neither file exists. A
+    // Projeny:-based project has no archive: its baseline is the committed
+    // extraction of the frozen base (its snapshot, else the live base file
+    // frozen into it) plus the patch.
     TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "diff"));
-    std::string Etree = build_tree_from_patch(
-        tmp, archive_path, cur.origname, cur.name, cur.patch,
-        "patch in '" + ctx.projeny_arg + "'");
+    std::string Etree;
+    if (cur.is_projeny_based()) {
+        // Tolerant: the frozen-chain-moved state bricks the diff exactly
+        // like status — die with the recovery guidance instead of the bare
+        // apply report.
+        try {
+            TolerantPatchApply tol;
+            Etree = build_projeny_tree(
+                ctx.projeny_arg, cur,
+                resolve_committed_base_bytes(ctx.projeny_arg, cur,
+                                             "diff '" + ctx.projeny_arg + "'"),
+                cur.patch,
+                "patch in '" + ctx.projeny_arg + "' (base '" + cur.base + "')",
+                tmp.path, "diff '" + ctx.projeny_arg + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("diff", ctx.projeny_arg);
+        }
+    } else {
+        std::string archive_path = resolve_status_archive(
+            ctx.pdir, cur, "diff '" + ctx.projeny_arg + "'");
+        Etree = build_tree_from_patch(
+            tmp, archive_path, cur.origname, cur.name, cur.patch,
+            "patch in '" + ctx.projeny_arg + "'");
+    }
 
     // Pending ops decide which changes count: adds (and move destinations)
     // on the add side, removals (and move sources) on the delete side.
@@ -4280,7 +6503,7 @@ int cmd_apply(const std::string& projeny_arg, const std::string& patch_file)
         // The checkout directory is gone: the status and snapshot files are
         // stale state. Disregard them (warn + rename), then hard-error —
         // there is no workdir to apply anything to.
-        disregard_stale_state(ctx, {cur.archive});
+        disregard_stale_state_for(ctx, cur, {cur.archive});
         die("workdir '" + workdir + "' is missing; run setup first");
     }
     std::string patch = read_file_bytes(patch_file);
@@ -4676,11 +6899,29 @@ int cmd_package(const std::string& projeny_arg, const std::string& output)
     ProjenyFile cur = ProjenyFile::parse(pj);
     std::string workdir = join_path(ctx.pdir, cur.name);
 
-    // Fresh reference tree: what "tracked" means right now.
+    // Fresh reference tree: what "tracked" means right now. For a
+    // Projeny:-based project this is the committed extraction of the frozen
+    // base (the setup that just ran froze/re-asserted it) plus the patch.
     TempDir tref(make_scratch(ctx.pdir, ctx.filebase, "pkg-ref"));
-    std::string ref = build_tree_from_patch(
-        tref, materialize_archive(ctx.pdir, cur, "package '" + pj + "'"),
-        cur.origname, cur.name, cur.patch, "patch in '" + pj + "'");
+    std::string ref;
+    if (cur.is_projeny_based()) {
+        // Tolerant with recovery guidance, like every frozen-chain build.
+        try {
+            TolerantPatchApply tol;
+            ref = build_projeny_tree(
+                ctx.projeny_arg, cur,
+                resolve_committed_base_bytes(ctx.projeny_arg, cur,
+                                             "package '" + pj + "'"),
+                cur.patch, "patch in '" + pj + "' (base '" + cur.base + "')",
+                tref.path, "package '" + pj + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("package", ctx.projeny_arg);
+        }
+    } else {
+        ref = build_tree_from_patch(
+            tref, materialize_archive(ctx.pdir, cur, "package '" + pj + "'"),
+            cur.origname, cur.name, cur.patch, "patch in '" + pj + "'");
+    }
 
     TempDir tstage(make_scratch(ctx.pdir, ctx.filebase, "pkg"));
     std::string payload = join_path(tstage.path, kind.prefix);
@@ -4740,9 +6981,25 @@ int cmd_extract(const std::string& projeny_arg, const std::string& dest_dir)
     }
 
     TempDir tref(make_scratch(ctx.pdir, ctx.filebase, "ext-ref"));
-    std::string ref = build_tree_from_patch(
-        tref, materialize_archive(ctx.pdir, cur, "extract '" + pj + "'"),
-        cur.origname, cur.name, cur.patch, "patch in '" + pj + "'");
+    std::string ref;
+    if (cur.is_projeny_based()) {
+        // Tolerant with recovery guidance, like every frozen-chain build.
+        try {
+            TolerantPatchApply tol;
+            ref = build_projeny_tree(
+                ctx.projeny_arg, cur,
+                resolve_committed_base_bytes(ctx.projeny_arg, cur,
+                                             "extract '" + pj + "'"),
+                cur.patch, "patch in '" + pj + "' (base '" + cur.base + "')",
+                tref.path, "extract '" + pj + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("extract", ctx.projeny_arg);
+        }
+    } else {
+        ref = build_tree_from_patch(
+            tref, materialize_archive(ctx.pdir, cur, "extract '" + pj + "'"),
+            cur.origname, cur.name, cur.patch, "patch in '" + pj + "'");
+    }
 
     size_t count = 0;
     stage_tracked(workdir, ref, st, "", dest, &count);
@@ -4982,7 +7239,11 @@ int run_multi(const char* verb, const char* verb_phrase,
             continue; // the per-project task reproduces this error
         }
         if (!pf.is_url_based() || pf.archive.empty())
-            continue; // classic Archive: project: nothing to download
+            continue; // classic Archive: and Projeny:-based projects have
+                      // nothing to download here: a Projeny:-based file's
+                      // base file is fetched on demand during its OWN setup
+                      // (or is already frozen in its snapshot), never by
+                      // the batch that merely names it
         PkgUrlSource src;
         src.name = r.abs;
         src.urls = pf.urls;
@@ -5318,8 +7579,12 @@ struct ErasePlan {
     std::string status;          // .<f>.projeny.status (the canonical form)
     std::string legacy_status;   // <f>.projeny.status (deleted when present)
     std::string journal;         // <f>.projeny.setup-journal (silent)
-    std::string snapshot;        // .<archive>.snapshot (--erase-snapshots)
-    std::string legacy_snapshot; // <archive>.snapshot (when present)
+    std::string snapshot;        // .<archive>.snapshot, or the frozen
+                                 // .<stem>.snapshot of a Projeny:-based
+                                 // project (--erase-snapshots)
+    std::string legacy_snapshot; // <archive>.snapshot (when present; never
+                                 // for the Projeny: form, which has no
+                                 // legacy undotted snapshot)
     std::string error;           // non-empty: fail the project with this
 };
 
@@ -5468,7 +7733,8 @@ void assess_erase_check(const ErasePlan& p, const std::string& abs,
     // that disagree on the archive's hashes; the worst case is fail-closed
     // (see the comment in compute_live_diff).
     LiveDiff live = compute_live_diff(pdir, rec.st, rec.emb, rec.workdir,
-                                      statusfile, basename_of(abs));
+                                      statusfile, basename_of(abs),
+                                      "erase-setup");
     // The workdir is there, but the expected tree could not be built: the
     // snapshot the status records is missing or unusable (for a classic
     // project the checked-in archive is gone too, so it cannot be copied
@@ -5561,12 +7827,20 @@ ErasePlan make_erase_plan(const std::string& abs_file, bool erase_snapshots,
         // project url_snapshot_path's dotted form, for a classic one
         // snapshot_path_for(pdir/<archive>) — the same formula, since
         // url_snapshot_path is snapshot_path_for(join_path(pdir,
-        // pf.archive)). The checked-in archive tarball itself
+        // pf.archive)) — and for a Projeny:-based project the frozen base
+        // snapshot .<stem>.snapshot next to the .projeny file (the file
+        // resolve_committed_base_bytes reads first), which has no legacy
+        // undotted form. The checked-in archive tarball itself
         // (pdir/<archive>) is never touched, and neither is any
         // similarly named snapshot for a different version.
-        std::string archive = join_path(pdir, pf.archive);
-        p.snapshot = snapshot_path_for(archive);
-        p.legacy_snapshot = legacy_snapshot_path_for(archive);
+        if (pf.is_projeny_based()) {
+            p.snapshot = projeny_snapshot_path_for(abs_file);
+            p.legacy_snapshot = "";
+        } else {
+            std::string archive = join_path(pdir, pf.archive);
+            p.snapshot = snapshot_path_for(archive);
+            p.legacy_snapshot = legacy_snapshot_path_for(archive);
+        }
     }
     return p;
 }
@@ -5894,12 +8168,17 @@ int cmd_create(const std::string& file_arg,
     // die before any erase runs, so an existing project outlives a typo.
     std::vector<ProjenyUrl> urls;
     std::string tarball;
-    parse_archive_args(archive_args, &urls, &tarball, "create");
+    std::string projeny_base; // .projeny form: the RAW base argument
+    parse_archive_args(archive_args, &urls, &tarball, "create", &projeny_base,
+                        /* no zero-arg form */ false);
     bool url_mode = !urls.empty();
+    bool projeny_mode = !projeny_base.empty();
 
     std::string new_base;      // the archive's basename (headers + snapshot)
     std::string verified_data; // URL mode: the verified tarball's bytes
     std::string origname;      // the archive's single top-level directory
+    ProjenyFile base_pf;       // .projeny form: the base file's parse
+    std::string base_path;     // .projeny form: the resolved base file path
 
     // ---- the fallible read-only phase ----
     // Everything from here through the corner guard below can refuse, and
@@ -5914,7 +8193,18 @@ int cmd_create(const std::string& file_arg,
             "erase its setup state; pass --force twice to erase "
             "unconditionally)");
 
-    if (url_mode) {
+    if (projeny_mode) {
+        // The .projeny base form validates against the target file: the
+        // same-directory law, the base's existence and parse, and the
+        // live-chain cycle pre-check — all before any erase, so a refusal
+        // leaves the replaced project's checkout, status file, and .projeny
+        // bytes untouched. The base's own Origname: is the created file's
+        // Origname: (the created file's base is the base file's COMMITTED
+        // EXTRACTION, whose top-level directory the base's header names).
+        base_path = validate_projeny_base_arg(projeny_base, f, "create",
+                                              &base_pf);
+        origname = base_pf.origname;
+    } else if (url_mode) {
         // Download+verify every URL BEFORE any erase: a failed download
         // must leave the replaced project's checkout, status file, and
         // .projeny file untouched.
@@ -5943,9 +8233,14 @@ int cmd_create(const std::string& file_arg,
     }
 
     if (origname_opt && *origname_opt != origname)
-        die("the archive '" + (url_mode ? urls[0].url : tarball) +
-            "' unpacks to '" + origname + "', not '" + *origname_opt +
-            "' (setup requires them to match)");
+        die(projeny_mode
+                ? "the base file '" + base_path + "' extracts to '" +
+                      origname + "', not '" + *origname_opt +
+                      "' (setup requires Origname: to match the base "
+                      "file's extraction)"
+                : "the archive '" + (url_mode ? urls[0].url : tarball) +
+                      "' unpacks to '" + origname + "', not '" +
+                      *origname_opt + "' (setup requires them to match)");
 
     // ---- the --origname corner guard: checked read-only here, fired below ----
     // With --origname, a pre-existing <pdir>/<name> directory would be
@@ -6041,7 +8336,7 @@ int cmd_create(const std::string& file_arg,
     }
 
     // ---- tarball mode: copy the source into the pdir, after the erases ----
-    if (!url_mode) {
+    if (!url_mode && !projeny_mode) {
         std::string dest_archive = join_path(pdir, new_base);
         std::string new_abs = absolutize(tarball);
         std::string dest_abs = absolutize(dest_archive);
@@ -6069,12 +8364,17 @@ int cmd_create(const std::string& file_arg,
     }
 
     // ---- compose the file ----
-    // Header block in the conventional order: the archive-location lines
-    // (URL: per mirror, or Archive:), then Origname:, then Name: — the
-    // shape every tool-written .projeny file uses.
+    // Header block in the conventional order: the base-location line (the
+    // URL: lines per mirror, or Archive:, or Projeny:), then Origname:,
+    // then Name: — the shape every tool-written .projeny file uses.
     ProjenyFile pf;
     std::string head;
-    if (url_mode) {
+    if (projeny_mode) {
+        // The projeny form: the base is another .projeny file's committed
+        // extraction, named as the plain filename the same-directory law
+        // guarantees lives next to the new file.
+        head += "Projeny: " + basename_of(base_path) + "\n";
+    } else if (url_mode) {
         for (const ProjenyUrl& u : urls)
             head += "URL: " + u.url + " " + u.hash + "\n";
     } else {
@@ -6111,7 +8411,8 @@ int cmd_create(const std::string& file_arg,
     {
         ProjenyFile check = ProjenyFile::parse_bytes(pf.raw, "'" + f + "'");
         bool ok = check.name == name && check.origname == origname &&
-                  check.archive == new_base &&
+                  (projeny_mode ? check.base == basename_of(base_path)
+                                : check.archive == new_base) &&
                   check.urls.size() == urls.size();
         for (size_t i = 0; url_mode && ok && i < urls.size(); ++i)
             ok = check.urls[i].url == urls[i].url &&
@@ -6126,7 +8427,9 @@ int cmd_create(const std::string& file_arg,
     // NOW the URL snapshot: the .projeny file is in place, so the snapshot
     // name derived from the first URL's basename is exactly what the
     // file's parse will derive, and setup (called below) finds the archive
-    // already cached — it downloads nothing.
+    // already cached — it downloads nothing. The projeny form needs no
+    // snapshot write here: the setup below freezes the base file's current
+    // bytes as the .<stem>.snapshot (the Phase 2A first-use law).
     if (url_mode)
         write_file_bytes(snapshot_path_for(join_path(pdir, new_base)),
                          verified_data);
@@ -6136,6 +8439,11 @@ int cmd_create(const std::string& file_arg,
                "'%s' from '%s')\n",
                f.c_str(), name.c_str(), origname.c_str(), new_base.c_str(),
                urls[0].url.c_str());
+    else if (projeny_mode)
+        printf("projeny: created '%s' (Name: '%s', Origname: '%s', base "
+               "'%s')\n",
+               f.c_str(), name.c_str(), origname.c_str(),
+               basename_of(base_path).c_str());
     else
         printf("projeny: created '%s' (Name: '%s', Origname: '%s', archive "
                "'%s')\n",
@@ -6344,12 +8652,17 @@ int cmd_freeze_mtime(const std::string& projeny_arg,
     FreezeTarget t = resolve_frozen_target(projeny_arg, "freeze-mtime");
 
     // Every requested path must name a tracked regular file of the workdir.
-    // The frozen value is the mtime the ARCHIVE has for the file
+    // The frozen value is the mtime the BASE has for the file
     // (snapshot-aware unpack, like setup's tree reconstruction): unpack it
-    // once and stat the members. A tracked file the archive does not ship
+    // once and stat the members. A tracked file the base does not ship
     // (a committed patch-add) freezes at its current workdir mtime instead;
     // a pending (uncommitted) add is refused — the attribute needs a block
-    // the committed patch can carry.
+    // the committed patch can carry. For a Projeny:-based project the
+    // member-mtime source is the FROZEN BASE EXTRACTION — the same source
+    // commit's frozen-mtime refresh reads after the Phase 2A commit change
+    // (the status-frozen base's committed content, no patch of this
+    // project's applied; files the BASE's own committed patch rewrote carry
+    // the applier's timestamps, exactly like commit's refresh source).
     std::vector<std::string> del;
     for (const auto& r : t.st.removed)
         del.push_back(r);
@@ -6365,12 +8678,33 @@ int cmd_freeze_mtime(const std::string& projeny_arg,
         pending_adds.push_back(rn.second);
 
     TempDir tmp(make_scratch(t.ctx.pdir, t.ctx.filebase, "freeze"));
-    std::string archive_path =
-        resolve_status_archive(t.ctx.pdir, t.cur,
-                               "freeze mtimes from the archive of '" +
-                                   t.ctx.projeny_arg + "'");
-    unpack_single_top(archive_path, tmp.path, t.cur.origname);
-    std::string rawtree = join_path(tmp.path, t.cur.origname);
+    std::string rawtree;
+    if (t.cur.is_projeny_based()) {
+        // The frozen base extraction (no patch of this project's applied):
+        // the committed content the frozen snapshot records, status-frozen
+        // base — require_status_matches above guarantees the embedded copy
+        // and the live file agree, so the simple snapshot law applies.
+        // Tolerant with recovery guidance, like every frozen-chain build.
+        try {
+            TolerantPatchApply tol;
+            rawtree = build_projeny_tree(
+                t.ctx.projeny_arg, t.cur,
+                resolve_committed_base_bytes(
+                    t.ctx.projeny_arg, t.cur,
+                    "freeze mtimes in '" + t.ctx.projeny_arg + "'"),
+                "", "", tmp.path,
+                "freeze mtimes in '" + t.ctx.projeny_arg + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("freeze mtimes in", t.ctx.projeny_arg);
+        }
+    } else {
+        std::string archive_path =
+            resolve_status_archive(t.ctx.pdir, t.cur,
+                                   "freeze mtimes from the archive of '" +
+                                       t.ctx.projeny_arg + "'");
+        unpack_single_top(archive_path, tmp.path, t.cur.origname);
+        rawtree = join_path(tmp.path, t.cur.origname);
+    }
 
     std::map<std::string, uint64_t> frozen =
         vcs_frozen_mtimes(t.cur.patch, t.cur.name);
@@ -6498,12 +8832,32 @@ int cmd_get_attributes(const std::string& projeny_arg,
     // The tracking rule needs the fresh base+patch tree (one unpack, like
     // status's live diff): a file is tracked when the fresh tree, a pending
     // add, or a rename destination holds it and no removal or rename source
-    // takes it away.
+    // takes it away. For a Projeny:-based project the fresh tree is the
+    // frozen base's committed extraction plus the patch (the same
+    // reconstruction every other read of the project's base uses).
     TempDir tmp(make_scratch(ctx.pdir, ctx.filebase, "attrs"));
-    std::string fresh = build_tree_from_patch(
-        tmp, resolve_status_archive(ctx.pdir, cur,
-                                    "get the attributes of '" + pj + "'"),
-        cur.origname, cur.name, cur.patch, "patch in '" + pj + "'");
+    std::string fresh;
+    if (cur.is_projeny_based()) {
+        // Tolerant: the frozen-chain-moved state bricks the tracking rule
+        // exactly like status — die with the recovery guidance instead of
+        // the bare apply report.
+        try {
+            TolerantPatchApply tol;
+            fresh = build_projeny_tree(
+                ctx.projeny_arg, cur,
+                resolve_committed_base_bytes(
+                    ctx.projeny_arg, cur, "get the attributes of '" + pj + "'"),
+                cur.patch, "patch in '" + pj + "' (base '" + cur.base + "')",
+                tmp.path, "get the attributes of '" + pj + "'");
+        } catch (const PatchApplyError&) {
+            die_projeny_chain_moved("get the attributes of", ctx.projeny_arg);
+        }
+    } else {
+        fresh = build_tree_from_patch(
+            tmp, resolve_status_archive(ctx.pdir, cur,
+                                        "get the attributes of '" + pj + "'"),
+            cur.origname, cur.name, cur.patch, "patch in '" + pj + "'");
+    }
 
     // Scopes: "" for the whole workdir, else workdir-relative file or
     // directory prefixes. No paths means every tracked file of the project.
@@ -6584,9 +8938,14 @@ int cmd_help(const std::string& arg0)
            "  rm <f.projeny|dir> <path>        delete a file, mark as removed\n"
            "  mv <f.projeny|dir> <src> <dst>   rename a file, mark as renamed\n"
            "  resolve <f.projeny|dir> <path>   clear a conflict marker entry\n"
+           "  rebase <f.projeny|dir>           re-extract the committed Projeny: base\n"
+           "  rebase <f.projeny|dir> <base.projeny>\n"
+           "                                   ...or onto another .projeny base\n"
            "  rebase <f.projeny|dir> <tarball> point the project at a new tarball\n"
            "  rebase <f.projeny|dir> <url> [<hash>]...\n"
            "                                   ...or at new URL: header(s)\n"
+           "  create <f.projeny> <base.projeny>\n"
+           "                                   make a new .projeny based on another\n"
            "  create <f.projeny> <tarball>     make a new .projeny file and set it up\n"
            "  create <f.projeny> <url> [<hash>]...\n"
            "                                   ...or from new URL: header(s)\n"
@@ -6712,6 +9071,43 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
                "archive and no network access happens. Only a missing\n"
                "snapshot (or one that no longer matches any hash, e.g. a\n"
                "tampered or truncated file) triggers a re-download.\n"
+               "\n"
+               "Instead of an Archive: or URL: header, a .projeny file may\n"
+               "base itself on another .projeny file with a Projeny:\n"
+               "header:\n"
+               "\n"
+               "  Projeny: <base.projeny>\n"
+               "\n"
+               "The value is a plain filename (no '/'), resolved in the same\n"
+               "directory as the referencing file — the same search law the\n"
+               "Archive: header uses — so a base always lives next to the\n"
+               "file that names it. Exactly one of Archive:, URL:, and\n"
+               "Projeny: may appear. The base is the COMMITTED EXTRACTION of\n"
+               "the named file: its archive (snapshot-preferred) plus its\n"
+               "committed patch — the base file's own workdir (its checkout\n"
+               "with uncommitted changes) is ignored everywhere. Chains\n"
+               "compose: a Projeny:-based base is itself extracted through\n"
+               "its own chain, each link resolving ITS base through its own\n"
+               "frozen snapshot. A chain that closes on itself is a hard\n"
+               "error naming the whole walk; Projeny: chains must not\n"
+               "contain cycles.\n"
+               "\n"
+               "A Projeny:-based project keeps a FROZEN snapshot of its base\n"
+               "file's bytes as .<stem>.snapshot next to the .projeny file\n"
+               "(bar.projeny keeps .bar.snapshot). Every setup, commit,\n"
+               "status, diff, package, and extract of the project\n"
+               "reconstructs exactly the base that snapshot records — so\n"
+               "setup/commit keep using the old base even after the base\n"
+               "file itself gains committed changes, until a `rebase`\n"
+               "re-extracts it. Only a missing snapshot (first use: the\n"
+               "base file's current bytes are frozen into it — not an error\n"
+               "while the base file exists), a setup that adopts a\n"
+               "hand-edited Projeny: header naming a DIFFERENT base file\n"
+               "(the newly named base's current bytes overwrite the\n"
+               "snapshot and become the base), or a `rebase` ever (re)\n"
+               "writes it. `erase-setup --erase-snapshots` deletes exactly\n"
+               "that snapshot file, and a workdir-gone setup stales it like\n"
+               "any other snapshot bookkeeping.\n"
                "\n"
                "Status and snapshot files keep their older undotted names\n"
                "(<f>.projeny.status, <Archive>.snapshot) working too: on\n"
@@ -6887,12 +9283,14 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
         return 0;
     }
     if (topic == "rebase") {
-        printf("%s rebase <f.projeny|dir> <new-tarball>\n"
+        printf("%s rebase <f.projeny|dir>\n"
+               "%s rebase <f.projeny|dir> <base.projeny>\n"
+               "%s rebase <f.projeny|dir> <new-tarball>\n"
                "%s rebase <f.projeny|dir> <url> [<blake3-hash>] "
                "[<url> [<blake3-hash>]...]\n"
                "\n"
                "Point the project at a new base: apply the current patch\n"
-               "onto it, rewrite the archive-location and Origname:\n"
+               "onto it, rewrite the base-location and Origname:\n"
                "headers, regenerate the patch, and move the result into\n"
                "the workdir. The tree must be clean (no uncommitted\n"
                "changes) and have no pending conflicts; when never set\n"
@@ -6903,8 +9301,44 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
                "Which form the new-archive arguments take decides the\n"
                "mode, and the FIRST argument decides that: a string\n"
                "libcurl's URL parser accepts (http://, https://, ftp://,\n"
-               "ftps://, file://) starts URL mode, anything else is a\n"
-               "local tarball path.\n"
+               "ftps://, file://) starts URL mode, a name ending in\n"
+               "'.projeny' starts the projeny-base mode, anything else is\n"
+               "a local tarball path, and NO argument at all is the\n"
+               "zero-arg form (a Projeny:-based project re-extracting its\n"
+               "committed base; any other project refuses).\n"
+               "\n"
+               "With no argument (only a Projeny:-based project may do\n"
+               "this), the project re-extracts its COMMITTED base: what\n"
+               "the base file named by the Projeny: header holds NOW — its\n"
+               "own archive plus its committed patch — not the frozen\n"
+               "snapshot the last setup froze. This is how committed\n"
+               "changes to the base file itself flow into the project: the\n"
+               "patch moves onto the new extraction, Origname: is refreshed\n"
+               "from the base (the header may have been hand-edited), and\n"
+               "the frozen .<stem>.snapshot is overwritten with the base\n"
+               "file's current bytes. The Projeny: header itself is\n"
+               "unchanged, and the base file's own workdir is ignored\n"
+               "(exactly like every other read of a base).\n"
+               "\n"
+               "With one <base.projeny> argument, the project switches to a\n"
+               "different base file: it must live in the same directory as\n"
+               "the project (the header stores a plain filename, so a\n"
+               "cross-directory base cannot be expressed), must parse as a\n"
+               ".projeny file, and must not close a cycle in the Projeny:\n"
+               "chain — basing a file on something that transitively\n"
+               "depends on it is refused before anything is touched. The\n"
+               "Projeny: header is rewritten to the new base, Origname:\n"
+               "comes from the new base's own parse, the patch moves onto\n"
+               "the new base's committed extraction, and the frozen\n"
+               "snapshot is overwritten with the new base's bytes.\n"
+               "\n"
+               "Giving tarball or URL arguments to a Projeny:-based project\n"
+               "converts it away from the Projeny: form: the Projeny:\n"
+               "header is replaced by the new Archive: or URL: header(s),\n"
+               "the old .<stem>.snapshot is left in place (stale snapshots\n"
+               "are never auto-cleaned), and everything else works exactly\n"
+               "as described below. A URL:-based project accepts only URL\n"
+               "arguments, unchanged.\n"
                "\n"
                "With one local tarball path, the project keeps its\n"
                "checked-in Archive: form: the tarball is copied next to\n"
@@ -6941,11 +9375,12 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
                "one .projeny file, or a path whose '<arg>.projeny' sibling\n"
                "exists (typically a missing checkout directory, or a bare\n"
                "name like 'fake' for 'fake.projeny').\n",
-               t, t);
+               t, t, t, t);
         return 0;
     }
     if (topic == "create") {
-        printf("%s create <f.projeny> <new-tarball>\n"
+        printf("%s create <f.projeny> <base.projeny>\n"
+               "%s create <f.projeny> <new-tarball>\n"
                "%s create <f.projeny> <url> [<blake3-hash>] "
                "[<url> [<blake3-hash>]...]\n"
                "       [--comment <text>] [--origname <name>] [--force]\n"
@@ -6967,8 +9402,22 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
                "The rest of the arguments name the archive, with exactly\n"
                "the grammar `rebase` accepts, decided by the FIRST\n"
                "argument: a string libcurl's URL parser accepts (http://,\n"
-               "https://, ftp://, ftps://, file://) starts URL mode,\n"
+               "https://, ftp://, ftps://, file://) starts URL mode, a name\n"
+               "ending in '.projeny' starts the projeny-base mode, and\n"
                "anything else is one local tarball path.\n"
+               "\n"
+               "With one <base.projeny> argument, the new file is based on\n"
+               "another .projeny file's committed extraction: the file gets\n"
+               "a Projeny: header naming the base — a plain filename, so\n"
+               "the base must live in the same directory as the new file —\n"
+               "and the first setup below freezes the base file's current\n"
+               "bytes as the .<stem>.snapshot. Origname: comes from the\n"
+               "base file's own parse, so --origname must match the base\n"
+               "file's extraction (its Origname: — the top-level directory\n"
+               "its own committed content unpacks to), not an archive's.\n"
+               "Basing the new file on a chain that would close on itself\n"
+               "(the base transitively depends on the file being created)\n"
+               "is refused before anything is written.\n"
                "\n"
                "With one local tarball path, the file gets an Archive:\n"
                "header and the tarball is copied next to the new .projeny\n"
@@ -6994,15 +9443,18 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
                "— so the setup below downloads nothing.\n"
                "\n"
                "Headers are composed in the conventional order: the\n"
-               "Archive:/URL: lines, then Origname:, then Name:, followed\n"
+               "base-location line (the URL: lines, or Archive:, or\n"
+               "Projeny:), then Origname:, then Name:, followed\n"
                "by the prose. Origname: is inferred from the archive\n"
                "itself: its single top-level directory (an archive holding\n"
-               "several is a hard error). --origname <name> overrides the\n"
+               "several is a hard error) — or, for the projeny form, taken\n"
+               "from the base file's own Origname:. --origname <name> overrides the\n"
                "checkout name: the created file gets BOTH Name: <name> AND\n"
                "Origname: <name> — the workdir is always named by Name:,\n"
                "so the checkout directory becomes <pdir>/<name> while the\n"
                ".projeny file stays <f.projeny> — and <name> must match\n"
-               "the archive's top directory (otherwise the create refuses\n"
+               "the archive's top directory, or the base file's extraction\n"
+               "for the projeny form (otherwise the create refuses\n"
                "before anything is written).\n"
                "\n"
                "--comment <text> stores <text> as the file's free-text\n"
@@ -7046,10 +9498,11 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
                "adopt-or-refuse rule.\n"
                "\n"
                "The command prints one `created` line naming the file, the\n"
-               "checkout name, the top-level directory, and the archive,\n"
+               "checkout name, the top-level directory, and the archive or\n"
+               "base file,\n"
                "then setup's usual line; the erases print their own\n"
                "erase-setup notes.\n",
-               t, t);
+               t, t, t);
         return 0;
     }
     if (topic == "status") {
@@ -7532,13 +9985,18 @@ int cmd_help_topic(const std::string& arg0, const std::string& topic)
                "project the snapshot named after the first URL's basename,\n"
                "for a classic project the snapshot of the Archive: tarball\n"
                "(the legacy undotted <Archive>.snapshot form goes too, since\n"
-               "setup would migrate it back into use). ONLY that exact\n"
+               "setup would migrate it back into use), and for a\n"
+               "Projeny:-based project the frozen base snapshot\n"
+               ".<stem>.snapshot next to the .projeny file (bar.projeny\n"
+               "keeps .bar.snapshot), which has no legacy undotted form.\n"
+               "ONLY that exact\n"
                "snapshot is deleted: a similarly named snapshot for a\n"
                "different version of the archive (the .<old-archive>.snapshot\n"
                "a rebase left behind, say) survives, and the checked-in\n"
                "tarball itself is never touched. The next setup then\n"
-               "re-downloads (URL: projects) or unpacks from the checked-in\n"
-               "tarball (Archive: projects). --force combines freely with\n"
+               "re-downloads (URL: projects), unpacks from the checked-in\n"
+               "tarball (Archive: projects), or re-freezes from the live\n"
+               "base file (Projeny: projects). --force combines freely with\n"
                "--erase-snapshots.\n"
                "\n"
                "The .projeny file must be readable and parseable — it names\n"

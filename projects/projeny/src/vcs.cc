@@ -4407,6 +4407,50 @@ std::vector<Change> changes_from(const std::vector<std::string>& base,
 
 } // namespace
 
+bool vcs_detect_displaced_regions(
+    const std::string& base_bytes, const std::string& merged_bytes,
+    const std::vector<std::pair<size_t, size_t>>& keep_ranges)
+{
+    FileLines base = split_content(base_bytes);
+    FileLines merged = split_content(merged_bytes);
+    // The same Myers script the three-way merge itself is built from, taken
+    // between the reconstructed old side and the merged result, so the walk
+    // below replays the merge output exactly (each change's fresh lines are
+    // the merged lines for that base range).
+    std::vector<Change> script = changes_from(base.lines, merged.lines);
+    if (script.empty())
+        return false; // line-identical: nothing was displaced anywhere
+    auto kept = [&keep_ranges](size_t s, size_t e) {
+        for (const auto& r : keep_ranges)
+            if (s < r.second && r.first < e)
+                return true;
+        return false;
+    };
+    for (const Change& c : script) {
+        if (kept(c.base_start, c.base_end))
+            continue; // a hunk pre-image the merge decided on: inside there
+                      // the reverse's success is positive evidence that the
+                      // workdir matched base+patch exactly, so the merged
+                      // lines (resolution or markers) are trusted and never
+                      // read as a displacement.
+        // Outside every pre-image the merge's base was the workdir's own
+        // bytes, so this changed range is the workdir's outside-pre-image
+        // content being replaced by the merged (moved-chain) content. Those
+        // bytes are indistinguishable from stale committed content — the
+        // true old base is unreconstructable there — so restoring them would
+        // revert the upstream move as often as it preserves uncommitted
+        // work. Report the displacement and keep the merged lines: the
+        // caller flags the file for the user to inspect.
+        if (c.base_end - c.base_start != c.fresh.size())
+            return true;
+        for (size_t k = 0; k < c.fresh.size(); ++k) {
+            if (c.fresh[k] != base.lines[c.base_start + k])
+                return true;
+        }
+    }
+    return false;
+}
+
 bool vcs_merge_one_file(const std::string& base_file, const std::string& ours_file,
                         const std::string& theirs_file, const std::string& dst_path,
                         const std::string& dst_root)

@@ -109,6 +109,44 @@
 # scratch parent (status as an unprivileged user still exits 0, warning
 # exactly once and leaving no leftovers, and a writable-again pdir needs no
 # warning at all).
+# The Projeny:-base sections cover the third base mode: `create` from
+# another .projeny file (the composed Projeny:/Origname:/Name: headers,
+# --origname match/mismatch, the same-directory law, the arity rule, and
+# the frozen snapshot holding the base file's bytes), a hand-written
+# Projeny:-based file whose setup extracts the base's COMMITTED
+# EXTRACTION, the FROZEN law (setup/commit/status/package/extract keep
+# using the snapshot-recorded base after the base file gains committed
+# changes), the zero-arg rebase (clean + conflicting + the refusals), the
+# base-switch rebase and its refusals, the mode conversions away from the
+# Projeny: form (to a tarball and to a URL: list, the old snapshot
+# lingering), cycles (self/two/three-file loops at setup and the create/
+# rebase cycle pre-checks), a four-link chain with a middle-link rebase,
+# the frozen snapshot surviving a deleted base file (plus the recovery
+# message, erase-setup --erase-snapshots, and the workdir-gone staling),
+# the Projeny:-mode parse errors, setup's adoption of a hand-edited
+# Projeny: header, a URL:-based base, the everyday status/diff/package/
+# extract surface, freeze-mtime against the frozen base extraction, and
+# the parallel runs with a Projeny:-based project in the mix. The
+# frozen-chain-recovery sections cover the brick an upstream Projeny:
+# link's rebase leaves downstream (a patch that no longer applies onto the
+# moved chain): the per-command guidance die (status, diff, the merge path
+# of setup, the erase-setup check), the zero-arg rebase's
+# rebuild-from-the-workdir fallback (the workdir-as-is note with its
+# untouched-files clause, strict reverse-apply of the embedded patch, the
+# three-way merge, inline markers with both sides, the displacement pass
+# that keeps the merged (moved-chain) content everywhere and flags touched
+# files whose outside-pre-image workdir bytes the merge displaced, the
+# conservative keep-workdir-bytes path for files
+# whose reverse fails — an uncommitted edit overlapping the hunk, a
+# committed binary modify — and the untouched-file convergence flagged in
+# Conflict:), the erase-setup --force + setup marker
+# re-apply recovery, the fresh-setup conflict-marker fallback for a
+# Projeny:-based patch that collides with its composed chain (the classic
+# Archive: control keeps the hard die), setup's adoption of a
+# hand-conversion back INTO the Projeny: form (from an Archive:/URL: era,
+# the stale snapshot overwritten), the empty-Projeny: parse error, and
+# the non-conflicting spurious state (state (i)) guard: the spurious
+# Modified:, the dirty refusal, and the erase+setup convergence.
 #
 # Bash is required (process substitution in the status-copy comparisons
 # below); /bin/sh (dash) cannot run this suite.
@@ -19945,6 +19983,3821 @@ if run_as_nobody "$ROOT" true 2>/dev/null; then
 else
     echo "note: cannot run commands as an unprivileged user here (no setpriv/su, or not root); skipping the read-only-pdir section"
 fi
+
+# --------------- 335. create from another .projeny file (Projeny: base)
+# The .projeny-base form of create: the headers are composed as Projeny:/
+# Origname:/Name: (Origname: inherited from the base file's header, Name:
+# from the stem unless --origname names the checkout), setup runs right
+# away (freezing the base file's current bytes as .<stem>.snapshot), and
+# every refusal fires before anything is written: an --origname mismatch,
+# the same-directory law, and the one-.projeny-argument arity rule.
+T335="$ROOT/t335"
+mkdir -p "$T335/sub"
+make_tarballs "$T335" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foobase\n\n    The base project.\n\n' \
+    > "$T335/foobase.projeny"
+run_in "$T335" expect_ok "the create-base fixture sets up" "$PROJENY" \
+    setup foobase.projeny
+out="$(cd "$T335" && "$PROJENY" create bar.projeny foobase.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "create from a .projeny base exits 0"
+else
+    fail "create from a .projeny base exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"base 'foobase.projeny'"*)
+    ok "the created line mentions the base file"
+    ;;
+*)
+    fail "the created line mentions the base file" "out: $out"
+    ;;
+esac
+printf 'Projeny: foobase.projeny\nOrigname: fake-1.0\nName: bar\n\n' \
+    > "$ROOT/t335-expected.projeny"
+expect_file_eq "the created file is byte-exact" \
+    "$T335/bar.projeny" "$ROOT/t335-expected.projeny"
+if [ -d "$T335/bar/src" ] && [ "$(cat "$T335/bar/README" 2>/dev/null)" = "hello v1" ]; then
+    ok "create set up the checkout from the base extraction"
+else
+    fail "create set up the checkout from the base extraction" \
+         "ls: $(ls -A "$T335" 2>&1)"
+fi
+if [ -f "$T335/.bar.projeny.status" ]; then
+    ok "create wrote the status file"
+else
+    fail "create wrote the status file" "ls: $(ls -A "$T335" 2>&1)"
+fi
+if cmp -s "$T335/.bar.snapshot" "$T335/foobase.projeny"; then
+    ok "the frozen snapshot holds the base file's bytes byte-exact"
+else
+    fail "the frozen snapshot holds the base file's bytes byte-exact" \
+         "cmp: $T335/.bar.snapshot vs $T335/foobase.projeny"
+fi
+run_in "$T335" expect_ok "create with --comment exits 0" "$PROJENY" \
+    create baz.projeny --comment "Blah blah" foobase.projeny
+printf 'Projeny: foobase.projeny\nOrigname: fake-1.0\nName: baz\n\n    Blah blah\n' \
+    > "$ROOT/t335-expected-comment.projeny"
+expect_file_eq "the commented created file is byte-exact" \
+    "$T335/baz.projeny" "$ROOT/t335-expected-comment.projeny"
+run_in "$T335" expect_ok "create --origname matching the base exits 0" "$PROJENY" \
+    create qux.projeny --origname fake-1.0 foobase.projeny
+expect_file_contains "the --origname create names the checkout" \
+    "$T335/qux.projeny" "Name: fake-1.0"
+expect_file_contains "the --origname create inherits the base Origname" \
+    "$T335/qux.projeny" "Origname: fake-1.0"
+if [ -f "$T335/fake-1.0/README" ]; then
+    ok "the --origname checkout directory is the checkout name"
+else
+    fail "the --origname checkout directory is the checkout name" \
+         "ls: $(ls -A "$T335" 2>&1)"
+fi
+out="$(cd "$T335" && "$PROJENY" create nope.projeny --origname other \
+    foobase.projeny 2>&1 || true)"
+case "$out" in
+*"the base file '$T335/foobase.projeny' extracts to 'fake-1.0', not 'other' (setup requires Origname: to match the base file's extraction)"*)
+    ok "an --origname mismatch with the base's Origname refuses"
+    ;;
+*)
+    fail "an --origname mismatch with the base's Origname refuses" "out: $out"
+    ;;
+esac
+if [ -e "$T335/nope.projeny" ]; then
+    fail "the refused --origname create wrote nothing" \
+         "ls: $(ls -A "$T335" 2>&1)"
+else
+    ok "the refused --origname create wrote nothing"
+fi
+printf 'Projeny: filler.projeny\nOrigname: fake-1.0\nName: filler\n\n    Elsewhere.\n\n' \
+    > "$T335/sub/base.projeny"
+out="$(cd "$T335" && "$PROJENY" create bar2.projeny sub/base.projeny 2>&1 || true)"
+case "$out" in
+*"cannot create '$T335/bar2.projeny' with base 'sub/base.projeny': the Projeny: base file must live in the same directory as '$T335/bar2.projeny'"*)
+    ok "a base file outside the directory refuses"
+    ;;
+*)
+    fail "a base file outside the directory refuses" "out: $out"
+    ;;
+esac
+if [ -e "$T335/bar2.projeny" ]; then
+    fail "the refused same-dir create wrote nothing" "ls: $(ls -A "$T335" 2>&1)"
+else
+    ok "the refused same-dir create wrote nothing"
+fi
+out="$(cd "$T335" && "$PROJENY" create bar3.projeny foobase.projeny \
+    extra.tar.gz 2>&1 || true)"
+case "$out" in
+*"create takes exactly one .projeny base file (no hash pairs); 'extra.tar.gz' is extra"*)
+    ok "extra arguments after the .projeny base refuse"
+    ;;
+*)
+    fail "extra arguments after the .projeny base refuse" "out: $out"
+    ;;
+esac
+if [ -e "$T335/bar3.projeny" ]; then
+    fail "the refused arity create wrote nothing" "ls: $(ls -A "$T335" 2>&1)"
+else
+    ok "the refused arity create wrote nothing"
+fi
+
+# ------------------- 336. a hand-written Projeny:-based file
+# A Projeny:-based .projeny file written by hand: setup extracts the base
+# file's COMMITTED EXTRACTION (its archive plus its committed patch — the
+# base file's workdir is ignored), freezes the base file's bytes into
+# .<stem>.snapshot on first use, and reports the base file as the source.
+T336="$ROOT/t336"
+make_tarballs "$T336" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T336/foo.projeny"
+run_in "$T336" expect_ok "the hand-written fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T336/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T336" expect_ok "the base commits an edit" "$PROJENY" commit foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T336/bar.projeny"
+out="$(cd "$T336" && "$PROJENY" setup bar.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the hand-written Projeny-based setup exits 0"
+else
+    fail "the hand-written Projeny-based setup exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: set up 'bar' from 'foo.projeny'"*)
+    ok "the first setup names the base file"
+    ;;
+*)
+    fail "the first setup names the base file" "out: $out"
+    ;;
+esac
+expect_file_contains "the checkout holds the base's archive content" \
+    "$T336/bar/README" "hello v1"
+expect_file_contains "the checkout holds the base's committed patch" \
+    "$T336/bar/src/a.c" "gamma = 200"
+if cmp -s "$T336/.bar.snapshot" "$T336/foo.projeny"; then
+    ok "the first setup froze the base file's bytes"
+else
+    fail "the first setup froze the base file's bytes" \
+         "cmp: $T336/.bar.snapshot vs $T336/foo.projeny"
+fi
+expect_file_contains "the status file embeds the Projeny: header" \
+    "$T336/.bar.projeny.status" "Projeny: foo.projeny"
+out="$(cd "$T336" && "$PROJENY" setup bar.projeny 2>&1)"
+case "$out" in
+*"projeny: re-set up 'bar' from 'foo.projeny' (no local changes)"*)
+    ok "the re-setup is a noop naming the base file"
+    ;;
+*)
+    fail "the re-setup is a noop naming the base file" "out: $out"
+    ;;
+esac
+
+# ------------------- 337. the frozen base law
+# Once .bar.snapshot exists, bar's setup/commit/status/package/extract all
+# reconstruct the base the snapshot records: the base file may gain
+# committed changes, and bar keeps using the old base until a rebase. The
+# snapshot bytes never move.
+T337="$ROOT/t337"
+make_tarballs "$T337" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T337/foo.projeny"
+run_in "$T337" expect_ok "the frozen-law fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T337/bar.projeny"
+run_in "$T337" expect_ok "the frozen-law fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+cp "$T337/foo.projeny" "$ROOT/t337-foo-old.projeny"
+cp "$T337/.bar.snapshot" "$ROOT/t337-snap-old"
+python3 - "$T337/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T337" expect_ok "the base commits a change" "$PROJENY" commit foo.projeny
+out="$(cd "$T337" && "$PROJENY" setup bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"no local changes"*)
+    if [ $rc -eq 0 ]; then
+        ok "bar's re-setup after the base's commit is a noop"
+    else
+        fail "bar's re-setup after the base's commit is a noop" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+*)
+    fail "bar's re-setup after the base's commit is a noop" "out: $out"
+    ;;
+esac
+expect_file_contains "bar's checkout still holds the old base" \
+    "$T337/bar/src/a.c" "int alpha = 1;"
+expect_file_not_contains "bar's checkout lacks the base's new commit" \
+    "$T337/bar/src/a.c" "alpha = 555"
+out="$(cd "$T337" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status against the frozen base is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status against the frozen base is clean"
+    else
+        fail "the status against the frozen base is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+python3 - "$T337/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 77;")
+open(p, "w").write(s)
+EOF
+run_in "$T337" expect_ok "bar commits its own edit" "$PROJENY" commit bar.projeny
+expect_file_contains "bar's commit was stored" "$T337/bar.projeny" "delta = 77"
+run_in "$T337" expect_ok "bar's re-setup keeps the committed edit" "$PROJENY" \
+    setup bar.projeny
+expect_file_contains "the re-setup keeps bar's edit" \
+    "$T337/bar/src/a.c" "delta = 77"
+expect_file_contains "the re-setup keeps the old base" \
+    "$T337/bar/src/a.c" "int alpha = 1;"
+run_in "$T337" expect_ok "package of the frozen-base project exits 0" "$PROJENY" \
+    package bar.projeny bar-out.tar.gz
+(cd "$T337" && tar -xzf bar-out.tar.gz)
+expect_file_contains "the package payload holds the old base" \
+    "$T337/bar-out/README" "hello v1"
+expect_file_contains "the package payload holds bar's patch" \
+    "$T337/bar-out/src/a.c" "delta = 77"
+expect_file_not_contains "the package payload lacks the base's new commit" \
+    "$T337/bar-out/src/a.c" "alpha = 555"
+run_in "$T337" expect_ok "extract of the frozen-base project exits 0" "$PROJENY" \
+    extract bar.projeny bar-extracted
+expect_file_contains "the extract payload holds the old base" \
+    "$T337/bar-extracted/README" "hello v1"
+expect_file_contains "the extract payload holds bar's patch" \
+    "$T337/bar-extracted/src/a.c" "delta = 77"
+if cmp -s "$T337/.bar.snapshot" "$ROOT/t337-snap-old"; then
+    ok "the frozen snapshot survived everything byte-exact"
+else
+    fail "the frozen snapshot survived everything byte-exact" \
+         "cmp: $T337/.bar.snapshot vs the saved copy"
+fi
+
+# ------------------- 338. zero-arg rebase: re-extract the committed base
+# `projeny rebase bar.projeny` with no base argument re-extracts the base
+# file's LIVE committed extraction (what foo.projeny holds NOW — not the
+# frozen snapshot, not foo's workdir), moves bar's patch onto it, and
+# overwrites .bar.snapshot with the new base bytes. A base whose origname
+# changed refreshes bar's Origname: header too.
+T338="$ROOT/t338"
+make_tarballs "$T338" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T338/foo.projeny"
+run_in "$T338" expect_ok "the rebase fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T338/bar.projeny"
+run_in "$T338" expect_ok "the rebase fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T338/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 42;")
+open(p, "w").write(s)
+EOF
+run_in "$T338" expect_ok "bar commits its delta" "$PROJENY" commit bar.projeny
+python3 - "$T338/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T338" expect_ok "the base commits a change" "$PROJENY" commit foo.projeny
+cp "$T338/foo.projeny" "$ROOT/t338-foo-new.projeny"
+out="$(cd "$T338" && "$PROJENY" rebase bar.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the zero-arg rebase exits 0"
+else
+    fail "the zero-arg rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: rebased onto 'foo.projeny'"*)
+    ok "the zero-arg rebase names the base file"
+    ;;
+*)
+    fail "the zero-arg rebase names the base file" "out: $out"
+    ;;
+esac
+expect_file_contains "the rebase took the base's new commit" \
+    "$T338/bar/src/a.c" "gamma = 200"
+expect_file_contains "the rebase kept bar's delta" \
+    "$T338/bar/src/a.c" "delta = 42"
+if cmp -s "$T338/.bar.snapshot" "$ROOT/t338-foo-new.projeny"; then
+    ok "the rebase re-froze the snapshot with the new base bytes"
+else
+    fail "the rebase re-froze the snapshot with the new base bytes" \
+         "cmp: $T338/.bar.snapshot vs the new base file"
+fi
+expect_file_contains "the Projeny: header is unchanged" \
+    "$T338/bar.projeny" "Projeny: foo.projeny"
+out="$(cd "$T338" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the zero-arg rebase is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the zero-arg rebase is clean"
+    else
+        fail "the status after the zero-arg rebase is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+# The Origname: refresh: the base itself rebases onto a new tarball (its
+# top-level directory becomes fake-2.0), and bar's zero-arg rebase picks up
+# both the new content and the new origname.
+T338B="$ROOT/t338b"
+make_tarballs "$T338B" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo2\n\n    The base project.\n\n' \
+    > "$T338B/foo2.projeny"
+run_in "$T338B" expect_ok "the origname fixture sets up the base" "$PROJENY" \
+    setup foo2.projeny
+printf 'Projeny: foo2.projeny\nOrigname: fake-1.0\nName: bar2\n\n    Based on foo2.\n\n' \
+    > "$T338B/bar2.projeny"
+run_in "$T338B" expect_ok "the origname fixture sets up bar2" "$PROJENY" \
+    setup bar2.projeny
+python3 - "$T338B/bar2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 42;")
+open(p, "w").write(s)
+EOF
+run_in "$T338B" expect_ok "bar2 commits its delta" "$PROJENY" commit bar2.projeny
+run_in "$T338B" expect_ok "the base rebases onto the new tarball" "$PROJENY" \
+    rebase foo2.projeny fake-2.0.tar.gz
+cp "$T338B/foo2.projeny" "$ROOT/t338b-foo2-new.projeny"
+out="$(cd "$T338B" && "$PROJENY" rebase bar2.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the zero-arg rebase onto the renamed base exits 0"
+else
+    fail "the zero-arg rebase onto the renamed base exits 0" \
+         "exit=$rc out: $out"
+fi
+expect_file_contains "the rebase refreshed Origname" \
+    "$T338B/bar2.projeny" "Origname: fake-2.0"
+expect_file_contains "the workdir has the new base's content" \
+    "$T338B/bar2/README" "hello v2"
+expect_file_contains "the workdir keeps bar2's edit" \
+    "$T338B/bar2/src/a.c" "delta = 42"
+if cmp -s "$T338B/.bar2.snapshot" "$ROOT/t338b-foo2-new.projeny"; then
+    ok "the snapshot holds the renamed base's bytes"
+else
+    fail "the snapshot holds the renamed base's bytes" \
+         "cmp: $T338B/.bar2.snapshot vs the new base file"
+fi
+expect_file_contains "the status embeds the refreshed Origname" \
+    "$T338B/.bar2.projeny.status" "Origname: fake-2.0"
+out="$(cd "$T338B" && "$PROJENY" status bar2.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the origname-refresh status is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the origname-refresh status is clean"
+    else
+        fail "the origname-refresh status is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 339. zero-arg rebase conflict + resolve + commit
+# The base and the project change the same region: the zero-arg rebase
+# exits 0, leaves markers, reports the conflict, and the usual resolve +
+# commit round-trip lands the resolution (the re-frozen snapshot is the
+# commit's new diff base).
+T339="$ROOT/t339"
+make_tarballs "$T339" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T339/foo.projeny"
+run_in "$T339" expect_ok "the conflict fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T339/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T339" expect_ok "the base commits gamma" "$PROJENY" commit foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T339/bar.projeny"
+run_in "$T339" expect_ok "the conflict fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T339/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 200;", "int gamma = 999;")
+open(p, "w").write(s)
+EOF
+run_in "$T339" expect_ok "bar commits its gamma" "$PROJENY" commit bar.projeny
+python3 - "$T339/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 200;", "int gamma = 777;")
+open(p, "w").write(s)
+EOF
+run_in "$T339" expect_ok "the base commits the same region" "$PROJENY" \
+    commit foo.projeny
+out="$(cd "$T339" && "$PROJENY" rebase bar.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the conflicting zero-arg rebase exits 0"
+else
+    fail "the conflicting zero-arg rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: rebased onto 'foo.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the conflict report names the base and the file"
+    ;;
+*)
+    fail "the conflict report names the base and the file" "out: $out"
+    ;;
+esac
+expect_file_contains "the conflicting rebase leaves markers" \
+    "$T339/bar/src/a.c" "<<<<<<<"
+expect_file_contains "the conflicting rebase records the conflict" \
+    "$T339/.bar.projeny.status" "Conflict: src/a.c"
+printf 'int alpha = 1;\n\nint beta = 1;\n\nint gamma = 888;\n\nint delta = 1;\n' \
+    > "$T339/bar/src/a.c"
+run_in "$T339" expect_ok "resolve clears the conflict" "$PROJENY" \
+    resolve bar.projeny src/a.c
+if grep -q "^Conflict:" "$T339/.bar.projeny.status"; then
+    fail "the conflict entry is gone" "$(cat "$T339/.bar.projeny.status")"
+else
+    ok "the conflict entry is gone"
+fi
+run_in "$T339" expect_ok "commit lands the resolution" "$PROJENY" \
+    commit bar.projeny
+expect_file_contains "the resolution was stored" \
+    "$T339/bar.projeny" "gamma = 888"
+run_in "$T339" expect_ok "the re-setup keeps the resolution" "$PROJENY" \
+    setup bar.projeny
+expect_file_contains "the resolution survives the re-setup" \
+    "$T339/bar/src/a.c" "gamma = 888"
+out="$(cd "$T339" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the resolve+commit round-trip is clean" \
+         "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the resolve+commit round-trip is clean"
+    else
+        fail "the status after the resolve+commit round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 340. zero-arg rebase refusals
+# The zero-arg form is Projeny:-based-only, and it needs the base file to
+# exist: the frozen snapshot cannot serve, because the form exists to pick
+# up what the base file holds NOW. Both refusals touch nothing.
+T340="$ROOT/t340"
+make_tarballs "$T340" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: classic\n\n    A classic project.\n\n' \
+    > "$T340/classic.projeny"
+run_in "$T340" expect_ok "the refusal fixture sets up" "$PROJENY" \
+    setup classic.projeny
+out="$(cd "$T340" && "$PROJENY" rebase classic.projeny 2>&1 || true)"
+case "$out" in
+*"cannot rebase '$T340/classic.projeny' without a new base argument: it is not a Projeny-based project (pass a tarball path or URL(s), or, for a Projeny-based project, no argument at all to re-extract its committed base)"*)
+    ok "the zero-arg rebase refuses a classic project"
+    ;;
+*)
+    fail "the zero-arg rebase refuses a classic project" "out: $out"
+    ;;
+esac
+T340B="$ROOT/t340b"
+make_tarballs "$T340B" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T340B/foo.projeny"
+run_in "$T340B" expect_ok "the missing-base fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T340B/bar.projeny"
+run_in "$T340B" expect_ok "the missing-base fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+cp "$T340B/bar.projeny" "$ROOT/t340b-bar.projeny"
+cp "$T340B/.bar.snapshot" "$ROOT/t340b-snap"
+mv "$T340B/foo.projeny" "$ROOT/t340b-foo-away.projeny"
+out="$(cd "$T340B" && "$PROJENY" rebase bar.projeny 2>&1 || true)"
+case "$out" in
+*"base file '$T340B/foo.projeny' does not exist; it is needed to rebase '$T340B/bar.projeny'"*)
+    ok "the zero-arg rebase refuses a missing live base"
+    ;;
+*)
+    fail "the zero-arg rebase refuses a missing live base" "out: $out"
+    ;;
+esac
+if cmp -s "$T340B/bar.projeny" "$ROOT/t340b-bar.projeny" && \
+   cmp -s "$T340B/.bar.snapshot" "$ROOT/t340b-snap"; then
+    ok "the refused rebase touched nothing"
+else
+    fail "the refused rebase touched nothing" \
+         "bar.projeny or .bar.snapshot changed"
+fi
+mv "$ROOT/t340b-foo-away.projeny" "$T340B/foo.projeny"
+
+# ------------------- 341. rebase onto another .projeny file (base switch)
+# `projeny rebase bar.projeny foo2.projeny` switches the base: the Projeny:
+# header and Origname: are rewritten, .bar.snapshot is overwritten with the
+# new base's live bytes, and bar's patch moves onto the new extraction.
+# The refusals (same-directory, missing, unparseable) touch nothing.
+T341="$ROOT/t341"
+mkdir -p "$T341/sub"
+make_tarballs "$T341" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo1\n\n    First base.\n\n' \
+    > "$T341/foo1.projeny"
+printf 'Archive: fake-2.0.tar.gz\nOrigname: fake-2.0\nName: foo2\n\n    Second base.\n\n' \
+    > "$T341/foo2.projeny"
+run_in "$T341" expect_ok "the switch fixture sets up foo1" "$PROJENY" \
+    setup foo1.projeny
+printf 'Projeny: foo1.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo1.\n\n' \
+    > "$T341/bar.projeny"
+run_in "$T341" expect_ok "the switch fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T341/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 42;")
+open(p, "w").write(s)
+EOF
+run_in "$T341" expect_ok "bar commits its delta" "$PROJENY" commit bar.projeny
+cp "$T341/foo2.projeny" "$ROOT/t341-foo2.projeny"
+out="$(cd "$T341" && "$PROJENY" rebase bar.projeny foo2.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the base switch exits 0"
+else
+    fail "the base switch exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: rebased onto 'foo2.projeny'"*)
+    ok "the base switch names the new base file"
+    ;;
+*)
+    fail "the base switch names the new base file" "out: $out"
+    ;;
+esac
+expect_file_contains "the switch rewrote the Projeny: header" \
+    "$T341/bar.projeny" "Projeny: foo2.projeny"
+expect_file_not_contains "the old base file is gone from the header" \
+    "$T341/bar.projeny" "foo1.projeny"
+expect_file_contains "the switch refreshed Origname" \
+    "$T341/bar.projeny" "Origname: fake-2.0"
+if cmp -s "$T341/.bar.snapshot" "$ROOT/t341-foo2.projeny"; then
+    ok "the switch re-froze the snapshot with the new base's bytes"
+else
+    fail "the switch re-froze the snapshot with the new base's bytes" \
+         "cmp: $T341/.bar.snapshot vs foo2.projeny"
+fi
+expect_file_contains "the workdir has the new base's content" \
+    "$T341/bar/README" "hello v2"
+expect_file_contains "the workdir keeps bar's delta" \
+    "$T341/bar/src/a.c" "delta = 42"
+expect_file_contains "the status embeds the new Projeny: header" \
+    "$T341/.bar.projeny.status" "Projeny: foo2.projeny"
+out="$(cd "$T341" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the switch is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the switch is clean"
+    else
+        fail "the status after the switch is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+run_in "$T341" expect_ok "the re-setup after the switch is a noop" "$PROJENY" \
+    setup bar.projeny
+cp "$T341/bar.projeny" "$ROOT/t341-bar.projeny"
+printf 'Projeny: filler\nOrigname: fake-1.0\nName: away\n\n    Elsewhere.\n\n' \
+    > "$T341/sub/away.projeny"
+out="$(cd "$T341" && "$PROJENY" rebase bar.projeny sub/away.projeny 2>&1 || true)"
+case "$out" in
+*"cannot rebase '$T341/bar.projeny' with base 'sub/away.projeny': the Projeny: base file must live in the same directory as '$T341/bar.projeny'"*)
+    ok "the switch refuses a base outside the directory"
+    ;;
+*)
+    fail "the switch refuses a base outside the directory" "out: $out"
+    ;;
+esac
+out="$(cd "$T341" && "$PROJENY" rebase bar.projeny ghost.projeny 2>&1 || true)"
+case "$out" in
+*"base file '$T341/ghost.projeny' does not exist; it is needed to rebase '$T341/bar.projeny'"*)
+    ok "the switch refuses a missing base file"
+    ;;
+*)
+    fail "the switch refuses a missing base file" "out: $out"
+    ;;
+esac
+printf 'this is not a projeny file\n' > "$T341/bad.projeny"
+out="$(cd "$T341" && "$PROJENY" rebase bar.projeny bad.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T341/bad.projeny' is missing a required header"*)
+    ok "the switch refuses an unparseable base file"
+    ;;
+*)
+    fail "the switch refuses an unparseable base file" "out: $out"
+    ;;
+esac
+if cmp -s "$T341/bar.projeny" "$ROOT/t341-bar.projeny"; then
+    ok "the refused switches left bar.projeny untouched"
+else
+    fail "the refused switches left bar.projeny untouched" \
+         "bar.projeny changed"
+fi
+
+# ------------------- 342. rebase converts away from the Projeny: form
+# A tarball or URL base argument on a Projeny:-based project is a MODE
+# CONVERSION: the Projeny: header is replaced by the new form, the new
+# form's snapshot is managed by the existing flows, and the old
+# .<stem>.snapshot LINGERS as a stale file (stale snapshots are never
+# auto-cleaned). Setup/status work afterwards.
+T342="$ROOT/t342"
+make_tarballs "$T342" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T342/foo.projeny"
+run_in "$T342" expect_ok "the conversion fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T342/bar.projeny"
+run_in "$T342" expect_ok "the conversion fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T342/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 42;")
+open(p, "w").write(s)
+EOF
+run_in "$T342" expect_ok "bar commits its delta" "$PROJENY" commit bar.projeny
+cp "$T342/foo.projeny" "$ROOT/t342-foo-old.projeny"
+run_in "$T342" expect_ok "the tarball rebase of a Projeny project exits 0" \
+    "$PROJENY" rebase bar.projeny fake-2.0.tar.gz
+expect_file_contains "the conversion wrote the Archive: header" \
+    "$T342/bar.projeny" "Archive: fake-2.0.tar.gz"
+expect_file_not_contains "the Projeny: header is gone" \
+    "$T342/bar.projeny" "Projeny:"
+expect_file_contains "the conversion refreshed Origname" \
+    "$T342/bar.projeny" "Origname: fake-2.0"
+if cmp -s "$T342/.bar.snapshot" "$ROOT/t342-foo-old.projeny"; then
+    ok "the old frozen snapshot lingers with its old bytes"
+else
+    fail "the old frozen snapshot lingers with its old bytes" \
+         "cmp: $T342/.bar.snapshot vs the old base file"
+fi
+if cmp -s "$T342/.fake-2.0.tar.gz.snapshot" "$T342/fake-2.0.tar.gz"; then
+    ok "the new form's snapshot holds the new tarball"
+else
+    fail "the new form's snapshot holds the new tarball" \
+         "cmp: $T342/.fake-2.0.tar.gz.snapshot vs the tarball"
+fi
+expect_file_contains "the workdir has the new archive's content" \
+    "$T342/bar/README" "hello v2"
+expect_file_contains "the workdir keeps the committed edit" \
+    "$T342/bar/src/a.c" "delta = 42"
+out="$(cd "$T342" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the conversion is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the conversion is clean"
+    else
+        fail "the status after the conversion is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+mv "$T342/fake-2.0.tar.gz" "$ROOT/t342-kept-fake-2.0.tar.gz"
+out="$(cd "$T342" && "$PROJENY" setup bar.projeny 2>&1)"
+case "$out" in
+*"does not exist"*)
+    ok "the converted project still needs its checked-in tarball"
+    ;;
+*)
+    fail "the converted project still needs its checked-in tarball" \
+         "out: $out"
+    ;;
+esac
+mv "$ROOT/t342-kept-fake-2.0.tar.gz" "$T342/fake-2.0.tar.gz"
+out="$(cd "$T342" && "$PROJENY" setup bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"no local changes"*)
+    if [ $rc -eq 0 ]; then
+        ok "the converted project re-sets up from the tarball"
+    else
+        fail "the converted project re-sets up from the tarball" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+*)
+    fail "the converted project re-sets up from the tarball" "out: $out"
+    ;;
+esac
+expect_file_contains "that setup keeps the committed edit" \
+    "$T342/bar/src/a.c" "delta = 42"
+# The URL form: the conversion writes the URL: header, manages the URL
+# snapshot, and leaves the stale .<stem>.snapshot alone.
+T342B="$ROOT/t342b"
+make_tarballs "$T342B" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T342B/foo.projeny"
+run_in "$T342B" expect_ok "the URL conversion fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T342B/bar.projeny"
+run_in "$T342B" expect_ok "the URL conversion fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+cp "$T342B/foo.projeny" "$ROOT/t342b-foo-old.projeny"
+h342b="$("$PROJENY" hash "$T342B/fake-1.0.tar.gz")"
+run_in "$T342B" expect_ok "the URL rebase of a Projeny project exits 0" \
+    "$PROJENY" rebase bar.projeny "file://$T342B/fake-1.0.tar.gz" "$h342b"
+expect_file_contains "the conversion wrote the URL: header" \
+    "$T342B/bar.projeny" "URL: file://$T342B/fake-1.0.tar.gz $h342b"
+expect_file_not_contains "the Projeny: header is gone" \
+    "$T342B/bar.projeny" "Projeny:"
+expect_file_not_contains "no Archive: header either" \
+    "$T342B/bar.projeny" "Archive:"
+if cmp -s "$T342B/.fake-1.0.tar.gz.snapshot" "$T342B/fake-1.0.tar.gz"; then
+    ok "the URL snapshot holds the verified tarball"
+else
+    fail "the URL snapshot holds the verified tarball" \
+         "cmp: $T342B/.fake-1.0.tar.gz.snapshot vs the tarball"
+fi
+if cmp -s "$T342B/.bar.snapshot" "$ROOT/t342b-foo-old.projeny"; then
+    ok "the stale frozen snapshot lingers here too"
+else
+    fail "the stale frozen snapshot lingers here too" \
+         "cmp: $T342B/.bar.snapshot vs the old base file"
+fi
+out="$(cd "$T342B" && "$PROJENY" setup bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"downloading"*)
+    fail "the converted URL setup downloads nothing" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the converted URL setup downloads nothing"
+    else
+        fail "the converted URL setup downloads nothing" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 343. Projeny: cycles are refused everywhere
+# A chain that closes on itself — a self-loop, a two-file loop, a three-file
+# loop — dies at setup with the circular-chain message naming the whole
+# walk; create and rebase refuse a base whose LIVE chain would reach the
+# target (the transitive variant) or repeat a file (the repeated variant).
+T343="$ROOT/t343"
+mkdir -p "$T343"
+printf 'Projeny: a.projeny\nOrigname: fake-1.0\nName: a\n\n    Self loop.\n\n' \
+    > "$T343/a.projeny"
+out="$(cd "$T343" && "$PROJENY" setup a.projeny 2>&1 || true)"
+case "$out" in
+*"the Projeny: base chain is circular: '$T343/a.projeny' -> '$T343/a.projeny'; Projeny: chains must not contain cycles"*)
+    ok "a self-referencing file dies with the circular-chain error"
+    ;;
+*)
+    fail "a self-referencing file dies with the circular-chain error" \
+         "out: $out"
+    ;;
+esac
+printf 'Projeny: c.projeny\nOrigname: fake-1.0\nName: b\n\n    Two loop.\n\n' \
+    > "$T343/b.projeny"
+printf 'Projeny: b.projeny\nOrigname: fake-1.0\nName: c\n\n    Two loop.\n\n' \
+    > "$T343/c.projeny"
+out="$(cd "$T343" && "$PROJENY" setup b.projeny 2>&1 || true)"
+case "$out" in
+*"the Projeny: base chain is circular: '$T343/b.projeny' -> '$T343/c.projeny' -> '$T343/b.projeny'; Projeny: chains must not contain cycles"*)
+    ok "a two-file loop dies with the whole walk shown"
+    ;;
+*)
+    fail "a two-file loop dies with the whole walk shown" "out: $out"
+    ;;
+esac
+printf 'Projeny: e.projeny\nOrigname: fake-1.0\nName: d\n\n    Three loop.\n\n' \
+    > "$T343/d.projeny"
+printf 'Projeny: f.projeny\nOrigname: fake-1.0\nName: e\n\n    Three loop.\n\n' \
+    > "$T343/e.projeny"
+printf 'Projeny: d.projeny\nOrigname: fake-1.0\nName: f\n\n    Three loop.\n\n' \
+    > "$T343/f.projeny"
+out="$(cd "$T343" && "$PROJENY" setup d.projeny 2>&1 || true)"
+case "$out" in
+*"the Projeny: base chain is circular: '$T343/d.projeny' -> '$T343/e.projeny' -> '$T343/f.projeny' -> '$T343/d.projeny'; Projeny: chains must not contain cycles"*)
+    ok "a three-file loop dies with the whole walk shown"
+    ;;
+*)
+    fail "a three-file loop dies with the whole walk shown" "out: $out"
+    ;;
+esac
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: loopbase\n\n    Points at bar.\n\n' \
+    > "$T343/loopbase.projeny"
+printf 'Projeny: loopbase.projeny\nOrigname: fake-1.0\nName: bar\n\n    In a would-be cycle.\n\n' \
+    > "$T343/bar.projeny"
+cp "$T343/bar.projeny" "$ROOT/t343-bar.projeny"
+out="$(cd "$T343" && "$PROJENY" create bar.projeny --force \
+    loopbase.projeny 2>&1 || true)"
+case "$out" in
+*"cannot create '$T343/bar.projeny': basing it on '$T343/loopbase.projeny' would create a cycle ('$T343/loopbase.projeny' transitively depends on '$T343/bar.projeny'); Projeny: chains must not contain cycles"*)
+    ok "create refuses a base whose chain reaches the target"
+    ;;
+*)
+    fail "create refuses a base whose chain reaches the target" "out: $out"
+    ;;
+esac
+if cmp -s "$T343/bar.projeny" "$ROOT/t343-bar.projeny"; then
+    ok "the refused cycle create left the file untouched"
+else
+    fail "the refused cycle create left the file untouched" \
+         "bar.projeny changed"
+fi
+printf 'Projeny: h2.projeny\nOrigname: fake-1.0\nName: g2\n\n    Repeated loop.\n\n' \
+    > "$T343/g2.projeny"
+printf 'Projeny: g2.projeny\nOrigname: fake-1.0\nName: h2\n\n    Repeated loop.\n\n' \
+    > "$T343/h2.projeny"
+out="$(cd "$T343" && "$PROJENY" create k.projeny g2.projeny 2>&1 || true)"
+case "$out" in
+*"cannot create '$T343/k.projeny': basing it on '$T343/g2.projeny' would create a cycle ('$T343/g2.projeny' is reached twice in the chain); Projeny: chains must not contain cycles"*)
+    ok "create refuses a chain that repeats a file"
+    ;;
+*)
+    fail "create refuses a chain that repeats a file" "out: $out"
+    ;;
+esac
+if [ -e "$T343/k.projeny" ]; then
+    fail "the refused repeated-file create wrote nothing" \
+         "ls: $(ls -A "$T343" 2>&1)"
+else
+    ok "the refused repeated-file create wrote nothing"
+fi
+# The same pre-check fires for rebase, against an already-set-up project.
+T343B="$ROOT/t343b"
+make_tarballs "$T343B" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T343B/foo.projeny"
+run_in "$T343B" expect_ok "the rebase-cycle fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T343B/bar.projeny"
+run_in "$T343B" expect_ok "the rebase-cycle fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: loopbase2\n\n    Points at bar.\n\n' \
+    > "$T343B/loopbase2.projeny"
+cp "$T343B/bar.projeny" "$ROOT/t343b-bar.projeny"
+cp "$T343B/.bar.projeny.status" "$ROOT/t343b-bar.status"
+out="$(cd "$T343B" && "$PROJENY" rebase bar.projeny loopbase2.projeny \
+    2>&1 || true)"
+case "$out" in
+*"cannot rebase '$T343B/bar.projeny': basing it on '$T343B/loopbase2.projeny' would create a cycle ('$T343B/loopbase2.projeny' transitively depends on '$T343B/bar.projeny'); Projeny: chains must not contain cycles"*)
+    ok "rebase refuses a base whose chain reaches the target"
+    ;;
+*)
+    fail "rebase refuses a base whose chain reaches the target" "out: $out"
+    ;;
+esac
+if cmp -s "$T343B/bar.projeny" "$ROOT/t343b-bar.projeny" && \
+   cmp -s "$T343B/.bar.projeny.status" "$ROOT/t343b-bar.status"; then
+    ok "the refused cycle rebase touched nothing"
+else
+    fail "the refused cycle rebase touched nothing" \
+         "bar.projeny or its status file changed"
+fi
+
+# ------------------- 344. a four-link chain + a middle-link zero-arg rebase
+# Chains compose: each link resolves ITS base through its own frozen
+# snapshot, so p4's committed extraction is p1's archive plus p2's, p3's,
+# and p4's committed patches. A zero-arg rebase of the middle link (p3)
+# re-extracts p2's LIVE committed extraction; the links above p3 keep their
+# frozen bases (.p2.snapshot still holds p1's bytes), and p4's frozen
+# snapshot keeps p3's old bytes — but extracting those bytes resolves p3's
+# base through p3's own (refreshed) snapshot, so p4's expected tree moves
+# under it until p4 reconciles and rebases itself.
+T344="$ROOT/t344"
+make_tarballs "$T344" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T344/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T344/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T344/p3.projeny"
+printf 'Projeny: p3.projeny\nOrigname: fake-1.0\nName: p4\n\n    Link four.\n\n' \
+    > "$T344/p4.projeny"
+run_in "$T344" expect_ok "the chain sets up p1" "$PROJENY" setup p1.projeny
+run_in "$T344" expect_ok "the chain sets up p2" "$PROJENY" setup p2.projeny
+python3 - "$T344/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T344" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T344" expect_ok "the chain sets up p3" "$PROJENY" setup p3.projeny
+python3 - "$T344/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 22;")
+open(p, "w").write(s)
+EOF
+run_in "$T344" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+run_in "$T344" expect_ok "the chain sets up p4" "$PROJENY" setup p4.projeny
+python3 - "$T344/p4/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 33;")
+open(p, "w").write(s)
+EOF
+run_in "$T344" expect_ok "p4 commits its edit" "$PROJENY" commit p4.projeny
+expect_file_contains "the four-link extraction carries p2's patch" \
+    "$T344/p4/src/a.c" "alpha = 11"
+expect_file_contains "the four-link extraction carries p3's patch" \
+    "$T344/p4/src/a.c" "beta = 22"
+expect_file_contains "the four-link extraction carries p4's patch" \
+    "$T344/p4/src/a.c" "gamma = 33"
+expect_file_contains "the four-link extraction keeps the untouched base" \
+    "$T344/p4/src/a.c" "delta = 1"
+cp "$T344/.p2.snapshot" "$ROOT/t344-p2snap"
+cp "$T344/.p4.snapshot" "$ROOT/t344-p4snap"
+# p2 gains a committed change; the frozen chain keeps it out of p3 and p4.
+python3 - "$T344/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 44;")
+open(p, "w").write(s)
+EOF
+run_in "$T344" expect_ok "p2 commits again" "$PROJENY" commit p2.projeny
+run_in "$T344" expect_ok "p3's frozen re-setup is a noop" "$PROJENY" \
+    setup p3.projeny
+expect_file_contains "p3's view is frozen" "$T344/p3/src/a.c" "delta = 1"
+run_in "$T344" expect_ok "p4's frozen re-setup is a noop" "$PROJENY" \
+    setup p4.projeny
+expect_file_contains "p4's view is frozen" "$T344/p4/src/a.c" "delta = 1"
+out="$(cd "$T344" && "$PROJENY" rebase p3.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the middle-link zero-arg rebase exits 0"
+else
+    fail "the middle-link zero-arg rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: rebased onto 'p2.projeny'"*)
+    ok "the middle-link rebase names its base"
+    ;;
+*)
+    fail "the middle-link rebase names its base" "out: $out"
+    ;;
+esac
+expect_file_contains "the rebased p3 took p2's new commit" \
+    "$T344/p3/src/a.c" "delta = 44"
+expect_file_contains "the rebased p3 keeps its own patch" \
+    "$T344/p3/src/a.c" "beta = 22"
+if cmp -s "$T344/.p3.snapshot" "$T344/p2.projeny"; then
+    ok "the middle-link rebase re-froze .p3.snapshot"
+else
+    fail "the middle-link rebase re-froze .p3.snapshot" \
+         "cmp: $T344/.p3.snapshot vs p2.projeny"
+fi
+if cmp -s "$T344/.p2.snapshot" "$ROOT/t344-p2snap"; then
+    ok "the upper link's frozen base is untouched"
+else
+    fail "the upper link's frozen base is untouched" \
+         "cmp: $T344/.p2.snapshot vs the saved copy"
+fi
+out="$(cd "$T344" && "$PROJENY" status p1.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "p1 is untouched by the middle-link rebase" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "p1 is untouched by the middle-link rebase"
+    else
+        fail "p1 is untouched by the middle-link rebase" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+out="$(cd "$T344" && "$PROJENY" status p2.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "p2 is untouched by the middle-link rebase" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "p2 is untouched by the middle-link rebase"
+    else
+        fail "p2 is untouched by the middle-link rebase" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+if cmp -s "$T344/.p4.snapshot" "$ROOT/t344-p4snap"; then
+    ok "p4's frozen snapshot keeps p3's old bytes"
+else
+    fail "p4's frozen snapshot keeps p3's old bytes" \
+         "cmp: $T344/.p4.snapshot vs the saved copy"
+fi
+out="$(cd "$T344" && "$PROJENY" status p4.projeny 2>&1)"
+case "$out" in
+*"Modified: src/a.c"*)
+    ok "p4's expected tree moved with the middle link's rebase"
+    ;;
+*)
+    fail "p4's expected tree moved with the middle link's rebase" \
+         "out: $out"
+    ;;
+esac
+# p4 reconciles: the checkout is dirty, so --force erases it (the frozen
+# snapshot survives without --erase-snapshots) and the fresh setup
+# converges onto the moved tree.
+run_in "$T344" expect_ok "erase-setup --force clears p4's stale checkout" \
+    "$PROJENY" erase-setup p4.projeny --force
+run_in "$T344" expect_ok "p4's fresh setup converges" "$PROJENY" \
+    setup p4.projeny
+out="$(cd "$T344" && "$PROJENY" status p4.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the converged p4 is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the converged p4 is clean"
+    else
+        fail "the converged p4 is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+expect_file_contains "the converged p4 has p2's new commit" \
+    "$T344/p4/src/a.c" "delta = 44"
+expect_file_contains "the converged p4 keeps its own patch" \
+    "$T344/p4/src/a.c" "gamma = 33"
+out="$(cd "$T344" && "$PROJENY" rebase p4.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "p4's own zero-arg rebase exits 0 afterwards"
+else
+    fail "p4's own zero-arg rebase exits 0 afterwards" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: rebased onto 'p3.projeny'"*)
+    ok "p4's rebase names its base"
+    ;;
+*)
+    fail "p4's rebase names its base" "out: $out"
+    ;;
+esac
+expect_file_contains "p4 keeps everything after its rebase" \
+    "$T344/p4/src/a.c" "delta = 44"
+if cmp -s "$T344/.p4.snapshot" "$T344/p3.projeny"; then
+    ok "p4's rebase re-froze .p4.snapshot"
+else
+    fail "p4's rebase re-froze .p4.snapshot" \
+         "cmp: $T344/.p4.snapshot vs p3.projeny"
+fi
+
+# ------------------- 345. the frozen snapshot survives a deleted base file
+# The snapshot is the only record of the base: with the base file deleted
+# from git, bar's setup/commit/status keep working off it, while a fresh
+# project on the same missing base dies with the recovery message. The
+# workdir-gone reconciliation stales the snapshot like any other
+# bookkeeping, and erase-setup --erase-snapshots deletes exactly it so the
+# next setup re-freezes the CURRENT live base.
+T345="$ROOT/t345"
+make_tarballs "$T345" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T345/foo.projeny"
+run_in "$T345" expect_ok "the survival fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T345/bar.projeny"
+run_in "$T345" expect_ok "the survival fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+mv "$T345/foo.projeny" "$ROOT/t345-foo-away.projeny"
+run_in "$T345" expect_ok "bar's setup works without the base file" "$PROJENY" \
+    setup bar.projeny
+out="$(cd "$T345" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "bar's status works without the base file" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "bar's status works without the base file"
+    else
+        fail "bar's status works without the base file" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+python3 - "$T345/bar/src/b.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("line one v1", "line one bar")
+open(p, "w").write(s)
+EOF
+run_in "$T345" expect_ok "bar commits without the base file" "$PROJENY" \
+    commit bar.projeny
+expect_file_contains "the commit stored the edit without the base file" \
+    "$T345/bar.projeny" "line one bar"
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: fresh\n\n    Never set up.\n\n' \
+    > "$T345/fresh.projeny"
+out="$(cd "$T345" && "$PROJENY" setup fresh.projeny 2>&1 || true)"
+case "$out" in
+*"base file '$T345/foo.projeny' does not exist and neither does its snapshot '$T345/.fresh.snapshot'; it is needed to set up '$T345/fresh.projeny'. This usually means the base file was deleted from git (for example by a rebase). If the workdir has no local changes, remove the status file and the workdir and run 'projeny setup' again; otherwise restore the base file (for example 'git checkout <commit> -- <file>') and run 'projeny setup' again"*)
+    ok "a fresh project on the missing base dies with the recovery message"
+    ;;
+*)
+    fail "a fresh project on the missing base dies with the recovery message" \
+         "out: $out"
+    ;;
+esac
+mv "$ROOT/t345-foo-away.projeny" "$T345/foo.projeny"
+python3 - "$T345/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 300;")
+open(p, "w").write(s)
+EOF
+run_in "$T345" expect_ok "the base commits again" "$PROJENY" commit foo.projeny
+run_in "$T345" expect_ok "bar's setup stays frozen" "$PROJENY" \
+    setup bar.projeny
+expect_file_contains "bar keeps its own committed edit" \
+    "$T345/bar/src/b.c" "line one bar"
+expect_file_not_contains "bar lacks the base's new commit" \
+    "$T345/bar/src/a.c" "beta = 300"
+out="$(run_in "$T345" "$PROJENY" erase-setup bar.projeny --erase-snapshots 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "erase-setup --erase-snapshots exits 0"
+else
+    fail "erase-setup --erase-snapshots exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"snapshot '.bar.snapshot'"*)
+    ok "the erase note names the frozen snapshot"
+    ;;
+*)
+    fail "the erase note names the frozen snapshot" "out: $out"
+    ;;
+esac
+if [ ! -e "$T345/.bar.snapshot" ] && [ ! -e "$T345/bar" ] && \
+   [ ! -e "$T345/.bar.projeny.status" ]; then
+    ok "the snapshot, checkout, and status file are gone"
+else
+    fail "the snapshot, checkout, and status file are gone" \
+         "ls: $(ls -A "$T345" 2>&1)"
+fi
+out="$(cd "$T345" && "$PROJENY" setup bar.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the setup after the snapshot erase exits 0"
+else
+    fail "the setup after the snapshot erase exits 0" "exit=$rc out: $out"
+fi
+expect_file_contains "the re-frozen setup took the base's new commit" \
+    "$T345/bar/src/a.c" "beta = 300"
+if cmp -s "$T345/.bar.snapshot" "$T345/foo.projeny"; then
+    ok "the setup re-froze the CURRENT live base bytes"
+else
+    fail "the setup re-froze the CURRENT live base bytes" \
+         "cmp: $T345/.bar.snapshot vs foo.projeny"
+fi
+# Workdir gone: the stale reconciliation re-names the frozen snapshot too,
+# and the next setup re-freezes it.
+rm -rf "$T345/bar"
+out="$(cd "$T345" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the workdir-gone status exits 0"
+else
+    fail "the workdir-gone status exits 0" "exit=$rc out: $out"
+fi
+if [ -f "$T345/.bar.snapshot.stale" ] && [ ! -e "$T345/.bar.snapshot" ]; then
+    ok "the workdir-gone status staled the frozen snapshot"
+else
+    fail "the workdir-gone status staled the frozen snapshot" \
+         "ls: $(ls -A "$T345" 2>&1)"
+fi
+if cmp -s "$T345/.bar.snapshot.stale" "$T345/foo.projeny"; then
+    ok "the staled snapshot holds the frozen base bytes"
+else
+    fail "the staled snapshot holds the frozen base bytes" \
+         "cmp: $T345/.bar.snapshot.stale vs foo.projeny"
+fi
+run_in "$T345" expect_ok "the setup after the staling exits 0" "$PROJENY" \
+    setup bar.projeny
+if [ -f "$T345/.bar.snapshot" ]; then
+    ok "the setup after the staling re-froze the snapshot"
+else
+    fail "the setup after the staling re-froze the snapshot" \
+         "ls: $(ls -A "$T345" 2>&1)"
+fi
+
+# ------------------- 346. Projeny:-mode parse errors
+# The hard-error paths: an Origname: that does not match the base
+# extraction's top-level directory, and the four parse refusals (both
+# mutual-exclusivity pairs, the plain-filename rule, and the missing
+# required header).
+T346="$ROOT/t346"
+make_tarballs "$T346" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T346/foo.projeny"
+run_in "$T346" expect_ok "the parse fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: wrong-name\nName: bad\n\n    Wrong Origname.\n\n' \
+    > "$T346/bad.projeny"
+out="$(cd "$T346" && "$PROJENY" setup bad.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T346/bad.projeny': Origname: is 'wrong-name' but the base extraction's top-level directory is 'fake-1.0'; fix the Origname: header or rebase"*)
+    ok "an Origname: mismatch with the base extraction dies"
+    ;;
+*)
+    fail "an Origname: mismatch with the base extraction dies" "out: $out"
+    ;;
+esac
+printf 'Archive: fake-1.0.tar.gz\nProjeny: foo.projeny\nOrigname: fake-1.0\nName: both\n\n    Both headers.\n\n' \
+    > "$T346/both.projeny"
+out="$(cd "$T346" && "$PROJENY" setup both.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T346/both.projeny' has both Archive: and Projeny: headers; they are mutually exclusive (either check the tarball into git next to the .projeny file and name it with Archive:, or base the project on another .projeny file with Projeny:)"*)
+    ok "Archive: and Projeny: together refuse"
+    ;;
+*)
+    fail "Archive: and Projeny: together refuse" "out: $out"
+    ;;
+esac
+h346="$("$PROJENY" hash "$T346/fake-1.0.tar.gz")"
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nProjeny: foo.projeny\nOrigname: fake-1.0\nName: bothu\n\n    Both headers.\n\n' \
+    "$T346" "$h346" > "$T346/bothu.projeny"
+out="$(cd "$T346" && "$PROJENY" setup bothu.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T346/bothu.projeny' has both URL: and Projeny: headers; they are mutually exclusive (either fetch the tarball with one or more URL: lines, or base the project on another .projeny file with Projeny:)"*)
+    ok "URL: and Projeny: together refuse"
+    ;;
+*)
+    fail "URL: and Projeny: together refuse" "out: $out"
+    ;;
+esac
+printf 'Projeny: sub/foo.projeny\nOrigname: fake-1.0\nName: pl\n\n    A path.\n\n' \
+    > "$T346/pl.projeny"
+out="$(cd "$T346" && "$PROJENY" setup pl.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T346/pl.projeny': Projeny: must be a plain filename"*)
+    ok "a Projeny: value with a slash refuses"
+    ;;
+*)
+    fail "a Projeny: value with a slash refuses" "out: $out"
+    ;;
+esac
+printf 'Projeny: .\nOrigname: fake-1.0\nName: dt\n\n    A dot.\n\n' \
+    > "$T346/dt.projeny"
+out="$(cd "$T346" && "$PROJENY" setup dt.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T346/dt.projeny': Projeny: must be a plain filename"*)
+    ok "a '.' Projeny: value refuses"
+    ;;
+*)
+    fail "a '.' Projeny: value refuses" "out: $out"
+    ;;
+esac
+printf 'Origname: fake-1.0\nName: mh\n\n    No base header.\n\n' \
+    > "$T346/mh.projeny"
+out="$(cd "$T346" && "$PROJENY" setup mh.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T346/mh.projeny' is missing a required header (need Archive:, at least one URL: line, or a Projeny: line, plus Origname: and Name:)"*)
+    ok "a file with no base header refuses"
+    ;;
+*)
+    fail "a file with no base header refuses" "out: $out"
+    ;;
+esac
+
+# ------------------- 347. setup adopts a hand-edited Projeny: header
+# Hand-editing the Projeny: header to name a DIFFERENT base file is
+# adopted by setup: the newly named base's live bytes overwrite the frozen
+# snapshot and become the fresh tree's base, and the local uncommitted
+# changes are merged onto it.
+T347="$ROOT/t347"
+make_tarballs "$T347" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo1\n\n    First base.\n\n' \
+    > "$T347/foo1.projeny"
+run_in "$T347" expect_ok "the adoption fixture sets up foo1" "$PROJENY" \
+    setup foo1.projeny
+python3 - "$T347/foo1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T347" expect_ok "foo1 commits its edit" "$PROJENY" commit foo1.projeny
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo2\n\n    Second base.\n\n' \
+    > "$T347/foo2.projeny"
+run_in "$T347" expect_ok "the adoption fixture sets up foo2" "$PROJENY" \
+    setup foo2.projeny
+python3 - "$T347/foo2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 100;")
+open(p, "w").write(s)
+EOF
+run_in "$T347" expect_ok "foo2 commits its edit" "$PROJENY" commit foo2.projeny
+printf 'Projeny: foo1.projeny\nOrigname: fake-1.0\nName: bar\n\n    Adopt me.\n\n' \
+    > "$T347/bar.projeny"
+run_in "$T347" expect_ok "the adoption fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+expect_file_contains "bar holds foo1's committed patch" \
+    "$T347/bar/src/a.c" "gamma = 200"
+cp "$T347/foo1.projeny" "$ROOT/t347-foo1.projeny"
+cp "$T347/foo2.projeny" "$ROOT/t347-foo2.projeny"
+python3 - "$T347/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 42;")
+open(p, "w").write(s)
+EOF
+sed -i 's/^Projeny: foo1.projeny$/Projeny: foo2.projeny/' "$T347/bar.projeny"
+out="$(cd "$T347" && "$PROJENY" setup bar.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the adoption setup exits 0"
+else
+    fail "the adoption setup exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"merged local changes onto"*)
+    ok "the adoption setup merged the local changes"
+    ;;
+*)
+    fail "the adoption setup merged the local changes" "out: $out"
+    ;;
+esac
+expect_file_contains "the merged tree keeps the local edit" \
+    "$T347/bar/src/a.c" "alpha = 42"
+expect_file_contains "the merged tree carries the new base's patch" \
+    "$T347/bar/src/a.c" "delta = 100"
+expect_file_not_contains "the old base's patch is gone" \
+    "$T347/bar/src/a.c" "gamma = 200"
+if cmp -s "$T347/.bar.snapshot" "$ROOT/t347-foo2.projeny"; then
+    ok "the snapshot was re-frozen to the new base's bytes"
+else
+    fail "the snapshot was re-frozen to the new base's bytes" \
+         "cmp: $T347/.bar.snapshot vs foo2.projeny"
+fi
+if cmp -s "$T347/.bar.snapshot" "$ROOT/t347-foo1.projeny"; then
+    fail "the snapshot no longer holds the old base" \
+         ".bar.snapshot still holds foo1.projeny"
+else
+    ok "the snapshot no longer holds the old base"
+fi
+run_in "$T347" expect_ok "the adopted local change commits" "$PROJENY" \
+    commit bar.projeny
+expect_file_contains "the commit was diffed against the new base" \
+    "$T347/bar.projeny" "alpha = 42"
+expect_file_not_contains "the commit does not carry the old base's patch" \
+    "$T347/bar.projeny" "gamma = 200"
+
+# ------------------- 348. a URL:-based base file
+# A Projeny:-based project whose base is URL:-based: bar's setup fetches
+# foo's archive on demand (the batch download phase never sees it), the
+# frozen snapshot still holds foo.projeny's bytes, and the frozen law
+# holds after foo commits.
+T348="$ROOT/t348"
+make_tarballs "$T348" fake
+h348="$("$PROJENY" hash "$T348/fake-1.0.tar.gz")"
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: foou\n\n    A URL-based base.\n\n' \
+    "$T348" "$h348" > "$T348/foou.projeny"
+printf 'Projeny: foou.projeny\nOrigname: fake-1.0\nName: baru\n\n    Based on a URL project.\n\n' \
+    > "$T348/baru.projeny"
+out="$(cd "$T348" && "$PROJENY" setup baru.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the URL-based base setup exits 0"
+else
+    fail "the URL-based base setup exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"downloading 'file://$T348/fake-1.0.tar.gz'"*)
+    ok "the base's archive was fetched on demand"
+    ;;
+*)
+    fail "the base's archive was fetched on demand" "out: $out"
+    ;;
+esac
+if [ -f "$T348/.fake-1.0.tar.gz.snapshot" ]; then
+    ok "the base's URL snapshot was written"
+else
+    fail "the base's URL snapshot was written" "ls: $(ls -A "$T348" 2>&1)"
+fi
+if cmp -s "$T348/.baru.snapshot" "$T348/foou.projeny"; then
+    ok "the frozen snapshot holds foo.projeny's bytes"
+else
+    fail "the frozen snapshot holds foo.projeny's bytes" \
+         "cmp: $T348/.baru.snapshot vs foou.projeny"
+fi
+out="$(cd "$T348" && "$PROJENY" setup baru.projeny 2>&1)"
+case "$out" in
+*"downloading"*)
+    fail "the second setup downloaded nothing" "out: $out"
+    ;;
+*"no local changes"*)
+    ok "the second setup downloaded nothing"
+    ;;
+*)
+    fail "the second setup downloaded nothing" "out: $out"
+    ;;
+esac
+run_in "$T348" expect_ok "the URL-based base sets up itself" "$PROJENY" \
+    setup foou.projeny
+python3 - "$T348/foou/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 71;")
+open(p, "w").write(s)
+EOF
+run_in "$T348" expect_ok "the URL-based base commits" "$PROJENY" \
+    commit foou.projeny
+cp "$T348/foou.projeny" "$ROOT/t348-foou-new.projeny"
+run_in "$T348" expect_ok "baru's setup stays frozen" "$PROJENY" \
+    setup baru.projeny
+expect_file_contains "baru's checkout lacks the base's new commit" \
+    "$T348/baru/src/a.c" "int beta = 1;"
+if cmp -s "$T348/.baru.snapshot" "$ROOT/t348-foou-new.projeny"; then
+    fail "the frozen snapshot never tracks the live base" \
+         ".baru.snapshot was updated"
+else
+    ok "the frozen snapshot never tracks the live base"
+fi
+out="$(cd "$T348" && "$PROJENY" rebase baru.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the zero-arg rebase picks up the URL base's commit"
+else
+    fail "the zero-arg rebase picks up the URL base's commit" \
+         "exit=$rc out: $out"
+fi
+expect_file_contains "the rebased baru took the base's commit" \
+    "$T348/baru/src/a.c" "beta = 71"
+if cmp -s "$T348/.baru.snapshot" "$ROOT/t348-foou-new.projeny"; then
+    ok "the rebase re-froze the snapshot with the new base bytes"
+else
+    fail "the rebase re-froze the snapshot with the new base bytes" \
+         "cmp: $T348/.baru.snapshot vs the new foou.projeny"
+fi
+
+# ------------------- 349. status/diff/package/extract on a Projeny project
+# The everyday command surface: clean/modified/untracked reporting, the
+# printed diff, tracked-only package payloads (untracked files stay out,
+# pending adds ride along), and compression autodetect on the short .tbz
+# form.
+T349="$ROOT/t349"
+make_tarballs "$T349" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T349/foo.projeny"
+run_in "$T349" expect_ok "the basics fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T349/bar.projeny"
+run_in "$T349" expect_ok "the basics fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+out="$(cd "$T349" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*|*"Untracked:"*)
+    fail "the fresh Projeny-based status is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the fresh Projeny-based status is clean"
+    else
+        fail "the fresh Projeny-based status is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+printf 'junk\n' > "$T349/bar/notes.txt"
+run_in "$T349" expect_out "an untracked file is reported" "Untracked: notes.txt" \
+    "$PROJENY" status bar.projeny
+python3 - "$T349/bar/README" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("hello v1", "hello edited")
+open(p, "w").write(s)
+EOF
+run_in "$T349" expect_out "a modified file is reported" "Modified: README" \
+    "$PROJENY" status bar.projeny
+out="$(cd "$T349" && "$PROJENY" diff bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"diff --git a/bar/README b/bar/README"*"+hello edited"*)
+    if [ $rc -eq 0 ]; then
+        ok "the printed diff describes the edit"
+    else
+        fail "the printed diff describes the edit" "exit=$rc out: $out"
+    fi
+    ;;
+*)
+    fail "the printed diff describes the edit" "exit=$rc out: $out"
+    ;;
+esac
+run_in "$T349" expect_ok "the modified README commits" "$PROJENY" \
+    commit bar.projeny
+printf 'added but uncommitted\n' > "$T349/bar/src/new.c"
+run_in "$T349" expect_ok "the pending add registers" "$PROJENY" \
+    add bar.projeny bar/src/new.c
+run_in "$T349" expect_ok "package .tbz exits 0" "$PROJENY" \
+    package bar.projeny bar.tbz
+(cd "$T349" && tar -tjf bar.tbz | sort > bar-members.txt)
+if grep -qx "bar/README" "$T349/bar-members.txt" && \
+   grep -qx "bar/src/new.c" "$T349/bar-members.txt" && \
+   grep -qx "bar/src/a.c" "$T349/bar-members.txt"; then
+    ok "the .tbz payload holds the tracked files"
+else
+    fail "the .tbz payload holds the tracked files" \
+         "$(cat "$T349/bar-members.txt" 2>&1)"
+fi
+if grep -q "notes.txt" "$T349/bar-members.txt"; then
+    fail "the payload omits untracked files" "$(cat "$T349/bar-members.txt")"
+else
+    ok "the payload omits untracked files"
+fi
+mkdir -p "$T349/unpack" && (cd "$T349/unpack" && tar -xjf ../bar.tbz)
+expect_file_contains "the payload carries the committed edit" \
+    "$T349/unpack/bar/README" "hello edited"
+run_in "$T349" expect_ok "extract exits 0" "$PROJENY" \
+    extract bar.projeny extracted
+if diff -r "$T349/unpack/bar" "$T349/extracted" >/dev/null 2>&1; then
+    ok "extract equals the package payload"
+else
+    fail "extract equals the package payload" \
+         "$(diff -r "$T349/unpack/bar" "$T349/extracted" 2>&1 | head -5)"
+fi
+run_in "$T349" expect_ok "commit folds the pending add" "$PROJENY" \
+    commit bar.projeny
+out="$(cd "$T349" && "$PROJENY" status bar.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Added:"*|*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the commits is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the commits is clean"
+    else
+        fail "the status after the commits is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 350. freeze-mtime on a Projeny:-based project
+# The frozen value comes from the FROZEN BASE EXTRACTION's file mtime (the
+# archive member's, for a file the base's committed patch never rewrote —
+# a pristine classic checkout of the same tarball holds the same stamp).
+# The pin survives a re-setup, lists, and unfreezes.
+T350="$ROOT/t350"
+make_tarballs "$T350" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: ref\n\n    A pristine reference.\n\n' \
+    > "$T350/ref.projeny"
+run_in "$T350" expect_ok "the freeze fixture sets up the reference" "$PROJENY" \
+    setup ref.projeny
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base project.\n\n' \
+    > "$T350/foo.projeny"
+run_in "$T350" expect_ok "the freeze fixture sets up the base" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Based on foo.\n\n' \
+    > "$T350/bar.projeny"
+run_in "$T350" expect_ok "the freeze fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+ts350="$(stat -c %Y "$T350/ref/README")"
+python3 - "$T350/bar/README" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("hello v1", "hello edited")
+open(p, "w").write(s)
+EOF
+run_in "$T350" expect_ok "bar commits its README edit" "$PROJENY" \
+    commit bar.projeny
+run_in "$T350" expect_ok "freeze-mtime exits 0" "$PROJENY" \
+    freeze-mtime bar.projeny bar/README
+out="$("$PROJENY" list-frozen-mtimes "$T350/bar.projeny")"
+case "$out" in
+*"README $ts350"*)
+    ok "list-frozen-mtimes shows the base extraction's stamp"
+    ;;
+*)
+    fail "list-frozen-mtimes shows the base extraction's stamp" \
+         "want README $ts350, got: $out"
+    ;;
+esac
+expect_file_contains "the pin is recorded in the projeny patch" \
+    "$T350/bar.projeny" "frozen-mtime $ts350"
+touch -d @1700000400 "$T350/bar/README"
+run_in "$T350" expect_ok "the re-setup with a dragged mtime exits 0" "$PROJENY" \
+    setup bar.projeny
+if [ "$(stat -c %Y "$T350/bar/README")" = "$ts350" ]; then
+    ok "the stamp pass restored the frozen mtime"
+else
+    fail "the stamp pass restored the frozen mtime" \
+         "got $(stat -c %Y "$T350/bar/README"), want $ts350"
+fi
+out="$(cd "$T350" && "$PROJENY" get-attributes bar.projeny bar/README 2>&1)"
+case "$out" in
+*"README: frozen-mtime $ts350"*)
+    ok "get-attributes reports the pin"
+    ;;
+*)
+    fail "get-attributes reports the pin" "out: $out"
+    ;;
+esac
+run_in "$T350" expect_ok "unfreeze-mtime exits 0" "$PROJENY" \
+    unfreeze-mtime bar.projeny bar/README
+# The tarball member stamps carry 1-second granularity, so give the next
+# setup's applier stamp a different second than the member's before
+# checking that the pin no longer restores it.
+sleep 2
+touch -d @1700000400 "$T350/bar/README"
+run_in "$T350" expect_ok "the re-setup after the unfreeze exits 0" "$PROJENY" \
+    setup bar.projeny
+if [ "$(stat -c %Y "$T350/bar/README")" != "$ts350" ]; then
+    ok "the pin is gone (the applier's stamp wins again)"
+else
+    fail "the pin is gone (the applier's stamp wins again)" \
+         "the mtime is still $ts350"
+fi
+out="$(cd "$T350" && "$PROJENY" list-frozen-mtimes bar.projeny 2>&1 || true)"
+case "$out" in
+*"no frozen mtimes"*)
+    ok "list-frozen-mtimes with nothing frozen dies"
+    ;;
+*)
+    fail "list-frozen-mtimes with nothing frozen dies" "out: $out"
+    ;;
+esac
+
+# ------------------- 351. parallel runs with Projeny:-based projects
+# Multi-project setup/package/extract work with a Projeny:-based project in
+# the mix: it contributes nothing to the batch download phase (an
+# Archive:-based base needs no download at all; a URL:-based base is
+# fetched on demand in the per-project phase).
+T351="$ROOT/t351"
+make_tarballs "$T351" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: classic\n\n    A classic project.\n\n' \
+    > "$T351/classic.projeny"
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foob\n\n    A chain bottom.\n\n' \
+    > "$T351/foob.projeny"
+printf 'Projeny: foob.projeny\nOrigname: fake-1.0\nName: barb\n\n    Projeny-based.\n\n' \
+    > "$T351/barb.projeny"
+h351="$("$PROJENY" hash "$T351/fake-2.0.tar.gz")"
+printf 'URL: file://%s/fake-2.0.tar.gz %s\nOrigname: fake-2.0\nName: urlu\n\n    A URL project.\n\n' \
+    "$T351" "$h351" > "$T351/urlu.projeny"
+out="$(cd "$T351" && "$PROJENY" setup -j2 classic.projeny barb.projeny \
+    urlu.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the mixed parallel setup exits 0"
+else
+    fail "the mixed parallel setup exits 0" "exit=$rc out: $out"
+fi
+ndl351="$(printf '%s\n' "$out" | grep -c "downloading 'fake-2.0.tar.gz' from 'file://$T351/fake-2.0.tar.gz'")"
+if [ "$ndl351" -eq 1 ]; then
+    ok "only the URL project joined the batch download phase"
+else
+    fail "only the URL project joined the batch download phase" \
+         "got $ndl351 batch downloading lines (out: $out)"
+fi
+ndl351b="$(printf '%s\n' "$out" | grep -c "downloading 'fake-1.0.tar.gz' from")"
+if [ "$ndl351b" -eq 0 ]; then
+    ok "the Projeny-based project contributed no batch download"
+else
+    fail "the Projeny-based project contributed no batch download" \
+         "got $ndl351b batch downloading lines (out: $out)"
+fi
+if [ -f "$T351/classic/README" ] && [ -f "$T351/barb/README" ] && \
+   [ -f "$T351/urlu/README" ]; then
+    ok "all three projects checked out"
+else
+    fail "all three projects checked out" "ls: $(ls "$T351")"
+fi
+out="$(run_in "$T351" "$PROJENY" setup barb.projeny 2>&1)"
+case "$out" in
+*"re-set up 'barb' from 'foob.projeny' (no local changes)"*)
+    ok "the single-project re-setup still names the base file"
+    ;;
+*)
+    fail "the single-project re-setup still names the base file" \
+         "out: $out"
+    ;;
+esac
+run_in "$T351" expect_ok "parallel package with a Projeny project exits 0" \
+    "$PROJENY" package barb.projeny b1.tar.gz urlu.projeny u1.tar.gz -j2
+if [ -s "$T351/b1.tar.gz" ] && [ -s "$T351/u1.tar.gz" ]; then
+    ok "both package payloads landed"
+else
+    fail "both package payloads landed" "ls: $(ls -la "$T351" 2>&1)"
+fi
+run_in "$T351" expect_ok "parallel extract with a Projeny project exits 0" \
+    "$PROJENY" extract barb.projeny ex-b urlu.projeny ex-u -j2
+if [ -f "$T351/ex-b/README" ] && [ -f "$T351/ex-u/README" ]; then
+    ok "both extract payloads landed"
+else
+    fail "both extract payloads landed" "ls: $(ls "$T351" 2>&1)"
+fi
+# A URL:-based base: the per-project phase fetches it on demand (the batch
+# phase only ever sees the named URL project's package).
+T351B="$ROOT/t351b"
+make_tarballs "$T351B" fake
+h351b="$("$PROJENY" hash "$T351B/fake-1.0.tar.gz")"
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: foou2\n\n    A URL-based base.\n\n' \
+    "$T351B" "$h351b" > "$T351B/foou2.projeny"
+printf 'Projeny: foou2.projeny\nOrigname: fake-1.0\nName: barb2\n\n    Projeny-based.\n\n' \
+    > "$T351B/barb2.projeny"
+cp "$T351/urlu.projeny" "$T351B/urlu.projeny"
+sed -i "s|file://$T351/|file://$T351B/|" "$T351B/urlu.projeny"
+out="$(cd "$T351B" && "$PROJENY" setup -j2 barb2.projeny urlu.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the parallel setup with a URL-based base exits 0"
+else
+    fail "the parallel setup with a URL-based base exits 0" \
+         "exit=$rc out: $out"
+fi
+ndl351c="$(printf '%s\n' "$out" | grep -c "downloading 'file://$T351B/fake-1.0.tar.gz'")"
+if [ "$ndl351c" -ge 1 ]; then
+    ok "the URL base was fetched on demand outside the batch"
+else
+    fail "the URL base was fetched on demand outside the batch" \
+         "got $ndl351c on-demand downloading lines (out: $out)"
+fi
+if [ -f "$T351B/barb2/README" ] && [ -f "$T351B/urlu/README" ]; then
+    ok "both projects of the URL-base run checked out"
+else
+    fail "both projects of the URL-base run checked out" \
+         "ls: $(ls "$T351B" 2>&1)"
+fi
+
+# ------------------- 352. the bricked 3-link chain: the guidance die and
+# the zero-arg rebase fallback
+# A middle link's zero-arg rebase (p2) moves its frozen snapshot; a
+# downstream project (p3) whose committed patch touches a region the moved
+# chain rewrote can no longer build its expected tree (p3's frozen base
+# bytes resolve p2's base through p2's REFRESHED snapshot, and p3's patch
+# no longer applies onto the moved extraction). Every expected-tree
+# consumer dies with the per-command chain-moved guidance (status, diff,
+# the merge path of setup, the erase-setup check), while the zero-arg
+# rebase RECOVERS: it prints the workdir-as-is note, rebuilds the old side
+# by strict reverse-apply of the embedded patch onto a copy of the workdir,
+# runs the normal three-way merge against the live base's committed
+# extraction, and reports the conflict. The conflicting file carries inline
+# markers with BOTH sides, .p3.snapshot is re-frozen with the live base
+# file's bytes, the conflict is recorded, and the usual resolve + commit
+# round-trip lands p3's delta merged onto the moved upstream.
+T352="$ROOT/t352"
+make_tarballs "$T352" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T352/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T352/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T352/p3.projeny"
+run_in "$T352" expect_ok "the brick fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T352" expect_ok "the brick fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T352/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T352" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T352" expect_ok "the brick fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T352/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T352" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+python3 - "$T352/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T352" expect_ok "p1 commits the same region" "$PROJENY" \
+    commit p1.projeny
+run_in "$T352" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+# The chain moved under p3: every expected-tree consumer dies with the
+# per-command guidance (each names $T352/p3.projeny and both recoveries
+# verbatim; the verbs differ per command).
+moved352="the frozen base chain no longer reconstructs the recorded base (an upstream Projeny: link was rebased) and the patch does not apply onto the new content; run 'projeny rebase $T352/p3.projeny' to rebase from the workdir as-is, or 'projeny erase-setup --force $T352/p3.projeny' followed by 'projeny setup $T352/p3.projeny' to re-extract and re-apply with conflict markers"
+out="$(cd "$T352" && "$PROJENY" status "$T352/p3.projeny" 2>&1 || true)"
+case "$out" in
+*"cannot status '$T352/p3.projeny': $moved352"*)
+    ok "status dies with the chain-moved guidance"
+    ;;
+*)
+    fail "status dies with the chain-moved guidance" "out: $out"
+    ;;
+esac
+out="$(cd "$T352" && "$PROJENY" diff "$T352/p3.projeny" 2>&1 || true)"
+case "$out" in
+*"cannot diff '$T352/p3.projeny': $moved352"*)
+    ok "diff dies with the chain-moved guidance"
+    ;;
+*)
+    fail "diff dies with the chain-moved guidance" "out: $out"
+    ;;
+esac
+out="$(cd "$T352" && "$PROJENY" setup "$T352/p3.projeny" 2>&1 || true)"
+case "$out" in
+*"cannot set up '$T352/p3.projeny': $moved352"*)
+    ok "the merge-path setup dies with the chain-moved guidance"
+    ;;
+*)
+    fail "the merge-path setup dies with the chain-moved guidance" "out: $out"
+    ;;
+esac
+out="$(cd "$T352" && "$PROJENY" erase-setup "$T352/p3.projeny" 2>&1 || true)"
+case "$out" in
+*"cannot erase-setup '$T352/p3.projeny': $moved352"*)
+    ok "the erase-setup check dies with the chain-moved guidance"
+    ;;
+*)
+    fail "the erase-setup check dies with the chain-moved guidance" \
+         "out: $out"
+    ;;
+esac
+if [ -d "$T352/p3/src" ] && \
+   grep -q "int delta = 99" "$T352/p3/src/a.c" && \
+   ! grep -q "int delta = 555" "$T352/p3/src/a.c"; then
+    ok "the refused commands left the bricked checkout untouched"
+else
+    fail "the refused commands left the bricked checkout untouched" \
+         "out: $(cat "$T352/p3/src/a.c" 2>&1)"
+fi
+# The zero-arg rebase recovers from the workdir as-is.
+out="$(cd "$T352" && "$PROJENY" rebase "$T352/p3.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the fallback zero-arg rebase exits 0"
+else
+    fail "the fallback zero-arg rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: the frozen base chain of '$T352/p3.projeny' no longer reconstructs the recorded base (an upstream Projeny: link was rebased); rebasing from the workdir as-is; files the patch does not touch take the new base's content (flagged as conflicts)"*)
+    ok "the fallback rebase prints the workdir-as-is note"
+    ;;
+*)
+    fail "the fallback rebase prints the workdir-as-is note" "out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: rebased onto 'p2.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the fallback rebase reports the conflict"
+    ;;
+*)
+    fail "the fallback rebase reports the conflict" "out: $out"
+    ;;
+esac
+expect_file_contains "the conflicted file keeps both marker sides" \
+    "$T352/p3/src/a.c" "int delta = 555"
+expect_file_contains "the conflicted file keeps the local side" \
+    "$T352/p3/src/a.c" "int delta = 99"
+expect_file_contains "the conflicted file carries marker lines" \
+    "$T352/p3/src/a.c" "<<<<<<<"
+expect_file_contains "the conflicted file carries the split line" \
+    "$T352/p3/src/a.c" "======="
+expect_file_contains "the conflicted file closes the marker region" \
+    "$T352/p3/src/a.c" ">>>>>>>"
+expect_file_contains "the moved chain's other content rides along" \
+    "$T352/p3/src/a.c" "int alpha = 11;"
+if cmp -s "$T352/.p3.snapshot" "$T352/p2.projeny"; then
+    ok "the fallback rebase re-froze .p3.snapshot with the live base bytes"
+else
+    fail "the fallback rebase re-froze .p3.snapshot with the live base bytes" \
+         "cmp: $T352/.p3.snapshot vs $T352/p2.projeny"
+fi
+expect_file_contains "the fallback rebase recorded the conflict" \
+    "$T352/.p3.projeny.status" "Conflict: src/a.c"
+printf 'int alpha = 11;\n\nint beta = 1;\n\nint gamma = 1;\n\nint delta = 888;\n' \
+    > "$T352/p3/src/a.c"
+run_in "$T352" expect_ok "resolve clears the fallback conflict" "$PROJENY" \
+    resolve p3.projeny src/a.c
+run_in "$T352" expect_ok "the fallback resolution commits" "$PROJENY" \
+    commit p3.projeny
+expect_file_contains "the committed patch is diffed against the moved base" \
+    "$T352/p3.projeny" "-int delta = 555"
+expect_file_contains "the committed patch lands the resolution" \
+    "$T352/p3.projeny" "+int delta = 888"
+expect_file_not_contains "the committed patch carries no marker lines" \
+    "$T352/p3.projeny" "<<<<<<<"
+expect_file_not_contains "the committed patch carries no unresolved side" \
+    "$T352/p3.projeny" "int delta = 99"
+out="$(cd "$T352" && "$PROJENY" setup p3.projeny 2>&1)"
+case "$out" in
+*"no local changes"*)
+    ok "the re-setup after the fallback round-trip is a noop"
+    ;;
+*)
+    fail "the re-setup after the fallback round-trip is a noop" "out: $out"
+    ;;
+esac
+out="$(cd "$T352" && "$PROJENY" status "$T352/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the fallback round-trip is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the fallback round-trip is clean"
+    else
+        fail "the status after the fallback round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 353. the fallback's conservative path: files whose
+# reverse-apply fails keep their workdir bytes
+# The old side of the fallback merge is the workdir copy with the embedded
+# patch reverse-applied. A file whose block cannot be reversed strictly —
+# an uncommitted edit overlapping the hunk's pre-image, or a binary block
+# (one-directional literals) — is LEFT OUT of the reversal: the post-merge
+# fixup keeps that file's WORKDIR bytes wholesale (no markers possible or
+# wanted), flags it in Conflict:, and the usual resolve + commit round-trip
+# converges. Two deterministic shapes are covered: a text hunk whose
+# context an uncommitted edit broke, and a committed binary modify.
+# (Boundary of the displacement pass: workdir edits OUTSIDE the hunk
+# pre-images of cleanly reversed files do NOT survive — the moved chain's
+# content stands there and the file is flagged; see 359 — while edits in
+# files the patch does not touch cannot be told apart from base content
+# either, so those files take the new base's content and are flagged; only
+# the conservative path here preserves whole-file
+# workdir bytes verbatim.)
+T353="$ROOT/t353"
+make_tarballs "$T353" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T353/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T353/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T353/p3.projeny"
+run_in "$T353" expect_ok "the conservative fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T353" expect_ok "the conservative fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T353/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T353" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T353" expect_ok "the conservative fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T353/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T353" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+python3 - "$T353/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T353" expect_ok "p1 commits the same region" "$PROJENY" \
+    commit p1.projeny
+run_in "$T353" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+# The uncommitted edit overlaps the committed hunk's context, so the strict
+# reverse gate refuses the block for src/a.c.
+python3 - "$T353/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 7;")
+open(p, "w").write(s)
+EOF
+out="$(cd "$T353" && "$PROJENY" rebase "$T353/p3.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the conservative-path rebase exits 0"
+else
+    fail "the conservative-path rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: the frozen base chain of '$T353/p3.projeny' no longer reconstructs the recorded base (an upstream Projeny: link was rebased); rebasing from the workdir as-is; files the patch does not touch take the new base's content (flagged as conflicts)"*)
+    ok "the conservative-path rebase prints the workdir-as-is note"
+    ;;
+*)
+    fail "the conservative-path rebase prints the workdir-as-is note" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: rebased onto 'p2.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the conservative-path rebase flags the unreversed file"
+    ;;
+*)
+    fail "the conservative-path rebase flags the unreversed file" "out: $out"
+    ;;
+esac
+expect_file_contains "the unreversed file keeps the uncommitted edit" \
+    "$T353/p3/src/a.c" "int gamma = 7"
+expect_file_contains "the unreversed file keeps the committed change" \
+    "$T353/p3/src/a.c" "int delta = 99"
+expect_file_contains "the unreversed file keeps the frozen base" \
+    "$T353/p3/src/a.c" "int alpha = 11"
+expect_file_not_contains "the unreversed file gets no markers" \
+    "$T353/p3/src/a.c" "<<<<<<<"
+expect_file_contains "the conservative path recorded the conflict" \
+    "$T353/.p3.projeny.status" "Conflict: src/a.c"
+printf 'int alpha = 11;\n\nint beta = 1;\n\nint gamma = 7;\n\nint delta = 888;\n' \
+    > "$T353/p3/src/a.c"
+run_in "$T353" expect_ok "the conservative conflict resolves" "$PROJENY" \
+    resolve p3.projeny src/a.c
+run_in "$T353" expect_ok "the conservative resolution commits" "$PROJENY" \
+    commit p3.projeny
+expect_file_contains "the conservative commit keeps the local edit" \
+    "$T353/p3.projeny" "+int gamma = 7"
+expect_file_contains "the conservative commit lands the resolution" \
+    "$T353/p3.projeny" "+int delta = 888"
+expect_file_contains "the conservative commit is diffed against the moved base" \
+    "$T353/p3.projeny" "-int delta = 555"
+out="$(cd "$T353" && "$PROJENY" status "$T353/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the conservative round-trip is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the conservative round-trip is clean"
+    else
+        fail "the status after the conservative round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+# The binary shape: a committed binary modify cannot be reversed at all
+# (the literals are one-directional), and it fails to apply onto the moved
+# chain (p1 rewrote the same file), so the fixup keeps the workdir bytes.
+T353B="$ROOT/t353b"
+mkdir -p "$T353B/fake-1.0/src"
+printf 'int alpha = 1;\n\nint beta = 1;\n\nint gamma = 1;\n\nint delta = 1;\n' \
+    > "$T353B/fake-1.0/src/a.c"
+printf 'hello v1\n' > "$T353B/fake-1.0/README"
+printf 'BINARY\x00\x01\x02v1\n' > "$T353B/fake-1.0/src/blob.bin"
+(cd "$T353B" && tar -czf fake-1.0.tar.gz fake-1.0 && rm -rf fake-1.0)
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T353B/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T353B/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T353B/p3.projeny"
+run_in "$T353B" expect_ok "the binary fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T353B" expect_ok "the binary fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T353B/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T353B" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T353B" expect_ok "the binary fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+printf 'BINARY\x00\x01\x02v3-P3\n' > "$T353B/p3/src/blob.bin"
+run_in "$T353B" expect_ok "p3 commits its binary edit" "$PROJENY" \
+    commit p3.projeny
+printf 'BINARY\x00\x01\x02v2-P1\n' > "$T353B/p1/src/blob.bin"
+run_in "$T353B" expect_ok "p1 commits the same binary file" "$PROJENY" \
+    commit p1.projeny
+run_in "$T353B" expect_ok "the binary middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+out="$(cd "$T353B" && "$PROJENY" status "$T353B/p3.projeny" 2>&1 || true)"
+case "$out" in
+*"cannot status '$T353B/p3.projeny': the frozen base chain no longer reconstructs the recorded base"*)
+    ok "the binary brick dies with the chain-moved guidance"
+    ;;
+*)
+    fail "the binary brick dies with the chain-moved guidance" "out: $out"
+    ;;
+esac
+out="$(cd "$T353B" && "$PROJENY" rebase "$T353B/p3.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the binary fallback rebase exits 0"
+else
+    fail "the binary fallback rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: rebased onto 'p2.projeny' with 1 conflict(s):"*"  src/blob.bin"*)
+    ok "the binary fallback rebase flags the binary file"
+    ;;
+*)
+    fail "the binary fallback rebase flags the binary file" "out: $out"
+    ;;
+esac
+printf 'BINARY\x00\x01\x02v3-P3\n' > "$ROOT/t353b-expected-blob.bin"
+expect_file_eq "the binary file keeps its workdir bytes" \
+    "$T353B/p3/src/blob.bin" "$ROOT/t353b-expected-blob.bin"
+expect_file_contains "the binary file is flagged in the status" \
+    "$T353B/.p3.projeny.status" "Conflict: src/blob.bin"
+run_in "$T353B" expect_ok "the binary conflict resolves" "$PROJENY" \
+    resolve p3.projeny src/blob.bin
+run_in "$T353B" expect_ok "the binary resolution commits" "$PROJENY" \
+    commit p3.projeny
+out="$(cd "$T353B" && "$PROJENY" setup p3.projeny 2>&1)"
+case "$out" in
+*"no local changes"*)
+    ok "the binary round-trip re-sets up cleanly"
+    ;;
+*)
+    fail "the binary round-trip re-sets up cleanly" "out: $out"
+    ;;
+esac
+expect_file_eq "the binary file survives the round-trip" \
+    "$T353B/p3/src/blob.bin" "$ROOT/t353b-expected-blob.bin"
+
+# ------------------- 354. the other recovery: erase-setup --force plus a
+# conflicted fresh setup
+# The second working recovery for a bricked chain: erase-setup --force
+# removes the checkout and the status (the frozen snapshot survives the
+# erase, then the workdir-gone staling of the next setup renames it), and
+# the fresh setup re-freezes the base from the LIVE base file and applies
+# the recorded patch with inline `<<<<<<< current` / `>>>>>>> patched`
+# markers, exiting 1 with the conflicts recorded. The usual resolve +
+# commit round-trip lands the resolution on the moved chain.
+T354="$ROOT/t354"
+make_tarballs "$T354" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T354/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T354/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T354/p3.projeny"
+run_in "$T354" expect_ok "the erase-recovery fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T354" expect_ok "the erase-recovery fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T354/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T354" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T354" expect_ok "the erase-recovery fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T354/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T354" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+python3 - "$T354/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T354" expect_ok "p1 commits the same region" "$PROJENY" \
+    commit p1.projeny
+run_in "$T354" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+run_in "$T354" expect_ok "erase-setup --force clears the bricked checkout" \
+    "$PROJENY" erase-setup p3.projeny --force
+if [ ! -e "$T354/p3" ] && [ ! -e "$T354/.p3.projeny.status" ] && \
+   [ -f "$T354/.p3.snapshot" ]; then
+    ok "the erase removed the checkout and status but kept the snapshot"
+else
+    fail "the erase removed the checkout and status but kept the snapshot" \
+         "ls: $(ls -A "$T354" 2>&1)"
+fi
+out="$(cd "$T354" && "$PROJENY" setup p3.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 1 ]; then
+    ok "the recovery setup exits 1"
+else
+    fail "the recovery setup exits 1" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: set up 'p3' from 'p2.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the recovery setup reports the conflict"
+    ;;
+*)
+    fail "the recovery setup reports the conflict" "out: $out"
+    ;;
+esac
+leftconf354='projeny: setup left conflicts (exit 1); fix them, then `resolve` each file and `commit`'
+case "$out" in
+*"$leftconf354"*)
+    ok "the recovery setup tells the user how to proceed"
+    ;;
+*)
+    fail "the recovery setup tells the user how to proceed" "out: $out"
+    ;;
+esac
+expect_file_contains "the recovery checkout opens the marker region" \
+    "$T354/p3/src/a.c" "<<<<<<< current"
+expect_file_contains "the recovery checkout holds the moved side" \
+    "$T354/p3/src/a.c" "int delta = 555"
+expect_file_contains "the recovery checkout carries the split line" \
+    "$T354/p3/src/a.c" "======="
+expect_file_contains "the recovery checkout holds the patched side" \
+    "$T354/p3/src/a.c" "int delta = 99"
+expect_file_contains "the recovery checkout closes the marker region" \
+    "$T354/p3/src/a.c" ">>>>>>> patched"
+expect_file_contains "the recovery setup recorded the conflict" \
+    "$T354/.p3.projeny.status" "Conflict: src/a.c"
+if cmp -s "$T354/.p3.snapshot" "$T354/p2.projeny"; then
+    ok "the recovery setup re-froze the snapshot from the live base"
+else
+    fail "the recovery setup re-froze the snapshot from the live base" \
+         "cmp: $T354/.p3.snapshot vs $T354/p2.projeny"
+fi
+printf 'int alpha = 11;\n\nint beta = 1;\n\nint gamma = 1;\n\nint delta = 888;\n' \
+    > "$T354/p3/src/a.c"
+run_in "$T354" expect_ok "the recovery conflict resolves" "$PROJENY" \
+    resolve p3.projeny src/a.c
+run_in "$T354" expect_ok "the recovery resolution commits" "$PROJENY" \
+    commit p3.projeny
+expect_file_contains "the recovery commit is diffed against the moved base" \
+    "$T354/p3.projeny" "-int delta = 555"
+expect_file_contains "the recovery commit lands the resolution" \
+    "$T354/p3.projeny" "+int delta = 888"
+out="$(cd "$T354" && "$PROJENY" setup p3.projeny 2>&1)"
+case "$out" in
+*"no local changes"*)
+    ok "the recovery round-trip re-sets up cleanly"
+    ;;
+*)
+    fail "the recovery round-trip re-sets up cleanly" "out: $out"
+    ;;
+esac
+out="$(cd "$T354" && "$PROJENY" status "$T354/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the recovery round-trip is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the recovery round-trip is clean"
+    else
+        fail "the status after the recovery round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 355. a fresh Projeny:-based setup whose patch
+# conflicts with the composed chain applies with markers
+# A hand-written Projeny:-based file (no status, no checkout) whose
+# embedded patch no longer applies onto the base's committed extraction
+# (the base committed a colliding change) no longer dies: the fresh setup
+# applies the patch with inline `<<<<<<< current` / `>>>>>>> patched`
+# markers — the current side is the moved chain's content, the patched
+# side is what the patch wanted — exits 1, and records the conflicts. The
+# classic Archive:-based control keeps the byte-identical hard die.
+T355="$ROOT/t355"
+make_tarballs "$T355" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The base.\n\n' \
+    > "$T355/foo.projeny"
+run_in "$T355" expect_ok "the fresh-marker fixture sets up the base" \
+    "$PROJENY" setup foo.projeny
+python3 - "$T355/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T355" expect_ok "the base commits a colliding change" "$PROJENY" \
+    commit foo.projeny
+cat > "$T355/fresh.projeny" <<'PJEOF'
+Projeny: foo.projeny
+Origname: fake-1.0
+Name: fresh
+
+    A hand-written patch that collides with the base's commit.
+
+diff --git a/fresh/src/a.c b/fresh/src/a.c
+--- a/fresh/src/a.c
++++ b/fresh/src/a.c
+@@ -1,7 +1,7 @@
+ int alpha = 1;
+
+ int beta = 1;
+
+-int gamma = 1;
++int gamma = 999;
+
+ int delta = 1;
+PJEOF
+out="$(cd "$T355" && "$PROJENY" setup fresh.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 1 ]; then
+    ok "the conflicting fresh Projeny setup exits 1"
+else
+    fail "the conflicting fresh Projeny setup exits 1" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: set up 'fresh' from 'foo.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the conflicting fresh setup reports the conflict"
+    ;;
+*)
+    fail "the conflicting fresh setup reports the conflict" "out: $out"
+    ;;
+esac
+leftconf355='projeny: setup left conflicts (exit 1); fix them, then `resolve` each file and `commit`'
+case "$out" in
+*"$leftconf355"*)
+    ok "the conflicting fresh setup tells the user how to proceed"
+    ;;
+*)
+    fail "the conflicting fresh setup tells the user how to proceed" \
+         "out: $out"
+    ;;
+esac
+expect_file_contains "the fresh checkout opens the marker region" \
+    "$T355/fresh/src/a.c" "<<<<<<< current"
+expect_file_contains "the fresh checkout holds the moved chain's side" \
+    "$T355/fresh/src/a.c" "int gamma = 200"
+expect_file_contains "the fresh checkout carries the split line" \
+    "$T355/fresh/src/a.c" "======="
+expect_file_contains "the fresh checkout holds the patched side" \
+    "$T355/fresh/src/a.c" "int gamma = 999"
+expect_file_contains "the fresh checkout closes the marker region" \
+    "$T355/fresh/src/a.c" ">>>>>>> patched"
+expect_file_contains "the fresh setup recorded the conflict" \
+    "$T355/.fresh.projeny.status" "Conflict: src/a.c"
+if cmp -s "$T355/.fresh.snapshot" "$T355/foo.projeny"; then
+    ok "the fresh setup froze the live base file's bytes"
+else
+    fail "the fresh setup froze the live base file's bytes" \
+         "cmp: $T355/.fresh.snapshot vs $T355/foo.projeny"
+fi
+printf 'int alpha = 1;\n\nint beta = 1;\n\nint gamma = 888;\n\nint delta = 1;\n' \
+    > "$T355/fresh/src/a.c"
+run_in "$T355" expect_ok "the fresh conflict resolves" "$PROJENY" \
+    resolve fresh.projeny src/a.c
+run_in "$T355" expect_ok "the fresh resolution commits" "$PROJENY" \
+    commit fresh.projeny
+expect_file_contains "the fresh commit is diffed against the moved base" \
+    "$T355/fresh.projeny" "-int gamma = 200"
+expect_file_contains "the fresh commit lands the resolution" \
+    "$T355/fresh.projeny" "+int gamma = 888"
+out="$(cd "$T355" && "$PROJENY" setup fresh.projeny 2>&1)"
+case "$out" in
+*"no local changes"*)
+    ok "the fresh round-trip re-sets up cleanly"
+    ;;
+*)
+    fail "the fresh round-trip re-sets up cleanly" "out: $out"
+    ;;
+esac
+# The classic control: an Archive:-based file with an unapplicable patch
+# keeps the hard die (no markers, no checkout, no status file), in its own
+# directory so the fixture is byte-identical to the pre-Projeny behavior.
+T355B="$ROOT/t355b"
+make_tarballs "$T355B" fake
+cat > "$T355B/classic.projeny" <<'PJEOF'
+Archive: fake-1.0.tar.gz
+Origname: fake-1.0
+Name: classic
+
+    A hand-written patch the archive cannot take.
+
+diff --git a/classic/src/a.c b/classic/src/a.c
+--- a/classic/src/a.c
++++ b/classic/src/a.c
+@@ -1,7 +1,7 @@
+ int alpha = 1;
+
+ int beta = 1;
+
+-int gamma = 200;
++int gamma = 999;
+
+ int delta = 1;
+PJEOF
+out="$(cd "$T355B" && "$PROJENY" setup classic.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"cannot apply patch in '$T355B/classic.projeny' (archive 'fake-1.0.tar.gz'): patch does not apply cleanly"*"  src/a.c"*)
+    if [ $rc -ne 0 ]; then
+        ok "the classic control keeps the hard die"
+    else
+        fail "the classic control keeps the hard die" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the classic control keeps the hard die" "exit=$rc out: $out"
+    ;;
+esac
+if [ ! -e "$T355B/classic" ] && [ ! -e "$T355B/.classic.projeny.status" ]; then
+    ok "the refused classic setup created nothing"
+else
+    fail "the refused classic setup created nothing" \
+         "ls: $(ls -A "$T355B" 2>&1)"
+fi
+
+# ------------------- 356. setup adopts a hand-conversion back INTO the
+# Projeny: form
+# A project whose status-embedded copy is Archive:-based (a `rebase <f>
+# <tarball>` converted it away from the Projeny: form, leaving the old
+# frozen snapshot lingering) that is hand-edited back to `Projeny: <other>
+# .projeny` is ADOPTED by setup: the checkout is rebuilt from the newly
+# named base's committed extraction, the stale .<stem>.snapshot is
+# overwritten with the new base file's live bytes, the embedded copy picks
+# up the Projeny: header, and the status is clean afterwards. The URL-era
+# conversion gets the same treatment.
+T356="$ROOT/t356"
+make_tarballs "$T356" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    The old base.\n\n' \
+    > "$T356/foo.projeny"
+run_in "$T356" expect_ok "the adoption fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T356/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T356" expect_ok "foo commits its edit" "$PROJENY" commit foo.projeny
+printf 'Archive: fake-2.0.tar.gz\nOrigname: fake-2.0\nName: qux2\n\n    The new base.\n\n' \
+    > "$T356/qux2.projeny"
+run_in "$T356" expect_ok "the adoption fixture sets up qux2" "$PROJENY" \
+    setup qux2.projeny
+python3 - "$T356/qux2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 100;")
+open(p, "w").write(s)
+EOF
+run_in "$T356" expect_ok "qux2 commits its edit" "$PROJENY" \
+    commit qux2.projeny
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Converted away and back.\n\n' \
+    > "$T356/bar.projeny"
+run_in "$T356" expect_ok "the adoption fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T356/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 42;")
+open(p, "w").write(s)
+EOF
+run_in "$T356" expect_ok "bar commits its edit" "$PROJENY" commit bar.projeny
+run_in "$T356" expect_ok "the tarball rebase converts bar away" "$PROJENY" \
+    rebase bar.projeny fake-2.0.tar.gz
+expect_file_contains "the conversion wrote the Archive: header" \
+    "$T356/bar.projeny" "Archive: fake-2.0.tar.gz"
+expect_file_not_contains "the Projeny: header is gone" \
+    "$T356/bar.projeny" "Projeny:"
+if cmp -s "$T356/.bar.snapshot" "$T356/foo.projeny"; then
+    ok "the stale frozen snapshot lingers with the old base's bytes"
+else
+    fail "the stale frozen snapshot lingers with the old base's bytes" \
+         "cmp: $T356/.bar.snapshot vs $T356/foo.projeny"
+fi
+sed -i 's/^Archive: fake-2.0.tar.gz$/Projeny: qux2.projeny/' "$T356/bar.projeny"
+out="$(cd "$T356" && "$PROJENY" setup bar.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the hand-conversion setup exits 0"
+else
+    fail "the hand-conversion setup exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: re-set up 'bar' from 'qux2.projeny' (no local changes)"*)
+    ok "the adoption setup names the newly named base"
+    ;;
+*)
+    fail "the adoption setup names the newly named base" "out: $out"
+    ;;
+esac
+expect_file_contains "the adopted checkout carries bar's patch" \
+    "$T356/bar/src/a.c" "int beta = 42"
+expect_file_contains "the adopted checkout holds the new base's patch" \
+    "$T356/bar/src/a.c" "int delta = 100"
+expect_file_contains "the adopted checkout holds the new base's pristine line" \
+    "$T356/bar/src/a.c" "int gamma = 1;"
+expect_file_not_contains "the adopted checkout lacks the old base's patch" \
+    "$T356/bar/src/a.c" "gamma = 200"
+if cmp -s "$T356/.bar.snapshot" "$T356/qux2.projeny"; then
+    ok "the adoption overwrote the snapshot with the new base's bytes"
+else
+    fail "the adoption overwrote the snapshot with the new base's bytes" \
+         "cmp: $T356/.bar.snapshot vs $T356/qux2.projeny"
+fi
+expect_file_contains "the status embeds the adopted Projeny: header" \
+    "$T356/.bar.projeny.status" "Projeny: qux2.projeny"
+out="$(cd "$T356" && "$PROJENY" status "$T356/bar.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the adoption is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the adoption is clean"
+    else
+        fail "the status after the adoption is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+python3 - "$T356/bar/README" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("hello v2", "hello adopted")
+open(p, "w").write(s)
+EOF
+run_in "$T356" expect_ok "the adopted project commits its edit" "$PROJENY" \
+    commit bar.projeny
+expect_file_contains "the commit is diffed against the new base" \
+    "$T356/bar.projeny" "+hello adopted"
+expect_file_not_contains "the commit does not resurrect the old base" \
+    "$T356/bar.projeny" "gamma = 200"
+out="$(cd "$T356" && "$PROJENY" setup bar.projeny 2>&1)"
+case "$out" in
+*"no local changes"*)
+    ok "the adopted project re-sets up cleanly"
+    ;;
+*)
+    fail "the adopted project re-sets up cleanly" "out: $out"
+    ;;
+esac
+# The URL-era variant: a conversion to a URL: list, then a hand-edit back
+# into the Projeny: form, is adopted the same way.
+T356B="$ROOT/t356b"
+make_tarballs "$T356B" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo2\n\n    The old base.\n\n' \
+    > "$T356B/foo2.projeny"
+run_in "$T356B" expect_ok "the URL-era fixture sets up foo2" "$PROJENY" \
+    setup foo2.projeny
+printf 'Archive: fake-2.0.tar.gz\nOrigname: fake-2.0\nName: qux3\n\n    The new base.\n\n' \
+    > "$T356B/qux3.projeny"
+run_in "$T356B" expect_ok "the URL-era fixture sets up qux3" "$PROJENY" \
+    setup qux3.projeny
+python3 - "$T356B/qux3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 100;")
+open(p, "w").write(s)
+EOF
+run_in "$T356B" expect_ok "qux3 commits its edit" "$PROJENY" \
+    commit qux3.projeny
+printf 'Projeny: foo2.projeny\nOrigname: fake-1.0\nName: bar3\n\n    URL era.\n\n' \
+    > "$T356B/bar3.projeny"
+run_in "$T356B" expect_ok "the URL-era fixture sets up bar3" "$PROJENY" \
+    setup bar3.projeny
+h356b="$("$PROJENY" hash "$T356B/fake-2.0.tar.gz")"
+run_in "$T356B" expect_ok "the URL rebase converts bar3 away" "$PROJENY" \
+    rebase bar3.projeny "file://$T356B/fake-2.0.tar.gz" "$h356b"
+expect_file_contains "the URL conversion wrote the URL: header" \
+    "$T356B/bar3.projeny" "URL: file://$T356B/fake-2.0.tar.gz $h356b"
+sed -i "s|^URL: file://$T356B/fake-2.0.tar.gz $h356b\$|Projeny: qux3.projeny|" \
+    "$T356B/bar3.projeny"
+out="$(cd "$T356B" && "$PROJENY" setup bar3.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'bar3' from 'qux3.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the URL-era hand-conversion is adopted"
+    else
+        fail "the URL-era hand-conversion is adopted" "exit=$rc out: $out"
+    fi
+    ;;
+*)
+    fail "the URL-era hand-conversion is adopted" "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the URL-era adopted checkout holds the new base's patch" \
+    "$T356B/bar3/src/a.c" "int delta = 100"
+if cmp -s "$T356B/.bar3.snapshot" "$T356B/qux3.projeny"; then
+    ok "the URL-era adoption re-froze the snapshot"
+else
+    fail "the URL-era adoption re-froze the snapshot" \
+         "cmp: $T356B/.bar3.snapshot vs $T356B/qux3.projeny"
+fi
+out="$(cd "$T356B" && "$PROJENY" status "$T356B/bar3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the URL-era adoption status is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the URL-era adoption status is clean"
+    else
+        fail "the URL-era adoption status is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 357. an empty Projeny: value dies before the
+# exclusivity and required-header checks
+# `Projeny:` with an empty value is its own mistake and is reported
+# specifically: with no other base header it would otherwise die as a
+# vague missing-required-header, and with Archive: or URL: present it
+# would silently pass as that mode. The setup-path refusal wraps the
+# validation reason; a command that parses the file directly (rebase)
+# surfaces the bare parse-level form.
+T357="$ROOT/t357"
+make_tarballs "$T357" fake
+printf 'Projeny:\nOrigname: fake-1.0\nName: e1\n\n    Empty.\n\n' \
+    > "$T357/e1.projeny"
+printf 'Archive: fake-1.0.tar.gz\nProjeny:\nOrigname: fake-1.0\nName: e2\n\n    Both.\n\n' \
+    > "$T357/e2.projeny"
+printf 'URL: file:///nowhere/e3.tar.gz 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\nProjeny:\nOrigname: fake-1.0\nName: e3\n\n    Both.\n\n' \
+    > "$T357/e3.projeny"
+out="$(cd "$T357" && "$PROJENY" setup e1.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T357/e1.projeny' has an empty Projeny: value (name the base .projeny file after 'Projeny:'); refusing without touching the workdir or status file"*)
+    ok "an empty Projeny: value alone dies with its own message"
+    ;;
+*)
+    fail "an empty Projeny: value alone dies with its own message" "out: $out"
+    ;;
+esac
+out="$(cd "$T357" && "$PROJENY" setup e2.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T357/e2.projeny' has an empty Projeny: value (name the base .projeny file after 'Projeny:'); refusing without touching the workdir or status file"*)
+    ok "an empty Projeny: value beats the Archive: exclusivity check"
+    ;;
+*)
+    fail "an empty Projeny: value beats the Archive: exclusivity check" \
+         "out: $out"
+    ;;
+esac
+out="$(cd "$T357" && "$PROJENY" setup e3.projeny 2>&1 || true)"
+case "$out" in
+*"file '$T357/e3.projeny' has an empty Projeny: value (name the base .projeny file after 'Projeny:'); refusing without touching the workdir or status file"*)
+    ok "an empty Projeny: value beats the URL: exclusivity check"
+    ;;
+*)
+    fail "an empty Projeny: value beats the URL: exclusivity check" \
+         "out: $out"
+    ;;
+esac
+out="$(cd "$T357" && "$PROJENY" rebase e1.projeny fake-1.0.tar.gz 2>&1 || true)"
+case "$out" in
+*"file '$T357/e1.projeny': empty Projeny: value (name the base .projeny file after 'Projeny:')"*)
+    ok "the parse-level form names the file and the fix"
+    ;;
+*)
+    fail "the parse-level form names the file and the fix" "out: $out"
+    ;;
+esac
+if [ ! -e "$T357/e1" ] && [ ! -e "$T357/e2" ] && [ ! -e "$T357/e3" ] && \
+   [ ! -e "$T357/.e1.projeny.status" ] && \
+   [ ! -e "$T357/.e2.projeny.status" ] && \
+   [ ! -e "$T357/.e3.projeny.status" ]; then
+    ok "the empty-Projeny refusions created nothing"
+else
+    fail "the empty-Projeny refusions created nothing" \
+         "ls: $(ls -A "$T357" 2>&1)"
+fi
+
+# ------------------- 358. the non-conflicting spurious state after a
+# middle-link rebase (state (i)) takes the workdir-as-is fallback
+# When the moved chain does NOT collide with the downstream patch, the
+# expected tree still builds — it has simply moved, and status reports the
+# upstream deltas as a spurious Modified:. The recorded base has, however,
+# demonstrably moved UNDER the files the patch touches, so the zero-arg
+# rebase no longer refuses (both halves of the old refusal were wrong
+# here: committing folds the upstream deltas into the patch, and
+# erase-setup --force destroys the checkout): the mismatch is classified
+# against the patch's touched files and the workdir-as-is fallback
+# engages. The workdir is clean, so the candidate old side reverses
+# exactly, the merge converges onto the moved chain — the same tree the
+# erase-setup --force + setup dance used to produce, without destroying
+# anything — the frozen snapshot re-freezes to the live base bytes, and
+# the committed patch regenerates against the moved base (a re-setup is a
+# noop).
+T358="$ROOT/t358"
+make_tarballs "$T358" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T358/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T358/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T358/p3.projeny"
+run_in "$T358" expect_ok "the state-i fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T358" expect_ok "the state-i fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T358/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T358" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T358" expect_ok "the state-i fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T358/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T358" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+python3 - "$T358/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T358" expect_ok "p1 commits a different region" "$PROJENY" \
+    commit p1.projeny
+run_in "$T358" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+out="$(cd "$T358" && "$PROJENY" status "$T358/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified: src/a.c"*)
+    if [ $rc -eq 0 ]; then
+        ok "the moved chain reports as a spurious modification"
+    else
+        fail "the moved chain reports as a spurious modification" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+*)
+    fail "the moved chain reports as a spurious modification" "out: $out"
+    ;;
+esac
+out="$(cd "$T358" && "$PROJENY" rebase "$T358/p3.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the state-i zero-arg rebase takes the fallback and exits 0"
+else
+    fail "the state-i zero-arg rebase takes the fallback and exits 0" \
+         "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: the frozen base chain of '$T358/p3.projeny' no longer reconstructs the recorded base (an upstream Projeny: link was rebased); rebasing from the workdir as-is; files the patch does not touch take the new base's content (flagged as conflicts)"*)
+    ok "the state-i rebase prints the workdir-as-is note"
+    ;;
+*)
+    fail "the state-i rebase prints the workdir-as-is note" "out: $out"
+    ;;
+esac
+case "$out" in
+*"conflict(s)"*)
+    fail "the clean state-i fallback rebase records no conflicts" \
+         "out: $out"
+    ;;
+*)
+    ok "the clean state-i fallback rebase records no conflicts"
+    ;;
+esac
+expect_file_contains "the converged checkout carries p2's patch" \
+    "$T358/p3/src/a.c" "int alpha = 11"
+expect_file_contains "the converged checkout carries p1's new commit" \
+    "$T358/p3/src/a.c" "int gamma = 555"
+expect_file_contains "the converged checkout keeps p3's patch" \
+    "$T358/p3/src/a.c" "int delta = 99"
+if cmp -s "$T358/.p3.snapshot" "$T358/p2.projeny"; then
+    ok "the fallback rebase re-froze .p3.snapshot with the live base bytes"
+else
+    fail "the fallback rebase re-froze .p3.snapshot with the live base bytes" \
+         "cmp: $T358/.p3.snapshot vs $T358/p2.projeny"
+fi
+expect_file_contains "the regenerated patch is diffed against the moved base" \
+    "$T358/p3.projeny" "-int delta = 1"
+out="$(cd "$T358" && "$PROJENY" status "$T358/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the state-i fallback rebase is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the state-i fallback rebase is clean"
+    else
+        fail "the status after the state-i fallback rebase is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+out="$(cd "$T358" && "$PROJENY" setup p3.projeny 2>&1)"
+case "$out" in
+*"no local changes"*)
+    ok "the re-setup after the state-i fallback rebase is a noop"
+    ;;
+*)
+    fail "the re-setup after the state-i fallback rebase is a noop" \
+         "out: $out"
+    ;;
+esac
+
+# ------------------- 359. the fallback's displacement boundary: outside the
+# hunk pre-images the moved chain's content wins and the file is flagged;
+# untouched files take the new base's content, flagged
+# The reconstructed old side of the fallback merge is byte-exact base
+# content only INSIDE the patch's hunk pre-images; outside them it is the
+# workdir's own bytes, so an uncommitted edit there is invisible to the
+# three-way (the merge reads the new content as a deliberate one-sided edit
+# and takes it). Those outside-pre-image bytes cannot be told apart from
+# stale committed content — the true old base is unreconstructable there —
+# so restoring them would revert the upstream move as often as it preserved
+# real uncommitted work. The displacement pass therefore keeps the merged
+# (moved-chain) content everywhere and only FLAGS the file when a changed
+# old-side range lies outside the pre-images (here: the beta line's WIP is
+# displaced — the committed value wins — while the patch hunks target the
+# delta line). Files the patch does NOT touch (README) are the mirror
+# boundary: the reconstructed old side equals the workdir there, the edit
+# cannot be told apart from base content, so the file takes the new base's
+# content (convergence — in the typical bricked state these are exactly the
+# upstream-moved files) and is flagged with a Conflict entry so the
+# replacement is visible and resolvable, never silent. Users who want
+# uncommitted outside-pre-image work kept must commit it first: commit
+# folds it into the project's patch, where the reverse/merge machinery
+# protects it.
+T359="$ROOT/t359"
+make_tarballs "$T359" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T359/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T359/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T359/p3.projeny"
+run_in "$T359" expect_ok "the boundary fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T359" expect_ok "the boundary fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T359/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T359" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T359" expect_ok "the boundary fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T359/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T359" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+python3 - "$T359/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T359" expect_ok "p1 commits the same region" "$PROJENY" \
+    commit p1.projeny
+run_in "$T359" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+# The two uncommitted shapes: an edit on the beta line (outside the delta
+# hunk's pre-image, so the strict reverse gate still succeeds) and an edit
+# to README (the patch never mentions it).
+python3 - "$T359/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 42;")
+open(p, "w").write(s)
+EOF
+printf 'hello LOCAL-EDIT\n' > "$T359/p3/README"
+out="$(cd "$T359" && "$PROJENY" rebase "$T359/p3.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the boundary-path rebase exits 0"
+else
+    fail "the boundary-path rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: the frozen base chain of '$T359/p3.projeny' no longer reconstructs the recorded base (an upstream Projeny: link was rebased); rebasing from the workdir as-is; files the patch does not touch take the new base's content (flagged as conflicts)"*)
+    ok "the boundary-path rebase prints the note with the untouched-file clause"
+    ;;
+*)
+    fail "the boundary-path rebase prints the note with the untouched-file clause" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: rebased onto 'p2.projeny' with 2 conflict(s):"*"  README"*"  src/a.c"*)
+    ok "the boundary-path rebase flags both the untouched file and the edit"
+    ;;
+*)
+    fail "the boundary-path rebase flags both the untouched file and the edit" \
+         "out: $out"
+    ;;
+esac
+expect_file_contains "the outside-pre-image WIP is displaced (committed value wins)" \
+    "$T359/p3/src/a.c" "int beta = 1"
+expect_file_not_contains "the displaced WIP no longer sits in the checkout" \
+    "$T359/p3/src/a.c" "int beta = 42"
+expect_file_contains "the conflicted hunk region keeps both marker sides" \
+    "$T359/p3/src/a.c" "int delta = 555"
+expect_file_contains "the conflicted hunk region keeps the local side" \
+    "$T359/p3/src/a.c" "int delta = 99"
+expect_file_contains "the moved chain's other content rides along" \
+    "$T359/p3/src/a.c" "int alpha = 11"
+printf 'hello v1\n' > "$ROOT/t359-expected-readme"
+expect_file_eq "the untouched file takes the new base's content" \
+    "$T359/p3/README" "$ROOT/t359-expected-readme"
+expect_file_contains "the untouched file is flagged in the status" \
+    "$T359/.p3.projeny.status" "Conflict: README"
+expect_file_contains "the edited file is flagged in the status" \
+    "$T359/.p3.projeny.status" "Conflict: src/a.c"
+# The usual resolve + commit round-trip: README resolves back to the new
+# base's content (no patch block for it), and the user — wanting the
+# displaced beta WIP back after all — restores it deliberately in the
+# resolution, which then folds into the committed patch against the moved
+# base (the documented folding boundary; the fallback itself no longer
+# preserves that edit).
+run_in "$T359" expect_ok "the untouched file resolves" "$PROJENY" \
+    resolve p3.projeny README
+printf 'int alpha = 11;\n\nint beta = 42;\n\nint gamma = 1;\n\nint delta = 888;\n' \
+    > "$T359/p3/src/a.c"
+run_in "$T359" expect_ok "the deliberately restored edit resolves" "$PROJENY" \
+    resolve p3.projeny src/a.c
+run_in "$T359" expect_ok "the boundary resolution commits" "$PROJENY" \
+    commit p3.projeny
+expect_file_contains "the committed patch keeps the deliberately restored edit" \
+    "$T359/p3.projeny" "+int beta = 42"
+expect_file_contains "the committed patch lands the resolution" \
+    "$T359/p3.projeny" "+int delta = 888"
+expect_file_contains "the committed patch is diffed against the moved base" \
+    "$T359/p3.projeny" "-int delta = 555"
+expect_file_not_contains "the committed patch carries no marker lines" \
+    "$T359/p3.projeny" "<<<<<<<"
+out="$(cd "$T359" && "$PROJENY" status "$T359/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the boundary round-trip is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the boundary round-trip is clean"
+    else
+        fail "the status after the boundary round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 360. the state-(i) residual refusal: the mismatch
+# lies entirely outside the patch's file set
+# The state-(i) decision tree engages the workdir-as-is fallback only when
+# the recorded base moved under the FILES THE PATCH TOUCHES. When the
+# upstream rebase's deltas avoid every touched file (here: p1 edits README
+# while p3's patch targets src/a.c only) and the workdir's uncommitted
+# work sits on such a file too, the base the patch was diffed against is
+# intact exactly where the patch needs it, so the classic refusal stands —
+# worded so it does not misdiagnose: the mismatch may be uncommitted work
+# OR an upstream move under files the patch does not touch (on a clean
+# tree the status shows only the spurious Modified: of the upstream move —
+# nothing is uncommitted), and the primary recovery named is the one that
+# works for both (erase-setup --force + setup), while committing is called
+# out only as the action that would fold upstream deltas into the patch
+# when a link did move — never as the primary advice, and `revert` (which
+# projeny does not have) is not named at all. The refusal touches
+# nothing: the workdir, the committed patch, the status file, and the
+# frozen snapshot are all left as they were.
+T360="$ROOT/t360"
+make_tarballs "$T360" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T360/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T360/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T360/p3.projeny"
+run_in "$T360" expect_ok "the residual fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T360" expect_ok "the residual fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T360/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T360" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T360" expect_ok "the residual fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T360/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T360" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+python3 - "$T360/p1/README" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("hello v1", "hello v2")
+open(p, "w").write(s)
+EOF
+run_in "$T360" expect_ok "p1 commits a file p3's patch never touches" \
+    "$PROJENY" commit p1.projeny
+run_in "$T360" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+printf 'hello LOCAL-WIP\n' > "$T360/p3/README"
+cp "$T360/.p3.snapshot" "$ROOT/t360-before-snapshot"
+cp "$T360/.p3.projeny.status" "$ROOT/t360-before-status"
+cp "$T360/p3.projeny" "$ROOT/t360-before-file"
+out="$(cd "$T360" && "$PROJENY" rebase "$T360/p3.projeny" 2>&1 || true)"
+case "$out" in
+*"workdir '$T360/p3' does not match the recorded base outside the files the patch touches: either it has uncommitted changes, or an upstream Projeny: link was rebased and the base chain moved under files the patch does not touch (committing would fold those upstream deltas into the patch); recover with 'projeny erase-setup --force $T360/p3.projeny' followed by 'projeny setup $T360/p3.projeny'"*)
+    ok "the residual state-i refusal carries the misdiagnosis-free message"
+    ;;
+*)
+    fail "the residual state-i refusal carries the misdiagnosis-free message" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"commit or revert before rebasing"*|*"commit them before rebasing"*)
+    fail "the residual refusal keeps neither the classic nor the fold advice" \
+         "out: $out"
+    ;;
+*)
+    ok "the residual refusal keeps neither the classic nor the fold advice"
+    ;;
+esac
+printf 'hello LOCAL-WIP\n' > "$ROOT/t360-expected-wip"
+expect_file_eq "the refusal left the uncommitted work in place" \
+    "$T360/p3/README" "$ROOT/t360-expected-wip"
+if cmp -s "$T360/.p3.snapshot" "$ROOT/t360-before-snapshot"; then
+    ok "the refusal left the frozen snapshot alone"
+else
+    fail "the refusal left the frozen snapshot alone" \
+         "cmp: $T360/.p3.snapshot vs $ROOT/t360-before-snapshot"
+fi
+if cmp -s "$T360/.p3.projeny.status" "$ROOT/t360-before-status"; then
+    ok "the refusal left the status file alone"
+else
+    fail "the refusal left the status file alone" \
+         "cmp: $T360/.p3.projeny.status vs $ROOT/t360-before-status"
+fi
+if cmp -s "$T360/p3.projeny" "$ROOT/t360-before-file"; then
+    ok "the refusal left the committed patch alone"
+else
+    fail "the refusal left the committed patch alone" \
+         "cmp: $T360/p3.projeny vs $ROOT/t360-before-file"
+fi
+
+# ------------------- 361. the healthy-dirty guard: a base that never
+# moved refuses with the same misdiagnosis-free message; a touched-file WIP
+# is displaced and flagged
+# A direct two-link chain (bar bases on foo) with no chain move at all
+# produces the same two shapes the state-(i) tree classifies, and both
+# outcomes must not depend on any upstream rebase having happened. WIP on
+# a file bar's patch does not touch: every touched file compares equal,
+# so the refusal fires — worded so it does not misdiagnose (the workdir
+# may hold uncommitted work or the base may have moved; committing is not
+# prescribed as the primary advice). WIP on a file the patch DOES touch
+# (outside the delta hunk's pre-image, so the strict reverse gate still
+# succeeds): the fallback engages, the merged (moved-chain) content
+# STANDS — the outside-pre-image WIP is displaced, the committed value
+# wins — and the file is flagged (the displacement is never silent).
+# foo's committed change rides along inside the hunk's pre-image, and a
+# user who wants the displaced WIP back restores it deliberately in the
+# resolve step; the commit then folds it into the regenerated committed
+# patch — the documented folding boundary.
+T361="$ROOT/t361"
+make_tarballs "$T361" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Link one.\n\n' \
+    > "$T361/foo.projeny"
+printf 'Projeny: foo.projeny\nOrigname: fake-1.0\nName: bar\n\n    Link two.\n\n' \
+    > "$T361/bar.projeny"
+run_in "$T361" expect_ok "the healthy fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+run_in "$T361" expect_ok "the healthy fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T361/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T361" expect_ok "bar commits its edit" "$PROJENY" commit bar.projeny
+printf 'hello LOCAL-WIP\n' > "$T361/bar/README"
+out="$(cd "$T361" && "$PROJENY" rebase "$T361/bar.projeny" 2>&1 || true)"
+case "$out" in
+*"workdir '$T361/bar' does not match the recorded base outside the files the patch touches: either it has uncommitted changes, or an upstream Projeny: link was rebased and the base chain moved under files the patch does not touch (committing would fold those upstream deltas into the patch); recover with 'projeny erase-setup --force $T361/bar.projeny' followed by 'projeny setup $T361/bar.projeny'"*)
+    ok "the healthy-dirty refusal carries the misdiagnosis-free message"
+    ;;
+*)
+    fail "the healthy-dirty refusal carries the reworded message" \
+         "out: $out"
+    ;;
+esac
+printf 'hello LOCAL-WIP\n' > "$ROOT/t361-expected-wip"
+expect_file_eq "the healthy refusal left the uncommitted work in place" \
+    "$T361/bar/README" "$ROOT/t361-expected-wip"
+printf 'hello v1\n' > "$T361/bar/README"
+python3 - "$T361/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T361" expect_ok "foo commits new changes" "$PROJENY" \
+    commit foo.projeny
+python3 - "$T361/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 42;")
+open(p, "w").write(s)
+EOF
+out="$(cd "$T361" && "$PROJENY" rebase "$T361/bar.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the touched-file WIP rebase takes the fallback and exits 0"
+else
+    fail "the touched-file WIP rebase takes the fallback and exits 0" \
+         "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: the frozen base chain of '$T361/bar.projeny' no longer reconstructs the recorded base (an upstream Projeny: link was rebased); rebasing from the workdir as-is; files the patch does not touch take the new base's content (flagged as conflicts)"*)
+    ok "the touched-file WIP rebase prints the workdir-as-is note"
+    ;;
+*)
+    fail "the touched-file WIP rebase prints the workdir-as-is note" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: rebased onto 'foo.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the touched-file WIP rebase flags the displaced file"
+    ;;
+*)
+    fail "the touched-file WIP rebase flags the displaced file" "out: $out"
+    ;;
+esac
+expect_file_contains "the outside-pre-image WIP is displaced (committed value wins)" \
+    "$T361/bar/src/a.c" "int beta = 1"
+expect_file_not_contains "the displaced WIP no longer sits in the checkout" \
+    "$T361/bar/src/a.c" "int beta = 42"
+expect_file_contains "foo's committed change rides along" \
+    "$T361/bar/src/a.c" "int gamma = 555"
+expect_file_contains "bar's committed change stays" \
+    "$T361/bar/src/a.c" "int delta = 99"
+if cmp -s "$T361/.bar.snapshot" "$T361/foo.projeny"; then
+    ok "the fallback rebase re-froze .bar.snapshot with the live base bytes"
+else
+    fail "the fallback rebase re-froze .bar.snapshot with the live base bytes" \
+         "cmp: $T361/.bar.snapshot vs $T361/foo.projeny"
+fi
+# The user — wanting the displaced WIP back after all — restores it
+# deliberately in the resolution (keeping foo's upstream and bar's own
+# delta), and the commit folds it into the regenerated committed patch.
+printf 'int alpha = 1;\n\nint beta = 42;\n\nint gamma = 555;\n\nint delta = 99;\n' \
+    > "$T361/bar/src/a.c"
+run_in "$T361" expect_ok "the deliberately restored edit resolves" "$PROJENY" \
+    resolve bar.projeny src/a.c
+run_in "$T361" expect_ok "the touched-file WIP resolution commits" \
+    "$PROJENY" commit bar.projeny
+expect_file_contains "the deliberately restored edit folded into the committed patch" \
+    "$T361/bar.projeny" "+int beta = 42"
+expect_file_contains "the committed patch keeps bar's own delta" \
+    "$T361/bar.projeny" "+int delta = 99"
+expect_file_not_contains "the committed patch does not re-fold foo's change" \
+    "$T361/bar.projeny" "+int gamma = 555"
+out="$(cd "$T361" && "$PROJENY" status "$T361/bar.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the touched-file WIP round-trip is clean" \
+         "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the touched-file WIP round-trip is clean"
+    else
+        fail "the status after the touched-file WIP round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 362. the state-(i) dirty tree: an upstream move and
+# uncommitted work on the same touched file
+# The state-(i) fallback with real uncommitted work: p1's committed move
+# (gamma) sits inside p3's delta hunk's pre-image, so the merged content
+# keeps it (the upstream delta converges), while the uncommitted beta edit
+# sits outside the pre-image — indistinguishable from stale committed
+# content there — so the moved chain's content stands: the WIP is
+# DISPLACED and the file is flagged (the displacement is never silent,
+# but there are no markers: the reverse succeeded and the merge was
+# clean). The tree then holds exactly the upstream state with the WIP
+# gone, so the resolution is bookkeeping only (no content edit, no
+# markers) and the commit folds nothing but p3's own delta: the committed
+# patch contains the upstream state (as its diff base) and NOT the WIP
+# reversion.
+T362="$ROOT/t362"
+make_tarballs "$T362" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T362/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T362/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T362/p3.projeny"
+run_in "$T362" expect_ok "the dirty state-i fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T362" expect_ok "the dirty state-i fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T362/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T362" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T362" expect_ok "the dirty state-i fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T362/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T362" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+python3 - "$T362/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T362" expect_ok "p1 commits a move inside p3's hunk pre-image" \
+    "$PROJENY" commit p1.projeny
+run_in "$T362" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+python3 - "$T362/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 42;")
+open(p, "w").write(s)
+EOF
+out="$(cd "$T362" && "$PROJENY" rebase "$T362/p3.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the dirty state-i rebase takes the fallback and exits 0"
+else
+    fail "the dirty state-i rebase takes the fallback and exits 0" \
+         "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: the frozen base chain of '$T362/p3.projeny' no longer reconstructs the recorded base (an upstream Projeny: link was rebased); rebasing from the workdir as-is; files the patch does not touch take the new base's content (flagged as conflicts)"*)
+    ok "the dirty state-i rebase prints the workdir-as-is note"
+    ;;
+*)
+    fail "the dirty state-i rebase prints the workdir-as-is note" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: rebased onto 'p2.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the dirty state-i rebase flags the displaced file"
+    ;;
+*)
+    fail "the dirty state-i rebase flags the displaced file" "out: $out"
+    ;;
+esac
+expect_file_contains "the outside-pre-image WIP is displaced in the state-i fallback" \
+    "$T362/p3/src/a.c" "int beta = 1"
+expect_file_not_contains "the displaced WIP no longer sits in the checkout" \
+    "$T362/p3/src/a.c" "int beta = 42"
+expect_file_contains "the upstream delta converges in the state-i fallback" \
+    "$T362/p3/src/a.c" "int gamma = 555"
+expect_file_contains "p2's patch rides along in the state-i fallback" \
+    "$T362/p3/src/a.c" "int alpha = 11"
+expect_file_contains "p3's patch stays in the state-i fallback" \
+    "$T362/p3/src/a.c" "int delta = 99"
+expect_file_not_contains "the state-i fallback leaves no markers" \
+    "$T362/p3/src/a.c" "<<<<<<<"
+if cmp -s "$T362/.p3.snapshot" "$T362/p2.projeny"; then
+    ok "the dirty state-i rebase re-froze .p3.snapshot with the live base bytes"
+else
+    fail "the dirty state-i rebase re-froze .p3.snapshot with the live base bytes" \
+         "cmp: $T362/.p3.snapshot vs $T362/p2.projeny"
+fi
+# The user accepts the converged content (the displaced WIP stays gone):
+# the resolution is bookkeeping only, and the commit regenerates the patch
+# against the moved base — which already carries the upstream state, so
+# the committed patch holds p3's own delta and NO WIP reversion.
+run_in "$T362" expect_ok "the state-i displacement conflict resolves" "$PROJENY" \
+    resolve p3.projeny src/a.c
+run_in "$T362" expect_ok "the state-i resolution commits" "$PROJENY" \
+    commit p3.projeny
+expect_file_not_contains "the state-i committed patch does not re-fold the displaced WIP" \
+    "$T362/p3.projeny" "+int beta = 42"
+expect_file_not_contains "the state-i committed patch does not revert the WIP either" \
+    "$T362/p3.projeny" "-int beta = 1"
+expect_file_contains "the state-i committed patch keeps p3's own delta" \
+    "$T362/p3.projeny" "+int delta = 99"
+expect_file_not_contains "the state-i committed patch does not re-fold p1's change" \
+    "$T362/p3.projeny" "+int gamma = 555"
+expect_file_not_contains "the state-i committed patch does not revert p1's change" \
+    "$T362/p3.projeny" "-int gamma = 1"
+out="$(cd "$T362" && "$PROJENY" status "$T362/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the state-i dirty round-trip is clean" \
+         "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the state-i dirty round-trip is clean"
+    else
+        fail "the status after the state-i dirty round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+out="$(cd "$T362" && "$PROJENY" setup p3.projeny 2>&1)"
+case "$out" in
+*"no local changes"*)
+    ok "the re-setup after the state-i dirty round-trip is a noop"
+    ;;
+*)
+    fail "the re-setup after the state-i dirty round-trip is a noop" \
+         "out: $out"
+    ;;
+esac
+
+# ------------------- 363. the conflicted-interim status prints the
+# recorded state with exit 0
+# Recovery 2 for a bricked checkout (erase-setup --force + setup) lands
+# conflict markers and records Conflict: entries. Until they are resolved,
+# the chain-moved guidance `status` used to die with was circular: its own
+# advice — rebase, commit — is refused while conflicts are unresolved. So
+# status now prints the recorded state (exactly like the classic
+# conflicted state: the Status:/Conflict: lines) plus a note that the live
+# diff is unavailable while the recorded patch does not apply onto the
+# frozen base chain, and exits 0. The contrast is pinned first: with NO
+# conflicts recorded, the same bricked state still dies with the guidance
+# (see 352). The resolve + commit round-trip still converges afterwards.
+T363="$ROOT/t363"
+make_tarballs "$T363" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T363/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: fake-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T363/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: fake-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T363/p3.projeny"
+run_in "$T363" expect_ok "the interim fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T363" expect_ok "the interim fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T363/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T363" expect_ok "p2 commits its edit" "$PROJENY" commit p2.projeny
+run_in "$T363" expect_ok "the interim fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T363/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 99;")
+open(p, "w").write(s)
+EOF
+run_in "$T363" expect_ok "p3 commits its edit" "$PROJENY" commit p3.projeny
+python3 - "$T363/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int delta = 1;", "int delta = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T363" expect_ok "p1 commits the same region" "$PROJENY" \
+    commit p1.projeny
+run_in "$T363" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+out="$(cd "$T363" && "$PROJENY" status "$T363/p3.projeny" 2>&1 || true)"
+case "$out" in
+*"cannot status '$T363/p3.projeny': the frozen base chain no longer reconstructs the recorded base"*)
+    ok "the bricked status still dies with the guidance when nothing is conflicted"
+    ;;
+*)
+    fail "the bricked status still dies with the guidance when nothing is conflicted" \
+         "out: $out"
+    ;;
+esac
+run_in "$T363" expect_ok "erase-setup --force clears the bricked checkout" \
+    "$PROJENY" erase-setup p3.projeny --force
+run_in "$T363" expect_fail "the fresh setup lands conflict markers" \
+    "$PROJENY" setup p3.projeny
+expect_file_contains "the conflicted setup records the conflict" \
+    "$T363/.p3.projeny.status" "Conflict: src/a.c"
+expect_file_contains "the conflicted checkout carries the marker lines" \
+    "$T363/p3/src/a.c" "<<<<<<<"
+out="$(cd "$T363" && "$PROJENY" status "$T363/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Conflict: src/a.c"*)
+    if [ $rc -eq 0 ]; then
+        ok "the conflicted-interim status prints the recorded state and exits 0"
+    else
+        fail "the conflicted-interim status prints the recorded state and exits 0" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+*)
+    fail "the conflicted-interim status prints the recorded state and exits 0" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: the live diff is unavailable while the recorded patch does not apply onto the frozen base chain; resolve the conflicts and commit"*)
+    ok "the conflicted-interim status carries the live-diff-unavailable note"
+    ;;
+*)
+    fail "the conflicted-interim status carries the live-diff-unavailable note" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"cannot status"*|*"Modified:"*|*"Untracked:"*)
+    fail "the conflicted-interim status prints no live diff and no guidance" \
+         "out: $out"
+    ;;
+*)
+    ok "the conflicted-interim status prints no live diff and no guidance"
+    ;;
+esac
+printf 'int alpha = 11;\n\nint beta = 1;\n\nint gamma = 1;\n\nint delta = 888;\n' \
+    > "$T363/p3/src/a.c"
+run_in "$T363" expect_ok "the interim conflict resolves" "$PROJENY" \
+    resolve p3.projeny src/a.c
+run_in "$T363" expect_ok "the interim resolution commits" "$PROJENY" \
+    commit p3.projeny
+expect_file_contains "the interim committed patch is diffed against the moved base" \
+    "$T363/p3.projeny" "-int delta = 555"
+expect_file_contains "the interim committed patch lands the resolution" \
+    "$T363/p3.projeny" "+int delta = 888"
+expect_file_not_contains "the interim committed patch carries no marker lines" \
+    "$T363/p3.projeny" "<<<<<<<"
+out="$(cd "$T363" && "$PROJENY" status "$T363/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the interim round-trip is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the interim round-trip is clean"
+    else
+        fail "the status after the interim round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 364. the moved-chain fallback converges OUTSIDE the
+# patch's hunk pre-images (the reviewer's repro A, end to end)
+# Regression test for the round-3 blocking bug: the old gap-preservation
+# splice reverted every changed range OUTSIDE the patch's hunk pre-images
+# to the workdir's bytes there — but in the moved-chain state those bytes
+# are usually the upstream move itself (outside the pre-images the merge's
+# inputs are base=old side=workdir, ours=new tree, theirs=workdir, so every
+# base->ours difference is the upstream delta, which the merge correctly
+# takes and the splice then reverted). Net effect: upstream moves outside
+# the pre-images were undone in the checkout and their reversal folded into
+# the regenerated committed patch via the resolve + commit flow, silently
+# and durably. Under the displacement policy the merged (moved-chain)
+# content STANDS outside the pre-images — symmetric with untouched files —
+# and the file is flagged (markerless) for the user to inspect; the
+# convergence matches what erase-setup --force + setup produces on the
+# identical state. The fixture: 30 `int varNN = 1;` lines (blank-separated,
+# so varNN sits at line 2N-1: var03 at 5, var29 at 57 — far outside the
+# var03 hunk's pre-image). p2 commits var03=11; p3 commits var03=22; p1
+# commits var29 1->555; rebase p2 (clean); rebase p3 (zero-arg) must exit 0
+# with the displacement flag on src/a.c, var29 CONVERGED at 555, var03's
+# delta intact, and NO var29 reversion hunk in the regenerated patch — then
+# resolve + commit converges (status clean, re-setup noop, the committed
+# patch carries p3's delta but not the reversion). The state-(ii) variant
+# follows: an upstream commit with one change INSIDE the pre-image (var10,
+# q3's removed line — the patch no longer applies onto the moved chain)
+# converges with one OUTSIDE it (var29, committed earlier): inside, markers
+# and the user's resolution as today; outside, the new content; the file is
+# flagged either way.
+T364="$ROOT/t364"
+mkdir -p "$T364"
+(
+    cd "$T364" || exit 1
+    mkdir -p var-1.0/src
+    python3 - "$T364/var-1.0/src/a.c" "$T364/var-1.0/README" <<'EOF'
+import sys
+lines = []
+for i in range(1, 31):
+    lines.append("int var%02d = 1;" % i)
+    lines.append("")
+open(sys.argv[1], "w").write("\n".join(lines))
+open(sys.argv[2], "w").write("hello v1\n")
+EOF
+    tar -czf var-1.0.tar.gz var-1.0 && rm -rf var-1.0
+)
+printf 'Archive: var-1.0.tar.gz\nOrigname: var-1.0\nName: p1\n\n    Link one.\n\n' \
+    > "$T364/p1.projeny"
+printf 'Projeny: p1.projeny\nOrigname: var-1.0\nName: p2\n\n    Link two.\n\n' \
+    > "$T364/p2.projeny"
+printf 'Projeny: p2.projeny\nOrigname: var-1.0\nName: p3\n\n    Link three.\n\n' \
+    > "$T364/p3.projeny"
+run_in "$T364" expect_ok "the repro-A fixture sets up p1" "$PROJENY" \
+    setup p1.projeny
+run_in "$T364" expect_ok "the repro-A fixture sets up p2" "$PROJENY" \
+    setup p2.projeny
+python3 - "$T364/p2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int var03 = 1;", "int var03 = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T364" expect_ok "p2 commits var03=11" "$PROJENY" commit p2.projeny
+run_in "$T364" expect_ok "the repro-A fixture sets up p3" "$PROJENY" \
+    setup p3.projeny
+python3 - "$T364/p3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int var03 = 11;", "int var03 = 22;")
+open(p, "w").write(s)
+EOF
+run_in "$T364" expect_ok "p3 commits var03=22" "$PROJENY" commit p3.projeny
+python3 - "$T364/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int var29 = 1;", "int var29 = 555;")
+open(p, "w").write(s)
+EOF
+run_in "$T364" expect_ok "p1 commits var29 1->555 far outside the pre-image" \
+    "$PROJENY" commit p1.projeny
+run_in "$T364" expect_ok "the middle-link rebase is clean" "$PROJENY" \
+    rebase p2.projeny
+out="$(cd "$T364" && "$PROJENY" rebase "$T364/p3.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the repro-A rebase exits 0"
+else
+    fail "the repro-A rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: the frozen base chain of '$T364/p3.projeny' no longer reconstructs the recorded base (an upstream Projeny: link was rebased); rebasing from the workdir as-is; files the patch does not touch take the new base's content (flagged as conflicts)"*)
+    ok "the repro-A rebase prints the workdir-as-is note"
+    ;;
+*)
+    fail "the repro-A rebase prints the workdir-as-is note" "out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: rebased onto 'p2.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the repro-A rebase flags the displaced file"
+    ;;
+*)
+    fail "the repro-A rebase flags the displaced file" "out: $out"
+    ;;
+esac
+expect_file_contains "the upstream move CONVERGED in the repro-A checkout" \
+    "$T364/p3/src/a.c" "int var29 = 555"
+expect_file_not_contains "the reverted upstream move is gone from the checkout" \
+    "$T364/p3/src/a.c" "int var29 = 1;"
+expect_file_contains "p3's delta stays intact in the repro-A checkout" \
+    "$T364/p3/src/a.c" "int var03 = 22"
+expect_file_not_contains "the regenerated patch carries no var29 reversion hunk" \
+    "$T364/p3.projeny" "-int var29 = 555"
+expect_file_not_contains "the regenerated patch carries no var29 restore hunk" \
+    "$T364/p3.projeny" "+int var29 = 1"
+expect_file_contains "the displacement flag is recorded in the status" \
+    "$T364/.p3.projeny.status" "Conflict: src/a.c"
+# The convergence the fallback produced must equal what erase-setup --force
+# + setup yields on the identical state: compare against a copy BEFORE the
+# round-trip below destroys the conflicted state.
+cp -a "$T364" "$ROOT/t364-erase"
+run_in "$ROOT/t364-erase" expect_ok "the identical state erases cleanly" \
+    "$PROJENY" erase-setup p3.projeny --force
+run_in "$ROOT/t364-erase" expect_ok "the fresh setup converges without conflicts" \
+    "$PROJENY" setup p3.projeny
+cmp -s "$ROOT/t364-erase/p3/src/a.c" "$T364/p3/src/a.c"
+if [ $? -eq 0 ]; then
+    ok "the fallback's content equals the erase-setup + setup recovery's"
+else
+    fail "the fallback's content equals the erase-setup + setup recovery's" \
+         "cmp: $ROOT/t364-erase/p3/src/a.c vs $T364/p3/src/a.c"
+fi
+# The usual resolve + commit round-trip: the checkout already holds the
+# converged content (no markers), so the resolution is bookkeeping only;
+# the commit regenerates the patch against the moved base — p3's delta
+# rides, the upstream move is the base's own content, and the old bug's
+# reversion hunks never appear.
+run_in "$T364" expect_ok "the displacement flag resolves" "$PROJENY" \
+    resolve p3.projeny src/a.c
+run_in "$T364" expect_ok "the repro-A resolution commits" "$PROJENY" \
+    commit p3.projeny
+expect_file_contains "the committed patch keeps p3's own delta" \
+    "$T364/p3.projeny" "-int var03 = 11"
+expect_file_contains "the committed patch lands p3's delta" \
+    "$T364/p3.projeny" "+int var03 = 22"
+expect_file_not_contains "the committed patch carries no var29 reversion" \
+    "$T364/p3.projeny" "-int var29 = 555"
+expect_file_not_contains "the committed patch carries no var29 restore" \
+    "$T364/p3.projeny" "+int var29 = 1"
+expect_file_not_contains "the committed patch carries no marker lines" \
+    "$T364/p3.projeny" "<<<<<<<"
+out="$(cd "$T364" && "$PROJENY" status "$T364/p3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the repro-A round-trip is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the repro-A round-trip is clean"
+    else
+        fail "the status after the repro-A round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+out="$(cd "$T364" && "$PROJENY" setup p3.projeny 2>&1)"
+case "$out" in
+*"no local changes"*)
+    ok "the re-setup after the repro-A round-trip is a noop"
+    ;;
+*)
+    fail "the re-setup after the repro-A round-trip is a noop" "out: $out"
+    ;;
+esac
+rm -rf "$ROOT/t364-erase"
+
+# The state-(ii) variant: an upstream commit with one change INSIDE the
+# hunk pre-image (var10 — q3's removed line, so the patch no longer applies
+# onto the moved chain and the expected-tree build fails) with the OUTSIDE
+# change (var29) already committed above. The fallback converges both:
+# inside the pre-image the three-way markers stand and the user's
+# resolution decides (as today); outside it the new content stands
+# (var29 = 555); the file is flagged.
+printf 'Projeny: p1.projeny\nOrigname: var-1.0\nName: q2\n\n    Link two.\n\n' \
+    > "$T364/q2.projeny"
+printf 'Projeny: q2.projeny\nOrigname: var-1.0\nName: q3\n\n    Link three.\n\n' \
+    > "$T364/q3.projeny"
+run_in "$T364" expect_ok "the state-ii variant sets up q2" "$PROJENY" \
+    setup q2.projeny
+python3 - "$T364/q2/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int var03 = 1;", "int var03 = 11;")
+open(p, "w").write(s)
+EOF
+run_in "$T364" expect_ok "q2 commits var03=11" "$PROJENY" commit q2.projeny
+run_in "$T364" expect_ok "the state-ii variant sets up q3" "$PROJENY" \
+    setup q3.projeny
+python3 - "$T364/q3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int var10 = 1;", "int var10 = 22;")
+open(p, "w").write(s)
+EOF
+run_in "$T364" expect_ok "q3 commits var10=22" "$PROJENY" commit q3.projeny
+python3 - "$T364/p1/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+# var29 = 555 is already p1's committed state from the repro-A part above;
+# this commit adds the INSIDE-pre-image change (var10, q3's removed line).
+s = open(p).read().replace("int var10 = 1;", "int var10 = 77;")
+open(p, "w").write(s)
+EOF
+run_in "$T364" expect_ok "p1 commits var10=77 inside q3's pre-image" \
+    "$PROJENY" commit p1.projeny
+run_in "$T364" expect_ok "the state-ii middle-link rebase is clean" "$PROJENY" \
+    rebase q2.projeny
+out="$(cd "$T364" && "$PROJENY" rebase "$T364/q3.projeny" 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the state-ii variant rebase exits 0"
+else
+    fail "the state-ii variant rebase exits 0" "exit=$rc out: $out"
+fi
+case "$out" in
+*"projeny: rebased onto 'q2.projeny' with 1 conflict(s):"*"  src/a.c"*)
+    ok "the state-ii variant flags the touched file"
+    ;;
+*)
+    fail "the state-ii variant flags the touched file" "out: $out"
+    ;;
+esac
+expect_file_contains "the state-ii inside region keeps both marker sides" \
+    "$T364/q3/src/a.c" "<<<<<<<"
+expect_file_contains "the state-ii inside region shows the upstream side" \
+    "$T364/q3/src/a.c" "int var10 = 77"
+expect_file_contains "the state-ii inside region shows the local side" \
+    "$T364/q3/src/a.c" "int var10 = 22"
+expect_file_contains "the state-ii outside region converges to the new content" \
+    "$T364/q3/src/a.c" "int var29 = 555"
+expect_file_not_contains "the state-ii outside region is not reverted" \
+    "$T364/q3/src/a.c" "int var29 = 1;"
+expect_file_not_contains "the state-ii regenerated patch carries no var29 hunks" \
+    "$T364/q3.projeny" "var29"
+# The user resolves the markers in favor of p3's own delta (var10 = 22) and
+# commits: the committed patch is diffed against the moved base (var10=77),
+# so it carries the delta and NOT any var29 reversion.
+python3 - "$T364/q3/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+out = []
+mode = 0  # 0 normal, 1 ours/base side, 2 theirs/local side
+for l in open(p).read().split("\n"):
+    if l.startswith("<<<<<<<"):
+        mode = 1
+        continue
+    if l.startswith("=======") and mode == 1:
+        mode = 2
+        continue
+    if l.startswith(">>>>>>>") and mode == 2:
+        mode = 0
+        continue
+    if mode in (0, 2):
+        out.append(l)
+s = "\n".join(out)
+s = s.replace("int var10 = 77;", "int var10 = 22;")
+open(p, "w").write(s)
+EOF
+run_in "$T364" expect_ok "the state-ii conflict resolves" "$PROJENY" \
+    resolve q3.projeny src/a.c
+run_in "$T364" expect_ok "the state-ii resolution commits" "$PROJENY" \
+    commit q3.projeny
+expect_file_contains "the state-ii committed patch is diffed against the moved base" \
+    "$T364/q3.projeny" "-int var10 = 77"
+expect_file_contains "the state-ii committed patch lands p3's delta" \
+    "$T364/q3.projeny" "+int var10 = 22"
+expect_file_not_contains "the state-ii committed patch carries no var29 reversion" \
+    "$T364/q3.projeny" "-int var29 = 555"
+expect_file_not_contains "the state-ii committed patch carries no var29 restore" \
+    "$T364/q3.projeny" "+int var29 = 1"
+expect_file_not_contains "the state-ii committed patch carries no marker lines" \
+    "$T364/q3.projeny" "<<<<<<<"
+out="$(cd "$T364" && "$PROJENY" status "$T364/q3.projeny" 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the state-ii round-trip is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the state-ii round-trip is clean"
+    else
+        fail "the status after the state-ii round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
 
 # ------------------------------------------------------------- summary
 echo "---"

@@ -13,6 +13,13 @@ Instead, git tracks two small files per project:
 - the release tarball (e.g. `lua-5.4.7.tar.bz2`), and
 - a `.projeny` file naming that tarball plus a git-style patch.
 
+The `.projeny` file names its base one of three ways: a checked-in
+tarball (`Archive:`), a network fetch (`URL:` lines), or — for a
+project layered on top of another projeny-managed project — another
+`.projeny` file (`Projeny:`), whose committed extraction is the base
+(see [`.projeny` format](#projeny-format) and
+[Projeny-based projects](#projeny-based-projects)).
+
 The unpacked work tree (`lua/`) and the dot-prefixed
 `.lua.projeny.status` bookkeeping file are never tracked by git (see
 [File naming and migration](#file-naming-and-migration) below).
@@ -36,12 +43,12 @@ are lexically normalized first, so from inside the work tree `.` names
 the project and, from a work tree subdirectory, `..` does too; an
 argument that exists on disk is resolved physically (symlinks and all),
 so `sym/..` through a symlinked intermediate names the directory the
-symlink really leads to. The
-tarball is
-looked up next to the `.projeny` file — or, for a URL:-based project,
-downloaded and verified (see the `.projeny` format section below) — and
-the work tree is created next
-to it as well (named by the `Name:` header).
+symlink really leads to. The tarball is looked up next to the
+`.projeny` file — or, for a URL:-based project, downloaded and verified
+(see the `.projeny` format section below), or, for a Projeny:-based
+project, replaced by another `.projeny` file's committed extraction (see
+[Projeny-based projects](#projeny-based-projects)) — and the work tree
+is created next to it as well (named by the `Name:` header).
 
 ```
 projeny setup <f.projeny|dir> [...]         unpack archive(s), apply patch(es), in parallel
@@ -50,8 +57,11 @@ projeny add <f.projeny|dir> <path>          mark a file as added
 projeny rm <f.projeny|dir> <path>           delete a file, mark as removed
 projeny mv <f.projeny|dir> <src> <dst>      rename a file, mark as renamed
 projeny resolve <f.projeny|dir> <path>      clear a conflict entry
+projeny rebase <f.projeny|dir>              re-extract a Projeny:-based project's committed base
+projeny rebase <f.projeny|dir> <base.projeny>      ...or switch to a different .projeny base file
 projeny rebase <f.projeny|dir> <tarball>    point the project at a new tarball
 projeny rebase <f.projeny|dir> <url> [<hash>]...   ...or at new URL: header(s)
+projeny create <f.projeny> <base.projeny>   make a new .projeny file based on another one
 projeny create <f.projeny> <tarball>        make a new .projeny file and set it up
 projeny create <f.projeny> <url> [<hash>]...   ...or from new URL: header(s)
 projeny status <f.projeny|dir>              show setup/conflict/pending state
@@ -105,13 +115,49 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   leaves conflicts still finishes (workdir, `.projeny` file, and status are
   all updated) but exits 1, so scripts under `set -e` stop instead of
   building from a conflicted tree; fix the files, `resolve` each one, and
-  `commit`. The reporting is honest about whether a merge happened: a
+  `commit`. That conflicted landing is not limited to setups with a status
+  file to merge against: a fresh setup of a
+  [Projeny:-based project](#projeny-based-projects) whose patch conflicts
+  with its base chain's committed extraction (the chain may have moved
+  under it — see
+  [Chains and rebasing an upstream link](#chains-and-rebasing-an-upstream-link))
+  lands the same way instead of dying: the patch is applied with inline
+  `<<<<<<< current` / `>>>>>>> patched` markers, the conflicts are
+  recorded in the status file, and the run reports `projeny: set up
+  '<workdir>' from '<base>' with N conflict(s):` — spelled `...(into
+  existing directory) with N conflict(s):` when an existing directory was
+  adopted — followed by `projeny: setup left conflicts (exit 1)` and the
+  usual fix-the-files, `resolve`-each-one, `commit` instruction. Classic
+  `Archive:` and
+  URL: setups keep the hard die on an unapplicable patch (`cannot apply
+  patch in '<f>' (archive '<a>'): patch does not apply cleanly`). The
+  reporting is honest about whether a merge happened: a
   checkout with no local changes re-sets up fresh ("no local changes"),
   untracked files (never `projeny add`ed) merely ride along into the new
   tree ("no local changes; kept N untracked file(s)"), and a real merge
   prints one line per file — `merged:`, `added:`, `deleted:`, or
   `renamed:` — plus a `conflict:` line for every file left conflicted
   (exactly the status file's `Conflict:` entries).
+
+  A [Projeny:-based project](#projeny-based-projects) runs every flow
+  above unchanged — fresh setup, re-setup, the three-way merge of local
+  changes, conflicted-setup journal recovery, untracked carry-along —
+  except that its base is the frozen base file's committed extraction,
+  and the progress lines say `from '<base file>'` (the `Projeny:` value)
+  where an archive name would appear. A circular `Projeny:` chain and an
+  `Origname:` that does not match the base extraction's top-level
+  directory are hard errors, and a setup whose base file and its frozen
+  snapshot are both missing dies with recovery guidance naming both
+  files (all quoted in
+  [Projeny-based projects](#projeny-based-projects)). When the frozen
+  base chain no longer reconstructs the recorded base and the patch no
+  longer applies onto the moved content — the aftermath of an upstream
+  link being rebased — the read-only consumers of the checkout die with
+  per-command recovery guidance (`status` while nothing is conflicted;
+  once the recovery lands conflict markers, `status` prints the recorded
+  state and exits 0 instead) while `rebase` recovers from the workdir
+  as-is (all quoted in
+  [Chains and rebasing an upstream link](#chains-and-rebasing-an-upstream-link)).
 - `commit`: requires the `.projeny` file to match the status copy exactly
   (else hard error: run `setup` to merge first) and refuses when conflicts
   are pending. Otherwise it diffs the workdir against the base archive and
@@ -129,34 +175,106 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   (`<<<<<<<`, `=======`, `>>>>>>>`, `|||||||`), projeny prints a warning to
   stderr but still resolves (warn, don't error), since committing markers
   would bake them into the patch.
-- `rebase <new-archive-args>`: requires a clean tree (workdir matches the
-  current patch) and no pending conflicts. If never set up, it runs
-  `setup` first. It applies the current patch onto the new base, rewrites
-  the archive-location headers, regenerates the patch, and moves the
+- `rebase`: requires a clean tree (workdir matches the current patch)
+  and no pending conflicts. If never set up, it runs `setup` first. The
+  classic clean-tree law still governs every form of an `Archive:`- or
+  `URL:`-based project — their base bytes are frozen (the archive is
+  checked in, the URL snapshot is hash-pinned), so any mismatch is
+  uncommitted work (`workdir '<path>' has uncommitted changes; commit or
+  revert before rebasing`). A
+  [Projeny:-based project](#projeny-based-projects) decides by its
+  frozen chain instead, in every form (the zero-arg and base-switch
+  forms, and the conversions off the mode): when the chain's expected
+  tree no longer builds (its patch no longer applies onto the moved
+  content — an upstream link was rebased), or when the tree builds but
+  the recorded base has moved under the files the patch touches, the
+  rebase proceeds from the workdir as-is: the workdir is reverse-patched
+  into the old merge base, serves as the local side of the three-way
+  merges, and the merged output stands everywhere — inside the hunk
+  pre-images it is trusted (the reverse's success proves the workdir
+  matched base+patch exactly there), outside them the moved chain's
+  content wins, with every file it displaced or replaced flagged in
+  `Conflict:` (the decision tree and the per-file classes are enumerated
+  in [Chains and rebasing an upstream link](#chains-and-rebasing-an-upstream-link)).
+  When the tree builds and every touched file matches it — the mismatch
+  lies entirely outside the patch's file set — the Projeny:-based forms
+  refuse with the decision tree's residual message (quoted in the same
+  section).
+  It applies the current patch onto the new base, rewrites
+  the archive-location headers (the zero-arg Projeny form changes no base
+  header — it re-extracts the base the `Projeny:` header already names),
+  regenerates the patch, and moves the
   result into place; conflicts leave markers and are recorded in status.
   Pending add/rm/mv operations are preserved across the rebase (they are
   workdir-relative intent, still valid against the new base), matching how
-  `setup` merges keep them. The new-archive arguments take one of two
+  `setup` merges keep them. The new-archive arguments take one of several
   forms, decided by the FIRST argument: whether it is a URL is decided by
   asking libcurl's URL parser (the `curl_url` API — the same parser that
   would fetch it), so plain filenames, including `./x.tar.gz`, are never
   mistaken for URLs while `http://`/`https://`/`ftp://`/`ftps://`/`file://`
-  arguments are.
+  arguments are; a name ending in `.projeny` starts the Projeny-base form,
+  and an EMPTY argument list is the zero-arg form (valid only for a
+  Projeny:-based project — see
+  [Projeny-based projects](#projeny-based-projects)).
 
+  - `rebase <f>` (no further argument) re-extracts a Projeny:-based
+    project's committed base: what the file the `Projeny:` header names
+    holds NOW — its own committed extraction — not the frozen snapshot
+    the last setup froze. This is how committed changes to the base file
+    flow into the project (see
+    [Projeny-based projects](#projeny-based-projects)): commit changes
+    in `foo.projeny`, then `projeny rebase projects/bar.projeny` moves
+    bar's patch on top. The standard rebase mechanics apply (per-file
+    three-way merge, `Origname:` refreshed from the base's own parse,
+    conflicts leave markers and the
+    `projeny: rebased onto '<x>' with N conflict(s):` report), and the
+    frozen `.<stem>.snapshot` is OVERWRITTEN with the base file's current
+    bytes. A clean tree takes the normal path. The clean-tree
+    requirement is waived when the frozen base chain no longer
+    reconstructs the recorded base: when the chain's expected tree no
+    longer builds (the patch no longer applies onto the moved content)
+    or the recorded base has moved under the files the patch touches,
+    that state rebases from the workdir as-is instead; a mismatch that
+    lies outside the patch's file set refuses with the residual message
+    (both quoted in
+    [Chains and rebasing an upstream link](#chains-and-rebasing-an-upstream-link)).
+    Any other project refuses the form (`cannot rebase '<f>'
+    without a new base argument: it is not a Projeny-based project (pass
+    a tarball path or URL(s), or, for a Projeny-based project, no
+    argument at all to re-extract its committed base)`), and a missing
+    live base file dies (`base file '<path>' does not exist; it is
+    needed to rebase '<f>'`).
+  - `rebase <f> <base.projeny>` (one `.projeny` argument) points the
+    project at another `.projeny` file's committed extraction — a base
+    switch for a Projeny:-based project, a conversion to the
+    Projeny:-based form for an `Archive:`-based one: the base must live
+    in the SAME directory as `<f>`, must exist and parse, and must not
+    close a cycle in the `Projeny:` chain (the live chain is pre-checked
+    before anything is touched). The `Projeny:` header is rewritten,
+    `Origname:` comes from the new base's own parse, the patch moves
+    onto the new base's committed extraction, and the frozen snapshot is
+    overwritten with the new base's bytes. A URL:-based project refuses
+    this form like it refuses a tarball path.
   - `rebase <f> <new-tarball>` (one local tarball path) keeps the project
     Archive:-based: the tarball is copied next to the `.projeny` file and
     `Archive:`/`Origname:` are rewritten. If the new tarball's basename
     equals the current `Archive:` but its content differs (size/hash
     compare), projeny warns to stderr and proceeds with the new file — it
     never silently keeps the old bytes. A URL:-based project refuses this
-    form (it has no checked-in tarball); rebase it with URLs instead.
+    form (it has no checked-in tarball); rebase it with URLs instead. A
+    Projeny:-based project converts to Archive:-based: the `Projeny:`
+    header is replaced by the new `Archive:` line, and the old
+    `.<stem>.snapshot` lingers as a stale file (stale snapshots are never
+    auto-cleaned).
   - `rebase <f> <url> [<hash>] [<url> [<hash>]...]` (one or more URLs,
     each optionally followed by its blake3 hash — 64 hex chars, uppercase
     accepted, the value `projeny hash <file>` prints) rebases onto those
     URLs, which become the file's `URL:` headers, tried in order by later
-    setups. An Archive:-based project converts to URL:-based (the
-    `Archive:` header is replaced; remove the old checked-in tarball from
-    git by hand), and a URL:-based project accepts only this form. Every
+    setups. An Archive:- or Projeny:-based project converts to URL:-based
+    (the `Archive:`/`Projeny:` header is replaced; remove the old
+    checked-in tarball from git by hand, and a converted Projeny:-based
+    project's old `.<stem>.snapshot` lingers as a stale file), and a
+    URL:-based project accepts only this form. Every
     listed URL is downloaded and verified during the rebase (each distinct
     URL once, in order): an omitted hash is computed from the download and
     reported (`projeny: computed blake3 hash <hash> for '<url>'`); a
@@ -169,12 +287,14 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
     file, snapshot, and workdir are all untouched. The first verified
     download's bytes are written to the snapshot — named after the FIRST
     URL's basename, matching what the `.projeny` parse derives — and are
-    the base the patch applies onto; the rest of the rebase flow (clean
-    tree, conflicts leave markers, `resolve` + `commit`) is unchanged.
+    the base the patch applies onto; the rest of the rebase flow (the
+    clean-tree rules above, conflicts leave markers, `resolve` +
+    `commit`) is unchanged.
 
-- `create <f.projeny> <new-archive-args> [--comment <text>] [--origname
+- `create <f.projeny> <new-base-args> [--comment <text>] [--origname
   <name>] [--force] [--erase-snapshots]`: creates a brand-new `.projeny`
-  file naming an archive, then runs `setup` on it — a new project is one
+  file naming an archive (or basing itself on another `.projeny` file),
+  then runs `setup` on it — a new project is one
   command away from a checked-out, patched work tree with a fresh status
   file. Options may appear anywhere among the arguments. The first
   argument is the `.projeny` file to create: it must end in `.projeny`
@@ -182,10 +302,25 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
   directory that would hold it (the pdir) must exist. Its name — the
   basename minus `.projeny` — is the default `Name:` header, so the
   checkout directory defaults to `<pdir>/<name>` next to the new file.
-  The remaining arguments name the archive with exactly `rebase`'s
+  The remaining arguments name the base with exactly `rebase`'s
   grammar, decided by the FIRST argument (libcurl's URL parser decides
-  what a URL is; see the rebase bullet above):
+  what a URL is; a name ending in `.projeny` starts the Projeny-base
+  form; see the rebase bullet above):
 
+  - `create <f> <base.projeny>` bases the new file on another
+    `.projeny` file's committed extraction: the file gets a `Projeny:`
+    header naming the base — a plain filename, so the base must live in
+    the same directory as the new file — and `Origname:` comes from the
+    base's own parse. Extra arguments after the `.projeny` file die
+    (`create takes exactly one .projeny base file (no hash pairs);
+    '<extra>' is extra`), `--origname` must equal the base's
+    `Origname:` (the create refuses otherwise: `the base file '<p>'
+    extracts to '<o>', not '<g>' (setup requires Origname: to match the
+    base file's extraction)`), and a base whose live chain would close
+    a cycle through the new file is refused before anything is written.
+    The created-line reports `base '<foo.projeny>'` for this form, and
+    the setup it runs freezes the base file's current bytes as the new
+    project's `.<stem>.snapshot`.
   - `create <f> <new-tarball>` gives the file an `Archive:` header and
     copies the tarball next to it — rebase's exact behavior, including
     the warn-and-use-the-new-file rule when the copy's basename matches
@@ -202,15 +337,19 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
     named after the FIRST URL's basename — the same derivation the
     `.projeny` parse applies — so the setup below downloads nothing.
 
-  Headers are composed in the conventional order: the `Archive:`/`URL:`
-  lines, then `Origname:`, then `Name:`, followed by the prose.
+  Headers are composed in the conventional order: the `Projeny:`/
+  `Archive:`/`URL:` lines, then `Origname:`, then `Name:`, followed by
+  the prose.
   `Origname:` is inferred from the archive itself: its single top-level
-  directory (an archive holding several is a hard error). `--origname
+  directory (an archive holding several is a hard error) — or, for the
+  `.projeny` form, taken from the base file's own `Origname:`.
+  `--origname
   <name>` names the checkout directory instead: the created file gets
   BOTH `Name: <name>` AND `Origname: <name>` — the workdir is always
   named by `Name:`, so the checkout directory becomes `<pdir>/<name>`
   while the `.projeny` file stays `<f.projeny>` — and `<name>` must
-  match the archive's top directory (the create refuses before anything
+  match the archive's top directory, or the base file's extraction for
+  the `.projeny` form (the create refuses before anything
   is written otherwise). `--comment <text>` stores `<text>` as the
   file's free-text prose, indented like every tool-written `.projeny`
   file's comments; repeating the option keeps only the last text.
@@ -248,7 +387,9 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
 
 - `diff <f.projeny|dir>`: prints the checkout's uncommitted change to stdout —
   the diff of the workdir against what a *fresh* `setup` of the current
-  `.projeny` file would check out (tarball plus current patch). For
+  `.projeny` file would check out (tarball plus current patch; the frozen
+  base extraction plus current patch for a
+  [Projeny:-based project](#projeny-based-projects)). For
   ordinary edits this is also the patch `commit` would store; the two
   differ only when a pending `mv` renames a file that the last commit
   itself added or renamed (commit re-derives the rename from the tarball's
@@ -351,7 +492,9 @@ Paths into the work tree may be CWD-relative, absolute, or workdir-relative
 - `package <f.projeny|dir> <output-tarball>`: runs `setup` (so uncommitted
   workdir changes are included, and conflicts fail the command with a
   nonzero exit and no archive), then tars up exactly the tracked files —
-  base archive plus patch plus pending add/rm/mv ops, minus untracked
+  base (the archive, or a
+  [Projeny:-based project](#projeny-based-projects)'s frozen base
+  extraction) plus patch plus pending add/rm/mv ops, minus untracked
   files — like `git archive` / `package-source.sh`. The first argument may
   be the `.projeny` file or a directory holding (or, as `<dir>.projeny`
   for a `<dir>` workdir, naming) exactly one of them, or a path whose
@@ -436,7 +579,11 @@ tarball wants:
   the header in the regenerated patch and refresh the stored values from
   the archive (after a rebase: the *new* archive's members), so the
   invariant holds that a frozen value is always the archive's member
-  mtime for that file. Every setup that can parse the `.projeny` file
+  mtime for that file (for a
+  [Projeny:-based project](#projeny-based-projects) the member-mtime
+  source is the frozen base extraction — the extraction's own file
+  mtimes, so a file the base's own committed patch rewrote carries that
+  application's timestamp). Every setup that can parse the `.projeny` file
   stamps frozen files — including setups that end in conflicts — so a
   frozen file keeps the archive's mtime even when its content ends up
   with conflict markers. Only a `.projeny` file that itself contains git
@@ -533,10 +680,17 @@ hand-written prose must indent every non-empty line with a leading space.
 `setup` force-takes the upstream side for the `.projeny` file
 and status copy, merges the local-side patch into the workdir
 with conflicts marked (three-way against the shared base archive when
-both sides name the same tarball), and re-applies any uncommitted
+both sides name the same tarball — or the shared base file's committed
+extraction, when two Projeny:-based sides name the same base file), and
+re-applies any uncommitted
 workdir-vs-status changes on top; the final report lists each merged
 file (`merged:`/`added:`/`deleted:`/`renamed:` plus `conflict:` lines),
-or says there was nothing to merge when the local side is empty. Which
+or says there was nothing to merge when the local side is empty. When
+the frozen base chain of a Projeny:-based side no longer reconstructs
+the recorded base, that reconstruction dies with the chain-moved
+guidance of
+[Chains and rebasing an upstream link](#chains-and-rebasing-an-upstream-link).
+Which
 side is upstream is auto-detected:
 `git merge` keeps ours=local, while `git pull --rebase`/`rebase` and
 `stash pop` swap the sides (`<<<<<<< HEAD` holds upstream there) —
@@ -588,12 +742,53 @@ verified download reports `blake3 hash verified` and the snapshot it
 wrote; a mismatched one warns and falls through to the next URL. The
 archive name (and the snapshot's name) is derived from the URL's basename
 (after stripping any scheme, `?query`, and `#fragment`), so
-the URL must name the tarball file itself. `Archive:` and `URL:` headers
-are mutually exclusive; see "Archive snapshots" below for how the download
+the URL must name the tarball file itself. `Archive:`, `URL:`, and
+`Projeny:` headers are mutually exclusive (each pairing dies with its own
+message — the two `Projeny:` pairings are quoted below); see "Archive
+snapshots" below for how the download
 is cached and verified.
 
-Headers (`Origname:`, `Name:` — required, plus exactly one of `Archive:`
-or at least one `URL:` line; extra headers are
+Instead of an `Archive:` or `URL:` header, a `.projeny` file may base
+itself on ANOTHER `.projeny` file with a `Projeny:` header — the third
+base mode, for a project layered on top of another projeny-managed
+project:
+
+```
+Projeny: foo.projeny
+Origname: foo-1.2
+Name: bar
+```
+
+The `Projeny:` value is a plain filename (no `/`, not `.` or `..`;
+anything else dies with `file '<p>': Projeny: must be a plain filename`),
+resolved in the SAME directory as the referencing file — the same search
+law the `Archive:` tarball follows — so a base always lives next to the
+file that names it. Exactly one of `Archive:`, at least one `URL:` line,
+or a `Projeny:` line may appear: mixing `Projeny:` with `Archive:` dies
+(`file '<p>' has both Archive: and Projeny: headers; they are mutually
+exclusive (either check the tarball into git next to the .projeny file
+and name it with Archive:, or base the project on another .projeny file
+with Projeny:)`), and mixing it with `URL:` dies (`file '<p>' has both
+URL: and Projeny: headers; they are mutually exclusive (either fetch the
+tarball with one or more URL: lines, or base the project on another
+.projeny file with Projeny:)`). A file with none of the three dies with
+`file '<p>' is missing a required header (need Archive:, at least one
+URL: line, or a Projeny: line, plus Origname: and Name:)`. A `Projeny:`
+line with an empty value is refused in its own right (`file '<p>': empty
+Projeny: value (name the base .projeny file after 'Projeny:')`), ahead of
+the exclusivity and required-header checks — with `Archive:` or `URL:`
+headers present it would otherwise pass as that mode, and without them it
+would die as the vague missing-required-header above. `setup` reports the
+same reason wrapped in its own refusal — the file, the reason above
+spelled `has an empty Projeny: value`, and its usual note about not
+touching the workdir or status file — while every other command's parse
+dies with the bare form. What the base
+contributes — the committed extraction, the frozen snapshot, chains, and
+the rebase workflow — is described in
+[Projeny-based projects](#projeny-based-projects).
+
+Headers (`Origname:`, `Name:` — required, plus exactly one of `Archive:`,
+at least one `URL:` line, or a `Projeny:` line; extra headers are
 preserved verbatim) end at the first blank line. Everything up to the first
 `diff --git` line is free text. Every non-empty free-text line starts with
 a space or tab (projeny prepends a single space on write when one is
@@ -687,6 +882,466 @@ hash with `projeny hash <file>`) and running `setup` works too. A tarball
 path argument, on the other hand, is refused for a URL:-based project: it
 has no checked-in tarball to rebase onto.
 
+### The frozen base snapshot of a Projeny:-based project
+
+A [Projeny:-based project](#projeny-based-projects) keeps its base in a
+snapshot too, but the name follows the REFERENCING file, not an archive:
+`bar.projeny` keeps `.bar.snapshot` (dot + the file's basename minus
+`.projeny` + `.snapshot`) next to `bar.projeny`, holding the byte-exact
+bytes of its base file as-of when bar adopted it. The snapshot never
+tracks the base file: every `setup`, `commit`, `status`, `diff`,
+`package`, and `extract` of bar goes through it, so the checkout keeps
+using the recorded base even after the base file gains committed changes
+— or after the base file is deleted from git, when the frozen snapshot is
+the only copy of the base left, exactly like an archive snapshot after
+the tarball was `git rm`'d (when BOTH the live base file and the snapshot
+are missing, setup dies with recovery guidance naming both files). It is
+re-frozen (overwritten) only by the lost-snapshot fallback — any first
+use while the snapshot is missing freezes the live base file's current
+bytes into it, mirroring the classic archive-snapshot fallback — by a
+`rebase` in either of its Projeny forms (the zero-argument
+re-extract and the base switch), or by a setup that adopts a hand-edited
+`Projeny:` header — one naming a different base file than the status
+records, or one whose status records a base of ANOTHER mode entirely (a
+hand-conversion back into the form; see
+[Adoption: hand-editing the Projeny: header](#adoption-hand-editing-the-projeny-header)).
+Every status-file write ensures the snapshot exists (created from the
+live base file when missing) but never overwrites it.
+`erase-setup --erase-snapshots` deletes exactly that snapshot file — this
+mode has no legacy undotted snapshot form — and a workdir-gone setup
+stales it like any other snapshot bookkeeping (see
+[File naming and migration](#file-naming-and-migration), which also
+covers the naming overlap with a classic project's archive snapshot when
+a checked-in tarball is named exactly like this `.projeny` file's stem).
+
+## Projeny-based projects
+
+A `.projeny` file with a `Projeny:` header (see
+[`.projeny` format](#projeny-format)) is based on the COMMITTED
+EXTRACTION of another `.projeny` file in the same directory: unpack the
+base file's archive (snapshot-preferred, exactly like every archive
+read) and apply the base file's committed patch. The base file's own
+workdir — its unpacked checkout with any uncommitted changes — is
+ignored everywhere; "committed" means what a `projeny commit` of the
+base project folded into the base `.projeny` file, and git is never
+consulted. Chains compose: a Projeny:-based base is itself extracted
+through its own chain, each link resolving ITS base through its OWN
+frozen snapshot (see
+[The frozen base snapshot of a Projeny:-based project](#the-frozen-base-snapshot-of-a-projeny-based-project)),
+so chains may be arbitrarily long. A chain that closes on itself — a
+self-loop (`Projeny: <this file>`) or any longer cycle — is a hard error
+everywhere a chain is materialized, naming the whole walk
+(`the Projeny: base chain is circular: '<a>' -> '<b>' -> '<a>'; Projeny:
+chains must not contain cycles`), and `create`/`rebase` pre-check the
+LIVE chain — each link's `Projeny:` header read from its live bytes —
+seeded with the target file itself, before touching anything.
+
+### Worked example
+
+Say `projects/foo.projeny` is an ordinary `Archive:`- or URL:-based
+project (`Origname: foo-1.2`), and `projects/bar.projeny` names it:
+
+```
+Projeny: foo.projeny
+Origname: foo-1.2
+Name: bar
+```
+
+`projeny setup projects/bar.projeny` extracts foo's committed content
+(foo's tarball plus foo's committed patch — the top-level directory
+stays `foo-1.2`), applies bar's own patch on top, checks the result out
+as the workdir named by `Name:` (`projects/bar/`), and freezes
+foo.projeny's current bytes into `.bar.snapshot` on the way. bar's
+`Origname:` must equal the base extraction's top-level directory — the
+base file's own `Origname:`; a mismatch is a hard error wherever the
+tree is built (`file '<path>': Origname: is '<orig>' but the base
+extraction's top-level directory is '<actual>'; fix the Origname: header
+or rebase`). Organically `create` and `rebase` keep the header synced
+with the base extraction, so this only fires for a hand-edited file
+(and `rebase` self-heals it, refreshing `Origname:` from the new base).
+
+From here bar is a fully ordinary project, and every setup flow works
+unchanged — fresh setup, re-setup, the three-way merge of local changes,
+conflicted-setup journal recovery, untracked carry-along (see
+[Usage](#usage)) — except that the base is the frozen base extraction,
+and the progress lines say `from 'foo.projeny'` where an archive name
+would appear. `commit` diffs the workdir against the frozen base's FULL
+extraction (the base's committed patch is part of the base, since bar's
+patch sits on top of it); all other commit laws are unchanged.
+`status`/`diff`/`package`/`extract` build their expected trees from the
+frozen extraction, with `package`/`extract` running `setup` first as
+usual — so they include bar's uncommitted changes but NOT foo's.
+`freeze-mtime` takes its frozen-mtime values from the frozen base
+extraction's file mtimes (a file the base's own committed patch rewrote
+carries that application's timestamp, exactly as `commit`'s refresh
+sees it), and
+`get-attributes`/`apply`/`unfreeze-mtime`/`list-frozen-mtimes` work
+unchanged.
+
+### Adoption: hand-editing the Projeny: header
+
+Editing bar's `Projeny:` header by hand to name a DIFFERENT base file
+than the status-embedded copy names is adopted by the next `setup`: the
+newly named base file's live bytes OVERWRITE the frozen snapshot and
+become the base the fresh tree builds from (the reconstruction of what
+the last setup used still sees the snapshot's old bytes, so bar's local
+changes merge onto the new base). The same adoption fires when the
+status-embedded copy is not Projeny:-based at all — the file was
+converted away from the form (`rebase <f> <tarball>` or a URL rebase,
+which leaves the old `.<stem>.snapshot` lingering; see
+[Mode conversions](#mode-conversions)) and the header was then
+hand-edited back to `Projeny: <other>.projeny`: without the adoption the
+lingering pre-conversion snapshot would silently supply a stale base
+while the header names a different one; with it, the checkout is rebuilt
+from the newly named base's committed extraction and the stale snapshot
+is overwritten with the new base's live bytes — replaced, not used. The
+newly named base must exist
+(`base file '<path>' does not exist; it is needed to <what>`), and
+nothing is adopted without a status file: no status means no recorded
+base to differ from, and the frozen-or-first-freeze law governs (see
+[The frozen base snapshot of a Projeny:-based project](#the-frozen-base-snapshot-of-a-projeny-based-project)).
+
+### Rebasing onto the base's committed changes
+
+The point of the mode: committed changes to foo flow into bar on
+demand, without bar's patch ever being touched by hand. Edit foo's
+checkout, then run `projeny commit projects/foo.projeny` — foo.projeny's
+patch now holds the change, but bar's checkout still sits on the frozen
+base. Then run the zero-argument form of rebase:
+
+```
+projeny rebase projects/bar.projeny
+```
+
+This re-extracts the LIVE committed base — what foo.projeny holds NOW,
+not the frozen snapshot — and moves bar's patch onto it with the
+standard per-file three-way merge: a clean rebase reports
+`projeny: rebased onto 'foo.projeny'`, a conflicting one exits 0 with
+inline markers and `projeny: rebased onto 'foo.projeny' with N
+conflict(s):` (fix the files, `resolve` each one, `commit`, as always).
+`Origname:` is refreshed when the base's own differs, `.bar.snapshot`
+is OVERWRITTEN with foo.projeny's current bytes, and the status embedded
+copy is updated. The tree must be clean, as rebase always requires — the
+exceptions being the moved-chain fallbacks described in
+[Chains and rebasing an upstream link](#chains-and-rebasing-an-upstream-link),
+where the frozen base chain no longer reconstructs the recorded base —
+whether because its expected tree no longer builds or because the
+recorded base moved under the patch's touched files — and the rebase
+proceeds from the workdir as-is, converging onto the moved chain
+conflict-free only when the upstream move stays inside the patch's hunk
+pre-images (flagged otherwise), while a mismatch that lies outside the
+patch's file set refuses with the decision tree's residual message. The
+frozen snapshot cannot serve this form — picking up what the base file
+holds now is its whole point — so a missing live base file dies
+(`base file '<path>' does not exist; it is needed to rebase '<f>'`), and
+every non-Projeny project refuses the form outright (`cannot rebase
+'<f>' without a new base argument: it is not a Projeny-based project
+(pass a tarball path or URL(s), or, for a Projeny-based project, no
+argument at all to re-extract its committed base)`).
+
+### Chains and rebasing an upstream link
+
+Every link of a chain resolves its base through ITS OWN frozen snapshot
+(see
+[The frozen base snapshot of a Projeny:-based project](#the-frozen-base-snapshot-of-a-projeny-based-project)),
+so a chain's committed extraction composes link by link and chains may be
+arbitrarily long. That composition has a consequence for rebasing an
+UPSTREAM link: re-freezing that link's `.<stem>.snapshot` (the
+zero-argument rebase, a base switch, or an adoption setup — anything that
+overwrites a link's frozen base) changes what the frozen bytes of every
+DOWNSTREAM project extract to, while its workdir still holds the old
+upstream state. A downstream project then sits in one of two states,
+decided by whether its committed patch still applies onto the moved
+extraction.
+
+When the patch still applies (the moved regions do not collide with it),
+the expected tree builds — it has simply moved: `projeny status` reports
+the upstream deltas as `Modified:` entries, a dirty state that is not the
+user's own work. Committing in this state folds the spurious deltas into
+the downstream patch — permanently reverting the upstream change for this
+project — so do not; a merge-path `setup` is no safer, because it takes
+the workdir's divergence from the moved tree as the local side of its
+merge and carries it into the tree as if it were ordinary uncommitted
+work, which the next commit then folds in. Zero-argument `rebase` (and
+the base-switch form) no longer refuses this state wholesale: it
+classifies the workdir's mismatch from the moved tree first, building the
+fallback candidate old side — a copy of the workdir with the embedded
+patch strictly reverse-applied, the exact construction the workdir-as-is
+fallback below uses — and comparing it against the frozen chain's
+patch-free extraction restricted to the files the embedded patch touches
+(presence, type, mode, and content count). If ANY touched file differs —
+because the recorded base moved there, or because the workdir carries
+uncommitted edits there outside the hunk pre-images (the reversed old
+side then differs from the base even though the base never moved) — the
+base the patch was diffed against is no longer intact where the patch
+needs it, and the rebase takes the workdir-as-is fallback below
+(printing the same workdir-as-is note, quoted there): with a clean
+workdir the reversal is exact, so the merge converges onto the moved
+chain — conflict-free only when the upstream move stays inside the
+patch's hunk pre-images (a move on files the patch does not touch rides
+the untouched-file class below, flagged too) — the frozen snapshot
+re-freezes with the live base's bytes, and the committed patch
+regenerates against the moved base: content-identical to what the
+erase+setup dance below produces on the same state, while the fallback
+keeps the checkout and preserves whatever the machinery can
+(reverse-failed files, structural cases) instead of discarding it. A
+move that falls outside the pre-images (the same file, a different
+region) still converges onto the moved chain, but the moved file is
+flagged in `Conflict:` — the displacement is never silent; with
+uncommitted work on the touched files outside the pre-images, that work
+is likewise displaced (the moved chain's content — the committed value —
+wins) and the file is flagged. Users who want that work kept must commit
+it before rebasing: commit folds it into the project's patch, where the
+strict reverse gate (it refuses a pre-image the workdir no longer holds
+verbatim) and the three-way protect it; after the fact, only a
+deliberate resolve — restoring the bytes by hand before clearing the
+flag — brings it back, folding the restored edit into the regenerated
+patch. If EVERY touched file matches, the
+mismatch lies entirely outside the patch's file set — uncommitted work
+on files the patch does not touch and/or upstream deltas on such files —
+so the base the patch was diffed against is intact exactly where the
+patch needs it, and the residual refusal stands, worded so it does not
+misdiagnose a clean tree: the mismatch may be uncommitted work or an
+upstream move under files the patch does not touch, and committing is
+never prescribed as the way out (when a link did move, committing would
+fold those upstream deltas into the patch):
+
+```
+workdir '<workdir>' does not match the recorded base outside the files the patch touches: either it has uncommitted changes, or an upstream Projeny: link was rebased and the base chain moved under files the patch does not touch (committing would fold those upstream deltas into the patch); recover with 'projeny erase-setup --force <f>' followed by 'projeny setup <f>'
+```
+
+The refusal touches nothing and names both possibilities the mismatch
+can hide — uncommitted changes, or an upstream Projeny: link rebased so
+the base chain moved under files the patch does not touch (on a clean
+tree the status shows only the spurious `Modified:` of the upstream
+move; nothing is uncommitted). It never prescribes `commit` — when a
+link did move, committing would fold those upstream deltas into the
+patch — and names no `revert` (there is no such command); the recovery
+it gives works for both hypotheses. For that residual state — and only
+it; a base that moved under the patch's files no longer needs the
+dance — the recovery that converges the project onto the new upstream
+state discards the checkout and re-extracts the composed chain:
+
+```
+projeny erase-setup <downstream>.projeny --force
+projeny setup <downstream>.projeny
+```
+
+The erase discards the downstream checkout's uncommitted changes (that is
+what the `--force` means here), and the next setup — finding no workdir —
+stales the downstream frozen snapshot, re-freezes the upstream link's
+current bytes, and extracts the new upstream state.
+
+When the patch no longer applies (an upstream commit rewrote what it
+touches), every command that builds the expected tree dies with
+per-command recovery guidance: `diff`, the merge path of
+`setup`, `package`/`extract` (through their setup-first and their own
+reference trees), `get-attributes`, and the `erase-setup` no-force check
+all die with `cannot status '<f>': the frozen base chain no longer
+reconstructs the recorded base (an upstream Projeny: link was rebased)
+and the patch does not apply onto the new content; run 'projeny rebase
+<f>' to rebase from the workdir as-is, or 'projeny erase-setup --force
+<f>' followed by 'projeny setup <f>' to re-extract and re-apply with
+conflict markers`, with the verb spelled for the command (`cannot set
+up`, `cannot diff`, `cannot package`, `cannot extract`, `cannot get the
+attributes of`, `cannot erase-setup`). `status` dies with the guidance
+too — while the recorded state carries no unresolved conflicts. Once the
+erase+setup recovery below lands its conflict markers (or any other
+conflicted landing leaves the recorded patch unapplicable), the guidance
+would be circular — it names `rebase` and `commit`, both refused while
+conflicts are unresolved — so `status` instead prints the recorded
+`Status:` and `Conflict:` lines (exactly like the classic conflicted
+state) and exits 0 with `projeny: the live diff is unavailable while the
+recorded patch does not apply onto the frozen base chain; resolve the
+conflicts and commit`; `diff` and every other consumer of the live diff
+still die with the guidance. `commit` and `freeze-mtime` build
+the bare chain — the composed extraction WITHOUT this project's patch —
+so they die with the same
+guidance only when the chain itself no longer extracts (an
+upstream link's own recorded patch fails onto its own base); when the
+chain still extracts and only this project's patch fails, `commit` runs —
+and folds the spurious deltas exactly as in the applicable-patch state
+above, so the rule is the same here: rebase the project or erase and
+re-set-up it instead of committing a spurious tree.
+
+Two recoveries work. The first is zero-argument `rebase` (the
+base-switch form `rebase <f> <base.projeny>` too): with an intact
+workdir it proceeds FROM THE WORKDIR AS-IS instead of refusing — the
+same machinery, note included, that the state-(i) decision tree above
+engages when the chain still builds but the recorded base moved under
+the patch's files (there a clean workdir converges conflict-free when
+the upstream move stays inside the patch's hunk pre-images and with the
+moved file flagged otherwise; here the patch no longer applies at all,
+so the machinery is the only way forward). It
+prints `projeny: the frozen base chain of '<f>' no longer reconstructs
+the recorded base (an upstream Projeny: link was rebased); rebasing from
+the workdir as-is; files the patch does not touch take the new base's
+content (flagged as conflicts)` (the note names only the untouched-file
+clause; a touched file whose outside-pre-image bytes the merge displaced
+is flagged the same way — see the file classes below), skips the
+clean-tree check, and
+rebuilds the old merge base by strictly reverse-applying the embedded
+patch onto a copy of the workdir — the workdir is the last local record
+of base + patch, and reversing the patch off it reconstructs the base
+the merge engine needs. That reconstruction is byte-exact base content
+only INSIDE the patch's hunk pre-images; outside them the old side IS
+the workdir's own bytes, where the workdir's content cannot be told
+apart from stale committed content — the true old base is
+unreconstructable there. The merge itself is the normal per-file three-way
+engine against the live base's committed extraction (base = the
+reconstructed old side, ours = the new side, theirs = the workdir's
+file), and what each file ends up holding follows from that boundary,
+file class by file class.
+
+Files the patch's hunks touch whose reversal fully succeeds keep the
+merge's decisions in the hunk regions: a region where the committed
+change and the moved chain genuinely overlap carries inline markers
+with both sides (`<<<<<<< projeny (new setup)` / `=======` /
+`>>>>>>> projeny (local changes)` — the merge engine's labels; the
+fresh-setup landing below writes `<<<<<<< current` / `>>>>>>> patched`
+instead), and a region that merged cleanly rides as merged — the
+pre-images are exactly where the merge's resolutions and conflict
+markers live. Files whose hunks apply cleanly onto the moved chain keep
+the applied patch in those regions the same way. Inside the pre-images
+the reverse's success is positive evidence the workdir matched
+base+patch exactly, so the merge's output there is trusted as produced.
+Outside them the reconstruction's base is the workdir's own bytes — the
+true old base is unreconstructable there — so the merged content (what
+the moved chain holds) stands everywhere on the file, symmetric with
+the untouched-file class below, and a displacement analysis after the
+merge (run identically for merged files and cleanly-applied ones,
+anchored in old-side coordinates) reports whether any changed old-side
+range lies outside the pre-images: when one does, the file is flagged
+in `Conflict:` — markerless, since the reverse succeeded and the merge
+was clean — so the displacement is visible, never silent. The committed
+change itself is never a displacement candidate (a changed base range
+covering the applied pre-image core always intersects the pre-image
+ranges). A user who wants uncommitted outside-pre-image work kept must
+commit it first: commit folds it into the project's patch, where the
+strict reverse gate (it refuses a pre-image the workdir no longer holds
+verbatim) and the three-way protect it. Once the fallback has displaced
+that work, only a deliberate resolve — restoring the bytes by hand
+before clearing the flag — brings it back, and the restored edit folds
+into the regenerated patch against the moved base through the usual
+resolve + commit.
+
+Files whose reversal fails — a binary block (its literals are
+one-directional), an opaque or unparseable block, or a text block whose
+pre-image the workdir no longer holds verbatim (an uncommitted edit
+overlapping the hunk) — are left out of the reversal, and their files
+take the conservative path: they keep their workdir bytes whole,
+without markers, and are flagged in `Conflict:` (the merge cannot know
+their true base, so where the merged content differs the workdir wins).
+The same conservative path is what keeps an uncommitted edit riding on
+top of a file the patch adds (the edit breaks the reversal of that
+block — the reversed delete no longer matches the edited bytes — so the
+workdir's bytes win whole, flagged), and what restores a file the patch
+deletes that the user locally recreated (the reversed re-creation no
+longer matches; the workdir's bytes go back into the tree, flagged).
+
+Files NO hunk of the project's patch names take the new base's content
+— convergence, since in the typical bricked state those untouched files
+are exactly the upstream-moved ones: when the workdir's content
+differed from what the new base holds, the file is flagged in
+`Conflict:` so the replacement is visible and resolvable (mirroring the
+divergent-binary rule — the new side wins, conflict recorded; resolving
+it by keeping the new base's content folds nothing into the patch),
+and when it was equal the file is a no-op — the same
+new-content-wins-and-flag policy the displacement analysis applies to
+touched files outside their pre-images. Rename-shaped and binary
+blocks stay with the merge and the conservative path as always — the
+displacement and untouched-file passes skip them (no old-side anchor to
+classify against, and the reverse gate refuses binary literals) — and
+untracked workdir files are out of scope for all of this: they are not
+in the new tree, so a plain untracked text file goes away with the
+replaced workdir, while untracked binaries ride across the replacement
+as `setup` and rebase carry binaries. The rebase exits 0 with the usual `projeny:
+rebased onto '<x>' with N conflict(s):` report, each flagged file's
+path listed under it and each recorded as a `Conflict: <path>` entry in
+the status file, re-freezes `.<stem>.snapshot` with the live base's
+bytes, and the usual resolve + commit round-trip completes the
+recovery.
+
+The second recovery is the erase+setup pair
+above — the dance the residual refusal names for
+the outside-the-file-set state too: with the checkout and status gone,
+the fresh setup re-freezes the
+base from the live base file the header names (whose own chain is
+self-consistent) and lands the recorded patch with inline `<<<<<<<
+current` / `>>>>>>> patched` markers, reporting `projeny: set up
+'<workdir>' from '<base>' with N conflict(s):` followed by `projeny:
+setup left conflicts (exit 1)` and the usual fix-the-files,
+`resolve`-each-one, `commit` instruction — and the resolve + commit
+round-trip completes this
+recovery too. Between those markers and their resolution the checkout
+sits in the conflicted interim described above: `projeny status`
+reports the recorded state and exits 0 with the
+live-diff-unavailable note, while `diff` still dies with the guidance.
+That conflicted
+landing is not specific to the bricked state: any fresh setup of a
+Projeny:-based project whose patch conflicts with its (possibly moved)
+chain lands the same way instead of dying (see [Usage](#usage)), and a
+project with no workdir has no fallback — its setup-first re-freezes the
+base from the live base file the header names, producing either exactly
+that conflicted fresh checkout (which `rebase` refuses until it is
+resolved) or the fresh-chain hard die below. The one fresh-setup hard
+die left in the mode is a chain
+that cannot even extract — a link's recorded patch failing onto its own
+frozen base with no checkout to rebase — which dies with snapshot-level
+guidance (`cannot set up '<f>': the frozen base chain no longer
+reconstructs a consistent base (a link's recorded patch no longer
+applies to its own frozen base — usually an upstream Projeny: link was
+rebased); remove '<snapshot path>' to re-freeze this project's base from
+the live base file it names, or restore that snapshot, then run
+'projeny setup <f>' again`).
+
+### Switching to a different base file
+
+`projeny rebase <f> <base.projeny>` (one `.projeny` argument) points
+the project at a different base file — a base switch for a
+Projeny:-based project, a conversion for an `Archive:`-based one. The
+base must live in the SAME directory as `<f>` (`cannot <cmd> '<f>' with
+base '<given>': the Projeny: base file must live in the same directory
+as '<f>'`), must exist (`base file '<path>' does not exist; it is
+needed to <cmd> '<f>'`), must parse as a `.projeny` file, and must not
+close a cycle in the `Projeny:` chain: the live chain is pre-checked,
+seeded with the target file itself, before anything is touched
+(`cannot <cmd> '<f>': basing it on '<base>' would create a cycle
+('<base>' transitively depends on '<f>'); Projeny: chains must not
+contain cycles`, plus a variant naming the file reached twice in the
+chain). On success the `Projeny:` header is rewritten to the new base,
+`Origname:` comes from the new base's own parse, the patch moves onto
+the new base's committed extraction, and the frozen snapshot is
+overwritten with the new base's bytes. A URL:-based project accepts
+only URL arguments (see [Usage](#usage)), so it cannot rebase itself
+onto a `.projeny` file. `create <f.projeny> <base.projeny>` (see
+[Usage](#usage)) applies the same same-directory, existence,
+parseability, and cycle rules to a brand-new file, plus `--origname`'s
+match with the base's `Origname:`.
+
+### Mode conversions
+
+`rebase` converts between the base modes in both directions (see
+[Usage](#usage)): tarball or URL arguments on a Projeny:-based project
+convert it away from the form — the `Projeny:` header is replaced by
+the new `Archive:` or `URL:` header(s), the new form's snapshot is
+managed as usual, and the old `.<stem>.snapshot` LINGERS as a stale
+file (stale snapshots are never auto-cleaned) — while a `.projeny`
+argument on an `Archive:`-based project converts it to Projeny:-based,
+and `create <f> <base.projeny>` builds a Projeny:-based project from
+scratch. A conversion can also be undone by hand: rewriting the
+`Archive:`/`URL:` header back to `Projeny: <other>.projeny` by hand is
+an adoption at the next `setup` (see
+[Adoption: hand-editing the Projeny: header](#adoption-hand-editing-the-projeny-header))
+— the checkout is rebuilt from the newly named base's committed
+extraction and the lingering pre-conversion snapshot is overwritten with
+the new base's live bytes, so the stale snapshot is replaced rather than
+silently used as the base.
+`erase-setup --erase-snapshots` deletes exactly the snapshot
+the CURRENT mode names, so a conversion can leave the other mode's
+snapshot behind (see
+[Erasing a setup](#erasing-a-setup)).
+
 ## Parallel setup, package, extract, and download
 
 `setup`, `package`, and `extract` accept any number of projects and run
@@ -736,6 +1391,11 @@ same package, blake3 checks on at most `-j` threads, and one full retry
 pass over whatever still failed (parallel retries when several packages
 failed) — and only then do the projects themselves run, on at most `-j`
 threads.
+
+A [Projeny:-based project](#projeny-based-projects) contributes nothing
+to this phase — it names no URLs, and its base file's URLs (if any) are
+fetched on demand during that project's own setup — so mixing
+Projeny:-based projects into `-j` runs works.
 
 Because several files may want the same archive (the same URL basename),
 the batch is deduplicated by archive name: a shared archive downloads
@@ -822,11 +1482,15 @@ everything else next to them are left alone. With `--erase-snapshots`, the
 for a URL:-based project the snapshot named after the first URL's
 basename, for a classic project the snapshot of the `Archive:` tarball,
 plus the legacy undotted `<Archive>.snapshot` form (setup would otherwise
-migrate it back into use). ONLY that exact snapshot goes: a similarly
+migrate it back into use), and for a
+[Projeny:-based project](#projeny-based-projects) the frozen base
+snapshot `.<stem>.snapshot` (that mode has no legacy undotted form).
+ONLY that exact snapshot goes: a similarly
 named snapshot for a different version (the `.<old-archive>.snapshot` a
 rebase left behind, say) survives, and the checked-in tarball is never
-touched. The next `setup` then re-downloads (URL: projects) or unpacks
-from the checked-in tarball (Archive: projects).
+touched. The next `setup` then re-downloads (URL: projects), unpacks
+from the checked-in tarball (Archive: projects), or re-freezes the
+current live base file (Projeny: projects).
 
 Missing things are not errors: a checkout that is already gone or a status
 file that does not exist only prints a warning (`'<path>' did not exist;
@@ -878,9 +1542,17 @@ A project whose state cannot even be assessed refuses the whole
 invocation the same way: a missing, garbage, or git-conflicted `.projeny`
 file (`cannot check 1 of 2 project(s) for uncommitted changes; refusing
 to erase anything (use --force to erase anyway)`), a status file that
-cannot be read or parsed, or a checkout whose archive and its snapshot
-are both missing or unusable — the live diff that would compare the
-checkout against the recorded tree cannot run, and a project that cannot
+cannot be read or parsed, a checkout whose archive and its snapshot
+are both missing or unusable (for a
+[Projeny:-based project](#projeny-based-projects): whose base file and
+its frozen snapshot are both missing), or a Projeny:-based checkout
+whose frozen base chain no longer reconstructs the recorded base and
+whose patch no longer applies onto the moved content — the chain-moved
+guidance of
+[Chains and rebasing an upstream link](#chains-and-rebasing-an-upstream-link)
+is the per-project error there. In every case the live diff that would
+compare the checkout against the recorded tree cannot run, and a project
+that cannot
 be checked is never assumed clean, so even a checkout that happens to be
 clean refuses (erase-setup cannot know it is clean; `--force` is the
 override). A checkout directory that is already gone — or a project with
@@ -903,7 +1575,18 @@ checkins:
   `.lua.projeny.status`), and
 - `.<Archive>.snapshot` — the snapshot copy of an archive (e.g.
   `.lua-5.4.7.tar.bz2.snapshot`). For a URL:-based project the same name
-  (derived from the URL's basename) holds the verified download.
+  (derived from the URL's basename) holds the verified download; for a
+  [Projeny:-based project](#projeny-based-projects) the snapshot of the
+  same shape holds the frozen base file's bytes but is named after the
+  `.projeny` file itself (`.bar.snapshot` for `bar.projeny`).
+
+The shape sharing has one sharp edge: a checked-in tarball named EXACTLY
+like a `.projeny` file's stem (an `Archive: bar` for a `bar.projeny`)
+would give a classic project's archive snapshot the same `.<stem>.snapshot`
+path that a Projeny:-based `bar.projeny` uses for its frozen base —
+avoid naming a checked-in tarball exactly after the `.projeny` file's
+stem (see
+[The frozen base snapshot of a Projeny:-based project](#the-frozen-base-snapshot-of-a-projeny-based-project)).
 
 Older projenies wrote the undotted forms (`f.projeny.status` and
 `<Archive>.snapshot`). Both forms keep working: on first use — by any
@@ -1150,7 +1833,76 @@ via the snapshot), the workdir-present-but-no-status adopt-or-refuse rule
 (setup unpacks into an existing directory that holds nothing it would
 overwrite, keeping the foreign files; it refuses with the offending paths
 listed otherwise), and snapshot copy-on-fallback from the tarball (by
-`setup` and `status`). The `create` sections cover the new project
+`setup` and `status`), plus the Projeny:-base sections, which cover the
+third base mode — `create` from another `.projeny` file (the composed
+`Projeny:`/`Origname:`/`Name:` headers, `--origname` match/mismatch, the
+same-directory law, the arity rule, and the frozen snapshot holding the
+base file's bytes), a hand-written Projeny:-based file whose setup
+extracts the base's COMMITTED EXTRACTION, the frozen law
+(setup/commit/status/package/extract keep using the snapshot-recorded
+base after the base file gains committed changes), the zero-arg rebase
+(clean, conflicting, and the refusals), the base-switch rebase and its
+refusals, the mode conversions away from the `Projeny:` form (to a
+tarball and to a `URL:` list, the old snapshot lingering), cycles
+(self/two/three-file loops at setup plus the create/rebase pre-checks),
+a four-link chain with a middle-link rebase, the frozen snapshot
+surviving a deleted base file (the recovery message,
+`erase-setup --erase-snapshots`, and workdir-gone staling), the
+Projeny:-mode parse errors (including the empty-`Projeny:`-value
+refusal that fires ahead of the exclusivity and required-header
+checks), setup's adoption of a hand-edited
+`Projeny:` header (including the hand-conversion back INTO the form
+after a tarball/URL rebase, the stale pre-conversion snapshot
+overwritten with the newly named base's live bytes), a URL:-based base,
+the everyday
+status/diff/package/extract surface, `freeze-mtime` against the frozen
+base extraction, parallel runs with a Projeny:-based project in the
+mix, and the frozen-chain-recovery coverage — the brick an upstream
+middle-link rebase leaves downstream (the per-command guidance die for
+`diff`, the merge path of `setup`, and the `erase-setup`
+check, with `status` dying too while nothing is conflicted; the
+zero-arg rebase's rebuild-from-the-workdir fallback with its
+workdir-as-is note naming the untouched-files clause, the strict
+reverse-apply, the three-way merge, the merged-conflict markers, the
+displacement analysis that keeps the merged (moved-chain) content
+everywhere on reverse-succeeded touched files and flags those whose
+outside-pre-image workdir bytes the merge displaced, and the
+conservative keep-workdir-bytes path for files whose reversal fails —
+an uncommitted edit overlapping the hunk, a committed binary modify —
+plus the untouched-file convergence flagged in `Conflict:`; the
+`erase-setup --force` + `setup` re-apply recovery with its conflict
+markers; the repro-A regression (a clean-workdir fallback whose
+upstream move sits far outside the hunk pre-images converges flagged
+onto the moved chain, content-equal to the erase-setup + setup
+recovery on the identical state and carrying no reversion hunk in the
+regenerated patch, followed by its state-(ii) variant: one upstream
+change inside the pre-image keeps markers and the user's resolution
+while the outside change converges, the file flagged either way); and
+the state-(i) decision tree for the non-colliding moved
+chain — the spurious `Modified:`, the clean workdir converging through
+the touched-files comparison (the fallback engages conflict-free when
+the move stays inside the hunk pre-images,
+the snapshot re-freezes to the live base bytes, the committed patch
+regenerates against the moved base, and a re-setup is a noop), the
+residual refusal when the mismatch lies outside the patch's file set
+(the misdiagnosis-free message, which keeps both hypotheses and
+prescribes neither `commit` nor `revert`, leaving the
+workdir, committed patch, status file, and snapshot untouched), the
+healthy-dirty guard (a base that never moved refuses with the same
+message for work on a non-touched file, while work on a touched file
+outside the pre-images takes the fallback, is displaced — the
+committed value wins — and flagged, brought back only deliberately
+through resolve + commit), the dirty
+state-(i) displacement (an upstream move inside a hunk pre-image
+converges while uncommitted work outside it is displaced and flagged,
+the commit folding nothing but the project's own delta), and the
+conflicted-interim `status` printing the recorded state with the
+live-diff-unavailable note and exiting 0 once the recovery lands
+markers, with the no-conflict contrast still dying), the fresh
+Projeny:-based
+setup that applies a chain-conflicting patch with markers and exits 1
+(the classic `Archive:` control keeps the hard die). The `create`
+sections cover the new project
 command: tarball and URL (with and without a hash — the computed hash
 equals `projeny hash`) forms, the copied-in tarball and the verified
 snapshot, `--comment` (last occurrence wins), the existing-file rule
