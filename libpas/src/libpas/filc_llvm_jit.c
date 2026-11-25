@@ -284,6 +284,24 @@ static void** decode_handle_array(filc_thread* my_thread, filc_ptr array_ptr, si
     return result;
 }
 
+static const char* copy_optstr(filc_thread* my_thread, const char* fname,
+                               filc_ptr ptr, size_t len)
+{
+    char* copy;
+    if (!filc_ptr_ptr(ptr)) {
+        FILC_CHECK(len == 0, NULL,
+                   "Fil-C LLVM JIT API: %s: null string with nonzero length.",
+                   fname);
+        return NULL;
+    }
+    filc_check_read(ptr, len);
+    copy = (char*)filc_bmalloc_allocate_tmp(my_thread, filc_add_size(len, 1));
+    if (len)
+        memcpy(copy, filc_ptr_ptr(ptr), len);
+    copy[len] = '\0';
+    return copy;
+}
+
 void filc_llvm_jit_destruct(void* raw_payload)
 {
     filc_llvm_jit_kind kind = *(filc_llvm_jit_kind*)raw_payload;
@@ -4458,9 +4476,11 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
  *       A filc_ptr parameter converted to a borrowed NUL-terminated string
  *       with filc_check_and_get_tmp_str().
  *   (OPTSTR, name, len_name)
- *       A borrowed string that may be null, as long as the separately
- *       passed length len_name is zero; len_name must name a (SCAL, ...)
- *       descriptor elsewhere in the row.
+ *       A length-delimited string that may be null when len_name is zero;
+ *       non-null inputs are copied into a NUL-terminated temporary buffer
+ *       with copy_optstr() so semantic checks and LLVM read an immutable
+ *       snapshot.  len_name must name a (SCAL, ...) descriptor elsewhere in
+ *       the row.
  *   (ARR, name, count_name, KIND, LLVMXxxRef)
  *       A filc_ptr parameter holding an array of JIT objects of kind
  *       FILC_LLVM_JIT_KIND_KIND, decoded into a temporary array of raw
@@ -4561,15 +4581,7 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
 #define FILC_LLVM_JIT_UNWRAP_CSTR(fname, name) \
     const char* name##_obj = filc_check_and_get_tmp_str(my_thread, name);
 #define FILC_LLVM_JIT_UNWRAP_OPTSTR(fname, name, len_name) \
-    const char* name##_obj; \
-    if (!filc_ptr_ptr(name)) { \
-        FILC_CHECK(len_name == 0, NULL, "Fil-C LLVM JIT API: " #fname \
-                   ": null string with nonzero length."); \
-        name##_obj = NULL; \
-    } else { \
-        filc_check_read(name, (size_t)len_name); \
-        name##_obj = (const char*)filc_ptr_ptr(name); \
-    }
+    const char* name##_obj = copy_optstr(my_thread, #fname, name, (size_t)(len_name));
 /* SCAL parameters are passed through unchanged; they unwrap to nothing. */
 #define FILC_LLVM_JIT_UNWRAP_SCAL(fname, name, type)
 #define FILC_LLVM_JIT_UNWRAP_ARR(fname, name, count_name, kind, elem_ty, ...) \
