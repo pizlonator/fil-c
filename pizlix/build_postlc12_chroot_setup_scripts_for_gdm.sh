@@ -29,10 +29,11 @@ ulimit -c unlimited
 #    NO daemonize flag (daemon/main.c: foreground GMainLoop, root only), so
 #    the exec'd process is exactly what inittab should supervise: if it
 #    dies, init restarts it (sysvinit throttles respawn loops itself).
-# 4. THE INITTAB: deployed from the tracked pizlix/etc/inittab (staged into
-#    /sources/etc by build_postlc12.sh so the recovery chain gets it too --
-#    the full chain gets the same file via build_copy_stuff.sh).  The boot
-#    design (see the inittab itself):
+# 4. THE INITTAB: deployed from the tracked pizlix/etc/inittab-gdm (staged
+#    into /sources/etc as inittab by build_postlc12.sh -- the recovery chain
+#    does not re-run build_copy_stuff.sh; the full chain gets it the same
+#    way, since build_copy_stuff.sh stages the text-mode pizlix/etc/inittab
+#    and this stage replaces it).  The boot design (see the inittab itself):
 #      - id:5:initdefault (GNOME, the graphical runlevel);
 #      - tty1's getty is restricted to runlevels 2-4 (1:234:): in runlevel
 #        5 tty1 is GDM's initial VT (-Dinitial-vt=1);

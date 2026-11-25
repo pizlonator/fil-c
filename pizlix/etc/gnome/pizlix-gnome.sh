@@ -28,4 +28,17 @@ export MUTTER_DEBUG_DISABLE_HW_CURSORS=1
 
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 mkdir -m 700 -p "$XDG_RUNTIME_DIR" 2>/dev/null || true
+
+# The session must run in a UTF-8 locale: gnome-terminal-server refuses to
+# start otherwise.  Its init_server() (src/server.cc) checks g_get_charset()
+# and, if the charset is not UTF-8, prints "Non UTF-8 locale (...) is not
+# supported!" and exits with _EXIT_FAILURE_NO_UTF8 (8) -- which surfaces at
+# the client as "Error constructing proxy for org.gnome.Terminal: ...
+# Process org.gnome.Terminal exited with status 8".  GDM does not source
+# /etc/profile for the session (and only C.UTF-8 is generated, see
+# build_lc_sub3_user_chroot.sh), so set it here: this launcher is what both
+# the GDM session entry (wayland-sessions/pizlix-gnome.desktop) and the
+# getty-login path exec, and dbus-run-session's bus passes the environment
+# on to D-Bus-activated services like gnome-terminal-server.
+export LANG=C.UTF-8
 exec dbus-run-session -- gnome-session --session=pizlix-gnome

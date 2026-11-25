@@ -34,8 +34,9 @@ su $FILCOWNER ./build_postlc12_sub1_packaging.sh
 # libtool (the libltdl fix), libogg, libvorbis, libcanberra (the audio trio
 # gdm's unconditional libcanberra-gtk3 dependency pulls in) and gdm 46.2,
 # plus the boot-to-GNOME wiring (the gdm user, /var/lib/gdm, the blfs xdm
-# bootscript + sysconfig, the runlevel-5 inittab, and the
-# wayland-sessions/pizlix-gnome.desktop user-session entry).
+# bootscript + sysconfig, the runlevel-5 inittab staged from
+# etc/inittab-gdm, and the wayland-sessions/pizlix-gnome.desktop
+# user-session entry).
 cp -v build_postlc12_sub2_chroot.sh $LFS/sources
 cp -v build_postlc12_chroot_project_*.sh $LFS/sources
 cp -v build_postlc12_chroot_setup_scripts_for_gdm.sh $LFS/sources
@@ -54,12 +55,13 @@ cp -v $FILCSRC/projects/*/pizlonated-*.tar.gz $LFS/sources
 # same tarball, but this stage is self-contained).
 cp -v blfs-bootscripts-20240416.tar.xz $LFS/sources
 
-# The tracked inittab + the greeter/user shell wrapper, deployed by the
-# setup script out of /sources/etc (the recovery chain does not re-run
-# build_copy_stuff.sh, so the stage stages its own copies; the full chain
-# gets the same files through build_copy_stuff.sh as well).
+# The tracked GDM inittab (etc/inittab-gdm) + the greeter/user shell wrapper,
+# deployed by the setup script out of /sources/etc (the recovery chain does
+# not re-run build_copy_stuff.sh, so the stage stages its own copies; the
+# full chain gets the text-mode inittab through build_copy_stuff.sh as well,
+# and this stage replaces it with the GDM one).
 mkdir -pv $LFS/sources/etc/gnome
-cp -v etc/inittab $LFS/sources/etc
+cp -v etc/inittab-gdm $LFS/sources/etc/inittab
 cp -v etc/gnome/pizlix-shell.sh $LFS/sources/etc/gnome
 
 ./build_chroot_late.sh /sources/build_postlc12_sub2_chroot.sh

@@ -2,11 +2,14 @@
 for i in $(locale); do
   unset ${i%=*}
 done
-if [[ "$TERM" = linux ]]; then
-  export LANG=C.UTF-8
-else
-  export LANG=en_US.iso88591
-fi
+# The system locale is C.UTF-8 -- it is the only one generated
+# (build_lc_sub3_user_chroot.sh: localedef -i C -f UTF-8 C.UTF-8), so this
+# file must not pick anything else: the old en_US.iso88591 branch (that
+# locale was never generated) left non-console terminals with a non-UTF-8
+# charset, and gnome-terminal-server exits with status 8 ("Non UTF-8 locale
+# is not supported") when started in such an environment.  GDM sessions do
+# not source this file at all; the session launchers set their own LANG.
+export LANG=C.UTF-8
 PS1='\u@\h:\w\$ '
 for i in /etc/profile.d/*.sh ; do
     if [ -r "$i" ]; then

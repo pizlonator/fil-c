@@ -42,7 +42,7 @@ If you run into trouble, see the [Build Stages](#stages).
 
 ## Using Pizlix
 
-Pizlix boots to a plain text login: it uses sysvinit with gettys on tty1 through tty6, and there is no graphical login manager. Log in as a non-root user (like `pizlo`, password `pizlo`).
+Pizlix boots to the GDM graphical login screen once you have built through Post-LC 12 (see Build Stages); logging in there starts the Pizlix GNOME session. Earlier build-stage snapshots boot to a plain text login instead (the display manager is only installed in Post-LC 12, so their inittab must not reference it), and you can always switch a running system to the text console with `init 3` (and back with `init 5`): sysvinit with gettys on tty1 through tty6. Log in as a non-root user (like `pizlo`, password `pizlo`).
 
 Pizlix by default has the following configuration:
 
@@ -130,8 +130,6 @@ The wrappers (`pizlix-gnome`, `pizlix-shell`) export what the session needs:
 
 ### Current limitations
 
-- No display manager: text login on the console only, no graphical login screen.
-- No Gdm, so the shell disables screen locking ("Screen Lock disabled — Screen Locking requires the GNOME display manager" notification at session start).
 - No NetworkManager: no wifi/bluetooth tiles in quick settings; dhcpcd on eth0 only.
 - No PipeWire: no audio.
 - No calendar server (evolution-data-server): the clock has no calendar dropdown.
