@@ -94,6 +94,8 @@ struct sigaltstack {
 	size_t ss_size;
 };
 
+struct zfiber_context;
+
 typedef struct __ucontext {
 	unsigned long uc_flags;
 	struct __ucontext *uc_link;
@@ -101,6 +103,7 @@ typedef struct __ucontext {
 	mcontext_t uc_mcontext;
 	sigset_t uc_sigmask;
 	unsigned long __fpregs_mem[64];
+	struct zfiber_context *__uc_fiber_context;
 } ucontext_t;
 
 #define SA_NOCLDSTOP  1

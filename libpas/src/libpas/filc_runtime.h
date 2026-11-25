@@ -51,7 +51,11 @@
 #include <unistd.h>
 #include <sys/uio.h>
 
-#define FILC_HAS_FIBER_CONTEXT PAS_GLIBC
+#if PAS_GLIBC || (PAS_OS(LINUX) && PAS_X86_64 && !PAS_COSMO)
+#define FILC_HAS_FIBER_CONTEXT 1
+#else
+#define FILC_HAS_FIBER_CONTEXT 0
+#endif
 
 #if FILC_HAS_FIBER_CONTEXT
 #include <ucontext.h>
