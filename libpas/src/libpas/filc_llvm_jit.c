@@ -302,6 +302,27 @@ static const char* copy_optstr(filc_thread* my_thread, const char* fname,
     return copy;
 }
 
+static const uint64_t* copy_u64_words(filc_thread* my_thread, const char* fname,
+                                      const char* arg_name, filc_ptr ptr,
+                                      size_t num_words)
+{
+    size_t bytes;
+    uint64_t* copy;
+    if (!filc_ptr_ptr(ptr)) {
+        FILC_CHECK(!num_words, NULL,
+                   "Fil-C LLVM JIT API: %s: null %s with nonzero count.",
+                   fname, arg_name);
+        return NULL;
+    }
+    if (!num_words)
+        return NULL;
+    bytes = filc_mul_size(num_words, sizeof(uint64_t));
+    filc_check_read(ptr, bytes);
+    copy = (uint64_t*)filc_bmalloc_allocate_tmp(my_thread, bytes);
+    memcpy(copy, filc_ptr_ptr(ptr), bytes);
+    return copy;
+}
+
 void filc_llvm_jit_destruct(void* raw_payload)
 {
     filc_llvm_jit_kind kind = *(filc_llvm_jit_kind*)raw_payload;
@@ -3748,34 +3769,24 @@ filc_ptr filc_native_LLVMCreateConstantRangeAttribute(
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = unwrap_context(my_thread, context_ptr);
-    /* The C API derives the word count from the bit width. */
-    unsigned num_words = (num_bits + 63u) / 64u;
-    const uint64_t* lower_words = NULL;
-    const uint64_t* upper_words = NULL;
-    if (filc_ptr_ptr(lower_words_ptr)) {
-        filc_check_read(lower_words_ptr, filc_mul_size(num_words, sizeof(uint64_t)));
-        lower_words = (const uint64_t*)filc_ptr_ptr(lower_words_ptr);
-    } else {
-        FILC_CHECK(!num_words, NULL,
-                   "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: null "
-                   "lower words with nonzero count.");
-    }
-    if (filc_ptr_ptr(upper_words_ptr)) {
-        filc_check_read(upper_words_ptr, filc_mul_size(num_words, sizeof(uint64_t)));
-        upper_words = (const uint64_t*)filc_ptr_ptr(upper_words_ptr);
-    } else {
-        FILC_CHECK(!num_words, NULL,
-                   "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: null "
-                   "upper words with nonzero count.");
-    }
+    /* The C API derives the word count via llvm::divideCeil(num_bits, 64);
+       avoid 32-bit overflow in (num_bits + 63u) when num_bits > UINT_MAX - 63. */
+    size_t num_words = num_bits ? ((size_t)(num_bits - 1u) / 64u) + 1u : 0u;
+    const uint64_t* lower_words = copy_u64_words(
+        my_thread, "LLVMCreateConstantRangeAttribute", "lower words",
+        lower_words_ptr, num_words);
+    const uint64_t* upper_words = copy_u64_words(
+        my_thread, "LLVMCreateConstantRangeAttribute", "upper words",
+        upper_words_ptr, num_words);
     LLVMAttributeRef result_raw;
     pas_lock_lock(&context->lock);
-    /* Three checks, mirroring the asserts that LLVM would otherwise hit:
-       Attribute::get asserts isConstantRangeAttrKind (Attributes.cpp), APInt
-       asserts "Null pointer detected!" for a zero bit width, and
-       ConstantRange asserts that an empty (lower == upper) range is either
-       empty (all zero) or full (all ones).  The kind check is a shim
-       predicate, because the attribute-kind enum is LLVM-internal. */
+    /* Four checks, mirroring the asserts that LLVM would otherwise hit:
+       Attribute::get asserts isConstantRangeAttrKind and !CR.isFullSet()
+       (Attributes.cpp), APInt asserts "Null pointer detected!" for a zero
+       bit width, and ConstantRange asserts that lower == upper is either
+       empty (all zero) or full (all ones) after masking to num_bits.  The
+       kind check is a shim predicate, because the attribute-kind enum is
+       LLVM-internal. */
     FILC_CHECK(api->ShimKindIsConstantRangeAttr(kind_id) != 0, NULL,
                "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: the kind "
                "must be a constant-range attribute kind.");
@@ -3783,25 +3794,30 @@ filc_ptr filc_native_LLVMCreateConstantRangeAttribute(
                "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: the bit "
                "width must not be zero.");
     {
-        unsigned word_index;
-        bool equal;
-        bool all_zero;
-        bool all_ones;
-        equal = true;
-        all_zero = true;
-        all_ones = true;
+        size_t word_index;
+        unsigned tail_bits = num_bits % 64u;
+        uint64_t top_mask = tail_bits ? ((1ULL << tail_bits) - 1ULL) : UINT64_MAX;
+        bool equal = true;
+        bool all_zero = true;
+        bool all_ones = true;
         for (word_index = 0; word_index < num_words; ++word_index) {
-            if (lower_words[word_index] != upper_words[word_index])
+            uint64_t mask = (word_index + 1 == num_words) ? top_mask : UINT64_MAX;
+            uint64_t lw = lower_words[word_index] & mask;
+            uint64_t uw = upper_words[word_index] & mask;
+            if (lw != uw)
                 equal = false;
-            if (lower_words[word_index] != 0)
+            if (lw != 0)
                 all_zero = false;
-            if (lower_words[word_index] != UINT64_MAX)
+            if (lw != mask)
                 all_ones = false;
         }
         FILC_CHECK(!equal || all_zero || all_ones, NULL,
                    "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: the "
                    "lower and upper bounds must differ unless the range is "
                    "empty or full.");
+        FILC_CHECK(!(equal && all_ones), NULL,
+                   "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: a "
+                   "constant-range attribute must not be the full range.");
     }
     result_raw = api->LLVMCreateConstantRangeAttribute((LLVMContextRef)context->handle,
                                                        kind_id, num_bits,
