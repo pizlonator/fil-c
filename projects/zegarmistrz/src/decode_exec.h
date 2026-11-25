@@ -27,6 +27,8 @@
 
 #include "mem.h" // ZegHistStep (poison-history step carried by dump_core)
 
+struct Emulator;
+
 template<typename TaintT>
 struct CPU;
 
@@ -58,8 +60,35 @@ const char* dump_core(CPU<TaintT>* cpu, const char* reason,
 
 // Map a fatal guest error to the signal in NT_PRSTATUS and the exit status
 // (exit code is 128+signo). hint != 0 wins; otherwise guessed from reason:
-// mem/poison/taint violations => SIGSEGV, bad insn => SIGILL, etc.
+// mem/poison/taint violations => SIGSEGV, unimplemented insn/forms =>
+// SIGILL, etc.
 int guest_fatal_signo(const char* reason, int hint);
+
+// Fatal-error reason classification (implemented in core_dump.cpp):
+// zeg_reason_is_poison matches the memory-safety/taint violations (the
+// substrings guest_fatal_signo has always mapped to SIGSEGV: poison, taint,
+// cannot-, unmapped, bad RIP, string op); zeg_reason_is_unimplemented
+// matches emulator-limitation errors (unimplemented <mnemonic> ...,
+// decode-failed/bad-/unsupported-form strings, MVEX) which guest_fatal_signo
+// maps to SIGILL. A reason matching both classes is poison-class
+// (guest_fatal_signo and zeg_fatal_exit_code check poison first).
+bool zeg_reason_is_poison(const char* reason);
+bool zeg_reason_is_unimplemented(const char* reason);
+
+// Exit-code plumbing shared by the run_cpu_loop catch sites (implemented in
+// core_dump.cpp): computes the process exit code for a fatal guest error
+// with the exitcode override (CLI --error-exitcode=N or config `error
+// exitcode N`) and the signal override (config file only, `error signal N`
+// -- there is no CLI form) applied to POISON-class errors only, in the
+// precedence error_exitcode > error_signo > the natural 128+eff_signo.
+// When error_signo fires and the exitcode override does NOT apply, the
+// adjusted signal is written back through eff_out so the caller passes it
+// to dump_core (NT_PRSTATUS records it); when the exitcode override wins,
+// the process exits with the configured code, so the adjusted signal is
+// not written back (NT_PRSTATUS keeps the natural signo).
+int zeg_fatal_exit_code(Emulator* emu, const char* reason, int eff_signo,
+                        int* eff_out);
+
 // NOTE: sys/syscall.h must come before <atomic>: libstdc++'s atomic_wait.h
 // uses SYS_futex and relies on it being declared already.
 #include <sys/syscall.h>

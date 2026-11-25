@@ -96,6 +96,11 @@ norm() {
         # the mnemonic: vpclmullqlqdq/vpclmulhqlqdq/vpclmullqhqdq/
         # vpclmulhqhqdq (imm8 0x00/0x01/0x10/0x11).
         VPCLMULLQLQDQ|VPCLMULHQLQDQ|VPCLMULLQHQDQ|VPCLMULHQHQDQ) echo VPCLMULQDQ; return ;;
+        # objdump appends a Y to the mnemonic of a VEX/EVEX instruction
+        # whose operands are ymm (AT&T syntax disambiguates the register
+        # width in the mnemonic): vcvtpd2dqy is VEX.256 VCVTPD2DQ, which
+        # Zydis (and the exec_cvtpd2dq handler) spell without the suffix.
+        VCVTPD2DQY) echo VCVTPD2DQ; return ;;
         ADDR32) echo ADDR32; return ;;
         MOVSLQ|MOVSL) echo MOVSXD; return ;;
         MOVZB|MOVZBL|MOVZBW|MOVZW|MOVZWL) echo MOVZX; return ;;
@@ -187,6 +192,12 @@ while read -r m; do
         # CET shadow-stack (would #UD natively without CET), TSX (host has
         # no RTM/HLE, so guests never use it).
         rstorssp|saveprevssp|xabort|xbegin|xend|xtest) continue ;;
+        # Known-unimplemented EVEX instruction (clean guest error, pinned by
+        # tests/unimplemented.c -- the unimplemented-exit-code case): it
+        # shows up in that guest's dump by design, so it is not a handler
+        # gap to flag. CMPLTSD/LDDQU stay reported below as the known
+        # baseline misses.
+        vgetmantss) continue ;;
     esac
     resolve "$(norm "$m")" >> /tmp/zeg_found.txt
 done < /tmp/zeg_found_raw.txt

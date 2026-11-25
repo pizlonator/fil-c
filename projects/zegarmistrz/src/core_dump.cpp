@@ -54,13 +54,72 @@
 // consistency: the process exits with 128+signo). Set by dump_core.
 std::atomic<int> g_last_fatal_signo{0};
 
+// Fatal-error reason classification, shared by guest_fatal_signo (the
+// NT_PRSTATUS signal choice) and zeg_fatal_exit_code (the process exit
+// code). Two exported predicates (declared in decode_exec.h):
+//
+//   poison-class   - memory-safety/taint violations: poisoned
+//     cannot-load/store, tainted cannot-branch/index/var-time values,
+//     unmapped accesses, bad RIP, string-op taint. SIGSEGV (exit 139).
+//   unimplemented-class - emulator-limitation errors: instructions or
+//     operand forms zegarmistrz does not implement. SIGILL (exit 132) --
+//     the "different error code" for unknown instructions.
+//   other-class    - everything else (bad syscalls, ...). SIGABRT (exit
+//     134).
+//
+// Host-signal reasons ("guest SIGSEGV ...", ...) are matched literally in
+// guest_fatal_signo before either predicate and keep the host signal.
+//
+// NOTE: the poison predicate keeps exactly the substrings guest_fatal_signo
+// has always matched for the SIGSEGV bucket, so existing reason strings
+// keep their signal. A reason matching BOTH classes (e.g. "bad string op",
+// an unsupported string-op form that embeds the string-op taint name) is
+// poison-class: guest_fatal_signo checks poison first, and so does
+// zeg_fatal_exit_code.
+
+bool zeg_reason_is_poison(const char* reason) {
+    if (!reason)
+        return false;
+    return strstr(reason, "poison") || strstr(reason, "taint") ||
+           strstr(reason, "cannot-") || strstr(reason, "unmapped") ||
+           strstr(reason, "bad RIP") || strstr(reason, "string op");
+}
+
+bool zeg_reason_is_unimplemented(const char* reason) {
+    if (!reason)
+        return false;
+    // "bad RIP" is a memory-safety violation (execution off the rails), not
+    // an unsupported form: it stays poison-class.
+    if (strstr(reason, "bad RIP"))
+        return false;
+    if (!strncmp(reason, "unimplemented", 13))
+        return true;
+    if (strstr(reason, "decode failed"))
+        return true;
+    if (strstr(reason, "not supported"))
+        return true;
+    if (strstr(reason, "MVEX"))
+        return true;
+    if (!strncmp(reason, "bad ", 4))
+        return true;
+    if (!strncmp(reason, "unsupported ", 12))
+        return true;
+    if (!strncmp(reason, "cannot store", 12))
+        return true;
+    if (!strncmp(reason, "cannot determine", 16))
+        return true;
+    return false;
+}
+
 // Map a fatal guest error to the signal recorded in NT_PRSTATUS (si_signo /
 // pr_cursig) and used for the process exit status (128+signo):
 //   mem violations (host SIGSEGV/SIGBUS-style faults, poisoned
 //   cannot-load/store, tainted cannot-branch/index values, unmapped reads/
 //   writes, bad RIP) => SIGSEGV (exit 139);
-//   bad opcodes => SIGILL; arithmetic faults => SIGFPE; breakpoints => SIGTRAP;
-//   everything else (unimplemented, bad requests) => SIGABRT (exit 134).
+//   unimplemented instructions/forms => SIGILL (exit 132);
+//   bad opcodes recognized as traps (INT3, UD2) => SIGTRAP;
+//   arithmetic faults => SIGFPE;
+//   everything else (bad requests) => SIGABRT (exit 134).
 int guest_fatal_signo(const char* reason, int hint) {
     if (hint)
         return hint;
@@ -77,11 +136,46 @@ int guest_fatal_signo(const char* reason, int hint) {
     if (strstr(reason, "SIGTRAP") || strstr(reason, "INT3") ||
         strstr(reason, "UD2"))
         return SIGTRAP;
-    if (strstr(reason, "poison") || strstr(reason, "taint") ||
-        strstr(reason, "cannot-") || strstr(reason, "unmapped") ||
-        strstr(reason, "bad RIP") || strstr(reason, "string op"))
+    if (zeg_reason_is_poison(reason))
         return SIGSEGV;
+    if (zeg_reason_is_unimplemented(reason))
+        return SIGILL;
     return SIGABRT;
+}
+
+// Exit-code plumbing shared by both run_cpu_loop catch sites. emu carries
+// the exitcode override (--error-exitcode=N on the CLI, config `error
+// exitcode N`) and the signal override (config-only, `error signal N`;
+// there is no CLI form), valgrind-style, applied to POISON-class fatal
+// errors only, so poison violations stay distinguishable from
+// unimplemented-instruction errors even with the overrides configured:
+//
+//   precedence: error_exitcode (exit code override) > error_signo (signal
+//   override, exit becomes 128+error_signo) > the natural 128+signo.
+//
+// eff_signo is the caller's effective signal (hint already applied); when
+// the error_signo override fires, the adjusted signo is written back
+// through eff_out so the caller passes it to dump_core (NT_PRSTATUS
+// records it). The writeback is gated on the exitcode override NOT
+// firing: when the exitcode override wins, the process exits with the
+// configured code instead of 128+signo, so the core's recorded signal
+// must not claim the signal override -- NT_PRSTATUS then keeps the
+// caller's natural signo, which agrees with the exit status actually
+// used. Unimplemented and other classes always keep the natural exit
+// code.
+int zeg_fatal_exit_code(Emulator* emu, const char* reason, int eff_signo,
+                        int* eff_out) {
+    // Exitcode override wins outright: the process exits with the
+    // configured code, not 128+signo, so leave eff_signo (and the core's
+    // NT_PRSTATUS signal) at the caller's natural value.
+    if (zeg_reason_is_poison(reason) && emu && emu->error_exitcode)
+        return emu->error_exitcode;
+    int eff = eff_signo;
+    if (zeg_reason_is_poison(reason) && emu && emu->error_signo)
+        eff = emu->error_signo;
+    if (eff_out)
+        *eff_out = eff;
+    return 128 + eff;
 }
 
 // Guest general registers in elf_gregset_t order (x86-64):
@@ -184,8 +278,12 @@ const char* dump_core(CPU<TaintT>* cpu, const char* reason,
     if (!poison_history.empty())
         print_poison_history(cpu->emu, poison_history);
 
-    if (mem_passthrough()) {
-        // --no-core: report without writing anything.
+    if (cpu->emu->no_core) {
+        // Core dumps disabled (--no-core, config `coredump disabled`, or
+        // the default): report without writing anything. The banner and
+        // the guest stack trace above still print -- only the file is
+        // skipped. True passthrough runs (--passthrough-signals) imply
+        // no_core, so they land here too.
         fprintf(stderr, "zegarmistrz: [core dumps disabled]\n");
         fflush(stderr);
         return path;

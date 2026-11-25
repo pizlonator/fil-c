@@ -38,7 +38,11 @@ struct Emulator {
     std::string prog_path; // guest program path (for core file naming)
     bool trace_insn = false; // -v: disassemble each instruction
     bool trace_syscall = false; // --trace-syscalls (implied by -v)
-    bool no_core = false; // --no-core / --passthrough-signals: no core dumps
+    // No core dumps: the default, or --no-core, or --passthrough-signals
+    // (which implies it), or config `coredump disabled`. Only the core FILE
+    // is gated by this -- the fault handler and the diagnostics (banner +
+    // guest stack trace) are independent of it.
+    bool no_core = false;
     bool stack_trace = true; // --no-stack-trace disables the crash-time guest backtrace
     // --history: 0 = off (plain Taint sidecars), 1 = one guest PC per history
     // step (HistoryTaint), N > 1 = N stack frames per step, SIZE_MAX
@@ -51,6 +55,20 @@ struct Emulator {
     //   everything - trap on anything not in the guaranteed list (§6+§7)
     enum { ZG_VAR_TIME_KNOWN = 1, ZG_VAR_TIME_PLAUSIBLE = 2, ZG_VAR_TIME_EVERYTHING = 3 };
     int var_time_op = ZG_VAR_TIME_KNOWN;
+
+    // Fatal-error exit overrides (valgrind parity; also settable from
+    // ~/.zegarmistrz as `error exitcode N` / `error signal N`): the
+    // exitcode override has both a CLI form (--error-exitcode=N) and the
+    // config form, while the signal override is config-only. 0 = unset.
+    // Applied to POISON-class fatal
+    // errors only (poison/taint/cannot-/unmapped/bad RIP/string-op
+    // violations); unimplemented-instruction errors and other fatal errors
+    // keep the natural exit code, so poison and unknown-instruction failures
+    // stay distinguishable even with the overrides configured. Exit-code
+    // precedence: error_exitcode > error_signo (exit becomes 128+error_signo
+    // and NT_PRSTATUS records error_signo) > the natural 128+signo.
+    int error_exitcode = 0;
+    int error_signo = 0;
 
     // Guest memory map snapshot for ELF core dumps (filled by the loader;
     // guest VA == host VA so the dumper can memcpy directly).

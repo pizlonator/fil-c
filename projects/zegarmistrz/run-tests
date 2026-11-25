@@ -4,8 +4,14 @@
 # runs them in parallel (xargs -P, JOBS= to tune), checks output/exit codes.
 #
 # Suites: basic guests (filc hello, static, threads, args), AVX512/AES
-# differentials (native vs emulated output), poisoning client requests
-# (faults + taint laundering + clear-on-store; faults expect core dumps),
+# differentials (native vs emulated output) plus the djb-opcode differential
+# (insn-djb: cvtdq2pd, the VEX variable shifts, pmulhrsw, movddup, pextrd to
+# memory, and the reg-reg movq forms; cvtpd2dq: the packed double->int32
+# converts djb's qhasm ntt_double.S uses, in every width and source form;
+# movlhps: the VEX half-move family clang emits into the Keccakx4 lane
+# interleave of the same workload), poisoning client requests
+# (faults + taint laundering + clear-on-store; faults expect core dumps, incl.
+# the vector-extract laundering faults pextr-taint and movd-taint),
 # var-time mode tests (--var-time-op=known/plausible/everything gating for
 # the CANNOT_VAR_TIME_OP dimension, incl. exemptions and the EVEX/opmask
 # sidecar), the cannot-index check battery for memory-address sites
@@ -15,7 +21,10 @@
 # multi-byte-NOP cannot-index exemption guests and the test.c/test2.c
 # mirror combos, core-dump gdb check, crash-time stack traces
 # (default, --no-stack-trace, -O2 guests, dump-fault policy), --no-core flag,
-# and the --history poison-provenance tests (--history trail symbolication on
+# the host-fault diagnostics guarantee with cores disabled
+# (fault-diagnostics-nocore: the banner and the reason still print when the
+# core file is off, and --core writes it), and the --history
+# poison-provenance tests (--history trail symbolication on
 # a math-derived index fault in every flag spelling -- bare --history, =yes,
 # =1, =no, =0, =N, =full -- the dump numbers every displayed line gdb-style
 # (inline frames consume numbers and repeat their recorded PC), numbering
@@ -38,7 +47,14 @@
 # (syscall-unpoison: kernel-written bytes inside a poisoned buffer must come
 # back clean, plain and under --history=full, now covering recvfrom and
 # timerfd_settime; syscall-unpoison-ctl: the kernel-untouched timerfd_settime
-# new_value input must STAY poisoned and branching on it must fault).
+# new_value input must STAY poisoned and branching on it must fault), the
+# ~/.zegarmistrz config-file battery (the coredump/history/error directives,
+# the disabled-by-default core-dump default with no config, the unknown-
+# directive warning, and CLI-over-config precedence for --error-exitcode),
+# the valgrind-parity --error-exitcode / --error-signal poison-fault exit
+# overrides, and the unimplemented-instruction exit code (a real EVEX
+# instruction the emulator does not implement exits 132 / SIGILL, NOT the
+# poison 139, and the poison-only exit override never touches it).
 # Does not touch filc/tests or filc/run-tests.
 set -u
 cd "$(dirname "$0")"
@@ -49,6 +65,19 @@ OUTDIR="test-output"
 log() { echo "[run-tests] $*"; }
 
 mkdir -p "$OUTDIR"
+
+# Suite HOME: zegarmistrz now DISABLES core dumps by default (djb) unless
+# ~/.zegarmistrz re-enables them or --core is passed, so the whole suite
+# runs with a private HOME whose config turns cores back on -- every
+# pre-existing case then sees cores exactly as before the default flip.
+# HOME must be ABSOLUTE: the emulator resolves ~/.zegarmistrz against the
+# cwd of the guest process, and most cases run it from inside $OUTDIR.
+# Guests inherit the modified HOME harmlessly (nothing in the suite reads
+# it). The config-file cases below set their own HOME under $OUTDIR.
+mkdir -p "$OUTDIR/config-home"
+printf 'coredump enabled\n' > "$OUTDIR/config-home/.zegarmistrz"
+export HOME="$(pwd)/$OUTDIR/config-home"
+
 # Build emulator.
 log "building zegarmistrz..."
 if ! make -j"$JOBS" >"$OUTDIR/build.log" 2>&1; then
@@ -65,7 +94,7 @@ gcc -O2 -static -o "$OUTDIR/static_hi" tests/static_hi.c || { log "guest compile
 for t in poison_load poison_store poison_branch poison_index poison_unpoison poison_clear poison_syscall poison_launder_branch poison_launder_index poison_launder_clear \
          poison_vt_div poison_vt_clear poison_vt_plausible poison_vt_cmps poison_vt_cpuid poison_vt_rep \
          poison_index_lea poison_index_nop poison_index_lea_prop poison_combo \
-         poison_branch_ctrl poison_ortho; do
+         poison_branch_ctrl poison_ortho poison_respill poison_carry_taint memcmp_branch; do
     gcc -O2 -o "$OUTDIR/$t" "tests/$t.c" 2>/dev/null || { log "guest compile failed: $t"; exit 1; }
 done
 # LEA/NOP cannot-index exemption guests + the cannot-index address battery
@@ -80,6 +109,8 @@ gcc -O2 -mavx -o "$OUTDIR/poison_vt_mode3" tests/poison_vt_mode3.c \
     || { log "guest compile failed: poison_vt_mode3"; exit 1; }
 gcc -O2 -mavx -mrdrnd -mrdseed -o "$OUTDIR/poison_vt_exempt" tests/poison_vt_exempt.c \
     || { log "guest compile failed: poison_vt_exempt"; exit 1; }
+gcc -O2 -mavx2 -o "$OUTDIR/poison_vex_vec" tests/poison_vex_vec.c \
+    || { log "guest compile failed: poison_vex_vec"; exit 1; }
 gcc -O2 -mavx512f -o "$OUTDIR/poison_vt_kmask" tests/poison_vt_kmask.c \
     || { log "guest compile failed: poison_vt_kmask"; exit 1; }
 # CPUID presence + header-only client library tests.
@@ -104,9 +135,35 @@ done
 # under the emulator.
 gcc -O2 -mavx2 -o "$OUTDIR/insn_fixes" tests/insn_fixes.c \
     || { log "guest compile failed: insn_fixes"; exit 1; }
+gcc -O2 -mavx2 -o "$OUTDIR/insn_djb" tests/insn_djb.c \
+    || { log "guest compile failed: insn_djb"; exit 1; }
+# cvtpd2dq regression guest (the packed double->int32 convert djb's qhasm
+# ntt_double.S uses): legacy+VEX.128+VEX.256 forms, register AND memory
+# sources, nearest-even rounding vs the truncating 66-prefixed form, the
+# integer-indefinite 0x80000000 lanes, and the verified zeroing of the dest
+# above the converted lanes.  Needs -mavx at compile time for the inline asm
+# (groups gated on runtime CPUID so it runs everywhere).
+gcc -O2 -mavx -o "$OUTDIR/cvtpd2dq" tests/cvtpd2dq.c \
+    || { log "guest compile failed: cvtpd2dq"; exit 1; }
+# VEX half-move family guest (VMOVHLPS/VMOVLHPS reg-reg and the VMOVLPS/
+# VMOVLPD/VMOVHPS/VMOVHPD m64 forms): clang builds these into the
+# KeccakP1600times4 lane interleave of djb's supercop newhope512cca avx2
+# kernel (56 vmovlhps sites in our clang -O3 build; only the untaken branches
+# saved the run).  Needs -mavx at compile time for the inline asm.
+gcc -O2 -mavx -o "$OUTDIR/movlhps" tests/movlhps.c \
+    || { log "guest compile failed: movlhps"; exit 1; }
 gcc -O2 -mavx512f -mavx512dq -mavx512vl -mavx512ifma -o "$OUTDIR/insn_fixes_avx512" \
     tests/insn_fixes_avx512.c \
     || { log "guest compile failed: insn_fixes_avx512"; exit 1; }
+# Taint-laundering fix guests: a poisoned value reaches an xmm register
+# (MOVQ from cannot-index-poisoned memory) and is extracted to a GPR --
+# pextrd (pextr-taint) or movq r64, xmm (movd-taint) -- then the GPR is used
+# as a memory index, which must fault instead of running with laundered
+# (clean) taint.  Expect exit 139 + core + the cannot-index reason.
+gcc -O2 -o "$OUTDIR/pextr_taint" tests/pextr_taint.c \
+    || { log "guest compile failed: pextr_taint"; exit 1; }
+gcc -O2 -o "$OUTDIR/movd_taint" tests/movd_taint.c \
+    || { log "guest compile failed: movd_taint"; exit 1; }
 # Poly1305 chunked-update KAT ([12, 65536, 100] EVP_MAC via libcrypto, the
 # test_chacha20_poly1305_large trigger) + VEX VMOVQ/VMOVD upper-YMM zeroing
 # regression guest.  Needs AVX at runtime for the instruction groups (gated
@@ -138,6 +195,13 @@ int main(void) { printf("before\n"); boom(); return 0; }
 EOF
 gcc -O0 -g -o "$OUTDIR/crash" "$OUTDIR/crash.c" || { log "guest compile failed: crash"; exit 1; }
 gcc -O2 -g -o "$OUTDIR/crash_o2" "$OUTDIR/crash.c" || { log "guest compile failed: crash_o2"; exit 1; }
+
+# Unimplemented-instruction guest: raw EVEX bytes for VGETMANTSS (a real
+# AVX512F instruction the emulator does not implement); the raw bytes keep
+# the build independent of assembler AVX512 support. run-tests only runs it
+# under the emulator (most hosts SIGILL on it natively too).
+gcc -O2 -o "$OUTDIR/unimplemented" tests/unimplemented.c \
+    || { log "guest compile failed: unimplemented"; exit 1; }
 
 # Stack-trace guests: shlib symbolication + inline frame expansion.
 # NOTE: the guest binary's RUNPATH must be absolute, not '$ORIGIN' -- the
@@ -221,6 +285,9 @@ echo "avx512-smoke"
 echo "aes-smoke"
 echo "vex-smoke"
 echo "insn-fixes"
+echo "insn-djb"
+echo "cvtpd2dq"
+echo "movlhps"
 echo "insn-fixes-avx512"
 echo "poly1305-kat"
 echo "dec-cache"
@@ -238,6 +305,12 @@ echo "poison-clear"
 echo "poison-launder-branch"
 echo "poison-launder-index"
 echo "poison-launder-clear"
+echo "poison-vex-vec"
+echo "poison-respill"
+echo "poison-carry-taint"
+echo "memcmp-branch"
+echo "pextr-taint"
+echo "movd-taint"
 echo "poison-vt-div"
 echo "poison-vt-clear"
 echo "poison-vt-plausible"
@@ -283,6 +356,17 @@ echo "history-2"
 echo "history-full"
 echo "history-bad"
 echo "no-core"
+echo "fault-diagnostics-nocore"
+echo "config-default-nocore"
+echo "config-coredump-enabled"
+echo "config-disabled-explicit"
+echo "config-history-all"
+echo "config-error-exitcode"
+echo "config-error-signal"
+echo "config-cli-override"
+echo "config-bad-directive"
+echo "cli-error-exitcode"
+echo "unimplemented-exit-code"
 } | xargs -P "$JOBS" -I{} bash -c '
 set -u
 t="{}"
@@ -347,7 +431,7 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
       diff test-output/aes.native test-output/aes.emu | head -5
     fi
     ;;
-  insn-fixes|insn-fixes-avx512)
+  insn-fixes|insn-djb|cvtpd2dq|movlhps|insn-fixes-avx512)
     # Self-checking instruction-semantics regression guests (see the comment
     # at their compile lines).  Must pass natively AND under the emulator,
     # with byte-identical output ending in the ok line.
@@ -475,6 +559,99 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
     ;;
 
+  poison-carry-taint)
+    # Carry/flag and BMI2/ADX taint propagation (sbb, adc, rcl, adcx, mulx,
+    # pushf): every mode must fault with cannot-branch (exit 139).
+    name=poison_carry_taint
+    bad=""
+    for mode in sbb adc rcl adcx mulx pushf; do
+      rm -f "test-output/zegarmistrz.core.$name."*
+      (cd test-output && timeout 60 ../zegarmistrz ./$name "$mode" >/dev/null 2>$name.$mode.err.txt); ec=$?
+      core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+      if [ "$ec" != 139 ] || [ -z "$core" ] || [ ! -f "$core" ] \
+         || ! grep -q "cannot-branch" "test-output/$name.$mode.err.txt"; then
+        bad="$bad $mode(ec=$ec)"
+      fi
+      rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.$mode.err.txt"
+    done
+    if [ -z "$bad" ]; then
+      echo "PASS poison-carry-taint"
+    else
+      echo "FAIL poison-carry-taint:$bad"
+    fi
+    ;;
+  pextr-taint|movd-taint)
+    # Taint laundering through the extract-to-GPR element moves: poison
+    # cannot-index, load into an xmm (movq from the poisoned memory), extract
+    # to a GPR (pextrd, or movq r64, xmm), then use the GPR as a memory
+    # index.  The extract must carry the whole-vector sidecar into the GPR,
+    # so the indexed access faults with the cannot-index reason (exit 139 +
+    # core).  On the pre-fix emulator the sidecar was dropped and the guest
+    # ran clean (exit 0), which is exactly the laundering hole these guests
+    # pin.
+    name=$(echo "$t" | tr "-" "_")
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-index" "test-output/$name.err.txt"; then
+      echo "PASS $t"
+    else
+      echo "FAIL $t: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
+  memcmp-branch)
+    # djb suggested branch test: memcmp between a poisoned array and a clean
+    # twin of identical content. The taint must survive the glibc memcmp
+    # IFUNC dispatch (vpcmpeqb / vpmovmskb / branch chain) so the emulator
+    # faults with cannot-branch (exit 139) before abort() would run.
+    name=memcmp_branch
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-branch" "test-output/$name.err.txt"; then
+      echo "PASS memcmp-branch"
+    else
+      echo "FAIL memcmp-branch: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
+  poison-respill)
+    # Repeated tainted stores to the same slot must keep taint set rather than
+    # toggling it off through clear-on-store (cannot-branch fault, exit 139).
+    name=poison_respill
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-branch" "test-output/$name.err.txt"; then
+      echo "PASS poison-respill"
+    else
+      echo "FAIL poison-respill: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
+  poison-vex-vec)
+    # VEX vpcmpeqb + vpand through vec_store_dst must preserve taint into
+    # vpmovmskb -> branch (cannot-branch fault, exit 139).
+    name=poison_vex_vec
+    rm -f "test-output/zegarmistrz.core.$name."*
+    (cd test-output && timeout 60 ../zegarmistrz ./$name >/dev/null 2>$name.err.txt); ec=$?
+    core=$(ls test-output/zegarmistrz.core.$name.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "cannot-branch" "test-output/$name.err.txt"; then
+      echo "PASS poison-vex-vec"
+    else
+      echo "FAIL poison-vex-vec: exit=$ec core=[$core]"
+      head -5 "test-output/$name.err.txt" 2>/dev/null
+    fi
+    rm -f "test-output/zegarmistrz.core.$name."* "test-output/$name.err.txt"
+    ;;
   poison-launder-clear)
     # The complement: with clear-branch-on-store, the clean store DOES
     # sanitize, so the load is clean and the branch succeeds (exit 0).
@@ -1379,6 +1556,294 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
       echo "FAIL no-core: exit=$ec core=[$core]"
     fi
     rm -f test-output/no-core/zegarmistrz.core.poison_load.* test-output/no-core/nocore.err
+    ;;
+
+  fault-diagnostics-nocore)
+    # The host-fault diagnostics guarantee with cores disabled (the
+    # default): a HOST fault class error -- the crash guest writes to an
+    # unmapped address -- must still print the banner, the reason and the
+    # core-dumps-disabled message, and exit 139 like a real SIGSEGV. Only
+    # the core FILE is skipped. A regression that skips installing the
+    # fault handler under the default turns this into a bare host SIGSEGV
+    # with zero bytes of output, which is what this case guards against.
+    # Runs with an empty HOME (no config file) and no flags: pure
+    # defaults. Companion check: the same invocation with --core writes
+    # the core file, proving the diagnostics and the core file are
+    # decoupled (the fault handler does not depend on the core setting).
+    mkdir -p test-output/fault-diagnostics-nocore/home
+    rm -f test-output/fault-diagnostics-nocore/zegarmistrz.core.crash.*
+    (cd test-output/fault-diagnostics-nocore \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz ../crash \
+        >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/fault-diagnostics-nocore/zegarmistrz.core.crash.* 2>/dev/null | head -1)
+    (cd test-output/fault-diagnostics-nocore \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz --core ../crash \
+        >/dev/null 2>errcore.txt); eccore=$?
+    core2=$(ls test-output/fault-diagnostics-nocore/zegarmistrz.core.crash.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -z "$core" ] \
+       && grep -q "zegarmistrz: fatal guest error" \
+          test-output/fault-diagnostics-nocore/err.txt \
+       && grep -q "guest SIGSEGV (unmapped write)" \
+          test-output/fault-diagnostics-nocore/err.txt \
+       && grep -q "core dumps disabled" \
+          test-output/fault-diagnostics-nocore/err.txt \
+       && [ "$eccore" = 139 ] && [ -n "$core2" ] && [ -f "$core2" ] \
+       && grep -q "zegarmistrz: fatal guest error" \
+          test-output/fault-diagnostics-nocore/errcore.txt; then
+      echo "PASS fault-diagnostics-nocore"
+    else
+      echo "FAIL fault-diagnostics-nocore: ec=$ec core=[$core] eccore=$eccore core2=[$core2]"
+      head -5 test-output/fault-diagnostics-nocore/err.txt 2>/dev/null
+      head -5 test-output/fault-diagnostics-nocore/errcore.txt 2>/dev/null
+    fi
+    rm -f test-output/fault-diagnostics-nocore/zegarmistrz.core.crash.* \
+          test-output/fault-diagnostics-nocore/err.txt \
+          test-output/fault-diagnostics-nocore/errcore.txt
+    ;;
+
+  config-default-nocore)
+    # The djb default: core dumps are DISABLED unless ~/.zegarmistrz
+    # re-enables them or a flag does. A HOME without a config file sees a
+    # faulting guest exit 139 (the exit code is 128+signo regardless of
+    # cores), print the core-dumps-disabled message, and leave no core.
+    mkdir -p test-output/config-default-nocore/home
+    rm -f test-output/config-default-nocore/zegarmistrz.core.poison_branch.*
+    (cd test-output/config-default-nocore \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz ../poison_branch \
+        >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/config-default-nocore/zegarmistrz.core.poison_branch.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -z "$core" ] \
+       && grep -q "core dumps disabled" test-output/config-default-nocore/err.txt; then
+      echo "PASS config-default-nocore"
+    else
+      echo "FAIL config-default-nocore: ec=$ec core=[$core]"
+      head -5 test-output/config-default-nocore/err.txt 2>/dev/null
+    fi
+    rm -f test-output/config-default-nocore/zegarmistrz.core.poison_branch.* \
+          test-output/config-default-nocore/err.txt
+    ;;
+
+  config-coredump-enabled)
+    # A HOME whose config contains only "coredump enabled": the faulting
+    # guest exits 139 AND the core file appears (the config wins over the
+    # disabled default).
+    mkdir -p test-output/config-coredump-enabled/home
+    printf "coredump enabled\n" > test-output/config-coredump-enabled/home/.zegarmistrz
+    rm -f test-output/config-coredump-enabled/zegarmistrz.core.poison_branch.*
+    (cd test-output/config-coredump-enabled \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz ../poison_branch \
+        >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/config-coredump-enabled/zegarmistrz.core.poison_branch.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ]; then
+      echo "PASS config-coredump-enabled"
+    else
+      echo "FAIL config-coredump-enabled: ec=$ec core=[$core]"
+      head -5 test-output/config-coredump-enabled/err.txt 2>/dev/null
+    fi
+    rm -f test-output/config-coredump-enabled/zegarmistrz.core.poison_branch.* \
+          test-output/config-coredump-enabled/err.txt
+    ;;
+
+  config-disabled-explicit)
+    # "coredump disabled" in the config is the same as the default: 139,
+    # the disabled message, no core file.
+    mkdir -p test-output/config-disabled-explicit/home
+    printf "coredump disabled\n" > test-output/config-disabled-explicit/home/.zegarmistrz
+    rm -f test-output/config-disabled-explicit/zegarmistrz.core.poison_branch.*
+    (cd test-output/config-disabled-explicit \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz ../poison_branch \
+        >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/config-disabled-explicit/zegarmistrz.core.poison_branch.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -z "$core" ] \
+       && grep -q "core dumps disabled" test-output/config-disabled-explicit/err.txt; then
+      echo "PASS config-disabled-explicit"
+    else
+      echo "FAIL config-disabled-explicit: ec=$ec core=[$core]"
+      head -5 test-output/config-disabled-explicit/err.txt 2>/dev/null
+    fi
+    rm -f test-output/config-disabled-explicit/zegarmistrz.core.poison_branch.* \
+          test-output/config-disabled-explicit/err.txt
+    ;;
+
+  config-history-all)
+    # "history all" in the config must behave like --history=full on the
+    # command line: the history_math guest, run WITHOUT any --history flag,
+    # exits 139 with a core AND prints the poison-history block (the
+    # recorded trail is on by config alone).
+    mkdir -p test-output/config-history-all/home
+    printf "coredump enabled\nhistory all\n" > test-output/config-history-all/home/.zegarmistrz
+    rm -f test-output/config-history-all/zegarmistrz.core.history_math.*
+    (cd test-output/config-history-all \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz ../history_math \
+        >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/config-history-all/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "poison history of the offending value" \
+          test-output/config-history-all/err.txt; then
+      echo "PASS config-history-all"
+    else
+      echo "FAIL config-history-all: ec=$ec core=[$core]"
+      head -5 test-output/config-history-all/err.txt 2>/dev/null
+    fi
+    rm -f test-output/config-history-all/zegarmistrz.core.history_math.* \
+          test-output/config-history-all/err.txt
+    ;;
+
+  config-error-exitcode)
+    # "error exitcode 42" in the config (valgrind parity): the poison fault
+    # exits 42 instead of 139, STILL dumps the core (cores are enabled by
+    # the same config), and the taint reason is on stderr.
+    mkdir -p test-output/config-error-exitcode/home
+    printf "coredump enabled\nerror exitcode 42\n" \
+        > test-output/config-error-exitcode/home/.zegarmistrz
+    rm -f test-output/config-error-exitcode/zegarmistrz.core.history_math.*
+    (cd test-output/config-error-exitcode \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz ../history_math \
+        >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/config-error-exitcode/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 42 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "tainted" test-output/config-error-exitcode/err.txt; then
+      echo "PASS config-error-exitcode"
+    else
+      echo "FAIL config-error-exitcode: ec=$ec core=[$core]"
+      head -5 test-output/config-error-exitcode/err.txt 2>/dev/null
+    fi
+    rm -f test-output/config-error-exitcode/zegarmistrz.core.history_math.* \
+          test-output/config-error-exitcode/err.txt
+    ;;
+
+  config-error-signal)
+    # "error signal 9" in the config: the poison fault reports signal 9
+    # (exit 137 = 128+9) and still dumps the core.
+    mkdir -p test-output/config-error-signal/home
+    printf "coredump enabled\nerror signal 9\n" \
+        > test-output/config-error-signal/home/.zegarmistrz
+    rm -f test-output/config-error-signal/zegarmistrz.core.history_math.*
+    (cd test-output/config-error-signal \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz ../history_math \
+        >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/config-error-signal/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 137 ] && [ -n "$core" ] && [ -f "$core" ]; then
+      echo "PASS config-error-signal"
+    else
+      echo "FAIL config-error-signal: ec=$ec core=[$core]"
+      head -5 test-output/config-error-signal/err.txt 2>/dev/null
+    fi
+    rm -f test-output/config-error-signal/zegarmistrz.core.history_math.* \
+          test-output/config-error-signal/err.txt
+    ;;
+
+  config-cli-override)
+    # CLI wins over the config: "error exitcode 42" in the config but
+    # --error-exitcode=43 on the command line exits 43 (and the config
+    # enabled cores still apply).
+    mkdir -p test-output/config-cli-override/home
+    printf "coredump enabled\nerror exitcode 42\n" \
+        > test-output/config-cli-override/home/.zegarmistrz
+    rm -f test-output/config-cli-override/zegarmistrz.core.history_math.*
+    (cd test-output/config-cli-override \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz --error-exitcode=43 \
+        ../history_math >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/config-cli-override/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 43 ] && [ -n "$core" ] && [ -f "$core" ]; then
+      echo "PASS config-cli-override"
+    else
+      echo "FAIL config-cli-override: ec=$ec core=[$core]"
+      head -5 test-output/config-cli-override/err.txt 2>/dev/null
+    fi
+    rm -f test-output/config-cli-override/zegarmistrz.core.history_math.* \
+          test-output/config-cli-override/err.txt
+    ;;
+
+  config-bad-directive)
+    # An unknown directive is a warning, never an error: the warning lands
+    # on stderr and the OTHER directives in the file still apply (the
+    # enabled coredump produces the usual 139 + core).
+    mkdir -p test-output/config-bad-directive/home
+    printf "coredump enabled\nfrobnicate yes\n" \
+        > test-output/config-bad-directive/home/.zegarmistrz
+    rm -f test-output/config-bad-directive/zegarmistrz.core.poison_branch.*
+    (cd test-output/config-bad-directive \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz ../poison_branch \
+        >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/config-bad-directive/zegarmistrz.core.poison_branch.* 2>/dev/null | head -1)
+    if [ "$ec" = 139 ] && [ -n "$core" ] && [ -f "$core" ] \
+       && grep -q "unknown directive .frobnicate" \
+          test-output/config-bad-directive/err.txt; then
+      echo "PASS config-bad-directive"
+    else
+      echo "FAIL config-bad-directive: ec=$ec core=[$core]"
+      head -5 test-output/config-bad-directive/err.txt 2>/dev/null
+    fi
+    rm -f test-output/config-bad-directive/zegarmistrz.core.poison_branch.* \
+          test-output/config-bad-directive/err.txt
+    ;;
+
+  cli-error-exitcode)
+    # --error-exitcode=42 with no config at all (cores stay disabled): exit
+    # 42, and the flag must NOT re-enable core dumps (no core, disabled
+    # message).
+    mkdir -p test-output/cli-error-exitcode/home
+    rm -f test-output/cli-error-exitcode/zegarmistrz.core.history_math.*
+    (cd test-output/cli-error-exitcode \
+        && HOME="$(pwd)/home" timeout 60 ../../zegarmistrz --error-exitcode=42 \
+        ../history_math >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/cli-error-exitcode/zegarmistrz.core.history_math.* 2>/dev/null | head -1)
+    if [ "$ec" = 42 ] && [ -z "$core" ] \
+       && grep -q "core dumps disabled" test-output/cli-error-exitcode/err.txt; then
+      echo "PASS cli-error-exitcode"
+    else
+      echo "FAIL cli-error-exitcode: ec=$ec core=[$core]"
+      head -5 test-output/cli-error-exitcode/err.txt 2>/dev/null
+    fi
+    rm -f test-output/cli-error-exitcode/zegarmistrz.core.history_math.* \
+          test-output/cli-error-exitcode/err.txt
+    ;;
+
+  unimplemented-exit-code)
+    # djb: a DIFFERENT exit code for unknown instructions. The guest runs a
+    # real EVEX instruction zegarmistrz does not implement (VGETMANTSS, see
+    # tests/unimplemented.c), so the interpreter throws the unimplemented
+    # guest error. With the suite HOME (cores enabled) the run must exit 132
+    # (SIGILL) with the unimplemented reason and a core. With a poison-only
+    # error-exitcode override configured the exit must STILL be 132 (the
+    # override applies to poison-class errors only, so poison and unknown
+    # instructions stay distinguishable), and with no config at all it is
+    # still 132 with cores disabled and no core.
+    mkdir -p test-output/unimplemented-exit-code
+    rm -f test-output/unimplemented-exit-code/zegarmistrz.core.unimplemented.*
+    (cd test-output/unimplemented-exit-code \
+        && timeout 60 ../../zegarmistrz ../unimplemented >/dev/null 2>err.txt); ec=$?
+    core=$(ls test-output/unimplemented-exit-code/zegarmistrz.core.unimplemented.* 2>/dev/null | head -1)
+    core1=0
+    { [ -n "$core" ] && [ -f "$core" ]; } && core1=1
+    mkdir -p test-output/unimplemented-exit-code/home42
+    printf "coredump enabled\nerror exitcode 42\n" \
+        > test-output/unimplemented-exit-code/home42/.zegarmistrz
+    (cd test-output/unimplemented-exit-code \
+        && HOME="$(pwd)/home42" timeout 60 ../../zegarmistrz ../unimplemented \
+        >/dev/null 2>err42.txt); ec42=$?
+    core42=$(ls test-output/unimplemented-exit-code/zegarmistrz.core.unimplemented.* 2>/dev/null | head -1)
+    core42ok=0
+    { [ -n "$core42" ] && [ -f "$core42" ]; } && core42ok=1
+    rm -f test-output/unimplemented-exit-code/zegarmistrz.core.unimplemented.*
+    mkdir -p test-output/unimplemented-exit-code/homeempty
+    (cd test-output/unimplemented-exit-code \
+        && HOME="$(pwd)/homeempty" timeout 60 ../../zegarmistrz ../unimplemented \
+        >/dev/null 2>errempty.txt); ec0=$?
+    core0=$(ls test-output/unimplemented-exit-code/zegarmistrz.core.unimplemented.* 2>/dev/null | head -1)
+    if [ "$ec" = 132 ] && [ "$core1" = 1 ] \
+       && grep -q "unimplemented vgetmantss" test-output/unimplemented-exit-code/err.txt \
+       && [ "$ec42" = 132 ] && [ "$core42ok" = 1 ] \
+       && [ "$ec0" = 132 ] && [ -z "$core0" ] \
+       && grep -q "core dumps disabled" test-output/unimplemented-exit-code/errempty.txt; then
+      echo "PASS unimplemented-exit-code"
+    else
+      echo "FAIL unimplemented-exit-code: ec=$ec core1=$core1 ec42=$ec42 core42ok=$core42ok ec0=$ec0 core0=[$core0]"
+      head -5 test-output/unimplemented-exit-code/err.txt 2>/dev/null
+    fi
+    rm -f test-output/unimplemented-exit-code/zegarmistrz.core.unimplemented.* \
+          test-output/unimplemented-exit-code/err*.txt
     ;;
 esac
 ' | tee "$OUTDIR/results.txt"

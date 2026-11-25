@@ -31,14 +31,32 @@ implementation details, invariants, and gotchas.
 ## Source map
 
 - `src/main.cpp` — CLI (`-v`, `--trace-syscalls`, `--stack-trace`/
-  `--no-stack-trace`, `--no-core`/`--passthrough-signals`,
-  `--var-time-op=`, `--history[=VALUE]`), Linux-ABI initial stack
+  `--no-stack-trace`, `--no-core`, `--passthrough-signals`, `--core`,
+  `--error-exitcode=N`, `--var-time-op=`, `--history[=VALUE]`), the
+  `~/.zegarmistrz` config file (`read_config`: `coredump
+  enabled|disabled`, `history ...`, `error exitcode N`, `error signal N`;
+  parsed BEFORE the flags, flags win on conflicts, warnings only), core
+  dumps DISABLED by default (config `coredump enabled` or `--core`
+  re-enables; the setting gates only the core FILE -- the fault handler
+  stays installed, so banner + stack trace + exit status still happen;
+  `--no-core` is the same as the default, `--core` flips it back on, and
+  the `coredump` directive never touches passthrough mode),
+  `--passthrough-signals` as the only switch that removes the host signal
+  handlers (it implies `--no-core`; faults kill the process like a real
+  host fault), Linux-ABI initial stack
   (argc/argv/envp/auxv, 16-byte aligned), main-thread CPU, interpreter
   loop. `SIGUSR1` dumps a guest backtrace (debug aid).
 - `src/elf_loader.{h,cpp}` — ELF64 loader: maps each object's `PT_LOAD`s,
   loads `PT_INTERP` first, exposes entry/`AT_PHDR`/`AT_ENTRY`/`AT_BASE`.
 - `src/mem.{h,cpp}` — the one memory pipeline + the per-byte poison map +
-  host-fault recovery (`sigsetjmp`-based). The taint sidecar types also
+  host-fault recovery (`sigsetjmp`-based). Passthrough mode
+  (`mem_set_passthrough`, selected only by `--passthrough-signals`) is a
+  separate policy from the core-dump setting: it skips installing the
+  fault handler at all (so faults kill the process like a real host
+  fault) while `--no-core`/the default only skip the core FILE. The
+  guarded-read users (`zeg_unwind_step`, the stack-trace walk) refuse to
+  walk in passthrough mode because the guards are not actually guarded
+  there. The taint sidecar types also
   live here: plain `Taint`, `--history`'s `HistoryTaint` (one PC per
   step), and deep history's `DeepHistoryTaint` (recorded stacks per
   step) — every trail entry is a `ZegHistStep` (pc + recording seq +
@@ -159,7 +177,41 @@ How cases work:
   library the guest ld.so mapped symbolicates with the .so's function
   name + source file, and `stack-trace-inline` asserts the DWARF inline
   chain expands (innermost inlined function first, marked `(inline)`);
-  `no-core` checks `--no-core`.
+  `no-core` checks `--no-core`; `fault-diagnostics-nocore` runs the
+  crash guest (unmapped write, a HOST fault class error) with an empty
+  HOME and no flags: the banner, the `guest SIGSEGV (unmapped write)`
+  reason and `[core dumps disabled]` must print with exit 139 and no
+  core, and the same run under `--core` must write the file — the guard
+  for the fault-handler-vs-core-file decoupling (a regression that skips
+  installing the handler under the default kills the process with zero
+  output).
+- The whole suite runs with a private HOME (`test-output/config-home`,
+  containing `coredump enabled`) exported before any case: the emulator
+  now disables core dumps by default, and the suite config re-enables
+  them so every core-expecting case sees cores exactly as before the
+  default flip. HOME is exported ABSOLUTE because the emulator resolves
+  `~/.zegarmistrz` against the guest process's cwd and most cases run it
+  from inside `test-output/`.
+- The `config-*` cases exercise `~/.zegarmistrz` directly (each sets its
+  own HOME under `test-output/`): `config-default-nocore` (no config
+  file: 139, the disabled message, no core), `config-coredump-enabled`
+  (the directive re-enables dumps: 139 + core),
+  `config-disabled-explicit` (explicit disable: same as the default),
+  `config-history-all` (`history all` behaves like `--history=full`
+  with no CLI flag: 139 + core + the poison-history block),
+  `config-error-exitcode` (`error exitcode 42`: exit 42 + core + taint
+  reason), `config-error-signal` (`error signal 9`: exit 137 + core),
+  `config-cli-override` (`--error-exitcode=43` beats the config's 42),
+  `config-bad-directive` (an unknown directive warns on stderr and the
+  other directives still apply), and `cli-error-exitcode`
+  (`--error-exitcode=42` with no config: exit 42 AND cores stay
+  disabled).
+- `unimplemented-exit-code` runs `tests/unimplemented.c` (raw EVEX bytes
+  for VGETMANTSS, an instruction no handler covers): exit 132 (SIGILL)
+  with the unimplemented reason + core under the suite HOME, still 132
+  under a poison-only `error exitcode 42` config (the override must not
+  touch unimplemented errors), and still 132 with cores disabled under
+  an empty HOME.
 - `history-math` runs the `--history` poison-provenance guest
   (`tests/history_math.c`: poison cannot-index, load, math-derive an
   address from the loaded value, index memory with it) and asserts the
@@ -412,13 +464,13 @@ stack in `callers` in the deep modes; `callers` is empty in
 Precise semantics of `mem_note_store` (this is the valgrind-flavored
 part; `tests/poison_launder_*.c` pin it):
 
-- Storing a value whose taint bit B is set marks the destination bytes
-  with B **plus the matching clear-on-store bit** (so the poison is
-  self-describing: a later clean store can sanitize it).
-- If the destination already carries the matching clear-on-store bit,
-  the store instead **clears** B there (store sanitizes).
-- A clean store (no taint) still honors clear-on-store bits: it clears
-  any dimension the destination asked to have sanitized.
+- For each dimension B where the stored value is tainted, the destination
+  bytes keep/gain B (and gain the matching clear-on-store bit if B was not
+  already set, so a later clean store can sanitize a spill without weakening
+  sticky user poison).
+- For each dimension B where the stored value is clean, if the destination
+  carries the matching clear-on-store bit, the store clears B there (store
+  sanitizes).
 - cannot-load / cannot-store / clear bits are sticky — stores never
   remove them (only `zegarmistrz_unpoison_range` does).
 
@@ -810,13 +862,51 @@ On any fatal guest error, `guest_error` throws `GuestError`, caught in
    rip=%#lx` plus ` fault_addr=%#lx` when nonzero.
 2. **Guest stack trace** (unless `--no-stack-trace`).
 3. **Core file** `zegarmistrz.core.<process-name>.<pid>` in the current
-   directory, then the `zegarmistrz: [core: <path>]` line. With
-   `--no-core`/`--passthrough-signals`: `[core dumps disabled]`, no
-   file.
+   directory, then the `zegarmistrz: [core: <path>]` line. Core dumps
+   are DISABLED BY DEFAULT: `~/.zegarmistrz` `coredump enabled` or the
+   `--core` flag re-enables them, and `--no-core` (the same as the
+   default) or `--passthrough-signals` (or config `coredump disabled`)
+   disables them again. The gate is `emu.no_core` alone -- the fault
+   handler is installed regardless of it, so the banner and the trace
+   print in every non-passthrough mode; only the file is skipped. With
+   dumps disabled: `[core dumps disabled]`, no file.
+   `--passthrough-signals` additionally removes the host signal handlers
+   entirely (host-fault class errors then kill the process with zero
+   diagnostics, like a real host fault).
 
 The banner and trace print **before** the core is written, so the trace
-is visible even if the core write is interrupted. The process exits
-with SIGSEGV (shell status 139) for poisoning faults.
+is visible even if the core write is interrupted.
+
+**Exit-code classification** (`core_dump.cpp`): the process exit status
+encodes the reason class, so the shell can tell the failures apart:
+
+- **139 (SIGSEGV)** — poison-class: poisoned cannot-load/store, tainted
+  cannot-branch/index/var-time values, unmapped accesses, bad RIP,
+  string-op taint (`zeg_reason_is_poison` keeps exactly the substrings
+  `guest_fatal_signo` has always mapped to SIGSEGV).
+- **132 (SIGILL)** — unimplemented-class (`zeg_reason_is_unimplemented`):
+  `unimplemented <mnemonic> ...` (incl. the exec_evex fallback), decode
+  failures, unsupported `bad ...`/`unsupported ...`/`cannot store`/
+  `cannot determine` forms, MVEX/KNC. This was SIGABRT (134) before the
+  classification landed.
+- **134 (SIGABRT)** — everything else; host-signal reasons (the literal
+  `SIGSEGV`/`SIGBUS`/`SIGILL`/`SIGFPE`/`SIGTRAP` substrings) keep the
+  host signal. A reason matching BOTH classes is poison-class (poison is
+  checked first — e.g. `bad string op` embeds the string-op taint name).
+
+The valgrind-parity overrides apply to POISON-class errors only, so
+poison stays distinguishable from unknown instructions even when they
+are configured: `error exitcode N` (`--error-exitcode=N`) makes the
+process exit N; `error signal N` makes it exit 128+N and records N in
+the core's NT_PRSTATUS. Precedence: error_exitcode > error_signo >
+natural 128+signo (`zeg_fatal_exit_code` in `core_dump.cpp`, called by
+both `run_cpu_loop` catch sites — the second catch site's host-signal
+reasons are other-class, so its override never fires, but it routes
+through the same helper for uniformity). When BOTH overrides are
+configured the exitcode override wins and the NT_PRSTATUS writeback is
+gated on it NOT firing: the core then records the natural signo instead
+of the unused signal override, so the recorded signal agrees with the
+exit status actually used.
 
 **Stack trace walk** (`stack_trace.cpp`): frame 0 is the exact faulting
 RIP; then the DWARF CFI walk via `zeg_unwind_step` (`dwarf_unwind.cpp`)
@@ -1036,6 +1126,48 @@ ELF loader (`elf_loader.cpp`):
 
 ## ISA/decoder gotchas (Zydis)
 
+- **The djb supercop opcode batch** (all regression-guested in
+  `tests/insn_djb.c`, the `insn-djb` case, hardware-verified formulas):
+  VCVTDQ2PD/CVTDQ2PD in all three encodings (legacy F3 0F E6, VEX, EVEX);
+  the VEX variable shifts VPSLLVD/VPSLLVQ/VPSRLVD/VPSRLVQ/VPSRAVD
+  (`exec_pshift_var`: per-lane counts, a count >= the element width yields
+  0/fill, NOT masked -- same rule as the EVEX `exec_evex_shift`);
+  PMULHRSW/VPMULHRSW (the rounded-high SSSE3 multiply, not PMULHW);
+  MOVDDUP/VMOVDDUP (each even 64-bit lane duplicated into the odd lane);
+  PEXTRB/W/D/Q with a MEMORY destination (a legal form the old code
+  rejected with "bad pextr form" -- store the selected lane, taint
+  propagates, `tests/pextr_taint.c`); and MOVQ xmm1, xmm2 reg-reg (both
+  the F3 0F 7E load and 66 0F D6 mod=11 store spellings, both zeroing the
+  dest's upper 64 bits and carrying the sidecar, `tests/movd_taint.c`).
+
+- **Narrowing packed converts have an xmm DEST regardless of the vector
+  width**: `vec_width()` is the DEST operand's size, so for
+  CVTPD2DQ/VCVTPD2DQ (and any other F2/66 0F E6-style narrowing convert)
+  the LANE COUNT must come from the SOURCE operand's size -- the VEX.256
+  form's dest is still xmm while its source is ymm (djb's supercop
+  newhope512cca avx2 kernel: the first vcvtpd2dq handler converted only the
+  low two lanes of every ymm and the whole NTT came out wrong, silently,
+  with no fault). The handler `exec_cvtpd2dq` derives lanes from
+  `ops[n-1].size`; dest bytes above the converted lanes are zero
+  (hardware-verified: legacy zeroes the upper 64 bits, VEX applies the usual
+  zeroing above the dest, VEX.256 zeroes the upper 128). The rounding form
+  honors MXCSR.RC; NaN/inf/out-of-range give 0x80000000; the 66-prefixed
+  CVTTPD2DQ truncates regardless of RC. Regression guest:
+  `tests/cvtpd2dq.c` (the `cvtpd2dq` case).
+
+- **The 0F 12/16 half-move family has reg-reg and m64 spellings under
+  DIFFERENT mnemonics**: 0F 12 with a register third operand is
+  (V)MOVHLPS, with memory (V)MOVLPS/(V)MOVLPD; 0F 16 reg-reg is
+  (V)MOVLHPS, mem (V)MOVHPS/(V)MOVHPD. The VEX 3-operand forms assemble
+  the xmm dest from one half of each source ([x3.high, x2.high] for
+  MOVHLPS, [x2.low, x3.low] for MOVLHPS, [m64, x2.high] for the l-load,
+  [x2.low, m64] for the h-load -- hardware-verified) and zero the dest
+  above 128 bits, while the legacy reg-reg forms keep the dest's other
+  half and the upper YMM. clang emits VMOVLHPS into the KeccakP1600times4
+  lane interleave of djb's supercop newhope512cca avx2 kernel (56 sites in
+  our clang -O3 build, so far only on untaken branches -- clang-19 could
+  take them). Regression guest: `tests/movlhps.c` (the `movlhps` case).
+
 - **EVEX write masks are explicit operands**, even `{k0}` when
   unmasked (`vpaddd` decodes as `[dst, k, src1, src2]`);
   `evex_explicit()` skips non-destination operands equal to
@@ -1091,5 +1223,11 @@ first): AMX tiles, CET shadow stack (`RSTORSSP`/`SAVEPREVSSP` would
 `#UD` natively without CET), Intel TSX (no host RTM), AVX512-FP16
 (`...PH`/`...SH`), AVX512 VNNI follow-ons (`VPDP*`, `VPMULTISHIFTQB`,
 `VPERMI2/T2`, `VRANGE*`, `VSCALEF*`, `VFIXUPIMM*`), SHA512, `XSAVE`
-supervisor states beyond AVX, `fork`, guest signal delivery. Run
-`./check-isa.sh` after adding guests to catch new gaps early.
+supervisor states beyond AVX, `fork`, guest signal delivery. The exit
+status for all of these is **132 (SIGILL)** — the unimplemented-instruction
+class, distinct from the poison violations' 139 — and the poison-only
+`--error-exitcode`/`error exitcode` override never applies to them (see
+the exit-code classification section). `tests/unimplemented.c` (the
+`unimplemented-exit-code` case) pins this with VGETMANTSS, a real EVEX
+instruction none of the handlers cover. Run `./check-isa.sh` after
+adding guests to catch new gaps early.

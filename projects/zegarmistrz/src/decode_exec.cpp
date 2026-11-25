@@ -694,7 +694,7 @@ struct Engine {
     }
 
     static void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const uint8_t* in, unsigned n,
-                                bool zero_upper, unsigned total_width, Taint t = Taint()) {
+                                bool zero_upper, unsigned total_width, Taint t) {
         const auto& op = d.ops[oi];
         if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
             int idx, width;
@@ -748,7 +748,7 @@ struct Engine {
         guest_error(cpu, "unsupported vector operand");
     }
 
-    static void vec_store_bytes(CPU* cpu, const Dec& d, int oi, VecVal& in, unsigned n,
+    static void vec_store_bytes(CPU* cpu, const Dec& d, int oi, const VecVal& in, unsigned n,
                                 bool zero_upper, unsigned total_width) {
         const auto& op = d.ops[oi];
         if (op.type == ZYDIS_OPERAND_TYPE_REGISTER) {
@@ -767,7 +767,8 @@ struct Engine {
         if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
             uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
             mem_store_bytes(cpu, addr, in.bytes, n);
-            note_store_op(cpu, addr, n, in.taint);
+            Taint t = in.taint;
+            note_store_op(cpu, addr, n, t);
             return;
         }
         guest_error(cpu, "cannot store vector to operand");
@@ -1147,8 +1148,15 @@ struct Engine {
         default: guest_error(cpu, "bad alu op");
         }
         // Taint propagation (except zero idiom handled above).
-        out.taint = dst.taint | src.taint;
-        flags_taint2(cpu, dst, src);
+        // ADC and SBB consume CF, so flags_taint flows into both result and flags.
+        if (m == ZYDIS_MNEMONIC_ADC || m == ZYDIS_MNEMONIC_SBB) {
+            Taint t = dst.taint | src.taint | cpu->flags_taint;
+            out.taint = t;
+            cpu->flags_taint = t;
+        } else {
+            out.taint = dst.taint | src.taint;
+            flags_taint2(cpu, dst, src);
+        }
         if (m == ZYDIS_MNEMONIC_CMP || m == ZYDIS_MNEMONIC_TEST) {
             cpu->rip = next_rip(cpu, d);
             return;
@@ -1269,6 +1277,7 @@ struct Engine {
             r = (uint64_t)big & mask_for(w);
             if (c == 1)
                 of = ((r >> (bits - 1)) & 1) ^ cf;
+            out.taint |= cpu->flags_taint;
         } else {
             guest_error(cpu, "bad shift op");
         }
@@ -1281,7 +1290,7 @@ struct Engine {
             cpu->set_flag(FLAG_PF, parity8((uint8_t)r));
         }
         out.v = r;
-        flags_taint2(cpu, dst, cnt);
+        cpu->flags_taint = out.taint;
         op_store(cpu, d, 0, out);
         cpu->rip = next_rip(cpu, d);
     }
@@ -1789,6 +1798,7 @@ struct Engine {
             if (cpu->sf())
                 ah |= 0x80;
             cpu->gpr[ZG_RAX].val = (cpu->gpr[ZG_RAX].val & ~0xff00ULL) | ((uint64_t)ah << 8);
+            cpu->gpr[ZG_RAX].taint |= cpu->flags_taint;
         } else {
             uint8_t ah = (cpu->gpr[ZG_RAX].val >> 8) & 0xff;
             cpu->set_flag(FLAG_CF, ah & 0x01);
@@ -1796,6 +1806,7 @@ struct Engine {
             cpu->set_flag(FLAG_AF, ah & 0x10);
             cpu->set_flag(FLAG_ZF, ah & 0x40);
             cpu->set_flag(FLAG_SF, ah & 0x80);
+            cpu->flags_taint |= cpu->gpr[ZG_RAX].taint;
         }
         cpu->rip = next_rip(cpu, d);
     }
@@ -2281,13 +2292,13 @@ struct Engine {
             w = 8;
         uint64_t v = cpu->rflags;
         if (w == 2)
-            push64(cpu, v & 0xffff);
+            push64(cpu, v & 0xffff, cpu->flags_taint);
         else
             // Push the user-visible flags: CF, PF, AF, ZF, SF, DF, OF (plus the
             // always-one bit 1).  The old mask (0x00fcfffe) dropped CF, which
             // broke flag save/restore via pushfq/popfq in guests that use it
             // (e.g. the SARCASM-annotated OpenSSL assembly).
-            push64(cpu, v & 0x00fcffff); // mask reserved bits
+            push64(cpu, v & 0x00fcffff, cpu->flags_taint); // mask reserved bits
         cpu->rip = next_rip(cpu, d);
     }
 
@@ -2620,6 +2631,37 @@ struct Engine {
         cpu->rip = next_rip(cpu, d);
     }
 
+// VEX variable shifts (VPSLLVD/VPSLLVQ, VPSRLVD/VPSRLVQ, VPSRAVD): per-lane
+// counts from the second source's lanes.  Like the immediate forms and the
+// EVEX variable forms (exec_evex_shift), the count is NOT masked: a count >=
+// the element width yields 0 (sign-fill for the arithmetic form) -- see the
+// hardware-verification note in exec_evex_shift (masking first broke glibc's
+// vectorized poly1305 limb reduction on a count of exactly the element width).
+    static void exec_pshift_var(CPU* cpu, const Dec& d, unsigned lane, int kind) {
+        // kind: 0=left logical 1=right logical 2=right arithmetic
+        VecVal a, c, o;
+        unsigned w = vec_sources(cpu, d, a, c);
+        for (unsigned i = 0; i < w; i += lane) {
+            uint64_t v = 0, cv = 0;
+            memcpy(&v, a + i, lane);
+            memcpy(&cv, c + i, lane);
+            uint64_t r;
+            if (cv >= lane * 8) {
+                r = (kind == 2 && (v >> (lane * 8 - 1))) ? ~0ULL : 0;
+            } else if (kind == 0) {
+                r = v << cv;
+            } else if (kind == 1) {
+                r = v >> cv;
+            } else {
+                r = (uint32_t)((int32_t)v >> cv);
+            }
+            memcpy(o + i, &r, lane);
+        }
+        o.taint = a.taint | c.taint;
+        vec_store_dst(cpu, d, o, w);
+        cpu->rip = next_rip(cpu, d);
+    }
+
     static void exec_pshufd(CPU* cpu, const Dec& d) {
         int n = explicit_ops(d);
         unsigned w = vec_width(d);
@@ -2760,6 +2802,10 @@ struct Engine {
                 memcpy(&v, cpu->xmm[vi].bytes, is_q ? 8 : 4);
                 Val out;
                 out.v = v;
+                // The vector sidecar is whole-register: the extracted element
+                // carries it.  The old code left out.taint clean, laundering
+                // vector poison into a GPR (movq r64, xmm of a poisoned load).
+                out.taint = cpu->xmm[vi].taint;
                 op_store(cpu, d, 0, out);
             } else if (!d_is_gpr && s_is_gpr) {
                 int vi = -1, vw = 0;
@@ -2769,6 +2815,28 @@ struct Engine {
                 memcpy(cpu->xmm[vi].bytes, &s.v, is_q ? 8 : 4);
                 // Sidecar: the moved GPR value's taint follows into the vector.
                 cpu->xmm[vi].taint = s.taint;
+            } else if (!d_is_gpr && !s_is_gpr) {
+                // MOVQ xmm1, xmm2 -- the reg-reg encodings of both the load
+                // form (F3 0F 7E /r, what gcc emits for `movq %xmm, %xmm`,
+                // e.g. curve25519-donna's field arithmetic) and the store form
+                // (66 0F D6 /r with mod=11).  The old code errored
+                // "bad movd operands" on this legal low-quadword move.
+                // Hardware-verified: BOTH legacy reg-reg forms zero the
+                // destination's upper 64 bits (bits 127:64), leaving the
+                // upper YMM untouched; the VEX forms additionally zero bits
+                // MAXVL-1:128 (the VEX zeroing rule) -- exactly the zbytes
+                // scheme the xmm<-GPR path below implements.  So mirror it.
+                int di = -1, dw = 0, si = -1, sw = 0;
+                if (!reg_to_vec(d.ops[0].reg.value, di, dw) ||
+                    !reg_to_vec(d.ops[1].reg.value, si, sw))
+                    guest_error(cpu, "bad movd operands");
+                memset(cpu->xmm[di].bytes, 0, zbytes);
+                memcpy(cpu->xmm[di].bytes, cpu->xmm[si].bytes, 8);
+                // The destination's old bytes are fully replaced (low
+                // quadword overwritten, upper zeroed), so the sidecar is the
+                // source's -- merging the old sidecar would keep taint on a
+                // value that no longer holds any old bytes.
+                cpu->xmm[di].taint = cpu->xmm[si].taint;
             } else {
                 guest_error(cpu, "bad movd operands");
             }
@@ -3183,7 +3251,10 @@ struct Engine {
     static void exec_movlp(CPU* cpu, const Dec& d, bool high, bool is_pd) {
         (void)is_pd;
         if (d.ops[0].type == ZYDIS_OPERAND_TYPE_MEMORY) {
-            // store form: m64 <- xmm low/high half.
+            // store form: m64 <- xmm low/high half (legacy MOVLPS/MOVLPS-
+            // family and the VEX VMOVLPS/VMOVHPD store forms; hardware-
+            // verified: VMOVHPD m64, xmm stores xmm[127:64], VMOVLPS m64, xmm
+            // stores xmm[63:0]).
             int srci = -1, srcw = 0;
             if (!reg_to_vec(d.ops[1].reg.value, srci, srcw))
                 guest_error(cpu, "bad movlps src");
@@ -3202,10 +3273,34 @@ struct Engine {
             Taint t;
             mem_get_taint(addr, 8, &t);
             cpu->xmm[dsti].taint |= t;
+        } else if (explicit_ops(d) >= 3 && d.ops[2].type == ZYDIS_OPERAND_TYPE_MEMORY) {
+            // VEX 3-operand load: VMOVLPS/VMOVLPD xmm1, xmm2, m64 ->
+            // xmm1 = [m64, xmm2[127:64]]; VMOVHPS/VMOVHPD xmm1, xmm2, m64 ->
+            // xmm1 = [xmm2[63:0], m64] (both hardware-verified).  The VEX
+            // form zeroes the dest above the 128-bit result.
+            int dsti = -1, dstw = 0, srci = -1, srcw = 0;
+            if (!reg_to_vec(d.ops[0].reg.value, dsti, dstw))
+                guest_error(cpu, "bad vmovlps dst");
+            if (!reg_to_vec(d.ops[1].reg.value, srci, srcw))
+                guest_error(cpu, "bad vmovlps src");
+            uint64_t addr = resolve_mem(cpu, d.ops[2], cpu->rip + d.insn.length);
+            uint64_t v = mem_load64(cpu, addr);
+            if (!high)
+                memcpy(cpu->xmm[dsti].bytes, &v, 8);
+            else
+                memcpy(cpu->xmm[dsti].bytes + 8, &v, 8);
+            memcpy(cpu->xmm[dsti].bytes + (high ? 0 : 8),
+                   cpu->xmm[srci].bytes + (high ? 0 : 8), 8);
+            Taint t;
+            mem_get_taint(addr, 8, &t);
+            cpu->xmm[dsti].taint = cpu->xmm[srci].taint | t;
+            memset(cpu->xmm[dsti].bytes + 16, 0, MAX_VEC_BYTES - 16);
         } else {
             int dsti = -1, dstw = 0, srci = -1, srcw = 0;
-            reg_to_vec(d.ops[0].reg.value, dsti, dstw);
-            reg_to_vec(d.ops[1].reg.value, srci, srcw);
+            if (!reg_to_vec(d.ops[0].reg.value, dsti, dstw))
+                guest_error(cpu, "bad movlps dst");
+            if (!reg_to_vec(d.ops[1].reg.value, srci, srcw))
+                guest_error(cpu, "bad movlps src");
             uint64_t v;
             memcpy(&v, cpu->xmm[srci].bytes + (high ? 8 : 0), 8);
             memcpy(cpu->xmm[dsti].bytes + (high ? 8 : 0), &v, 8);
@@ -3217,18 +3312,50 @@ struct Engine {
     }
 
     static void exec_movhlps(CPU* cpu, const Dec& d, bool hl) {
+        // Legacy 2-operand reg-reg (0F 12/16 with mod=11) and the VEX
+        // 3-operand forms (VMOVHLPS/VMOVLHPS xmm1, xmm2, xmm3), the
+        // reg-reg spellings of the 0F 12/16 family that clang emits for the
+        // Keccak-times4 lane interleaves in djb's supercop newhope512cca
+        // avx2 kernel.  Hardware-verified on this host:
+        //   legacy MOVHLPS: dst[63:0] = src[127:64], dst[127:64] kept, the
+        //   upper YMM untouched; legacy MOVLHPS: dst[127:64] = src[63:0];
+        //   VMOVHLPS x1,x2,x3: dst = [x3[127:64], x2[127:64]];
+        //   VMOVLHPS x1,x2,x3: dst = [x2[63:0], x3[63:0]];
+        //   the VEX forms zero the dest above the 128-bit result (VEX
+        //   zeroing), the legacy forms leave the upper YMM unchanged.
         int dsti = -1, dstw = 0, srci = -1, srcw = 0;
-        reg_to_vec(d.ops[0].reg.value, dsti, dstw);
-        reg_to_vec(d.ops[1].reg.value, srci, srcw);
-        if (hl) {
-            // MOVHLPS: dst[63:0] = src[127:64].
-            memcpy(cpu->xmm[dsti].bytes, cpu->xmm[srci].bytes + 8, 8);
+        if (!reg_to_vec(d.ops[0].reg.value, dsti, dstw))
+            guest_error(cpu, "bad movhlps dst");
+        if (!reg_to_vec(d.ops[1].reg.value, srci, srcw))
+            guest_error(cpu, "bad movhlps src");
+        if (explicit_ops(d) >= 3) {
+            int src2i = -1, src2w = 0;
+            if (!reg_to_vec(d.ops[2].reg.value, src2i, src2w))
+                guest_error(cpu, "bad movhlps src2");
+            if (hl) {
+                // VMOVHLPS: dst[63:0] = third[127:64], dst[127:64] =
+                // second[127:64].
+                memcpy(cpu->xmm[dsti].bytes, cpu->xmm[src2i].bytes + 8, 8);
+                memcpy(cpu->xmm[dsti].bytes + 8, cpu->xmm[srci].bytes + 8, 8);
+            } else {
+                // VMOVLHPS: dst[63:0] = second[63:0], dst[127:64] =
+                // third[63:0].
+                memcpy(cpu->xmm[dsti].bytes, cpu->xmm[srci].bytes, 8);
+                memcpy(cpu->xmm[dsti].bytes + 8, cpu->xmm[src2i].bytes, 8);
+            }
+            cpu->xmm[dsti].taint = cpu->xmm[srci].taint | cpu->xmm[src2i].taint;
+            memset(cpu->xmm[dsti].bytes + 16, 0, MAX_VEC_BYTES - 16);
         } else {
-            // MOVLHPS: dst[127:64] = src[63:0].
-            memcpy(cpu->xmm[dsti].bytes + 8, cpu->xmm[srci].bytes, 8);
+            if (hl) {
+                // MOVHLPS: dst[63:0] = src[127:64].
+                memcpy(cpu->xmm[dsti].bytes, cpu->xmm[srci].bytes + 8, 8);
+            } else {
+                // MOVLHPS: dst[127:64] = src[63:0].
+                memcpy(cpu->xmm[dsti].bytes + 8, cpu->xmm[srci].bytes, 8);
+            }
+            // The moved half's taint follows (dst merges with its other half).
+            cpu->xmm[dsti].taint |= cpu->xmm[srci].taint;
         }
-        // The moved half's taint follows (dst merges with its other half).
-        cpu->xmm[dsti].taint |= cpu->xmm[srci].taint;
         cpu->rip = next_rip(cpu, d);
     }
 
@@ -4186,6 +4313,7 @@ struct Engine {
         case ZYDIS_MNEMONIC_ANDN:
             out.v = (~(s0.v & m) & s1.v) & m;
             flags_logic(cpu, w, out.v);
+            cpu->flags_taint = out.taint;
             break;
         case ZYDIS_MNEMONIC_BLSI:
             out.v = ((-(int64_t)(s1.v & m))) & (s1.v & m) & m;
@@ -4193,6 +4321,7 @@ struct Engine {
             cpu->set_flag(FLAG_ZF, out.v == 0);
             cpu->set_flag(FLAG_SF, (out.v >> (w * 8 - 1)) & 1);
             cpu->set_flag(FLAG_OF, false);
+            cpu->flags_taint = out.taint;
             break;
         case ZYDIS_MNEMONIC_BLSMSK: {
             uint64_t t = s1.v & m;
@@ -4201,6 +4330,7 @@ struct Engine {
             cpu->set_flag(FLAG_ZF, false);
             cpu->set_flag(FLAG_SF, false);
             cpu->set_flag(FLAG_OF, false);
+            cpu->flags_taint = out.taint;
             break;
         }
         case ZYDIS_MNEMONIC_BLSR: {
@@ -4210,6 +4340,7 @@ struct Engine {
             cpu->set_flag(FLAG_ZF, out.v == 0);
             cpu->set_flag(FLAG_SF, (out.v >> (w * 8 - 1)) & 1);
             cpu->set_flag(FLAG_OF, false);
+            cpu->flags_taint = out.taint;
             break;
         }
         case ZYDIS_MNEMONIC_BZHI: {
@@ -4226,23 +4357,18 @@ struct Engine {
             // runs BZHI with index 0 for every length that is a multiple of 64,
             // so the bogus all-ones mask made the following vmovdqu8 store a full
             // 64 bytes past the end of the memset region.
-            if (k < bits)
+            out.taint |= idx.taint;
+            if (k < bits) {
                 out.v = (s0.v & m) & ((1ULL << k) - 1);
-            else {
+                cpu->set_flag(FLAG_CF, false);
+            } else {
                 out.v = s0.v & m;
                 cpu->set_flag(FLAG_CF, true);
-                cpu->set_flag(FLAG_ZF, out.v == 0);
-                cpu->set_flag(FLAG_SF, (out.v >> (bits - 1)) & 1);
-                cpu->set_flag(FLAG_OF, false);
-                op_store(cpu, d, 0, out);
-                cpu->rip = next_rip(cpu, d);
-                return;
             }
-            cpu->set_flag(FLAG_CF, false);
             cpu->set_flag(FLAG_ZF, out.v == 0);
             cpu->set_flag(FLAG_SF, (out.v >> (bits - 1)) & 1);
             cpu->set_flag(FLAG_OF, false);
-            out.taint |= idx.taint;
+            cpu->flags_taint = out.taint;
             break;
         }
         case ZYDIS_MNEMONIC_SHLX:
@@ -4278,12 +4404,15 @@ struct Engine {
         case ZYDIS_MNEMONIC_MULX: {
             // MULX r32a, r32b, r/m: r32a=high, r32b=low (implicit RDX).
             Val src = op_load(cpu, d, 2);
+            Taint mul_taint = cpu->gpr[ZG_RDX].taint | src.taint;
             if (w == 4) {
                 uint64_t r = (uint64_t)(uint32_t)(cpu->gpr[ZG_RDX].val & 0xffffffffULL) *
                     (uint32_t)(src.v & 0xffffffffULL);
                 Val hi, lo;
                 hi.v = (uint32_t)(r >> 32);
                 lo.v = (uint32_t)r;
+                hi.taint = mul_taint;
+                lo.taint = mul_taint;
                 op_store(cpu, d, 0, hi);
                 op_store(cpu, d, 1, lo);
             } else {
@@ -4291,6 +4420,8 @@ struct Engine {
                 Val hi, lo;
                 hi.v = (uint64_t)(r >> 64);
                 lo.v = (uint64_t)r;
+                hi.taint = mul_taint;
+                lo.taint = mul_taint;
                 op_store(cpu, d, 0, hi);
                 op_store(cpu, d, 1, lo);
             }
@@ -4336,6 +4467,8 @@ struct Engine {
                 cpu->set_flag(FLAG_CF, cout);
             else
                 cpu->set_flag(FLAG_OF, cout);
+            out.taint |= cpu->flags_taint;
+            cpu->flags_taint |= out.taint;
             break;
         }
         default:
@@ -4395,12 +4528,26 @@ struct Engine {
             }
         } else {
             Val out;
-            if (d.ops[0].type == ZYDIS_OPERAND_TYPE_REGISTER) {
+            if (d.ops[1].type == ZYDIS_OPERAND_TYPE_REGISTER) {
                 int vi = -1, vw = 0;
-                reg_to_vec(d.ops[1].reg.value, vi, vw);
+                if (!reg_to_vec(d.ops[1].reg.value, vi, vw))
+                    guest_error(cpu, "bad pextr form");
                 uint64_t v = 0;
                 memcpy(&v, cpu->xmm[vi].bytes + k * lane, lane);
                 out.v = v;
+                // The vector sidecar is whole-register (no per-lane
+                // granularity), so an extracted lane conservatively carries
+                // the whole vector's taint.  The old code left out.taint
+                // clean here, laundering vector poison into a GPR (djb's
+                // supercop workload extracts cannot-index-poisoned key
+                // material with pextrd and uses it as an index).
+                out.taint = cpu->xmm[vi].taint;
+                // op_store handles BOTH destinations: a GPR (the historical
+                // form) and MEMORY -- PEXTR{B,W,D,Q} m8/m16/m32/m64, xmm, imm8
+                // (gcc emits the memory form constantly; the old code errored
+                // "bad pextr form" on it).  The memory path stores the lane
+                // and folds the value's taint into the destination bytes via
+                // note_store_op, so a poisoned extraction poisons the slot.
             } else {
                 guest_error(cpu, "bad pextr form");
             }
@@ -4591,6 +4738,78 @@ struct Engine {
         cpu->rip = next_rip(cpu, d);
     }
 
+// CVTDQ2PD / VCVTDQ2PD: packed int32 -> double, a widening convert (dest lanes
+// are twice the source lanes): 2/4/8 doubles from 8/16/32 source bytes.  The
+// source width is half the destination width, like CVTPS2PD (exec_cvtpd) but
+// with an integer source.
+    static void exec_cvtdq2pd(CPU* cpu, const Dec& d) {
+        VecVal a, o;
+        unsigned w = vec_width(d);
+        vec_load_bytes(cpu, d, explicit_ops(d) - 1, a, w / 2);
+        for (unsigned i = 0; i < w / 8; i++) {
+            int32_t t;
+            memcpy(&t, a + i * 4, 4);
+            double dd = (double)t;
+            memcpy(o + i * 8, &dd, 8);
+        }
+        o.taint = a.taint;
+        vec_store_bytes(cpu, d, 0, o, w, is_vex(d), w);
+        cpu->rip = next_rip(cpu, d);
+    }
+
+// CVTPD2DQ / VCVTPD2DQ (F2 0F E6) and CVTTPD2DQ / VCVTTPD2DQ (66 0F E6):
+// packed double -> packed int32 narrowing.  The rounding form converts per
+// MXCSR.RC (modeled here, like ROUNDS*); the truncating form rounds toward
+// zero regardless of RC.  Hardware-verified on this host: round-to-nearest-
+// even (RC=0) gives 0.5->0, 1.5->2, 2.5->2, -2.5->-2, 4.5->4; NaN, infinities
+// and results outside the signed-int32 range give the integer-indefinite
+// 0x80000000 (e.g. 2147483647.5 rounds to 2^31, overflows -> 0x80000000).
+// Widths: legacy and VEX.128 convert the low TWO doubles; the legacy dest's
+// upper 64 bits are zeroed (verified) and the VEX forms apply the usual VEX
+// zeroing above the dest width; VEX.256 converts FOUR doubles into the low
+// 128 bits with the upper 128 bits zeroed (verified).
+    static void exec_cvtpd2dq(CPU* cpu, const Dec& d, bool trunc) {
+        VecVal a, o;
+        // The SOURCE width picks the lane count: legacy and VEX.128 read a
+        // 128-bit source (2 doubles), VEX.256 reads a 256-bit source (4
+        // doubles) -- the DEST is always xmm (vec_width would report 16 for
+        // both and silently drop lanes 2/3 of the VEX.256 form).
+        int n = explicit_ops(d);
+        unsigned sw = d.ops[n - 1].size / 8;
+        if (sw != 16 && sw != 32)
+            sw = 16;
+        vec_load_bytes(cpu, d, n - 1, a, sw);
+        memset(o, 0, MAX_VEC_BYTES);
+        unsigned rc = (cpu->mxcsr >> 13) & 3;
+        for (unsigned i = 0; i < sw / 8; i++) {
+            double dv;
+            memcpy(&dv, a + i * 8, 8);
+            double r;
+            if (trunc) {
+                r = __builtin_trunc(dv);
+            } else {
+                switch (rc) {
+                case 1: r = __builtin_floor(dv); break;
+                case 2: r = __builtin_ceil(dv); break;
+                case 3: r = __builtin_trunc(dv); break;
+                default: r = nearbyint(dv); // RC=0: round to nearest even
+                }
+            }
+            int32_t out = (dv != dv || r >= 2147483648.0 || r < -2147483648.0)
+                              ? (int32_t)0x80000000
+                              : (int32_t)r;
+            memcpy(o + i * 4, &out, 4);
+        }
+        // The dest (always an xmm) holds sw/8 dwords followed by zeros: the
+        // legacy form's verified zeroed upper 64 bits and the VEX forms' zeroed
+        // dest above the converted lanes all come from those zeros; the VEX
+        // store then applies the usual zeroing above the dest width.
+        o.taint = a.taint;
+        vec_store_bytes(cpu, d, 0, o, d.ops[0].size / 8, is_vex(d),
+                        d.ops[0].size / 8);
+        cpu->rip = next_rip(cpu, d);
+    }
+
     static void exec_round(CPU* cpu, const Dec& d, bool is_pd, bool scalar) {
         int n = explicit_ops(d);
         unsigned w = scalar ? 16 : vec_width(d);
@@ -4691,6 +4910,29 @@ struct Engine {
         for (unsigned i = 0; i < w; i += 8) {
             memcpy(o + i, a + i + (high ? 4 : 0), 4);
             memcpy(o + i + 4, a + i + (high ? 4 : 0), 4);
+        }
+        o.taint = a.taint;
+        vec_store_bytes(cpu, d, 0, o, w, is_vex(d), w);
+        cpu->rip = next_rip(cpu, d);
+    }
+
+// MOVDDUP / VMOVDDUP: each even 64-bit lane duplicates into the following odd
+// lane per 128-bit half -- dest[2i] = dest[2i+1] = src[2i].  128-bit dest:
+// [d0,d0]; 256-bit dest: [d0,d0,d2,d2].  The source width is what Zydis
+// reports: the 128-bit forms take a m64 source (half the dest), but the
+// 256-bit form takes ymm2/m256 (full width -- hardware-verified: the source
+// supplies the even lane of EACH 128-bit half).
+    static void exec_movddup(CPU* cpu, const Dec& d) {
+        VecVal a, o;
+        unsigned w = vec_width(d);
+        int src = explicit_ops(d) - 1;
+        unsigned sw = d.ops[src].size / 8;
+        if (sw != 8 && sw != 16 && sw != 32)
+            sw = w / 2;
+        vec_load_bytes(cpu, d, src, a, sw);
+        for (unsigned i = 0; i < w; i += 16) {
+            for (unsigned j = 0; j < 16; j += 8)
+                memcpy(o + i + j, a + i, 8);
         }
         o.taint = a.taint;
         vec_store_bytes(cpu, d, 0, o, w, is_vex(d), w);
@@ -7754,6 +7996,28 @@ struct Engine {
         cpu->rip = next_rip(cpu, d);
     }
 
+// PMULHRSW / VPMULHRSW (SSSE3): packed multiply high with round and scale.
+// Per 16-bit lane: signed 16x16 -> 32-bit product, take the bits-14-and-above
+// half, then round positive: DEST = (int16_t)(((prod >> 14) + 1) >> 1) -- the
+// SDM's RoundPositiveIntermediate over the [31:14] half-product.  (Verified on
+// hardware against this formula on the rounding corners 0x3FFF/0x4000/-1/
+// -0x4001 before wiring it in.)
+    static void exec_pmulhrsw(CPU* cpu, const Dec& d) {
+        VecVal a, b, o;
+        unsigned w = vec_sources(cpu, d, a, b);
+        for (unsigned i = 0; i < w; i += 2) {
+            int16_t av, bv;
+            memcpy(&av, a + i, 2);
+            memcpy(&bv, b + i, 2);
+            int32_t prod = (int32_t)av * (int32_t)bv;
+            int32_t r = ((prod >> 14) + 1) >> 1;
+            memcpy(o + i, &r, 2);
+        }
+        o.taint = a.taint | b.taint;
+        vec_store_dst(cpu, d, o, w);
+        cpu->rip = next_rip(cpu, d);
+    }
+
     static void exec_phadd(CPU* cpu, const Dec& d, int kind) {
         // kind 0=PHADDW 1=PHADDD 2=PHSUBW 3=PHSUBD 4=PHADDSW 5=PHSUBSW
         VecVal a, b, o;
@@ -8596,7 +8860,7 @@ struct Engine {
 
 // Masked packed-float converts (EVEX forms of the phase-1 CVT handlers).
     static void exec_evex_cvt(CPU* cpu, const Dec& d, int kind) {
-        // kind 0=dq2ps 1=tt_ps2dq 2=ps2dq 3=pd2ps 4=ps2pd
+        // kind 0=dq2ps 1=tt_ps2dq 2=ps2dq 3=pd2ps 4=ps2pd 5=dq2pd
         unsigned elem = 4;
         if (kind == 3 || kind == 4)
             elem = 8;
@@ -8652,13 +8916,31 @@ struct Engine {
             uint64_t kbits = evex_mask(cpu, d, lanes, zeroing);
             o.taint = a.taint;
             evex_store(cpu, d, ex[0], o, old, w / 2, 4, kbits, zeroing);
-        } else {
+        } else if (kind == 4) {
             // ps2pd: w*2 bytes of doubles from w bytes of floats.
             unsigned lanes = sw / 4;
             for (unsigned i = 0; i < lanes; i++) {
                 float fv = 0;
                 memcpy(&fv, a + i * 4, 4);
                 double dv = (double)fv;
+                memcpy(o + i * 8, &dv, 8);
+            }
+            unsigned dw = lanes * 8;
+            if (dw > 64)
+                dw = 64;
+            evex_old(cpu, d, ex[0], old, dw);
+            bool zeroing = false;
+            uint64_t kbits = evex_mask(cpu, d, lanes, zeroing);
+            o.taint = a.taint;
+            evex_store(cpu, d, ex[0], o, old, dw, 8, kbits, zeroing);
+        } else if (kind == 5) {
+            // dq2pd: int32 -> double, widening like ps2pd but with an integer
+            // source (VCVTDQ2PD): w bytes of dwords -> 2w bytes of doubles.
+            unsigned lanes = sw / 4;
+            for (unsigned i = 0; i < lanes; i++) {
+                int32_t iv = 0;
+                memcpy(&iv, a + i * 4, 4);
+                double dv = (double)iv;
                 memcpy(o + i * 8, &dv, 8);
             }
             unsigned dw = lanes * 8;
@@ -9182,6 +9464,7 @@ struct Engine {
         case ZYDIS_MNEMONIC_VPMOVD2M:
         case ZYDIS_MNEMONIC_VPMOVQ2M: exec_evex_movm(cpu, d, false); return;
         case ZYDIS_MNEMONIC_VCVTDQ2PS: exec_evex_cvt(cpu, d, 0); return;
+        case ZYDIS_MNEMONIC_VCVTDQ2PD: exec_evex_cvt(cpu, d, 5); return;
         case ZYDIS_MNEMONIC_VCVTTPS2DQ: exec_evex_cvt(cpu, d, 1); return;
         case ZYDIS_MNEMONIC_VCVTPS2DQ: exec_evex_cvt(cpu, d, 2); return;
         case ZYDIS_MNEMONIC_VCVTPD2PS: exec_evex_cvt(cpu, d, 3); return;
@@ -9623,6 +9906,12 @@ struct Engine {
         case ZYDIS_MNEMONIC_VCVTTPS2DQ: // the FP->int CVT* forms (doc 4.5a
             // "FP->int CVT*/CVTT*": subnormal
             // source)
+        case ZYDIS_MNEMONIC_CVTPD2DQ:
+        case ZYDIS_MNEMONIC_VCVTPD2DQ:
+        case ZYDIS_MNEMONIC_CVTTPD2DQ:
+        case ZYDIS_MNEMONIC_VCVTTPD2DQ: // the packed double->int CVT* family
+            // (doc 4.5a "FP->int CVT*/CVTT*":
+            // subnormal source)
             // ---- §4.5b FP divide and square root ----------------------------------
         case ZYDIS_MNEMONIC_DIVSS:
         case ZYDIS_MNEMONIC_VDIVSS:
@@ -9651,6 +9940,8 @@ struct Engine {
         case ZYDIS_MNEMONIC_VPMULHUW:
         case ZYDIS_MNEMONIC_PMULHW:
         case ZYDIS_MNEMONIC_VPMULHW:
+        case ZYDIS_MNEMONIC_PMULHRSW: // SSSE3 rounded-high multiply: same
+        case ZYDIS_MNEMONIC_VPMULHRSW: // MCDT multiply datapath as PMULHW
         case ZYDIS_MNEMONIC_PMULLD:
         case ZYDIS_MNEMONIC_VPMULLD:
         case ZYDIS_MNEMONIC_PMULLW:
@@ -10166,13 +10457,21 @@ struct Engine {
         case ZYDIS_MNEMONIC_VPBROADCASTMW2D:
         case ZYDIS_MNEMONIC_VPBROADCASTMB2Q:
         case ZYDIS_MNEMONIC_PINSRB:
+        case ZYDIS_MNEMONIC_VPINSRB:
         case ZYDIS_MNEMONIC_PINSRW:
+        case ZYDIS_MNEMONIC_VPINSRW:
         case ZYDIS_MNEMONIC_PINSRD:
+        case ZYDIS_MNEMONIC_VPINSRD:
         case ZYDIS_MNEMONIC_PINSRQ:
+        case ZYDIS_MNEMONIC_VPINSRQ:
         case ZYDIS_MNEMONIC_PEXTRB:
+        case ZYDIS_MNEMONIC_VPEXTRB:
         case ZYDIS_MNEMONIC_PEXTRW:
+        case ZYDIS_MNEMONIC_VPEXTRW:
         case ZYDIS_MNEMONIC_PEXTRD:
+        case ZYDIS_MNEMONIC_VPEXTRD:
         case ZYDIS_MNEMONIC_PEXTRQ:
+        case ZYDIS_MNEMONIC_VPEXTRQ:
         case ZYDIS_MNEMONIC_INSERTPS:
         case ZYDIS_MNEMONIC_VINSERTPS:
         case ZYDIS_MNEMONIC_EXTRACTPS:
@@ -10306,10 +10605,18 @@ struct Engine {
         case ZYDIS_MNEMONIC_MOVHPD:
         case ZYDIS_MNEMONIC_MOVHLPS:
         case ZYDIS_MNEMONIC_MOVLHPS:
+        case ZYDIS_MNEMONIC_VMOVHLPS:
+        case ZYDIS_MNEMONIC_VMOVLHPS:
+        case ZYDIS_MNEMONIC_VMOVLPS:
+        case ZYDIS_MNEMONIC_VMOVLPD:
+        case ZYDIS_MNEMONIC_VMOVHPS:
+        case ZYDIS_MNEMONIC_VMOVHPD:
         case ZYDIS_MNEMONIC_MOVSLDUP: // pure data movement
         case ZYDIS_MNEMONIC_VMOVSLDUP:
         case ZYDIS_MNEMONIC_MOVSHDUP:
         case ZYDIS_MNEMONIC_VMOVSHDUP:
+        case ZYDIS_MNEMONIC_MOVDDUP: // same lane-duplication movement class
+        case ZYDIS_MNEMONIC_VMOVDDUP:
         case ZYDIS_MNEMONIC_MOVD:
         case ZYDIS_MNEMONIC_MOVQ:
         case ZYDIS_MNEMONIC_VMOVD:
@@ -10345,6 +10652,8 @@ struct Engine {
         case ZYDIS_MNEMONIC_VMOVMSKPD:
         case ZYDIS_MNEMONIC_CVTDQ2PS: // int -> FP: ints cannot be subnormal
         case ZYDIS_MNEMONIC_VCVTDQ2PS:
+        case ZYDIS_MNEMONIC_CVTDQ2PD: // same int-source convert family
+        case ZYDIS_MNEMONIC_VCVTDQ2PD:
         case ZYDIS_MNEMONIC_CVTSI2SS:
         case ZYDIS_MNEMONIC_VCVTSI2SS:
         case ZYDIS_MNEMONIC_CVTSI2SD:
@@ -11318,6 +11627,15 @@ struct Engine {
         case ZYDIS_MNEMONIC_VPSRAD: exec_pshift_bits(cpu, d, 4, 2); return;
         case ZYDIS_MNEMONIC_VPSRAQ: exec_pshift_bits(cpu, d, 8, 2); return;
 
+            // Variable shifts (VEX forms of the EVEX VPSLLV*/VPSRLV*/VPSRAV*
+            // family): per-lane counts from the second source.  (VPSRAVQ has
+            // no VEX encoding; its EVEX form dispatches via exec_evex_shift.)
+        case ZYDIS_MNEMONIC_VPSLLVD: exec_pshift_var(cpu, d, 4, 0); return;
+        case ZYDIS_MNEMONIC_VPSLLVQ: exec_pshift_var(cpu, d, 8, 0); return;
+        case ZYDIS_MNEMONIC_VPSRLVD: exec_pshift_var(cpu, d, 4, 1); return;
+        case ZYDIS_MNEMONIC_VPSRLVQ: exec_pshift_var(cpu, d, 8, 1); return;
+        case ZYDIS_MNEMONIC_VPSRAVD: exec_pshift_var(cpu, d, 4, 2); return;
+
         case ZYDIS_MNEMONIC_PSHUFD:
         case ZYDIS_MNEMONIC_VPSHUFD: exec_pshufd(cpu, d); return;
         case ZYDIS_MNEMONIC_SHUFPS:
@@ -11444,10 +11762,18 @@ struct Engine {
         case ZYDIS_MNEMONIC_MOVHPD: exec_movlp(cpu, d, true, m == ZYDIS_MNEMONIC_MOVHPD); return;
         case ZYDIS_MNEMONIC_MOVHLPS: exec_movhlps(cpu, d, true); return;
         case ZYDIS_MNEMONIC_MOVLHPS: exec_movhlps(cpu, d, false); return;
+        case ZYDIS_MNEMONIC_VMOVHLPS: exec_movhlps(cpu, d, true); return;
+        case ZYDIS_MNEMONIC_VMOVLHPS: exec_movhlps(cpu, d, false); return;
+        case ZYDIS_MNEMONIC_VMOVLPS:
+        case ZYDIS_MNEMONIC_VMOVLPD: exec_movlp(cpu, d, false, m == ZYDIS_MNEMONIC_VMOVLPD); return;
+        case ZYDIS_MNEMONIC_VMOVHPS:
+        case ZYDIS_MNEMONIC_VMOVHPD: exec_movlp(cpu, d, true, m == ZYDIS_MNEMONIC_VMOVHPD); return;
         case ZYDIS_MNEMONIC_MOVSLDUP:
         case ZYDIS_MNEMONIC_VMOVSLDUP: exec_movdup(cpu, d, false); return;
         case ZYDIS_MNEMONIC_MOVSHDUP:
         case ZYDIS_MNEMONIC_VMOVSHDUP: exec_movdup(cpu, d, true); return;
+        case ZYDIS_MNEMONIC_MOVDDUP:
+        case ZYDIS_MNEMONIC_VMOVDDUP: exec_movddup(cpu, d); return;
 
             // -- scalar FP --
         case ZYDIS_MNEMONIC_ADDSS:
@@ -11540,8 +11866,14 @@ struct Engine {
         case ZYDIS_MNEMONIC_VCVTPS2DQ: exec_cvtdq2ps(cpu, d, 2); return;
         case ZYDIS_MNEMONIC_CVTPD2PS:
         case ZYDIS_MNEMONIC_VCVTPD2PS: exec_cvtpd(cpu, d, true); return;
+        case ZYDIS_MNEMONIC_CVTPD2DQ:
+        case ZYDIS_MNEMONIC_VCVTPD2DQ: exec_cvtpd2dq(cpu, d, false); return;
+        case ZYDIS_MNEMONIC_CVTTPD2DQ:
+        case ZYDIS_MNEMONIC_VCVTTPD2DQ: exec_cvtpd2dq(cpu, d, true); return;
         case ZYDIS_MNEMONIC_CVTPS2PD:
         case ZYDIS_MNEMONIC_VCVTPS2PD: exec_cvtpd(cpu, d, false); return;
+        case ZYDIS_MNEMONIC_CVTDQ2PD:
+        case ZYDIS_MNEMONIC_VCVTDQ2PD: exec_cvtdq2pd(cpu, d); return;
         case ZYDIS_MNEMONIC_ROUNDPS:
         case ZYDIS_MNEMONIC_VROUNDPS: exec_round(cpu, d, false, false); return;
         case ZYDIS_MNEMONIC_ROUNDPD:
@@ -11706,6 +12038,8 @@ struct Engine {
         case ZYDIS_MNEMONIC_VPMULHUW: exec_pmulh(cpu, d, 0); return;
         case ZYDIS_MNEMONIC_PMULHW:
         case ZYDIS_MNEMONIC_VPMULHW: exec_pmulh(cpu, d, 1); return;
+        case ZYDIS_MNEMONIC_PMULHRSW:
+        case ZYDIS_MNEMONIC_VPMULHRSW: exec_pmulhrsw(cpu, d); return;
         case ZYDIS_MNEMONIC_PMULUDQ:
         case ZYDIS_MNEMONIC_VPMULUDQ: exec_pmulh(cpu, d, 2); return;
         case ZYDIS_MNEMONIC_PMULDQ:
@@ -11951,11 +12285,18 @@ struct Engine {
                 exec_one(cpu);
             } catch (GuestError& e) {
                 int eff = guest_fatal_signo(e.reason, 0);
+                // Exit-code plumbing (see zeg_fatal_exit_code): the
+                // --error-exitcode / config `error exitcode`/`error
+                // signal` overrides apply to poison-class errors only, so
+                // unimplemented-instruction errors keep 128+SIGILL even
+                // when the override is set.
+                int exit_code = zeg_fatal_exit_code(cpu->emu, e.reason, eff,
+                                                    &eff);
                 dump_core(e.cpu ? e.cpu : cpu, e.reason, e.fault_addr, eff,
                           e.poison_history);
                 fflush(stdout);
                 fflush(stderr);
-                _exit(128 + eff);
+                _exit(exit_code);
             }
             // Host signals (SIGSEGV/SIGBUS/SIGILL/SIGFPE) raised during guest
             // execution land here via the loop recovery scope.
@@ -11975,11 +12316,16 @@ struct Engine {
                     guest_error(cpu, reason, faddr);
                 } catch (GuestError& e) {
                     int eff = signo ? signo : guest_fatal_signo(e.reason, 0);
+                    // Same plumbing as the GuestError path (the host-signal
+                    // reasons are other-class, so no override fires there --
+                    // routed through the helper for uniformity).
+                    int exit_code = zeg_fatal_exit_code(cpu->emu, e.reason,
+                                                        eff, &eff);
                     dump_core(e.cpu ? e.cpu : cpu, e.reason, e.fault_addr, eff,
                               e.poison_history);
                     fflush(stdout);
                     fflush(stderr);
-                    _exit(128 + eff);
+                    _exit(exit_code);
                 }
             }
             // NOTE: no catch(...) here: pthread_exit (guest thread exit)

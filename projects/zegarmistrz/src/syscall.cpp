@@ -89,6 +89,7 @@
 // it into its own namespace so only the measurement (not the struct) is
 // visible, which keeps the extent table from guessing the size.
 namespace zeg_sched_attr_probe {
+#undef _LINUX_SCHED_TYPES_H
 #include <linux/sched/types.h>
 }
 // Kernel writes min(size, this many) bytes to sched_getattr's output buffer.

@@ -491,10 +491,11 @@ inline void mem_get_taint(uint64_t addr, size_t size, TaintT& out) {
 }
 
 // Called after a successful store of a value with taint t to
-// [addr,size): the destination bytes gain the value's taint bits
-// (plus the matching clear-on-store bit, so a later store clears the
-// taint). If the destination already carries a clear-on-store bit for a
-// tainted value, that value bit is cleared instead (store sanitizes).
+// [addr,size): for each taint dimension set in t, the destination bytes
+// keep/gain that poison bit (and gain the matching clear-on-store bit if
+// they were not already poisoned in that dimension, so a later clean store
+// can sanitize them). For each dimension clean in t, a clear-on-store bit
+// on the destination clears the corresponding poison bit.
 // Load/store poison bits and clear bits are sticky.
 // In --history mode the destination bytes' poison history is rewritten too:
 // a store of a tainted value records the stored value's trail plus the
@@ -519,8 +520,15 @@ uint64_t mem_client_request(Emulator* emu, CPU<TaintT>* cpu, uint64_t op,
 // startup. Does nothing when passthrough mode is set.
 void mem_install_fault_handler();
 
-// Passthrough mode (--no-core / --passthrough-signals): do not install
-// handlers and do not write core dumps (guest errors just print + exit).
+// Passthrough mode (--passthrough-signals only): do not install host
+// signal handlers AND do not translate host signals into guest errors, so
+// a fault kills the process like a real host fault would (GuestError
+// paths -- poison violations, unimplemented instructions, modeled
+// arithmetic faults -- still print their banner and exit normally).
+// Implies no core dumps. The core FILE write is gated separately by
+// Emulator::no_core (--no-core / config `coredump disabled` / the
+// default): the fault handler stays installed there, so the banner +
+// symbolized guest stack trace still print and only the file is skipped.
 void mem_set_passthrough(bool v);
 bool mem_passthrough();
 

@@ -121,9 +121,17 @@ static void usage(const char* argv0) {
             "  --stack-trace / --no-stack-trace\n"
             "                    print a symbolized guest stack trace on a fatal\n"
             "                    guest error, before the core file (default: on)\n"
-            "  --no-core, --passthrough-signals\n"
-            "                    do not install host signal handlers and do not\n"
-            "                    write core dumps (guest errors just print)\n"
+            "  --no-core         do not write core dumps on fatal guest errors\n"
+            "                    (the diagnostics still print: the banner, the\n"
+            "                    symbolized guest stack trace and the exit status\n"
+            "                    are unaffected; cores are disabled by default)\n"
+            "  --core            write core dumps on fatal guest errors (re-enables\n"
+            "                    what --no-core turns off, overriding the config\n"
+            "                    file default)\n"
+            "  --passthrough-signals\n"
+            "                    do not install host signal handlers: faults kill\n"
+            "                    the process like a real host fault (implies\n"
+            "                    --no-core)\n"
             "  --history[=VALUE]  record a per-value poison history trail (the guest\n"
             "                     operations that produced or consumed poison) and print\n"
             "                     it, BFD-symbolicated, when a taint check faults. VALUE:\n"
@@ -131,6 +139,13 @@ static void usage(const char* argv0) {
             "                     step; no or 0 (the default) records nothing; an integer\n"
             "                     N > 1 records N stack frames per step; full or all\n"
             "                     records the whole stack per step\n"
+            "  --error-exitcode=N\n"
+            "                    on a fatal POISON-class guest error (poison/taint/\n"
+            "                    cannot-/unmapped/bad RIP violations) exit with code N\n"
+            "                    (1-255) instead of 128+signal -- valgrind parity;\n"
+            "                    unimplemented-instruction errors keep 128+SIGILL\n"
+            "                    (132), so poison stays distinguishable from unknown\n"
+            "                    instructions even with this override set\n"
             "  --var-time-op=known|plausible|everything\n"
             "                    cannot-var-time-op checking level: known traps\n"
             "                    only on documented data-dependent instructions\n"
@@ -138,6 +153,24 @@ static void usage(const char* argv0) {
             "                    everything on anything not provably\n"
             "                    constant-time\n"
             "  -h, --help        print this help\n"
+            "\n"
+            "Config file: ~/.zegarmistrz is read before the flags (flags win on\n"
+            "conflicts). Missing HOME or a missing/unreadable file silently\n"
+            "leaves the defaults; the file is never created. One directive per\n"
+            "line, whitespace-separated tokens, '#' starts a comment, blank\n"
+            "lines are skipped. Directives:\n"
+            "  coredump enabled|disabled\n"
+            "                    core dumps on fatal guest errors\n"
+            "                    (default: disabled, like --no-core)\n"
+            "  history none|no|off|0|yes|1|full|all|N\n"
+            "                    poison history trail recording, the same values\n"
+            "                    as --history= (default: none)\n"
+            "  error exitcode N  like --error-exitcode=N (an integer 1-255)\n"
+            "  error signal N    poison-fault signal override (an integer 1-31):\n"
+            "                    poison-class fatal errors report and exit with\n"
+            "                    128+N (precedence: exitcode > signal > natural)\n"
+            "Unknown directives and bad values print a warning and are ignored;\n"
+            "a config problem never aborts the run.\n"
             "\n"
             "Poisoning client requests (yolo C, not Fil-C): call the magic\n"
             "address 0x1410141014101410 as\n"
@@ -167,11 +200,171 @@ static void usage(const char* argv0) {
             "\n"
             "On a fatal guest error (poison violation, bad memory access,\n"
             "host signal), zegarmistrz prints a symbolized guest stack trace\n"
-            "(BFD) and then writes zegarmistrz.core.<processname>.\n"
-            "<pid> in the current directory as an ELF core (ET_CORE) with\n"
-            "guest registers, auxv and memory, readable with gdb/lldb:\n"
+            "(BFD) to stderr, then -- unless core dumps are disabled (the\n"
+            "default; see --no-core) -- writes zegarmistrz.core.\n"
+            "<processname>.<pid> in the current directory as an ELF core\n"
+            "(ET_CORE) with guest registers, auxv and memory, readable with\n"
+            "gdb/lldb:\n"
             "  gdb -batch -ex bt ./prog zegarmistrz.core.prog.<pid>\n",
             argv0);
+}
+
+// ~/.zegarmistrz config file (djb spec). Parsed BEFORE the CLI flags: CLI
+// flags win on conflicts. Path is $HOME/.zegarmistrz; a missing HOME or a
+// missing/unreadable file silently leaves the defaults (the config is never
+// created). Format: one directive per line, whitespace-separated tokens,
+// '#' starts a comment (the rest of the line is ignored), blank lines are
+// skipped. Config problems are warnings only -- an unknown directive or a
+// bad value prints a warning and the run continues with the default (or the
+// earlier value) for that setting; nothing here ever aborts the run.
+//
+// Directives:
+//   coredump enabled|disabled   sets emu.no_core exactly like --core /
+//                               --no-core (main() defaults to disabled
+//                               before this runs). It never touches the
+//                               passthrough mode: the directive controls
+//                               the core FILE only, the fault handler is
+//                               always installed outside
+//                               --passthrough-signals.
+//   history none|no|off|0|yes|1|full|all|<integer>
+//                               same value mapping as --history= (plus the
+//                               none/off spellings); bad value: warning.
+//   error exitcode N            emu.error_exitcode, an integer 1..255.
+//   error signal N              emu.error_signo, an integer 1..31.
+static void read_config(Emulator& emu) {
+    const char* home = getenv("HOME");
+    if (!home || !*home)
+        return;
+    char path[4096];
+    snprintf(path, sizeof(path), "%s/.zegarmistrz", home);
+    FILE* f = fopen(path, "r");
+    if (!f)
+        return; // missing/unreadable: silently use the defaults
+    char line[512];
+    int lineno = 0;
+    while (fgets(line, sizeof(line), f)) {
+        lineno++;
+        char* hash = strchr(line, '#');
+        if (hash)
+            *hash = 0;
+        char* save = nullptr;
+        char* tok = strtok_r(line, " \t\r\n", &save);
+        if (!tok)
+            continue; // blank (or comment-only) line
+        if (!strcmp(tok, "coredump")) {
+            char* v = strtok_r(nullptr, " \t\r\n", &save);
+            if (v && !strcmp(v, "enabled")) {
+                emu.no_core = false;
+            } else if (v && !strcmp(v, "disabled")) {
+                emu.no_core = true;
+            } else {
+                if (v)
+                    fprintf(stderr,
+                            "zegarmistrz: warning: line %d of %s: coredump "
+                            "expects enabled or disabled, got '%s'\n",
+                            lineno, path, v);
+                else
+                    fprintf(stderr,
+                            "zegarmistrz: warning: line %d of %s: coredump "
+                            "expects enabled or disabled\n",
+                            lineno, path);
+            }
+        } else if (!strcmp(tok, "history")) {
+            char* v = strtok_r(nullptr, " \t\r\n", &save);
+            if (!v || !*v) {
+                fprintf(stderr,
+                        "zegarmistrz: warning: line %d of %s: history "
+                        "expects a value\n",
+                        lineno, path);
+                continue;
+            }
+            // Same mapping as --history=, plus the none/off spellings.
+            if (!strcmp(v, "none") || !strcmp(v, "no") || !strcmp(v, "off") ||
+                !strcmp(v, "0"))
+                emu.history_frames = 0;
+            else if (!strcmp(v, "yes") || !strcmp(v, "1"))
+                emu.history_frames = 1;
+            else if (!strcmp(v, "full") || !strcmp(v, "all"))
+                emu.history_frames = SIZE_MAX;
+            else if (!*v ||
+                     v[strspn(v, "0123456789")]) { // not a pure integer
+                fprintf(stderr,
+                        "zegarmistrz: warning: line %d of %s: bad history "
+                        "value '%s' (expected none, no, off, yes, full, all "
+                        "or an integer)\n",
+                        lineno, path, v);
+            } else {
+                errno = 0;
+                unsigned long long n = strtoull(v, nullptr, 10);
+                if (errno || n > SIZE_MAX) {
+                    fprintf(stderr,
+                            "zegarmistrz: warning: line %d of %s: bad "
+                            "history value '%s' (out of range)\n",
+                            lineno, path, v);
+                } else {
+                    emu.history_frames = (size_t)n;
+                }
+            }
+        } else if (!strcmp(tok, "error")) {
+            char* what = strtok_r(nullptr, " \t\r\n", &save);
+            char* v = what ? strtok_r(nullptr, " \t\r\n", &save) : nullptr;
+            if (!what || (!strcmp(what, "exitcode") && !v) ||
+                (!strcmp(what, "signal") && !v)) {
+                fprintf(stderr,
+                        "zegarmistrz: warning: line %d of %s: error expects "
+                        "'exitcode N' or 'signal N'\n",
+                        lineno, path);
+                continue;
+            }
+            if (strcmp(what, "exitcode") && strcmp(what, "signal")) {
+                fprintf(stderr,
+                        "zegarmistrz: warning: unknown error directive "
+                        "'%s' in %s (expected exitcode or signal)\n",
+                        what, path);
+                continue;
+            }
+            if (!*v || v[strspn(v, "0123456789")]) { // not a pure integer
+                fprintf(stderr,
+                        "zegarmistrz: warning: line %d of %s: bad error %s "
+                        "value '%s' (expected an integer)\n",
+                        lineno, path, what, v);
+                continue;
+            }
+            errno = 0;
+            unsigned long n = strtoul(v, nullptr, 10);
+            if (errno || !n) {
+                fprintf(stderr,
+                        "zegarmistrz: warning: line %d of %s: bad error %s "
+                        "value '%s' (expected a positive integer)\n",
+                        lineno, path, what, v);
+                continue;
+            }
+            if (!strcmp(what, "exitcode")) {
+                if (n > 255) {
+                    fprintf(stderr,
+                            "zegarmistrz: warning: line %d of %s: bad error "
+                            "exitcode value '%s' (expected 1..255)\n",
+                            lineno, path, v);
+                    continue;
+                }
+                emu.error_exitcode = (int)n;
+            } else {
+                if (n > 31) {
+                    fprintf(stderr,
+                            "zegarmistrz: warning: line %d of %s: bad error "
+                            "signal value '%s' (expected 1..31)\n",
+                            lineno, path, v);
+                    continue;
+                }
+                emu.error_signo = (int)n;
+            }
+        } else {
+            fprintf(stderr,
+                    "zegarmistrz: warning: unknown directive '%s' in %s\n",
+                    tok, path);
+        }
+    }
+    fclose(f);
 }
 
 // Build the initial guest stack per the Linux x86-64 ABI and return the
@@ -340,6 +533,21 @@ int main(int argc, char** argv) {
     std::vector<std::string> guest_args;
     const char* prog = nullptr;
 
+    // djb default: core dumps DISABLED unless the config file (`coredump
+    // enabled`) or a flag (--core) turns them back on. The config is read
+    // first, then the flags; both simply set the policy, and the flags win
+    // on conflicts because they run later.
+    //
+    // Only the core FILE write is disabled by default: the host-fault
+    // handler is still installed (mem_install_fault_handler below skips it
+    // only in passthrough mode), so an unmapped access or another host
+    // fault still prints the banner + symbolized guest stack trace (and
+    // --error-exitcode still applies) instead of killing the process with
+    // a bare host SIGSEGV. Suppressing the handlers entirely is the
+    // separate --passthrough-signals policy, set only by that flag.
+    emu.no_core = true;
+    read_config(emu);
+
     for (int i = 1; i < argc; i++) {
         std::string a = argv[i];
         if (a == "-v" || a == "--trace") {
@@ -347,9 +555,20 @@ int main(int argc, char** argv) {
             emu.trace_syscall = true;
         } else if (a == "--trace-syscalls") {
             emu.trace_syscall = true;
-        } else if (a == "--no-core" || a == "--passthrough-signals") {
+        } else if (a == "--no-core") {
+            // Do not write core dumps; the fault handler stays installed,
+            // so the banner + guest stack trace still print.
+            emu.no_core = true;
+        } else if (a == "--passthrough-signals") {
+            // Do not install host signal handlers at all: faults kill the
+            // process like a real host fault. Implies no core dumps.
             emu.no_core = true;
             mem_set_passthrough(true);
+        } else if (a == "--core") {
+            // Re-enable core dumps (overrides the config / the disabled
+            // default). Diagnostics print either way; this flag only
+            // turns the core file on.
+            emu.no_core = false;
         } else if (a == "--stack-trace") {
             emu.stack_trace = true;
         } else if (a == "--no-stack-trace") {
@@ -381,6 +600,26 @@ int main(int argc, char** argv) {
                         v.c_str());
                 return 1;
             }
+        } else if (a.rfind("--error-exitcode=", 0) == 0) {
+            // Fatal poison-class guest errors exit with N instead of
+            // 128+signal (valgrind parity). Attached value only, like
+            // --var-time-op=; must be an integer 1..255.
+            std::string v = a.substr(sizeof("--error-exitcode=") - 1);
+            unsigned long n = 0;
+            bool ok = !v.empty() && !v[strspn(v.c_str(), "0123456789")];
+            if (ok) {
+                errno = 0;
+                n = strtoul(v.c_str(), nullptr, 10);
+                ok = !errno && n >= 1 && n <= 255;
+            }
+            if (!ok) {
+                fprintf(stderr,
+                        "zegarmistrz: bad --error-exitcode value '%s' "
+                        "(expected an integer 1..255)\n",
+                        v.c_str());
+                return 1;
+            }
+            emu.error_exitcode = (int)n;
         } else if (a.rfind("--var-time-op=", 0) == 0) {
             std::string v = a.substr(sizeof("--var-time-op=") - 1);
             if (v == "known")

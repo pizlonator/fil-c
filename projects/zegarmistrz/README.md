@@ -33,8 +33,11 @@ guest marks memory as secret with per-byte "cannot" bits — cannot-load,
 cannot-store, cannot-branch, cannot-index, cannot-var-time-op — and the
 emulator faults the moment a tainted value feeds an operation whose
 control flow, addressing, or timing could depend on it. A fault prints a
-symbolized guest stack trace to stderr and writes a gdb-consumable ELF
-core dump (exit status 139, i.e. SIGSEGV). The target use: run crypto
+symbolized guest stack trace to stderr (exit status 139, i.e. SIGSEGV —
+unimplemented instructions exit 132 instead; see the exit-code section
+below) and, unless core dumps are disabled (the default; the trace
+prints regardless), writes a gdb-consumable ELF core dump. The target
+use: run crypto
 code with its key material poisoned, and any branch on key bytes, table
 lookup indexed by key bytes, division on secret-derived values, or
 secret-indexed gather becomes an immediate, located failure instead of a
@@ -173,11 +176,25 @@ clear-branch-on-store, bit5 clear-index-on-store, bit6
 cannot-var-time-op, bit7 clear-var-time-op-on-store (the
 `ZEGARMISTRZ_POISON_*` constants in the header).
 
+**Recommended default:** poison secrets with
+`ZEGARMISTRZ_POISON_DEFAULT`, which is
+`ZEGARMISTRZ_POISON_CANNOT_BRANCH | ZEGARMISTRZ_POISON_CANNOT_INDEX` —
+a deliberate imitation of valgrind's test-the-tests style (a leak
+checker tested by code that leaks on purpose). Covering BOTH dimensions
+at once means every use of the secret that matters is caught: a branch
+on it (the memcmp-branch pattern — a libc-internal `memcmp` over a
+poisoned buffer leaks the secret through its SIMD compare-and-branch
+chain, and only a cannot-branch fault catches that) AND an address
+computed from it (the classic table-lookup leak, caught only by
+cannot-index). Poisoning with just one bit lets the other use class slip
+through silently, which is exactly the bug-in-the-test this combo is
+meant to avoid.
+
 Loading a byte taints the loaded value with its cannot-branch /
 cannot-index / cannot-var-time-op bits; computation propagates the OR of
-input taints, and flag-setting ops taint RFLAGS. A store launders the
-stored value's bits into the destination bytes; a store into a location
-carrying the matching clear-on-store bit instead clears that bit (store
+input taints, and flag-setting ops taint RFLAGS. A store propagates the stored value's taint bits into the destination
+bytes (marking newly tainted bytes clear-on-store); a store that is clean
+in a dimension whose clear-on-store bit is set clears that bit (store
 sanitizes). `xor reg,reg` (and self-sub) clears taint — the result is
 zero regardless of the input. cannot-load/cannot-store/clear bits are
 sticky.
@@ -432,6 +449,51 @@ trail vector, and the deep modes additionally record a stack per
 poisoned operation, so large poison ranges with long trails cost
 significant memory) and therefore off by default;
 enable it when debugging a found fault, not for steady-state runs.
+
+### Fatal-error exit codes, --error-exitcode, and ~/.zegarmistrz
+
+A fatal guest error's exit status classifies the reason (djb's request:
+poison violations and unknown instructions must be distinguishable from
+the shell):
+
+- **139 (SIGSEGV)** — poison-class violations: poisoned cannot-load/store
+  memory, tainted cannot-branch/cannot-index/cannot-var-time-op values,
+  unmapped accesses, bad RIP, string-op taint.
+- **132 (SIGILL)** — unimplemented-class errors: instructions or operand
+  forms zegarmistrz does not implement (`unimplemented <mnemonic> ...`,
+  unsupported-form `bad ...`/`unsupported ...` strings, MVEX/KNC).
+- **134 (SIGABRT)** — everything else (bad requests and similar).
+- Host-signal reasons keep the host signal (128+SIGBUS/SIGFPE/...).
+
+`--error-exitcode=N` (valgrind parity; also `error exitcode N` in the
+config file) replaces the 139 with N (an integer 1..255) for POISON-class
+errors only, so poison stays distinguishable from unknown instructions
+even with the override set. `error signal N` (1..31) instead reports and
+exits 128+N for poison faults; precedence is exitcode > signal > natural.
+
+Core dumps are **disabled by default** (also djb's request). The core
+setting gates only the core FILE: the fault handler stays installed, so
+every fatal error still prints the banner, the symbolized guest stack
+trace, and the `zegarmistrz: [core dumps disabled]` line, and the exit
+status is unchanged (`--no-core` turns the file off; `--core` turns it
+back on). `--passthrough-signals` is the separate, stronger policy: it
+does not install host signal handlers at all, so a fault kills the
+process like a real host fault would (it implies no core dumps).
+`~/.zegarmistrz`
+(re-read every run, parsed before the flags — flags win on conflicts)
+configures the run without touching the command line:
+
+    # ~/.zegarmistrz
+    coredump enabled         # core dumps (default: disabled)
+    history all              # like --history=full (default: none)
+    error exitcode 42        # like --error-exitcode=42
+    error signal 9           # poison faults report + exit 137
+
+One directive per line, whitespace-separated tokens, `#` starts a
+comment. Missing file, missing HOME, unknown directives, or bad values
+are warnings, never errors; `--core` re-enables dumps from the command
+line (the mirror of `--no-core`; the `coredump` directive never touches
+the passthrough mode, which only `--passthrough-signals` selects).
 
 ## Design in brief
 

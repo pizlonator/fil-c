@@ -39,7 +39,15 @@ int main(void) {
     __asm__ volatile("rdpid %q0" : "=r"(pid));
     uint64_t y = t + 1; // ADD: doc 7.1 guaranteed
     uint64_t t2 = t;    // MOV: guaranteed
-    sink = y + t2 + lo + hi + (uint64_t)aux + aux2 + (uint64_t)pid + r + s;
+    // VEX lane insert/extract (VPINSRD/VPEXTRD): guaranteed constant-time
+    // alongside legacy PINSR*/PEXTR*.
+    __m128i vx = _mm_setzero_si128();
+    uint32_t vext = 0;
+    __asm__ volatile(
+        "vpinsrd $1, %k2, %0, %0\n\t"
+        "vpextrd $1, %0, %k1\n\t"
+        : "+x"(vx), "=r"(vext) : "r"((uint32_t)t));
+    sink = y + t2 + vext + lo + hi + (uint64_t)aux + aux2 + (uint64_t)pid + r + s;
     write(1, "exempt-ok\n", 10);
     return 0;
 }

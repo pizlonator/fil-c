@@ -38,8 +38,8 @@
 // Service requests are issued by CALLing the magic address
 // 0x1410141014101410 as
 //
-//     ((uint64_t (*)(uint64_t op, void* ptr, size_t size, uint64_t flags))
-//          0x1410141014101410)(op, ptr, size, flags)
+//     ((uint64_t (*)(uint64_t op, const void* ptr, size_t size,
+//          uint64_t flags))0x1410141014101410)(op, ptr, size, flags)
 //
 // with RDI=op, RSI=ptr, RDX=size, RCX=flags (SysV AMD64) and the result in
 // RAX:
@@ -100,6 +100,16 @@
 #define ZEGARMISTRZ_POISON_CANNOT_VAR_TIME_OP 0x40u
 #define ZEGARMISTRZ_POISON_CLEAR_VAR_TIME_OP_ON_STORE 0x80u
 
+// Recommended default poison combo for guarding a secret: imitating
+// valgrind's test-the-tests style (catch leak-check bugs in the leak
+// checker), poison secrets with BOTH the control-flow (cannot-branch) and
+// the address-computation (cannot-index) dimension, so both a branch on the
+// secret and an address derived from it fault -- the memcmp-branch style of
+// test catches libc-internal leaks (a glibc memcmp over a poisoned buffer
+// leaks through its branch chain) that a single-dimension poison misses.
+#define ZEGARMISTRZ_POISON_DEFAULT \
+    (ZEGARMISTRZ_POISON_CANNOT_BRANCH | ZEGARMISTRZ_POISON_CANNOT_INDEX)
+
 // Detects zegarmistrz using the two-CPUID technique from cpuid.txt: gate
 // on CPUID.1:ECX bit 31 ("hypervisor present"), then match the vendor
 // signature at CPUID.0x40000000. No caching: both CPUID instructions run
@@ -140,16 +150,16 @@ static inline ZEGARMISTRZ_BOOL is_in_zegarmistrz(void) {
 // read access on [ptr, ptr+size)); see the comment at the top of this
 // header.
 #ifdef __FILC__
-extern uint64_t zegarmistrz_client_request(uint64_t op, void* ptr,
+extern uint64_t zegarmistrz_client_request(uint64_t op, const void* ptr,
                                            size_t size, uint64_t flags);
 #else
-static inline uint64_t zegarmistrz_client_request(uint64_t op, void* ptr,
-                                                  size_t size,
+static inline uint64_t zegarmistrz_client_request(uint64_t op,
+                                                  const void* ptr, size_t size,
                                                   uint64_t flags) {
     if (!is_in_zegarmistrz())
         return 0;
-    uint64_t (*request)(uint64_t, void*, size_t, uint64_t) =
-        (uint64_t (*)(uint64_t, void*, size_t, uint64_t))
+    uint64_t (*request)(uint64_t, const void*, size_t, uint64_t) =
+        (uint64_t (*)(uint64_t, const void*, size_t, uint64_t))
             (uintptr_t)ZEGARMISTRZ_MAGIC_CALL_ADDR;
     // Compiler defense: the opaquing asm below makes the compiler forget
     // everything it knows about the call target and the arguments, so it
@@ -175,15 +185,17 @@ static inline uint64_t zegarmistrz_query(void) {
 }
 
 // op 1: poison each byte of [ptr, ptr+size) with the flags bitmask
-// (ZEGARMISTRZ_POISON_*). Returns 0. No-op when not under zegarmistrz.
-static inline uint64_t zegarmistrz_poison_range(void* ptr, size_t size,
+// (ZEGARMISTRZ_POISON_*; ZEGARMISTRZ_POISON_DEFAULT is the recommended
+// combo). Returns 0. No-op when not under zegarmistrz.
+static inline uint64_t zegarmistrz_poison_range(const void* ptr, size_t size,
                                                 unsigned flags) {
     return zegarmistrz_client_request(1, ptr, size, (uint64_t)flags);
 }
 
 // op 2: unpoison [ptr, ptr+size). Returns 0. No-op when not under
 // zegarmistrz.
-static inline uint64_t zegarmistrz_unpoison_range(void* ptr, size_t size) {
+static inline uint64_t zegarmistrz_unpoison_range(const void* ptr,
+                                                  size_t size) {
     return zegarmistrz_client_request(2, ptr, size, 0);
 }
 
