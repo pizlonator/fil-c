@@ -1,38 +1,38 @@
 #include <fenv.h>
-
-/* Dummy functions for archs lacking fenv implementation */
+#include <pizlonated_math.h>
 
 int feclearexcept(int mask)
 {
+	zmath_feclearexcept(mask);
 	return 0;
 }
 
 int feraiseexcept(int mask)
 {
-	return 0;
+	return zmath_feraiseexcept(mask);
 }
 
 int fetestexcept(int mask)
 {
-	return 0;
+	return zmath_fetestexcept(mask);
 }
 
 int fegetround(void)
 {
-	return FE_TONEAREST;
+	return zmath_fegetround();
 }
 
 int __fesetround(int r)
 {
-	return 0;
+	return zmath_fesetround(r);
 }
 
 int fegetenv(fenv_t *envp)
 {
-	return 0;
+	return zmath_fegetenv(envp);
 }
 
 int fesetenv(const fenv_t *envp)
 {
-	return 0;
+	return zmath_fesetenv(envp);
 }
