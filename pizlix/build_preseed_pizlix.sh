@@ -10,9 +10,10 @@ export LFS=/mnt/lfs
 test -d $LFS
 
 # CWD-independent: the repo root is the parent of this script's pizlix/
-# directory (this script is invoked both as ./build_preseed_pizlix.sh from
-# pizlix/ by build_with_recovered_postlc9.sh and as
-# pizlix/build_preseed_pizlix.sh from the repo root).
+# directory (build_postlc2.sh invokes this script as
+# ./build_preseed_pizlix.sh from pizlix/ to pre-seed the CA trust before
+# the chroot builds gnutls, and it can also be run from the repo root as
+# pizlix/build_preseed_pizlix.sh).
 SRCDIR=`cd "\`dirname \"$0\"\`/.." && pwd`
 
 # 1-2. the CA bundle + the p11-kit trust anchors

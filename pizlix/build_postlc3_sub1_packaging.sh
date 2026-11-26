@@ -17,7 +17,7 @@ cd $FILCSRC
 # + postlc7 + postlc8 + postlc11 sub1 lists, unioned in build order;
 # identical lines deduped).  NOT packaged here (postlc2 packages them once,
 # and their /sources copies carry forward): mesa, gtk4, xkbcommon, cairo,
-# lcms2, pygobject, gnome-desktop -- the old layout re-packaged several of
+# lcms2, pygobject -- the old layout re-packaged several of
 # these mid-chain because older snapshots predated folded fixes; the current
 # projeny/checked-in packages all carry the fixes, so each is built ONCE in
 # postlc2 (cairo with X11 disabled there, then re-built here with X11
@@ -196,12 +196,11 @@ filc/projeny package projects/hicolor-icon-theme.projeny projects/hicolor-icon-t
 # NOT packaged here (drop-in same-version gir rebuilds re-use tarballs
 # already in /sources from postlc2):
 # - pizlonated-pygobject     (postlc2's build carries the import-gi fix)
-# - pizlonated-gnome-desktop (postlc2's build carries the gnome-rr
-#   introspection fixes -- the gnome_rr_dpms_mode_get_type static-enum
-#   GType fix and the gnome-rr gir meson wiring -- so the GnomeRR-4.0
-#   introspection dumper works; projects/gnome-desktop.projeny has carried
-#   them since before the merge).
 # The mutter gir rebuild re-uses the pizlonated-mutter tarball staged above.
+# The gnome_desktop_gir pass re-uses the pizlonated-gnome-desktop tarball
+# packaged in this same stage; it carries the gnome-rr introspection fixes
+# (the gnome_rr_dpms_mode_get_type static-enum GType fix and the gnome-rr
+# gir meson wiring), so the GnomeRR-4.0 introspection dumper works.
 
 # WiFi tail (the old postlc11 stage): the firmware tarball + the
 # wireless-regdb projeny package.

@@ -37,7 +37,7 @@
 #
 # Usage:  make_bootable_usb.sh <usb-device> [tarball]
 #   usb-device : whole-disk block device, e.g. /dev/sda
-#   tarball    : rootfs tarball (default: lfs-postlc6.tar.gz, or -- to skip)
+#   tarball    : rootfs tarball (default: lfs-postlc5.tar.gz, or -- to skip)
 
 set -e
 set -x
@@ -52,7 +52,7 @@ if test -z "$1"
 then
     echo "Usage: $0 <usb-device> [tarball]" >&2
     echo "  usb-device : whole-disk block device to write to (e.g. /dev/sda)" >&2
-    echo "  tarball    : rootfs tarball (default: lfs-postlc6.tar.gz, or -- to skip)" >&2
+    echo "  tarball    : rootfs tarball (default: lfs-postlc5.tar.gz, or -- to skip)" >&2
     exit 1
 fi
 
@@ -60,7 +60,7 @@ DEVICE=$1
 
 if test -z "$2"
 then
-    TARBALL=lfs-postlc6.tar.gz
+    TARBALL=lfs-postlc5.tar.gz
 else
     TARBALL=$2
 fi

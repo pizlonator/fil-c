@@ -4,7 +4,7 @@
 #
 # The pizlix build chroot has no network access, so `make fetch` cannot download
 # these ~136 tarballs inside the chroot.  Instead, this script is run OUTSIDE the
-# chroot (called from build_postlc6_sub1_packaging.sh) and the resulting files
+# chroot (called from build_postlc5_sub1_packaging.sh) and the resulting files
 # are copied into the chroot and symlinked into external/tarballs/ by the LO
 # build script.
 #
@@ -81,7 +81,7 @@ download_tarball() {
     fi
 
     echo "Downloading $filename from $url"
-    # Same hardening as download_tarball in build_postlc6_sub1_packaging.sh:
+    # Same hardening as download_tarball in build_postlc5_sub1_packaging.sh:
     # plain --retry does not retry errors like curl 92 ("HTTP/2 stream not
     # closed cleanly"), and without --continue-at - a retry would restart
     # from byte 0.  This is ~136 tarballs (~500MB) -- don't let one flake
