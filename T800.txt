@@ -17,6 +17,7 @@ The development flow is:
 
 - If you're in a VM and you're doing Pizlix development, you'll want to familiarize yourself with the
   build scripts in pizlix/ and read pizlix/README.md.
+  The Pizlix section at the end of this file documents how the dev VM is set up and how to test.
 
 Make sure your container is set up the way `./enter_container.sh -n` would set it up. This matters if you want to run `./build_all_glibc.sh` or other glibc-flavored builds: that container setup has been updated to have gcc 12 (`gcc-12`/`g++-12` as the default `gcc`/`g++`) and newer binutils (binutils 2.47 built into /usr/local). If you only run `./build_all.sh` (the musl configuration), you most likely won't have to update anything. When in doubt, check what `enter_container.sh`'s generated Dockerfile installs and make your container match, either by installing the missing pieces or by starting a fresh container with `enter_container.sh -n`.
 
@@ -109,3 +110,52 @@ IMPORTANT: Never stage or commit files that are generated as part of the build, 
 
 Note that CLAUDE.md, README.md, and Manifesto.md have more information. However, if instructions in those docs contradict anything in this doc, then this doc takes precedence.
 
+# Pizlix development (applies ONLY in a QEMU VM set up for it)
+
+Applies ONLY if you are a T-800 in a QEMU VM (not a container) AND your task involves pizlix/ (the LFS-12.2-based Fil-C distro). Otherwise skip this entire section - it changes no rule above. pizlix/README.md is the human-facing doc (stage map, GNOME wiring, passwords); this is the agent-specific operational guide.
+
+## The dev VM dual-boots: build host + Pizlix
+
+The T-800 tooling (SSH on the forwarded port, run_bash, file tools; console login pizlo/nofate, sudo password nofate) runs in the BUILD HOST OS. Pizlix development reboots that machine into Pizlix, which lives on a dedicated partition mounted at /mnt/lfs (= /dev/sda4). What the VM must have (quick verify for each; fixes for a fresh VM):
+
+- /dev/sda4: LARGE ext4 mounted at /mnt/lfs. It IS the build and is annihilated/re-extracted from stage tarballs routinely. Size: the finished postlc12 tree is ~37GB; 99GB total is known-good. Verify: `findmnt /mnt/lfs` -> /dev/sda4 ext4 rw; `df -h /mnt/lfs`. Fresh-VM fix: repartition so sda4 is big, `mkfs.ext4 -L root /dev/sda4`, mount at /mnt/lfs. Scripts hardcode /mnt/lfs - mounting elsewhere means editing them.
+- /dev/sda3 = swap: pizlix bootscripts swapon it at boot. Verify: `lsblk` (sda3 swap) or `cat /proc/swaps` after a pizlix boot. Fix: create a swap partition there.
+- Build-host grub has a "Pizlix" menuentry from pizlix/etc/grub_custom (it is the stock /etc/grub.d/40_custom template: copy the menuentry into the host's 40_custom and run `update-grub`). It boots the pizlix partition directly: `set root=(hd0,4)` + `linux /boot/vmlinuz-6.10.5-lfs-12.2 root=/dev/sda4 ro console=ttyS0,115200 console=tty0 net.ifnames=0`. Verify: `grep -B1 -A3 '"Pizlix"' /boot/grub/grub.cfg`.
+- The grub DEFAULT must stay the build host: while pizlix is booted, the tooling is effectively dead. Verify after any pizlix session that SSH works again (`whoami` -> pizlo).
+- /mnt/lfs should hold the newest built stage: `cat /mnt/lfs/sources/lfsbuildstate` names it (postlc12 is newest as of this writing). If empty/missing, recover from the newest pizlix/lfs-postlc*.tar.gz (see below) or rerun the chain (`sudo ./build.sh` from pizlix/; README "Build Stages" maps stages).
+
+## Testing Pizlix: reboot into it. NEVER nested QEMU. NEVER disk images.
+
+Hard rule (learned the hard way): do NOT boot nested QEMU and do NOT create/use disk images (pizlix/make_disk_image.sh, pizlix/launch_qemu.sh, disk.img/disk.vmdk) - those serve OTHER setups (VMware/Hyper-V per README). Here, /mnt/lfs = /dev/sda4 IS the testable system and grub boots it natively. Delete any disk.img/disk.vmdk you find; never commit one.
+
+The reboot loop:
+1. Build host: `echo nofate | sudo -S reboot`.
+2. IMMEDIATELY poll the display with qemu_screenshot (every few seconds) to catch the grub menu; select with qemu_press_key (arrows + Enter). The menu times out and Pizlix sits below the defaults (it was 4 arrow presses down); if you miss it, reboot and press earlier/hold.
+3. While pizlix is booted, the console (display tools) is your ONLY reliable channel: run_bash/file tools target the build host and are useless until you reboot back. Do not count on SSH into pizlix.
+4. Pizlix logins: pizlo/pizlo (sudo-capable - `sudo` inside pizlix wants pizlo's password) and root/root.
+5. When done: `sudo reboot` inside pizlix, make sure the DEFAULT (build host) entry boots, and verify SSH works again before resuming host-side work.
+
+A healthy boot: rc S scripts OK -> `INIT: Entering runlevel: N` -> services OK -> `pizlix login:` (text; runlevel 3) or the GDM greeter (runlevel 5; postlc12+). Endless `INIT: cannot execute "/etc/rc.d/init.d/xdm"` lines = the bug shape below. GNOME runs on software GL and starts SLOW - wait minutes between screenshots. gnome-terminal is D-Bus-activated: run `gnome-terminal` from the autostarted weston-terminal.
+
+## The build chain (pizlix/*.sh)
+
+- Stages (README "Build Stages" maps them): build_prelc.sh (yolo toolchain) -> build_lc.sh (Fil-C toolchain) -> build_postlc.sh (LFS ch. 8-10) -> build_postlc2..12.sh (BLFS, weston, GNOME, rust/librsvg, WiFi, GDM). Each stage snapshots the whole tree to pizlix/lfs-<stage>.tar.gz and stamps /mnt/lfs/sources/lfsbuildstate.
+- Each build_postlcN.sh: asserts the previous lfsbuildstate; packages vendored deps (sub1); build_mount.sh; stages scripts + tracked files + tarballs into $LFS/sources; build_chroot_late.sh runs the sub2 chroot script; writes the new lfsbuildstate; build_unmount.sh; then tar. The `=== gate:` blocks are executable documentation; `set -e` aborts on gate failure.
+- Recovery chain: `sudo ./build_with_recovered_postlcN.sh` = build_recover.sh postlcN (wipe /mnt/lfs, extract tarball) + continuation. build_recover.sh does NOT re-run build_copy_stuff.sh, so each stage stages its own inputs (build_postlc12.sh stages etc/inittab-gdm and etc/gnome/pizlix-shell.sh itself). When you add an input to a stage, stage it in that stage's .sh, not only via build_copy_stuff.sh.
+- Tracked config flow: build_copy_stuff.sh copies pizlix/etc/* into /sources/etc at the postlc stage; build_postlc_sub2_chroot_part2.sh (cwd=/sources in the chroot) installs them with `cp -v etc/<file> /etc/`. Later stages may override /etc (postlc12's gdm wiring installs etc/inittab-gdm as /etc/inittab plus the blfs xdm bootscript).
+- INVARIANT: every stage snapshot must boot on its own; never deploy boot wiring pointing at something a later stage installs. Historical bug: the runlevel-5/xdm inittab deployed at postlc while xdm/gdm only exist from postlc12, so pre-postlc12 tarballs respawn-loop forever on `INIT: cannot execute "/etc/rc.d/init.d/xdm"`. Fix shape: early stages get pizlix/etc/inittab (text boot, id:3, no xdm entry); the stage installing the display manager installs its own inittab (pizlix/etc/inittab-gdm, id:5) plus the xdm bootscript.
+- Fil-C rules still apply where they overlap: vendored deps via projects/<name>.projeny (projeny commit flow documented earlier here); never commit tarballs/side patches; do NOT git add lfs-*.tar.gz or stage-generated files; do not edit pizlix/notes.txt or pizlix/preserve-yolo.txt (the user's historical notes).
+- A pure pizlix change (pizlix/*.sh, pizlix/etc/*) does NOT need ./build_all_fast.sh (that gate is for Fil-C compiler/runtime/libc changes). Pizlix verification = the stage gates + a live boot test.
+
+## Restoring a stage snapshot
+
+- To produce stage N in /mnt/lfs: back up anything not in the tarball (hostbuild/ is excluded from snapshots - rsync it aside); `echo nofate | sudo -S sh -c 'rm -rf /mnt/lfs/*'` (README explicitly blesses annihilating /mnt/lfs); `echo nofate | sudo -S tar -xpf pizlix/lfs-<stage>.tar.gz -C /mnt/lfs`; restore the backup; reboot into Pizlix.
+- WARNING: extraction overwrites the whole tree INCLUDING hand-applied fixes. After a restore, diff any live-tree fix against the tracked pizlix/etc/ sources and reinstall it - a bare grep can miss it (a restored postlc12 once reverted usr/bin/pizlix-gnome and etc/profile to pre-fix versions).
+- When done testing, leave /mnt/lfs at its newest built stage with verified fixes re-applied - the build lives there.
+
+## Debug tricks that worked
+
+- /mnt/lfs is a complete root and pizlix binaries run on the build host's kernel: reproduce many app failures WITHOUT booting via `echo nofate | sudo -S chroot /mnt/lfs /usr/bin/env -i TERM=xterm-256color PATH=/usr/bin:/bin <cmd>; echo $?`. This pinned the gnome-terminal bug: no LANG -> "Non UTF-8 locale (...) is not supported!", exit 8; LANG=C.UTF-8 passes the check (then fails on the missing display - expected outside a session).
+- D-Bus activation errors surface the child's exit status: grep the app's source for its _EXIT_FAILURE_* constants (gnome-terminal: terminal-defines.hh) to map status -> cause. GNOME Terminal refuses non-UTF-8 charsets (exit 8).
+- GDM does not source /etc/profile for sessions; the session launchers (pizlix/etc/gnome/*.sh) must export what the session needs (LANG=C.UTF-8 - the only generated locale, see build_lc_sub3_user_chroot.sh).
+- pizlix's `ps -ef` truncates command names to 15 chars - use `pgrep -af <pattern>`.
