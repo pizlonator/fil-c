@@ -1,0 +1,7 @@
+# supercop-tests per-dir build flags (read by run-supercop-tests).
+# This implementation needs no extra compile/link flags, but its emulated
+# leg is the suite's slowest by an order of magnitude: invhrss701 does a
+# big modular inversion per core call (1408-byte operands, 24 calls across
+# 3 seeds), ~10 minutes under ../zegarmistrz measured on the reference
+# machine -- beyond the default 600s emu bound.
+emu-timeout: 1800

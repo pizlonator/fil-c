@@ -455,6 +455,7 @@ echo "config-bad-directive"
 echo "cli-error-exitcode"
 echo "unimplemented-exit-code"
 echo "x86sem-suite"
+echo "supercop-suite"
 } | xargs -P "$JOBS" -I{} bash -c '
 set -u
 t="{}"
@@ -2040,6 +2041,32 @@ VEXPIN
       echo "PASS x86sem-suite"
     else
       echo "FAIL x86sem-suite: at least one x86sem sub-test diverged; see the FAIL x86/ lines above and x86sem-tests/test-output/ for traces and stderr"
+    fi
+    ;;
+
+  supercop-suite)
+    # The supercop checksum differential suite (supercop-tests/): 61
+    # vendored supercop-20261018 cores and implementations -- the set djb
+    # reported zegarmistrz checksum divergences for (fixed since by the
+    # SHUFPD, SHLD/SHRD, ADC/SBB OF, and VBLENDV bug fixes). Each dir
+    # drives its vendored code with a deterministic multi-seed checksum
+    # driver (LCG inputs, FNV-1a over the outputs, FNVCHECK lines plus a
+    # final <dir>-ok line) and the sub-runner requires the emulated run
+    # under ../zegarmistrz to produce byte-identical output to the native
+    # hardware run. The sub-runner prints one PASS/FAIL line per dir plus
+    # the supercop tally, so every sub-test counts in the tally below.
+    # Make-based caching keeps a no-change invocation cheap: emu outputs
+    # rebuild only when the emulator binary changes, native outputs only
+    # when vendored sources change, cmp stamps only when an output
+    # changes. This outer case FAILS iff any sub-test failed; the
+    # sub-runner exits nonzero iff at least one sub-test failed.
+    # SUPERCOP_QUIET=1 keeps the sub-suite output to the per-test verdict
+    # lines and the tally. The bound is generous because one emulated leg
+    # (core_invhrss701) alone takes on the order of ten minutes.
+    if (cd supercop-tests && SUPERCOP_QUIET=1 timeout 1800 ./run-supercop-tests); then
+      echo "PASS supercop-suite"
+    else
+      echo "FAIL supercop-suite: at least one supercop sub-test diverged; see the FAIL supercop/ lines above and supercop-tests/test-output/ for outputs and stderr"
     fi
     ;;
 esac

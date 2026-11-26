@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL FILIP PIZLO OR CONTRIBUTORS
+# BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+# IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# run-supercop-tests -- the supercop checksum differential suite's
+# sub-runner (the sibling of x86sem-tests/run-x86sem-tests).
+#
+# Auto-collects every <dir>/driver.c in this directory (each dir vendors one
+# supercop core/implementation plus a suite driver; new dirs are picked up
+# automatically), generates testmakefile following the filc/run-tests
+# generated-Makefile idiom (per-test targets, make -k -j $JOBS), and runs
+# it. Per-test pipeline, all under test-output/<dir>/:
+#   <dir>/*.c,*.S + <dir>/driver.c -> gcc -O3 (+ per-dir build.flags)
+#                                  -> ./<dir>
+#   ./<dir> -> <dir>.native   checksum output, hardware oracle (timeout 120)
+#   ./<dir> + ../zegarmistrz -> <dir>.emu  checksum output, emulated
+#                             (timeout 600 by default, per-dir
+#                             build.flags can raise it; re-runs when the
+#                             emulator binary changes)
+#   <dir>.native + <dir>.emu -> <dir>.cmp comparator stamp (the verdict):
+#                             byte-compare the two outputs, require the
+#                             expected number of FNVCHECK lines and the
+#                             verbatim <dir>-ok line, and require empty
+#                             stderr on both legs.
+# A test PASSES iff both legs produce the same well-formed checksum
+# output. Output: one line per test, "PASS supercop/<dir>" / "FAIL
+# supercop/<dir>: <reason>", then the tally "supercop: N passed, M failed,
+# K skipped (wall Xs)". Exits nonzero iff M > 0.
+#
+# Caching: emu outputs depend on the guest binary AND ../zegarmistrz
+# (re-run whenever the emulator changes); native outputs depend on the
+# guest binary; cmp stamps depend on both outputs. So a no-change
+# invocation re-runs nothing.
+#
+# The emulator binary must exist: run-tests builds it; a standalone run
+# needs `make` in projects/zegarmistrz first.
+
+set -u
+cd "$(dirname "$0")" || exit 1
+JOBS=${JOBS:-$(nproc)}
+start=$SECONDS
+mkdir -p test-output
+
+if [ ! -x ../zegarmistrz ]; then
+    echo "run-supercop-tests: ../zegarmistrz is not built; run make in projects/zegarmistrz first" >&2
+    exit 2
+fi
+
+# Auto-collect the corpus: one self-contained dir per core/implementation.
+tests=()
+for s in */driver.c; do
+    [ -e "$s" ] || continue
+    d=${s%/driver.c}
+    [ "$d" = test-output ] && continue
+    tests+=("$d")
+done
+if [ "${#tests[@]}" -eq 0 ]; then
+    echo "run-supercop-tests: no driver.c dirs found" >&2
+    exit 2
+fi
+
+# Compile flags shared by every target. supercop's build system generates
+# per-impl namespaces from api.h; the tarball we vendored from does not, so
+# we apply the checksum campaign's choices: CRYPTO_NAMESPACETOP renames the
+# poly1305 entry point to the driver-visible crypto_onetimeauth, and
+# CRYPTO_NAMESPACE(x)=x neutralizes the keccak namespace.h renaming.
+GDEFS="-D'CRYPTO_NAMESPACE(x)=x' -D'_CRYPTO_NAMESPACE(x)=_x' -D'CRYPTO_NAMESPACETOP=crypto_onetimeauth'"
+
+# Generate the makefile. Targets (all paths relative to this directory):
+#   test-output/<d>/<src>.o    one object per vendored source
+#   test-output/<d>/driver.o   the suite driver
+#   test-output/<d>/<d>        the linked guest
+#   test-output/<d>/<d>.native native checksum output (hardware leg)
+#   test-output/<d>/<d>.emu    emulated checksum output
+#   test-output/<d>/<d>.cmp    comparator stamp (the verdict)
+# The per-test phony wrappers print the single PASS line; FAIL lines echo
+# from the failing recipes. Rules are emitted with printf so the recipe
+# text (makefile $$-escapes and all) never undergoes a second round of
+# shell expansion here.
+{
+    echo "# GENERATED by run-supercop-tests -- do not edit."
+    echo "# Jobs: $JOBS"
+    printf 'all:'
+    for d in "${tests[@]}"; do
+        printf ' \\\n t-%s' "$d"
+    done
+    printf '\n\n'
+    for d in "${tests[@]}"; do
+        out="test-output/$d"
+        bin="$out/$d"
+        nat="$out/$d.native"
+        emu="$out/$d.emu"
+        cmpf="$out/$d.cmp"
+        down="$bin $nat $emu $cmpf"
+        # Per-dir build flags: "link: <flags>" lines, per-source
+        # "src <file>: <flags>" lines, and "emu-timeout: <seconds>"
+        # (per-target emulated-leg bound; default 600); blank lines /
+        # # comments ignored.
+        linkf=""
+        emuto=600
+        declare -A srcflags=()
+        if [ -f "$d/build.flags" ]; then
+            while IFS= read -r line; do
+                case "$line" in
+                    \#*|"") ;;
+                    link:*) linkf="$linkf ${line#link:}" ;;
+                    src\ *:*) rest=${line#src }; f=${rest%%:*}; srcflags["$f"]=${rest#*:} ;;
+                    emu-timeout:*) emuto=${line#emu-timeout:}; emuto=${emuto# } ;;
+                    *) echo "run-supercop-tests: unparseable line in $d/build.flags: $line" >&2; exit 2 ;;
+                esac
+            done < "$d/build.flags"
+        fi
+        # Vendored sources: every .c/.S except the driver. Headers join the
+        # prerequisites as literal globs (make expands them at read time),
+        # so touching any vendored header rebuilds what includes it.
+        srcs=()
+        for f in "$d"/*.c "$d"/*.S; do
+            [ -e "$f" ] || continue
+            b=${f#"$d"/}
+            [ "$b" = driver.c ] && continue
+            srcs+=("$b")
+        done
+        objs=()
+        for b in "${srcs[@]}"; do
+            obj="$out/${b%.*}.o"
+            objs+=("$obj")
+            printf '%s: %s/%s %s/build.flags include/*.h %s/*.h\n' "$obj" "$d" "$b" "$d" "$d"
+            printf '\t@mkdir -p %s\n' "$out"
+            printf '\t@gcc -O3 %s -Iinclude -I%s %s -c %s/%s -o $@ 2>%s/%s.buildlog || { cat %s/%s.buildlog; echo "FAIL supercop/%s: build failed (%s)"; rm -f $@ %s; exit 1; }\n' \
+                "$GDEFS" "$d" "${srcflags[$b]:-}" "$d" "$b" "$out" "$b" "$out" "$b" "$d" "$b" "$down"
+        done
+        # The driver knows which dir it belongs to via -DFNV_CHECK_ID, so
+        # the cmp recipe can check its final "<dir>-ok" line verbatim.
+        idflag="-DFNV_CHECK_ID='\"$d\"'"
+        printf '%s/driver.o: %s/driver.c %s/build.flags include/*.h %s/*.h\n' "$out" "$d" "$d" "$d"
+        printf '\t@mkdir -p %s\n' "$out"
+        printf '\t@gcc -O3 %s -Iinclude -I%s %s -c %s/driver.c -o $@ 2>%s/driver.buildlog || { cat %s/driver.buildlog; echo "FAIL supercop/%s: build failed (driver.c)"; rm -f $@ %s; exit 1; }\n' \
+            "$GDEFS" "$d" "$idflag" "$d" "$out" "$out" "$d" "$down"
+        printf '%s: %s/driver.o' "$bin" "$out"
+        for obj in "${objs[@]}"; do
+            printf ' %s' "$obj"
+        done
+        printf '\n'
+        printf '\t@gcc %s -o $@ %s/driver.o' "$linkf" "$out"
+        for obj in "${objs[@]}"; do
+            printf ' %s' "$obj"
+        done
+        printf ' 2>%s/link.buildlog || { cat %s/link.buildlog; echo "FAIL supercop/%s: link failed"; rm -f $@ %s; exit 1; }\n' \
+            "$out" "$out" "$d" "$down"
+        # Native leg: the hardware oracle. The 120s bound mirrors the emu
+        # recipe's shape: a runaway guest must not hang the make run.
+        printf '\n%s: %s\n' "$nat" "$bin"
+        printf '\t@cd %s && timeout 120 ./%s > %s.native 2> %s.native.err; s=$$?; if [ $$s -ne 0 ]; then rm -f %s.native %s.cmp; echo "FAIL supercop/%s: native leg failed (exit $$s; see test-output/%s/%s.native.err)"; exit 1; fi\n' \
+            "$out" "$d" "$d" "$d" "$d" "$d" "$d" "$d" "$d"
+        # Emulated leg: re-runs whenever the emulator binary changes. The
+        # emu cwd is the test output dir, so any core dumps land there.
+        # The bound is 600s by default; a per-dir "emu-timeout:" build.flags
+        # line raises it for the (documented) slow cores.
+        printf '\n%s: %s ../zegarmistrz\n' "$emu" "$bin"
+        printf '\t@cd %s && timeout %s ../../../zegarmistrz ./%s > %s.emu 2> %s.emu.err; s=$$?; if [ $$s -ne 0 ]; then rm -f %s.emu %s.cmp; echo "FAIL supercop/%s: emulated leg failed (exit $$s; see test-output/%s/%s.emu.err)"; exit 1; fi\n' \
+            "$out" "$emuto" "$d" "$d" "$d" "$d" "$d" "$d" "$d" "$d"
+        # The verdict: byte-compare both legs, require the expected number
+        # of FNVCHECK lines and the verbatim <dir>-ok line, and require
+        # empty stderr on both legs (an emulator diagnostic is a failure
+        # signal here, matching the campaign, which merged stderr into the
+        # compared stream).
+        case "$d" in
+            encode_*) nchk=1 ;;
+            *) nchk=3 ;;
+        esac
+        printf '\n%s: %s %s\n' "$cmpf" "$nat" "$emu"
+        printf '\t@if ! cmp -s %s %s; then echo "FAIL supercop/%s: native vs emulated checksum output differs (try: cmp test-output/%s/%s.native test-output/%s/%s.emu)"; exit 1; fi\n' \
+            "$nat" "$emu" "$d" "$d" "$d" "$d" "$d"
+        printf '\t@n=$$(grep -c "^FNVCHECK " %s || true); if [ "$$n" != "%s" ]; then echo "FAIL supercop/%s: expected %s FNVCHECK lines, got $$n"; exit 1; fi\n' \
+            "$nat" "$nchk" "$d" "$nchk"
+        printf '\t@if ! grep -q "^%s-ok$$" %s; then echo "FAIL supercop/%s: missing %s-ok line"; exit 1; fi\n' \
+            "$d" "$nat" "$d" "$d"
+        printf '\t@if [ -s %s.native.err ] || [ -s %s.emu.err ]; then echo "FAIL supercop/%s: stderr not empty on at least one leg (see test-output/%s/%s.native.err / %s.emu.err)"; exit 1; fi\n' \
+            "$nat" "$emu" "$d" "$d" "$d" "$d"
+        printf '\t@touch $@\n'
+        # The PASS verdict echoes from the phony wrapper so cached runs
+        # (cmp stamp already up to date) still count every sub-test in
+        # the tally.
+        printf 't-%s: %s\n\t@echo "PASS supercop/%s"\n\n' "$d" "$cmpf" "$d"
+    done
+} > testmakefile
+
+# Run it. -k keeps going past failures; the exit status plus the
+# PASS/FAIL lines drive the tally.
+status=0
+make -f testmakefile -k -j "$JOBS" all >test-output/make.log 2>&1 || status=$?
+if [ -n "${SUPERCOP_QUIET:-}" ]; then
+    # Quiet mode (used by run-tests): only the per-test verdict lines and
+    # the tally; build/run details stay in test-output/make.log.
+    grep -E '^(PASS|FAIL|SKIP) supercop/' test-output/make.log || true
+else
+    cat test-output/make.log
+fi
+grep -E '^(PASS|FAIL|SKIP) supercop/' test-output/make.log >/dev/null || {
+    echo "run-supercop-tests: no per-test lines produced; see test-output/make.log" >&2
+    exit 2
+}
+passed=$(grep -c '^PASS supercop/' test-output/make.log || true)
+failed=$(grep -c '^FAIL supercop/' test-output/make.log || true)
+skipped=$(grep -c '^SKIP supercop/' test-output/make.log || true)
+echo "supercop: $passed passed, $failed failed, $skipped skipped (wall $((SECONDS - start))s)"
+if [ "$failed" -gt 0 ]; then
+    exit 1
+fi
+if [ "$status" -ne 0 ]; then
+    # make failed without any FAIL line (recipe noise); surface it.
+    exit 1
+fi
+exit 0

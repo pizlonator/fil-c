@@ -1,0 +1,5 @@
+# supercop-tests per-dir build flags (read by run-supercop-tests).
+# keccakp.S computes absolute addresses into its own .text (R_X86_64_32S),
+# so the guest cannot link as PIE; -no-pie resolves the relocations
+# statically (the checksum campaign linked every target -no-pie).
+link: -no-pie

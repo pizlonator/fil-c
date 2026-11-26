@@ -1,0 +1,8 @@
+# supercop-tests per-dir build flags (read by run-supercop-tests).
+# The hand-written auth.S was written for static placement (it predates
+# toolchain-default PIE and, depending on the toolchain, produces absolute
+# text relocations; the checksum campaign linked every poly1305 target
+# -no-pie so both legs run the same statically-placed binary).
+# verify16.c is crypto_verify/16/ref/verify.c, renamed via -D.
+src verify16.c: -Dcrypto_verify=crypto_verify_16
+link: -no-pie

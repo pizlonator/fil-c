@@ -1,0 +1,4 @@
+# supercop-tests per-dir build flags (read by run-supercop-tests).
+# wrapper.c + Encode.c + Encode.h are vendored from crypto_encode/953x2115/ref;
+# wrapper.c is renamed via -D so encode.c (the 953x2115round impl) can call it.
+src wrapper.c: -Dcrypto_encode=crypto_encode_953x2115

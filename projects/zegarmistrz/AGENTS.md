@@ -363,6 +363,35 @@ How cases work:
   so remote failure reports are actionable without opening the traces
   (the multi-line detail and triage.py's parsing of it are unchanged).
 
+- `supercop-suite` runs `supercop-tests/run-supercop-tests` (see
+  `supercop-tests/README.md`): the supercop checksum differential suite --
+  61 vendored supercop-20261018 cores/implementations, the set djb
+  reported zegarmistrz checksum divergences for (the NTRU-Prime
+  mult3sntrup/multsntrup kernels, invhrss701, five keccakf160064bits
+  implementations, 36 crypto_encode codecs, and seven poly1305
+  implementations). Each dir builds its vendored sources into a
+  deterministic multi-seed checksum driver (LCG inputs, FNV-1a over the
+  outputs, `FNVCHECK <hex>` lines plus a final `<dir>-ok` line) and
+  PASSES iff the emulated run under ../zegarmistrz prints byte-identical
+  stdout to the native hardware run with empty stderr on both legs. The
+  drivers reuse djb's campaign numerics per family, so the native-leg
+  checksums reproduce the campaign's table bit-for-bit; the suite exists
+  to keep the SHUFPD/SHLD-SHRD/ADC-SBB-OF/VBLENDV bug fixes locked in.
+  One vendored byte differs from the supercop tarball: the poly1305 avx
+  `auth.S` gains a single `.text` line (upstream assembles its code into
+  read-only `.rodata` and segfaults natively on modern binutils) --
+  documented in `supercop-tests/README.md`. The sub-runner prints one
+  PASS/FAIL line per dir plus the `supercop:` tally and they all count in
+  the run-tests tally. Make-based caching
+  (`supercop-tests/testmakefile`, regenerated per run): emu outputs
+  rebuild when ../zegarmistrz changes, native outputs when the vendored
+  sources change, cmp stamps when an output changes -- a no-change
+  invocation costs ~0.1s. The cold suite is ~10-12 minutes because one
+  emulated leg (`core_invhrss701`, ~10 min) dominates; its per-dir
+  `build.flags` raises that leg's emu bound via `emu-timeout:`. Per-test
+  artifacts (checksum outputs, stderr, build logs) live under
+  `supercop-tests/test-output/<dir>/`.
+
 `./check-isa.sh [binary...]` objdumps binaries (default: `./hello`, the
 test guests, system libc/ld.so, the Fil-C loader + libc, all
 `pizfix/lib/*.so`), normalizes AT&T mnemonics to Zydis style, and reports

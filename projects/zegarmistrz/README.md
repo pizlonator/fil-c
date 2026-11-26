@@ -85,6 +85,16 @@ compared by `compare-traces.py`. Run it with
 case inside `./run-tests` — and see `x86sem-tests/README.md` for the
 trace format, comparison semantics, and triage workflow.
 
+`supercop-tests/` holds the supercop checksum differential suite: 61
+vendored supercop-20261018 crypto cores/implementations (the set djb
+reported zegarmistrz checksum divergences for), each driven by a
+deterministic multi-seed checksum driver whose output must be
+byte-identical between the native hardware run and the emulated run.
+Run it with `./supercop-tests/run-supercop-tests` — it also runs as the
+`supercop-suite` case inside `./run-tests` — and see
+`supercop-tests/README.md` for provenance, methodology, and the runtime
+profile.
+
 ## Guest-side API: `include/zegarmistrz.h`
 
 A header-only C client library: `zegarmistrz_poison_range(ptr, size,

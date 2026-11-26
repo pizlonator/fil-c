@@ -1,0 +1,5 @@
+# supercop-tests per-dir build flags (read by run-supercop-tests).
+# The vendored decode.c/encode.c are crypto_{decode,encode}_653xint16/ref,
+# renamed via -D so mult.c (via params.h) can call them.
+src decode.c: -Dcrypto_decode=crypto_decode_653xint16
+src encode.c: -Dcrypto_encode=crypto_encode_653xint16
