@@ -3,7 +3,7 @@ return:
 needsGLIBC: true
 extraLinkerArgs: "-enable-filc-jit"
 output-includes:
-  - "does not start with"
+  - "wrong intrinsic name for LLVMLookupIntrinsicID: the name must start with \"llvm.\"."
 output-excludes:
   - "Assertion"
   - "UNREACHABLE"

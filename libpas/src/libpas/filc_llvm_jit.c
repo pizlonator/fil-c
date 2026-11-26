@@ -284,6 +284,45 @@ static void** decode_handle_array(filc_thread* my_thread, filc_ptr array_ptr, si
     return result;
 }
 
+static const char* copy_optstr(filc_thread* my_thread, const char* fname,
+                               filc_ptr ptr, size_t len)
+{
+    char* copy;
+    if (!filc_ptr_ptr(ptr)) {
+        FILC_CHECK(len == 0, NULL,
+                   "Fil-C LLVM JIT API: %s: null string with nonzero length.",
+                   fname);
+        return NULL;
+    }
+    filc_check_read(ptr, len);
+    copy = (char*)filc_bmalloc_allocate_tmp(my_thread, filc_add_size(len, 1));
+    if (len)
+        memcpy(copy, filc_ptr_ptr(ptr), len);
+    copy[len] = '\0';
+    return copy;
+}
+
+static const uint64_t* copy_u64_words(filc_thread* my_thread, const char* fname,
+                                      const char* arg_name, filc_ptr ptr,
+                                      size_t num_words)
+{
+    size_t bytes;
+    uint64_t* copy;
+    if (!filc_ptr_ptr(ptr)) {
+        FILC_CHECK(!num_words, NULL,
+                   "Fil-C LLVM JIT API: %s: null %s with nonzero count.",
+                   fname, arg_name);
+        return NULL;
+    }
+    if (!num_words)
+        return NULL;
+    bytes = filc_mul_size(num_words, sizeof(uint64_t));
+    filc_check_read(ptr, bytes);
+    copy = (uint64_t*)filc_bmalloc_allocate_tmp(my_thread, bytes);
+    memcpy(copy, filc_ptr_ptr(ptr), bytes);
+    return copy;
+}
+
 void filc_llvm_jit_destruct(void* raw_payload)
 {
     filc_llvm_jit_kind kind = *(filc_llvm_jit_kind*)raw_payload;
@@ -2886,6 +2925,20 @@ static void sem_check_ptr_diff2_impl(const char* fname, void* lhs, void* rhs)
                "operands must have the same type.", fname);
 }
 
+/* Intrinsic::lookupIntrinsicID -> findTargetSubtable asserts
+ * Name.starts_with("llvm.") (Intrinsics.cpp) and calls Name.drop_front(5),
+ * which underflows Length in NDEBUG builds for names shorter than 5 bytes.
+ * The check is safe for a null name: copy_optstr FILC_CHECKs that a null
+ * string has zero length, so len >= 5 implies a readable pointer. */
+static void sem_check_intrinsic_name_impl(const char* fname,
+                                          const char* name,
+                                          size_t len)
+{
+    FILC_CHECK(len >= 5 && memcmp(name, "llvm.", 5) == 0, NULL,
+               "Fil-C LLVM JIT API: wrong intrinsic name for %s: the name "
+               "must start with \"llvm.\".", fname);
+}
+
 /* The LLVM C API's intrinsic entry points map the id through
  * llvm_map_to_intrinsic_id, which asserts ID < Intrinsic::num_intrinsics
  * ("Intrinsic ID out of range", Core.cpp). */
@@ -2894,22 +2947,6 @@ static void sem_check_intrinsic_id_impl(const char* fname, unsigned id)
     FILC_CHECK(api->ShimIntrinsicIDOK(id) != 0, NULL,
                "Fil-C LLVM JIT API: wrong intrinsic id for %s: the intrinsic "
                "id must be less than the number of known intrinsics.", fname);
-}
-
-/* LLVM's findTargetSubtable (Intrinsics.cpp) asserts Name.starts_with("llvm.")
- * and then drops the first five bytes unconditionally, and the vendored LLVM
- * is built with assertions on, so a name without the prefix reaches that
- * assertion instead of a well-defined not-found answer.  The check below is
- * safe for a null name: the OPTSTR unwrap already FILC_CHECKs that a null
- * string has zero length, so name_len >= 5 implies a readable pointer. */
-
-static void sem_check_intrinsic_name_impl(const char* fname,
-                                          const char* name,
-                                          size_t name_len)
-{
-    FILC_CHECK(name_len >= 5 && !memcmp(name, "llvm.", 5), NULL,
-               "Fil-C LLVM JIT API: wrong intrinsic name for %s: the name "
-               "does not start with \"llvm.\".", fname);
 }
 
 /* The intrinsic parameter-types array must agree with the id's overloadedness
@@ -3749,34 +3786,24 @@ filc_ptr filc_native_LLVMCreateConstantRangeAttribute(
 {
     ensure_api(my_thread);
     filc_llvm_jit_context_object* context = unwrap_context(my_thread, context_ptr);
-    /* The C API derives the word count from the bit width. */
-    unsigned num_words = (num_bits + 63u) / 64u;
-    const uint64_t* lower_words = NULL;
-    const uint64_t* upper_words = NULL;
-    if (filc_ptr_ptr(lower_words_ptr)) {
-        filc_check_read(lower_words_ptr, filc_mul_size(num_words, sizeof(uint64_t)));
-        lower_words = (const uint64_t*)filc_ptr_ptr(lower_words_ptr);
-    } else {
-        FILC_CHECK(!num_words, NULL,
-                   "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: null "
-                   "lower words with nonzero count.");
-    }
-    if (filc_ptr_ptr(upper_words_ptr)) {
-        filc_check_read(upper_words_ptr, filc_mul_size(num_words, sizeof(uint64_t)));
-        upper_words = (const uint64_t*)filc_ptr_ptr(upper_words_ptr);
-    } else {
-        FILC_CHECK(!num_words, NULL,
-                   "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: null "
-                   "upper words with nonzero count.");
-    }
+    /* The C API derives the word count via llvm::divideCeil(num_bits, 64);
+       avoid 32-bit overflow in (num_bits + 63u) when num_bits > UINT_MAX - 63. */
+    size_t num_words = num_bits ? ((size_t)(num_bits - 1u) / 64u) + 1u : 0u;
+    const uint64_t* lower_words = copy_u64_words(
+        my_thread, "LLVMCreateConstantRangeAttribute", "lower words",
+        lower_words_ptr, num_words);
+    const uint64_t* upper_words = copy_u64_words(
+        my_thread, "LLVMCreateConstantRangeAttribute", "upper words",
+        upper_words_ptr, num_words);
     LLVMAttributeRef result_raw;
     pas_lock_lock(&context->lock);
-    /* Three checks, mirroring the asserts that LLVM would otherwise hit:
-       Attribute::get asserts isConstantRangeAttrKind (Attributes.cpp), APInt
-       asserts "Null pointer detected!" for a zero bit width, and
-       ConstantRange asserts that an empty (lower == upper) range is either
-       empty (all zero) or full (all ones).  The kind check is a shim
-       predicate, because the attribute-kind enum is LLVM-internal. */
+    /* Four checks, mirroring the asserts that LLVM would otherwise hit:
+       Attribute::get asserts isConstantRangeAttrKind and !CR.isFullSet()
+       (Attributes.cpp), APInt asserts "Null pointer detected!" for a zero
+       bit width, and ConstantRange asserts that lower == upper is either
+       empty (all zero) or full (all ones) after masking to num_bits.  The
+       kind check is a shim predicate, because the attribute-kind enum is
+       LLVM-internal. */
     FILC_CHECK(api->ShimKindIsConstantRangeAttr(kind_id) != 0, NULL,
                "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: the kind "
                "must be a constant-range attribute kind.");
@@ -3784,25 +3811,30 @@ filc_ptr filc_native_LLVMCreateConstantRangeAttribute(
                "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: the bit "
                "width must not be zero.");
     {
-        unsigned word_index;
-        bool equal;
-        bool all_zero;
-        bool all_ones;
-        equal = true;
-        all_zero = true;
-        all_ones = true;
+        size_t word_index;
+        unsigned tail_bits = num_bits % 64u;
+        uint64_t top_mask = tail_bits ? ((1ULL << tail_bits) - 1ULL) : UINT64_MAX;
+        bool equal = true;
+        bool all_zero = true;
+        bool all_ones = true;
         for (word_index = 0; word_index < num_words; ++word_index) {
-            if (lower_words[word_index] != upper_words[word_index])
+            uint64_t mask = (word_index + 1 == num_words) ? top_mask : UINT64_MAX;
+            uint64_t lw = lower_words[word_index] & mask;
+            uint64_t uw = upper_words[word_index] & mask;
+            if (lw != uw)
                 equal = false;
-            if (lower_words[word_index] != 0)
+            if (lw != 0)
                 all_zero = false;
-            if (lower_words[word_index] != UINT64_MAX)
+            if (lw != mask)
                 all_ones = false;
         }
         FILC_CHECK(!equal || all_zero || all_ones, NULL,
                    "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: the "
                    "lower and upper bounds must differ unless the range is "
                    "empty or full.");
+        FILC_CHECK(!(equal && all_ones), NULL,
+                   "Fil-C LLVM JIT API: LLVMCreateConstantRangeAttribute: a "
+                   "constant-range attribute must not be the full range.");
     }
     result_raw = api->LLVMCreateConstantRangeAttribute((LLVMContextRef)context->handle,
                                                        kind_id, num_bits,
@@ -4477,9 +4509,11 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
  *       A filc_ptr parameter converted to a borrowed NUL-terminated string
  *       with filc_check_and_get_tmp_str().
  *   (OPTSTR, name, len_name)
- *       A borrowed string that may be null, as long as the separately
- *       passed length len_name is zero; len_name must name a (SCAL, ...)
- *       descriptor elsewhere in the row.
+ *       A length-delimited string that may be null when len_name is zero;
+ *       non-null inputs are copied into a NUL-terminated temporary buffer
+ *       with copy_optstr() so semantic checks and LLVM read an immutable
+ *       snapshot.  len_name must name a (SCAL, ...) descriptor elsewhere in
+ *       the row.
  *   (ARR, name, count_name, KIND, LLVMXxxRef)
  *       A filc_ptr parameter holding an array of JIT objects of kind
  *       FILC_LLVM_JIT_KIND_KIND, decoded into a temporary array of raw
@@ -4580,15 +4614,7 @@ filc_ptr filc_native_LLVMIntrinsicCopyOverloadedName2(
 #define FILC_LLVM_JIT_UNWRAP_CSTR(fname, name) \
     const char* name##_obj = filc_check_and_get_tmp_str(my_thread, name);
 #define FILC_LLVM_JIT_UNWRAP_OPTSTR(fname, name, len_name) \
-    const char* name##_obj; \
-    if (!filc_ptr_ptr(name)) { \
-        FILC_CHECK(len_name == 0, NULL, "Fil-C LLVM JIT API: " #fname \
-                   ": null string with nonzero length."); \
-        name##_obj = NULL; \
-    } else { \
-        filc_check_read(name, (size_t)len_name); \
-        name##_obj = (const char*)filc_ptr_ptr(name); \
-    }
+    const char* name##_obj = copy_optstr(my_thread, #fname, name, (size_t)(len_name));
 /* SCAL parameters are passed through unchanged; they unwrap to nothing. */
 #define FILC_LLVM_JIT_UNWRAP_SCAL(fname, name, type)
 #define FILC_LLVM_JIT_UNWRAP_ARR(fname, name, count_name, kind, elem_ty, ...) \
