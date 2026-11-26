@@ -42,7 +42,7 @@ If you run into trouble, see the [Build Stages](#stages).
 
 ## Using Pizlix
 
-Pizlix boots to the GDM graphical login screen once you have built through Post-LC 12 (see Build Stages); logging in there starts the Pizlix GNOME session. Earlier build-stage snapshots boot to a plain text login instead (the display manager is only installed in Post-LC 12, so their inittab must not reference it), and you can always switch a running system to the text console with `init 3` (and back with `init 5`): sysvinit with gettys on tty1 through tty6. Log in as a non-root user (like `pizlo`, password `pizlo`).
+Pizlix boots to the GDM graphical login screen once you have built through Post-LC 5 (see Build Stages); logging in there starts the Pizlix GNOME session. Every build-stage snapshot boots on its own: snapshots through Post-LC 4 boot to a plain text login instead (the display manager is only installed in Post-LC 5, so their inittab must not reference it), and you can always switch a running system to the text console with `init 3` (and back with `init 5`): sysvinit with gettys on tty1 through tty6. Log in as a non-root user (like `pizlo`, password `pizlo`).
 
 Pizlix by default has the following configuration:
 
@@ -83,7 +83,7 @@ See <a href="#gnome-services">GNOME services and how they're wired up</a> below 
 <a name="gnome-services"></a>
 ## GNOME services and how they're wired up
 
-Everything below is installed by `build_postlc7_chroot_setup_scripts_for_gnome.sh` (plus the postlc3 weston setup script) and was verified live.
+Everything below is installed by `build_postlc3_chroot_setup_scripts_for_gnome.sh` (plus the postlc2 weston setup script) and was verified live.
 
 ### Boot services
 
@@ -113,7 +113,7 @@ Note: shadow's login prints `configuration error - unknown item 'USE_PAM'` befor
 The wrappers (`pizlix-gnome`, `pizlix-shell`) export what the session needs:
 
 - `GBM_ALWAYS_SOFTWARE=true`: the only GPU is QEMU's display-only bochs-drm (no render node), so gbm/EGL must take the kms_swrast (llvmpipe) path.
-- `NIR_DEBUG=novalidate`: disables Mesa's NIR shader validator, which bit-tags a pointer that Fil-C provenance tracks. Known limitation, see the postlc7 notes.
+- `NIR_DEBUG=novalidate`: disables Mesa's NIR shader validator, which bit-tags a pointer that Fil-C provenance tracks. Known limitation (see the comment in `etc/gnome/pizlix-mutter.sh`).
 - `GI_TYPELIB_PATH`/`LD_LIBRARY_PATH` pointing at `/usr/lib/gnome-shell` and `/usr/lib/mutter-14` (the shell's introspection data and private libraries).
 - `ADW_DISABLE_PORTAL=1`: no xdg-desktop-portal is built, and libadwaita only reads the gsettings color-scheme (Dark Style) when the portal is disabled.
 
@@ -122,7 +122,7 @@ The wrappers (`pizlix-gnome`, `pizlix-shell`) export what the session needs:
 - `XDG_RUNTIME_DIR` comes from `/etc/profile.d/xdg-runtime-dir.sh` (`/run/user/$(id -u)`, created mode 700).
 - `/etc/machine-id` is a symlink to `/var/lib/dbus/machine-id`, created by `dbus-uuidgen --ensure`; dbus and elogind both want it.
 - Settings are gsettings/dconf: `dconf-service` D-Bus-activates on the session bus on first write and persists to `~/.config/dconf/user`.
-- SVG icons render via the Fil-Rust-built librsvg (postlc9): librsvg-2, the gdk-pixbuf SVG loader, and the `Rsvg-2.0` typelib are drop-in installed (plus the loaders.cache refresh and a glib GType repair), so app-grid, quick-settings, and symbolic icons show real artwork. The Rust toolchains live at `/usr/lib/rust/{filc,yolo}`, and `/usr/bin/rustc`/`cargo` dispatch to them.
+- SVG icons render via the Fil-Rust-built librsvg (Post-LC 4): librsvg-2, the gdk-pixbuf SVG loader, and the `Rsvg-2.0` typelib are drop-in installed (plus the loaders.cache refresh and a glib GType repair), so app-grid, quick-settings, and symbolic icons show real artwork. The Rust toolchains live at `/usr/lib/rust/{filc,yolo}`, and `/usr/bin/rustc`/`cargo` dispatch to them.
 
 ### weston vs GNOME
 
@@ -130,8 +130,8 @@ The wrappers (`pizlix-gnome`, `pizlix-shell`) export what the session needs:
 
 ### Current limitations
 
-- No NetworkManager: no wifi/bluetooth tiles in quick settings; dhcpcd on eth0 only.
 - No PipeWire: no audio.
+- Bluetooth is not built (no bluez), so no bluetooth tiles in quick settings. NetworkManager manages all devices (eth0 + wifi radios where hardware and firmware allow); dhcpcd is disabled in the managed runlevels.
 - No calendar server (evolution-data-server): the clock has no calendar dropdown.
 - No gnome-settings-daemon: gnome-session logs "Missing required core component Settings, expect trouble…" and some integration (e.g. color management) is absent.
 
@@ -140,7 +140,7 @@ The wrappers (`pizlix-gnome`, `pizlix-shell`) export what the session needs:
 
 The Pizlix build proceeds in the following stages.
 
-The Pizlix build snapshots after each successful stage so that it's possible to restart the build at that stage later. This is great for troubleshooting!
+The Pizlix build snapshots after each successful stage so that it's possible to restart the build at that stage later. This is great for troubleshooting! Every stage snapshot boots on its own: snapshots through Post-LC 4 give you a text login, and from Post-LC 5 on you get the GDM graphical login. To start the build at some stage, recover the previous stage's snapshot first: `sudo ./build_with_recovered_<previous stage>.sh` (the `build_with_recovered_*` wrappers exist for prelc, lc, postlc, 2, 3 and 4 — e.g. `sudo ./build_with_recovered_postlc3.sh` recovers the Post-LC 3 snapshot and then builds Post-LC 4 and everything after it).
 
 ### Pre-LC
 
@@ -160,7 +160,7 @@ If you want to start the build here, do `sudo ./build_with_recovered_prelc.sh`.
 
 ### Post-LC
 
-This is the actual Linux From Scratch build (Chapters 8, 9, 10 of the LFS book) using the Fil-C toolchain. After this completes, the Yolo-C stuff produced in Pre-LC is mostly eliminated, except for what is necessary to run the Fil-C compiler and the GCC used for building the kernel.
+This is the actual Linux From Scratch build (Chapters 8, 9, 10 of the LFS book) using the Fil-C toolchain: the core of a minimal bootable LFS system. After this completes, the Yolo-C stuff produced in Pre-LC is mostly eliminated, except for what is necessary to run the Fil-C compiler and the GCC used for building the kernel.
 
 If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc.sh`.
 
@@ -168,7 +168,7 @@ If you want to start the build here, do `sudo ./build_with_recovered_lc.sh`.
 
 ### Post-LC 2
 
-This builds BLFS (Beyond Linux From Scratch) components that I like to have, such as openssh, emacs, dhcpcd, and cmake.
+This builds the CLI/network/crypto tooling (openssh, emacs, dhcpcd, cmake, curl, git, sudo, ...), the Wayland/Weston environment (so you can have a GUI), the GTK/GL foundation (glib, mesa, gtk3/gtk4, pango, ...), and the crypto/text libraries (gnutls, sqlite, aspell/enchant, ...). It also seeds the CA trust state (the checked-in `etc/ssl/ca-bundle.crt`) and builds GnuTLS with that bundle as its default trust store, so HTTPS works from the first build.
 
 If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc2.sh`.
 
@@ -176,27 +176,27 @@ If you want to start the build here, do `sudo ./build_with_recovered_postlc.sh`.
 
 ### Post-LC 3
 
-This builds the Wayland environment and Weston so that you can have a GUI.
+This builds the X11 client libraries, the GNOME desktop on top of the Wayland environment (dbus, elogind, dconf, mutter (the Wayland compositor), gnome-session, libadwaita, GNOME Shell — top bar, activities overview, app grid, notifications — and a couple of GNOME apps), and installs the session wiring (dbus/elogind bootscripts, the PAM bits that make logins register with elogind, and the `pizlix-gnome`/`pizlix-shell` launchers). It ends with the WiFi tail: the kernel rebuild with the mac80211 HWSIM module, the iwlwifi firmware subset + the regulatory db, and the NetworkManager boot wiring (NM manages eth0 and the wifi radios). After this stage, `pizlix-gnome` starts the full GNOME Shell session — this is the full GNOME desktop experience.
 
 If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc3.sh`.
 
 If you want to start the build here, do `sudo ./build_with_recovered_postlc2.sh`.
 
-### Post-LC 7
+### Post-LC 4
 
-This builds the GNOME desktop on top of the Wayland environment: dbus, elogind, dconf, mutter (the Wayland compositor), gnome-session, libadwaita, and a couple of GNOME apps. It also installs the session wiring (dbus/elogind bootscripts, the PAM bits that make logins register with elogind, and the `pizlix-gnome`/`pizlix-shell` launchers). At this point `pizlix-gnome` starts a bare mutter session; the shell UI comes in the next stage.
+This builds the Rust toolchains (rustc/cargo, built+installed yolo-ABI like clang, with `/usr/bin/rustc`/`cargo` dispatching to `/usr/lib/rust/filc` and `/usr/lib/rust/yolo`), then librsvg (the SVG renderer, Rust via Fil-Rust) plus the gdk-pixbuf SVG loader, then WebKitGTK and Epiphany (the browser). After this stage, SVG icons render in GNOME — the app grid, quick settings, and symbolic icons show real artwork instead of a generic glyph — and you have a memory-safe web browser.
 
-If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc7.sh`.
+If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc4.sh`.
 
-If you want to start the build here, do `sudo ./build_with_recovered_postlc6.sh`.
+If you want to start the build here, do `sudo ./build_with_recovered_postlc3.sh`.
 
-### Post-LC 8
+### Post-LC 5
 
-This builds GNOME Shell: the SpiderMonkey JavaScript engine (mozjs), gjs (the JS-to-GNOME bindings), and gnome-shell (the full GNOME desktop shell: top bar, activities overview, app grid, notifications). After this stage, `pizlix-gnome` starts the full GNOME Shell session — this is the full GNOME desktop experience. If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc8.sh`. If you want to start the build here, do `sudo ./build_with_recovered_postlc7.sh`.
+This builds LibreOffice and the audio trio (libogg, libvorbis, libcanberra — gdm's unconditional libcanberra-gtk3 dependency pulls them in), then gdm 46.2 (the GNOME Display Manager) and the boot-to-GNOME wiring (the gdm user, the xdm bootscript, the runlevel-5 inittab, and the `pizlix-gnome` wayland-session entry). After this stage, Pizlix boots into the GNOME login window.
 
-### Post-LC 9
+If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc5.sh`.
 
-This builds the Rust toolchains (rustc/cargo, built+installed yolo-ABI like clang, with `/usr/bin/rustc`/`cargo` dispatching to `/usr/lib/rust/filc` and `/usr/lib/rust/yolo`), then librsvg (the SVG renderer, Rust via Fil-Rust) plus the gdk-pixbuf SVG loader. After this stage, SVG icons render in GNOME — the app grid, quick settings, and symbolic icons show real artwork instead of a generic glyph. If you want to just do this stage of the build and nothing more, do `sudo ./build_postlc9.sh`.
+If you want to start the build here, do `sudo ./build_with_recovered_postlc4.sh`.
 
 ### Other Tricks
 

@@ -5,7 +5,15 @@ set -x
 
 ulimit -c unlimited
 
+# The merged postlc2 chroot script (the old postlc2..postlc5 stages' sub2
+# scripts, concatenated in build order; identical content deduped).  The
+# cross-stage rebuilds the old layout needed are gone: GnuTLS is built ONCE
+# with the pre-seeded trust bundle (below), and lcms2 comes from its projeny
+# package instead of the plain tarball.
+
 cd /sources
+
+# --- CLI/network/crypto tools (the old postlc2 stage) ------------------------
 
 ./build_postlc2_chroot_project_dhcpcd.sh
 hash -r
@@ -101,6 +109,9 @@ hash -r
 
 tar -xf pizlonated-curl.tar.gz
 cd pizlonated-curl
+# --with-ca-path points at the /etc/ssl/certs directory the driver's
+# build_preseed_pizlix.sh run split out of the CA bundle before this chroot
+# phase, so curl sees the real anchors from its first build.
 ./configure --prefix=/usr                           \
             --disable-static                        \
             --with-openssl                          \
@@ -332,3 +343,518 @@ cd ..
 rm -rf pizlonated-ruby
 hash -r
 
+# --- Wayland/Weston + text-rendering foundation (the old postlc3 stage) ------
+
+# Some things in this build require a libgcc.a, which looks like an idiotic byproduct of CMake being
+# retarded. Give them what they want instead of trying to understand CMake.
+cd /usr/lib
+rm -f libgcc.a
+ar cr libgcc.a
+
+cd /sources
+
+tar -xf pizlonated-wayland.tar.gz
+cd pizlonated-wayland
+mkdir build
+cd build
+meson setup ..            \
+      --prefix=/usr       \
+      --buildtype=debugoptimized \
+      -D documentation=false
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-wayland
+hash -r
+
+tar -xf wayland-protocols-1.45.tar.xz
+cd wayland-protocols-1.45
+mkdir build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized
+ninja
+ninja install
+cd ../..
+rm -rf wayland-protocols-1.45
+hash -r
+
+tar -xf pizlonated-libevdev.tar.gz
+cd pizlonated-libevdev
+mkdir build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized -D documentation=disabled ..
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-libevdev
+hash -r
+
+tar -xf pizlonated-libinput.tar.gz
+cd pizlonated-libinput
+mkdir build
+cd build
+meson setup ..            \
+      --prefix=/usr       \
+      --buildtype=debugoptimized \
+      -D debug-gui=false  \
+      -D libwacom=false \
+      -D mtdev=false \
+      -D documentation=false
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-libinput
+hash -r
+
+tar -xf xkeyboard-config-2.42.tar.xz
+cd xkeyboard-config-2.42
+mkdir build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized ..
+ninja
+ninja install
+cd ../..
+rm -rf xkeyboard-config-2.42
+hash -r
+
+tar -xf pizlonated-xkbcommon.tar.gz
+cd pizlonated-xkbcommon
+mkdir -v build
+cd build
+meson setup ..             \
+      --prefix=/usr        \
+      --buildtype=debugoptimized \
+      -D enable-x11=false  \
+      -D enable-docs=false
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-xkbcommon
+hash -r
+
+tar -xf pizlonated-libpng.tar.gz
+cd pizlonated-libpng
+./configure --prefix=/usr --disable-static
+make
+make install
+cd ..
+rm -rf pizlonated-libpng
+hash -r
+
+if test "$(uname -m)" = x86_64
+then
+    tar -xf pizlonated-simde.tar.gz
+    set -- -DSIMDE_NEON=1 -DSIMDE_INCLUDE_DIR="$PWD/pizlonated-simde" -DREQUIRE_SIMD=1
+else
+    set -- -DCMAKE_ASM_NASM_COMPILER=""
+fi
+tar -xf pizlonated-libjpeg-turbo.tar.gz
+cd pizlonated-libjpeg-turbo
+mkdir -v build
+cd build
+cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=/usr "$@" \
+      -D CMAKE_BUILD_TYPE=RELEASE         \
+      -D ENABLE_STATIC=FALSE              \
+      -D CMAKE_INSTALL_DEFAULT_LIBDIR=lib \
+      -D CMAKE_SKIP_INSTALL_RPATH=ON      \
+      -D CMAKE_INSTALL_DOCDIR=/usr/share/doc/libjpeg-turbo-3.1.4
+make
+make install
+cd ../..
+rm -rf pizlonated-libjpeg-turbo
+rm -rf pizlonated-simde
+hash -r
+
+tar -xf pizlonated-tiff.tar.gz
+cd pizlonated-tiff
+./configure --prefix=/usr
+make
+make install
+cd ..
+rm -rf pizlonated-tiff
+hash -r
+
+tar -xf pizlonated-libwebp.tar.gz
+cd pizlonated-libwebp
+./configure \
+    --prefix=/usr \
+    --enable-libwebpmux     \
+    --enable-libwebpdemux   \
+    --enable-libwebpdecoder \
+    --enable-libwebpextras  \
+    --enable-swap-16bit-csp    
+make
+make install
+cd ..
+rm -rf pizlonated-libwebp
+hash -r
+
+# Rebuild tiff because of circular dep with libwebp
+tar -xf pizlonated-tiff.tar.gz
+cd pizlonated-tiff
+./configure --prefix=/usr
+make
+make install
+cd ..
+rm -rf pizlonated-tiff
+hash -r
+
+tar -xf pizlonated-openjpeg.tar.gz
+cd pizlonated-openjpeg
+mkdir -v build
+cd build
+cmake -G"Unix Makefiles" .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release
+make
+make install
+cd ../..
+rm -rf pizlonated-openjpeg
+hash -r
+
+tar -xf pixman-0.43.4.tar.gz
+cd pixman-0.43.4
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized ..
+ninja
+ninja install
+cd ../..
+rm -rf pixman-0.43.4
+hash -r
+
+tar -xf packaging-24.1.tar.gz
+cd packaging-24.1
+pip3 wheel -w dist --no-build-isolation --no-deps --no-cache-dir $PWD
+pip3 install --no-index --find-links=dist --no-cache-dir --no-user packaging
+cd ..
+rm -rf packaging-24.1
+hash -r
+
+./build_postlc2_chroot_project_glib.sh
+./build_postlc2_chroot_project_freetype.sh
+./build_postlc2_chroot_project_graphite.sh
+./build_postlc2_chroot_project_fontconfig.sh
+./build_postlc2_chroot_project_cairo.sh
+./build_postlc2_chroot_project_harfbuzz.sh
+./build_postlc2_chroot_project_freetype.sh
+./build_postlc2_chroot_project_graphite.sh
+./build_postlc2_chroot_project_libdrm.sh
+./build_postlc2_chroot_project_seatd.sh
+hash -r
+
+# lcms2 from its projeny package -- built ONCE here (the plain
+# lcms2-2.16.tar.gz build of the old layout is gone; nothing re-packages or
+# rebuilds lcms2 later in the chain).
+./build_postlc2_chroot_project_lcms2.sh
+hash -r
+
+./build_postlc2_chroot_project_weston.sh
+hash -r
+
+tar -xf daemon-0.6.4.tar.gz
+cd daemon-0.6.4
+./configure
+make -j 1
+make -j 1 PREFIX=/usr install
+cd ..
+rm -rf daemon-0.6.4
+hash -r
+
+./build_postlc2_chroot_setup_scripts_for_weston.sh
+
+# --- GTK/GL foundation (the old postlc4 stage) --------------------------------
+
+tar -xf fribidi-1.0.15.tar.xz
+cd fribidi-1.0.15
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized
+ninja
+ninja install
+cd ../..
+rm -rf fribidi-1.0.15
+hash -r
+
+tar -xf shared-mime-info-2.4.tar.gz
+cd shared-mime-info-2.4
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized -D update-mimedb=true ..
+ninja
+ninja install
+cd ../..
+rm -rf shared-mime-info-2.4
+hash -r
+
+tar -xf pycairo-1.26.1.tar.gz
+cd pycairo-1.26.1
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized ..
+ninja
+ninja install
+cd ../..
+rm -rf pycairo-1.26.1
+hash -r
+
+./build_postlc2_chroot_project_pygobject.sh
+./build_postlc2_chroot_project_graphene.sh
+hash -r
+
+tar -xf iso-codes_4.16.0.orig.tar.xz
+cd iso-codes-4.16.0
+./configure --prefix=/usr
+make
+make install
+cd ..
+rm -rf iso-codes-4.16.0
+hash -r
+
+tar -xf Mako-1.3.5.tar.gz
+cd Mako-1.3.5
+pip3 wheel -w dist --no-build-isolation --no-deps --no-cache-dir $PWD
+pip3 install --no-index --find-links=dist --no-cache-dir --no-user Mako
+cd ..
+rm -rf Mako-1.3.5
+hash -r
+
+# Mesa from the fixed projeny package, then libepoxy and gtk4 build against
+# the fixed headers it installs (the GL/EGL stack is built ONCE in this
+# stage -- the old layout's cross-stage GL rebuilds are gone).
+./build_postlc2_chroot_project_mesa.sh
+hash -r
+
+tar -xf libepoxy-1.5.10.tar.xz
+cd libepoxy-1.5.10
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized .. -Dx11=false
+ninja
+ninja install
+cd ../..
+rm -rf libepoxy-1.5.10
+hash -r
+
+./build_postlc2_chroot_project_at-spi2-core.sh
+hash -r
+
+./build_postlc2_chroot_project_pango.sh
+./build_postlc2_chroot_project_gdk-pixbuf.sh
+hash -r
+
+tar -xf pizlonated-nettle.tar.gz
+cd pizlonated-nettle
+./configure --prefix=/usr --disable-static --disable-assembler
+make
+make install
+cd ..
+rm -rf pizlonated-nettle
+hash -r
+
+tar -xf pizlonated-libgudev.tar.gz
+cd pizlonated-libgudev
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized ..
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-libgudev
+hash -r
+
+tar -xf pizlonated-gstreamer.tar.gz
+cd pizlonated-gstreamer
+mkdir -v build
+cd build
+meson setup .. --prefix=/usr --buildtype=debugoptimized -D gst_debug=false
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-gstreamer
+hash -r
+
+tar -xf pizlonated-gst-plugins-base.tar.gz
+cd pizlonated-gst-plugins-base
+mkdir -v build
+cd build
+meson setup .. --prefix=/usr --buildtype=debugoptimized --wrap-mode=nodownload
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-gst-plugins-base
+hash -r
+
+tar -xf pizlonated-gst-plugins-bad.tar.gz
+cd pizlonated-gst-plugins-bad
+mkdir -v build
+cd build
+meson setup .. --prefix=/usr --buildtype=debugoptimized -D gpl=enabled
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-gst-plugins-bad
+hash -r
+
+./build_postlc2_chroot_project_gtk4.sh
+hash -r
+
+./build_postlc2_chroot_project_gtk3.sh
+hash -r
+
+# --- Crypto/text libraries (the old postlc5 stage) ----------------------------
+# These depend on nettle/p11-kit/glib built earlier in this stage.
+
+tar -xf sqlite-autoconf-3460100.tar.gz
+cd sqlite-autoconf-3460100
+./configure --prefix=/usr     \
+            --disable-static  \
+            --enable-fts{4,5} \
+            CPPFLAGS="-D SQLITE_ENABLE_COLUMN_METADATA=1 \
+                      -D SQLITE_ENABLE_UNLOCK_NOTIFY=1   \
+                      -D SQLITE_ENABLE_DBSTAT_VTAB=1     \
+                      -D SQLITE_SECURE_DELETE=1"
+make
+make install
+cd ..
+rm -rf sqlite-autoconf-3460100
+hash -r
+
+tar -xf pizlonated-gnutls.tar.gz
+cd pizlonated-gnutls
+# GnuTLS is built ONCE, with BOTH trust inputs wired: the pkcs11 store
+# (p11-kit-trust, which serves zero objects on this system) and the PEM
+# bundle the driver pre-seeded into /etc/ssl before the chroot phase
+# (build_preseed_pizlix.sh; add_system_trust() in lib/system/certs.c loads
+# both).  There is no later trust-store rebuild stage.
+./configure --prefix=/usr \
+            --docdir=/usr/share/doc/gnutls-3.8.7.1 \
+            --with-default-trust-store-pkcs11="pkcs11:" \
+            --with-default-trust-store-file=/etc/ssl/ca-bundle.crt \
+            --disable-hardware-acceleration
+make
+make install
+cd ..
+rm -rf pizlonated-gnutls
+hash -r
+
+tar -xf gsettings-desktop-schemas-46.1.tar.xz
+cd gsettings-desktop-schemas-46.1
+sed -i -r 's:"(/system):"/org/gnome\1:g' schemas/*.in
+mkdir -v build
+cd build
+meson setup --prefix=/usr --buildtype=debugoptimized ..
+ninja
+ninja install
+cd ../..
+rm -rf gsettings-desktop-schemas-46.1
+hash -r
+
+tar -xf pizlonated-glib-networking.tar.gz
+cd pizlonated-glib-networking
+mkdir -v build
+cd build
+meson setup .. --prefix=/usr --buildtype=debugoptimized -D libproxy=disabled
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-glib-networking
+hash -r
+
+tar -xf pizlonated-libsoup.tar.gz
+cd pizlonated-libsoup
+mkdir -v build
+cd build
+# FIXME: Install vala and enable vapi!
+meson setup --prefix=/usr --buildtype=debugoptimized -D vapi=disabled -D gssapi=disabled -Dsysprof=disabled --wrap-mode=nofallback ..
+ninja
+ninja install
+cd ../..
+rm -rf pizlonated-libsoup
+hash -r
+
+tar -xf libsecret-0.21.4.tar.xz
+cd libsecret-0.21.4
+# Cannot use the name "build" because there's already a directory by that name in the libsecret
+# distro.
+mkdir -v bld
+cd bld
+meson setup .. --prefix=/usr --buildtype=debugoptimized -D gtk_doc=false -D crypto=gnutls -D vapi=false -D manpage=false
+ninja
+ninja install
+cd ../..
+rm -rf libsecret-0.21.4
+hash -r
+
+tar -xf libseccomp-2.5.5.tar.gz
+cd libseccomp-2.5.5
+./configure --prefix=/usr --disable-static
+make
+make install
+cd ..
+rm -rf libseccomp-2.5.5
+hash -r
+
+tar -xf bubblewrap-0.9.0.tar.xz
+cd bubblewrap-0.9.0
+mkdir -v build
+cd build
+meson setup .. --prefix=/usr --buildtype=debugoptimized
+ninja
+ninja install
+cd ../..
+rm -rf bubblewrap-0.9.0
+hash -r
+
+tar -xf unifdef-2.12.tar.gz
+cd unifdef-2.12
+make
+make prefix=/usr install
+cd ..
+rm -rf unifdef-2.12
+hash -r
+
+tar -xf pizlonated-libgpg-error.tar.gz
+cd pizlonated-libgpg-error
+./configure --prefix=/usr
+make
+make install
+cd ..
+rm -rf pizlonated-libgpg-error
+hash -r
+
+tar -xf pizlonated-libgcrypt.tar.gz
+cd pizlonated-libgcrypt
+./configure --prefix=/usr --disable-asm
+make
+make install
+cd ..
+rm -rf pizlonated-libgcrypt
+hash -r
+
+tar -xf pizlonated-aspell.tar.gz
+cd pizlonated-aspell
+./configure --prefix=/usr
+make
+make install
+ln -svfn aspell-0.60 /usr/lib/aspell
+cd ..
+rm -rf pizlonated-aspell
+hash -r
+
+tar -xf aspell6-en-2020.12.07-0.tar.bz2
+cd aspell6-en-2020.12.07-0
+./configure
+make
+make install
+cd ..
+rm -rf aspell6-en-2020.12.07-0
+hash -r
+
+tar -xf pizlonated-enchant.tar.gz
+cd pizlonated-enchant
+./configure --prefix=/usr   \
+            --disable-static
+make
+make install
+cd ..
+rm -rf pizlonated-enchant
+hash -r 

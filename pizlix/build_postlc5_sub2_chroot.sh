@@ -5,155 +5,50 @@ set -x
 
 ulimit -c unlimited
 
+# The "login manager" stage.  Build order:
+#
+# 1. LibreOffice (moved here from the old postlc6 stage; it needs the X11
+#    libraries, abseil, boost, libxslt, zip/unzip built in postlc3, plus the
+#    four source tarballs + the external tarballs + the Fil-C patch staged by
+#    this stage's driver).
+# 2. libogg -> 3. libvorbis -> 4. libcanberra (the audio trio: gdm 46.2
+#    declares libcanberra-gtk3 >= 0.4 UNCONDITIONALLY (meson.build:66), and
+#    libcanberra's configure hard-requires vorbisfile, which needs libogg;
+#    the chroot had neither).  libcanberra's projeny patch also makes the
+#    gtk3 backend build against the pizlonated gtk3, which has NO X11
+#    backend (targets=broadway,wayland): the X11-only helpers are guarded on
+#    GDK_WINDOWING_X11.
+#    (libtool is NOT rebuilt here: the postlc stage's part2 has built the
+#    fixed libltdl from the projeny package since the 2026-11-22 conversion
+#    -- the weak preloaded-symbols reference is already correct in every
+#    snapshot this chain can start from, so the old same-version rebuild
+#    would be dead weight.)
+# 5. gdm 46.2 (meson; -Dlogind-provider=elogind, no systemd, no plymouth,
+#    the lfs PAM set patched for the pizlonated stack, the greeter session's
+#    RequiredComponents reduced to org.gnome.Shell).
+# 6. The boot wiring (setup): the gdm user/group + /var/lib/gdm, the blfs
+#    xdm bootscript + /etc/sysconfig/xdm (DISPLAY_MANAGER=/usr/sbin/gdm),
+#    the tracked inittab (id:5:initdefault, tty1's getty restricted to
+#    runlevels 2-4, x:5:respawn:/etc/rc.d/init.d/xdm), and
+#    /usr/share/wayland-sessions/pizlix-gnome.desktop (GDM's user-session
+#    entry -> /usr/bin/pizlix-gnome).
+
 cd /sources
 
-tar -xf sqlite-autoconf-3460100.tar.gz
-cd sqlite-autoconf-3460100
-./configure --prefix=/usr     \
-            --disable-static  \
-            --enable-fts{4,5} \
-            CPPFLAGS="-D SQLITE_ENABLE_COLUMN_METADATA=1 \
-                      -D SQLITE_ENABLE_UNLOCK_NOTIFY=1   \
-                      -D SQLITE_ENABLE_DBSTAT_VTAB=1     \
-                      -D SQLITE_SECURE_DELETE=1"
-make
-make install
-cd ..
-rm -rf sqlite-autoconf-3460100
+./build_postlc5_chroot_project_libreoffice.sh
 hash -r
 
-tar -xf pizlonated-gnutls.tar.gz
-cd pizlonated-gnutls
-./configure --prefix=/usr \
-            --docdir=/usr/share/doc/gnutls-3.8.7.1 \
-            --with-default-trust-store-pkcs11="pkcs11:" \
-            --disable-hardware-acceleration
-make
-make install
-cd ..
-rm -rf pizlonated-gnutls
+./build_postlc5_chroot_project_libogg.sh
 hash -r
 
-tar -xf gsettings-desktop-schemas-46.1.tar.xz
-cd gsettings-desktop-schemas-46.1
-sed -i -r 's:"(/system):"/org/gnome\1:g' schemas/*.in
-mkdir -v build
-cd build
-meson setup --prefix=/usr --buildtype=debugoptimized ..
-ninja
-ninja install
-cd ../..
-rm -rf gsettings-desktop-schemas-46.1
+./build_postlc5_chroot_project_libvorbis.sh
 hash -r
 
-tar -xf pizlonated-glib-networking.tar.gz
-cd pizlonated-glib-networking
-mkdir -v build
-cd build
-meson setup .. --prefix=/usr --buildtype=debugoptimized -D libproxy=disabled
-ninja
-ninja install
-cd ../..
-rm -rf pizlonated-glib-networking
+./build_postlc5_chroot_project_libcanberra.sh
 hash -r
 
-tar -xf pizlonated-libsoup.tar.gz
-cd pizlonated-libsoup
-mkdir -v build
-cd build
-# FIXME: Install vala and enable vapi!
-meson setup --prefix=/usr --buildtype=debugoptimized -D vapi=disabled -D gssapi=disabled -Dsysprof=disabled --wrap-mode=nofallback ..
-ninja
-ninja install
-cd ../..
-rm -rf pizlonated-libsoup
+./build_postlc5_chroot_project_gdm.sh
 hash -r
 
-tar -xf libsecret-0.21.4.tar.xz
-cd libsecret-0.21.4
-# Cannot use the name "build" because there's already a directory by that name in the libsecret
-# distro.
-mkdir -v bld
-cd bld
-meson setup .. --prefix=/usr --buildtype=debugoptimized -D gtk_doc=false -D crypto=gnutls -D vapi=false -D manpage=false
-ninja
-ninja install
-cd ../..
-rm -rf libsecret-0.21.4
+./build_postlc5_chroot_setup_scripts_for_gdm.sh
 hash -r
-
-tar -xf libseccomp-2.5.5.tar.gz
-cd libseccomp-2.5.5
-./configure --prefix=/usr --disable-static
-make
-make install
-cd ..
-rm -rf libseccomp-2.5.5
-hash -r
-
-tar -xf bubblewrap-0.9.0.tar.xz
-cd bubblewrap-0.9.0
-mkdir -v build
-cd build
-meson setup .. --prefix=/usr --buildtype=debugoptimized
-ninja
-ninja install
-cd ../..
-rm -rf bubblewrap-0.9.0
-hash -r
-
-tar -xf unifdef-2.12.tar.gz
-cd unifdef-2.12
-make
-make prefix=/usr install
-cd ..
-rm -rf unifdef-2.12
-hash -r
-
-tar -xf pizlonated-libgpg-error.tar.gz
-cd pizlonated-libgpg-error
-./configure --prefix=/usr
-make
-make install
-cd ..
-rm -rf pizlonated-libgpg-error
-hash -r
-
-tar -xf pizlonated-libgcrypt.tar.gz
-cd pizlonated-libgcrypt
-./configure --prefix=/usr --disable-asm
-make
-make install
-cd ..
-rm -rf pizlonated-libgcrypt
-hash -r
-
-tar -xf pizlonated-aspell.tar.gz
-cd pizlonated-aspell
-./configure --prefix=/usr
-make
-make install
-ln -svfn aspell-0.60 /usr/lib/aspell
-cd ..
-rm -rf pizlonated-aspell
-hash -r
-
-tar -xf aspell6-en-2020.12.07-0.tar.bz2
-cd aspell6-en-2020.12.07-0
-./configure
-make
-make install
-cd ..
-rm -rf aspell6-en-2020.12.07-0
-hash -r
-
-tar -xf pizlonated-enchant.tar.gz
-cd pizlonated-enchant
-./configure --prefix=/usr   \
-            --disable-static
-make
-make install
-cd ..
-rm -rf pizlonated-enchant
-hash -r 
-
