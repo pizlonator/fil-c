@@ -10,9 +10,16 @@
 # converts djb's qhasm ntt_double.S uses, in every width and source form;
 # movlhps: the VEX half-move family clang emits into the Keccakx4 lane
 # interleave of the same workload; shufpd: the SHUFPD family (legacy reg-reg
-# and m128, VEX.128/256, EVEX.512 where present, and the SHUFPS companions)
-# whose within-source select rule gcc -O3 keccakf160064bits reference1600
-# depends on eight times per Keccak round -- the serious-bug regression;
+# and m128, VEX.128/256, and the SHUFPS companions) whose within-source
+# select rule gcc -O3 keccakf160064bits reference1600 depends on eight
+# times per Keccak round -- the serious-bug regression -- compiled WITHOUT
+# -mavx512f so its native leg can never auto-vectorize to 512-bit EVEX
+# (which SIGILLs on the AVX-512-less hosts this suite targets);
+# shufpd-sdm: the AVX-512 SDM-conformance battery split into its own
+# emulator-only guest (masked {k1}/{z} forms, {1toN} broadcasts, EVEX
+# VPERMIL imm forms, converts, ternlog, VPERMQ/VPERMPD vector-control),
+# never run natively because the host may lack AVX-512 and the emulator
+# implements AVX-512 in software on any host;
 # insn-forms: the full legacy/VEX x reg/mem
 # form matrix of the djb-reported opcodes -- lddqu, the 0F 12/16 half-move
 # family, pmulhrsw, movddup, cvtdq2pd, the variable shifts, and the
@@ -68,6 +75,8 @@ set -u
 cd "$(dirname "$0")"
 
 JOBS="${JOBS:-$(nproc 2>/dev/null || echo 8)}"
+# Exported so sub-suites (x86sem-suite below) can parallelize the same way.
+export JOBS
 OUTDIR="test-output"
 
 log() { echo "[run-tests] $*"; }
@@ -168,25 +177,67 @@ gcc -O2 -mavx -o "$OUTDIR/cvtpd2dq" tests/cvtpd2dq.c \
 # saved the run).  Needs -mavx at compile time for the inline asm.
 gcc -O2 -mavx -o "$OUTDIR/movlhps" tests/movlhps.c \
     || { log "guest compile failed: movlhps"; exit 1; }
-# SHUFPD family guest (legacy 66 0F C6 reg-reg and m128, VEX.128/VEX.256/
-# EVEX.512 VSHUFPD, and the SHUFPS companions): the serious-bug regression
-# where the emulator picked the SOURCE by the shufpd imm bit instead of
-# selecting within DEST (low qword) and SRC (high qword), which gcc -O3
-# builds of the djb supercop keccakf160064bits reference1600 core hit eight
-# times per Keccak round -- silent wrong output, no fault.  The guest also
-# re-runs the full 24-round reference permutation end to end and checks the
-# FNV-1a hash.  -O3 so the keccak group gets the same codegen shape as the
-# workload; the legacy/VEX groups are gated on runtime CPUID so they run
-# everywhere, while the AVX-512 SDM-conformance battery (masked {k1}{z}
-# VSHUFPD, VPERMILPD, and the {1toN} embedded broadcasts) is gated on
-# is_in_zegarmistrz() so it runs ONLY under the emulator (this host has no
-# AVX-512, so executing EVEX natively would SIGILL; the emulator implements
-# AVX-512 in software on any host).  -mavx512f -mavx512dq are compile-time
-# only (the {k1}/{1to8} inline-asm decorations need them).
-gcc -O3 -mavx2 -mavx512f -mavx512dq -Iinclude -o "$OUTDIR/shufpd" tests/shufpd.c \
+# SHUFPD family guests (legacy 66 0F C6 reg-reg and m128, VEX.128/VEX.256
+# VSHUFPD, and the SHUFPS companions): the serious-bug regression where the
+# emulator picked the SOURCE by the shufpd imm bit instead of selecting
+# within DEST (low qword) and SRC (high qword), which gcc -O3 builds of the
+# djb supercop keccakf160064bits reference1600 core hit eight times per
+# Keccak round -- silent wrong output, no fault.  The guest also re-runs
+# the full 24-round reference permutation end to end and checks the FNV-1a
+# hash.  -O3 so the keccak group gets the same codegen shape as the
+# workload; the legacy groups are plain SSE2 and the VEX/VPERMIL groups
+# are gated on runtime CPUID so they run everywhere.
+# tests/shufpd.c (case `shufpd`, native-vs-emulated mirror) is compiled
+# WITHOUT -mavx512f, and that is structural, not cosmetic: with -mavx512f
+# on the compile line gcc is entitled to auto-vectorize any of the
+# guest's plain C (the expected-array setup loops, the memcmps, the
+# Keccak rounds) with 512-bit EVEX instructions, which SIGILLs the NATIVE
+# leg on the AVX-512-less hosts this suite must pass on -- observed on
+# megadeth (i9-14900HX) whose gcc vectorized the non-gated check code to
+# zmm while other gcc builds happened not to (native-exit=132,
+# emu-exit=0).  No -mavx512f means gcc CANNOT emit 512-bit code at all:
+# the ISA baseline is the union of the -m flags (plus -march), so
+# auto-vectorization tops out at the -mavx2 ymm width, and ymm runs
+# natively on the AVX2 hosts this suite targets -- dropping the flag is
+# sufficient by construction; no -fno-tree-vectorize insurance needed
+# (and the case's guest is objdump-audited for zmm/EVEX/k-mask codegen
+# below to keep the invariant visible).
+gcc -O3 -mavx2 -msse3 -o "$OUTDIR/shufpd" tests/shufpd.c \
     || { log "guest compile failed: shufpd"; exit 1; }
-gcc -O2 -mavx512f -mavx512dq -mavx512vl -mavx512ifma -o "$OUTDIR/insn_fixes_avx512" \
-    tests/insn_fixes_avx512.c \
+# tests/shufpd_sdm.c (case `shufpd-sdm`, EMULATOR-ONLY) is the AVX-512
+# SDM-conformance battery split out of the old single shufpd guest: the
+# masked {k1}/{z} VSHUFPD/VPSHUFD/VPERMILPD merges, the {1toN} embedded
+# broadcasts, the EVEX VPERMIL imm forms, the widening/narrowing converts,
+# the masked VPTERNLOGQ/D merges, and the VPERMQ/VPERMPD vector-control
+# forms.  The suite NEVER runs it natively (the host may lack AVX-512 and
+# EVEX would SIGILL; the emulator implements AVX-512 in software on any
+# host -- that is the point of running the battery under it), so its
+# probes are gated on is_in_zegarmistrz() and the compile-time
+# -mavx512f -mavx512dq are needed only for the {k1}/{1toN} inline-asm
+# brace decorations.  Each probe ends with an IPA-RA clobber barrier so
+# the basic-asm bodies' real register kills are visible to the compiler
+# (see the barrier comment in the guest).
+gcc -O2 -mavx2 -mavx512f -mavx512dq -Iinclude -o "$OUTDIR/shufpd_sdm" \
+    tests/shufpd_sdm.c \
+    || { log "guest compile failed: shufpd_sdm"; exit 1; }
+# Invariant audit for the native-run shufpd guest: no zmm/EVEX/k-mask
+# codegen may appear in it (see the compile comment above). A nonzero
+# count is a hard failure of this build rule, not a test SKIP.
+if [ -n "$(objdump -d "$OUTDIR/shufpd" | grep -E '\bzmm|\{1to|\bk[0-7]' | head -1)" ]; then
+    log "shufpd guest contains AVX-512 codegen despite no -mavx512f:"
+    objdump -d "$OUTDIR/shufpd" | grep -E '\bzmm|\{1to|\bk[0-7]' | head -5
+    exit 1
+fi
+# insn-fixes-avx512: its EVEX instruction groups are CPUID-gated inline
+# asm (they never execute natively without AVX-512), but the compile line
+# carries -mavx512f, so the guest's plain C is auto-vectorizable at 512
+# bits -- the same gcc-version landmine the shufpd split fixes.  Its
+# non-gated code must therefore never touch the vector unit in a way the
+# vectorizer could widen: -fno-tree-vectorize as insurance (belt and
+# braces; the guest's own asm is unaffected), and the guest stays
+# natively runnable on hosts without AVX-512.
+gcc -O2 -mavx512f -mavx512dq -mavx512vl -mavx512ifma -fno-tree-vectorize \
+    -o "$OUTDIR/insn_fixes_avx512" tests/insn_fixes_avx512.c \
     || { log "guest compile failed: insn_fixes_avx512"; exit 1; }
 # Taint-laundering fix guests: a poisoned value reaches an xmm register
 # (MOVQ from cannot-index-poisoned memory) and is extracted to a GPR --
@@ -323,6 +374,7 @@ echo "insn-forms"
 echo "cvtpd2dq"
 echo "movlhps"
 echo "shufpd"
+echo "shufpd-sdm"
 echo "insn-fixes-avx512"
 echo "poly1305-kat"
 echo "dec-cache"
@@ -402,6 +454,7 @@ echo "config-cli-override"
 echo "config-bad-directive"
 echo "cli-error-exitcode"
 echo "unimplemented-exit-code"
+echo "x86sem-suite"
 } | xargs -P "$JOBS" -I{} bash -c '
 set -u
 t="{}"
@@ -446,13 +499,74 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     ;;
   vex-smoke)
     if [ -z "${HAVE_VEX:-}" ]; then echo "SKIP vex-smoke"; exit 0; fi
-    test-output/vex_smoke > test-output/vex.native 2>/dev/null
-    (cd test-output && timeout 300 ../zegarmistrz ./vex_smoke > vex.emu 2>/dev/null); ec=$?
-    if [ "$ec" = 0 ] && cmp -s test-output/vex.native test-output/vex.emu; then
-      echo "PASS vex-smoke"
+    if [ -n "${HAVE_AVX512:-}" ]; then
+      # Host HAS AVX-512: the k-mask instructions in the guest run
+      # natively, so keep the native-vs-emulated mirror.
+      test-output/vex_smoke > test-output/vex.native 2>/dev/null
+      (cd test-output && timeout 300 ../zegarmistrz ./vex_smoke > vex.emu 2>/dev/null); ec=$?
+      if [ "$ec" = 0 ] && cmp -s test-output/vex.native test-output/vex.emu; then
+        echo "PASS vex-smoke"
+      else
+        echo "FAIL vex-smoke: exit=$ec"
+        diff test-output/vex.native test-output/vex.emu | head -5
+      fi
     else
-      echo "FAIL vex-smoke: exit=$ec"
-      diff test-output/vex.native test-output/vex.emu | head -5
+      # Host LACKS AVX-512: EMULATOR-ONLY.  The guest is full of AVX-512
+      # k-mask instructions (KOR/KAND/KXOR/KNOT/KADD/KORTEST, 512-bit
+      # gathers); a native run would SIGILL, so the differential is
+      # structurally impossible here.  Instead pin the expected output
+      # lines: the inputs are all constants, the k-op and pmadd*
+      # semantics are fixed by the SDM, and these exact values were
+      # hardware-verified on an AVX-512 machine when the guest was
+      # written -- running the guest under the emulator against them is
+      # what makes the case MEANINGFUL on an AVX-512-less host (that is
+      # entire purpose of the emulator).  Each expected line is matched
+      # whole (grep -Fx), so any divergence in any covered instruction
+      # fails loudly.
+      (cd test-output && timeout 300 ../zegarmistrz ./vex_smoke > vex.emu 2>/dev/null); ec=$?
+      ok=1
+      # NOTE: no single quotes anywhere in this case body (including the
+      # unquoted heredoc delimiter) -- the whole case script is one
+      # single-quoted string passed to xargs bash -c; a stray single
+      # quote would terminate it mid-script.  The pinned lines carry no
+      # $/backtick/backslash, so the unquoted heredoc is safe.
+      while IFS= read -r want; do
+        if ! grep -Fx "$want" test-output/vex.emu >/dev/null; then
+          echo "  vex-smoke expected line missing: $want"
+          ok=0
+        fi
+      done <<VEXPIN
+kor=12ff kand=0034 kxor=12cb knot=edcb kadd=1333
+kortest_z=0 kortest_c=0
+pmaddwd: 06 14 0f fd 3e 98 57 f9 b6 9c e0 f5 6e 21 aa f2
+pmaddubsw: 82 fe 92 fc b2 fa e2 f8 22 f7 72 f5 d2 f3 42 f2
+psadbw: f8 03 00 00 00 00 00 00 f8 03 00 00 00 00 00 00
+pavgb: 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f 50
+pmulhuw: 03 01 0f 02 23 03 3f 04 64 05 90 06 c4 07 01 09
+pmulhw: 02 ff 0c fe 1e fd 38 fc 5b fb 85 fa b7 f9 f2 f8
+pmuludq: 80 81 05 0d 95 95 0f 02 c8 25 16 9a de 82 90 06
+phaddw: 04 06 0c 0e 14 16 1c 1e 02 05 0a 0d 12 15 1a 1d
+phaddd: 06 08 0a 0c 16 18 1a 1c 04 07 09 0b 14 17 19 1b
+phsubw: fe fd fe fd fe fd fe fd fe fd fe fd fe fd fe fd
+phaddsw: 04 06 0c 0e 14 16 1c 1e 00 80 00 80 00 80 00 80
+estri=3
+estrm: 90 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+haddps: 00 00 40 40 00 00 e0 40 00 00 30 41 00 00 70 41
+addsubps: 00 00 80 c0 00 00 00 41 00 00 80 c0 00 00 40 41
+ext=0c0b0a09
+insertps: 01 02 03 04 00 00 00 00 00 00 00 00 00 00 00 00
+bextr=cde
+gather: 0a 00 00 00 14 00 00 00 1e 00 00 00 28 00 00 00 32 00 00 00 3c 00 00 00 46 00 00 00 50 00 00 00
+egather: 0a 00 00 00 14 00 00 00 1e 00 00 00 28 00 00 00 32 00 00 00 3c 00 00 00 46 00 00 00 50 00 00 00 5a 00 00 00 64 00 00 00 6e 00 00 00 78 00 00 00 82 00 00 00 8c 00 00 00 96 00 00 00 a0 00 00 00
+packsswb: 7f 7f 7f 7f 7f 7f 7f 7f 80 80 80 80 80 80 80 80
+packuswb: ff ff ff ff ff ff ff ff 00 00 00 00 00 00 00 00
+OK
+VEXPIN
+      if [ "$ec" = 0 ] && [ "$ok" = 1 ]; then
+        echo "PASS vex-smoke (emulator-only: no host AVX512; SDM-pinned output)"
+      else
+        echo "FAIL vex-smoke: exit=$ec (emulator-only: expected SDM-pinned lines above)"
+      fi
     fi
     ;;
   aes-smoke)
@@ -480,6 +594,29 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     else
       echo "FAIL $t: native-exit=$nec emu-exit=$ec"
       diff test-output/$bin.native test-output/$bin.emu | head -10
+    fi
+    ;;
+  shufpd-sdm)
+    # EMULATOR-ONLY: the AVX-512 SDM-conformance battery (tests/
+    # shufpd_sdm.c).  There is NO native leg, by design: the host this
+    # suite must pass on may lack AVX-512, and the guest is full of EVEX
+    # instructions that would SIGILL natively -- the emulator implements
+    # AVX-512 in software on ANY host, which is exactly why the battery
+    # runs under it (see the header comment in the guest).  Required: exit 0,
+    # the ok line, and a nonzero executed-probe count on the stderr of the
+    # stderr (surfaced here so a silent battery that somehow skipped
+    # every probe cannot pass).
+    (cd test-output && timeout 300 ../zegarmistrz ./shufpd_sdm > shufpd_sdm.emu \
+        2> shufpd_sdm.err); ec=$?
+    probes=$(sed -n "s/^sdm avx512 probes executed: //p" test-output/shufpd_sdm.err)
+    if [ "$ec" = 0 ] \
+       && grep -q "^shufpd-sdm-ok$" test-output/shufpd_sdm.emu \
+       && [ -n "$probes" ] && [ "$probes" -gt 0 ]; then
+      echo "PASS shufpd-sdm (sdm avx512 probes: $probes)"
+    else
+      echo "FAIL shufpd-sdm: exit=$ec probes=[$probes]"
+      cat test-output/shufpd_sdm.emu
+      cat test-output/shufpd_sdm.err
     fi
     ;;
   poly1305-kat)
@@ -1879,6 +2016,31 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
     fi
     rm -f test-output/unimplemented-exit-code/zegarmistrz.core.unimplemented.* \
           test-output/unimplemented-exit-code/err*.txt
+    ;;
+
+  x86sem-suite)
+    # The x86sem differential suite (x86sem-tests/): every imported
+    # kframework/X86-64-semantics single-instruction corpus program
+    # traced instruction-by-instruction on the hardware (native-trace
+    # single-steps with the x86 trap flag, no ptrace needed) and under
+    # the emulator (--state-trace), with compare-traces.py checking the
+    # whole architectural state (16 GPRs, the six defined flag bits,
+    # ymm0..15) after EVERY executed instruction. The sub-runner prints
+    # one PASS/FAIL/SKIP line per corpus dir plus the x86sem tally, so
+    # every sub-test counts in the tally below. Make-based caching keeps
+    # a no-change invocation cheap: emu traces rebuild only when the
+    # emulator binary changes, native traces only when a corpus file or
+    # the oracle changes, cmp stamps only when a trace or the comparator
+    # changes. This outer case FAILS iff any sub-test failed -- known
+    # emulator divergences are the point of the suite and are triaged in
+    # x86sem-tests/TRIAGE.md; the sub-runner exits nonzero iff at least
+    # one sub-test failed. ZEG_X86SEM_QUIET=1 keeps the sub-suite output
+    # to the per-test verdict lines and the tally.
+    if (cd x86sem-tests && ZEG_X86SEM_QUIET=1 timeout 600 ./run-x86sem-tests); then
+      echo "PASS x86sem-suite"
+    else
+      echo "FAIL x86sem-suite: at least one x86sem sub-test diverged; see the FAIL x86/ lines above and x86sem-tests/test-output/ for traces and stderr"
+    fi
     ;;
 esac
 ' | tee "$OUTDIR/results.txt"

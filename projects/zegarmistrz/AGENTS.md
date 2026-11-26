@@ -32,7 +32,8 @@ implementation details, invariants, and gotchas.
 
 - `src/main.cpp` — CLI (`-v`, `--trace-syscalls`, `--stack-trace`/
   `--no-stack-trace`, `--no-core`, `--passthrough-signals`, `--core`,
-  `--error-exitcode=N`, `--var-time-op=`, `--history[=VALUE]`), the
+  `--error-exitcode=N`, `--var-time-op=`, `--state-trace=FILE`,
+  `--history[=VALUE]`), the
   `~/.zegarmistrz` config file (`read_config`: `coredump
   enabled|disabled`, `history ...`, `error exitcode N`, `error signal N`;
   parsed BEFORE the flags, flags win on conflicts, warnings only), core
@@ -139,10 +140,26 @@ How cases work:
   compile commands live at the top of `run-tests` (some guests need
   `-mavx512f` etc. for inline asm/intrinsics; instruction groups inside
   self-checking guests are gated on runtime CPUID so they run everywhere --
-  EXCEPT shufpd's AVX-512 SDM-conformance battery, which is gated on
-  `is_in_zegarmistrz()` so it runs ONLY under the emulator, since the host
-  has no AVX-512 and EVEX would SIGILL natively; see the shufpd bullet in
-  the ISA gotchas).
+  EXCEPT shufpd_sdm's AVX-512 SDM-conformance battery, whose whole GUEST is
+  emulator-only: the run-tests case `shufpd-sdm` never runs it natively,
+  since the host may have no AVX-512 and EVEX would SIGILL; see the shufpd
+  bullet in the ISA gotchas.  Corollary: a guest that RUNS NATIVELY must
+  not be compiled with `-mavx512f` unless every 512-bit reach is
+  CPUID-gated -- with the flag on the line, gcc may auto-vectorize any of
+  the guest's plain C to 512-bit EVEX, which SIGILLs the native leg on the
+  AVX-512-less hosts this suite targets (observed on megadeth's gcc with
+  the old single-file shufpd guest: native-exit=132, emu-exit=0).  The
+  natively-run shufpd guest is compiled `-mavx2 -msse3` only (no
+  -mavx512f, so gcc cannot emit zmm at all) and run-tests objdump-audits
+  it for zmm/EVEX/k-mask codegen as a build rule; insn-fixes-avx512 keeps
+  its -mavx512f compile (its EVEX reach is CPUID-gated) with
+  -fno-tree-vectorize as insurance against the same vectorizer path).
+  This split is what resolves djb's Zen 2 report (`FAIL shufpd:
+  native-exit=132 emu-exit=0` from his pre-split tree): on Zen 2 the
+  split's `shufpd` guest compiles to 0 zmm/EVEX/k-mask instructions
+  (266 ymm, 9 shufpd + 5 shufps at the time of writing), so the native
+  leg cannot SIGILL there, while the AVX-512 battery it used to drag
+  along lives in the emulator-only `shufpd-sdm` case.
 - **Fault tests** (poison-load/store/branch/index/syscall, the masked
   vector ones, the var-time KNOWN ones, the poison-index-addr battery
   (cannot-index, memory-address sites), the poison-branch-ctrl battery
@@ -167,10 +184,17 @@ How cases work:
   only under `--var-time-op=everything`; `poison-vt-exempt` must run
   clean even in `everything` mode; `poison-vt-clear` (clear-on-store)
   must exit 0.
-- **Native-vs-emulator mirror guests** (avx512/vex/aes smoke,
-  insn-fixes, insn-djb, insn-forms, insn-fixes-avx512, poly1305-kat,
-  dec-cache, malloc-churn, cpuid/zeglib `-native`) must produce
-  byte-identical output natively and under the emulator. `poly1305-kat`
+- **Native-vs-emulator mirror guests** (avx512/aes smoke, insn-fixes,
+  insn-djb, insn-forms, insn-fixes-avx512, poly1305-kat, dec-cache,
+  malloc-churn, cpuid/zeglib `-native`) must produce byte-identical output
+  natively and under the emulator.  `vex-smoke` is DUAL-PATH: on a host
+  with AVX-512 it is a mirror (the k-mask guest runs natively); on an
+  AVX-512-less host the native leg would SIGILL on the guest's k-mask
+  instructions, so the case runs EMULATOR-ONLY against SDM-pinned expected
+  output lines (grep -Fx each line; the pinned values were
+  hardware-verified on an AVX-512 machine when the guest was written and
+  the guest's inputs are constants).  `shufpd` is a mirror;
+  `shufpd-sdm` is emulator-only (no native leg at all). `poly1305-kat`
   additionally needs OpenSSL dev headers + libcrypto and is SKIPPED (not
   failed) when that compile fails. `filc-hello` runs the repo-root Fil-C `./hello`
   (skipped if it is not an ELF, e.g. a Cosmopolitan APE image).
@@ -295,6 +319,49 @@ How cases work:
   that stopped at the op PC would break the bound.
 - `history-bad` runs `--history=wat`: a usage error — exit 1 before any
   guest runs, the message names the flag, and no core is produced.
+
+- `x86sem-suite` runs `x86sem-tests/run-x86sem-tests` (see
+  `x86sem-tests/README.md`): the whole-state differential suite built
+  from the kframework/X86-64-semantics single-instruction corpus (120
+  imported `test.s` programs, verbatim plus an appended exit-syscall
+  epilogue). Every corpus program is traced instruction-by-instruction
+  on the hardware (`x86sem-tests/native-trace.c`: TF-flag self
+  single-stepping, no ptrace; this container cannot ptrace so the
+  gdb-script oracle cannot run here -- `ZEG_X86SEM_NATIVE=gdb` selects
+  it where ptrace exists) and under the emulator
+  (`--state-trace=FILE`), and `compare-traces.py` checks the whole
+  architectural state (16 GPRs, the six defined flag bits, ymm0..15 as
+  512-bit slots) after EVERY executed instruction. The sub-runner prints
+  one PASS/FAIL/SKIP line per corpus dir plus the `x86sem:` tally and
+  they all count in the run-tests tally. Make-based caching
+  (`x86sem-tests/testmakefile`, regenerated per run): emu traces
+  rebuild when ../zegarmistrz changes, native traces when the corpus or
+  the oracle changes, cmp stamps when a trace or the comparator changes
+  -- a no-change invocation costs ~0.2s. This case FAILS while emulator
+  divergences remain; the running inventory is
+  `x86sem-tests/TRIAGE.md` (regenerate with
+  `python3 x86sem-tests/triage.py`), and per-test artifacts (traces,
+  comparator detail, emu/native stderr) live under
+  `x86sem-tests/test-output/x86sem/<dir>/`. The kframework-harness skip
+  semantics the comparator ports (never-compared rip/rsp/rbp,
+  stack-like rsi/rdi, the six flag bits, the NaN escape, the SDM
+  undefined-flag table with a suppression window) are documented in
+  the comparator header.  Two diagnostics to know about: (1) the native
+  oracle SELF-TESTS its signal-frame vector-state extraction before every
+  guest run -- all 16 ymm registers are planted with distinct known
+  256-bit probe patterns and the pre-entry trap verifies the frame
+  returned them bit-exactly (low half via the FXSAVE legacy xmm_space,
+  upper half via the AVX xsave component gated on XSTATE_BV), dying with
+  a loud "FP EXTRACTION SELF-TEST FAILED" naming the register and both
+  halves otherwise, so a host/kernel whose xsave layout differs
+  diagnoses itself instead of silently tracing garbage ymm slots whose
+  divergences would masquerade as emulator bugs on that machine
+  (NT_NO_FIXUP/NT_DIRTY_FP debug hooks skip the planting); (2) a
+  divergence prints a ONE-LINE: summary in the dir's cmp.out which the
+  sub-runner threads into the FAIL line -- `FAIL x86/<dir>: record N
+  slot ymmK native=<hex> emu=<hex> rip=<hex> instruction='<objdump>'` --
+  so remote failure reports are actionable without opening the traces
+  (the multi-line detail and triage.py's parsing of it are unchanged).
 
 `./check-isa.sh [binary...]` objdumps binaries (default: `./hello`, the
 test guests, system libc/ld.so, the Fil-C loader + libc, all
@@ -1167,28 +1234,46 @@ ELF loader (`elf_loader.cpp`):
   the whole 1600-bit state differently from bare metal, no fault. The imm
   bits index GLOBAL qwords at 256-bit (VEX.256 hardware: imm=5 gives
   [src1.q1, src2.q0, src1.q3, src2.q2] -- the upper lane uses imm bits
-  2/3, so `sel = (order >> ((L / 8) + i)) & 1`), while SHUFPS/VSHUFPS
+  2/3, so `sel = (order >> ((L / 8) + i)) & 1`; EVEX.512 follows the same
+  global rule per the SDM), while SHUFPS/VSHUFPS
   RESTARTS its bit pairs per lane (imm=0x11 at 256-bit gives lane1 =
   [src1.d1, src1.d0, src2.d1, src2.d0]): output dwords 0/1 select WITHIN
   DEST by bits [1:0]/[3:2] and dwords 2/3 WITHIN SRC by bits [5:4]/[7:6]
-  (the PS roles are the opposite pairing of the PD roles). The EVEX.512
-  VSHUFPD path shares the global-bit rule per the SDM. Regression guest:
-  `tests/shufpd.c` (the `shufpd` case; also re-runs the full 24-round
-  reference1600 permutation end to end and checks the FNV-1a hash). The
-  guest's AVX-512 SDM-conformance battery (masked `{k1}`/`{k1}{z}` VSHUFPD,
+  (the PS roles are the opposite pairing of the PD roles). Regression
+  guests (SPLIT so no natively-run guest needs -mavx512f -- with that flag
+  on the compile line gcc may auto-vectorize the guest's plain C to
+  512-bit EVEX and SIGILL the native leg on the AVX-512-less hosts this
+  suite targets; without it gcc cannot emit zmm at all, so dropping the
+  flag is sufficient by construction): `tests/shufpd.c` (the `shufpd`
+  case: legacy/VEX SHUFPD + SHUFPS + the VPERMIL imm/var sweeps + the
+  full 24-round reference1600 permutation end to end with the FNV-1a
+  hash, compiled `-O3 -mavx2 -msse3` and mirror-checked) and
+  `tests/shufpd_sdm.c` (the `shufpd-sdm` case: the AVX-512 SDM
+  battery, EMULATOR-ONLY -- no native leg). The battery (masked
+  `{k1}`/`{k1}{z}` VSHUFPD,
   the `{1to8}`/`{1to16}` embedded broadcasts, masked+broadcast VPERMILPD,
   the EVEX VPERMILPD/PS imm forms, the widening/narrowing EVEX converts
   in both broadcast and masked forms, the masked `{k1}`/`{k1}{z}` VPSHUFD
   dword-granular merge/zeroing, and the ternlog family: the unmasked
   `vpternlogq ..., m512{1to8}, ...` broadcast form plus the masked
   VPTERNLOGQ (qword-granular) and VPTERNLOGD (dword-granular) merge/{z}
-  probes) is gated on
-  `is_in_zegarmistrz()` and therefore runs ONLY under the emulator -- this
-  host has no AVX-512, so the EVEX forms would SIGILL natively, while the
-  emulator implements AVX-512 in software on any host (the battery's
-  probes are silent on success so the native and emulated stdout stay
-  byte-identical for the mirror case; a manual run under `./zegarmistrz`
-  reports the executed-probe count on stderr).
+  probes, plus the have_avx512f()-gated unmasked EVEX.512 VSHUFPD imm
+  group) is gated on
+  `is_in_zegarmistrz()` and therefore runs ONLY under the emulator -- the
+  host may have no AVX-512, so the EVEX forms would SIGILL natively, while
+  the emulator implements AVX-512 in software on any host (the case
+  requires exit 0 + the `shufpd-sdm-ok` line + the executed-probe count
+  the guest reports on stderr, surfaced in the PASS line; 39 probes).
+  GOTCHA revived by the split: the probes are basic-asm bodies, so
+  -fipa-ra concludes they clobber NO caller-saved register and lets the
+  caller keep values in rax/xmm across the probe call -- observed at -O2
+  in the split-file layout as an expected-array store scheduled after the
+  call being filled with the kmovd immediate left in %eax, and a
+  (double)cvt constant hoisted into an xmm the probe then trashed (five
+  checks the old single-file -O3 build had dodged by layout luck).  Every
+  probe therefore ends with an asm-volatile clobber barrier listing the
+  caller-saved GPRs and xmm0-15 (see the barrier comment in the guest) --
+  deterministic across gcc versions and -O levels, verified O0/O2/O3.
 
 - **Zydis 4.1 never sets `ZYDIS_ATTRIB_HAS_EVEX_B` while DECODING** -- the
   attribute is set exclusively by the encoder (see the "TODO: rename" note
@@ -1304,7 +1389,7 @@ ELF loader (`elf_loader.cpp`):
   64-byte VecVal -- a real stack OOB, ASan-confirmed). The narrowing kind
   masks over the DEST dwords with a full-width source read, so its load
   granularity is unchanged. All widening/narrowing probes live in
-  tests/shufpd.c's is_in_zegarmistrz battery.
+  tests/shufpd_sdm.c's is_in_zegarmistrz battery.
 
 - **Narrowing packed converts have an xmm DEST regardless of the vector
   width**: `vec_width()` is the DEST operand's size, so for
@@ -1417,6 +1502,89 @@ ELF loader (`elf_loader.cpp`):
   `XSAVE`/`XRSTOR`/`FXSAVE` save/restore x87+SSE+AVX state (other
   components zeroed/skipped); shadow-stack reads report 0; `RDPID`
   returns 0.
+
+- **The SSE4.2 string-compare family is emulated per the hardware, not per
+  a prose summary** (PCMPxSTRx/PCMPxSTRM + the VEX twins; the semantics were
+  validated bit-for-bit against the x86sem corpus's 4x128-record imm8 sweeps
+  plus nonzero-length probes, and match qemu's `pcmpxstrx` helper):
+  imm[1:0]=ub/uw/sb/sw, imm[3:2]=equal-any/ranges/equal-each/equal-ordered,
+  imm[5:4]=polarity, imm[6]=the ITRI index direction (LSB/MSB) AND the STRM
+  mask format (0 = IntRes2 bit-packed in the low bytes, 1 = expanded to
+  bytes/words). SRC = the second operand (the scanned string, its explicit
+  length in EDX), DEST = the first operand (the charset/ranges/needle, in
+  EAX). Equal-each marks the positions past BOTH lengths as matches and the
+  mixed-validity positions as non-matches; equal-ordered with an empty DEST
+  marks every position, and a full needle must fit inside the valid SRC.
+  Polarity -1 flips all bits, -3 flips only the bits under the SRC length;
+  +2 (masked) leaves IntRes1 untouched. ZF = SRC length <= register width,
+  SF = DEST length <= register width, CF = IntRes2 != 0, OF = IntRes2[0];
+  AF/PF are left untouched (undefined on hardware). The explicit lengths
+  clamp as `|int32|` into [0, 16/8]; the implicit lengths are the index of
+  the first null element. The STRM result lives in XMM0, so the corpus dirs
+  CHAIN (each instruction's SRC is the previous mask).
+
+- **FMA NaN semantics**: hardware FMA preserves a NaN operand's sign and
+  payload EXCEPT that an SNaN is quieted (bit 51/22 forced); the family
+  negation (-) never flips a NaN sign, and a NaN on the product side wins
+  over a NaN addend. Emulated by forwarding the first NaN multiplicand
+  (quieted), then a NaN addend (quieted), and only otherwise calling the
+  host's fused `__builtin_fma` with the negations applied to the finite
+  operands. VFMADDSUB = even lanes subtract, odd lanes add; VFMSUBADD is the
+  mirror; the fused single rounding comes from the host FMA hardware
+  (`__attribute__((target("fma")))`).
+
+- **ADD/SUB/MUL/DIV NaN delivery is resolved EXPLICITLY, never delegated
+  to the host instruction**: when an FP add/sub/mul/div operand is NaN,
+  the hardware delivers the FIRST source operand's NaN with sign+payload
+  preserved and the quiet bit forced (SNaN quieted); otherwise the second
+  operand's NaN quieted; first-NaN wins over second-NaN (hardware-probed
+  on the i9-14900HX: addsd snan,qnan -> quiet(snan);
+  addsd qnan,snan -> qnan verbatim; vhaddpd pair [qnan,snan] -> qnan,
+  i.e. the LOWER/first element).  The emulator's C code says `x0 + x1`
+  with the semantic first operand first, but gcc is free to place EITHER
+  C operand in the Intel-first lane of the emitted instruction --
+  observed (this repo's -O2 gcc-11 build) as exec_hadd_fp's horizontal
+  pair `x0 + x1` compiled into ONE fused `addpd` whose Intel-first lane
+  held x1, so the host FPU delivered x1's NaN while real hardware
+  delivers x0's (the x86sem vadd corpus diverged at record 993,
+  `vhaddpd %xmm4,%xmm9,%xmm0`, slot ymm0).  Delegating a NaN-carrying
+  lane therefore lets the compiler BUILD decide which NaN propagates --
+  a gcc-version-dependent wrong-answer landmine.  exec_packed_fp /
+  exec_sse_scalar / exec_hadd_fp (add/sub/mul/div kinds only; sqrt/max/
+  min keep their own delegated rules) now check the semantic operands'
+  bits via is_nan_bits64/32 + quiet_nan_bits64/32 and only hand a
+  non-NaN pair to the host arithmetic (finite/denormal/inf and the
+  invalid-indefinite results are the same bits on any x86 host).  The
+  FMA bullet above is the same rule for the fused forms.
+
+- **RCPSS/RSQRTSS (and the packed forms) are hardware approximations, not
+  IEEE ops** (qemu's exact-division emulation does NOT match hardware). On
+  this host the result depends only on the exponent and the top 12 mantissa
+  bits (the low 12 are ignored), reproduced bit-exactly by the generated
+  `zeg_rcp_table`/`zeg_rsqrt_table_{126,127}` lookup tables plus the
+  exponent rules (RCP: `253 - e`, underflowing to zero; RSQRT:
+  `190 - ceil(e/2)`, odd/even exponent selects the table half) and the
+  special cases (0/denormal -> inf, inf -> 0, -inf/negative finite ->
+  the QNaN indefinite for RSQRT, NaN -> quieted). Calibrated by sweeping the
+  hardware with the x86sem native oracle.
+
+- **CVTSD2SI/CVTSS2SI (non-truncating)** round per MXCSR.RC -- implemented
+  as round-to-nearest-even (`__builtin_roundeven`) followed by the
+  out-of-range -> integer-indefinite check, sharing `exec_cvts2si` with the
+  CVTT*S2SI truncating forms.
+
+- **VCVTPS2PH honors its imm**: imm[2]=use MXCSR.RC, imm[1:0]=RNE/RD/RU/RZ,
+  mapped onto `_mm_cvtps_ph`'s immediate (a compile-time dispatch since the
+  intrinsic rejects a runtime immediate).
+
+- **The x86sem native oracle must present a clean below-RSP region**: the
+  TF-stepping `gogo` stub runs `pushq $0x302; popfq; ret` on the guest stack
+  and leaves residue at [rsp-16, rsp) (the push's 0x302 and the popped entry
+  word), which the corpus's `leaq -8(%rsp); scasw` then reads -- a
+  ptrace-stepped execve (the upstream oracle) sees a clean zero stack there.
+  The entry-trap handler zeroes [rsp-512, rsp) once before the first guest
+  instruction; later deliveries never touch the guest stack (frames go to
+  the sigaltstack).
 
 ## Unsupported instructions (clean guest errors)
 

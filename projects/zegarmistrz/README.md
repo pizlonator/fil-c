@@ -74,6 +74,17 @@ unchanged in history mode).
 `./build_zegarmistrz.sh` (repo root) rebuilds and installs the binary at
 `filc/zegarmistrz`.
 
+`x86sem-tests/` holds the whole-state differential suite: 120
+single-instruction programs imported from the kframework/X86-64-semantics
+corpus, each traced instruction-by-instruction on the hardware (a
+TF-flag self-single-stepping oracle, no ptrace) and under the emulator
+(`--state-trace=FILE`), with the complete architectural state after
+every instruction (16 GPRs, the six defined flag bits, ymm0..15)
+compared by `compare-traces.py`. Run it with
+`./x86sem-tests/run-x86sem-tests` — it also runs as the `x86sem-suite`
+case inside `./run-tests` — and see `x86sem-tests/README.md` for the
+trace format, comparison semantics, and triage workflow.
+
 ## Guest-side API: `include/zegarmistrz.h`
 
 A header-only C client library: `zegarmistrz_poison_range(ptr, size,

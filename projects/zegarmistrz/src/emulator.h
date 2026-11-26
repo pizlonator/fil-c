@@ -44,6 +44,17 @@ struct Emulator {
     // guest stack trace) are independent of it.
     bool no_core = false;
     bool stack_trace = true; // --no-stack-trace disables the crash-time guest backtrace
+    // --state-trace=FILE: append one line of whole architectural state
+    // (rip, all 16 GPRs, raw RFLAGS, ymm0..15 as 512-bit values) after
+    // every executed guest instruction. Opened at emulator start; lines
+    // are written straight to the fd (the exit syscall path _exits, so
+    // stdio buffering would lose the tail). The x86sem differential
+    // suite (x86sem-tests/) compares this against the same-format trace
+    // a hardware single-stepper produces. The fd lives here rather than
+    // in Engine<TaintT> so all three engine instantiations share one
+    // trace without templating the format code.
+    std::string state_trace_path;
+    int state_trace_fd = -1;
     // --history: 0 = off (plain Taint sidecars), 1 = one guest PC per history
     // step (HistoryTaint), N > 1 = N stack frames per step, SIZE_MAX
     // (= --history=full) = whole stacks (DeepHistoryTaint).

@@ -152,6 +152,12 @@ static void usage(const char* argv0) {
             "                    (default), plausible also on §5 suspects, and\n"
             "                    everything on anything not provably\n"
             "                    constant-time\n"
+            "  --state-trace=FILE\n"
+            "                    append the whole architectural state (rip, all\n"
+            "                    16 GPRs, raw RFLAGS, ymm0..15) after every\n"
+            "                    executed guest instruction to FILE, one line\n"
+            "                    per instruction -- the x86sem differential\n"
+            "                    suite's emulator-side oracle\n"
             "  -h, --help        print this help\n"
             "\n"
             "Config file: ~/.zegarmistrz is read before the flags (flags win on\n"
@@ -620,6 +626,23 @@ int main(int argc, char** argv) {
                 return 1;
             }
             emu.error_exitcode = (int)n;
+        } else if (a.rfind("--state-trace=", 0) == 0) {
+            // Whole-state trace for the x86sem differential suite
+            // (x86sem-tests/): one line per executed guest instruction,
+            // written to FILE. Attached value required, like
+            // --history=; a missing/empty value is a usage error. The
+            // file is opened at emulator start (after argument parsing
+            // -- not lazily by the run loop), so an unopenable path
+            // surfaces as a clean CLI error instead of a mid-run
+            // surprise.
+            std::string v = a.substr(sizeof("--state-trace=") - 1);
+            if (v.empty()) {
+                fprintf(stderr,
+                        "zegarmistrz: --state-trace requires a file path "
+                        "(--state-trace=FILE)\n");
+                return 1;
+            }
+            emu.state_trace_path = v;
         } else if (a.rfind("--var-time-op=", 0) == 0) {
             std::string v = a.substr(sizeof("--var-time-op=") - 1);
             if (v == "known")
@@ -650,6 +673,19 @@ int main(int argc, char** argv) {
     }
     emu.prog_path = prog;
     guest_args.insert(guest_args.begin(), prog);
+
+    if (!emu.state_trace_path.empty()) {
+        // Opened at emulator start (see Emulator::state_trace_fd): an
+        // unopenable path is a clean CLI error, not a mid-run surprise.
+        emu.state_trace_fd = open(emu.state_trace_path.c_str(),
+                                  O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (emu.state_trace_fd < 0) {
+            fprintf(stderr, "zegarmistrz: cannot open --state-trace file %s: "
+                            "%s\n",
+                    emu.state_trace_path.c_str(), strerror(errno));
+            return 1;
+        }
+    }
 
     mem_install_fault_handler();
 
