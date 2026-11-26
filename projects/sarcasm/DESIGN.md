@@ -1357,8 +1357,9 @@ brackets nothing, while one between a `cmp` and its branch still saves:
   bare form), then pins the webs through the physical registers around the
   verbatim instruction. Range failures panic through
   filc_check_aligned_access_fail with the dynamic byte count (a fixed-size
-  optimized origin could not attribute them). `rep ret` / `rep nop` keep
-  their hint; every other rep-prefixed instruction is rejected.
+  optimized origin could not attribute them). `rep ret`/`rep retq` /
+  `rep nop` are accepted (nop keeps its hint; the returns re-emit
+  prefix-less, dropping it); every other rep-prefixed instruction is rejected.
 - ARM64 atomics. Non-pointer atomics are modeled directly as single
   checked memory accesses, needing no annotation (like x86_64's lock-prefixed
   RMWs on non-pointers): the LSE family (swp/ldadd/ldclr/ldeor/ldset/ldsmax/

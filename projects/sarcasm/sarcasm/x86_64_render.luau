@@ -608,9 +608,9 @@ function x86_64_render.renderInsn(node, colorNum, syntax, rc)
 	end
 
 	-- A validated `rep`/`repe`/`repz` prefix (parser tag; x86_64_isa.classify
-	-- allows it only on the modeled string ops plus `rep ret`/`rep nop`)
-	-- re-emits ahead of the mnemonic, normalized to `rep` (the flavors are
-	-- semantically identical where they are accepted).
+	-- allows it only on the modeled string ops plus `rep ret`/`rep retq`/
+	-- `rep nop`) re-emits ahead of the mnemonic, normalized to `rep` (the
+	-- flavors are semantically identical where they are accepted).
 	local repPfx = ((node.stmt and node.stmt.repPrefix) or node.repPrefix) and "rep " or ""
 
 	-- A validated `lock` prefix (parser tag; x86_64_isa.classify allows it only

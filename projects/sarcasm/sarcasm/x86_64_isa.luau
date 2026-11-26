@@ -853,8 +853,8 @@ local STRING_ELEM = {
 
 -- Classify a stringop- or rep-prefixed instruction. Returns a classify result
 -- for the supported shapes (rep movs*, rep stos*, bare movs*/stos*), nil for
--- anything this does not own (including `rep ret` / `rep nop`, which keep
--- their hint and classify normally downstream), and raises a clean rejection
+-- anything this does not own (including `rep ret`/`rep retq` / `rep nop`,
+-- which classify normally downstream), and raises a clean rejection
 -- otherwise. Runs BEFORE fp.unsafeReject in x86.classify so the supported
 -- shapes never reach the string-op rejection (and so the zero-operand
 -- `movsd` string form is claimed before the FP table could see it — `movsd`
@@ -956,16 +956,20 @@ function x86.classifyStringOp(insn)
 		return { defs = defs, uses = uses, rmw = rmw, control = "none",
 			fallsThrough = true, rep = repInfo }
 	end
-	-- Not a movs/stos shape: validate the rep prefix. `rep ret` (the AMD
-	-- branch-prediction hint) and `rep nop` (pause) keep their prefix and
-	-- classify normally; the renderer re-emits it. Anything else cannot be
-	-- modeled — rejecting here keeps a meaningless prefix from being silently
-	-- dropped (e.g. `rep addq` is NOT an add).
+	-- Not a movs/stos shape: validate the rep prefix. `rep ret`/`rep retq`
+	-- (the AMD branch-prediction hint; retq is the q-suffixed spelling of the
+	-- same instruction, also accepted bare) and `rep nop` (pause) classify
+	-- normally downstream: for nop the prefix passes through and the renderer
+	-- re-emits it, while the return transform re-emits a fresh prefix-less
+	-- return, dropping the hint (the same canonicalization the
+	-- .byte 0xf3,0xc3 decoder applies). Anything else cannot be modeled —
+	-- rejecting here keeps a meaningless prefix from being silently dropped
+	-- (e.g. `rep addq` is NOT an add).
 	if rep then
-		if rawMnem == "ret" or rawMnem == "nop" then return nil end
+		if rawMnem == "ret" or rawMnem == "retq" or rawMnem == "nop" then return nil end
 		err.at(insn, "`" .. rep .. "` prefix is not supported on '" .. rawMnem
 			.. "' (only rep movs* / rep stos* — including movsb/movsw/movsl/movsq"
-			.. " and stosb/stosw/stosl/stosq — plus `rep ret`): " .. raw)
+			.. " and stosb/stosw/stosl/stosq — plus `rep ret`/`rep retq`): " .. raw)
 	end
 	return nil
 end
@@ -982,8 +986,9 @@ function x86.classify(insn)
 	-- String ops with implicit rsi/rdi memory (rep movs*, rep stos*, and
 	-- their bare single-step forms): modeled with implicit register effects
 	-- for the transform's checked lowering (see classifyStringOp). Every
-	-- other rep-prefixed instruction is validated here too (`rep ret` keeps
-	-- its hint; anything else is rejected). Runs before unsafeReject so the
+	-- other rep-prefixed instruction is validated here too (`rep ret`/
+	-- `rep retq` and `rep nop` pass; anything else is rejected). Runs before
+	-- unsafeReject so the
 	-- supported shapes (including the zero-operand `movsd` string form) never
 	-- reach the string-op rejection.
 	do

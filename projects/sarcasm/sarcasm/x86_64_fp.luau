@@ -1637,7 +1637,8 @@ local STRINGOPS_ZERO_OPERAND = { movsd = true, cmpsd = true }
 -- (`lock lock xadd`), which stays rejected. `rep`/`repe`/`repne`/`repz`/
 -- `repnz` are likewise parsed as a repPrefix tag (x86_64_parse) and validated
 -- in x86_64_isa.classify — rep movs*/stos* lower to checked copies/fills,
--- `rep ret` keeps its branch-prediction hint.
+-- `rep ret`/`rep retq` returns drop the hint — the return transform re-emits
+-- a prefix-less `ret`.
 local PREFIXES = {
 	lock = true, xacquire = true, xrelease = true,
 }

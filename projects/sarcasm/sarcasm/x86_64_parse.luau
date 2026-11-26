@@ -804,7 +804,8 @@ local function parseInsnText(t, syntax)
 	-- (`rep movsq`, also `rep;`-separated). Re-split the remainder into the
 	-- real mnemonic + operands and tag the instruction; WHICH instructions
 	-- may carry the prefix is validated in x86_64_isa.classify (rep movs* /
-	-- rep stos* lower to checked copies/fills, `rep ret` keeps its hint).
+	-- rep stos* lower to checked copies/fills, `rep ret`/`rep retq` returns
+	-- like a plain `ret`).
 	local repPrefix = nil
 	do
 		local low = string.lower(mnem)

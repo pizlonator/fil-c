@@ -404,7 +404,8 @@ A contiguous run of data directives inside a function body is DISASSEMBLED:
 (each directive contributes its values in little-endian byte order, so
 `.long 0x9066A4F3` decodes to `rep movsb` plus a 2-byte `nop` pad). This is
 what makes OpenSSL's perlasm output compile unmodified — it spells whole
-instructions as raw bytes (`0xf3,0xc3` rep ret, `243,15,30,250` endbr64, the
+instructions as raw bytes (`0xf3,0xc3` rep ret — also spelled `rep retq`,
+`243,15,30,250` endbr64, the
 AES-NI/SHA-NI/movbe families, `.long 0x9066A4F3`, ...).
 
 - Every byte of the run must decode into exactly one instruction whose text
@@ -748,7 +749,7 @@ runs.
   writes, `swapgs`, TSX, `syscall`/port I/O/`hlt`, MSRs, descriptor-table
   loads), anything whose memory semantics cannot be modeled (the unmodeled
   string/`rep` instructions — lods/scas/cmps, repne/repnz, `rep` anywhere but
-  movs/stos/ret/nop — `xchg` with memory, gather/scatter, AMX tiles, unknown
+  movs/stos/ret/retq/nop — `xchg` with memory, gather/scatter, AMX tiles, unknown
   mnemonics with memory operands), symbolic and absolute addresses,
   indirect branches, memory-indirect calls, and `lock` outside the modeled
   memory-destination RMWs. `rep movs*` / `rep stos*` (and their bare
