@@ -1564,22 +1564,35 @@ static void sem_check_nameable_value_impl(const char* fname, void* val_handle,
  * embedded NUL, since the C-string helpers cannot produce one (they require a
  * NUL terminator inside the range). */
 
+/* The byte check on its own, for wrappers that create a nameable value (a
+ * fresh global is never void) but still feed the length-delimited name to
+ * Value::setName. */
+
+static void sem_check_nameable_name_len_impl(const char* fname,
+                                             const char* name,
+                                             size_t name_len)
+{
+    size_t i;
+    if (!name || !name_len)
+        return;
+    for (i = 0; i < name_len; ++i) {
+        FILC_CHECK(name[i] != '\0', NULL,
+                   "Fil-C LLVM JIT API: wrong name for %s: names cannot "
+                   "contain null bytes.", fname);
+    }
+}
+
 static void sem_check_nameable_value_len_impl(const char* fname,
                                               void* val_handle,
                                               const char* name,
                                               size_t name_len)
 {
     bool is_void;
-    size_t i;
     if (!name || !name_len)
         return;
     is_void = sem_kind(sem_type_of(val_handle)) == LLVMVoidTypeKind;
     sem_expect_nameable(fname, is_void);
-    for (i = 0; i < name_len; ++i) {
-        FILC_CHECK(name[i] != '\0', NULL,
-                   "Fil-C LLVM JIT API: wrong name for %s: names cannot "
-                   "contain null bytes.", fname);
-    }
+    sem_check_nameable_name_len_impl(fname, name, name_len);
 }
 
 static void sem_expect_binop(const char* fname, unsigned binop)
@@ -2883,6 +2896,22 @@ static void sem_check_intrinsic_id_impl(const char* fname, unsigned id)
                "id must be less than the number of known intrinsics.", fname);
 }
 
+/* LLVM's findTargetSubtable (Intrinsics.cpp) asserts Name.starts_with("llvm.")
+ * and then drops the first five bytes unconditionally, and the vendored LLVM
+ * is built with assertions on, so a name without the prefix reaches that
+ * assertion instead of a well-defined not-found answer.  The check below is
+ * safe for a null name: the OPTSTR unwrap already FILC_CHECKs that a null
+ * string has zero length, so name_len >= 5 implies a readable pointer. */
+
+static void sem_check_intrinsic_name_impl(const char* fname,
+                                          const char* name,
+                                          size_t name_len)
+{
+    FILC_CHECK(name_len >= 5 && !memcmp(name, "llvm.", 5), NULL,
+               "Fil-C LLVM JIT API: wrong intrinsic name for %s: the name "
+               "does not start with \"llvm.\".", fname);
+}
+
 /* The intrinsic parameter-types array must agree with the id's overloadedness
  * AND with the id's type table.  The Tys array is fed straight into LLVM's
  * name and type machinery:
@@ -3091,6 +3120,8 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
 #define sem_nameable_value_len(fname, val, name, len) \
     sem_check_nameable_value_len_impl(#fname, (val##_obj)->handle, \
                                       (name##_obj), (len));
+#define sem_nameable_name_len(fname, name, len) \
+    sem_check_nameable_name_len_impl(#fname, (name##_obj), (len));
 #define sem_va_arg(fname, list, ty) \
     sem_check_va_arg_impl(#fname, (list##_obj)->handle, (ty##_obj)->handle);
 #define sem_cond_br(fname, builder, cond, then_bb, else_bb) \
@@ -3358,6 +3389,8 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
     sem_check_ptr_diff2_impl(#fname, (lhs##_obj)->handle, (rhs##_obj)->handle);
 #define sem_intrinsic_id(fname, id) \
     sem_check_intrinsic_id_impl(#fname, (id));
+#define sem_intrinsic_name(fname, name, name_len) \
+    sem_check_intrinsic_name_impl(#fname, (name##_obj), (name_len));
 #define sem_intrinsic_tys_exact(fname, id, count) \
     sem_check_intrinsic_tys_exact_impl(#fname, (id), (count));
 #define sem_intrinsic_tys_overloaded(fname, id, count) \
@@ -5052,7 +5085,7 @@ FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddClause, LOCKED, (REF, landing_pad, VALUE, LLV
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddDestination, LOCKED, (REF, indirect_br, VALUE, LLVMValueRef, IndirectBrInst), (REF, dest, BASIC_BLOCK, LLVMBasicBlockRef), sem_inst_bb(LLVMAddDestination, indirect_br, dest))
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMAddFunction, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (CSTR, name), (REF, function_ty, TYPE, LLVMTypeRef, FunctionTypeKind))
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMAddGlobal, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name), sem_global_ty(LLVMAddGlobal, type))
-FILC_LLVM_JIT_DEFINE_REF_6(LLVMAddGlobalIFunc, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t), (REF, type, TYPE, LLVMTypeRef), (SCAL, addr_space, unsigned), (REF, resolver, VALUE, LLVMValueRef, Constant), sem_address_space(LLVMAddGlobalIFunc, addr_space))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMAddGlobalIFunc, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t), (REF, type, TYPE, LLVMTypeRef), (SCAL, addr_space, unsigned), (REF, resolver, VALUE, LLVMValueRef, Constant), sem_address_space(LLVMAddGlobalIFunc, addr_space) sem_nameable_name_len(LLVMAddGlobalIFunc, name, name_len))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMAddGlobalInAddressSpace, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name), (SCAL, address_space, unsigned), sem_global_ty(LLVMAddGlobalInAddressSpace, type) sem_address_space(LLVMAddGlobalInAddressSpace, address_space))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddHandler, LOCKED, (REF, catch_switch, VALUE, LLVMValueRef, CatchSwitchInst), (REF, dest, BASIC_BLOCK, LLVMBasicBlockRef), sem_inst_bb(LLVMAddHandler, catch_switch, dest))
 FILC_LLVM_JIT_DEFINE_VOID_4(LLVMAddIncoming, LOCKED, (REF, phi_node, VALUE, LLVMValueRef, PHINode), (ARR, incoming_values, count, VALUE, LLVMValueRef), (ARR, incoming_blocks, count, BASIC_BLOCK, LLVMBasicBlockRef), (SCAL, count, unsigned), sem_add_incoming(LLVMAddIncoming, phi_node, incoming_values, incoming_blocks, count))
@@ -5609,7 +5642,7 @@ FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsThreadLocal, LOCKED, bool, (REF, global_var,
 FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsTypeAttribute, LOCKED, bool, (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
 FILC_LLVM_JIT_DEFINE_SCALAR_1(LLVMIsUndef, LOCKED, bool, (REF, val, VALUE, LLVMValueRef))
 FILC_LLVM_JIT_DEFINE_REF_1(LLVMLabelTypeInContext, LOCKED, TYPE, (CTX, context))
-FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMLookupIntrinsicID, NO_LOCK, unsigned, (OPTSTR, name, name_len), (SCAL, name_len, size_t))
+FILC_LLVM_JIT_DEFINE_SCALAR_2(LLVMLookupIntrinsicID, NO_LOCK, unsigned, (OPTSTR, name, name_len), (SCAL, name_len, size_t), sem_intrinsic_name(LLVMLookupIntrinsicID, name, name_len))
 /* The MDNode constructors accept null elements: LLVMMDNodeInContext maps a
    null element to null metadata (Core.cpp: "if (!V) MD = nullptr;"), and
    LLVMMDNodeInContext2 forwards nulls to MDNode::get (textual IR !{null} is
