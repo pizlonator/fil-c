@@ -1,0 +1,10 @@
+return:
+  failure
+needsGLIBC: true
+extraLinkerArgs: "-enable-filc-jit"
+output-includes:
+  - "Fil-C LLVM JIT API: wrong attribute index for LLVMAddCallSiteAttribute: the index must be the return index (0), the function index (UINT_MAX), or a parameter index between 1 and the number of parameters."
+output-excludes:
+  - "Assertion"
+  - "UNREACHABLE"
+  - "filc llvm jit error"

@@ -323,6 +323,29 @@ static const uint64_t* copy_u64_words(filc_thread* my_thread, const char* fname,
     return copy;
 }
 
+/* The 32-bit analogue of copy_u64_words, for the LLVM APIs that take arrays
+ * of unsigned. */
+static const unsigned* copy_u32_words(filc_thread* my_thread, const char* fname,
+                                      const char* arg_name, filc_ptr ptr,
+                                      size_t num_words)
+{
+    size_t bytes;
+    unsigned* copy;
+    if (!filc_ptr_ptr(ptr)) {
+        FILC_CHECK(!num_words, NULL,
+                   "Fil-C LLVM JIT API: %s: null %s with nonzero count.",
+                   fname, arg_name);
+        return NULL;
+    }
+    if (!num_words)
+        return NULL;
+    bytes = filc_mul_size(num_words, sizeof(unsigned));
+    filc_check_read(ptr, bytes);
+    copy = (unsigned*)filc_bmalloc_allocate_tmp(my_thread, bytes);
+    memcpy(copy, filc_ptr_ptr(ptr), bytes);
+    return copy;
+}
+
 void filc_llvm_jit_destruct(void* raw_payload)
 {
     filc_llvm_jit_kind kind = *(filc_llvm_jit_kind*)raw_payload;
@@ -2126,19 +2149,115 @@ static void sem_check_aggregate_element_impl(const char* fname, void* value)
  * (llvm/lib/IR/Constants.cpp) when the source element type (the type
  * parameter, which is what LLVM checks) is scalable, and then "GEP indices
  * invalid!" when GetElementPtrInst::getIndexedType rejects the indices.
- * getIndexedType only examines the indices after the first one, so a
- * single-index getelementptr accepts an index of any type (and the
+ * The constant-GEP wrappers and the build-side GEP wrappers share this check:
+ * GetElementPtrInst::Create computes the result element type with
+ * getIndexedType exactly like ConstantExpr::getGetElementPtr does, so the
+ * same rules apply, except that an instruction (unlike a constant
+ * expression) survives an index rejection with a null result element type,
+ * which the verifier then rejects as "Invalid indices for GEP pointer
+ * type!".  getIndexedType only examines the indices after the first one, so
+ * a single-index getelementptr accepts an index of any type (and the
  * gep-lie success controls rely on that); from the second index on, each
- * index indexes a composite and must be an integer. */
+ * index indexes a composite and must be an integer (getIndexedTypeInternal,
+ * llvm/lib/IR/Instructions.cpp).  A struct level additionally demands a
+ * 32-bit integer constant below the struct's element count
+ * (StructType::indexValid, llvm/lib/IR/Type.cpp: casts the index to
+ * ConstantInt and demands getZExtValue() < getNumElements()), while array
+ * and vector levels accept any integer index and just descend.  Walking off
+ * the end of the type's levels leaves getIndexedType null, which trips the
+ * "GEP indices invalid!" assert on the constant path and leaves an
+ * instruction with a null result element type (GetElementPtrInst's ctor,
+ * llvm/include/llvm/IR/Instructions.h).  Zero indices needs no check:
+ * getIndexedTypeInternal returns the source element type for an empty index
+ * list, and a zero-index getelementptr verifies and compiles fine (probed). */
 static void sem_check_const_gep_impl(const char* fname, void* ty,
                                      void* const* indices, unsigned num_indices)
 {
+    LLVMTypeRef level;
     unsigned i;
     FILC_CHECK(sem_kind((LLVMTypeRef)ty) != LLVMScalableVectorTypeKind, NULL,
                "Fil-C LLVM JIT API: wrong type for %s: the source element "
                "type must not be a scalable vector type.", fname);
-    for (i = 1; i < num_indices; ++i)
-        sem_expect_int_operand(fname, sem_type_of((void*)indices[i]));
+    level = (LLVMTypeRef)ty;
+    for (i = 1; i < num_indices; ++i) {
+        LLVMTypeRef index_ty;
+        index_ty = sem_type_of((void*)indices[i]);
+        sem_expect_int_operand(fname, index_ty);
+        switch (sem_kind(level)) {
+        case LLVMStructTypeKind: {
+            unsigned count;
+            count = api->LLVMCountStructElementTypes(level);
+            /* StructType::indexValid requires a 32-bit integer constant (a
+             * splat vector of them is also accepted there, but a vector
+             * constant is not a ConstantInt, so this rejects it), and both
+             * getIndexedType and LLVMStructGetTypeAtIndex read the value
+             * through ConstantInt::getZExtValue, which asserts on a constant
+             * that does not fit in a uint64_t; demanding an i32 constant with
+             * an in-range value keeps those asserts unreachable.  The value
+             * is only read after the kind, width, and ConstantInt checks, so
+             * getZExtValue is safe to call here. */
+            FILC_CHECK(
+                sem_kind(index_ty) == LLVMIntegerTypeKind &&
+                    api->LLVMGetIntTypeWidth(index_ty) == 32 &&
+                    api->LLVMIsAConstantInt((LLVMValueRef)indices[i]) != 0 &&
+                    (unsigned)api->LLVMConstIntGetZExtValue(
+                        (LLVMValueRef)indices[i]) < count,
+                NULL,
+                "Fil-C LLVM JIT API: wrong index for %s: each struct index "
+                "must be an i32 constant less than the struct's element "
+                "count.",
+                fname);
+            level = api->LLVMStructGetTypeAtIndex(level,
+                                                  (unsigned)api->LLVMConstIntGetZExtValue(
+                                                      (LLVMValueRef)indices[i]));
+            break;
+        }
+        case LLVMArrayTypeKind:
+        case LLVMVectorTypeKind:
+        case LLVMScalableVectorTypeKind:
+            level = api->LLVMGetElementType(level);
+            break;
+        default:
+            FILC_CHECK(false, NULL,
+                       "Fil-C LLVM JIT API: wrong index count for %s: the "
+                       "source element type's index levels are exhausted.",
+                       fname);
+            break;
+        }
+    }
+}
+
+/* IRBuilderBase::CreateStructGEP builds a two-index GEP whose second index
+ * is an i32 constant (llvm/include/llvm/IR/IRBuilder.h), so the type must be
+ * indexable at that index: a struct level demands idx < num elements
+ * (GetElementPtrInst::getIndexedType, which aborts on "GEP indices invalid!"
+ * through ConstantExpr::getGetElementPtr when the pointer is a constant and
+ * otherwise leaves the instruction with a null result element type that the
+ * verifier rejects as "Invalid indices for GEP pointer type!"), while array
+ * and vector levels accept any i32 index (getIndexedTypeInternal only checks
+ * the index's type), and everything else is rejected outright by
+ * getIndexedTypeInternal. */
+static void sem_check_build_struct_gep_impl(const char* fname, void* ty,
+                                            unsigned idx)
+{
+    LLVMTypeRef level;
+    level = (LLVMTypeRef)ty;
+    switch (sem_kind(level)) {
+    case LLVMStructTypeKind:
+        FILC_CHECK(idx < api->LLVMCountStructElementTypes(level), NULL,
+                   "Fil-C LLVM JIT API: wrong index for %s: the index must be "
+                   "less than the struct's element count.", fname);
+        break;
+    case LLVMArrayTypeKind:
+    case LLVMVectorTypeKind:
+    case LLVMScalableVectorTypeKind:
+        break;
+    default:
+        FILC_CHECK(false, NULL,
+                   "Fil-C LLVM JIT API: wrong type for %s: the type must be a "
+                   "struct, array, or vector type.", fname);
+        break;
+    }
 }
 
 static void sem_check_va_arg_impl(const char* fname, void* list, void* ty)
@@ -2566,9 +2685,14 @@ static void sem_check_array_elem_ty_impl(const char* fname, void* elem_ty)
 {
     unsigned kind;
     kind = sem_kind((LLVMTypeRef)elem_ty);
+    /* ArrayType::isValidElementType excludes the same set
+     * (llvm/lib/IR/Type.cpp): everything but void, label, metadata,
+     * function, token, and X86_AMX.  Note that StructType::isValidElementType
+     * is the same list without X86_AMX, which is why the struct element
+     * checks below (and their absence) differ. */
     FILC_CHECK(kind != LLVMVoidTypeKind && kind != LLVMFunctionTypeKind &&
                kind != LLVMLabelTypeKind && kind != LLVMTokenTypeKind &&
-               kind != LLVMMetadataTypeKind, NULL,
+               kind != LLVMMetadataTypeKind && kind != LLVMX86_AMXTypeKind, NULL,
                "Fil-C LLVM JIT API: wrong element type for %s: the element "
                "type must be a valid array element type.", fname);
 }
@@ -2633,6 +2757,32 @@ static void sem_check_set_initializer_impl(const char* fname, void* global,
     sem_expect_same_type(fname, sem_type_of(val), want);
 }
 
+/* GlobalValue::setVisibility (llvm/include/llvm/IR/GlobalValue.h) asserts
+ * "local linkage requires default visibility" unless the value has non-local
+ * linkage (GlobalValue::isLocalLinkage, which is exactly LLVMInternalLinkage
+ * and LLVMPrivateLinkage; the llvm-c LLVMLinkage enum matches llvm::GlobalValue::LinkageTypes
+ * value for value).  It has no enum-range assert of its own: it stores V into
+ * a 2-bit bitfield, so any other unsigned silently truncates to a value
+ * outside the VisibilityTypes enum (probed: LLVMSetVisibility(gv, 99) keeps
+ * the process alive and stores 3), so the enum range is checked here
+ * directly. */
+static void sem_check_visibility_impl(const char* fname, void* global,
+                                      unsigned viz)
+{
+    FILC_CHECK(viz <= LLVMProtectedVisibility, NULL,
+               "Fil-C LLVM JIT API: wrong visibility for %s: the visibility "
+               "must be LLVMDefaultVisibility, LLVMHiddenVisibility, or "
+               "LLVMProtectedVisibility.", fname);
+    FILC_CHECK(viz == LLVMDefaultVisibility ||
+                   (api->LLVMGetLinkage((LLVMValueRef)global) !=
+                        LLVMInternalLinkage &&
+                    api->LLVMGetLinkage((LLVMValueRef)global) !=
+                        LLVMPrivateLinkage),
+               NULL,
+               "Fil-C LLVM JIT API: wrong visibility for %s: local linkage "
+               "requires default visibility.", fname);
+}
+
 static void sem_check_operand_index_impl(const char* fname, void* user,
                                          unsigned index)
 {
@@ -2681,6 +2831,33 @@ static void sem_check_param_index_impl(const char* fname, void* fn,
     FILC_CHECK(index < api->LLVMCountParams((LLVMValueRef)fn), NULL,
                "Fil-C LLVM JIT API: wrong parameter index for %s: the index "
                "must be less than the number of parameters.", fname);
+}
+
+/* AttributeList::setAttributesAtIndex (llvm/lib/IR/Attributes.cpp) maps the
+ * index with attrIdxToArrayIdx(Index) = Index + 1 and then does
+ * AttrSets.resize(Index + 1); AttrSets[Index] = Attrs.  Both computations are
+ * unsigned arithmetic, so an index of 0xFFFFFFFE maps to 0xFFFFFFFF, resizes
+ * to zero (Index + 1 wraps), and subscripts a SmallVector at index
+ * 0xFFFFFFFF -- 32GB past its buffer (probed: SmallVector::operator[]'s
+ * "idx < size()" assert; corruption in a release build); an index of
+ * 0x7FFFFFFF asks SmallVector to grow to 16GB (probed: "LLVM ERROR: SmallVector
+ * unable to grow").  The meaningful attribute indices are the return (0),
+ * the function (~0U == LLVMAttributeFunctionIndex), and the parameters
+ * 1..N (llvm-c/Core.h's LLVMAttributeIndex comment), for both functions
+ * (LLVMCountParams) and call sites (LLVMGetNumArgOperands).  The removers
+ * and getters need no check: getAttributes returns {} for any out-of-range
+ * index and the removers only rewrite the list when something is actually
+ * removed (llvm/lib/IR/Attributes.cpp). */
+static void sem_check_attr_index_impl(const char* fname, unsigned index,
+                                      unsigned count)
+{
+    FILC_CHECK(index == 0 || index == UINT_MAX ||
+                   (index >= 1 && index <= count),
+               NULL,
+               "Fil-C LLVM JIT API: wrong attribute index for %s: the index "
+               "must be the return index (0), the function index (UINT_MAX), "
+               "or a parameter index between 1 and the number of parameters.",
+               fname);
 }
 
 /* LLVMGetCallBrIndirectDest indexes the callbr's operand array raw
@@ -3218,6 +3395,14 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
                                (dest_ty##_obj)->handle);
 #define sem_extract_value(fname, agg, index) \
     sem_check_extract_value_impl(#fname, (agg##_obj)->handle, (index));
+/* InsertValueInst::init stores the index verbatim with no check
+ * (llvm/lib/IR/Instructions.cpp), but the verifier demands
+ * ExtractValueInst::getIndexedType(agg type, indices) == the inserted value's
+ * type ("Invalid InsertValueInst operands!", llvm/lib/IR/Verifier.cpp), so an
+ * out-of-range or non-aggregate index is garbage IR either way; the same
+ * check as extractvalue keeps the two symmetric. */
+#define sem_insert_value(fname, agg, index) \
+    sem_check_extract_value_impl(#fname, (agg##_obj)->handle, (index));
 #define sem_aggregate_ret(fname, builder) \
     sem_check_aggregate_ret_impl(#fname, (builder##_obj)->handle);
 #define sem_extract_element(fname, vec, index) \
@@ -3316,6 +3501,8 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
 #define sem_set_initializer(fname, global, val) \
     sem_check_set_initializer_impl(#fname, (global##_obj)->handle, \
                                    (val##_obj)->handle);
+#define sem_visibility(fname, global, viz) \
+    sem_check_visibility_impl(#fname, (global##_obj)->handle, (viz));
 #define sem_operand_index(fname, user, index) \
     sem_check_operand_index_impl(#fname, (user##_obj)->handle, (index));
 #define sem_incoming_index(fname, phi, index) \
@@ -3328,6 +3515,12 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
     sem_check_arg_operand_index_impl(#fname, (funclet##_obj)->handle, (index));
 #define sem_param_index(fname, function, index) \
     sem_check_param_index_impl(#fname, (function##_obj)->handle, (index));
+#define sem_fn_attr_index(fname, function, index) \
+    sem_check_attr_index_impl(#fname, (index), \
+                              api->LLVMCountParams((function##_obj)->handle));
+#define sem_callsite_attr_index(fname, call, index) \
+    sem_check_attr_index_impl(#fname, (index), \
+                              api->LLVMGetNumArgOperands((call##_obj)->handle));
 #define sem_callbr_indirect_dest_index(fname, callbr, index) \
     sem_check_callbr_indirect_dest_index_impl(#fname, \
                                               (callbr##_obj)->handle, \
@@ -3445,6 +3638,23 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
     FILC_CHECK((num_bits) >= 1 && (num_bits) <= 8388608, NULL, \
                "Fil-C LLVM JIT API: wrong bit width for " #fname ": the bit " \
                "width must be between 1 and 8388608.");
+/* SwitchInst::init, IndirectBrInst::init, CatchSwitchInst::init, and
+ * LandingPadInst::init feed these counts straight into
+ * User::allocHungoffUses (llvm/lib/IR/User.cpp), which does
+ * ::operator new(N * sizeof(Use)): a huge count reserves gigabytes of address
+ * space (probed: 0x40000000 cases takes ~17GB and ~12 seconds on a large
+ * machine, and dies in "terminate called after throwing an instance of
+ * 'std::bad_alloc'" under a smaller address space), and SwitchInst::init's
+ * 2 + NumCases * 2 additionally overflows to zero at NumCases >= 0x7FFFFFFF
+ * (llvm/lib/IR/Instructions.cpp), tripping its "Value && Default &&
+ * NumReserved" assert.  LLVM puts no upper bound on these counts, so neither
+ * did anything until now; 1048576 (1<<20) is far beyond any real usage (a
+ * switch with a million cases reserves 32MB of operands) while keeping the
+ * worst-case reservation at tens of megabytes. */
+#define sem_use_count(fname, count) \
+    FILC_CHECK((count) <= 1048576, NULL, \
+               "Fil-C LLVM JIT API: wrong count for " #fname ": the count " \
+               "must not exceed 1048576.");
 #define sem_add_incoming(fname, phi, incoming_values, incoming_blocks, count) \
     sem_check_add_incoming_impl(#fname, (phi##_obj)->handle, \
                                 (void**)(incoming_values##_obj), \
@@ -3464,10 +3674,26 @@ static void sem_check_module_flag_behavior_impl(const char* fname,
 #define sem_const_gep(fname, ty, indices, num_indices) \
     sem_check_const_gep_impl(#fname, (LLVMTypeRef)(ty##_obj)->handle, \
                              (void* const*)(indices##_obj), (num_indices));
+/* The build-side GEP wrappers run the same index walk as the constant ones:
+ * GetElementPtrInst::Create computes the result element type with
+ * getIndexedType just like ConstantExpr::getGetElementPtr does, so the same
+ * struct-index and exhausted-levels rules apply. */
+#define sem_build_gep(fname, ty, indices, num_indices) \
+    sem_check_const_gep_impl(#fname, (LLVMTypeRef)(ty##_obj)->handle, \
+                             (void* const*)(indices##_obj), (num_indices));
+#define sem_build_struct_gep(fname, ty, idx) \
+    sem_check_build_struct_gep_impl(#fname, (LLVMTypeRef)(ty##_obj)->handle, \
+                                    (idx));
 #define sem_catchswitch_handlers(fname, num_handlers) \
     FILC_CHECK((num_handlers) >= 1, NULL, \
                "Fil-C LLVM JIT API: wrong handlers for " #fname ": the " \
-               "handler count must be at least one.");
+               "handler count must be at least one."); \
+    /* CatchSwitchInst::init hands the count to User::allocHungoffUses, which
+     * ::operator news N * sizeof(Use); see sem_use_count for why that needs
+     * an upper bound. */ \
+    FILC_CHECK((num_handlers) <= 1048576, NULL, \
+               "Fil-C LLVM JIT API: wrong handlers for " #fname ": the " \
+               "handler count must not exceed 1048576.");
 #define sem_inline_asm(fname, ty, constraints, constraints_size, dialect) \
     FILC_CHECK(api->ShimInlineAsmConstraintsOK((LLVMTypeRef)(ty##_obj)->handle, \
                                                (constraints##_obj), \
@@ -3711,7 +3937,16 @@ filc_ptr filc_native_LLVMTargetExtTypeInContext(
     filc_llvm_jit_object* module = NULL;
     char* name = filc_check_and_get_tmp_str(my_thread, name_ptr);
     LLVMTypeRef* type_params = NULL;
-    unsigned* int_params = NULL;
+    const unsigned* int_params = NULL;
+    /* TargetExtType::get (llvm/lib/IR/Type.cpp) allocates
+     * sizeof(TargetExtType) + sizeof(Type*) * Types.size() +
+     * sizeof(unsigned) * Ints.size() from the context's BumpPtrAllocator, so
+     * a count of 0x3FFFFFFF asks it for ~16GB of parameters.  Cap the counts
+     * the same way as the sem_use_count counts; no real target extension type
+     * has anywhere near a million parameters. */
+    FILC_CHECK(type_param_count <= 1048576 && int_param_count <= 1048576, NULL,
+               "Fil-C LLVM JIT API: LLVMTargetExtTypeInContext: the "
+               "parameter counts must not exceed 1048576.");
     if (filc_ptr_ptr(type_params_ptr)) {
         void** decoded = decode_handle_array(
             my_thread, type_params_ptr, type_param_count, FILC_LLVM_JIT_KIND_TYPE,
@@ -3722,8 +3957,13 @@ filc_ptr filc_native_LLVMTargetExtTypeInContext(
                    "LLVMTargetExtTypeInContext: null type params with nonzero count.");
     }
     if (filc_ptr_ptr(int_params_ptr)) {
-        filc_check_read(int_params_ptr, filc_mul_size(int_param_count, sizeof(unsigned)));
-        int_params = (unsigned*)filc_ptr_ptr(int_params_ptr);
+        /* Snapshot the words like the other word-array arguments instead of
+         * borrowing the caller's array: LLVM must never read Fil-C-owned
+         * memory, which a raw borrow would expose to a racing or mutating
+         * program between the bounds check and the reads. */
+        int_params = copy_u32_words(
+            my_thread, "LLVMTargetExtTypeInContext", "int params",
+            int_params_ptr, (size_t)int_param_count);
     } else {
         FILC_CHECK(!int_param_count, NULL,
                    "LLVMTargetExtTypeInContext: null int params with nonzero count.");
@@ -3732,7 +3972,7 @@ filc_ptr filc_native_LLVMTargetExtTypeInContext(
     pas_lock_lock(&context->lock);
     result_raw = api->LLVMTargetExtTypeInContext((LLVMContextRef)context->handle, name,
                                                  type_params, type_param_count,
-                                                 int_params, int_param_count);
+                                                 (unsigned*)int_params, int_param_count);
     filc_ptr result = wrap_handle(my_thread, context, NULL,
                                          FILC_LLVM_JIT_KIND_TYPE, (void*)result_raw);
     pas_lock_unlock(&context->lock);
@@ -3748,15 +3988,14 @@ filc_ptr filc_native_LLVMConstIntOfArbitraryPrecision(
     filc_llvm_jit_object* int_ty =
         unwrap_obj(my_thread, int_ty_ptr, FILC_LLVM_JIT_KIND_TYPE,
                                  &context, &module);
-    const uint64_t* words = NULL;
-    if (filc_ptr_ptr(words_ptr)) {
-        filc_check_read(words_ptr, filc_mul_size(num_words, sizeof(uint64_t)));
-        words = (const uint64_t*)filc_ptr_ptr(words_ptr);
-    } else {
-        FILC_CHECK(!num_words, NULL,
-                   "Fil-C LLVM JIT API: LLVMConstIntOfArbitraryPrecision: null "
-                   "words with nonzero count.");
-    }
+    /* The checks and the api-> call below read the words through
+       APInt::initFromArray, so snapshot them here like the other word-array
+       arguments: LLVM must never read the caller's Fil-C-owned memory, which
+       a raw borrow would expose to a racing or mutating program between the
+       bounds check and the reads. */
+    const uint64_t* words = copy_u64_words(
+        my_thread, "LLVMConstIntOfArbitraryPrecision", "words", words_ptr,
+        (size_t)num_words);
     LLVMValueRef result_raw;
     pas_lock_lock(&context->lock);
     FILC_LLVM_JIT_VAL_IntegerTypeKind(LLVMConstIntOfArbitraryPrecision,
@@ -5104,8 +5343,8 @@ ret_ty filc_native_##name(filc_thread* my_thread, FILC_LLVM_JIT_PARAM(d0), FILC_
 /* The wrapper table, one row per wrapper, in alphabetical order. */
 
 FILC_LLVM_JIT_DEFINE_REF_5(LLVMAddAlias2, LOCKED, VALUE, (REF, module, MODULE, LLVMModuleRef), (REF, value_ty, TYPE, LLVMTypeRef), (SCAL, addr_space, unsigned), (REF, aliasee, VALUE, LLVMValueRef, Constant), (CSTR, name), sem_alias_value_ty(LLVMAddAlias2, value_ty, addr_space, aliasee))
-FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddAttributeAtIndex, LOCKED, (REF, value, VALUE, LLVMValueRef, Function), (SCAL, idx, unsigned), (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
-FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddCallSiteAttribute, LOCKED, (REF, value, VALUE, LLVMValueRef, CallBase), (SCAL, idx, unsigned), (REF, attribute, ATTRIBUTE, LLVMAttributeRef))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddAttributeAtIndex, LOCKED, (REF, value, VALUE, LLVMValueRef, Function), (SCAL, idx, unsigned), (REF, attribute, ATTRIBUTE, LLVMAttributeRef), sem_fn_attr_index(LLVMAddAttributeAtIndex, value, idx))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddCallSiteAttribute, LOCKED, (REF, value, VALUE, LLVMValueRef, CallBase), (SCAL, idx, unsigned), (REF, attribute, ATTRIBUTE, LLVMAttributeRef), sem_callsite_attr_index(LLVMAddCallSiteAttribute, value, idx))
 FILC_LLVM_JIT_DEFINE_VOID_3(LLVMAddCase, LOCKED, (REF, switch_inst, VALUE, LLVMValueRef, SwitchInst), (REF, on_val, VALUE, LLVMValueRef, ConstantInt), (REF, dest, BASIC_BLOCK, LLVMBasicBlockRef), sem_inst_bb(LLVMAddCase, switch_inst, dest))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddClause, LOCKED, (REF, landing_pad, VALUE, LLVMValueRef, LandingPadInst), (REF, clause_val, VALUE, LLVMValueRef, Constant))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMAddDestination, LOCKED, (REF, indirect_br, VALUE, LLVMValueRef, IndirectBrInst), (REF, dest, BASIC_BLOCK, LLVMBasicBlockRef), sem_inst_bb(LLVMAddDestination, indirect_br, dest))
@@ -5188,15 +5427,15 @@ FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFence, LOCKED, VALUE, (REF, builder, BUILDER
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildFenceSyncScope, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, ordering, unsigned), (SCAL, ssid, unsigned), (CSTR, name), sem_ordering(LLVMBuildFenceSyncScope, ordering) sem_unnamed(LLVMBuildFenceSyncScope, name))
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMBuildFree, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, pointer_val, VALUE, LLVMValueRef), sem_ptr_operand(LLVMBuildFree, pointer_val))
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildFreeze, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (CSTR, name), sem_nameable_value(LLVMBuildFreeze, val, name))
-FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name))
-FILC_LLVM_JIT_DEFINE_REF_7(LLVMBuildGEPWithNoWrapFlags, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name), (SCAL, no_wrap_flags, unsigned))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name), sem_build_gep(LLVMBuildGEP2, type, indices, num_indices))
+FILC_LLVM_JIT_DEFINE_REF_7(LLVMBuildGEPWithNoWrapFlags, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name), (SCAL, no_wrap_flags, unsigned), sem_build_gep(LLVMBuildGEPWithNoWrapFlags, type, indices, num_indices))
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildGlobalString, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (CSTR, str), (CSTR, name), sem_insert_position(LLVMBuildGlobalString, builder))
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildGlobalStringPtr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (CSTR, str), (CSTR, name), sem_insert_position(LLVMBuildGlobalStringPtr, builder))
 FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildICmp, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (SCAL, predicate, unsigned), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name), sem_icmp(LLVMBuildICmp, predicate, lhs, rhs))
-FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildInBoundsGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name))
-FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildIndirectBr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, addr, VALUE, LLVMValueRef), (SCAL, num_dests, unsigned), sem_ptr_operand(LLVMBuildIndirectBr, addr))
+FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildInBoundsGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (ARR, indices, num_indices, VALUE, LLVMValueRef), (SCAL, num_indices, unsigned), (CSTR, name), sem_build_gep(LLVMBuildInBoundsGEP2, type, indices, num_indices))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildIndirectBr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, addr, VALUE, LLVMValueRef), (SCAL, num_dests, unsigned), sem_use_count(LLVMBuildIndirectBr, num_dests) sem_ptr_operand(LLVMBuildIndirectBr, addr))
 FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildInsertElement, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, vec_val, VALUE, LLVMValueRef), (REF, elt_val, VALUE, LLVMValueRef), (REF, index, VALUE, LLVMValueRef), (CSTR, name), sem_insert_element(LLVMBuildInsertElement, vec_val, elt_val, index))
-FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildInsertValue, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, agg_val, VALUE, LLVMValueRef), (REF, elt_val, VALUE, LLVMValueRef), (SCAL, index, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildInsertValue, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, agg_val, VALUE, LLVMValueRef), (REF, elt_val, VALUE, LLVMValueRef), (SCAL, index, unsigned), (CSTR, name), sem_insert_value(LLVMBuildInsertValue, agg_val, index))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildIntCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name), sem_int_cast(LLVMBuildIntCast, val, dest_ty))
 FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildIntCast2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (SCAL, is_signed, bool), (CSTR, name), sem_int_cast(LLVMBuildIntCast2, val, dest_ty))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildIntToPtr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name), sem_cast(LLVMBuildIntToPtr, LLVMIntToPtr, val, dest_ty))
@@ -5204,7 +5443,7 @@ FILC_LLVM_JIT_DEFINE_REF_8(LLVMBuildInvoke2, LOCKED, VALUE, (REF, builder, BUILD
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildIsNotNull, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (CSTR, name))
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildIsNull, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (CSTR, name))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildLShr, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name), sem_int_binop(LLVMBuildLShr, lhs, rhs))
-FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildLandingPad, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pers_fn, VALUE, LLVMValueRef, Function), (SCAL, num_clauses, unsigned), (CSTR, name), sem_insert_position(LLVMBuildLandingPad, builder) sem_nameable_ty(LLVMBuildLandingPad, type, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildLandingPad, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pers_fn, VALUE, LLVMValueRef, Function), (SCAL, num_clauses, unsigned), (CSTR, name), sem_use_count(LLVMBuildLandingPad, num_clauses) sem_insert_position(LLVMBuildLandingPad, builder) sem_nameable_ty(LLVMBuildLandingPad, type, name))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildLoad2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer_val, VALUE, LLVMValueRef), (CSTR, name), sem_insert_position(LLVMBuildLoad2, builder) sem_load(LLVMBuildLoad2, type, pointer_val))
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildMalloc, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (CSTR, name), sem_insert_position(LLVMBuildMalloc, builder) sem_sized(LLVMBuildMalloc, type))
 FILC_LLVM_JIT_DEFINE_REF_6(LLVMBuildMemCpy, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, dst, VALUE, LLVMValueRef), (SCAL, dst_align, unsigned), (REF, src, VALUE, LLVMValueRef), (SCAL, src_align, unsigned), (REF, size, VALUE, LLVMValueRef), sem_insert_position(LLVMBuildMemCpy, builder) sem_mem_align(LLVMBuildMemCpy, dst_align) sem_mem_align(LLVMBuildMemCpy, src_align))
@@ -5237,9 +5476,9 @@ FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildSelect, LOCKED, VALUE, (REF, builder, BUILDE
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildShl, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name), sem_int_binop(LLVMBuildShl, lhs, rhs))
 FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildShuffleVector, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, v1, VALUE, LLVMValueRef), (REF, v2, VALUE, LLVMValueRef), (REF, mask, VALUE, LLVMValueRef), (CSTR, name), sem_shuffle_vector(LLVMBuildShuffleVector, v1, v2, mask))
 FILC_LLVM_JIT_DEFINE_REF_3(LLVMBuildStore, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, ptr, VALUE, LLVMValueRef), sem_insert_position(LLVMBuildStore, builder) sem_store_value(LLVMBuildStore, val) sem_ptr_operand(LLVMBuildStore, ptr))
-FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildStructGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (CSTR, name))
+FILC_LLVM_JIT_DEFINE_REF_5(LLVMBuildStructGEP2, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, type, TYPE, LLVMTypeRef), (REF, pointer, VALUE, LLVMValueRef), (SCAL, idx, unsigned), (CSTR, name), sem_build_struct_gep(LLVMBuildStructGEP2, type, idx))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSub, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name), sem_int_binop(LLVMBuildSub, lhs, rhs))
-FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSwitch, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef), (REF, else_val, BASIC_BLOCK, LLVMBasicBlockRef), (SCAL, num_cases, unsigned), sem_builder_bb(LLVMBuildSwitch, builder, else_val))
+FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildSwitch, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, value, VALUE, LLVMValueRef), (REF, else_val, BASIC_BLOCK, LLVMBasicBlockRef), (SCAL, num_cases, unsigned), sem_use_count(LLVMBuildSwitch, num_cases) sem_builder_bb(LLVMBuildSwitch, builder, else_val))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildTrunc, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name), sem_cast(LLVMBuildTrunc, LLVMTrunc, val, dest_ty))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildTruncOrBitCast, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, val, VALUE, LLVMValueRef), (REF, dest_ty, TYPE, LLVMTypeRef), (CSTR, name), sem_or_bit_cast(LLVMBuildTruncOrBitCast, LLVMTrunc, val, dest_ty))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMBuildUDiv, LOCKED, VALUE, (REF, builder, BUILDER, LLVMBuilderRef), (REF, lhs, VALUE, LLVMValueRef), (REF, rhs, VALUE, LLVMValueRef), (CSTR, name), sem_int_binop(LLVMBuildUDiv, lhs, rhs))
@@ -5258,8 +5497,8 @@ FILC_LLVM_JIT_DEFINE_REF_1(LLVMCloneModule, LOCKED, MODULE, (REF, module, MODULE
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstAdd, LOCKED, VALUE, (REF, lhs_constant, VALUE, LLVMValueRef, Constant), (REF, rhs_constant, VALUE, LLVMValueRef, Constant), sem_int_binop(LLVMConstAdd, lhs_constant, rhs_constant))
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstAddrSpaceCast, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef, Constant), (REF, to_type, TYPE, LLVMTypeRef), sem_const_addr_space_cast(LLVMConstAddrSpaceCast, constant_val, to_type))
 FILC_LLVM_JIT_DEFINE_REF_1(LLVMConstAllOnes, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef), sem_const_all_ones(LLVMConstAllOnes, type))
-FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstArray, LOCKED, VALUE, (REF, element_ty, TYPE, LLVMTypeRef), (ARR, constant_vals, length, VALUE, LLVMValueRef, Constant), (SCAL, length, unsigned), sem_const_array(LLVMConstArray, element_ty, constant_vals, length))
-FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstArray2, LOCKED, VALUE, (REF, element_ty, TYPE, LLVMTypeRef), (ARR, constant_vals, length, VALUE, LLVMValueRef, Constant), (SCAL, length, unsigned long long), sem_const_array(LLVMConstArray2, element_ty, constant_vals, length))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstArray, LOCKED, VALUE, (REF, element_ty, TYPE, LLVMTypeRef), (ARR, constant_vals, length, VALUE, LLVMValueRef, Constant), (SCAL, length, unsigned), sem_array_elem_ty(LLVMConstArray, element_ty) sem_const_array(LLVMConstArray, element_ty, constant_vals, length))
+FILC_LLVM_JIT_DEFINE_REF_3(LLVMConstArray2, LOCKED, VALUE, (REF, element_ty, TYPE, LLVMTypeRef), (ARR, constant_vals, length, VALUE, LLVMValueRef, Constant), (SCAL, length, unsigned long long), sem_array_elem_ty(LLVMConstArray2, element_ty) sem_const_array(LLVMConstArray2, element_ty, constant_vals, length))
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstBitCast, LOCKED, VALUE, (REF, constant_val, VALUE, LLVMValueRef, Constant), (REF, to_type, TYPE, LLVMTypeRef), sem_const_bit_cast(LLVMConstBitCast, constant_val, to_type))
 FILC_LLVM_JIT_DEFINE_REF_2(LLVMConstExtractElement, LOCKED, VALUE, (REF, vector_constant, VALUE, LLVMValueRef, Constant), (REF, index_constant, VALUE, LLVMValueRef, Constant), sem_const_extract_element(LLVMConstExtractElement, vector_constant, index_constant))
 FILC_LLVM_JIT_DEFINE_REF_4(LLVMConstGEP2, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef), (REF, constant_val, VALUE, LLVMValueRef, Constant), (ARR, constant_indices, num_indices, VALUE, LLVMValueRef, Constant), (SCAL, num_indices, unsigned), sem_const_gep(LLVMConstGEP2, type, constant_indices, num_indices))
@@ -5728,7 +5967,7 @@ FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetGlobalConstant, LOCKED, (REF, global_var, VAL
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetGlobalIFuncResolver, LOCKED, (REF, i_func, VALUE, LLVMValueRef, GlobalIFunc), (REF, resolver, VALUE, LLVMValueRef, Constant))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetInitializer, LOCKED, (REF, global_var, VALUE, LLVMValueRef, GlobalVariable), (REF, constant_val, VALUE, LLVMValueRef, Constant), sem_set_initializer(LLVMSetInitializer, global_var, constant_val))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetInstDebugLocation, LOCKED, (REF, builder, BUILDER, LLVMBuilderRef), (REF, inst, VALUE, LLVMValueRef, Instruction))
-FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetInstrParamAlignment, LOCKED, (REF, instr, VALUE, LLVMValueRef, CallBase), (SCAL, idx, unsigned), (SCAL, align, unsigned), sem_param_alignment(LLVMSetInstrParamAlignment, align))
+FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetInstrParamAlignment, LOCKED, (REF, instr, VALUE, LLVMValueRef, CallBase), (SCAL, idx, unsigned), (SCAL, align, unsigned), sem_callsite_attr_index(LLVMSetInstrParamAlignment, instr, idx) sem_param_alignment(LLVMSetInstrParamAlignment, align))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetInstructionCallConv, LOCKED, (REF, instr, VALUE, LLVMValueRef, CallBase), (SCAL, call_conv, unsigned), sem_call_conv(LLVMSetInstructionCallConv, call_conv))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetIsDisjoint, LOCKED, (REF, inst, VALUE, LLVMValueRef, PossiblyDisjointInst), (SCAL, is_disjoint, bool))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetIsInBounds, LOCKED, (REF, gep, VALUE, LLVMValueRef, GetElementPtrInst), (SCAL, in_bounds, bool))
@@ -5762,7 +6001,7 @@ FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetUnnamedAddress, LOCKED, (REF, global, VALUE, 
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetUnwindDest, LOCKED, (REF, invoke_inst, VALUE, LLVMValueRef, UnwindOwner), (REF, basic_block, BASIC_BLOCK, LLVMBasicBlockRef), sem_inst_bb(LLVMSetUnwindDest, invoke_inst, basic_block))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetValueName, LOCKED, (REF, val, VALUE, LLVMValueRef), (CSTR, name), sem_nameable_value(LLVMSetValueName, val, name))
 FILC_LLVM_JIT_DEFINE_VOID_3(LLVMSetValueName2, LOCKED, (REF, val, VALUE, LLVMValueRef), (OPTSTR, name, name_len), (SCAL, name_len, size_t), sem_nameable_value_len(LLVMSetValueName2, val, name, name_len))
-FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetVisibility, LOCKED, (REF, global, VALUE, LLVMValueRef, GlobalValue), (SCAL, viz, unsigned))
+FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetVisibility, LOCKED, (REF, global, VALUE, LLVMValueRef, GlobalValue), (SCAL, viz, unsigned), sem_visibility(LLVMSetVisibility, global, viz))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetVolatile, LOCKED, (REF, memory_access_inst, VALUE, LLVMValueRef, VolatileOwner), (SCAL, is_volatile, bool))
 FILC_LLVM_JIT_DEFINE_VOID_2(LLVMSetWeak, LOCKED, (REF, cmp_xchg_inst, VALUE, LLVMValueRef, AtomicCmpXchgInst), (SCAL, is_weak, bool))
 FILC_LLVM_JIT_DEFINE_REF_1(LLVMSizeOf, LOCKED, VALUE, (REF, type, TYPE, LLVMTypeRef))
