@@ -1761,36 +1761,90 @@ typedef struct pas_saved_float_environment pas_saved_float_environment;
 
 #if defined(__x86_64__)
 
-/* All libpas floating-point math is SSE, so the MXCSR holds all of the state
-   that we care about.  0x1f80 masks all exceptions and selects
-   round-to-nearest. */
+/* Save and restore the full x86_64 floating-point environment: both the
+   28-byte x87 FPU environment (control word, status word sticky flags, and
+   tag word) and the SSE MXCSR (rounding mode, FTZ/DAZ, exception masks, and
+   sticky exception flags).  This isolates runtime float math (whether SSE or
+   x87) from user rounding modes, trap masks, and sticky flags in both
+   directions. */
+struct pas_x87_environment {
+    uint16_t control_word;
+    uint16_t reserved0;
+    uint16_t status_word;
+    uint16_t reserved1;
+    uint16_t tag_word;
+    uint16_t reserved2;
+    uint32_t ip_offset;
+    uint16_t ip_selector;
+    uint16_t opcode;
+    uint32_t data_offset;
+    uint16_t data_selector;
+    uint16_t reserved3;
+};
+
 struct pas_saved_float_environment {
+    struct pas_x87_environment x87;
     uint32_t mxcsr;
 };
 
 static inline void pas_save_float_environment(
     pas_saved_float_environment* environment)
 {
-    environment->mxcsr = __builtin_ia32_stmxcsr();
+    /* fnstenv masks all x87 exceptions in hardware as a side effect, so reload
+       the saved control word immediately to leave the active hardware state
+       unchanged until pas_set_float_environment_to_libpas_default runs. */
+    __asm__ volatile (
+        "fnstenv %0\n\t"
+        "stmxcsr %1"
+        : "=m" (environment->x87), "=m" (environment->mxcsr)
+        :
+        : "memory"
+    );
+    __asm__ volatile (
+        "fldcw %0"
+        :
+        : "m" (environment->x87.control_word)
+        : "memory"
+    );
 }
 
 static inline void pas_set_float_environment_to_libpas_default(void)
 {
-    __builtin_ia32_ldmxcsr(0x1f80);
+    /* x87: 0x037f selects round-to-nearest, 64-bit precision, and masks all
+       exceptions; fnclex clears sticky x87 exception flags without disturbing
+       x87 stack tags.
+       SSE: 0x1f80 selects round-to-nearest, masks all exceptions, disables
+       FTZ/DAZ, and clears all sticky SSE exception flags. */
+    uint16_t default_cw = 0x037fu;
+    uint32_t default_mxcsr = 0x1f80u;
+    __asm__ volatile (
+        "fnclex\n\t"
+        "fldcw %0\n\t"
+        "ldmxcsr %1"
+        :
+        : "m" (default_cw), "m" (default_mxcsr)
+        : "memory"
+    );
 }
 
 static inline void pas_restore_float_environment(
     const pas_saved_float_environment* environment)
 {
-    __builtin_ia32_ldmxcsr(environment->mxcsr);
+    __asm__ volatile (
+        "fldenv %0\n\t"
+        "ldmxcsr %1"
+        :
+        : "m" (environment->x87), "m" (environment->mxcsr)
+        : "memory"
+    );
 }
 
 #elif defined(__aarch64__)
 
-/* AArch64 has an FPSCR-like split into the FPCR (rounding mode and trap
-   enables) and the FPSR (cumulative exception flags).  libpas's heuristics
-   must neither change the FPSR flags nor be affected by the program's FPCR
-   settings. */
+/* AArch64 splits floating-point control and status into FPCR (rounding mode,
+   trap enables, FTZ/DN/AHP) and FPSR (cumulative exception flags).  Memory
+   clobbers keep the compiler from reordering floating-point operations across
+   the environment boundary. */
 struct pas_saved_float_environment {
     uint64_t fpcr;
     uint64_t fpsr;
@@ -1799,24 +1853,39 @@ struct pas_saved_float_environment {
 static inline void pas_save_float_environment(
     pas_saved_float_environment* environment)
 {
-    __asm__ volatile ("mrs %0, fpcr" : "=r" (environment->fpcr));
-    __asm__ volatile ("mrs %0, fpsr" : "=r" (environment->fpsr));
+    __asm__ volatile (
+        "mrs %0, fpcr\n\t"
+        "mrs %1, fpsr"
+        : "=r" (environment->fpcr), "=r" (environment->fpsr)
+        :
+        : "memory"
+    );
 }
 
 static inline void pas_set_float_environment_to_libpas_default(void)
 {
-    /* Zero FPCR means round-to-nearest with no flush-to-zero and no trap
-       enables, which is AArch64's reset state.  Zeroing the FPSR clears the
-       cumulative exception flags. */
-    __asm__ volatile ("msr fpcr, %0" : : "r" ((uint64_t)0));
-    __asm__ volatile ("msr fpsr, %0" : : "r" ((uint64_t)0));
+    /* Zero FPCR selects round-to-nearest with no flush-to-zero, no default-NaN,
+       and no trap enables (AArch64 reset state).  Zeroing FPSR clears all
+       cumulative exception flags so runtime math starts cleanly. */
+    __asm__ volatile (
+        "msr fpcr, %0\n\t"
+        "msr fpsr, %0"
+        :
+        : "r" ((uint64_t)0)
+        : "memory"
+    );
 }
 
 static inline void pas_restore_float_environment(
     const pas_saved_float_environment* environment)
 {
-    __asm__ volatile ("msr fpcr, %0" : : "r" (environment->fpcr));
-    __asm__ volatile ("msr fpsr, %0" : : "r" (environment->fpsr));
+    __asm__ volatile (
+        "msr fpcr, %0\n\t"
+        "msr fpsr, %1"
+        :
+        : "r" (environment->fpcr), "r" (environment->fpsr)
+        : "memory"
+    );
 }
 
 #else
