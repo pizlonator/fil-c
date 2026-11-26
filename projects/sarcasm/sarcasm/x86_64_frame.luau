@@ -600,8 +600,11 @@ end
 -- the expected base register ("rsp" for a direct read at depth 0, the alias
 -- register otherwise) and `saveDepth` the depth at which that register's value
 -- equals entry_rsp (0 for %rsp itself at depth 0; the alias save's depth).
+-- A nil `saveDepth` (region-pointer and conflict smap entries carry no depth)
+-- means the base register does not hold a saved entry rsp, so the read can
+-- never be a yolo stack-argument read.
 local function yoloArgSlotOf(st, baseName, saveDepth)
-	if yoloCount == 0 then return nil end
+	if yoloCount == 0 or saveDepth == nil then return nil end
 	local ops = st.operands
 	local mem
 	for _, o in ops do if o.kind == "mem" then mem = o end end
@@ -6302,7 +6305,7 @@ function x86_64_frame.analyzeFrame(body, sigDesc, regions)
 						i = yoloArgSlotOf(st, "rsp", st.x86_depth)
 					elseif st.x86_smap then
 						local e = st.x86_smap[mem.base.name]
-						if e and not e.redefined then i = yoloArgSlotOf(st, mem.base.name, e.depth) end
+						if e and not e.redefined and not e.slot and not e.roff and not e.conflict then i = yoloArgSlotOf(st, mem.base.name, e.depth) end
 					end
 				end
 				if i then
