@@ -9,7 +9,15 @@
 # memory, and the reg-reg movq forms; cvtpd2dq: the packed double->int32
 # converts djb's qhasm ntt_double.S uses, in every width and source form;
 # movlhps: the VEX half-move family clang emits into the Keccakx4 lane
-# interleave of the same workload), poisoning client requests
+# interleave of the same workload; shufpd: the SHUFPD family (legacy reg-reg
+# and m128, VEX.128/256, EVEX.512 where present, and the SHUFPS companions)
+# whose within-source select rule gcc -O3 keccakf160064bits reference1600
+# depends on eight times per Keccak round -- the serious-bug regression;
+# insn-forms: the full legacy/VEX x reg/mem
+# form matrix of the djb-reported opcodes -- lddqu, the 0F 12/16 half-move
+# family, pmulhrsw, movddup, cvtdq2pd, the variable shifts, and the
+# pextr/pinsr/movd forms -- the residual-bug sentinel for the batch),
+# poisoning client requests
 # (faults + taint laundering + clear-on-store; faults expect core dumps, incl.
 # the vector-extract laundering faults pextr-taint and movd-taint),
 # var-time mode tests (--var-time-op=known/plausible/everything gating for
@@ -137,6 +145,14 @@ gcc -O2 -mavx2 -o "$OUTDIR/insn_fixes" tests/insn_fixes.c \
     || { log "guest compile failed: insn_fixes"; exit 1; }
 gcc -O2 -mavx2 -o "$OUTDIR/insn_djb" tests/insn_djb.c \
     || { log "guest compile failed: insn_djb"; exit 1; }
+# Form-matrix guest for the djb opcode batch (see tests/insn_forms.c): every
+# legacy/VEX encoding and reg/mem operand spelling of vpmulhrsw/vmovddup/
+# vpsllvq/vpsrlvq/vpsrlvd/vpsllvd/vlddqu/vmovlpd/vmovhpd/vcvtdq2pd plus the
+# pextr/pinsr/movd form matrix (GPR and memory destinations/sources, the m64
+# store forms, the legacy non-VEX encodings).  Needs -mavx2 for the inline
+# asm; groups gated on runtime CPUID so it runs everywhere.
+gcc -O2 -mavx2 -msse3 -o "$OUTDIR/insn_forms" tests/insn_forms.c \
+    || { log "guest compile failed: insn_forms"; exit 1; }
 # cvtpd2dq regression guest (the packed double->int32 convert djb's qhasm
 # ntt_double.S uses): legacy+VEX.128+VEX.256 forms, register AND memory
 # sources, nearest-even rounding vs the truncating 66-prefixed form, the
@@ -152,6 +168,23 @@ gcc -O2 -mavx -o "$OUTDIR/cvtpd2dq" tests/cvtpd2dq.c \
 # saved the run).  Needs -mavx at compile time for the inline asm.
 gcc -O2 -mavx -o "$OUTDIR/movlhps" tests/movlhps.c \
     || { log "guest compile failed: movlhps"; exit 1; }
+# SHUFPD family guest (legacy 66 0F C6 reg-reg and m128, VEX.128/VEX.256/
+# EVEX.512 VSHUFPD, and the SHUFPS companions): the serious-bug regression
+# where the emulator picked the SOURCE by the shufpd imm bit instead of
+# selecting within DEST (low qword) and SRC (high qword), which gcc -O3
+# builds of the djb supercop keccakf160064bits reference1600 core hit eight
+# times per Keccak round -- silent wrong output, no fault.  The guest also
+# re-runs the full 24-round reference permutation end to end and checks the
+# FNV-1a hash.  -O3 so the keccak group gets the same codegen shape as the
+# workload; the legacy/VEX groups are gated on runtime CPUID so they run
+# everywhere, while the AVX-512 SDM-conformance battery (masked {k1}{z}
+# VSHUFPD, VPERMILPD, and the {1toN} embedded broadcasts) is gated on
+# is_in_zegarmistrz() so it runs ONLY under the emulator (this host has no
+# AVX-512, so executing EVEX natively would SIGILL; the emulator implements
+# AVX-512 in software on any host).  -mavx512f -mavx512dq are compile-time
+# only (the {k1}/{1to8} inline-asm decorations need them).
+gcc -O3 -mavx2 -mavx512f -mavx512dq -Iinclude -o "$OUTDIR/shufpd" tests/shufpd.c \
+    || { log "guest compile failed: shufpd"; exit 1; }
 gcc -O2 -mavx512f -mavx512dq -mavx512vl -mavx512ifma -o "$OUTDIR/insn_fixes_avx512" \
     tests/insn_fixes_avx512.c \
     || { log "guest compile failed: insn_fixes_avx512"; exit 1; }
@@ -286,8 +319,10 @@ echo "aes-smoke"
 echo "vex-smoke"
 echo "insn-fixes"
 echo "insn-djb"
+echo "insn-forms"
 echo "cvtpd2dq"
 echo "movlhps"
+echo "shufpd"
 echo "insn-fixes-avx512"
 echo "poly1305-kat"
 echo "dec-cache"
@@ -431,7 +466,7 @@ argv[2]=bar" ] && echo "PASS args-exit" || echo "FAIL args-exit: exit=$ec out=[$
       diff test-output/aes.native test-output/aes.emu | head -5
     fi
     ;;
-  insn-fixes|insn-djb|cvtpd2dq|movlhps|insn-fixes-avx512)
+  insn-fixes|insn-djb|insn-forms|cvtpd2dq|movlhps|shufpd|insn-fixes-avx512)
     # Self-checking instruction-semantics regression guests (see the comment
     # at their compile lines).  Must pass natively AND under the emulator,
     # with byte-identical output ending in the ok line.

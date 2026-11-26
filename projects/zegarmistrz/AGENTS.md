@@ -138,7 +138,11 @@ How cases work:
   `test-output/poison_vt_div` built from `tests/poison_vt_div.c`. Guest
   compile commands live at the top of `run-tests` (some guests need
   `-mavx512f` etc. for inline asm/intrinsics; instruction groups inside
-  self-checking guests are gated on runtime CPUID so they run everywhere).
+  self-checking guests are gated on runtime CPUID so they run everywhere --
+  EXCEPT shufpd's AVX-512 SDM-conformance battery, which is gated on
+  `is_in_zegarmistrz()` so it runs ONLY under the emulator, since the host
+  has no AVX-512 and EVEX would SIGILL natively; see the shufpd bullet in
+  the ISA gotchas).
 - **Fault tests** (poison-load/store/branch/index/syscall, the masked
   vector ones, the var-time KNOWN ones, the poison-index-addr battery
   (cannot-index, memory-address sites), the poison-branch-ctrl battery
@@ -164,11 +168,11 @@ How cases work:
   clean even in `everything` mode; `poison-vt-clear` (clear-on-store)
   must exit 0.
 - **Native-vs-emulator mirror guests** (avx512/vex/aes smoke,
-  insn-fixes, insn-fixes-avx512, poly1305-kat, dec-cache,
-  malloc-churn, cpuid/zeglib `-native`) must produce byte-identical
-  output natively and under the emulator. `poly1305-kat` additionally
-  needs OpenSSL dev headers + libcrypto and is SKIPPED (not failed) when
-  that compile fails. `filc-hello` runs the repo-root Fil-C `./hello`
+  insn-fixes, insn-djb, insn-forms, insn-fixes-avx512, poly1305-kat,
+  dec-cache, malloc-churn, cpuid/zeglib `-native`) must produce
+  byte-identical output natively and under the emulator. `poly1305-kat`
+  additionally needs OpenSSL dev headers + libcrypto and is SKIPPED (not
+  failed) when that compile fails. `filc-hello` runs the repo-root Fil-C `./hello`
   (skipped if it is not an ELF, e.g. a Cosmopolitan APE image).
 - `core-gdb` runs `gdb -batch -ex bt` on a produced core and asserts the
   backtrace shows the guest's `boom` → `main` and **no** interpreter
@@ -1126,19 +1130,181 @@ ELF loader (`elf_loader.cpp`):
 
 ## ISA/decoder gotchas (Zydis)
 
-- **The djb supercop opcode batch** (all regression-guested in
-  `tests/insn_djb.c`, the `insn-djb` case, hardware-verified formulas):
-  VCVTDQ2PD/CVTDQ2PD in all three encodings (legacy F3 0F E6, VEX, EVEX);
-  the VEX variable shifts VPSLLVD/VPSLLVQ/VPSRLVD/VPSRLVQ/VPSRAVD
-  (`exec_pshift_var`: per-lane counts, a count >= the element width yields
-  0/fill, NOT masked -- same rule as the EVEX `exec_evex_shift`);
-  PMULHRSW/VPMULHRSW (the rounded-high SSSE3 multiply, not PMULHW);
-  MOVDDUP/VMOVDDUP (each even 64-bit lane duplicated into the odd lane);
+- **The djb supercop opcode batch** (regression-guested in
+  `tests/insn_djb.c`, swept form-by-form in `tests/insn_forms.c` -- the
+  `insn-djb` and `insn-forms` cases -- hardware-verified formulas):
+  VCVTDQ2PD/CVTDQ2PD in all three encodings (legacy F3 0F E6, VEX, EVEX;
+  the WIDENING convert's memory source is HALF the dest width: m64 for an
+  xmm dest, m128 for a ymm dest -- verified on this host); the VEX variable
+  shifts VPSLLVD/VPSLLVQ/VPSRLVD/VPSRLVQ/VPSRAVD (`exec_pshift_var`:
+  per-lane counts, a count >= the element width yields 0/fill, NOT masked
+  -- same rule as the EVEX `exec_evex_shift`); PMULHRSW/VPMULHRSW (the
+  rounded-high SSSE3 multiply, not PMULHW); MOVDDUP/VMOVDDUP (each even
+  64-bit lane duplicated into the odd lane); LDDQU/VLDDQU (SSE3 F2 0F F0 /
+  VEX F2 0F F0: architecturally an unaligned MOVDQU-class load, the
+  cache-line hint is not software-visible -- routed through
+  `exec_vec_move`; the legacy form keeps the upper YMM, VEX zeroes above);
   PEXTRB/W/D/Q with a MEMORY destination (a legal form the old code
   rejected with "bad pextr form" -- store the selected lane, taint
   propagates, `tests/pextr_taint.c`); and MOVQ xmm1, xmm2 reg-reg (both
   the F3 0F 7E load and 66 0F D6 mod=11 store spellings, both zeroing the
   dest's upper 64 bits and carrying the sidecar, `tests/movd_taint.c`).
+
+- **SHUFPD selects WITHIN one source per output qword, SHUFPS is the
+  inverted-role PS twin** (the serious-bug regression): legacy SHUFPD
+  (66 0F C6) and VSHUFPD (VEX.128/256/EVEX.512) compute
+  `dst.q[0] = imm[0] ? DEST.q[1] : DEST.q[0]` and
+  `dst.q[1] = imm[1] ? SRC.q[1] : SRC.q[0]` -- the low qword selects
+  WITHIN DEST (VEX: src1) and the high qword WITHIN SRC (VEX: src2), so
+  with DEST=[A,A] and SRC=[B,B] every imm8 yields [A.lo, B.lo]
+  (hardware-verified; gcc -O0 folds _mm_shuffle_pd imm0 to UNPCKLPD and
+  imm3 to UNPCKHPD, pinning DEST.lo / SRC.hi as the imm=0 endpoints). The
+  old exec_shufpd PD branch picked the SOURCE by the imm bit instead
+  (`[imm0?SRC.q0:DEST.q0, imm1?SRC.q1:DEST.q1]`), swapping halves on
+  imm=1/3 -- gcc -O3 builds of djb supercop crypto_core/
+  keccakf160064bits/reference1600 hit this eight times per Keccak round
+  (theta column D values via punpcklqdq + shufpd $1) and silently permuted
+  the whole 1600-bit state differently from bare metal, no fault. The imm
+  bits index GLOBAL qwords at 256-bit (VEX.256 hardware: imm=5 gives
+  [src1.q1, src2.q0, src1.q3, src2.q2] -- the upper lane uses imm bits
+  2/3, so `sel = (order >> ((L / 8) + i)) & 1`), while SHUFPS/VSHUFPS
+  RESTARTS its bit pairs per lane (imm=0x11 at 256-bit gives lane1 =
+  [src1.d1, src1.d0, src2.d1, src2.d0]): output dwords 0/1 select WITHIN
+  DEST by bits [1:0]/[3:2] and dwords 2/3 WITHIN SRC by bits [5:4]/[7:6]
+  (the PS roles are the opposite pairing of the PD roles). The EVEX.512
+  VSHUFPD path shares the global-bit rule per the SDM. Regression guest:
+  `tests/shufpd.c` (the `shufpd` case; also re-runs the full 24-round
+  reference1600 permutation end to end and checks the FNV-1a hash). The
+  guest's AVX-512 SDM-conformance battery (masked `{k1}`/`{k1}{z}` VSHUFPD,
+  the `{1to8}`/`{1to16}` embedded broadcasts, masked+broadcast VPERMILPD,
+  the EVEX VPERMILPD/PS imm forms, the widening/narrowing EVEX converts
+  in both broadcast and masked forms, the masked `{k1}`/`{k1}{z}` VPSHUFD
+  dword-granular merge/zeroing, and the ternlog family: the unmasked
+  `vpternlogq ..., m512{1to8}, ...` broadcast form plus the masked
+  VPTERNLOGQ (qword-granular) and VPTERNLOGD (dword-granular) merge/{z}
+  probes) is gated on
+  `is_in_zegarmistrz()` and therefore runs ONLY under the emulator -- this
+  host has no AVX-512, so the EVEX forms would SIGILL natively, while the
+  emulator implements AVX-512 in software on any host (the battery's
+  probes are silent on success so the native and emulated stdout stay
+  byte-identical for the mirror case; a manual run under `./zegarmistrz`
+  reports the executed-probe count on stderr).
+
+- **Zydis 4.1 never sets `ZYDIS_ATTRIB_HAS_EVEX_B` while DECODING** -- the
+  attribute is set exclusively by the encoder (see the "TODO: rename" note
+  at the attribute's definition in `zydis/Zydis.h`), so an attribute test
+  is always false and EVERY `{1toN}` memory operand used to be read as a
+  full-width sequential vector (`vshufpd ...{1to8}` pulled all 8 qwords,
+  `vpshufd ...{1to16}` all 16 dwords, etc.). Embedded-broadcast detection
+  must key off `insn.avx.broadcast.mode != ZYDIS_BROADCAST_MODE_INVALID`,
+  which the decoder fills from raw EVEX.B plus the per-tuple-type broadcast
+  tables; `evex_broadcast_elem()` derives the broadcast ELEMENT size from
+  the DECODED MEMORY OPERAND SIZE, which Zydis reports as exactly ONE
+  element in bits for a broadcasting operand. Verified empirically against
+  the vendored 4.1 by decoding the B=1 encodings of every broadcastable
+  family (mem op.size / count -> element bytes): vshufpd m64{1to8} zmm
+  64/8->8, vpshufd m512{1to16} zmm 32/16->4, vaddpd m64{1to2} xmm 64/2->8,
+  vaddps m128{1to8} ymm 32/8->4, vpermilpd m64{1to8} zmm 64/8->8,
+  vpermilps m512{1to16} zmm 32/16->4, vpternlogd m512{1to16} zmm 32/16->4
+  and vpternlogq m512{1to8} zmm 64/8->8 (both REAL SDM forms -- see the
+  ternlog bullet below), AND the half-width HV conversion
+  sources whose broadcast element is the SOURCE element: vcvtdq2pd
+  m256{1to8} zmm 32/8->4, vcvtps2pd m256{1to8} zmm 32/8->4,
+  vcvtdq2pd m128{1to4} ymm 32/4->4, vcvtdq2pd m64{1to2} xmm 32/2->4,
+  vcvtpd2ps m512{1to8} ymm 64/8->8. (An earlier revision derived the
+  element as DEST vector width / mode count -- `insn.avx.vector_length` is
+  the DEST length -- which works for the FV forms ONLY because their count
+  x source element happens to span the whole vector; for the widening HV
+  converts it fabricated the DEST element 8 where the broadcast element is
+  the SOURCE element 4, tripping the "impossible EVEX broadcast element
+  size" tripwire on legal code, and for vcvtps2pd it mis-replicated 8-byte
+  chunks while the handler converted 16 lanes off the end of the 64-byte
+  VecVal.) The broadcast mode's COUNT is used only as a sanity check on the
+  pair (count * element must fit the vector). Zydis also FABRICATES
+  broadcast modes for B=1 on instructions with no
+  broadcast form (vpermd/vpsrld decode as 1_TO_16) -- illegal
+  encodings that gas still assembles, so those silently broadcast instead
+  of #UD; the SDM battery does not pin them. NOTE: vpternlogd does NOT
+  belong in that fabricated list (an earlier revision of this bullet
+  wrongly listed it): the SDM gives VPTERNLOGD a real m32bcst form and
+  Zydis' 1_TO_16 for it is the real `{1to16}` (gas assembles
+  `62 f3 7d 58 25 07 80`; the emulator executes it correctly through the
+  generic broadcast path -- belem 4 matches exec_evex_ternlog's elem 4).
+  The same is true of VPTERNLOGQ's m64bcst `{1to8}`.
+
+- **EVEX perm-family element granularity**: `exec_evex_perm`'s `elem`
+  governs the write-mask/{z}/broadcast granularity AND the masked memory
+  read: VSHUFPD and VPERMILPD permute QWORDS (elem=8), VSHUFPS and
+  VPERMILPS dwords (elem=4), and the elem must match the mnemonic -- the
+  old code used dword granularity for both PD forms, so a `{k1}`-masked
+  VSHUFPD merged dwords where hardware keeps whole qwords (k1=0x0D wrote
+  qwords 0/2/3 hardware-side, but dwords 0/2/3 emulator-side: q0 came out
+  as a mix of two dwords, q1 was wrongly overwritten and q2/q3 wrongly
+  kept). The kind-4/5 tail (VPERMQ/VPERMPD imm vs VPSHUFD) had the same
+  trap in reverse: it shared ONE elem (8) for both kinds, so a
+  `{k1}`-masked VPSHUFD merged/zeroed whole QWORDS where the SDM is
+  per-DWORD (k1 bit j controls dest dword j, what
+  `_mm512_mask_shuffle_epi32`/`_mm512_maskz_shuffle_epi32` emit); the elem
+  is now per-kind (8 for VPERMQ/VPERMPD, 4 for VPSHUFD).
+
+- **EVEX ternlog element granularity**: `exec_evex_ternlog`'s `elem` is
+  per-mnemonic: VPTERNLOGD dwords (elem 4), VPTERNLOGQ qwords (elem 8).
+  It governs the write-mask/{z} lanes AND the `{1toN}` broadcast element
+  of the memory source, and BOTH broadcast forms are real (the SDM lists
+  m32bcst for VPTERNLOGD and m64bcst for VPTERNLOGQ; binutils assembles
+  `62 f3 7d 58 25 07 80` and `62 f3 fd 58 25 07 80`). The old hardcoded
+  elem=4 for both mnemonics tripped the "impossible EVEX broadcast element
+  size" tripwire on the legal unmasked `vpternlogq ..., m512{1to8}, ...`
+  form (belem 8 vs elem 4; exit 134 on valid code) and made a
+  `{k1}`-masked VPTERNLOGQ merge/{z} DWORD-granular where the SDM writes
+  whole qwords (k1=0x0002 with imm 0xFF: hardware sets qword 1 to all
+  ones and keeps q0/q2..q7; the emulator wrote only dword 1 of q0 and
+  kept q1).
+
+- **VPERMIL imm form: VPERMILPD consumes its imm bits GLOBALLY, one per
+  dest qword; VPERMILPS restarts its 2-bit pairs per 128-bit lane.**
+  Hardware (i9-14900HX, differential sweep over all 16 immediates at
+  256-bit): `vpermilpd $3` with src=[a0,a1,a2,a3] gives [a1,a1,a2,a2] and
+  `$0xC` gives [a0,a0,a3,a3] -- dest.q[j] selects within its 128-bit
+  lane's pair by imm bit j with j the GLOBAL dest qword number, so the
+  upper lane uses bits 2/3 (12 of 16 immediates diverged when the
+  emulator restarted at bit 0: $3 gave [a1,a1,a3,a3], $0xC gave
+  [a0,a0,a2,a2]). VPERMILPS cannot go global (imm8 only holds four 2-bit
+  pairs), so it restarts per lane like SHUFPS/VPSHUFD. The EVEX.512 imm
+  forms follow the same split (exec_evex_perm kind 3; the pre-fix emulator
+  died with "unsupported EVEX source operand" on those legal
+  _mm512_permute_pd/ps forms because it loaded the imm8 as a vector).
+
+- **VPERMIL variable-form controls read BIT 1 of each control element**
+  (the imm form uses consecutive bits -- verified: `vpermilpd $3` with
+  src=[a0,a1,a2,a3] gives [a1,a1,a2,a2]): VPERMILPS takes bits [1:0] of
+  each control DWORD, but VPERMILPD takes BIT 1 of each control QWORD,
+  per DEST qword, selecting within that 128-bit lane's qword pair
+  (hardware-verified on VEX.256 ymm: bit 1 of control q0 flips ONLY
+  dest.q0 to a1 while dest.q1 stays a0; bits 0 and 2 do nothing). The old
+  code used the imm-form bit positions for the variable form, so PD
+  controls read bit 0. Zero controls duplicate each pair's low qword
+  (dest = [q0, q0, q2, q2] at 256-bit) -- the variable form is NOT the
+  identity permutation.
+
+- **EVEX convert source-vs-dest element granularity**: for the EVEX
+  converts the vector length is the DEST width for the widening kinds
+  (VCVTPS2PD/VCVTDQ2PD: 8-byte dest doubles from 4-byte source dwords) and
+  the SOURCE width for the narrowing kind (VCVTPD2PS/VCVTPD2DQ/VCVTTPD2DQ:
+  4-byte dest dwords from 8-byte source doubles), so `exec_evex_cvt` loads
+  the source at sw = w/2 (widening) / w (narrowing) with the SOURCE element
+  (4, or 8 for the narrowing double source) -- the masked source load's
+  mask and a `{1toN}` broadcast's element both follow the SOURCE
+  granularity, NOT the dest element:
+  `vcvtps2pd zmm{k1}{z}, m256` with k1=0xF0 loads source dwords 4-7 and
+  converts them into dest doubles 4-7 (the old code masked 4 8-byte lanes
+  and loaded NOTHING -- all zeros), and `vcvtps2pd zmm, m256{1to8}`
+  replicates one 4-byte float over the 32-byte source (the old code read 8
+  bytes as the element and converted 16 lanes, writing 128 bytes into the
+  64-byte VecVal -- a real stack OOB, ASan-confirmed). The narrowing kind
+  masks over the DEST dwords with a full-width source read, so its load
+  granularity is unchanged. All widening/narrowing probes live in
+  tests/shufpd.c's is_in_zegarmistrz battery.
 
 - **Narrowing packed converts have an xmm DEST regardless of the vector
   width**: `vec_width()` is the DEST operand's size, so for
@@ -1158,15 +1324,35 @@ ELF loader (`elf_loader.cpp`):
 - **The 0F 12/16 half-move family has reg-reg and m64 spellings under
   DIFFERENT mnemonics**: 0F 12 with a register third operand is
   (V)MOVHLPS, with memory (V)MOVLPS/(V)MOVLPD; 0F 16 reg-reg is
-  (V)MOVLHPS, mem (V)MOVHPS/(V)MOVHPD. The VEX 3-operand forms assemble
-  the xmm dest from one half of each source ([x3.high, x2.high] for
-  MOVHLPS, [x2.low, x3.low] for MOVLHPS, [m64, x2.high] for the l-load,
-  [x2.low, m64] for the h-load -- hardware-verified) and zero the dest
-  above 128 bits, while the legacy reg-reg forms keep the dest's other
-  half and the upper YMM. clang emits VMOVLHPS into the KeccakP1600times4
+  (V)MOVLHPS, mem (V)MOVHPS/(V)MOVHPD. The VEX forms are ALWAYS
+  3-operand -- there is no 2-operand VEX m64 load (the encoding always
+  carries a vvvv source; GAS only accepts `vmovlps m64, src1, dst` and
+  with src1 == dst, the spelling gcc emits for load-into-existing-
+  register, the result keeps the old dst's other half and zeroes the
+  upper YMM). The VEX 3-operand forms assemble the xmm dest from one
+  half of each source ([x3.high, x2.high] for MOVHLPS, [x2.low, x3.low]
+  for MOVLHPS, [m64, x2.high] for the l-load, [x2.low, m64] for the
+  h-load -- hardware-verified) and zero the dest above 128 bits, while
+  the legacy load forms keep the dest's other half AND the upper YMM.
+  The m64 STORE forms (0F 13/66 0F 13 store the low half, 0F 17/66 0F 17
+  the high half; VEX twins pick the same lanes) are handled by the same
+  `exec_movlp` path. clang emits VMOVLHPS into the KeccakP1600times4
   lane interleave of djb's supercop newhope512cca avx2 kernel (56 sites in
   our clang -O3 build, so far only on untaken branches -- clang-19 could
-  take them). Regression guest: `tests/movlhps.c` (the `movlhps` case).
+  take them). Regression guests: `tests/movlhps.c` (the `movlhps` case)
+  and the legacy/store forms in `tests/insn_forms.c` (the `insn-forms`
+  case).
+
+- **VPINSR* applies the VEX zeroing rule to the upper YMM**: the
+  `exec_pinsr` VEX path must zero the dest's bytes above 128 -- the old
+  code left stale lanes there (hardware-verified via the ymm0-scratch
+  check in tests/insn_forms.c; the legacy PINSR* merge forms keep both
+  the untouched lanes and the upper YMM, exactly like the reg-reg
+  half-moves above). The PEXTR* GPR forms select from the LOW half only:
+  legacy PEXTRW (0F C5) and the SSE4.1/VEX forms all take imm8 % 8 for
+  words (% 16 bytes, % 4 dwords, % 2 qwords), and pextrq's qword[1] of
+  {d0=0xCAFEBABE, d1=0x12345678, d2=3, d3=4} is 0x0000000400000003 --
+  the qword index spans dword pairs.
 
 - **EVEX write masks are explicit operands**, even `{k0}` when
   unmasked (`vpaddd` decodes as `[dst, k, src1, src2]`);
@@ -1178,6 +1364,23 @@ ELF loader (`elf_loader.cpp`):
 - **Operand order is Intel order, but double-check per opcode**:
   `VPERMB/W` (and `VPERMD/Q`) compute `SRC2[SRC1]` (index in the
   *first* source; verified on HW against `_mm512_permutexvar_*`).
+  EVEX `VPERMQ`/`VPERMPD` share one opcode between TWO encodings with
+  SWAPPED operand roles: the imm8-control form has the data in ex[1]
+  (ModRM.rm) and the imm8 in ex[2], while the vector-control form has the
+  INDEX vector in ex[1] (EVEX.vvvv, register-only) and the DATA in ex[2]
+  (zmm / m512 / {1to8} m64bcst) -- dispatch on `ex[2]` being an
+  immediate. Both vector-form roles match VPERMD (index in vvvv, data in
+  rm); the SDM pseudo-code (`TMP_DEST[63:0] := (TMP_SRC2[511:0] >>
+  (SRC1[2:0] * 64))[63:0]`, SRC1 = vvvv, SRC2 = rm) gives GLOBAL mod-8
+  indexing across the whole 512-bit source -- do NOT implement per-half
+  ("per-lane") indexing for the vector form (that select-restart rule
+  belongs to the imm8 form, whose 2-bit selects apply to BOTH 256-bit
+  halves). There is NO memory-index form: vvvv is register-only, so a
+  memory third operand is always the DATA (the pre-fix emulator
+  kload()ed it as the imm8 and silently permuted with data[0] as the
+  selects; the register-index form died with exit 132). The shufpd
+  battery pins all of this, with lane-1 index elements >= 4 so the
+  global and per-half rules give different vectors.
   `SHA256RNDS2` hides its `b` source (`HIDDEN` visibility; `k` is the
   explicit mem operand). `GF2P8AFFINE*` needs output bit-reversal plus
   per-64-bit-lane matrices (verified on HW), and legacy/VEX forms

@@ -195,8 +195,8 @@ while read -r m; do
         # Known-unimplemented EVEX instruction (clean guest error, pinned by
         # tests/unimplemented.c -- the unimplemented-exit-code case): it
         # shows up in that guest's dump by design, so it is not a handler
-        # gap to flag. CMPLTSD/LDDQU stay reported below as the known
-        # baseline misses.
+        # gap to flag. CMPLTSD stays reported below as the known baseline
+        # miss (LDDQU left the list when its handler landed).
         vgetmantss) continue ;;
     esac
     resolve "$(norm "$m")" >> /tmp/zeg_found.txt

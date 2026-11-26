@@ -2700,7 +2700,8 @@ struct Engine {
         vec_sources(cpu, d, a, b);
         unsigned order = (unsigned)op_load(cpu, d, n - 1).v;
         unsigned lane = is_ps ? 4 : 8;
-        // Per 128-bit lane (VEX256 keeps lanes independent for SHUFPS/PD).
+        // Per 128-bit lane; VEX256 VSHUFPS restarts its bit pairs per lane,
+        // VSHUFPD indexes imm bits globally (see the in-loop comment below).
         for (unsigned L = 0; L < w; L += 16) {
             unsigned le = 16 / lane;
             for (unsigned i = 0; i < le; i++) {
@@ -2709,9 +2710,27 @@ struct Engine {
                     const uint8_t* src = (i < 2) ? a : b;
                     memcpy(o + L + i * lane, src + L + sel * lane, lane);
                 } else {
-                    unsigned sel = (order >> i) & 1;
-                    const uint8_t* src = sel ? b : a;
-                    memcpy(o + L + i * lane, src + L + i * lane, lane);
+                    // SHUFPD: output qword i selects WITHIN one source, not
+                    // between them: the low qword (i=0) stays in DEST
+                    // (imm[0]=0 -> DEST.q0, 1 -> DEST.q1) and the high qword
+                    // (i=1) stays in SRC (imm[1]=0 -> SRC.q0, 1 -> SRC.q1).
+                    // Hardware-verified (i9-14900HX): with DEST=[A,A] and
+                    // SRC=[B,B] every imm8 yields [A.lo, B.lo]; gcc -O0 folds
+                    // _mm_shuffle_pd imm0 to UNPCKLPD and imm3 to UNPCKHPD,
+                    // pinning DEST.lo / SRC.hi as the imm=0 endpoints. The
+                    // old code instead picked the SOURCE by the imm bit
+                    // ([imm0?SRC.q0:DEST.q0, imm1?SRC.q1:DEST.q1]), which
+                    // swapped halves on imm=1/3 (gcc -O3 keccakf1600
+                    // reference1600 divergence: the 8 per-round shufpd $1
+                    // sites each swapped a pair of theta columns).
+                    //
+                    // The imm bits index GLOBAL qwords at 256-bit (VEX.256
+                    // hardware: imm=5 gives [src1.q1, src2.q0, src1.q3,
+                    // src2.q2] -- the upper lane uses imm bits 2 and 3, unlike
+                    // VSHUFPS which restarts its bit pairs per lane).
+                    unsigned sel = (order >> ((L / 8) + i)) & 1;
+                    const uint8_t* src = (i == 0) ? a : b;
+                    memcpy(o + L + i * lane, src + L + sel * lane, lane);
                 }
             }
         }
@@ -3551,7 +3570,25 @@ struct Engine {
         for (unsigned L = 0; L < w; L += 16) {
             unsigned elems = 16 / lane;
             for (unsigned i = 0; i < elems; i++) {
-                unsigned sel = var ? (c[L + i * lane] & (elems - 1)) : (c[i] & (elems - 1));
+                // The IMM form's controls are CONSECUTIVE imm bits consumed
+                // GLOBALLY for PD and per-128-bit-lane for PS. Hardware
+                // (i9-14900HX, differential sweep): vpermilpd $3 with
+                // src=[a0,a1,a2,a3] gives [a1,a1,a2,a2] and $0xC gives
+                // [a0,a0,a3,a3] -- dest.q[j] selects within its 128-bit
+                // lane's pair by imm bit j with j the GLOBAL dest qword
+                // number (12 of 16 immediates diverged when the upper lane
+                // restarted at bit 0: $3 gave [a1,a1,a3,a3], $0xC gave
+                // [a0,a0,a2,a2]). VPERMILPS instead restarts its 2-bit
+                // pairs per lane (imm8 only has four pairs), matching
+                // SHUFPS/VPSHUFD. The VARIABLE form reads BIT 1 of each
+                // control element: VPERMILPS bits [1:0] of each control
+                // dword, but VPERMILPD bit 1 of each control qword
+                // (hardware-verified on VEX.256 ymm: bit 1 of control q0
+                // flips only dest.q0 to a1, dest.q1 stays a0; bits 0/2 do
+                // nothing). The old code used the imm-form bit positions for
+                // the variable form, so PD controls read bit 0.
+                unsigned sel = var ? ((c[L + i * lane] >> (is_pd ? 1 : 0)) & (elems - 1))
+                                   : (c[(is_pd ? (L / 8) : 0) + i] & (elems - 1));
                 memcpy(o + L + i * lane, a + L + sel * lane, lane);
             }
         }
@@ -4516,12 +4553,17 @@ struct Engine {
             if (is_vex(d) && n >= 4) {
                 // VPINSR{B,W,D,Q} xmm1, xmm2, r32/m*, imm8: the unchanged lanes
                 // come from op1 (not the old dst) and the inserted value is op2.
+                // The VEX forms are 128-bit only and apply the VEX zeroing
+                // rule: the dest's upper YMM (bytes 16..) is ZEROED -- the old
+                // code left stale lanes there (hardware-verified via the
+                // ymm0-scratch check in tests/insn_forms.c).
                 VecVal base;
                 vec_load_bytes(cpu, d, 1, base, 16);
                 Val s = op_load(cpu, d, 2);
                 memcpy(cpu->xmm[dsti].bytes, base, 16);
                 cpu->xmm[dsti].taint = base.taint | s.taint;
                 memcpy(cpu->xmm[dsti].bytes + k * lane, &s.v, lane);
+                memset(cpu->xmm[dsti].bytes + 16, 0, MAX_VEC_BYTES - 16);
             } else {
                 Val s = op_load(cpu, d, 1);
                 memcpy(cpu->xmm[dsti].bytes + k * lane, &s.v, lane);
@@ -5005,8 +5047,92 @@ struct Engine {
         return cpu->opmask[k] & all;
     }
 
-    static bool evex_broadcasting(const Dec& d) {
-        return (d.insn.attributes & ZYDIS_ATTRIB_HAS_EVEX_B) != 0;
+// EVEX {1toN} embedded-broadcast element size in bytes (0 = the operand is
+// not broadcasting). GOTCHA: the bundled Zydis 4.1 never sets
+// ZYDIS_ATTRIB_HAS_EVEX_B while DECODING -- the decoder only sets HAS_EVEX
+// (HAS_EVEX_B is set exclusively by the encoder, see the "TODO: rename"
+// note at its definition in Zydis.h) -- so the attribute is useless as a
+// detector and every {1toN} memory operand used to be read as a full-width
+// sequential vector. The reliable decoder-side signal is
+// insn.avx.broadcast.mode, which Zydis fills from raw EVEX.B plus the
+// per-tuple-type broadcast tables (FV/HV/QUARTER).
+//
+// The ELEMENT SIZE is the decoded MEMORY OPERAND SIZE: for a broadcasting
+// operand Zydis reports op.size as exactly ONE element in bits. Verified
+// empirically against the vendored 4.1 by decoding the EVEX.b=1 encodings
+// of every broadcastable family (mem operand size / count -> element):
+//
+//   vshufpd   m64{1to8}  zmm    64 bits / 8  ->  8 bytes  (FV qword)
+//   vpshufd   m512{1to16}zmm    32 bits / 16 ->  4 bytes  (FV dword)
+//   vaddpd    m512{1to8} zmm    64 bits / 8  ->  8 bytes  (FV qword)
+//   vaddpd    m64{1to2}  xmm    64 bits / 2  ->  8 bytes  (FV qword)
+//   vaddps    m128{1to8} ymm    32 bits / 8  ->  4 bytes  (FV dword)
+//   vaddps    m64{1to4}  xmm    32 bits / 4  ->  4 bytes  (FV dword)
+//   vpermilpd m64{1to8}  zmm    64 bits / 8  ->  8 bytes  (FV qword)
+//   vpermilps m512{1to16}zmm    32 bits / 16 ->  4 bytes  (FV dword)
+//   vpternlogd m512{1to16}zmm   32 bits / 16 ->  4 bytes  (FV dword: m32bcst
+//                               is a REAL SDM form for VPTERNLOGD, not a
+//                               Zydis fabrication -- see exec_evex_ternlog)
+//   vpternlogq m512{1to8} zmm   64 bits / 8  ->  8 bytes  (FV qword: m64bcst,
+//                               ditto; exec_evex_ternlog used to pass elem=4
+//                               here and trip the tripwire below on it)
+//   vcvtdq2pd m256{1to8} zmm    32 bits / 8  ->  4 bytes  (HV: SOURCE
+//                               element 4 bytes -- the count 8 is defined
+//                               against the DEST doubles, so the old
+//                               vector_length/8/count formula gave 8 here,
+//                               tripping the "impossible EVEX broadcast
+//                               element size" tripwire on legal code)
+//   vcvtps2pd m256{1to8} zmm    32 bits / 8  ->  4 bytes  (HV, ditto)
+//   vcvtdq2pd m128{1to4} ymm    32 bits / 4  ->  4 bytes  (HV)
+//   vcvtdq2pd m64{1to2}  xmm    32 bits / 2  ->  4 bytes  (HV)
+//   vcvtpd2ps m512{1to8} ymm    64 bits / 8  ->  8 bytes  (narrowing HV:
+//                               SOURCE element 8 bytes)
+//
+// (The earlier claim that op.size is element*count was wrong -- it picked
+// the one family where the broken width/count formula coincidentally
+// works. The broadcast MODE's count is a separate fact; it is used only as
+// a sanity check below.) The multi-element group modes (2_TO_4 etc.) are
+// KNC/MVEX-only and never appear on EVEX forms we execute. The EVEX
+// instructions with Zydis "static broadcast" definitions (the BF16
+// converts) are handled by their own exec (exec_cvtnebf16), which loads
+// the float32 SOURCE with elem=4 -- a NONZERO elem (an earlier revision of
+// this comment wrongly claimed they pass elem==0). That elem matches the
+// 1_TO_16 static-broadcast element Zydis reports for their B=1 encodings
+// (op.size=32 -> belem=4), so the generic replication path handles them
+// (one float32 replicated across the full-width source) and the tripwire
+// never fires.
+    static unsigned evex_broadcast_count(const Dec& d) {
+        switch (d.insn.avx.broadcast.mode) {
+        case ZYDIS_BROADCAST_MODE_1_TO_2: return 2;
+        case ZYDIS_BROADCAST_MODE_1_TO_4: return 4;
+        case ZYDIS_BROADCAST_MODE_1_TO_8: return 8;
+        case ZYDIS_BROADCAST_MODE_1_TO_16: return 16;
+        case ZYDIS_BROADCAST_MODE_1_TO_32: return 32;
+        case ZYDIS_BROADCAST_MODE_1_TO_64: return 64;
+        default: return 0;
+        }
+    }
+
+    static unsigned evex_broadcast_elem(const Dec& d, const ZydisDecodedOperand& op) {
+        unsigned count = evex_broadcast_count(d);
+        if (count == 0 || op.type != ZYDIS_OPERAND_TYPE_MEMORY)
+            return 0;
+        // One decoded element, in bits (see the table above).
+        unsigned belem = op.size / 8;
+        if (belem == 0 || belem > 8)
+            return 0;
+        // Sanity on the (mode, element) pair: the count's replication
+        // (count * element) is the broadcast's logical source width and
+        // must fit the vector, and the element must divide it. This keeps a
+        // hypothetical future Zydis behavior change (e.g. op.size going
+        // back to full-width) from silently mis-broadcasting: the check
+        // fires instead. The FV forms replicate across the full vector,
+        // the HV conversion sources across HALF of it, so only <= and
+        // divisibility can be asserted.
+        unsigned full = d.insn.avx.vector_length / 8;
+        if (full % belem != 0 || count * belem > full)
+            return 0;
+        return belem;
     }
 
 // Taint of the active EVEX write mask ({k1}-style), if any: masked-off
@@ -5076,14 +5202,29 @@ struct Engine {
         if (op.type == ZYDIS_OPERAND_TYPE_MEMORY) {
             // §4.7: {k}-masked load from memory -- the mask is timing-relevant.
             check_evex_mem_mask(cpu, d);
-            if (elem && evex_broadcasting(d)) {
+            unsigned belem = evex_broadcast_elem(d, op);
+            if (elem && belem) {
+                // Cross-check the derived broadcast element size against the
+                // caller's elem whenever this is a full-vector load (w == the
+                // vector width, the FV case): a mismatch means the handler's
+                // elem misstates the element granularity (which also governs
+                // the write mask below), an SDM divergence. Half-width
+                // sources (the HV conversion forms load sw < full, and the
+                // widening kinds' masked source load uses the SOURCE lane
+                // count) skip the check. With belem now derived from the
+                // decoded memory operand this fires only on genuinely
+                // impossible handler/decoder combinations.
+                if (w == d.insn.avx.vector_length / 8 && belem != elem)
+                    guest_error(cpu, "impossible EVEX broadcast element size");
                 if (kbits != 0) {
                     uint8_t one[8];
                     uint64_t addr = resolve_mem(cpu, op, cpu->rip + d.insn.length);
-                    mem_load_bytes(cpu, addr, one, elem);
-                    mem_get_taint(addr, elem, &out.taint);
-                    for (unsigned i = 0; i < w; i += elem)
-                        memcpy(out.bytes + i, one, elem);
+                    // Read ONLY the broadcast element (Zydis already scaled a
+                    // compressed disp8 by the element size), then replicate.
+                    mem_load_bytes(cpu, addr, one, belem);
+                    mem_get_taint(addr, belem, &out.taint);
+                    for (unsigned i = 0; i < w; i += belem)
+                        memcpy(out.bytes + i, one, belem);
                 }
                 return;
             }
@@ -5778,21 +5919,35 @@ struct Engine {
 
     static void exec_evex_ternlog(CPU* cpu, const Dec& d) {
         unsigned w = evex_width(cpu, d);
+        // The element granularity is PER-MNEMONIC: VPTERNLOGD dwords,
+        // VPTERNLOGQ qwords.  It governs the write-mask/{z} lanes (a masked
+        // VPTERNLOGQ merge/{z} writes whole QWORDS per the SDM -- k1 bit j
+        // controls dest qword j) AND the {1toN} embedded broadcast of the
+        // memory source, whose forms are real: the SDM lists m32bcst for
+        // VPTERNLOGD and m64bcst for VPTERNLOGQ, and binutils assembles both
+        // (62 f3 7d 58 25 07 80 / 62 f3 fd 58 25 07 80).  The old code
+        // hardcoded elem=4 for both, so (1) the legal
+        // `vpternlogq ..., m512{1to8}, ...` form died on the
+        // "impossible EVEX broadcast element size" tripwire (belem=8 vs
+        // elem=4), and (2) a {k1}-masked VPTERNLOGQ merged DWORDS where
+        // hardware keeps whole qwords (k1=0x0002 wrote only dest dword 1
+        // emulator-side while hardware writes qword 1).
+        unsigned elem = (d.insn.mnemonic == ZYDIS_MNEMONIC_VPTERNLOGQ) ? 8 : 4;
         int ex[5];
         int n = evex_explicit(d, ex);
         // EVEX: dst{k},src1,src2,src3/m,imm8. VEX: dst,src1,src2,imm8.
         VecVal a, b, c, o, old;
         unsigned lut = 0;
         if (n >= 5) {
-            evex_load(cpu, d, ex[1], a, w, 4);
-            evex_load(cpu, d, ex[2], b, w, 4);
-            evex_load(cpu, d, ex[3], c, w, 4);
+            evex_load(cpu, d, ex[1], a, w, elem);
+            evex_load(cpu, d, ex[2], b, w, elem);
+            evex_load(cpu, d, ex[3], c, w, elem);
             lut = (unsigned)kload(cpu, d, ex[4], 8);
         } else if (n == 4) {
-            evex_load(cpu, d, ex[1], a, w, 4);
-            evex_load(cpu, d, ex[2], b, w, 4);
+            evex_load(cpu, d, ex[1], a, w, elem);
+            evex_load(cpu, d, ex[2], b, w, elem);
             // VEX dst doubles as third source.
-            evex_load(cpu, d, ex[0], c, w, 4);
+            evex_load(cpu, d, ex[0], c, w, elem);
             lut = (unsigned)kload(cpu, d, ex[3], 8);
         } else {
             guest_error(cpu, "bad vpternlog operands");
@@ -5809,9 +5964,9 @@ struct Engine {
         }
         evex_old(cpu, d, ex[0], old, w);
         bool zeroing = false;
-        uint64_t kbits = evex_mask(cpu, d, w / 4, zeroing);
+        uint64_t kbits = evex_mask(cpu, d, w / elem, zeroing);
         o.taint = a.taint | b.taint | c.taint;
-        evex_store(cpu, d, ex[0], o, old, w, 4, kbits, zeroing);
+        evex_store(cpu, d, ex[0], o, old, w, elem, kbits, zeroing);
         cpu->rip = next_rip(cpu, d);
     }
 
@@ -6381,44 +6536,118 @@ struct Engine {
         if (kind == 4 || kind == 5) {
             if (n < 3)
                 guest_error(cpu, "perm needs 3 operands");
-            evex_load(cpu, d, ex[1], a, w, kind == 4 ? 8 : 4);
-            unsigned order = (unsigned)kload(cpu, d, ex[2], 8);
-            if (kind == 5) {
-                for (unsigned lane = 0; lane < w; lane += 16)
-                    for (unsigned i = 0; i < 4; i++) {
-                        unsigned sel = (order >> (i * 2)) & 3;
-                        memcpy(o + lane + i * 4, a + lane + sel * 4, 4);
-                    }
+            // The elem is the write-mask/{z}/broadcast granularity, and it is
+            // PER-MNEMONIC here: kind 4 (VPERMQ/VPERMPD) permutes qwords,
+            // but kind 5 (VPSHUFD) has DWORD elements -- k1 bit j controls
+            // dest dword j (what _mm512_mask_shuffle_epi32 and
+            // _mm512_maskz_shuffle_epi32 emit).  The shared tail below used
+            // to hardcode 8 for both kinds, so a {k1}-masked VPSHUFD merged
+            // (or zeroed) whole QWORDS: with k1=0x0005 hardware writes dwords
+            // 0 and 2 and keeps/zeroes dwords 1 and 3 of each lane, while the
+            // emulator took qwords 0 and 2 whole from the result -- a silent
+            // SDM divergence.
+            unsigned elem = (kind == 4) ? 8 : 4;
+            // VPERMQ/VPERMPD share one opcode between TWO encodings: the
+            // imm8-control form (third operand = imm8; ex[1] = the data) and
+            // the vector-control form (third operand = the data vector;
+            // ex[1] = the index vector).  Dispatch on the third operand
+            // exactly like kind 3 does for its imm vs vector-control forms.
+            bool variable =
+                (kind == 4 && d.ops[ex[2]].type != ZYDIS_OPERAND_TYPE_IMMEDIATE);
+            if (variable) {
+                // Vector-control VPERMQ/VPERMPD (SDM "EVEX - vector control
+                // forms"): "Copies quadwords from the second source operand
+                // (the third operand) to the destination operand (the first
+                // operand) according to the indices in the first source
+                // operand (the second operand)."  So the INDEX vector is the
+                // EVEX.vvvv operand (ex[1]; register-only by encoding) and
+                // the DATA is the ModRM.rm operand (ex[2]: zmm, m512, or an
+                // m64bcst -- Zydis reports {1to8} on the rm operand with
+                // op.size=64, which evex_load replicates at elem=8; the SDM
+                // lists m64bcst for the THIRD operand only).  The low 3 bits
+                // of each index qword select GLOBALLY across the whole
+                // 512-bit source:
+                //   TMP_DEST[63:0] := (TMP_SRC2[511:0] >> (SRC1[2:0] * 64))[63:0]
+                // (VL=512 pseudo-code; SRC1 = vvvv = index, SRC2 = rm = data)
+                // -- the same global mod-lanes rule kind 2 implements for
+                // VPERMD (hardware-verified).  DO NOT re-introduce per-half
+                // ("per-lane") indexing here: the SDM pseudo-code shifts the
+                // FULL 512-bit source, so an index element >= 4 in lane 1
+                // reaches across the half boundary; the per-half select
+                // restart belongs to the imm8 form below, whose 2-bit fields
+                // apply to BOTH halves.
+                // GOTCHA: the operand ROLES are the reverse of the imm8
+                // form's (there ex[1] is the data and ex[2] is the imm8), and
+                // there is NO memory-index form: EVEX.vvvv is register-only,
+                // so a memory third operand is always the DATA.  The
+                // pre-fix emulator unconditionally took kload(ex[2]) here,
+                // which on the register form died with "unsupported register
+                // operand" (exit 132, kload->op_load cannot load vector
+                // registers) and on the memory form silently used the first
+                // qword of the 64-byte data vector as the imm8 selects.
+                evex_load(cpu, d, ex[1], a, w, elem);
+                evex_load(cpu, d, ex[2], b, w, elem);
+                unsigned lanes = w / elem;
+                for (unsigned i = 0; i < lanes; i++) {
+                    uint64_t ix = 0;
+                    memcpy(&ix, a + i * elem, elem);
+                    uint64_t sel = ix % lanes;
+                    memcpy(o + i * elem, b + sel * elem, elem);
+                }
             } else {
-                for (unsigned i = 0; i < w; i += 8) {
-                    // VPERMQ/VPERMPD (imm8): the four 2-bit selects index qwords
-                    // WITHIN each 256-bit half, and the same selects apply to
-                    // both halves: dest.q[4H + j] = src.q[4H + ((imm >> 2j) & 3)]
-                    // (hardware-verified; on zmm the old code indexed imm by the
-                    // global qword number, so the upper half read imm bits 8-15
-                    // -- always zero -- instead of reusing the low selects).
-                    unsigned sel = (order >> (((i % 32) / 8) * 2)) & 3;
-                    unsigned lane = (i / 32) * 32;
-                    memcpy(o + i, a + lane + sel * 8, 8);
+                evex_load(cpu, d, ex[1], a, w, elem);
+                unsigned order = (unsigned)kload(cpu, d, ex[2], 8);
+                if (kind == 5) {
+                    for (unsigned lane = 0; lane < w; lane += 16)
+                        for (unsigned i = 0; i < 4; i++) {
+                            unsigned sel = (order >> (i * 2)) & 3;
+                            memcpy(o + lane + i * 4, a + lane + sel * 4, 4);
+                        }
+                } else {
+                    for (unsigned i = 0; i < w; i += 8) {
+                        // VPERMQ/VPERMPD (imm8): the four 2-bit selects index qwords
+                        // WITHIN each 256-bit half, and the same selects apply to
+                        // both halves: dest.q[4H + j] = src.q[4H + ((imm >> 2j) & 3)]
+                        // (hardware-verified; on zmm the old code indexed imm by the
+                        // global qword number, so the upper half read imm bits 8-15
+                        // -- always zero -- instead of reusing the low selects).
+                        unsigned sel = (order >> (((i % 32) / 8) * 2)) & 3;
+                        unsigned lane = (i / 32) * 32;
+                        memcpy(o + i, a + lane + sel * 8, 8);
+                    }
                 }
             }
             evex_old(cpu, d, ex[0], old, w);
             bool zeroing = false;
-            uint64_t kbits = evex_mask(cpu, d, w / 8, zeroing);
-            o.taint = a.taint;
-            evex_store(cpu, d, ex[0], o, old, w, 8, kbits, zeroing);
+            uint64_t kbits = evex_mask(cpu, d, w / elem, zeroing);
+            o.taint = variable ? (a.taint | b.taint) : a.taint;
+            evex_store(cpu, d, ex[0], o, old, w, elem, kbits, zeroing);
             cpu->rip = next_rip(cpu, d);
             return;
         }
         if (n < 3)
             guest_error(cpu, "perm needs 3 operands");
-        unsigned elem = (kind == 0) ? 1 : (kind == 1 ? 2 : (kind == 3 ? 4 : 4));
+        unsigned elem = (kind == 0) ? 1 : (kind == 1 ? 2 : 4);
         if (kind == 2)
             elem = (d.insn.mnemonic == ZYDIS_MNEMONIC_VPERMQ) ? 8 : 4;
+        // The elem is the write-mask/{z}/broadcast granularity: the PD forms
+        // permute QWORDS (VSHUFPD even/odd output qwords, VPERMILPD per-qword
+        // control bits), the PS forms dwords. The old code used dword
+        // granularity for both, so a {k1}-masked VSHUFPD/VPERMILPD merged
+        // (or zeroed, or broadcast-loaded) DWORDS where hardware keeps whole
+        // qwords, and a {1to8} broadcast read 16 dwords sequentially instead
+        // of replicating one qword (see evex_broadcast_elem above).
+        if (kind == 3)
+            elem = (d.insn.mnemonic == ZYDIS_MNEMONIC_VPERMILPD) ? 8 : 4;
         if (kind == 6)
-            elem = 4;
+            elem = (d.insn.mnemonic == ZYDIS_MNEMONIC_VSHUFPD) ? 8 : 4;
         evex_load(cpu, d, ex[1], a, w, elem);
-        evex_load(cpu, d, ex[2], b, w, elem);
+        // Kind 3's second source is a CONTROL VECTOR (register/memory) in the
+        // variable form, but the imm form has no second vector source: ex[2]
+        // is the imm8 itself, so loading it would die with "unsupported EVEX
+        // source operand". Only load it for the vector-control forms.
+        if (!(kind == 3 && d.ops[ex[2]].type == ZYDIS_OPERAND_TYPE_IMMEDIATE))
+            evex_load(cpu, d, ex[2], b, w, elem);
         if (kind == 0 || kind == 1 || kind == 2) {
             // Variable permutes (VPERMB/W/D/Q): the INDEX vector is the first
             // source, data the second: dst[i] = data[idx[i]] (verified on HW).
@@ -6433,13 +6662,41 @@ struct Engine {
         } else if (kind == 3) {
             bool is_pd = (d.insn.mnemonic == ZYDIS_MNEMONIC_VPERMILPD);
             unsigned lane = is_pd ? 8 : 4;
-            for (unsigned L = 0; L < w; L += 16) {
-                unsigned elems = 16 / lane;
-                for (unsigned i = 0; i < elems; i++) {
-                    uint64_t cv = 0;
-                    memcpy(&cv, b + L + i * lane, lane);
-                    unsigned sel = (unsigned)(cv & (elems - 1));
-                    memcpy(o + L + i * lane, a + L + sel * lane, lane);
+            if (d.ops[ex[2]].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) {
+                // EVEX imm form (vpermilpd/ps zmm{k}{z}, m512/zmm/m64bcst,
+                // imm8): what _mm512_permute_pd/ps emits. The imm bits are
+                // the same rule as the VEX.256 imm form (see exec_vpermil):
+                // PD consumes ONE imm bit per dest qword GLOBALLY (dest
+                // qword j selects within its pair by bit j), PS restarts
+                // its 2-bit pairs per 128-bit lane. The old code fell
+                // through to evex_load on the immediate operand and died
+                // with "unsupported EVEX source operand" (exit 132) on
+                // these legal forms.
+                unsigned order = (unsigned)kload(cpu, d, ex[2], 8);
+                for (unsigned L = 0; L < w; L += 16) {
+                    unsigned elems = 16 / lane;
+                    for (unsigned i = 0; i < elems; i++) {
+                        unsigned sel = is_pd ? ((order >> ((L / 8) + i)) & 1)
+                                             : ((order >> (i * 2)) & 3);
+                        memcpy(o + L + i * lane, a + L + sel * lane, lane);
+                    }
+                }
+            } else {
+                for (unsigned L = 0; L < w; L += 16) {
+                    unsigned elems = 16 / lane;
+                    for (unsigned i = 0; i < elems; i++) {
+                        uint64_t cv = 0;
+                        memcpy(&cv, b + L + i * lane, lane);
+                        // Variable-form controls: VPERMILPS takes bits [1:0] of
+                        // each control DWORD, but VPERMILPD takes BIT 1 of each
+                        // control QWORD (hardware-verified on VEX.256 ymm: with
+                        // src=[a0,a1,a2,a3], setting bit 1 of control q0 flips
+                        // ONLY dest.q0 to a1 while dest.q1 stays a0; bit 0 and
+                        // bit 2 do nothing). The imm form is different -- its
+                        // bits are consecutive per dest qword (see exec_vpermil).
+                        unsigned sel = (unsigned)((cv >> (is_pd ? 1 : 0)) & (elems - 1));
+                        memcpy(o + L + i * lane, a + L + sel * lane, lane);
+                    }
                 }
             }
         } else {
@@ -6459,9 +6716,18 @@ struct Engine {
                         const uint8_t* src = (i < 2) ? a : c;
                         memcpy(o + L + i * lane, src + L + sel * lane, lane);
                     } else {
-                        unsigned sel = (order >> i) & 1;
-                        const uint8_t* src = sel ? c : a;
-                        memcpy(o + L + i * lane, src + L + i * lane, lane);
+                        // VSHUFPD dst,src1,src2,imm: same within-source rule
+                        // as legacy SHUFPD (hardware-verified on VEX.256):
+                        // even output qwords select within src1, odd output
+                        // qwords within src2, and the imm bits index GLOBAL
+                        // qword positions (upper 128-bit lane uses imm bits
+                        // 2/3 at 256-bit, bits 4-7 at 512-bit -- unlike
+                        // VSHUFPS which restarts its bit pairs per lane).
+                        // Selecting the SOURCE by the bit instead swapped
+                        // halves on imm=1/3.
+                        unsigned sel = (order >> ((L / 8) + i)) & 1;
+                        const uint8_t* src = (i == 0) ? a : c;
+                        memcpy(o + L + i * lane, src + L + sel * lane, lane);
                     }
                 }
             }
@@ -6813,6 +7079,14 @@ struct Engine {
 // EVEX punpck/pshufb/palignr/pblendvb forms (element-wise, masked).
     static void exec_evex_unpack(CPU* cpu, const Dec& d, int kind) {
         // kind 0=punpckl/h (elem from mnemonic) 1=pshufb 2=palignr 3=pblendvb
+        // The elem is the write-mask/{z}/broadcast granularity AND the
+        // interleave element: the PS unpacks permute DWORDS (elem 4) -- the
+        // old default 8 conflated them with the QDQ/PD unpacks, so EVEX
+        // vunpcklps/hps interleaved qwords (dest = [a.d0,a.d1,b.d0,b.d1]
+        // instead of [a.d0,b.d0,a.d1,b.d1]) and a {1to16} broadcast tripped
+        // the "impossible EVEX broadcast element size" check on legal code.
+        // The byte forms (pshufb/palignr/pblendvb) are byte-granular for the
+        // same reason (their masks merge bytes).
         unsigned elem = 1;
         bool high = false;
         switch (d.insn.mnemonic) {
@@ -6821,14 +7095,26 @@ struct Engine {
         case ZYDIS_MNEMONIC_VPUNPCKLWD:
         case ZYDIS_MNEMONIC_VPUNPCKHWD: elem = 2; break;
         case ZYDIS_MNEMONIC_VPUNPCKLDQ:
-        case ZYDIS_MNEMONIC_VPUNPCKHDQ: elem = 4; break;
-        default: elem = 8; break;
+        case ZYDIS_MNEMONIC_VPUNPCKHDQ:
+        case ZYDIS_MNEMONIC_VUNPCKLPS:
+        case ZYDIS_MNEMONIC_VUNPCKHPS: elem = 4; break;
+        case ZYDIS_MNEMONIC_VPUNPCKLQDQ:
+        case ZYDIS_MNEMONIC_VPUNPCKHQDQ:
+        case ZYDIS_MNEMONIC_VUNPCKLPD:
+        case ZYDIS_MNEMONIC_VUNPCKHPD: elem = 8; break;
+        default:
+            if (kind == 0)
+                guest_error(cpu, "evex unpack: unknown element granularity");
+            elem = 1;
+            break;
         }
         switch (d.insn.mnemonic) {
         case ZYDIS_MNEMONIC_VPUNPCKHBW:
         case ZYDIS_MNEMONIC_VPUNPCKHWD:
         case ZYDIS_MNEMONIC_VPUNPCKHDQ:
-        case ZYDIS_MNEMONIC_VPUNPCKHQDQ: high = true; break;
+        case ZYDIS_MNEMONIC_VPUNPCKHQDQ:
+        case ZYDIS_MNEMONIC_VUNPCKHPS:
+        case ZYDIS_MNEMONIC_VUNPCKHPD: high = true; break;
         default: break;
         }
         unsigned w = evex_width(cpu, d);
@@ -8861,20 +9147,37 @@ struct Engine {
 // Masked packed-float converts (EVEX forms of the phase-1 CVT handlers).
     static void exec_evex_cvt(CPU* cpu, const Dec& d, int kind) {
         // kind 0=dq2ps 1=tt_ps2dq 2=ps2dq 3=pd2ps 4=ps2pd 5=dq2pd
-        unsigned elem = 4;
-        if (kind == 3 || kind == 4)
-            elem = 8;
+        // ELEMENT GRANULARITY RULE (the converts are the canonical
+        // source-vs-dest conflation): evex_width() is the DEST width for the
+        // widening kinds (4/5) and the SOURCE width for the narrowing kind
+        // (3). The SOURCE element is 4 bytes (int32/float) except the
+        // narrowing double source (8 bytes), and the SOURCE load's mask and
+        // broadcast granularity follow the SOURCE element and SOURCE lane
+        // count -- NOT the dest element:
+        //   * vcvtps2pd zmm{k1}{z}, m256: the source is 8 dwords; mask bit j
+        //     feeds dest double j. The old code passed the dest element 8,
+        //     so the mask computed 4 lanes, k1=0xF0 loaded NOTHING and the
+        //     dest came out all zeros (hardware loads source dwords 4-7).
+        //   * vcvtps2pd zmm, m256{1to8}: the broadcast element is the 4-byte
+        //     source float replicated over the 32-byte source. The old code
+        //     read 8 bytes as one element, converted 16 lanes (the source
+        //     width fell back to the dest width) and wrote 128 bytes into
+        //     the 64-byte VecVal -- a real stack OOB -- while vcvtdq2pd
+        //     m256{1to8} died on the broadcast-element tripwire (the old
+        //     width/count formula derived the DEST element 8 for these HV
+        //     forms, whose broadcast element is the SOURCE element 4).
+        // The narrowing kind (3) masks over the DEST dwords with a
+        // full-width source read, which is exactly lanes = w/8 over sw = w,
+        // so its load granularity is unchanged by this fix.
+        unsigned selem = (kind == 3) ? 8 : 4;
         unsigned w = evex_width(cpu, d);
+        unsigned sw = (kind >= 4) ? (w / 2) : w;
         int ex[5];
         int n = evex_explicit(d, ex);
         if (n < 2)
             guest_error(cpu, "evex cvt needs 2 operands");
-        // Source width differs for widening/narrowing; derive from operand size.
-        unsigned sw = d.ops[ex[1]].size / 8;
-        if (sw != 16 && sw != 32 && sw != 64)
-            sw = w;
         VecVal a, o, old;
-        evex_load(cpu, d, ex[1], a, sw, elem == 8 ? 8 : 4);
+        evex_load(cpu, d, ex[1], a, sw, selem);
         memset(o, 0, MAX_VEC_BYTES);
         if (kind <= 2) {
             unsigned lanes = w / 4;
@@ -8917,7 +9220,8 @@ struct Engine {
             o.taint = a.taint;
             evex_store(cpu, d, ex[0], o, old, w / 2, 4, kbits, zeroing);
         } else if (kind == 4) {
-            // ps2pd: w*2 bytes of doubles from w bytes of floats.
+            // ps2pd: sw bytes of floats -> w bytes of doubles (sw = w/2, so
+            // the dest lane count is sw/4 == w/8 and dw == w).
             unsigned lanes = sw / 4;
             for (unsigned i = 0; i < lanes; i++) {
                 float fv = 0;
@@ -8925,17 +9229,14 @@ struct Engine {
                 double dv = (double)fv;
                 memcpy(o + i * 8, &dv, 8);
             }
-            unsigned dw = lanes * 8;
-            if (dw > 64)
-                dw = 64;
-            evex_old(cpu, d, ex[0], old, dw);
+            evex_old(cpu, d, ex[0], old, w);
             bool zeroing = false;
             uint64_t kbits = evex_mask(cpu, d, lanes, zeroing);
             o.taint = a.taint;
-            evex_store(cpu, d, ex[0], o, old, dw, 8, kbits, zeroing);
+            evex_store(cpu, d, ex[0], o, old, w, 8, kbits, zeroing);
         } else if (kind == 5) {
             // dq2pd: int32 -> double, widening like ps2pd but with an integer
-            // source (VCVTDQ2PD): w bytes of dwords -> 2w bytes of doubles.
+            // source (VCVTDQ2PD): sw bytes of dwords -> w bytes of doubles.
             unsigned lanes = sw / 4;
             for (unsigned i = 0; i < lanes; i++) {
                 int32_t iv = 0;
@@ -8943,14 +9244,11 @@ struct Engine {
                 double dv = (double)iv;
                 memcpy(o + i * 8, &dv, 8);
             }
-            unsigned dw = lanes * 8;
-            if (dw > 64)
-                dw = 64;
-            evex_old(cpu, d, ex[0], old, dw);
+            evex_old(cpu, d, ex[0], old, w);
             bool zeroing = false;
             uint64_t kbits = evex_mask(cpu, d, lanes, zeroing);
             o.taint = a.taint;
-            evex_store(cpu, d, ex[0], o, old, dw, 8, kbits, zeroing);
+            evex_store(cpu, d, ex[0], o, old, w, 8, kbits, zeroing);
         }
         cpu->rip = next_rip(cpu, d);
     }
@@ -10597,6 +10895,9 @@ struct Engine {
         case ZYDIS_MNEMONIC_VMOVDQU16:
         case ZYDIS_MNEMONIC_VMOVDQU32:
         case ZYDIS_MNEMONIC_VMOVDQU64:
+        // LDDQU/VLDDQU: pure unaligned data-movement load (MOVDQU-class).
+        case ZYDIS_MNEMONIC_LDDQU:
+        case ZYDIS_MNEMONIC_VLDDQU:
         case ZYDIS_MNEMONIC_MOVSS:
         case ZYDIS_MNEMONIC_VMOVSS:
         case ZYDIS_MNEMONIC_MOVLPS:
@@ -11463,6 +11764,14 @@ struct Engine {
         case ZYDIS_MNEMONIC_MOVUPD:
         case ZYDIS_MNEMONIC_MOVDQA:
         case ZYDIS_MNEMONIC_MOVDQU:
+        // LDDQU (SSE3 F2 0F F0) / VLDDQU (VEX F2 0F F0): architecturally an
+        // unaligned 16-byte load identical to MOVDQU (the cache-line-
+        // crossing hint is not software-visible); route through the same
+        // move handler.  The legacy form keeps the upper YMM, the VEX forms
+        // zero above the loaded width -- exec_vec_move implements exactly
+        // that split.
+        case ZYDIS_MNEMONIC_LDDQU:
+        case ZYDIS_MNEMONIC_VLDDQU:
         case ZYDIS_MNEMONIC_VMOVAPS:
         case ZYDIS_MNEMONIC_VMOVUPS:
         case ZYDIS_MNEMONIC_VMOVAPD:
