@@ -31,7 +31,11 @@ static void assert_oob_traps(int semid, int cmd)
 
     int status = 0;
     ZASSERT(waitpid(pid, &status, 0) == pid);
-    ZASSERT(WIFSIGNALED(status));
+    /* The trap either kills the child by signal (the default) or makes it
+       exit with 42, because filc/run-tests sets FILC_EXIT_ON_PANIC=1 and the
+       runtime honors that flag by exiting cleanly instead of raising a
+       signal. Both outcomes mean the out-of-bounds semctl was caught. */
+    ZASSERT(WIFSIGNALED(status) || (WIFEXITED(status) && WEXITSTATUS(status) == 42));
 }
 
 int main(void)

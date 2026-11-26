@@ -202,7 +202,7 @@ end
 sarcasm.splitFunctions = splitFunctions
 
 -- Build the regalloc instruction array from transform IR nodes.
--- Functions whose fipNodes stream exceeds this many nodes take the scalable
+-- Functions that are too big for the exact regalloc path take the scalable
 -- regalloc path: fail-stub noreturn calls (marked noreturnCall by the codegen
 -- fail-stub builders) are modeled as NOT falling through. With the historical
 -- (small-function) model every fail stub falls into the next, so liveness
@@ -214,7 +214,29 @@ sarcasm.splitFunctions = splitFunctions
 -- — but it changes liveness and with it the coloring, so it is enabled only
 -- where the exact historical coloring is unaffordable; every function small
 -- enough keeps the exact historical path (and its byte-identical output).
+--
+-- Affordability is a property of the stub clique, not of the node count alone:
+-- the exact model's cost is O(nodes x stubs) live-set entries and O(stubs^2)
+-- interference edges, so a fully unrolled function with a check for each of
+-- thousands of memory ops is far more expensive than a stub-free function of
+-- the same size. Judging by node count alone missed that: a 21K-node function
+-- with 1200 checks stayed on the exact path and needed 8 GB (issue #367),
+-- while the same function with noreturn-modeled stubs needs well under 1 GB.
+-- So the scalable path triggers when the node count exceeds BIG_RA_INSNS, or
+-- when the estimated exact-model cost — failStubs x nodes — exceeds
+-- BIG_RA_EXACT_WORK. The unit is a node-stub product (roughly half as many
+-- live-set entries); 2M bounds the exact path's regalloc memory at under ~1GB
+-- on the worst shapes seen in the wild (OpenSSL's unrolled crypto functions).
+--
+-- SARCASM_BIG_RA overrides the choice for every function: "1" forces the
+-- scalable noreturn model; "0" forces the exact historical model (which can
+-- need many GB on stub-heavy functions — forcing it is a debugging and
+-- output-comparison escape hatch).
 local BIG_RA_INSNS = 32768
+local BIG_RA_EXACT_WORK = 2 * 1024 * 1024
+
+-- SARCASM_BIG_RA override, read once at startup (see the comment above).
+local bigRaEnv = process.env and process.env.SARCASM_BIG_RA or nil
 
 local function buildRaInsns(nodes, bigMode)
 	local ra = {}
@@ -484,9 +506,21 @@ local function allocateWithSpilling(tr, target)
 		while ((8 * numRoots + fpPad) % A) ~= 0 do fpPad += 8 end
 	end
 	local spillBase = 16 + 8 * numRoots + fpPad + fpRegion
-	local bigMode = #tr.fipNodes > BIG_RA_INSNS
-	prof.mark("fn " .. (tr.name or "?") .. " allocate (" .. #tr.fipNodes .. " fipNodes"
-		.. (bigMode and ", big" or "") .. ")")
+	local failStubs = 0
+	for _, node in tr.fipNodes do
+		if node.noreturnCall then failStubs += 1 end
+	end
+	local bigMode
+	if bigRaEnv == "1" then
+		bigMode = true
+	elseif bigRaEnv == "0" then
+		bigMode = false
+	else
+		bigMode = #tr.fipNodes > BIG_RA_INSNS
+			or failStubs * #tr.fipNodes > BIG_RA_EXACT_WORK
+	end
+	prof.mark("fn " .. (tr.name or "?") .. " allocate (" .. #tr.fipNodes .. " fipNodes, "
+		.. failStubs .. " fail stubs" .. (bigMode and ", big" or "") .. ")")
 	for _ = 1, 32 do
 		-- spill-cost heuristic: cost ~ number of def/use occurrences, so IRC prefers
 		-- spilling rarely-used temps (a value used once is cheap to reload; a value used

@@ -43,6 +43,17 @@ Shared (architecture-independent):
   the same temp and the loop never converges (seen on ecp_nistz256's sqr_mont,
   whose register-saturated localcall clone squeezes the function-wide myth web
   out of the color pool).
+- Fail-stub noreturn modeling (driver): for functions where the exact
+  historical regalloc model is unaffordable, the driver models fail-stub
+  noreturn calls as not falling through (the faithful model — the trap path
+  never resumes). The exact model chains liveness backward through the whole
+  end-of-function stub run (O(stubs^2) interference clique, O(nodes x stubs)
+  live-set memory), so the scalable model triggers when the node count
+  exceeds BIG_RA_INSNS (32768) or when failStubs x nodes exceeds 2M — node
+  count alone misjudges stub-heavy unrolled functions (issue #367: 21K nodes
+  with 1200 checks needed 8 GB; noreturn-modeled, well under 1 GB).
+  SARCASM_BIG_RA=1 forces the scalable model for every function;
+  SARCASM_BIG_RA=0 forces the exact historical model everywhere.
 - `emit.luau`       — shared emission: reload elimination, spill bookkeeping, self-move
   dropping; per-arch render module supplies instruction text + prologue/epilogue.
 - `build.luau`      — constructors for synthesized IR nodes.

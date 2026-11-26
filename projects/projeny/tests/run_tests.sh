@@ -21747,8 +21747,9 @@ printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: foou2\n\n  
     "$T351B" "$h351b" > "$T351B/foou2.projeny"
 printf 'Projeny: foou2.projeny\nOrigname: fake-1.0\nName: barb2\n\n    Projeny-based.\n\n' \
     > "$T351B/barb2.projeny"
+h351b2="$("$PROJENY" hash "$T351B/fake-2.0.tar.gz")"
 cp "$T351/urlu.projeny" "$T351B/urlu.projeny"
-sed -i "s|file://$T351/|file://$T351B/|" "$T351B/urlu.projeny"
+sed -i "s|file://$T351/|file://$T351B/|; s|$h351|$h351b2|" "$T351B/urlu.projeny"
 out="$(cd "$T351B" && "$PROJENY" setup -j2 barb2.projeny urlu.projeny 2>&1)"
 rc=$?
 if [ $rc -eq 0 ]; then
