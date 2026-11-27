@@ -1,0 +1,69 @@
+URL: https://github.com/meta/zstd/releases/download/v1.6.0/zstd-1.6.0.tar.gz 0251aabf5ba86cd431ee8e4112eaa36e029ac55b30f5074bda42ed8069e5a780
+URL: https://github.com/facebook/zstd/releases/download/v1.6.0/zstd-1.6.0.tar.gz 0251aabf5ba86cd431ee8e4112eaa36e029ac55b30f5074bda42ed8069e5a780
+Origname: zstd-1.6.0
+Name: zstd
+
+    zstd 1.6.0 with the Fil-C port: skip the x86-64 inline asm (ZSTD_selectAddr and the code-alignment .p2align asm) under __FILC__, since the Fil-C compiler cannot compile raw asm that moves or computes pointers. The 1.5.7 fileio.c lz4 contentChecksumFlag fix is upstream in 1.6.0.
+diff --git a/zstd/lib/compress/zstd_compress_internal.h b/zstd/lib/compress/zstd_compress_internal.h
+--- a/zstd/lib/compress/zstd_compress_internal.h
++++ b/zstd/lib/compress/zstd_compress_internal.h
+@@ -659,7 +659,7 @@
+ MEM_STATIC const BYTE*
+ ZSTD_selectAddr(U32 index, U32 lowLimit, const BYTE* candidate, const BYTE* backup)
+ {
+-#if defined(__GNUC__) && defined(__x86_64__)
++#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
+     __asm__ (
+         "cmp %1, %2\n"
+         "cmova %3, %0\n"
+diff --git a/zstd/lib/compress/zstd_lazy.c b/zstd/lib/compress/zstd_lazy.c
+--- a/zstd/lib/compress/zstd_lazy.c
++++ b/zstd/lib/compress/zstd_lazy.c
+@@ -1615,7 +1615,7 @@
+     }
+
+     /* Match Loop */
+-#if defined(__GNUC__) && defined(__x86_64__)
++#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
+     /* I've measured random a 5% speed loss on levels 5 & 6 (greedy) when the
+      * code alignment is perturbed. To fix the instability align the loop on 32-bytes.
+      */
+@@ -2013,7 +2013,7 @@
+     }
+
+     /* Match Loop */
+-#if defined(__GNUC__) && defined(__x86_64__)
++#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
+     /* I've measured random a 5% speed loss on levels 5 & 6 (greedy) when the
+      * code alignment is perturbed. To fix the instability align the loop on 32-bytes.
+      */
+diff --git a/zstd/lib/decompress/zstd_decompress_block.c b/zstd/lib/decompress/zstd_decompress_block.c
+--- a/zstd/lib/decompress/zstd_decompress_block.c
++++ b/zstd/lib/decompress/zstd_decompress_block.c
+@@ -1599,7 +1599,7 @@
+                 *
+                 *   https://gist.github.com/terrelln/9889fc06a423fd5ca6e99351564473f4
+                 */
+-#if defined(__GNUC__) && defined(__x86_64__)
++#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
+             __asm__(".p2align 6");
+ #  if __GNUC__ >= 7
+ 	    /* good for gcc-7, gcc-9, and gcc-11 */
+@@ -1662,7 +1662,7 @@
+         if (nbSeq > 0) {
+             /* there is remaining lit from extra buffer */
+
+-#if defined(__GNUC__) && defined(__x86_64__)
++#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
+             __asm__(".p2align 6");
+             __asm__("nop");
+ #  if __GNUC__ != 7
+@@ -1761,7 +1761,7 @@
+         ZSTD_initFseState(&seqState.stateML, &seqState.DStream, dctx->MLTptr);
+         assert(dst != NULL);
+
+-#if defined(__GNUC__) && defined(__x86_64__)
++#if defined(__GNUC__) && defined(__x86_64__) && !defined(__FILC__)
+             __asm__(".p2align 6");
+             __asm__("nop");
+ #  if __GNUC__ >= 7

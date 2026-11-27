@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright (c) 2025 Epic Games, Inc. All Rights Reserved.
+# Copyright (c) 2026 Filip Pizlo. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -11,25 +12,28 @@
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY EPIC GAMES, INC. ``AS IS AND ANY
+# THIS SOFTWARE IS PROVIDED BY FILIP PIZLO ``AS IS'' AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL EPIC GAMES, INC. OR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL FILIP PIZLO OR
 # CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
 # PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 . libpas/common.sh
 
 set -e
 set -x
 
-cd projects/zstd-1.5.7
-extract_source
+cd projects
+rm -rf zstd/extracted-source
+../filc/projeny extract zstd.projeny zstd/extracted-source
+cd zstd/extracted-source
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ ZSTD_NO_ASM=1 make check V=1 -j $NCPU
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ ZSTD_NO_ASM=1 make install V=1 -j $NCPU prefix=$PWD/../../../pizfix
-
+cd ..
+rm -rf extracted-source
