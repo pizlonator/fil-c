@@ -1,12 +1,12 @@
-Archive: libffi-3.8.0.tar.gz
-Origname: libffi-3.8.0
+URL: https://github.com/libffi/libffi/releases/download/v3.8.2/libffi-3.8.2.tar.gz ad67025851efb2e0562337057d1f7160686fe724ec7cfe83b9bed51c041eb6d9
+Origname: libffi-3.8.2
 Name: libffi
 
-    libffi 3.8.0 with the Fil-C port (FFI_FILC ABI on x86_64 and aarch64).
+    libffi 3.8.2 with the Fil-C port (FFI_FILC ABI on x86_64 and aarch64).
 diff --git a/libffi/Makefile.am b/libffi/Makefile.am
 --- a/libffi/Makefile.am
 +++ b/libffi/Makefile.am
-@@ -124,7 +124,7 @@
+@@ -128,7 +128,7 @@
 
  if LIBFFI_BUILD_VERSIONED_SHLIB
  if LIBFFI_BUILD_VERSIONED_SHLIB_GNU
@@ -18,7 +18,7 @@ diff --git a/libffi/Makefile.am b/libffi/Makefile.am
 diff --git a/libffi/Makefile.in b/libffi/Makefile.in
 --- a/libffi/Makefile.in
 +++ b/libffi/Makefile.in
-@@ -617,7 +617,7 @@
+@@ -623,7 +623,7 @@
  LTLDFLAGS = $(shell $(SHELL) $(top_srcdir)/libtool-ldflags $(LDFLAGS))
  AM_CFLAGS = $(am__append_3)
  @LIBFFI_BUILD_VERSIONED_SHLIB_FALSE@libffi_version_script = 
@@ -27,16 +27,6 @@ diff --git a/libffi/Makefile.in b/libffi/Makefile.in
  @LIBFFI_BUILD_VERSIONED_SHLIB_SUN_TRUE@@LIBFFI_BUILD_VERSIONED_SHLIB_TRUE@libffi_version_script = -Wl,-M,libffi.map-sun
  @LIBFFI_BUILD_VERSIONED_SHLIB_FALSE@libffi_version_dep = 
  @LIBFFI_BUILD_VERSIONED_SHLIB_GNU_TRUE@@LIBFFI_BUILD_VERSIONED_SHLIB_TRUE@libffi_version_dep = libffi.map
-diff --git a/libffi/README.md b/libffi/README.md
---- a/libffi/README.md
-+++ b/libffi/README.md
-@@ -1,5 +1,5 @@
-
--libffi-3.7.1 was released on July 10, 2026.
-+libffi-3.8.0 was released on August 8, 2026.
-
-
- What is libffi?
 diff --git a/libffi/configure.host b/libffi/configure.host
 --- a/libffi/configure.host
 +++ b/libffi/configure.host
@@ -120,8 +110,8 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  /* Force FFI_TYPE_LONGDOUBLE to be different than FFI_TYPE_DOUBLE;
     all further uses in this file will refer to the 128-bit type.  */
  #if FFI_TYPE_DOUBLE != FFI_TYPE_LONGDOUBLE
-@@ -350,6 +354,86 @@
-   return candidate * 4 + (4 - (int)ele_count);
+@@ -238,6 +242,86 @@
+   return candidate * 4 + (4 - count);
  }
 
 +#ifdef __FILC__
@@ -207,8 +197,8 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  /* Representation of the procedure call argument marshalling
     state.
 
-@@ -423,6 +507,10 @@
-   return memcpy ((char *) stack + dest, value, size);
+@@ -336,6 +420,10 @@
+   return memcpy (dest, value, size);
  }
 
 +#endif /* __FILC__ */
@@ -218,7 +208,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  static ffi_arg
  extend_integer_type (void *source, int type)
  {
-@@ -483,6 +571,10 @@
+@@ -396,6 +484,10 @@
      }
  }
 
@@ -229,7 +219,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  #if defined(_MSC_VER) && !defined(__clang__)
  void extend_hfa_type (void *dest, void *src, int h);
  #else
-@@ -627,6 +719,10 @@
+@@ -532,6 +624,10 @@
  }
  #endif
 
@@ -240,7 +230,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  /* Either allocate an appropriate register for the argument type, or if
     none are available, allocate a stack slot and return a pointer
     to the allocated space.  */
-@@ -671,6 +767,8 @@
+@@ -577,6 +673,8 @@
    return ret;
  }
 
@@ -249,7 +239,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  ffi_status FFI_HIDDEN
  ffi_prep_cif_machdep (ffi_cif *cif)
  {
-@@ -678,6 +776,24 @@
+@@ -584,6 +682,24 @@
    size_t bytes = cif->bytes;
    int flags, i, n;
 
@@ -274,7 +264,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
    switch (rtype->type)
      {
      case FFI_TYPE_VOID:
-@@ -743,7 +859,32 @@
+@@ -649,7 +765,32 @@
        abort();
      }
 
@@ -307,7 +297,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
      if (is_vfp_type (cif->arg_types[i]))
        {
  	flags |= AARCH64_FLAG_ARG_V;
-@@ -775,6 +916,7 @@
+@@ -697,6 +838,7 @@
  #endif
 
    return FFI_OK;
@@ -315,7 +305,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  }
 
  #if defined (__APPLE__)
-@@ -791,9 +933,20 @@
+@@ -713,9 +855,20 @@
  ffi_status FFI_HIDDEN
  ffi_prep_cif_machdep_var(ffi_cif *cif, unsigned int nfixedargs, unsigned int ntotalargs)
  {
@@ -336,7 +326,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  }
  #endif /* __APPLE__ */
 
-@@ -810,6 +963,69 @@
+@@ -732,6 +885,72 @@
  ffi_call_int (ffi_cif *cif, void (*fn)(void), void *orig_rvalue,
  	      void **avalue, void *closure)
  {
@@ -399,14 +389,17 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
 +
 +  rets = zcall (fn, stack);
 +
-+  if (rvalue != NULL && !(flags & AARCH64_RET_IN_MEM))
++  /* A void return has no value to copy: the caller's return buffer must
++     be left untouched.  */
++  if (cif->rtype->type != FFI_TYPE_VOID
++      && rvalue != NULL && !(flags & AARCH64_RET_IN_MEM))
 +    memcpy (rvalue, rets, cif->rtype->size);
 +  return;
 +#else
    struct call_context *context;
    void *stack, *frame, *rvalue;
    struct arg_state state;
-@@ -997,6 +1213,7 @@
+@@ -927,6 +1146,7 @@
 
    if (flags & AARCH64_RET_NEED_COPY)
      memcpy (orig_rvalue, rvalue, rtype_size);
@@ -414,7 +407,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  }
 
  void
-@@ -1032,6 +1249,12 @@
+@@ -962,6 +1182,12 @@
                        void *user_data,
                        void *codeloc)
  {
@@ -427,7 +420,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
    if (cif->abi != FFI_SYSV && cif->abi != FFI_WIN64)
      return FFI_BAD_ABI;
 
-@@ -1092,6 +1315,7 @@
+@@ -1022,6 +1248,7 @@
  out:
  # endif
  #endif
@@ -435,7 +428,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
 
    closure->cif = cif;
    closure->fun = fun;
-@@ -1142,6 +1366,7 @@
+@@ -1072,6 +1299,7 @@
     descriptors, invokes the wrapped function, then marshalls the return
     value back into the call context.  */
 
@@ -443,7 +436,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
  int FFI_HIDDEN
  ffi_closure_SYSV_inner (ffi_cif *cif,
  			void (*fun)(ffi_cif*,void*,void**,void*),
-@@ -1297,6 +1522,7 @@
+@@ -1228,6 +1456,7 @@
 
    return flags;
  }
@@ -451,7 +444,7 @@ diff --git a/libffi/src/aarch64/ffi.c b/libffi/src/aarch64/ffi.c
 
  #if defined(FFI_EXEC_STATIC_TRAMP)
  void *
-@@ -1307,6 +1533,64 @@
+@@ -1238,6 +1467,64 @@
    *tramp_size = AARCH64_TRAMP_SIZE;
    *map_size = AARCH64_TRAMP_MAP_SIZE;
    return &trampoline_code_table;
@@ -597,7 +590,7 @@ diff --git a/libffi/src/closures.c b/libffi/src/closures.c
  #ifdef __NetBSD__
  #include <sys/param.h>
  #endif
-@@ -1102,4 +1129,5 @@
+@@ -1136,4 +1163,5 @@
  #endif /* FFI_CLOSURES */
 
  #endif /* NetBSD with PROT_MPROTECT */
@@ -606,7 +599,7 @@ diff --git a/libffi/src/closures.c b/libffi/src/closures.c
 diff --git a/libffi/src/prep_cif.c b/libffi/src/prep_cif.c
 --- a/libffi/src/prep_cif.c
 +++ b/libffi/src/prep_cif.c
-@@ -388,7 +388,7 @@
+@@ -414,7 +414,7 @@
     exclude the fallback only when ffi64.c actually provides it; everywhere else
     this plan just records the cif and invoke calls ffi_call, so the API is
     always present and links on all targets.  The cif must outlive the plan. */
@@ -650,8 +643,81 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
 
  /* All reference to register classes here is identical to the code in
     gcc/config/i386/i386.c. Do *not* change one without the other.  */
-@@ -444,7 +457,7 @@
+@@ -477,9 +490,80 @@
+   return 0;
+ }
 
++#ifdef __FILC__
++
++/* Fil-C passes arguments through the zcall blob, a byte array that the
++   callee's generic entrypoint decodes.  The blob is laid out like a
++   struct whose fields are the arguments: *slot_size and *slot_align give
++   the size and alignment of the argument's slot.  This mirrors what the
++   Fil-C compiler does on x86-64: integer arguments narrower than a word
++   are promoted to 64-bit slots; __int128 arguments travel as a register
++   pair, so zcall packs them into two 8-byte slots; and other scalars,
++   vectors, and aggregates take a slot of their natural size at their
++   natural alignment.  The natural alignment of an aggregate is the ABI
++   alignment that the compiler computes for the aggregate's type, which
++   it derives from the types of the aggregate's elements.  Over-alignment
++   declared on the C type only affects where the compiler places the
++   argument copy, not the blob layout, so recompute the alignment from
++   the elements rather than trusting ffi_type's alignment field, which
++   records the declared alignment.  Fall back to the recorded alignment
++   if the elements are not available.  */
++
++static void
++filc_arg_slot (ffi_type *ty, long *slot_size, long *slot_align)
++{
++  *slot_size = ty->size;
++  *slot_align = ty->alignment;
++  if (*slot_align < 8)
++    *slot_align = 8;
++
++  switch (ty->type)
++    {
++    case FFI_TYPE_SINT8:
++    case FFI_TYPE_UINT8:
++    case FFI_TYPE_SINT16:
++    case FFI_TYPE_UINT16:
++    case FFI_TYPE_INT:
++    case FFI_TYPE_SINT32:
++    case FFI_TYPE_UINT32:
++      /* Sub-word integer arguments travel in 64-bit slots.  */
++      *slot_size = 8;
++      break;
++    case FFI_TYPE_SINT128:
++    case FFI_TYPE_UINT128:
++      /* __int128 arguments travel as a register pair, and zcall packs
++	 them into 8-byte slots.  */
++      *slot_align = 8;
++      *slot_size = 16;
++      break;
++    case FFI_TYPE_STRUCT:
++    case FFI_TYPE_COMPLEX:
++      if (ty->elements != NULL)
++	{
++	  ffi_type **elem;
++	  size_t natural = 8;
++
++	  for (elem = ty->elements; *elem != NULL; elem++)
++	    {
++	      long elem_size, elem_align;
++
++	      filc_arg_slot (*elem, &elem_size, &elem_align);
++	      if ((size_t) elem_align > natural)
++		natural = elem_align;
++	    }
++	  *slot_align = natural;
++	}
++      break;
++    default:
++      break;
++    }
++}
++
++#endif /* __FILC__ */
++
  /* Perform machine dependent cif processing.  */
 
 -#ifndef __ILP32__
@@ -659,7 +725,7 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
  extern ffi_status
  ffi_prep_cif_machdep_efi64(ffi_cif *cif);
  #endif
-@@ -458,12 +471,17 @@
+@@ -493,12 +577,17 @@
    size_t bytes, n, rtype_size;
    ffi_type *rtype;
 
@@ -679,7 +745,7 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
 
    gprcount = ssecount = 0;
 
-@@ -618,9 +636,20 @@
+@@ -659,23 +748,41 @@
    /* Go over all arguments and determine the way they should be passed.
       If it's in a register and there is space for it, let that be so. If
       not, add it's size to the stack byte count.  */
@@ -701,22 +767,30 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
  	  || gprcount + ngpr > MAX_GPR_REGS
  	  || ssecount + nsse > MAX_SSE_REGS)
  	{
-@@ -629,6 +658,14 @@
+ 	  long align = cif->arg_types[i]->alignment;
++	  long slot_size = cif->arg_types[i]->size;
+
  	  if (align < 8)
  	    align = 8;
 
 +#ifdef __FILC__
-+	  /* __int128 arguments travel as a register pair, and zcall packs
-+	     them into 8-byte slots.  */
-+	  if (cif->arg_types[i]->type == FFI_TYPE_SINT128
-+	      || cif->arg_types[i]->type == FFI_TYPE_UINT128)
-+	    align = 8;
++	  /* Fil-C lays the argument out in the zcall blob; see
++	     filc_arg_slot.  */
++	  filc_arg_slot (cif->arg_types[i], &slot_size, &align);
 +#endif
 +
  	  bytes = FFI_ALIGN (bytes, align);
- 	  bytes += cif->arg_types[i]->size;
+ 	  /* cif->bytes is an unsigned int: refuse a total it cannot hold
+ 	     rather than let ffi_call allocate the truncated size.  */
+-	  if (bytes > INT_MAX || cif->arg_types[i]->size > INT_MAX - bytes)
++	  if (bytes > INT_MAX || slot_size > INT_MAX - bytes)
+ 	    return FFI_BAD_TYPEDEF;
+-	  bytes += cif->arg_types[i]->size;
++	  bytes += slot_size;
  	}
-@@ -654,6 +691,63 @@
+       else
+ 	{
+@@ -705,6 +812,63 @@
  ffi_call_int (ffi_cif *cif, void (*fn)(void), void *rvalue,
  	      void **avalue, void *closure)
  {
@@ -752,35 +826,35 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
 +
 +  for (i = 0; i < avn; ++i)
 +    {
-+      size_t size = size = arg_types[i]->size;
-+      long align = arg_types[i]->alignment;
++      size_t size = arg_types[i]->size;
++      long slot_size, slot_align;
 +
-+      if (align < 8)
-+        align = 8;
++      filc_arg_slot (arg_types[i], &slot_size, &slot_align);
 +
-+      /* __int128 arguments travel as a register pair, and zcall packs
-+         them into 8-byte slots.  */
-+      if (arg_types[i]->type == FFI_TYPE_SINT128
-+	  || arg_types[i]->type == FFI_TYPE_UINT128)
-+	align = 8;
-+
-+      argp = (void *) FFI_ALIGN (argp, align);
++      argp = (char *) FFI_ALIGN (argp, slot_align);
++      /* Sub-word integer slots hold the argument in their low bytes: the
++	 callee reads the slot as a 64-bit value and truncates it back to
++	 the argument's type, so the uninitialized high bytes do not
++	 matter.  */
 +      memcpy (argp, avalue[i], size);
 +
-+      argp += size;
++      argp += slot_size;
 +    }
 +
 +  FFI_ASSERT (argp == stack + cif->bytes);
 +
 +  rets = zcall (fn, stack);
 +
-+  if (rvalue != NULL && !(flags & UNIX64_FLAG_RET_IN_MEM))
++  /* A void return has no value to copy: the caller's return buffer must
++     be left untouched.  */
++  if (cif->rtype->type != FFI_TYPE_VOID
++      && rvalue != NULL && !(flags & UNIX64_FLAG_RET_IN_MEM))
 +    memcpy (rvalue, rets, cif->rtype->size);
 +#else
    enum x86_64_reg_class classes[MAX_CLASSES];
    char *stack, *argp;
    ffi_type **arg_types;
-@@ -771,9 +865,11 @@
+@@ -838,9 +1002,11 @@
 
    ffi_call_unix64 (stack, cif->bytes + sizeof (struct register_args),
  		   flags, rvalue, fn);
@@ -792,7 +866,7 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
  /* =====================================================================
     Precompiled argument-placement plan, used by the ffi_call_plan API.
 
-@@ -1122,13 +1218,18 @@
+@@ -1202,13 +1368,18 @@
  	 + (plan->fast != NULL ? plan->fast->alloc_bytes : 0);
  }
 
@@ -810,8 +884,8 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
 +#ifndef __FILC__
    ffi_type **arg_types = cif->arg_types;
    void **avalue_copy = NULL;
-   int i, nargs = cif->nargs;
-@@ -1162,6 +1263,7 @@
+   unsigned i, nargs = cif->nargs;
+@@ -1242,6 +1413,7 @@
        return;
      }
  #endif
@@ -819,7 +893,7 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
    ffi_call_int (cif, fn, rvalue, avalue, NULL);
  }
 
-@@ -1196,7 +1298,7 @@
+@@ -1276,7 +1448,7 @@
  extern void ffi_closure_unix64_sse_alt(void) FFI_HIDDEN;
  #endif
 
@@ -828,7 +902,7 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
  extern ffi_status
  ffi_prep_closure_loc_efi64(ffi_closure* closure,
  			   ffi_cif* cif,
-@@ -1212,6 +1314,11 @@
+@@ -1292,6 +1464,11 @@
  		      void *user_data,
  		      void *codeloc)
  {
@@ -840,7 +914,7 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
    static const unsigned char trampoline[24] = {
      /* endbr64 */
      0xf3, 0x0f, 0x1e, 0xfa,
-@@ -1257,6 +1364,7 @@
+@@ -1337,6 +1514,7 @@
  #if defined(FFI_EXEC_STATIC_TRAMP)
  out:
  #endif
@@ -848,7 +922,7 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
    closure->cif = cif;
    closure->fun = fun;
    closure->user_data = user_data;
-@@ -1264,6 +1372,63 @@
+@@ -1344,6 +1522,60 @@
    return FFI_OK;
  }
 
@@ -887,20 +961,17 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
 +
 +  for (i = 0; i < avn; ++i)
 +    {
-+      long align = arg_types[i]->alignment;
++      long slot_size, slot_align;
 +
-+      if (align < 8)
-+        align = 8;
++      filc_arg_slot (arg_types[i], &slot_size, &slot_align);
 +
-+      /* __int128 arguments travel as a register pair, and the Fil-C
-+         runtime packs them into 8-byte slots.  */
-+      if (arg_types[i]->type == FFI_TYPE_SINT128
-+	  || arg_types[i]->type == FFI_TYPE_UINT128)
-+	align = 8;
-+
-+      argp = (void *) FFI_ALIGN (argp, align);
++      /* Sub-word integer slots hold the value in their low bytes, so
++	 pointing avalue at the slot start hands the wrapped function the
++	 argument at its own type, exactly as if it had been called
++	 directly.  */
++      argp = (char *) FFI_ALIGN (argp, slot_align);
 +      avalue[i] = argp;
-+      argp += arg_types[i]->size;
++      argp += slot_size;
 +    }
 +
 +  fun (cif, rvalue, avalue, user_data);
@@ -912,7 +983,7 @@ diff --git a/libffi/src/x86/ffi64.c b/libffi/src/x86/ffi64.c
  int FFI_HIDDEN
  ffi_closure_unix64_inner(ffi_cif *cif,
  			 void (*fun)(ffi_cif*, void*, void**, void*),
-@@ -1362,6 +1527,7 @@
+@@ -1445,6 +1677,7 @@
    /* Tell assembly how to perform return type promotions.  */
    return flags;
  }
@@ -967,3 +1038,41 @@ diff --git a/libffi/testsuite/libffi.closures/closure_loc_fn0.c b/libffi/testsui
    CHECK(memcmp(pcl, FFI_CL(codeloc), sizeof(*pcl)) == 0);
  #endif
 
+diff --git a/libffi/testsuite/libffi.closures/closure_mmap_failure.c b/libffi/testsuite/libffi.closures/closure_mmap_failure.c
+--- a/libffi/testsuite/libffi.closures/closure_mmap_failure.c
++++ b/libffi/testsuite/libffi.closures/closure_mmap_failure.c
+@@ -8,8 +8,11 @@
+ /* The Emscripten browser harness compiles every testcase and ignores the
+    dg-do target above.  This test interposes mmap through RTLD_NEXT and needs
+    dlsym on a glibc/ELF system; on wasm, dlsym from an unopened handle aborts.
+-   Guard the body so it is a harmless no-op anywhere it cannot run.  */
+-#if defined(__GLIBC__)
++   Guard the body so it is a harmless no-op anywhere it cannot run.  Under
++   Fil-C, closures are zclosure objects created by zclosure_new(); closure
++   allocation never makes executable mappings, so there is no mmap failure
++   path to exercise.  */
++#if defined(__GLIBC__) && !defined(__FILC__)
+
+ #include <dlfcn.h>
+ #include <errno.h>
+diff --git a/libffi/testsuite/libffi.vector/vector_validate.c b/libffi/testsuite/libffi.vector/vector_validate.c
+--- a/libffi/testsuite/libffi.vector/vector_validate.c
++++ b/libffi/testsuite/libffi.vector/vector_validate.c
+@@ -98,12 +98,15 @@
+     CHECK (vt.alignment == 8);
+   }
+
+-#if defined(__x86_64__) && !defined(__ILP32__)
++#if defined(__x86_64__) && !defined(__ILP32__) && defined(FFI_WIN64)
+   /* The Win64 backend (FFI_WIN64 / FFI_GNUW64) built into the x86-64 library
+      does not marshal vectors: a well-formed vector must be rejected as a
+      return type, as an argument, and nested inside a struct, whatever its
+      size.  A 64-byte vector return used to be accepted and then overflowed
+-     the closure's 16-byte result slot.  */
++     the closure's 16-byte result slot.  Under Fil-C the x86-64 library
++     provides only the FFI_FILC ABI, so there is no Win64 backend to
++     validate, and FFI_WIN64 does not even name an ABI; skip the check
++     there.  */
+   {
+     static const ffi_abi abis[] = { FFI_WIN64, FFI_GNUW64 };
+     unsigned i;
