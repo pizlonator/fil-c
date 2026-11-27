@@ -46,7 +46,11 @@ int memfd_new(const char *name) {
                  * a hint indicating our library implementation, and
                  * add the thread name to it */
 
-                assert_se(prctl(PR_GET_NAME, (unsigned long) pr) >= 0);
+                /* Fil-C: never cast a pointer to an integer when passing it through a
+                 * variadic function - the pointer must keep its object identity or the
+                 * Fil-C runtime correctly panics when the kernel writes the thread name
+                 * through it.  See filc_native_zsys_prctl. */
+                assert_se(prctl(PR_GET_NAME, pr) >= 0);
 
                 if (isempty(pr))
                         name = "sd";

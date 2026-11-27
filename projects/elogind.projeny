@@ -3,6 +3,38 @@ Origname: elogind-255.27
 Name: elogind
 
     Fil-C patch for elogind
+diff --git a/elogind/src/basic/memfd-util.c b/elogind/src/basic/memfd-util.c
+--- a/elogind/src/basic/memfd-util.c
++++ b/elogind/src/basic/memfd-util.c
+@@ -46,7 +46,11 @@
+                  * a hint indicating our library implementation, and
+                  * add the thread name to it */
+
+-                assert_se(prctl(PR_GET_NAME, (unsigned long) pr) >= 0);
++                /* Fil-C: never cast a pointer to an integer when passing it through a
++                 * variadic function - the pointer must keep its object identity or the
++                 * Fil-C runtime correctly panics when the kernel writes the thread name
++                 * through it.  See filc_native_zsys_prctl. */
++                assert_se(prctl(PR_GET_NAME, pr) >= 0);
+
+                 if (isempty(pr))
+                         name = "sd";
+diff --git a/elogind/src/basic/process-util.c b/elogind/src/basic/process-util.c
+--- a/elogind/src/basic/process-util.c
++++ b/elogind/src/basic/process-util.c
+@@ -1938,7 +1938,11 @@
+         if (getpid_cached() == 1)
+                 return true;
+
+-        if (prctl(PR_GET_CHILD_SUBREAPER, (unsigned long) &b, 0UL, 0UL, 0UL) < 0)
++        /* Fil-C: never cast a pointer to an integer when passing it through a variadic
++         * function - the pointer must keep its object identity or the Fil-C runtime
++         * correctly panics when the kernel writes the subreaper flag through it.  See
++         * filc_native_zsys_prctl. */
++        if (prctl(PR_GET_CHILD_SUBREAPER, &b, 0UL, 0UL, 0UL) < 0)
+                 return -errno;
+
+         return b != 0;
 diff --git a/elogind/src/basic/sigbus.c b/elogind/src/basic/sigbus.c
 --- a/elogind/src/basic/sigbus.c
 +++ b/elogind/src/basic/sigbus.c

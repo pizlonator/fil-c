@@ -2003,7 +2003,11 @@ int is_reaper_process(void) {
         if (getpid_cached() == 1)
                 return true;
 
-        if (prctl(PR_GET_CHILD_SUBREAPER, (unsigned long) &b, 0UL, 0UL, 0UL) < 0)
+        /* Fil-C: never cast a pointer to an integer when passing it through a variadic
+         * function - the pointer must keep its object identity or the Fil-C runtime
+         * correctly panics when the kernel writes the subreaper flag through it.  See
+         * filc_native_zsys_prctl. */
+        if (prctl(PR_GET_CHILD_SUBREAPER, &b, 0UL, 0UL, 0UL) < 0)
                 return -errno;
 
         return b != 0;

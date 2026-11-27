@@ -18,6 +18,23 @@ diff --git a/pulseaudio/src/pulse/map-file b/pulseaudio/src/pulse/map-file
  local:
  *;
  };
+diff --git a/pulseaudio/src/pulse/util.c b/pulseaudio/src/pulse/util.c
+--- a/pulseaudio/src/pulse/util.c
++++ b/pulseaudio/src/pulse/util.c
+@@ -280,7 +280,12 @@
+         memset(tcomm, 0, sizeof(tcomm));
+
+         /* This works on Linux only */
+-        if (prctl(PR_GET_NAME, (unsigned long) tcomm, 0, 0, 0) == 0)
++
++        /* Fil-C: never cast a pointer to an integer when passing it through a variadic
++         * function - the pointer must keep its object identity or the Fil-C runtime
++         * correctly panics when the kernel writes the thread name through it.  See
++         * filc_native_zsys_prctl. */
++        if (prctl(PR_GET_NAME, tcomm, 0, 0, 0) == 0)
+             return pa_strlcpy(s, tcomm, l);
+
+     }
 diff --git a/pulseaudio/src/pulsecore/atomic.h b/pulseaudio/src/pulsecore/atomic.h
 --- a/pulseaudio/src/pulsecore/atomic.h
 +++ b/pulseaudio/src/pulsecore/atomic.h
