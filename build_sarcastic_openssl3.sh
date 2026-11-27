@@ -30,7 +30,7 @@ set -x
 
 filc/projeny setup projects/sarcastic-openssl3.projeny
 
-# Builds OpenSSL 3.6.5 (projeny checkout at projects/sarcastic-openssl3, so unlike
+# Builds OpenSSL 3.5.9 (projeny checkout at projects/sarcastic-openssl3, so unlike
 # build_zunsafe_openssl3.sh there is no extract_source step and the relative paths go
 # up two levels, not three) with assembly enabled: the perlasm generators
 # emit sarcasm annotations (gated on SARCASM=1) and Fil-C clang assembles the

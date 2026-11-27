@@ -24,12 +24,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
-# Builds and tests the OpenSSL 3.6.5 zunsafe port
+# Builds and tests the OpenSSL 3.5.9 zunsafe port
 # (projects/zunsafe-openssl3.projeny). This deliberately does NOT install:
 # pizfix's OpenSSL (libcrypto.so.4/libssl.so.4 and the include/openssl
 # headers) is owned by the 4-series build (build_zunsafe_openssl4.sh), which
 # is also what optfil/pizlix package. The 3-series is retained as the previous
-# track, so this build stays around to keep testing the 3.6.5 port.
+# track, so this build stays around to keep testing the 3.5.9 port.
 
 . libpas/common.sh
 
