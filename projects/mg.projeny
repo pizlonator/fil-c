@@ -1,15 +1,15 @@
-URL: https://github.com/troglobit/mg/releases/download/v4.6/mg-4.6.tar.gz cf771188b246bd3ba4e99ec74e7f317cbbe0ac60fefc7e4b0836f3466eb473d0
-Origname: mg-4.6
+URL: https://github.com/troglobit/mg/releases/download/v4.7/mg-4.7.tar.gz 751c3e43c20900428d0aecad7403c723435ac47b3d93a20ee60dcbe5cad92358
+Origname: mg-4.7
 Name: mg
 
-    mg 4.6. The keyname() → keyseqname() build fix that mg 4.4 needed
+    mg 4.7. The keyname() → keyseqname() build fix that mg 4.4 needed
     (ncurses' curses.h already declares keyname(int), so the prototypes
     collided) was upstreamed before 4.5, in commit
     a62108264e05f4f41047f01fa1034f21ad562c08 ("Fix #47: build failure
     with ncurses curses.h"), so the old patch rebased away to empty.
 
     Local patch: same disease, one release later. mg 4.5 (and still
-    4.6) declares insstr() in def.h (for the comment and rectangle
+    4.7) declares insstr() in def.h (for the comment and rectangle
     commands), and ncurses' curses.h defines insstr(s) as a macro for
     winsstr(stdscr, (s)), so the declaration expands to
     "int winsstr(stdscr,(const char *));" and every file that includes
@@ -38,7 +38,7 @@ diff --git a/mg/src/comment.c b/mg/src/comment.c
 diff --git a/mg/src/def.h b/mg/src/def.h
 --- a/mg/src/def.h
 +++ b/mg/src/def.h
-@@ -515,7 +515,7 @@
+@@ -527,7 +527,7 @@
  void		 lfree(struct line *);
  void		 lchange(int);
  int		 linsert(int, int);
