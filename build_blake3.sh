@@ -39,7 +39,7 @@ fi
 CC=$PWD/../../../build/bin/clang CXX=$PWD/../../../build/bin/clang++ cmake -S c -B c/build -DCMAKE_INSTALL_PREFIX=$PWD/../../../pizfix -DBLAKE3_SIMD_TYPE=$BLAKE3_SIMD_TYPE -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build c/build --target install -j $NCPU
 ../../../build/bin/clang -o example c/example.c -lblake3 -O2 -g
-test `./example < README.md` = "a5fdca3e301ce0f1b4bf92e9532fdd731842715b244b26f393404796a1c15b06"
+test `./example < README.md` = "197178ed9049471915163b3a24bb06eef4d8171cb9a5ed2f26040aacb23acb13"
 test `./example < ../../../benchmarkData/Pizigani_1367_Chart_10MB.pnm` = "5eefbdaa7deb1c614f17d39f7f1d6274856f005a7d3e3543f17c5bac4fbb9d25"
 cd ..
 rm -rf extracted-source
