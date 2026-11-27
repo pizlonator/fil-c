@@ -5636,29 +5636,17 @@ bool Sema::BuiltinConstantArgShiftedByteOrXXFF(CallExpr *TheCall, int ArgNum,
 }
 
 bool Sema::BuiltinLongjmp(CallExpr *TheCall) {
-  if (!Context.getTargetInfo().hasSjLjLowering())
-    return Diag(TheCall->getBeginLoc(), diag::err_builtin_longjmp_unsupported)
-           << SourceRange(TheCall->getBeginLoc(), TheCall->getEndLoc());
-
-  Expr *Arg = TheCall->getArg(1);
-  llvm::APSInt Result;
-
-  // TODO: This is less than ideal. Overload this to take a value.
-  if (BuiltinConstantArg(TheCall, 1, Result))
-    return true;
-
-  if (Result != 1)
-    return Diag(TheCall->getBeginLoc(), diag::err_builtin_longjmp_invalid_val)
-           << SourceRange(Arg->getBeginLoc(), Arg->getEndLoc());
-
-  return false;
+  // Fil-C does not support __builtin_longjmp / llvm.eh.sjlj intrinsics;
+  // reject cleanly in Sema so feature probes fall back to _setjmp/_longjmp.
+  return Diag(TheCall->getBeginLoc(), diag::err_builtin_longjmp_unsupported)
+         << SourceRange(TheCall->getBeginLoc(), TheCall->getEndLoc());
 }
 
 bool Sema::BuiltinSetjmp(CallExpr *TheCall) {
-  if (!Context.getTargetInfo().hasSjLjLowering())
-    return Diag(TheCall->getBeginLoc(), diag::err_builtin_setjmp_unsupported)
-           << SourceRange(TheCall->getBeginLoc(), TheCall->getEndLoc());
-  return false;
+  // Fil-C does not support __builtin_setjmp / llvm.eh.sjlj intrinsics;
+  // reject cleanly in Sema so feature probes fall back to _setjmp/_longjmp.
+  return Diag(TheCall->getBeginLoc(), diag::err_builtin_setjmp_unsupported)
+         << SourceRange(TheCall->getBeginLoc(), TheCall->getEndLoc());
 }
 
 bool Sema::BuiltinCountedByRef(CallExpr *TheCall) {

@@ -8030,8 +8030,10 @@ class Pizlonator {
       case Intrinsic::eh_sjlj_setjmp:
       case Intrinsic::eh_sjlj_longjmp:
       case Intrinsic::eh_sjlj_setup_dispatch:
-        llvm_unreachable("Cannot use sjlj intrinsics.");
-        return true;
+        report_fatal_error(
+            "Fil-C does not support __builtin_setjmp / llvm.eh.sjlj intrinsics; "
+            "use setjmp/_setjmp/sigsetjmp instead",
+            /*GenCrashDiag=*/false);
 
       case Intrinsic::x86_xgetbv:
       case Intrinsic::x86_sse2_pause:
