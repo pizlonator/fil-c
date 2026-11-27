@@ -1,0 +1,11 @@
+return:
+  success
+libraries:
+  libwlvs.so:
+    isBundle: true
+    files:
+      - lib.c
+    extraLinkerArgs:
+      "-Wl,--version-script=filc/tests/wlversionscript/exports.map"
+output-includes:
+  - "wlversionscript ok"

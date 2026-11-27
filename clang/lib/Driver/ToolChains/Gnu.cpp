@@ -515,6 +515,8 @@ std::string PizlonateVersionScript(const std::string& Input) {
       parseSymbol(';');
       if (ID == "*")
         Output << "*";
+      else if (StringRef(ID).starts_with("pizlonated_"))
+        Output << " " << ID;
       else
         Output << " pizlonated_" << ID;
       Output << ";";
@@ -1265,27 +1267,47 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
 
-  for (auto InputVersionScriptFilename : Args.getAllArgValues(options::OPT_version_script_EQ)) {
-    const char* OutputVersionScriptFilename =
-      ToolChain.getDriver().CreateTempFile(C, "version-script", "ld");
-    std::string InputVersionScript;
-    {
-      std::ifstream InputStream(InputVersionScriptFilename);
-      if (!InputStream.good()) {
-        // LMAO should turn this into a proper diagnostic maybe?
-        llvm_unreachable(("Could not open " + InputVersionScriptFilename).c_str());
-      }
-      std::ostringstream InputBuffer;
-      InputBuffer << InputStream.rdbuf();
-      std::string Input = InputBuffer.str();
-      std::string Output = PizlonateVersionScript(Input);
-      std::ofstream OutputStream(OutputVersionScriptFilename);
-      OutputStream << Output;
-      if (!OutputStream.good())
-        llvm_unreachable((std::string("Could not write ") + OutputVersionScriptFilename).c_str());
+  auto RewriteVersionScript = [&](StringRef InputFilename) -> const char * {
+    std::ifstream InputStream(InputFilename.str());
+    if (!InputStream.good()) {
+      D.Diag(diag::err_drv_no_such_file) << InputFilename;
+      return nullptr;
     }
-    CmdArgs.push_back(
-      Args.MakeArgString(std::string("--version-script=") + OutputVersionScriptFilename));
+    std::ostringstream InputBuffer;
+    InputBuffer << InputStream.rdbuf();
+    std::string Output = PizlonateVersionScript(InputBuffer.str());
+    const char *OutputVersionScriptFilename =
+        ToolChain.getDriver().CreateTempFile(C, "version-script", "ld");
+    std::ofstream OutputStream(OutputVersionScriptFilename);
+    OutputStream << Output;
+    if (!OutputStream.good())
+      llvm::report_fatal_error(
+          llvm::Twine("Fil-C: could not write rewritten linker version script: ") +
+              OutputVersionScriptFilename,
+          /*GenCrashDiag=*/false);
+    return OutputVersionScriptFilename;
+  };
+
+  for (size_t I = 0; I < CmdArgs.size(); ++I) {
+    StringRef ArgStr(CmdArgs[I]);
+    StringRef Path = ArgStr;
+    if (Path.consume_front("--version-script=")) {
+      if (const char *Out = RewriteVersionScript(Path))
+        CmdArgs[I] = Args.MakeArgString(std::string("--version-script=") + Out);
+    } else if (Path.consume_front("-version-script=")) {
+      if (const char *Out = RewriteVersionScript(Path))
+        CmdArgs[I] = Args.MakeArgString(std::string("-version-script=") + Out);
+    } else if ((ArgStr == "--version-script" || ArgStr == "-version-script") &&
+               I + 1 < CmdArgs.size()) {
+      if (const char *Out = RewriteVersionScript(CmdArgs[I + 1]))
+        CmdArgs[I + 1] = Out;
+      ++I;
+    }
+  }
+
+  for (auto InputVersionScriptFilename : Args.getAllArgValues(options::OPT_version_script_EQ)) {
+    if (const char *Out = RewriteVersionScript(InputVersionScriptFilename))
+      CmdArgs.push_back(Args.MakeArgString(std::string("--version-script=") + Out));
   }
 
   addHIPRuntimeLibArgs(ToolChain, C, Args, CmdArgs);
