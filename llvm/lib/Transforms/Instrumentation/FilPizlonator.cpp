@@ -16836,13 +16836,18 @@ public:
           ImplFuncTy, Linkage, F->getAddressSpace(),
           buf.str(), &M);
         FunctionToHiddenFunction[F] = NewF;
-        if (!UsesCallee) {
-          NewF->setVisibility(F->getVisibility());
+        if (!UsesCallee)
           FunctionToSignature[F] = Signature;
-        }
         NewF->setSubprogram(F->getSubprogram());
 
         PutImplIntoComdat(F, NewF);
+        // Keep pizlonatedFIP<sig>_* hidden so each DSO's local pizlonatedFO_*
+        // function object binds to its own implementation via a relative
+        // relocation instead of being interposed across RTLD_GLOBAL DSOs
+        // (e.g. plugin entrypoints like PHP's get_module or dlsym(RTLD_NEXT)).
+        // External callers still resolve the exported pizlonatedFI<sig>_* alias.
+        if (!NewF->hasLocalLinkage())
+          NewF->setVisibility(GlobalValue::HiddenVisibility);
 
         if (F->getLinkage() == GlobalValue::ExternalLinkage && !UsesCallee) {
           std::ostringstream buf;
