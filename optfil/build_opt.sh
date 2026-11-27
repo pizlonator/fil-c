@@ -690,7 +690,11 @@ hash -r
 
 tar -xf $FILCSRC/projects/flex/pizlonated-flex.tar.gz
 cd pizlonated-flex
-CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --disable-static
+# flex 2.7.10's AX_PROG_CC_FOR_BUILD ignores $CC and searches for a build
+# compiler, falling back to host gcc.  Host gcc would then link with
+# /opt/fil/bin/ld (first in PATH), which cannot load gcc's liblto_plugin.so.
+# filcc is a native compiler for the build machine, so just use it.
+CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ CC_FOR_BUILD=/opt/fil/bin/filcc ./configure --prefix=/opt/fil --disable-static
 make -j `nproc`
 make -j `nproc` install
 cd ..
