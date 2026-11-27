@@ -9163,11 +9163,35 @@ void SarcasmAs::ConstructJob(Compilation &C, const JobAction &JA,
   // warns as unused.
   Args.ClaimAllArgs(options::OPT_yolo_assembler);
 
-  // sarcasm provides no way to pass options down to the assembler it invokes,
-  // so there is nothing sensible we could do with these.
+  // sarcasm provides no way to pass options down to the assembler it invokes.
+  // Accept harmless ELF metadata / stack-note / debug-compression flags as
+  // no-ops (Fil-C enforces non-executable stacks unconditionally), while
+  // continuing to reject flags that alter assembly semantics or security.
+  auto IsSafeSarcasmAssemblerFlag = [](StringRef Flag) {
+    return Flag == "--noexecstack" ||
+           Flag == "--generate-missing-build-notes=yes" ||
+           Flag == "--generate-missing-build-notes=no" ||
+           Flag == "-mrelax-relocations=yes" ||
+           Flag == "-mrelax-relocations=no" ||
+           Flag == "--compress-debug-sections" ||
+           Flag == "--compress-debug-sections=none" ||
+           Flag == "--compress-debug-sections=zlib" ||
+           Flag == "--compress-debug-sections=zstd";
+  };
   for (const Arg *A : Args.filtered(options::OPT_Wa_COMMA,
-                                    options::OPT_Xassembler))
-    D.Diag(diag::err_drv_sarcasm_unsupported_option) << A->getAsString(Args);
+                                    options::OPT_Xassembler)) {
+    for (const char *RawVal : A->getValues()) {
+      StringRef Val(RawVal);
+      if (!IsSafeSarcasmAssemblerFlag(Val)) {
+        if (A->getOption().matches(options::OPT_Wa_COMMA))
+          D.Diag(diag::err_drv_sarcasm_unsupported_option)
+              << (std::string("-Wa,") + Val.str());
+        else
+          D.Diag(diag::err_drv_sarcasm_unsupported_option)
+              << A->getAsString(Args);
+      }
+    }
+  }
   Args.ClaimAllArgs(options::OPT_Wa_COMMA);
   Args.ClaimAllArgs(options::OPT_Xassembler);
 
