@@ -10,8 +10,9 @@ set -x
 # panel clock, GnomeBG.BGSlideShow drives animated backgrounds).  The first
 # build earlier in this stage had introspection off.  Everything else is
 # identical; the installed gnome-desktop stays 44.5.  (The tarball this
-# re-extracts is the same pizlonated-gnome-desktop staged at postlc2, whose
-# projeny patch carries the gnome-rr introspection Fil-C fixes.)
+# re-extracts is the pizlonated-gnome-desktop packaged in this stage by
+# build_postlc3_sub1_packaging.sh, whose projeny patch carries the
+# gnome-rr introspection Fil-C fixes.)
 #
 # Flags: identical to build_postlc3_chroot_project_gnome_desktop.sh, except:
 # -D introspection=true: produce the GnomeDesktop-4.0 / GnomeBG-4.0 /
