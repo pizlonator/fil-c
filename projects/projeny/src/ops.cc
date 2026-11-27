@@ -3492,17 +3492,41 @@ int setup_impl(const Ctx& ctx)
         // fresh setup from CURRENT .projeny. Keep pending add/rm/mv ops
         // (documented choice); previously recorded conflicts are unioned,
         // never silently dropped (like the conflicted-.projeny path
-        // below).
-        do_fresh_setup(ctx, cur);
+        // below). A Projeny:-based file whose own patch no longer applies
+        // onto the adopted chain (a git pull repointed the base at another
+        // .projeny whose committed changes collide with the patch) sets up
+        // WITH CONFLICT MARKERS here — the same recovery as the
+        // missing-workdir and missing-status fresh paths above: the
+        // checkout carries <<<<<<< current / >>>>>>> patched regions the
+        // user resolves, then commits. Classic Archive:/URL: files keep
+        // the hard die, byte-identically.
+        std::vector<std::string> fresh_conflicts;
+        do_fresh_setup(ctx, cur, &fresh_conflicts);
         StatusData sd;
         sd.status = "setup";
         sd.added = old.added;
         sd.removed = old.removed;
         sd.renamed = old.renamed;
-        sd.conflicts = old.conflicts;
+        sd.conflicts = fresh_conflicts;
+        for (auto& c : old.conflicts) {
+            if (std::find(sd.conflicts.begin(), sd.conflicts.end(), c) ==
+                sd.conflicts.end())
+                sd.conflicts.push_back(c);
+        }
         sort_unique(&sd.conflicts);
         sd.embedded = cur.raw;
         write_status(ctx, sd);
+        if (!fresh_conflicts.empty()) {
+            printf("projeny: re-set up '%s' from '%s' (no local changes) "
+                   "with %zu conflict(s):\n",
+                   rel_to_cwd(workdir).c_str(), setup_from_name(cur).c_str(),
+                   sd.conflicts.size());
+            for (auto& c : sd.conflicts)
+                printf("  %s\n", c.c_str());
+            printf("projeny: setup left conflicts (exit 1); fix them, then "
+                   "`resolve` each file and `commit`\n");
+            return 1;
+        }
         if (!sd.conflicts.empty()) {
             printf("projeny: re-set up '%s' from '%s' (no local changes) but "
                    "%zu conflict(s) are still unresolved:\n",

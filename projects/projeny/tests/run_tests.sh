@@ -146,7 +146,20 @@
 # hand-conversion back INTO the Projeny: form (from an Archive:/URL: era,
 # the stale snapshot overwritten), the empty-Projeny: parse error, and
 # the non-conflicting spurious state (state (i)) guard: the spurious
-# Modified:, the dirty refusal, and the erase+setup convergence.
+# Modified:, the dirty refusal, and the erase+setup convergence. The
+# git-pull-switch sections cover the setup adoption of a REWRITTEN base
+# header (an Archive:/URL:-era file whose pull repointed it at another
+# .projeny file in the same directory): the no-op switches (identical
+# content, the patch moved into the base, the vendored tarball removed,
+# bar's committed-vs-workdir content, different archive contents), the
+# URL-flavored switches (the snapshot-shared no-op and the hash-verified
+# download), the clean local-change merges and the untracked rider, the
+# conflict shapes (the pull's patch vs the local edit, bar's committed
+# patch vs the local edit, URL contents, add/add, upstream deleting a
+# locally modified file) with their marker + resolve + commit
+# convergences, the colliding-patch fresh-marker recovery on the
+# no-local-changes path (the classic Archive: control keeps the hard die),
+# and the missing-base-file refusal.
 #
 # Bash is required (process substitution in the status-copy comparisons
 # below); /bin/sh (dash) cannot run this suite.
@@ -23799,6 +23812,1390 @@ case "$out" in
     fi
     ;;
 esac
+
+# ------------------- 365. the git-pull switch to a Projeny: base with a
+# clean checkout is a no-op when the adopted chain matches the old base
+# The scenario a `git pull` produces: foo.projeny was Archive:-based and
+# set up (checkout, status file, archive snapshot), and the pull rewrote
+# its base header to `Projeny: bar.projeny` — another .projeny file in the
+# same directory that does NOT need to be set up (its committed content is
+# its own base plus its own committed patch; its workdir is ignored).
+# Plain `setup foo.projeny` adopts the newly named base: the checkout is
+# rebuilt from bar's committed extraction plus foo's new patch, the
+# .foo.snapshot next to foo.projeny is overwritten with bar.projeny's
+# exact bytes, and the status's embedded copy picks up the Projeny:
+# header. With an empty patch on both sides and identical content the
+# checkout is byte-identical to before and repeat setups are idempotent.
+# The second fixture pins the other no-op reading: bar carries the same
+# committed change foo's patch carried and the pull emptied foo's patch —
+# the adopted chain supplies it, so the checkout still matches the ref.
+T365="$ROOT/t365"
+make_tarballs "$T365" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T365/foo.projeny"
+run_in "$T365" expect_ok "the switch fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+cp -a "$T365/foo" "$ROOT/t365-ref"
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T365/bar.projeny"
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T365/foo.projeny"
+out="$(cd "$T365" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the git-pull switch re-sets up from the newly named base"
+    else
+        fail "the git-pull switch re-sets up from the newly named base" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the git-pull switch re-sets up from the newly named base" \
+         "exit=$rc out: $out"
+    ;;
+esac
+if diff -r "$ROOT/t365-ref" "$T365/foo" >/dev/null 2>&1; then
+    ok "the adopted checkout is byte-identical to the pre-switch one"
+else
+    fail "the adopted checkout is byte-identical to the pre-switch one" \
+         "$(diff -r "$ROOT/t365-ref" "$T365/foo" 2>&1 | head -5)"
+fi
+if cmp -s "$T365/.foo.snapshot" "$T365/bar.projeny"; then
+    ok "the switch froze bar.projeny's bytes into the snapshot"
+else
+    fail "the switch froze bar.projeny's bytes into the snapshot" \
+         "cmp: $T365/.foo.snapshot vs $T365/bar.projeny"
+fi
+expect_file_contains "the status embeds the adopted Projeny: header" \
+    "$T365/.foo.projeny.status" "Projeny: bar.projeny"
+out="$(cd "$T365" && "$PROJENY" status foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the switch is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the switch is clean"
+    else
+        fail "the status after the switch is clean" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+out="$(cd "$T365" && "$PROJENY" setup foo.projeny 2>&1)"
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    ok "the switched project re-sets up idempotently"
+    ;;
+*)
+    fail "the switched project re-sets up idempotently" "out: $out"
+    ;;
+esac
+rm -rf "$ROOT/t365-ref"
+# The other no-op reading: bar carries the patch, the pull empties foo's.
+T365B="$ROOT/t365b"
+make_tarballs "$T365B" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T365B/foo.projeny"
+run_in "$T365B" expect_ok "the emptied-patch fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T365B/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T365B" expect_ok "foo commits its gamma edit" "$PROJENY" \
+    commit foo.projeny
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T365B/bar.projeny"
+run_in "$T365B" expect_ok "the emptied-patch fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T365B/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T365B" expect_ok "bar commits the same gamma edit" "$PROJENY" \
+    commit bar.projeny
+cp -a "$T365B/foo" "$ROOT/t365b-ref"
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T365B/foo.projeny"
+out="$(cd "$T365B" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the emptied-patch switch is a no-op too"
+    else
+        fail "the emptied-patch switch is a no-op too" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the emptied-patch switch is a no-op too" "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the emptied-patch checkout still holds the committed gamma" \
+    "$T365B/foo/src/a.c" "int gamma = 200;"
+if diff -r "$ROOT/t365b-ref" "$T365B/foo" >/dev/null 2>&1; then
+    ok "the emptied-patch checkout is byte-identical to the pre-switch one"
+else
+    fail "the emptied-patch checkout is byte-identical to the pre-switch one" \
+         "$(diff -r "$ROOT/t365b-ref" "$T365B/foo" 2>&1 | head -5)"
+fi
+if cmp -s "$T365B/.foo.snapshot" "$T365B/bar.projeny"; then
+    ok "the emptied-patch switch froze bar.projeny's bytes"
+else
+    fail "the emptied-patch switch froze bar.projeny's bytes" \
+         "cmp: $T365B/.foo.snapshot vs $T365B/bar.projeny"
+fi
+rm -rf "$ROOT/t365b-ref"
+
+# ------------------- 366. the git-pull switch that also changed foo's
+# patch (and removed the tarball)
+# The vendoring rule in action: switching a .projeny file to a Projeny:
+# link removes the tarball it used to vendor. Setup must not need it: the
+# old base's expected tree is reconstructed from the archive snapshot the
+# original setup froze, and the new tree comes from bar.projeny's
+# committed extraction (bar is empty-patched, so only foo's rewritten
+# patch — the hand-written gamma->200 body the pull added — shapes the
+# checkout).
+T366="$ROOT/t366"
+make_tarballs "$T366" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T366/foo.projeny"
+run_in "$T366" expect_ok "the tarball-removal fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T366/bar.projeny"
+cat > "$T366/foo.projeny" <<'PJEOF'
+Projeny: bar.projeny
+Origname: fake-1.0
+Name: foo
+
+    Free prose (indented).
+
+diff --git a/foo/src/a.c b/foo/src/a.c
+--- a/foo/src/a.c
++++ b/foo/src/a.c
+@@ -1,7 +1,7 @@
+ int alpha = 1;
+
+ int beta = 1;
+
+-int gamma = 1;
++int gamma = 200;
+
+ int delta = 1;
+PJEOF
+rm "$T366/fake-1.0.tar.gz"
+out="$(cd "$T366" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the switch with a removed tarball re-sets up cleanly"
+    else
+        fail "the switch with a removed tarball re-sets up cleanly" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the switch with a removed tarball re-sets up cleanly" \
+         "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the adopted checkout carries the new patch" \
+    "$T366/foo/src/a.c" "int gamma = 200;"
+expect_file_contains "the rest of a.c is pristine (bar is empty-patched)" \
+    "$T366/foo/src/a.c" "int alpha = 1;"
+expect_file_contains "the rest of a.c is pristine (beta stands)" \
+    "$T366/foo/src/a.c" "int beta = 1;"
+if cmp -s "$T366/.foo.snapshot" "$T366/bar.projeny"; then
+    ok "the switch froze bar.projeny's bytes into the snapshot"
+else
+    fail "the switch froze bar.projeny's bytes into the snapshot" \
+         "cmp: $T366/.foo.snapshot vs $T366/bar.projeny"
+fi
+expect_file_contains "the status embeds the adopted Projeny: header" \
+    "$T366/.foo.projeny.status" "Projeny: bar.projeny"
+out="$(cd "$T366" && "$PROJENY" setup foo.projeny 2>&1)"
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    ok "the tarball-removal switch re-sets up idempotently"
+    ;;
+*)
+    fail "the tarball-removal switch re-sets up idempotently" "out: $out"
+    ;;
+esac
+
+# ------------------- 367. the git-pull switch where bar.projeny has
+# committed changes the previous base didn't have
+# bar.projeny committed gamma->300; its workdir then edited gamma to 301
+# and left that UNCOMMITTED. A checkout switched onto bar picks up bar's
+# COMMITTED patch only — the workdir is ignored.
+T367="$ROOT/t367"
+make_tarballs "$T367" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T367/bar.projeny"
+run_in "$T367" expect_ok "the committed-base fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T367/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 300;")
+open(p, "w").write(s)
+EOF
+run_in "$T367" expect_ok "bar commits its gamma edit" "$PROJENY" \
+    commit bar.projeny
+python3 - "$T367/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 300;", "int gamma = 301;")
+open(p, "w").write(s)
+EOF
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T367/foo.projeny"
+run_in "$T367" expect_ok "the committed-base fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T367/foo.projeny"
+out="$(cd "$T367" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the switch picks up bar's committed change"
+    else
+        fail "the switch picks up bar's committed change" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the switch picks up bar's committed change" "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the adopted checkout carries bar's committed gamma" \
+    "$T367/foo/src/a.c" "int gamma = 300;"
+expect_file_not_contains "bar's uncommitted workdir edit is ignored" \
+    "$T367/foo/src/a.c" "int gamma = 301;"
+expect_file_contains "the rest of the adopted checkout is pristine" \
+    "$T367/foo/src/a.c" "int alpha = 1;"
+if cmp -s "$T367/.foo.snapshot" "$T367/bar.projeny"; then
+    ok "the switch froze bar.projeny's bytes into the snapshot"
+else
+    fail "the switch froze bar.projeny's bytes into the snapshot" \
+         "cmp: $T367/.foo.snapshot vs $T367/bar.projeny"
+fi
+
+# ------------------- 368. the git-pull switch where bar.projeny points at
+# different archive contents
+# bar.projeny is Archive:-based on fake-2.0 (never set up). The switched
+# foo.projeny follows both the new base file AND the new Origname: — the
+# checkout takes fake-2.0's contents wholesale.
+T368="$ROOT/t368"
+make_tarballs "$T368" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T368/foo.projeny"
+run_in "$T368" expect_ok "the new-contents fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+printf 'Archive: fake-2.0.tar.gz\nOrigname: fake-2.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T368/bar.projeny"
+printf 'Projeny: bar.projeny\nOrigname: fake-2.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T368/foo.projeny"
+out="$(cd "$T368" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the switch to different archive contents re-sets up cleanly"
+    else
+        fail "the switch to different archive contents re-sets up cleanly" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the switch to different archive contents re-sets up cleanly" \
+         "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the adopted checkout has the new archive's a.c" \
+    "$T368/foo/src/a.c" "int alpha = 2;"
+expect_file_contains "the adopted checkout has the new archive's README" \
+    "$T368/foo/README" "hello v2"
+expect_file_contains "the adopted checkout has the new archive's b.c" \
+    "$T368/foo/src/b.c" "line one v2"
+if cmp -s "$T368/.foo.snapshot" "$T368/bar.projeny"; then
+    ok "the switch froze bar.projeny's bytes into the snapshot"
+else
+    fail "the switch froze bar.projeny's bytes into the snapshot" \
+         "cmp: $T368/.foo.snapshot vs $T368/bar.projeny"
+fi
+expect_file_contains "the status embeds the new Origname:" \
+    "$T368/.foo.projeny.status" "Origname: fake-2.0"
+out="$(cd "$T368" && "$PROJENY" setup foo.projeny 2>&1)"
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    ok "the new-contents switch re-sets up idempotently"
+    ;;
+*)
+    fail "the new-contents switch re-sets up idempotently" "out: $out"
+    ;;
+esac
+
+# ------------------- 369. the git-pull switch from a URL: base (the
+# snapshot-shared no-op and the different-contents download)
+# foou.projeny is URL:-based and set up; the pull repoints it at
+# baru.projeny (URL:-based on the SAME tarball, same hash). The switched
+# setup reuses the hash-verified snapshot the original setup froze — no
+# network. The second fixture switches to a base on DIFFERENT contents:
+# the switched setup downloads fake-2.0 (hash-verified) and its checkout
+# takes the new archive's contents.
+T369="$ROOT/t369"
+make_tarballs "$T369" fake
+h369a="$("$PROJENY" hash "$T369/fake-1.0.tar.gz")"
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: foou\n\n    Free prose (indented).\n\n' \
+    "$T369" "$h369a" > "$T369/foou.projeny"
+run_in "$T369" expect_ok "the URL switch fixture sets up foou" "$PROJENY" \
+    setup foou.projeny
+cp -a "$T369/foou" "$ROOT/t369-ref"
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: baru\n\n    Free prose (indented).\n\n' \
+    "$T369" "$h369a" > "$T369/baru.projeny"
+printf 'Projeny: baru.projeny\nOrigname: fake-1.0\nName: foou\n\n    Free prose (indented).\n\n' \
+    > "$T369/foou.projeny"
+out="$(cd "$T369" && "$PROJENY" setup foou.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foou' from 'baru.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the URL-origin switch re-sets up from the newly named base"
+    else
+        fail "the URL-origin switch re-sets up from the newly named base" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the URL-origin switch re-sets up from the newly named base" \
+         "exit=$rc out: $out"
+    ;;
+esac
+case "$out" in
+*"downloading"*)
+    fail "the snapshot-shared switch downloads nothing" "out: $out"
+    ;;
+*)
+    ok "the snapshot-shared switch downloads nothing"
+    ;;
+esac
+if diff -r "$ROOT/t369-ref" "$T369/foou" >/dev/null 2>&1; then
+    ok "the URL-origin adopted checkout is unchanged"
+else
+    fail "the URL-origin adopted checkout is unchanged" \
+         "$(diff -r "$ROOT/t369-ref" "$T369/foou" 2>&1 | head -5)"
+fi
+if cmp -s "$T369/.foou.snapshot" "$T369/baru.projeny"; then
+    ok "the URL-origin switch froze baru.projeny's bytes"
+else
+    fail "the URL-origin switch froze baru.projeny's bytes" \
+         "cmp: $T369/.foou.snapshot vs $T369/baru.projeny"
+fi
+rm -rf "$ROOT/t369-ref"
+# The different-contents flavor: the switched setup downloads the new
+# base's archive.
+T369B="$ROOT/t369b"
+make_tarballs "$T369B" fake
+h369b="$("$PROJENY" hash "$T369B/fake-1.0.tar.gz")"
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: foou2\n\n    Free prose (indented).\n\n' \
+    "$T369B" "$h369b" > "$T369B/foou2.projeny"
+run_in "$T369B" expect_ok "the URL download fixture sets up foou2" \
+    "$PROJENY" setup foou2.projeny
+h369c="$("$PROJENY" hash "$T369B/fake-2.0.tar.gz")"
+printf 'URL: file://%s/fake-2.0.tar.gz %s\nOrigname: fake-2.0\nName: baru2\n\n    Free prose (indented).\n\n' \
+    "$T369B" "$h369c" > "$T369B/baru2.projeny"
+printf 'Projeny: baru2.projeny\nOrigname: fake-2.0\nName: foou2\n\n    Free prose (indented).\n\n' \
+    > "$T369B/foou2.projeny"
+out="$(cd "$T369B" && "$PROJENY" setup foou2.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"downloading 'file://$T369B/fake-2.0.tar.gz'"*)
+    if [ $rc -eq 0 ]; then
+        ok "the URL-origin switch to new contents downloads the archive"
+    else
+        fail "the URL-origin switch to new contents downloads the archive" \
+             "message matched but exit=$rc out: $out"
+    fi
+    ;;
+*)
+    fail "the URL-origin switch to new contents downloads the archive" \
+         "exit=$rc out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: re-set up 'foou2' from 'baru2.projeny' (no local changes)"*)
+    ok "the URL-origin download switch re-sets up cleanly"
+    ;;
+*)
+    fail "the URL-origin download switch re-sets up cleanly" "out: $out"
+    ;;
+esac
+expect_file_contains "the downloaded checkout has the new archive's a.c" \
+    "$T369B/foou2/src/a.c" "int alpha = 2;"
+expect_file_contains "the downloaded checkout has the new archive's README" \
+    "$T369B/foou2/README" "hello v2"
+
+# ------------------- 370. the git-pull switch with local changes that
+# merge cleanly (and an untracked rider)
+# With UNCOMMITTED local changes in the checkout, the switched setup
+# merges them onto the adopted chain and reports per-file lines. C1: the
+# local beta edit rides over the (empty-patched) bar chain and the commit
+# regenerates foo's patch against the bare chain. C2: bar's committed
+# gamma->300 arrives alongside the local beta edit — both stand. D2: a
+# purely-untracked workdir (a file `add` never saw) is not a change: the
+# switched setup reports the no-local-changes form with the kept-untracked
+# clause and the file survives.
+T370="$ROOT/t370"
+make_tarballs "$T370" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T370/foo.projeny"
+run_in "$T370" expect_ok "the clean-merge fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T370/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 42;")
+open(p, "w").write(s)
+EOF
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T370/bar.projeny"
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T370/foo.projeny"
+out="$(cd "$T370" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: merged local changes onto 'foo':"*"  merged: src/a.c"*)
+    if [ $rc -eq 0 ]; then
+        ok "the switched setup merges the local edit cleanly"
+    else
+        fail "the switched setup merges the local edit cleanly" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the switched setup merges the local edit cleanly" \
+         "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the merged checkout keeps the local edit" \
+    "$T370/foo/src/a.c" "int beta = 42;"
+expect_file_contains "the merged checkout keeps the chain's content" \
+    "$T370/foo/src/a.c" "int gamma = 1;"
+expect_file_contains "the merged checkout keeps the archive's content" \
+    "$T370/foo/src/a.c" "int alpha = 1;"
+run_in "$T370" expect_ok "the merged local change commits" "$PROJENY" \
+    commit foo.projeny
+expect_file_contains "the committed patch lands the local edit" \
+    "$T370/foo.projeny" "+int beta = 42"
+expect_file_contains "the committed patch is diffed against the bare chain" \
+    "$T370/foo.projeny" "-int beta = 1"
+out="$(cd "$T370" && "$PROJENY" setup foo.projeny 2>&1)"
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    ok "the clean-merge round-trip re-sets up as a noop"
+    ;;
+*)
+    fail "the clean-merge round-trip re-sets up as a noop" "out: $out"
+    ;;
+esac
+# C2: bar's committed change arrives alongside the local edit.
+T370B="$ROOT/t370b"
+make_tarballs "$T370B" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T370B/bar.projeny"
+run_in "$T370B" expect_ok "the alongside fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+python3 - "$T370B/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 300;")
+open(p, "w").write(s)
+EOF
+run_in "$T370B" expect_ok "bar commits its gamma edit" "$PROJENY" \
+    commit bar.projeny
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T370B/foo.projeny"
+run_in "$T370B" expect_ok "the alongside fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T370B/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int beta = 1;", "int beta = 42;")
+open(p, "w").write(s)
+EOF
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T370B/foo.projeny"
+out="$(cd "$T370B" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: merged local changes onto 'foo':"*"  merged: src/a.c"*)
+    if [ $rc -eq 0 ]; then
+        ok "the local edit merges alongside bar's committed change"
+    else
+        fail "the local edit merges alongside bar's committed change" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the local edit merges alongside bar's committed change" \
+         "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the alongside checkout keeps the local edit" \
+    "$T370B/foo/src/a.c" "int beta = 42;"
+expect_file_contains "the alongside checkout keeps bar's committed gamma" \
+    "$T370B/foo/src/a.c" "int gamma = 300;"
+# D2: a purely-untracked workdir is not a change; the file rides along.
+T370C="$ROOT/t370c"
+make_tarballs "$T370C" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T370C/foo.projeny"
+run_in "$T370C" expect_ok "the untracked-rider fixture sets up foo" \
+    "$PROJENY" setup foo.projeny
+printf 'note\n' > "$T370C/foo/NOTES.txt"
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T370C/bar.projeny"
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T370C/foo.projeny"
+out="$(cd "$T370C" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes; kept 1 untracked file(s))"*)
+    if [ $rc -eq 0 ]; then
+        ok "the purely-untracked workdir reports the kept-untracked noop"
+    else
+        fail "the purely-untracked workdir reports the kept-untracked noop" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the purely-untracked workdir reports the kept-untracked noop" \
+         "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the untracked rider survived the switch" \
+    "$T370C/foo/NOTES.txt" "note"
+
+# ------------------- 371. the git-pull switch conflicts: the pull's new
+# patch overlaps the local edit (resolve + commit)
+# The pull rewrote foo.projeny to `Projeny: bar.projeny` AND gave it a
+# hand-written patch whose alpha->111 hunk overlaps the checkout's
+# uncommitted alpha->42 edit (gamma->333 lands cleanly — the fixture's
+# blank-line gaps keep different regions apart). Setup merges, flags the
+# conflict, writes the inline 3-way markers (ours = the NEW setup's
+# content, theirs = the LOCAL content), exits 1, and records the conflict;
+# resolve + commit converge (the committed patch is diffed against the
+# BARE chain — no foo patch on it — so the pre-images are the pristine
+# values, not 111/333).
+T371="$ROOT/t371"
+make_tarballs "$T371" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T371/foo.projeny"
+run_in "$T371" expect_ok "the overlap fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T371/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 42;")
+s = s.replace("int beta = 1;", "int beta = 42;")
+open(p, "w").write(s)
+EOF
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T371/bar.projeny"
+cat > "$T371/foo.projeny" <<'PJEOF'
+Projeny: bar.projeny
+Origname: fake-1.0
+Name: foo
+
+    Free prose (indented).
+
+diff --git a/foo/src/a.c b/foo/src/a.c
+--- a/foo/src/a.c
++++ b/foo/src/a.c
+@@ -1,7 +1,7 @@
+-int alpha = 1;
++int alpha = 111;
+
+ int beta = 1;
+
+-int gamma = 1;
++int gamma = 333;
+
+ int delta = 1;
+PJEOF
+leftconf371='projeny: setup left conflicts (exit 1); fix them, then `resolve` each file and `commit`'
+out="$(cd "$T371" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: merged local changes onto 'foo':"*"  conflict: src/a.c"*)
+    ok "the overlapping switch flags the conflicted file"
+    ;;
+*)
+    fail "the overlapping switch flags the conflicted file" "out: $out"
+    ;;
+esac
+case "$out" in
+*"$leftconf371"*)
+    ok "the overlapping switch tells the user how to proceed"
+    ;;
+*)
+    fail "the overlapping switch tells the user how to proceed" "out: $out"
+    ;;
+esac
+if [ $rc -eq 1 ]; then
+    ok "the conflicting merge setup exits 1"
+else
+    fail "the conflicting merge setup exits 1" "exit=$rc out: $out"
+fi
+expect_file_contains "the conflicted checkout opens the marker region" \
+    "$T371/foo/src/a.c" "<<<<<<< projeny (new setup)"
+expect_file_contains "the marker's ours side is the new setup's content" \
+    "$T371/foo/src/a.c" "int alpha = 111;"
+expect_file_contains "the conflicted checkout carries the split line" \
+    "$T371/foo/src/a.c" "======="
+expect_file_contains "the marker's theirs side is the local content" \
+    "$T371/foo/src/a.c" "int alpha = 42;"
+expect_file_contains "the conflicted checkout closes the marker region" \
+    "$T371/foo/src/a.c" ">>>>>>> projeny (local changes)"
+expect_file_not_contains "the conflicted pre-image is gone" \
+    "$T371/foo/src/a.c" "int alpha = 1;"
+expect_file_contains "the patch's clean gamma lands outside the markers" \
+    "$T371/foo/src/a.c" "int gamma = 333;"
+expect_file_contains "the untouched local beta stands outside the markers" \
+    "$T371/foo/src/a.c" "int beta = 42;"
+expect_file_contains "the conflict is recorded in the status" \
+    "$T371/.foo.projeny.status" "Conflict: src/a.c"
+python3 - "$T371/foo/src/a.c" <<'EOF'
+import sys
+open(sys.argv[1], "w").write(
+    "int alpha = 42;\n\nint beta = 42;\n\nint gamma = 333;\n\nint delta = 1;\n")
+EOF
+run_in "$T371" expect_ok "the overlap conflict resolves" "$PROJENY" \
+    resolve foo.projeny src/a.c
+run_in "$T371" expect_ok "the overlap resolution commits" "$PROJENY" \
+    commit foo.projeny
+expect_file_contains "the committed patch reverts the pristine alpha" \
+    "$T371/foo.projeny" "-int alpha = 1;"
+expect_file_contains "the committed patch lands the local alpha" \
+    "$T371/foo.projeny" "+int alpha = 42;"
+expect_file_contains "the committed patch reverts the pristine beta" \
+    "$T371/foo.projeny" "-int beta = 1;"
+expect_file_contains "the committed patch lands the local beta" \
+    "$T371/foo.projeny" "+int beta = 42;"
+expect_file_contains "the committed patch reverts the pristine gamma" \
+    "$T371/foo.projeny" "-int gamma = 1;"
+expect_file_contains "the committed patch lands the resolved gamma" \
+    "$T371/foo.projeny" "+int gamma = 333;"
+expect_file_not_contains "the committed patch carries no marker lines" \
+    "$T371/foo.projeny" "<<<<<<<"
+out="$(cd "$T371" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the overlap round-trip re-sets up as a noop"
+    else
+        fail "the overlap round-trip re-sets up as a noop" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the overlap round-trip re-sets up as a noop" "out: $out"
+    ;;
+esac
+
+# ------------------- 372. the git-pull switch conflicts: bar.projeny's
+# committed patch overlaps the local edit
+# bar.projeny committed alpha->222; the checkout's uncommitted alpha->42
+# edit collides with it when foo switches onto bar (foo's rewritten
+# .projeny carries no patch at all). Same marker shape, same exit, and the
+# resolve + commit round-trip diffed against bar's chain leaves ONLY the
+# alpha pair.
+T372="$ROOT/t372"
+make_tarballs "$T372" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T372/bar.projeny"
+run_in "$T372" expect_ok "the committed-overlap fixture sets up bar" \
+    "$PROJENY" setup bar.projeny
+python3 - "$T372/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 222;")
+open(p, "w").write(s)
+EOF
+run_in "$T372" expect_ok "bar commits its alpha edit" "$PROJENY" \
+    commit bar.projeny
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T372/foo.projeny"
+run_in "$T372" expect_ok "the committed-overlap fixture sets up foo" \
+    "$PROJENY" setup foo.projeny
+python3 - "$T372/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 42;")
+open(p, "w").write(s)
+EOF
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T372/foo.projeny"
+leftconf372='projeny: setup left conflicts (exit 1); fix them, then `resolve` each file and `commit`'
+out="$(cd "$T372" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: merged local changes onto 'foo':"*"  conflict: src/a.c"*)
+    ok "the committed-overlap switch flags the conflicted file"
+    ;;
+*)
+    fail "the committed-overlap switch flags the conflicted file" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"$leftconf372"*)
+    ok "the committed-overlap switch tells the user how to proceed"
+    ;;
+*)
+    fail "the committed-overlap switch tells the user how to proceed" \
+         "out: $out"
+    ;;
+esac
+if [ $rc -eq 1 ]; then
+    ok "the committed-overlap setup exits 1"
+else
+    fail "the committed-overlap setup exits 1" "exit=$rc out: $out"
+fi
+expect_file_contains "the committed-overlap checkout opens the markers" \
+    "$T372/foo/src/a.c" "<<<<<<< projeny (new setup)"
+expect_file_contains "the marker's ours side is bar's committed alpha" \
+    "$T372/foo/src/a.c" "int alpha = 222;"
+expect_file_contains "the committed-overlap checkout carries the split" \
+    "$T372/foo/src/a.c" "======="
+expect_file_contains "the marker's theirs side is the local alpha" \
+    "$T372/foo/src/a.c" "int alpha = 42;"
+expect_file_contains "the committed-overlap checkout closes the markers" \
+    "$T372/foo/src/a.c" ">>>>>>> projeny (local changes)"
+python3 - "$T372/foo/src/a.c" <<'EOF'
+import sys
+open(sys.argv[1], "w").write(
+    "int alpha = 42;\n\nint beta = 1;\n\nint gamma = 1;\n\nint delta = 1;\n")
+EOF
+run_in "$T372" expect_ok "the committed-overlap conflict resolves" \
+    "$PROJENY" resolve foo.projeny src/a.c
+run_in "$T372" expect_ok "the committed-overlap resolution commits" \
+    "$PROJENY" commit foo.projeny
+expect_file_contains "the committed patch reverts bar's committed alpha" \
+    "$T372/foo.projeny" "-int alpha = 222;"
+expect_file_contains "the committed patch lands the local alpha" \
+    "$T372/foo.projeny" "+int alpha = 42;"
+expect_file_not_contains "the committed patch carries no beta hunk" \
+    "$T372/foo.projeny" "-int beta"
+expect_file_not_contains "the committed patch carries no beta addition" \
+    "$T372/foo.projeny" "+int beta"
+expect_file_not_contains "the committed patch carries no gamma hunk" \
+    "$T372/foo.projeny" "-int gamma"
+expect_file_not_contains "the committed patch carries no gamma addition" \
+    "$T372/foo.projeny" "+int gamma"
+expect_file_not_contains "the committed patch carries no marker lines" \
+    "$T372/foo.projeny" "<<<<<<<"
+out="$(cd "$T372" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the committed-overlap round-trip re-sets up as a noop"
+    else
+        fail "the committed-overlap round-trip re-sets up as a noop" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the committed-overlap round-trip re-sets up as a noop" \
+         "out: $out"
+    ;;
+esac
+
+# ------------------- 373. the git-pull switch conflicts: different
+# contents arriving via the base (URL-origin)
+# foou.projeny is URL:-based with an uncommitted README edit; the pull
+# repoints it at baru2.projeny (URL:-based on fake-2.0). The switched
+# setup downloads fake-2.0, merges, and flags the README conflict (ours =
+# hello v2, theirs = hello local); a.c — which the user did not edit —
+# takes the new archive's content wholesale. The resolve + commit
+# round-trip is diffed against the bare fake-2.0 chain, so the committed
+# patch carries only the README pair.
+T373="$ROOT/t373"
+make_tarballs "$T373" fake
+h373a="$("$PROJENY" hash "$T373/fake-1.0.tar.gz")"
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: foou\n\n    Free prose (indented).\n\n' \
+    "$T373" "$h373a" > "$T373/foou.projeny"
+run_in "$T373" expect_ok "the URL conflict fixture sets up foou" "$PROJENY" \
+    setup foou.projeny
+python3 - "$T373/foou/README" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("hello v1", "hello local")
+open(p, "w").write(s)
+EOF
+h373b="$("$PROJENY" hash "$T373/fake-2.0.tar.gz")"
+printf 'URL: file://%s/fake-2.0.tar.gz %s\nOrigname: fake-2.0\nName: baru2\n\n    Free prose (indented).\n\n' \
+    "$T373" "$h373b" > "$T373/baru2.projeny"
+printf 'Projeny: baru2.projeny\nOrigname: fake-2.0\nName: foou\n\n    Free prose (indented).\n\n' \
+    > "$T373/foou.projeny"
+leftconf373='projeny: setup left conflicts (exit 1); fix them, then `resolve` each file and `commit`'
+out="$(cd "$T373" && "$PROJENY" setup foou.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"downloading 'file://$T373/fake-2.0.tar.gz'"*)
+    ok "the URL-origin conflict setup downloads the new archive"
+    ;;
+*)
+    fail "the URL-origin conflict setup downloads the new archive" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"projeny: merged local changes onto 'foou':"*"  conflict: README"*)
+    ok "the URL-origin switch flags the README conflict"
+    ;;
+*)
+    fail "the URL-origin switch flags the README conflict" "out: $out"
+    ;;
+esac
+case "$out" in
+*"$leftconf373"*)
+    ok "the URL-origin conflict tells the user how to proceed"
+    ;;
+*)
+    fail "the URL-origin conflict tells the user how to proceed" \
+         "out: $out"
+    ;;
+esac
+if [ $rc -eq 1 ]; then
+    ok "the URL-origin conflict setup exits 1"
+else
+    fail "the URL-origin conflict setup exits 1" "exit=$rc out: $out"
+fi
+expect_file_contains "the README conflict opens the marker region" \
+    "$T373/foou/README" "<<<<<<< projeny (new setup)"
+expect_file_contains "the marker's ours side is the new archive's README" \
+    "$T373/foou/README" "hello v2"
+expect_file_contains "the README conflict carries the split line" \
+    "$T373/foou/README" "======="
+expect_file_contains "the marker's theirs side is the local README" \
+    "$T373/foou/README" "hello local"
+expect_file_contains "the README conflict closes the marker region" \
+    "$T373/foou/README" ">>>>>>> projeny (local changes)"
+expect_file_contains "the untouched a.c takes the new archive's content" \
+    "$T373/foou/src/a.c" "int alpha = 2;"
+python3 - "$T373/foou/README" <<'EOF'
+import sys
+open(sys.argv[1], "w").write("hello local\n")
+EOF
+run_in "$T373" expect_ok "the README conflict resolves" "$PROJENY" \
+    resolve foou.projeny README
+run_in "$T373" expect_ok "the README resolution commits" "$PROJENY" \
+    commit foou.projeny
+expect_file_contains "the committed patch reverts the new archive's README" \
+    "$T373/foou.projeny" "-hello v2"
+expect_file_contains "the committed patch lands the local README" \
+    "$T373/foou.projeny" "+hello local"
+expect_file_not_contains "the committed patch carries no marker lines" \
+    "$T373/foou.projeny" "<<<<<<<"
+out="$(cd "$T373" && "$PROJENY" setup foou.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foou' from 'baru2.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the URL-origin conflict round-trip re-sets up as a noop"
+    else
+        fail "the URL-origin conflict round-trip re-sets up as a noop" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the URL-origin conflict round-trip re-sets up as a noop" \
+         "out: $out"
+    ;;
+esac
+
+# ------------------- 374. the git-pull switch conflicts: an add/add
+# collision
+# The checkout has a pending `add` of src/new.c ('mine'); the pull's
+# rewritten foo.projeny carries a new-file patch block for the same path
+# with different content ('upstream'). The merge flags the collision, the
+# markers hold upstream (ours) over mine (theirs), and the status records
+# BOTH the conflict and the pending add. Keeping the local side and
+# committing lands the file as foo's own new-file block.
+T374="$ROOT/t374"
+make_tarballs "$T374" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T374/foo.projeny"
+run_in "$T374" expect_ok "the add/add fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+printf 'mine\n' > "$T374/foo/src/new.c"
+run_in "$T374" expect_ok "the fixture adds src/new.c" "$PROJENY" \
+    add foo.projeny foo/src/new.c
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T374/bar.projeny"
+cat > "$T374/foo.projeny" <<'PJEOF'
+Projeny: bar.projeny
+Origname: fake-1.0
+Name: foo
+
+    Free prose (indented).
+
+diff --git a/foo/src/new.c b/foo/src/new.c
+new file mode 100644
+--- /dev/null
++++ b/foo/src/new.c
+@@ -0,0 +1 @@
++upstream
+PJEOF
+leftconf374='projeny: setup left conflicts (exit 1); fix them, then `resolve` each file and `commit`'
+out="$(cd "$T374" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: merged local changes onto 'foo':"*"  conflict: src/new.c"*)
+    ok "the add/add switch flags the collided file"
+    ;;
+*)
+    fail "the add/add switch flags the collided file" "out: $out"
+    ;;
+esac
+case "$out" in
+*"$leftconf374"*)
+    ok "the add/add switch tells the user how to proceed"
+    ;;
+*)
+    fail "the add/add switch tells the user how to proceed" "out: $out"
+    ;;
+esac
+if [ $rc -eq 1 ]; then
+    ok "the add/add setup exits 1"
+else
+    fail "the add/add setup exits 1" "exit=$rc out: $out"
+fi
+expect_file_contains "the add/add checkout opens the marker region" \
+    "$T374/foo/src/new.c" "<<<<<<< projeny (new setup)"
+expect_file_contains "the marker's ours side is the pull's content" \
+    "$T374/foo/src/new.c" "upstream"
+expect_file_contains "the add/add checkout carries the split line" \
+    "$T374/foo/src/new.c" "======="
+expect_file_contains "the marker's theirs side is the added content" \
+    "$T374/foo/src/new.c" "mine"
+expect_file_contains "the add/add checkout closes the marker region" \
+    "$T374/foo/src/new.c" ">>>>>>> projeny (local changes)"
+expect_file_contains "the status records the conflict" \
+    "$T374/.foo.projeny.status" "Conflict: src/new.c"
+expect_file_contains "the status keeps the pending add" \
+    "$T374/.foo.projeny.status" "Added: src/new.c"
+printf 'mine\n' > "$T374/foo/src/new.c"
+run_in "$T374" expect_ok "the add/add conflict resolves" "$PROJENY" \
+    resolve foo.projeny src/new.c
+run_in "$T374" expect_ok "the add/add resolution commits" "$PROJENY" \
+    commit foo.projeny
+expect_file_contains "the committed patch lands the kept content" \
+    "$T374/foo.projeny" "+mine"
+expect_file_not_contains "the committed patch does not resurrect upstream" \
+    "$T374/foo.projeny" "upstream"
+expect_file_not_contains "the committed patch carries no marker lines" \
+    "$T374/foo.projeny" "<<<<<<<"
+out="$(cd "$T374" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the add/add round-trip re-sets up as a noop"
+    else
+        fail "the add/add round-trip re-sets up as a noop" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the add/add round-trip re-sets up as a noop" "out: $out"
+    ;;
+esac
+
+# ------------------- 375. the git-pull switch conflicts: upstream deletes
+# a file the checkout modified
+# bar.projeny committed the DELETION of src/b.c; the checkout modified
+# src/b.c locally. The switched setup flags the conflict and writes the
+# deletion-flavored markers — the ours side (the new setup) is EMPTY, the
+# theirs side holds the local content. The pinned resolution flow accepts
+# the deletion: `rm` records the pending removal and deletes the file,
+# `resolve` clears the conflict, and `commit` regenerates the patch
+# against bar's bare chain — where src/b.c is already gone — so the patch
+# normalizes away entirely and the follow-up setup is a plain noop. (The
+# keep-the-file flow also converges, but the kept file rides untracked:
+# the commit leaves it out of the patch the way git leaves untracked files
+# out of commits, and only a follow-up `add` + commit records it. The
+# accept-the-deletion flow reads cleaner, so it is the one pinned here.)
+T375="$ROOT/t375"
+make_tarballs "$T375" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T375/bar.projeny"
+run_in "$T375" expect_ok "the deletion fixture sets up bar" "$PROJENY" \
+    setup bar.projeny
+run_in "$T375" expect_ok "bar marks src/b.c as removed" "$PROJENY" \
+    rm bar.projeny bar/src/b.c
+run_in "$T375" expect_ok "bar commits the deletion" "$PROJENY" \
+    commit bar.projeny
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T375/foo.projeny"
+run_in "$T375" expect_ok "the deletion fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T375/foo/src/b.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("line one v1", "line one local")
+open(p, "w").write(s)
+EOF
+printf 'Projeny: bar.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T375/foo.projeny"
+leftconf375='projeny: setup left conflicts (exit 1); fix them, then `resolve` each file and `commit`'
+out="$(cd "$T375" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: merged local changes onto 'foo':"*"  conflict: src/b.c"*)
+    ok "the deletion switch flags the deleted-but-modified file"
+    ;;
+*)
+    fail "the deletion switch flags the deleted-but-modified file" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"$leftconf375"*)
+    ok "the deletion switch tells the user how to proceed"
+    ;;
+*)
+    fail "the deletion switch tells the user how to proceed" "out: $out"
+    ;;
+esac
+if [ $rc -eq 1 ]; then
+    ok "the deletion-conflict setup exits 1"
+else
+    fail "the deletion-conflict setup exits 1" "exit=$rc out: $out"
+fi
+if [ -f "$T375/foo/src/b.c" ]; then
+    ok "the conflicted file still exists in the checkout"
+else
+    fail "the conflicted file still exists in the checkout" \
+         "$T375/foo/src/b.c is missing"
+fi
+expect_file_contains "the deletion conflict opens the deleted-side marker" \
+    "$T375/foo/src/b.c" "<<<<<<< projeny (new setup: file deleted)"
+expect_file_contains "the deletion conflict carries the split line" \
+    "$T375/foo/src/b.c" "======="
+expect_file_contains "the marker's theirs side is the local content" \
+    "$T375/foo/src/b.c" "line one local"
+expect_file_contains "the deletion conflict closes the marker region" \
+    "$T375/foo/src/b.c" ">>>>>>> projeny (local changes)"
+expect_file_contains "the deletion conflict is recorded in the status" \
+    "$T375/.foo.projeny.status" "Conflict: src/b.c"
+# The accept-the-deletion flow: rm (with the workdir-name-prefixed path,
+# as add/rm/mv require), resolve, commit — then everything converges.
+run_in "$T375" expect_ok "the deletion resolution records the removal" \
+    "$PROJENY" rm foo.projeny foo/src/b.c
+if [ ! -e "$T375/foo/src/b.c" ]; then
+    ok "the resolution removed the file from the checkout"
+else
+    fail "the resolution removed the file from the checkout" \
+         "$T375/foo/src/b.c still exists"
+fi
+expect_file_contains "the pending removal is recorded in the status" \
+    "$T375/.foo.projeny.status" "Removed: src/b.c"
+run_in "$T375" expect_ok "the deletion conflict resolves" "$PROJENY" \
+    resolve foo.projeny src/b.c
+run_in "$T375" expect_ok "the deletion resolution commits" "$PROJENY" \
+    commit foo.projeny
+expect_file_not_contains "the committed patch normalized away entirely" \
+    "$T375/foo.projeny" "diff --git"
+expect_file_not_contains "the committed patch carries no marker lines" \
+    "$T375/foo.projeny" "<<<<<<<"
+out="$(cd "$T375" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the deletion round-trip re-sets up as a plain noop"
+    else
+        fail "the deletion round-trip re-sets up as a plain noop" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the deletion round-trip re-sets up as a plain noop" "out: $out"
+    ;;
+esac
+out="$(cd "$T375" && "$PROJENY" status foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"Modified:"*|*"Conflict:"*|*"Disappeared:"*)
+    fail "the status after the deletion round-trip is clean" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the status after the deletion round-trip is clean"
+    else
+        fail "the status after the deletion round-trip is clean" \
+             "exit=$rc out: $out"
+    fi
+    ;;
+esac
+
+# ------------------- 376. a colliding patch after the switch sets up with
+# fresh markers (the no-local-changes recovery)
+# foo.projeny committed gamma->200; bar.projeny committed the IDENTICAL
+# change; the pull repointed foo at bar but FORGOT to drop foo's now-
+# redundant patch. The no-local-changes path recovers instead of dying:
+# the patch no longer applies onto the adopted chain, so the fresh setup
+# lands it with inline `<<<<<<< current` / `>>>>>>> patched` markers (both
+# sides hold gamma = 200 — the patch's intent already equals the chain's
+# content), exits 1, and records the conflict. Resolve + commit
+# regenerates the patch, which normalizes to NOTHING (the redundant patch
+# is gone entirely), and the follow-up setup is a plain noop. The classic
+# control: an Archive:-based file in the same state keeps the bare hard
+# die, byte-identically, leaving the checkout and status untouched.
+T376="$ROOT/t376"
+make_tarballs "$T376" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T376/foo.projeny"
+run_in "$T376" expect_ok "the redundant-patch fixture sets up foo" \
+    "$PROJENY" setup foo.projeny
+python3 - "$T376/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T376" expect_ok "foo commits its gamma edit" "$PROJENY" \
+    commit foo.projeny
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: bar\n\n    Free prose (indented).\n\n' \
+    > "$T376/bar.projeny"
+run_in "$T376" expect_ok "the redundant-patch fixture sets up bar" \
+    "$PROJENY" setup bar.projeny
+python3 - "$T376/bar/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int gamma = 1;", "int gamma = 200;")
+open(p, "w").write(s)
+EOF
+run_in "$T376" expect_ok "bar commits the identical gamma edit" "$PROJENY" \
+    commit bar.projeny
+cat > "$T376/foo.projeny" <<'PJEOF'
+Projeny: bar.projeny
+Origname: fake-1.0
+Name: foo
+
+    Free prose (indented).
+
+diff --git a/foo/src/a.c b/foo/src/a.c
+--- a/foo/src/a.c
++++ b/foo/src/a.c
+@@ -1,7 +1,7 @@
+ int alpha = 1;
+
+ int beta = 1;
+
+-int gamma = 1;
++int gamma = 200;
+
+ int delta = 1;
+PJEOF
+leftconf376='projeny: setup left conflicts (exit 1); fix them, then `resolve` each file and `commit`'
+out="$(cd "$T376" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes) with 1 conflict(s):"*"  src/a.c"*)
+    ok "the colliding redundant patch sets up with fresh markers"
+    ;;
+*)
+    fail "the colliding redundant patch sets up with fresh markers" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"$leftconf376"*)
+    ok "the fresh-marker recovery tells the user how to proceed"
+    ;;
+*)
+    fail "the fresh-marker recovery tells the user how to proceed" \
+         "out: $out"
+    ;;
+esac
+if [ $rc -eq 1 ]; then
+    ok "the fresh-marker recovery exits 1"
+else
+    fail "the fresh-marker recovery exits 1" "exit=$rc out: $out"
+fi
+expect_file_contains "the fresh-marker checkout opens the current side" \
+    "$T376/foo/src/a.c" "<<<<<<< current"
+expect_file_contains "the fresh-marker checkout holds the chain's gamma" \
+    "$T376/foo/src/a.c" "int gamma = 200"
+expect_file_contains "the fresh-marker checkout carries the split line" \
+    "$T376/foo/src/a.c" "======="
+expect_file_contains "the fresh-marker checkout closes the patched side" \
+    "$T376/foo/src/a.c" ">>>>>>> patched"
+expect_file_contains "the fresh-marker conflict is recorded in the status" \
+    "$T376/.foo.projeny.status" "Conflict: src/a.c"
+if cmp -s "$T376/.foo.snapshot" "$T376/bar.projeny"; then
+    ok "the fresh-marker recovery still froze bar.projeny's bytes"
+else
+    fail "the fresh-marker recovery still froze bar.projeny's bytes" \
+         "cmp: $T376/.foo.snapshot vs $T376/bar.projeny"
+fi
+python3 - "$T376/foo/src/a.c" <<'EOF'
+import sys
+open(sys.argv[1], "w").write(
+    "int alpha = 1;\n\nint beta = 1;\n\nint gamma = 200;\n\nint delta = 1;\n")
+EOF
+run_in "$T376" expect_ok "the fresh-marker conflict resolves" "$PROJENY" \
+    resolve foo.projeny src/a.c
+run_in "$T376" expect_ok "the fresh-marker resolution commits" "$PROJENY" \
+    commit foo.projeny
+expect_file_not_contains "the redundant patch normalized away entirely" \
+    "$T376/foo.projeny" "diff --git"
+expect_file_not_contains "the normalized file carries no gamma anymore" \
+    "$T376/foo.projeny" "gamma"
+out="$(cd "$T376" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"projeny: re-set up 'foo' from 'bar.projeny' (no local changes)"*)
+    if [ $rc -eq 0 ]; then
+        ok "the fresh-marker round-trip re-sets up as a noop"
+    else
+        fail "the fresh-marker round-trip re-sets up as a noop" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the fresh-marker round-trip re-sets up as a noop" "out: $out"
+    ;;
+esac
+# The classic control: an Archive:-based file whose patch no longer
+# applies onto the (switched) archive keeps the hard die — no markers, no
+# checkout or status changes.
+T376B="$ROOT/t376b"
+make_tarballs "$T376B" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T376B/foo.projeny"
+run_in "$T376B" expect_ok "the classic control sets up foo" "$PROJENY" \
+    setup foo.projeny
+python3 - "$T376B/foo/src/a.c" <<'EOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("int alpha = 1;", "int alpha = 111;")
+open(p, "w").write(s)
+EOF
+run_in "$T376B" expect_ok "the classic control commits its alpha edit" \
+    "$PROJENY" commit foo.projeny
+cat > "$T376B/foo.projeny" <<'PJEOF'
+Archive: fake-2.0.tar.gz
+Origname: fake-2.0
+Name: foo
+
+    Free prose (indented).
+
+diff --git a/foo/src/a.c b/foo/src/a.c
+--- a/foo/src/a.c
++++ b/foo/src/a.c
+@@ -1,7 +1,7 @@
+-int alpha = 1;
++int alpha = 111;
+
+ int beta = 1;
+
+ int gamma = 1;
+
+ int delta = 1;
+PJEOF
+# Freeze the status bytes so the refusal's no-touch promise below is
+# checked byte-for-byte, not just for the absence of "Projeny:".
+cp "$T376B/.foo.projeny.status" "$ROOT/t376b-status-ref"
+out="$(cd "$T376B" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"cannot apply patch in '$T376B/foo.projeny' (archive 'fake-2.0.tar.gz'): patch does not apply cleanly"*"  src/a.c"*)
+    if [ $rc -ne 0 ]; then
+        ok "the classic control keeps the hard die"
+    else
+        fail "the classic control keeps the hard die" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the classic control keeps the hard die" "exit=$rc out: $out"
+    ;;
+esac
+expect_file_contains "the classic control's checkout is untouched" \
+    "$T376B/foo/src/a.c" "int alpha = 111;"
+if cmp -s "$T376B/.foo.projeny.status" "$ROOT/t376b-status-ref"; then
+    ok "the classic control's status is untouched"
+else
+    fail "the classic control's status is untouched" \
+         "cmp: $T376B/.foo.projeny.status vs $ROOT/t376b-status-ref"
+fi
+rm -rf "$ROOT/t376b-status-ref"
+
+# ------------------- 377. the switch to a missing base file refuses
+# cleanly
+# The pull rewrote foo.projeny to name a base file that does not exist
+# (botched merge, deleted sibling). Setup refuses before touching
+# anything: the checkout, the status file, and the (never-written)
+# Projeny:-mode snapshot are all left alone, and the message names both
+# absolute paths.
+T377="$ROOT/t377"
+make_tarballs "$T377" fake
+printf 'Archive: fake-1.0.tar.gz\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T377/foo.projeny"
+run_in "$T377" expect_ok "the missing-base fixture sets up foo" "$PROJENY" \
+    setup foo.projeny
+cp -a "$T377/foo" "$ROOT/t377-ref"
+printf 'Projeny: missing.projeny\nOrigname: fake-1.0\nName: foo\n\n    Free prose (indented).\n\n' \
+    > "$T377/foo.projeny"
+out="$(cd "$T377" && "$PROJENY" setup foo.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"base file '$T377/missing.projeny' does not exist; it is needed to set up '$T377/foo.projeny'"*)
+    if [ $rc -ne 0 ]; then
+        ok "the missing base refuses with the absolute-path message"
+    else
+        fail "the missing base refuses with the absolute-path message" \
+             "message matched but exit=$rc"
+    fi
+    ;;
+*)
+    fail "the missing base refuses with the absolute-path message" \
+         "exit=$rc out: $out"
+    ;;
+esac
+if diff -r "$ROOT/t377-ref" "$T377/foo" >/dev/null 2>&1; then
+    ok "the refused setup left the checkout untouched"
+else
+    fail "the refused setup left the checkout untouched" \
+         "$(diff -r "$ROOT/t377-ref" "$T377/foo" 2>&1 | head -5)"
+fi
+expect_file_not_contains "the refused setup left the status untouched" \
+    "$T377/.foo.projeny.status" "Projeny:"
+if [ ! -e "$T377/.foo.snapshot" ]; then
+    ok "the refused setup wrote no Projeny-mode snapshot"
+else
+    fail "the refused setup wrote no Projeny-mode snapshot" \
+         "$T377/.foo.snapshot exists"
+fi
+rm -rf "$ROOT/t377-ref"
 
 # ------------------------------------------------------------- summary
 echo "---"
