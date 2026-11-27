@@ -113,6 +113,10 @@ IMPORTANT: When told to rebase /opt/fil, always produce a list of packages in yo
 
 IMPORTANT: Do not take shortcuts when looking at package lists! For example, if you just look in pizlix/, you'll see a bunch of tarballs of projects that /opt/fil uses - but in many cases /opt/fil uses a different version of that project, pulled from a projeny file in the projects/ directory. Another example: if you look at directories and files in projects/, you might find stale (untracked) versions of projects from some time ago, when in reality /opt/fil uses a different version of that project, pulled from somewhere else. If you want to know what projects /opt/fil uses, you have to actually read the optfil/*.sh build scripts. And you cannot just read *some* of those scripts. If you just look at optfil/build_filc_packages.sh, you'll get an incomplete list, since that doesn't include the packages that optfil pulls from pizlix/. Same thing if I asked you to rebase pizlix/ packages. You cannot just look at the tarballs in the pizlix/ directory, you have to read the pizlix/*.sh build scripts, and see what they pull, and how.
 
+IMPORTANT EXCEPTIONS: There are a handful of projects that enter_container.sh uses from tarballs in
+pizlix/, like the autoconf and libtool tarballs. Even if you *also* create projeny projects for those,
+make sure that we have tarballs checked into pizlix/ for the purpose of enter_container.sh.
+
 NOTE: If you encounter bugs in projeny while you are working, fix those bugs! It's fine to have one changeset that both rebases some project and contains the fixes to projeny that you needed to get there.
 
 FINAL CHECKLIST: YOU ARE *NOT DONE* UNTIL YOU HAVE DONE THIS:
