@@ -1,6 +1,6 @@
-URL: https://github.com/openssl/openssl/releases/download/openssl-3.6.5/openssl-3.6.5.tar.gz 1f7fe0f6b2d9c46f70eee94d4e8700cf754623e9764af424e3eb9a9127d77999
-URL: https://www.openssl.org/source/openssl-3.6.5.tar.gz 1f7fe0f6b2d9c46f70eee94d4e8700cf754623e9764af424e3eb9a9127d77999
-Origname: openssl-3.6.5
+URL: https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz be2f7530fe5cd02a06e67d8916e6574f1c53b8071393aae2364b4ed817cf0354
+URL: https://www.openssl.org/source/openssl-3.5.9.tar.gz be2f7530fe5cd02a06e67d8916e6574f1c53b8071393aae2364b4ed817cf0354
+Origname: openssl-3.5.9
 Name: zunsafe-openssl3
 
     openssl with the Fil-C port (constant-time crypto and assembly-call changes; see https://fil-c.org/constant_time_crypto).
@@ -112,49 +112,6 @@ new file mode 100644
 +    check_key(key, out, enc ? padded : length);
 +    zcheck(ivp, 16);
 +    zunsafe_buf_call(length, "AES_cbc_encrypt", in, out, length, key, ivp, enc);
-+}
-diff --git a/zunsafe-openssl3/crypto/aes/aes_cfb_asm_forward.c b/zunsafe-openssl3/crypto/aes/aes_cfb_asm_forward.c
-new file mode 100644
---- /dev/null
-+++ b/zunsafe-openssl3/crypto/aes/aes_cfb_asm_forward.c
-@@ -0,0 +1,38 @@
-+#include "internal/deprecated.h"
-+
-+#include <stdlib.h>
-+#include <openssl/crypto.h>
-+#include <openssl/aes.h>
-+#include <openssl/e_os2.h>
-+#include "crypto/modes.h"
-+#include "crypto/aes_platform.h"
-+#include <stdfil.h>
-+
-+int ossl_aes_cfb128_vaes_eligible(void)
-+{
-+    return zunsafe_fast_call("ossl_aes_cfb128_vaes_eligible");
-+}
-+
-+void ossl_aes_cfb128_vaes_enc(const unsigned char *in, unsigned char *out,
-+                              size_t len, const AES_KEY *ks,
-+                              const unsigned char ivec[16], ossl_ssize_t *num)
-+{
-+    zcheck_readonly(in, len);
-+    zcheck(out, len);
-+    zcheck_readonly(ks, sizeof(AES_KEY));
-+    zcheck_readonly(ivec, 16);
-+    zcheck(num, sizeof(ossl_ssize_t));
-+    zunsafe_buf_call(len, "ossl_aes_cfb128_vaes_enc", in, out, len, ks, ivec, num);
-+}
-+
-+void ossl_aes_cfb128_vaes_dec(const unsigned char *in, unsigned char *out,
-+                              size_t len, const AES_KEY *ks,
-+                              const unsigned char ivec[16], ossl_ssize_t *num)
-+{
-+    zcheck_readonly(in, len);
-+    zcheck(out, len);
-+    zcheck_readonly(ks, sizeof(AES_KEY));
-+    zcheck_readonly(ivec, 16);
-+    zcheck(num, sizeof(ossl_ssize_t));
-+    zunsafe_buf_call(len, "ossl_aes_cfb128_vaes_dec", in, out, len, ks, ivec, num);
 +}
 diff --git a/zunsafe-openssl3/crypto/aes/aes_v8_asm_forward.c b/zunsafe-openssl3/crypto/aes/aes_v8_asm_forward.c
 new file mode 100644
@@ -835,30 +792,27 @@ new file mode 100644
 diff --git a/zunsafe-openssl3/crypto/aes/build.info b/zunsafe-openssl3/crypto/aes/build.info
 --- a/zunsafe-openssl3/crypto/aes/build.info
 +++ b/zunsafe-openssl3/crypto/aes/build.info
-@@ -8,9 +8,13 @@
+@@ -8,9 +8,12 @@
    $AESDEF_x86_sse2=VPAES_ASM OPENSSL_IA32_SSE2
 
    $AESASM_x86_64=\
 -        aes-x86_64.s vpaes-x86_64.s bsaes-x86_64.s aesni-x86_64.s \
 -        aesni-sha1-x86_64.s aesni-sha256-x86_64.s aesni-mb-x86_64.s \
--        aesni-xts-avx512.s aes-cfb-avx512.s
+-        aesni-xts-avx512.s
 +        aes_asm_forward.c aes-x86_64.s vpaes_asm_forward.c vpaes-x86_64.s \
 +        bsaes_asm_forward.c bsaes-x86_64.s aesni_asm_forward.c aesni-x86_64.s \
 +        aesni_sha1_asm_forward.c aesni-sha1-x86_64.s \
 +        aesni_sha256_asm_forward.c aesni-sha256-x86_64.s \
 +        aesni_mb_asm_forward.c aesni-mb-x86_64.s \
-+        aesni_xts_avx512_asm_forward.c aesni-xts-avx512.s \
-+        aes_cfb_asm_forward.c aes-cfb-avx512.s
++        aesni_xts_avx512_asm_forward.c aesni-xts-avx512.s
    $AESDEF_x86_64=AES_ASM VPAES_ASM BSAES_ASM
 
    $AESASM_ia64=aes_core.c aes_cbc.c aes-ia64.s
-@@ -31,10 +35,13 @@
+@@ -31,8 +34,13 @@
 
    $AESASM_armv4=aes_cbc.c aes-armv4.S bsaes-armv7.S aesv8-armx.S
    $AESDEF_armv4=AES_ASM BSAES_ASM
--  $AESASM_aarch64=\
--        aes_core.c aes_cbc.c aesv8-armx.S bsaes-armv8.S vpaes-armv8.S \
--        aes-sha1-armv8.S aes-sha256-armv8.S aes-sha512-armv8.S
+-  $AESASM_aarch64=aes_core.c aes_cbc.c aesv8-armx.S bsaes-armv8.S vpaes-armv8.S
 -  $AESDEF_aarch64=BSAES_ASM VPAES_ASM
 +  # Fil-C: bsaes-armv8.S is dropped -- it CALLS AES_cbc_encrypt/AES_encrypt/
 +  # AES_decrypt from yolo assembler, which pizlonated C cannot provide (it
@@ -870,19 +824,6 @@ diff --git a/zunsafe-openssl3/crypto/aes/build.info b/zunsafe-openssl3/crypto/ae
 
    $AESASM_parisc11=aes_core.c aes_cbc.c aes-parisc.s
    $AESDEF_parisc11=AES_ASM
-@@ -140,12 +147,6 @@
- INCLUDE[aesv8-armx.o]=..
- GENERATE[vpaes-armv8.S]=asm/vpaes-armv8.pl
- INCLUDE[vpaes-armv8.o]=..
--GENERATE[aes-sha1-armv8.S]=asm/aes-sha1-armv8.pl
--INCLUDE[aes-sha1-armv8.o]=..
--GENERATE[aes-sha256-armv8.S]=asm/aes-sha256-armv8.pl
--INCLUDE[aes-sha256-armv8.o]=..
--GENERATE[aes-sha512-armv8.S]=asm/aes-sha512-armv8.pl
--INCLUDE[aes-sha512-armv8.o]=..
-
- GENERATE[aes-armv4.S]=asm/aes-armv4.pl
- INCLUDE[aes-armv4.o]=..
 diff --git a/zunsafe-openssl3/crypto/aes/vpaes_asm_forward.c b/zunsafe-openssl3/crypto/aes/vpaes_asm_forward.c
 new file mode 100644
 --- /dev/null
@@ -2935,7 +2876,7 @@ new file mode 100644
 diff --git a/zunsafe-openssl3/crypto/sha/build.info b/zunsafe-openssl3/crypto/sha/build.info
 --- a/zunsafe-openssl3/crypto/sha/build.info
 +++ b/zunsafe-openssl3/crypto/sha/build.info
-@@ -75,7 +75,7 @@
+@@ -72,7 +72,7 @@
    # Now that we have defined all the arch specific variables, use the
    # appropriate one, and define the appropriate macros
    IF[$KECCAK1600ASM_{- $target{asm_arch} -}]
@@ -3091,7 +3032,7 @@ diff --git a/zunsafe-openssl3/crypto/sha/sha512.c b/zunsafe-openssl3/crypto/sha/
 diff --git a/zunsafe-openssl3/crypto/sm3/build.info b/zunsafe-openssl3/crypto/sm3/build.info
 --- a/zunsafe-openssl3/crypto/sm3/build.info
 +++ b/zunsafe-openssl3/crypto/sm3/build.info
-@@ -2,13 +2,14 @@
+@@ -2,7 +2,8 @@
 
  IF[{- !$disabled{sm3} -}]
    IF[{- !$disabled{asm} -}]
@@ -3100,14 +3041,7 @@ diff --git a/zunsafe-openssl3/crypto/sm3/build.info b/zunsafe-openssl3/crypto/sm
 +    $SM3ASM_aarch64=sm3_asm_forward.c sm3-armv8.S
      $SM3DEF_aarch64=OPENSSL_SM3_ASM
 
-     $SM3ASM_riscv64=sm3_riscv.c sm3-riscv64-zbb.S sm3-riscv64-zvksh.S
-     $SM3DEF_riscv64=OPENSSL_SM3_ASM
-
--    $SM3ASM_x86_64=sm3-x86_64.S
-+    $SM3ASM_x86_64=sm3_asm_forward.c sm3-x86_64.S
-     $SM3DEF_x86_64=OPENSSL_SM3_ASM
-
-     # Now that we have defined all the arch specific variables, use the
+     $SM3ASM_riscv64=sm3_riscv.c sm3-riscv64-zvksh.S
 diff --git a/zunsafe-openssl3/crypto/sm3/sm3_asm_forward.c b/zunsafe-openssl3/crypto/sm3/sm3_asm_forward.c
 new file mode 100644
 --- /dev/null
@@ -3126,7 +3060,7 @@ new file mode 100644
 diff --git a/zunsafe-openssl3/crypto/sm4/build.info b/zunsafe-openssl3/crypto/sm4/build.info
 --- a/zunsafe-openssl3/crypto/sm4/build.info
 +++ b/zunsafe-openssl3/crypto/sm4/build.info
-@@ -1,14 +1,17 @@
+@@ -1,8 +1,11 @@
  LIBS=../../libcrypto
 
  IF[{- !$disabled{asm} -}]
@@ -3140,13 +3074,6 @@ diff --git a/zunsafe-openssl3/crypto/sm4/build.info b/zunsafe-openssl3/crypto/sm
 
    $SM4DEF_riscv64=SM4_ASM
    $SM4ASM_riscv64=sm4-riscv64-zvksed.s
-
-   $SM4DEF_x86_64=SM4_ASM
--  $SM4ASM_x86_64=sm4-x86_64.S
-+  $SM4ASM_x86_64=sm4_asm_forward.c sm4-x86_64.S
-
-   # Now that we have defined all the arch specific variables, use the
-   # appropriate one, and define the appropriate macros
 diff --git a/zunsafe-openssl3/crypto/sm4/sm4_armv8_asm_forward.c b/zunsafe-openssl3/crypto/sm4/sm4_armv8_asm_forward.c
 new file mode 100644
 --- /dev/null
@@ -3229,40 +3156,6 @@ new file mode 100644
 +    zcheck_readonly(ivec, 16);
 +    zunsafe_buf_call(blocks, "sm4_v8_ctr32_encrypt_blocks", in, out, blocks,
 +                     key, ivec);
-+}
-diff --git a/zunsafe-openssl3/crypto/sm4/sm4_asm_forward.c b/zunsafe-openssl3/crypto/sm4/sm4_asm_forward.c
-new file mode 100644
---- /dev/null
-+++ b/zunsafe-openssl3/crypto/sm4/sm4_asm_forward.c
-@@ -0,0 +1,29 @@
-+#include <stdlib.h>
-+#include <openssl/crypto.h>
-+#include "crypto/sm4.h"
-+#include <stdfil.h>
-+
-+int hw_x86_64_sm4_set_key(const unsigned char *userKey, SM4_KEY *key)
-+{
-+    zcheck_readonly(userKey, 16);
-+    zcheck(key, sizeof(SM4_KEY));
-+    return zunsafe_fast_call("hw_x86_64_sm4_set_key", userKey, key);
-+}
-+
-+void hw_x86_64_sm4_encrypt(const unsigned char *in, unsigned char *out,
-+                           const SM4_KEY *key)
-+{
-+    zcheck_readonly(in, 16);
-+    zcheck(out, 16);
-+    zcheck_readonly(key, sizeof(SM4_KEY));
-+    zunsafe_fast_call("hw_x86_64_sm4_encrypt", in, out, key);
-+}
-+
-+void hw_x86_64_sm4_decrypt(const unsigned char *in, unsigned char *out,
-+                           const SM4_KEY *key)
-+{
-+    zcheck_readonly(in, 16);
-+    zcheck(out, 16);
-+    zcheck_readonly(key, sizeof(SM4_KEY));
-+    zunsafe_fast_call("hw_x86_64_sm4_decrypt", in, out, key);
 +}
 diff --git a/zunsafe-openssl3/crypto/whrlpool/build.info b/zunsafe-openssl3/crypto/whrlpool/build.info
 --- a/zunsafe-openssl3/crypto/whrlpool/build.info
@@ -3476,26 +3369,10 @@ diff --git a/zunsafe-openssl3/engines/e_padlock.c b/zunsafe-openssl3/engines/e_p
  void padlock_sha1_oneshot(void *ctx, const void *inp, size_t len);
  void padlock_sha1(void *ctx, const void *inp, size_t len);
  void padlock_sha256_oneshot(void *ctx, const void *inp, size_t len);
-diff --git a/zunsafe-openssl3/include/crypto/aes_platform.h b/zunsafe-openssl3/include/crypto/aes_platform.h
---- a/zunsafe-openssl3/include/crypto/aes_platform.h
-+++ b/zunsafe-openssl3/include/crypto/aes_platform.h
-@@ -116,7 +116,11 @@
- #define HWAES_CBC_HMAC_SHA1_ETM_CAPABLE (HWAES_CAPABLE && (OPENSSL_armcap_P & ARMV8_SHA1))
- #define HWAES_CBC_HMAC_SHA256_ETM_CAPABLE (HWAES_CAPABLE && (OPENSSL_armcap_P & ARMV8_SHA256))
- #define HWAES_CBC_HMAC_SHA512_ETM_CAPABLE (HWAES_CAPABLE && (OPENSSL_armcap_P & ARMV8_SHA512))
--#ifndef __AARCH64EB__
-+/*
-+ * Fil-C: the ETM stitched AES+SHA assembler modules (aes-sha*-armv8.pl) are
-+ * not ported, so keep the ETM ciphers inactive.
-+ */
-+#if !defined(__AARCH64EB__) && !defined(__FILC__)
- #define AES_CBC_HMAC_SHA_ETM_CAPABLE 1
- #endif
- #endif
 diff --git a/zunsafe-openssl3/include/crypto/md32_common.h b/zunsafe-openssl3/include/crypto/md32_common.h
 --- a/zunsafe-openssl3/include/crypto/md32_common.h
 +++ b/zunsafe-openssl3/include/crypto/md32_common.h
-@@ -104,7 +104,7 @@
+@@ -100,7 +100,7 @@
  #define ROTATE(a, n) (((a) << (n)) | (((a) & 0xffffffff) >> (32 - (n))))
 
  #ifndef PEDANTIC
@@ -3899,48 +3776,6 @@ deleted file mode 100644
 -        ok(scalar @missing == 0,
 -           "check that there are no missing symbols in $_");
 -    }
--}
-diff --git a/zunsafe-openssl3/test/recipes/02-test_mem_alloc.t b/zunsafe-openssl3/test/recipes/02-test_mem_alloc.t
-deleted file mode 100644
---- a/zunsafe-openssl3/test/recipes/02-test_mem_alloc.t
-+++ /dev/null
-@@ -1,16 +0,0 @@
--#! /usr/bin/env perl
--# Copyright 2025 The OpenSSL Project Authors. All Rights Reserved.
--#
--# Licensed under the Apache License 2.0 (the "License").  You may not use
--# this file except in compliance with the License.  You can obtain a copy
--# in the file LICENSE in the source distribution or at
--# https://www.openssl.org/source/license.html
--
--use OpenSSL::Test::Simple;
--
--{
--    local $ENV{"ASAN_OPTIONS"} = "allocator_may_return_null=true";
--    local $ENV{"MSAN_OPTIONS"} = "allocator_may_return_null=true";
--
--    simple_test("test_mem_alloc", "mem_alloc_test");
--}
-diff --git a/zunsafe-openssl3/test/recipes/02-test_mem_alloc_custom_fns.t b/zunsafe-openssl3/test/recipes/02-test_mem_alloc_custom_fns.t
-deleted file mode 100644
---- a/zunsafe-openssl3/test/recipes/02-test_mem_alloc_custom_fns.t
-+++ /dev/null
-@@ -1,16 +0,0 @@
--#! /usr/bin/env perl
--# Copyright 2025 The OpenSSL Project Authors. All Rights Reserved.
--#
--# Licensed under the Apache License 2.0 (the "License").  You may not use
--# this file except in compliance with the License.  You can obtain a copy
--# in the file LICENSE in the source distribution or at
--# https://www.openssl.org/source/license.html
--
--use OpenSSL::Test::Simple;
--
--{
--    local $ENV{"ASAN_OPTIONS"} = "allocator_may_return_null=true";
--    local $ENV{"MSAN_OPTIONS"} = "allocator_may_return_null=true";
--
--    simple_test("test_mem_alloc_custom_fns", "mem_alloc_custom_fns_test");
 -}
 diff --git a/zunsafe-openssl3/test/recipes/04-test_bioprint.t b/zunsafe-openssl3/test/recipes/04-test_bioprint.t
 deleted file mode 100644
