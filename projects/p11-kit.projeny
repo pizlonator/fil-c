@@ -1,0 +1,55 @@
+URL: https://github.com/p11-glue/p11-kit/releases/download/0.26.6/p11-kit-0.26.6.tar.xz 5ceeb63d5172b708671148919fd68ae2ee5ac2af6e41c6868a0d370f2e2e9372
+Origname: p11-kit-0.26.6
+Name: p11-kit
+
+    p11-kit 0.26.6 with the Fil-C port: guard the ctype range in short_option() (long-only options pass vals above UCHAR_MAX) and pass --version-script directly to the linker in p11-kit/meson.build.
+diff --git a/p11-kit/common/options.c b/p11-kit/common/options.c
+--- a/p11-kit/common/options.c
++++ b/p11-kit/common/options.c
+@@ -43,6 +43,7 @@
+ #include <assert.h>
+ #include <ctype.h>
+ #include <getopt.h>
++#include <limits.h>
+ #include <string.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -64,7 +65,16 @@
+ static char
+ short_option (int opt)
+ {
+-	if (isalpha (opt) || isdigit (opt))
++	/*
++	 * Option vals above UCHAR_MAX are used for long-only options
++	 * (e.g. opt_filter = 1000 in trust/list.c). Passing them to
++	 * isalpha()/isdigit() is undefined behavior, since those only
++	 * accept values representable as unsigned char (or EOF), and it
++	 * reads past the end of the ctype table. Fil-C turns that latent
++	 * out-of-bounds read into a panic, so guard the range first.
++	 */
++	if (opt >= 0 && opt <= UCHAR_MAX &&
++	    (isalpha (opt) || isdigit (opt)))
+ 		return (char)opt;
+ 	return 0;
+ }
+diff --git a/p11-kit/p11-kit/meson.build b/p11-kit/p11-kit/meson.build
+--- a/p11-kit/p11-kit/meson.build
++++ b/p11-kit/p11-kit/meson.build
+@@ -128,7 +128,7 @@
+
+ libp11_kit_symbol_map = meson.current_source_dir() / 'libp11-kit.map'
+ libp11_kit_ldflags = cc.get_supported_link_arguments([
+-  '-Wl,--version-script,' + libp11_kit_symbol_map
++  '--version-script=' + libp11_kit_symbol_map
+ ])
+ libp11_kit_symbol_def = meson.current_source_dir() / 'libp11-kit-@0@.dll.def'.format(soversion)
+
+@@ -164,7 +164,7 @@
+
+ p11_module_symbol_map = meson.current_source_dir() / 'p11-module.map'
+ p11_module_ldflags = cc.get_supported_link_arguments([
+-  '-Wl,--version-script,' + p11_module_symbol_map
++  '--version-script=' + p11_module_symbol_map
+ ])
+
+ # On macOS, the default suffix for loadable modules is .so, but meson uses
