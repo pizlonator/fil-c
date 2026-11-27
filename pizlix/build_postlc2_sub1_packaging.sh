@@ -22,7 +22,7 @@ rm -vf projects/*/pizlonated-*.tar.gz
 # CLI/network/crypto tools (the old postlc2 stage).
 ./package-source.sh projects/cmake-3.30.2 pizlonated-cmake
 ./package-source.sh projects/libtasn1-4.21.0 pizlonated-libtasn1
-./package-source.sh projects/p11-kit-0.26.5 pizlonated-p11-kit
+filc/projeny package projects/p11-kit.projeny projects/p11-kit/pizlonated-p11-kit.tar.gz
 filc/projeny package projects/libidn2.projeny projects/libidn2/pizlonated-libidn2.tar.gz
 filc/projeny package projects/libunistring.projeny projects/libunistring/pizlonated-libunistring.tar.gz
 filc/projeny package projects/curl.projeny projects/curl/pizlonated-curl.tar.gz

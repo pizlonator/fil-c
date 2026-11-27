@@ -288,7 +288,7 @@ cd ..
 rm -rf pizlonated-lz4
 hash -r
 
-tar -xf $FILCSRC/projects/zstd-1.5.7/pizlonated-zstd.tar.gz
+tar -xf $FILCSRC/projects/zstd/pizlonated-zstd.tar.gz
 cd pizlonated-zstd
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ZSTD_NO_ASM=1 make -j `nproc` prefix=/opt/fil
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ZSTD_NO_ASM=1 make -j `nproc` prefix=/opt/fil install
@@ -688,13 +688,13 @@ cd ..
 rm -rf pizlonated-m4
 hash -r
 
-tar -xf $FILCSRC/pizlix/flex-2.6.4.tar.gz
-cd flex-2.6.4
+tar -xf $FILCSRC/projects/flex/pizlonated-flex.tar.gz
+cd pizlonated-flex
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil --disable-static
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf flex-2.6.4
+rm -rf pizlonated-flex
 hash -r
 
 tar -xf $FILCSRC/projects/bison-3.8.2/pizlonated-bison.tar.gz
@@ -733,13 +733,13 @@ cd ..
 rm -rf pizlonated-diffutils
 hash -r
 
-tar -xf $FILCSRC/pizlix/gawk-5.4.1.tar.xz
-cd gawk-5.4.1
+tar -xf $FILCSRC/projects/gawk/pizlonated-gawk.tar.gz
+cd pizlonated-gawk
 CC=/opt/fil/bin/filcc CXX=/opt/fil/bin/fil++ ./configure --prefix=/opt/fil
 make -j `nproc`
 make -j `nproc` install
 cd ..
-rm -rf gawk-5.4.1
+rm -rf pizlonated-gawk
 hash -r
 
 tar -xf $FILCSRC/pizlix/findutils-4.11.0.tar.xz
@@ -869,7 +869,7 @@ cd ..
 rm -rf pizlonated-libtasn1
 hash -r
 
-tar -xf $FILCSRC/projects/p11-kit-0.26.5/pizlonated-p11-kit.tar.gz
+tar -xf $FILCSRC/projects/p11-kit/pizlonated-p11-kit.tar.gz
 cd pizlonated-p11-kit
 mkdir -v p11-build
 cd p11-build

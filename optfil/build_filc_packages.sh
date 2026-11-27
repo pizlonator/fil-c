@@ -97,7 +97,11 @@ filc/projeny package \
     projects/pcre2.projeny projects/pcre2/pizlonated-pcre2.tar.gz \
     projects/openssh.projeny projects/openssh/pizlonated-openssh.tar.gz \
     projects/git.projeny projects/git/pizlonated-git.tar.gz \
-    projects/postgresql.projeny projects/postgresql/pizlonated-postgresql.tar.gz
+    projects/postgresql.projeny projects/postgresql/pizlonated-postgresql.tar.gz \
+    projects/flex.projeny projects/flex/pizlonated-flex.tar.gz \
+    projects/gawk.projeny projects/gawk/pizlonated-gawk.tar.gz \
+    projects/p11-kit.projeny projects/p11-kit/pizlonated-p11-kit.tar.gz \
+    projects/zstd.projeny projects/zstd/pizlonated-zstd.tar.gz
 
 ./package-source.sh projects/libxcrypt-4.5.2 pizlonated-libxcrypt
 ./package-source.sh projects/bash-5.3 pizlonated-bash
@@ -116,9 +120,7 @@ filc/projeny package \
 ./package-source.sh projects/tar-1.35 pizlonated-tar
 ./package-source.sh projects/procps-ng-4.0.7 pizlonated-procps
 ./package-source.sh projects/libtasn1-4.21.0 pizlonated-libtasn1
-./package-source.sh projects/p11-kit-0.26.5 pizlonated-p11-kit
 ./package-source.sh projects/libevent-2.1.13 pizlonated-libevent
-./package-source.sh projects/zstd-1.5.7 pizlonated-zstd
 ./package-source.sh projects/zip-3.0 pizlonated-zip
 ./package-source.sh projects/unzip-6.0 pizlonated-unzip
 ./package-source.sh projects/zsh-5.9.2 pizlonated-zsh
