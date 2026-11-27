@@ -1,0 +1,8 @@
+return:
+  success
+only-on-platform:
+  x86_64
+optFlags:
+  "-O2 -Wa,--noexecstack -Wa,-mrelax-relocations=yes -Wa,--compress-debug-sections=none -Xassembler --noexecstack"
+output-includes:
+  - "42"
