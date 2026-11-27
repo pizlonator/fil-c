@@ -1,0 +1,8 @@
+return:
+  compileFailure
+output-includes:
+  - "__builtin_setjmp is not supported for the current target"
+  - "__builtin_longjmp is not supported for the current target"
+output-excludes:
+  - Assertion
+  - UNREACHABLE
