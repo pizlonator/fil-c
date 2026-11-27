@@ -1,18 +1,5 @@
-URL: https://github.com/lz4/lz4/releases/download/v1.11.0/lz4-1.11.0.tar.gz cd810aa687448f2eaba1f12342986066cd9df94a2aeaefc81ce98e8febdb789f
-Origname: lz4-1.11.0
+URL: https://github.com/lz4/lz4/releases/download/v1.11.1/lz4-1.11.1.tar.gz 014c3b145ea43c4290396744b4ebd4439072f79c217c688a30b7086fb699819e
+Origname: lz4-1.11.1
 Name: lz4
 
-    lz4 1.11.0 with no Fil-C changes (converted from the deprecated pizlix tarball mode).
-diff --git a/lz4/lib/Makefile b/lz4/lib/Makefile
---- a/lz4/lib/Makefile
-+++ b/lz4/lib/Makefile
-@@ -151,7 +151,8 @@
- lib-release: lib liblz4.pc
-
- .PHONY: lib
--lib: liblz4.a liblz4
-+# liblz4.a is only defined when BUILD_STATIC=yes, so don't require it otherwise.
-+lib: $(if $(filter yes,$(BUILD_STATIC)),liblz4.a) liblz4
-
- .PHONY: lib-mt
- lib-mt:
+    lz4 1.11.1 with no Fil-C changes (converted from the deprecated pizlix tarball mode).
