@@ -1,0 +1,13 @@
+return:
+  success
+libraries:
+  liba.so:
+    isBundle: true
+    files:
+      - liba.c
+  libb.so:
+    isBundle: true
+    files:
+      - libb.c
+output-includes:
+  - "RTLD_GLOBAL_OK: a=plugin_a(107,130) b=plugin_b(207,230) default=plugin_a"
