@@ -19,6 +19,21 @@
 #include <llvm/IR/Operator.h>
 #include <llvm/IR/Instructions.h>
 #include <vector>
+#include <llvm/Support/Compiler.h>
+#include <llvm/Support/ErrorHandling.h>
+#ifdef FILC_PASS_ASSERTIONS
+#define FILC_ASSERT_STR_IMPL(x) #x
+#define FILC_ASSERT_STR(x) FILC_ASSERT_STR_IMPL(x)
+#define FILC_ASSERT(expr)                                                      \
+  do {                                                                         \
+    if (LLVM_UNLIKELY(!(expr)))                                                \
+      ::llvm::report_fatal_error(                                              \
+          "Fil-C pass assertion failed: " #expr " (" __FILE__ ":"              \
+          FILC_ASSERT_STR(__LINE__) ")");                                      \
+  } while (0)
+#undef assert
+#define assert(expr) FILC_ASSERT(expr)
+#endif
 
 using namespace llvm;
 
