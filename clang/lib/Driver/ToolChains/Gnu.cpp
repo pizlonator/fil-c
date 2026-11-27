@@ -121,7 +121,8 @@ void tools::gcc::Common::ConstructJob(Compilation &C, const JobAction &JA,
                                       const InputInfoList &Inputs,
                                       const ArgList &Args,
                                       const char *LinkingOutput) const {
-  llvm_unreachable("Refusing to construct GCC job");
+  llvm::report_fatal_error("Fil-C driver refuses to construct GCC job",
+                           /*GenCrashDiag=*/false);
   
   const Driver &D = getToolChain().getDriver();
   ArgStringList CmdArgs;
@@ -419,7 +420,8 @@ std::string PizlonateVersionScript(const std::string& Input) {
     llvm::errs() << "Failed at byte index " << InputIndex << "\n";
     llvm::errs() << "Reason: " << Reason << "\n";
     llvm::errs() << "Output so far: " << Output.str() << "\n";
-    llvm_unreachable("Failed to parse version script.");
+    llvm::report_fatal_error("Fil-C: failed to parse linker version script",
+                             /*GenCrashDiag=*/false);
   };
 
   auto atEnd = [&] () {
@@ -434,7 +436,9 @@ std::string PizlonateVersionScript(const std::string& Input) {
 
   auto take = [&] () {
     if (atEnd())
-      llvm_unreachable("Unexpected end of file");
+      llvm::report_fatal_error(
+          "Fil-C: unexpected end of file while parsing linker version script",
+          /*GenCrashDiag=*/false);
     return Input[InputIndex++];
   };
 
