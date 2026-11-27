@@ -30,7 +30,7 @@
 # optfil/pizlix package (see optfil/build_filc_packages.sh and
 # pizlix/build_postlc_sub1_filc.sh). This is the primary OpenSSL track. The
 # 3-series (build_zunsafe_openssl3.sh) is the retained previous track: it
-# still builds and tests OpenSSL 3.6.5, but it no longer installs.
+# still builds and tests OpenSSL 3.5.9, but it no longer installs.
 
 . libpas/common.sh
 

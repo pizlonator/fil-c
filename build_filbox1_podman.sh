@@ -29,7 +29,7 @@ set -e
 set -x
 
 test -d pizfix
-test -d dash-0.5.13.5
+test -d dash-0.5.13.6
 test -d pizlonated-toybox
 
 podman rmi --force filbox1 || echo whatever
@@ -37,7 +37,7 @@ podman rmi --force filbox1 || echo whatever
 rm -rf filbox1-build
 mkdir filbox1-build
 cd filbox1-build
-cp ../dash-0.5.13.5/src/dash .
+cp ../dash-0.5.13.6/src/dash .
 cp ../pizlonated-toybox/install/bin/toybox .
 
 cat > profile <<EOF

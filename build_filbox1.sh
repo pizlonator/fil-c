@@ -28,7 +28,7 @@
 set -e
 set -x
 
-cd dash-0.5.13.5
+cd dash-0.5.13.6
 make distclean || echo whatever
 ./autogen.sh
 CC=$PWD/../build/bin/clang ./configure --enable-static

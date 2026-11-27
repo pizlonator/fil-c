@@ -228,7 +228,7 @@ tar -xf pizlonated-pkgconf.tar.gz
 cd pizlonated-pkgconf
 ./configure --prefix=/usr \
     --disable-static \
-    --docdir=/usr/share/doc/pkgconf-3.0.10
+    --docdir=/usr/share/doc/pkgconf-3.0.11
 make
 make install
 ln -sv pkgconf /usr/bin/pkg-config
