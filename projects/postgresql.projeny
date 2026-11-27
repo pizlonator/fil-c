@@ -1,17 +1,22 @@
-URL: https://ftp.postgresql.org/pub/source/v18.6/postgresql-18.6.tar.bz2 953f5040be4b295da54192ebc13eb21374d8b23a0b084810c7f0a5ad2424f9fd
-Origname: postgresql-18.6
+URL: https://ftp.postgresql.org/pub/source/v19.0/postgresql-19.0.tar.bz2 92964fdc88d7c13efc9ca014964a73a43bb9115a62210e900a98170b65965bec
+URL: https://ftp.postgresql.org/pub/source/v19.0/postgresql-19.0.tar.gz b1d663d45a4a39b10ae84f20305709bbad182129488cd801019c27246192da14
+Origname: postgresql-19.0
 Name: postgresql
 
     Just allowlist filc_allocate_without_exiting in the check that libpq doesn't call exit.
-diff --git a/postgresql/src/interfaces/libpq/Makefile b/postgresql/src/interfaces/libpq/Makefile
---- a/postgresql/src/interfaces/libpq/Makefile
-+++ b/postgresql/src/interfaces/libpq/Makefile
-@@ -144,7 +144,7 @@
- libpq-refs-stamp: $(shlib)
- ifneq ($(enable_coverage), yes)
- ifeq (,$(filter solaris,$(PORTNAME)))
--	@if nm -A -u $< 2>/dev/null | grep -v -e __cxa_atexit -e __tsan_func_exit | grep exit; then \
-+	@if nm -A -u $< 2>/dev/null | grep -v -e __cxa_atexit -e __tsan_func_exit -e filc_allocate_without_exiting | grep exit; then \
- 		echo 'libpq must not be calling any function which invokes exit'; exit 1; \
- 	fi
- endif
+diff --git a/postgresql/src/interfaces/libpq/libpq_check.pl b/postgresql/src/interfaces/libpq/libpq_check.pl
+--- a/postgresql/src/interfaces/libpq/libpq_check.pl
++++ b/postgresql/src/interfaces/libpq/libpq_check.pl
+@@ -64,6 +64,12 @@
+ 	# builds.
+ 	next if /pthread_exit/;
+
++	# Excluding filc_allocate_without_exiting is necessary when building
++	# with Fil-C, which routes memory allocation through that function of
++	# the Fil-C runtime, and libpq may legitimately reference it since it
++	# does not terminate the host application.
++	next if /filc_allocate_without_exiting/;
++
+ 	# Anything containing "exit" is suspicious.
+ 	# (Ideally we should reject abort() too, but there are various scenarios
+ 	# where build toolchains insert abort() calls, e.g. to implement
