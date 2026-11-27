@@ -46,3 +46,14 @@ add_llvm_component_library(LLVMInstrumentation
   TransformUtils
   ProfileData
   )
+
+option(FILC_ENABLE_PASS_ASSERTIONS
+  "Keep internal assertions active in Fil-C instrumentation passes even when LLVM_ENABLE_ASSERTIONS=OFF"
+  OFF)
+if(FILC_ENABLE_PASS_ASSERTIONS)
+  set_source_files_properties(
+    FilPizlonator.cpp
+    KillUB.cpp
+    PROPERTIES COMPILE_DEFINITIONS "FILC_PASS_ASSERTIONS=1"
+  )
+endif()
