@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <errno.h>
+#include <pthread.h>
 #include <stddef.h>
 #include <sys/prctl.h>
 #include <sys/wait.h>
@@ -34,79 +35,50 @@ int asynchronous_sync(pid_t *ret_pid) {
         return 0;
 }
 
-/* We encode the fd to close in the userdata pointer as an unsigned value. The highest bit indicates whether
- * we need to fork again */
-#define NEED_DOUBLE_FORK (1U << (sizeof(unsigned) * 8 - 1))
+/* Fil-C: the close job below must not use the raw clone() machinery upstream
+ * relies on.  Upstream spawns it via clone_with_nested_stack(), i.e. glibc's
+ * clone() wrapper with CLONE_FILES so that the child shares our fd table and
+ * closes our descriptor, but the Fil-C user libc stubs that wrapper out with
+ * "clone not implemented." (raw clone() with a nested stack cannot be made
+ * safe by the pizlonator), so asynchronous_close() would panic under Fil-C
+ * wherever it is called.  The close job is a trivial close(fd)+exit worker: it
+ * needs no mount namespace, and a plain fork() would not do the job either,
+ * since a fork()ed child only closes its own copy of the descriptor - without
+ * CLONE_FILES the parent's fd would stay open.  Hence the close job runs in a
+ * detached thread instead: a thread shares our fd table exactly like a
+ * CLONE_FILES child, it needs no reaping (no double fork, no zombies, no
+ * __WCLONE wait), and the Fil-C runtime implements pthreads natively (and
+ * makes fork() in a process that has threads safe).  If thread creation fails,
+ * we fall back to a synchronous close, which is what upstream does when its
+ * clone fails, too. */
 
-static int close_func(void *p) {
+static void *close_thread_func(void *p) {
         unsigned v = PTR_TO_UINT(p);
 
         (void) prctl(PR_SET_NAME, (unsigned long*) "(sd-close)");
 
-        /* Note: 💣 This function is invoked in a child process created via glibc's clone() wrapper. In such
-         *       children memory allocation is not allowed, since glibc does not release malloc mutexes in
-         *       clone() 💣 */
-
-        if (v & NEED_DOUBLE_FORK) {
-                pid_t pid;
-
-                v &= ~NEED_DOUBLE_FORK;
-
-                /* This inner child will be reparented to the subreaper/PID 1. Here we turn on SIGCHLD, so
-                 * that the reaper knows when it's time to reap. */
-                pid = clone_with_nested_stack(close_func, SIGCHLD|CLONE_FILES, UINT_TO_PTR(v));
-                if (pid >= 0)
-                        return 0;
-        }
-
-        close((int) v); /* no assert() here, we are in the child and the result would be eaten up anyway */
-        return 0;
+        close((int) v); /* no assert() here, we are in a helper thread and the result would be eaten up anyway */
+        return NULL;
 }
 
 int asynchronous_close(int fd) {
-        unsigned v;
-        pid_t pid;
+        pthread_t thread;
         int r;
 
         /* This is supposed to behave similar to safe_close(), but actually invoke close() asynchronously, so
          * that it will never block. Ideally the kernel would have an API for this, but it doesn't, so we
-         * work around it, and hide this as a far away as we can.
-         *
-         * It is important to us that we don't use threads (via glibc pthread) in PID 1, hence we'll do a
-         * minimal subprocess instead which shares our fd table via CLONE_FILES. */
+         * work around it, and hide this as a far away as we can. */
 
         if (fd < 0)
                 return -EBADF; /* already invalid */
 
         PROTECT_ERRNO;
 
-        v = (unsigned) fd;
-
-        /* We want to fork off a process that is automatically reaped. For that we'd usually double-fork. But
-         * we can optimize this a bit: if we are PID 1 or a subreaper anyway (the systemd service manager
-         * process qualifies as this), we can avoid the double forking, since the double forked process would
-         * be reparented back to us anyway. */
-        r = is_reaper_process();
-        if (r < 0)
-                log_debug_errno(r, "Cannot determine if we are a reaper process, assuming we are not: %m");
-        if (r <= 0)
-                v |= NEED_DOUBLE_FORK;
-
-        pid = clone_with_nested_stack(close_func, CLONE_FILES | ((v & NEED_DOUBLE_FORK) ? 0 : SIGCHLD), UINT_TO_PTR(v));
-        if (pid < 0)
+        r = pthread_create(&thread, NULL, close_thread_func, UINT_TO_PTR((unsigned) fd));
+        if (r != 0)
                 safe_close(fd); /* local fallback */
-        else if (v & NEED_DOUBLE_FORK) {
-
-                /* Reap the intermediate child. Key here is that we specify __WCLONE, since we didn't ask for
-                 * any signal to be sent to us on process exit, and otherwise waitid() would refuse waiting
-                 * then.
-                 *
-                 * We usually prefer calling waitid(), but before kernel 4.7 it didn't support __WCLONE while
-                 * waitpid() did. Hence let's use waitpid() here, it's good enough for our purposes here. */
-                for (;;)
-                        if (waitpid(pid, NULL, __WCLONE) >= 0 || errno != EINTR)
-                                break;
-        }
+        else
+                (void) pthread_detach(thread);
 
         return -EBADF; /* return an invalidated fd */
 }
