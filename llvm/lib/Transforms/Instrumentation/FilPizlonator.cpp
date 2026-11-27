@@ -414,16 +414,22 @@ class MATokenizer {
     while (Idx < MA.size() && isdigit(MA[Idx]))
       Idx++;
   }
-  
+
+  bool HasError { false };
+
 public:
   MATokenizer(Module& M, const std::string& MA): M(M), MA(MA) {}
 
   bool isAtEnd() const { return Idx >= MA.size(); }
+  bool hasError() const { return HasError; }
 
   void error() {
-    errs() << "Error parsing module asm:\n" << MA << "\n";
-    errs() << "The whole module:\n" << M << "\n";
-    llvm_unreachable("Error parsing module asm");
+    if (!HasError) {
+      HasError = true;
+      Idx = MA.size();
+      M.getContext().emitError(
+          "Fil-C: unsupported or invalid module-level inline assembly");
+    }
   }
 
   MAToken getNext() {
@@ -1149,7 +1155,9 @@ uint64_t SafeAdd64(uint64_t A, uint64_t B) {
   uint64_t Result;
   bool DidOverflow = __builtin_add_overflow(A, B, &Result);
   if (DidOverflow)
-    llvm_unreachable("Unexpected overflow on add");
+    report_fatal_error(
+        "Fil-C: 64-bit integer overflow during layout calculation (add)",
+        /*GenCrashDiag=*/false);
   return Result;
 }
 
@@ -1157,7 +1165,9 @@ uint64_t SafeMul64(uint64_t A, uint64_t B) {
   uint64_t Result;
   bool DidOverflow = __builtin_mul_overflow(A, B, &Result);
   if (DidOverflow)
-    llvm_unreachable("Unexpected overflow on mul");
+    report_fatal_error(
+        "Fil-C: 64-bit integer overflow during layout calculation (mul)",
+        /*GenCrashDiag=*/false);
   return Result;
 }
 
@@ -1701,6 +1711,28 @@ class Pizlonator {
   uintptr_t ObjectCount { 0 };
 
   std::vector<Instruction*> ToErase;
+  bool HadError { false };
+
+  void emitFilCError(const Twine &Msg) {
+    M.getContext().emitError(Msg);
+    HadError = true;
+  }
+
+  void emitFilCError(const Instruction *I, const Twine &Msg) {
+    M.getContext().emitError(I, Msg);
+    HadError = true;
+  }
+
+  void abortModuleOnError() {
+    M.setModuleInlineAsm("");
+    M.setDataLayout(M.getDataLayoutAfterFilC());
+    if (Dummy) {
+      Dummy->deleteValue();
+      Dummy = nullptr;
+    }
+    for (Function &F : M)
+      F.deleteBody();
+  }
 
   BitCastInst* makeDummy(Type* T) {
     return new BitCastInst(UndefValue::get(T), T, "dummy");
@@ -1932,10 +1964,9 @@ class Pizlonator {
         toFlightType(VT->getElementType()), VT->getElementCount().getFixedValue());
     }
 
-    if (isa<ScalableVectorType>(T)) {
-      llvm_unreachable("Shouldn't see scalable vector types");
-      return nullptr;
-    }
+    if (isa<ScalableVectorType>(T))
+      report_fatal_error("Fil-C does not support scalable vector types",
+                         /*GenCrashDiag=*/false);
     
     return T;
   }
@@ -2427,7 +2458,10 @@ class Pizlonator {
     }
 
     if (isa<PointerType>(T)) {
-      assert (!T->getPointerAddressSpace());
+      if (T->getPointerAddressSpace())
+        report_fatal_error(
+            "Fil-C does not support non-zero pointer address spaces",
+            /*GenCrashDiag=*/false);
       return true;
     }
 
@@ -2449,10 +2483,9 @@ class Pizlonator {
     if (FixedVectorType* VT = dyn_cast<FixedVectorType>(T))
       return hasPtrs(VT->getElementType());
 
-    if (isa<ScalableVectorType>(T)) {
-      llvm_unreachable("Shouldn't ever see scalable vectors in hasPtrs");
-      return false;
-    }
+    if (isa<ScalableVectorType>(T))
+      report_fatal_error("Fil-C does not support scalable vector types",
+                         /*GenCrashDiag=*/false);
     
     return false;
   }
@@ -2551,10 +2584,9 @@ class Pizlonator {
       return Result;
     }
 
-    if (isa<ScalableVectorType>(T)) {
-      llvm_unreachable("Shouldn't see scalable vector types in loadValueRecurseAfterCheck");
-      return nullptr;
-    }
+    if (isa<ScalableVectorType>(T))
+      report_fatal_error("Fil-C does not support scalable vector types",
+                         /*GenCrashDiag=*/false);
 
     llvm_unreachable("Should not get here.");
     return nullptr;
@@ -2650,10 +2682,9 @@ class Pizlonator {
       return;
     }
 
-    if (isa<ScalableVectorType>(T)) {
-      llvm_unreachable("Shouldn't see scalable vector types in storeValueRecurseAfterCheck");
-      return;
-    }
+    if (isa<ScalableVectorType>(T))
+      report_fatal_error("Fil-C does not support scalable vector types",
+                         /*GenCrashDiag=*/false);
 
     llvm_unreachable("Should not get here.");
   }
@@ -4075,10 +4106,9 @@ class Pizlonator {
       return;
     }
 
-    if (isa<ScalableVectorType>(T)) {
-      llvm_unreachable("Shouldn't see scalable vector types in buildChecksRecurse");
-      return;
-    }
+    if (isa<ScalableVectorType>(T))
+      report_fatal_error("Fil-C does not support scalable vector types",
+                         /*GenCrashDiag=*/false);
 
     llvm_unreachable("Should not get here.");
   }
@@ -6791,8 +6821,8 @@ class Pizlonator {
       if (CE->getType() == RawPtrTy)
         return RawNull;
       
-      llvm_unreachable("wtf kind of CE is that");
-      return nullptr;
+      report_fatal_error("Fil-C: unsupported ConstantExpr in constant lowering",
+                         /*GenCrashDiag=*/false);
     }
     llvm_unreachable("bad RM");
   }
@@ -8119,6 +8149,14 @@ class Pizlonator {
           outs << "Unhandled intrinsic: " << *II;
           CallInst::Create(Error, { getString(str), getOrigin(I->getDebugLoc()) }, "", II)
             ->setDebugLoc(II->getDebugLoc());
+          if (II->getType() != VoidTy) {
+            Type* LowT = toFlightType(II->getType());
+            LoadInst* LI = new LoadInst(LowT, RawNull, "filc_fake_load", II);
+            LI->setDebugLoc(II->getDebugLoc());
+            II->replaceAllUsesWith(LI);
+          }
+          II->eraseFromParent();
+          return true;
         }
 
         for (Use& U : II->data_ops()) {
@@ -13877,8 +13915,8 @@ class Pizlonator {
         Result->setLinkage(F->getLinkage());
         break;
       default:
-        llvm_unreachable("Invalid linkage type");
-        break;
+        report_fatal_error("Fil-C: unsupported function linkage type",
+                           /*GenCrashDiag=*/false);
       }
       Result->addFnAttr(Attribute::NoInline);
       Result->addFnAttr(Attribute::NoUnwind);
@@ -13935,19 +13973,27 @@ class Pizlonator {
     if (verbose)
       errs() << "Lowering: " << *I << "\n";
 
-    if (isa<CallBrInst>(I)) {
-      // "asm goto" produces a CallBrInst. We cannot lower it: it is control
-      // flow out of the inline assembly, and the inline-asm lowering below
-      // assumes that it can erase the call and RAUW its result. Instead,
-      // emit a filc_error panic and leave the callbr in place, so the CFG
-      // stays valid; the process dies at the filc_error call before the
-      // callbr ever executes. (Don't call lowerConstantOperands on the
-      // callbr: it would assert on the BlockAddress operands.)
+    if (CallBrInst* CBI = dyn_cast<CallBrInst>(I)) {
+      // "asm goto" produces a CallBrInst. We cannot lower it: emit a noreturn
+      // filc_error panic and replace the CallBrInst with an unreachable
+      // terminator so no unlowered operands (such as OldF arguments or
+      // pre-flight pointers) survive into module verification.
       std::string str;
       raw_string_ostream outs(str);
-      outs << "cannot handle inline asm (asm goto is not supported): " << *I;
-      CallInst::Create(Error, { getString(str), getOrigin(I->getDebugLoc()) }, "", I)
-        ->setDebugLoc(I->getDebugLoc());
+      outs << "cannot handle inline asm (asm goto is not supported): " << *CBI;
+      CallInst::Create(Error, { getString(str), getOrigin(CBI->getDebugLoc()) }, "", CBI)
+        ->setDebugLoc(CBI->getDebugLoc());
+      if (CBI->getType() != VoidTy) {
+        Type* LowT = toFlightType(CBI->getType());
+        LoadInst* LI = new LoadInst(LowT, RawNull, "filc_fake_load", CBI);
+        LI->setDebugLoc(CBI->getDebugLoc());
+        CBI->replaceAllUsesWith(LI);
+      }
+      BasicBlock* Pred = CBI->getParent();
+      for (unsigned Idx = 0, NumSucc = CBI->getNumSuccessors(); Idx < NumSucc; ++Idx)
+        CBI->getSuccessor(Idx)->removePredecessor(Pred, /*KeepOneInputPHIs=*/true);
+      (new UnreachableInst(C, CBI))->setDebugLoc(CBI->getDebugLoc());
+      CBI->eraseFromParent();
       return;
     }
 
@@ -14293,7 +14339,10 @@ class Pizlonator {
 
     if (AtomicRMWInst* AI = dyn_cast<AtomicRMWInst>(I)) {
       if (InstTypes[AI] == RawPtrTy) {
-        assert(AI->getOperation() == AtomicRMWInst::Xchg);
+        if (AI->getOperation() != AtomicRMWInst::Xchg)
+          report_fatal_error(
+              "Fil-C: unsupported atomicrmw operation on pointer type",
+              /*GenCrashDiag=*/false);
         storeOrigin(getOrigin(AI->getDebugLoc()), AI);
         Instruction* Xchg = CallInst::Create(
           XchgPtr,
@@ -14353,10 +14402,9 @@ class Pizlonator {
       return;
     }
 
-    if (isa<CallBrInst>(I)) {
-      llvm_unreachable("Don't support CallBr yet (and maybe never will)");
-      return;
-    }
+    if (isa<CallBrInst>(I))
+      report_fatal_error("Fil-C does not support asm goto (callbr)",
+                         /*GenCrashDiag=*/false);
 
     if (VAArgInst* VI = dyn_cast<VAArgInst>(I)) {
       Type* T = VI->getType();
@@ -14412,35 +14460,16 @@ class Pizlonator {
       return;
     }
 
-    if (isa<IndirectBrInst>(I)) {
-      llvm_unreachable("Don't support IndirectBr yet (and maybe never will)");
-      return;
-    }
+    if (isa<IndirectBrInst>(I))
+      report_fatal_error("Fil-C: unlowered indirectbr instruction",
+                         /*GenCrashDiag=*/false);
 
-    if (isa<CatchSwitchInst>(I)) {
-      llvm_unreachable("Don't support CatchSwitch yet");
-      return;
-    }
-
-    if (isa<CleanupPadInst>(I)) {
-      llvm_unreachable("Don't support CleanupPad yet");
-      return;
-    }
-
-    if (isa<CatchPadInst>(I)) {
-      llvm_unreachable("Don't support CatchPad yet");
-      return;
-    }
-
-    if (isa<CatchReturnInst>(I)) {
-      llvm_unreachable("Don't support CatchReturn yet");
-      return;
-    }
-
-    if (isa<CleanupReturnInst>(I)) {
-      llvm_unreachable("Don't support CleanupReturn yet");
-      return;
-    }
+    if (isa<CatchSwitchInst>(I) || isa<CleanupPadInst>(I) ||
+        isa<CatchPadInst>(I) || isa<CatchReturnInst>(I) ||
+        isa<CleanupReturnInst>(I))
+      report_fatal_error(
+          "Fil-C does not support Windows SEH / funclet exception handling instructions",
+          /*GenCrashDiag=*/false);
 
     if (isa<UnreachableInst>(I)) {
       CallInst::Create(
@@ -14485,7 +14514,8 @@ class Pizlonator {
     }
 
     errs() << "Unrecognized instruction: " << *I << "\n";
-    llvm_unreachable("Unknown instruction");
+    report_fatal_error("Fil-C: unsupported LLVM instruction",
+                       /*GenCrashDiag=*/false);
   }
 
   bool isSetjmp(Function* F) {
@@ -15368,8 +15398,9 @@ class Pizlonator {
       if (Tok.Kind == MATokenKind::None)
         break;
       if (Tok.Kind == MATokenKind::Error) {
-        errs() << "Cannot parse module asm: " << Tok.Str << "\n";
         MAT.error();
+        HadError = true;
+        return;
       }
       if (Tok.Kind == MATokenKind::EndLine)
         continue;
@@ -15381,8 +15412,9 @@ class Pizlonator {
           GlobalValue* GV = getGlobal(Name);
           if (Tok.Str == ".filc_weak") {
             if (!GV) {
-              errs() << "Cannot do .filc_weak to " << Name << " because it doesn't exist.\n";
               MAT.error();
+              HadError = true;
+              return;
             }
             GV->setLinkage(GlobalValue::WeakAnyLinkage);
           } else {
@@ -15404,8 +15436,9 @@ class Pizlonator {
             assert(Result == 1);
             MAT.getNextSpecific(MATokenKind::Comma);
           } else if (PlusTok.Kind != MATokenKind::Comma) {
-            errs() << "Expected plus or comma but got: " << PlusTok.Str << "\n";
             MAT.error();
+            HadError = true;
+            return;
           }
           std::string NewName = MAT.getNextSpecific(MATokenKind::Identifier).Str;
           MAT.getNextSpecific(MATokenKind::EndLine);
@@ -15426,8 +15459,9 @@ class Pizlonator {
                     TargetGV->getName() == OldName)
                   continue;
               }
-              errs() << "New alias name " << NewName << " is already taken by a definition.\n";
               MAT.error();
+              HadError = true;
+              return;
             }
             assert(!Dummy->getNumUses());
             if (!GV) {
@@ -15484,11 +15518,9 @@ class Pizlonator {
           }
           GV->setName(NewName);
           if (GV->getName() != NewName) {
-            errs() << "Cannot rename " << OldName << " to " << NewName;
-            if (getGlobal(NewName))
-              errs() << " (because " << NewName << " is taken)";
-            errs() << "\n";
             MAT.error();
+            HadError = true;
+            return;
           }
           continue;
         }
@@ -15501,11 +15533,17 @@ class Pizlonator {
                        << "\n";
           continue;
         }
-        errs() << "Invalid directive: " << Tok.Str << "\n";
         MAT.error();
+        HadError = true;
+        return;
       }
-      errs() << "Unexpected token: " << Tok.Str << "\n";
       MAT.error();
+      HadError = true;
+      return;
+    }
+    if (MAT.hasError()) {
+      HadError = true;
+      return;
     }
 
     M.setModuleInlineAsm(NewModuleAsm.str());
@@ -16203,16 +16241,34 @@ class Pizlonator {
     for (Function& F : M.functions()) {
       for (BasicBlock& BB : F) {
         for (Instruction& I : BB) {
-          if (isa<IndirectBrInst>(&I))
-            llvm_unreachable("Don't support IndirectBr yet (and maybe never will)");
-          if (LoadInst* LI = dyn_cast<LoadInst>(&I))
-            assert(!LI->getPointerAddressSpace());
-          if (StoreInst* SI = dyn_cast<StoreInst>(&I))
-            assert(!SI->getPointerAddressSpace());
-          if (AtomicCmpXchgInst* AI = dyn_cast<AtomicCmpXchgInst>(&I))
-            assert(!AI->getPointerAddressSpace());
-          if (AtomicRMWInst* AI = dyn_cast<AtomicRMWInst>(&I))
-            assert(!AI->getPointerAddressSpace());
+          if (isa<IndirectBrInst>(&I)) {
+            emitFilCError(&I, "Fil-C: unlowered indirectbr instruction");
+            return;
+          }
+          if (LoadInst* LI = dyn_cast<LoadInst>(&I)) {
+            if (LI->getPointerAddressSpace()) {
+              emitFilCError(LI, "Fil-C does not support non-zero pointer address spaces");
+              return;
+            }
+          }
+          if (StoreInst* SI = dyn_cast<StoreInst>(&I)) {
+            if (SI->getPointerAddressSpace()) {
+              emitFilCError(SI, "Fil-C does not support non-zero pointer address spaces");
+              return;
+            }
+          }
+          if (AtomicCmpXchgInst* AI = dyn_cast<AtomicCmpXchgInst>(&I)) {
+            if (AI->getPointerAddressSpace()) {
+              emitFilCError(AI, "Fil-C does not support non-zero pointer address spaces");
+              return;
+            }
+          }
+          if (AtomicRMWInst* AI = dyn_cast<AtomicRMWInst>(&I)) {
+            if (AI->getPointerAddressSpace()) {
+              emitFilCError(AI, "Fil-C does not support non-zero pointer address spaces");
+              return;
+            }
+          }
         }
       }
 
@@ -16378,6 +16434,10 @@ public:
     
     makeEHDatas();
     compileModuleAsm();
+    if (HadError) {
+      abortModuleOnError();
+      return;
+    }
     lazifyAllocas();
     canonicalizeGEPs();
     dropUB();
@@ -16388,6 +16448,10 @@ public:
     }
 
     prepare();
+    if (HadError) {
+      abortModuleOnError();
+      return;
+    }
 
     // FIXME: We could probably do this anywhere in the pass, and really all we're doing is turning
     // off the non-integralness of address space 0.
@@ -16497,29 +16561,35 @@ public:
     for (Function &F : M.functions()) {
       if (shouldPassThrough(&F)) {
         if (!F.isDeclaration()) {
-          errs() << "Cannot define " << F.getName() << "\n";
-          llvm_unreachable("Attempt to define pass-through function.");
+          emitFilCError(
+              Twine("Fil-C: cannot define reserved pass-through function '") +
+                  F.getName() + "'");
+          continue;
         }
         if (isSetjmp(&F)) {
           assert(F.hasFnAttribute(Attribute::ReturnsTwice));
           if (F.getName() == "setjmp" || F.getName() == "_setjmp") {
             if (F.getFunctionType() != SetjmpTy) {
-              errs() << "Unexpected setjmp signature: " << *F.getFunctionType()
-                     << ", expected: " << *SetjmpTy << "\n";
+              emitFilCError(
+                  Twine("Fil-C: incompatible prototype for '") + F.getName() + "'");
+              continue;
             }
-            assert(F.getFunctionType() == SetjmpTy);
           } else {
-            if (F.getFunctionType() != SigsetjmpTy) {
-              errs() << "Unexpected setjmp signature: " << *F.getFunctionType()
-                     << ", expected: " << *SigsetjmpTy << "\n";
-            }
             assert(F.getName() == "sigsetjmp");
-            assert(F.getFunctionType() == SigsetjmpTy);
+            if (F.getFunctionType() != SigsetjmpTy) {
+              emitFilCError(
+                  Twine("Fil-C: incompatible prototype for '") + F.getName() + "'");
+              continue;
+            }
           }
         }
         continue;
       }
       Functions.push_back(&F);
+    }
+    if (HadError) {
+      abortModuleOnError();
+      return;
     }
     for (GlobalAlias &G : M.aliases())
       Aliases.push_back(&G);
@@ -17739,7 +17809,8 @@ public:
 
     if (lightVerbose || verbose)
       errs() << "Here's the pizlonated module:\n" << M << "\n";
-    assert(!verifyModule(M));
+    if (verifyModule(M, &errs()))
+      report_fatal_error("Fil-C: FilPizlonatorPass produced invalid LLVM IR");
   }
 };
 

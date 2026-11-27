@@ -324,7 +324,10 @@ static bool hasPointers(llvm::Type* T) {
   }
 
   if (isa<llvm::PointerType>(T)) {
-    assert (!T->getPointerAddressSpace());
+    if (T->getPointerAddressSpace())
+      llvm::report_fatal_error(
+          "Fil-C does not support non-zero pointer address spaces",
+          /*GenCrashDiag=*/false);
     return true;
   }
 
@@ -344,8 +347,9 @@ static bool hasPointers(llvm::Type* T) {
     return hasPointers(VT->getElementType());
 
   if (isa<llvm::ScalableVectorType>(T)) {
-    llvm_unreachable("Shouldn't ever see scalable vectors in hasPtrs");
-    return false;
+    llvm::report_fatal_error(
+        "Fil-C does not support scalable vector types",
+        /*GenCrashDiag=*/false);
   }
     
   return false;
