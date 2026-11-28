@@ -79,11 +79,13 @@ void pas_fd_stream_vprintf(pas_fd_stream* stream, const char* format, va_list ar
         result = write(stream->fd, ptr, bytes_left_to_write);
 #endif
         if (result < 0) {
-            PAS_ASSERT(errno == EINTR);
-            continue;
+            if (errno == EINTR)
+                continue;
+            return;
         }
 
-        PAS_ASSERT(result);
+        if (!result)
+            return;
 
         ptr += result;
         bytes_left_to_write -= (size_t)result;
