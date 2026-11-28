@@ -18,6 +18,7 @@ void __post_Fork(int ret)
 		self->robust_list.off = 0;
 		self->robust_list.pending = 0;
 		self->next = self->prev = self;
+		__thread_list_anchor = self;
 		__thread_list_lock = 0;
 		libc.threads_minus_1 = 0;
 		if (libc.need_locks) libc.need_locks = -1;

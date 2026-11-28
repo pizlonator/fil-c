@@ -56,6 +56,11 @@ _Noreturn void __pthread_exit(void *result)
 	pthread_t self = __pthread_self();
 	sigset_t set;
 
+	/* An attached thread belongs to the native program that attached it.
+	 * It leaves with pthread_detach_current_np instead. */
+	if (self->attached)
+		zerror("pthread_exit: cannot exit a thread attached with pthread_attach_current_np.");
+
 	self->canceldisable = 1;
 	self->cancelasync = 0;
 	self->result = result;
@@ -107,6 +112,16 @@ _Noreturn void __pthread_exit(void *result)
 
 	/* At this point we are committed to thread termination. */
 
+	__pthread_unlist_self(self);
+	zthread_exit(0);
+	ZASSERT(!"Should not get here");
+}
+
+/* Takes the calling thread off the thread list, and releases what it holds
+ * as a libc thread. Called with application signals blocked and with the
+ * thread's killlock and the thread list lock held; releases both. */
+void __pthread_unlist_self(pthread_t self)
+{
 	/* After the kernel thread exits, its tid may be reused. Clear it
 	 * to prevent inadvertent use and inform functions that would use
 	 * it that it's no longer available. At this point the killlock
@@ -146,21 +161,16 @@ _Noreturn void __pthread_exit(void *result)
 	 * This needs to happen after any possible calls to LOCK() that might
 	 * skip locking if process appears single-threaded. */
 	if (!--libc.threads_minus_1) libc.need_locks = -1;
+	if (__thread_list_anchor == self) __thread_list_anchor = self->next;
 	self->next->prev = self->prev;
 	self->prev->next = self->next;
 	self->prev = self->next = self;
-
-	if (state==DT_DETACHED && self->map_base) {
-		/* I don't think we have to do anything special for detached threads. */
-	}
 
 	/* Wake any joiner. */
 	a_store(&self->detach_state, DT_EXITED);
 	__wake(&self->detach_state, 1, 1);
 
 	__tl_unlock();
-	zthread_exit(0);
-	ZASSERT(!"Should not get here");
 }
 
 void __do_cleanup_push(struct __ptcb *cb)
@@ -238,6 +248,20 @@ static void init_file_lock(FILE *f)
 	if (f && f->lock<0) f->lock = 0;
 }
 
+/* Called when the process gets its second thread, with the first one, from
+ * the only thread or from a thread that is attaching. */
+void __pthread_go_threaded(pthread_t first)
+{
+	for (FILE *f=*__ofl_lock(); f; f=f->next)
+		init_file_lock(f);
+	__ofl_unlock();
+	init_file_lock(__stdin_used);
+	init_file_lock(__stdout_used);
+	init_file_lock(__stderr_used);
+	if (!first->tsd) first->tsd = (void **)__pthread_tsd_main;
+	libc.threaded = 1;
+}
+
 int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp, void *(*entry)(void *), void *restrict arg)
 {
 	int ret, c11 = (attrp == __ATTRP_C11_THREAD);
@@ -252,16 +276,7 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
 
 	if (!libc.can_do_threads) return ENOSYS;
 	self = __pthread_self();
-	if (!libc.threaded) {
-		for (FILE *f=*__ofl_lock(); f; f=f->next)
-			init_file_lock(f);
-		__ofl_unlock();
-		init_file_lock(__stdin_used);
-		init_file_lock(__stdout_used);
-		init_file_lock(__stderr_used);
-		self->tsd = (void **)__pthread_tsd_main;
-		libc.threaded = 1;
-	}
+	if (!libc.threaded) __pthread_go_threaded(self);
 	if (attrp && !c11) attr = *attrp;
 
 	__acquire_ptc();

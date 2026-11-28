@@ -42,6 +42,7 @@ struct pthread {
 	volatile unsigned char canceldisable, cancelasync;
 	unsigned char tsd_used:1;
 	unsigned char dlerror_flag:1;
+	unsigned char attached:1;
 	unsigned char *map_base;
 	size_t map_size;
 	void *stack;
@@ -177,6 +178,9 @@ hidden void __tl_unlock(void);
 hidden void __tl_sync(pthread_t);
 
 extern hidden volatile int __thread_list_lock;
+extern hidden struct pthread *volatile __thread_list_anchor;
+hidden void __pthread_go_threaded(pthread_t);
+hidden void __pthread_unlist_self(pthread_t);
 
 extern hidden volatile int __abort_lock[1];
 
