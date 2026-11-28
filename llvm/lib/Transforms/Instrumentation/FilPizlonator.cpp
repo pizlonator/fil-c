@@ -199,6 +199,11 @@ struct ValuePtr {
   }
 };
 
+raw_ostream& operator<<(raw_ostream& OS, const ValuePtr& VP) {
+  OS << VP.V->getName() << "(" << VP.V << "," << VP.PtrIndex << ")";
+  return OS;
+}
+
 } // anonymous namespace
 
 template<> struct std::hash<ValuePtr> {
@@ -883,18 +888,72 @@ struct PtrAndRandom {
 
   PtrAndRandom() = default;
 
-  PtrAndRandom(Value* P, PtrRandomness R, int64_t Offset): P(P), R(R), Offset(Offset) { }
+  PtrAndRandom(Value* P, PtrRandomness R = PtrRandomness::NotRandom, int64_t Offset = 0): P(P), R(R), Offset(Offset) {
+    if (R == PtrRandomness::Random)
+      assert(!Offset);
+  }
+
+  explicit operator bool() const { return !!P; }
+
+  void makeRandom() {
+    R = PtrRandomness::Random;
+    Offset = 0;
+  }
 
   PtrAndRandom plus(int64_t Offset) const {
     PtrAndRandom Result = *this;
+    if (Result.R == PtrRandomness::Random)
+      return Result;
     Result.Offset += Offset;
-    if ((int32_t)Result.Offset != Result.Offset) {
-      Result.R = PtrRandomness::Random;
-      Result.Offset = 0;
-    }
+    if ((int32_t)Result.Offset != Result.Offset)
+      Result.makeRandom();
     return Result;
   }
+
+  PtrAndRandom plusWithPtr(Value* P, int64_t Offset) const {
+    PtrAndRandom Result = plus(Offset);
+    Result.P = P;
+    return Result;
+  }
+
+  bool operator==(const PtrAndRandom& Other) const
+  {
+    return P == Other.P && R == Other.R && Offset == Other.Offset;
+  }
+
+  bool merge(Instruction& I, const PtrAndRandom& Other)
+  {
+    if (!Other)
+      return false;
+    if (P != Other.P) {
+      if (P == &I && R == PtrRandomness::Random)
+        return false;
+      *this = PtrAndRandom(&I, PtrRandomness::Random);
+      return true;
+    }
+    if (R == PtrRandomness::Random)
+      return false;
+    if (Other.R == PtrRandomness::Random) {
+      *this = Other;
+      return true;
+    }
+    if (Offset == Other.Offset)
+      return false;
+    makeRandom();
+    return true;
+  }
 };
+
+raw_ostream& operator<<(raw_ostream& OS, PtrAndRandom PAR) {
+  OS << PAR.P->getName() << "(" << PAR.P << ",";
+  if (PAR.R == PtrRandomness::NotRandom) {
+    OS << "NotRandom,";
+    OS << PAR.Offset;
+  } else
+    OS << "Random";
+  OS << ")";
+  return OS;
+}
 
 struct GEPKey {
   Type* SourceTy { nullptr };
@@ -1328,6 +1387,28 @@ struct FrameEntry {
   FrameEntry(FrameEntryKind FEK, size_t Index): FEK(FEK), Index(Index) { }
 };
 
+raw_ostream& operator<<(raw_ostream& OS, const FrameEntry& FE) {
+  switch (FE.FEK) {
+  case FrameEntryKind::Invalid:
+    OS << "Invalid";
+    break;
+  case FrameEntryKind::Ignored:
+    OS << "Ignored";
+    break;
+  case FrameEntryKind::Lower:
+    OS << "Lower";
+    break;
+  case FrameEntryKind::LowerFromStackAux:
+    OS << "LowerFromStackAux";
+    break;
+  case FrameEntryKind::ExplicitStackAux:
+    OS << "ExplicitStackAux";
+    break;
+  }
+  OS << "(" << FE.Index << ")";
+  return OS;
+}
+
 struct LocalAllocaData {
   bool Explicit;
   AllocaInst* OrigAI { nullptr };
@@ -1661,6 +1742,8 @@ class Pizlonator {
   std::unordered_map<std::string, BitCastInst*> UnsafeFuncs;
   std::unordered_set<GlobalVariable*> UnsafeExportGVs;
   std::vector<UnsafeExport> UnsafeExports;
+
+  std::unordered_map<Instruction*, PtrAndRandom> UnderlyingPtrMap;
 
   std::string FunctionName;
   Function* OldF { nullptr };
@@ -2849,17 +2932,16 @@ class Pizlonator {
   }
   
   size_t countPtrsForValue(Value* V) {
-    // FIXME: We should not be dealing with GEPs here at all.
     Value* UP = underlyingPtr(V).P;
+    if (UP != V)
+      return 0;
     switch (pointerKindDirect(UP)) {
     case PointerKind::Escaping:
       return countPtrs(V->getType());
     case PointerKind::LocalExplicit:
       return 0;
     case PointerKind::LocalNaked:
-      if (UP == V)
-        return countPtrsForAlloca(cast<AllocaInst>(V));
-      return 0;
+      return countPtrsForAlloca(cast<AllocaInst>(V));
     }
     llvm_unreachable("Bad pointer kind");
     return 0;
@@ -2912,7 +2994,8 @@ class Pizlonator {
     // Arguments are frame-live: callees record the lowers of their incoming arguments in their
     // prologues, so an argument's frame slot must not be reused while the argument is still live.
     auto LiveCast = [&] (Value* V) -> Value* {
-      if (underlyingPointerKind(V) != PointerKind::Escaping)
+      V = underlyingPtr(V).P;
+      if (pointerKindDirect(V) != PointerKind::Escaping)
         return nullptr;
       if (isa<Instruction>(V))
         return V;
@@ -3003,6 +3086,7 @@ class Pizlonator {
     }
 
     std::unordered_map<ValuePtr, std::unordered_set<ValuePtr>> Interference;
+    std::unordered_set<Instruction*> Dead;
 
     for (size_t BlockIndex = Blocks.size(); BlockIndex--;) {
       BasicBlock* BB = Blocks[BlockIndex];
@@ -3017,10 +3101,11 @@ class Pizlonator {
             Live.erase(LM.AI);
             Defined = LM.AI;
           }
-        } else {
+        } else if (Live.count(I)) {
           Live.erase(I);
           Defined = I;
-        }
+        } else if (pointerKindDirect(I) == PointerKind::Escaping)
+          Dead.insert(I);
 
         if (Defined) {
           size_t NumIPtrs = countPtrsForValue(Defined);
@@ -3088,10 +3173,10 @@ class Pizlonator {
     for (BasicBlock* BB : Blocks) {
       for (Instruction& I : *BB) {
         Value* UP = underlyingPtr(&I).P;
-        PointerKind PK = pointerKindDirect(UP);
-        if ((PK == PointerKind::LocalNaked || PK == PointerKind::LocalExplicit) && UP != &I)
-          FrameIndexMap[ValuePtr(&I, 0)] = FrameEntry(FrameEntryKind::Ignored, 0);
-        else {
+        if (UP != &I || Dead.count(&I)) {
+          for (size_t PtrIndex = countPtrs(I.getType()); PtrIndex--;)
+            FrameIndexMap[ValuePtr(&I, PtrIndex)] = FrameEntry(FrameEntryKind::Ignored, 0);
+        } else {
           for (size_t PtrIndex = countPtrsForValue(&I); PtrIndex--;)
             Order.push_back(ValuePtr(&I, PtrIndex));
         }
@@ -3116,7 +3201,8 @@ class Pizlonator {
             FEK = FrameEntryKind::LowerFromStackAux;
           else
             FEK = FrameEntryKind::Lower;
-          FrameIndexMap[IP] = FrameEntry(FEK, FrameIndex);
+          FrameEntry FE(FEK, FrameIndex);
+          FrameIndexMap[IP] = FE;
           FrameSize = std::max(FrameSize, FrameIndex + 1);
           break;
         }
@@ -3231,6 +3317,8 @@ class Pizlonator {
     if (verbose) {
       errs() << "After explicit stack aux allocation, NumStackAuxes = " << NumStackAuxes
              << ", FrameSize = " << FrameSize << "\n";
+      for (auto& Pair : FrameIndexMap)
+        errs() << Pair.first << " -> " << Pair.second << "\n";
     }
 
     for (BasicBlock* BB : Blocks) {
@@ -4083,20 +4171,98 @@ class Pizlonator {
     llvm_unreachable("Should not get here.");
   }
 
-  PtrAndRandom underlyingPtr(Value* P) {
-    PtrAndRandom PAR(P, PtrRandomness::NotRandom, 0);
-    while (GetElementPtrInst* GEP = dyn_cast<GetElementPtrInst>(PAR.P)) {
-      PAR.P = GEP->getPointerOperand();
+  PtrAndRandom tryGetUnderlyingPtr(Value* P) {
+    if (Instruction* I = dyn_cast<Instruction>(P)) {
+      if (UnderlyingPtrMap.count(I))
+        return UnderlyingPtrMap[I];
+      return PtrAndRandom();
+    }
+
+    PtrAndRandom PAR(P);
+    while (ConstantExpr* CE = dyn_cast<ConstantExpr>(P)) {
+      if (CE->getOpcode() != Instruction::GetElementPtr)
+        break;
+      GetElementPtrInst* GEP = cast<GetElementPtrInst>(getAsInstruction(CE));
+      P = GEP->getPointerOperand();
       APInt OffsetAP(64, 0, false);
       if (GEP->accumulateConstantOffset(DLBefore, OffsetAP))
-        PAR.Offset += OffsetAP.getZExtValue();
+        PAR = PAR.plusWithPtr(P, OffsetAP.getZExtValue());
       else
-        PAR.R = PtrRandomness::Random;
+        PAR = PtrAndRandom(P, PtrRandomness::Random);
+      GEP->deleteValue();
     }
-    if ((int32_t)PAR.Offset != PAR.Offset)
-      PAR.R = PtrRandomness::Random;
-    if (PAR.R == PtrRandomness::Random)
-      PAR.Offset = 0;
+    return PAR;
+  }
+
+  void computeUnderlyingPtrs(std::vector<BasicBlock*> Blocks) {
+    assert(UnderlyingPtrMap.empty());
+    bool Changed = true;
+    while (Changed) {
+      Changed = false;
+      for (BasicBlock* BB : Blocks) {
+        for (Instruction& I : *BB) {
+          auto Set = [&] (PtrAndRandom PAR) {
+            if (!PAR)
+              return;
+            if (UnderlyingPtrMap.find(&I) == UnderlyingPtrMap.end()) {
+              UnderlyingPtrMap[&I] = PAR;
+              Changed = true;
+              return;
+            }
+            if (verbose)
+              errs() << "Merging " << UnderlyingPtrMap[&I] << " <- " << PAR << "\n";
+            bool DidChange = UnderlyingPtrMap[&I].merge(I, PAR);
+            if (verbose)
+              errs() << "    DidChange = " << DidChange << "\n";
+            Changed |= DidChange;
+          };
+
+          if (GetElementPtrInst* GEP = dyn_cast<GetElementPtrInst>(&I)) {
+            PtrAndRandom PAR = tryGetUnderlyingPtr(GEP->getPointerOperand());
+            if (PAR) {
+              APInt OffsetAP(64, 0, false);
+              if (GEP->accumulateConstantOffset(DLBefore, OffsetAP))
+                PAR = PAR.plus(OffsetAP.getZExtValue());
+              else
+                PAR.makeRandom();
+              Set(PAR);
+            }
+            continue;
+          }
+
+          if (PHINode* PHI = dyn_cast<PHINode>(&I)) {
+            for (Value* V : PHI->incoming_values())
+              Set(tryGetUnderlyingPtr(V));
+            continue;
+          }
+
+          if (SelectInst* S = dyn_cast<SelectInst>(&I)) {
+            Set(tryGetUnderlyingPtr(S->getTrueValue()));
+            Set(tryGetUnderlyingPtr(S->getFalseValue()));
+            continue;
+          }
+
+          Set(PtrAndRandom(&I));
+        }
+      }
+    }
+  }
+
+  void computeUnderlyingPtrs(Function& F) {
+    std::vector<BasicBlock*> Blocks;
+    for (BasicBlock& BB : F)
+      Blocks.push_back(&BB);
+    computeUnderlyingPtrs(Blocks);
+  }
+
+  void nukeUnderlyingPtrs()
+  {
+    UnderlyingPtrMap.clear();
+  }
+
+  PtrAndRandom underlyingPtr(Value* P) {
+    PtrAndRandom PAR = tryGetUnderlyingPtr(P);
+    assert(PAR);
     return PAR;
   }
 
@@ -15568,6 +15734,8 @@ class Pizlonator {
       return;
     }
 
+    computeUnderlyingPtrs(F);
+
     std::unordered_set<AllocaInst*> Allocas;
 
     for (BasicBlock& BB : F) {
@@ -15832,6 +16000,8 @@ class Pizlonator {
         errs() << " " << Pair.first->getName() << "=" << Pair.second;
       errs() << "\n";
     }
+
+    nukeUnderlyingPtrs();
   }
 
   void findNonescapingAllocas() {
@@ -17321,6 +17491,7 @@ public:
           BB->removeFromParent();
           BB->insertInto(NewF);
         }
+        computeUnderlyingPtrs(Blocks);
         computeFrameIndexMap(Blocks);
         FramePoppingMustTails.clear();
         for (BasicBlock* BB : Blocks) {
@@ -17587,6 +17758,7 @@ public:
           emitChecksForInst(I);
         for (Instruction* I : LocalAllocas)
           emitChecksForInst(I);
+        nukeUnderlyingPtrs();
         erase_if(Instructions, [&] (Instruction* I) { return earlyLowerInstruction(I); });
         for (Instruction* I : Instructions)
           lowerInstruction(I);
