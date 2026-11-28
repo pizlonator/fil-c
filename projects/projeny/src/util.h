@@ -33,6 +33,7 @@
 #include <functional>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <cstdint>
@@ -65,6 +66,33 @@ class ProjenyFatalError : public std::exception {
     std::string message_;
 };
 
+// Thrown by die_download_unavailable() below: a multi command's per-project
+// phase could not obtain an archive its project needs. The worker's report
+// is byte-identical to die()'s, but the exception type lets the coordinator
+// (run_multi) classify the failure as download-caused and retry it once —
+// after one coordinated wait, together with every other download-blocked
+// project — instead of counting it as a plain hard error. The fields carry
+// what the coordinator needs to rebuild the retry: archive() names the
+// archive; urls() lists the candidate (url, hash) pairs for an archive the
+// batch plan does NOT know about (empty when the plan knows it — the plan
+// itself carries the package's URLs and hashes); pdir() names the directory
+// the snapshot belongs in, likewise empty when the plan knows it.
+class DownloadUnavailableError : public ProjenyFatalError {
+  public:
+    DownloadUnavailableError(std::string message, std::string archive,
+                             std::vector<std::pair<std::string, std::string>>
+                                 urls,
+                             std::string pdir);
+    const std::string& archive() const noexcept;
+    const std::vector<std::pair<std::string, std::string>>& urls() const
+        noexcept;
+    const std::string& pdir() const noexcept;
+  private:
+    std::string archive_;
+    std::vector<std::pair<std::string, std::string>> urls_;
+    std::string pdir_;
+};
+
 // Serializes note/warn/die and download progress printing so parallel
 // workers never interleave partial lines. Every message projeny prints to
 // stderr goes through a fprintf under one lock of this mutex.
@@ -77,6 +105,19 @@ extern std::mutex g_output_mutex;
 // to cleanup_tempdirs(), which main() runs after catching (all threads have
 // joined by then). Callers keep treating die() as noreturn.
 [[noreturn]] void die(const std::string& msg, const std::string& detail = "");
+// The download-flavored die: prints EXACTLY what die(msg, detail) prints —
+// the same "projeny: <label>error: <msg>" line plus the detail, verbatim,
+// under one g_output_mutex lock — and then throws
+// DownloadUnavailableError(msg, archive, urls, pdir) instead of
+// ProjenyFatalError(msg). A multi command's per-project phase throws this
+// when it cannot obtain an archive: the worker's report is identical to
+// die's, but the exception type lets run_multi classify the failure and
+// retry the download once, after its coordinated wait, together with the
+// other download-blocked projects. Single-project callers keep plain die().
+[[noreturn]] void die_download_unavailable(
+    const std::string& msg, const std::string& archive,
+    const std::vector<std::pair<std::string, std::string>>& urls,
+    const std::string& pdir, const std::string& detail = "");
 // Both lock g_output_mutex for their whole line and prefix the thread's
 // output label (see set_output_label) after the "projeny:" prefix:
 // "projeny: [<label>] warning: <msg>" / "projeny: [<label>] <msg>".
@@ -85,6 +126,14 @@ void warn(const std::string& msg);
 // error nor a warning (download announcements, verification notes), so the
 // "projeny:" prefix stays uniform across every message we print.
 void note(const std::string& msg);
+
+// The wait, in seconds, before a failed download's one retry pass: the
+// PROJENY_URL_RETRY_SECONDS environment variable when it names a valid
+// non-negative integer (0 = no wait and no retry pass at all — the legacy
+// single-pass behavior), and 60 when it is unset, empty, or invalid
+// (non-numeric, trailing garbage, negative, above INT_MAX). Parsed once and
+// cached: every caller in one run sees the same value.
+int retry_wait_seconds();
 
 // When non-empty, note/warn/die prefix messages with "[<label>] " after the
 // "projeny:" prefix — "projeny: [<label>] <msg>", "projeny: [<label>]

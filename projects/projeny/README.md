@@ -730,7 +730,29 @@ and the blake3 hash of its bytes (compute the hash with
 `projeny hash <file>`). The URL lines are mirrors and are tried in the
 order listed: a download that fails or does not match its hash prints a
 warning and the next line is tried, and it is a hard error only when no
-URL yields a download matching its recorded hash. Every download is
+URL yields a download matching its recorded hash. Before that hard error,
+every listed line gets one more try: when all of a package's URL lines
+have failed, projeny prints that it is waiting (`all N URL line(s) failed
+for '<archive>'; waiting <W> second(s) before trying them one more time`),
+waits, and then gives every line one more try in order — only a second
+total failure dies, with the pass count in the report (`could not obtain
+archive '<archive>' (tried N URL line(s) on 2 pass(es); every download
+failed or did not match its recorded blake3 hash)`). The wait length is
+the `PROJENY_URL_RETRY_SECONDS` environment variable, in seconds: 60 by
+default; a non-negative integer is used as given, where 0 disables the
+wait AND the retry pass entirely (the legacy single-pass behavior, with
+byte-identical output); anything invalid — including a value above
+2147483647 — falls back to 60. The same wait-and-one-more-try covers
+single-project commands, `rebase`/`create`'s URL arguments (a second
+walk re-attempts only the downloads that failed), and the `projeny
+download` batch (one more parallel pass re-attempts exactly the packages
+that failed). In a parallel run a
+fallback download — a conflicted file's package, or a Projeny:-based
+project's on-demand chain base — fails fast instead (the inline wait must
+never stall the shared download lock), and the coordinator's single
+wait-and-retry stage covers it, as the
+[parallel setup section](#parallel-setup-package-extract-and-download)
+documents below. Every download is
 announced on stderr (`projeny: downloading '<url>'` — the only line that
 names the URL), with short progress lines (`projeny: download progress:
 ...`, sized to fit an 80-column terminal) printed every 64 KiB received —
@@ -1390,7 +1412,9 @@ at most `-c` transfers in flight, never two concurrent transfers of the
 same package, blake3 checks on at most `-j` threads, and one full retry
 pass over whatever still failed (parallel retries when several packages
 failed) — and only then do the projects themselves run, on at most `-j`
-threads.
+threads. A package that survives neither pass is not given up on yet:
+the coordinated retry stage below gives every failed package one more
+try after all the projects are done.
 
 A [Projeny:-based project](#projeny-based-projects) contributes nothing
 to this phase — it names no URLs, and its base file's URLs (if any) are
@@ -1439,6 +1463,27 @@ mode the batch phase has already said what it downloaded (the
 single-project download keeps its own progress form, see
 [`.projeny` format](#projeny-format)).
 
+A project whose downloads never verified does not fail alone. Its
+per-project phase reports the failure as usual (`'<Name>' needs archive
+'<pkg>', but the parallel download phase failed to obtain it`, or the
+download-failure report of an on-demand fetch — a Projeny:-based
+project's URL:-based chain base, fetched during that project's own
+setup), and once every other per-project operation has finished, ONE
+coordinated retry stage runs — at most once per invocation: it prints one
+waiting note (`projeny: N setup(s) could not obtain their download(s)
+(<archives>); waiting <W> second(s) before one more try`, spelled with the
+command's own noun and naming every failed archive), waits once,
+re-downloads every failed package in one parallel batch pass (the
+batch's own immediate retry pass is suppressed for it — the wait IS the
+one more try), and then re-runs only the projects whose failures were
+download-caused. Waiting after the other setups, rather than before
+them, is the point: a temporary outage fails several downloads at once,
+and one wait followed by one parallel retry covers them all. A failure
+for any other reason (a conflicted `.projeny` file, a bad header) is
+never retried and is counted once by the summary line. The wait length
+is `PROJENY_URL_RETRY_SECONDS` seconds (default 60); `0` skips the stage
+entirely, so a failed download stays failed with byte-identical output.
+
 `projeny download <url> <hash> [<url> <hash>...]` runs any number of
 URL/hash pairs through the same machinery and writes each verified
 download into the current directory, named after the URL's basename
@@ -1450,7 +1495,10 @@ already present with a matching hash is kept instead of re-downloaded
 reports `wrote <name> (<N> bytes)`. Pairs sharing an archive basename
 deduplicate exactly like the setup batch above (exact duplicate URL/hash
 pairs collapse silently), and any failure — after every other package
-finished — exits nonzero.
+finished, and after one wait-and-one-more-try (`projeny: N of M
+download(s) failed (<names>); waiting <W> second(s) before one more try`,
+then one parallel re-pass over exactly the failed packages, the batch's
+own immediate retry pass suppressed for it) — exits nonzero.
 
 ## Erasing a setup
 
@@ -1513,8 +1561,10 @@ erasing anything (see below). Naming one project twice collapses into a
 single erase with a warning
 (`'a.projeny' is listed more than once; erasing it only once`), keyed on
 the resolved `.projeny` path like every parallel command. There is no
-`-c/--curl-jobs` for erase-setup: it never downloads anything, so that
-spelling is rejected as an unknown option.
+`-c/--curl-jobs` for erase-setup: the only downloading it can do is the
+no-force check's on-demand fetch of a missing URL archive (one pass, no
+wait-and-retry), not the batch download whose in-flight curl transfers
+the option caps, so that spelling is rejected as an unknown option.
 
 ### The no-force check: uncommitted changes are protected by default
 

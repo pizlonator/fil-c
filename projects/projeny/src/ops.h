@@ -132,7 +132,10 @@ int cmd_extract_multi(const std::vector<std::pair<std::string, std::string>>& pa
 // Download URL HASH pairs (args is a flat url,hash,url,hash... list,
 // validated here) into the current directory as one parallel batch: at
 // most `curl_jobs` transfers in flight, blake3 hash checks on at most
-// `jobs` threads. Files are named after the URL's basename.
+// `jobs` threads. Files are named after the URL's basename. Packages the
+// batch could not verify get one wait-and-one-more-try (the same
+// PROJENY_URL_RETRY_SECONDS stage every other URL cascade runs) before any
+// remaining failure is fatal.
 int cmd_download(const std::vector<std::string>& args, int jobs, int curl_jobs);
 
 // Erase every project's setup state (always the parallel machinery, even

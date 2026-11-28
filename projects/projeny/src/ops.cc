@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
+#include <chrono>
 #include <cstring>
 #include <fstream>
 #include <functional>
@@ -40,6 +41,7 @@
 #include <mutex>
 #include <optional>
 #include <set>
+#include <thread>
 #include <unistd.h>
 
 #include <fcntl.h>
@@ -476,42 +478,85 @@ std::mutex g_fallback_download_mu;
 // caller has already printed the "re-downloading"/fallback announcements.
 // Returns true + *out = snapshot path, or false + *err when every URL
 // failed.
+//
+// When every URL line failed on the first pass, the loop waits ONCE and
+// gives every line one more try before reporting failure (a temporary
+// outage usually outlives one attempt but not a minute): the note names the
+// archive and the wait ("all N URL line(s) failed for '<archive>'; waiting
+// <wait> second(s) before trying them one more time"), and the failure
+// report says the lines were tried "on 2 pass(es)". The wait is
+// retry_wait_seconds() (PROJENY_URL_RETRY_SECONDS; 60 seconds by default,
+// 0 = no wait and no retry pass — the legacy single-pass behavior, with
+// byte-identical output). The wait applies only outside multi mode AND only
+// when the caller allows it (allow_wait, default true): this loop can run
+// while holding g_fallback_download_mu, a global lock every other worker
+// needs, so neither the multi-mode per-project phase (the coordinator,
+// run_multi, owns the wait — it retries every failed download together in
+// one parallel batch and re-runs the blocked projects after) nor a caller
+// already holding that mutex (the live-diff materialization in
+// compute_live_diff, shared by erase-setup's parallel check workers) may
+// stall it; such callers pass allow_wait = false and get exactly one pass.
 bool download_url_snapshot_sequential(const std::string& snap,
                                       const ProjenyFile& pf,
-                                      std::string* out, std::string* err)
+                                      std::string* out, std::string* err,
+                                      bool allow_wait = true)
 {
+    int wait = retry_wait_seconds();
+    // The inline wait applies only outside multi mode AND only when the
+    // caller allows it: in the per-project phase of a parallel command this
+    // loop holds g_fallback_download_mu, so it must fail fast and leave the
+    // wait to the coordinator, and a caller already holding that mutex (the
+    // live-diff materialization in compute_live_diff) must not stall the
+    // other check workers either.
+    int passes =
+        (wait > 0 && g_multi_plan == nullptr && allow_wait) ? 2 : 1;
     std::string last_err;
     size_t tried = 0;
-    for (const ProjenyUrl& u : pf.urls) {
-        ++tried;
-        std::string data;
-        std::string derr;
-        if (!try_download(u.url, &data, &derr)) {
-            warn("could not download '" + u.url + "': " + derr +
-                 "; trying the next URL");
-            last_err = derr;
-            continue;
+    for (int pass = 0; pass < passes; ++pass) {
+        if (pass > 0) {
+            note("all " + std::to_string(pf.urls.size()) +
+                 " URL line(s) failed for '" + pf.archive +
+                 "'; waiting " + std::to_string(wait) +
+                 " second(s) before trying them one more time");
+            std::this_thread::sleep_for(std::chrono::seconds(wait));
         }
-        std::string have = blake3_hash_hex(data);
-        if (have != u.hash) {
-            warn("downloaded '" + u.url + "' but its blake3 hash is " + have +
-                 ", expected " + u.hash + "; trying the next URL");
-            last_err = "its blake3 hash is " + have + ", expected " + u.hash;
-            continue;
+        // Every pass walks every URL line, so the count the failure report
+        // carries is the per-pass count — the number of URL lines, not of
+        // attempts across the passes.
+        tried = 0;
+        for (const ProjenyUrl& u : pf.urls) {
+            ++tried;
+            std::string data;
+            std::string derr;
+            if (!try_download(u.url, &data, &derr)) {
+                warn("could not download '" + u.url + "': " + derr +
+                     "; trying the next URL");
+                last_err = derr;
+                continue;
+            }
+            std::string have = blake3_hash_hex(data);
+            if (have != u.hash) {
+                warn("downloaded '" + u.url + "' but its blake3 hash is " +
+                     have + ", expected " + u.hash + "; trying the next URL");
+                last_err = "its blake3 hash is " + have + ", expected " +
+                           u.hash;
+                continue;
+            }
+            // write_file_bytes is temp file + rename, so the snapshot
+            // switches atomically and a crash never leaves a half-written
+            // copy (the next run simply re-downloads).
+            write_file_bytes(snap, data);
+            note("downloaded '" + u.url +
+                 "'; blake3 hash verified; wrote snapshot '" + snap + "'");
+            *out = snap;
+            return true;
         }
-        // write_file_bytes is temp file + rename, so the snapshot
-        // switches atomically and a crash never leaves a half-written copy
-        // (the next run simply re-downloads).
-        write_file_bytes(snap, data);
-        note("downloaded '" + u.url +
-             "'; blake3 hash verified; wrote snapshot '" + snap + "'");
-        *out = snap;
-        return true;
     }
     *err = "could not obtain archive '" + pf.archive +
-           "' (tried " + std::to_string(tried) +
-           " URL line(s); every download failed or did not match its "
-           "recorded blake3 hash)" +
+           "' (tried " + std::to_string(tried) + " URL line(s)" +
+           (passes == 2 ? " on 2 pass(es)" : "") +
+           "; every download failed or did not match its recorded "
+           "blake3 hash)" +
            (last_err.empty() ? "" : "; the last error was: " + last_err);
     return false;
 }
@@ -562,12 +607,16 @@ std::string ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
                                 const std::string& fallback_reason);
 
 // Non-dying variant for informational commands: returns true + *out = snapshot
-// path, or false + *err.
+// path, or false + *err. allow_wait = false (the default is true) makes the
+// fallback download fail fast — one pass, no inline wait — for callers that
+// hold g_fallback_download_mu (see compute_live_diff) or otherwise must not
+// stall.
 bool try_ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
                              std::string* out, std::string* err,
                              bool announce_skip,
                              const std::string& fallback_reason =
-                                 "conflicted projeny file")
+                                 "conflicted projeny file",
+                             bool allow_wait = true)
 {
     std::string snap = url_snapshot_path(pdir, pf);
     // The snapshot is the local cache of the downloaded archive: when it
@@ -616,10 +665,20 @@ bool try_ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
             }
             if (!plan.ok && plan.attempted) {
                 // The batch tried and failed to obtain this package; a
-                // retry here would just fail the same way.
-                die("'" + pf.name + "' needs archive '" + pf.archive +
+                // retry here would just fail the same way. Throw (printed
+                // exactly like the die it replaces): the exception type
+                // tells run_multi's coordinator this project is
+                // download-blocked, so it retries the package once — after
+                // its coordinated wait, together with the other blocked
+                // projects — and re-runs this project then. The plan itself
+                // carries the package's URLs, hashes, and pdirs, so the
+                // payload stays empty and the coordinator rebuilds the
+                // retry spec from the plan.
+                die_download_unavailable(
+                    "'" + pf.name + "' needs archive '" + pf.archive +
                         "', but the parallel download phase failed to "
                         "obtain it",
+                    pf.archive, {}, "",
                     bullet_list(plan.errors));
             }
             // The batch succeeded (or never needed to run), but this
@@ -659,16 +718,37 @@ bool try_ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
                  "' does not match any URL: hash; re-downloading");
         note("downloading '" + pf.archive +
              "' outside the batch download phase (" + fallback_reason + ")");
-        return download_url_snapshot_sequential(snap, pf, out, err);
+        return download_url_snapshot_sequential(snap, pf, out, err,
+                                                allow_wait);
     }
     if (snapshot_readable)
         warn("existing snapshot '" + snap +
              "' does not match any URL: hash; re-downloading");
-    return download_url_snapshot_sequential(snap, pf, out, err);
+    return download_url_snapshot_sequential(snap, pf, out, err, allow_wait);
+}
+
+// The (url, hash) pairs of a ProjenyFile's URL: lines, for the
+// DownloadUnavailableError payload: run_multi's retry stage rebuilds an
+// out-of-plan download spec from them.
+std::vector<std::pair<std::string, std::string>> url_pairs(
+    const std::vector<ProjenyUrl>& urls)
+{
+    std::vector<std::pair<std::string, std::string>> out;
+    out.reserve(urls.size());
+    for (const ProjenyUrl& u : urls)
+        out.emplace_back(u.url, u.hash);
+    return out;
 }
 
 // The dying wrapper: same behavior, but dies naming `what` when every URL
-// failed.
+// failed. In multi mode a total download failure throws
+// DownloadUnavailableError instead (printed exactly like the die it
+// replaces): the coordinator's retry stage re-runs this project once, after
+// its coordinated wait, together with the other download-blocked projects —
+// the payload carries this file's own URL pairs and the directory the
+// snapshot belongs in, since a failed fallback download is for an archive
+// the batch plan does not know about. Single-project runs keep the hard
+// die.
 std::string ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
                                 const std::string& what, bool announce_skip,
                                 const std::string& fallback_reason =
@@ -677,8 +757,12 @@ std::string ensure_url_snapshot(const std::string& pdir, const ProjenyFile& pf,
     std::string out;
     std::string err;
     if (!try_ensure_url_snapshot(pdir, pf, &out, &err, announce_skip,
-                                 fallback_reason))
+                                 fallback_reason)) {
+        if (g_multi_plan != nullptr)
+            die_download_unavailable(err + "; it is needed to " + what,
+                                     pf.archive, url_pairs(pf.urls), pdir);
         die(err + "; it is needed to " + what);
+    }
     return out;
 }
 
@@ -4262,6 +4346,18 @@ void parse_archive_args(const std::vector<std::string>& archive_args,
 // does not name a file dies here, mirroring the .projeny parse's rule).
 // Every message is byte-identical to the inline loop this extracted, which
 // the test suite asserts.
+//
+// When NOTHING verified on the first walk, the walk runs one more time
+// after a single wait (retry_wait_seconds(): PROJENY_URL_RETRY_SECONDS, 60
+// seconds by default, 0 = no wait and no retry walk — the legacy
+// single-pass behavior, byte-identical): the note announces the wait, only
+// the FAILED downloads are re-attempted (a URL that downloaded is reused
+// from the cache across walks), and the hard errors keep their exact
+// wording and immediacy in both walks — a hashless URL that fails to
+// download dies at once (a retry cannot produce a hash for a download that
+// never happens) and an explicit-hash mismatch dies at once. A run where
+// one mirror verified proceeds exactly as before, failed mirrors staying
+// warned and listed. The final all-failed die happens only after the retry.
 void verify_urls(std::vector<ProjenyUrl>* urls, std::string* verified_data,
                  std::string* new_base, const char* cmd,
                  const std::string& what)
@@ -4271,57 +4367,82 @@ void verify_urls(std::vector<ProjenyUrl>* urls, std::string* verified_data,
         die("URL '" + (*urls)[0].url + "' does not name a file");
     std::map<std::string, std::pair<bool, std::string>> fetched;
     bool have_verified = false;
-    for (ProjenyUrl& u : *urls) {
-        bool ok;
-        std::string data, err;
-        auto it = fetched.find(u.url);
-        if (it == fetched.end()) {
-            // try_download announces the attempt itself ("projeny:
-            // downloading '<url>'", then '\r'-terminated progress).
-            ok = try_download(u.url, &data, &err);
-            fetched[u.url] = {ok, ok ? data : err};
-        } else {
-            ok = it->second.first;
-            if (ok)
-                data = it->second.second;
-            else
-                err = it->second.second;
+    // One walk over the URL arguments, in order. `fetched` caches each
+    // distinct URL's outcome ACROSS walks: a URL that downloaded is reused
+    // without a second transfer, and only FAILED entries are re-attempted
+    // (the retry walk erases them first).
+    auto walk_urls = [&]() {
+        for (ProjenyUrl& u : *urls) {
+            bool ok;
+            std::string data, err;
+            auto it = fetched.find(u.url);
+            if (it == fetched.end()) {
+                // try_download announces the attempt itself ("projeny:
+                // downloading '<url>'", then '\r'-terminated progress).
+                ok = try_download(u.url, &data, &err);
+                fetched[u.url] = {ok, ok ? data : err};
+            } else {
+                ok = it->second.first;
+                if (ok)
+                    data = it->second.second;
+                else
+                    err = it->second.second;
+            }
+            if (!ok) {
+                if (u.hash.empty())
+                    // Without a hash there is nothing to record: a URL:
+                    // header always carries one, so this is a hard error.
+                    die("cannot compute the blake3 hash of '" + u.url +
+                        "': " + err +
+                        "; pass the hash explicitly after the URL "
+                        "('projeny hash <file>' computes it) — a URL: "
+                        "header always carries a hash");
+                // A hashed mirror that fails to download only warns: the
+                // line stays listed in the .projeny file, and a later
+                // setup falls through it exactly the same way.
+                warn("could not download '" + u.url + "': " + err +
+                     "; trying the next URL");
+                continue;
+            }
+            std::string have = blake3_hash_hex(data);
+            if (!u.hash.empty() && have != u.hash)
+                // The user asserted this hash: a mismatch is a hard error,
+                // not a mirror fall-through — a bad pair must not be
+                // silently written into the file.
+                die("downloaded '" + u.url + "' but its blake3 hash is " +
+                    have + ", expected " + u.hash +
+                    "; the hash was given explicitly, so projeny stops "
+                    "instead of writing a mismatched URL: header");
+            if (u.hash.empty()) {
+                u.hash = have;
+                note("computed blake3 hash " + have + " for '" + u.url + "'");
+            }
+            if (!have_verified) {
+                // The FIRST verified entry's bytes are the new tarball
+                // (the snapshot is named after the first URL regardless).
+                have_verified = true;
+                *verified_data = data;
+            }
         }
-        if (!ok) {
-            if (u.hash.empty())
-                // Without a hash there is nothing to record: a URL:
-                // header always carries one, so this is a hard error.
-                die("cannot compute the blake3 hash of '" + u.url +
-                    "': " + err +
-                    "; pass the hash explicitly after the URL "
-                    "('projeny hash <file>' computes it) — a URL: "
-                    "header always carries a hash");
-            // A hashed mirror that fails to download only warns: the
-            // line stays listed in the .projeny file, and a later
-            // setup falls through it exactly the same way.
-            warn("could not download '" + u.url + "': " + err +
-                 "; trying the next URL");
-            continue;
+    };
+    int wait = retry_wait_seconds();
+    int passes = wait > 0 ? 2 : 1;
+    for (int pass = 0; pass < passes && !have_verified; ++pass) {
+        if (pass > 0) {
+            note("all URL argument(s) failed to produce a verified "
+                 "download; waiting " + std::to_string(wait) +
+                 " second(s) before trying them one more time");
+            std::this_thread::sleep_for(std::chrono::seconds(wait));
+            // Forget the failures so the walk re-attempts them; successes
+            // stay cached and are reused as-is.
+            for (auto it = fetched.begin(); it != fetched.end();) {
+                if (it->second.first)
+                    ++it;
+                else
+                    it = fetched.erase(it);
+            }
         }
-        std::string have = blake3_hash_hex(data);
-        if (!u.hash.empty() && have != u.hash)
-            // The user asserted this hash: a mismatch is a hard error,
-            // not a mirror fall-through — a bad pair must not be
-            // silently written into the file.
-            die("downloaded '" + u.url + "' but its blake3 hash is " +
-                have + ", expected " + u.hash +
-                "; the hash was given explicitly, so projeny stops "
-                "instead of writing a mismatched URL: header");
-        if (u.hash.empty()) {
-            u.hash = have;
-            note("computed blake3 hash " + have + " for '" + u.url + "'");
-        }
-        if (!have_verified) {
-            // The FIRST verified entry's bytes are the new tarball
-            // (the snapshot is named after the first URL regardless).
-            have_verified = true;
-            *verified_data = data;
-        }
+        walk_urls();
     }
     if (!have_verified) {
         // The refusal words the command's own action: "not rebasing"
@@ -5972,7 +6093,16 @@ LiveDiff compute_live_diff(const std::string& pdir, const StatusData& st,
         std::lock_guard<std::mutex> lk(g_fallback_download_mu);
         // announce_skip = false: status is informational and must print
         // nothing extra on a healthy (snapshot-matching) checkout.
-        if (try_ensure_url_snapshot(pdir, emb, &got, &err, false))
+        // allow_wait = false: this materialization runs while HOLDING
+        // g_fallback_download_mu, which erase-setup's parallel check
+        // workers share — a failing download must never stall the mutex
+        // (the inline wait-and-one-more-try would sleep and re-attempt
+        // inside it); the failure path already degrades gracefully
+        // ("continuing without the live diff"). This keeps the erase/status
+        // live-diff materialization single-pass — the legacy behavior
+        // before the wait-and-retry — which is intended.
+        if (try_ensure_url_snapshot(pdir, emb, &got, &err, false,
+                                    "conflicted projeny file", false))
             archive_path = got;
         else {
             warn(err + " (continuing without the live diff)");
@@ -7179,6 +7309,21 @@ struct MultiJob {
 // argument ("output"/"destination", "" for setup), and run_one runs the
 // single-project command: cmd_setup(arg) / cmd_package(arg, extra) /
 // cmd_extract(arg, extra).
+//
+// Download failures get one coordinated retry: the batch's own immediate
+// retry pass covers a transient blip, and a project whose package (or
+// whose Projeny:-chain base's archive) STILL could not be obtained does
+// not fail alone — after every other per-project operation finishes, the
+// coordinator prints one waiting note, waits once (retry_wait_seconds():
+// PROJENY_URL_RETRY_SECONDS, 60 seconds by default; 0 skips the stage
+// entirely, restoring the legacy single-pass behavior byte-for-byte),
+// re-downloads every failed package in one parallel batch pass (with the
+// batch's own retry suppressed: this IS the one more try), and re-runs
+// only the projects whose failures were download-caused. At most one such
+// retry stage runs per invocation; a second failure is final. The wait
+// happens after the other setups, not before them, so one temporary
+// outage that felled several downloads costs one wait, not one per
+// project.
 int run_multi(const char* verb, const char* verb_phrase,
               const char* extra_noun,
               const std::function<int(const std::string&, const std::string&)>&
@@ -7355,11 +7500,29 @@ int run_multi(const char* verb, const char* verb_phrase,
 
     // 7. Per-project phase: every project on its own thread (at most `jobs`
     // at a time), labeled so its note/warn/die lines name the project. The
-    // guard in try_ensure_url_snapshot reads the plan while this runs.
+    // guard in try_ensure_url_snapshot reads the plan while this runs. A
+    // worker that cannot obtain an archive throws DownloadUnavailableError
+    // (its report is already printed): the failure is recorded as
+    // download-caused, with the payload the retry stage needs, and the
+    // coordinated stage below re-runs the project.
     std::vector<int> rcs(projects.size(), 0);
     std::vector<std::string> labels(projects.size());
     for (size_t i = 0; i < projects.size(); ++i)
         labels[i] = basename_of(projects[i].abs);
+    // Per-index slots the workers pre-size here: each worker writes ONLY
+    // slot i (run_parallel hands each index to exactly one worker), so no
+    // locking is needed. blocked_* carry what DownloadUnavailableError
+    // reported for the download-caused failures: the archive name, and —
+    // for an archive the plan does not know about (a Projeny:-based
+    // project's URL:-based chain base, never a batch contributor) — the
+    // candidate (url, hash) pairs and the directory the snapshot belongs
+    // in. All empty for a plan package: the retry spec is rebuilt from the
+    // plan itself.
+    std::vector<bool> blocked(projects.size(), false);
+    std::vector<std::string> blocked_archives(projects.size());
+    std::vector<std::vector<std::pair<std::string, std::string>>>
+        blocked_urls(projects.size());
+    std::vector<std::string> blocked_pdirs(projects.size());
     g_multi_plan = &plan;
     struct PlanUninstall {
         ~PlanUninstall() { g_multi_plan = nullptr; }
@@ -7371,12 +7534,165 @@ int run_multi(const char* verb, const char* verb_phrase,
             // worker re-resolves a spelling after another worker may have
             // removed the directory the process's CWD sits in.
             rcs[i] = run_one(projects[i].abs, projects[i].extra);
+        } catch (const DownloadUnavailableError& e) {
+            // die_download_unavailable already printed the labeled report;
+            // record the failure as download-caused so the coordinated
+            // retry below can re-run this project after one wait.
+            rcs[i] = 1;
+            blocked[i] = true;
+            blocked_archives[i] = e.archive();
+            blocked_urls[i] = e.urls();
+            blocked_pdirs[i] = e.pdir();
         } catch (const ProjenyFatalError&) {
             // die() already printed the labeled report; do not repeat it.
             rcs[i] = 1;
         }
         set_output_label("");
     });
+
+    // 7b. The coordinated retry stage: at most one, and only when some
+    // project's failure was download-caused and a wait is configured at
+    // all. The other setups have finished (step 7 joined), so the wait
+    // costs nothing to the projects that succeeded — a temporary outage
+    // that felled several downloads at once is covered by ONE wait and one
+    // parallel retry of every failed package together. g_multi_plan is
+    // still set here (the RAII uninstall declared in step 7 outlives this
+    // stage), so the re-run at the end runs in multi mode like the first
+    // pass did.
+    int wait = retry_wait_seconds();
+    std::vector<size_t> blocked_list;
+    for (size_t i = 0; i < projects.size(); ++i)
+        if (blocked[i])
+            blocked_list.push_back(i);
+    if (!blocked_list.empty() && wait > 0) {
+        // Build the retry specs. One package can be reported by several
+        // projects, so everything merges by archive name: URLs keep
+        // first-seen order (deduplicated), hashes and snapshot directories
+        // union. Two sources feed the merge:
+        //   (a) every plan package the batch attempted and failed — the
+        //       plan carries the URLs, the accepted hashes, and the pdirs
+        //       still missing a verified snapshot (a package either fully
+        //       failed, writing nothing, or fully succeeded, so every
+        //       unsatisfied pdir gets the bytes);
+        //   (b) every out-of-plan archive a blocked project carried in its
+        //       DownloadUnavailableError payload — a Projeny:-based
+        //       project's URL:-based chain base (never a batch
+        //       contributor), which several blocked projects may share.
+        struct RetryPkg {
+            std::vector<std::string> urls; // first-seen order, deduplicated
+            std::set<std::string> hashes;  // union of accepted hashes
+            std::set<std::string> pdirs;   // every snapshot dir to write
+        };
+        std::map<std::string, RetryPkg> retry_pkgs; // archive name -> pkg
+        std::vector<std::string> retry_order;       // first-seen names
+        auto merge_retry = [&](const std::string& name,
+                               const std::vector<std::string>& urls,
+                               const std::set<std::string>& hashes,
+                               const std::vector<std::string>& pdirs) {
+            auto ins = retry_pkgs.try_emplace(name);
+            if (ins.second)
+                retry_order.push_back(name);
+            RetryPkg& pkg = ins.first->second;
+            for (const std::string& u : urls)
+                if (std::find(pkg.urls.begin(), pkg.urls.end(), u) ==
+                    pkg.urls.end())
+                    pkg.urls.push_back(u);
+            pkg.hashes.insert(hashes.begin(), hashes.end());
+            pkg.pdirs.insert(pdirs.begin(), pdirs.end());
+        };
+        // (a) from the plan, in the first download phase's spec order.
+        for (const BatchPackageSpec& spec : specs) {
+            const PlannedPackage& p = plan.at(spec.name);
+            if (!p.attempted || p.ok)
+                continue;
+            std::vector<std::string> pdirs;
+            for (size_t k = 0; k < p.pdirs.size(); ++k)
+                if (!p.pdir_satisfied[k])
+                    pdirs.push_back(p.pdirs[k]);
+            merge_retry(spec.name, p.urls, p.accepted_hashes, pdirs);
+        }
+        // (b) from the payloads, in blocked-project order.
+        for (size_t i : blocked_list) {
+            if (blocked_urls[i].empty())
+                continue; // plan-known: covered by (a)
+            std::set<std::string> hashes;
+            std::vector<std::string> urls;
+            for (const auto& uh : blocked_urls[i]) {
+                if (std::find(urls.begin(), urls.end(), uh.first) ==
+                    urls.end())
+                    urls.push_back(uh.first);
+                hashes.insert(uh.second);
+            }
+            merge_retry(blocked_archives[i], urls, hashes,
+                        std::vector<std::string>{blocked_pdirs[i]});
+        }
+        std::string names_joined;
+        for (const std::string& name : retry_order) {
+            if (!names_joined.empty())
+                names_joined += ", ";
+            names_joined += name;
+        }
+        note(std::to_string(blocked_list.size()) + " " + std::string(verb) +
+             "(s) could not obtain their download(s) (" + names_joined +
+             "); waiting " + std::to_string(wait) +
+             " second(s) before one more try");
+        std::this_thread::sleep_for(std::chrono::seconds(wait));
+        std::vector<BatchPackageSpec> retry_specs;
+        for (const std::string& name : retry_order) {
+            BatchPackageSpec spec;
+            spec.name = name;
+            spec.urls = retry_pkgs[name].urls;
+            spec.accepted_hashes = retry_pkgs[name].hashes;
+            retry_specs.push_back(std::move(spec));
+        }
+        // One more try, exactly one: retry_passes = 0 suppresses
+        // download_batch's own immediate retry pass, which already ran in
+        // the first download phase — the coordinated wait IS the retry.
+        std::vector<BatchPackageResult> results =
+            download_batch(retry_specs, curl_jobs, jobs,
+                           /*retry_passes=*/0);
+        for (size_t i = 0; i < retry_specs.size(); ++i) {
+            const BatchPackageResult& r = results[i];
+            auto pit = plan.find(r.name);
+            if (!r.ok) {
+                if (pit != plan.end())
+                    pit->second.errors = r.errors; // the freshest errors,
+                                                   // for a re-run guard
+                std::string joined;
+                for (size_t k = 0; k < r.errors.size(); ++k) {
+                    if (k > 0)
+                        joined += "; ";
+                    joined += r.errors[k];
+                }
+                warn("failed to obtain '" + r.name + "': " + joined);
+                continue;
+            }
+            if (pit != plan.end()) {
+                pit->second.ok = true;
+                pit->second.verified_hashes.insert(r.hash);
+                pit->second.errors.clear();
+            }
+            for (const std::string& dir : retry_pkgs[r.name].pdirs)
+                write_file_bytes(snapshot_path_for(join_path(dir, r.name)),
+                                 r.data);
+        }
+        // Re-run ONLY the blocked projects: their failure was caused by a
+        // download that may now sit in its snapshot, so the whole command
+        // gets another chance. A second download failure re-throws
+        // DownloadUnavailableError, which derives from ProjenyFatalError —
+        // the catch below takes it, the labeled report is already printed,
+        // and the project stays failed.
+        run_parallel(jobs, blocked_list.size(), [&](size_t k) {
+            size_t i = blocked_list[k];
+            set_output_label(labels[i]);
+            try {
+                rcs[i] = run_one(projects[i].abs, projects[i].extra);
+            } catch (const ProjenyFatalError&) {
+                rcs[i] = 1;
+            }
+            set_output_label("");
+        });
+    }
 
     // 8. Exit code: nonzero when any project failed (nonzero return or
     // death), with one summary line. Success prints nothing extra.
@@ -8484,7 +8800,18 @@ int cmd_create(const std::string& file_arg,
 // (the same machinery the multi-project commands use in their planning
 // phase). Files are named after the URL's basename; a file already present
 // with a matching hash is kept. Any failure is fatal — after every other
-// package finished.
+// package finished, and after one wait-and-one-more-try, exactly like every
+// other URL cascade in projeny: when the batch (pass 0 plus its built-in
+// immediate retry pass) could not verify every package, a note announces
+// the wait, the command waits once (retry_wait_seconds():
+// PROJENY_URL_RETRY_SECONDS, 60 seconds by default; 0 skips the stage
+// entirely, restoring the legacy single-shot behavior byte-for-byte), and
+// then every failed package is re-attempted in one parallel batch pass with
+// the batch's own retry suppressed (retry_passes = 0 — the coordinated wait
+// IS the one more try). A temporary network outage that felled several
+// packages at once is retried together, in one parallel pass. Only then is
+// any remaining failure fatal, and the die report carries the freshest
+// per-attempt errors.
 int cmd_download(const std::vector<std::string>& args, int jobs, int curl_jobs)
 {
     if (args.size() < 2 || args.size() % 2 != 0)
@@ -8551,6 +8878,50 @@ int cmd_download(const std::vector<std::string>& args, int jobs, int curl_jobs)
         return 0;
     std::vector<BatchPackageResult> results =
         download_batch(specs, curl_jobs, jobs);
+    // The wait-and-one-more-try, exactly like every other URL cascade in
+    // projeny: when the batch (pass 0 plus its built-in immediate retry
+    // pass) could not verify every package, print that we are waiting, wait
+    // PROJENY_URL_RETRY_SECONDS (60 by default; 0 keeps the legacy
+    // single-shot behavior), then give every failed package one more batch
+    // pass — with the batch's own retry suppressed (retry_passes = 0), so
+    // the coordinated wait IS the one more try. A temporary network outage
+    // that felled several packages at once is retried together, in one
+    // parallel pass. Only then is any remaining failure fatal.
+    int wait = retry_wait_seconds();
+    if (wait > 0) {
+        std::vector<size_t> failed_idx;
+        for (size_t i = 0; i < results.size(); ++i)
+            if (!results[i].ok)
+                failed_idx.push_back(i);
+        if (!failed_idx.empty()) {
+            std::vector<BatchPackageSpec> retry_specs;
+            std::string names_joined;
+            for (size_t i : failed_idx) {
+                retry_specs.push_back(specs[i]);
+                if (!names_joined.empty())
+                    names_joined += ", ";
+                names_joined += specs[i].name;
+            }
+            note(std::to_string(failed_idx.size()) + " of " +
+                 std::to_string(specs.size()) + " download(s) failed (" +
+                 names_joined + "); waiting " + std::to_string(wait) +
+                 " second(s) before one more try");
+            std::this_thread::sleep_for(std::chrono::seconds(wait));
+            // One more try, exactly one: retry_passes = 0 suppresses the
+            // batch's own immediate retry pass, which already ran above.
+            std::vector<BatchPackageResult> retry_results =
+                download_batch(retry_specs, curl_jobs, jobs,
+                               /*retry_passes=*/0);
+            for (size_t k = 0; k < failed_idx.size(); ++k) {
+                if (retry_results[k].ok)
+                    results[failed_idx[k]] = std::move(retry_results[k]);
+                else
+                    // Keep the freshest per-attempt errors for the fatal
+                    // report below.
+                    results[failed_idx[k]].errors = retry_results[k].errors;
+            }
+        }
+    }
     size_t failed = 0;
     std::vector<std::string> failed_lines;
     for (size_t i = 0; i < specs.size(); ++i) {

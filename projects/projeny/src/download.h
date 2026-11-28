@@ -98,10 +98,13 @@ struct BatchPackageResult {
 // happen on the calling thread (curl handles are not thread-safe); workers
 // never touch curl. Phase 2 blake3-hash-checks every transferred package on
 // at most `hash_jobs` (>=1) threads (run_parallel). Packages that fail
-// (transfer error or hash mismatch) then get ONE full retry pass: the
-// scheduler runs again over the failed packages' candidate lists (still
-// <= curl_jobs in flight, still one handle per package, candidates
-// restarting from the first URL) followed by another parallel hash round.
+// (transfer error or hash mismatch) then get ONE full retry pass when
+// `retry_passes` > 0 (the default is 1) and none when it is 0 — run_multi's
+// coordinated retry stage passes 0 because its own wait-and-one-more-try IS
+// the retry. The retry pass's scheduler runs again over the failed
+// packages' candidate lists (still <= curl_jobs in flight, still one
+// handle per package, candidates restarting from the first URL) followed
+// by another parallel hash round.
 //
 // Feedback, one atomic line per event (note/warn, serialized by
 // g_output_mutex):
@@ -172,4 +175,5 @@ struct BatchPackageResult {
 // allocation-level error only). All packages are held in RAM, exactly like
 // try_download.
 std::vector<BatchPackageResult> download_batch(const std::vector<BatchPackageSpec>& specs,
-                                               int curl_jobs, int hash_jobs);
+                                               int curl_jobs, int hash_jobs,
+                                               int retry_passes = 1);

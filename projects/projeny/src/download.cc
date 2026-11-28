@@ -752,7 +752,8 @@ bool arg_is_url(const std::string& s)
 }
 
 std::vector<BatchPackageResult> download_batch(
-    const std::vector<BatchPackageSpec>& specs, int curl_jobs, int hash_jobs)
+    const std::vector<BatchPackageSpec>& specs, int curl_jobs, int hash_jobs,
+    int retry_passes)
 {
     if (curl_jobs < 1)
         curl_jobs = 1;
@@ -774,11 +775,14 @@ std::vector<BatchPackageResult> download_batch(
         return results;
     }
 
-    // Pass 0, then — exactly once, and only when something failed — one full
-    // retry pass over the failures (candidates restart from the first URL:
-    // a transient failure of an early mirror should not promote a later
-    // mirror permanently). Each pass is a fresh phase-1 schedule followed by
-    // a parallel phase-2 hash round.
+    // Pass 0, then — when retry_passes > 0 (the default is 1), and only
+    // when something failed — exactly one full retry pass over the
+    // failures (candidates restart from the first URL: a transient failure
+    // of an early mirror should not promote a later mirror permanently).
+    // Each pass is a fresh phase-1 schedule followed by a parallel phase-2
+    // hash round. retry_passes = 0 requests no retry pass at all:
+    // run_multi's coordinated retry stage passes 0 because its own
+    // wait-and-one-more-try IS the retry.
     batch_transfer_pass(work, results, curl_jobs);
     batch_hash_pass(work, results, hash_jobs);
     std::vector<std::string> failed_names;
@@ -788,7 +792,7 @@ std::vector<BatchPackageResult> download_batch(
             failed_names.push_back(results[i].name);
         }
     }
-    if (!failed_names.empty()) {
+    if (retry_passes > 0 && !failed_names.empty()) {
         std::string list;
         for (size_t i = 0; i < failed_names.size(); ++i) {
             if (i > 0)

@@ -28,6 +28,7 @@
 #include <array>
 #include <atomic>
 #include <cerrno>
+#include <climits>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
@@ -110,6 +111,49 @@ const std::string& ProjenyFatalError::message() const noexcept
     return message_;
 }
 
+DownloadUnavailableError::DownloadUnavailableError(
+    std::string message, std::string archive,
+    std::vector<std::pair<std::string, std::string>> urls, std::string pdir)
+    : ProjenyFatalError(std::move(message)), archive_(std::move(archive)),
+      urls_(std::move(urls)), pdir_(std::move(pdir))
+{
+}
+
+const std::string& DownloadUnavailableError::archive() const noexcept
+{
+    return archive_;
+}
+
+const std::vector<std::pair<std::string, std::string>>&
+DownloadUnavailableError::urls() const noexcept
+{
+    return urls_;
+}
+
+const std::string& DownloadUnavailableError::pdir() const noexcept
+{
+    return pdir_;
+}
+
+// The wait before a download's one retry pass, from PROJENY_URL_RETRY_SECONDS
+// (see retry_wait_seconds in util.h). Parsed once: the value cannot change
+// mid-run, and every caller must agree on it.
+int retry_wait_seconds()
+{
+    static const int seconds = [] {
+        const char* env = getenv("PROJENY_URL_RETRY_SECONDS");
+        if (env == nullptr || *env == '\0')
+            return 60; // unset or empty: the default wait
+        char* end = nullptr;
+        long value = strtol(env, &end, 10);
+        if (end == env || *end != '\0' || value < 0 || value > INT_MAX)
+            return 60; // invalid (non-numeric, trailing garbage, negative,
+                       // above INT_MAX)
+        return static_cast<int>(value);
+    }();
+    return seconds;
+}
+
 void register_tempdir(const std::string& path)
 {
     std::lock_guard<std::mutex> lk(g_tempdirs_mu);
@@ -152,6 +196,28 @@ void die(const std::string& msg, const std::string& detail)
     // exit(1) here used to produce, while letting worker threads isolate
     // per-project failures instead.
     throw ProjenyFatalError(msg);
+}
+
+void die_download_unavailable(
+    const std::string& msg, const std::string& archive,
+    const std::vector<std::pair<std::string, std::string>>& urls,
+    const std::string& pdir, const std::string& detail)
+{
+    std::string m = "projeny: " + label_prefix() + "error: " + msg + "\n";
+    {
+        // One lock for the whole report (message line + detail, verbatim
+        // bytes of the report die() has always printed) so a parallel
+        // worker's error never interleaves with another thread's output.
+        std::lock_guard<std::mutex> lk(g_output_mutex);
+        fprintf(stderr, "%s", m.c_str());
+        if (!detail.empty())
+            fprintf(stderr, "%s", detail.c_str());
+    }
+    // The report is identical to die()'s; only the exception type differs,
+    // and it is exactly what lets run_multi classify this failure as
+    // download-caused and retry the download once, after its coordinated
+    // wait, together with the other blocked projects.
+    throw DownloadUnavailableError(msg, archive, urls, pdir);
 }
 
 void warn(const std::string& msg)

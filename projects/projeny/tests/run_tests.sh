@@ -160,6 +160,16 @@
 # convergences, the colliding-patch fresh-marker recovery on the
 # no-local-changes path (the classic Archive: control keeps the hard die),
 # and the missing-base-file refusal.
+# The URL-retry sections cover PROJENY_URL_RETRY_SECONDS: the
+# single-project URL download's wait-then-one-more-try (with its env=0 off
+# switch and the 60-second default), the parallel Projeny:-link setups over
+# a shared URL base with and without the base argument, the coordinator's
+# wait-then-retry stage for download-blocked parallel projects (one wait
+# after the other setups, every failed package retried together, including
+# the out-of-plan chain bases and the still-failing summary, and
+# non-download failures never retried), and erase-setup
+# --erase-snapshots on a Projeny:-link snapshot (preserving the shared
+# archive snapshot).
 #
 # Bash is required (process substitution in the status-copy comparisons
 # below); /bin/sh (dash) cannot run this suite.
@@ -412,6 +422,11 @@ check_deps() {
 }
 
 check_deps
+
+# The URL retry tests below override this; every pre-existing section pins
+# byte-identical output for the no-retry behavior, so the suite runs with
+# the retry disabled by default (0 = no wait and no retry pass).
+export PROJENY_URL_RETRY_SECONDS=0
 
 # ---------------------------------------------------------- 1. fresh setup
 T1="$ROOT/t1"
@@ -25196,6 +25211,1554 @@ else
          "$T377/.foo.snapshot exists"
 fi
 rm -rf "$ROOT/t377-ref"
+
+# ------------------- 378. a single setup's URL retry: wait, then one more
+# try
+# A single-project URL download whose every URL line fails on the first pass
+# waits ONCE (PROJENY_URL_RETRY_SECONDS; 60 seconds by default; 0 = no wait
+# and no retry pass — the legacy single-pass behavior, byte-identical
+# output) and then walks every URL line one more time before reporting
+# failure: the wait is announced with the archive and the wait, each pass
+# announces its own download attempts, and the failure report says the lines
+# were tried "on 2 pass(es)". The suite exports PROJENY_URL_RETRY_SECONDS=0
+# globally (every pre-existing section pins the no-retry output), so every
+# flavor here sets the variable per command. Four flavors: the retry
+# succeeds (the server 404s the first request and serves the second); every
+# attempt fails (one note, one extra pass, the "on 2 pass(es)" wording, two
+# downloading announcements); the env=0 control (no note, one attempt, the
+# legacy wording); and the default-60 flavor, which costs the suite one real
+# 60-second wait — accepted, so the default is pinned rather than just the
+# override. Two sub-blocks follow: the same wait-and-retry covers `projeny
+# download` (three flavors mirroring the first three), and two flavors pin
+# that an INVALID or above-INT_MAX variable value falls back to the
+# 60-second default — each run under `timeout 5` and killed during its
+# 60-second sleep, which pins the effective value from the waiting note
+# alone (the note prints before the sleep) without costing the suite a real
+# minute.
+T378="$ROOT/t378"
+make_tarballs "$T378" fake
+h378="$("$PROJENY" hash "$T378/fake-1.0.tar.gz")"
+cat > "$T378/serv.py" <<'PYEOF'
+import socket, sys, os
+# The first <fail_first> connections get a bare 404 (curl's FAILONERROR
+# makes that an instant transfer error); every later connection serves the
+# real bytes of the requested file from the docroot, with an honest
+# Content-Length. One connection per transfer (HTTP/1.0 + Connection:
+# close).
+docroot, portfile, fail_first = sys.argv[1], sys.argv[2], int(sys.argv[3])
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("127.0.0.1", 0))
+s.listen(16)
+open(portfile, "w").write(str(s.getsockname()[1]))
+served = 0
+while True:
+    c, _ = s.accept()
+    try:
+        req = c.recv(65536)
+        path = req.split(b" ")[1].decode(errors="replace").lstrip("/")
+        if served < fail_first:
+            served += 1
+            c.sendall(b"HTTP/1.0 404 Not Found\r\nConnection: close\r\n\r\n")
+        else:
+            with open(os.path.join(docroot, os.path.basename(path)), "rb") as f:
+                body = f.read()
+            c.sendall(b"HTTP/1.0 200 OK\r\nContent-Length: "
+                      + str(len(body)).encode() + b"\r\nConnection: close\r\n\r\n")
+            c.sendall(body)
+    except OSError:
+        pass
+    finally:
+        c.close()
+PYEOF
+# retry_round_378 <flavor> <fail_first> <seconds|"unset">: a fresh fixture
+# directory, one fail-first server over the section docroot, and one
+# `projeny setup urlu.projeny` with the requested retry seconds ("unset"
+# runs with the variable removed from the environment, exercising the
+# 60-second default). Leaves RC378/OUT378 and the fixture in
+# "$ROOT/t378-<flavor>".
+retry_round_378() {
+    _d378="$ROOT/t378-$1"
+    rm -rf "$_d378"
+    mkdir -p "$_d378"
+    cp "$T378/fake-1.0.tar.gz" "$_d378/"
+    rm -f "$T378/port-$1"
+    python3 "$T378/serv.py" "$T378" "$T378/port-$1" "$2" &
+    SRV378=$!
+    _i378=0
+    while [ ! -s "$T378/port-$1" ] && [ "$_i378" -lt 20 ]; do
+        sleep 0.05
+        _i378=$((_i378 + 1))
+    done
+    P378="$(cat "$T378/port-$1" 2>/dev/null)"
+    printf 'URL: http://127.0.0.1:%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: urlu\n\n    The URL project.\n\n' \
+        "$P378" "$h378" > "$_d378/urlu.projeny"
+    if [ -z "$P378" ]; then
+        fail "the retry_round_378 server starts (flavor $1)" \
+             "port file never appeared"
+        OUT378="(the section 378 server never started; the port file never appeared)"
+        RC378=1
+    elif [ "$3" = unset ]; then
+        OUT378="$(cd "$_d378" && env -u PROJENY_URL_RETRY_SECONDS \
+            "$PROJENY" setup urlu.projeny 2>&1)"
+        RC378=$?
+    else
+        OUT378="$(cd "$_d378" && env PROJENY_URL_RETRY_SECONDS=$3 \
+            "$PROJENY" setup urlu.projeny 2>&1)"
+        RC378=$?
+    fi
+    kill "$SRV378" 2>/dev/null
+    wait "$SRV378" 2>/dev/null
+}
+# Flavor 1: the first pass fails, the waited second pass serves.
+retry_round_378 wait 1 1
+t378="$(printf '%s' "$OUT378" | tr '\r' '\n')"
+if [ $RC378 -eq 0 ]; then
+    ok "the waited retry setup exits 0"
+else
+    fail "the waited retry setup exits 0" "exit=$RC378 out: $OUT378"
+fi
+case "$OUT378" in
+*"all 1 URL line(s) failed for 'fake-1.0.tar.gz'; waiting 1 second(s) before trying them one more time"*)
+    ok "the wait is announced once, naming the archive and the wait"
+    ;;
+*)
+    fail "the wait is announced once, naming the archive and the wait" \
+         "out: $OUT378"
+    ;;
+esac
+ndl378="$(printf '%s\n' "$t378" | grep -c "downloading 'http://")"
+if [ "$ndl378" -eq 2 ]; then
+    ok "each pass announced its own download attempt (2 downloading lines)"
+else
+    fail "each pass announced its own download attempt (2 downloading lines)" \
+         "got $ndl378 downloading lines (out: $OUT378)"
+fi
+case "$OUT378" in
+*"blake3 hash verified; wrote snapshot"*)
+    ok "the second pass downloaded and verified the archive"
+    ;;
+*)
+    fail "the second pass downloaded and verified the archive" "out: $OUT378"
+    ;;
+esac
+if [ ! -f "$ROOT/t378-wait/.fake-1.0.tar.gz.snapshot" ]; then
+    fail "the waited retry wrote the archive snapshot" \
+         "ls: $(ls -A "$ROOT/t378-wait" 2>&1)"
+else
+    ok "the waited retry wrote the archive snapshot"
+fi
+if [ "$(cat "$ROOT/t378-wait/urlu/README" 2>/dev/null)" = "hello v1" ] && \
+   [ "$(grep -c 'int alpha = 1;' "$ROOT/t378-wait/urlu/src/a.c" 2>/dev/null)" = "1" ]; then
+    ok "the waited retry set up the correct workdir"
+else
+    fail "the waited retry set up the correct workdir" \
+         "ls: $(ls -A "$ROOT/t378-wait" 2>&1)"
+fi
+# Flavor 2: every attempt on both passes fails.
+retry_round_378 waitfail 1000 1
+t378="$(printf '%s' "$OUT378" | tr '\r' '\n')"
+if [ $RC378 -ne 0 ]; then
+    ok "the all-fail waited setup exits nonzero"
+else
+    fail "the all-fail waited setup exits nonzero" "out: $OUT378"
+fi
+nwait378="$(printf '%s\n' "$t378" | grep -c "all 1 URL line(s) failed for 'fake-1.0.tar.gz'; waiting 1 second(s) before trying them one more time")"
+if [ "$nwait378" -eq 1 ]; then
+    ok "the all-fail setup still announces exactly one wait"
+else
+    fail "the all-fail setup still announces exactly one wait" \
+         "got $nwait378 waiting notes (out: $OUT378)"
+fi
+case "$OUT378" in
+*"(tried 1 URL line(s) on 2 pass(es); every download failed or did not match its recorded blake3 hash)"*)
+    ok "the failure report says the lines were tried on 2 pass(es)"
+    ;;
+*)
+    fail "the failure report says the lines were tried on 2 pass(es)" \
+         "out: $OUT378"
+    ;;
+esac
+ndl378="$(printf '%s\n' "$t378" | grep -c "downloading 'http://")"
+if [ "$ndl378" -eq 2 ]; then
+    ok "the all-fail setup attempted the URL once per pass"
+else
+    fail "the all-fail setup attempted the URL once per pass" \
+         "got $ndl378 downloading lines (out: $OUT378)"
+fi
+if [ ! -e "$ROOT/t378-waitfail/urlu" ]; then
+    ok "the all-fail setup leaves no checkout"
+else
+    fail "the all-fail setup leaves no checkout" "ls: $(ls -A "$ROOT/t378-waitfail" 2>&1)"
+fi
+# Flavor 3: the env=0 control — the legacy single-pass behavior.
+retry_round_378 nowait 1000 0
+t378="$(printf '%s' "$OUT378" | tr '\r' '\n')"
+if [ $RC378 -ne 0 ]; then
+    ok "the env=0 all-fail setup exits nonzero"
+else
+    fail "the env=0 all-fail setup exits nonzero" "out: $OUT378"
+fi
+nwait378="$(printf '%s\n' "$t378" | grep -c "waiting")"
+if [ "$nwait378" -eq 0 ]; then
+    ok "the env=0 setup announces no wait at all"
+else
+    fail "the env=0 setup announces no wait at all" \
+         "got $nwait378 waiting lines (out: $OUT378)"
+fi
+ndl378="$(printf '%s\n' "$t378" | grep -c "downloading 'http://")"
+if [ "$ndl378" -eq 1 ]; then
+    ok "the env=0 setup makes exactly one attempt"
+else
+    fail "the env=0 setup makes exactly one attempt" \
+         "got $ndl378 downloading lines (out: $OUT378)"
+fi
+case "$OUT378" in
+*"(tried 1 URL line(s); every download failed or did not match its recorded blake3 hash)"*)
+    ok "the env=0 failure keeps the legacy single-pass wording"
+    ;;
+*)
+    fail "the env=0 failure keeps the legacy single-pass wording" \
+         "out: $OUT378"
+    ;;
+esac
+case "$OUT378" in
+*"on 2 pass(es)"*)
+    fail "the env=0 failure never claims 2 pass(es)" "out: $OUT378"
+    ;;
+*)
+    ok "the env=0 failure never claims 2 pass(es)"
+    ;;
+esac
+# Flavor 4: the default (variable unset) waits 60 seconds. This costs the
+# suite one real one-minute sleep — accepted, so the default is pinned.
+retry_round_378 wait60 1000 unset
+t378="$(printf '%s' "$OUT378" | tr '\r' '\n')"
+if [ $RC378 -ne 0 ]; then
+    ok "the default-60 all-fail setup still dies"
+else
+    fail "the default-60 all-fail setup still dies" "out: $OUT378"
+fi
+nwait378="$(printf '%s\n' "$t378" | grep -c "all 1 URL line(s) failed for 'fake-1.0.tar.gz'; waiting 60 second(s) before trying them one more time")"
+if [ "$nwait378" -eq 1 ]; then
+    ok "the default wait is 60 second(s)"
+else
+    fail "the default wait is 60 second(s)" \
+         "got $nwait378 matching notes (out: $OUT378)"
+fi
+case "$OUT378" in
+*"(tried 1 URL line(s) on 2 pass(es); every download failed or did not match its recorded blake3 hash)"*)
+    ok "the default-60 setup still retries once (the on-2-passes report)"
+    ;;
+*)
+    fail "the default-60 setup still retries once (the on-2-passes report)" \
+         "out: $OUT378"
+    ;;
+esac
+
+# The same wait-and-retry covers `projeny download`: the command's batch
+# (pass 0 plus its built-in immediate retry pass) that fails to verify a
+# package prints ONE waiting note naming the failed package(s), waits
+# PROJENY_URL_RETRY_SECONDS once, and gives exactly the failed packages one
+# more parallel batch pass with the batch's own retry suppressed (the wait
+# IS the one more try) before any remaining failure is fatal — the die then
+# carries the waited pass's freshest per-attempt errors. The batch announces
+# each attempt as `downloading '<archive>' from '<url>'` (not the
+# single-project `downloading '<url>'` form), so the attempt counts below
+# grep that full form. Three flavors, mirroring the setup flavors above:
+# fail_first=2 covers the success path (the two pre-wait passes burn the two
+# 404s, the waited pass verifies and flows through the usual `wrote` note);
+# fail_first=1000 with the wait enabled dies after the waited pass; and the
+# env=0 control keeps the legacy two-attempt, no-wait behavior (exactly what
+# section 244 pins).
+# download_round_378 <flavor> <fail_first> <seconds>: a fresh fixture
+# directory, one fail-first server over the section docroot, and one
+# `projeny download` of the fixture URL with the requested retry seconds.
+# Leaves RC378/OUT378 and the fixture in "$ROOT/t378-dl-<flavor>".
+download_round_378() {
+    _d378="$ROOT/t378-dl-$1"
+    rm -rf "$_d378"
+    mkdir -p "$_d378"
+    rm -f "$T378/port-dl-$1"
+    python3 "$T378/serv.py" "$T378" "$T378/port-dl-$1" "$2" &
+    SRV378=$!
+    _i378=0
+    while [ ! -s "$T378/port-dl-$1" ] && [ "$_i378" -lt 20 ]; do
+        sleep 0.05
+        _i378=$((_i378 + 1))
+    done
+    P378="$(cat "$T378/port-dl-$1" 2>/dev/null)"
+    if [ -z "$P378" ]; then
+        fail "the download_round_378 server starts (flavor $1)" \
+             "port file never appeared"
+        OUT378="(the section 378 download server never started; the port file never appeared)"
+        RC378=1
+    else
+        OUT378="$(cd "$_d378" && env PROJENY_URL_RETRY_SECONDS=$3 \
+            "$PROJENY" download "http://127.0.0.1:$P378/fake-1.0.tar.gz" \
+            "$h378" 2>&1)"
+        RC378=$?
+    fi
+    kill "$SRV378" 2>/dev/null
+    wait "$SRV378" 2>/dev/null
+}
+# Flavor 1: both pre-wait passes 404; the waited one more try serves.
+download_round_378 wait 2 1
+t378="$(printf '%s' "$OUT378" | tr '\r' '\n')"
+if [ $RC378 -eq 0 ]; then
+    ok "the waited download retry exits 0"
+else
+    fail "the waited download retry exits 0" "exit=$RC378 out: $OUT378"
+fi
+case "$OUT378" in
+*"1 of 1 download(s) failed (fake-1.0.tar.gz); waiting 1 second(s) before one more try"*)
+    ok "the download wait is announced once, naming the failed package(s)"
+    ;;
+*)
+    fail "the download wait is announced once, naming the failed package(s)" \
+         "out: $OUT378"
+    ;;
+esac
+case "$OUT378" in
+*"wrote fake-1.0.tar.gz ("*)
+    ok "the recovered package flows through the usual wrote note"
+    ;;
+*)
+    fail "the recovered package flows through the usual wrote note" \
+         "out: $OUT378"
+    ;;
+esac
+ndl378="$(printf '%s\n' "$t378" | grep -c "downloading 'fake-1.0.tar.gz' from 'http://127.0.0.1:")"
+if [ "$ndl378" -eq 3 ]; then
+    ok "the download attempts the URL once per pass (3: pass + built-in retry + the waited pass)"
+else
+    fail "the download attempts the URL once per pass (3: pass + built-in retry + the waited pass)" \
+         "got $ndl378 downloading lines (out: $OUT378)"
+fi
+if [ -f "$ROOT/t378-dl-wait/fake-1.0.tar.gz" ] && \
+   cmp -s "$ROOT/t378-dl-wait/fake-1.0.tar.gz" "$T378/fake-1.0.tar.gz"; then
+    ok "the waited download wrote the byte-exact archive into the cwd"
+else
+    fail "the waited download wrote the byte-exact archive into the cwd" \
+         "ls: $(ls -A "$ROOT/t378-dl-wait" 2>&1)"
+fi
+# Flavor 2: every attempt fails; the waited pass is the last try and the
+# die carries its freshest (single-pass) error, not the accumulated ones.
+download_round_378 waitfail 1000 1
+t378="$(printf '%s' "$OUT378" | tr '\r' '\n')"
+if [ $RC378 -ne 0 ]; then
+    ok "the all-fail waited download exits nonzero"
+else
+    fail "the all-fail waited download exits nonzero" "out: $OUT378"
+fi
+nwait378="$(printf '%s\n' "$t378" | grep -c "1 of 1 download(s) failed (fake-1.0.tar.gz); waiting 1 second(s) before one more try")"
+if [ "$nwait378" -eq 1 ]; then
+    ok "the all-fail download still announces exactly one wait"
+else
+    fail "the all-fail download still announces exactly one wait" \
+         "got $nwait378 waiting notes (out: $OUT378)"
+fi
+case "$OUT378" in
+*"failed to download 1 of 1 package(s)"*)
+    ok "the all-fail download dies with the package-count report"
+    ;;
+*)
+    fail "the all-fail download dies with the package-count report" \
+         "out: $OUT378"
+    ;;
+esac
+ndl378="$(printf '%s\n' "$t378" | grep -c "downloading 'fake-1.0.tar.gz' from 'http://127.0.0.1:")"
+if [ "$ndl378" -eq 3 ]; then
+    ok "the all-fail download attempts the URL once per pass (3 lines)"
+else
+    fail "the all-fail download attempts the URL once per pass (3 lines)" \
+         "got $ndl378 downloading lines (out: $OUT378)"
+fi
+nerr378="$(printf '%s\n' "$t378" | grep -c "^  failed to download 'fake-1.0.tar.gz' from 'http://")"
+if [ "$nerr378" -eq 1 ]; then
+    ok "the fatal report carries the waited pass's freshest error only"
+else
+    fail "the fatal report carries the waited pass's freshest error only" \
+         "got $nerr378 error bullets (out: $OUT378)"
+fi
+if [ ! -e "$ROOT/t378-dl-waitfail/fake-1.0.tar.gz" ]; then
+    ok "the all-fail download writes no file"
+else
+    fail "the all-fail download writes no file" \
+         "ls: $(ls -A "$ROOT/t378-dl-waitfail" 2>&1)"
+fi
+# Flavor 3: the env=0 control — the legacy single-shot behavior (pass 0
+# plus the built-in immediate retry, no wait, no waited pass).
+download_round_378 nowait 1000 0
+t378="$(printf '%s' "$OUT378" | tr '\r' '\n')"
+if [ $RC378 -ne 0 ]; then
+    ok "the env=0 all-fail download exits nonzero"
+else
+    fail "the env=0 all-fail download exits nonzero" "out: $OUT378"
+fi
+nwait378="$(printf '%s\n' "$t378" | grep -c "waiting")"
+if [ "$nwait378" -eq 0 ]; then
+    ok "the env=0 download announces no wait at all"
+else
+    fail "the env=0 download announces no wait at all" \
+         "got $nwait378 waiting lines (out: $OUT378)"
+fi
+ndl378="$(printf '%s\n' "$t378" | grep -c "downloading 'fake-1.0.tar.gz' from 'http://127.0.0.1:")"
+if [ "$ndl378" -eq 2 ]; then
+    ok "the env=0 download makes exactly two attempts (pass + built-in retry)"
+else
+    fail "the env=0 download makes exactly two attempts (pass + built-in retry)" \
+         "got $ndl378 downloading lines (out: $OUT378)"
+fi
+nerr378="$(printf '%s\n' "$t378" | grep -c "^  failed to download 'fake-1.0.tar.gz' from 'http://")"
+if [ "$nerr378" -eq 2 ]; then
+    ok "the env=0 fatal report keeps the legacy one-bullet-per-attempt form"
+else
+    fail "the env=0 fatal report keeps the legacy one-bullet-per-attempt form" \
+         "got $nerr378 error bullets (out: $OUT378)"
+fi
+
+# The invalid/above-INT_MAX fallback pins: an unparsable or too-large
+# PROJENY_URL_RETRY_SECONDS must fall back to the 60-second default — but
+# pinning that with a plain run would cost the suite a real 60-second wait
+# per flavor. The waiting note prints BEFORE the sleep, so running each
+# flavor under `timeout 5` and letting the kill land during that sleep pins
+# the effective value from the note alone (it names "waiting 60 second(s)")
+# without costing the suite a real minute; only the exit code is pinned
+# loosely (nonzero, never an exact rc — SIGTERM handling may surface as
+# timeout's 124 or anything else nonzero).
+# fallback_round_378 <tag> <env value>: a fresh fixture directory with the
+# same urlu.projeny shape retry_round_378 generates, one fail-first server,
+# and one `timeout 5`-wrapped `projeny setup urlu.projeny` with the
+# requested variable value. Leaves RC378/OUT378 and the fixture in
+# "$ROOT/t378-fb-<tag>".
+fallback_round_378() {
+    _d378="$ROOT/t378-fb-$1"
+    rm -rf "$_d378"
+    mkdir -p "$_d378"
+    cp "$T378/fake-1.0.tar.gz" "$_d378/"
+    rm -f "$T378/port-fb-$1"
+    python3 "$T378/serv.py" "$T378" "$T378/port-fb-$1" 1000 &
+    SRV378=$!
+    _i378=0
+    while [ ! -s "$T378/port-fb-$1" ] && [ "$_i378" -lt 20 ]; do
+        sleep 0.05
+        _i378=$((_i378 + 1))
+    done
+    P378="$(cat "$T378/port-fb-$1" 2>/dev/null)"
+    printf 'URL: http://127.0.0.1:%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: urlu\n\n    The URL project.\n\n' \
+        "$P378" "$h378" > "$_d378/urlu.projeny"
+    if [ -z "$P378" ]; then
+        fail "the fallback_round_378 server starts (flavor $1)" \
+             "port file never appeared"
+        OUT378="(the section 378 fallback server never started; the port file never appeared)"
+        RC378=1
+    else
+        OUT378="$(cd "$_d378" && timeout 5 \
+            env PROJENY_URL_RETRY_SECONDS=$2 \
+            "$PROJENY" setup urlu.projeny 2>&1)"
+        RC378=$?
+    fi
+    kill "$SRV378" 2>/dev/null
+    wait "$SRV378" 2>/dev/null
+}
+if command -v timeout >/dev/null 2>&1; then
+    fallback_round_378 abc abc
+    if [ $RC378 -ne 0 ]; then
+        ok "the invalid PROJENY_URL_RETRY_SECONDS run dies (killed mid-wait)"
+    else
+        fail "the invalid PROJENY_URL_RETRY_SECONDS run dies (killed mid-wait)" \
+             "exit=$RC378 out: $OUT378"
+    fi
+    case "$OUT378" in
+    *"waiting 60 second(s) before trying them one more time"*)
+        ok "the invalid PROJENY_URL_RETRY_SECONDS falls back to the 60-second default"
+        ;;
+    *)
+        fail "the invalid PROJENY_URL_RETRY_SECONDS falls back to the 60-second default" \
+             "out: $OUT378"
+        ;;
+    esac
+    fallback_round_378 huge 3000000000
+    if [ $RC378 -ne 0 ]; then
+        ok "the above-INT_MAX PROJENY_URL_RETRY_SECONDS run dies (killed mid-wait)"
+    else
+        fail "the above-INT_MAX PROJENY_URL_RETRY_SECONDS run dies (killed mid-wait)" \
+             "exit=$RC378 out: $OUT378"
+    fi
+    case "$OUT378" in
+    *"waiting 60 second(s) before trying them one more time"*)
+        ok "the above-INT_MAX PROJENY_URL_RETRY_SECONDS falls back to the 60-second default"
+        ;;
+    *)
+        fail "the above-INT_MAX PROJENY_URL_RETRY_SECONDS falls back to the 60-second default" \
+             "out: $OUT378"
+        ;;
+    esac
+else
+    ok "the invalid PROJENY_URL_RETRY_SECONDS run dies (skipped: no timeout)"
+    ok "the invalid PROJENY_URL_RETRY_SECONDS falls back to the 60-second default (skipped: no timeout)"
+    ok "the above-INT_MAX PROJENY_URL_RETRY_SECONDS run dies (skipped: no timeout)"
+    ok "the above-INT_MAX PROJENY_URL_RETRY_SECONDS falls back to the 60-second default (skipped: no timeout)"
+fi
+
+# ------------------- 379. parallel setup of Projeny: links over a shared
+# URL base, clean checkout
+# Three projects in one directory: a URL:-based base and two Projeny:-based
+# links over it. The base is a batch contributor (a direct URL: argument),
+# so its archive downloads exactly once however many projects need it; each
+# link's frozen snapshot holds the base FILE's bytes, and the shared archive
+# snapshot serves the links with no further download. Re-running the same
+# command downloads nothing. The links-WITHOUT-the-base variant plans an
+# empty batch, so the workers fetch the shared chain archive outside the
+# batch phase — the fallback mutex deduplicates that to exactly one download
+# per invocation at every thread count (the losing worker re-checks the
+# snapshot under the mutex).
+T379="$ROOT/t379"
+make_tarballs "$T379" fake
+h379="$("$PROJENY" hash "$T379/fake-1.0.tar.gz")"
+linkbase_379() {
+    # $1 = dir: a shared URL:-based base plus two Projeny: links over it
+    mkdir -p "$1"
+    cp "$T379/fake-1.0.tar.gz" "$1/"
+    printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: urlbase\n\n    The shared base.\n\n' \
+        "$1" "$h379" > "$1/urlbase.projeny"
+    printf 'Projeny: urlbase.projeny\nOrigname: fake-1.0\nName: link1\n\n    A link.\n\n' \
+        > "$1/link1.projeny"
+    printf 'Projeny: urlbase.projeny\nOrigname: fake-1.0\nName: link2\n\n    A link.\n\n' \
+        > "$1/link2.projeny"
+}
+linkworkdirs_ok_379() {
+    # $1 = dir, $2 = assertion label, $3.. = workdir names: each listed
+    # checkout holds the base extraction's content (the links apply their
+    # empty patches to it).
+    _ok379=1
+    for _wd379 in "${@:3}"; do
+        if [ "$(cat "$1/$_wd379/README" 2>/dev/null)" != "hello v1" ] || \
+           [ "$(grep -c 'int alpha = 1;' "$1/$_wd379/src/a.c" 2>/dev/null)" != "1" ]; then
+            _ok379=0
+        fi
+    done
+    if [ $_ok379 -eq 1 ]; then
+        ok "$2: the checkouts hold the base extraction's content"
+    else
+        fail "$2: the checkouts hold the base extraction's content" \
+             "ls: $(ls -A "$1" 2>&1)"
+    fi
+}
+# The base-included clean checkout: one batch download serves all three.
+T379A="$ROOT/t379a"
+linkbase_379 "$T379A"
+out="$(cd "$T379A" && "$PROJENY" setup -j2 urlbase.projeny link1.projeny \
+    link2.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the base-included parallel link setup exits 0"
+else
+    fail "the base-included parallel link setup exits 0" "exit=$rc out: $out"
+fi
+ndl379="$(printf '%s\n' "$out" | grep -c "downloading 'fake-1.0.tar.gz' from '")"
+if [ "$ndl379" -eq 1 ]; then
+    ok "the shared archive downloaded exactly once (hash-consing)"
+else
+    fail "the shared archive downloaded exactly once (hash-consing)" \
+         "got $ndl379 downloading lines (out: $out)"
+fi
+if cmp -s "$T379A/.link1.snapshot" "$T379A/urlbase.projeny"; then
+    ok "link1's frozen snapshot holds the base file's bytes"
+else
+    fail "link1's frozen snapshot holds the base file's bytes" \
+         "cmp: $T379A/.link1.snapshot vs urlbase.projeny"
+fi
+if cmp -s "$T379A/.link2.snapshot" "$T379A/urlbase.projeny"; then
+    ok "link2's frozen snapshot holds the base file's bytes"
+else
+    fail "link2's frozen snapshot holds the base file's bytes" \
+         "cmp: $T379A/.link2.snapshot vs urlbase.projeny"
+fi
+if [ -f "$T379A/.fake-1.0.tar.gz.snapshot" ]; then
+    ok "the shared archive snapshot exists"
+else
+    fail "the shared archive snapshot exists" "ls: $(ls -A "$T379A" 2>&1)"
+fi
+linkworkdirs_ok_379 "$T379A" "the base-included run" urlbase link1 link2
+out="$(cd "$T379A" && "$PROJENY" setup -j2 urlbase.projeny link1.projeny \
+    link2.projeny 2>&1)"
+rc=$?
+ndl379="$(printf '%s\n' "$out" | grep -c "downloading")"
+nnolc379="$(printf '%s\n' "$out" | grep -c "(no local changes)")"
+if [ $rc -eq 0 ] && [ "$ndl379" -eq 0 ] && [ "$nnolc379" -eq 3 ]; then
+    ok "the re-run downloads nothing and reports all three as unchanged"
+else
+    fail "the re-run downloads nothing and reports all three as unchanged" \
+         "exit=$rc downloading=$ndl379 no-local-changes=$nnolc379 out: $out"
+fi
+# The links-WITHOUT-the-base variant at -j2, -j1, and -j8, each in a fresh
+# directory: one on-demand chain fetch per invocation.
+for j379 in 2 1 8; do
+    T379J="$ROOT/t379j$j379"
+    linkbase_379 "$T379J"
+    out="$(cd "$T379J" && "$PROJENY" setup -j$j379 link1.projeny \
+        link2.projeny 2>&1)"
+    rc=$?
+    nfb379="$(printf '%s\n' "$out" | grep -c "downloading 'fake-1.0.tar.gz' outside the batch download phase (Projeny-based project: its base chain's archive is fetched on demand)")"
+    if [ $rc -eq 0 ] && [ "$nfb379" -eq 1 ]; then
+        ok "the -j$j379 links-without-base setup exits 0 with one fallback note"
+    else
+        fail "the -j$j379 links-without-base setup exits 0 with one fallback note" \
+             "exit=$rc fallback-notes=$nfb379 out: $out"
+    fi
+    linkworkdirs_ok_379 "$T379J" "the -j$j379 links-without-base run" link1 link2
+    out="$(cd "$T379J" && "$PROJENY" setup -j$j379 link1.projeny \
+        link2.projeny 2>&1)"
+    rc=$?
+    ndl379="$(printf '%s\n' "$out" | grep -c "downloading")"
+    if [ $rc -eq 0 ] && [ "$ndl379" -eq 0 ]; then
+        ok "the -j$j379 links-without-base re-run downloads nothing"
+    else
+        fail "the -j$j379 links-without-base re-run downloads nothing" \
+             "exit=$rc downloading=$ndl379 out: $out"
+    fi
+done
+
+# ------------------- 380. the coordinated wait-then-retry in parallel
+# setup (one wait after the other setups; several failed packages retried
+# together)
+# A parallel setup whose download failures survive the batch's own immediate
+# retry pass does NOT fail those projects: after every other per-project
+# setup has finished, the coordinator prints ONE waiting note, waits once
+# (PROJENY_URL_RETRY_SECONDS), re-downloads every failed package in one
+# batch pass (the batch's own retry suppressed — this IS the one more try),
+# writes the snapshots, and re-runs only the download-blocked projects. The
+# batch prints its 'failed to obtain' warning once (after its two passes);
+# the retry stage prints none when it succeeds. Fixture A: three projects
+# share one failing-then-working package while a classic Archive: project
+# sets up untouched — the wait happens AFTER the other setups, so the
+# classic success line precedes the note. Fixture B: two failing packages
+# share ONE wait, named first-seen.
+T380="$ROOT/t380"
+make_tarballs "$T380" fake
+h380="$("$PROJENY" hash "$T380/fake-1.0.tar.gz")"
+h380b="$("$PROJENY" hash "$T380/fake-2.0.tar.gz")"
+cat > "$T380/serv.py" <<'PYEOF'
+import socket, sys, os
+# The first <fail_first> connections get a bare 404 (curl's FAILONERROR
+# makes that an instant transfer error); every later connection serves the
+# real bytes of the requested file from the docroot, with an honest
+# Content-Length. One connection per transfer (HTTP/1.0 + Connection:
+# close).
+docroot, portfile, fail_first = sys.argv[1], sys.argv[2], int(sys.argv[3])
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("127.0.0.1", 0))
+s.listen(16)
+open(portfile, "w").write(str(s.getsockname()[1]))
+served = 0
+while True:
+    c, _ = s.accept()
+    try:
+        req = c.recv(65536)
+        path = req.split(b" ")[1].decode(errors="replace").lstrip("/")
+        if served < fail_first:
+            served += 1
+            c.sendall(b"HTTP/1.0 404 Not Found\r\nConnection: close\r\n\r\n")
+        else:
+            with open(os.path.join(docroot, os.path.basename(path)), "rb") as f:
+                body = f.read()
+            c.sendall(b"HTTP/1.0 200 OK\r\nContent-Length: "
+                      + str(len(body)).encode() + b"\r\nConnection: close\r\n\r\n")
+            c.sendall(body)
+    except OSError:
+        pass
+    finally:
+        c.close()
+PYEOF
+# Fixture A: urlbase + two links over it + a classic Archive: project; the
+# server fails the batch's two passes (requests 1 and 2) and serves the
+# coordinator's retry-stage request (request 3).
+T380A="$ROOT/t380a"
+mkdir -p "$T380A"
+cp "$T380/fake-1.0.tar.gz" "$T380/fake-2.0.tar.gz" "$T380A/"
+rm -f "$T380/port380a"
+python3 "$T380/serv.py" "$T380" "$T380/port380a" 2 &
+srv380=$!
+i380=0
+while [ ! -s "$T380/port380a" ] && [ "$i380" -lt 20 ]; do
+    sleep 0.05
+    i380=$((i380 + 1))
+done
+p380="$(cat "$T380/port380a" 2>/dev/null)"
+printf 'URL: http://127.0.0.1:%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: urlbase\n\n    The shared base.\n\n' \
+    "$p380" "$h380" > "$T380A/urlbase.projeny"
+printf 'Projeny: urlbase.projeny\nOrigname: fake-1.0\nName: link1\n\n    A link.\n\n' \
+    > "$T380A/link1.projeny"
+printf 'Projeny: urlbase.projeny\nOrigname: fake-1.0\nName: link2\n\n    A link.\n\n' \
+    > "$T380A/link2.projeny"
+printf 'Archive: fake-2.0.tar.gz\nOrigname: fake-2.0\nName: classic\n\n    No network needed.\n\n' \
+    > "$T380A/classic.projeny"
+if [ -z "$p380" ]; then
+    fail "the coordinated-retry fixture server starts" "port file never appeared"
+else
+    out="$(cd "$T380A" && stdbuf -oL env PROJENY_URL_RETRY_SECONDS=1 \
+        "$PROJENY" setup -j2 urlbase.projeny link1.projeny link2.projeny \
+        classic.projeny 2>&1)"
+    rc=$?
+    t380="$(printf '%s' "$out" | tr '\r' '\n')"
+    if [ $rc -eq 0 ]; then
+        ok "the coordinated-retry parallel setup exits 0"
+    else
+        fail "the coordinated-retry parallel setup exits 0" "exit=$rc out: $out"
+    fi
+    nfo380="$(printf '%s\n' "$t380" | grep -c "warning: failed to obtain 'fake-1.0.tar.gz':")"
+    if [ "$nfo380" -eq 1 ]; then
+        ok "the batch's failure is summarized once (its own two passes)"
+    else
+        fail "the batch's failure is summarized once (its own two passes)" \
+             "got $nfo380 failed-to-obtain lines (out: $out)"
+    fi
+    ngrd380="$(printf '%s\n' "$t380" | grep -c "needs archive 'fake-1.0.tar.gz', but the parallel download phase failed to obtain it")"
+    nurl380="$(printf '%s\n' "$t380" | grep -c "projeny: \[urlbase.projeny\] error: 'urlbase' needs archive")"
+    nlnk380a="$(printf '%s\n' "$t380" | grep -c "projeny: \[link1.projeny\] error: 'urlbase' needs archive")"
+    nlnk380b="$(printf '%s\n' "$t380" | grep -c "projeny: \[link2.projeny\] error: 'urlbase' needs archive")"
+    if [ "$ngrd380" -eq 3 ] && [ "$nurl380" -eq 1 ] && [ "$nlnk380a" -eq 1 ] && \
+       [ "$nlnk380b" -eq 1 ]; then
+        ok "all three blocked projects report the labeled guard error"
+    else
+        fail "all three blocked projects report the labeled guard error" \
+             "guard lines=$ngrd380 urlbase=$nurl380 link1=$nlnk380a link2=$nlnk380b out: $out"
+    fi
+    case "$out" in
+    *"projeny: 3 setup(s) could not obtain their download(s) (fake-1.0.tar.gz); waiting 1 second(s) before one more try"*)
+        ok "the coordinator announces one wait naming the failed package"
+        ;;
+    *)
+        fail "the coordinator announces one wait naming the failed package" \
+             "out: $out"
+        ;;
+    esac
+    nnote380="$(printf '%s\n' "$t380" | grep -c "could not obtain their download(s)")"
+    if [ "$nnote380" -eq 1 ]; then
+        ok "exactly one coordinated wait runs per invocation"
+    else
+        fail "exactly one coordinated wait runs per invocation" \
+             "got $nnote380 waiting notes (out: $out)"
+    fi
+    ndl380="$(printf '%s\n' "$t380" | grep -c "downloading 'fake-1.0.tar.gz' from '")"
+    if [ "$ndl380" -eq 3 ]; then
+        ok "the package was attempted three times (both batch passes + the stage)"
+    else
+        fail "the package was attempted three times (both batch passes + the stage)" \
+             "got $ndl380 downloading lines (out: $out)"
+    fi
+    ndl380="$(printf '%s\n' "$t380" | grep -c "downloaded 'fake-1.0.tar.gz' (")"
+    ndh380="$(printf '%s\n' "$t380" | grep -c "blake3 hash verified")"
+    if [ "$ndl380" -eq 1 ] && [ "$ndh380" -eq 1 ]; then
+        ok "the retry stage verified the package exactly once"
+    else
+        fail "the retry stage verified the package exactly once" \
+             "downloaded=$ndl380 verified=$ndh380 out: $out"
+    fi
+    for _p380 in "set up 'classic' from 'fake-2.0.tar.gz'" \
+                 "set up 'urlbase' from 'fake-1.0.tar.gz'" \
+                 "set up 'link1' from 'urlbase.projeny'" \
+                 "set up 'link2' from 'urlbase.projeny'"; do
+        _n380="$(printf '%s\n' "$t380" | grep -cF "projeny: $_p380")"
+        if [ "$_n380" -eq 1 ]; then
+            ok "the setup reports '$_p380' exactly once"
+        else
+            fail "the setup reports '$_p380' exactly once" \
+                 "got $_n380 lines (out: $out)"
+        fi
+    done
+    if [ "$(cat "$T380A/classic/README" 2>/dev/null)" = "hello v2" ] && \
+       [ "$(cat "$T380A/urlbase/README" 2>/dev/null)" = "hello v1" ] && \
+       [ "$(cat "$T380A/link1/README" 2>/dev/null)" = "hello v1" ] && \
+       [ "$(cat "$T380A/link2/README" 2>/dev/null)" = "hello v1" ]; then
+        ok "all four projects end up set up"
+    else
+        fail "all four projects end up set up" "ls: $(ls -A "$T380A" 2>&1)"
+    fi
+    # ORDERING: the wait happens after the other setups are done — the
+    # coordinator prints its note only after the per-project phase joined,
+    # so the classic success line must precede the note. stdbuf -oL keeps
+    # projeny's stdout (the printf'd setup lines) line-buffered so the
+    # merged capture preserves the real order.
+    if command -v stdbuf >/dev/null 2>&1; then
+        lcl380="$(printf '%s\n' "$t380" | grep -nF "projeny: set up 'classic' from 'fake-2.0.tar.gz'" | head -1 | cut -d: -f1)"
+        lnt380="$(printf '%s\n' "$t380" | grep -nF "could not obtain their download(s)" | head -1 | cut -d: -f1)"
+        if [ -n "$lcl380" ] && [ -n "$lnt380" ] && [ "$lcl380" -lt "$lnt380" ]; then
+            ok "the wait happens after the other setups are done (classic's line $lcl380 precedes the note at $lnt380)"
+        else
+            fail "the wait happens after the other setups are done (classic's line $lcl380 precedes the note at $lnt380)" \
+                 "classic line: $lcl380; note line: $lnt380"
+        fi
+    else
+        ok "the wait happens after the other setups are done (skipped: no stdbuf)"
+    fi
+fi
+kill "$srv380" 2>/dev/null
+wait "$srv380" 2>/dev/null
+# Fixture B: two failing packages share ONE wait; the note names both in
+# first-seen order; the stage's two requests are served (requests 5 and 6
+# after pass 1's two and the batch retry's two).
+T380B="$ROOT/t380b"
+mkdir -p "$T380B"
+rm -f "$T380/port380b"
+python3 "$T380/serv.py" "$T380" "$T380/port380b" 4 &
+srv380=$!
+i380=0
+while [ ! -s "$T380/port380b" ] && [ "$i380" -lt 20 ]; do
+    sleep 0.05
+    i380=$((i380 + 1))
+done
+p380="$(cat "$T380/port380b" 2>/dev/null)"
+printf 'URL: http://127.0.0.1:%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: apkg\n\n    A.\n\n' \
+    "$p380" "$h380" > "$T380B/apkg.projeny"
+printf 'URL: http://127.0.0.1:%s/fake-2.0.tar.gz %s\nOrigname: fake-2.0\nName: bpkg\n\n    B.\n\n' \
+    "$p380" "$h380b" > "$T380B/bpkg.projeny"
+if [ -z "$p380" ]; then
+    fail "the two-package coordinated-retry fixture server starts" \
+         "port file never appeared"
+else
+    out="$(cd "$T380B" && PROJENY_URL_RETRY_SECONDS=1 "$PROJENY" setup -j2 \
+        apkg.projeny bpkg.projeny 2>&1)"
+    rc=$?
+    t380="$(printf '%s' "$out" | tr '\r' '\n')"
+    if [ $rc -eq 0 ]; then
+        ok "the two-package coordinated-retry setup exits 0"
+    else
+        fail "the two-package coordinated-retry setup exits 0" "exit=$rc out: $out"
+    fi
+    case "$out" in
+    *"projeny: 2 setup(s) could not obtain their download(s) (fake-1.0.tar.gz, fake-2.0.tar.gz); waiting 1 second(s) before one more try"*)
+        ok "the one wait names both failed packages first-seen"
+        ;;
+    *)
+        fail "the one wait names both failed packages first-seen" "out: $out"
+        ;;
+    esac
+    nnote380="$(printf '%s\n' "$t380" | grep -c "could not obtain their download(s)")"
+    if [ "$nnote380" -eq 1 ]; then
+        ok "two failed packages cost exactly one wait"
+    else
+        fail "two failed packages cost exactly one wait" \
+             "got $nnote380 waiting notes (out: $out)"
+    fi
+    if [ "$(cat "$T380B/apkg/README" 2>/dev/null)" = "hello v1" ] && \
+       [ "$(cat "$T380B/bpkg/README" 2>/dev/null)" = "hello v2" ]; then
+        ok "both projects end up set up after the shared wait"
+    else
+        fail "both projects end up set up after the shared wait" \
+             "ls: $(ls -A "$T380B" 2>&1)"
+    fi
+fi
+kill "$srv380" 2>/dev/null
+wait "$srv380" 2>/dev/null
+
+# ------------------- 381. the coordinated retry for out-of-plan chain
+# bases, and the still-failing summary
+# A Projeny:-based project whose URL:-based base is NOT among the arguments
+# contributes nothing to the batch plan, so its worker fetches the chain
+# archive on demand (the labeled fallback note) and, when that fails, the
+# failure is download-caused: the project joins the coordinated retry, whose
+# stage re-downloads the base's archive from the URL payload the error
+# carried, and the re-runs then converge. When the retry fails too, each
+# re-run prints its own fallback attempt and labeled single-pass error once
+# more (four of each across the whole invocation) before the summary counts
+# both projects as failed. A non-download failure (here: a git-conflicter
+# .projeny whose conflict direction cannot be resolved) is never retried —
+# its labeled error appears exactly once while the download-blocked project
+# still converges.
+T381="$ROOT/t381"
+make_tarballs "$T381" fake
+h381="$("$PROJENY" hash "$T381/fake-1.0.tar.gz")"
+cat > "$T381/serv.py" <<'PYEOF'
+import socket, sys, os
+# The first <fail_first> connections get a bare 404 (curl's FAILONERROR
+# makes that an instant transfer error); every later connection serves the
+# real bytes of the requested file from the docroot, with an honest
+# Content-Length. One connection per transfer (HTTP/1.0 + Connection:
+# close).
+docroot, portfile, fail_first = sys.argv[1], sys.argv[2], int(sys.argv[3])
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("127.0.0.1", 0))
+s.listen(16)
+open(portfile, "w").write(str(s.getsockname()[1]))
+served = 0
+while True:
+    c, _ = s.accept()
+    try:
+        req = c.recv(65536)
+        path = req.split(b" ")[1].decode(errors="replace").lstrip("/")
+        if served < fail_first:
+            served += 1
+            c.sendall(b"HTTP/1.0 404 Not Found\r\nConnection: close\r\n\r\n")
+        else:
+            with open(os.path.join(docroot, os.path.basename(path)), "rb") as f:
+                body = f.read()
+            c.sendall(b"HTTP/1.0 200 OK\r\nContent-Length: "
+                      + str(len(body)).encode() + b"\r\nConnection: close\r\n\r\n")
+            c.sendall(body)
+    except OSError:
+        pass
+    finally:
+        c.close()
+PYEOF
+chainlinks_381() {
+    # $1 = dir, $2 = port: two Projeny: links over an HTTP URL base that is
+    # NOT among the setup arguments
+    printf 'URL: http://127.0.0.1:%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: urlbase\n\n    The shared base.\n\n' \
+        "$2" "$h381" > "$1/urlbase.projeny"
+    printf 'Projeny: urlbase.projeny\nOrigname: fake-1.0\nName: link1\n\n    A link.\n\n' \
+        > "$1/link1.projeny"
+    printf 'Projeny: urlbase.projeny\nOrigname: fake-1.0\nName: link2\n\n    A link.\n\n' \
+        > "$1/link2.projeny"
+}
+# Fixture A: both workers fail their serialized on-demand attempts (requests
+# 1 and 2), the coordinator waits once, the stage's batch request (request
+# 3) serves, and both re-runs converge.
+T381A="$ROOT/t381a"
+mkdir -p "$T381A"
+rm -f "$T381/port381a"
+python3 "$T381/serv.py" "$T381" "$T381/port381a" 2 &
+srv381=$!
+i381=0
+while [ ! -s "$T381/port381a" ] && [ "$i381" -lt 20 ]; do
+    sleep 0.05
+    i381=$((i381 + 1))
+done
+p381="$(cat "$T381/port381a" 2>/dev/null)"
+chainlinks_381 "$T381A" "$p381"
+if [ -z "$p381" ]; then
+    fail "the out-of-plan retry fixture server starts" "port file never appeared"
+else
+    out="$(cd "$T381A" && PROJENY_URL_RETRY_SECONDS=1 "$PROJENY" setup -j2 \
+        link1.projeny link2.projeny 2>&1)"
+    rc=$?
+    t381="$(printf '%s' "$out" | tr '\r' '\n')"
+    if [ $rc -eq 0 ]; then
+        ok "the out-of-plan coordinated retry exits 0"
+    else
+        fail "the out-of-plan coordinated retry exits 0" "exit=$rc out: $out"
+    fi
+    nfb381="$(printf '%s\n' "$t381" | grep -c "downloading 'fake-1.0.tar.gz' outside the batch download phase (Projeny-based project: its base chain's archive is fetched on demand)")"
+    if [ "$nfb381" -eq 2 ]; then
+        ok "each blocked worker announced its on-demand chain fetch"
+    else
+        fail "each blocked worker announced its on-demand chain fetch" \
+             "got $nfb381 fallback notes (out: $out)"
+    fi
+    nseq381="$(printf '%s\n' "$t381" | grep -c "error: could not obtain archive 'fake-1.0.tar.gz' (tried 1 URL line(s);")"
+    if [ "$nseq381" -eq 2 ]; then
+        ok "each blocked worker reported the labeled single-pass failure"
+    else
+        fail "each blocked worker reported the labeled single-pass failure" \
+             "got $nseq381 labeled errors (out: $out)"
+    fi
+    case "$out" in
+    *"projeny: 2 setup(s) could not obtain their download(s) (fake-1.0.tar.gz); waiting 1 second(s) before one more try"*)
+        ok "the coordinator waited once for the two blocked links"
+        ;;
+    *)
+        fail "the coordinator waited once for the two blocked links" "out: $out"
+        ;;
+    esac
+    ndl381="$(printf '%s\n' "$t381" | grep -c "downloading 'http://")"
+    ndf381="$(printf '%s\n' "$t381" | grep -c "downloading 'fake-1.0.tar.gz' from 'http://")"
+    if [ "$ndl381" -eq 2 ] && [ "$ndf381" -eq 1 ]; then
+        ok "the workers tried the URL once each and the stage tried the batch once"
+    else
+        fail "the workers tried the URL once each and the stage tried the batch once" \
+             "worker attempts=$ndl381 stage attempts=$ndf381 (out: $out)"
+    fi
+    if [ "$(cat "$T381A/link1/README" 2>/dev/null)" = "hello v1" ] && \
+       [ "$(cat "$T381A/link2/README" 2>/dev/null)" = "hello v1" ]; then
+        ok "both blocked links converged after the retry"
+    else
+        fail "both blocked links converged after the retry" \
+             "ls: $(ls -A "$T381A" 2>&1)"
+    fi
+fi
+kill "$srv381" 2>/dev/null
+wait "$srv381" 2>/dev/null
+# Fixture B: the retry fails too. The re-runs are full fallback attempts
+# again (two more notes, two more URL attempts, two more labeled errors),
+# the stage's failure is warned once, and the summary counts both projects.
+T381B="$ROOT/t381b"
+mkdir -p "$T381B"
+rm -f "$T381/port381b"
+python3 "$T381/serv.py" "$T381" "$T381/port381b" 1000 &
+srv381=$!
+i381=0
+while [ ! -s "$T381/port381b" ] && [ "$i381" -lt 20 ]; do
+    sleep 0.05
+    i381=$((i381 + 1))
+done
+p381="$(cat "$T381/port381b" 2>/dev/null)"
+chainlinks_381 "$T381B" "$p381"
+if [ -z "$p381" ]; then
+    fail "the still-failing fixture server starts" "port file never appeared"
+else
+    out="$(cd "$T381B" && PROJENY_URL_RETRY_SECONDS=1 "$PROJENY" setup -j2 \
+        link1.projeny link2.projeny 2>&1)"
+    rc=$?
+    t381="$(printf '%s' "$out" | tr '\r' '\n')"
+    if [ $rc -ne 0 ]; then
+        ok "the still-failing retry exits nonzero"
+    else
+        fail "the still-failing retry exits nonzero" "out: $out"
+    fi
+    case "$out" in
+    *"projeny: 2 setup(s) could not obtain their download(s) (fake-1.0.tar.gz); waiting 1 second(s) before one more try"*)
+        ok "the still-failing run announced its one wait"
+        ;;
+    *)
+        fail "the still-failing run announced its one wait" "out: $out"
+        ;;
+    esac
+    nfo381="$(printf '%s\n' "$t381" | grep -c "warning: failed to obtain 'fake-1.0.tar.gz':")"
+    if [ "$nfo381" -eq 1 ]; then
+        ok "the stage's failure is warned once"
+    else
+        fail "the stage's failure is warned once" \
+             "got $nfo381 failed-to-obtain warnings (out: $out)"
+    fi
+    nfb381="$(printf '%s\n' "$t381" | grep -c "outside the batch download phase")"
+    if [ "$nfb381" -eq 4 ]; then
+        ok "the re-runs are full fallback attempts (4 notes across the run)"
+    else
+        fail "the re-runs are full fallback attempts (4 notes across the run)" \
+             "got $nfb381 fallback notes (out: $out)"
+    fi
+    nseq381="$(printf '%s\n' "$t381" | grep -c "error: could not obtain archive 'fake-1.0.tar.gz' (tried 1 URL line(s);")"
+    if [ "$nseq381" -eq 4 ]; then
+        ok "every attempt reports the single pass (4 labeled errors)"
+    else
+        fail "every attempt reports the single pass (4 labeled errors)" \
+             "got $nseq381 labeled errors (out: $out)"
+    fi
+    n2p381="$(printf '%s\n' "$t381" | grep -c "on 2 pass(es)")"
+    if [ "$n2p381" -eq 0 ]; then
+        ok "multi mode fails fast (no on-2-passes report anywhere)"
+    else
+        fail "multi mode fails fast (no on-2-passes report anywhere)" \
+             "got $n2p381 lines (out: $out)"
+    fi
+    case "$out" in
+    *"projeny: 2 of 2 setup(s) failed: link1.projeny, link2.projeny"*)
+        ok "the summary counts both still-failing projects"
+        ;;
+    *)
+        fail "the summary counts both still-failing projects" "out: $out"
+        ;;
+    esac
+    if [ ! -e "$T381B/link1" ] && [ ! -e "$T381B/link2" ]; then
+        ok "the still-failing links leave no checkouts"
+    else
+        fail "the still-failing links leave no checkouts" \
+             "ls: $(ls -A "$T381B" 2>&1)"
+    fi
+fi
+kill "$srv381" 2>/dev/null
+wait "$srv381" 2>/dev/null
+# Fixture C: a non-download failure is never retried. broken.projeny holds
+# section-79-style conflict markers whose direction cannot be resolved
+# (voteless labels, no status copy), so it dies its labeled error exactly
+# once while link1's download-caused blockage is waited for, retried, and
+# converged.
+T381C="$ROOT/t381c"
+mkdir -p "$T381C"
+rm -f "$T381/port381c"
+python3 "$T381/serv.py" "$T381" "$T381/port381c" 1 &
+srv381=$!
+i381=0
+while [ ! -s "$T381/port381c" ] && [ "$i381" -lt 20 ]; do
+    sleep 0.05
+    i381=$((i381 + 1))
+done
+p381="$(cat "$T381/port381c" 2>/dev/null)"
+chainlinks_381 "$T381C" "$p381"
+python3 - "$T381C/broken.projeny" <<'EOF'
+import sys
+open(sys.argv[1], "w").write(
+    "<<<<<<< HEAD\n"
+    "Archive: fake-1.0.tar.gz\n"
+    "Origname: fake-1.0\n"
+    "Name: broken\n"
+    "\n"
+    "    Local prose.\n"
+    "\n"
+    "=======\n"
+    "Archive: fake-2.0.tar.gz\n"
+    "Origname: fake-2.0\n"
+    "Name: broken\n"
+    "\n"
+    "    Upstream prose.\n"
+    "\n"
+    ">>>>>>> branch\n")
+EOF
+if [ -z "$p381" ]; then
+    fail "the mixed-failure fixture server starts" "port file never appeared"
+else
+    out="$(cd "$T381C" && PROJENY_URL_RETRY_SECONDS=1 "$PROJENY" setup -j2 \
+        broken.projeny link1.projeny 2>&1)"
+    rc=$?
+    t381="$(printf '%s' "$out" | tr '\r' '\n')"
+    if [ $rc -ne 0 ]; then
+        ok "the mixed-failure setup exits 1"
+    else
+        fail "the mixed-failure setup exits 1" "out: $out"
+    fi
+    nbrk381="$(printf '%s\n' "$t381" | grep -c "projeny: \[broken.projeny\] error:")"
+    if [ "$nbrk381" -eq 1 ]; then
+        ok "the non-download failure is reported exactly once (never retried)"
+    else
+        fail "the non-download failure is reported exactly once (never retried)" \
+             "got $nbrk381 labeled broken.projeny errors (out: $out)"
+    fi
+    case "$out" in
+    *"projeny: [broken.projeny] error: ambiguous conflict direction in '"*)
+        ok "the never-retried failure is the conflict-direction die"
+        ;;
+    *)
+        fail "the never-retried failure is the conflict-direction die" \
+             "out: $out"
+        ;;
+    esac
+    nfb381="$(printf '%s\n' "$t381" | grep -c "outside the batch download phase")"
+    case "$out" in
+    *"projeny: 1 setup(s) could not obtain their download(s) (fake-1.0.tar.gz); waiting 1 second(s) before one more try"*)
+        if [ "$nfb381" -eq 1 ]; then
+            ok "only link1 joined the coordinated retry (one fallback note)"
+        else
+            fail "only link1 joined the coordinated retry (one fallback note)" \
+                 "got $nfb381 fallback notes (out: $out)"
+        fi
+        ;;
+    *)
+        fail "only link1 joined the coordinated retry (one fallback note)" \
+             "out: $out"
+        ;;
+    esac
+    if [ "$(cat "$T381C/link1/README" 2>/dev/null)" = "hello v1" ]; then
+        ok "the download-blocked link still converged"
+    else
+        fail "the download-blocked link still converged" \
+             "ls: $(ls -A "$T381C" 2>&1)"
+    fi
+    if [ ! -e "$T381C/broken" ]; then
+        ok "the never-retried project leaves no checkout"
+    else
+        fail "the never-retried project leaves no checkout" \
+             "ls: $(ls -A "$T381C" 2>&1)"
+    fi
+    case "$out" in
+    *"projeny: 1 of 2 setup(s) failed: broken.projeny"*)
+        ok "the summary names only the non-download failure"
+        ;;
+    *)
+        fail "the summary names only the non-download failure" "out: $out"
+        ;;
+    esac
+fi
+kill "$srv381" 2>/dev/null
+wait "$srv381" 2>/dev/null
+
+# ------------------- 382. erase-setup --erase-snapshots erases
+# Projeny:-link snapshots and preserves the shared archive snapshot
+# A Projeny:-based project's own snapshot is the FROZEN BASE FILE
+# ('.<stem>.snapshot'); the shared archive snapshot ('.<archive>.snapshot')
+# belongs to the chain's URL base. --erase-snapshots erases exactly the
+# project's own snapshot: erasing a link must not erase the archive snapshot
+# its base (and the other link) still need, and the next link setup must
+# serve from the surviving archive snapshot without downloading. The
+# parallel multi-file erase form erases both links' snapshots at once, the
+# no-flag erase leaves the snapshot alone, and erasing the base erases the
+# archive snapshot. A trailing fixture pins the no-force CHECK's no-stall
+# behavior: a missing snapshot with a dead URL materializes fail-fast (no
+# waiting note, even with PROJENY_URL_RETRY_SECONDS set) and degrades into
+# the unverifiable refusal.
+T382="$ROOT/t382"
+make_tarballs "$T382" fake
+h382="$("$PROJENY" hash "$T382/fake-1.0.tar.gz")"
+printf 'URL: file://%s/fake-1.0.tar.gz %s\nOrigname: fake-1.0\nName: urlbase\n\n    The shared base.\n\n' \
+    "$T382" "$h382" > "$T382/urlbase.projeny"
+printf 'Projeny: urlbase.projeny\nOrigname: fake-1.0\nName: link1\n\n    A link.\n\n' \
+    > "$T382/link1.projeny"
+printf 'Projeny: urlbase.projeny\nOrigname: fake-1.0\nName: link2\n\n    A link.\n\n' \
+    > "$T382/link2.projeny"
+out="$(cd "$T382" && "$PROJENY" setup -j2 urlbase.projeny link1.projeny \
+    link2.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the erase fixture sets up all three projects"
+else
+    fail "the erase fixture sets up all three projects" "exit=$rc out: $out"
+fi
+# Erasing one link erases exactly its own snapshot.
+out="$(cd "$T382" && "$PROJENY" erase-setup link1.projeny --erase-snapshots 2>&1)"
+rc=$?
+case "$out" in
+*"snapshot '.link1.snapshot'"*)
+    ok "the link erase note names the link's own snapshot"
+    ;;
+*)
+    fail "the link erase note names the link's own snapshot" "out: $out"
+    ;;
+esac
+if [ $rc -eq 0 ] && [ ! -e "$T382/.link1.snapshot" ] && [ ! -e "$T382/link1" ] && \
+   [ ! -e "$T382/.link1.projeny.status" ]; then
+    ok "the link erase removed its checkout, status, and snapshot"
+else
+    fail "the link erase removed its checkout, status, and snapshot" \
+         "exit=$rc ls: $(ls -A "$T382" 2>&1)"
+fi
+if [ -f "$T382/.fake-1.0.tar.gz.snapshot" ]; then
+    ok "the shared archive snapshot survives a link erase"
+else
+    fail "the shared archive snapshot survives a link erase" \
+         "ls: $(ls -A "$T382" 2>&1)"
+fi
+if [ -f "$T382/urlbase/src/a.c" ] && [ -f "$T382/link2/src/a.c" ]; then
+    ok "the link erase left the base and the other link alone"
+else
+    fail "the link erase left the base and the other link alone" \
+         "ls: $(ls -A "$T382" 2>&1)"
+fi
+# The re-setup serves from the surviving archive snapshot.
+out="$(cd "$T382" && "$PROJENY" setup link1.projeny 2>&1)"
+rc=$?
+ndl382="$(printf '%s\n' "$out" | grep -c "downloading")"
+if [ $rc -eq 0 ] && [ "$ndl382" -eq 0 ]; then
+    ok "the link re-setup downloads nothing (the archive snapshot serves it)"
+else
+    fail "the link re-setup downloads nothing (the archive snapshot serves it)" \
+         "exit=$rc downloading=$ndl382 out: $out"
+fi
+if cmp -s "$T382/.link1.snapshot" "$T382/urlbase.projeny"; then
+    ok "the re-frozen link snapshot again holds the base file's bytes"
+else
+    fail "the re-frozen link snapshot again holds the base file's bytes" \
+         "cmp: $T382/.link1.snapshot vs urlbase.projeny"
+fi
+# The parallel multi-file erase form erases both links' snapshots at once.
+out="$(cd "$T382" && "$PROJENY" erase-setup link1.projeny link2.projeny \
+    --erase-snapshots 2>&1)"
+rc=$?
+nerase382="$(printf '%s\n' "$out" | grep -c "erased setup state for")"
+if [ $rc -eq 0 ] && [ "$nerase382" -eq 2 ] && [ ! -e "$T382/.link1.snapshot" ] && \
+   [ ! -e "$T382/.link2.snapshot" ] && [ ! -e "$T382/link1" ] && \
+   [ ! -e "$T382/link2" ]; then
+    ok "the parallel erase removed both links' setup state and snapshots"
+else
+    fail "the parallel erase removed both links' setup state and snapshots" \
+         "exit=$rc notes=$nerase382 ls: $(ls -A "$T382" 2>&1)"
+fi
+if [ -f "$T382/.fake-1.0.tar.gz.snapshot" ]; then
+    ok "the parallel link erase still preserves the archive snapshot"
+else
+    fail "the parallel link erase still preserves the archive snapshot" \
+         "ls: $(ls -A "$T382" 2>&1)"
+fi
+# Without --erase-snapshots, the link's own snapshot survives the erase.
+run_in "$T382" expect_ok "the link re-setups once more" "$PROJENY" \
+    setup link1.projeny
+out="$(cd "$T382" && "$PROJENY" erase-setup link1.projeny 2>&1)"
+rc=$?
+case "$out" in
+*"snapshot"*)
+    fail "the no-flag erase note names no snapshot" "out: $out"
+    ;;
+*)
+    if [ $rc -eq 0 ]; then
+        ok "the no-flag erase note names no snapshot"
+    else
+        fail "the no-flag erase note names no snapshot" "exit=$rc out: $out"
+    fi
+    ;;
+esac
+if [ $rc -eq 0 ] && [ ! -e "$T382/link1" ] && [ ! -e "$T382/.link1.projeny.status" ] && \
+   [ -f "$T382/.link1.snapshot" ]; then
+    ok "the no-flag erase leaves the link's own snapshot behind"
+else
+    fail "the no-flag erase leaves the link's own snapshot behind" \
+         "exit=$rc ls: $(ls -A "$T382" 2>&1)"
+fi
+# Erasing the URL base erases the shared archive snapshot.
+out="$(cd "$T382" && "$PROJENY" erase-setup urlbase.projeny --erase-snapshots 2>&1)"
+rc=$?
+case "$out" in
+*"snapshot '.fake-1.0.tar.gz.snapshot'"*)
+    ok "the base erase note names the shared archive snapshot"
+    ;;
+*)
+    fail "the base erase note names the shared archive snapshot" "out: $out"
+    ;;
+esac
+if [ $rc -eq 0 ] && [ ! -e "$T382/.fake-1.0.tar.gz.snapshot" ]; then
+    ok "the base erase removed the shared archive snapshot"
+else
+    fail "the base erase removed the shared archive snapshot" \
+         "exit=$rc ls: $(ls -A "$T382" 2>&1)"
+fi
+# A trailing fixture pins the no-force CHECK's no-stall behavior: a missing
+# snapshot with a DEAD URL makes the check's live-diff materialization fail
+# fast — one download pass, NO waiting note, even with
+# PROJENY_URL_RETRY_SECONDS set — because that materialization runs under
+# the shared fallback-download mutex, which the parallel check workers of
+# every other project need. The failed download then degrades into the
+# unverifiable refusal: erase-setup erases nothing. The fixture uses a
+# DEDICATED tarball (a copy of fake-1.0.tar.gz) so removing it and its
+# snapshot leaves every other fixture in this section intact.
+cp "$T382/fake-1.0.tar.gz" "$T382/urldead-1.0.tar.gz"
+hdead382="$("$PROJENY" hash "$T382/urldead-1.0.tar.gz")"
+printf 'URL: file://%s/urldead-1.0.tar.gz %s\nOrigname: fake-1.0\nName: urldead\n\n    The dead-URL erase-check fixture.\n\n' \
+    "$T382" "$hdead382" > "$T382/urldead.projeny"
+out="$(cd "$T382" && "$PROJENY" setup urldead.projeny 2>&1)"
+rc=$?
+if [ $rc -eq 0 ]; then
+    ok "the dead-URL erase fixture sets up"
+else
+    fail "the dead-URL erase fixture sets up" "exit=$rc out: $out"
+fi
+rm "$T382/urldead-1.0.tar.gz" "$T382/.urldead-1.0.tar.gz.snapshot"
+out="$(cd "$T382" && PROJENY_URL_RETRY_SECONDS=1 "$PROJENY" erase-setup \
+    urldead.projeny 2>&1)"
+rc=$?
+if [ $rc -ne 0 ]; then
+    ok "the dead-URL erase check refuses (exits nonzero)"
+else
+    fail "the dead-URL erase check refuses (exits nonzero)" "out: $out"
+fi
+case "$out" in
+*"could not obtain archive 'urldead-1.0.tar.gz' (tried 1 URL line(s); every download failed or did not match its recorded blake3 hash)"*)
+    ok "the check's failed materialization reports the download failure"
+    ;;
+*)
+    fail "the check's failed materialization reports the download failure" \
+         "out: $out"
+    ;;
+esac
+case "$out" in
+*"(continuing without the live diff)"*)
+    ok "the check degrades gracefully (continuing without the live diff)"
+    ;;
+*)
+    fail "the check degrades gracefully (continuing without the live diff)" \
+         "out: $out"
+    ;;
+esac
+nwaitdead382="$(printf '%s\n' "$out" | grep -c "waiting")"
+if [ "$nwaitdead382" -eq 0 ]; then
+    ok "the dead-URL check never prints the waiting note (RETRY_SECONDS=1)"
+else
+    fail "the dead-URL check never prints the waiting note (RETRY_SECONDS=1)" \
+         "got $nwaitdead382 waiting lines (out: $out)"
+fi
+case "$out" in
+*"cannot check 1 of 1 project(s) for uncommitted changes; refusing to erase anything (use --force to erase anyway)"*)
+    ok "the degradation is the unverifiable erase refusal"
+    ;;
+*)
+    fail "the degradation is the unverifiable erase refusal" "out: $out"
+    ;;
+esac
+if [ -f "$T382/urldead/src/a.c" ] && [ -f "$T382/.urldead.projeny.status" ]; then
+    ok "the refusal erases nothing (the checkout and status survive)"
+else
+    fail "the refusal erases nothing (the checkout and status survive)" \
+         "ls: $(ls -A "$T382" 2>&1)"
+fi
+
+# ------------------- 383. rebase and create URL verification retry
+# verify_urls (the rebase/create URL-argument walk) gives the whole walk one
+# retry after a single wait when NOTHING verified on the first pass: the
+# note announces the wait, only the failed URLs are re-attempted, and the
+# all-failed die keeps its exact legacy wording, firing only after the
+# retry. PROJENY_URL_RETRY_SECONDS=0 restores the single-attempt behavior.
+# rebase runs its setup-first fallback before the URL walk, so the checkout
+# exists in every flavor; the pins below are about the URL walk itself.
+T383="$ROOT/t383"
+make_tarballs "$T383" fake
+h383="$("$PROJENY" hash "$T383/fake-2.0.tar.gz")"
+cat > "$T383/serv.py" <<'PYEOF'
+import socket, sys, os
+# The first <fail_first> connections get a bare 404 (curl's FAILONERROR
+# makes that an instant transfer error); every later connection serves the
+# real bytes of the requested file from the docroot, with an honest
+# Content-Length. One connection per transfer (HTTP/1.0 + Connection:
+# close).
+docroot, portfile, fail_first = sys.argv[1], sys.argv[2], int(sys.argv[3])
+s = socket.socket()
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+s.bind(("127.0.0.1", 0))
+s.listen(16)
+open(portfile, "w").write(str(s.getsockname()[1]))
+served = 0
+while True:
+    c, _ = s.accept()
+    try:
+        req = c.recv(65536)
+        path = req.split(b" ")[1].decode(errors="replace").lstrip("/")
+        if served < fail_first:
+            served += 1
+            c.sendall(b"HTTP/1.0 404 Not Found\r\nConnection: close\r\n\r\n")
+        else:
+            with open(os.path.join(docroot, os.path.basename(path)), "rb") as f:
+                body = f.read()
+            c.sendall(b"HTTP/1.0 200 OK\r\nContent-Length: "
+                      + str(len(body)).encode() + b"\r\nConnection: close\r\n\r\n")
+            c.sendall(body)
+    except OSError:
+        pass
+    finally:
+        c.close()
+PYEOF
+# rebase_round_383 <flavor> <fail_first> <seconds|"unset">: a fresh classic
+# Archive: project, one fail-first server over the section docroot, and one
+# URL-argument rebase with the requested retry seconds.
+rebase_round_383() {
+    _d383="$ROOT/t383-$1"
+    rm -rf "$_d383"
+    mkdir -p "$_d383"
+    cp "$T383/fake-2.0.tar.gz" "$_d383/"
+    printf 'Archive: fake-2.0.tar.gz\nOrigname: fake-2.0\nName: classic\n\n    Fake project fake for projeny tests.\n\n' \
+        > "$_d383/classic.projeny"
+    rm -f "$T383/port-$1"
+    python3 "$T383/serv.py" "$T383" "$T383/port-$1" "$2" &
+    SRV383=$!
+    _i383=0
+    while [ ! -s "$T383/port-$1" ] && [ "$_i383" -lt 20 ]; do
+        sleep 0.05
+        _i383=$((_i383 + 1))
+    done
+    P383="$(cat "$T383/port-$1" 2>/dev/null)"
+    if [ -z "$P383" ]; then
+        fail "the rebase_round_383 server starts (flavor $1)" \
+             "port file never appeared"
+        OUT383="(the section 383 server never started; the port file never appeared)"
+        RC383=1
+    elif [ "$3" = unset ]; then
+        OUT383="$(cd "$_d383" && env -u PROJENY_URL_RETRY_SECONDS \
+            "$PROJENY" rebase classic.projeny \
+            "http://127.0.0.1:$P383/fake-2.0.tar.gz" "$h383" 2>&1)"
+        RC383=$?
+    else
+        OUT383="$(cd "$_d383" && env PROJENY_URL_RETRY_SECONDS=$3 \
+            "$PROJENY" rebase classic.projeny \
+            "http://127.0.0.1:$P383/fake-2.0.tar.gz" "$h383" 2>&1)"
+        RC383=$?
+    fi
+    kill "$SRV383" 2>/dev/null
+    wait "$SRV383" 2>/dev/null
+}
+# Flavor 1: the first walk fails, the waited second walk verifies.
+rebase_round_383 retry 1 1
+t383="$(printf '%s' "$OUT383" | tr '\r' '\n')"
+if [ $RC383 -eq 0 ]; then
+    ok "the waited rebase URL walk exits 0"
+else
+    fail "the waited rebase URL walk exits 0" "exit=$RC383 out: $OUT383"
+fi
+case "$OUT383" in
+*"all URL argument(s) failed to produce a verified download; waiting 1 second(s) before trying them one more time"*)
+    ok "the URL walk announces its one wait"
+    ;;
+*)
+    fail "the URL walk announces its one wait" "out: $OUT383"
+    ;;
+esac
+ndl383="$(printf '%s\n' "$t383" | grep -c "downloading 'http://")"
+if [ "$ndl383" -eq 2 ]; then
+    ok "the URL walk attempted the argument once per pass"
+else
+    fail "the URL walk attempted the argument once per pass" \
+         "got $ndl383 downloading lines (out: $OUT383)"
+fi
+if [ "$(head -1 "$ROOT/t383-retry/classic.projeny" 2>/dev/null)" = \
+     "URL: http://127.0.0.1:$P383/fake-2.0.tar.gz $h383" ]; then
+    ok "the successful walk wrote the URL: header with the argument's hash"
+else
+    fail "the successful walk wrote the URL: header with the argument's hash" \
+         "head: $(head -1 "$ROOT/t383-retry/classic.projeny" 2>&1)"
+fi
+if [ "$(grep -c 'int alpha = 2;' "$ROOT/t383-retry/classic/src/a.c" 2>/dev/null)" = "1" ]; then
+    ok "the re-extracted workdir holds the verified v2 bytes"
+else
+    fail "the re-extracted workdir holds the verified v2 bytes" \
+         "a.c: $(cat "$ROOT/t383-retry/classic/src/a.c" 2>&1)"
+fi
+# Flavor 2: every walk fails; the die keeps its legacy wording and the file
+# is left alone.
+rebase_round_383 waitfail 1000 1
+t383="$(printf '%s' "$OUT383" | tr '\r' '\n')"
+if [ $RC383 -ne 0 ]; then
+    ok "the all-fail URL walk exits nonzero"
+else
+    fail "the all-fail URL walk exits nonzero" "out: $OUT383"
+fi
+case "$OUT383" in
+*"all URL argument(s) failed to produce a verified download; waiting 1 second(s) before trying them one more time"*)
+    ok "the all-fail walk still announces its one wait"
+    ;;
+*)
+    fail "the all-fail walk still announces its one wait" "out: $OUT383"
+    ;;
+esac
+case "$OUT383" in
+*"no URL argument produced a verified download; not rebasing '$ROOT/t383-waitfail/classic.projeny' (nothing was changed)"*)
+    ok "the all-fail die keeps its exact legacy wording"
+    ;;
+*)
+    fail "the all-fail die keeps its exact legacy wording" "out: $OUT383"
+    ;;
+esac
+if [ "$(head -1 "$ROOT/t383-waitfail/classic.projeny" 2>/dev/null)" = \
+     "Archive: fake-2.0.tar.gz" ]; then
+    ok "the refused rebase left the .projeny file untouched"
+else
+    fail "the refused rebase left the .projeny file untouched" \
+         "head: $(head -1 "$ROOT/t383-waitfail/classic.projeny" 2>&1)"
+fi
+# Flavor 3: env=0 — one attempt, no wait, the same die.
+rebase_round_383 nowait 1000 0
+t383="$(printf '%s' "$OUT383" | tr '\r' '\n')"
+if [ $RC383 -ne 0 ]; then
+    ok "the env=0 all-fail URL walk exits nonzero"
+else
+    fail "the env=0 all-fail URL walk exits nonzero" "out: $OUT383"
+fi
+nwait383="$(printf '%s\n' "$t383" | grep -c "waiting")"
+if [ "$nwait383" -eq 0 ]; then
+    ok "the env=0 URL walk announces no wait"
+else
+    fail "the env=0 URL walk announces no wait" \
+         "got $nwait383 waiting lines (out: $OUT383)"
+fi
+ndl383="$(printf '%s\n' "$t383" | grep -c "downloading 'http://")"
+if [ "$ndl383" -eq 1 ]; then
+    ok "the env=0 URL walk makes exactly one attempt"
+else
+    fail "the env=0 URL walk makes exactly one attempt" \
+         "got $ndl383 downloading lines (out: $OUT383)"
+fi
+case "$OUT383" in
+*"no URL argument produced a verified download; not rebasing '$ROOT/t383-nowait/classic.projeny' (nothing was changed)"*)
+    ok "the env=0 walk dies with the same legacy wording"
+    ;;
+*)
+    fail "the env=0 walk dies with the same legacy wording" "out: $OUT383"
+    ;;
+esac
+if [ "$(head -1 "$ROOT/t383-nowait/classic.projeny" 2>/dev/null)" = \
+     "Archive: fake-2.0.tar.gz" ]; then
+    ok "the env=0 refusal left the .projeny file untouched"
+else
+    fail "the env=0 refusal left the .projeny file untouched" \
+         "head: $(head -1 "$ROOT/t383-nowait/classic.projeny" 2>&1)"
+fi
+
 
 # ------------------------------------------------------------- summary
 echo "---"
