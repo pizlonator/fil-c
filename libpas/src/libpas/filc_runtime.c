@@ -4484,7 +4484,7 @@ PAS_NO_RETURN void filc_finish_panicking(filc_panic_context* context, const char
     
     if (filc_exit_on_panic) {
         if (!filc_quiet_panic) {
-            PAS_ASSERT(write_panic_context(log_fd, context));
+            (void)write_panic_context(log_fd, context);
             pas_log("[%d] filc panic: %s\n", pas_getpid(), kind_string);
         }
         _exit(42);
@@ -4526,7 +4526,7 @@ PAS_NO_RETURN void filc_finish_panicking(filc_panic_context* context, const char
         }
     }
 
-    PAS_ASSERT(write_panic_context(log_fd, context));
+    (void)write_panic_context(log_fd, context);
     pas_panic("%s\n", kind_string);
 }
 
